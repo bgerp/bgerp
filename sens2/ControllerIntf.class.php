@@ -125,6 +125,18 @@ class sens2_ControllerIntf
     {
         return $this->class->checkConfigForm($form);
     }
+
+
+    /**
+     * След запис на контролера, тук може да се извършат допълнителни действия в драйвера
+     *
+     * @param $rec - запис на контролера, след save
+     */
+    public function afterUpdateController($rec, $isDeleted = false)
+    {
+
+        return $this->class->afterUpdateController($rec, $isDeleted);
+    }
     
     
     /**

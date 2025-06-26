@@ -1689,12 +1689,13 @@ class pos_Receipts extends core_Master
      *
      * @param int $productId
      * @param int $pointId
+     * @param bool $checkFreeQuantity
      * @return double
      */
-    public static function getBiggestQuantity($productId, $pointId)
+    public static function getBiggestQuantity($productId, $pointId, $checkFreeQuantity = false)
     {
         $stores = pos_Points::getStores($pointId);
-        $storeArr = store_Products::getQuantitiesByStore($productId, null, $stores);
+        $storeArr = store_Products::getQuantitiesByStore($productId, null, $stores, $checkFreeQuantity);
         arsort($storeArr);
 
         return $storeArr[key($storeArr)];

@@ -19,7 +19,7 @@ class bgerp_Filters extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'bgerp_Wrapper,plg_State2,plg_Created,plg_RowTools2';
+    public $loadList = 'cond_Wrapper,plg_State2,plg_Created,plg_RowTools2';
 
 
     /**
