@@ -159,7 +159,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             if ($rec->pasive == 'no') {
                 $groupsQuery = cat_Groups::getQuery();
-
+                $groupsQuery->limit(200);
 
                 $i = 0;
                 while ($gRec = $groupsQuery->fetch()) {
@@ -890,6 +890,13 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
                 'scrappedWeight' => $scrapped,
                 'wasteWeight' => $waste
             ];
+        }
+
+        // Премахваме всички записи, където и трите стойности са 0
+        foreach ($recs as $id => $r) {
+            if ($r->weight == 0 && $r->scrappedWeight == 0 && $r->wasteWeight == 0) {
+                unset($recs[$id]);
+            }
         }
 
         return $recs;
