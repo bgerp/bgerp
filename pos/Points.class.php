@@ -387,11 +387,11 @@ class pos_Points extends core_Master
         }
 
         $reportUrl = array();
-        if (pos_Reports::haveRightFor('add', (object) array('pointId' => $rec->id)) && pos_Reports::canMakeReport($rec->id)) {
-            $reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'ret_url' => true);
+        if (pos_Reports::haveRightFor('add', (object) array('pointId' => $rec->id, 'folderId' => $rec->folderId)) && pos_Reports::canMakeReport($rec->id)) {
+            $reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'folderId' => $rec->folderId, 'ret_url' => true);
         }
 
-        $title = (countR($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
+        $title = (countR($reportUrl)) ? 'Създаване на отчет за POS продажби' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
 
         $data->toolbar->addBtn('Отчет', $reportUrl, null, "title={$title},ef_icon=img/16/report.png");
     }
