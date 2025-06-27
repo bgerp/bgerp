@@ -157,12 +157,14 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         if ($rec->pasive == 'no') {
             $groupsQuery = cat_Groups::getQuery();
+            $groupsQuery->limit(5);
 
             while ($gRec = $groupsQuery->fetch()) {
 
                 $details[$gRec->id] = $gRec->name;
 
             }
+
         }
 
         // $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
@@ -176,6 +178,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             if (is_null($form->rec->groups) && $form->rec->groupBy == 'articleGroup') {
                 $form->setError('groups', 'Когато групирането е по групи, трябва да има избрана поне една група');
             }
+
         }
     }
 
@@ -200,7 +203,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         $form->setDefault('pasive', 'yes');
         $form->setDefault('from', '1970-01-01');
-        $form->setDefault('to', dt::today().'23:59:59');
+        $form->setDefault('to', dt::today() . '23:59:59');
 
         if ($rec->type == 'job') {
             $form->setField('employees', 'input=none');
@@ -240,6 +243,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         asort($suggestions);
         $form->setSuggestions('employees', $suggestions);
 
+
     }
 
 
@@ -258,6 +262,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         //СПЕЦИАЛЕН СЛУЧАЙ
         if (($rec->pasive == 'no')) {
             $recs = $this->prepareRecsFromGrFill($rec);
+
             return $recs;
         }
 
@@ -876,6 +881,10 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             // Взимаме ID на групата по име
             $groupId = cat_Groups::fetchField("#name = '{$groupName}'", 'id');
+            if (!$groupId) {
+                $groupId = crc32($groupName);
+            }
+
 
             // Добавяме в резултата
             $recs[$groupId] = (object)[
