@@ -157,7 +157,6 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         if ($rec->pasive == 'no') {
             $groupsQuery = cat_Groups::getQuery();
-            $groupsQuery->limit(5);
 
             while ($gRec = $groupsQuery->fetch()) {
 
@@ -882,7 +881,9 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             // Взимаме ID на групата по име
             $groupId = cat_Groups::fetchField("#name = '{$groupName}'", 'id');
             if (!$groupId) {
-                $groupId = crc32($groupName);
+
+                $groupId = (crc32($groupName) > 0) ? $groupId = crc32($groupName) * (-1) : crc32($groupName);
+
             }
 
 
