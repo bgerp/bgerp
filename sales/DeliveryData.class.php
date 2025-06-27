@@ -476,30 +476,29 @@ class sales_DeliveryData extends core_Manager
                             $quantityInStore = store_Products::getQuantities($productRec->id)->quantity;
                             if ($quantityInStore <= 1) {
                                 $explain .= "<li>------ и няма наличност - ПРОПУСКА СЕ";
-
                                 $ignore = true;
                             }
                         }
                     }
                 } else {
-                    $explain .= "<li>------ приключени задания {$closedJobRec->totalCount}, активно {$activeJobId}";
+                    $explain .= "<li>------ приключени задания '{$closedJobRec->totalCount}', активно '{$activeJobId}'";
                 }
             } else {
-                $explain .= "<li>------  e стандартен";
+                $explain .= "<li>------ e стандартен";
             }
 
             // Количеството е неекспедираното
             if ($ignore === true) {
-                $explain .= "<li>------  няма да му се търси количеството";
+                $explain .= "<li>------ няма да му се търси количеството";
                 $quantity = 0;
             } else {
                 if (isset($shippedProducts[$pId])) {
                     $quantity = $q - $shippedProducts[$pId]->quantity;
 
-                    $explain .= "<li>------  неекспедираното е {$quantity}";
+                    $explain .= "<li>------ неекспедираното е {$quantity}";
                 } else {
                     $quantity = $q;
-                    $explain .= "<li>------  договореното е е {$quantity}";
+                    $explain .= "<li>------ договореното е {$quantity}";
                 }
             }
 
@@ -518,15 +517,15 @@ class sales_DeliveryData extends core_Manager
                 $quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
 
                 $amount = $quantityInStock * $price;
-                $explain .= "<li>------НЯМА задания, сумата му е  наличното {$quantityInStock} * {$price}";
+                $explain .= "<li>------ НЯМА задания, сумата му е  наличното {$quantityInStock} * {$price}";
             }
 
             // Събиране на изпълнената сума за всеки ред
             if (isset($amount)) {
-                $explain .= "<li> ... ще участва в готовността със сума {$amount}";
+                $explain .= "<li>------ ще участва в готовността със сума {$amount}";
                 $readyAmount += $amount;
             } else {
-                $explain .= "<li> ... няма сума";
+                $explain .= "<li>------ няма сума";
             }
 
             $explain .= "<hr />";
@@ -535,13 +534,13 @@ class sales_DeliveryData extends core_Manager
         // Готовността е процента на изпълнената сума от общата
         $readiness = (isset($readyAmount) && !empty($totalAmount)) ? @round($readyAmount / $totalAmount, 2) : null;
 
-        $explain .= "<li> ... Готова сума: {$readyAmount}, обща сума: {$totalAmount}";
+        $explain .= "<li>------ Готова сума: {$readyAmount}, обща сума: {$totalAmount}";
 
         // Подсигуряване че процента не е над 100%
         if ($readiness > 1) {
             $readiness = 1;
         }
-        $explain .= "<li> ... Готовността е: {$readiness}";
+        $explain .= "<li>------ Готовността е: {$readiness}";
 
         // Връщане на изчислената готовност или NULL ако не може да се изчисли
         return $readiness;
