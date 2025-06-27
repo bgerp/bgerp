@@ -261,9 +261,11 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         //СПЕЦИАЛЕН СЛУЧАЙ
         if (($rec->pasive == 'no')) {
             $recs = $this->prepareRecsFromGrFill($rec);
+            $this->summaryListFields ;
 
             return $recs;
         }
+
 
         // ЗАДАВАМЕ ГРУПИРАНЕТО СПОРЕД ИЗБОРА ОТ ФОРМАТА
         if ($rec->groupBy == 'article') {
@@ -723,7 +725,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
-								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър / Период|*</b></small></legend>
                                     <div class='small'>
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
@@ -742,67 +744,67 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         if (isset($data->rec->to)) {
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->to) . '</b>', 'to');
         }
+        if ( $data->rec->type == 'yes') {
+            if ($data->rec->type == 'job') {
+                if (isset($data->rec->dealers)) {
+                    $fieldTpl->append('<b>' . $Users->toVerbal($data->rec->dealers) . '</b>', 'dealers');
 
-        if ($data->rec->type == 'job') {
-            if (isset($data->rec->dealers)) {
-                $fieldTpl->append('<b>' . $Users->toVerbal($data->rec->dealers) . '</b>', 'dealers');
+                } else {
+                    $fieldTpl->append('<b>' . "Всички" . '</b>', 'dealers');
+                }
 
-            } else {
-                $fieldTpl->append('<b>' . "Всички" . '</b>', 'dealers');
-            }
+                if (isset($data->rec->groups)) {
+                    $marker = 0;
+                    foreach (keylist::toArray($data->rec->groups) as $val) {
+                        $marker++;
+                        $valVerb = cat_Groups::getTitleById($val);
 
-            if (isset($data->rec->groups)) {
-                $marker = 0;
-                foreach (keylist::toArray($data->rec->groups) as $val) {
-                    $marker++;
-                    $valVerb = cat_Groups::getTitleById($val);
+                        if ((countR(type_Keylist::toArray($data->rec->groups))) - $marker != 0) {
+                            $valVerb .= ', ';
+                        }
 
-                    if ((countR(type_Keylist::toArray($data->rec->groups))) - $marker != 0) {
-                        $valVerb .= ', ';
+
+                        $fieldTpl->append('<b>' . $valVerb . '</b>', 'groups');
                     }
-
-
-                    $fieldTpl->append('<b>' . $valVerb . '</b>', 'groups');
+                } else {
+                    $fieldTpl->append('<b>' . "Всички" . '</b>', 'groups');
                 }
             } else {
-                $fieldTpl->append('<b>' . "Всички" . '</b>', 'groups');
-            }
-        } else {
 
-            if (isset($data->rec->assetResources)) {
-                $marker = 0;
-                foreach (keylist::toArray($data->rec->assetResources) as $val) {
-                    $marker++;
-                    $valVerb = planning_AssetResources::getHyperlink($val);
+                if (isset($data->rec->assetResources) ) {
+                    $marker = 0;
+                    foreach (keylist::toArray($data->rec->assetResources) as $val) {
+                        $marker++;
+                        $valVerb = planning_AssetResources::getHyperlink($val);
 
-                    if ((countR(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
-                        $valVerb .= ', ';
+                        if ((countR(type_Keylist::toArray($data->rec->assetResources))) - $marker != 0) {
+                            $valVerb .= ', ';
+                        }
+
+                        $fieldTpl->append('<b>' . $valVerb . '</b>', 'assetResources');
                     }
-
-                    $fieldTpl->append('<b>' . $valVerb . '</b>', 'assetResources');
+                } else {
+                    $fieldTpl->append('<b>' . "Всички" . '</b>', 'assetResources');
                 }
-            } else {
-                $fieldTpl->append('<b>' . "Всички" . '</b>', 'assetResources');
-            }
 
-            if (isset($data->rec->employees)) {
-                $marker = 0;
-                foreach (keylist::toArray($data->rec->employees) as $val) {
-                    $marker++;
-                    $valVerb = crm_Persons::getTitleById($val);
+                if (isset($data->rec->employees)) {
+                    $marker = 0;
+                    foreach (keylist::toArray($data->rec->employees) as $val) {
+                        $marker++;
+                        $valVerb = crm_Persons::getTitleById($val);
 
-                    if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
-                        $valVerb .= ', ';
+                        if ((countR(type_Keylist::toArray($data->rec->employees))) - $marker != 0) {
+                            $valVerb .= ', ';
+                        }
+
+                        $fieldTpl->append('<b>' . $valVerb . '</b>', 'employees');
                     }
-
-                    $fieldTpl->append('<b>' . $valVerb . '</b>', 'employees');
+                } else {
+                    $fieldTpl->append('<b>' . "Всички" . '</b>', 'employees');
                 }
-            } else {
-                $fieldTpl->append('<b>' . "Всички" . '</b>', 'employees');
-            }
 
+            }
         }
-
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 
@@ -865,7 +867,9 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
         // Преобразуваме JSON форматираното поле в масив
         $grFillData = (array)json_decode($rec->GrFill, true);
-
+        if (empty($grFillData)) {
+            return $recs;
+        }
         // Обхождаме всяка група по индекс
         foreach ($grFillData['grp'] as $i => $groupName) {
             // Тегло, брак и отпадък от съответната колона
