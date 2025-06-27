@@ -177,7 +177,8 @@ class pos_ReportDetails extends core_Manager
                 }
             }
 
-            deals_Helper::getQuantityHint($row->quantity, $this, $obj->value, $obj->storeId, $obj->quantity, $rec->state, $rec->valior);
+            $quantity = $obj->quantity * $obj->quantityInPack;
+            deals_Helper::getQuantityHint($row->quantity, $this, $obj->value, $obj->storeId, $quantity, $rec->state, $rec->valior);
 
         } else {
 
