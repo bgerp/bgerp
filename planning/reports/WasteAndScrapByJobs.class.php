@@ -261,7 +261,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         //СПЕЦИАЛЕН СЛУЧАЙ
         if (($rec->pasive == 'no')) {
             $recs = $this->prepareRecsFromGrFill($rec);
-            $this->summaryListFields ;
+            $this->summaryListFields = '' ;
 
             return $recs;
         }
