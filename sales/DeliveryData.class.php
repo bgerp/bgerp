@@ -528,6 +528,8 @@ class sales_DeliveryData extends core_Manager
             } else {
                 $explain .= "<li> ... няма сума";
             }
+
+            $explain .= "<hr />";
         }
 
         // Готовността е процента на изпълнената сума от общата
