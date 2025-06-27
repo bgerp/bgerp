@@ -353,6 +353,7 @@ class sales_DeliveryData extends core_Manager
      * Изчислява готовността на продажбата
      *
      * @param stdClass $saleRec - запис на продажба
+     * @param null|string $explain - описание на изчислението
      *
      * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
      */
