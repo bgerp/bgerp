@@ -909,6 +909,9 @@ class pos_Receipts extends core_Master
         // Ако е забранено продаването на неналични артикули да се проверява
         if (store_Setup::canDoShippingWhenStockIsNegative()) return true;
 
+        $instantBomRec = cat_Products::getLastActiveBom($rec->productId, 'instant');
+        if(is_object($instantBomRec)) return true;
+
         $today = dt::today();
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
         $stRec = store_Products::getQuantities($rec->productId, $rec->storeId, $today);
