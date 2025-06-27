@@ -47,6 +47,12 @@ class sales_DeliveryData extends core_Manager
 
 
     /**
+     * Кой може да изчислява една готовност?
+     */
+    public $canRecalcreadiness = 'debug';
+
+
+    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'no_one';
@@ -89,6 +95,10 @@ class sales_DeliveryData extends core_Manager
             $Document = doc_Containers::getDocument($rec->containerId);
             $row->containerId = $Document->getLink(0);
             $row->containerId = "<span class= 'state-{$Document->fetchField('state')} document-handler'>{$row->containerId}</span>";
+        }
+
+        if($mvc->haveRightFor('recalcreadiness', $rec)){
+            $row->readiness .= ht::createLink('', array($mvc, 'recalcreadiness', $rec->id), false, 'ef_icon=img/16/arrow_refresh.png');
         }
     }
 
@@ -343,18 +353,19 @@ class sales_DeliveryData extends core_Manager
      * Изчислява готовността на продажбата
      *
      * @param stdClass $saleRec - запис на продажба
+     * @param null|string $explain - описание на изчислението
      *
      * @return float|NULL - готовност между 0 и 1, или NULL ако няма готовност
      */
-    public static function calcSaleReadiness($saleRec)
+    public static function calcSaleReadiness($saleRec, &$explain = null)
     {
-
         // На не чакащите и не активни не се изчислява готовността
         if ($saleRec->state != 'pending' && $saleRec->state != 'active') return;
 
         // На бързите продажби също не се изчислява
         if (strpos($saleRec->contoActions, 'ship') !== false) return;
 
+        $explain .= "Изчисляване <hr />";
         // Взимане на договорените и експедираните артикули по продажбата (събрани по артикул)
         $Sales = sales_Sales::getSingleton();
         core_Debug::startTimer('GET_DEAL_DATA');
@@ -365,6 +376,8 @@ class sales_DeliveryData extends core_Manager
 
         $agreedProducts = $dealInfo->get('products');
         $shippedProducts = $dealInfo->get('shippedProducts');
+
+        $explain .= "<li> Договорени: " . countR($agreedProducts) . " - Експедирани: " . countR($shippedProducts);
 
         $totalAmount = 0;
         $readyAmount = null;
@@ -382,6 +395,8 @@ class sales_DeliveryData extends core_Manager
         $notPublicIds = array_filter($pRecs, function($pRec) {
             return $pRec->isPublic == 'no';
         });
+
+        $explain .= "<li> от тях нестандартни: " . countR($notPublicIds);
 
         $aJobQuery = planning_Jobs::getQuery();
         $aJobQuery->where("#saleId = {$saleRec->id}");
@@ -416,6 +431,8 @@ class sales_DeliveryData extends core_Manager
         core_Debug::stopTimer('GET_JOB_DATA');
 
         // За всеки договорен артикул
+        $explain .= "<li> Обикаляме артикулите";
+
         foreach ($agreedProducts as $pId => $pRec) {
             $productRec = $pRecs[$pId];
             if ($productRec->canStore != 'yes') continue;
@@ -431,8 +448,10 @@ class sales_DeliveryData extends core_Manager
             // Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея
             $q = $pRec->quantity;
 
+            $explain .= "<li> Артикул: Art{$pId} с к-во {$q} и цена {$price}";
             $ignore = false;
             if ($productRec->isPublic == 'no') {
+                $explain .= "<li>--- e нестандартен";
 
                 // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
                 $closedJobRec = $closedJobArr[$pId];
@@ -440,36 +459,53 @@ class sales_DeliveryData extends core_Manager
 
                 // Ако има приключени задания и няма други активни, се приема че е готово
                 if ($closedJobRec->totalCount && !$activeJobId) {
+                    $explain .= "<li>------ има приключени, но няма активни задания";
 
                     $q = $closedJobRec->totalQuantity;
                     $amount = $q * $price;
+                    $explain .= "<li>------ сумата му е {$q} * {$price}";
 
                     // Ако има експедирано и то е над 90% от заскалденото, ще се маха продажбата
                     if (isset($shippedProducts[$pId])) {
+                        $explain .= "<li>------ има и експедирано";
+
                         $produced = $closedJobRec->totalQuantityProduced;
                         if ($shippedProducts[$pId]->quantity >= ($produced * 0.9)) {
+                            $explain .= "<li>------ експедираното {$shippedProducts[$pId]->quantity} е над " . $produced * 0.9 . " при произведено {$closedJobRec->totalQuantityProduced}";
+
                             $quantityInStore = store_Products::getQuantities($productRec->id)->quantity;
                             if ($quantityInStore <= 1) {
+                                $explain .= "<li>------ и няма наличност - ПРОПУСКА СЕ";
+
                                 $ignore = true;
                             }
                         }
                     }
+                } else {
+                    $explain .= "<li>------ приключени задания {$closedJobRec->totalCount}, активно {$activeJobId}";
                 }
+            } else {
+                $explain .= "<li>------  e стандартен";
             }
 
             // Количеството е неекспедираното
             if ($ignore === true) {
+                $explain .= "<li>------  няма да му се търси количеството";
                 $quantity = 0;
             } else {
                 if (isset($shippedProducts[$pId])) {
                     $quantity = $q - $shippedProducts[$pId]->quantity;
+
+                    $explain .= "<li>------  неекспедираното е {$quantity}";
                 } else {
                     $quantity = $q;
+                    $explain .= "<li>------  договореното е е {$quantity}";
                 }
             }
 
             // Ако всичко е експедирано се пропуска реда
             if ($quantity <= 0) {
+                $explain .= "<li>------  ще се пропуска";
                 continue;
             }
 
@@ -482,27 +518,34 @@ class sales_DeliveryData extends core_Manager
                 $quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
 
                 $amount = $quantityInStock * $price;
+                $explain .= "<li>------НЯМА задания, сумата му е  наличното {$quantityInStock} * {$price}";
             }
 
             // Събиране на изпълнената сума за всеки ред
             if (isset($amount)) {
+                $explain .= "<li> ... ще участва в готовността със сума {$amount}";
                 $readyAmount += $amount;
+            } else {
+                $explain .= "<li> ... няма сума";
             }
+
+            $explain .= "<hr />";
         }
 
         // Готовността е процента на изпълнената сума от общата
         $readiness = (isset($readyAmount) && !empty($totalAmount)) ? @round($readyAmount / $totalAmount, 2) : null;
 
+        $explain .= "<li> ... Готова сума: {$readyAmount}, обща сума: {$totalAmount}";
+
         // Подсигуряване че процента не е над 100%
         if ($readiness > 1) {
             $readiness = 1;
         }
+        $explain .= "<li> ... Готовността е: {$readiness}";
 
         // Връщане на изчислената готовност или NULL ако не може да се изчисли
         return $readiness;
     }
-
-
 
 
     /**
@@ -570,5 +613,40 @@ class sales_DeliveryData extends core_Manager
             $url = array('core_Cron', 'ProcessRun', str::addHash($cronRec->id), 'forced' => 'yes');
             $data->toolbar->addBtn('Обновяване', $url, 'title=Обновяване на модела,ef_icon=img/16/arrow_refresh.png,target=cronjob');
         }
+    }
+
+
+    /**
+     * Извиква се след изчисляването на необходимите роли за това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        if($action == 'recalcreadiness' && isset($rec)){
+            $Doc = doc_Containers::getDocument($rec->containerId);
+            if(!$Doc->isInstanceOf('sales_Sales')){
+                $res = 'no_one';
+            } else {
+                $state = $Doc->fetchField('state');
+                if(!in_array($state, array('pending', 'active'))){
+                    $res = 'no_one';
+                }
+            }
+        }
+    }
+
+    function act_recalcreadiness()
+    {
+        $this->requireRightFor('recalcreadiness');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = self::fetch($id));
+        $this->requireRightFor('recalcreadiness', $rec);
+
+        $Sale = doc_Containers::getDocument($rec->containerId);
+        $explain = "<li>" . $Sale->getHyperlink(0);
+        $readiness = self::calcSaleReadiness($Sale->fetch(), $explain);
+
+        echo $explain;
+
+        bp($readiness);
     }
 }
