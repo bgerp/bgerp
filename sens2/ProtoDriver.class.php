@@ -95,6 +95,16 @@ class sens2_ProtoDriver extends core_BaseClass
     public function checkConfigForm($form)
     {
     }
+
+
+    /**
+     * След запис на контролера, тук може да се извършат допълнителни действия в драйвера
+     *
+     * @param $rec - запис на контролера, след save
+     */
+    public function afterUpdateController($rec, $isDeleted = false)
+    {
+    }
     
     
     /**

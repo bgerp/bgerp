@@ -2274,7 +2274,7 @@ class pos_Terminal extends peripheral_Terminal
                 $res[$id]->CLASS .= ' notSellable';
             }
 
-            $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId) : null;
+            $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId, true) : null;
             if(cat_UoM::isWeightMeasure($packId, true)){
                 $res[$id]->weightMeasure = cat_UoM::fetchField($packId, 'sysId');
             }

@@ -751,11 +751,8 @@ class pos_ReceiptDetails extends core_Detail
 
             $error = $warningQuantity = null;
             if ($rec->_canStore == 'yes') {
-                $instantBomRec = cat_Products::getLastActiveBom($rec->productId, 'instant');
-                if(!$instantBomRec){
-                    if(!pos_Receipts::checkQuantity($rec, $error, $warningQuantity)){
-                        expect(false, $error);
-                    }
+                if(!pos_Receipts::checkQuantity($rec, $error, $warningQuantity)){
+                    expect(false, $error);
                 }
             }
 

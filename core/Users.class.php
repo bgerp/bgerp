@@ -1063,9 +1063,9 @@ class core_Users extends core_Manager
                 }
                 
                 $layout->append($form->renderHtml($form->InputFields, $inputs), 'FORM');
-                
-                $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
+
                 if (!Mode::is('modalLogin')) {
+                    $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
                     $layout->prepend("\n<meta name=\"robots\" content=\"noindex\">", 'HEAD');
                 }
 

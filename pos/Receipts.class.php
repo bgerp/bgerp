@@ -909,6 +909,9 @@ class pos_Receipts extends core_Master
         // Ако е забранено продаването на неналични артикули да се проверява
         if (store_Setup::canDoShippingWhenStockIsNegative()) return true;
 
+        $instantBomRec = cat_Products::getLastActiveBom($rec->productId, 'instant');
+        if(is_object($instantBomRec)) return true;
+
         $today = dt::today();
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
         $stRec = store_Products::getQuantities($rec->productId, $rec->storeId, $today);
@@ -1689,12 +1692,13 @@ class pos_Receipts extends core_Master
      *
      * @param int $productId
      * @param int $pointId
+     * @param bool $checkFreeQuantity
      * @return double
      */
-    public static function getBiggestQuantity($productId, $pointId)
+    public static function getBiggestQuantity($productId, $pointId, $checkFreeQuantity = false)
     {
         $stores = pos_Points::getStores($pointId);
-        $storeArr = store_Products::getQuantitiesByStore($productId, null, $stores);
+        $storeArr = store_Products::getQuantitiesByStore($productId, null, $stores, $checkFreeQuantity);
         arsort($storeArr);
 
         return $storeArr[key($storeArr)];

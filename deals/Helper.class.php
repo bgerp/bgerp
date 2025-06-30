@@ -924,6 +924,9 @@ abstract class deals_Helper
             if ($futureQuantity < 0 && $freeQuantity < 0) {
                 if($showNegativeWarning){
                     $hint = "Недостатъчна наличност|*(2): {$inStockVerbal} |{$measureName}|*! |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    if(haveRole('debug')) {
+                        $hint .= " (debug) количество: {$quantity}, бъдещо: {$futureQuantity}, разполагаемо {$freeQuantity} (текущо разп. {$freeQuantityOriginal}), налично {$stRec->quantity}";
+                    }
                     $class = 'doc-negative-quantity';
                     $makeLink = false;
                 }

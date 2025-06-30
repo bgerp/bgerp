@@ -105,6 +105,12 @@ class sens2_Controllers extends core_Master
      * Детайл за входно-изходните портове
      */
     public $details = 'sens2_IOPorts,sens2_Indicators';
+
+
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id, name, driver, config, persistentState';
     
     
     /**
@@ -340,6 +346,35 @@ class sens2_Controllers extends core_Master
             }
         }
     }
+
+
+    /**
+     * Изпълнява се след запис на перо
+     * Предизвиква обновяване на обобщената информация за перата
+     */
+    protected static function on_AfterSave($mvc, $id, $rec)
+    {
+        if ($rec->driver) {
+            $drv = cls::get($rec->driver);
+            $drv->afterUpdateController($rec, false);
+        }
+    }
+
+
+    /**
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
+     */
+    public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        // След изтриване, форсираме преизчисляването на консумациите
+        foreach ($query->getDeletedRecs() as $rec) {
+            if ($rec->driver) {
+                $drv = cls::get($rec->driver);
+                $drv->afterUpdateController($rec, true);
+            }
+        }
+    }
+
     
 
     /**
@@ -692,7 +727,7 @@ class sens2_Controllers extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($action == 'delete') {
-            if ($rec->state != 'closed') {
+            if ($rec && $rec->state != 'closed') {
                 $res = 'no_one';
             }
         }
