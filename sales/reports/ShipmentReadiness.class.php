@@ -96,10 +96,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     {
         $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,after=title,single=none');
         $fieldset->FLD('dealerType', 'enum(,dealer=Търговец,inCharge=Отговорник на папка)', 'caption=Потребителят е,after=dealers,single=none,placeholder=Търговец или отговорник');
-        $fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Държави,after=dealerType,single=none');
-        $fieldset->FLD('ignore', 'enum(,yes=Без избраните държави)', 'caption=Игнориране,after=countries,single=none');
-        $fieldset->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка,placeholder=Всички условия,after=ignore');
-        $fieldset->FLD('termsIgnore', 'enum(,yes=Без избраните условия)', 'caption=Игнориране,after=terms');
+        $fieldset->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonNameBg,allowEmpty)', 'caption=Доставка->Държави,after=dealerType,single=none');
+        $fieldset->FLD('countryType', 'enum(contragent=на контрагента,delivery=на доставка)', 'caption=Доставка->Държава,after=countries,single=none');
+        $fieldset->FLD('ignore', 'enum(,yes=Без избраните държави)', 'caption=Доставка->Игнориране,after=countryType,single=none');
+        $fieldset->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,placeholder=Всички условия,after=ignore');
+        $fieldset->FLD('termsIgnore', 'enum(,yes=Без избраните условия)', 'caption=Доставка->Игнориране,after=terms');
         $fieldset->FLD('precision', 'percent(min=0,max=1)', 'caption=Готовност,unit=и нагоре,after=termsIgnore');
         $fieldset->FLD('horizon', 'time(uom=days,Min=0)', 'caption=Падиращи до,after=precision');
         $fieldset->FLD('orderBy', 'enum(readiness=Готовност,contragents=Клиенти,execDate=Срок за изпълнение,dueDate=Дата на падеж)', 'caption=Подредба,after=horizon');
@@ -383,6 +384,11 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         
         if (isset($data->rec->countries)) {
             $countryCaption = ($data->rec->ignore == 'yes') ? tr('Без държави') : tr('Държави');
+            if($data->rec->countryType == 'delivery') {
+                $countryCaption .= " (" . tr('на доставка') . ")";
+            } else {
+                $countryCaption .= " (" . tr('на клиента') . ")";
+            }
             $fieldTpl->append($countryCaption, 'COUNTRY_CAPTION');
         }
 
@@ -456,7 +462,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         }
 
         $saleRecs = $sQuery->fetchAll();
-        $deliveryData = array();
+        $deliveryData = $folderContragentCountries = array();
         $dQuery = sales_DeliveryData::getQuery();
         $dQuery->in('containerId', arr::extractValuesFromArray($saleRecs, 'containerId'));
         $dQuery->show('countryId,containerId,readiness');
@@ -469,7 +475,16 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             
             // Ако има филтър по държава
             if ($cCount) {
-                $contragentCountryId = $deliveryData[$sRec->containerId]->countryId;
+                if($rec->countryType != 'delivery'){
+                    if(!array_key_exists($sRec->folderId, $folderContragentCountries)){
+                        $Cover = doc_Folders::getCover($sRec->folderId);
+                        $folderContragentCountries[$sRec->folderId] = $Cover->fetchField('country');
+                    }
+                    $contragentCountryId = $folderContragentCountries[$sRec->folderId];
+                } else {
+                    $contragentCountryId = $deliveryData[$sRec->containerId]->countryId;
+                }
+
                 if ($rec->ignore == 'yes') {
                     if (array_key_exists($contragentCountryId, $countries)) continue;
                 } else {
