@@ -545,8 +545,13 @@ class store_InventoryNoteSummary extends doc_Detail
         // Ако форсира нов запис изчислява колко е очакваното от баланса
         $noteRec = store_InventoryNotes::fetch($noteId);
         $storeItemId = acc_Items::fetchItem('store_Stores', $noteRec->storeId)->id;
-        $to = dt::addDays(-1, $noteRec->valior);
-        $to = dt::verbal2mysql($to, false);
+
+        $to = $noteRec->valior;
+        if($noteRec->instockTo == 'dayBefore'){
+            $to = dt::addDays(-1, $noteRec->valior);
+            $to = dt::verbal2mysql($to, false);
+        }
+
         $from = dt::addMonths(-2, $to);
         $from = dt::verbal2mysql($from, false);
 
