@@ -611,7 +611,7 @@ class cash_InternalMoneyTransfer extends core_Master
     protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        if($rec->operationSysId == 'nonecash2bank' && isset($rec->amountDetails)){
+        if($rec->operationSysId == 'nonecash2bank' && !empty($rec->amountDetails)){
             if(round($rec->amount, 2) != round($rec->amountDetails, 2)){
                 core_Statuses::newStatus('Въведената сума се различава от очакваната за инкасиране - трябва да се уеднаквят|*!', 'warning');
 
@@ -690,7 +690,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $rec = $this->fetchRec($id);
 
         // Изчисляване на сумата на база събраните плащания за инкасиране
-        $amount = 0;
+        $amount = null;
         $dQuery = cash_InternalMoneyTransferDetails::getQuery();
         $dQuery->EXT('paymentId', 'cash_NonCashPaymentDetails', 'externalName=paymentId,externalKey=recId');
         $dQuery->where("#transferId = {$rec->id}");
@@ -701,6 +701,7 @@ class cash_InternalMoneyTransfer extends core_Master
 
         $this->save($rec, 'amountDetails');
     }
+
 
     /**
      * Реакция в счетоводния журнал при оттегляне на счетоводен документ
