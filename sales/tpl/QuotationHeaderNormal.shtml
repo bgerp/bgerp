@@ -13,7 +13,7 @@
                         <!--ET_END clonedFromId-->
                         <!--ET_BEGIN buzPlace-->
                         <div class='quiet-small'>|Място|*</div>
-                        <div><b>[#buzPlace#]</b></div>
+                        <div><b>[#qPlace#]</b></div>
                         <!--ET_END buzPlace-->
                         <!--ET_BEGIN reff-->
                         <div class='quiet-small'>|Ваш реф. №|*</div>

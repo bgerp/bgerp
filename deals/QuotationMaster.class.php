@@ -128,6 +128,7 @@ abstract class deals_QuotationMaster extends core_Master
     {
         $mvc->FLD('date', 'date', 'caption=Дата');
         $mvc->FLD('reff', 'varchar(255,nullIfEmpty)', 'caption=Ваш реф.,class=contactData');
+        $mvc->FLD('qPlace', 'varchar(255,nullIfEmpty)', 'caption=Място');
 
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $mvc->FLD('contragentId', 'int', 'input=hidden');
@@ -568,14 +569,10 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
-            if (!empty($profRec)) {
-                $createdRec = crm_Persons::fetch($profRec->id);
-            }
-
-            $buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
-            if ($buzAddress) {
-                $row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
-                $row->buzPlace = core_Lg::transliterate($row->buzPlace);
+            // Ако няма място - това е мястото на "Моята фирма"
+            if (empty($rec->qPlace)) {
+                $qPlaceVerbal = cls::get('type_Varchar')->toVerbal($ownCompanyData->place);
+                $row->qPlace = core_Lg::transliterate($qPlaceVerbal);
             }
 
             if(!empty($row->deliveryPlaceId)){
