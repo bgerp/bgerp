@@ -11,10 +11,10 @@
                         <!--ET_BEGIN clonedFromId-->
                         <div style='font-size:0.8em'>(|клонирано от|* [#clonedFromId#])</div>
                         <!--ET_END clonedFromId-->
-                        <!--ET_BEGIN buzPlace-->
+                        <!--ET_BEGIN qPlace-->
                         <div class='quiet-small'>|Място|*</div>
-                        <div><b>[#buzPlace#]</b></div>
-                        <!--ET_END buzPlace-->
+                        <div><b>[#qPlace#]</b></div>
+                        <!--ET_END qPlace-->
                         <!--ET_BEGIN reff-->
                         <div class='quiet-small'>|Ваш реф. №|*</div>
                         <div><b>[#reff#]</b></div>

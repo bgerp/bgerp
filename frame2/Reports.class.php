@@ -1398,4 +1398,15 @@ class frame2_Reports extends embed_Manager
         
         return 'img/16/error-red.png';
     }
+
+
+    /**
+     * Връща урл-то към всички записи
+     */
+    protected static function on_AfterGetAllBtnUrl($mvc, &$res, $rec)
+    {
+        if(is_array($res) && countR($res)){
+            $res['driverClass'] = $rec->driverClass;
+        }
+    }
 }
