@@ -152,11 +152,22 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
 
             if (!$code) continue;
 
-            $productId = cat_Products::getByCode($code);
+            $prodByCode = cat_Products::getByCode($code);
+            $productId = $prodByCode ? $prodByCode->productId : null;
 
-            $pRec = cat_Products::fetch($productId);
+            if ($productId) {
+                $pRec = cat_Products::fetch($productId);
+                $prodName = $pRec->name;
+                $measureId = $pRec->measureId;
+            } else {
+                // Ако не се открие артикул – записваме празни стойности
+                $productId = null;
+                $prodName = '';
+                $measureId = null;
 
-            if (!$pRec || !$pRec->code) continue;
+                // По желание можеш да добавиш и съобщение
+                status_Messages::newStatus("Липсва артикул с код <b>{$code}</b>", 'warning');
+            }
 
             $recs[$code] = (object)[
                 'productId' => $productId,
