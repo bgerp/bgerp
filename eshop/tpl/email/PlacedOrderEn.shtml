@@ -2,7 +2,7 @@
 
 We sincerely thank you for your order [b][#SALE_HANDLER#][/b] from our online store!
 
-[b]Purchase Details[/b]:
+🔍 [b]Purchase Details[/b]:
 ● [b]Payment[/b]: [#PAYMENT_NAME#]<!--ET_BEGIN PAYMENT_AMOUNT-->, [b][#PAYMENT_AMOUNT#][/b]<!--ET_END PAYMENT_AMOUNT-->.<!--ET_BEGIN PAYMENT_TEXT-->
 [#PAYMENT_TEXT#]<!--ET_END PAYMENT_TEXT-->
 <!--ET_BEGIN TERM_ID-->● [b]Delivery[/b]: [#TERM_ID#] [#DELIVERY_COUNTRY#]<!--ET_BEGIN PLACE-->, [#PLACE#]<!--ET_END PLACE--><!--ET_BEGIN ADDRESS-->, [#ADDRESS#]<!--ET_END ADDRESS-->.<!--ET_END TERM_ID--><!--ET_BEGIN PROBLEM_WITH_DELIVERY-->
@@ -23,6 +23,8 @@ By registering, you will gain:
 ● Easy access to your order history.
 ● Quick form filling for new purchases.
 ● Exclusive offers and promotions!<!--ET_END REGISTER_LINK--><!--ET_BEGIN EXPECTED_DELIVERY-->
+
+🕗 [b]Важно[/b]:
 [#EXPECTED_DELIVERY#]<!--ET_END EXPECTED_DELIVERY--><!--ET_BEGIN CONTACT_INFO-->[#CONTACT_INFO#]
 
 💬 [b]Have questions or need assistance?[/b]
