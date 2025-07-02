@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,7 +38,7 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
      *
      * @var int
      */
-    protected $sortableListFields;
+    protected $sortableListFields = 'endQuantity,endAmount';
 
 
     /**
@@ -84,26 +84,12 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('products', 'fileman_FileType(bucket=reports)', 'caption=Файл с Артикули,placeholder=Избери,after=source,removeAndRefreshForm,silent,single=none,class=w100,input');
+        $fieldset->FLD('products', 'fileman_FileType(bucket=reports)', 'caption=Файл с Артикули,placeholder=Избери,after=title,removeAndRefreshForm,silent,single=none,class=w100,input');
 
         // Период на справката
-        $fieldset->FLD('from', 'date',
-            'caption=От,after=title,single=none,mandatory');
-        $fieldset->FLD('to', 'date',
-            'caption=До,after=from,single=none,mandatory');
+        $fieldset->FLD('from', 'date', 'caption=От,after=products,single=none,mandatory');
+        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-//        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=date,single=none');
-//
-//        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=selfPrices,single=none');
-
-//        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
-
-        $fieldset->FLD('orderBy', 'enum(productName=Артикул,code=Код,amount=Стойност)', 'caption=Филтри->Подреди по,maxRadio=4,columns=4,after=availability,silent');
-
- //       $fieldset->FLD('seeByGroups', 'enum(no=Без разбивка,checked=Само за избраните,subGroups=Включи подгрупите)', 'notNull,caption=Филтри->"Общо" по групи,after=orderBy, single=none');
-
-        $fieldset->FNC('totalProducts', 'int', 'input=none,single=none');
-        $fieldset->FNC('sumByGroup', 'blob', 'input=none,single=none');
     }
 
 
@@ -118,10 +104,6 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
-
-            if (isset($form->rec->workingPdogresOn) && $form->rec->workingPdogresOn == 'included' && ($form->rec->type == 'long')) {
-                $form->setError('type', 'Незавършено производство може да се включи само при избран вариант "Кратка".');
-            }
 
         }
     }
@@ -139,32 +121,11 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
         $form = $data->form;
         $rec = $form->rec;
 
+        $form->setDefault('from', '1970-01-01');
+        $form->setDefault('to', dt::today() . '23:59:59');
         $form->setDefault('seeByGroups', 'no');
         $form->setDefault('orderBy', 'name');
 
-
-        $sQuery = store_Stores::getQuery();
-
-        $sQuery->where("#state != 'rejected'");
-
-        $sQuery->show('id, name,state');
-
-        $suggestions = array();
-        while ($sRec = $sQuery->fetch()) {
-            if (!is_null($sRec->name)) {
-                $suggestions[$sRec->id] = $sRec->name;
-            }
-        }
-
-        asort($suggestions);
-
-        $form->setSuggestions('storeId', $suggestions);
-
-        $suggestions1 = array();
-
-        $suggestions1 = cat_Products::getProducts(null, null, null, 'canStore', null, null, false, null);
-
-        $form->setSuggestions('products', $suggestions1);
     }
 
 
@@ -177,17 +138,63 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
-
     {
+        $recs = [];
 
-        $date = (is_null($rec->date)) ? dt::today() : $rec->date;
+        if (empty($rec->products)) return $recs;
 
-        $recs = array();
+        $fRec = fileman_Files::fetchByFh($rec->products);
+        expect($fRec, 'Липсва файл за импортиране');
 
+        $csv = csv_Lib::getCsvRowsFromFile(fileman::extractStr($fRec->fileHnd), ['skip' => '@']);
+
+        foreach ((array)$csv['data'] as $row) {
+            $code = trim($row[1] ?? '');
+            $startQuantity = (float)str_replace(',', '.', $row[2] ?? 0);
+            $startAmount = (float)str_replace(',', '.', $row[3] ?? 0);
+
+            if (!$code) continue;
+
+            $recs[$code] = (object)[
+                'productId' => '',
+                'code' => $code,
+                'prodName' => '',
+                'measureId' => '',
+                'startQuantity' => $startQuantity,
+                'startAmount' => $startAmount,
+                'inQuantity' => 0.0,
+                'inAmount' => 0.0,
+                'outQuantity' => 0.0,
+                'outAmount' => 0.0,
+                'endQuantity' => 0.0,
+                'endAmount' => 0.0,
+            ];
+        }
+
+        $this->fillInQuantitiesAndAmountsFromPurchases($rec, $recs);
+        $this->fillOutQuantitiesAndAmountsFromSales($rec, $recs);
+
+        foreach ($recs as &$r) {
+            // Преобразуване към числови стойности, ако не са
+            $startQty = is_numeric($r->startQuantity) ? (float)$r->startQuantity : 0.0;
+            $inQty = is_numeric($r->inQuantity) ? (float)$r->inQuantity : 0.0;
+            $outQty = is_numeric($r->outQuantity) ? (float)$r->outQuantity : 0.0;
+
+            $startAmt = is_numeric($r->startAmount) ? (float)$r->startAmount : 0.0;
+            $inAmt = is_numeric($r->inAmount) ? (float)$r->inAmount : 0.0;
+            $outAmt = is_numeric($r->outAmount) ? (float)$r->outAmount : 0.0;
+
+            // Крайни стойности
+            $r->endQuantity = $startQty + $inQty - $outQty;
+            $r->endAmount = $startAmt + $inAmt - $outAmt;
+        }
+
+        if (countR($recs)) {
+            arr::sortObjects($recs, 'prodName', 'asc');
+        }
 
         return $recs;
     }
-
 
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
@@ -201,27 +208,40 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
     {
         $fld = cls::get('core_FieldSet');
 
-        $fld->FLD('groupOne', 'varchar', 'caption=Група,tdClass=centered nowrap');
-        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered nowrap');
-        $fld->FLD('productName', 'varchar', 'caption=Артикул');
-        $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+        if ($export === false) {
 
-        //Начални количества и стойност
-        $fld->FLD('startQuantity', 'double(smartRound,decimals=2)', 'caption=Начало на периода->Количество');
-        $fld->FLD('startAmount', 'double(smartRound,decimals=2)', 'caption=Начало на периода->Стойност');
+            $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered nowrap');
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
 
-        //Доставени количества и стойност
-        $fld->FLD('inQuantity', 'double(smartRound,decimals=2)', 'caption=Доставено->Количество');
-        $fld->FLD('inAmount', 'double(smartRound,decimals=2)', 'caption=Доставено->Стойност');
+            //Начални количества и стойност
+            $fld->FLD('startQuantity', 'double(smartRound,decimals=2)', 'caption=Начало на периода->Количество');
+            $fld->FLD('startAmount', 'double(smartRound,decimals=2)', 'caption=Начало на периода->Стойност');
 
-        //Продадено количества и стойност
-        $fld->FLD('outQuantity', 'double(smartRound,decimals=2)', 'caption=Продадено->Количество');
-        $fld->FLD('outAmount', 'double(smartRound,decimals=2)', 'caption=Продадено->Стойност');
+            //Доставени количества и стойност
+            $fld->FLD('inQuantity', 'double(smartRound,decimals=2)', 'caption=Доставено->Количество');
+            $fld->FLD('inAmount', 'double(smartRound,decimals=2)', 'caption=Доставено->Стойност');
 
-        //Крайно количества и стойност
-        $fld->FLD('endQuantity', 'double(smartRound,decimals=2)', 'caption=Крайно->Количество');
-        $fld->FLD('endAmount', 'double(smartRound,decimals=2)', 'caption=Крайно->Стойност');
+            //Продадено количества и стойност
+            $fld->FLD('outQuantity', 'double(smartRound,decimals=2)', 'caption=Продадено->Количество');
+            $fld->FLD('outAmount', 'double(smartRound,decimals=2)', 'caption=Продадено->Стойност');
 
+            //Крайно количества и стойност
+            $fld->FLD('endQuantity', 'double(smartRound,decimals=2)', 'caption=Крайно->Количество');
+            $fld->FLD('endAmount', 'double(smartRound,decimals=2)', 'caption=Крайно->Стойност');
+        } else {
+            $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered nowrap');
+            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('startQuantity', 'double(decimals=2)', 'caption=Начало на периода->Количество');
+            $fld->FLD('startAmount', 'double(decimals=2)', 'caption=Начало на периода->Стойност');
+            $fld->FLD('inQuantity', 'double(decimals=2)', 'caption=Доставено->Количество');
+            $fld->FLD('inAmount', 'double(decimals=2)', 'caption=Доставено->Стойност');
+            $fld->FLD('outQuantity', 'double(decimals=2)', 'caption=Продадено->Количество');
+            $fld->FLD('outAmount', 'double(decimals=2)', 'caption=Продадено->Стойност');
+            $fld->FLD('endQuantity', 'double(decimals=2)', 'caption=Крайно->Количество');
+            $fld->FLD('endAmount', 'double(decimals=2)', 'caption=Крайно->Стойност');
+        }
 
         return $fld;
     }
@@ -245,35 +265,15 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
 
         $row = new stdClass();
 
-
-        if (is_numeric($dRec->groupOne)) {
-
-            $row->groupOne = cat_Groups::getVerbal($dRec->groupOne, 'name') . ' :: стойност: ' . $Double->toVerbal($rec->sumByGroup[$dRec->groupOne]->amount) . ' ' . acc_Periods::getBaseCurrencyCode($rec->date) .
-                ';  количества: ';
-            $bm = 0;
-            foreach ($rec->sumByGroup['quantities'] as $val) {
-                if ($val->gr == $dRec->groupOne) {
-                    if ($bm > 0) {
-                        $row->groupOne .= ' + ';
-                    }
-                    $row->groupOne .= $Double->toVerbal($val->quantity) . ' ' . cat_UoM::fetchField($val->measureId, 'shortName');
-                    $bm = $bm + 1;
-                }
-            }
-        } else {
-            $row->groupOne = 'Без група';
-        }
-
-
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
         }
 
-        if (isset($dRec->productName)) {
-            $row->productName = cat_Products::getLinkToSingle($dRec->productId, 'name');
+        if (isset($dRec->productId)) {
+            $row->productId = cat_Products::getLinkToSingle($dRec->productId, 'name');
         }
 
-        $row->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->productId)->measureId, 'shortName');
+        $row->measure = cat_UoM::fetchField($dRec->measureId, 'shortName');
 
 
         $row->startQuantity = $Double->toVerbal($dRec->startQuantity);
@@ -353,65 +353,6 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
         $fieldTpl->append('<b>' . $Date->toVerbal($date) . '</b>', 'date');
 
 
-        if (isset($data->rec->group)) {
-            $marker = 0;
-            $groupVerb = '';
-            foreach (type_Keylist::toArray($data->rec->group) as $group) {
-                $marker++;
-
-                $groupVerb .= (cat_Groups::getTitleById($group));
-
-                if ((countR((type_Keylist::toArray($data->rec->group))) - $marker) != 0) {
-                    $groupVerb .= ', ';
-                }
-            }
-
-            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'group');
-        }
-
-
-        if (isset($data->rec->storeId)) {
-            $marker = 0;
-            $storeIdVerb = '';
-            foreach (type_Keylist::toArray($data->rec->storeId) as $store) {
-                $marker++;
-
-                $storeIdVerb .= (store_Stores::getTitleById($store));
-
-                if ((countR(type_Keylist::toArray($data->rec->storeId))) - $marker != 0) {
-                    $storeIdVerb .= ', ';
-                }
-            }
-
-            $fieldTpl->append('<b>' . $storeIdVerb . '</b>', 'storeId');
-        } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'storeId');
-        }
-
-        if ((isset($data->rec->products))) {
-            foreach (keylist::toArray($data->rec->products) as $val) {
-
-                $fieldTpl->append('<b>' . cat_Products::getTitleById($val) . ', ' . '</b>', 'products');
-            }
-
-        }
-
-        if ((isset($data->rec->workingPdogresOn))) {
-
-            $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->workingPdogresOn) . '</b>', 'workingPdogresOn');
-
-        } else {
-            $fieldTpl->append('<b>' . 'Не е включено' . '</b>', 'workingPdogresOn');
-        }
-
-        if ((isset($data->rec->availability))) {
-            $fieldTpl->append('<b>' . $Set->toVerbal($data->rec->availability) . '</b>', 'availability');
-        }
-
-        if ((isset($data->rec->totalProducts))) {
-            $fieldTpl->append('<b>' . ($data->rec->totalProducts) . '</b>', 'totalProducts');
-        }
-
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 
@@ -429,9 +370,142 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
 
-        $res->quantyti = $dRec->blQuantity;
+        $res->measure = cat_UoM::fetch($dRec->measureId)->shortName;
+    }
 
-        $res->measure = cat_UoM::fetch(cat_Products::fetch($dRec->productId)->measureId)->shortName;
+    /**
+     * Допълва inQuantity и inAmount в $recs чрез входящите фактури от purchase_Invoices
+     *
+     * @param stdClass $rec - записът от справката, вкл. от и до дати
+     * @param array &$recs - масив от записи, ключ: код на артикула
+     */
+    protected function fillInQuantitiesAndAmountsFromPurchases($rec, array &$recs)
+    {
+        $from = $rec->from . ' 00:00:00';
+        $to = $rec->to . ' 23:59:59';
+
+        $dQuery = purchase_InvoiceDetails::getQuery();
+
+        // Коректно зададени EXT полета от purchase_Invoices
+        $dQuery->EXT('invoiceDate', 'purchase_Invoices', 'externalName=date,externalKey=invoiceId');
+        $dQuery->EXT('invoiceState', 'purchase_Invoices', 'externalName=state,externalKey=invoiceId');
+
+        // Филтър по състояние (включваме само НЕ rejected и draft)
+        $dQuery->in('invoiceState', array('rejected', 'draft'), true);
+
+        // Филтър по период с параметризирана where
+        $dQuery->where(array(
+            "#invoiceDate >= '[#1#]' AND #invoiceDate <= '[#2#]'", $from, $to));
+
+        // Преглед и попълване на количествата и сумите
+        while ($dRec = $dQuery->fetch()) {
+            $pRec = cat_Products::fetch($dRec->productId);
+            if (!$pRec || !$pRec->code) continue;
+
+            $code = $pRec->code;
+
+            if (!isset($recs[$code])) continue;
+
+            if (!$recs[$code]->productId) {
+                $recs[$code]->productId = $pRec->id;
+            }
+
+            if (!$recs[$code]->prodName) {
+                $recs[$code]->prodName = $pRec->name;
+            }
+
+            if (!$recs[$code]->measureId) {
+                $recs[$code]->measureId = $pRec->measureId;
+            }
+
+
+            // Защита от нечислови стойности
+            $inQty = is_numeric($dRec->quantity) ? (float)$dRec->quantity : 0;
+            $inAmt = is_numeric($dRec->amount) ? (float)$dRec->amount : 0;
+
+            $recs[$code]->inQuantity = (float)$recs[$code]->inQuantity + $inQty;
+            $recs[$code]->inAmount = (float)$recs[$code]->inAmount + $inAmt;
+
+
+        }
+    }
+
+    /**
+     * Натрупва стойности в outQuantity и outAmount по код:
+     * - от продажбите по фактури (sales_InvoiceDetails)
+     * - от касови бележки (pos_ReceiptDetails)
+     * Попълва и липсващи productId, prodName и measureId в $recs
+     *
+     * @param stdClass $rec - запис на справката (съдържа периодите)
+     * @param array    &$recs - референтно подаван масив с артикули, индексиран по код
+     */
+    protected function fillOutQuantitiesAndAmountsFromSales($rec, &$recs)
+    {
+        // === Продажби по фактури ===
+        $sQuery = sales_InvoiceDetails::getQuery();
+        $sQuery->EXT('invoiceDate', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
+        $sQuery->EXT('invoiceState', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
+
+        $sQuery->in('invoiceState', array('rejected', 'draft'), true);
+        $sQuery->where(["#invoiceDate >= '[#1#]' AND #invoiceDate <= '[#2#]'",
+            $rec->from . ' 00:00:00', $rec->to . ' 23:59:59']);
+
+        while ($dRec = $sQuery->fetch()) {
+            $pRec = cat_Products::fetch($dRec->productId);
+            if (!$pRec) continue;
+
+            $code = $pRec->code;
+            if (!isset($recs[$code])) continue;
+
+            // Попълваме липсващи данни
+            if (!$recs[$code]->productId) {
+                $recs[$code]->productId = $pRec->id;
+            }
+            if (!$recs[$code]->prodName) {
+                $recs[$code]->prodName = $pRec->name;
+            }
+            if (!$recs[$code]->measureId) {
+                $recs[$code]->measureId = $pRec->measureId;
+            }
+
+            $recs[$code]->outQuantity += (float)$dRec->quantity;
+            $recs[$code]->outAmount += (float)$dRec->amount;
+        }
+
+        // === Продажби по касови бележки ===
+        $posQuery = pos_ReceiptDetails::getQuery();
+        $posQuery->EXT('valior', 'pos_Receipts', 'externalName=valior,externalKey=receiptId');
+
+        $posQuery->where([
+            "#valior >= '[#1#]' AND #valior <= '[#2#]'",
+            $rec->from . ' 00:00:00',
+            $rec->to . ' 23:59:59'
+        ]);
+
+        while ($dRec = $posQuery->fetch()) {
+            if ($dRec->productId) {
+                $pRec = cat_Products::fetch($dRec->productId);
+            } else continue;
+
+            if (!$pRec) continue;
+
+            $code = $pRec->code;
+            if (!isset($recs[$code])) continue;
+
+            // Попълваме липсващи данни
+            if (!$recs[$code]->productId) {
+                $recs[$code]->productId = $pRec->id;
+            }
+            if (!$recs[$code]->prodName) {
+                $recs[$code]->prodName = $pRec->name;
+            }
+            if (!$recs[$code]->measureId) {
+                $recs[$code]->measureId = $pRec->measureId;
+            }
+
+            $recs[$code]->outQuantity += (float)$dRec->quantity;
+            $recs[$code]->outAmount += (float)$dRec->amount;
+        }
     }
 
 }
