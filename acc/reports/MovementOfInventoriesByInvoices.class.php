@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на отчети за стоки на склад
+ * Мениджър на отчети Движение на материални ценности по фактури
  *
  *
  * @category  bgerp
@@ -123,9 +123,6 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
 
         $form->setDefault('from', '1970-01-01');
         $form->setDefault('to', dt::today() . '23:59:59');
-        $form->setDefault('seeByGroups', 'no');
-        $form->setDefault('orderBy', 'name');
-
     }
 
 
@@ -139,7 +136,7 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $recs = [];
+        $recs = array();
 
         if (empty($rec->products)) return $recs;
 
@@ -155,11 +152,17 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
 
             if (!$code) continue;
 
+            $productId = cat_Products::getByCode($code);
+
+            $pRec = cat_Products::fetch($productId);
+
+            if (!$pRec || !$pRec->code) continue;
+
             $recs[$code] = (object)[
-                'productId' => '',
+                'productId' => $productId,
                 'code' => $code,
-                'prodName' => '',
-                'measureId' => '',
+                'prodName' =>$pRec->name,
+                'measureId' =>$pRec->measureId,
                 'startQuantity' => $startQuantity,
                 'startAmount' => $startAmount,
                 'inQuantity' => 0.0,
