@@ -127,53 +127,56 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
 
 
     /**
-     * Кои записи ще се показват в таблицата
+     * Подготвя масива с артикули за справката:
+     * - Попълва начални стойности (количество и сума)
+     * - Натрупва стойности от покупки и продажби
+     * - Изчислява крайни стойности
      *
      * @param stdClass $rec
-     * @param stdClass $data
-     *
-     * @return array
+     * @param stdClass|null $data
+     * @return array $recs
      */
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
 
+        // Ако няма прикачен CSV файл – връщаме празен масив
         if (empty($rec->products)) return $recs;
 
+        // Зареждаме файла от fileman и проверяваме дали съществува
         $fRec = fileman_Files::fetchByFh($rec->products);
         expect($fRec, 'Липсва файл за импортиране');
 
+        // Извличаме CSV редовете (без такива, започващи с @)
         $csv = csv_Lib::getCsvRowsFromFile(fileman::extractStr($fRec->fileHnd), ['skip' => '@']);
 
+        // Обхождаме всеки ред от CSV файла
         foreach ((array)$csv['data'] as $row) {
+            // Четем данните по индекси: код, нач. кол-во, нач. сума
             $code = trim($row[1] ?? '');
             $startQuantity = (float)str_replace(',', '.', $row[2] ?? 0);
             $startAmount = (float)str_replace(',', '.', $row[3] ?? 0);
 
+            // Пропускаме празни кодове
             if (!$code) continue;
 
+            // Опитваме да намерим артикула по кода
             $prodByCode = cat_Products::getByCode($code);
             $productId = $prodByCode ? $prodByCode->productId : null;
 
+            // Ако не съществува продукт – пропускаме реда
             if ($productId) {
                 $pRec = cat_Products::fetch($productId);
                 $prodName = $pRec->name;
                 $measureId = $pRec->measureId;
-            } else {
-                // Ако не се открие артикул – записваме празни стойности
-                $productId = null;
-                $prodName = '';
-                $measureId = null;
+            } else continue;
 
-                // По желание можеш да добавиш и съобщение
-                status_Messages::newStatus("Липсва артикул с код <b>{$code}</b>", 'warning');
-            }
-
+            // Създаваме обекта с начални и празни стойности
             $recs[$code] = (object)[
                 'productId' => $productId,
                 'code' => $code,
-                'prodName' =>$pRec->name,
-                'measureId' =>$pRec->measureId,
+                'prodName' => $pRec->name,
+                'measureId' => $pRec->measureId,
                 'startQuantity' => $startQuantity,
                 'startAmount' => $startAmount,
                 'inQuantity' => 0.0,
@@ -185,11 +188,14 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
             ];
         }
 
+        // Попълваме доставените количества и суми от покупки
         $this->fillInQuantitiesAndAmountsFromPurchases($rec, $recs);
+
+        // Попълваме продадените количества и суми от фактури + касови бележки
         $this->fillOutQuantitiesAndAmountsFromSales($rec, $recs);
 
+        // Изчисляваме крайни стойности (начало + вход – изход)
         foreach ($recs as &$r) {
-            // Преобразуване към числови стойности, ако не са
             $startQty = is_numeric($r->startQuantity) ? (float)$r->startQuantity : 0.0;
             $inQty = is_numeric($r->inQuantity) ? (float)$r->inQuantity : 0.0;
             $outQty = is_numeric($r->outQuantity) ? (float)$r->outQuantity : 0.0;
@@ -198,11 +204,11 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
             $inAmt = is_numeric($r->inAmount) ? (float)$r->inAmount : 0.0;
             $outAmt = is_numeric($r->outAmount) ? (float)$r->outAmount : 0.0;
 
-            // Крайни стойности
             $r->endQuantity = $startQty + $inQty - $outQty;
             $r->endAmount = $startAmt + $inAmt - $outAmt;
         }
 
+        // Ако има записи – сортираме ги по име на артикул
         if (countR($recs)) {
             arr::sortObjects($recs, 'prodName', 'asc');
         }
