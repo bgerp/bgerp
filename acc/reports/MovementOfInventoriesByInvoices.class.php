@@ -167,6 +167,12 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
             // Ако не съществува продукт – пропускаме реда
             if ($productId) {
                 $pRec = cat_Products::fetch($productId);
+
+                // Пропускаме артикула, ако е оттеглен или не е складируем
+                if ($pRec->state != 'active' || $pRec->canStore != 'yes') {
+                    continue;
+                }
+
                 $prodName = $pRec->name;
                 $measureId = $pRec->measureId;
             } else continue;
@@ -441,11 +447,23 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
         // Преглед и попълване на количествата и сумите
         while ($dRec = $dQuery->fetch()) {
             $pRec = cat_Products::fetch($dRec->productId);
+            $productId = $dRec->productId;
             if (!$pRec || !$pRec->code) continue;
 
             $code = $pRec->code;
 
             if (!isset($recs[$code])) {
+
+                // Ако не съществува продукт – пропускаме реда
+                if ($productId) {
+
+                    // Пропускаме артикула, ако е оттеглен или не е складируем
+                    if ($pRec->state != 'active' || $pRec->canStore != 'yes') continue;
+
+                    $prodName = $pRec->name;
+                    $measureId = $pRec->measureId;
+                } else continue;
+
                 // Създаваме празен ред, ако все още не съществува
                 $recs[$code] = self::createEmptyInventoryRow($code, $pRec->id, $pRec->name, $pRec->measureId);
             }
@@ -483,11 +501,24 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
 
         while ($dRec = $sQuery->fetch()) {
             $pRec = cat_Products::fetch($dRec->productId);
+
+            $productId = $dRec->productId;
+
             if (!$pRec) continue;
 
             $code = $pRec->code;
 
             if (!isset($recs[$code])) {
+                // Ако не съществува продукт – пропускаме реда
+                if ($productId) {
+
+                    // Пропускаме артикула, ако е оттеглен или не е складируем
+                    if ($pRec->state != 'active' || $pRec->canStore != 'yes') continue;
+
+                    $prodName = $pRec->name;
+                    $measureId = $pRec->measureId;
+                } else continue;
+
                 // Създаваме празен ред, ако все още не съществува
                 $recs[$code] = self::createEmptyInventoryRow($code, $pRec->id, $pRec->name, $pRec->measureId);
             }
@@ -508,23 +539,29 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
 
         while ($dRec = $posQuery->fetch()) {
             if ($dRec->productId) {
+
                 $pRec = cat_Products::fetch($dRec->productId);
+
+                $productId = $dRec->productId;
+
             } else continue;
 
             if (!$pRec) continue;
 
             $code = $pRec->code;
-            if (!isset($recs[$code])) continue;
+            if (!isset($recs[$code])) {
+                // Ако не съществува продукт – пропускаме реда
+                if ($productId) {
 
-            // Попълваме липсващи данни
-            if (!$recs[$code]->productId) {
-                $recs[$code]->productId = $pRec->id;
-            }
-            if (!$recs[$code]->prodName) {
-                $recs[$code]->prodName = $pRec->name;
-            }
-            if (!$recs[$code]->measureId) {
-                $recs[$code]->measureId = $pRec->measureId;
+                    // Пропускаме артикула, ако е оттеглен или не е складируем
+                    if ($pRec->state != 'active' || $pRec->canStore != 'yes') continue;
+
+                    $prodName = $pRec->name;
+                    $measureId = $pRec->measureId;
+                } else continue;
+
+                // Създаваме празен ред, ако все още не съществува
+                $recs[$code] = self::createEmptyInventoryRow($code, $pRec->id, $pRec->name, $pRec->measureId);
             }
 
             $recs[$code]->outQuantity += (float)$dRec->quantity;
