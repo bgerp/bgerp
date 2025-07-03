@@ -1961,6 +1961,7 @@ class planning_Jobs extends core_Master
 
                     // За всеки материал от рецептата, ще се проверява, колко остава да се запази
                     foreach($materialArr as $materialRec){
+                        if($materialRec->quantity == cat_BomDetails::CALC_ERROR) continue;
                         $materialRec->quantity *= $materialRec->quantityInPack;
                         $materialProductRec = cat_Products::fetch($materialRec->productId, 'generic,canConvert');
 
