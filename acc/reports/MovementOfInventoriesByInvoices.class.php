@@ -171,21 +171,13 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
                 $measureId = $pRec->measureId;
             } else continue;
 
-            // Създаваме обекта с начални и празни стойности
-            $recs[$code] = (object)[
-                'productId' => $productId,
-                'code' => $code,
-                'prodName' => $pRec->name,
-                'measureId' => $pRec->measureId,
-                'startQuantity' => $startQuantity,
-                'startAmount' => $startAmount,
-                'inQuantity' => 0.0,
-                'inAmount' => 0.0,
-                'outQuantity' => 0.0,
-                'outAmount' => 0.0,
-                'endQuantity' => 0.0,
-                'endAmount' => 0.0,
-            ];
+            if (!isset($recs[$code])) {
+                $recs[$code] = self::createEmptyInventoryRow($code, $productId, $prodName, $measureId);
+            }
+
+            // Зареждаме стартовите количества и стойност от файла
+            $recs[$code]->startQuantity = $startQuantity;
+            $recs[$code]->startAmount   = $startAmount;
         }
 
         // Попълваме доставените количества и суми от покупки
@@ -394,6 +386,35 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
     }
 
     /**
+     * Създава празен обект за ред в справката с нулеви стойности и количества.
+     *
+     * @param string     $code        Код на артикула
+     * @param int|null   $productId   ID на артикула
+     * @param string     $prodName    Име на артикула
+     * @param int|null   $measureId   ID на мярката
+     *
+     * @return stdClass
+     */
+    protected static function createEmptyInventoryRow($code, $productId, $prodName, $measureId)
+    {
+        return (object)[
+            'productId'     => $productId,
+            'code'          => $code,
+            'prodName'      => $prodName,
+            'measureId'     => $measureId,
+            'startQuantity' => 0.0,
+            'startAmount'   => 0.0,
+            'inQuantity'    => 0.0,
+            'inAmount'      => 0.0,
+            'outQuantity'   => 0.0,
+            'outAmount'     => 0.0,
+            'endQuantity'   => 0.0,
+            'endAmount'     => 0.0,
+        ];
+    }
+
+
+    /**
      * Допълва inQuantity и inAmount в $recs чрез входящите фактури от purchase_Invoices
      *
      * @param stdClass $rec - записът от справката, вкл. от и до дати
@@ -424,20 +445,10 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
 
             $code = $pRec->code;
 
-            if (!isset($recs[$code])) continue;
-
-            if (!$recs[$code]->productId) {
-                $recs[$code]->productId = $pRec->id;
+            if (!isset($recs[$code])) {
+                // Създаваме празен ред, ако все още не съществува
+                $recs[$code] = self::createEmptyInventoryRow($code, $pRec->id, $pRec->name, $pRec->measureId);
             }
-
-            if (!$recs[$code]->prodName) {
-                $recs[$code]->prodName = $pRec->name;
-            }
-
-            if (!$recs[$code]->measureId) {
-                $recs[$code]->measureId = $pRec->measureId;
-            }
-
 
             // Защита от нечислови стойности
             $inQty = is_numeric($dRec->quantity) ? (float)$dRec->quantity : 0;
@@ -475,17 +486,10 @@ class acc_reports_MovementOfInventoriesByInvoices extends frame2_driver_TableDat
             if (!$pRec) continue;
 
             $code = $pRec->code;
-            if (!isset($recs[$code])) continue;
 
-            // Попълваме липсващи данни
-            if (!$recs[$code]->productId) {
-                $recs[$code]->productId = $pRec->id;
-            }
-            if (!$recs[$code]->prodName) {
-                $recs[$code]->prodName = $pRec->name;
-            }
-            if (!$recs[$code]->measureId) {
-                $recs[$code]->measureId = $pRec->measureId;
+            if (!isset($recs[$code])) {
+                // Създаваме празен ред, ако все още не съществува
+                $recs[$code] = self::createEmptyInventoryRow($code, $pRec->id, $pRec->name, $pRec->measureId);
             }
 
             $recs[$code]->outQuantity += (float)$dRec->quantity;
