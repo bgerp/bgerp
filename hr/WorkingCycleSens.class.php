@@ -12,7 +12,8 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Работни цикли
+ * @title     Работни графици
+ * @deprecated
  */
 class hr_WorkingCycleSens extends sens2_ProtoDriver
 {
@@ -20,7 +21,7 @@ class hr_WorkingCycleSens extends sens2_ProtoDriver
     /**
      * Заглавие на драйвера
      */
-    public $title = 'Работни цикли';
+    public $title = 'Работни графици';
 
 
     /**
