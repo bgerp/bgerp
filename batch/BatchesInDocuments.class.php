@@ -627,7 +627,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestions;
             }
 
-            if($haveMoreThenDisplayedBatches && $Detail->canReceiveNewBatch($detailRec)){
+            if($haveMoreThenDisplayedBatches && !$Detail->canReceiveNewBatch($detailRec)){
                 $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $suggestions));
             } else {
