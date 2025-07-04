@@ -442,7 +442,11 @@ class sales_DeliveryData extends core_Manager
 
             // Ако няма цена се гледа мениджърската себестойност за да не е 0
             if(empty($price)){
-                $price = cat_Products::getPrimeCost($pId, $pRec->packagingId, 1, $saleRec->valior);
+                try{
+                    $price = cat_Products::getPrimeCost($pId, $pRec->packagingId, 1, $saleRec->valior);
+                } catch(core_exception_Expect $e){
+                    wp($e, $saleRec, $pId);
+                }
             }
 
             // Ако артикула е нестандартен и има приключено задание по продажбата и няма друго активно по нея

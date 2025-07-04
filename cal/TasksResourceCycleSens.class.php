@@ -2,7 +2,7 @@
 
 
 /**
- * Сензор за цикли на задачите с ресурси
+ * Сензор за график на ресурсите
  *
  * @category  bgerp
  * @package   cal
@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Цикли на задачите с ресурси
+ * @title     График на ресурсите
  */
 class cal_TasksResourceCycleSens extends sens2_ProtoDriver
 {
@@ -20,7 +20,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
     /**
      * Заглавие на драйвера
      */
-    public $title = 'Цикли на задачите с ресурси';
+    public $title = 'График на ресурсите';
 
 
     /**
@@ -83,8 +83,20 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
         $query->orderBy('id', "DESC");
 
         $endIn = null;
-        $startIn = dt::addDays($maxDays, $now);
+        $startIn = null;
+        $haveRec = false;
         while ($rec = $query->fetch()) {
+            $haveRec = true;
+            // Ако има продължилтеност
+            if ($rec->timeDuration) {
+                if (!$rec->timeStart) {
+                    $rec->timeStart = $rec->expectationTimeStart;
+                }
+                if (!$rec->timeEnd) {
+                    $rec->timeEnd = $rec->expectationTimeEnd;
+                }
+            }
+
             if (!$rec->timeStart && $rec->timeEnd && $timeDeviation) {
                 $rec->expectationTimeStart = dt::subtractSecs($timeDeviation, $rec->timeEnd);
             }
@@ -101,6 +113,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
             }
 
             if (($rec->expectationTimeStart > $now)) {
+                setIfNot($startIn, $rec->expectationTimeStart);
                 $startIn = min($startIn, $rec->expectationTimeStart);
             }
 
@@ -114,6 +127,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
                 }
                 if ($frames) {
                     if ($frames[0][0]) {
+                        setIfNot($startIn, dt::timestamp2Mysql($frames[0][0]));
                         $startIn = min($startIn, dt::timestamp2Mysql($frames[0][0]));
                     }
                     if ($frames[0][1]) {
@@ -121,6 +135,10 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
                     }
                 }
             }
+        }
+
+        if (!isset($startIn) && (!$haveRec || !$endIn)) {
+            $startIn = dt::addDays($maxDays, $now);
         }
 
         // Проверка за работно време по график за деня
@@ -174,7 +192,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
                 }
             }
 
-            $resArr['lastClosed'] = ceil(dt::secsBetween($now, $cRec->expectationTimeEnd) / 60);
+            $resArr['lastClosed'] = ceil((dt::secsBetween($now, $cRec->expectationTimeEnd) - $timeRound) / 60);
         }
 
         // Намираме задачите, които са в процес на изпълнение, но с време на край по-малко от текущото
@@ -191,18 +209,33 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
 
         // Времето на послено затваряне е времето на крайният срок на задачата
         if ($cRec) {
-            if ($cRec->timeStart && !$cRec->timeEnd && $timeDeviation) {
-                $newTimeEnd = dt::addSecs($timeDeviation, $cRec->timeStart);
-                if ($newTimeEnd <= $now) {
-                    $cRec->expectationTimeEnd = $newTimeEnd;
+            if ($cRec->timeDuration) {
+                if (!$cRec->timeStart) {
+                    $cRec->timeStart = $cRec->expectationTimeStart;
+                }
+                if (!$cRec->timeEnd) {
+                    $cRec->timeEnd = $cRec->expectationTimeEnd;
                 }
             }
 
-            $lastEnd = ceil(dt::secsBetween($now, $cRec->expectationTimeEnd) / 60);
-            if (!$lastEnd) {
-                $lastEnd = 0;
+            if ($cRec->timeStart && !$cRec->timeEnd && $timeDeviation) {
+                $newTimeEnd = dt::addSecs($timeDeviation, $cRec->timeEnd);
+            } else {
+                $newTimeEnd = $cRec->timeEnd;
             }
-            $resArr['lastClosed'] = min($resArr['lastClosed'], $lastEnd);
+
+            if  ($newTimeEnd && ($newTimeEnd <= $now)) {
+                $cRec->expectationTimeEnd = $newTimeEnd;
+                $lastEnd = (dt::secsBetween($now, $cRec->expectationTimeEnd) - $timeRound) / 60;
+                if ($lastEnd >= 0) {
+                    $lastEnd = ceil($lastEnd);
+                    $resArr['lastClosed'] = min($resArr['lastClosed'], $lastEnd);
+                }
+            }
+        }
+
+        if (!$resArr['startAfter'] && !$resArr['endAfter']) {
+            $resArr['startAfter'] = $maxDays * 24 * 60;
         }
 
         return $resArr;

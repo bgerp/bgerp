@@ -2171,7 +2171,11 @@ class cat_Products extends embed_Manager
         // Ако няма цена се опитва да намери от драйвера
         $primeCostDriver = null;
         if ($Driver = cat_Products::getDriver($productId)) {
-            $primeCostDriver = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $primeCostlistId);
+            try {
+                $primeCostDriver = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $primeCostlistId);
+            } catch(core_exception_Expect $e){
+                wp($e, $productId, $quantity);
+            }
         }
 
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
