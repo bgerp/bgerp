@@ -150,15 +150,13 @@ class eshop_Settings extends core_Master
     /**
      * Дефолтен текст за информация за артикули с очаквана доставка
      */
-    const DEFAULT_EXPECTED_DELIVERY_TEXT_BG = 'Поръчката Ви съдържа продукти, които в момента не са налични на склад. Очакваме доставката им скоро, но това може да доведе до забавяне в изпълнението на цялата поръчка.
-Моля, свържете се с нас, за да уточним очакваната дата на доставка и възможностите за частично или пълно изпълнение на заявката Ви.';
+    const DEFAULT_EXPECTED_DELIVERY_TEXT_BG = 'Поръчката Ви съдържа продукти, които в момента не са налични на склад. Очакваме доставката им скоро, но това може да доведе до забавяне в изпълнението на цялата поръчка. Моля, свържете се с нас, за да уточним очакваната дата на доставка и възможностите за частично или пълно изпълнение на заявката Ви.';
     
     
     /**
      * Дефолтен текст за информация за артикули с очаквана доставка
      */
-    const DEFAULT_EXPECTED_DELIVERY_TEXT_EN = 'Your order contains products that are currently out of stock. We are expecting their delivery soon, but this may cause a delay in the fulfillment of the entire order.
-Please contact us to confirm the expected delivery date and discuss the options for partial or complete fulfillment of your request.';
+    const DEFAULT_EXPECTED_DELIVERY_TEXT_EN = 'Your order contains products that are currently out of stock. We are expecting their delivery soon, but this may cause a delay in the fulfillment of the entire order. Please contact us to confirm the expected delivery date and discuss the options for partial or complete fulfillment of your request.';
     
     
     /**

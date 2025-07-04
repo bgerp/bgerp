@@ -195,10 +195,12 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
             $d = ($rec->typePercent == 'up') ? $lowPrice : $hiPrice;
 
-            if ($hiPrice && $lowPrice) {
+            $epsilon = 1e-6; // минимална стойност, различна от нула
+
+            if ($hiPrice && $lowPrice && abs($d) > $epsilon) {
                 $diffPercent = $diffPrice / $d;
             } else {
-                $diffPercent = '';
+                $diffPercent = 0; // или null, или каквото има смисъл
             }
 
             $id = $pRec->productId;
