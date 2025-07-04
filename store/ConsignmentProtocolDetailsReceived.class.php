@@ -80,12 +80,6 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * @var string|array
      */
     public $canImport = 'ceo, store, distributor';
-    
-    
-    /**
-     * Да се забрани ли създаването на нова партида
-     */
-    public $cantCreateNewBatch = true;
 
 
     /**
@@ -229,5 +223,16 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
                 $requiredRoles = 'no_one';
             }
         }
+    }
+
+
+    /**
+     * Може ли да се създават нови партиди при засклаждане с този документ
+     */
+    public function  canReceiveNewBatch($rec)
+    {
+        $protocolType = store_ConsignmentProtocols::fetchField($rec->protocolId, 'productType');
+
+        return  $protocolType == 'other';
     }
 }

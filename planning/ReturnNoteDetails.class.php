@@ -94,12 +94,12 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'RowNumb';
-    
-    
+
+
     /**
-     * Да се забрани ли създаването на нова партида
+     * Може ли да се създават нови партиди
      */
-    public $cantCreateNewBatch = true;
+    public $canReceiveNewBatch = false;
     
     
     /**
