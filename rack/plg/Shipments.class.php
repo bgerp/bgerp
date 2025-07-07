@@ -209,7 +209,10 @@ class rack_plg_Shipments extends core_Plugin
         $rec = $mvc->fetchRec($id);
         $zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}", 'id,readiness');
         if(is_object($zoneRec)){
-            if(isset($zoneRec->readiness)){
+            $dQuery = rack_ZoneDetails::getQuery();
+            $dQuery->where("#zoneId = {$zoneRec->id} AND #movementQuantity IS NOT NULL");
+
+            if($dQuery->count()){
                 if($zoneRec->readiness != 1){
                     core_Statuses::newStatus('Документът не може да се контира. Не е нагласен в зоните на палетния склад|*!', 'error');
 
