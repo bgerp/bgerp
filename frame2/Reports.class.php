@@ -699,6 +699,10 @@ class frame2_Reports extends embed_Manager
                     $rec->data = $Driver->prepareData($rec);
                     core_Debug::stopTimer("PREPARE_DATA_TIMER_{$rec->id}");
                 } catch (core_exception_Expect $e) {
+                    // Ако потребителя е дебъг няма да се замаскирва грешката
+                    if(haveRole('debug')){
+                        throw $e;
+                    }
 
                     // Ако е имало грешка, се записва че данните са грешни
                     $rec->data = static::DATA_ERROR_STATE;
