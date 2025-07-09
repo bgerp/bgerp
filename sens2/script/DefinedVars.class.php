@@ -194,7 +194,7 @@ class sens2_script_DefinedVars extends core_Detail
 
         $var = ltrim($var, '$');
         
-        $rec = self::fetch(array("#scriptId = {$scriptId} AND #name = '[#1#]'", $var));
+        $rec = self::fetch(array("#scriptId = {$scriptId} AND #name = '[#1#]'", $var), '*', false);
         
         if (!$rec) {
             

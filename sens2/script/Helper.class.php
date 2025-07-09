@@ -3,8 +3,6 @@
 /**
  *
  */
-
-
 class sens2_script_Helper {
 
     public static function getSuggestions($scriptId)

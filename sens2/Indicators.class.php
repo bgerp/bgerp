@@ -237,18 +237,19 @@ class sens2_Indicators extends core_Detail
     }
     
     
-    public static function getContex()
+    public static function getContex($scriptId)
     {
-        if (!self::$contex) {
+        if (!self::$contex[$scriptId]) {
             $query = self::getQuery();
+            self::$contex[$scriptId] = array();
             while ($iRec = $query->fetch()) {
-                self::$contex['$' . $iRec->title] = (double) $iRec->value;
+                self::$contex[$scriptId]['$' . $iRec->title] = (double) $iRec->value;
                 $controller = self::getVerbal($iRec, 'controllerId');
-                self::$contex['$' . $controller . '.' . $iRec->port] = (double) $iRec->value;
+                self::$contex[$scriptId]['$' . $controller . '.' . $iRec->port] = (double) $iRec->value;
             }
         }
         
-        return self::$contex;
+        return self::$contex[$scriptId];
     }
     
     

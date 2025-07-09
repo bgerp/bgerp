@@ -197,7 +197,7 @@ class sens2_Scripts extends core_Master
     public static function getContext($scriptId)
     {
         // Намираме и сортираме контекста
-        $context = sens2_Indicators::getContex();
+        $context = sens2_Indicators::getContex($scriptId);
         $context += sens2_script_DefinedVars::getContex($scriptId);
         uksort($context, 'str::sortByLengthReverse');
         
@@ -252,7 +252,7 @@ class sens2_Scripts extends core_Master
         
         if (!$opts[$scriptId]) {
             $opts = array();
-            $inds = sens2_Indicators::getContex();
+            $inds = sens2_Indicators::getContex($scriptId);
             
             foreach ($inds as $name => $value) {
                 $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";
