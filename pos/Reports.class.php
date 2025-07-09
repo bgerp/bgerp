@@ -249,10 +249,6 @@ class pos_Reports extends core_Master
                 $form->setError('pointId', $errorMsg);
             }
 
-            if(!empty($rec->valior) && $rec->valior < dt::today()){
-                $form->setError('valior', 'Вальорът не може да е в миналото');
-            }
-
             // Ако няма грешки, форсираме отчета да се създаде в папката на точката
             if (!$form->gotErrors()) {
                 $rec->folderId = pos_Points::forceCoverAndFolder($rec->pointId);
@@ -465,7 +461,9 @@ class pos_Reports extends core_Master
         $details = $receipts = array();
         $query = pos_Receipts::getQuery();
         $query->where("#pointId = {$rec->pointId}");
-        $query->where("#state = 'waiting'");
+        $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+        $query->where("#state = 'waiting' AND #waitingOn <= '{$valior}'");
+
         if(!empty($rec->operators)){
             $operatorStr = implode(',', keylist::toArray($rec->operators));
             $query->where("#waitingBy IN ($operatorStr) OR (#waitingBy IS NULL AND #createdBy IN ($operatorStr))");
