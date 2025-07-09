@@ -194,10 +194,11 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
                         while($bRec = $bQuery->fetch()){
                             if($batchDef = batch_Defs::getBatchDef($bRec->productId)){
                                 $bArr = array_keys($batchDef->makeArray($bRec->batch));
+                                $perBatch = $bRec->quantity / countR($bArr);
                                 foreach ($bArr as $b){
                                     $bKey = md5($b);
-                                    $res[$rec->productId][$rec->packagingId]['batches'][$bKey]['batch'] = $bRec->batch;
-                                    $res[$rec->productId][$rec->packagingId]['batches'][$bKey]['quantity'] += $bRec->quantity;
+                                    $res[$rec->productId][$rec->packagingId]['batches'][$bKey]['batch'] = $b;
+                                    $res[$rec->productId][$rec->packagingId]['batches'][$bKey]['quantity'] += $perBatch;
                                 }
                             }
                         }
