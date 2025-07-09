@@ -1014,16 +1014,31 @@ class store_ConsignmentProtocols extends core_Master
                 $dRec->clonedFromDetailId = $dRec->id;
                 unset($dRec->id, $dRec->createdOn, $dRec->createdBy);
                 $dRec->protocolId = $rec->id;
+
+                $dRec->autoAllocate = false;
+                $dRec->_clonedWithBatches = true;
+
+                $quantities = batch_Items::getBatchQuantitiesInStore($dRec->productId, $rec->storeId);
                 $DetailMvc->save($dRec);
 
                 // Прехвърлят се и партидите на клонирания детайл
                 if(core_Packs::isInstalled('batch')){
                     $bQuery = batch_BatchesInDocuments::getQuery();
                     $bQuery->where("#detailClassId = {$dRec->clonedFromDetailClass} AND #detailRecId = {$dRec->clonedFromDetailId}");
+                    $Def = batch_Defs::getBatchDef($dRec->productId);
                     $batches = array();
                     while ($bRec = $bQuery->fetch()){
-                        $batches[$bRec->batch] = $bRec->quantity;
+
+                        // Оставят се само наличните партиди към сега
+                        $batchesArr = array_keys($Def->makeArray($bRec->batch));
+                        $q = $bRec->quantity / countR($batchesArr);
+                        foreach ($batchesArr as $b) {
+                            $max = min($quantities[$b], $q);
+                            if($max <= 0) continue;
+                            $batches[$b] = $q;
+                        }
                     }
+
                     batch_BatchesInDocuments::saveBatches($DetailMvc, $dRec->id, $batches);
                 }
             }

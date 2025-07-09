@@ -331,7 +331,7 @@ class eshop_Carts extends core_Master
         if (isset($availableQuantity)) {
             $q = $packQuantity * $quantityInPack;
             if($availableQuantity < $q){
-                $msg = "|Избраното количество не е налично|*! ($availableQuantity > $q)";
+                $msg = "|Избраното количество|* <b>{$q}</b> |е по-голямо от наличното|* <b>{$availableQuantity}</b>!";
                 $skip = true;
             }
 

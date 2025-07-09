@@ -879,7 +879,7 @@ function countR($arr)
         
         if(defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') {
             print_r($arr);
-            die(' - countR - this is not an array');
+            error(' - countR - this is not an array');
         } else {
 
             return 1;
