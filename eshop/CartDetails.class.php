@@ -364,7 +364,7 @@ class eshop_CartDetails extends core_Detail
 
             $maxReachedTex = '';
             if(isset($maxQuantity)){
-                $maxReachedTex = tr("Избраното количество не е налично");
+                $maxReachedTex = tr("Количеството е по-голямо от наличното|* <b>{$maxQuantity}</b>!");
                 $maxQuantity /= $rec->quantityInPack;
                 $maxQuantity = round($maxQuantity);
             }
