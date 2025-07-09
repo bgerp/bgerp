@@ -82,8 +82,20 @@ class peripheral_Devices extends embed_Manager
     
     
     public $searchFields = 'name, driverClass';
-    
-    
+
+
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'name';
+
+
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'name,driverClass,modifiedOn,modifiedBy,createdOn,createdBy';
+
+
     /**
      * Описание на модела
      */

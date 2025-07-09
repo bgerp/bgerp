@@ -150,13 +150,13 @@ class eshop_Settings extends core_Master
     /**
      * Дефолтен текст за информация за артикули с очаквана доставка
      */
-    const DEFAULT_EXPECTED_DELIVERY_TEXT_BG = 'Във вашата [#cartName#] има артикули, които в момента не са налични. Очаква се да бъдат доставени скоро.';
+    const DEFAULT_EXPECTED_DELIVERY_TEXT_BG = 'Поръчката Ви съдържа продукти, които в момента не са налични на склад. Очакваме доставката им скоро, но това може да доведе до забавяне в изпълнението на цялата поръчка. Моля, свържете се с нас, за да уточним очакваната дата на доставка и възможностите за частично или пълно изпълнение на заявката Ви.';
     
     
     /**
      * Дефолтен текст за информация за артикули с очаквана доставка
      */
-    const DEFAULT_EXPECTED_DELIVERY_TEXT_EN = 'In your [#cartName#] there are items, which are currently not in stock, but delivery is expected soon';
+    const DEFAULT_EXPECTED_DELIVERY_TEXT_EN = 'Your order contains products that are currently out of stock. We are expecting their delivery soon, but this may cause a delay in the fulfillment of the entire order. Please contact us to confirm the expected delivery date and discuss the options for partial or complete fulfillment of your request.';
     
     
     /**

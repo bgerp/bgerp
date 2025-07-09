@@ -699,6 +699,10 @@ class frame2_Reports extends embed_Manager
                     $rec->data = $Driver->prepareData($rec);
                     core_Debug::stopTimer("PREPARE_DATA_TIMER_{$rec->id}");
                 } catch (core_exception_Expect $e) {
+                    // Ако потребителя е дебъг няма да се замаскирва грешката
+                    if(haveRole('debug')){
+                        throw $e;
+                    }
 
                     // Ако е имало грешка, се записва че данните са грешни
                     $rec->data = static::DATA_ERROR_STATE;
@@ -1397,5 +1401,16 @@ class frame2_Reports extends embed_Manager
         }
         
         return 'img/16/error-red.png';
+    }
+
+
+    /**
+     * Връща урл-то към всички записи
+     */
+    protected static function on_AfterGetAllBtnUrl($mvc, &$res, $rec)
+    {
+        if(is_array($res) && countR($res)){
+            $res['driverClass'] = $rec->driverClass;
+        }
     }
 }

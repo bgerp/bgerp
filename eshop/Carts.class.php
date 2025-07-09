@@ -330,8 +330,8 @@ class eshop_Carts extends core_Master
         $availableQuantity = eshop_CartDetails::getAvailableQuantity($productId, $eshopProductId);
         if (isset($availableQuantity)) {
             $q = $packQuantity * $quantityInPack;
-            if($availableQuantity < $packQuantity * $quantityInPack){
-                $msg = '|Избраното количество не е налично|*';
+            if($availableQuantity < $q){
+                $msg = "|Избраното количество|* <b>{$q}</b> |е по-голямо от наличното|* <b>{$availableQuantity}</b>!";
                 $skip = true;
             }
 
@@ -586,9 +586,9 @@ class eshop_Carts extends core_Master
                 $quantityInStore = store_Products::getQuantities($dRec->productId, $settings->inStockStores)->free;
                 if($quantityInStore < $dRec->quantity){
                     $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
-
-                    $deliveryTime = !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME');
+                    $deliveryTime = !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
                     $horizon = dt::addSecs($deliveryTime, null,false);
+
                     $quantityExpected = store_Products::getQuantities($dRec->productId, $settings->inStockStores, $horizon)->free;
                     if($quantityExpected >= $dRec->quantity){
                         $rec->haveProductsWithExpectedDelivery = 'yes';

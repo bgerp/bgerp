@@ -60,7 +60,7 @@ class cash_NonCashPaymentDetails extends core_Manager
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'id,objectId=Обект,paymentId,amount,param,deviceId,transferredContainerId';
+    public $listFields = 'id,objectId=Обект,paymentId,amount,param,deviceId=Периферия->Бутон,deviceLink=Периферия->Име,transferredContainerId';
 
 
     /**
@@ -182,6 +182,7 @@ class cash_NonCashPaymentDetails extends core_Manager
 
             if(isset($deviceId)){
                 $row->deviceId = self::getCardPaymentBtnName($deviceId);
+                $row->deviceLink = peripheral_Devices::getHyperlink($deviceId);//ht::createLink($deviceId, peripheral_Devices::getSingleUrlArray($deviceId));
             }
 
             if($fields['-detail'] && !empty($row->deviceId)) {

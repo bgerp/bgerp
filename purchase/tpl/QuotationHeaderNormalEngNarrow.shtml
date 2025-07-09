@@ -11,10 +11,10 @@
                         <!--ET_BEGIN clonedFromId-->
                         <div style='font-size:0.8em'>(cloned [#clonedFromId#])</div>
                         <!--ET_END clonedFromId-->
-                        <!--ET_BEGIN buzPlace-->
+                        <!--ET_BEGIN qPlace-->
                         <div class='quiet-small'>Place</div>
-                        <div><b>[#buzPlace#]</b></div>
-                        <!--ET_END buzPlace-->
+                        <div><b>[#qPlace#]</b></div>
+                        <!--ET_END qPlace-->
                         <!--ET_BEGIN reff-->
                         <div class='quiet-small'>Your ref</div>
                         <div><b>[#reff#]</b></div>

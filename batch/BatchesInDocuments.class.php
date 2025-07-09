@@ -422,11 +422,13 @@ class batch_BatchesInDocuments extends core_Manager
         // Проверка на права
         $this->requireRightFor('modify', (object)array('detailClassId' => $detailClassId, 'detailRecId' => $detailRecId));
         $Detail = cls::get($detailClassId);
+
         $recInfo = $Detail->getRowInfo($detailRecId);
         $recInfo->detailClassId = $detailClassId;
         $recInfo->detailRecId = $detailRecId;
         $storeId = $recInfo->operation[key($recInfo->operation)];
         $Def = batch_Defs::getBatchDef($recInfo->productId);
+        $detailRec = $Detail->fetch($detailRecId);
 
         // Кои са наличните партиди към момента
         $batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date, null, array(), true);
@@ -602,7 +604,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         // Добавяне на поле за нова партида
-        $btnoff = ($Detail->cantCreateNewBatch === true && !$haveMoreThenDisplayedBatches) ? 'btnOff' : '';
+        $btnoff = (!$Detail->canReceiveNewBatch($detailRec) && !$haveMoreThenDisplayedBatches) ? 'btnOff' : '';
 
         $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
         $columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
@@ -625,7 +627,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestions;
             }
 
-            if($haveMoreThenDisplayedBatches && $Detail->cantCreateNewBatch){
+            if($haveMoreThenDisplayedBatches && !$Detail->canReceiveNewBatch($detailRec)){
                 $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $suggestions));
             } else {
