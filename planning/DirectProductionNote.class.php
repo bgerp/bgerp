@@ -1490,9 +1490,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         // Проверки на параметрите
         expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
         expect($noteRec->state == 'draft', 'Протокола трябва да е чернова');
-        expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore'), "Няма артикул с ид {$productId}");
+        expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore,canManifacture'), "Няма артикул с ид {$productId}");
         if ($isWaste) {
             expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
+            expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
+        } elseif($isSubProduct) {
+            expect($productRec->canManifacture == 'yes', 'Артикулът трябва да е производим');
             expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
         } else {
             expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
@@ -1531,6 +1534,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } elseif($noteRec->inputServicesFrom == 'all') {
                 $rec->fromAccId = '61102';
             }
+        } elseif($rec->type == 'subProduct'){
+            $rec->storeId = $noteRec->storeId;
         }
 
         setIfNot($rec->storeId, $storeId);

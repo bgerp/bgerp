@@ -261,28 +261,15 @@ abstract class deals_ManifactureDetail extends doc_Detail
 
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
-        $meta = cat_Products::fetch($pRec->productId, $this->metaProducts);
-       
-        if (!$meta->metaProducts) { 
-            $masterThresdId = $Master::fetchField($masterId, 'threadId');
-            
-            if (doc_Threads::getFirstDocument($masterThresdId)->className == 'sales_Sales') {
-                $meta = $meta->canSell;
-            } elseif (doc_Threads::getFirstDocument($masterThresdId)->className == 'purchase_Purchases') {
-                $meta = $meta->canBuy;
-            }elseif (doc_Threads::getFirstDocument($masterThresdId)->className == 'planning_Jobs') {
-                $meta = $meta->canConvert;;
-            }
-        }
 
-        if ($meta != 'yes') return;
-        
         $productInfo = cat_Products::getProductInfo($pRec->productId);
         $quantityInPack = ($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
         $packQuantity = $row->quantity;
         $batch = is_array($row->batches) ? $row->batches : $row->batch;
 
-        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack, false, null, false, $batch);
+        $isSubProduct = $row->_type == 'subProduct' ? true : false;
+
+        return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack, false, null, $isSubProduct, $batch);
     }
 
 
