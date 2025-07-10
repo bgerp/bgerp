@@ -237,29 +237,34 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
 
             $masterId = Request::get($mvc->masterKey, 'int');
+            $type = Request::get('type', 'varchar');
             $metaArr = arr::make($mvc->metaProducts, true);
             $masterRec = $mvc->Master->fetch($masterId);
             if(!countR($metaArr)){
                 if($mvc instanceof planning_DirectProductNoteDetails){
-                    $metaArr = array('canConvert' => 'canConvert');
+                    if($type == 'subProduct'){
+                        $metaArr = array('canManifacture' => 'Производим', 'canStore' => 'Складируем');
+                    } else {
+                        $metaArr = array('canConvert' => 'Вложим');
+                    }
                 } elseif($mvc instanceof store_InternalDocumentDetail){
-                    $metaArr = array('canStore' => 'canStore');
+                    $metaArr = array('canStore' => 'Складируем');
                 } else {
                     if(isset($masterRec->originId)){
                         $Document = doc_Containers::getDocument($masterRec->originId);
                         if ($Document->className == 'sales_Sales') {
-                            $metaArr = array('canSell' => 'canSell');
+                            $metaArr = array('canSell' => 'Продаваем');
                         } elseif ($Document->className == 'purchase_Purchases') {
-                            $metaArr = array('canBuy' => 'canBuy');
+                            $metaArr = array('canBuy' => 'Купуваем');
                         }
                     } elseif($mvc instanceof store_TransfersDetails){
-                        $metaArr = array('canStore' => 'canStore');
+                        $metaArr = array('canStore' => 'Складируем');
                     }
                 }
             }
 
             if(countR($metaArr)){
-                $metaString = implode(',', $metaArr);
+                $metaString = implode(',', array_keys($metaArr));
                 $fieldSelect = "state,isPublic,folderId,{$metaString}";
             } else {
                 $fieldSelect = "state,isPublic,folderId";
@@ -283,9 +288,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             }
 
-            foreach ($meta as $metaValue) {
+            foreach ($meta as $mKey => $metaValue) {
                 if ($metaValue != 'yes') {
-                   $err[$i][] = $obj->code . ' - |Артикулът няма вече нужните свойства|*!';
+                   $err[$i][] = $obj->code . " - |Артикулът няма вече нужните свойства|*: <b>{$metaArr[$mKey]}</b>!";
                 }
             }
             
@@ -479,7 +484,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $rows = $total;
         }
 
+        $type = Request::get('type', 'varchar');
         foreach ($rows as $row) {
+            $row->_type = $type;
             // Опитваме се да импортираме записа
             try {
                 if ($mvc->import($masterId, $row)) {
