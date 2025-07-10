@@ -462,7 +462,7 @@ class pos_Reports extends core_Master
         $query = pos_Receipts::getQuery();
         $query->where("#pointId = {$rec->pointId}");
         $valior = !empty($rec->valior) ? $rec->valior : dt::today();
-        $query->where("#state = 'waiting' AND #waitingOn <= '{$valior}'");
+        $query->where("#state = 'waiting' AND #waitingOn <= '{$valior} 23:59:59'");
 
         if(!empty($rec->operators)){
             $operatorStr = implode(',', keylist::toArray($rec->operators));
