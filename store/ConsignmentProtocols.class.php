@@ -268,7 +268,7 @@ class store_ConsignmentProtocols extends core_Master
                                 $requiredRoles = 'no_one';
                             }
                         } else {
-                            if(!store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}") && !store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}")){
+                            if(!store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}")){
                                 $requiredRoles = 'no_one';
                             }
                         }
