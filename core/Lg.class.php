@@ -251,6 +251,10 @@ class core_Lg extends core_Manager
 
                                 return $strArr[$i + 1];
                             }
+                        } else {
+                            if (!isset($this->dict[$lg][$pKey])) {
+                                $this->dict[$lg][$pKey] = $strArr[$i - 1];
+                            }
                         }
 
                         unset($strArr[$i], $strArr[$i + 1]);
