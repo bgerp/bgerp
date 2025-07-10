@@ -253,6 +253,19 @@ class pos_Reports extends core_Master
             if (!$form->gotErrors()) {
                 $rec->folderId = pos_Points::forceCoverAndFolder($rec->pointId);
             }
+
+            $query = $mvc->getReceiptQuery($rec);
+            $query->show('waitingOn');
+            if(!$query->count()){
+                $form->setError('valior','Няма чакащи (неприключени) бележки с избрания или по-малък вальор|*!');
+            } else {
+                $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+                $receiptArr = arr::extractValuesFromArray($query->fetchAll(), 'waitingOn');
+                $found = array_filter($receiptArr, function ($a) use ($valior) { return $a <= "{$valior} 23:59:59";});
+                if(countR($found)){
+                    $form->setWarning('valior','В отчета ще влязат бележки с по-стара дата от избрания вальор|*!');
+                }
+            }
         }
     }
     
@@ -445,8 +458,30 @@ class pos_Reports extends core_Master
         
         return $self->abbr . $rec->id;
     }
-    
-    
+
+
+    /**
+     * Кои бележки трябва да влязат в отчета
+     *
+     * @param stdClass $rec
+     * @return core_Query $query
+     */
+    private function getReceiptQuery($rec)
+    {
+        $query = pos_Receipts::getQuery();
+        $query->where("#pointId = {$rec->pointId}");
+        $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+        $query->where("#state = 'waiting' AND #waitingOn <= '{$valior} 23:59:59'");
+
+        if(!empty($rec->operators)){
+            $operatorStr = implode(',', keylist::toArray($rec->operators));
+            $query->where("#waitingBy IN ($operatorStr) OR (#waitingBy IS NULL AND #createdBy IN ($operatorStr))");
+        }
+
+        return $query;
+    }
+
+
     /**
      * Подготвя информацията за направените продажби и плащания
      * от всички бележки за даден период от време на даден потребител
@@ -459,15 +494,7 @@ class pos_Reports extends core_Master
     private function fetchData($rec)
     {
         $details = $receipts = array();
-        $query = pos_Receipts::getQuery();
-        $query->where("#pointId = {$rec->pointId}");
-        $valior = !empty($rec->valior) ? $rec->valior : dt::today();
-        $query->where("#state = 'waiting' AND #waitingOn <= '{$valior} 23:59:59'");
-
-        if(!empty($rec->operators)){
-            $operatorStr = implode(',', keylist::toArray($rec->operators));
-            $query->where("#waitingBy IN ($operatorStr) OR (#waitingBy IS NULL AND #createdBy IN ($operatorStr))");
-        }
+        $query = $this->getReceiptQuery($rec);
 
         // Извличане на нужната информация за продажбите и плащанията
         $this->fetchReceiptData($query, $details, $receipts);
