@@ -26,7 +26,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'върнат артикул';
+    public $singleTitle = 'артикул, който получаваме';
     
     
     /**
