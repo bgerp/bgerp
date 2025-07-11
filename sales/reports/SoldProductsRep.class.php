@@ -86,9 +86,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,removeAndRefreshForm,single=none,input=none,silent');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,removeAndRefreshForm,single=none,input=none,silent');
 
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,silent,mandatory');
+    //   $fieldset->FLD('dealers', 'userlist(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,silent,mandatory');
+        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=names)', 'caption=Търговци->Търговец,placeholder=Всички,after=title,single=none');
+        $fieldset->FLD('dealersTeam', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Търговци->Екип,placeholder=Всички,after=dealers,single=none');
 
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealers');
+
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealersTeam');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
 
         $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
@@ -188,15 +191,17 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
-        $form = $data->form;
 
+
+        $form = $data->form;
+        $rec = $form->rec;
         if (date('d') < 10) {
             $form->setDefault('selectPeriod', 'last_month');
         } else {
             $form->setDefault('selectPeriod', 'cur_month');
         }
 
-        $rec = $form->rec;
+
         $suggestions = $prodSuggestions = $prodSalesArr = $posProdsArr = $prodArr = array();
 
         if ($rec->compare == 'month') {
@@ -221,6 +226,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('group', 'input=hidden');
         }
 
+        $form->input('selectPeriod,from,to',true);
         $periodStart = $rec->from;
         $periodEnd = $rec->to;
 
@@ -271,6 +277,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if ($rec->quantityType == 'invoiced') {
 
             $form->setField('dealers', 'input=none');
+            $form->setField('dealersTeam', 'input=none');
         }
 
         // POS продажби
@@ -380,12 +387,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
 
-        $salesQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+     //   $salesQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
 
         $salesQuery->groupBy('folderId');
 
         $salesQuery->show('folderId, contragentId, folderTitle');
-
         $suggestionContragents = array();
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
@@ -416,6 +422,17 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         asort($suggestionContragents);
 
         $form->setSuggestions('contragent', $suggestionContragents);
+
+        $suggestionTeams = array();
+        $teams = core_Roles::getRolesByType('team');
+        foreach (keylist::toArray($teams) as $team) {
+
+            $teRec = core_Roles::fetch($team);
+            $suggestionTeams[$teRec->id] = $teRec->role;
+        }
+
+        $form->setSuggestions('dealersTeam', $suggestionTeams);
+
     }
 
 
@@ -591,12 +608,33 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
 
-        //Филтър за ДИЛЪР
-        if ($rec->quantityType != 'invoiced' && isset($rec->dealers)) {
-            if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
-                $dealers = keylist::toArray($rec->dealers);
+        // Филтър за ДИЛЪР
+        if ($rec->quantityType != 'invoiced') {
+            $dealersArr = [];
 
-                $query->in('dealerId', $dealers);
+            // Добавяне на потребителите избрани в полето dealers
+            if (!empty($rec->dealers)) {
+                $dealersArr = keylist::toArray($rec->dealers);
+            }
+
+            // Добавяне на потребителите от избраните роли (екипи)
+            if (!empty($rec->dealersTeam)) {
+                $roleIds = keylist::toArray($rec->dealersTeam);
+
+                // Вземаме всички потребители, които имат поне една от ролите
+                $q = core_Users::getQuery();
+                foreach ($roleIds as $roleId) {
+                    $q->orWhere("#roles LIKE '%|{$roleId}|%'");
+                }
+
+                while ($user = $q->fetch()) {
+                    $dealersArr[$user->id] = $user->id;
+                }
+            }
+
+            // Ако има натрупани дилъри, филтрираме
+            if (!empty($dealersArr)) {
+                $query->in('dealerId', $dealersArr);
             }
         }
 
@@ -612,7 +650,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             }
 
-            if (!$rec->crmGroup && $rec->contragent) {//bp($rec->contragent,$contragentsArr,$query->fetchAll());
+            if (!$rec->crmGroup && $rec->contragent) {
 
                 // Генерираме частта от заявката, която съдържа IN условието
                 $in_clause = implode(", ", array_map(function ($pair) {
@@ -1928,7 +1966,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $fieldTpl->append('<b>' . acc_Periods::fetch($data->rec->secondMonth)->title . '</b>', 'secondMonth');
         }
 
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
+        if ((isset($data->rec->dealers)) && ($data->rec->dealers == 'shipped') && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
             foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
