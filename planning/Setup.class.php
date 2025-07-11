@@ -230,12 +230,6 @@ defIfNot('PLANNING_PRODUCTION_DELETE_SYSTEM_DETAILS', 'no');
 
 
 /**
- * До колко предходни/подобни задания да се показват при създаване на Задание->Брой
- */
-defIfNot('PLANNING_PREV_JOB_OPTIONS', '30');
-
-
-/**
  * САМО ръчно подреждане на операциите на оборудването->Избор
  */
 defIfNot('PLANNING_MANUAL_ORDER_IN_ASSET', 'no');
@@ -327,7 +321,6 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_TASK_OFFSET_IN_OTHER_LOCATION' => array('time', 'caption=Колко да е изчакването между предходни операции->В различна локация'),
         'PLANNING_MIN_TIME_FOR_GAP' => array('time', 'caption=Минимално време между ПО на една машина приемащо се за дупка->Време'),
         'PLANNING_PRODUCTION_DELETE_SYSTEM_DETAILS' => array('enum(yes=Да,no=Не)', array('caption' => 'Изтриване на редове от ПП с очаквано количество по рецепта/за влагане->Избор')),
-        'PLANNING_PREV_JOB_OPTIONS' => array('int', array('caption' => 'До колко предходни/подобни задания да се показват при създаване на "Задание"->Брой')),
         'PLANNING_MANUAL_ORDER_IN_ASSET' => array('enum(yes=Да,no=Не)', array('caption' => 'САМО ръчно подреждане на операциите на оборудването->Избор')),
     );
 
