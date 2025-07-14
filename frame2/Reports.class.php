@@ -663,13 +663,13 @@ class frame2_Reports extends embed_Manager
         // Рендиране на таблицата в лога
         if(isset($data->logRows)){
             $fieldset = new core_FieldSet();
-            $fieldset->FLD('time', 'datetime','tdClass=smallCol');
-            $fieldset->FLD('msg', 'varchar','smartCenter');
+            $fieldset->FLD('time', 'datetime','tdClass=small-field');
+            $fieldset->FLD('msg', 'varchar','tdClass=leftCol');
             $table = cls::get('core_TableView', array('mvc' => $fieldset));
             $details = $table->get($data->logRows, 'time=Време,msg=Съобщение');
-            $tpl->append($details, 'DETAILS');
+            $tpl->append($details, 'LOGS');
             if(isset($data->logPager)){
-                $tpl->append($data->logPager->getHtml(), 'DETAILS');
+                $tpl->append($data->logPager->getHtml(), 'LOGS');
             }
         }
     }
@@ -1477,7 +1477,9 @@ class frame2_Reports extends embed_Manager
                 $data->logRows = array();
                 foreach ($rec->log as $logArr) {
                     if (!$data->logPager->isOnPage()) continue;
-                    $data->logRows[] = (object)array('time' => dt::mysql2verbal($logArr['time']), 'msg' => core_Type::getByName('varchar')->toVerbal($logArr['msg']));
+                    $data->logRows[] = (object)array('time' => core_Type::getByName('date(format=smartTime)')->toVerbal($logArr['time']),
+                                                     'msg' => core_Type::getByName('varchar')->toVerbal($logArr['msg']),
+                                                     'ROW_ATTR' => array('style' => 'background-color:#fefec2;'));
                 }
             }
         }
