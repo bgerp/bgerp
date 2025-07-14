@@ -820,6 +820,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         // Ако протокола е за крайния артикул
         if(static::isForJobProductId($rec)) {
             $detailsFromBom = $this->getDefaultDetailsFromBom($rec);
+            $orderedKeys = arr::extractValuesFromArray($detailsFromBom, 'productId');
 
             // Какво е вложено до момента в заданието
             $jobRec =  static::getJobRec($rec);
@@ -878,6 +879,21 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $d3->quantity = $d3->quantityExpected;
                     }
                 }
+            }
+
+            // Сортиране по приоритет от рецепта
+            if(countR($orderedKeys)){
+                $ordered = array();
+                foreach ($orderedKeys as $pid) {
+                    foreach ($details as $k => $obj) {
+                        if ($obj->productId == $pid) {
+                            $ordered[$k] = $obj;
+                            unset($details[$k]);
+                        }
+                    }
+                }
+
+                $details = array_merge($ordered, $details);
             }
         } elseif($origin->isInstanceOf('planning_Tasks')){
             $details = array();
