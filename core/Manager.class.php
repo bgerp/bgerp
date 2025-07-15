@@ -608,7 +608,8 @@ class core_Manager extends core_Mvc
                         } else {
                             $options = $Type->type->options;
                         }
-                        $skip = false;
+
+                        $skip = isset($Type->type->params['allowEmpty']) && isset($options['']);
                     } elseif ($Type->type instanceof type_Keylist) {
                         $options = $Type->type->getSuggestions();
                         $skip = false;
