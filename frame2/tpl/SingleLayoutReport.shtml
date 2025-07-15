@@ -29,4 +29,10 @@
  	[#frame2_ReportVersions#]
 </fieldset>
 <!--ET_END frame2_ReportVersions-->
+<!--ET_BEGIN LOGS-->
+<fieldset class='detail-info' style="font-size: 0.8em">
+	<legend style="font-weight: bold">|Логове|*</legend>
+	[#LOGS#]
+</fieldset>
+<!--ET_END LOGS-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
