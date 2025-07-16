@@ -17,7 +17,7 @@
         border-left: 1px solid #aaa;
         border-top: 1px solid #aaa;
         padding: 0 1mm;
-        font-size: 15px;
+        font-size: 16px;
     }
 
     .label-holder table tr > td.no-border-left {
@@ -25,11 +25,17 @@
     }
 
     .label-holder table tr > td.no-border-top {
-        border-top: none;
+        border-top: none !important;
     }
     .barcode img {
         max-width: 48mm;
         height:auto;
+    }
+    .right {
+        text-align: right !important;
+    }
+    .left {
+        text-align: left !important;
     }
     .bold {
         font-weight: bold;
@@ -39,11 +45,11 @@
 <div class="label-holder">
     <table>
         <tr>
-            <td class="top-descr no-border-left no-border-top centered" >
-                <div class='left'>код: <span class="code bold">[#CODE#]</span></div>
+            <td class="top-descr no-border-left no-border-top left" >
+                <span class="code bold">[#CODE#]</span>
             </td>
-            <td   class="top-descr no-border-left no-border-top nowrap centered" >
-                 <div class='right'>мярка: <span class="code"><b>[#MEASURE_ID#]</b></span> [#QUANTITY#]</div>
+            <td class="top-descr no-border-left no-border-top nowrap right" >
+                <span class="code bold">[#MEASURE_ID#]</span> [#QUANTITY#]
             </td>
         </tr>
         <tr>
