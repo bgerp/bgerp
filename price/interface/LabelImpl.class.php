@@ -153,7 +153,7 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
                     $measureName = cat_UoM::getShortName($measureId);
 
                     $catalogPrice = currency_Currencies::decorate($Double->toVerbal($packRec->price), $rec->currencyId, true);
-                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $catalogPrice, "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "$quantity{$measureName}", 'PRICE_CAPTION' => $priceCaption);
+                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $catalogPrice, "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "{$quantity}{$measureName}", 'PRICE_CAPTION' => $priceCaption);
                     if($showPriceInEuro){
                         $priceInEuro = currency_CurrencyRates::convertAmount($packRec->price, $date, 'BGN', 'EUR');
                         $priceInEuro = currency_Currencies::decorate(core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro), 'EUR', true);
