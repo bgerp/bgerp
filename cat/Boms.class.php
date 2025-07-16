@@ -1504,7 +1504,8 @@ class cat_Boms extends core_Master
             $query = cat_BomDetails::getQuery();
             $query->where("#parentId = {$rec->id} AND #bomId = {$rec->bomId}");
             $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
-            
+            $query->orderBy("position", 'ASC');
+
             // За всеки детайл
             while ($dRec = $query->fetch()) {
 
@@ -1631,6 +1632,7 @@ class cat_Boms extends core_Master
         $query = cat_BomDetails::getQuery();
         $query->where("#bomId = {$rec->id}");
         $query->where('#parentId IS NULL');
+        $query->orderBy("position", 'ASC');
         $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
         $details = $query->fetchAll();
         

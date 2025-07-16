@@ -35,6 +35,12 @@ abstract class frame2_driver_Proto extends core_BaseClass
 
 
     /**
+     * Лог на изчисленията
+     */
+    public $log = array();
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *.
      * @param core_Fieldset $fieldset
@@ -333,5 +339,26 @@ abstract class frame2_driver_Proto extends core_BaseClass
         $seenBefore = dt::addSecs(-1 * $seenBeforeTime);
 
         return $lastSeen <= $seenBefore;
+    }
+
+
+    /**
+     * Добавя в лога съобщения
+     */
+    protected function logWhilePreparing($msg)
+    {
+        $this->log[] = array('msg' => $msg, 'time' => dt::now());
+    }
+
+
+    /**
+     * Връща кеширания лог
+     *
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getLog($rec)
+    {
+       return $this->log;
     }
 }

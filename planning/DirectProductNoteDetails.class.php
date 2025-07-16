@@ -531,7 +531,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
 
         if ($this->haveRightFor('import', (object) array('noteId' => $data->masterId, 'type' => 'subProduct'))) {
-            $tpl->append(ht::createBtn('Импорт', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'subProduct', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Импортиране на субпродукти')), 'SUB_PRODUCTS_TABLE');
+            $tpl->append(ht::createBtn('Импорт|* (|субпр.|*)', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'subProduct', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Импортиране на субпродукти')), 'SUB_PRODUCTS_TABLE');
         }
         
         // Връщаме шаблона

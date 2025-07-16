@@ -59,41 +59,41 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,store,distributor';
+    public $canPending = 'ceo,store,distributor,sales,purchase';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,store';
+    public $canList = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,store';
+    public $canSingle = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,store';
+    public $canEdit = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,store';
+    public $canAdd = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store,trans';
+    public $canChangeline = 'ceo,store,trans,sales,purchase';
     
     
     /**
-     * Кой може да го изтрие?
+     * Кой може да контира?
      */
     public $canConto = 'ceo,store';
     
@@ -202,8 +202,8 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('deliveryTime', 'datetime(requireTime)','caption=Товарене');
         $this->FLD('deliveryOn', 'datetime(requireTime)','caption=Доставка');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация на Контрагента->Обект,silent');
-        $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory,notNull,default=ours');
-        
+        $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory');
+
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
@@ -461,8 +461,7 @@ class store_ConsignmentProtocols extends core_Master
 
         // При нов протокол, потребителя ще бъде принуден да избере типа на предаваните/получаваните артикули
         if(empty($rec->id)){
-            $form->setOptions('productType', array('' => '', 'ours' => 'Наши артикули', 'other' => 'Чужди артикули'));
-            $form->setDefault('productType', '');
+            $form->setFieldType('productType', "enum(,ours=Наши артикули,other=Чужди артикули)");
         }
         
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));

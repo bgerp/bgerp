@@ -146,6 +146,7 @@ class type_Key2 extends type_Int
             }
         }
 
+        $haveSelectSourceArr = $this->params['selectSourceArr'];
         if (!$this->params['selectSourceArr']) {
             if ($this->params['selectSource']) {
                 $this->params['selectSourceArr'] = explode('::', $this->params['selectSource']);
@@ -172,9 +173,11 @@ class type_Key2 extends type_Int
                 $this->params['titleFld'] = 'title';
             }
         }
-        
-        expect($this->params['titleFld']);
-        
+
+        if(!$haveSelectSourceArr){
+            expect($this->params['titleFld'], $this);
+        }
+
         $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit, $search, $ids, $includeHiddens);
 
         // При търсене, записваме резултата в кеша

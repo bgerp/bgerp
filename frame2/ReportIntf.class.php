@@ -26,8 +26,14 @@ class frame2_ReportIntf extends embed_DriverIntf
      * Кои полета, може да се променят от poweruser
      */
     protected $changeableFields;
-    
-    
+
+
+    /**
+     * Лог на изчисленията
+     */
+    protected $log;
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -254,5 +260,17 @@ class frame2_ReportIntf extends embed_DriverIntf
     public function canCloseAfterRefresh($rec)
     {
         return $this->class->canCloseAfterRefresh($rec);
+    }
+
+
+    /**
+     * Връща кеширания лог
+     *
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getLog($rec)
+    {
+        return $this->class->getLog($rec);
     }
 }
