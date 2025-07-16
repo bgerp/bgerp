@@ -58,6 +58,19 @@ class change_plg_History extends core_Plugin
                 }
             }
         }
+
+        // Ако ще се запише нова версия - проверка с уорнинг
+        if($form->isSubmitted()){
+            if(!empty($rec->id)){
+                $oldHash = self::getOldRecHash($mvc, $rec);
+                $newFieldHash = self::getNewRecHash($mvc, $rec);
+                if($oldHash != $newFieldHash){
+                    $validFrom = !empty($rec->newValidFrom) ? $rec->newValidFrom : (dt::today() . " 00:00:00");
+                    $validFromVerbal = dt::mysql2verbal($validFrom);
+                    $form->setWarning('versionDate', "Ще бъде записана нова версия с данните на контрагента от|* <b>{$validFromVerbal}</b>!");
+                }
+            }
+        }
     }
 
 
@@ -126,7 +139,7 @@ class change_plg_History extends core_Plugin
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        $rec->_oldFieldHash = static::getOldRecHash($mvc, $rec);
+        $rec->_oldFieldHash = self::getOldRecHash($mvc, $rec);
     }
 
 
@@ -154,7 +167,7 @@ class change_plg_History extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
         // Ако има промяна в наблюдаваните полета
-        $newFieldHash = static::getNewRecHash($mvc, $rec);
+        $newFieldHash = self::getNewRecHash($mvc, $rec);
         if($rec->_oldFieldHash == $newFieldHash) return;
 
         $rec->validFrom = !empty($rec->validFrom) ? $rec->validFrom : dt::now();
