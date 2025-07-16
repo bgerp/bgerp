@@ -59,41 +59,41 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,store,distributor';
+    public $canPending = 'ceo,store,distributor,sales,purchase';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,store';
+    public $canList = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,store';
+    public $canSingle = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,store';
+    public $canEdit = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,store';
+    public $canAdd = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store,trans';
+    public $canChangeline = 'ceo,store,trans,sales,purchase';
     
     
     /**
-     * Кой може да го изтрие?
+     * Кой може да контира?
      */
     public $canConto = 'ceo,store';
     
