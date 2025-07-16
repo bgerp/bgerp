@@ -223,6 +223,9 @@ class pos_Reports extends core_Master
         }
         
         if ($fields['-single']) {
+            $valiorToBe = $mvc->getFieldType('valior')->toVerbal(dt::today());
+            $row->valior = (isset($rec->valior)) ? $row->valior : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
+
             $pointRec = pos_Points::fetch($rec->pointId);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -987,5 +990,14 @@ class pos_Reports extends core_Master
 
             if ($found) return $rRec->id;
         }
+    }
+
+
+    /**
+     * Документа не може да се активира ако има детайл с количество 0
+     */
+    public function canActivate($rec)
+    {
+        return true;
     }
 }
