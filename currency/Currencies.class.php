@@ -190,6 +190,9 @@ class currency_Currencies extends core_Master
             case "EUR":
                 $amount = ($isOurCurrency) ? "{$amount}&nbsp;€" : "€&nbsp;{$amount}";
                 break;
+            case "GBP":
+                $amount = "£&nbsp;{$amount}";
+                break;
             default: 
                 $amount .= '&nbsp;<span class="cCode">' . $currency . '</span>';
         }
