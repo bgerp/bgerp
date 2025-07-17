@@ -5,9 +5,6 @@
         width: 60.5mm;
         font-size: 1em;
     }
-    .code {
-        font-size: 1.3em;
-    }
     .label-holder table {
         height: 27.5mm;
         width: 59mm;
@@ -18,7 +15,7 @@
         border-left: 1px solid #aaa;
         border-top: 1px solid #aaa;
         padding: 0 0.5mm;
-        font-size: 10px;
+        font-size: 16px;
     }
 
     .label-holder table tr > td.no-border-left {
@@ -35,7 +32,6 @@
     }
 
     .small {
-        font-size: 0.8em;
         font-weight: normal;
         display:block;
     }
@@ -92,7 +88,7 @@
             </td>
         </tr>
         <tr>
-            <td class="top-descr no-border-left bold centered" style="font-size: 15px;">
+            <td class="top-descr no-border-left bold centered" style="height: 60px">
                 [#NAME#]
             </td>
         </tr>
