@@ -17,7 +17,7 @@
         border-left: 1px solid #aaa;
         border-top: 1px solid #aaa;
         padding: 0 1mm;
-        font-size: 16px;
+        font-size: 17px;
     }
 
     .label-holder table tr > td.no-border-left {
@@ -53,7 +53,7 @@
             </td>
         </tr>
         <tr>
-            <td colspan=2 class="top-descr no-border-left bold centered" style='font-size: 15px;'>
+            <td colspan=2 class="top-descr no-border-left bold centered" style='height: 60px;'>
                 [#NAME#]
             </td>
         </tr>
