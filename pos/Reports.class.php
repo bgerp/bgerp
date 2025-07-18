@@ -223,6 +223,9 @@ class pos_Reports extends core_Master
         }
         
         if ($fields['-single']) {
+            $valiorToBe = $mvc->getFieldType('valior')->toVerbal(dt::today());
+            $row->valior = (isset($rec->valior)) ? $row->valior : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
+
             $pointRec = pos_Points::fetch($rec->pointId);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -249,13 +252,22 @@ class pos_Reports extends core_Master
                 $form->setError('pointId', $errorMsg);
             }
 
-            if(!empty($rec->valior) && $rec->valior < dt::today()){
-                $form->setError('valior', 'Вальорът не може да е в миналото');
-            }
-
             // Ако няма грешки, форсираме отчета да се създаде в папката на точката
             if (!$form->gotErrors()) {
                 $rec->folderId = pos_Points::forceCoverAndFolder($rec->pointId);
+            }
+
+            $query = $mvc->getReceiptQuery($rec);
+            $query->show('waitingOn');
+            if(!$query->count()){
+                $form->setError('valior','Няма чакащи (неприключени) бележки с избрания или по-малък вальор|*!');
+            } else {
+                $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+                $receiptArr = arr::extractValuesFromArray($query->fetchAll(), 'waitingOn');
+                $found = array_filter($receiptArr, function ($a) use ($valior) { return $a < "{$valior} 00:00:00";});
+                if(countR($found)){
+                    $form->setWarning('valior','В отчета ще влязат бележки с по-стара дата от избрания вальор|*!');
+                }
             }
         }
     }
@@ -449,8 +461,30 @@ class pos_Reports extends core_Master
         
         return $self->abbr . $rec->id;
     }
-    
-    
+
+
+    /**
+     * Кои бележки трябва да влязат в отчета
+     *
+     * @param stdClass $rec
+     * @return core_Query $query
+     */
+    private function getReceiptQuery($rec)
+    {
+        $query = pos_Receipts::getQuery();
+        $query->where("#pointId = {$rec->pointId}");
+        $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+        $query->where("#state = 'waiting' AND #waitingOn <= '{$valior} 23:59:59'");
+
+        if(!empty($rec->operators)){
+            $operatorStr = implode(',', keylist::toArray($rec->operators));
+            $query->where("#waitingBy IN ($operatorStr) OR (#waitingBy IS NULL AND #createdBy IN ($operatorStr))");
+        }
+
+        return $query;
+    }
+
+
     /**
      * Подготвя информацията за направените продажби и плащания
      * от всички бележки за даден период от време на даден потребител
@@ -463,13 +497,7 @@ class pos_Reports extends core_Master
     private function fetchData($rec)
     {
         $details = $receipts = array();
-        $query = pos_Receipts::getQuery();
-        $query->where("#pointId = {$rec->pointId}");
-        $query->where("#state = 'waiting'");
-        if(!empty($rec->operators)){
-            $operatorStr = implode(',', keylist::toArray($rec->operators));
-            $query->where("#waitingBy IN ($operatorStr) OR (#waitingBy IS NULL AND #createdBy IN ($operatorStr))");
-        }
+        $query = $this->getReceiptQuery($rec);
 
         // Извличане на нужната информация за продажбите и плащанията
         $this->fetchReceiptData($query, $details, $receipts);
@@ -962,5 +990,14 @@ class pos_Reports extends core_Master
 
             if ($found) return $rRec->id;
         }
+    }
+
+
+    /**
+     * Документа не може да се активира ако има детайл с количество 0
+     */
+    public function canActivate($rec)
+    {
+        return true;
     }
 }

@@ -241,7 +241,9 @@ class planning_TaskConstraints extends core_Master
         // Извличане на локациите на които са центровете на дейност на етапа
         $cQuery = planning_Centers::getQuery();
         $cQuery->EXT('locationId', 'hr_Departments', 'externalName=locationId,externalKey=departmentId');
-        $cQuery->in('folderId', $folderIds);
+        if(countR($folderIds)){
+            $cQuery->in('folderId', $folderIds);
+        }
         $cQuery->show('locationId,folderId');
         while ($cRec = $cQuery->fetch()) {
             $folderLocations[$cRec->folderId] = $cRec->locationId ?? '-';

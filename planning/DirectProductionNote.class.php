@@ -820,6 +820,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         // Ако протокола е за крайния артикул
         if(static::isForJobProductId($rec)) {
             $detailsFromBom = $this->getDefaultDetailsFromBom($rec);
+            $orderedKeys = arr::extractValuesFromArray($detailsFromBom, 'productId');
 
             // Какво е вложено до момента в заданието
             $jobRec =  static::getJobRec($rec);
@@ -878,6 +879,21 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $d3->quantity = $d3->quantityExpected;
                     }
                 }
+            }
+
+            // Сортиране по приоритет от рецепта
+            if(countR($orderedKeys)){
+                $ordered = array();
+                foreach ($orderedKeys as $pid) {
+                    foreach ($details as $k => $obj) {
+                        if ($obj->productId == $pid) {
+                            $ordered[$k] = $obj;
+                            unset($details[$k]);
+                        }
+                    }
+                }
+
+                $details = array_merge($ordered, $details);
             }
         } elseif($origin->isInstanceOf('planning_Tasks')){
             $details = array();
@@ -1490,9 +1506,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         // Проверки на параметрите
         expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
         expect($noteRec->state == 'draft', 'Протокола трябва да е чернова');
-        expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore'), "Няма артикул с ид {$productId}");
+        expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore,canManifacture'), "Няма артикул с ид {$productId}");
         if ($isWaste) {
             expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
+            expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
+        } elseif($isSubProduct) {
+            expect($productRec->canManifacture == 'yes', 'Артикулът трябва да е производим');
             expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
         } else {
             expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
@@ -1531,6 +1550,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } elseif($noteRec->inputServicesFrom == 'all') {
                 $rec->fromAccId = '61102';
             }
+        } elseif($rec->type == 'subProduct'){
+            $rec->storeId = $noteRec->storeId;
         }
 
         setIfNot($rec->storeId, $storeId);
