@@ -427,8 +427,10 @@ class pos_Reports extends core_Master
     protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         if (!empty($data->form->toolbar->buttons['save'])) {
-            $data->form->toolbar->removeBtn('save');
-            $data->form->toolbar->addSbBtn('Контиране', 'save', 'warning=Наистина ли желаете да контирате отчета|*?,ef_icon = img/16/disk.png,order=9.99985, title = Контиране на документа');
+            if(empty($data->form->rec->id)){
+                $data->form->toolbar->removeBtn('save');
+                $data->form->toolbar->addSbBtn('Контиране', 'save', 'warning=Наистина ли желаете да контирате отчета|*?,ef_icon = img/16/disk.png,order=9.99985, title = Контиране на документа');
+            }
         }
     }
     
