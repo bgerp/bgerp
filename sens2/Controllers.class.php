@@ -629,6 +629,11 @@ class sens2_Controllers extends core_Master
             sens2_Indicators::setValue($rec->id, $portName, $value, dt::verbal2mysql());
         }
         
+        // За да връщаме true при числени стойности
+        if(is_numeric($value)) {
+            $value = true;
+        }
+        
         return $value;
     }
 
