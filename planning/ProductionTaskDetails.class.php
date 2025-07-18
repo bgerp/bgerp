@@ -1709,7 +1709,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->where("#taskModifiedOn >= '{$timeline}'");
 
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
-        $iRec2 = hr_IndicatorNames::force('Въведен_производствен_прогрес', __CLASS__, 2);
+        $iRec2 = hr_IndicatorNames::force('Въведен_прогрес_в_операции', __CLASS__, 2);
 
         $classId = planning_Tasks::getClassId();
         $indicatorId = $iRec->id;
@@ -1777,7 +1777,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $rec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $result[$rec->id] = $rec->name;
 
-        $rec = hr_IndicatorNames::force('Въведен_производствен_прогрес', __CLASS__, 2);
+        $rec = hr_IndicatorNames::force('Въведен_прогрес_в_операции', __CLASS__, 2);
         $result[$rec->id] = $rec->name;
 
         return $result;
