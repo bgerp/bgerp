@@ -235,6 +235,11 @@ class pos_Reports extends core_Master
                 $row->operators = "<i>" . tr("Всички") . "</i>";
             }
         }
+
+        if ($fields['-list']) {
+            $row->paid = ht::styleNumber($row->paid, $rec->paid);
+            $row->total = ht::styleNumber($row->total, $rec->total);
+        }
     }
     
     
