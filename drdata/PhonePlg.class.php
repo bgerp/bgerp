@@ -123,6 +123,6 @@ class drdata_PhonePlg extends core_Plugin
         // Връщаме старата стойност
 //        $PhoneTypeInst->params['countryPhoneCode'] = $countryPhoneCode;
         
-        return false;
+//        return false;
     }
 }
