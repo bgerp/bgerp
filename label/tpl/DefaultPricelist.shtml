@@ -8,8 +8,7 @@
         margin: -2mm 2mm 2mm -2mm;
     }
     .label-holder table {
-
-        height: 30mm;
+        height: 30.6mm;
         width: 62mm;
         border-collapse: collapse;
     }
@@ -39,6 +38,9 @@
     }
     .bold {
         font-weight: bold;
+    }
+    .labelBreak {
+        page-break-after: always !important;
     }
 </style>
 

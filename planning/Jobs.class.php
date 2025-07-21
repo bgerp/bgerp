@@ -1640,10 +1640,13 @@ class planning_Jobs extends core_Master
         $result = array();
         $rec = hr_IndicatorNames::force('Активирани_задания', __CLASS__, 1);
         $result[$rec->id] = $rec->name;
-        
+
         $rec = hr_IndicatorNames::force('Сложност_на_задания', __CLASS__, 2);
         $result[$rec->id] = $rec->name;
-        
+
+        $rec = hr_IndicatorNames::force('Приключени_задания', __CLASS__, 3);
+        $result[$rec->id] = $rec->name;
+
         return $result;
     }
     
@@ -1669,12 +1672,13 @@ class planning_Jobs extends core_Master
         $result = array();
         $iRec = hr_IndicatorNames::force('Активирани_задания', __CLASS__, 1);
         $iRec2 = hr_IndicatorNames::force('Сложност_на_задания', __CLASS__, 2);
-        
+        $iRec3 = hr_IndicatorNames::force('Приключени_задания', __CLASS__, 3);
+
         $query = self::getQuery();
-        $query->where("#state = 'active' || #state = 'closed' || #state = 'wakeup' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
+        $query->where("#state IN ('active', 'closed', 'wakeup') || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
         $query->where("#modifiedOn >= '{$timeline}'");
-        $query->show('activatedBy,activatedOn,modifiedOn,state,createdBy,productId');
-        
+        $query->show('activatedBy,activatedOn,modifiedOn,state,createdBy,productId,lastChangeStateBy');
+
         while ($rec = $query->fetch()) {
             $activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
             if (empty($activatedBy) || $activatedBy == core_Users::SYSTEM_USER) continue;
@@ -1687,12 +1691,20 @@ class planning_Jobs extends core_Master
             
             $isRejected = ($rec->state == 'rejected');
             hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec->id, 1, $isRejected);
-            
+
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $difficulty = $Driver->getDifficulty($rec->productId);
                 if (isset($difficulty)) {
                     hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec2->id, $difficulty, $isRejected);
                 }
+            }
+
+            if($rec->state == 'closed' || ($rec->brState == 'closed' && $isRejected)) {
+                if ($rec->lastChangeStateBy == core_Users::SYSTEM_USER) continue;
+                $lastChangeStateBy = $rec->lastChangeStateBy ?? $rec->modifiedOn;
+
+                $personId = crm_Profiles::fetchField("#userId = {$lastChangeStateBy}", 'personId');
+                hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec3->id, 1, $isRejected);
             }
         }
         
