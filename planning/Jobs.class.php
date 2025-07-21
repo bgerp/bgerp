@@ -1701,10 +1701,11 @@ class planning_Jobs extends core_Master
 
             if($rec->state == 'closed' || ($rec->brState == 'closed' && $isRejected)) {
                 if ($rec->lastChangeStateBy == core_Users::SYSTEM_USER) continue;
-                $lastChangeStateBy = $rec->lastChangeStateBy ?? $rec->modifiedOn;
+                $lastChangeStateBy = $rec->lastChangeStateBy ?? $rec->modifiedBy;
+                $lastChangeStateOn = $rec->lastChangeStateOn ?? $rec->modifiedOn;
 
                 $personId = crm_Profiles::fetchField("#userId = {$lastChangeStateBy}", 'personId');
-                hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec3->id, 1, $isRejected);
+                hr_Indicators::addIndicatorToArray($result, $lastChangeStateOn, $personId, $rec->id, $classId, $iRec3->id, 1, $isRejected);
             }
         }
         
