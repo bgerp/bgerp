@@ -624,21 +624,31 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @param string $sortUrlParam
      * @param string $fieldName
      * @param string $fieldCaption
-     * 
+     * @param core_Type $type
      * @return string $fieldCaption
      */
-    private function addSortingBtnsToField($sortUrlParam, $fieldName, $fieldCaption)
+    private function addSortingBtnsToField($sortUrlParam, $fieldName, $fieldCaption, $type)
     {
         $direction = Request::get($sortUrlParam);
         $directionArr = (!empty($direction)) ? explode('|', $direction) : null;
-        
+
         // Подготовка на бутоните за сортиране
-        $sort = "{$fieldName}|up";
+        $isNumeric = ($type instanceof type_Int) || ($type instanceof type_Double) || ($type instanceof type_Date);
+        if ($isNumeric) {
+            $sort = "{$fieldName}|down";
+        } else {
+            $sort = "{$fieldName}|up";
+        }
+
         $img = 'img/icon_sort.gif';
         if(is_array($directionArr)){
             if($directionArr[0] == $fieldName){
                 $img = ($directionArr[1] == 'up') ? 'img/icon_sort_up.gif' : (($directionArr[1] == 'down') ? 'img/icon_sort_down.gif' : $img);
-                $sort = ($directionArr[1] == 'up') ? "{$fieldName}|down" : (($directionArr[1] == 'down') ? "{$fieldName}|none" : "{$fieldName}|up");
+                if($isNumeric){
+                    $sort = ($directionArr[1] == 'up') ? "{$fieldName}|none" : (($directionArr[1] == 'down') ? "{$fieldName}|up" : "{$fieldName}|down");
+                } else {
+                    $sort = ($directionArr[1] == 'up') ? "{$fieldName}|down" : (($directionArr[1] == 'down') ? "{$fieldName}|none" : "{$fieldName}|up");
+                }
             }
         }
         
@@ -678,7 +688,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         foreach ($fields as $name => $fld) {
             // Ако полето ще се сортира, добавя се функционалност за сортиране
             if(array_key_exists($name, $listFieldsToSort)) {
-                $fld->caption = $this->addSortingBtnsToField($sortUrlParam, $name, $fld->caption);
+                $fld->caption = $this->addSortingBtnsToField($sortUrlParam, $name, $fld->caption, $fld->type);
             }
             $listFields[$name] = $fld->caption;
         }
