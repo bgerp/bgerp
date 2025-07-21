@@ -143,6 +143,23 @@ class bgerp_BaseImporter extends core_Manager
                 $created++;
             }
 
+            // Ако е ембедър и се обновяват съществуващите записи
+            if($this->mvc instanceof embed_Manager){
+                if($onExist == 'update'){
+                    if(isset($rec->id)){
+
+                        // Да се добавят полетата от базата от драйвера, за да не бъдат забърсани в последствие
+                        if($Driver = $this->mvc->getDriver($rec->id)){
+                            $exRec = $this->mvc->fetch($rec->id, '*', false);
+                            $addFields = $this->mvc->getDriverFields($Driver);
+                            foreach ($addFields as $key => $driverField) {
+                                $rec->{$key} = $exRec->{$key};
+                            }
+                        }
+                    }
+                }
+            }
+
             $this->mvc->save($rec);
         }
         
