@@ -1703,6 +1703,7 @@ class planning_Jobs extends core_Master
                 if ($rec->lastChangeStateBy == core_Users::SYSTEM_USER) continue;
                 $lastChangeStateBy = $rec->lastChangeStateBy ?? $rec->modifiedBy;
                 $lastChangeStateOn = $rec->lastChangeStateOn ?? $rec->modifiedOn;
+                $lastChangeStateOn = dt::verbal2mysql($lastChangeStateOn, false);
 
                 $personId = crm_Profiles::fetchField("#userId = {$lastChangeStateBy}", 'personId');
                 hr_Indicators::addIndicatorToArray($result, $lastChangeStateOn, $personId, $rec->id, $classId, $iRec3->id, 1, $isRejected);
