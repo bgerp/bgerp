@@ -1,0 +1,102 @@
+<?php
+
+
+/**
+ *  IP-та на всички наши офиси
+ */
+defIfNot('WTIME_SITE_IPS', '');
+
+
+/**
+ *  До колко минути назад за залепва с предходно събитие при четене
+ */
+defIfNot('WTIME_READ_STICK_MIN', '0');
+
+
+/**
+ *  До колко минути назад за залепва с предходно събитие при запис (notice +)
+ */
+defIfNot('WTIME_WRITE_STICK_MIN', '0');
+
+
+/**
+ *  Колко време след вход се приема, че служителя все още не излязъл
+ */
+defIfNot('WTIME_MAX_IN_TIME', 16 * 60 * 60);
+
+
+/**
+ *  Колко минути да няма хит от фирмено ИП служителя, за да се приеме че работи отдалечено
+ */
+defIfNot('WTIME_EXCLUDE_LOCAL_MIN', '0');
+
+
+/**
+ * Клас 'wtime_OnSiteEntries'
+ * Клас-мениджър за записи за вход/изход на място
+ *
+ * @category  bgerp
+ * @package   wtime
+ *
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2025 Experta OOD
+ * @license   GPL 3
+ *
+ * @since     v 0.1
+ */
+class wtime_Setup extends core_ProtoSetup
+{
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+
+
+    /**
+     * Мениджър - входна точка в пакета
+     */
+    public $startCtr = 'wtime_OnSiteEntries';
+
+
+    /**
+     * Екшън - входна точка в пакета
+     */
+    public $startAct = 'default';
+
+
+    /**
+     * Описание на модула
+     */
+    public $info = 'Отчитане на работното време';
+
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
+        'wtime_OnSiteEntries',
+    );
+
+
+    public $configDescription = array(
+        'WTIME_SITE_IPS' => array('text', 'caption=IP-та на всички наши офиси'),
+        'WTIME_READ_STICK_MIN' => array('int(Min=0)', 'caption=До колко минути назад за залепва->С предходно събитие при четене'),
+        'WTIME_WRITE_STICK_MIN' => array('int(Min=0)', 'caption=До колко минути назад за залепва->С предходно събитие при запис'),
+        'WTIME_MAX_IN_TIME' => array('time', array('caption' => 'Колко време след вход->Се приема че служителя все още не излязъл')),
+        'WTIME_EXCLUDE_LOCAL_MIN' => array('int(Min=0)', array('caption' => 'Колко време да няма хит от фирмено IP служителя за да се приеме че работи отдалечено->Минути')),
+    );
+
+
+    /**
+     * Роли за достъп до модула
+     */
+    public $roles = array('trackonline', 'wtime');
+
+
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    public $menuItems = array(
+        array(2.41, 'Счетоводство', 'Работно време', 'wtime_OnSiteEntries', 'default', 'ceo,wtime'),
+    );
+}
