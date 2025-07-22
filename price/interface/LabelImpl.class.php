@@ -134,7 +134,7 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
                     if($showPriceInEuro){
                         $rate = currency_CurrencyRates::getRate($date, 'EUR', 'BGN');
                         $priceInEuro = round($pRec->price, 2) / $rate;
-                        $res['CATALOG_PRICE_EURO'] = core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro);
+                        $res['CATALOG_PRICE_EURO'] = currency_Currencies::decorate(core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro), 'EUR', true);
                     }
 
                     if (countR($params)) {
@@ -157,7 +157,7 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
                     $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $catalogPrice, "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "{$quantity} {$measureName}", 'PRICE_CAPTION' => $priceCaption);
                     if($showPriceInEuro){
                         $rate = currency_CurrencyRates::getRate($date, 'EUR', 'BGN');
-                        $priceInEuro = round($pRec->price, 2) / $rate;
+                        $priceInEuro = round($packRec->price, 2) / $rate;
                         $priceInEuro = currency_Currencies::decorate(core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro), 'EUR', true);
                         $res['CATALOG_PRICE_EURO'] = $priceInEuro;
                     }
