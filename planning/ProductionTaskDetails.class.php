@@ -1639,7 +1639,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             // Ако артикула е артикула от заданието и операцията е финална или артикула е този от операцията за междинен етап
             if(($taskRec->isFinal == 'yes' && $rec->productId == $jobProductId) || $rec->productId == $taskRec->productId){
-                $isMeasureUom = (cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom');
+                $isMeasureUom = (isset($taskRec->measureId) && cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom');
                 if($isMeasureUom){
                     if($taskRec->indPackagingId == $taskRec->measureId){
                         $quantity /= $taskRec->quantityInPack;
@@ -1706,17 +1706,35 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('isFinal', 'planning_Tasks', 'externalName=isFinal,externalKey=taskId');
         $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
         $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
-        $query->where("#taskModifiedOn >= '{$timeline}' AND #norm IS NOT NULL AND #employees IS NOT NULL");
+        $query->where("#taskModifiedOn >= '{$timeline}'");
 
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
+        $iRec2 = hr_IndicatorNames::force('Въведен_прогрес_в_операции', __CLASS__, 2);
+
         $classId = planning_Tasks::getClassId();
         $indicatorId = $iRec->id;
 
         while ($rec = $query->fetch()) {
+            $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
+            $date = dt::verbal2mysql($date, false);
+
+            $personId = crm_Profiles::fetchField("#userId = {$rec->createdBy}", 'personId');
+            $key1 = "{$personId}|{$classId}|{$rec->taskId}|{$rec->state}|{$date}|{$iRec2->id}";
+            if (!array_key_exists($key1, $result)) {
+                $result[$key1] = (object) array('date'        => $date,
+                                                'personId'    => $personId,
+                                                'docId'       => $rec->taskId,
+                                                'docClass'    => $classId,
+                                                'indicatorId' => $iRec2->id,
+                                                'value'       => 0,
+                                                'isRejected'  => ($rec->state == 'rejected'));
+            }
+
+            $result[$key1]->value += 1;
 
             // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
-            if (!countR($persons)) continue;
+            if (!countR($persons) || !isset($rec->norm)) continue;
 
             $taskRec = new stdClass();
             $arr = arr::make("taskId=id,taskMeasureId=measureId,indTimeAllocation=indTimeAllocation,indPackagingId=indPackagingId,labelPackagingId=labelPackagingId,taskProductId=productId,isFinal=isFinal,originId=originId,taskQuantityInPack=quantityInPack,labelQuantityInPack=labelQuantityInPack", true);
@@ -1728,8 +1746,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             $timePerson = ($rec->indTimeAllocation == 'individual') ? $normFormQuantity : ($normFormQuantity / countR($persons));
             $sign = ($rec->type != 'scrap') ? 1 : -1;
 
-            $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
-            $date = dt::verbal2mysql($date, false);
             foreach ($persons as $personId) {
                 $key = "{$personId}|{$classId}|{$rec->taskId}|{$rec->state}|{$date}|{$indicatorId}";
                 if (!array_key_exists($key, $result)) {
@@ -1760,7 +1776,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         $result = array();
         $rec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $result[$rec->id] = $rec->name;
-        
+
+        $rec = hr_IndicatorNames::force('Въведен_прогрес_в_операции', __CLASS__, 2);
+        $result[$rec->id] = $rec->name;
+
         return $result;
     }
     

@@ -57,8 +57,13 @@ class email_drivers_RouteOutgoingEmails extends email_drivers_OutgoingEmails
                     }
 
                     // Вземаме имейлите от текстовата част
-                    $emailsFromText = email_Mime::getAllEmailsFromStr($eRec->textPart, true);
-                    $emailsFromTextArr = type_Emails::toArray($emailsFromText);
+                    preg_match_all('/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i', $eRec->textPart, $matches);
+                    if ($matches[0]) {
+                        $emailsFromTextArr = $matches[0];
+                    } else {
+                        $emailsFromTextArr = array();
+                    }
+
                     $emailsFromTextArr = arr::make($emailsFromTextArr, true);
                     $emailArr = array_merge($emailArr, $emailsFromTextArr);
 

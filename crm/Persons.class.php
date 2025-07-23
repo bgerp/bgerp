@@ -3202,7 +3202,11 @@ class crm_Persons extends core_Master
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
         }
-        
+
+        if(isset($params['groups'])){
+            $query->likekeylist('groupList', $params['groups']);
+        }
+
         $titleFld = $params['titleFld'];
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         

@@ -83,11 +83,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,removeAndRefreshForm,silent');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,removeAndRefreshForm,silent');
 
-        $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,removeAndRefreshForm,single=none,input=none,silent');
+        $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=to,removeAndRefreshForm,single=none,input=none,silent');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,removeAndRefreshForm,single=none,input=none,silent');
 
     //   $fieldset->FLD('dealers', 'userlist(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,silent,mandatory');
-        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=names)', 'caption=Търговци->Търговец,placeholder=Всички,after=title,single=none');
+        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=names)', 'caption=Търговци->Търговец,placeholder=Всички,after=secondMonth,single=none');
         $fieldset->FLD('dealersTeam', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Търговци->Екип,placeholder=Всички,after=dealers,single=none');
 
 
@@ -1930,6 +1930,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                         <!--ET_BEGIN firstMonth--><div>|Месец 1|*: [#firstMonth#]</div><!--ET_END firstMonth-->
                                         <!--ET_BEGIN secondMonth--><div>|Месец 2|*: [#secondMonth#]</div><!--ET_END secondMonth-->
                                         <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
+                                         <!--ET_BEGIN dealersTeam--><div>|Екипи|*: [#dealersTeam#]</div><!--ET_END dealersTeam-->
                                         <!--ET_BEGIN contragent--><div>|Контрагент|*: [#contragent#]</div><!--ET_END contragent-->
                                         <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
                                         <!--ET_BEGIN group--><div>|Групи продукти|*: [#group#]</div><!--ET_END group-->
@@ -1966,15 +1967,34 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $fieldTpl->append('<b>' . acc_Periods::fetch($data->rec->secondMonth)->title . '</b>', 'secondMonth');
         }
 
-        if ((isset($data->rec->dealers)) && ($data->rec->dealers == 'shipped') && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
+        //Показваме избраните търговци
+        if ((isset($data->rec->dealers)) && ($data->rec->quantityType != 'invoiced') && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
+
             foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
 
-            $fieldTpl->append('<b>' . trim($dealersVerb, ',  ') . '</b>', 'dealers');
+                $fieldTpl->append('<b>' . trim($dealersVerb, ',  ') . '</b>', 'dealers');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'dealers');
         }
+        // Показваме избраните екипи търговци
+        if (!empty($data->rec->dealersTeam) && $data->rec->quantityType != 'invoiced') {
+            // Преобразуваме keylist в масив от id-та
+            $teamIds = keylist::toArray($data->rec->dealersTeam);
+            $teamNames = [];
+            $marker1 = 0;$role = '';
+            foreach ($teamIds as $roleId) {
+
+                $marker1++;
+                // Вземаме името на всяка роля чрез core_Roles
+                $role .= core_Roles::fetch($roleId)->role . ', ';
+
+            }
+                $fieldTpl->append('<b>' . $role . '</b>', 'dealersTeam');
+
+        }
+
 
         if (isset($data->rec->contragent) || isset($data->rec->crmGroup)) {
             $marker = 0;

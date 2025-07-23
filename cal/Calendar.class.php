@@ -1317,12 +1317,12 @@ class cal_Calendar extends core_Master
         
         // Изчисляваме първото напасване
         if($ajust1) {
-            $res1 = self::ajustDay($res, $ajust1);
+            $res1 = self::adjustDay($res, $ajust1);
         }
         
         // Изчисляваме второто напасване
         if($ajust2) {
-            $res2 = self::ajustDay($res, $ajust2);
+            $res2 = self::adjustDay($res, $ajust2);
         }
         
         // Определяме, кое напасване е по-близко
@@ -1346,7 +1346,7 @@ class cal_Calendar extends core_Master
     /**
      * Настройва деня, според модификатора
      */
-    public static function ajustDay($day, $ajust)
+    public static function adjustDay($day, $ajust)
     {
         list($direction, $type) = explode('-', $ajust);
         

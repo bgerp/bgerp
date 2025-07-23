@@ -142,9 +142,10 @@ class hr_Indicators extends core_Manager
             $this->logWrite("Преизчисляване на индикаторите");
             $sources = !empty($rec->sources) ? keylist::toArray($rec->sources) : null;
             core_App::setTimeLimit(900);
+            $timeline = (empty($rec->timeline)) ? '0000-00-00' : $rec->timeline;
 
             Mode::push('manualRecalc', true);
-            self::recalc($rec->timeline, $sources);
+            self::recalc($timeline, $sources);
             Mode::pop('manualRecalc');
 
             followRetUrl(null, '|Индикаторите са преизчислени');
