@@ -241,7 +241,7 @@ class wtime_OnSiteEntries extends core_Manager
                              'time'     => $time,
                              'type'     => $type,
                              'place'    => $zoneName,
-                             'classId'  => $classId);
+                             'sourceClassId'  => $classId);
 
         return static::save($rec);
     }
