@@ -24,6 +24,7 @@ class wtime_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('wtime_OnSiteEntries', 'Вход/Изход', 'ceo,wtime');
+        $this->TAB('wtime_Summary', 'Обобщения', 'ceo,wtime');
 
         $this->title = 'Работно време';
     }

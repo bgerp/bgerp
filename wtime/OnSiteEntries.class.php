@@ -49,13 +49,25 @@ class wtime_OnSiteEntries extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Created,plg_Search,wtime_Wrapper';
+    public $loadList = 'plg_RowTools,plg_Created,plg_Search,wtime_Wrapper,plg_SelectPeriod';
 
 
     /**
      * Полета, по които ще се търси
      */
     public $searchFields = "personId,type,place";
+
+
+    /**
+     * Кои записи да се рекалкулират на шътдаун
+     */
+    protected $recalcOnShutdown = array();
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,personId';
 
 
     /**
@@ -67,8 +79,12 @@ class wtime_OnSiteEntries extends core_Manager
         $this->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,mandatory');
         $this->FLD('type', 'enum(in=Влиза,out=Излиза)', 'caption=Вид');
         $this->FLD('place', 'varchar(64)', 'caption=Място,mandatory,tdClass=leftCol');
-        $this->FLD('onSiteTime', 'time', 'caption=Време на място,input=none');
+        $this->FLD('onSiteTime', 'time(noSmart,uom=minutes)', 'caption=Време на място,input=none');
         $this->FLD('sourceClassId', 'class', 'caption=Източник,input=none');
+
+        $this->setDbIndex('time');
+        $this->setDbIndex('personId');
+        $this->setDbIndex('time,personId');
     }
 
 
@@ -98,6 +114,10 @@ class wtime_OnSiteEntries extends core_Manager
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             $rec->_fromForm = true;
+
+            if($rec->time > dt::now()){
+                $form->setError('time', "Датата не може да е в бъдешето|*!");
+            }
         }
     }
 
@@ -108,8 +128,33 @@ class wtime_OnSiteEntries extends core_Manager
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
         if($rec->_fromForm){
-            self::calcOnSiteTime(null, $rec->personId);
-            core_Statuses::newStatus("Преизчислено е прекараното време на място на|*: <b>" . crm_Persons::getTitleById($rec->personId). "</b>");
+
+        }
+    }
+
+
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            $mvc->recalcOnShutdown[] = $rec;
+        }
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    protected static function on_AfterSessionClose($mvc)
+    {
+        foreach ($mvc->recalcOnShutdown as $rec){
+            $from = dt::addDays(-1, $rec->time, false);
+
+            wtime_Summary::recalc($from, null, $rec->personId);
+            $fromVerbal = dt::mysql2verbal($from, 'd.m.y');
+            core_Statuses::newStatus("Преизчислено е обобщението от|* <b>{$fromVerbal}</b> |на|* <b>" . crm_Persons::getVerbal($rec->personId, 'name'). "</b>");
         }
     }
 
@@ -119,10 +164,13 @@ class wtime_OnSiteEntries extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->title = 'Търсене';
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->setFieldType('type', 'enum(all=Влиза/Излиза,in=Влиза,out=Излиза)');
-        $data->listFilter->showFields = 'search,personId,type';
+        $data->listFilter->FLD('from', 'date', 'caption=От,silent');
+        $data->listFilter->FLD('to', 'date', 'caption=До,silent');
+        $data->listFilter->setFieldType('type', 'enum(all=Влиза / Излиза,in=Влиза,out=Излиза)');
+        $data->listFilter->setField('type', 'maxRadio=0');
+        $data->listFilter->class = 'simpleForm';
+        $data->listFilter->defOrder = false;
+        $data->listFilter->showFields = 'selectPeriod,search,personId,type';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         $data->listFilter->setDefault('type', 'all');
@@ -136,6 +184,14 @@ class wtime_OnSiteEntries extends core_Manager
             if($filter->type != 'all'){
                 $data->query->where("#type = {$filter->type}");
             }
+
+            if (!empty($filter->from)) {
+                $data->query->where("#time >= '{$filter->from} 00:00:00'");
+            }
+
+            if (!empty($filter->to)) {
+                $data->query->where("#time <= '{$filter->to} 23:59:59'");
+            }
         }
     }
 
@@ -146,10 +202,14 @@ class wtime_OnSiteEntries extends core_Manager
      */
     protected function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->personId = crm_Persons::getHyperlink($rec->personId, true);
+        $personName = crm_Persons::getVerbal($rec->personId, 'name');
+        $row->personId = ht::createLink($personName, crm_Persons::getSingleUrlArray($rec->personId));
 
         $color = $rec->type == 'in' ? 'green' : 'darkred';
         $row->type = "<div style='color:{$color};font-weight:bold;'>{$row->type}</div>";
+
+        $color = $rec->type == 'out' ? 'rgba(255, 0, 0, 0.1)' : 'rgba(0, 255, 0, 0.1)';
+        $row->ROW_ATTR['style'] = "background-color:{$color};";
     }
 
 
@@ -187,15 +247,15 @@ class wtime_OnSiteEntries extends core_Manager
 
 
     /**
-     * Преизчисляване на прекараното време на място.
+     * Връща записите групирани по лице
      *
-     * @param null|string $from  - от, null за всички
-     * @param null|int $personId - за кое лице
-     * @return void
+     * @param datetime|null $from - от коя дата
+     * @param int|null $personId  - ид на лице
+     * @param string $type        -
+     * @return array
      */
-    public static function calcOnSiteTime($from = null, $personId = null)
+    public static function getPersonEntries($from = null, $personId = null, $type = null)
     {
-        // Извличане на заявките
         $query = static::getQuery();
         $query->orderBy('time', 'ASC');
         if(isset($from)){
@@ -205,10 +265,29 @@ class wtime_OnSiteEntries extends core_Manager
             $query->where("#personId = {$personId}");
         }
 
+        if(isset($type)){
+            $query->where("#type = '{$type}'");
+        }
+
         $onSiteTimes = array();
         while($rec = $query->fetch()){
             $onSiteTimes[$rec->personId][$rec->time] = $rec;
         }
+
+        return $onSiteTimes;
+    }
+
+    /**
+     * Преизчисляване на прекараното време на място.
+     *
+     * @param null|string $from  - от, null за всички
+     * @param null|int $personId - за кое лице
+     * @return void
+     */
+    public static function calcOnSiteTime($from = null, $personId = null)
+    {
+        // Извличане на заявките
+        $onSiteTimes = self::getPersonEntries($from, $personId);
 
         $toSave = array();
         $now = dt::now();
@@ -216,7 +295,7 @@ class wtime_OnSiteEntries extends core_Manager
 
         // Графиците ще се гледат от вчера до края на деня днес
         $scheduleTo = dt::today() . " 23:59:59";
-        $scheduleFrom = dt::addSecs(-1 * 24 * 60 * 60);
+        $scheduleFrom = dt::addDays(-1, $from, false) . " 00:00:00";
 
         foreach ($onSiteTimes as $personId => &$events) {
 
@@ -259,8 +338,19 @@ class wtime_OnSiteEntries extends core_Manager
                     if ($prev->type === 'in') {
                         $dt1 = new DateTime($prev->time);
                         $dt2 = new DateTime($curr->time);
-                        $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
-                        $toSave[$prev->id] = $prev;
+
+                        if($curr->type == 'in'){
+                            if($Interval->isIn($prev->time)){
+                                $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
+                                $toSave[$prev->id] = $prev;
+                            } else {
+                                $prev->onSiteTime = 0;
+                                $toSave[$prev->id] = $prev;
+                            }
+                        } else {
+                            $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
+                            $toSave[$prev->id] = $prev;
+                        }
                     }
                 }
 
@@ -286,5 +376,42 @@ class wtime_OnSiteEntries extends core_Manager
             $me = cls::get(get_called_class());
             $me->saveArray($toSave, 'id,onSiteTime');
         }
+    }
+
+
+    /**
+     * Изчислява работното време прекарано извън графика на служителя за дадения интервал
+     *
+     * @param int $personId                 - ид на служител
+     * @param string $date                  - за коя дата
+     * @param $startOn                      - начало
+     * @param $duration                     - продължителност
+     * @param core_Intervals|null $Schedule - готов интервал с графика, null - ще се вземе сега
+     * @return int $offTimeSchedule         - прекарано време извън графика
+     */
+    public static function getOffScheduleTime($personId, $date, $startOn, $duration, core_Intervals $Schedule = null)
+    {
+        // Ако няма интервал търси се графика на служителя за работното му време
+        if(!isset($Schedule)){
+            $scheduleTo = "{$date} 23:59:59";
+            $calcFromTime = dt::addDays(-1, $scheduleTo, false) . " 00:00:00";
+            $scheduleId = planning_Hr::getSchedule($personId);
+            $Schedule = hr_Schedules::getWorkingIntervals($scheduleId, $calcFromTime, $scheduleTo);
+        }
+
+        // Началото и края на интервала, който ще засичаме
+        $begin =  strtotime($startOn);
+        $end = $begin + $duration;
+
+        $workingTimeInFrames = $Schedule->getFrame($begin, $end);
+        $workTimeOnSchedule = 0;
+        foreach($workingTimeInFrames as $t) {
+            $workTimeOnSchedule += $t[1] - $t[0];
+        }
+
+        // От цялата продължителност се вади прекараното работно време по график - остатъка е извън графика
+        $offTimeSchedule = $duration - $workTimeOnSchedule;
+
+        return $offTimeSchedule;
     }
 }
