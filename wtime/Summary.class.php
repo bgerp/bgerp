@@ -368,7 +368,7 @@ class wtime_Summary extends core_Manager
                 }
 
                 core_Debug::startTimer('CALC_ONLINE_TIME');
-                $calcedOnlineTime = self::calculateDailyUserTime($logs, $ourIpArr, $wExcludeLocalMin, $readStickMin, $writeStickMin);
+                $calcedOnlineTime = self::calculateDailyUserTime($pId, $logs, $ourIpArr, $wExcludeLocalMin, $readStickMin, $writeStickMin, $Schedules[$pId]);
                 core_Debug::stopTimer('CALC_ONLINE_TIME');
 
                 foreach ($calcedOnlineTime as $date => $status){
@@ -386,6 +386,10 @@ class wtime_Summary extends core_Manager
 
                     if(!empty($status['remote'])){
                         $newRecs[$key]->onlineTimeRemote += $status['remote'];
+                    }
+
+                    if(!empty($status['offSchedule'])){
+                        $newRecs[$key]->onlineTimeOffSchedule += $status['offSchedule'];
                     }
                 }
             }
@@ -433,14 +437,16 @@ class wtime_Summary extends core_Manager
     /**
      * Пресмята дневно „онлайн“ и „remote“ време за един потребител.
      *
+     * @param int   $personId         - лице
      * @param array $logs             - логове
      * @param array $ourIpArr         - масив от фирмени IP-та (стрингове или CIDR)
      * @param int   $readStickMin     - минимално за четене
      * @param int   $writeStickMin    - минимално за писане
      * @param int   $wExcludeLocalMin - WTIME_EXCLUDE_LOCAL_MIN в минути
+     * @param int|null  $Schedule     - инстанция на график на лицето ако има
      * @return array
      */
-    public static function calculateDailyUserTime($logs, $ourIpArr, $wExcludeLocalMin, $readStickMin, $writeStickMin)
+    public static function calculateDailyUserTime($personId, $logs, $ourIpArr, $wExcludeLocalMin, $readStickMin, $writeStickMin, $Schedule = null)
     {
         // 1) групиране по дни
         $byDay = array();
@@ -460,8 +466,7 @@ class wtime_Summary extends core_Manager
         foreach ($byDay as $day => $entries) {
             usort($entries, fn($a,$b) => $a['ts'] <=> $b['ts']);
 
-            $online     = 0;
-            $remote     = 0;
+            $online  = $remote = $offSchedule = 0;
             $prevTs     = null;
             $lastCorpTs = null;
 
@@ -482,6 +487,10 @@ class wtime_Summary extends core_Manager
                         $addedSec = $dmin * 60;
                     }
                 }
+
+                core_Debug::startTimer('ON_SITE_OFF_SCHEDULE');
+                $offSchedule =+ wtime_OnSiteEntries::getOffScheduleTime($personId, $day, dt::timestamp2Mysql($ts), $addedSec, $Schedule);
+                core_Debug::stopTimer('ON_SITE_OFF_SCHEDULE');
                 $online += $addedSec;
 
                 // фирмено IP?
@@ -507,7 +516,7 @@ class wtime_Summary extends core_Manager
                 $prevTs = $ts;
             }
 
-            $daily[$day] = array('online' => $online, 'remote' => $remote);
+            $daily[$day] = array('online' => $online, 'remote' => $remote, 'offSchedule' => $offSchedule);
         }
 
         return $daily;
