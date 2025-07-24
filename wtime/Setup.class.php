@@ -91,7 +91,7 @@ class wtime_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    public $roles = array('trackonline', 'wtime');
+    public $roles = array('noTrackonline', 'wtime');
 
 
     /**
