@@ -19,7 +19,7 @@ class wtime_Summary extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Обобщение за работно време на служители';
+    public $title = 'Обобщение за работно време';
 
 
     /**
@@ -68,6 +68,12 @@ class wtime_Summary extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'date,personId,scheduleId=График,onSiteTime,onSiteTimeOffSchedule,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onlineTime,onlineTimeRemote,onlineTimeOffSchedule,lastCalced';
+
+
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'hr_IndicatorsSourceIntf';
 
 
     /**
@@ -541,5 +547,85 @@ class wtime_Summary extends core_Manager
         $start = dt::addDays(-2, dt::today(), false);
 
         self::recalc($start);
+    }
+
+
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     *
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+        $result = array();
+
+        // Показател за делта на търговеца
+        $indicatorNames = array('Работно_време_на_място',
+                                'Работно_време_на_място_извън_графика',
+                                'Онлайн_работно_време',
+                                'Отдалечено_онлайн_работно_време',
+                                'Онлайн_работно_време_извън_графика',
+        );
+
+        $counter = 1;
+        foreach ($indicatorNames as $iName){
+            $rec = hr_IndicatorNames::force($iName, __CLASS__, $counter);
+            $result[$rec->id] = $rec->name;
+            $counter++;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Метод за вземане на резултатност на хората. За определена дата се изчислява
+     * успеваемостта на човека спрямо ресурса, които е изпозлвал
+     *
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
+     * @return array $result  - масив с обекти
+     *
+     * 			o date        - дата на стайноста
+     * 		    o personId    - ид на лицето
+     *          o docId       - ид на документа
+     *          o docClass    - клас ид на документа
+     *          o indicatorId - ид на индикатора
+     *          o value       - стойноста на индикатора
+     *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+     */
+    public static function getIndicatorValues($timeline)
+    {
+        $map  = array('Работно_време_на_място' => 'onSiteTime',
+                     'Работно_време_на_място_извън_графика' => 'onSiteTimeOffSchedule',
+                     'Онлайн_работно_време' => 'onlineTime',
+                     'Отдалечено_онлайн_работно_време' => 'onlineTimeRemote',
+                     'Онлайн_работно_време_извън_графика' => 'onlineTimeOffSchedule',
+            );
+        $indicators = array_flip(self::getIndicatorNames());
+
+        // Извличане на променените обобщения след посоченото време
+        $result = array();
+        $query = self::getQuery();
+        $query->where("#lastCalced >= '{$timeline}'");
+        $classId = cls::get(get_called_class())->getClassId();
+        while($rec = $query->fetch()) {
+
+            // За всеки индикатор се сумира стойноста на съответното поле
+            foreach ($indicators as $iName => $iId){
+                $key = "{$rec->personId}|{$rec->date}|{$iId}";
+                if (!array_key_exists($key, $result)) {
+                    $result[$key] = (object) array('date'        => $rec->date,
+                                                   'personId'    => $rec->personId,
+                                                   'indicatorId' => $iId,
+                                                   'docId' => 0,
+                                                   'docClass' => $classId,
+                                                   'value'       => 0);
+                }
+
+                $result[$key]->value += $rec->{$map[$iName]};
+            }
+        }
+
+        return $result;
     }
 }
