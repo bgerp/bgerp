@@ -73,7 +73,7 @@ class wtime_OnSiteEntries extends core_Manager
     /**
      * @var string
      */
-    public $canTrackonline = 'trackonline';
+    public $canTrackonline = 'user';
 
 
     /**
@@ -451,10 +451,16 @@ class wtime_OnSiteEntries extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'trackonline') {
-            // Ако не са позволените IP-та, не се позволява
-            $sIps = wtime_Setup::get('SITE_IPS');
-            if (trim($sIps) && !core_String::checkExist(core_Users::getRealIpAddr(), $sIps, '*')) {
+            if (haveRole('noTrackonline', $userId)) {
                 $requiredRoles = 'no_one';
+            }
+
+            if ($requiredRoles != 'no_one') {
+                // Ако не са позволените IP-та, не се позволява
+                $sIps = wtime_Setup::get('SITE_IPS');
+                if (trim($sIps) && !core_String::checkExist(core_Users::getRealIpAddr(), $sIps, '*')) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
