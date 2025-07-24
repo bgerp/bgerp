@@ -128,7 +128,7 @@ class wtime_OnSiteEntries extends core_Manager
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
         if($rec->_fromForm){
-
+            $mvc->recalcOnShutdown[] = $rec;
         }
     }
 
@@ -149,6 +149,7 @@ class wtime_OnSiteEntries extends core_Manager
      */
     protected static function on_AfterSessionClose($mvc)
     {
+        // За кои лица ще се преизчисли обобщението
         foreach ($mvc->recalcOnShutdown as $rec){
             $from = dt::addDays(-1, $rec->time, false);
 

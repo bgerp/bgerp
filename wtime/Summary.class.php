@@ -225,6 +225,7 @@ class wtime_Summary extends core_Manager
         core_Debug::log("GET CAL_ON_SITE_TIME " . round(core_Debug::$timers["CAL_ON_SITE_TIME"]->workingTime, 6));
 
         $entriesArr = wtime_OnSiteEntries::getPersonEntries($calcFromTime, $personId, 'in');
+        core_App::setTimeLimit(countR($entriesArr) * 0.2, false, 150);
 
         // Какъв е статуса на дните от тогава до сега
         $sDate = $from;
@@ -258,7 +259,6 @@ class wtime_Summary extends core_Manager
             // За всяко влизане от вчера и днеска
             foreach ($entries as $entry) {
                 core_Debug::startTimer('ON_SITE');
-
                 $date = dt::verbal2mysql($entry->time, false);
 
                 // Ще се сумират по лице+дата
@@ -319,31 +319,41 @@ class wtime_Summary extends core_Manager
             }
         }
 
+        // Извличат се лицата от група служители, които имат потребители
         $userPersons = array();
         $pQuery = crm_Profiles::getQuery();
-        $pQuery->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
         $pQuery->show('personId,userId');
         if(isset($personId)){
             $pQuery->where("#personId = {$personId}");
+        } else {
+            $employeeGroupId = crm_Groups::getIdFromSysId('employees');
+            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $pQuery, $employeeGroupId, 'personId');
         }
 
         while($pRec = $pQuery->fetch()){
             $userPersons[$pRec->userId] = $pRec->personId;
         }
-        $userIds = array_keys($userPersons);
 
+        $userIds = array_keys($userPersons);
+        $logArr = array();
+
+        // Ако има лица от група Служители
         if(countR($userIds)){
             core_Debug::startTimer('USER_LOGS');
-            $logArr = array();
+
+            // Извличане на логовете за тези потребители след посоченото време
             $lQuery = log_Data::getQuery();
             $lQuery->EXT('ip', 'log_Ips', 'externalName=ip,externalKey=ipId');
             $lQuery->EXT('userAgent', 'log_Browsers', 'externalName=userAgent,externalKey=brId');
-            $lQuery->where(array("#time >= '[#1#]'", dt::mysql2timestamp($calcFromTime)));
+            $lQuery->where(array("#time >= '[#1#]' AND #type != 'login'", dt::mysql2timestamp($calcFromTime)));
             $lQuery->in('userId', $userIds);
             $lQuery->show('userId,type,ip,time,userAgent');
             $lQuery->orderBy('time', 'ASC');
-            while($lRec = $lQuery->fetch()){
+            $lRecs = $lQuery->fetchAll();
+            core_App::setTimeLimit(countR($lRecs) * 0.08, false, 150);
+            foreach ($lRecs as $lRec) {
                 $logArr[$lRec->userId][$lRec->time] = (object)array('time' => $lRec->time, 'type' => $lRec->type, 'ip' => $lRec->ip, 'userId' => $lRec->userId, 'userAgent' => $lRec->userAgent);
+
             }
             core_Debug::stopTimer('USER_LOGS');
 

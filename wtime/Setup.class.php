@@ -100,4 +100,20 @@ class wtime_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.41, 'Счетоводство', 'Работно време', 'wtime_OnSiteEntries', 'default', 'ceo,wtime'),
     );
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Recalc Employees Working Time',
+            'description' => 'Преизчисляване на работното време на служители',
+            'controller' => 'wtime_Summary',
+            'action' => 'Calc',
+            'period' => 60,
+            'offset' => 1,
+            'timeLimit' => 150
+        ),
+    );
 }
