@@ -71,6 +71,12 @@ class wtime_OnSiteEntries extends core_Manager
 
 
     /**
+     * @var string
+     */
+    public $canTrackonline = 'trackonline';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -414,5 +420,99 @@ class wtime_OnSiteEntries extends core_Manager
         $offTimeSchedule = $duration - $workTimeOnSchedule;
 
         return $offTimeSchedule;
+    }
+
+
+    /**
+     * Връща последния запис за дадено лице
+     *
+     * @param integer $personId
+     *
+     * @return object|null
+     */
+    public static function getLastState($personId)
+    {
+        $query = static::getQuery();
+        $query->where(array("#personId = '[#1#]'", $personId));
+        $query->orderBy('time', 'DESC');
+        $query->limit(1);
+
+        if ($rec = $query->fetch()) {
+            return (object)array('type' => $rec->type, 'time' => $rec->time);
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'trackonline') {
+            // Ако не са позволените IP-та, не се позволява
+            $sIps = wtime_Setup::get('SITE_IPS');
+            if (trim($sIps) && !core_String::checkExist(core_Users::getRealIpAddr(), $sIps, '*')) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * Действие за затваряне на изскачащ прозорец
+     */
+    public function act_SkipPopup()
+    {
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('Portal', 'show');
+        }
+
+        expect($uId = Request::get('id'));
+
+        expect(core_Users::getCurrent() == $uId);
+
+        $this->requireRightFor('trackonline', null, $uId);
+
+        $type = Request::get('type');
+        $type = ucfirst(strtolower($type));
+
+        Mode::setPermanent('trackonline', 'skipPopup' . $type);
+
+        return new Redirect($retUrl);
+    }
+
+
+    /**
+     * Действие за потвърждение на изскачащ прозорец
+     *
+     * @return Redirect
+     */
+    public function act_ConfirmPopup()
+    {
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('Portal', 'show');
+        }
+
+        expect($uId = Request::get('id'));
+
+        expect(core_Users::getCurrent() == $uId);
+
+        $this->requireRightFor('trackonline', null, $uId);
+
+        $personId = crm_Profiles::getPersonByUser($uId);
+        $type = Request::get('type');
+        $classId = core_Users::getClassId();
+
+        $zRec = $this->addEntry($personId, dt::now(), $type, '', $classId);
+
+        expect($zRec);
+
+        Mode::setPermanent('trackonline', 'confirmPopup');
+
+        return new Redirect($retUrl);
     }
 }
