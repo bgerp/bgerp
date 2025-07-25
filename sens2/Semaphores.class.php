@@ -20,7 +20,7 @@ class sens2_Semaphores extends core_Master
     /**
      * Необходими плъгини
      */
-    public $loadList = 'sens2_Wrapper';
+    public $loadList = 'sens2_Wrapper, plg_RowTools2';
     
     
     /**
@@ -39,6 +39,12 @@ class sens2_Semaphores extends core_Master
      * Кой може да добавя, редактира и изтрива?
      */
     public $canAdd = 'no_one';
+
+
+    /**
+     * Кой може да добавя, редактира и изтрива?
+     */
+    public $canDelete = 'debug';
     
     
     /**
