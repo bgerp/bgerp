@@ -141,11 +141,13 @@ class wtime_Summary extends core_Manager
      */
     protected function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $personName = crm_Persons::getVerbal($rec->personId, 'name');
-        $row->personId = ht::createLink($personName, crm_Persons::getSingleUrlArray($rec->personId));
-        $scheduleId = planning_Hr::getSchedule($rec->personId);
-        $row->scheduleId = hr_Schedules::getHyperlink($scheduleId, true);
-        $row->ROW_ATTR['class'] = "state-active";
+        if(isset($rec->personId)){
+            $personName = crm_Persons::getVerbal($rec->personId, 'name');
+            $row->personId = ht::createLink($personName, crm_Persons::getSingleUrlArray($rec->personId));
+            $scheduleId = planning_Hr::getSchedule($rec->personId);
+            $row->scheduleId = hr_Schedules::getHyperlink($scheduleId, true);
+        }
+        $row->ROW_ATTR['class'] = ($rec->_isSummary) ? 'state-closed' : 'state-active';
 
         foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
             $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
@@ -626,5 +628,93 @@ class wtime_Summary extends core_Manager
         }
 
         return $result;
+    }
+
+
+    /**
+     * Подготовка на съмърито
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareSummary(&$data)
+    {
+        $data->recs = $data->rows = array();
+
+        foreach (array('totalThisMonth', 'totalLastMonth') as $var){
+            $data->{$var} = new stdClass();
+            $data->{$var}->_isSummary = true;
+            foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
+                $data->{$var}->{$fld} = 0;
+            }
+        }
+
+        // Извличат се записите от съмърито за лицето
+        $query = self::getQuery();
+        $query->where("#personId = {$data->masterId}");
+        $query->orderBy('date', 'DESC');
+        $firstDay = date('Y-m-01', strtotime('first day of this month'));
+        $firstDayPrevMonth = date('Y-m-01', strtotime('first day of last month'));
+        $lastDayPrevMonth = dt::getLastDayOfMonth($firstDayPrevMonth);
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 10));
+        $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
+        $data->Pager->itemsCount = $query->count();
+
+        $this->prepareListFields($data);
+        while($rec = $query->fetch()) {
+            $data->recs[$rec->id] = $rec;
+            if (!$data->Pager->isOnPage()) continue;
+            $data->rows[$rec->id] = self::recToVerbal($rec);
+
+            if($rec->date >= $firstDay) {
+                foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
+                    $data->totalThisMonth->{$fld} += $rec->{$fld};
+                }
+            }
+
+            if($rec->date >= $firstDayPrevMonth && $rec->date <= $lastDayPrevMonth) {
+                foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
+                    $data->totalLastMonth->{$fld} += $rec->{$fld};
+                }
+            }
+        }
+
+        if(isset($data->totalThisMonth)){
+            $data->totalThisMonthRow = $this->recToVerbal($data->totalThisMonth);
+            $data->totalThisMonthRow->date = "<b>" . dt::mysql2verbal($firstDay, 'M') . "</b> (" . tr('Общо') . ")";
+        }
+
+        if(isset($data->totalLastMonth)){
+            $data->totalLastMonthRow = $this->recToVerbal($data->totalLastMonth);
+            $data->totalLastMonthRow->date = "<b>" . dt::mysql2verbal($firstDayPrevMonth, 'M') . "</b> (" . tr('Общо') . ")";
+        }
+    }
+
+
+    /**
+     * Рендиране на съмърито
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderSummary($data)
+    {
+        $tpl = new core_ET("");
+        unset($data->listFields['personId']);
+        unset($data->listFields['lastCalced']);
+        unset($data->listFields['scheduleId']);
+
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        $data->rows[] = $data->totalThisMonthRow;
+        $data->rows[] = $data->totalLastMonthRow;
+        $dTable = $table->get($data->rows, $data->listFields);
+
+        //$dTable->append(, ROW_AFTER'')
+        $tpl->append($dTable);
+        if ($data->Pager) {
+            $tpl->append($data->Pager->getHtml());
+        }
+
+        return $tpl;
     }
 }
