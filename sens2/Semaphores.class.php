@@ -109,13 +109,13 @@ class sens2_Semaphores extends core_Master
 
         // Ако се приемат само различни стойности, резултата е негативен, ако стойността съвпада с последно зададената
         if($onlyDifferent && $rec->value == $value) {
-            log_System::add('sens2_Semaphores', "1: $onlyDifferent {$rec->value} == {$value}", 'warning');
+            log_System::add('sens2_Semaphores', "1: $onlyDifferent {$rec->value} == {$value}", $objectId, 'warning');
             $res = false;
         }
         
         // Ако е зададено минимално време, между две присвоявания, проверява се дали е изтекло от последното присвояване
         if($minInterval && dt::addSecs($minInterval, $rec->changedOn) > dt::now()) {
-            log_System::add('sens2_Semaphores', "2: {$minInterval} {$rec->changedOn}", 'warning');
+            log_System::add('sens2_Semaphores', "2: {$minInterval} {$rec->changedOn}", $objectId, 'warning');
             $res = false;
         }
 
@@ -126,7 +126,7 @@ class sens2_Semaphores extends core_Master
 
         // Ако е зададен минимален брой опити се проверява дали са направени
         if($minAttempts && ($rec->attempts < $minAttempts)) {
-            log_System::add('sens2_Semaphores', "3: {$minAttempts} {$rec->attempts}", 'warning');
+            log_System::add('sens2_Semaphores', "3: {$minAttempts} {$rec->attempts}", $objectId, 'warning');
             $res = false; 
         }
  
