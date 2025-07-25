@@ -84,9 +84,9 @@ class wtime_OnSiteEntries extends core_Manager
         $this->FLD('time', 'datetime(format=smartTime)', 'caption=Време,mandatory');
         $this->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,mandatory');
         $this->FLD('type', 'enum(in=Влиза,out=Излиза)', 'caption=Вид');
-        $this->FLD('place', 'varchar(64)', 'caption=Място,mandatory,tdClass=leftCol');
+        $this->FLD('place', 'varchar(64)', 'caption=Място,mandatory,tdClass=leftCol,input=none');
         $this->FLD('onSiteTime', 'time(noSmart,uom=minutes)', 'caption=Време на място,input=none');
-        $this->FLD('sourceClassId', 'class', 'caption=Източник,input=none');
+        $this->FLD('sourceClassId', 'class(select=title)', 'caption=Източник,input=none');
 
         $this->setDbIndex('time');
         $this->setDbIndex('personId');
@@ -153,7 +153,7 @@ class wtime_OnSiteEntries extends core_Manager
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    protected static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         // За кои лица ще се преизчисли обобщението
         foreach ($mvc->recalcOnShutdown as $rec){
@@ -171,13 +171,28 @@ class wtime_OnSiteEntries extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $sourceOptions = array();
+        $query = self::getQuery();
+        $query->where("#sourceClassId IS NOT NULL");
+        $query->show('sourceClassId');
+        $sourceClassIds = arr::extractValuesFromArray($query->fetchAll(), 'sourceClassId');
+        foreach($sourceClassIds as $sourceClassId){
+            $sourceOptions[$sourceClassId] = core_Classes::getTitleById($sourceClassId);
+        }
+
+        $showFields = 'selectPeriod,search,personId,type';
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
         $data->listFilter->FLD('to', 'date', 'caption=До,silent');
         $data->listFilter->setFieldType('type', 'enum(all=Влиза / Излиза,in=Влиза,out=Излиза)');
         $data->listFilter->setField('type', 'maxRadio=0');
+        if(countR($sourceOptions)){
+            $data->listFilter->FLD('source', 'varchar', 'caption=Източник,maxRadio=0,placeholder=Всички');
+            $data->listFilter->setOptions('source', array('' => '', 'manual' => 'Ръчно добавени') + $sourceOptions);
+            $showFields .= ',source';
+        }
         $data->listFilter->class = 'simpleForm';
         $data->listFilter->defOrder = false;
-        $data->listFilter->showFields = 'selectPeriod,search,personId,type';
+        $data->listFilter->showFields = $showFields;
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         $data->listFilter->setDefault('type', 'all');
@@ -199,6 +214,14 @@ class wtime_OnSiteEntries extends core_Manager
             if (!empty($filter->to)) {
                 $data->query->where("#time <= '{$filter->to} 23:59:59'");
             }
+
+            if (!empty($filter->source)) {
+                if($filter->source == 'manual'){
+                    $data->query->where("#sourceClassId IS NULL");
+                } else {
+                    $data->query->where("#sourceClassId = {$filter->source}");
+                }
+            }
         }
     }
 
@@ -217,6 +240,10 @@ class wtime_OnSiteEntries extends core_Manager
 
         $color = $rec->type == 'out' ? 'rgba(255, 0, 0, 0.1)' : 'rgba(0, 255, 0, 0.1)';
         $row->ROW_ATTR['style'] = "background-color:{$color};";
+
+        if(empty($rec->sourceClassId)){
+            $row->sourceClassId = "<i class='quiet'>" . tr('Ръчно') . "</i>";
+        }
     }
 
 
@@ -284,6 +311,15 @@ class wtime_OnSiteEntries extends core_Manager
         return $onSiteTimes;
     }
 
+
+    function act_Test()
+    {
+        $from = dt::addDays(-1, "2025-07-01", false);
+
+        self::calcOnSiteTime($from, 6284);
+    }
+
+
     /**
      * Преизчисляване на прекараното време на място.
      *
@@ -347,13 +383,19 @@ class wtime_OnSiteEntries extends core_Manager
                         $dt2 = new DateTime($curr->time);
 
                         if($curr->type == 'in'){
-                            if($Interval->isIn($prev->time)){
-                                $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
-                                $toSave[$prev->id] = $prev;
-                            } else {
+                            if(($i - 1) == 0){
                                 $prev->onSiteTime = 0;
                                 $toSave[$prev->id] = $prev;
+                            } else {
+                                if($Interval->isIn($prev->time)){
+                                    $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
+                                    $toSave[$prev->id] = $prev;
+                                } else {
+                                    $prev->onSiteTime = 0;
+                                    $toSave[$prev->id] = $prev;
+                                }
                             }
+
                         } else {
                             $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
                             $toSave[$prev->id] = $prev;

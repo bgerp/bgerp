@@ -179,7 +179,7 @@ class wtime_Summary extends core_Manager
 
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-            $msg = "Преизчислени са записите след|*: " . dt::mysql2verbal($rec->from);
+            $msg = "Преизчислени са записите след|*: <b>" . dt::mysql2verbal($rec->from) . "</b>";
             if(in_array($form->cmd, array('debug', 'save'))){
                 $res = self::recalc($rec->from);
                 if($form->cmd == 'debug'){
