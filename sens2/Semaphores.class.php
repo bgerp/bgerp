@@ -90,11 +90,7 @@ class sens2_Semaphores extends core_Master
      */
     public static function check($objectId, $value, $onlyDifferent, $minInterval, $minAttempts) 
     {
-        // Ако нищо не е зададено - продължаваме със записа
-        if($onlyDifferent === null && $minInterval === null &&  $minAttempts === null) {
-
-            return true;
-        }
+        $res = true;
 
         $rec = self::fetch("#objectId = {$objectId}");
 
@@ -107,11 +103,14 @@ class sens2_Semaphores extends core_Master
                 );
             self::save($rec);
 
-            return true;
+            return $res;
         }
 
-        $res = true;
-        
+        // Ако нищо не е зададено - продължаваме със записа
+        if ($onlyDifferent === null && $minInterval === null &&  $minAttempts === null) {
+
+            return $res;
+        }
 
         // Ако се приемат само различни стойности, резултата е негативен, ако стойността съвпада с последно зададената
         if($onlyDifferent && $rec->value == $value) {
