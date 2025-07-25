@@ -369,8 +369,7 @@ class wtime_Summary extends core_Manager
 
             // Кои са нашите фирмите на нашите офиси
             $ourIps = wtime_Setup::get('SITE_IPS');
-            $ourIps = str::removeWhiteSpace($ourIps, ' ');
-            $ourIpArr = explode(" ", $ourIps);
+            $ipArr = type_Ip::extractIps($ourIps);
 
             foreach ($logArr as $userId => $logs) {
                 ksort($logs);
@@ -384,7 +383,7 @@ class wtime_Summary extends core_Manager
                 }
 
                 core_Debug::startTimer('CALC_ONLINE_TIME');
-                $calcedOnlineTime = self::calculateDailyUserTime($pId, $logs, $ourIpArr, $wExcludeLocalMin, $readStickMin, $writeStickMin, $Schedules[$pId]);
+                $calcedOnlineTime = self::calculateDailyUserTime($pId, $logs, $ipArr, $wExcludeLocalMin, $readStickMin, $writeStickMin, $Schedules[$pId]);
                 core_Debug::stopTimer('CALC_ONLINE_TIME');
 
                 foreach ($calcedOnlineTime as $date => $status){
@@ -510,7 +509,7 @@ class wtime_Summary extends core_Manager
                 $online += $addedSec;
 
                 // фирмено IP?
-                $isCorp = in_array($ip, $ourIpArr, true);
+                $isCorp = type_Ip::isInIps($ip, $ourIpArr);
 
                 // мобилно устройство?
                 $isMobile = preg_match('/Mobile|Android|iPhone|iPad/i', $ua) === 1;

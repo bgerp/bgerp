@@ -314,6 +314,7 @@ class wtime_OnSiteEntries extends core_Manager
 
     function act_Test()
     {
+        requireRole('debug');
         $from = dt::addDays(-1, "2025-07-01", false);
 
         self::calcOnSiteTime($from, 6284);
