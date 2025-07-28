@@ -80,10 +80,10 @@ class wtime_Setup extends core_ProtoSetup
 
 
     public $configDescription = array(
-        'WTIME_SITE_IPS' => array('text', 'caption=IP-та на всички наши офиси'),
+        'WTIME_SITE_IPS' => array('text(rows=4)', 'caption=IP-та на всички наши офиси'),
         'WTIME_READ_STICK_MIN' => array('int(min=0)', 'caption=До колко минути назад за залепва->С предходно събитие при четене'),
         'WTIME_WRITE_STICK_MIN' => array('int(min=0)', 'caption=До колко минути назад за залепва->С предходно събитие при запис'),
-        'WTIME_MAX_IN_TIME' => array('time', array('caption' => 'Колко време след вход->Се приема че служителя все още не излязъл')),
+        'WTIME_MAX_IN_TIME' => array('time', array('caption' => 'Колко време след вход се приема че служителя все още не излязъл->Време')),
         'WTIME_EXCLUDE_LOCAL_MIN' => array('int(min=0)', array('caption' => 'Колко време да няма хит от фирмено IP служителя за да се приеме че работи отдалечено->Минути')),
     );
 
