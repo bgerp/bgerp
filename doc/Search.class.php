@@ -307,6 +307,7 @@ class doc_Search extends core_Manager
                 
                 // Избягваме търсенето в оттеглените документи
                 $data->query->where("#state != 'rejected'");
+                $data->query->orWhere("#state IS NULL");
             }
             
             // id на текущия потребител

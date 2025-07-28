@@ -2598,6 +2598,7 @@ class email_Incomings extends core_Master
         $spamScore = $spamScore + ($spamScore * $tolerance);
         
         if (isset($score) && ($score >= $spamScore)) {
+            $rec->brState = $rec->state;
             $rec->state = 'rejected';
             self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) със СПАМ рейтинг = '{$score}'", $rec->id);
         }
@@ -2616,6 +2617,7 @@ class email_Incomings extends core_Master
                 $fQuery->where('#dangerRate >= 0.001');
                 
                 if ($fQuery->count()) {
+                    $rec->brState = $rec->state;
                     $rec->state = 'rejected';
                     self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) с вирусен файл", $rec->id);
                 }

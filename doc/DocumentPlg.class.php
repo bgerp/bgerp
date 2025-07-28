@@ -799,6 +799,10 @@ class doc_DocumentPlg extends core_Plugin
                 $rec->state = $mvc->firstState ? $mvc->firstState : 'draft';
             }
 
+            if ($rec->state == 'rejected') {
+                $rec->brState = $mvc->firstState ? $mvc->firstState : 'draft';
+            }
+
             // Задаваме стойностите на created полетата
             if (!isset($rec->createdBy)) {
                 $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
