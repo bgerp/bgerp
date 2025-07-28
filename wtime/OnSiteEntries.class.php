@@ -530,9 +530,11 @@ class wtime_OnSiteEntries extends core_Manager
             }
 
             if ($requiredRoles != 'no_one') {
-                // Ако не са позволените IP-та, не се позволява
+
                 $sIps = wtime_Setup::get('SITE_IPS');
-                if (trim($sIps) && !core_String::checkExist(core_Users::getRealIpAddr(), $sIps, '*')) {
+                $ipArr = type_Ip::extractIps($sIps);
+                $thisIp = core_Users::getRealIpAddr();
+                if (!type_Ip::isInIps($thisIp, $ipArr)) {
                     $requiredRoles = 'no_one';
                 }
             }
