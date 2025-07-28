@@ -332,12 +332,14 @@ class wtime_OnSiteEntries extends core_Manager
      */
     public static function calcOnSiteTime($from = null, $personId = null)
     {
-        $onSiteTimes = self::getPersonEntries($from, $personId);
-        $today = dt::today();
-        $toSave      = array();
-        $now         = dt::now();                // string "Y-m-d H:i:s"
-        $nowDateTime = new DateTime();          // DateTime за изчисления
+        // Вземаме всички записи
+        $onSiteTimes  = self::getPersonEntries($from, $personId);
+        $toSave       = [];
+        $today        = dt::today();              // string "Y-m-d"
+        $nowTs        = time();
+        $nowDateTime  = new \DateTime();
 
+        // Граници за графика
         $scheduleTo   = dt::today() . ' 23:59:59';
         $scheduleFrom = dt::addDays(-1, $from, false) . ' 00:00:00';
 
@@ -350,95 +352,103 @@ class wtime_OnSiteEntries extends core_Manager
             // Групиране по дата
             $byDate = [];
             foreach ($events as $rec) {
-                $dt  = new DateTime($rec->time);
-                $day = $dt->format('Y-m-d');
+                $day = (new \DateTime($rec->time))->format('Y-m-d');
                 $byDate[$day][] = $rec;
             }
-            $days = array_keys($byDate);
-            sort($days);
 
-            $prevDayLast = null;
-
-            foreach ($days as $day) {
-                $todayEvents = $byDate[$day];
-
-                if ($prevDayLast) {
-                    $list       = array_merge([$prevDayLast], $todayEvents);
-                    $startIndex = 1;
-                } else {
-                    $list       = $todayEvents;
-                    $startIndex = 1;
+            // Пълен списък дни от първи до последен
+            $allDays = [];
+            if (!empty($byDate)) {
+                $daysList = array_keys($byDate);
+                sort($daysList);
+                $startDay = new \DateTime(reset($daysList));
+                $endDay   = new \DateTime(end($daysList));
+                $period   = new \DatePeriod(
+                    $startDay,
+                    new \DateInterval('P1D'),
+                    (clone $endDay)->modify('+1 day')
+                );
+                foreach ($period as $dt) {
+                    $allDays[] = $dt->format('Y-m-d');
                 }
+            }
 
-                $n = count($list);
-                if ($n === 1 && ! $prevDayLast) {
+            // Обхождаме всеки ден
+            foreach ($allDays as $day) {
+                $todayEvents   = $byDate[$day]       ?? [];
+                $prevDate      = (new \DateTime($day))
+                    ->modify('-1 day')
+                    ->format('Y-m-d');
+                $prevDayEvents = $byDate[$prevDate]  ?? [];
+                $prevDayLast   = end($prevDayEvents) ?: null;
+
+                // Създаваме списък за изчисления
+                $list = $prevDayLast
+                    ? array_merge([$prevDayLast], $todayEvents)
+                    : $todayEvents;
+
+                if (empty($list)) continue;
+
+                if (count($list) === 1 && ! $prevDayLast) {
                     $only = $list[0];
                     if ($only->type === 'in') {
                         $only->onSiteTime = 0;
                         $toSave[$only->id] = $only;
-
-                        continue;
                     }
+                    continue;
                 }
 
-                for ($i = $startIndex; $i < $n; $i++) {
+                // Обхождаме двойките prev→curr
+                $count = count($list);
+                for ($i = 1; $i < $count; $i++) {
                     $prev = $list[$i - 1];
                     $curr = $list[$i];
 
-                    // Нова промяна: два 'in' един след друг
+                    // Два входа един след друг
                     if ($prev->type === 'in' && $curr->type === 'in') {
-
-                        // Ако прекъсването в работното време между тях е над 90% да не се отчита
-                        // ако е под 90% записваме разликата
-                        $begin =  strtotime($prev->time);
-                        $end = strtotime($curr->time);
-                        if ($Interval->haveBreak($begin, $end, 0.9)) {
-                            $dtStart = new DateTime($prevDayLast->time);
-                            $prev->onSiteTime = $nowDateTime->getTimestamp() - $dtStart->getTimestamp();
-                        } else {
-                            $prev->onSiteTime = 0;
-                        }
-
+                        $b = strtotime($prev->time);
+                        $e = strtotime($curr->time);
+                        $prev->onSiteTime = $Interval->haveBreak($b, $e, 0.9)
+                            ? 0
+                            : ($e - $b);
                         $toSave[$prev->id] = $prev;
                         continue;
                     }
 
-                    if ($prev->type === 'in') {
-                        $dt1 = new DateTime($prev->time);
-                        $dt2 = new DateTime($curr->time);
-
-                        if ($curr->type === 'in') {
-                            if ($i === 1) {
-                                $prev->onSiteTime = 0;
-                            } else {
-                                if ($Interval->isIn($prev->time)) {
-                                    $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
-                                } else {
-                                    $prev->onSiteTime = 0;
-                                }
-                            }
+                    // Нормален in→out или in в рамките на деня
+                    if ($prev->type === 'in' && isset($list[$i])) {
+                        $startTs = strtotime($prev->time);
+                        $endTs   = strtotime($curr->time);
+                        if ($curr->type === 'out' || $Interval->isIn($prev->time)) {
+                            $prev->onSiteTime = $endTs - $startTs;
                         } else {
-                            $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
+                            $prev->onSiteTime = 0;
                         }
-
                         $toSave[$prev->id] = $prev;
                     }
                 }
-
-                $prevDayLast = end($todayEvents);
             }
 
-            if ($prevDayLast && $prevDayLast->type === 'in') {
-                $begin =  strtotime($prevDayLast->time);
-                $end = strtotime($now);
+            // След всички дни: ако последният запис е вход
+            $lastDay = end($allDays) ?: null;
+            $endDay = $byDate[$lastDay] ?? [];
+            $lastRec = $lastDay
+                ? end($endDay)
+                : null;
 
-                if (!$Interval->haveBreak($begin, $end, 0.9)) {
-                    $dtStart = new DateTime($prevDayLast->time);
-                    $prevDayLast->onSiteTime = $nowDateTime->getTimestamp() - $dtStart->getTimestamp();
-                } else{
-                    $prevDayLast->onSiteTime = 0;
+            if ($lastRec && $lastRec->type === 'in') {
+                // Ако е днес, в рамките на график, смятаме до текущия момент
+                if ($lastDay === $today && $Interval->isIn($nowDateTime)) {
+                    $lastRec->onSiteTime = $nowTs - strtotime($lastRec->time);
                 }
-                $toSave[$prevDayLast->id] = $prevDayLast;
+                else {
+                    // иначе както преди: проверка за голяма пауза
+                    $b = strtotime($lastRec->time);
+                    $lastRec->onSiteTime = $Interval->haveBreak($b, $nowTs, 0.9)
+                        ? 0
+                        : ($nowTs - $b);
+                }
+                $toSave[$lastRec->id] = $lastRec;
             }
         }
 
