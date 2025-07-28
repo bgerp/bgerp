@@ -106,8 +106,6 @@ class wtime_OnSiteEntries extends core_Manager
 
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         $form->setFieldTypeParams('personId', array('groups' => keylist::addKey('', $emplGroupId)));
-
-        $form->setDefault('personId', 6284);
     }
 
 
