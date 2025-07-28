@@ -314,15 +314,6 @@ class wtime_OnSiteEntries extends core_Manager
     }
 
 
-    function act_Test()
-    {
-        requireRole('debug');
-        $from = dt::addDays(-1, '2025-07-24 10:00:00', false);
-
-        self::calcOnSiteTime($from, 6284);
-    }
-
-
     /**
      * Преизчисляване на прекараното време на място.
      *

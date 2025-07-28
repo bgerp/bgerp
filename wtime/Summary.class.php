@@ -331,13 +331,16 @@ class wtime_Summary extends core_Manager
         $userPersons = array();
         $pQuery = crm_Profiles::getQuery();
         $pQuery->show('personId,userId');
+        $noTrackUsers = core_Users::getUsersByRoles('noTrackonline');
+        if(count($noTrackUsers)){
+            $pQuery->notIn("userId", array_keys($noTrackUsers));
+        }
         if(isset($personId)){
             $pQuery->where("#personId = {$personId}");
         } else {
             $employeeGroupId = crm_Groups::getIdFromSysId('employees');
             plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $pQuery, $employeeGroupId, 'personId');
         }
-
         while($pRec = $pQuery->fetch()){
             $userPersons[$pRec->userId] = $pRec->personId;
         }
@@ -352,12 +355,14 @@ class wtime_Summary extends core_Manager
             // Извличане на логовете за тези потребители след посоченото време
             $lQuery = log_Data::getQuery();
             $lQuery->EXT('ip', 'log_Ips', 'externalName=ip,externalKey=ipId');
+            $lQuery->EXT('roles', 'core_Users', 'externalName=roles,externalKey=userId');
             $lQuery->EXT('userAgent', 'log_Browsers', 'externalName=userAgent,externalKey=brId');
             $lQuery->where(array("#time >= '[#1#]' AND #type != 'login'", dt::mysql2timestamp($calcFromTime)));
             $lQuery->in('userId', $userIds);
-            $lQuery->show('userId,type,ip,time,userAgent');
+            $lQuery->show('userId,type,ip,time,userAgent,roles');
             $lQuery->orderBy('time', 'ASC');
             $lRecs = $lQuery->fetchAll();
+
             core_App::setTimeLimit(countR($lRecs) * 0.08, false, 150);
             foreach ($lRecs as $lRec) {
                 $logArr[$lRec->userId][$lRec->time] = (object)array('time' => $lRec->time, 'type' => $lRec->type, 'ip' => $lRec->ip, 'userId' => $lRec->userId, 'userAgent' => $lRec->userAgent);
