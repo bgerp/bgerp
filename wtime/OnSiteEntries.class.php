@@ -106,6 +106,8 @@ class wtime_OnSiteEntries extends core_Manager
 
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         $form->setFieldTypeParams('personId', array('groups' => keylist::addKey('', $emplGroupId)));
+
+        $form->setDefault('personId', 6284);
     }
 
 
@@ -315,7 +317,7 @@ class wtime_OnSiteEntries extends core_Manager
     function act_Test()
     {
         requireRole('debug');
-        $from = dt::addDays(-1, "2025-07-01", false);
+        $from = dt::addDays(-1, '2025-07-24 10:00:00', false);
 
         self::calcOnSiteTime($from, 6284);
     }
@@ -330,94 +332,113 @@ class wtime_OnSiteEntries extends core_Manager
      */
     public static function calcOnSiteTime($from = null, $personId = null)
     {
-        // Извличане на заявките
         $onSiteTimes = self::getPersonEntries($from, $personId);
+        $today = dt::today();
+        $toSave      = array();
+        $now         = dt::now();                // string "Y-m-d H:i:s"
+        $nowDateTime = new DateTime();          // DateTime за изчисления
 
-        $toSave = array();
-        $now = dt::now();
-        $nowDateTime = new DateTime();
-
-        // Графиците ще се гледат от вчера до края на деня днес
-        $scheduleTo = dt::today() . " 23:59:59";
-        $scheduleFrom = dt::addDays(-1, $from, false) . " 00:00:00";
+        $scheduleTo   = dt::today() . ' 23:59:59';
+        $scheduleFrom = dt::addDays(-1, $from, false) . ' 00:00:00';
 
         foreach ($onSiteTimes as $personId => &$events) {
-
-            // Сортиране на събитията
             ksort($events);
 
-            // Извличане на графика на лицето
             $scheduleId = planning_Hr::getSchedule($personId);
-            $Interval = hr_Schedules::getWorkingIntervals($scheduleId, $scheduleFrom, $scheduleTo);
+            $Interval   = hr_Schedules::getWorkingIntervals($scheduleId, $scheduleFrom, $scheduleTo);
 
-            // Ако има само едно събитие
-            if (countR($events) == 1) {
-                $only = reset($events);
-
-                // Ако текущото събитие е Вход и е последното за дадения служител, ако то попада в работния график
-                // за дадения човек и в момента също сме в работния график - записваме към него от момента
-                // на събитието до сега, като прекарано време. Иначе - 0.
-                if ($only->type == 'in') {
-                    $dtStart = new DateTime($only->time);
-                    if ($Interval->isIn($now) && $Interval->isIn($only->time)){
-                        $only->onSiteTime = $nowDateTime->getTimestamp() - $dtStart->getTimestamp();
-                    } else {
-                        $only->onSiteTime = 0;
-                    }
-                    $toSave[$only->id] = $only;
-                }
-                continue; // минаваме на следващия служител
+            // Групиране по дата
+            $byDate = [];
+            foreach ($events as $rec) {
+                $dt  = new DateTime($rec->time);
+                $day = $dt->format('Y-m-d');
+                $byDate[$day][] = $rec;
             }
+            $days = array_keys($byDate);
+            sort($days);
 
-            // Ако има повече от един запис, обхождат се
-            $list = array_values($events);
-            $n    = count($list);
+            $prevDayLast = null;
 
-            for ($i = 0; $i < $n; $i++) {
-                $curr = $list[$i];
+            foreach ($days as $day) {
+                $todayEvents = $byDate[$day];
 
-                // Aко предишният е 'in', записва се времето до текущия
-                if ($i > 0) {
+                if ($prevDayLast) {
+                    $list       = array_merge([$prevDayLast], $todayEvents);
+                    $startIndex = 1;
+                } else {
+                    $list       = $todayEvents;
+                    $startIndex = 1;
+                }
+
+                $n = count($list);
+                if ($n === 1 && ! $prevDayLast) {
+                    $only = $list[0];
+                    if ($only->type === 'in') {
+                        $only->onSiteTime = 0;
+                        $toSave[$only->id] = $only;
+
+                        continue;
+                    }
+                }
+
+                for ($i = $startIndex; $i < $n; $i++) {
                     $prev = $list[$i - 1];
+                    $curr = $list[$i];
+
+                    // Нова промяна: два 'in' един след друг
+                    if ($prev->type === 'in' && $curr->type === 'in') {
+
+                        // Ако прекъсването в работното време между тях е над 90% да не се отчита
+                        // ако е под 90% записваме разликата
+                        $begin =  strtotime($prev->time);
+                        $end = strtotime($curr->time);
+                        if ($Interval->haveBreak($begin, $end, 0.9)) {
+                            $dtStart = new DateTime($prevDayLast->time);
+                            $prev->onSiteTime = $nowDateTime->getTimestamp() - $dtStart->getTimestamp();
+                        } else {
+                            $prev->onSiteTime = 0;
+                        }
+
+                        $toSave[$prev->id] = $prev;
+                        continue;
+                    }
+
                     if ($prev->type === 'in') {
                         $dt1 = new DateTime($prev->time);
                         $dt2 = new DateTime($curr->time);
 
-                        if($curr->type == 'in'){
-                            if(($i - 1) == 0){
+                        if ($curr->type === 'in') {
+                            if ($i === 1) {
                                 $prev->onSiteTime = 0;
-                                $toSave[$prev->id] = $prev;
                             } else {
-                                if($Interval->isIn($prev->time)){
+                                if ($Interval->isIn($prev->time)) {
                                     $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
-                                    $toSave[$prev->id] = $prev;
                                 } else {
                                     $prev->onSiteTime = 0;
-                                    $toSave[$prev->id] = $prev;
                                 }
                             }
-
                         } else {
                             $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
-                            $toSave[$prev->id] = $prev;
                         }
+
+                        $toSave[$prev->id] = $prev;
                     }
                 }
 
-                //  Aко текущият е 'in' и е последен за този служител
-                if ($curr->type === 'in' && $i === $n - 1) {
-                    $dtStart = new DateTime($curr->time);
+                $prevDayLast = end($todayEvents);
+            }
 
-                    // Ако текущото събитие е Вход и е последното за дадения служител, ако то попада в работния график
-                    // за дадения човек и в момента също сме в работния график - записваме към него от момента
-                    // на събитието до сега, като прекарано време. Иначе - 0.
-                    if ($Interval->isIn($now) && $Interval->isIn($curr->time)){
-                        $curr->onSiteTime = $nowDateTime->getTimestamp() - $dtStart->getTimestamp();
-                    } else {
-                        $curr->onSiteTime = 0;
-                    }
-                    $toSave[$curr->id] = $curr;
+            if ($prevDayLast && $prevDayLast->type === 'in') {
+                $begin =  strtotime($prevDayLast->time);
+                $end = strtotime($now);
+
+                if (!$Interval->haveBreak($begin, $end, 0.9)) {
+                    $dtStart = new DateTime($prevDayLast->time);
+                    $prevDayLast->onSiteTime = $nowDateTime->getTimestamp() - $dtStart->getTimestamp();
+                } else{
+                    $prevDayLast->onSiteTime = 0;
                 }
+                $toSave[$prevDayLast->id] = $prevDayLast;
             }
         }
 
