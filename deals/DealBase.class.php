@@ -380,13 +380,17 @@ abstract class deals_DealBase extends core_Master
                 }
             }
 
-            $err = $threads = $warning = array();
+            $err = $closedDeals = $threads = $warning = array();
             $warning[$rec->currencyRate] = $rec->currencyRate;
             $deals1 = keylist::toArray($form->rec->closeWith);
+            $CloseDoc = cls::get($this->closeDealDoc);
 
             $dealCountries = array();
             foreach ($deals1 as $d1) {
                 $dealRec = $this->fetch($d1, 'threadId,currencyRate');
+                $dealItemRec = acc_Items::fetchItem($this, $dealRec->id);
+                $exClosedDoc = $CloseDoc->fetch("#threadId = {$dealRec->threadId} AND #state = 'active'");
+
                 $logisticData = $this->getLogisticData($d1);
                 if(isset($logisticData['toCountry'])){
                     $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
@@ -395,12 +399,21 @@ abstract class deals_DealBase extends core_Master
                 if (acc_plg_Contable::haveDocumentInThreadWithStates($dealRec->threadId, 'pending,draft')) {
                     $err[] = $this->getLink($d1, 0);
                 }
+
+                if($dealItemRec->state == 'closed' || $exClosedDoc){
+                    $closedDeals[] = $this->getLink($dealRec->id, 0);
+                }
                 $warning[$dealRec->currencyRate] = $dealRec->currencyRate;
                 $threads[$dealRec->threadId] = $dealRec->threadId;
             }
 
             if (countR($err)) {
                 $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
+                $form->setError('closeWith', $msg);
+            }
+
+            if (countR($closedDeals)) {
+                $msg = '|Следните ' . mb_strtolower($this->title) . ' са вече затворени|*: ' . implode(',', $closedDeals);
                 $form->setError('closeWith', $msg);
             }
 
@@ -531,7 +544,6 @@ abstract class deals_DealBase extends core_Master
                 }
 
                 core_App::setTimeLimit(2000);
-                $CloseDoc = cls::get($this->closeDealDoc);
                 foreach ($deals as $dealId) {
 
                     // Ако има разпределени разходи към сделката, запомнят се и се изтриват
@@ -554,6 +566,7 @@ abstract class deals_DealBase extends core_Master
                     // Създаване на приключващ документ-чернова
                     $dRec = $this->fetch($dealId);
                     $clId = $CloseDoc->create($this->className, $dRec, $id);
+                    $exClosedDoc = null;
 
                     try {
 
@@ -575,7 +588,9 @@ abstract class deals_DealBase extends core_Master
                         $errorArr[] = "Не може да се контира|*: #{$CloseDoc->getHandle($clId)}";
                     }
 
-                    $this->logWrite('Приключено с друга сделка', $dealId);
+                    if(!$exClosedDoc){
+                        $this->logWrite('Приключено с друга сделка', $dealId);
+                    }
                 }
 
                 $this->invoke('AfterActivation', array($dealRec));

@@ -30,6 +30,18 @@ defIfNot('HR_DAYS_IN_HOMEOFFICE', '2');
 
 
 /**
+ * Начало на нощна смяна на текущия ден
+ */
+defIfNot('HR_NIGHT_SHIFT_CUR_DAY_START', '22:00');
+
+
+/**
+ * Край на нощна смяна на следващия ден
+ */
+defIfNot('HR_NIGHT_SHIFT_NEXT_DAY_END', '06:00');
+
+
+/**
  * class hr_Setup
  *
  * Инсталиране/Деинсталиране на човешки ресурси
@@ -85,7 +97,9 @@ class hr_Setup extends core_ProtoSetup
         'HR_EMAIL_TO_PERSON' => array('key(mvc=crm_Persons,select=name, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Изпращане на имейл към->Лице'),
         'HR_COMPANIES_IP' => array('varchar', 'caption=Ip-та на фирмата->IP'),
         'HR_DAYS_IN_HOMEOFFICE' => array('int(min=0)', 'caption=Разрешените дни за работа от вкъщи->Дни,unit=&nbsp;|(за един месец)|*,customizeBy=hrMaster|ceo'),
-        );
+        'HR_NIGHT_SHIFT_CUR_DAY_START' => array('hour', 'caption=Часове за нощна смяна->Начало: Днес'),
+        'HR_NIGHT_SHIFT_NEXT_DAY_END' => array('hour', 'caption=Часове за нощна смяна->Край: Утре'),
+    );
     
     
     /**
