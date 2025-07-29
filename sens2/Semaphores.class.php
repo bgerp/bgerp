@@ -20,7 +20,7 @@ class sens2_Semaphores extends core_Master
     /**
      * Необходими плъгини
      */
-    public $loadList = 'sens2_Wrapper';
+    public $loadList = 'sens2_Wrapper, plg_RowTools2';
     
     
     /**
@@ -39,6 +39,12 @@ class sens2_Semaphores extends core_Master
      * Кой може да добавя, редактира и изтрива?
      */
     public $canAdd = 'no_one';
+
+
+    /**
+     * Кой може да добавя, редактира и изтрива?
+     */
+    public $canDelete = 'debug';
     
     
     /**
@@ -84,11 +90,7 @@ class sens2_Semaphores extends core_Master
      */
     public static function check($objectId, $value, $onlyDifferent, $minInterval, $minAttempts) 
     {
-        // Ако нищо не е зададено - продължаваме със записа
-        if($onlyDifferent === null && $minInterval === null &&  $minAttempts === null) {
-
-            return true;
-        }
+        $res = true;
 
         $rec = self::fetch("#objectId = {$objectId}");
 
@@ -101,21 +103,24 @@ class sens2_Semaphores extends core_Master
                 );
             self::save($rec);
 
-            return true;
+            return $res;
         }
 
-        $res = true;
-        
+        // Ако нищо не е зададено - продължаваме със записа
+        if ($onlyDifferent === null && $minInterval === null &&  $minAttempts === null) {
+
+            return $res;
+        }
 
         // Ако се приемат само различни стойности, резултата е негативен, ако стойността съвпада с последно зададената
         if($onlyDifferent && $rec->value == $value) {
-            log_System::add('sens2_Semaphores', "1: $onlyDifferent {$rec->value} == {$value}", 'warning');
+            log_System::add('sens2_Semaphores', "1: $onlyDifferent {$rec->value} == {$value}", $rec, 'warning');
             $res = false;
         }
         
         // Ако е зададено минимално време, между две присвоявания, проверява се дали е изтекло от последното присвояване
         if($minInterval && dt::addSecs($minInterval, $rec->changedOn) > dt::now()) {
-            log_System::add('sens2_Semaphores', "2: {$minInterval} {$rec->changedOn}", 'warning');
+            log_System::add('sens2_Semaphores', "2: {$minInterval} {$rec->changedOn}", $rec, 'warning');
             $res = false;
         }
 
@@ -126,7 +131,7 @@ class sens2_Semaphores extends core_Master
 
         // Ако е зададен минимален брой опити се проверява дали са направени
         if($minAttempts && ($rec->attempts < $minAttempts)) {
-            log_System::add('sens2_Semaphores', "3: {$minAttempts} {$rec->attempts}", 'warning');
+            log_System::add('sens2_Semaphores', "3: {$minAttempts} {$rec->attempts}", $rec, 'warning');
             $res = false; 
         }
  

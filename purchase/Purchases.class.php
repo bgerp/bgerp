@@ -191,7 +191,8 @@ class purchase_Purchases extends deals_DealMaster
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
         'template' => 'lastDocUser|lastDoc|defMethod',
-        'oneTimeDelivery' => 'clientCondition'
+        'oneTimeDelivery' => 'clientCondition',
+        'detailOrderBy' => 'lastDocUser|lastDoc',
     );
     
     

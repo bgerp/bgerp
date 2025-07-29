@@ -19,7 +19,7 @@ class wtime_Summary extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Обобщение за работно време на служители';
+    public $title = 'Обобщение за работно време';
 
 
     /**
@@ -68,6 +68,12 @@ class wtime_Summary extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'date,personId,scheduleId=График,onSiteTime,onSiteTimeOffSchedule,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onlineTime,onlineTimeRemote,onlineTimeOffSchedule,lastCalced';
+
+
+    /**
+     * Поддържани интерфейси
+     */
+    public $interfaces = 'hr_IndicatorsSourceIntf';
 
 
     /**
@@ -135,11 +141,13 @@ class wtime_Summary extends core_Manager
      */
     protected function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $personName = crm_Persons::getVerbal($rec->personId, 'name');
-        $row->personId = ht::createLink($personName, crm_Persons::getSingleUrlArray($rec->personId));
-        $scheduleId = planning_Hr::getSchedule($rec->personId);
-        $row->scheduleId = hr_Schedules::getHyperlink($scheduleId, true);
-        $row->ROW_ATTR['class'] = "state-active";
+        if(isset($rec->personId)){
+            $personName = crm_Persons::getVerbal($rec->personId, 'name');
+            $row->personId = ht::createLink($personName, crm_Persons::getSingleUrlArray($rec->personId));
+            $scheduleId = planning_Hr::getSchedule($rec->personId);
+            $row->scheduleId = hr_Schedules::getHyperlink($scheduleId, true);
+        }
+        $row->ROW_ATTR['class'] = ($rec->_isSummary) ? 'state-closed' : 'state-active';
 
         foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
             $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
@@ -173,7 +181,7 @@ class wtime_Summary extends core_Manager
 
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-            $msg = "Преизчислени са записите след|*: " . dt::mysql2verbal($rec->from);
+            $msg = "Преизчислени са записите след|*: <b>" . dt::mysql2verbal($rec->from) . "</b>";
             if(in_array($form->cmd, array('debug', 'save'))){
                 $res = self::recalc($rec->from);
                 if($form->cmd == 'debug'){
@@ -225,6 +233,7 @@ class wtime_Summary extends core_Manager
         core_Debug::log("GET CAL_ON_SITE_TIME " . round(core_Debug::$timers["CAL_ON_SITE_TIME"]->workingTime, 6));
 
         $entriesArr = wtime_OnSiteEntries::getPersonEntries($calcFromTime, $personId, 'in');
+        core_App::setTimeLimit(countR($entriesArr) * 0.2, false, 150);
 
         // Какъв е статуса на дните от тогава до сега
         $sDate = $from;
@@ -258,7 +267,6 @@ class wtime_Summary extends core_Manager
             // За всяко влизане от вчера и днеска
             foreach ($entries as $entry) {
                 core_Debug::startTimer('ON_SITE');
-
                 $date = dt::verbal2mysql($entry->time, false);
 
                 // Ще се сумират по лице+дата
@@ -319,31 +327,46 @@ class wtime_Summary extends core_Manager
             }
         }
 
+        // Извличат се лицата от група служители, които имат потребители
         $userPersons = array();
         $pQuery = crm_Profiles::getQuery();
-        $pQuery->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
         $pQuery->show('personId,userId');
+        $noTrackUsers = core_Users::getUsersByRoles('noTrackonline');
+        if(count($noTrackUsers)){
+            $pQuery->notIn("userId", array_keys($noTrackUsers));
+        }
         if(isset($personId)){
             $pQuery->where("#personId = {$personId}");
+        } else {
+            $employeeGroupId = crm_Groups::getIdFromSysId('employees');
+            plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $pQuery, $employeeGroupId, 'personId');
         }
-
         while($pRec = $pQuery->fetch()){
             $userPersons[$pRec->userId] = $pRec->personId;
         }
-        $userIds = array_keys($userPersons);
 
+        $userIds = array_keys($userPersons);
+        $logArr = array();
+
+        // Ако има лица от група Служители
         if(countR($userIds)){
             core_Debug::startTimer('USER_LOGS');
-            $logArr = array();
+
+            // Извличане на логовете за тези потребители след посоченото време
             $lQuery = log_Data::getQuery();
             $lQuery->EXT('ip', 'log_Ips', 'externalName=ip,externalKey=ipId');
+            $lQuery->EXT('roles', 'core_Users', 'externalName=roles,externalKey=userId');
             $lQuery->EXT('userAgent', 'log_Browsers', 'externalName=userAgent,externalKey=brId');
-            $lQuery->where(array("#time >= '[#1#]'", dt::mysql2timestamp($calcFromTime)));
+            $lQuery->where(array("#time >= '[#1#]' AND #type != 'login'", dt::mysql2timestamp($calcFromTime)));
             $lQuery->in('userId', $userIds);
-            $lQuery->show('userId,type,ip,time,userAgent');
+            $lQuery->show('userId,type,ip,time,userAgent,roles');
             $lQuery->orderBy('time', 'ASC');
-            while($lRec = $lQuery->fetch()){
+            $lRecs = $lQuery->fetchAll();
+
+            core_App::setTimeLimit(countR($lRecs) * 0.08, false, 150);
+            foreach ($lRecs as $lRec) {
                 $logArr[$lRec->userId][$lRec->time] = (object)array('time' => $lRec->time, 'type' => $lRec->type, 'ip' => $lRec->ip, 'userId' => $lRec->userId, 'userAgent' => $lRec->userAgent);
+
             }
             core_Debug::stopTimer('USER_LOGS');
 
@@ -353,8 +376,7 @@ class wtime_Summary extends core_Manager
 
             // Кои са нашите фирмите на нашите офиси
             $ourIps = wtime_Setup::get('SITE_IPS');
-            $ourIps = str::removeWhiteSpace($ourIps, ' ');
-            $ourIpArr = explode(" ", $ourIps);
+            $ipArr = type_Ip::extractIps($ourIps);
 
             foreach ($logArr as $userId => $logs) {
                 ksort($logs);
@@ -368,7 +390,7 @@ class wtime_Summary extends core_Manager
                 }
 
                 core_Debug::startTimer('CALC_ONLINE_TIME');
-                $calcedOnlineTime = self::calculateDailyUserTime($pId, $logs, $ourIpArr, $wExcludeLocalMin, $readStickMin, $writeStickMin, $Schedules[$pId]);
+                $calcedOnlineTime = self::calculateDailyUserTime($pId, $logs, $ipArr, $wExcludeLocalMin, $readStickMin, $writeStickMin, $Schedules[$pId]);
                 core_Debug::stopTimer('CALC_ONLINE_TIME');
 
                 foreach ($calcedOnlineTime as $date => $status){
@@ -464,7 +486,9 @@ class wtime_Summary extends core_Manager
 
         // 2) за всеки ден пресмятаме
         foreach ($byDay as $day => $entries) {
-            usort($entries, fn($a,$b) => $a['ts'] <=> $b['ts']);
+            usort($entries, function($a, $b) {
+                return $a['ts'] <=> $b['ts'];
+            });
 
             $online  = $remote = $offSchedule = 0;
             $prevTs     = null;
@@ -494,7 +518,7 @@ class wtime_Summary extends core_Manager
                 $online += $addedSec;
 
                 // фирмено IP?
-                $isCorp = in_array($ip, $ourIpArr, true);
+                $isCorp = type_Ip::isInIps($ip, $ourIpArr);
 
                 // мобилно устройство?
                 $isMobile = preg_match('/Mobile|Android|iPhone|iPad/i', $ua) === 1;
@@ -531,5 +555,173 @@ class wtime_Summary extends core_Manager
         $start = dt::addDays(-2, dt::today(), false);
 
         self::recalc($start);
+    }
+
+
+    /**
+     * Интерфейсен метод на hr_IndicatorsSourceIntf
+     *
+     * @return array $result
+     */
+    public static function getIndicatorNames()
+    {
+        $result = array();
+
+        // Показател за делта на търговеца
+        $indicatorNames = array('Работно_време_на_място',
+                                'Работно_време_на_място_извън_графика',
+                                'Онлайн_работно_време',
+                                'Отдалечено_онлайн_работно_време',
+                                'Онлайн_работно_време_извън_графика',
+        );
+
+        $counter = 1;
+        foreach ($indicatorNames as $iName){
+            $rec = hr_IndicatorNames::force($iName, __CLASS__, $counter);
+            $result[$rec->id] = $rec->name;
+            $counter++;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Метод за вземане на резултатност на хората. За определена дата се изчислява
+     * успеваемостта на човека спрямо ресурса, които е изпозлвал
+     *
+     * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
+     *
+     * @return array $result  - масив с обекти
+     *
+     * 			o date        - дата на стайноста
+     * 		    o personId    - ид на лицето
+     *          o docId       - ид на документа
+     *          o docClass    - клас ид на документа
+     *          o indicatorId - ид на индикатора
+     *          o value       - стойноста на индикатора
+     *          o isRejected  - оттеглена или не. Ако е оттеглена се изтрива от индикаторите
+     */
+    public static function getIndicatorValues($timeline)
+    {
+        $map  = array('Работно_време_на_място' => 'onSiteTime',
+                     'Работно_време_на_място_извън_графика' => 'onSiteTimeOffSchedule',
+                     'Онлайн_работно_време' => 'onlineTime',
+                     'Отдалечено_онлайн_работно_време' => 'onlineTimeRemote',
+                     'Онлайн_работно_време_извън_графика' => 'onlineTimeOffSchedule',
+            );
+        $indicators = array_flip(self::getIndicatorNames());
+
+        // Извличане на променените обобщения след посоченото време
+        $result = array();
+        $query = self::getQuery();
+        $query->where("#lastCalced >= '{$timeline}'");
+        $classId = cls::get(get_called_class())->getClassId();
+        while($rec = $query->fetch()) {
+
+            // За всеки индикатор се сумира стойноста на съответното поле
+            foreach ($indicators as $iName => $iId){
+                $key = "{$rec->personId}|{$rec->date}|{$iId}";
+                if (!array_key_exists($key, $result)) {
+                    $result[$key] = (object) array('date'        => $rec->date,
+                                                   'personId'    => $rec->personId,
+                                                   'indicatorId' => $iId,
+                                                   'docId' => 0,
+                                                   'docClass' => $classId,
+                                                   'value'       => 0);
+                }
+
+                $result[$key]->value += $rec->{$map[$iName]};
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Подготовка на съмърито
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareSummary(&$data)
+    {
+        $data->recs = $data->rows = array();
+
+        foreach (array('totalThisMonth', 'totalLastMonth') as $var){
+            $data->{$var} = new stdClass();
+            $data->{$var}->_isSummary = true;
+            foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
+                $data->{$var}->{$fld} = 0;
+            }
+        }
+
+        // Извличат се записите от съмърито за лицето
+        $query = self::getQuery();
+        $query->where("#personId = {$data->masterId}");
+        $query->orderBy('date', 'DESC');
+        $firstDay = date('Y-m-01', strtotime('first day of this month'));
+        $firstDayPrevMonth = date('Y-m-01', strtotime('first day of last month'));
+        $lastDayPrevMonth = dt::getLastDayOfMonth($firstDayPrevMonth);
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 10));
+        $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
+        $data->Pager->itemsCount = $query->count();
+
+        $this->prepareListFields($data);
+        while($rec = $query->fetch()) {
+            $data->recs[$rec->id] = $rec;
+            if (!$data->Pager->isOnPage()) continue;
+            $data->rows[$rec->id] = self::recToVerbal($rec);
+
+            if($rec->date >= $firstDay) {
+                foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
+                    $data->totalThisMonth->{$fld} += $rec->{$fld};
+                }
+            }
+
+            if($rec->date >= $firstDayPrevMonth && $rec->date <= $lastDayPrevMonth) {
+                foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
+                    $data->totalLastMonth->{$fld} += $rec->{$fld};
+                }
+            }
+        }
+
+        if(isset($data->totalThisMonth)){
+            $data->totalThisMonthRow = $this->recToVerbal($data->totalThisMonth);
+            $data->totalThisMonthRow->date = "<b>" . dt::mysql2verbal($firstDay, 'M') . "</b> (" . tr('Общо') . ")";
+        }
+
+        if(isset($data->totalLastMonth)){
+            $data->totalLastMonthRow = $this->recToVerbal($data->totalLastMonth);
+            $data->totalLastMonthRow->date = "<b>" . dt::mysql2verbal($firstDayPrevMonth, 'M') . "</b> (" . tr('Общо') . ")";
+        }
+    }
+
+
+    /**
+     * Рендиране на съмърито
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderSummary($data)
+    {
+        $tpl = new core_ET("");
+        unset($data->listFields['personId']);
+        unset($data->listFields['lastCalced']);
+        unset($data->listFields['scheduleId']);
+
+        $table = cls::get('core_TableView', array('mvc' => $this));
+        $data->rows[] = $data->totalThisMonthRow;
+        $data->rows[] = $data->totalLastMonthRow;
+        $dTable = $table->get($data->rows, $data->listFields);
+
+        //$dTable->append(, ROW_AFTER'')
+        $tpl->append($dTable);
+        if ($data->Pager) {
+            $tpl->append($data->Pager->getHtml());
+        }
+
+        return $tpl;
     }
 }

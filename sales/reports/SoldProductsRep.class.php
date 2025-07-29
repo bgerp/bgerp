@@ -421,6 +421,26 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $form->setSuggestions('contragent', $suggestionContragents);
 
+        $suggestionDealers = [];
+
+// Взимаме ID на ролята 'powerUser'
+        $powerUserRoleId = core_Roles::fetchByName('powerUser');
+
+        if ($powerUserRoleId) {
+
+            // Обхождаме всички потребители
+            $dealers = core_Users::getQuery();
+            while ($delRec = $dealers->fetch()) {
+                // Добавяме само ако имат точно ролята powerUser
+                if (keylist::isIn($powerUserRoleId, $delRec->roles)) {
+                    $suggestionDealers[$delRec->id] = $delRec->nick;
+                }
+            }
+        }
+
+        $form->setSuggestions('dealers', $suggestionDealers);
+
+
         $suggestionTeams = array();
         $teams = core_Roles::getRolesByType('team');
         foreach (keylist::toArray($teams) as $team) {

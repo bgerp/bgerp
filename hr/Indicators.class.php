@@ -62,7 +62,7 @@ class hr_Indicators extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'date, docId=Документ, personId, indicatorId, value';
+    public $listFields = 'date, docId=Източник, personId, indicatorId, value';
 
 
     /**
@@ -100,13 +100,22 @@ class hr_Indicators extends core_Manager
             $row->personId = ht::createLink($name, array('crm_Persons', 'single', 'id' => $rec->personId), null, 'ef_icon = img/16/vcard.png');
         }
  
-        if (cls::load($rec->docClass, true)) {      
+        if (cls::load($rec->docClass, true)) {
             $Class = cls::get($rec->docClass);
-            if (cls::existsMethod($Class, 'getLink')) {
-                $row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
+            if(!empty($rec->docId)){
+                if (cls::existsMethod($Class, 'getLink')) {
+                    $row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
+                } else {
+                    $row->docId = cls::get($rec->docClass)->getTitleById($rec->docId, 0);
+                }
             } else {
-                $row->docId = cls::get($rec->docClass)->getTitleById($rec->docId, 0);
+                $row->docId = cls::getTitle($Class);
+                if($Class->haveRightFor('list')){
+                    $row->docId = ht::createLink($row->docId, array($Class, 'list'));
+                }
             }
+
+
         } else {
             $row->docId = "<span class='red'>" . tr('Проблем при зареждането') . '</span>';
         }
