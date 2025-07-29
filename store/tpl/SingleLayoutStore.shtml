@@ -88,6 +88,13 @@
                                 <td>[#palletBestPositionStrategy#]</td>
                             </tr>
                             <!--ET_END palletBestPositionStrategy-->
+
+                            <!--ET_BEGIN notifyUsers-->
+                            <tr>
+                                <td class='dt'>|Нотифициране при промяна на транспортна линия|*:</td>
+                                <td>[#notifyUsers#]</td>
+                            </tr>
+                            <!--ET_END notifyUsers-->
                         </table>
                     </div>
                 </fieldset>
