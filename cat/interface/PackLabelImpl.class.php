@@ -173,8 +173,8 @@ class cat_interface_PackLabelImpl extends label_ProtoSequencerImpl
             
             Mode::push('text', 'plain');
 
-            $catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPrice);
-            $catalogPriceVerbal = currency_Currencies::decorate($catalogPrice, $currencyCode, true);
+            $catalogPriceVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPrice);
+            $catalogPriceVerbal = currency_Currencies::decorate($catalogPriceVerbal, $currencyCode, true);
             if($currencyCode == 'BGN'){
                 $rate = currency_CurrencyRates::getRate(dt::today(), 'EUR', 'BGN');
                 $priceInEuro = round($catalogPrice, 2) / $rate;
