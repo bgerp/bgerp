@@ -486,7 +486,9 @@ class wtime_Summary extends core_Manager
 
         // 2) за всеки ден пресмятаме
         foreach ($byDay as $day => $entries) {
-            usort($entries, fn($a,$b) => $a['ts'] <=> $b['ts']);
+            usort($entries, function($a, $b) {
+                return $a['ts'] <=> $b['ts'];
+            });
 
             $online  = $remote = $offSchedule = 0;
             $prevTs     = null;

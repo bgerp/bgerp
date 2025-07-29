@@ -603,6 +603,7 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['countryId']      string|NULL - ид на държава
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
+     *               ['deliveryOn']     date        - Доставка на
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -610,7 +611,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $lineState = trans_Lines::fetchField($lineId, 'state');
         $sign = ($this->getClassId() == cash_Pko::getClassId()) ? 1 : -1;
         $baseAmount = round($rec->amount * $rec->rate, 4);
-        $info = array('state' => $rec->state, 'notes' => $rec->lineNotes, 'currencyId' => currency_Currencies::getCodeById($rec->currencyId), 'amount' => $sign * $rec->amount, 'baseAmount' => $sign * $baseAmount);
+        $info = array('state' => $rec->state, 'notes' => $rec->lineNotes, 'currencyId' => currency_Currencies::getCodeById($rec->currencyId), 'amount' => $sign * $rec->amount, 'baseAmount' => $sign * $baseAmount, 'deliveryOn' => null);
         $info['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
 
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);

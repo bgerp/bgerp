@@ -490,13 +490,18 @@ class wtime_OnSiteEntries extends core_Manager
      * Връща последния запис за дадено лице
      *
      * @param integer $personId
+     * @param null|datetime $time
      *
      * @return object|null
      */
-    public static function getLastState($personId)
+    public static function getLastState($personId, $time = null)
     {
         $query = static::getQuery();
         $query->where(array("#personId = '[#1#]'", $personId));
+        if (isset($time)) {
+            $query->where(array("#time >= '[#1#]'", $time));
+        }
+
         $query->orderBy('time', 'DESC');
         $query->limit(1);
 

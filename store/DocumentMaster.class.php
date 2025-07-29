@@ -193,7 +193,6 @@ abstract class store_DocumentMaster extends core_Master
         $form->setDefault('currencyRate', $dealInfo->get('rate'));
         if(empty($rec->id)){
             $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
-            $form->setDefault('deliveryOn', $dealInfo->get('deliveryTime'));
         }
         $form->setDefault('chargeVat', $dealInfo->get('vatType'));
         $form->setDefault('storeId', $dealInfo->get('storeId'));
@@ -1111,11 +1110,12 @@ abstract class store_DocumentMaster extends core_Master
      *               ['countryId']      string|NULL - ид на държава
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
+     *               ['deliveryOn']     date        - Доставка на
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
         $res['stores'] = array($rec->storeId);
         $res['storeMovement'] = ($this instanceof store_Receipts) ? (($rec->isReverse == 'yes') ? 'out' : 'in') : (($rec->isReverse == 'yes') ? 'in' : 'out');
         $res['cases'] = array();

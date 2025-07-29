@@ -644,12 +644,13 @@ class store_Transfers extends core_Master
      *               ['countryId']      string|NULL - ид на държава
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
+     *               ['deliveryOn']     date        - Доставка на
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
         $row = $this->recToVerbal($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
 
         $res['stores'] = array($rec->fromStore, $rec->toStore);
         $res['address'] = $row->toAdress;
