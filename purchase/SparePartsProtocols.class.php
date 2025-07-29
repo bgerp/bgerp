@@ -221,11 +221,14 @@ class purchase_SparePartsProtocols extends core_Master
     {
         $form = &$data->form;
 
-        $machineTypeId = planning_AssetGroups::fetchField("#name= 'Машини'");
+        $gQuery = planning_AssetGroups::getQuery();
+        $gQuery->where("#type = 'material'");
+        $groupIds = arr::extractValuesFromArray($gQuery->fetchAll(), 'id');
+
         $assetOptions = array();
         $aQuery = planning_AssetResources::getQuery();
-        $aQuery->where("#state = 'active' AND #groupId = {$machineTypeId}");
-
+        $aQuery->where("#state = 'active'");
+        $aQuery->in('groupId', $groupIds);
         while($aRec = $aQuery->fetch()){
             $assetOptions[$aRec->id] = planning_AssetResources::getRecTitle($aRec, false);
         }

@@ -264,7 +264,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         parent::prepareEditForm_($data);
         $form = &$data->form;
         $rec = $form->rec;
-        $form->setDefault('valior', dt::today());
+
+        if(empty($rec->id)){
+            $form->setDefault('valior', dt::today());
+        }
 
         $originDoc = doc_Containers::getDocument($form->rec->originId);
         $originRec = $originDoc->rec();
@@ -817,6 +820,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         // Ако протокола е за крайния артикул
         if(static::isForJobProductId($rec)) {
             $detailsFromBom = $this->getDefaultDetailsFromBom($rec);
+            $orderedKeys = arr::extractValuesFromArray($detailsFromBom, 'productId');
 
             // Какво е вложено до момента в заданието
             $jobRec =  static::getJobRec($rec);
@@ -876,6 +880,21 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     }
                 }
             }
+
+            // Сортиране по приоритет от рецепта
+            if(countR($orderedKeys)){
+                $ordered = array();
+                foreach ($orderedKeys as $pid) {
+                    foreach ($details as $k => $obj) {
+                        if ($obj->productId == $pid) {
+                            $ordered[$k] = $obj;
+                            unset($details[$k]);
+                        }
+                    }
+                }
+
+                $details = array_merge($ordered, $details);
+            }
         } elseif($origin->isInstanceOf('planning_Tasks')){
             $details = array();
         } else {
@@ -898,7 +917,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     protected function getDefaultDetailsFromBom($rec)
     {
         $details = array();
+        $Document = doc_Containers::getDocument($rec->originId);
         $originRec = doc_Containers::getDocument($rec->originId)->rec();
+        $jobRec = $originRec;
+        if($Document->isInstanceOf('planning_Tasks')) {
+            $jobRec = doc_Containers::getDocument($Document->fetchField('originId'))->fetch();
+        }
 
         // Ако артикула има активна рецепта
         $bomId = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')->id;
@@ -914,9 +938,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $now = dt::now();
         $bomInfo1 = array();
         if($quantityProduced){
-            $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, $now);
+            $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, $now, $jobRec->quantity);
         }
-        $bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, $now);
+        $bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, $now, $jobRec->quantity);
 
         // За всеки ресурс
         foreach ($bomInfo2['resources'] as $index => $resource) {
@@ -1482,9 +1506,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         // Проверки на параметрите
         expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
         expect($noteRec->state == 'draft', 'Протокола трябва да е чернова');
-        expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore'), "Няма артикул с ид {$productId}");
+        expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore,canManifacture'), "Няма артикул с ид {$productId}");
         if ($isWaste) {
             expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
+            expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
+        } elseif($isSubProduct) {
+            expect($productRec->canManifacture == 'yes', 'Артикулът трябва да е производим');
             expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
         } else {
             expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
@@ -1523,6 +1550,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } elseif($noteRec->inputServicesFrom == 'all') {
                 $rec->fromAccId = '61102';
             }
+        } elseif($rec->type == 'subProduct'){
+            $rec->storeId = $noteRec->storeId;
         }
 
         setIfNot($rec->storeId, $storeId);

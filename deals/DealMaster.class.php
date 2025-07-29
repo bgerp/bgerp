@@ -65,7 +65,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,currencyManualRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,currencyManualRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions,haveVatCreditProducts';
     
     
     /**
@@ -147,7 +147,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $overdueToleranceAmount = deals_Setup::get('OVERDUE_TOLERANCE_AMOUNT');
 
         // Ако имаме фактури към сделката
-        $invoices = deals_Helper::getInvoicePayments($rec->threadId);
+        $invoices = deals_Helper::getInvoicePayments($rec->threadId, null, false);
+
         if (countR($invoices)) {
             $overdueAmount = $overdueAmountPerDays = 0;
             $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
@@ -397,7 +398,8 @@ abstract class deals_DealMaster extends deals_DealBase
 
         if(!in_array($form->rec->chargeVat, array('yes', 'separate'))){
             if($form->getField('haveVatCreditProducts', false)){
-                $form->setField('haveVatCreditProducts', 'input=none');
+                $form->setDefault('haveVatCreditProducts', 'yes');
+                $form->setField('haveVatCreditProducts', 'input=hidden');
             }
         }
     }

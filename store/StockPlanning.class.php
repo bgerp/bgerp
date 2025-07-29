@@ -163,6 +163,7 @@ class store_StockPlanning extends core_Manager
         $Class = cls::get($class);
         $classId = $Class->getClassId();
         $now = dt::now();
+        $today = dt::today();
 
         $threadId = null;
         if(cls::haveInterface('doc_DocumentIntf', $Class)){
@@ -170,8 +171,24 @@ class store_StockPlanning extends core_Manager
             $threadId = $sourceRec->threadId;
         }
 
+        // Ако очакваното време е в миналото - да се подмени със сега + посоченото време в константа
+        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
         $cu = core_Users::getCurrent();
-        array_walk($array, function($a) use ($now, $classId, $threadId, $id, $cu) {$a->createdOn = $now; $a->createdBy = $cu; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId;});
+
+        foreach ($array as $a){
+            $a->createdOn = $now;
+            $a->createdBy = $cu;
+            $a->sourceClassId = $classId;
+            $a->sourceId = $id;
+            $a->threadId = $threadId;
+
+            // Ако датата е в миналото, но има очаквано к-во да се добави времето към сега
+            if(dt::verbal2mysql($a->date, false) < $today){
+                if($a->quantityIn){
+                    $a->date = dt::addSecs($horizonAdd, $now);
+                }
+            }
+        }
     }
 
 

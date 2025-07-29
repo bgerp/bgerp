@@ -597,6 +597,13 @@ class cat_BomDetails extends doc_Detail
         $scope = cat_Boms::getScope($params);
         $scope['$T'] = 1;
         $scope['$Начално='] = '$Начално=';
+        $scope['$тираж_задание'] = '$тираж_задание';
+        $threadId = cat_Boms::fetchField($rec->bomId, 'threadId');
+        if($firstDoc = doc_Threads::getFirstDocument($threadId)){
+            if($firstDoc->isInstanceOf('planning_Jobs')) {
+                $scope['$тираж_задание'] = $firstDoc->fetchField('quantity');
+            }
+        }
 
         return $scope;
     }
@@ -622,7 +629,7 @@ class cat_BomDetails extends doc_Detail
             unset($context['$T']);
             $form->setSuggestions('propQuantity', $context);
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
-            
+
             if($form->_replaceProduct !== true){
                 $packs = cat_Products::getPacks($rec->resourceId, $rec->packagingId);
                 $form->setOptions('packagingId', $packs);

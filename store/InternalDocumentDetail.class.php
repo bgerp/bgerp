@@ -42,6 +42,12 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 
 
     /**
+     * Да се сумират ли редовете при импорт
+     */
+    public $combineImportRecs = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     protected function setFields($mvc)
@@ -337,8 +343,15 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         
         $price *= $quantityInPack;
         $dRec = (object)array('protocolId' => $masterId, 'productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'packPrice' => $price, 'packQuantity' => $row->quantity, 'quantityInPack' => $quantityInPack);
-        
-        return self::save($dRec);
+        $dRec->autoAllocate = false;
+        $dRec->_clonedWithBatches = true;
+
+        $id = self::save($dRec);
+        if(!empty($row->batches) && core_Packs::isInstalled('batch')){
+            batch_BatchesInDocuments::saveBatches($this, $id, $row->batches, true);
+        }
+
+        return $id;
     }
 
 

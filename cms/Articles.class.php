@@ -841,7 +841,7 @@ class cms_Articles extends core_Master
                 $res->append($this->getVerbal($rec, 'body'), 'CONTENT');
             }
         } else {
-            $form->title = 'Конкатиниране на статии';
+            $form->title = 'Конкатениране на статии';
             $form->toolbar->addSbBtn('Покажи');
             $res = $form->renderHtml('menuId,articles,divider');
         }

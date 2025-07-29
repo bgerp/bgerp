@@ -11,7 +11,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -58,8 +58,14 @@ class trans_TransportUnits extends core_Manager
      * Кой може да разглежда
      */
     public $canList = 'trans,ceo';
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    private static $cacheUnits = array();
+
+
     /**
      * Описание на модела
      */
@@ -77,6 +83,7 @@ class trans_TransportUnits extends core_Manager
         $this->FLD('transModes', 'keylist(mvc=trans_TransportModes,select=name)', 'caption=Използване в транспорт->Вид');
         
         $this->setDbUnique('name');
+        $this->setDbIndex('packagingId');
     }
     
     
@@ -85,11 +92,7 @@ class trans_TransportUnits extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = null, $userId = null)
     {
-        if (isset($rec) && is_int($rec)) {
-            $rec = $mvc->fetch($rec);
-        }
-        
-        if (($action == 'delete' || $action == 'edit')) {
+        if (($action == 'delete' || $action == 'edit') && isset($rec)) {
             if (isset($rec->createdBy)) {
                 if ($rec->createdBy != core_Users::getCurrent()) {
                     $roles = 'ceo';
@@ -180,16 +183,19 @@ class trans_TransportUnits extends core_Manager
     {
         if(empty($quantity)) return null;
 
-        // От опаковките на артикула, кои са свързани към ЛЕ
+        if(!self::$cacheUnits){
+            $uQuery = trans_TransportUnits::getQuery();
+            $uQuery->show('id,packagingId');
+            self::$cacheUnits = $uQuery->fetchAll();
+        }
+
         $packs = cat_Products::getPacks($productId);
-        $uQuery = trans_TransportUnits::getQuery();
-        $uQuery->in('packagingId', array_keys($packs));
-        $uQuery->show('id,packagingId');
+        $uPacks = array_filter(self::$cacheUnits, function($a) use ($packs) {return array_key_exists($a->packagingId, $packs);});
         $isPublic = cat_Products::fetchField($productId, 'isPublic');
 
         // За всяка ле, която е опаковка се събира по к-то в нея
         $calcQuantity = array();
-        while ($uRec = $uQuery->fetch()){
+        foreach ($uPacks as $uRec){
             if($packRec = cat_products_Packagings::getPack($productId, $uRec->packagingId)){
 
                 // Ако артикула е стандартен - ще се сортират по остатъка им иначе по-кто в опакока

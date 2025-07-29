@@ -467,18 +467,35 @@ class hr_Schedules extends core_Master
     /**
      * Изтриване на кеша при обновяване на детайла
      */
-    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    protected static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
        core_Cache::removeByType('work_schedule');
     }
-    
+
+
+    /**
+     * Извиква се преди запис в модела
+     */
+    protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if(isset($rec->id)){
+            $exRec = $mvc->fetch($rec->id, '*', false);
+            $rec->_exnonWorking = $exRec->nonWorking;
+            $rec->_exnparentId = $exRec->parentId;
+        }
+    }
+
+
     /**
      * Изтриване на кеша при обновяване на мастера
      */
-    public static function on_AfterUpdate($mvc, &$res, $id)
+    protected static function on_AfterUpdate($mvc, &$rec, $id)
     {
-       core_Cache::removeByType('work_schedule');
+        if($rec->_exnonWorking != $rec->nonWorking || $rec->_exnparentId != $rec->parentId){
+            core_Cache::removeByType('work_schedule');
+        }
     }
+
 
     /**
      * По зададени начална и крайна дата изчислява неработните дни 

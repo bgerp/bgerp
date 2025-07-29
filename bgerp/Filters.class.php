@@ -19,7 +19,7 @@ class bgerp_Filters extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'bgerp_Wrapper,plg_State2';
+    public $loadList = 'cond_Wrapper,plg_State2,plg_Created,plg_RowTools2';
 
 
     /**
@@ -37,7 +37,19 @@ class bgerp_Filters extends core_Manager
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'no_one';
+    public $canWrite = 'admin';
+
+
+    /**
+     * Кой може да пише?
+     */
+    public $canAdd = 'admin';
+
+
+    /**
+     * Кой може да пише?
+     */
+    public $canEdit = 'admin';
 
 
     /**
@@ -53,9 +65,13 @@ class bgerp_Filters extends core_Manager
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име');
         $this->FLD('title', 'varchar(64)', 'caption=Заглавие');
-        $this->FLD('group', 'varchar(64)', 'caption=Група');
-        $this->FLD('classes', 'keylist(mvc=core_Classes,select=title)', 'caption=Класове');
+        $this->FLD('group', 'varchar(64)', 'caption=Група,input=hidden');
+        $this->FLD('classes', 'classes', 'caption=Класове');
         $this->FLD('packName', 'varchar(64)', 'caption=Зависим пакет');
+
+        $this->FLD('regex', 'text(rows=3)', 'caption=Настройки за филтриране->Рег. израз');
+        $this->FLD('regexField', 'varchar', 'caption=Настройки за филтриране->Поле');
+        $this->FLD('orderBy', 'enum(ASC=Възходящ,DESC=Низходящ)', 'caption=Настройки за филтриране->Сортиране');
 
         $this->setDbUnique('name');
     }
@@ -96,7 +112,10 @@ class bgerp_Filters extends core_Manager
             1 => 'title',
             2 => 'group',
             3 => 'csv_classes',
-            4 => 'packName'
+            4 => 'packName',
+            5 => 'regex',
+            6 => 'regexField',
+            7 => 'orderBy',
         );
 
         // Импортираме данните от CSV файла.

@@ -240,7 +240,7 @@ class planning_Jobs extends core_Master
     public function  description()
     {
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|productionScrap|quantity|oldJobId');
-        $this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none,class=w100');
+        $this->FLD('oldJobId', 'key2(mvc=planning_Jobs,selectSourceArr=planning_Jobs::getPreviousJobs,allowEmpty,forceAjax,maxSuggestions=100)', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none,class=w100');
         $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory,remember');
         $this->FLD('expectedDueDate', 'date(smartTime)', 'caption=Очакван падеж,input=none');
 
@@ -287,78 +287,6 @@ class planning_Jobs extends core_Master
         $this->setDbIndex('oldJobId');
         $this->setDbIndex('saleId');
         $this->setDbIndex('createdOn');
-    }
-
-
-    /**
-     * Връща последните валидни задания
-     *
-     * @param int $productId   - ид на артикул
-     * @param int|null $saleId - ид на продажба, ако има
-     * @return array $res      - масив с предишните задания
-     */
-    private static function getPreviousJob($productId, $saleId = null, $exId = null)
-    {
-        $options = $jobArr2 = array();
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->where("#state IN ('active', 'wakeup', 'stopped', 'closed')");
-        $jQuery->orderBy('id', 'DESC');
-
-        $limit = planning_Setup::get('PREV_JOB_OPTIONS');
-        $jQuery->limit($limit);
-        $jQuery->show('id,productId,state');
-
-        if(isset($saleId)){
-            $saleFolderId = sales_Sales::fetchField($saleId, 'folderId');
-            $saleQuery = sales_Sales::getQuery();
-            $saleQuery->where("#folderId = {$saleFolderId} AND (#state IN ('active', 'closed'))");
-            $saleQuery->show('id');
-            $otherSaleIds = arr::extractValuesFromArray($saleQuery->fetchAll(), 'id');
-
-            if(countR($otherSaleIds)){
-                $jQuery2 = clone $jQuery;
-                $jQuery2->in('saleId', $otherSaleIds);
-                $jobArr2 = $jQuery2->fetchAll();
-            }
-        }
-
-        $jQuery->where("#productId = {$productId}");
-        $jobArr1 = $jQuery->fetchAll();
-
-        if(isset($exId)){
-            $exRec = self::fetch($exId);
-            if($exRec->productId == $productId) {
-                $jobArr1[$exId] = $exRec;
-            } else {
-                $jobArr2[$exId] = $exRec;
-            }
-        }
-
-
-        foreach (array('jobArr1' => tr('Предходни'), 'jobArr2' => tr('Подобни')) as $varName => $caption){
-            $state = ($varName == 'jobArr1') ? 'state-waiting' : 'state-template';
-            $var = ${"{$varName}"};
-
-            if(countR($var)){
-                $options += array("{$varName}" => (object) array('group' => true, 'title' => $caption));
-                foreach ($var as $jobRec){
-                    if(!array_key_exists($jobRec->id, $options)){
-                        $options[$jobRec->id] = (object)array('title' => self::getRecTitle($jobRec), 'attr' => array('class' => $state));
-                    }
-                }
-            }
-        }
-
-        if(isset($exId)){
-            if(!array_key_exists($exId, $options)){
-                $exRec = self::fetch($exId);
-                $state = ($exRec->productId == $productId) ? 'state-waiting' : 'state-template';
-                $options[$exId] = (object)array('title' => self::getRecTitle($exId), 'attr' => array('class' => $state));
-            }
-        }
-
-
-        return $options;
     }
 
 
@@ -467,21 +395,19 @@ class planning_Jobs extends core_Master
         // Ако има предишни задания зареждат се за избор
         $productId = $productId ?? $rec->productId;
         if(isset($productId)){
-            $previousJobs = self::getPreviousJob($productId, $saleId, $rec->oldJobId);
-            if (countR($previousJobs)) {
-                $form->setField('oldJobId', 'input');
-                $form->setOptions('oldJobId', array('' => '') + $previousJobs);
-            }
 
             $packs = cat_Products::getPacks($productId, $packagingId, false, $secondMeasureId);
             $form->setOptions('packagingId', $packs);
             $form->setField('packagingId', 'input');
+            $form->setField('oldJobId', 'input');
 
             if ($tolerance = cat_Products::getParams($productId, 'tolerance')) {
                 $form->setDefault('tolerance', $tolerance);
             }
+            $oldJobParams = array('productId' => $productId);
 
             if (isset($saleId)) {
+                $oldJobParams['saleId'] = $saleId;
                 $deliveryDate = null;
                 $form->setDefault('dueDate', $mvc->getDefaultDueDate($productId, $saleId, $deliveryDate));
 
@@ -527,6 +453,7 @@ class planning_Jobs extends core_Master
             }
 
             $form->setDefault('packagingId', key($packs));
+            $form->setFieldTypeParams('oldJobId', $oldJobParams);
 
             if ($Driver = cat_Products::getDriver($productId)) {
 
@@ -1713,10 +1640,13 @@ class planning_Jobs extends core_Master
         $result = array();
         $rec = hr_IndicatorNames::force('Активирани_задания', __CLASS__, 1);
         $result[$rec->id] = $rec->name;
-        
+
         $rec = hr_IndicatorNames::force('Сложност_на_задания', __CLASS__, 2);
         $result[$rec->id] = $rec->name;
-        
+
+        $rec = hr_IndicatorNames::force('Приключени_задания', __CLASS__, 3);
+        $result[$rec->id] = $rec->name;
+
         return $result;
     }
     
@@ -1742,12 +1672,13 @@ class planning_Jobs extends core_Master
         $result = array();
         $iRec = hr_IndicatorNames::force('Активирани_задания', __CLASS__, 1);
         $iRec2 = hr_IndicatorNames::force('Сложност_на_задания', __CLASS__, 2);
-        
+        $iRec3 = hr_IndicatorNames::force('Приключени_задания', __CLASS__, 3);
+
         $query = self::getQuery();
-        $query->where("#state = 'active' || #state = 'closed' || #state = 'wakeup' || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
+        $query->where("#state IN ('active', 'closed', 'wakeup') || (#state = 'rejected' && (#brState = 'active' || #brState = 'closed'))");
         $query->where("#modifiedOn >= '{$timeline}'");
-        $query->show('activatedBy,activatedOn,modifiedOn,state,createdBy,productId');
-        
+        $query->show('activatedBy,activatedOn,modifiedOn,state,createdBy,productId,lastChangeStateBy');
+
         while ($rec = $query->fetch()) {
             $activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
             if (empty($activatedBy) || $activatedBy == core_Users::SYSTEM_USER) continue;
@@ -1760,12 +1691,22 @@ class planning_Jobs extends core_Master
             
             $isRejected = ($rec->state == 'rejected');
             hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec->id, 1, $isRejected);
-            
+
             if ($Driver = cat_Products::getDriver($rec->productId)) {
                 $difficulty = $Driver->getDifficulty($rec->productId);
                 if (isset($difficulty)) {
                     hr_Indicators::addIndicatorToArray($result, $date, $personId, $rec->id, $classId, $iRec2->id, $difficulty, $isRejected);
                 }
+            }
+
+            if($rec->state == 'closed' || ($rec->brState == 'closed' && $isRejected)) {
+                if ($rec->lastChangeStateBy == core_Users::SYSTEM_USER) continue;
+                $lastChangeStateBy = $rec->lastChangeStateBy ?? $rec->modifiedBy;
+                $lastChangeStateOn = $rec->lastChangeStateOn ?? $rec->modifiedOn;
+                $lastChangeStateOn = dt::verbal2mysql($lastChangeStateOn, false);
+
+                $personId = crm_Profiles::fetchField("#userId = {$lastChangeStateBy}", 'personId');
+                hr_Indicators::addIndicatorToArray($result, $lastChangeStateOn, $personId, $rec->id, $classId, $iRec3->id, 1, $isRejected);
             }
         }
         
@@ -1933,7 +1874,7 @@ class planning_Jobs extends core_Master
 
                 // Кои са материалите и
                 $receiptClassId = cat_Boms::getClassId();
-                $materialArr = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity);
+                $materialArr = cat_Boms::getBomMaterials($lastReceipt, $rec->quantity, null, true, array(), $rec->quantity);
 
                 if(countR($materialArr)){
 
@@ -1961,6 +1902,7 @@ class planning_Jobs extends core_Master
 
                     // За всеки материал от рецептата, ще се проверява, колко остава да се запази
                     foreach($materialArr as $materialRec){
+                        if($materialRec->quantity == cat_BomDetails::CALC_ERROR) continue;
                         $materialRec->quantity *= $materialRec->quantityInPack;
                         $materialProductRec = cat_Products::fetch($materialRec->productId, 'generic,canConvert');
 
@@ -2639,4 +2581,70 @@ class planning_Jobs extends core_Master
         planning_WorkInProgress::renderJobStatistic($tpl, $data);
         $tpl->removeBlock("STATISTIC");
     }
+
+
+    /**
+     * Филтрира заданията по подадените параметри
+     */
+    public static function getPreviousJobs($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->orderBy('id', 'DESC');
+
+        if (is_array($onlyIds)) {
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+            $ids = implode(',', $onlyIds);
+            $jQuery->where("#id IN ({$ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $jQuery->where("#id = ${onlyIds}");
+        } else {
+            $jQuery->where("#state IN ('active', 'wakeup', 'stopped', 'closed')");
+
+            if(isset($params['saleId'])) {
+                $saleFolderId = sales_Sales::fetchField($params['saleId'], 'folderId');
+                $saleQuery = sales_Sales::getQuery();
+                $saleQuery->where("#folderId = {$saleFolderId} AND (#state IN ('active', 'closed'))");
+                $saleQuery->show('id');
+                $otherSaleIds = arr::extractValuesFromArray($saleQuery->fetchAll(), 'id');
+                $otherSaleIds = implode(',', $otherSaleIds);
+                $jQuery->setUnion("#saleId IN ({$otherSaleIds})");
+                $jQuery->setUnion("#productId = {$params['productId']}");
+            } elseif(isset($params['productId'])) {
+                $jQuery->where("#productId = {$params['productId']}");
+            }
+        }
+
+        $jQuery->XPR('searchFieldXpr', 'text', "CONCAT(' ', #searchKeywords, ' ', #id, ' ', 'job', '', #id)");
+        if ($q) {
+            $q1 = plg_Search::normalizeText($q);
+            plg_Search::applySearch($q1, $jQuery, 'searchFieldXpr');
+        }
+
+        $previousArr = $similarArr = array();
+        while($jRec = $jQuery->fetch()){
+            if($jRec->productId == $params['productId']){
+                $previousArr[$jRec->id] = (object)array('title' => self::getRecTitle($jRec), 'attr' => array('class' => 'state-waiting'));
+            } else {
+                $similarArr[$jRec->id] = (object)array('title' => self::getRecTitle($jRec), 'attr' => array('class' => 'state-template'));
+            }
+        }
+
+        $options = array();
+        if(!isset($onlyIds) && (isset($params['productId']) || isset($params['saleId']))) {
+            if(countR($previousArr)) {
+                $options += array("prev" => (object) array('group' => true, 'title' => 'Предходни')) + $previousArr;
+            }
+            if(countR($similarArr)) {
+                $options += array("similar" => (object) array('group' => true, 'title' => 'Подобни')) + $similarArr;
+            }
+        } else {
+            $options = $previousArr + $similarArr;
+        }
+
+        return $options;
+    }
+
 }

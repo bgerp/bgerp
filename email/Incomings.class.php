@@ -2598,6 +2598,7 @@ class email_Incomings extends core_Master
         $spamScore = $spamScore + ($spamScore * $tolerance);
         
         if (isset($score) && ($score >= $spamScore)) {
+            $rec->brState = $rec->state;
             $rec->state = 'rejected';
             self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) със СПАМ рейтинг = '{$score}'", $rec->id);
         }
@@ -2616,6 +2617,7 @@ class email_Incomings extends core_Master
                 $fQuery->where('#dangerRate >= 0.001');
                 
                 if ($fQuery->count()) {
+                    $rec->brState = $rec->state;
                     $rec->state = 'rejected';
                     self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) с вирусен файл", $rec->id);
                 }
@@ -3450,7 +3452,19 @@ class email_Incomings extends core_Master
 
             $url = array('email_ServiceRules', 'add', 'docId' => $data->rec->containerId, 'email' => $data->rec->fromEml, 'subject' => $data->rec->subject, 'ret_url' => true);
 
-            $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=2, order=19');
+            $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=3, order=19');
+
+            $url['driverClass'] = email_drivers_BlockBlastEmails::getClassId();
+            $url['fState'] = 'blocked';
+            $data->toolbar->addBtn('Отписване ЦЕ', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило за отписване от циркулярен имейл, row=3, order=19.1');
+
+            $url['driverClass'] = email_drivers_RouteOutgoingEmails::getClassId();
+            $data->toolbar->addBtn('Пренасочване', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило за пренасочване към друг имейл, row=3, order=19.2');
+
+            $url['driverClass'] = email_drivers_CheckEmails::getClassId();
+            $url['rejectAfter'] = 0;
+            $url['subject'] = '';
+            $data->toolbar->addBtn('Блокиране', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило за блокиране на имейлите, row=3, order=19.2');
         }
 
         if (email_AddressesInfo::haveRightFor('powerUser')) {

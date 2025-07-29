@@ -64,7 +64,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             $ignoreArr = array(array($firstDoc->getClassId(), $firstDoc->that));
 
             // Ако е към задание ще се импортират материалите от заданието
-            $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $storeId, false, $ignoreArr);
+            $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $storeId, false, $firstDoc->fetchField()->quantity);
             foreach ($details as &$d1){
                 $uomRec = cat_UoM::fetch($d1->packagingId, 'roundSignificant,round');
                 $d1->quantity = core_Math::roundNumber($d1->quantity, $uomRec->round, $uomRec->roundSignificant);

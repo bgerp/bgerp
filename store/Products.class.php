@@ -1033,9 +1033,10 @@ class store_Products extends core_Detail
      * @param int $productId  - ид на артикул
      * @param date|null $date - към коя дата
      * @param mixed $stores   - от кои складове
+     * @param bool $checkFreeQuantity
      * @return array $res     - наличните к-ва по склад
      */
-    public static function getQuantitiesByStore($productId, $date = null, $stores = null)
+    public static function getQuantitiesByStore($productId, $date = null, $stores = null, $checkFreeQuantity = false)
     {
         $res = array();
         if(isset($stores)){
@@ -1048,7 +1049,8 @@ class store_Products extends core_Detail
         }
 
         foreach ($storeArr as $storeId){
-            $quantity = store_Products::getQuantities($productId, $storeId, $date)->quantity;
+            $fld = $checkFreeQuantity ? 'free' : 'quantity';
+            $quantity = store_Products::getQuantities($productId, $storeId, $date)->{$fld};
             $res[$storeId] = $quantity;
         }
 

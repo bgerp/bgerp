@@ -172,7 +172,17 @@ class cat_interface_PackLabelImpl extends label_ProtoSequencerImpl
             $currencyCode = acc_Periods::getBaseCurrencyCode();
             
             Mode::push('text', 'plain');
-            $catalogPrice = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPrice);
+
+            $catalogPriceVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPrice);
+            $catalogPriceVerbal = currency_Currencies::decorate($catalogPriceVerbal, $currencyCode, true);
+            if($currencyCode == 'BGN'){
+                $rate = currency_CurrencyRates::getRate(dt::today(), 'EUR', 'BGN');
+                $priceInEuro = round($catalogPrice, 2) / $rate;
+                $catalogPriceEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro);
+                $catalogPriceEuroVerbal = currency_Currencies::decorate($catalogPriceEuroVerbal, 'EUR', true);
+                $catalogPriceVerbal .= " / " . $catalogPriceEuroVerbal;
+            }
+
             Mode::pop('text', 'plain');
         }
 
@@ -205,11 +215,10 @@ class cat_interface_PackLabelImpl extends label_ProtoSequencerImpl
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
             $res = array('CODE' => $code, 'NAME' => $name, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity);
-            if (!empty($catalogPrice)) {
-                $res['CATALOG_PRICE'] = $catalogPrice;
-                $res['CATALOG_CURRENCY'] = $currencyCode;
+            if (!empty($catalogPriceVerbal)) {
+                $res['CATALOG_PRICE'] = $catalogPriceVerbal;
             }
-            
+
             if (countR($params)) {
                 $res = array_merge($res, $params);
             }

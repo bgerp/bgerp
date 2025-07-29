@@ -28,6 +28,6 @@ class email_drivers_BlockBlastEmails extends email_drivers_OutgoingEmails
      */
     public static function addFields(&$mvc)
     {
-        $mvc->FLD('fState', 'enum(blocked=Блокирано, ok=OK, error=Грешка)', 'caption=Състояние, after=email, mandatory');
+        $mvc->FLD('fState', 'enum(blocked=Блокирано, ok=OK, error=Грешка)', 'caption=Състояние, after=email, mandatory, silent');
     }
 }

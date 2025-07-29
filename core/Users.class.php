@@ -1063,9 +1063,9 @@ class core_Users extends core_Manager
                 }
                 
                 $layout->append($form->renderHtml($form->InputFields, $inputs), 'FORM');
-                
-                $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
+
                 if (!Mode::is('modalLogin')) {
+                    $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
                     $layout->prepend("\n<meta name=\"robots\" content=\"noindex\">", 'HEAD');
                 }
 
@@ -1766,7 +1766,15 @@ class core_Users extends core_Manager
     public function act_Logout()
     {
         $cu = core_Users::getCurrent();
-        
+
+        $Users = cls::get('core_Users');
+        $tpl = null;
+        $Users->invoke('beforeLogout', array(&$tpl, $cu));
+        if (isset($tpl)) {
+
+            return new ET($tpl);
+        }
+
         core_LoginLog::add('logout', $cu);
         
         $this->logout();

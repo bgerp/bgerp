@@ -27,7 +27,7 @@
                 <!--ET_BEGIN saoParentId-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
-                        |Под ниво на|*:
+                        |Подниво на|*:
                     </td>
                     <td>[#saoParentId#]</td>
                 </tr>

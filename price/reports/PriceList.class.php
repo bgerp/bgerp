@@ -389,6 +389,14 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row->price = core_Type::getByName("double(decimals={$decimals})")->toVerbal($dRec->price);
         if($rec->templateType == 'foods'){
             $row->price = currency_Currencies::decorate($row->price, $rec->currencyId);
+            if($rec->currencyId == 'BGN'){
+                $euroRate = currency_CurrencyRates::getRate($rec->date, 'EUR', 'BGN');
+                $priceEuro = round($dRec->price, $decimals) / $euroRate;
+                $priceEuroVerbal = core_Type::getByName("double(decimals={$decimals})")->toVerbal($priceEuro);
+                $row->price .= " / " . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
+            }
+
+
         }
 
         // Рендиране на опаковките в таблица
@@ -796,12 +804,17 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function renderCustomLayout($rec, $data)
     {
         if($tpl = parent::renderCustomLayout($rec, $data)){
-            $now = dt::now();
-            $cDay = dt::mysql2verbal($now, 'd');
 
+            // Коя дата да показваме ако специалния изглед
+            $date = dt::now();
+            $cH = dt::mysql2verbal($date, 'H');
+            if($cH >= '18'){
+                $date = dt::addDays(1, $date);
+            }
+            $cDay = dt::mysql2verbal($date, 'd');
             $lg = ($rec->lang == 'auto') ? null : $rec->lang;
             $cDayWithSuffix = dt::getDayWithSuffix($cDay, $lg);
-            $cMonth = mb_strtolower(dt::mysql2verbal($now, 'F'));
+            $cMonth = mb_strtolower(dt::mysql2verbal($date, 'F'));
             $tpl->append("{$cDayWithSuffix} {$cMonth}", 'currentDate');
 
             $counter = 0;

@@ -80,7 +80,7 @@ class sens2_script_Logs extends core_Manager
     {
         $this->FLD('scriptId', 'key(mvc=sens2_Scripts,title=name)', 'caption=Блок');
         $this->FLD('actionId', 'key(mvc=sens2_script_Actions, select=order)', 'caption=Ред');
-        $this->FLD('type', 'enum(setVar=Задаване на променлива,setOut=Задаване на изход)', 'caption=Тип,column=none');
+        $this->FLD('type', 'enum(setVar=Задаване на променлива,setOut=Задаване на изход,run=Начало на скрипта)', 'caption=Тип,column=none');
         $this->FLD('name', 'varchar(64,ci)', 'caption=Var/Out,column=none');
         $this->FLD('value', 'double', 'caption=Стойност,column=none');
         $this->FLD('error', 'varchar', 'caption=Грешка,column');

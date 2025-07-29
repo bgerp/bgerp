@@ -288,9 +288,10 @@ class eshop_CartDetails extends core_Detail
      * @param int   $productId         - ид на артикул
      * @param int $eshopProductId      - кво в опаковка
      * @param int|null $cartId - ид на количка
+     * @param bool $useHorizon - дали да се гледа към хоризонт
      * @return NULL|float $maxQuantity - максималното к-во, NULL за без ограничение
      */
-    public static function getAvailableQuantity($productId, $eshopProductId, $cartId = null, $ignoreId = null)
+    public static function getAvailableQuantity($productId, $eshopProductId, $cartId = null, $ignoreId = null, $useHorizon = true)
     {
         $maxQuantity = null;
         
@@ -298,15 +299,19 @@ class eshop_CartDetails extends core_Detail
         $settings = cms_Domains::getSettings();
         if($canStore == 'yes'){
             if (countR($settings->inStockStores)) {
-                $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
-                $quantityInStore = store_Products::getQuantities($productId, $settings->inStockStores)->free;
+                $horizon = dt::today();
+                if($useHorizon){
+                    $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
+                    $deliveryTime = !empty($deliveryTime) ? $deliveryTime : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
+                    $horizon = dt::addSecs($deliveryTime, null,false);
+                }
+
+                $quantityInStore = store_Products::getQuantities($productId, $settings->inStockStores, $horizon)->free;
                 $maxQuantity = $quantityInStore;
             }
             if(!empty($settings->remoteStores)) {
                 $maxQuantity += sync_StoreStocks::getQuantityInRemoteStores($productId, $settings->remoteStores);
             }
-
-            if(isset($deliveryTime) && $maxQuantity <= 0) return null;
         }
 
         if(!empty($maxQuantity)){
@@ -353,12 +358,13 @@ class eshop_CartDetails extends core_Detail
             
             $quantity = (isset($rec->packQuantity)) ? $rec->packQuantity : 1;
             $dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
-            
+
             // Колко е максималното допустимо количество
-            $maxQuantity = self::getAvailableQuantity($rec->productId, $rec->eshopProductId, $rec->cartId, $rec->id);
+            $maxQuantity = self::getAvailableQuantity($rec->productId, $rec->eshopProductId, $rec->cartId, $rec->id, false);
+
             $maxReachedTex = '';
             if(isset($maxQuantity)){
-                $maxReachedTex = tr("Избраното количество не е налично");
+                $maxReachedTex = tr("Количеството е по-голямо от наличното|* <b>{$maxQuantity}</b>!");
                 $maxQuantity /= $rec->quantityInPack;
                 $maxQuantity = round($maxQuantity);
             }
@@ -378,8 +384,10 @@ class eshop_CartDetails extends core_Detail
                     $finalPrice *= (1 - $rec->autoDiscount);
                 }
 
-                $finalPriceVerbal = currency_CurrencyRates::convertAmount($finalPrice, null, $rec->currencyId, $settings->currencyId);
-                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPriceVerbal);
+                $finalPrice = currency_CurrencyRates::convertAmount($finalPrice, null, $rec->currencyId, $settings->currencyId);
+                $finalPrice = price_Lists::roundPrice($settings->listId, $finalPrice);
+
+                $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
                 $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId);
                 
                 if ($rec->oldPrice) {
@@ -418,9 +426,15 @@ class eshop_CartDetails extends core_Detail
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
         if (countR($settings->inStockStores) && $productRec->canStore == 'yes') {
             $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
-            
-            if (is_null($maxQuantity) && $maxQuantity <= 0) {
-                if(!empty($eshopProductRec->deliveryTime)){
+
+            if ($maxQuantity <= 0) {
+                // Ако няма наличност, но се очаква доставка към подададената дата
+                $deliveryTime = !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
+                $horizon = dt::addSecs($deliveryTime, null,false);
+
+                $quantityExpected = store_Products::getQuantities($rec->productId, $settings->inStockStores, $horizon)->free;
+                if(!empty($quantityExpected)){
+
                     $row->productId .= "<br><span  class='option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
                 }
             }

@@ -105,6 +105,12 @@ class sens2_Controllers extends core_Master
      * Детайл за входно-изходните портове
      */
     public $details = 'sens2_IOPorts,sens2_Indicators';
+
+
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id, name, driver, config, persistentState';
     
     
     /**
@@ -340,6 +346,35 @@ class sens2_Controllers extends core_Master
             }
         }
     }
+
+
+    /**
+     * Изпълнява се след запис на перо
+     * Предизвиква обновяване на обобщената информация за перата
+     */
+    protected static function on_AfterSave($mvc, $id, $rec)
+    {
+        if ($rec->driver) {
+            $drv = cls::get($rec->driver);
+            $drv->afterUpdateController($rec, false);
+        }
+    }
+
+
+    /**
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
+     */
+    public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        // След изтриване, форсираме преизчисляването на консумациите
+        foreach ($query->getDeletedRecs() as $rec) {
+            if ($rec->driver) {
+                $drv = cls::get($rec->driver);
+                $drv->afterUpdateController($rec, true);
+            }
+        }
+    }
+
     
 
     /**
@@ -449,23 +484,7 @@ class sens2_Controllers extends core_Master
                 $hash = md5(serialize($rec->persistentState));
             }
             
-            $cached = array();
-            
-            if (function_exists('apcu_fetch')) {
-                // Проверка дали стойностите не са налични в кеша
-                foreach ($inputs as $port) {
-                    $key = 'SenZ' . $id . '_' . $port;
-                    $success = null;
-                    $res = @apcu_fetch($key, $success);
-                    if ($success) {
-                        $cached[$port] = $res;
-                        //log_System::add(get_called_class(), "Извлечен индикатор: $key => $res");
-                        unset($inputs[$port]);
-                    }
-                }
-            }
-
-            // Извличане на кешираните входове 
+ 
             // Вземаме лок, ако е IP
             $lockKey = self::getLockKey($rec);
             if($lockKey) {
@@ -479,24 +498,7 @@ class sens2_Controllers extends core_Master
                $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
             }
             
-            if(count($cached)) {
-                foreach($cached as $port => $v) {
-                    $values[$port] = $v;
-                }
-            }
-
-            if (function_exists('apcu_store')) {
-                // Дали имаме нови стойности, които трябва да кешираме? Ако да - кешираме ги
-                foreach($inputs as $port) {
-                    if(!isset($cached[$port]) && isset($values[$port]) && ($values[$port] != 0)) {
-                        $key = 'SenZ' . $id . '_' . $port;
-                        $uomPart = $port . '_uom';
-                        $uom = $rec->config->{$uomPart};
-                        @apcu_store($key, $values[$port], ($uom == 'ºC' || $uom == '%RH') ? 100 : 10);
-                    }
-                }
-            }
-
+ 
             // Ако перманентното състояние е променено - записва го
             if ($rec->persistentState && ($hash != md5(serialize($rec->persistentState)))) {
                 self::save($rec, 'persistentState');
@@ -627,6 +629,11 @@ class sens2_Controllers extends core_Master
             sens2_Indicators::setValue($rec->id, $portName, $value, dt::verbal2mysql());
         }
         
+        // За да връщаме true при числени стойности
+        if(is_numeric($value)) {
+            $value = true;
+        }
+        
         return $value;
     }
 
@@ -725,7 +732,7 @@ class sens2_Controllers extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($action == 'delete') {
-            if ($rec->state != 'closed') {
+            if ($rec && $rec->state != 'closed') {
                 $res = 'no_one';
             }
         }

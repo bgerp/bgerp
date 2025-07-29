@@ -59,41 +59,41 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,store,distributor';
+    public $canPending = 'ceo,store,distributor,sales,purchase';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,store';
+    public $canList = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,store';
+    public $canSingle = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,store';
+    public $canEdit = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,store';
+    public $canAdd = 'ceo,store,sales,purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canChangeline = 'ceo,store,trans';
+    public $canChangeline = 'ceo,store,trans,sales,purchase';
     
     
     /**
-     * Кой може да го изтрие?
+     * Кой може да контира?
      */
     public $canConto = 'ceo,store';
     
@@ -202,8 +202,8 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('deliveryTime', 'datetime(requireTime)','caption=Товарене');
         $this->FLD('deliveryOn', 'datetime(requireTime)','caption=Доставка');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация на Контрагента->Обект,silent');
-        $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory,notNull,default=ours');
-        
+        $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory');
+
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
@@ -268,7 +268,7 @@ class store_ConsignmentProtocols extends core_Master
                                 $requiredRoles = 'no_one';
                             }
                         } else {
-                            if(!store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}") && !store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}")){
+                            if(!store_ConsignmentProtocolDetailsSend::count("#protocolId = {$originRec->id}")){
                                 $requiredRoles = 'no_one';
                             }
                         }
@@ -461,8 +461,7 @@ class store_ConsignmentProtocols extends core_Master
 
         // При нов протокол, потребителя ще бъде принуден да избере типа на предаваните/получаваните артикули
         if(empty($rec->id)){
-            $form->setOptions('productType', array('' => '', 'ours' => 'Наши артикули', 'other' => 'Чужди артикули'));
-            $form->setDefault('productType', '');
+            $form->setFieldType('productType', "enum(,ours=Наши артикули,other=Чужди артикули)");
         }
         
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
@@ -683,12 +682,13 @@ class store_ConsignmentProtocols extends core_Master
      *               ['countryId']      string|NULL - ид на държава
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
+     *               ['deliveryOn']     date        - Доставка на
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
         $row = $this->recToVerbal($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
         $res['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
         $res['stores'] = array($rec->storeId);
         
@@ -698,6 +698,14 @@ class store_ConsignmentProtocols extends core_Master
             $res['address'] = crm_Locations::getAddress($locationRec, false, false);
             if(!empty($locationRec->features)){
                 $res['features'] = keylist::toArray($locationRec->features);
+            }
+
+            if(!empty($locationRec->mol)){
+                $res['address'] .= ", {$locationRec->mol}";
+            }
+
+            if(!empty($locationRec->tel)){
+                $res['address'] .= " {$locationRec->tel}";
             }
         } else {
             $res['address'] = str_replace('<br>', '', $row->contragentAddress);
@@ -1005,16 +1013,31 @@ class store_ConsignmentProtocols extends core_Master
                 $dRec->clonedFromDetailId = $dRec->id;
                 unset($dRec->id, $dRec->createdOn, $dRec->createdBy);
                 $dRec->protocolId = $rec->id;
+
+                $dRec->autoAllocate = false;
+                $dRec->_clonedWithBatches = true;
+
+                $quantities = batch_Items::getBatchQuantitiesInStore($dRec->productId, $rec->storeId);
                 $DetailMvc->save($dRec);
 
                 // Прехвърлят се и партидите на клонирания детайл
                 if(core_Packs::isInstalled('batch')){
                     $bQuery = batch_BatchesInDocuments::getQuery();
                     $bQuery->where("#detailClassId = {$dRec->clonedFromDetailClass} AND #detailRecId = {$dRec->clonedFromDetailId}");
+                    $Def = batch_Defs::getBatchDef($dRec->productId);
                     $batches = array();
                     while ($bRec = $bQuery->fetch()){
-                        $batches[$bRec->batch] = $bRec->quantity;
+
+                        // Оставят се само наличните партиди към сега
+                        $batchesArr = array_keys($Def->makeArray($bRec->batch));
+                        $q = $bRec->quantity / countR($batchesArr);
+                        foreach ($batchesArr as $b) {
+                            $max = min($quantities[$b], $q);
+                            if($max <= 0) continue;
+                            $batches[$b] = $q;
+                        }
                     }
+
                     batch_BatchesInDocuments::saveBatches($DetailMvc, $dRec->id, $batches);
                 }
             }

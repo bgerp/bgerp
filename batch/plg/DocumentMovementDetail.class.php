@@ -28,7 +28,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         setIfNot($mvc->productFieldName, 'productId');
         setIfNot($mvc->storeFieldName, 'storeId');
         setIfNot($mvc->batchMovementDocument, 'out');
-        setIfNot($mvc->cantCreateNewBatch, false);
+        setIfNot($mvc->canReceiveNewBatch, true);
         setIfNot($mvc->canSplitbatches, 'no_one');
 
         $mvc->declareInterface('batch_MovementSourceIntf');
@@ -86,20 +86,22 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
                 
                 // Ако има налични партиди в склада да се показват като предложения
                 $exBatches = batch_Items::getBatchQuantitiesInStore($rec->{$mvc->productFieldName}, $storeId);
-                
+
+                $canReceiveNewBatch = $mvc->canReceiveNewBatch($rec);
                 if (countR($exBatches)) {
                     $suggestions = array();
                     foreach ($exBatches as $b => $q) {
                         $verbal = strip_tags($BatchClass->toVerbal($b));
                         $suggestions[$verbal] = $verbal;
                     }
-                 
-                    if($mvc->cantCreateNewBatch === true){
+
+
+                    if($canReceiveNewBatch === false){
                         $form->setOptions('batch', $suggestions);
                     } else {
                         $form->setSuggestions('batch', array('' => '') + $suggestions);
                     }
-                } elseif($mvc->cantCreateNewBatch === true){
+                } elseif($canReceiveNewBatch === false){
                     $form->setReadOnly('batch');
                 }
                 
@@ -227,7 +229,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         } else {
             
             // Ако се създава нова партида, прави се опит за автоматичното и създаване
-            if (empty($rec->batch) && $mvc->cantCreateNewBatch !== true) {
+            if (empty($rec->batch) && $mvc->canReceiveNewBatch($rec)) {
                 $allowedOptions = $mvc->getAllowedInBatches($rec);
 
                 // Ако има позволени опции не се генерира автоматично партида
@@ -501,6 +503,17 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         } else {
             $row->{$mvc->productFieldName} = new core_ET($row->{$mvc->productFieldName});
             $row->{$mvc->productFieldName}->append(batch_BatchesInDocuments::renderBatches($mvc, $rec->id, $rec->{$mvc->storeFieldName}));
+        }
+    }
+
+
+    /**
+     * Може ли да се създават нови партиди при засклаждане с този документ
+     */
+    public static function on_AfterCanReceiveNewBatch($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $res = $mvc->canReceiveNewBatch;
         }
     }
 }

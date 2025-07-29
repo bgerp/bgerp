@@ -108,6 +108,8 @@ class sens2_Scripts extends core_Master
         $this->FLD('order', 'int', 'caption=№');
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
         $this->FLD('lastRun', 'datetime(format=smartTime)', 'caption=Последно,input=none');
+        $this->FLD('period', 'time(suggestions=1 мин|2 мин|3 мин|4 мин|5 мин|10 мин|20 мин|30 мин|1 час|2 часа|3 часа|12 часа|24 часа)', 'caption=Период');
+        $this->FLD('offset', 'time(suggestions=1 мин|2 мин|3 мин|4 мин|5 мин|7 мин|8 мин|9 мин)', 'caption=Отместване');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние, input=none,notConfig');
         
         $this->setDbUnique('name');
@@ -175,9 +177,16 @@ class sens2_Scripts extends core_Master
         $query = self::getQuery();
         $query->orderBy('#order');
         while ($rec = $query->fetch("#state = 'active'")) {
-            sens2_script_Actions::runScript($rec->id);
-            $rec->lastRun = dt::verbal2mysql();
-            self::save($rec);
+     
+            $offset = $rec->offset ? round($rec->offset/60) : $rec->id;
+            $period = (int) round($rec->period / 60);
+            $curMin = round(time() / 60);
+          
+            if((!$period) || ($curMin + $offset) % $period === 0) {
+                sens2_script_Actions::runScript($rec->id);
+                $rec->lastRun = dt::verbal2mysql();
+                self::save($rec);
+            }
         }
     }
 
@@ -188,7 +197,7 @@ class sens2_Scripts extends core_Master
     public static function getContext($scriptId)
     {
         // Намираме и сортираме контекста
-        $context = sens2_Indicators::getContex();
+        $context = sens2_Indicators::getContex($scriptId);
         $context += sens2_script_DefinedVars::getContex($scriptId);
         uksort($context, 'str::sortByLengthReverse');
         
@@ -243,7 +252,7 @@ class sens2_Scripts extends core_Master
         
         if (!$opts[$scriptId]) {
             $opts = array();
-            $inds = sens2_Indicators::getContex();
+            $inds = sens2_Indicators::getContex($scriptId);
             
             foreach ($inds as $name => $value) {
                 $opts[$scriptId][$name] = "<span style='color:blue;'>{$name}</span>";

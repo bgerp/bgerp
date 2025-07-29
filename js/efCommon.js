@@ -126,12 +126,22 @@ function showTooltip() {
                 $(element).hide();
             }
 
+
             // намираме този, който ще покажем сега
             element = $(target).parent().find('.additionalInfo');
 
             // Ако тултипа е в скролиращ елемент и няма достатъчно място нагоре, го показваме надолу от срелката, за да не се отреже
-            if($(element).closest('.overflow-scroll').length && $(element).parent().offset().top - 150 < $(element).closest('.overflow-scroll').offset().top){
-                $(element).addClass('bottom');
+            if($(element).closest('.overflow-scroll').length ){
+                $(element).css('overflow-y', 'auto');
+                var holderOffset = $(element).closest('.overflow-scroll').offset().top;
+                var parentOffset = $(element).parent().offset().top;
+                var absPos = $(element).parent().get(0).getBoundingClientRect();
+                if (parentOffset - 500 < holderOffset || absPos.top < 500) {
+                    $(element).addClass('bottom');
+                    $(element).css('max-height',  parseInt(window.innerHeight - absPos.bottom - 10));
+                } else {
+                    $(element).css('max-height', Math.min(parseInt(parentOffset - holderOffset - 25), 600));
+                }
             }
 
             var tOffset = $(element).closest('table').offset();

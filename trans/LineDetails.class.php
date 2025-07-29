@@ -300,6 +300,9 @@ class trans_LineDetails extends doc_Detail
 
         // Ако е складов документ
         if($Document->haveInterface('store_iface_DocumentIntf')){
+            if(!empty($transportInfo['deliveryOn'])){
+                $row->notes = "Доставка до: " . dt::mysql2verbal($transportInfo['deliveryOn']) . (!empty($row->notes) ? "<br/>" : "") . $row->notes;
+            }
 
             // Ако документа в момента е в зона
             if(isset($transportInfo['zoneId']) && $rec->status != 'removed'){

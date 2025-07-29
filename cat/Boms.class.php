@@ -732,7 +732,15 @@ class cat_Boms extends core_Master
                 $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
 
                 try {
-                    $price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
+                    $jobQuantity = null;
+                    if($firstDoc = doc_Threads::getFirstDocument($rec->threadId)){
+                        if($firstDoc->isInstanceOf('planning_Jobs')){
+                            $jobQuantity = $firstDoc->fetchField('quantity');
+                        }
+                    }
+
+                    $materials = array();
+                    $price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST, $materials, $jobQuantity);
                 } catch (core_exception_Expect $e) {
                     core_Statuses::newStatus($e->getMessage(), 'error');
                     reportException($e);
@@ -813,6 +821,7 @@ class cat_Boms extends core_Master
      * @param mixed $id - ид или запис
      * @param double $quantity - ид или запис
      * @param datetime $date - ид или запис
+     * @param double|null $jobQuantity - к-во от заданието
      *
      * @return array $res - Информация за рецептата
      *               ->quantity - к-во
@@ -822,7 +831,7 @@ class cat_Boms extends core_Master
      *               o $res->baseQuantity   - начално количество наматериала (к-во в опаковка по брой опаковки)
      *               o $res->propQuantity   - пропорционално количество на ресурса (к-во в опаковка по брой опаковки)
      */
-    public static function getResourceInfo($id, $quantity, $date)
+    public static function getResourceInfo($id, $quantity, $date, $jobQuantity = null)
     {
         $resources = $materials = array();
         
@@ -831,7 +840,8 @@ class cat_Boms extends core_Master
         $resources['expenses'] = null;
 
         try{
-            $resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials);
+            $jQuantity = !empty($jobQuantity) ? $jobQuantity : $quantity;
+            $resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials, $jQuantity);
         } catch(core_exception_Expect $e){
             reportException($e);
             $resources['primeCost'] = null;
@@ -1193,10 +1203,11 @@ class cat_Boms extends core_Master
             $nRec->productId = $toProductRec->id;
             $nRec->originId = $toProductRec->containerId;
             $nRec->state = 'draft';
-            foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId') as $fld) {
+            $nRec->clonedFromId = $activeBom->id;
+            foreach (array('id', 'modifiedOn', 'modifiedBy', 'createdOn', 'createdBy', 'containerId', 'prototypeId') as $fld) {
                 unset($nRec->{$fld});
             }
-            
+
             if (static::save($nRec)) {
                 cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
             } else {
@@ -1493,7 +1504,8 @@ class cat_Boms extends core_Master
             $query = cat_BomDetails::getQuery();
             $query->where("#parentId = {$rec->id} AND #bomId = {$rec->bomId}");
             $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
-            
+            $query->orderBy("position", 'ASC');
+
             // За всеки детайл
             while ($dRec = $query->fetch()) {
 
@@ -1573,10 +1585,11 @@ class cat_Boms extends core_Master
      * @param datetime  $date        - към коя дата
      * @param int   $priceListId - ид на ценоразпис
      * @param array $materials   - какви материали са вложени
+     * @param array $jobQuantity   - тираж на заданието
      *
      * @return FALSE|float - намерената цена или FALSE ако няма
      */
-    public static function getBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials = array())
+    public static function getBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials = array(), $jobQuantity = null)
     {
         $primeCost1 = $primeCost2 = null;
         
@@ -1619,6 +1632,7 @@ class cat_Boms extends core_Master
         $query = cat_BomDetails::getQuery();
         $query->where("#bomId = {$rec->id}");
         $query->where('#parentId IS NULL');
+        $query->orderBy("position", 'ASC');
         $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
         $details = $query->fetchAll();
         
@@ -1632,6 +1646,10 @@ class cat_Boms extends core_Master
                 // Параметрите са на продукта на рецептата
                 $params = array();
                 $pushParams = static::getProductParams($rec->productId);
+                $pushParams[$rec->productId]['$T'] = $quantity;
+
+                $jQuantity = !empty($jobQuantity) ? $jobQuantity : $rec->quantityForPrice;
+                $pushParams[$rec->productId]['$тираж_задание'] = $jQuantity;
                 $pushParams[$rec->productId]['$T'] = $quantity;
                 self::pushParams($params, $pushParams);
 
@@ -1771,6 +1789,7 @@ class cat_Boms extends core_Master
         $tasks = array();
         foreach ($allStages as $dRec) {
             $dRec->params['$T'] = $quantity;
+            $dRec->params['$тираж_задание'] = $quantity;
             $quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
             if ($quantityP == cat_BomDetails::CALC_ERROR) {
                 $quantityP = 0;
@@ -1918,17 +1937,17 @@ class cat_Boms extends core_Master
      * @param int|null   $storeId                 - ид на склад (или null) за всички
      * @param bool       $onlyStorable            - дали да са само складируемите
      * @param array|null $ignoreReservedByDocsArr - запазените к-ва от кои документи да се игнорират
-     *
+     * @param bool $jobQuantity - киоличество от заданието
      * @return array $res
      *               ['productId']      - ид на артикул
      *               ['packagingId']    - ид на опаковка
      *               ['quantity']       - к-во
      *               ['quantityInPack'] - к-во в опаковка
      */
-    public static function getBomMaterials($bomId, $quantity, $storeId = null, $onlyStorable = true, $ignoreReservedByDocsArr = array())
+    public static function getBomMaterials($bomId, $quantity, $storeId = null, $onlyStorable = true, $ignoreReservedByDocsArr = array(), $jobQuantity = null)
     {
         $res = array();
-        $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now());
+        $bomInfo = cat_Boms::getResourceInfo($bomId, $quantity, dt::now(), $jobQuantity);
 
         if (!countR($bomInfo['resources'])) return $res;
 

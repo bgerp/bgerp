@@ -330,8 +330,8 @@ class eshop_Carts extends core_Master
         $availableQuantity = eshop_CartDetails::getAvailableQuantity($productId, $eshopProductId);
         if (isset($availableQuantity)) {
             $q = $packQuantity * $quantityInPack;
-            if($availableQuantity < $packQuantity * $quantityInPack){
-                $msg = '|Избраното количество не е налично|*';
+            if($availableQuantity < $q){
+                $msg = "|Избраното количество|* <b>{$q}</b> |е по-голямо от наличното|* <b>{$availableQuantity}</b>!";
                 $skip = true;
             }
 
@@ -580,13 +580,17 @@ class eshop_Carts extends core_Master
                 $rec->totalNoVat += round($sum, 4);
                 $rec->total += round($sum * (1 + $dRec->vat), 4);
             }
-            
+
             // Дигане на флаг ако има артикули очакващи доставка
             if($rec->haveProductsWithExpectedDelivery != 'yes' && countR($settings->inStockStores) && $dRec->canStore == 'yes'){
                 $quantityInStore = store_Products::getQuantities($dRec->productId, $settings->inStockStores)->free;
                 if($quantityInStore < $dRec->quantity){
                     $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
-                    if(!empty($eshopProductRec->deliveryTime)){
+                    $deliveryTime = !empty($eshopProductRec->deliveryTime) ? $eshopProductRec->deliveryTime : eshop_Setup::get('SHOW_EXPECTED_DELIVERY_MIN_TIME');
+                    $horizon = dt::addSecs($deliveryTime, null,false);
+
+                    $quantityExpected = store_Products::getQuantities($dRec->productId, $settings->inStockStores, $horizon)->free;
+                    if($quantityExpected >= $dRec->quantity){
                         $rec->haveProductsWithExpectedDelivery = 'yes';
                     }
                 }
@@ -1735,9 +1739,10 @@ class eshop_Carts extends core_Master
         $row->total = currency_Currencies::decorate($row->total, $settings->currencyId);
 
         if($isBgnDisplayed){
+            $total = round($total, 2);
             $totalEuro = currency_CurrencyRates::convertAmount($total, null, null, "EUR");
             $priceEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($totalEuro);
-            $row->total .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR');
+            $row->total .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
         }
 
         // Ако има доставка се показва и нея
@@ -1765,9 +1770,10 @@ class eshop_Carts extends core_Master
                 $deliveryAmountV = currency_Currencies::decorate($deliveryAmountV, $settings->currencyId);
 
                 if($isBgnDisplayed) {
+                    $deliveryAmount = round($deliveryAmount, 2);
                     $deliveryAmountEuro = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, "EUR");
                     $deliveryAmountEuro = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmountEuro);
-                    $deliveryAmountV .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($deliveryAmountEuro, 'EUR');
+                    $deliveryAmountV .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($deliveryAmountEuro, 'EUR', true);
                 }
 
                 $row->deliveryAmount = $deliveryAmountV;
@@ -1781,7 +1787,7 @@ class eshop_Carts extends core_Master
             if($isBgnDisplayed) {
                 $amountWithoutDeliveryEuro = currency_CurrencyRates::convertAmount($amountWithoutDelivery, null, null, "EUR");
                 $amountWithoutDeliveryEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDeliveryEuro);
-                $row->amount .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($amountWithoutDeliveryEuroVerbal, 'EUR');
+                $row->amount .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($amountWithoutDeliveryEuroVerbal, 'EUR', true);
             }
 
             $row->amountCurrencyId = $row->currencyId;
@@ -1794,7 +1800,7 @@ class eshop_Carts extends core_Master
             if($isBgnDisplayed) {
                 $totalVatEuro = currency_CurrencyRates::convertAmount($vatAmount, null, null, "EUR");
                 $totalVatEuro = core_Type::getByName('double(decimals=2)')->toVerbal($totalVatEuro);
-                $row->totalVat .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($totalVatEuro, 'EUR');
+                $row->totalVat .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($totalVatEuro, 'EUR', true);
             }
 
         }

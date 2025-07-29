@@ -2,28 +2,30 @@
 
 We sincerely thank you for your order [b][#SALE_HANDLER#][/b] from our online store!
 
-[b]Purchase Details[/b]:
-● [b]Payment[/b]: [#PAYMENT_NAME#]<!--ET_BEGIN PAYMENT_AMOUNT-->, [b][#PAYMENT_AMOUNT#][/b]<!--ET_END PAYMENT_AMOUNT-->.<!--ET_BEGIN PAYMENT_TEXT-->
+🔍 [b]Purchase Details[/b]:
+* [b]Payment[/b]: [#PAYMENT_NAME#]<!--ET_BEGIN PAYMENT_AMOUNT-->, [b][#PAYMENT_AMOUNT#][/b]<!--ET_END PAYMENT_AMOUNT-->.<!--ET_BEGIN PAYMENT_TEXT-->
 [#PAYMENT_TEXT#]<!--ET_END PAYMENT_TEXT-->
-<!--ET_BEGIN TERM_ID-->● [b]Delivery[/b]: [#TERM_ID#] [#DELIVERY_COUNTRY#]<!--ET_BEGIN PLACE-->, [#PLACE#]<!--ET_END PLACE--><!--ET_BEGIN ADDRESS-->, [#ADDRESS#]<!--ET_END ADDRESS-->.<!--ET_END TERM_ID--><!--ET_BEGIN PROBLEM_WITH_DELIVERY-->
-[#PROBLEM_WITH_DELIVERY#]<!--ET_END PROBLEM_WITH_DELIVERY--><!--ET_BEGIN INSTRUCTIONS-->
-● [b]Instructions[/b]: [#INSTRUCTIONS#].<!--ET_END INSTRUCTIONS-->
-● [b][#NO_INVOICE#][/b]<!--ET_END NO_INVOICE--><!--ET_BEGIN INVOICE_DATA-->
+<!--ET_BEGIN TERM_ID-->*  [b]Delivery[/b]: [#TERM_ID#] [#DELIVERY_COUNTRY#]<!--ET_BEGIN PLACE-->, [#PLACE#]<!--ET_END PLACE--><!--ET_BEGIN ADDRESS-->, [#ADDRESS#]<!--ET_END ADDRESS-->.<!--ET_END TERM_ID--><!--ET_BEGIN INSTRUCTIONS-->
+* [b]Instructions[/b]: [#INSTRUCTIONS#].<!--ET_END INSTRUCTIONS-->
+* [b][#NO_INVOICE#][/b]<!--ET_END NO_INVOICE--><!--ET_BEGIN INVOICE_DATA-->
 [#INVOICE_DATA#]
 🏢 [b]Данни за фактуриране[/b]:<!--ET_BEGIN invoiceNames-->
-● [b][#typeCaption#][/b]: [#invoiceNames#].<!--ET_END invoiceNames--><!--ET_BEGIN invoiceVatNo-->
-● [#invoiceVatNo#].<!--ET_END invoiceVatNo--><!--ET_BEGIN invoiceUicNo-->
-● [#invoiceUicNo#].<!--ET_END invoiceUicNo--><!--ET_BEGIN invoiceCountry-->
-● [b]Адрес[/b]: [#invoiceCountry#], <!--ET_END invoiceCountry--><!--ET_BEGIN invoicePCode-->[#invoicePCode#] <!--ET_END invoicePCode--><!--ET_BEGIN invoicePlace-->[#invoicePlace#], <!--ET_END invoicePlace--><!--ET_BEGIN invoiceAddress-->[#invoiceAddress#]<!--ET_END invoiceAddress-->.<!--ET_END INVOICE_DATA--><!--ET_BEGIN REGISTER_LINK-->
+* [b][#typeCaption#][/b]: [#invoiceNames#].<!--ET_END invoiceNames--><!--ET_BEGIN invoiceVatNo-->
+* [#invoiceVatNo#].<!--ET_END invoiceVatNo--><!--ET_BEGIN invoiceUicNo-->
+* [#invoiceUicNo#].<!--ET_END invoiceUicNo--><!--ET_BEGIN invoiceCountry-->
+* [b]Адрес[/b]: [#invoiceCountry#], <!--ET_END invoiceCountry--><!--ET_BEGIN invoicePCode-->[#invoicePCode#] <!--ET_END invoicePCode--><!--ET_BEGIN invoicePlace-->[#invoicePlace#], <!--ET_END invoicePlace--><!--ET_BEGIN invoiceAddress-->[#invoiceAddress#]<!--ET_END invoiceAddress-->.<!--ET_END INVOICE_DATA--><!--ET_BEGIN REGISTER_LINK-->
 
 🎉 [b]Specially for You![/b]
 For faster and more convenient shopping in the future, register in our store using this [#REGISTER_LINK#], [b]within the next 7 days[/b].
 
 By registering, you will gain:
-● Easy access to your order history.
-● Quick form filling for new purchases.
-● Exclusive offers and promotions!<!--ET_END REGISTER_LINK--><!--ET_BEGIN EXPECTED_DELIVERY-->
-[#EXPECTED_DELIVERY#]<!--ET_END EXPECTED_DELIVERY--><!--ET_BEGIN CONTACT_INFO-->[#CONTACT_INFO#]
+* Easy access to your order history.
+* Quick form filling for new purchases.
+* Exclusive offers and promotions!<!--ET_BEGIN IMPORTANT-->
+[#IMPORTANT#]
+🕗 [b]Important[/b]:<!--ET_BEGIN EXPECTED_DELIVERY-->
+%. [#EXPECTED_DELIVERY#]<!--ET_END EXPECTED_DELIVERY--><!--ET_BEGIN PROBLEM_WITH_DELIVERY-->
+%. [#PROBLEM_WITH_DELIVERY#]<!--ET_END PROBLEM_WITH_DELIVERY--><!--ET_END IMPORTANT--><!--ET_BEGIN CONTACT_INFO-->[#CONTACT_INFO#]
 
 💬 [b]Have questions or need assistance?[/b]
 <!--ET_BEGIN CONTACT_TEL-->Contact us by phone at [b][#CONTACT_TEL#][/b]<!--ET_END CONTACT_TEL--><!--ET_BEGIN CONTACT_EMAIL--> or via email at [#CONTACT_EMAIL#]<!--ET_END CONTACT_EMAIL--> – our team is ready to assist you on any business day!<!--ET_END CONTACT_INFO-->

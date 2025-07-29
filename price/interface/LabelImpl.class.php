@@ -51,7 +51,6 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
             $showPriceInEuro = $rec->currencyId == 'BGN';
             if($showPriceInEuro){
                 $placeholders['CATALOG_PRICE_EURO'] = (object) array('type' => 'text', 'hidden' => true);
-                $placeholders['CATALOG_PRICE_EURO_CODE'] = (object) array('type' => 'text', 'hidden' => true);
             }
 
             // Показване обединението на множеството от плейсхолдърите на артикулите, които ще им се печата етикет
@@ -118,7 +117,6 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
                 $name = str::limitLen($name, 70);
                 $code = cat_Products::getVerbal($pRec->productId, 'code');
                 $code = !empty($code) ? $code : "Art{$pRec->productId}";
-                $measureId = cat_UoM::getShortName($pRec->measureId);
 
                 // Ревербализиране на алергена
                 Mode::push('printLabel', true);
@@ -129,11 +127,14 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
                 $params = cat_Params::getParamNameArr($params, true);
 
                 if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
-                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'PRICE_CAPTION' => $priceCaption);
+                    $measureName = cat_UoM::getShortName($pRec->measureId);
+
+                    $catalogPrice = currency_Currencies::decorate($Double->toVerbal($pRec->price), $rec->currencyId, true);
+                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $catalogPrice, "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $measureName, 'PRICE_CAPTION' => $priceCaption);
                     if($showPriceInEuro){
-                        $priceInEuro = currency_CurrencyRates::convertAmount($pRec->price, $date, 'BGN', 'EUR');
-                        $res['CATALOG_PRICE_EURO'] = core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro);
-                        $res['CATALOG_PRICE_EURO_CODE'] = 'EUR';
+                        $rate = currency_CurrencyRates::getRate($date, 'EUR', 'BGN');
+                        $priceInEuro = round($pRec->price, 2) / $rate;
+                        $res['CATALOG_PRICE_EURO'] = currency_Currencies::decorate(core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro), 'EUR', true);
                     }
 
                     if (countR($params)) {
@@ -148,11 +149,17 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
                 foreach ($pRec->packs as $packRec){
                     $ean = !empty($packRec->eanCode) ? $packRec->eanCode : null;
                     $packName = cat_UoM::getShortName($packRec->packagingId);
-                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($packRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "({$packRec->quantity} {$measureId})", 'PRICE_CAPTION' => $priceCaption);
+                    $measureId = $pRec->measureId;
+                    $quantity = cat_UoM::round($measureId, $packRec->quantity);
+                    $measureName = cat_UoM::getShortName($measureId);
+
+                    $catalogPrice = currency_Currencies::decorate($Double->toVerbal($packRec->price), $rec->currencyId, true);
+                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $catalogPrice, "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "{$quantity} {$measureName}", 'PRICE_CAPTION' => $priceCaption);
                     if($showPriceInEuro){
-                        $priceInEuro = currency_CurrencyRates::convertAmount($packRec->price, $date, 'BGN', 'EUR');
-                        $res['CATALOG_PRICE_EURO'] = core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro);
-                        $res['CATALOG_PRICE_EURO_CODE'] = 'EUR';
+                        $rate = currency_CurrencyRates::getRate($date, 'EUR', 'BGN');
+                        $priceInEuro = round($packRec->price, 2) / $rate;
+                        $priceInEuro = currency_Currencies::decorate(core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro), 'EUR', true);
+                        $res['CATALOG_PRICE_EURO'] = $priceInEuro;
                     }
 
                     if (countR($params)) {
