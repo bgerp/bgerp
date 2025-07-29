@@ -276,6 +276,7 @@ class store_Receipts extends store_DocumentMaster
 
     }
 
+
     /**
      * Подготовка на показване като детайл в транспортните линии
      */
