@@ -2606,7 +2606,7 @@ class eshop_Carts extends core_Master
         if($isColab && isset($form->rec->termId)){
             if($Calculator = cond_DeliveryTerms::getTransportCalculator($form->rec->termId)){
                 if($Calculator->class instanceof sales_interface_FreeRegularDelivery){
-                    $onlyLocationsWithRoutes = 7;
+                    $onlyLocationsWithRoutes = eshop_Setup::get('SHOW_ROUTES_IN_NEXT_DAYS');
                 }
             }
         }
