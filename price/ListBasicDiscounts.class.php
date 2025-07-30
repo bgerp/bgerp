@@ -272,9 +272,12 @@ class price_ListBasicDiscounts extends core_Detail
             // Взимане на предишните продажби от кеша, ако няма се изчисляват на моментаПро
             $cacheKey = "{$contragentClassId}|{$contragentId}|{$basicDiscountListRec->id}|" . implode('|', $groupIds);
             $salesByNow = core_Cache::get($Master->className, $cacheKey);
+            if($Master->className == 'pos_Receipts'){
+                core_Permanent::set("autoDiscCache|{$Master->className}|{$masterRec->id}", $cacheKey, core_Permanent::FOREVER_VALUE);
+            }
             if(!is_array($salesByNow)){
                 $salesByNow = static::getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $basicDiscountListRec);
-                core_Cache::set($Master->className, $cacheKey, $salesByNow, 1);
+                core_Cache::set($Master->className, $cacheKey, $salesByNow, 10);
             }
         }
         $res['SALES_BY_NOW'] = $salesByNow;
