@@ -273,7 +273,7 @@ class price_ListBasicDiscounts extends core_Detail
             $cacheKey = "{$contragentClassId}|{$contragentId}|{$basicDiscountListRec->id}|" . implode('|', $groupIds);
             $salesByNow = core_Cache::get($Master->className, $cacheKey);
             if($Master->className == 'pos_Receipts'){
-                core_Permanent::set("autoDiscCache|{$Master->className}|{$masterRec->id}", $cacheKey, core_Permanent::FOREVER_VALUE);
+                core_Permanent::set("autoDiscCache|{$Master->className}|{$masterRec->id}", $cacheKey, 48 * 60);
             }
             if(!is_array($salesByNow)){
                 $salesByNow = static::getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $basicDiscountListRec);
