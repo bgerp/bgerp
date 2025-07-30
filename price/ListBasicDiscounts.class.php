@@ -277,7 +277,7 @@ class price_ListBasicDiscounts extends core_Detail
             }
             if(!is_array($salesByNow)){
                 $salesByNow = static::getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $basicDiscountListRec);
-                core_Cache::set($Master->className, $cacheKey, $salesByNow, 10);
+                core_Cache::set($Master->className, $cacheKey, $salesByNow, 1);
             }
         }
         $res['SALES_BY_NOW'] = $salesByNow;
