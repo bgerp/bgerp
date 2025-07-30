@@ -136,7 +136,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param null|bgerp_iface_DealAggregator $aggregator
      * @return string
      */
-    public function getPaymentState(&$rec, $aggregator = null)
+    public function getPaymentState(&$rec, $aggregator = null, &$explained = null)
     {
         $rec = $this->fetchRec($rec);
 
@@ -146,10 +146,13 @@ abstract class deals_DealMaster extends deals_DealBase
         $todayTimestamp = strtotime($today);
         $overdueToleranceAmount = deals_Setup::get('OVERDUE_TOLERANCE_AMOUNT');
 
+        $explained = "Баланс <b>{$amountBl}</b>; Днес {$today}<br />";
         // Ако имаме фактури към сделката
         $invoices = deals_Helper::getInvoicePayments($rec->threadId, null, false);
+        $countInvoices = countR($invoices);
+        $explained .= "Брой фактури: <b>{$countInvoices}</b>" . "<br />";
 
-        if (countR($invoices)) {
+        if ($countInvoices) {
             $overdueAmount = $overdueAmountPerDays = 0;
             $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
 
@@ -157,10 +160,15 @@ abstract class deals_DealMaster extends deals_DealBase
             foreach ($invoices as $invRec){
                 $dueDate = dt::addDays($overdueAddDays, $invRec->dueDate, false);
 
+                $explained .= "Фактура: {$invRec->containerId} / Срок: {$dueDate}<br />";
                 // Ако крайния им срок е в миналото и има НЕПЛАТЕНО
                 if(strtotime($dueDate) < $todayTimestamp){
+                    $explained .= " e по-малко от сега<br />";
                     $diff = ($invRec->amount - $invRec->payout) * $invRec->rate;
+                    $explained .= " Неплатено({$invRec->containerId}) :{$diff} (сметнато от " .$invRec->amount * $invRec->rate . " минус " . $invRec->payout * $invRec->rate .")<br />";
                     if(round($diff, 2) > 0){
+                        $explained .= " е над нула<br />";
+
                         // Сумира се неплатеното на всички ф-ри и се смятат леводните просрочие
                         $overdueAmount += $diff;
                         $overdueAmountPerDays += $diff * dt::daysBetween($today, $dueDate);
@@ -170,13 +178,16 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Ако има просрочена сума и тя е извън допустимия толеранс - значи е просрочена
             $overdueAmount = round($overdueAmount, 2);
+            $explained .= " Общо просрочено: " . abs($overdueAmount) . " / Допустимо: {$overdueToleranceAmount}<br />";
             if ((abs($overdueAmount) > $overdueToleranceAmount)) {
                 $rec->overdueAmountPerDays = $overdueAmountPerDays;
                 $rec->overdueAmount = $overdueAmount;
 
+                $explained .= " Е ПРОСРОЧЕНА<br />";
                 return 'overdue';
             }
         } else {
+            $explained .= "НЯМА фактури<br />";
 
             // Ако няма фактури, гледаме имали платежен план
             $aggregateDealInfo = !isset($aggregator) ? $this->getAggregateDealInfo($rec->id) : $aggregator;
@@ -198,6 +209,7 @@ abstract class deals_DealMaster extends deals_DealBase
                         $proformaDates[] = !empty($pRec->dueDate) ? $pRec->dueDate : $pRec->date;
                     }
                     $proformaValior = countR($proformaDates) ? min($proformaDates) : null;
+                    $explained .= "Проформи " . countR($proformaDates) . "<br />";
                 }
             }
 
@@ -218,10 +230,15 @@ abstract class deals_DealMaster extends deals_DealBase
                 // За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
                 $plan = cond_PaymentMethods::getPaymentPlan($methodId, $aggregateDealInfo->get('amount'), $date);
 
+                $explained .= "Ще се гледа от платежния метод {$methodId}<br />";
                 // Проверяваме дали сделката е просрочена по платежния си план
                 $diff = $rec->amountDelivered - $rec->amountPaid;
+                $explained .= "Неплатено {$diff} ({$rec->amountDelivered} минус {$rec->amountPaid})<br />";
+
                 if (abs(round($diff, 2)) > abs($overdueToleranceAmount)) {
                     if (cond_PaymentMethods::isOverdue($plan, $diff, $overdueOn)) {
+                        $explained .= "E ПРОСРОЧЕНА по платежен план на {$overdueOn}<br />";
+
                         $rec->overdueAmount = $diff;
                         $rec->overdueAmountPerDays = $rec->overdueAmount * dt::daysBetween($today, $overdueOn);
 
@@ -230,7 +247,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
-        
+
+        $explained .= "Няма просрочие<br />";
+
         // Ако салдото е в рамките на толеранса приемаме че е 0
         $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
         $tolerance = $rec->amountDelivered * $tolerancePercent;
@@ -3248,8 +3267,10 @@ abstract class deals_DealMaster extends deals_DealBase
         $payments1 = deals_Helper::getInvoicePayments($threadId, null, false, false);
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $pRec = $firstDoc->fetch();
-        $firstDoc->getInstance()->getPaymentState($pRec);
 
-        bp($payments, $payments1, $pRec);
+        $debug = '';
+        $paymentState = $firstDoc->getInstance()->getPaymentState($pRec, null, $debug);
+        echo $debug;
+        bp($payments, $payments1, $paymentState, $pRec);
     }
 }
