@@ -130,6 +130,9 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
                     $infoText = tr('За съжаление, няма планирани маршрути до вашата локация. Ако имате въпроси, моля да се свържете с нас|*!');
                     $form->info = new core_ET("<div id='editStatus'><div class='warningMsg'>{$infoText}</div></div>");
                 }
+            } else {
+                $infoText = tr('Моля изберете локация|*!');
+                $form->info = new core_ET("<div id='editStatus'><div class='warningMsg'>{$infoText}</div></div>");
             }
         } elseif($Document instanceof sales_Sales){
             $form->setField('deliveryAdress', 'input=hidden');
