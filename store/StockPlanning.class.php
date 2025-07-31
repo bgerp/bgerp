@@ -421,24 +421,21 @@ class store_StockPlanning extends core_Manager
 
 
     /**
-     * Първоначално наливане на запазените количества
+     * Планираните наличности от складовите документи
+     *
+     * @param bool $onlyWithoutValior
+     * @return array
      */
-    private function recalcPlannedStocks()
+    private static function getPlannedShipmentDocuments($onlyWithoutValior = false)
     {
-        // Ако не е имало складови движения, не се прави нищо
-        if(!store_Products::count()) return;
-
-        $Stocks = cls::get('store_StockPlanning');
-        $Stocks->truncate();
-
         // Кои документи запазват на заявка
         $stockableClasses = array('store_ShipmentOrders',
-            'store_Receipts',
-            'store_Transfers',
-            'store_ConsignmentProtocols',
-            'planning_ConsumptionNotes',
-            'planning_DirectProductionNote',
-            'pos_Receipts');
+                                  'store_Receipts',
+                                  'store_Transfers',
+                                  'store_ConsignmentProtocols',
+                                  'planning_ConsumptionNotes',
+                                  'planning_DirectProductionNote',
+                                  'pos_Receipts');
 
         // Записват се запазените количества
         $stocksArr = array();
@@ -448,6 +445,11 @@ class store_StockPlanning extends core_Manager
 
             $query = $Source->getQuery();
             $query->in("state", $Source->updatePlannedStockOnChangeStates);
+            if($onlyWithoutValior){
+                setIfNot($Source->valiorFld, 'valior');
+                $query->where("#{$Source->valiorFld} IS NULL");
+            }
+
             $count = $query->count();
             core_App::setTimeLimit(0.6 * $count, false,300);
 
@@ -458,8 +460,26 @@ class store_StockPlanning extends core_Manager
             }
         }
 
+        return $stocksArr;
+    }
+
+
+    /**
+     * Първоначално наливане на запазените количества
+     */
+    private function recalcPlannedStocks()
+    {
+        // Ако не е имало складови движения, не се прави нищо
+        if(!store_Products::count()) return;
+
+        $Stocks = cls::get('store_StockPlanning');
+        $Stocks->truncate();
+
         // Записване на запазеното на индивидуланите количества
-        $Stocks->saveArray($stocksArr);
+        $stocksArr = self::getPlannedShipmentDocuments();
+        if(countR($stocksArr)){
+            $Stocks->saveArray($stocksArr);
+        }
 
         // Преизчисляване на запазеното по сделки и запазени.
         $dealsArr = array();
@@ -632,6 +652,25 @@ class store_StockPlanning extends core_Manager
                     $requiredRoles = 'no_one';
                 }
             }
+        }
+    }
+
+
+    /**
+     * Преизчисляване на всички хоризонти по разписание
+     */
+    function cron_RecalcAllPlannedQuantities()
+    {
+        $stocksArr = self::getPlannedShipmentDocuments(true);
+
+        // Ще се обновят времената само на записите дето са без вальор
+        $exQuery = self::getQuery();
+        $exQuery->notIn('sourceClassId', array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), planning_Jobs::getClassId()));
+        $exRecs = $exQuery->fetchAll();
+        $synced = arr::syncArrays($stocksArr, $exRecs, 'sourceClassId,sourceId,productId,genericProductId,storeId', 'date');
+
+        if(countR($synced['update'])){
+            $this->saveArray($synced['update'], 'id,date');
         }
     }
 }

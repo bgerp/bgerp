@@ -3016,7 +3016,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!empty($rec->deliveryTime)) return $rec->deliveryTime;
 
         // Датата ще е вальора/датата на активиране/датата на създаване в този ред
-        $date = !empty($rec->valior) ? $rec->valior : (!empty($rec->activatedOn) ? $rec->activatedOn : $rec->createdOn);
+        $date = !empty($rec->valior) ? $rec->valior : (!empty($rec->activatedOn) ? $rec->activatedOn : dt::today() . " 00:00:00");
 
         // Ако има въведен срок на доставка, той се добавя към отправната дата
         if(!empty($rec->deliveryTermTime)){
