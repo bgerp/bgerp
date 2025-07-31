@@ -41,7 +41,7 @@ class store_plg_StockPlanning extends core_Plugin
     public static function on_AfterGetPlannedQuantityDate($mvc, &$res, $rec)
     {
         if(!$res) {
-            $res = !empty($rec->{$mvc->termDateFld}) ? $rec->{$mvc->termDateFld} : (!empty($rec->{$mvc->valiorFld}) ? $rec->{$mvc->valiorFld} : $rec->createdOn);
+            $res = !empty($rec->{$mvc->termDateFld}) ? $rec->{$mvc->termDateFld} : (!empty($rec->{$mvc->valiorFld}) ? $rec->{$mvc->valiorFld} : dt::today() . " 00:00:00");
         }
     }
 

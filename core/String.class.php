@@ -150,7 +150,7 @@ class core_String
         for ($i = 0; $i < $pLen; $i++) {
             $p = $pattern[$i];
             
-            $rand = rand(0, $len[$p] - 1);
+            $rand = random_int(0, $len[$p] - 1);
             
             $rand1 = ($rand + 7) % $len[$p];
             

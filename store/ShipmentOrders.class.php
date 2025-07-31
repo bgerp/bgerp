@@ -939,7 +939,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         // Връща се първата намерена от: лайв изчислената, вальора, датата на активиране, датата на създаване
         $loadingDate = $this->getDefaultLoadingDate($rec, $rec->deliveryOn);
-        setIfNot($loadingDate, $rec->valior, $rec->activatedOn, $rec->createdOn);
+        setIfNot($loadingDate, $rec->valior, dt::today() . " 00:00:00");
 
         return $loadingDate;
     }
