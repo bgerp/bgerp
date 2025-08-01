@@ -3084,6 +3084,18 @@ abstract class deals_Helper
         return $res;
     }
 
+
+    /**
+     * Помощна ф-я показваща сумата в две валути
+     *
+     * @param mixed $amountRow    - сума за показване
+     * @param double $amount      - чиста сума
+     * @param date $date          - към коя дата
+     * @param string $currencyId  - валута
+     * @param int $countryId      - за коя държава
+     * @param string $divider     - разделител
+     * @return mixed|string
+     */
     public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />")
     {
         if(!in_array($currencyId, array('BGN', 'EUR')))  return $amountRow;
