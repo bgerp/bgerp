@@ -270,6 +270,12 @@ defIfNot('SALES_RECALC_PRICES_ON_CLONE', 'yes');
 
 
 /**
+ * Показване на двойни цени Евро/Лева в изходящите оферти->Избор
+ */
+defIfNot('SALES_SHOW_COMPANY_QUOTES_DUAL_PRICES', 'no');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -448,6 +454,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE' => array('enum(no=Да не се избира,yes=Автоматичен избор)', 'caption=Автоматичен избор на наша сметка в продажбите ако е само една достъпна->Избор'),
         'SALES_SHOW_CODE_IN_SEPARATE_COLUMN' => array('enum(no=Не,yes=Да)', 'caption=Показване на кода на артикула в продажбите в отделна колонка->Избор'),
         'SALES_RECALC_PRICES_ON_CLONE' => array('enum(no=Не,yes=Да)', 'caption=Преизчисление на цените в продажбата при клониране->Избор'),
+        'SALES_SHOW_COMPANY_QUOTES_DUAL_PRICES' => array('enum(no=Не,yes=Да)', 'caption=Показване на двойни цени Евро/Лева в изходящите оферти->Избор'),
     );
     
     

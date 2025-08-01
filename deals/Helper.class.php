@@ -271,7 +271,7 @@ abstract class deals_Helper
      *                  ->sayWords        - крайната сума изписана с думи
      *
      */
-    public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = false, $lang = 'bg')
+    public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = false, $lang = 'bg', $dualCurrencyData = array())
     {
         // Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
         $arr = array();
@@ -366,6 +366,9 @@ abstract class deals_Helper
         foreach ($arr as $index => $el) {
             if (is_numeric($el)) {
                 $arr[$index] = $Double->toVerbal($el);
+                if(countR($dualCurrencyData)) {
+                    $arr[$index] = deals_Helper::displayDualAmount($arr[$index], $el, $dualCurrencyData['date'], $currencyId, $dualCurrencyData['countryId']);
+                }
             }
         }
         
@@ -3079,5 +3082,36 @@ abstract class deals_Helper
         }
 
         return $res;
+    }
+
+    public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />")
+    {
+        if(!in_array($currencyId, array('BGN', 'EUR')))  return $amountRow;
+        $date = isset($date) ? dt::verbal2mysql($date, false) : dt::today();
+
+        if($date > '2026-12-31' || $date <= '2025-07-08') return $amountRow;
+
+        $bulgariaId = drdata_Countries::getIdByName('Bulgaria');
+        if($currencyId == "EUR" && $countryId != $bulgariaId) return $amountRow;
+
+        $amountRes = currency_Currencies::decorate($amountRow, $currencyId, true);
+
+        $rate = currency_CurrencyRates::getRate($date, 'EUR', 'BGN');
+        $decimals = str::countDecimals($amountRow, false);
+
+        if($currencyId == 'BGN' && $date <= '2025-12-31') {
+            $amountInEuro = round($amount, $decimals) / $rate;
+            $amountInEuroRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInEuro);
+
+            return $amountRes . "<br />" . currency_Currencies::decorate($amountInEuroRow, 'EUR', true);
+        } elseif($currencyId == 'EUR' && $date > '2025-12-31' && $date <= '2026-12-31') {
+
+            $amountInBgn = round($amount, $decimals) * $rate;
+            $amountInBgnRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInBgn);
+
+            return $amountRes . "<br />" . currency_Currencies::decorate($amountInBgnRow, 'BGN', true);
+        }
+
+        return $amountRow;
     }
 }
