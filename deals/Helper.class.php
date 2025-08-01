@@ -2188,6 +2188,7 @@ abstract class deals_Helper
         // Ако не може да се намери се търси от папката
         $coverId = doc_Folders::fetchCoverId($rec->folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
+        if($Class instanceof crm_Persons) return 'yes';
 
         if(isset($chargeVatConditionSysId)){
             $clientValue = cond_Parameters::getParameter($Class, $coverId, $chargeVatConditionSysId);

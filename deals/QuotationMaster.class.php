@@ -217,8 +217,9 @@ abstract class deals_QuotationMaster extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        $Cover = doc_Folders::getCover($rec->folderId);
 
-        if(!$mvc->isOwnCompanyVatRegistered($rec)) {
+        if(!$mvc->isOwnCompanyVatRegistered($rec) || $Cover->isInstanceOf('crm_Persons')) {
             $form->setReadOnly('chargeVat');
         }
 
@@ -299,6 +300,9 @@ abstract class deals_QuotationMaster extends core_Master
     {
         // Ako "Моята фирма" е без ДДС номер - без начисляване
         if(!$this->isOwnCompanyVatRegistered($rec)) return 'no';
+
+        $Cover = doc_Folders::getCover($rec->folderId);
+        if($Cover->isInstanceOf('crm_Persons')) return 'yes';
 
         // После се търси по приоритет
         foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
