@@ -102,9 +102,15 @@ class core_Mode
         
         // Запис в сесията, ако потребителския агент не е бот
         if (!log_Browsers::detectBot()) {
-            $pMode = core_Session::get(EF_MODE_SESSION_VAR);
-            $pMode[$name] = $value;
-            core_Session::set(EF_MODE_SESSION_VAR, $pMode);
+            if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
+                $sess = cls::get('core_DbSess');
+                $sess->set($name, $value);
+            } else {
+                $pMode = core_Session::get(EF_MODE_SESSION_VAR);
+                $pMode[$name] = $value;
+                core_Session::set(EF_MODE_SESSION_VAR, $pMode);
+            }
+
         }
     }
     
@@ -155,7 +161,13 @@ class core_Mode
         $sessPrefix = core_Session::getDecoratePrefix();
         
         if (!isset(self::$mode[$sessPrefix]) || self::$mode[$sessPrefix] === null) {
-            self::$mode[$sessPrefix] = core_Session::get(EF_MODE_SESSION_VAR);
+
+            if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
+                $sess = cls::get('core_DbSess');
+                self::$mode[$sessPrefix] = $sess->getAll(); 
+            } else {
+                self::$mode[$sessPrefix] = core_Session::get(EF_MODE_SESSION_VAR);
+            }
             
             if (!is_array(self::$mode[$sessPrefix])) {
                 self::$mode[$sessPrefix] = array();
