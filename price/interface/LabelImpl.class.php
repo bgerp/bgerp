@@ -129,8 +129,17 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
                 if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
                     $measureName = cat_UoM::getShortName($pRec->measureId);
 
+                    $packagingRec = cat_products_Packagings::getPack($pRec->productId, $pRec->measureId);
                     $catalogPrice = currency_Currencies::decorate($Double->toVerbal($pRec->price), $rec->currencyId, true);
                     $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $catalogPrice, "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $measureName, 'PRICE_CAPTION' => $priceCaption);
+
+                    if($rec->packType == 'base' && is_object($packagingRec)){
+                        $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
+                        $quantity = cat_UoM::round($measureId, $packagingRec->quantity);
+                        $measureName = cat_UoM::getShortName($measureId);
+                        $res['QUANTITY'] = "{$quantity} {$measureName}";
+                    }
+
                     if($showPriceInEuro){
                         $rate = currency_CurrencyRates::getRate($date, 'EUR', 'BGN');
                         $priceInEuro = round($pRec->price, 2) / $rate;
