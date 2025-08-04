@@ -242,7 +242,7 @@ abstract class deals_Helper
         if (countR($vats) == 1 && ($mvc instanceof deals_InvoiceMaster)) {
             $vat = key($vats);
             $vats[$vat]->sum = round($vats[$vat]->sum, 2);
-            $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
+            $vats[$vat]->amount = !empty($vat) ? round($vats[$vat]->sum * $vat, 2) : 0;
 
             $mvc->_total->vat = $vats[$vat]->amount;
             $mvc->_total->vats = $vats;
@@ -271,7 +271,7 @@ abstract class deals_Helper
      *                  ->sayWords        - крайната сума изписана с думи
      *
      */
-    public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = false, $lang = 'bg')
+    public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = false, $lang = 'bg', $dualCurrencyData = array())
     {
         // Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
         $arr = array();
@@ -303,7 +303,7 @@ abstract class deals_Helper
             if (is_array($values['vats'])) {
                 foreach ($values['vats'] as $percent => $vi) {
                     if (is_object($vi)) {
-                        $index = str_replace('.', '', $percent);
+                        $index = str_replace('.', '', abs($percent));
                         $arr["vat{$index}"] = $percent * 100 . '%';
                         $arr["vat{$index}Amount"] = $vi->amount * (($invoice) ? $currencyRate : 1);
                         $arr["vat{$index}AmountCurrencyId"] = ($invoice) ? $baseCurrency : $currencyId;
@@ -366,6 +366,9 @@ abstract class deals_Helper
         foreach ($arr as $index => $el) {
             if (is_numeric($el)) {
                 $arr[$index] = $Double->toVerbal($el);
+                if(countR($dualCurrencyData)) {
+                    $arr[$index] = deals_Helper::displayDualAmount($arr[$index], $el, $dualCurrencyData['date'], $currencyId, $dualCurrencyData['countryId']);
+                }
             }
         }
         
@@ -2186,14 +2189,21 @@ abstract class deals_Helper
         $coverId = doc_Folders::fetchCoverId($rec->folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
 
+        $defaultChargeVat = null;
+        if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
+            $defaultChargeVat = ($Class->shouldChargeVat($coverId, $mvc)) ? 'separate' : 'no';
+        }
+
+        if($mvc instanceof sales_Quotations) {
+            if(!in_array($defaultChargeVat, array('no', 'exempt'))) return 'yes';
+        }
+
         if(isset($chargeVatConditionSysId)){
             $clientValue = cond_Parameters::getParameter($Class, $coverId, $chargeVatConditionSysId);
             if(!empty($clientValue)) return $clientValue;
         }
 
-        if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
-            return ($Class->shouldChargeVat($coverId, $mvc)) ? 'separate' : 'no';
-        }
+        if (!empty($defaultChargeVat)) return $defaultChargeVat;
         
         return 'separate';
     }
@@ -3079,5 +3089,48 @@ abstract class deals_Helper
         }
 
         return $res;
+    }
+
+
+    /**
+     * Помощна ф-я показваща сумата в две валути
+     *
+     * @param mixed $amountRow    - сума за показване
+     * @param double $amount      - чиста сума
+     * @param date $date          - към коя дата
+     * @param string $currencyId  - валута
+     * @param int $countryId      - за коя държава
+     * @param string $divider     - разделител
+     * @return mixed|string
+     */
+    public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />")
+    {
+        if(!in_array($currencyId, array('BGN', 'EUR')))  return $amountRow;
+        $date = isset($date) ? dt::verbal2mysql($date, false) : dt::today();
+
+        if($date > '2026-12-31' || $date <= '2025-07-08') return $amountRow;
+
+        $bulgariaId = drdata_Countries::getIdByName('Bulgaria');
+        if($currencyId == "EUR" && $countryId != $bulgariaId) return $amountRow;
+
+        $amountRes = currency_Currencies::decorate($amountRow, $currencyId, true);
+
+        $rate = currency_CurrencyRates::getRate($date, 'EUR', 'BGN');
+        $decimals = str::countDecimals($amountRow, false);
+
+        if($currencyId == 'BGN' && $date <= '2025-12-31') {
+            $amountInEuro = round($amount, $decimals) / $rate;
+            $amountInEuroRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInEuro);
+
+            return $amountRes . "<br />" . currency_Currencies::decorate($amountInEuroRow, 'EUR', true);
+        } elseif($currencyId == 'EUR' && $date > '2025-12-31' && $date <= '2026-12-31') {
+
+            $amountInBgn = round($amount, $decimals) * $rate;
+            $amountInBgnRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInBgn);
+
+            return $amountRes . "<br />" . currency_Currencies::decorate($amountInBgnRow, 'BGN', true);
+        }
+
+        return $amountRow;
     }
 }

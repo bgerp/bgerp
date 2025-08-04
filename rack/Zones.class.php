@@ -902,7 +902,7 @@ class rack_Zones extends core_Master
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         // Заопашените за обновяване линии да се обновят след терминиране на скрипта
         if (is_array($mvc->syncLinesOnShutdown)) {

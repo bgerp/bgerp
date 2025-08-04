@@ -464,18 +464,21 @@ class rack_MovementGenerator2 extends core_Manager
                     $o->ret = $pQ;
                     $o->retPos = $o->pallet;
 
-                    // Намираме най-добрата позиция за връщане на палет
-                    // На първи ред с някаква предишна наличност
-                    // На първи ред без предишна наличност
-                    // Където и до сега си е бил
-                    if(isset($qInPallet)) {
-                        foreach($allPallets as $pallet) {
-                            $pos = $pallet->position;
-                            if(self::isFirstRow($pos) && $pallet->quantity > 0) {
-                                $maxLoad = self::getMaxLoad($pos);
-                                if($pallet->quantity + $o->ret <= $qInPallet * $maxLoad) {
-                                    $o->retPos = $pos;
-                                    break;
+                    $disableRet = rack_Setup::get('DISABLE_RETURN_TO_FIRST_ROW');
+                    if($disableRet == 'no'){
+                        // Намираме най-добрата позиция за връщане на палет
+                        // На първи ред с някаква предишна наличност
+                        // На първи ред без предишна наличност
+                        // Където и до сега си е бил
+                        if(isset($qInPallet)) {
+                            foreach($allPallets as $pallet) {
+                                $pos = $pallet->position;
+                                if(self::isFirstRow($pos) && $pallet->quantity > 0) {
+                                    $maxLoad = self::getMaxLoad($pos);
+                                    if($pallet->quantity + $o->ret <= $qInPallet * $maxLoad) {
+                                        $o->retPos = $pos;
+                                        break;
+                                    }
                                 }
                             }
                         }

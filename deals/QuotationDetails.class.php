@@ -410,9 +410,24 @@ class deals_QuotationDetails extends doc_Detail
         // Подменяме записите за показване с подравнените
         $data->rows = $notOptionalRows + $optionalRows;
 
+        $masterRec = $data->masterData->rec;
+        $countryId = $data->cData->countryId;
+
         // Групираме записите за по-лесно показване
         foreach ($data->rows as $i => $row) {
             $rec = $data->recs[$i];
+
+            if($data->masterMvc->showDualPrices($masterRec->folderId)){
+                $row->packPrice = deals_Helper::displayDualAmount($row->packPrice, $rec->packPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                if($masterRec->chargeVat == 'separate' && !empty($row->vatPackPrice)){
+                    $row->vatPackPrice = deals_Helper::displayDualAmount($row->vatPackPrice, $rec->vatPackPrice, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+                }
+            }
+
+            if($data->masterMvc->showDualPrices($masterRec->folderId)){
+                $row->amount = deals_Helper::displayDualAmount($row->amount, $rec->amount, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
+            }
+
             if ($rec->livePrice === true) {
                 $row->packPrice = "<span style='color:blue'>{$row->packPrice}</span>";
                 $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false);
@@ -434,10 +449,9 @@ class deals_QuotationDetails extends doc_Detail
                 if($rec->quantity == 1 || empty($rec->quantity)){
                     unset($row->packQuantity);
                     unset($row->packagingId);
-                    $row->packPrice = currency_Currencies::decorate($row->packPrice, $data->masterData->rec->currencyId);
-                    $row->amount = currency_Currencies::decorate($row->amount, $data->masterData->rec->currencyId);
-                    $row->packPrice .= "/" . tr(cat_UoM::getShortName($rec->packagingId));
-                    $row->amount .= "/" . tr(cat_UoM::getShortName($rec->packagingId));
+                    $row->amount = str_replace("<br />", " / ", $row->packPrice);
+                    $row->packPrice .= tr("|* |за|* ") . tr(cat_UoM::getShortName($rec->packagingId));
+                    $row->amount .= tr("|* |за|* ") . tr(cat_UoM::getShortName($rec->packagingId));
                 }
             }
 
@@ -699,6 +713,10 @@ class deals_QuotationDetails extends doc_Detail
         $recs = &$data->recs;
 
         $masterRec = $data->masterData->rec;
+
+        $Cover = doc_Folders::getCover($masterRec->folderId);
+        $data->cData = $Cover->getContragentData();
+
         $notOptional = $optional = array();
         $total = new stdClass();
         $total->discAmount = 0;
@@ -766,7 +784,11 @@ class deals_QuotationDetails extends doc_Detail
         if (empty($data->noTotal) && countR($notOptional)) {
 
             // Запомня се стойноста и ддс-то само на опционалните продукти
-            $data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat, false, $masterRec->tplLang);
+            $dualSummaryData = array();
+            if($data->masterMvc->showDualPrices($masterRec->folderId)){
+                $dualSummaryData = array('date' => $masterRec->activatedOn, 'countryId' => $data->cData->countryId);
+            }
+            $data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat, false, $masterRec->tplLang, $dualSummaryData);
 
             if (isset($data->summary->vat009) && !isset($data->summary->vat0) && !isset($data->summary->vat02)) {
                 $data->summary->onlyVat = $data->summary->vat009;

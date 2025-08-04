@@ -161,7 +161,7 @@ class bgerp_LastSeenDocumentByUser extends core_Manager
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    protected static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         if(countR($mvc->queue)){
             $containerIds = arr::extractValuesFromArray($mvc->queue, 'containerId');
