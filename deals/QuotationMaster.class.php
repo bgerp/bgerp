@@ -302,7 +302,14 @@ abstract class deals_QuotationMaster extends core_Master
         if(!$this->isOwnCompanyVatRegistered($rec)) return 'no';
 
         $Cover = doc_Folders::getCover($rec->folderId);
-        if($Cover->isInstanceOf('crm_Persons')) return 'yes';
+
+        if($this instanceof sales_Quotations){
+            if($Cover->isInstanceOf('crm_Persons')){
+                if($Cover->getInstance()->shouldChargeVat($Cover->that, $this)){
+                    return 'yes';
+                }
+            }
+        }
 
         // После се търси по приоритет
         foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){

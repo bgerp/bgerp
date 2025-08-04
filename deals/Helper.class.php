@@ -2188,16 +2188,22 @@ abstract class deals_Helper
         // Ако не може да се намери се търси от папката
         $coverId = doc_Folders::fetchCoverId($rec->folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
-        if($Class instanceof crm_Persons) return 'yes';
+
+        $defaultChargeVat = null;
+        if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
+            $defaultChargeVat = ($Class->shouldChargeVat($coverId, $mvc)) ? 'separate' : 'no';
+        }
+
+        if($mvc instanceof sales_Quotations) {
+            if(!in_array($defaultChargeVat, array('no', 'exempt'))) return 'yes';
+        }
 
         if(isset($chargeVatConditionSysId)){
             $clientValue = cond_Parameters::getParameter($Class, $coverId, $chargeVatConditionSysId);
             if(!empty($clientValue)) return $clientValue;
         }
 
-        if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {
-            return ($Class->shouldChargeVat($coverId, $mvc)) ? 'separate' : 'no';
-        }
+        if (!empty($defaultChargeVat)) return $defaultChargeVat;
         
         return 'separate';
     }
