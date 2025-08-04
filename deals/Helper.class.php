@@ -242,7 +242,7 @@ abstract class deals_Helper
         if (countR($vats) == 1 && ($mvc instanceof deals_InvoiceMaster)) {
             $vat = key($vats);
             $vats[$vat]->sum = round($vats[$vat]->sum, 2);
-            $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
+            $vats[$vat]->amount = !empty($vat) ? round($vats[$vat]->sum * $vat, 2) : 0;
 
             $mvc->_total->vat = $vats[$vat]->amount;
             $mvc->_total->vats = $vats;
