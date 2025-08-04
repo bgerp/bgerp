@@ -105,7 +105,18 @@ class core_Locks extends core_Manager
         }
     }
 
-    
+
+    /**
+     * @deprecated 25.32
+     */
+    public static function get($objectId, $maxDuration = 10, $maxTrays = 5, $delOnShutDown = true)
+    {
+        wp('DEPRECATED: core_Locks::get() is deprecated! Use core_Locks::obtain() instead!');
+
+        return static::obtain($objectId, $maxDuration, $maxTrays, 5, $delOnShutDown);
+    }
+
+
     /**
      * Заключва обект с посоченото $objectId за максимално време $lockDuration,
      * като за това прави $maxTrays опити, през интервал от 1 секунда
