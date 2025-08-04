@@ -213,7 +213,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Вземаме текстовата част
             if ($params['fileHnd']) {

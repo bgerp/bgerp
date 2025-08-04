@@ -37,7 +37,7 @@ class acc_plg_LockBalanceRecalc extends core_Plugin
         if($rec->state == 'draft' || ($rec->state == 'rejected' && $rec->brState == 'draft')) return;
         
         // Ако баланса се преизчислява в момента, забраняваме действието
-        if (!core_Locks::get('RecalcBalances', 600, 1)) {
+        if (!core_Locks::obtain('RecalcBalances', 600, 4, 1)) {
             $msg = 'Балансът се преизчислява в момента. Опитайте след малко!';
         } else {
             

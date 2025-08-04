@@ -84,81 +84,108 @@ class core_Locks extends core_Manager
         
         $this->dbEngine = 'memory';
     }
-    
-    
+
+
     /**
-     * Заключва обект с посоченото $objectId за максимално време $maxDuration,
-     * като за това прави $maxTrays опити, през интервал от 1 секунда
+     * Деструктор, който се извиква при края на хита
+     * Изтрива всички заключвания за хита, които са направени в този хит
+     * Това се прави, за да не останат заключени обекти, които не са били
+     * отключени, защото хита е прекъснат по някаква причина
+     * Например, ако е имало грешка в кода, или е прекъснато изпълнението
+     * на скрипта, или е имало проблем с базата данни
      */
-    public static function get($objectId, $maxDuration = 10, $maxTrays = 5, $delOnShutDown = true)
+    public function __destruct()
     {
         $Locks = cls::get('core_Locks');
-        
+        foreach ((array) $Locks->locks as $lockObjectId => $lockRec) {
+            // Ако обекта е заключен от текущия хит, го изтриваме
+            if ($lockRec->_delOnShutDown) {
+                core_Locks::release($lockRec->objectId);
+            }
+        }
+    }
+
+    
+    /**
+     * Заключва обект с посоченото $objectId за максимално време $lockDuration,
+     * като за това прави $maxTrays опити, през интервал от 1 секунда
+     *
+     * @param string $objectId - идентификатор на обекта, който ще заключим
+     * @param int $lockDuration - За колко време да заключим обекта, по подразбиране 10 сек
+     * @param int $maxTrays - Колко опита да се направи за отключване, по подразбиране 20
+     * @param int $timeout - За колко време да прави опитите в $maxTrays, по подразбиране 5 сек
+     * @param boolean $releaseOnShutDown - Дали да се изтрие преди излизане от хита - за асинхронни процеси, по подразбиране TRUE
+     */
+    public static function obtain($objectId, $lockDuration = 10, $maxTrays = 20, $timeout = 5,  $releaseOnShutDown = true)
+    {
+        $Locks = cls::get('core_Locks');
+
         // Санитаризираме данните
         $maxTrays = max($maxTrays, 0);
-        $maxDuration = max($maxDuration, 0);
+        $lockDuration = max($lockDuration, 0);
+        $timeout = max($timeout, 0);
         $objectId = str::convertToFixedKey($objectId, 32, 4);
-        
-        $lockExpire = time() + $maxDuration;
-        
+
+        $lockExpire = time() + $lockDuration;
+
         // Увеличаваме времето за изпълнение (евентуално) за времето до изтичане на лок-а
-        core_App::setTimeLimit($maxDuration);
-        
+        core_App::setTimeLimit($lockDuration);
+
         $rec = $Locks->locks[$objectId];
-        
+
         // Ако този обект е заключен от текущия хит, връщаме TRUE
         if ($rec) {
-            
+
             // Ако имаме промяна в крайния срок за заключването
             // отразяваме я в модела
             if ($rec->lockExpire < $lockExpire) {
                 $rec->lockExpire = $lockExpire;
                 $Locks->save($rec, 'lockExpire');
                 $Locks->locks[$objectId] = $rec;
-                
+
                 // Дали да се изтрие преди излизане от хита - за асинхронни процеси
-                $Locks->locks[$objectId]->_delOnShutDown = $delOnShutDown;
+                $Locks->locks[$objectId]->_delOnShutDown = $releaseOnShutDown;
             }
-            
+
             return true;
         }
-        
+
         // Извличаме записа съответстващ на заключването, от модела
         $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId), '*', false);
-        
+
         // Създаваме празен запис, ако не съществува такъв за обекта
         if (!$rec) {
             $rec = new stdClass();
         }
-        
+
         // Ако няма запис за този обект или заключването е преминало крайния си срок
         // - записваме го и излизаме с успех
         if (empty($rec->id) || ($rec->lockExpire <= time())) {
             $rec->lockExpire = $lockExpire;
             $rec->objectId = $objectId;
             $rec->user = core_Users::getCurrent();
-            
+
             // Ако възникне дублиран запис
             if ($Locks->save($rec, null, 'IGNORE')) {
                 $Locks->locks[$objectId] = $rec;
-                
+
                 // Дали да се изтрие преди излизане от хита - за асинхронни процеси
-                $Locks->locks[$objectId]->_delOnShutDown = $delOnShutDown;
-                
+                $Locks->locks[$objectId]->_delOnShutDown = $releaseOnShutDown;
+
                 return true;
             }
         }
-        
+
         // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
-        if (static::waitForLock($objectId, $maxDuration, $maxTrays)) {
-            
+        if (static::waitForLock($objectId, $lockDuration, $maxTrays, $timeout, $releaseOnShutDown)) {
+
             return true;
         }
-        
+
         return false;
     }
-    
-    
+
+
     /**
      * Форматира в по-вербални данни реда от листовата таблица
      */
@@ -166,8 +193,8 @@ class core_Locks extends core_Manager
     {
         $row->lockExpire = dt::mysql2verbal(dt::timestamp2Mysql($rec->lockExpire), 'd-M-Y G:i:s');
     }
-    
-    
+
+
     /**
      * Отключва обект с посоченото $objectId
      * Извиква се при край на операцията четене или запис започната с add()
@@ -175,13 +202,13 @@ class core_Locks extends core_Manager
     public static function release($objectId)
     {
         $objectId = str::convertToFixedKey($objectId, 32, 4);
-        
+
         $Locks = cls::get('core_Locks');
         unset($Locks->locks[$objectId]);
         $Locks->delete(array("#objectId = '[#1#]'", $objectId));
     }
-    
-    
+
+
     /**
      * Преди излизане от хита, изтриваме всички негови локове
      */
@@ -189,7 +216,7 @@ class core_Locks extends core_Manager
     {
         if (countR($mvc->locks)) {
             foreach ($mvc->locks as $rec) {
-                
+
                 // Дали да се изтрие преди излизане от хита - за асинхронни процеси
                 if ($rec->_delOnShutDown) {
                     $mvc->delete($rec->id);
@@ -197,8 +224,8 @@ class core_Locks extends core_Manager
             }
         }
     }
-    
-    
+
+
     /**
      * Проверява дали обекта е заключен
      *
@@ -210,34 +237,43 @@ class core_Locks extends core_Manager
     {
         // Сегашното време
         $now = time();
-        
+
         // Проверяваме дали обекта не е заключен
         if (core_Locks::fetch("#objectId = '{$objectId}' AND #lockExpire >= '{$now}'", null, false)) {
-            
+
             return true;
         }
-        
+
         return false;
     }
-    
-    
+
+
     /**
      * Правим последователно няколко опита да заключим обекта, през интервал 1 сек
      *
-     * @param string $objectId    - Стринга, за който се проверява дали не е заключен
-     * @param int    $maxDuration - За колко време да заключим
-     * @param int    $maxTrays    - Колко опита да се направи за заключване
+     * @param string  $objectId      - Стринга, за който се проверява дали не е заключен
+     * @param int     $lockDuration   - За колко време да заключим
+     * @param int     $maxTrays      - Колко опита да се направи за заключване
+     * @param boolean $releaseOnShutDown - Дали да се изтрие преди излизане от хита - за асинхронни процеси
      *
      * @return bool
      */
-    public static function waitForLock($objectId, $maxDuration = 10, $maxTrays = 5)
+    public static function waitForLock($objectId, $lockDuration = 10, $maxTrays = 20, $timeout = 5, $releaseOnShutDown = true)
     {
+        $aSec = 1000000; // 1 секунда в микросекунди
         // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
         while ($maxTrays > 0) {
-            sleep(1);
-            Debug::log('Sleep 1 sec. in ' . __CLASS__);
-            
-            if (static::get($objectId, $maxDuration, 0)) {
+            $sleep = (int) ($timeout/$maxTrays * $aSec);
+            $sleep = min($sleep, $aSec);
+            if ($sleep <= 0) {
+                $sleep = $aSec;
+            }
+
+            usleep($sleep);
+
+            Debug::log("Sleep {$sleep} microSec. in " . __CLASS__);
+
+            if (static::obtain($objectId, $lockDuration, 0, $timeout, $releaseOnShutDown)) {
                 
                 return true;
             }

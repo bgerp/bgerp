@@ -248,7 +248,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             $params['dataId'] = $fRec->dataId;
         }
         
-        if (fileman_Indexes::isProcessStarted($params) || !core_Locks::get($params['lockId'], 1000, 0, false)) {
+        if (fileman_Indexes::isProcessStarted($params) || !core_Locks::obtain($params['lockId'], 1000, 0, 0, false)) {
             
             return ;
         }

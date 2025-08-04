@@ -840,7 +840,7 @@ class rack_Movements extends rack_MovementAbstract
         $rec = $this->fetch($id);
 
         // Заключване на екшъна
-        if (!core_Locks::get("movement{$rec->id}", 120, 0)) {
+        if (!core_Locks::obtain("movement{$rec->id}", 120, 0, 0)) {
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
             if($ajaxMode){
                 return status_Messages::returnStatusesArray();
@@ -997,7 +997,7 @@ class rack_Movements extends rack_MovementAbstract
         expect($rec = $this->fetch($id));
         
         // Заключване на екшъна
-        if (!core_Locks::get("movement{$rec->id}", 120, 0)) {
+        if (!core_Locks::obtain("movement{$rec->id}", 120, 0, 0)) {
 
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
             if($ajaxMode){

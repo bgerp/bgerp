@@ -44,7 +44,7 @@ class fileman_webdrv_Gvdot extends fileman_webdrv_ImageT
         }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             if (is_object($fRec)) {
                 $filePath = fileman::extract($fRec->fileHnd);
             } else {
