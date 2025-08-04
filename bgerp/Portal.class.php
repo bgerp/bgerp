@@ -564,7 +564,7 @@ class bgerp_Portal extends embed_Manager
         $oldCache = core_Cache::get('bgerp_Portal', $cName);
 
         if (!$oldCache || ($oldCache != $newCache)) {
-            core_Cache::set('bgerp_Portal', $cName, $newCache, 30, array('bgerp_Portal'));
+            core_Cache::set('bgerp_Portal', $cName, $newCache, 120, array('bgerp_Portal'));
 
             return true;
         }
