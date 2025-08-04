@@ -755,7 +755,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         // Обновяване на линиите
         if (is_array($mvc->syncLineDetails)) {

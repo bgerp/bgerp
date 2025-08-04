@@ -305,7 +305,7 @@ class drdata_Vats extends core_Manager
     /**
      * Обновяване на статуса на VAT номера след залез
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         foreach ($mvc->updateOnShutdown as $rec) {
             list($rec->status, $rec->info) = $mvc->checkStatus($rec->vat);

@@ -479,28 +479,7 @@ class core_Cls
             core_Debug::log('Край на shutdown');
         }
     }
-    
-    
-    /**
-     * Генерира последователно 'shutdown' събития във всички singleton класове
-     */
-    public static function afterSessionClose()
-    {
-        if (countR(core_Cls::$singletons)) {
-            core_Debug::log('Начало на afterSessionClose');
-            core_Debug::startTimer('afterSessionClose');
-            foreach (core_Cls::$singletons as $name => $instance) {
-                if ($instance instanceof core_BaseClass) {
-                    core_Debug::startTimer('afterSessionClose_' . $name);
-                    $instance->invoke('afterSessionClose');
-                    core_Debug::stopTimer('afterSessionClose_' . $name);
-                }
-            }
-            core_Debug::stopTimer('afterSessionClose');
-            core_Debug::log('Край на afterSessionClose');
-        }
-    }
-    
+
     
     /**
      * Показва дали даден клас имплементира даден метод.
