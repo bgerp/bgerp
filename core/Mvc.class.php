@@ -444,12 +444,9 @@ class core_Mvc extends core_FieldSet
                 
                 case '':
                 case 'update':
-                    $query = "INSERT INTO `{$table}` SET {$query}";
-                    $timer = "{$table} INSERT";
-                    break;
-                case 'forced_update':
                     $query = "INSERT INTO `{$table}` SET {$query} ON DUPLICATE KEY UPDATE {$query}";
                     $timer = "{$table} INSERT";
+                    break;
                 default:
                     error('Неподдържан режим на запис', $mode, $rec);
             }
