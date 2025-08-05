@@ -515,7 +515,7 @@ class core_App
         
         // Освобождава манипулатора на сесията. Ако трябва да се правят
         // записи в сесията, то те трябва да се направят преди shutdown()
-        if (!(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true)) {
+        if (!defined('BGERP_MYSQL_SESSION') || BGERP_MYSQL_SESSION !== true) {
             core_Session::pause();
         }
         
