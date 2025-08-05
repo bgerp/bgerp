@@ -41,7 +41,7 @@ class type_Varbinary extends type_Varchar
     public function getMysqlAttr()
     {
         $res = $this->_baseGetMysqlAttr();
-        $res->size = floor(($res->size+1)/2);
+        $res->size = floor($res->size);
 
         return $res;
     }
