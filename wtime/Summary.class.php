@@ -724,7 +724,7 @@ class wtime_Summary extends core_Manager
         }
 
         if(wtime_Summary::haveRightFor('list')){
-            $listBtn = ht::createLink('', array($this, 'list', 'personId' => $data->masterId), false, 'ef_icon=img/16/funnel.png');
+            $listBtn = ht::createLink('', array($this, 'list', 'personId' => $data->masterId), false, 'ef_icon=img/16/funnel.png,title=Филтър на информацията за лицето');
             $tpl->append($listBtn, 'wTimeFilter');
         }
 
