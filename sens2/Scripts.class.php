@@ -185,7 +185,7 @@ class sens2_Scripts extends core_Master
             if((!$period) || ($curMin + $offset) % $period === 0) {
                 sens2_script_Actions::runScript($rec->id);
                 $rec->lastRun = dt::verbal2mysql();
-                self::save($rec);
+                self::save($rec, 'lastRun');
             }
         }
     }
