@@ -350,7 +350,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 }
 
                 bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id);
-                core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
+                core_Locks::obtain("lock_{$mvc->className}_{$rec->id}", 90, 15, 5, false);
                 
                 // Кое фискално устройство е свързано към компютъра
                 $caseId = pos_Points::fetchField($rec->pointId, 'caseId');

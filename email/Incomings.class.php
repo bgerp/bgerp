@@ -355,7 +355,7 @@ class email_Incomings extends core_Master
         // Заключваме тегленето от тази пощенска кутия
         $lockKey = 'Inbox:' . $accRec->id;
         
-        if (!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
+        if (!core_Locks::obtain($lockKey, $maxFetchingTime, 3, 1)) {
             email_Accounts::logWarning('Кутията е заключена от друг процес', $accRec->id, 7);
             
             return;
@@ -2598,6 +2598,7 @@ class email_Incomings extends core_Master
         $spamScore = $spamScore + ($spamScore * $tolerance);
         
         if (isset($score) && ($score >= $spamScore)) {
+            $rec->brState = $rec->state;
             $rec->state = 'rejected';
             self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) със СПАМ рейтинг = '{$score}'", $rec->id);
         }
@@ -2616,6 +2617,7 @@ class email_Incomings extends core_Master
                 $fQuery->where('#dangerRate >= 0.001');
                 
                 if ($fQuery->count()) {
+                    $rec->brState = $rec->state;
                     $rec->state = 'rejected';
                     self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) с вирусен файл", $rec->id);
                 }

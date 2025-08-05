@@ -3576,29 +3576,6 @@ class planning_Tasks extends core_Master
         return $fhArr;
     }
 
-    /**
-     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
-     */
-    public static function on_AfterSessionClose($mvc)
-    {
-        core_Debug::startTimer('AFTER_SESSION_TASKS');
-
-        // Рекалкулиране на времената на задачите, ако е указано
-        if ($mvc->forceCalcTimes) {
-            cls::get('planning_AssetResources')->cron_RecalcTaskTimes();
-            unset($mvc->forceCalcTimes);
-        }
-
-        if (countR($mvc->recalcProducedDetailIndTime)) {
-            foreach ($mvc->recalcProducedDetailIndTime as $rec) {
-                planning_ProductionTaskDetails::recalcIndTime($rec->id, 'production', $rec->productId);
-                core_Statuses::newStatus('Нормата е променена. Преизчислени са заработките на прогреса|*!');
-            }
-        }
-
-        core_Debug::stopTimer('AFTER_SESSION_TASKS');
-    }
-
 
     /**
      * При шътдаун на скрипта преизчислява наследените роли и ролите на потребителите
@@ -3637,6 +3614,23 @@ class planning_Tasks extends core_Master
             }
             core_Debug::stopTimer('CACHE_ON_SHUTDOWN');
         }
+
+        core_Debug::startTimer('AFTER_SESSION_TASKS');
+
+        // Рекалкулиране на времената на задачите, ако е указано
+        if ($mvc->forceCalcTimes) {
+            cls::get('planning_AssetResources')->cron_RecalcTaskTimes();
+            unset($mvc->forceCalcTimes);
+        }
+
+        if (countR($mvc->recalcProducedDetailIndTime)) {
+            foreach ($mvc->recalcProducedDetailIndTime as $rec) {
+                planning_ProductionTaskDetails::recalcIndTime($rec->id, 'production', $rec->productId);
+                core_Statuses::newStatus('Нормата е променена. Преизчислени са заработките на прогреса|*!');
+            }
+        }
+
+        core_Debug::stopTimer('AFTER_SESSION_TASKS');
     }
 
 

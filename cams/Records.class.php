@@ -361,7 +361,7 @@ class cams_Records extends core_Master
             return;
         }
         
-        core_Locks::get(basename($mp4File), 300, 0, false);
+        core_Locks::obtain(basename($mp4File), 300, 0, 0, false);
         
         $cmdTmpl = 'ffmpeg -hide_banner -loglevel panic -i [#INPUTF#] -preset fast -crf 35 -vcodec h264 -acodec aac -strict -2 [#OUTPUTF#]';
         $Script = cls::get('fconv_Script');

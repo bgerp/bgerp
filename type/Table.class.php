@@ -29,15 +29,22 @@ class type_Table extends type_Blob
      * Индивидуални полета, в които има грешки
      */
     public $errorFields = array();
-    
-    
+
+
+    /**
+     * Максимален брой редове
+     */
+    const MAX_ROWS = 300;
+
+
     /**
      * Инициализиране на типа
      */
     public function init($params = array())
     {
         setIfNot($params['params']['serialize'], 'serialize');
-        
+        setIfNot($params['params']['maxRows'], self::MAX_ROWS);
+
         parent::init($params);
     }
     
@@ -170,9 +177,10 @@ class type_Table extends type_Blob
         $tpl = str_replace("\n", '', $tpl);
         
         $id = 'table_' . $name;
-        
+
+        $newRowBtnName = 'dblRow_' . $name;
         if (!$this->params['btnOff']) {
-            $btn = ht::createElement('input', array('id' => 'dblRow_' . $name, 'type' => 'button', 'value' => '+ ' . tr('Нов ред||Add row'), 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));
+            $btn = ht::createElement('input', array('id' => $newRowBtnName, 'type' => 'button', 'value' => '+ ' . tr('Нов ред||Add row'), 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));
         }
         $attrTable = array();
         $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
@@ -201,7 +209,38 @@ class type_Table extends type_Blob
         if (is_object($datalistTpl)) {
             $res->append($datalistTpl);
         }
-        
+
+        $maxRows = $this->params['maxRows'];
+
+        if (!$this->params['btnOff']) {
+            $inputName = 'input[name="newArray[batch][]"]';
+            $scripts = "function updateButtonState() {
+                        const inputs = document.querySelectorAll('{$inputName}');
+                        const button = document.getElementById('{$newRowBtnName}');
+
+                        if (inputs.length >= {$maxRows}) {
+                            button.disabled = true;
+                            button.style.opacity = '0.5';
+                            button.style.pointerEvents = 'none';
+                         } else {
+                            button.disabled = false;
+                            button.style.opacity = '';
+                            button.style.pointerEvents = '';
+                    }
+                }
+                
+                // Обнови състоянието на бутона при зареждане
+                document.addEventListener('DOMContentLoaded', updateButtonState);
+
+                // Обнови състоянието на бутона след всяко натискане
+                document.getElementById('{$newRowBtnName}').addEventListener('click', function() {
+                // Позволи на DOM-а първо да добави реда, после проверяваме
+                setTimeout(updateButtonState, 50);
+        });";
+
+            $res->append($scripts, 'SCRIPTS');
+        }
+
         return $res;
     }
     

@@ -799,6 +799,10 @@ class doc_DocumentPlg extends core_Plugin
                 $rec->state = $mvc->firstState ? $mvc->firstState : 'draft';
             }
 
+            if (($rec->state == 'rejected') && ($mvc->firstState != 'rejected') && (!$rec->brState)) {
+                $rec->brState = $mvc->firstState ? $mvc->firstState : 'draft';
+            }
+
             // Задаваме стойностите на created полетата
             if (!isset($rec->createdBy)) {
                 $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
@@ -826,29 +830,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
-    
 
-    /**
-     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
-     */
-    public static function on_AfterSessionClose($mvc)
-    {
-        core_Debug::startTimer('DOCUMENT_SAVE_FILES');
-        foreach ((array)$mvc->saveFileArr as $rec) {
-            try {
-                // Опитваме се да запишем файловете от документа в модела
-                doc_Files::saveFile($mvc, $rec);
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-                
-                // Ако възникне грешка при записването
-                $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
-            }
-        }
-
-        core_Debug::stopTimer('DOCUMENT_SAVE_FILES');
-    }
-    
     
     /**
      * Изпълнява се след запис на документ.
@@ -1072,6 +1054,21 @@ class doc_DocumentPlg extends core_Plugin
 
             $mvc->pendingUpdateModifiedArr = array();
         }
+
+        core_Debug::startTimer('DOCUMENT_SAVE_FILES');
+        foreach ((array)$mvc->saveFileArr as $rec) {
+            try {
+                // Опитваме се да запишем файловете от документа в модела
+                doc_Files::saveFile($mvc, $rec);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+
+                // Ако възникне грешка при записването
+                $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
+            }
+        }
+
+        core_Debug::stopTimer('DOCUMENT_SAVE_FILES');
     }
     
     
@@ -4199,7 +4196,7 @@ class doc_DocumentPlg extends core_Plugin
             return false;
         }
     }
-    
+
     
     /**
      * Създава нов документ със съответните стойности

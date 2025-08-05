@@ -644,12 +644,13 @@ class store_Transfers extends core_Master
      *               ['countryId']      string|NULL - ид на държава
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
+     *               ['deliveryOn']     date        - Доставка на
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
         $row = $this->recToVerbal($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
 
         $res['stores'] = array($rec->fromStore, $rec->toStore);
         $res['address'] = $row->toAdress;
@@ -839,8 +840,9 @@ class store_Transfers extends core_Master
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
 
-        $date = $this->getPlannedQuantityDate($rec);
+        $dateArr = $this->getPlannedQuantityDate($rec);
         $Detail = cls::get('store_TransfersDetails');
+        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
 
         $dQuery = $Detail->getQuery();
         $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=newProductId");
@@ -848,6 +850,8 @@ class store_Transfers extends core_Master
         $dQuery->XPR('totalQuantity', 'double', "SUM(#{$Detail->quantityFld})");
         $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
         $dQuery->groupBy('newProductId');
+        $today = dt::today();
+        $now = dt::now();
 
         while ($dRec = $dQuery->fetch()) {
             $genericProductId = null;
@@ -859,14 +863,19 @@ class store_Transfers extends core_Master
 
             $res[] = (object)array('storeId'          => $rec->fromStore,
                                    'productId'        => $dRec->newProductId,
-                                   'date'             => $date,
+                                   'date'             => $dateArr['date'],
                                    'quantityIn'       => null,
                                    'quantityOut'      => $dRec->totalQuantity,
                                    'genericProductId' => $genericProductId);
 
+            $dateIn = $dateArr['date'];
+            if($dateArr['isLive'] && dt::verbal2mysql($dateIn, false) <= $today){
+                $dateIn = dt::addSecs($horizonAdd, $now);
+            }
+
             $res[] = (object)array('storeId'          => $rec->toStore,
                                    'productId'        => $dRec->newProductId,
-                                   'date'             => $date,
+                                   'date'             => $dateIn,
                                    'quantityIn'       => $dRec->totalQuantity,
                                    'quantityOut'      => null,
                                    'genericProductId' => $genericProductId);
@@ -988,17 +997,23 @@ class store_Transfers extends core_Master
     /**
      * За коя дата се заплануват наличностите
      *
-     * @param stdClass $rec - запис
-     * @return datetime     - дата, за която се заплануват наличностите
+     * @param stdClass $rec    - запис
+     * @return array
+     *          ['date']   - дата
+     *          ['isLive'] - дали е ръчно въведена или не
      */
     public function getPlannedQuantityDate_($rec)
     {
+        $dateArr = array('isLive' => false);
+
         // Ако има ръчно въведена дата на доставка, връща се тя
-        if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
+        if (!empty($rec->deliveryTime)) {
+            $dateArr['date'] = $rec->deliveryTime;
+        } else {
+            $dateArr['date'] = store_Stores::getShipmentPreparationTime($rec->fromStore);
+        }
 
-        $preparationTime = store_Stores::getShipmentPreparationTime($rec->fromStore);
-
-        return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+        return $dateArr;
     }
 
 

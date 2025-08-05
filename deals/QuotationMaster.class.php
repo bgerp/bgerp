@@ -133,7 +133,7 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод');
-        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
+        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,silent,removeAndRefreshForm=currencyRate');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС');
         $mvc->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Плащане->ДДС изключение');
@@ -217,8 +217,9 @@ abstract class deals_QuotationMaster extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        $Cover = doc_Folders::getCover($rec->folderId);
 
-        if(!$mvc->isOwnCompanyVatRegistered($rec)) {
+        if(!$mvc->isOwnCompanyVatRegistered($rec) || $Cover->isInstanceOf('crm_Persons')) {
             $form->setReadOnly('chargeVat');
         }
 
@@ -299,6 +300,16 @@ abstract class deals_QuotationMaster extends core_Master
     {
         // Ako "Моята фирма" е без ДДС номер - без начисляване
         if(!$this->isOwnCompanyVatRegistered($rec)) return 'no';
+
+        $Cover = doc_Folders::getCover($rec->folderId);
+
+        if($this instanceof sales_Quotations){
+            if($Cover->isInstanceOf('crm_Persons')){
+                if($Cover->getInstance()->shouldChargeVat($Cover->that, $this)){
+                    return 'yes';
+                }
+            }
+        }
 
         // После се търси по приоритет
         foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
@@ -1453,5 +1464,17 @@ abstract class deals_QuotationMaster extends core_Master
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'others', 'notes');
 
         return $files;
+    }
+
+
+    /**
+     * Да се показват ли двойни цени в офертите
+     *
+     * @param int $folderId
+     * @return bool
+     */
+    public function showDualPrices($folderId)
+    {
+        return false;
     }
 }

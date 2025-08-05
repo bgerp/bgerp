@@ -304,7 +304,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $mvc->logWrite(static::EDIT_LOG_ACTION, $rec->id);
 
                 // Нотифициране на всички други потребители, редактирали транспорта преди
-                static::notifyTransportEditors($mvc, $rec);
+                self::notifyTransportEditors($mvc, $rec);
 
                 if (!$rec->lineId) {
                     trans_LineDetails::delete("#containerId = {$rec->containerId}");
@@ -355,6 +355,12 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Оставят се само потребителите различни от посочения, които са редактирали транспорта
         unset($editorsArr[$userId]);
+        if(isset($rec->{$mvc->storeFieldName})){
+            $notifyUsers = store_Stores::fetchField($rec->{$mvc->storeFieldName}, 'notifyUsers');
+            if(!empty($notifyUsers)){
+                $editorsArr += keylist::toArray($notifyUsers);
+            }
+        }
 
         // Изпращане на нотификация, ако все още имат достъп до документа
         foreach ($editorsArr as $editorUserId){
@@ -749,7 +755,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         // Обновяване на линиите
         if (is_array($mvc->syncLineDetails)) {

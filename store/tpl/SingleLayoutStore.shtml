@@ -88,6 +88,20 @@
                                 <td>[#palletBestPositionStrategy#]</td>
                             </tr>
                             <!--ET_END palletBestPositionStrategy-->
+
+                            <!--ET_BEGIN allowSmartReturnPos-->
+                            <tr>
+                                <td class='dt'>|Връщане на палет на най-добра позиция|*:</td>
+                                <td>[#allowSmartReturnPos#]</td>
+                            </tr>
+                            <!--ET_END allowSmartReturnPos-->
+
+                            <!--ET_BEGIN notifyUsers-->
+                            <tr>
+                                <td class='dt'>|Нотифициране при промяна на транспортна линия|*:</td>
+                                <td>[#notifyUsers#]</td>
+                            </tr>
+                            <!--ET_END notifyUsers-->
                         </table>
                     </div>
                 </fieldset>

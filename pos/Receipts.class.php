@@ -1011,6 +1011,12 @@ class pos_Receipts extends core_Master
 
         $this->markAsWaiting($rec);
 
+        $autoDiscCacheKey = core_Permanent::get("autoDiscCache|{$this->className}|{$rec->id}");
+        if(!empty($autoDiscCacheKey)){
+            core_Cache::remove($this->className, $autoDiscCacheKey);
+        }
+        core_Permanent::remove("autoDiscCache|{$this->className}|{$rec->id}");
+
         // Създаване на нова чернова бележка
         return new Redirect(array($this, 'new'));
     }

@@ -865,6 +865,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : $rec->deliveryTimeCalc;
             $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
             $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn, $loadingOn);
+            $res['deliveryOn']['placeholder'] = ($cache && !empty($rec->deliveryOnCalc)) ? $rec->deliveryOnCalc : trans_Helper::calcDeliveryOnDate($rec->threadId, $rec->valior);
         }
 
         return $res;
@@ -928,19 +929,34 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * За коя дата се заплануват наличностите
      *
-     * @param stdClass $rec - запис
-     * @return datetime     - дата, за която се заплануват наличностите
+     * @param stdClass $rec    - запис
+     * @return array
+     *          ['date']   - дата
+     *          ['isLive'] - дали е ръчно въведена или не
      */
     public function getPlannedQuantityDate_($rec)
     {
+        $dateArr = array('isLive' => false);
+
         // Ако има ръчно въведена дата на доставка, връща се тя
-        if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
+        if (!empty($rec->deliveryTime)) {
+            $dateArr['date'] = $rec->deliveryTime;
+        } else {
+            // Връща се първата намерена от: лайв изчислената, вальора, датата на активиране, датата на създаване
+            $loadingDate = $this->getDefaultLoadingDate($rec, $rec->deliveryOn);
+            if (!empty($loadingDate)) {
+                $dateArr['date'] = $loadingDate;
+            } elseif(!empty($rec->valior)){
+                $dateArr['date'] = $rec->valior;
+            }
+        }
 
-        // Връща се първата намерена от: лайв изчислената, вальора, датата на активиране, датата на създаване
-        $loadingDate = $this->getDefaultLoadingDate($rec, $rec->deliveryOn);
-        setIfNot($loadingDate, $rec->valior, $rec->activatedOn, $rec->createdOn);
+        if(empty($dateArr['date'])){
+            $dateArr['date'] = dt::today() . " 00:00:00";
+            $dateArr['isLive'] = true;
+        }
 
-        return $loadingDate;
+        return $dateArr;
     }
 
 

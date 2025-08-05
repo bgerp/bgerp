@@ -832,7 +832,7 @@ class email_Accounts extends core_Master
             
             $lockKey = 'Inbox:' . $accRec->id;
             
-            expect(core_Locks::get($lockKey, 50, 30));
+            expect(core_Locks::obtain($lockKey, 50, 90, 30));
             
             // Връзка по IMAP към сървъра на посочената сметка
             $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
@@ -920,7 +920,7 @@ class email_Accounts extends core_Master
         
         $lockKey = 'Inbox:' . $accRec->id;
         
-        if (core_Locks::get($lockKey, 55, 30)) {
+        if (core_Locks::obtain($lockKey, 55, 90, 30)) {
             $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
             
             if ($imapConn->connect() !== false) {

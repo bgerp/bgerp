@@ -169,7 +169,7 @@ class auto_Calls extends core_Manager
         
         // Ако процеса е заключен не се изпълнява
         $lockKey = 'DoAutomations';
-        if (!core_Locks::get($lockKey, 60, 2)) {
+        if (!core_Locks::obtain($lockKey, 60, 10, 2)) {
 
             return;
         }

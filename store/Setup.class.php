@@ -200,6 +200,15 @@ class store_Setup extends core_ProtoSetup
             'offset' => 10,
             'timeLimit' => 300,
         ),
+        array(
+            'systemId' => 'Recalc All Planned Quantities',
+            'description' => 'Преизчисляване на планираните количества',
+            'controller' => 'store_StockPlanning',
+            'action' => 'RecalcAllPlannedQuantities',
+            'period' => 1440,
+            'offset' => 30,
+            'timeLimit' => 600,
+        ),
 
     );
     

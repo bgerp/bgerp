@@ -1401,7 +1401,7 @@ class crm_Companies extends core_Master
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         if ($mvc->updateGroupsCnt) {
             crm_Groups::updateGroupsCnt($mvc->className, 'companiesCnt');

@@ -794,7 +794,7 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Извличаме мета информцията с Apache Tika
             apachetika_Detect::extract($fRec->fileHnd, $params);
@@ -868,7 +868,7 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Инстанция на класа
             $Script = cls::get('fconv_Script');

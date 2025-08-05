@@ -683,12 +683,13 @@ class store_ConsignmentProtocols extends core_Master
      *               ['countryId']      string|NULL - ид на държава
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
+     *               ['deliveryOn']     date        - Доставка на
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
         $row = $this->recToVerbal($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
         $res['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
         $res['stores'] = array($rec->storeId);
 
@@ -790,7 +791,7 @@ class store_ConsignmentProtocols extends core_Master
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = $this->getPlannedQuantityDate($rec);
+        $dateArr = $this->getPlannedQuantityDate($rec);
 
         $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
         $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
@@ -809,7 +810,7 @@ class store_ConsignmentProtocols extends core_Master
 
             $res[] = (object)array('storeId'          => $rec->storeId,
                                    'productId'        => $dRec->productId,
-                                   'date'             => $date,
+                                   'date'             => $dateArr['date'],
                                    'quantityIn'       => null,
                                    'quantityOut'      => $dRec->totalQuantity,
                                    'genericProductId' => $genericProductId);
@@ -864,8 +865,10 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * За коя дата се заплануват наличностите
      *
-     * @param stdClass $rec - запис
-     * @return datetime     - дата, за която се заплануват наличностите
+     * @param stdClass $rec    - запис
+     * @return array
+     *          ['date']   - дата
+     *          ['isLive'] - дали е ръчно въведена или не
      */
     public function getPlannedQuantityDate_($rec)
     {
@@ -873,8 +876,9 @@ class store_ConsignmentProtocols extends core_Master
         if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
 
         $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
+        $dateArr = array('date' => dt::addSecs(-1 * $preparationTime, $rec->deliveryOn), 'isLive' => false);
 
-        return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+        return $dateArr;
     }
 
 

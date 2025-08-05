@@ -818,4 +818,21 @@ class sales_Quotations extends deals_QuotationMaster
 
         return $res;
     }
+
+
+    /**
+     * Да се показват ли двойни цени в офертите
+     *
+     * @param int $folderId
+     * @return bool
+     */
+    public function showDualPrices($folderId)
+    {
+        $Cover = doc_Folders::getCover($folderId);
+        if($Cover->isInstanceOf('crm_Persons')) return true;
+
+        return sales_Setup::get('SHOW_COMPANY_QUOTES_DUAL_PRICES') == 'yes';
+
+        return false;
+    }
 }

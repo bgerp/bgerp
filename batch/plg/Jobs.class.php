@@ -28,6 +28,17 @@ class batch_plg_Jobs extends core_Plugin
 
 
     /**
+     * След дефиниране на полетата на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Mvc $mvc)
+    {
+        setIfNot($mvc->canReceiveNewBatch, true);
+    }
+
+
+    /**
      * Филтриране по подразбиране на наличните партиди
      */
     public static function on_AfterFilterBatches($mvc, &$res, $rec, &$batches)
@@ -271,6 +282,17 @@ class batch_plg_Jobs extends core_Plugin
             }
 
             $res = countR($options) ? $options : null;
+        }
+    }
+
+
+    /**
+     * Може ли да се създават нови партиди при засклаждане с този документ
+     */
+    public static function on_AfterCanReceiveNewBatch($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $res = $mvc->canReceiveNewBatch;
         }
     }
 }

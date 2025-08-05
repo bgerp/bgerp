@@ -49,13 +49,31 @@ class wtime_OnSiteEntries extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools,plg_Created,plg_Search,wtime_Wrapper';
+    public $loadList = 'plg_RowTools,plg_Created,plg_Search,wtime_Wrapper,plg_SelectPeriod';
 
 
     /**
      * Полета, по които ще се търси
      */
     public $searchFields = "personId,type,place";
+
+
+    /**
+     * Кои записи да се рекалкулират на шътдаун
+     */
+    protected $recalcOnShutdown = array();
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,personId';
+
+
+    /**
+     * @var string
+     */
+    public $canTrackonline = 'user';
 
 
     /**
@@ -66,9 +84,13 @@ class wtime_OnSiteEntries extends core_Manager
         $this->FLD('time', 'datetime(format=smartTime)', 'caption=Време,mandatory');
         $this->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,mandatory');
         $this->FLD('type', 'enum(in=Влиза,out=Излиза)', 'caption=Вид');
-        $this->FLD('place', 'varchar(64)', 'caption=Място,mandatory,tdClass=leftCol');
-        $this->FLD('onSiteTime', 'time', 'caption=Време на място,input=none');
-        $this->FLD('sourceClassId', 'class', 'caption=Източник,input=none');
+        $this->FLD('place', 'varchar(64)', 'caption=Място,mandatory,tdClass=leftCol,input=none');
+        $this->FLD('onSiteTime', 'time(noSmart,uom=minutes)', 'caption=Време на място,input=none');
+        $this->FLD('sourceClassId', 'class(select=title)', 'caption=Източник,input=none');
+
+        $this->setDbIndex('time');
+        $this->setDbIndex('personId');
+        $this->setDbIndex('time,personId');
     }
 
 
@@ -98,6 +120,10 @@ class wtime_OnSiteEntries extends core_Manager
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             $rec->_fromForm = true;
+
+            if($rec->time > dt::now()){
+                $form->setError('time', "Датата не може да е в бъдешето|*!");
+            }
         }
     }
 
@@ -108,8 +134,34 @@ class wtime_OnSiteEntries extends core_Manager
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
         if($rec->_fromForm){
-            self::calcOnSiteTime(null, $rec->personId);
-            core_Statuses::newStatus("Преизчислено е прекараното време на място на|*: <b>" . crm_Persons::getTitleById($rec->personId). "</b>");
+            $mvc->recalcOnShutdown[] = $rec;
+        }
+    }
+
+
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            $mvc->recalcOnShutdown[] = $rec;
+        }
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // За кои лица ще се преизчисли обобщението
+        foreach ($mvc->recalcOnShutdown as $rec){
+            $from = dt::addDays(-1, $rec->time, false);
+
+            wtime_Summary::recalc($from, null, $rec->personId);
+            $fromVerbal = dt::mysql2verbal($from, 'd.m.y');
+            core_Statuses::newStatus("Преизчислено е обобщението от|* <b>{$fromVerbal}</b> |на|* <b>" . crm_Persons::getVerbal($rec->personId, 'name'). "</b>");
         }
     }
 
@@ -119,10 +171,28 @@ class wtime_OnSiteEntries extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->title = 'Търсене';
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->setFieldType('type', 'enum(all=Влиза/Излиза,in=Влиза,out=Излиза)');
-        $data->listFilter->showFields = 'search,personId,type';
+        $sourceOptions = array();
+        $query = self::getQuery();
+        $query->where("#sourceClassId IS NOT NULL");
+        $query->show('sourceClassId');
+        $sourceClassIds = arr::extractValuesFromArray($query->fetchAll(), 'sourceClassId');
+        foreach($sourceClassIds as $sourceClassId){
+            $sourceOptions[$sourceClassId] = core_Classes::getTitleById($sourceClassId);
+        }
+
+        $showFields = 'selectPeriod,search,personId,type';
+        $data->listFilter->FLD('from', 'date', 'caption=От,silent');
+        $data->listFilter->FLD('to', 'date', 'caption=До,silent');
+        $data->listFilter->setFieldType('type', 'enum(all=Влиза / Излиза,in=Влиза,out=Излиза)');
+        $data->listFilter->setField('type', 'maxRadio=0');
+        if(countR($sourceOptions)){
+            $data->listFilter->FLD('source', 'varchar', 'caption=Източник,maxRadio=0,placeholder=Всички');
+            $data->listFilter->setOptions('source', array('' => '', 'manual' => 'Ръчно добавени') + $sourceOptions);
+            $showFields .= ',source';
+        }
+        $data->listFilter->class = 'simpleForm';
+        $data->listFilter->defOrder = false;
+        $data->listFilter->showFields = $showFields;
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         $data->listFilter->setDefault('type', 'all');
@@ -136,6 +206,22 @@ class wtime_OnSiteEntries extends core_Manager
             if($filter->type != 'all'){
                 $data->query->where("#type = {$filter->type}");
             }
+
+            if (!empty($filter->from)) {
+                $data->query->where("#time >= '{$filter->from} 00:00:00'");
+            }
+
+            if (!empty($filter->to)) {
+                $data->query->where("#time <= '{$filter->to} 23:59:59'");
+            }
+
+            if (!empty($filter->source)) {
+                if($filter->source == 'manual'){
+                    $data->query->where("#sourceClassId IS NULL");
+                } else {
+                    $data->query->where("#sourceClassId = {$filter->source}");
+                }
+            }
         }
     }
 
@@ -146,10 +232,18 @@ class wtime_OnSiteEntries extends core_Manager
      */
     protected function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->personId = crm_Persons::getHyperlink($rec->personId, true);
+        $personName = crm_Persons::getVerbal($rec->personId, 'name');
+        $row->personId = ht::createLink($personName, crm_Persons::getSingleUrlArray($rec->personId));
 
         $color = $rec->type == 'in' ? 'green' : 'darkred';
         $row->type = "<div style='color:{$color};font-weight:bold;'>{$row->type}</div>";
+
+        $color = $rec->type == 'out' ? 'rgba(255, 0, 0, 0.1)' : 'rgba(0, 255, 0, 0.1)';
+        $row->ROW_ATTR['style'] = "background-color:{$color};";
+
+        if(empty($rec->sourceClassId)){
+            $row->sourceClassId = "<i class='quiet'>" . tr('Ръчно') . "</i>";
+        }
     }
 
 
@@ -180,9 +274,41 @@ class wtime_OnSiteEntries extends core_Manager
                              'time'     => $time,
                              'type'     => $type,
                              'place'    => $zoneName,
-                             'classId'  => $classId);
+                             'sourceClassId'  => $classId);
 
         return static::save($rec);
+    }
+
+
+    /**
+     * Връща записите групирани по лице
+     *
+     * @param datetime|null $from - от коя дата
+     * @param int|null $personId  - ид на лице
+     * @param string $type        -
+     * @return array
+     */
+    public static function getPersonEntries($from = null, $personId = null, $type = null)
+    {
+        $query = static::getQuery();
+        $query->orderBy('time', 'ASC');
+        if(isset($from)){
+            $query->where(array("#time >= '[#1#]'", $from));
+        }
+        if(isset($personId)){
+            $query->where("#personId = {$personId}");
+        }
+
+        if(isset($type)){
+            $query->where("#type = '{$type}'");
+        }
+
+        $onSiteTimes = array();
+        while($rec = $query->fetch()){
+            $onSiteTimes[$rec->personId][$rec->time] = $rec;
+        }
+
+        return $onSiteTimes;
     }
 
 
@@ -195,89 +321,123 @@ class wtime_OnSiteEntries extends core_Manager
      */
     public static function calcOnSiteTime($from = null, $personId = null)
     {
-        // Извличане на заявките
-        $query = static::getQuery();
-        $query->orderBy('time', 'ASC');
-        if(isset($from)){
-            $query->where(array("#time >= '[#1#]'", $from));
-        }
-        if(isset($personId)){
-            $query->where("#personId = {$personId}");
-        }
+        // Вземаме всички записи
+        $onSiteTimes  = self::getPersonEntries($from, $personId);
+        $toSave       = [];
+        $today        = dt::today();              // string "Y-m-d"
+        $nowTs        = time();
+        $nowDateTime  = new \DateTime();
 
-        $onSiteTimes = array();
-        while($rec = $query->fetch()){
-            $onSiteTimes[$rec->personId][$rec->time] = $rec;
-        }
-
-        $toSave = array();
-        $now = dt::now();
-        $nowDateTime = new DateTime();
-
-        // Графиците ще се гледат от вчера до края на деня днес
-        $scheduleTo = dt::today() . " 23:59:59";
-        $scheduleFrom = dt::addSecs(-1 * 24 * 60 * 60);
+        // Граници за графика
+        $scheduleTo   = dt::today() . ' 23:59:59';
+        $scheduleFrom = dt::addDays(-1, $from, false) . ' 00:00:00';
 
         foreach ($onSiteTimes as $personId => &$events) {
-
-            // Сортиране на събитията
             ksort($events);
 
-            // Извличане на графика на лицето
             $scheduleId = planning_Hr::getSchedule($personId);
-            $Interval = hr_Schedules::getWorkingIntervals($scheduleId, $scheduleFrom, $scheduleTo);
+            $Interval   = hr_Schedules::getWorkingIntervals($scheduleId, $scheduleFrom, $scheduleTo);
 
-            // Ако има само едно събитие
-            if (countR($events) == 1) {
-                $only = reset($events);
-
-                // Ако текущото събитие е Вход и е последното за дадения служител, ако то попада в работния график
-                // за дадения човек и в момента също сме в работния график - записваме към него от момента
-                // на събитието до сега, като прекарано време. Иначе - 0.
-                if ($only->type == 'in') {
-                    $dtStart = new DateTime($only->time);
-                    if ($Interval->isIn($now) && $Interval->isIn($only->time)){
-                        $only->onSiteTime = $nowDateTime->getTimestamp() - $dtStart->getTimestamp();
-                    } else {
-                        $only->onSiteTime = 0;
-                    }
-                    $toSave[$only->id] = $only;
-                }
-                continue; // минаваме на следващия служител
+            // Групиране по дата
+            $byDate = [];
+            foreach ($events as $rec) {
+                $day = (new \DateTime($rec->time))->format('Y-m-d');
+                $byDate[$day][] = $rec;
             }
 
-            // Ако има повече от един запис, обхождат се
-            $list = array_values($events);
-            $n    = count($list);
+            // Пълен списък дни от първи до последен
+            $allDays = [];
+            if (!empty($byDate)) {
+                $daysList = array_keys($byDate);
+                sort($daysList);
+                $startDay = new \DateTime(reset($daysList));
+                $endDay   = new \DateTime(end($daysList));
+                $period   = new \DatePeriod(
+                    $startDay,
+                    new \DateInterval('P1D'),
+                    (clone $endDay)->modify('+1 day')
+                );
+                foreach ($period as $dt) {
+                    $allDays[] = $dt->format('Y-m-d');
+                }
+            }
 
-            for ($i = 0; $i < $n; $i++) {
-                $curr = $list[$i];
+            // Обхождаме всеки ден
+            foreach ($allDays as $day) {
+                $todayEvents   = $byDate[$day]       ?? [];
+                $prevDate      = (new \DateTime($day))
+                    ->modify('-1 day')
+                    ->format('Y-m-d');
+                $prevDayEvents = $byDate[$prevDate]  ?? [];
+                $prevDayLast   = end($prevDayEvents) ?: null;
 
-                // Aко предишният е 'in', записва се времето до текущия
-                if ($i > 0) {
+                // Създаваме списък за изчисления
+                $list = $prevDayLast
+                    ? array_merge([$prevDayLast], $todayEvents)
+                    : $todayEvents;
+
+                if (empty($list)) continue;
+
+                if (count($list) === 1 && ! $prevDayLast) {
+                    $only = $list[0];
+                    if ($only->type === 'in') {
+                        $only->onSiteTime = 0;
+                        $toSave[$only->id] = $only;
+                    }
+                    continue;
+                }
+
+                // Обхождаме двойките prev→curr
+                $count = count($list);
+                for ($i = 1; $i < $count; $i++) {
                     $prev = $list[$i - 1];
-                    if ($prev->type === 'in') {
-                        $dt1 = new DateTime($prev->time);
-                        $dt2 = new DateTime($curr->time);
-                        $prev->onSiteTime = $dt2->getTimestamp() - $dt1->getTimestamp();
+                    $curr = $list[$i];
+
+                    // Два входа един след друг
+                    if ($prev->type === 'in' && $curr->type === 'in') {
+                        $b = strtotime($prev->time);
+                        $e = strtotime($curr->time);
+                        $prev->onSiteTime = $Interval->haveBreak($b, $e, 0.9)
+                            ? 0
+                            : ($e - $b);
+                        $toSave[$prev->id] = $prev;
+                        continue;
+                    }
+
+                    // Нормален in→out или in в рамките на деня
+                    if ($prev->type === 'in' && isset($list[$i])) {
+                        $startTs = strtotime($prev->time);
+                        $endTs   = strtotime($curr->time);
+                        if ($curr->type === 'out' || $Interval->isIn($prev->time)) {
+                            $prev->onSiteTime = $endTs - $startTs;
+                        } else {
+                            $prev->onSiteTime = 0;
+                        }
                         $toSave[$prev->id] = $prev;
                     }
                 }
+            }
 
-                //  Aко текущият е 'in' и е последен за този служител
-                if ($curr->type === 'in' && $i === $n - 1) {
-                    $dtStart = new DateTime($curr->time);
+            // След всички дни: ако последният запис е вход
+            $lastDay = end($allDays) ?: null;
+            $endDay = $byDate[$lastDay] ?? [];
+            $lastRec = $lastDay
+                ? end($endDay)
+                : null;
 
-                    // Ако текущото събитие е Вход и е последното за дадения служител, ако то попада в работния график
-                    // за дадения човек и в момента също сме в работния график - записваме към него от момента
-                    // на събитието до сега, като прекарано време. Иначе - 0.
-                    if ($Interval->isIn($now) && $Interval->isIn($curr->time)){
-                        $curr->onSiteTime = $nowDateTime->getTimestamp() - $dtStart->getTimestamp();
-                    } else {
-                        $curr->onSiteTime = 0;
-                    }
-                    $toSave[$curr->id] = $curr;
+            if ($lastRec && $lastRec->type === 'in') {
+                // Ако е днес, в рамките на график, смятаме до текущия момент
+                if ($lastDay === $today && $Interval->isIn($nowDateTime)) {
+                    $lastRec->onSiteTime = $nowTs - strtotime($lastRec->time);
                 }
+                else {
+                    // иначе както преди: проверка за голяма пауза
+                    $b = strtotime($lastRec->time);
+                    $lastRec->onSiteTime = $Interval->haveBreak($b, $nowTs, 0.9)
+                        ? 0
+                        : ($nowTs - $b);
+                }
+                $toSave[$lastRec->id] = $lastRec;
             }
         }
 
@@ -286,5 +446,151 @@ class wtime_OnSiteEntries extends core_Manager
             $me = cls::get(get_called_class());
             $me->saveArray($toSave, 'id,onSiteTime');
         }
+    }
+
+
+    /**
+     * Изчислява работното време прекарано извън графика на служителя за дадения интервал
+     *
+     * @param int $personId                 - ид на служител
+     * @param string $date                  - за коя дата
+     * @param $startOn                      - начало
+     * @param $duration                     - продължителност
+     * @param core_Intervals|null $Schedule - готов интервал с графика, null - ще се вземе сега
+     * @return int $offTimeSchedule         - прекарано време извън графика
+     */
+    public static function getOffScheduleTime($personId, $date, $startOn, $duration, core_Intervals $Schedule = null)
+    {
+        // Ако няма интервал търси се графика на служителя за работното му време
+        if(!isset($Schedule)){
+            $scheduleTo = "{$date} 23:59:59";
+            $calcFromTime = dt::addDays(-1, $scheduleTo, false) . " 00:00:00";
+            $scheduleId = planning_Hr::getSchedule($personId);
+            $Schedule = hr_Schedules::getWorkingIntervals($scheduleId, $calcFromTime, $scheduleTo);
+        }
+
+        // Началото и края на интервала, който ще засичаме
+        $begin =  strtotime($startOn);
+        $end = $begin + $duration;
+
+        $workingTimeInFrames = $Schedule->getFrame($begin, $end);
+        $workTimeOnSchedule = 0;
+        foreach($workingTimeInFrames as $t) {
+            $workTimeOnSchedule += $t[1] - $t[0];
+        }
+
+        // От цялата продължителност се вади прекараното работно време по график - остатъка е извън графика
+        $offTimeSchedule = $duration - $workTimeOnSchedule;
+
+        return $offTimeSchedule;
+    }
+
+
+    /**
+     * Връща последния запис за дадено лице
+     *
+     * @param integer $personId
+     * @param null|datetime $time
+     *
+     * @return object|null
+     */
+    public static function getLastState($personId, $time = null)
+    {
+        $query = static::getQuery();
+        $query->where(array("#personId = '[#1#]'", $personId));
+        if (isset($time)) {
+            $query->where(array("#time >= '[#1#]'", $time));
+        }
+
+        $query->orderBy('time', 'DESC');
+        $query->limit(1);
+
+        if ($rec = $query->fetch()) {
+            return (object)array('type' => $rec->type, 'time' => $rec->time);
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'trackonline') {
+            if (haveRole('noTrackonline', $userId)) {
+                $requiredRoles = 'no_one';
+            }
+
+            if ($requiredRoles != 'no_one') {
+
+                $sIps = wtime_Setup::get('SITE_IPS');
+                $ipArr = type_Ip::extractIps($sIps);
+                if (countR($ipArr['ips'])) {
+                    $thisIp = core_Users::getRealIpAddr();
+                    if (!type_Ip::isInIps($thisIp, $ipArr)) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Действие за затваряне на изскачащ прозорец
+     */
+    public function act_SkipPopup()
+    {
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('Portal', 'show');
+        }
+
+        expect($uId = Request::get('id'));
+
+        expect(core_Users::getCurrent() == $uId);
+
+        $this->requireRightFor('trackonline', null, $uId);
+
+        $type = Request::get('type');
+        $type = ucfirst(strtolower($type));
+
+        Mode::setPermanent('trackonline', 'skipPopup' . $type);
+
+        return new Redirect($retUrl);
+    }
+
+
+    /**
+     * Действие за потвърждение на изскачащ прозорец
+     *
+     * @return Redirect
+     */
+    public function act_ConfirmPopup()
+    {
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+            $retUrl = array('Portal', 'show');
+        }
+
+        expect($uId = Request::get('id'));
+
+        expect(core_Users::getCurrent() == $uId);
+
+        $this->requireRightFor('trackonline', null, $uId);
+
+        $personId = crm_Profiles::getPersonByUser($uId);
+        $type = Request::get('type');
+        $classId = core_Users::getClassId();
+
+        $zRec = $this->addEntry($personId, dt::now(), $type, '', $classId);
+
+        expect($zRec);
+
+        Mode::setPermanent('trackonline', 'confirmPopup');
+
+        return new Redirect($retUrl);
     }
 }

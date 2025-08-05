@@ -329,7 +329,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
 
         $rec->dealValue = $this->_total->amount * $rate;
-        $rec->vatAmount = $this->_total->vat * $rate;
+        $rec->vatAmount = empty($this->_total->vat) ? 0 : $this->_total->vat * $rate;
         $rec->discountAmount = $this->_total->discount * $rate;
 
         if ($save === true) {
@@ -717,10 +717,13 @@ abstract class deals_InvoiceMaster extends core_Master
         if (empty($data->noTotal)) {
             $rate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
             if (isset($rec->type) && $rec->type != 'invoice' && isset($rec->changeAmount)) {
+
                 $this->_total = new stdClass();
                 $this->_total->amount = $rec->dealValue / $rate;
-                $this->_total->vat = $rec->vatAmount / $rate;
-                @$percent = round($this->_total->vat / $this->_total->amount, 2);
+                $this->_total->vat = empty($rec->vatAmount) ? 0 : $rec->vatAmount / $rate;
+
+                @$percent = empty($this->_total->vat) ? 0 : round($this->_total->vat / $this->_total->amount, 2);
+
                 $percent = is_nan($percent) ? 0 : $percent;
                 $this->_total->vats["{$percent}"] = (object) array('amount' => $this->_total->vat, 'sum' => $this->_total->amount);
             }
@@ -1099,10 +1102,11 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
                 
                 if ($originRec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
+
                     $rate = !empty($rec->displayRate) ? $rec->displayRate : $rec->rate;
                     $diff = ($rec->changeAmount * $rate);
-                    $rec->vatAmount = $diff * $vat;
-                    
+                    $rec->vatAmount = empty($vat) ? 0 : $diff * $vat;
+
                     // Стойността е променената сума
                     $rec->dealValue = $diff;
                 }

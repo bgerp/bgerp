@@ -314,7 +314,7 @@ class bgfisc_plg_Sales extends core_Plugin
         $actions = type_Set::toArray($rec->contoActions);
         if (isset($actions['pay'])) {
             bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id);
-            core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
+            core_Locks::obtain("lock_{$mvc->className}_{$rec->id}", 90, 15, 5, false);
         }
     }
     
