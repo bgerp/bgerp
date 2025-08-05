@@ -246,7 +246,7 @@ class core_DbSess extends core_Manager
         $this->sessId = $this->generateSessionId((int) (EF_SESS_ID_LEN / 2));
         $this->vars   = array();
         $this->loaded = true;
-bp();
+
         if (!headers_sent()) {
             $this->sendCookie($this->sessName, $this->sessId);
         }
