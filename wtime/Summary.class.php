@@ -81,7 +81,7 @@ class wtime_Summary extends core_Manager
      */
     public function description()
     {
-        $this->FLD('personId', 'key2(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител');
+        $this->FLD('personId', 'key2(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent');
         $this->FLD('date', 'date', 'caption=Ден');
         $this->FLD('onSiteTime', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->На място');
         $this->FLD('onSiteTimeOffSchedule', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->Извънработно');
@@ -112,6 +112,7 @@ class wtime_Summary extends core_Manager
         $data->listFilter->class = 'simpleForm';
         $data->listFilter->defOrder = false;
         $data->listFilter->showFields = 'selectPeriod,personId,from,to,type';
+        $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
         $data->query->orderBy('date', 'DESC');
 
@@ -720,6 +721,11 @@ class wtime_Summary extends core_Manager
         $tpl->append($dTable);
         if ($data->Pager) {
             $tpl->append($data->Pager->getHtml());
+        }
+
+        if(wtime_Summary::haveRightFor('list')){
+            $listBtn = ht::createLink('', array($this, 'list', 'personId' => $data->masterId), false, 'ef_icon=img/16/funnel.png');
+            $tpl->append($listBtn, 'wTimeFilter');
         }
 
         return $tpl;
