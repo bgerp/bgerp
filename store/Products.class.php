@@ -288,7 +288,7 @@ class store_Products extends core_Detail
                 unset($showFieldsArr['inventory']);
             }
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-            $data->listFilter->setDefault('filters', 'active');
+            $data->listFilter->setDefault('filters', 'withStock');
             $data->listFilter->showFields = implode(',', $showFieldsArr);
             unset($data->listFilter->view);
 
