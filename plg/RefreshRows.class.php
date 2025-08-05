@@ -310,7 +310,7 @@ class plg_RefreshRows extends core_Plugin
     public static function getNameHash($refreshUrl, $hitTime)
     {
         // От URL-то и hitTime генерираме хеша за името
-        $nameHash = md5(toUrl($refreshUrl) . $hitTime);
+        $nameHash = md5(toUrl($refreshUrl) . '|' . $hitTime . '|' . core_Users::getCurrent());
         
         // Името на хеша, с който е записан в сесията
         $nameHash = 'REFRESH_ROWS_' . $nameHash;

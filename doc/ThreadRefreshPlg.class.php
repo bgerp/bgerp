@@ -146,7 +146,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
             $hitTime = dt::mysql2timestamp();
         }
         
-        $hashName = 'ThreadStatesHash_' . $threadId . '_' . $hitTime;
+        $hashName = 'ThreadStatesHash_' . $threadId . '_' . $hitTime . '_' . core_Users::getCurrent();
         
         return $hashName;
     }

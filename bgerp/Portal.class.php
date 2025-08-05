@@ -616,7 +616,7 @@ class bgerp_Portal extends embed_Manager
         
         Mode::set('hitTime', $hitTime);
         
-        return 'PORTAL_AJAX_' . $hitTime . '_' . $rec->originIdCalc;
+        return 'PORTAL_AJAX_' . $hitTime . '_' . $rec->originIdCalc . '_' . core_Users::getCurrent();
     }
     
     
