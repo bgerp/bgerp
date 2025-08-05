@@ -97,7 +97,7 @@ class plg_RefreshRows extends core_Plugin
             
             // Записваме кеша на съдържанието към името
             // за да не се използва след обновяване
-            Mode::setPermanent($nameHash, $contentHash);
+            core_Cache::set(get_called_class(), $nameHash, $contentHash, 60);
         }
     }
     
@@ -175,8 +175,8 @@ class plg_RefreshRows extends core_Plugin
         $statusHash = $mvc->getContentHash($status);
         
         // Вземаме съдържанието от предишния запис
-        $savedHash = Mode::get($nameHash);
-        
+        $savedHash = core_Cache::get(get_called_class(), $nameHash);
+
         if (empty($savedHash)) {
             $savedHash = md5($savedHash);
         }
@@ -186,7 +186,7 @@ class plg_RefreshRows extends core_Plugin
             
             // Ако ще се обновява ръчно
             if ($mvc->manualRefreshCnt) {
-                $refeshCnt = (int) Mode::get($manualNameHash);
+                $refeshCnt = (int) core_Cache::get(get_called_class(), $manualNameHash);
                 $refeshCnt++;
                 
                 $type = 'notice';
@@ -196,13 +196,13 @@ class plg_RefreshRows extends core_Plugin
                 
                 $res = $mvc->manualRefreshRes($refreshUrlOrig, $type);
                 
-                Mode::setPermanent($manualNameHash, $refeshCnt);
+                core_Cache::set(get_called_class(), $manualNameHash, $refeshCnt, 60);
                 
                 return false;
             }
             
             // Записваме новата стойност, за да не се извлича следващия път за този таб
-            Mode::setPermanent($nameHash, $statusHash);
+            core_Cache::set(get_called_class(), $nameHash, $statusHash, 60);
             
             $divId = Request::get('divId');
             
@@ -335,7 +335,7 @@ class plg_RefreshRows extends core_Plugin
         
         $res = false;
         
-        if ((int) Mode::get($nameHash) >= $maxRefreshTimes) {
+        if ((int) core_Cache::get(get_called_class(), $nameHash) >= $maxRefreshTimes) {
             $res = true;
         }
     }
@@ -470,13 +470,13 @@ class plg_RefreshRows extends core_Plugin
         
         $modeName = $mvc->className . '_last_' . $hitTime;
         
-        $modeLastTime = Mode::get($modeName);
+        $modeLastTime = core_Cache::get(get_called_class(), $modeName);
         
         $nt = dt::mysql2timestamp() - 5;
         
         $maxTime = max(array($hitTime, $modeLastTime, $lastChanges, $nt));
         
-        Mode::setPermanent($modeName, $maxTime);
+        core_Cache::set(get_called_class(), $modeName, $maxTime, 60);
         
         // Отбелязваме, че има промяна
         if (($lastChanges > $hitTime) && (!$modeLastTime || ($lastChanges > $modeLastTime))) {
