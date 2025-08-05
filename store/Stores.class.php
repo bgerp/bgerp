@@ -212,11 +212,17 @@ class store_Stores extends core_Master
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
 
-        $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да (с предупреждение),yesWithoutWarning=Да (без предупреждение))', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
-        $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
-        $this->FLD('prioritizeRackGroups', 'enum(,yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване,maxRadio=2,placeholder=Автоматично');
-        $this->FLD('palletBestPositionStrategy', 'enum(,bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Избор,placeholder=Автоматично');
+        if(core_Packs::isInstalled('rack')){
+            $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да (с предупреждение),yesWithoutWarning=Да (без предупреждение))', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
+            $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
+            $this->FLD('prioritizeRackGroups', 'enum(,yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване,maxRadio=2,placeholder=Автоматично');
+            $this->FLD('palletBestPositionStrategy', 'enum(,bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Избор,placeholder=Автоматично');
+            $this->FLD('allowSmartReturnPos', 'enum(yes=Да,no=Не)', 'caption=Връщане на палет на най-добра позиция->Избор,notNull,value=yes');
+        }
+
         $this->FLD('notifyUsers', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Нотифициране при промяна на транспортна линия->Потребители,autohide');
+
+
 
         $this->setDbUnique('name');
     }

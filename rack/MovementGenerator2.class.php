@@ -464,8 +464,13 @@ class rack_MovementGenerator2 extends core_Manager
                     $o->ret = $pQ;
                     $o->retPos = $o->pallet;
 
-                    $disableRet = rack_Setup::get('DISABLE_RETURN_TO_FIRST_ROW');
-                    if($disableRet == 'no'){
+                    $sessionStoreId = Mode::get('pickupStoreId');
+                    if($sessionStoreId){
+                        $sessionStoreId = store_Stores::getCurrent();
+                    }
+
+                    $allowSmartRet = store_Stores::fetchField($sessionStoreId, 'allowSmartReturnPos');
+                    if($allowSmartRet == 'yes'){
                         // Намираме най-добрата позиция за връщане на палет
                         // На първи ред с някаква предишна наличност
                         // На първи ред без предишна наличност

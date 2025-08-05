@@ -80,12 +80,6 @@ defIfNot('RACK_POSITION_TO_STRATEGY', 'bestPos');
 
 
 /**
- * Изключване връщане на остатък на ред "А"
- */
-defIfNot('RACK_DISABLE_RETURN_TO_FIRST_ROW', 'no');
-
-
-/**
  * class rack_Setup
  *
  * Инсталиране/Деинсталиране на пакета за палетния склад
@@ -250,7 +244,6 @@ class rack_Setup extends core_ProtoSetup
         'RACK_TIME_COUNT' => array('int', 'caption=Средни времена по операции->Броене'),
         'RACK_ENABLE_PRIORITY_RACKS' => array('enum(yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване'),
         'RACK_POSITION_TO_STRATEGY' => array('enum(bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Стратегия'),
-        'RACK_DISABLE_RETURN_TO_FIRST_ROW' => array('enum(yes=Да,no=Не)', 'caption=Изключване връщане на остатък на ред "А"->Избор'),
     );
 
 
