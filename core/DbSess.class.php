@@ -243,13 +243,16 @@ class core_DbSess extends core_Manager
      */
     private function startSession()
     {
+        if (headers_sent()) {
+
+            return ;
+        }
+
         $this->sessId = $this->generateSessionId((int) (EF_SESS_ID_LEN / 2));
         $this->vars   = array();
         $this->loaded = true;
 
-        if (!headers_sent()) {
-            $this->sendCookie($this->sessName, $this->sessId);
-        }
+        $this->sendCookie($this->sessName, $this->sessId);
     }
     
     /**
