@@ -377,4 +377,13 @@ class core_DbSess extends core_Manager
             $row->value = 'Преди: ' .  (time() - ( (int) $rec->value)) . ' сек.';
         }
     }
+
+
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('id', 'DESC');
+    }
 }
