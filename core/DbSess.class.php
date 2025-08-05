@@ -2,9 +2,9 @@
 
 defIfNot('EF_SESS_ID_LEN', 32);       // ДЪЛЖИНА на суровия sessId в cookie (хекс)
 defIfNot('EF_SESS_KEY_LEN', 64);
-defIfNot('EF_SESS_MAX_DATA_LEN', 8000);
+defIfNot('EF_SESS_MAX_DATA_LEN', 4000);
 
-defIfNot('EF_USERS_SESS_TIMEOUT', 3600);
+defIfNot('EF_USERS_SESS_TIMEOUT', 3600 );
 defIfNot('EF_USERS_SESS_LIFETIME', 10 * 3600);
 
 class core_DbSess extends core_Manager
@@ -61,6 +61,10 @@ class core_DbSess extends core_Manager
      */
     public function set($key, $value)
     {
+        // Пренебрегваме записа, ако сесията е мютната
+        if(core_Session::$mute) {
+            return;
+        }
         $this->ensureSessionId(true);
         $this->ensureLoaded();
 
@@ -137,8 +141,8 @@ class core_DbSess extends core_Manager
             $this->vars[$rec->key] = $value;
         }
 
-        if((isset($this->vars['__startOn']) && $this->vars['__startOn'] + $this->maxLifetime < time()) || 
-            (isset($this->vars['__activeOn']) && $this->vars['__activeOn'] + $this->maxInactiveTime < time())) {
+        if((isset($this->vars['__startOn']) && ($this->vars['__startOn'] + $this->maxLifetime < time())) || 
+            (isset($this->vars['__activeOn']) && ($this->vars['__activeOn'] + $this->maxInactiveTime < time()))) {
             
             $this->vars = array();
         }
@@ -196,7 +200,7 @@ class core_DbSess extends core_Manager
         if ($this->maxLifetime) {
             $lateStartOn = time() - $this->maxLifetime;
             $query = $this->getQuery();
-            while ($rec = $query->fetch("#key = '__startOn' AND #value < {$lateStartOn}")) {
+            while ($rec = $query->fetch("#key = '__startOn' AND CAST(#value AS UNSIGNED) < {$lateStartOn}")) {
                 $this->delete(array("#sessId = '[#1#]'", $rec->sessId));
             }
         }
@@ -204,7 +208,7 @@ class core_DbSess extends core_Manager
         if ($this->maxInactiveTime) {
             $lateActiveOn = time() - $this->maxInactiveTime;
             $query = $this->getQuery();
-            while ($rec = $query->fetch("#key = '__activeOn' AND #value < {$lateActiveOn}")) {
+            while ($rec = $query->fetch("#key = '__activeOn' AND CAST(#value AS UNSIGNED) < {$lateActiveOn}")) {
                 $this->delete(array("#sessId = '[#1#]'", $rec->sessId));
             }
         }
@@ -242,7 +246,7 @@ class core_DbSess extends core_Manager
         $this->sessId = $this->generateSessionId((int) (EF_SESS_ID_LEN / 2));
         $this->vars   = array();
         $this->loaded = true;
-
+bp();
         if (!headers_sent()) {
             $this->sendCookie($this->sessName, $this->sessId);
         }
@@ -357,5 +361,20 @@ class core_DbSess extends core_Manager
             'samesite' => $this->sameSite ?: 'Lax',
         ]);
         unset($_COOKIE[$this->sessionName]);
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        if(substr($rec->key, 0, 2) == '__') {
+            $row->value = 'Преди: ' .  (time() - ( (int) $rec->value)) . ' сек.';
+        }
     }
 }
