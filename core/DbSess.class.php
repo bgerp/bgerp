@@ -55,6 +55,10 @@ class core_DbSess extends core_Manager
         $this->dbEngine = 'memory';
     }
 
+
+    /**
+     * Задава променлива в сесията. Ако липсва сесия - стартира я.
+     */
     public function set($key, $value)
     {
         $this->ensureSessionId(true);
@@ -67,6 +71,33 @@ class core_DbSess extends core_Manager
         $this->setDbVar($key, $value);
     }
 
+
+    /**
+     * Проверява дали сесията е стартирана
+     */
+    public function isStarted()
+    {
+        return count($this->vars) > 0;
+    }
+
+
+    /** 
+     * Унищожава текущата сесия (ако има) и изчиства cookie. 
+     */
+    public function destroy(): void
+    {
+        $this->expireCookie();
+        $this->vars = array();
+        if(isset($this->sessId)) {
+            $sessHash = $this->hashSessId($this->sessId);
+            $this->delete("#sessId = '{$sessHash}'");
+        }
+    }
+    
+
+    /**
+     * Връща масив с всички променливи записани в сесията
+     */
     public function getAll($includeSystem = false)
     {
         if (!$this->ensureSessionId(false)) return array();
@@ -157,6 +188,9 @@ class core_DbSess extends core_Manager
         }
     }
 
+    /**
+     * Изчиства старите или не-активни сесии
+     */
     public function cron_ClearSess()
     {
         if ($this->maxLifetime) {
@@ -176,6 +210,9 @@ class core_DbSess extends core_Manager
         }
     }
 
+    /**
+     * Зарежда ИД на сесия. Ако няма в куки - създава нова
+     */
     private function ensureSessionId($createIfMissing = false)
     {
         if (!empty($this->sessId)) return true;
@@ -195,7 +232,11 @@ class core_DbSess extends core_Manager
 
         return false;
     }
+    
 
+    /**
+     * Стартира нова сесия
+     */
     private function startSession()
     {
         $this->sessId = $this->generateSessionId((int) (EF_SESS_ID_LEN / 2));
@@ -206,7 +247,10 @@ class core_DbSess extends core_Manager
             $this->sendCookie($this->sessName, $this->sessId);
         }
     }
-
+    
+    /**
+     * Продсигурява зареждането на променливите от сесията
+     */
     private function ensureLoaded()
     {
         if (!$this->loaded) {
@@ -215,7 +259,9 @@ class core_DbSess extends core_Manager
         }
     }
 
-    /** Мигрира от стария хеш към новия при регенериране на sessId */
+    /** 
+     * Мигрира от стария хеш към новия при регенериране на sessId 
+     */
     private function regenerateSessionId()
     {
         if (empty($this->sessId)) return;
@@ -298,5 +344,18 @@ class core_DbSess extends core_Manager
             if (!empty($p['samesite'])) $path .= '; samesite=' . $p['samesite'];
             setcookie($name, $value, $p['expires'], $path, '', $p['secure'], $p['httponly']);
         }
+    }
+
+    /** Изтича cookie-то. */
+    protected function expireCookie(): void
+    {
+        @setcookie($this->sessionName, '', [
+            'expires'  => time() - 3600,
+            'path'     => '/',
+            'secure'   => $this->secure,
+            'httponly' => $this->httpOnly,
+            'samesite' => $this->sameSite ?: 'Lax',
+        ]);
+        unset($_COOKIE[$this->sessionName]);
     }
 }

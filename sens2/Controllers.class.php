@@ -801,9 +801,12 @@ class sens2_Controllers extends core_Master
             core_App::flushAndClose();
         }
         
-        // Освобождава манипулатора на сесията. Ако трябва да се правят
-        // записи в сесията, то те трябва да се направят преди shutdown()
-        core_Session::pause();
+        
+        if(!(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true)) {
+            // Освобождава манипулатора на сесията. Ако трябва да се правят
+            // записи в сесията, то те трябва да се направят преди shutdown()
+            core_Session::pause();
+        }
         
         
         if ($id) {

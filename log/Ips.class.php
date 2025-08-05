@@ -100,7 +100,12 @@ class log_Ips extends core_Manager
     public static function getIpId($ip = null)
     {
         $haveSession = false;
-        $Session = cls::get('core_Session');
+
+        if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
+            $Session = cls::get('core_DbSess');
+        } else {
+            $Session = cls::get('core_Session');
+        }
         if ($Session->isStarted()) {
             $haveSession = true;
         }

@@ -219,7 +219,12 @@ class core_Mode
      */
     public static function destroy($sessPrefix = null)
     {
-        core_Session::set(EF_MODE_SESSION_VAR, null);
+        if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
+            core_Session::set(EF_MODE_SESSION_VAR, null);
+        } else {
+            $sess = cls::get('core_DbSession');
+            $sess->destroy();
+        }
         if (isset($sessPrefix)) {
             self::$mode[$sessPrefix] = null;
         } else {

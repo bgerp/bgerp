@@ -165,7 +165,12 @@ class log_Browsers extends core_Master
      */
     public static function getBridId($generate = true)
     {
-        $Session = cls::get('core_Session');
+        if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
+            $Session = cls::get('core_DbSess');
+        } else {
+            $Session = cls::get('core_Session');
+        }        
+        
         if (!$Session->isStarted()) {
             
             return ;
