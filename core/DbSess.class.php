@@ -268,7 +268,7 @@ class core_DbSess extends core_Manager
      */
     private function regenerateSessionId()
     {
-        if (empty($this->sessId)) return;
+        if (empty($this->sessId) || headers_sent()) return;
 
         $oldRaw  = $this->sessId;
         $oldHash = $this->hashSessId($oldRaw);
@@ -286,9 +286,7 @@ class core_DbSess extends core_Manager
 
         $this->delete(array("#sessId = '[#1#]'", $oldHash));
 
-        if (!headers_sent()) {
-            $this->sendCookie($this->sessName, $this->sessId);
-        }
+        $this->sendCookie($this->sessName, $this->sessId);
     }
 
     /* ===================== ХЕЛПЪРИ ===================== */
