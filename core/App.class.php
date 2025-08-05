@@ -365,9 +365,6 @@ class core_App
             core_Session::pause();
         }
         
-        // Генерираме събитието 'suthdown' във всички сингълтон обекти
-        core_Cls::afterSessionClose();
-        
         // Проверяваме състоянието на системата и ако се налага репортва
         self::checkHitStatus();
         
