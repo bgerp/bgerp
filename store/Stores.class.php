@@ -221,9 +221,6 @@ class store_Stores extends core_Master
         }
 
         $this->FLD('notifyUsers', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Нотифициране при промяна на транспортна линия->Потребители,autohide');
-
-
-
         $this->setDbUnique('name');
     }
 
@@ -291,13 +288,6 @@ class store_Stores extends core_Master
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
             $data->form->setField('workersIds', array('maxColumns' => 2));
-        }
-
-        if(!core_Packs::isInstalled('rack')){
-            $data->form->setField('samePosPallets', 'input=none');
-            $data->form->setField('closeCombinedMovementsAtOnce', 'input=none');
-            $data->form->setField('prioritizeRackGroups', 'input=none');
-            $data->form->setField('palletBestPositionStrategy', 'input=none');
         }
 
         $preparationShipmentPlaceholder = $mvc->getFieldType('preparationBeforeShipment')->toVerbal(store_Setup::get('PREPARATION_BEFORE_SHIPMENT'));
