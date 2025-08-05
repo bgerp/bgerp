@@ -44,7 +44,7 @@ class crm_PersonsDetails extends core_Manager
             if(core_Packs::isInstalled('wtime')){
                 $cu = core_Users::getCurrent();
                 $cuPersonId = crm_Profiles::getPersonByUser($cu);
-                if(haveRole('hr,hrMaster,ceo') || $data->masterData->rec->inCharge == $cu || $cuPersonId == $data->masterId) {
+                if(haveRole('hr,hrMaster,ceo,wtime') || $data->masterData->rec->inCharge == $cu || $cuPersonId == $data->masterId) {
                     $data->Wtimes = cls::get('wtime_Summary');
                     $WtimeData = new stdClass();
                     $WtimeData->masterMvc = $data->masterMvc;
