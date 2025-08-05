@@ -2195,7 +2195,9 @@ abstract class deals_Helper
         }
 
         if($mvc instanceof sales_Quotations) {
-            if(!in_array($defaultChargeVat, array('no', 'exempt'))) return 'yes';
+            if($Class instanceof crm_Persons) {
+                if(!in_array($defaultChargeVat, array('no', 'exempt'))) return 'yes';
+            }
         }
 
         if(isset($chargeVatConditionSysId)){

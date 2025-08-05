@@ -633,7 +633,7 @@ class crm_Locations extends core_Master
         
         $recs = array();
         while ($rec = $query->fetch()) {
-            if(isset($onlyWithRoutesInNextNdays) && !countR(sales_Routes::getRouteOptions($rec->id, $onlyWithRoutesInNextNdays))) continue;
+            if(isset($onlyWithRoutesInNextNdays) && !countR(sales_Routes::getRouteOptions($rec->id, $onlyWithRoutesInNextNdays, 'delivery'))) continue;
             
             $recs[$rec->id] = $rec;
         }

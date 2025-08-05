@@ -187,7 +187,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         }
         
         // Заключваме процеса за определно време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Стартираме конвертирането
             return static::convertPdfToTxt($file, $params);
@@ -244,7 +244,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         }
         
         // Заключваме процеса за определно време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Стартираме конвертирането
             static::convertPdfToJpg($fRec->fileHnd, $params);

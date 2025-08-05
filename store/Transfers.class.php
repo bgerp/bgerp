@@ -998,10 +998,11 @@ class store_Transfers extends core_Master
      * За коя дата се заплануват наличностите
      *
      * @param stdClass $rec    - запис
-     * @param bool $isDateLive - дали датата е лайв
-     * @return datetime        - дата, за която се заплануват наличностите
+     * @return array
+     *          ['date']   - дата
+     *          ['isLive'] - дали е ръчно въведена или не
      */
-    public function getPlannedQuantityDate_($rec, &$isDateLive = false)
+    public function getPlannedQuantityDate_($rec)
     {
         $dateArr = array('isLive' => false);
 

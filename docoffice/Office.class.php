@@ -207,7 +207,7 @@ class docoffice_Office
      */
     public static function lockOffice($maxDuration = 20, $maxTray = 10)
     {
-        core_Locks::get('OfficePacket', $maxDuration, $maxTray, false);
+        core_Locks::obtain('OfficePacket', $maxDuration, 3 * $maxTray, $maxTray, false);
     }
     
     

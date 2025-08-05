@@ -278,7 +278,7 @@ class ztm_RegisterValues extends core_Manager
         }
         
         // Заключване на синхронизацията
-        //if(!core_Locks::get("ZTM_SYNC_DEVICE_{$deviceRec->id}")){
+        //if(!core_Locks::obtain("ZTM_SYNC_DEVICE_{$deviceRec->id}")){
         // $this->logNotice('Синхронизирането на устройството е вече заключено');
         //}
         

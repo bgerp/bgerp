@@ -954,7 +954,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         // Заключваме показването на информацията от баланса в кориците и документи
-        core_Locks::get(acc_Balances::saveLockKey);
+        core_Locks::obtain(acc_Balances::saveLockKey);
         
         //Прочитаме всички текущи записи за този баланс
         $query = self::getQuery();

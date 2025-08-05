@@ -408,7 +408,7 @@ class rack_plg_Shipments extends core_Plugin
 
                 // Ако има такива дето може се приключват
                 foreach ($closeRecs as $mRec){
-                    if (!core_Locks::get("movement{$mRec->id}", 120, 0)) {
+                    if (!core_Locks::obtain("movement{$mRec->id}", 120, 0, 0)) {
                         continue;
                     }
 

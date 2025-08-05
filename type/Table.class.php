@@ -233,7 +233,7 @@ class type_Table extends type_Blob
                 document.addEventListener('DOMContentLoaded', updateButtonState);
 
                 // Обнови състоянието на бутона след всяко натискане
-                document.getElementById('dblRow_newArray').addEventListener('click', function() {
+                document.getElementById('{$newRowBtnName}').addEventListener('click', function() {
                 // Позволи на DOM-а първо да добави реда, после проверяваме
                 setTimeout(updateButtonState, 50);
         });";

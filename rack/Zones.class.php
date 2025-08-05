@@ -1045,7 +1045,7 @@ class rack_Zones extends core_Master
      */
     public static function pickupAll($storeId, $defaultUserId = null, $productIds = null)
     {
-        if (!core_Locks::get("PICKED_UP{$storeId}", 21, 20)) {
+        if (!core_Locks::obtain("PICKED_UP{$storeId}", 21, 50, 20)) {
             wp('RACK_PICK_UP_ALL_TIMEOUT', $storeId, $defaultUserId, $productIds);
             return;
         }
