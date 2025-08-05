@@ -222,7 +222,7 @@ class core_Mode
         if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
             core_Session::set(EF_MODE_SESSION_VAR, null);
         } else {
-            $sess = cls::get('core_DbSession');
+            $sess = cls::get('core_DbSess');
             $sess->destroy();
         }
         if (isset($sessPrefix)) {
