@@ -828,6 +828,8 @@ class sales_Quotations extends deals_QuotationMaster
      */
     public function showDualPrices($folderId)
     {
+        if (!defined('SALES_QUOTATION_DUAL_PRICE'))  return false;
+
         $Cover = doc_Folders::getCover($folderId);
         if($Cover->isInstanceOf('crm_Persons')) return true;
 

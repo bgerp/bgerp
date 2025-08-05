@@ -56,7 +56,12 @@ class log_Mysql extends core_Manager {
      */
     public $canDelete = 'no_one';
     
-    
+
+    /**
+     * Да не се правят репликации
+     */
+    public $doReplication = false;
+
     /**
      * Плъгини за зареждане
      */
@@ -81,7 +86,7 @@ class log_Mysql extends core_Manager {
     public function description()
     {
         $this->FLD('crc', 'bigint', 'caption=Код');
-        $this->FLD('query', 'varchar(16000,collate=ascii_bin)', 'caption=Заявка');
+        $this->FLD('query', 'varbinary(20000)', 'caption=Заявка');
         $this->FLD('time', 'float', 'caption=Време->Общо');
         $this->FLD('timeAvg', 'float', 'caption=Време->Средно');
         $this->FLD('timeMax', 'float', 'caption=Време->Макс.');
