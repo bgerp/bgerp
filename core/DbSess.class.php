@@ -92,7 +92,7 @@ class core_DbSess extends core_Manager
     /** 
      * Унищожава текущата сесия (ако има) и изчиства cookie. 
      */
-    public function destroy(): void
+    public function destroy()
     {
         $this->expireCookie();
         $this->vars = array();
