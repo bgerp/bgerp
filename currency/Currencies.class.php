@@ -182,13 +182,13 @@ class currency_Currencies extends core_Master
 
         switch($currency) {
             case 'BGN': 
-                $amount .= '&nbsp;' . tr('лв');
+                $amount .= "&nbsp;<span class='currencySignNextToAmount'>" . tr('лв') . ".</span>";
                 break;
             case 'USD': 
                 $amount = "\$&nbsp;{$amount}";
                 break;
             case "EUR":
-                $amount = ($isOurCurrency) ? "{$amount}&nbsp;€" : "€&nbsp;{$amount}";
+                $amount = ($isOurCurrency) ? "{$amount}&nbsp;<span class='currencySignNextToAmount'>€</span>" : "€&nbsp;{$amount}";
                 break;
             case "GBP":
                 $amount = "£&nbsp;{$amount}";
@@ -204,6 +204,7 @@ class currency_Currencies extends core_Master
 
         return $amount;
     }
+
     
     /**
      * Връща кода на валутата по зададено id

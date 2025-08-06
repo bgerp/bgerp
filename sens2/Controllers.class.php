@@ -488,7 +488,7 @@ class sens2_Controllers extends core_Master
             // Вземаме лок, ако е IP
             $lockKey = self::getLockKey($rec);
             if($lockKey) {
-                    if(core_Locks::get($lockKey, 3, 5)) {
+                    if(core_Locks::obtain($lockKey, 3, 15, 5)) {
                         $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
                         core_Locks::release($lockKey);
                     } else {
@@ -598,7 +598,7 @@ class sens2_Controllers extends core_Master
                 $lockKey = self::getLockKey($rec);
                 
                 if($lockKey) {
-                    if(core_Locks::get($lockKey, 3, 5)) {
+                    if(core_Locks::obtain($lockKey, 3, 15, 5)) {
                         $res = $drv->writeOutputs($sets, $rec->config, $rec->persistentState);
                         core_Locks::release($lockKey);
                     } else {
@@ -801,9 +801,11 @@ class sens2_Controllers extends core_Master
             core_App::flushAndClose();
         }
         
-        // Освобождава манипулатора на сесията. Ако трябва да се правят
-        // записи в сесията, то те трябва да се направят преди shutdown()
-        core_Session::pause();
+        if (!defined('BGERP_MYSQL_SESSION') || BGERP_MYSQL_SESSION !== true) {
+            // Освобождава манипулатора на сесията. Ако трябва да се правят
+            // записи в сесията, то те трябва да се направят преди shutdown()
+            core_Session::pause();
+        }
         
         
         if ($id) {

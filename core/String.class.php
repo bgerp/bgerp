@@ -150,7 +150,7 @@ class core_String
         for ($i = 0; $i < $pLen; $i++) {
             $p = $pattern[$i];
             
-            $rand = rand(0, $len[$p] - 1);
+            $rand = random_int(0, $len[$p] - 1);
             
             $rand1 = ($rand + 7) % $len[$p];
             
@@ -1589,5 +1589,28 @@ class core_String
         }
 
         return $input;
+    }
+
+
+    /**
+     * Изчисляване на броя знаци след десетичната запетая
+     *
+     * @param string|core_ET $var - обект
+     * @param bool $trimZeroes    - да се тримват ли 0-те от края
+     * @return int                - брой десетични знаци
+     */
+    public static function countDecimals($var, $trimZeroes = true)
+    {
+        $normalized = ($var instanceof core_ET) ? strip_tags($var->getContent()) : $var;
+
+        $normalized = str_replace(',', '.', $normalized);
+        $normalized = str_replace('&nbsp;', '', $normalized);
+
+        $parts = explode('.', $normalized);
+        if($trimZeroes){
+            $parts[1] = rtrim($parts[1], '0');
+        }
+
+        return strlen($parts[1]);
     }
 }

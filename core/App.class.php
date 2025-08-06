@@ -358,16 +358,7 @@ class core_App
         
         // Генерираме събитието 'suthdown' във всички сингълтон обекти
         core_Cls::shutdown();
-        
-        if (!Request::get('ajax_mode')) {
-            // Освобождава манипулатора на сесията. Ако трябва да се правят
-            // записи в сесията, то те трябва да се направят преди shutdown()
-            core_Session::pause();
-        }
-        
-        // Генерираме събитието 'suthdown' във всички сингълтон обекти
-        core_Cls::afterSessionClose();
-        
+
         // Проверяваме състоянието на системата и ако се налага репортва
         self::checkHitStatus();
         
@@ -524,7 +515,7 @@ class core_App
         
         // Освобождава манипулатора на сесията. Ако трябва да се правят
         // записи в сесията, то те трябва да се направят преди shutdown()
-        if (Request::get('ajax_mode')) {
+        if (!defined('BGERP_MYSQL_SESSION') || BGERP_MYSQL_SESSION !== true) {
             core_Session::pause();
         }
         

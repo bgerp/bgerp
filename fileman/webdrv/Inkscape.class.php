@@ -299,7 +299,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 250, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 250, 0, 0,  false)) {
             
             // Стартираме конвертирането към JPG
             static::startConvertingToPng($fRec, $params);

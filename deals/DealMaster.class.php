@@ -3007,24 +3007,37 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * За коя дата се заплануват наличностите
      *
-     * @param stdClass $rec - запис
-     * @return datetime     - дата, за която се заплануват наличностите
+     * @param stdClass $rec    - запис
+     * @return array
+     *          ['date']   - дата
+     *          ['isLive'] - дали е ръчно въведена или не
      */
     public function getPlannedQuantityDate_($rec)
     {
-        // Ако има ръчно въведена дата на доставка, връща се тя
-        if(!empty($rec->deliveryTime)) return $rec->deliveryTime;
+        $dateArr = array('isLive' => false);
 
-        // Датата ще е вальора/датата на активиране/датата на създаване в този ред
-        $date = !empty($rec->valior) ? $rec->valior : (!empty($rec->activatedOn) ? $rec->activatedOn : $rec->createdOn);
+        // Ако има ръчно въведена дата на доставка, връща се тя
+        if(!empty($rec->deliveryTime)) {
+            $dateArr['date'] = $rec->deliveryTime;
+        } else {
+            setIfNot($date, $rec->valior, $rec->activatedOn);
+            $dateArr['date'] = $date;
+
+            // Датата ще е вальора/датата на активиране/датата на създаване в този ред
+            if(empty($dateArr['date'])) {
+                $dateArr['date'] = dt::today() . " 00:00:00";
+                $dateArr['isLive'] = true;
+            }
+        }
 
         // Ако има въведен срок на доставка, той се добавя към отправната дата
         if(!empty($rec->deliveryTermTime)){
-            $date = dt::addSecs($rec->deliveryTermTime, $date);
+            $dateArr['date'] = dt::addSecs($rec->deliveryTermTime, $dateArr['date']);
         }
 
-        return $date;
+        return $dateArr;
     }
+
 
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие

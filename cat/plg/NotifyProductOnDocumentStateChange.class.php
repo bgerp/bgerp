@@ -61,7 +61,7 @@ class cat_plg_NotifyProductOnDocumentStateChange extends core_Plugin
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         // Ако има заопашени документи и те са към продажба ще се нотифицират драйверите на артикулите
         if (!empty($mvc->notifyProductsForDocumentChangedState)) {

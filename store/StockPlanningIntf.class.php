@@ -41,8 +41,10 @@ class store_StockPlanningIntf extends acc_RegisterIntf
     /**
      * За коя дата се заплануват наличностите
      *
-     * @param stdClass $rec - запис
-     * @return datetime     - дата, за която се заплануват наличностите
+     * @param stdClass $rec    - запис
+     * @return array
+     *          ['date']   - дата
+     *          ['isLive'] - дали е ръчно въведена или не
      */
     public function getPlannedQuantityDate($rec)
     {

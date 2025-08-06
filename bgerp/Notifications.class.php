@@ -432,7 +432,7 @@ class bgerp_Notifications extends core_Manager
      *
      * @return void
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         if (!empty($mvc->alternateMessages)) {
             Mode::set('isNotifyAlternateUsers', true);

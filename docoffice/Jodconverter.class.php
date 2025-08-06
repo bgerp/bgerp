@@ -159,7 +159,7 @@ class docoffice_Jodconverter extends core_Manager
      */
     public static function lockJodconverter($maxDuration = 50, $maxTray = 30)
     {
-        core_Locks::get('jodconverter', $maxDuration, $maxTray, false);
+        core_Locks::obtain('jodconverter', $maxDuration, 3 * $maxTray, $maxTray, false);
     }
     
     

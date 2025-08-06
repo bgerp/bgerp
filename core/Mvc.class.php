@@ -441,13 +441,14 @@ class core_Mvc extends core_FieldSet
                     $query = "INSERT DELAYED `{$table}` SET {$query}";
                     $timer = "{$table} INSERT";
                     break;
-                
                 case '':
-                case 'update':
                     $query = "INSERT INTO `{$table}` SET {$query}";
                     $timer = "{$table} INSERT";
                     break;
-                
+                case 'update':
+                    $query = "INSERT INTO `{$table}` SET {$query} ON DUPLICATE KEY UPDATE {$query}";
+                    $timer = "{$table} UPDATE";
+                    break;
                 default:
                     error('Неподдържан режим на запис', $mode, $rec);
             }

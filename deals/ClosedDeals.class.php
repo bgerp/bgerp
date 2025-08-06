@@ -417,7 +417,7 @@ abstract class deals_ClosedDeals extends core_Master
             $firstRec->state = 'closed';
             $firstRec->closedOn = $mvc->getValiorDate($rec);
             $DocClass->save($firstRec, 'modifiedOn,modifiedBy,state,closedOn');
-
+            $DocClass->logWrite('Приключено с документ за приключване', $firstRec->id);
             if (empty($saveFields)) {
                 $rec->amount = $mvc->getClosedDealAmount($rec->threadId);
                 $mvc->save($rec, 'amount');

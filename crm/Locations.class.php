@@ -633,7 +633,7 @@ class crm_Locations extends core_Master
         
         $recs = array();
         while ($rec = $query->fetch()) {
-            if(isset($onlyWithRoutesInNextNdays) && !countR(sales_Routes::getRouteOptions($rec->id, $onlyWithRoutesInNextNdays))) continue;
+            if(isset($onlyWithRoutesInNextNdays) && !countR(sales_Routes::getRouteOptions($rec->id, $onlyWithRoutesInNextNdays, 'delivery'))) continue;
             
             $recs[$rec->id] = $rec;
         }
@@ -813,7 +813,7 @@ class crm_Locations extends core_Master
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         if (!empty($mvc->updatedRecs)) {
             foreach ((array) $mvc->updatedRecs as $id => $rec) {

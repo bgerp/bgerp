@@ -246,16 +246,7 @@ class core_Ajax extends core_Mvc
         } elseif (Mode::get('printing')) {
             $url['Printing'] = 1;
         }
-        
-        // Ако е пуснат терминала
-        try {
-            if (core_Session::getDecoratePrefix() == 'terminal_') {
-                $url['Terminal'] = 1;
-            }
-        } catch (Throwable $e) {
-            reportException($e);
-        }
-        
+
         $url = toUrl($url);
         
         // Добавяме URL-то за сваляне на ajax

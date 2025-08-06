@@ -114,7 +114,7 @@ class thumb_M extends core_Mvc
         }
         $hashArr[$cmdHash] = $cmd;
         
-        if (core_Locks::get($cmd, 1, 1)) {
+        if (core_Locks::obtain($cmd, 1, 3, 1)) {
             exec($cmd, $out, $status);
             if ($status > 0) {
                 $err = implode(' | ', $out);

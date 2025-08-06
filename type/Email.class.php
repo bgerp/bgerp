@@ -274,7 +274,7 @@ class type_Email extends type_Varchar
             }
         }
         
-        return $matches[0];
+        return array_unique($matches[0]);
     }
 
     /**

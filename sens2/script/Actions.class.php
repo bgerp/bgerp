@@ -202,7 +202,7 @@ class sens2_script_Actions extends core_Detail
         // Вземаме лок, ако е IP
         $lockKey = 'RUN_SCRIPT_' . $scriptId;
 
-        if (!core_Locks::get($lockKey, 5, 5)) {
+        if (!core_Locks::obtain($lockKey, 5, 15, 5)) {
 
             return null;
         }

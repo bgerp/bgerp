@@ -288,7 +288,7 @@ class store_Products extends core_Detail
                 unset($showFieldsArr['inventory']);
             }
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-            $data->listFilter->setDefault('filters', 'active');
+            $data->listFilter->setDefault('filters', 'withStock');
             $data->listFilter->showFields = implode(',', $showFieldsArr);
             unset($data->listFilter->view);
 
@@ -458,7 +458,7 @@ class store_Products extends core_Detail
         
         $arrRes = arr::syncArrays($all, $oldRecs, 'productId,storeId', 'quantity');
         
-        if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
+        if (!core_Locks::obtain(self::SYNC_LOCK_KEY, 60, 3, 1)) {
             self::logWarning('Синхронизирането на складовите наличности е заключено от друг процес');
             
             return;
@@ -752,7 +752,7 @@ class store_Products extends core_Detail
         $res = arr::syncArrays($result, $oldRecs, 'storeId,productId', 'reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
 
         // Заклюване на процеса
-        if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
+        if (!core_Locks::obtain(self::SYNC_LOCK_KEY, 60, 3, 1)) {
             $this->logWarning('Синхронизирането на складовите наличности е заключено от друг процес');
             
             return;

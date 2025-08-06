@@ -936,7 +936,7 @@ class planning_AssetResources extends core_Master
     public function cron_RecalcTaskTimes()
     {
         // Ако процеса е заключен да не се изпълнява отново
-         if (!core_Locks::get('CALC_TASK_TIMES', 120, 1)) {
+         if (!core_Locks::obtain('CALC_TASK_TIMES', 120, 3, 1)) {
             //$this->logNotice('Преизчисляването на времената е заключено от друг процес');
            // return;
         }

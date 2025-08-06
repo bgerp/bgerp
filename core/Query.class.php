@@ -840,7 +840,7 @@ class core_Query extends core_FieldSet
     /**
      * Връща поредния запис от заявката
      */
-    public function fetch($cond = null)
+    public function fetch($cond = null, $preventEvent = false)
     {
         if (!$this->executed) {
             $this->where($cond);
@@ -882,8 +882,10 @@ class core_Query extends core_FieldSet
                 return false;
             }
             
-            // Изпълняваме външни действия, указани за след четене
-            $this->mvc->invoke('AfterRead', array(&$rec));
+            if(!$preventEvent) {
+                // Изпълняваме външни действия, указани за след четене
+                $this->mvc->invoke('AfterRead', array(&$rec));
+            }
             
             $this->mvc->lastFetchedRec = $rec;
             
@@ -1273,19 +1275,19 @@ class core_Query extends core_FieldSet
      */
     public function substituteArray($arr)
     {
-        $key = Mode::getProcessKey();
+        //$key = Mode::getProcessKey();
         
         $exp = $arr[0];
         
         $cntArr = countR($arr);
         for ($i = 1; $i < $cntArr; $i++) {
             $a[] = "[#{$i}#]";
-            $b[] = "[#{$i}{$key}#]";
+           // $b[] = "[#{$i}{$key}#]";
             $c[] = $this->mvc->db->escape($arr[$i]);
         }
         
-        $exp = str_replace($a, $b, $exp);
-        $exp = str_replace($b, $c, $exp);
+        $exp = str_replace($a, $c, $exp);
+        //$exp = str_replace($b, $c, $exp);
         
         return $exp;
     }

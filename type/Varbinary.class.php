@@ -41,7 +41,7 @@ class type_Varbinary extends type_Varchar
     public function getMysqlAttr()
     {
         $res = $this->_baseGetMysqlAttr();
-        $res->size = floor(($res->size+1)/2);
+        $res->size = floor($res->size);
 
         return $res;
     }
@@ -61,19 +61,7 @@ class type_Varbinary extends type_Varchar
      }
     
     
-    /**
-     * @see core_Type::fromMysql()
-     *
-     * @param string $value
-     *
-     * @return mixed
-     */
-    public function fromMysql($value)
-    {
  
-        
-        return bin2hex($value);
-    }
 
 
     /**
@@ -82,11 +70,13 @@ class type_Varbinary extends type_Varchar
      */
     public function toMysql($value, $db, $notNull, $defValue)
     {
-        if(strlen($value)) {
-            $value = '0x' . $value;
+        if ($value) {
+            $res = "'" . $db->escape($value) . "'";
+        } else {
+            $res = "''";
         }
         
-        return $value;
+        return $res;
     }
 
 }

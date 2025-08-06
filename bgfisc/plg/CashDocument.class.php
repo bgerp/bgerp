@@ -619,7 +619,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
             $resArr = array();
             $mvc->requireRightFor('conto', $rec);
             
-            core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
+            core_Locks::obtain("lock_{$mvc->className}_{$rec->id}", 90, 15, 5, false);
             
             try {
                 $mvc->conto($rec->id);
@@ -757,7 +757,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                     }
 
                     if(!$form->gotErrors()){
-                        core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
+                        core_Locks::obtain("lock_{$mvc->className}_{$rec->id}", 90, 15, 5, false);
                         $mvc->logWrite('Ръчно контиране на документа', $rec);
                         $mvc->conto($rec);
                         if(!empty($qrCode)){

@@ -733,7 +733,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    protected static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         if (countR($mvc->recalcProducedDetailIndTime)) {
             foreach ($mvc->recalcProducedDetailIndTime as $rec) {

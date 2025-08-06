@@ -232,6 +232,14 @@ class deals_InvoicesToDocuments extends core_Manager
                 if ($Document instanceof deals_PaymentDocument) {
                     deals_Helper::updateAutoPaymentTypeInThread($rec->threadId);
                     doc_DocumentCache::cacheInvalidation($rec->containerId);
+                    $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+
+                    // Преизчисляване на посрочията по сделката след преразпределянето
+                    if($firstDoc->isInstanceOf('deals_DealMaster')){
+                        $firstRec = $firstDoc->fetch();
+                        $firstRec->paymentState = $firstDoc->getInstance()->getPaymentState($firstRec);
+                        $firstDoc->getInstance()->save_($firstRec, 'paymentState,overdueAmountPerDays,overdueAmount');
+                    }
                 }
 
                 $count = countR($invArr);

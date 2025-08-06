@@ -163,7 +163,6 @@ class store_StockPlanning extends core_Manager
         $Class = cls::get($class);
         $classId = $Class->getClassId();
         $now = dt::now();
-        $today = dt::today();
 
         $threadId = null;
         if(cls::haveInterface('doc_DocumentIntf', $Class)){
@@ -172,22 +171,13 @@ class store_StockPlanning extends core_Manager
         }
 
         // Ако очакваното време е в миналото - да се подмени със сега + посоченото време в константа
-        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
         $cu = core_Users::getCurrent();
-
         foreach ($array as $a){
             $a->createdOn = $now;
             $a->createdBy = $cu;
             $a->sourceClassId = $classId;
             $a->sourceId = $id;
             $a->threadId = $threadId;
-
-            // Ако датата е в миналото, но има очаквано к-во да се добави времето към сега
-            if(dt::verbal2mysql($a->date, false) < $today){
-                if($a->quantityIn){
-                    $a->date = dt::addSecs($horizonAdd, $now);
-                }
-            }
         }
     }
 
@@ -421,24 +411,21 @@ class store_StockPlanning extends core_Manager
 
 
     /**
-     * Първоначално наливане на запазените количества
+     * Планираните наличности от складовите документи
+     *
+     * @param bool $onlyWithoutValior
+     * @return array
      */
-    private function recalcPlannedStocks()
+    private static function getPlannedShipmentDocuments($onlyWithoutValior = false)
     {
-        // Ако не е имало складови движения, не се прави нищо
-        if(!store_Products::count()) return;
-
-        $Stocks = cls::get('store_StockPlanning');
-        $Stocks->truncate();
-
         // Кои документи запазват на заявка
         $stockableClasses = array('store_ShipmentOrders',
-            'store_Receipts',
-            'store_Transfers',
-            'store_ConsignmentProtocols',
-            'planning_ConsumptionNotes',
-            'planning_DirectProductionNote',
-            'pos_Receipts');
+                                  'store_Receipts',
+                                  'store_Transfers',
+                                  'store_ConsignmentProtocols',
+                                  'planning_ConsumptionNotes',
+                                  'planning_DirectProductionNote',
+                                  'pos_Receipts');
 
         // Записват се запазените количества
         $stocksArr = array();
@@ -448,6 +435,11 @@ class store_StockPlanning extends core_Manager
 
             $query = $Source->getQuery();
             $query->in("state", $Source->updatePlannedStockOnChangeStates);
+            if($onlyWithoutValior){
+                setIfNot($Source->valiorFld, 'valior');
+                $query->where("#{$Source->valiorFld} IS NULL");
+            }
+
             $count = $query->count();
             core_App::setTimeLimit(0.6 * $count, false,300);
 
@@ -458,8 +450,26 @@ class store_StockPlanning extends core_Manager
             }
         }
 
+        return $stocksArr;
+    }
+
+
+    /**
+     * Първоначално наливане на запазените количества
+     */
+    private function recalcPlannedStocks()
+    {
+        // Ако не е имало складови движения, не се прави нищо
+        if(!store_Products::count()) return;
+
+        $Stocks = cls::get('store_StockPlanning');
+        $Stocks->truncate();
+
         // Записване на запазеното на индивидуланите количества
-        $Stocks->saveArray($stocksArr);
+        $stocksArr = self::getPlannedShipmentDocuments();
+        if(countR($stocksArr)){
+            $Stocks->saveArray($stocksArr);
+        }
 
         // Преизчисляване на запазеното по сделки и запазени.
         $dealsArr = array();
@@ -632,6 +642,25 @@ class store_StockPlanning extends core_Manager
                     $requiredRoles = 'no_one';
                 }
             }
+        }
+    }
+
+
+    /**
+     * Преизчисляване на всички хоризонти по разписание
+     */
+    function cron_RecalcAllPlannedQuantities()
+    {
+        $stocksArr = self::getPlannedShipmentDocuments(true);
+
+        // Ще се обновят времената само на записите дето са без вальор
+        $exQuery = self::getQuery();
+        $exQuery->notIn('sourceClassId', array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), planning_Jobs::getClassId()));
+        $exRecs = $exQuery->fetchAll();
+        $synced = arr::syncArrays($stocksArr, $exRecs, 'sourceClassId,sourceId,productId,genericProductId,storeId', 'date');
+
+        if(countR($synced['update'])){
+            $this->saveArray($synced['update'], 'id,date');
         }
     }
 }

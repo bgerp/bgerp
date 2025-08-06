@@ -163,4 +163,31 @@ class bgerp_Filters extends core_Manager
 
         return $options;
     }
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        if(empty($rec->orderBy)){
+            unset($row->orderBy);
+        }
+    }
+
+
+    /**
+     * След подготовка на филтъра
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->query->orderBy('id', 'ASC');
+    }
+
 }
