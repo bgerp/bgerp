@@ -243,13 +243,16 @@ class core_DbSess extends core_Manager
      */
     private function startSession()
     {
+        if (headers_sent()) {
+
+            return ;
+        }
+
         $this->sessId = $this->generateSessionId((int) (EF_SESS_ID_LEN / 2));
         $this->vars   = array();
         $this->loaded = true;
 
-        if (!headers_sent()) {
-            $this->sendCookie($this->sessName, $this->sessId);
-        }
+        $this->sendCookie($this->sessName, $this->sessId);
     }
     
     /**
@@ -268,7 +271,7 @@ class core_DbSess extends core_Manager
      */
     private function regenerateSessionId()
     {
-        if (empty($this->sessId)) return;
+        if (empty($this->sessId) || headers_sent()) return;
 
         $oldRaw  = $this->sessId;
         $oldHash = $this->hashSessId($oldRaw);
@@ -286,9 +289,7 @@ class core_DbSess extends core_Manager
 
         $this->delete(array("#sessId = '[#1#]'", $oldHash));
 
-        if (!headers_sent()) {
-            $this->sendCookie($this->sessName, $this->sessId);
-        }
+        $this->sendCookie($this->sessName, $this->sessId);
     }
 
     /* ===================== ХЕЛПЪРИ ===================== */
@@ -376,5 +377,14 @@ class core_DbSess extends core_Manager
         if(substr($rec->key, 0, 2) == '__') {
             $row->value = 'Преди: ' .  (time() - ( (int) $rec->value)) . ' сек.';
         }
+    }
+
+
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->query->orderBy('id', 'DESC');
     }
 }
