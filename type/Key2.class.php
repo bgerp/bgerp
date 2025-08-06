@@ -387,25 +387,40 @@ class type_Key2 extends type_Int
             if (is_array($options)) {
                 foreach ($options as $key => $title) {
                     $isGroup = false;
-                    
+
+                    $element = null;
+                    $class = null;
                     if (is_object($title)) {
                         $isGroup = $title->group ? true : false;
+
+                        if (isset($title->attr['class'])) {
+                            $element = (object) array('className' => $title->attr['class']);
+                            $class = $title->attr['class'];
+                        }
+
                         $title = $title->title;
                     }
                     if ($this->params['inputType'] == 'combo') {
                         $key = $title . ' (' . $key . ')';
                         $attr = array('value' => $key);
-                        
+                        if (isset($class)) {
+                            $attr['class'] = $class;
+                        }
+
                         $select->append(ht::createElement('option', $attr, $key));
                     } else {
                         $obj = (object) array('id' => $key, 'text' => $title);
-                        
+
                         if ($isGroup) {
                             $obj->group = true;
                             $obj->gElement = new stdClass();
                             $obj->gElement->className = 'group';
                             $obj->gElement->group = true;
                             $obj->id = null;
+                        }
+
+                        if (isset($element)) {
+                            $obj->element = $element;
                         }
                         $res[] = $obj;
                     }
@@ -415,8 +430,7 @@ class type_Key2 extends type_Int
                 $res = array('content' => $select->getContent());
             }
         }
-        
-        
+
         core_App::outputJson($res);
     }
     
