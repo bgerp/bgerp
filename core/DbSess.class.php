@@ -373,14 +373,14 @@ class core_DbSess extends core_Manager
     /** Изтича cookie-то. */
     protected function expireCookie(): void
     {
-        @setcookie($this->sessionName, '', [
+        @setcookie($this->sessName, '', [
             'expires'  => time() - 3600,
             'path'     => '/',
             'secure'   => $this->secure,
             'httponly' => $this->httpOnly,
             'samesite' => $this->sameSite ?: 'Lax',
         ]);
-        unset($_COOKIE[$this->sessionName]);
+        unset($_COOKIE[$this->sessName]);
     }
 
 
@@ -405,5 +405,29 @@ class core_DbSess extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('id', 'DESC');
+    }
+
+
+
+
+
+
+
+
+    /**
+     * Екшън за изчистване на таблицата
+     */
+    function act_Truncate()
+    {
+//        bp($this->regenerateSessionId());
+        $q = $this->getQuery();
+        $q->groupBy('sess_id');
+
+        bp($q->count());
+
+        requireRole('debug');
+        $this->truncate();
+
+        followRetUrl(null, 'Записите са изтрити');
     }
 }
