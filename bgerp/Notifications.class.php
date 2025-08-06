@@ -1800,7 +1800,7 @@ class bgerp_Notifications extends core_Manager
             }
             
             if (isset($lastCnt) && ($notifCnt > $lastCnt)) {
-                $newNotifCnt = $notifCnt - $lastCnt;
+                $newNotifCnt = (int) $notifCnt - (int) $lastCnt;
                 
                 if ($newNotifCnt == 1) {
                     $notifStr = $newNotifCnt . ' ' . tr('ново известие');
