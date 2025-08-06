@@ -998,10 +998,7 @@ class deals_QuotationDetails extends doc_Detail
         if ($masterRec->state == 'draft' || $dCount > 1) {
             $tpl->append($this->renderListToolbar($data), 'ListToolbar');
             $dTpl->append(tr('Оферирани'), 'TITLE');
-
-            if ($shortest !== true) {
-                $dTpl->append($miscMandatory, 'MISC');
-            }
+            $dTpl->append($miscMandatory, 'MISC');
 
             if (isset($data->addNotOptionalBtn)) {
                 $dTpl->append($data->addNotOptionalBtn, 'ADD_BTN');
