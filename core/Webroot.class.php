@@ -97,6 +97,8 @@ class core_Webroot
      */
     public static function serve($filename, $domain = null)
     {
+        core_Session::$mute = true;
+
         $path = self::getPath($filename, $domain);
         
         if (file_exists($path)) {

@@ -6,6 +6,7 @@ defIfNot('EF_SESS_MAX_DATA_LEN', 4000);
 
 defIfNot('EF_USERS_SESS_TIMEOUT', 3600 );
 defIfNot('EF_USERS_SESS_LIFETIME', 10 * 3600);
+defIfNot('EF_USERS_SESS_SINGLE_USE_TIMEOUT', 10*60);
 
 class core_DbSess extends core_Manager
 {
@@ -36,6 +37,8 @@ class core_DbSess extends core_Manager
 
     protected $maxLifetime = EF_USERS_SESS_LIFETIME;
     protected $maxInactiveTime = EF_USERS_SESS_TIMEOUT;
+    protected $singleUseTimeout = EF_USERS_SESS_SINGLE_USE_TIMEOUT;
+
 
     /** Алгоритъмът за хеширане на sessId в БД: 'md5', 'sha256', ... */
     protected $sessDbHashAlgo = 'md5';
@@ -67,8 +70,9 @@ class core_DbSess extends core_Manager
         }
         $this->ensureSessionId(true);
         $this->ensureLoaded();
-
-        if (in_array($key, $this->regenerateKeys, true)) {
+        
+        // Ако за първи път вкарваме някои от чувствителните ключове - регенерираме сесията
+        if (in_array($key, $this->regenerateKeys, true) && !isset($this->vars[$key])) {
             $this->regenerateSessionId();
         }
 
@@ -93,8 +97,7 @@ class core_DbSess extends core_Manager
         $this->expireCookie();
         $this->vars = array();
         if(isset($this->sessId)) {
-            $sessHash = $this->hashSessId($this->sessId);
-            $this->delete("#sessId = '{$sessHash}'");
+            $this->delete("#sessId = '{$this->sessId}'");
         }
     }
     
@@ -124,12 +127,10 @@ class core_DbSess extends core_Manager
     {
         expect(isset($this->sessId));
 
-        $sessHash = $this->hashSessId($this->sessId);
-
         $query = self::getQuery();
         $query->show('key,type,value');
 
-        while ($rec = $query->fetch(array("#sessId = '[#1#]'", $sessHash), true)) {
+        while ($rec = $query->fetch(array("#sessId = '[#1#]'", $this->sessId), true)) {
             switch ($rec->type) {
                 case 'integer':    $value = (int) $rec->value; break;
                 case 'double':     $value = (float) $rec->value; break;
@@ -175,7 +176,7 @@ class core_DbSess extends core_Manager
         }
 
         $rec = (object) array(
-            'sessId' => $this->hashSessId($this->sessId), // записваме ХЕШ
+            'sessId' => $this->sessId, // записваме ХЕШ
             'key'    => $key,
             'type'   => $type,
             'value'  => $value,
@@ -197,6 +198,7 @@ class core_DbSess extends core_Manager
      */
     public function cron_ClearSess()
     {
+        // Изтриваме сесиите, за които е изтекло времето им за живот
         if ($this->maxLifetime) {
             $lateStartOn = time() - $this->maxLifetime;
             $query = $this->getQuery();
@@ -204,12 +206,26 @@ class core_DbSess extends core_Manager
                 $this->delete(array("#sessId = '[#1#]'", $rec->sessId));
             }
         }
-
+        
+        // Изтриваме сесиите, които не са активни повече от известно време
         if ($this->maxInactiveTime) {
             $lateActiveOn = time() - $this->maxInactiveTime;
             $query = $this->getQuery();
             while ($rec = $query->fetch("#key = '__activeOn' AND CAST(#value AS UNSIGNED) < {$lateActiveOn}")) {
                 $this->delete(array("#sessId = '[#1#]'", $rec->sessId));
+            }
+        }
+        
+        // Изтриваме всички сесии, които само са създадени и стоят извесно време без втора употреба (ботовете правят така)
+        if($this->singleUseTimeout) {
+            $lateCreated = time() - $this->singleUseTimeout;
+            $maxSearchTime = $lateCreated -  6 * 60; 
+            $query = $this->getQuery();
+            while ($recStartOn = $query->fetch("#key = '__startOn' AND CAST(#value AS UNSIGNED) < {$lateCreated} AND CAST(#value AS UNSIGNED) >= {$maxSearchTime}")) {
+                $recActiveOn = $this->fetch(array("#key = '__activeOn' AND #sessId = '[#1#]'", $recStartOn->sessId));
+                if($recStartOn->value === $recActiveOn->value) {
+                    $this->delete(array("#sessId = '[#1#]'", $recStartOn->sessId));
+                }
             }
         }
     }
@@ -222,10 +238,14 @@ class core_DbSess extends core_Manager
         if (!empty($this->sessId)) return true;
 
         if (!empty($_COOKIE[$this->sessName])) {
-            $id = (string) $_COOKIE[$this->sessName];
-            if (strlen($id) === EF_SESS_ID_LEN && ctype_xdigit($id)) {
-                $this->sessId = $id;
-                return true;
+            $sessId = (string) $_COOKIE[$this->sessName];
+            // Ако имаме сесийно куки, но за него нямаме записи в модела - унищожаваме го
+            if (strlen($sessId) === EF_SESS_ID_LEN && ctype_xdigit($sessId)) {
+                $hash = $this->hashSessId($sessId);
+                if($this->fetch(array("#sessId = '[#1#]'", $hash))) {  
+                    $this->sessId = $hash;
+                    return true;
+                }
             }
         }
 
@@ -247,12 +267,12 @@ class core_DbSess extends core_Manager
 
             return ;
         }
-
-        $this->sessId = $this->generateSessionId((int) (EF_SESS_ID_LEN / 2));
+        $cookie = $this->generateSessionId((int) (EF_SESS_ID_LEN / 2));
+        $this->sessId = $this->hashSessId($cookie);
         $this->vars   = array();
         $this->loaded = true;
 
-        $this->sendCookie($this->sessName, $this->sessId);
+        $this->sendCookie($this->sessName, $cookie);
     }
     
     /**
@@ -273,23 +293,22 @@ class core_DbSess extends core_Manager
     {
         if (empty($this->sessId) || headers_sent()) return;
 
-        $oldRaw  = $this->sessId;
-        $oldHash = $this->hashSessId($oldRaw);
+        $oldSessHash  = $this->sessId;
 
         $this->ensureLoaded();
 
-        $this->sessId = $this->generateSessionId((int) (EF_SESS_ID_LEN / 2));
-        $newHash = $this->hashSessId($this->sessId);
-
+        $cookieId = $this->generateSessionId((int) (EF_SESS_ID_LEN / 2));
+        $this->sessId = $this->hashSessId($cookieId);
+ 
         $current = $this->vars;
         $this->vars = array();
         foreach ($current as $k => $v) {
             $this->setDbVar($k, $v); // пише под $newHash
         }
 
-        $this->delete(array("#sessId = '[#1#]'", $oldHash));
+        $this->delete(array("#sessId = '[#1#]'", $oldSessHash));
 
-        $this->sendCookie($this->sessName, $this->sessId);
+        $this->sendCookie($this->sessName, $cookieId);
     }
 
     /* ===================== ХЕЛПЪРИ ===================== */
