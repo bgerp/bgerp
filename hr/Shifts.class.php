@@ -36,7 +36,7 @@ class hr_Shifts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, hr_Wrapper, plg_SaveAndNew, plg_State2';
+    public $loadList = 'plg_Created, plg_RowTools2, hr_Wrapper, plg_SaveAndNew, plg_State2, plg_Sorting';
 
 
     /**
@@ -68,6 +68,12 @@ class hr_Shifts extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,name,start,duration,state,createdOn,createdBy';
+
+
+    /**
+     * Кой може да проверява смяна
+     */
+    public $canCheck = 'ceo, hrMaster, debug';
 
 
     /**
@@ -109,7 +115,7 @@ class hr_Shifts extends core_Manager
             foreach($frame as $t) {
                 $timeInFrame += $t[1] - $t[0];
             }
-            $shifts[$rec->id] = (object)array('name' => $rec->name, 'totalTime' => $timeInFrame, 'start' => $start, 'end' => $end);
+            $shifts[$rec->id] = (object)array('name' => $rec->name, 'totalTime' => $timeInFrame);
         }
 
         // Подреждане по смените с най-голямо сечение
@@ -124,18 +130,74 @@ class hr_Shifts extends core_Manager
     /**
      * Ф-я връщаща коя смяна е лицето за дадената дата
      *
-     * @param string $date  - за коя дата
-     * @param int $personId - ид на лице
-     * @return int|null     - ид на смяна
+     * @param string $date     - за коя дата
+     * @param int $personId    - ид на лице
+     * @param null $scheduleId - ид на лице
+     * @return int|null        - ид на смяна
      */
-    public static function getShift($date, $personId)
+    public static function getShift($date, $personId, &$scheduleId = null)
     {
+        // Какъв е графикът на лицето
         $scheduleId = planning_Hr::getSchedule($personId);
 
+        // Ще се вземе графика от 22 часа на предходния ден до 06 часа на следващия ден
         $from = dt::addSecs(-2 * 60 * 60, $date);
         $to = dt::addSecs(6 * 60 * 60, "{$date} 23:59:59");
         $Interval   = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to);
 
+        // Определяне в коя смяна е лицето на тази дата спрямо интервала
         return self::getShiftByInterval($date, $Interval);
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        if ($mvc->haveRightFor('check')) {
+            $data->toolbar->addBtn('Проверка на смяна', array($mvc, 'check', 'ret_url' => true), 'title=Проверка на смяна на лице,ef_icon=img/16/arrow_refresh.png');
+        }
+    }
+
+
+    /**
+     * Екшън за проверка на смяна на лице
+     *
+     * @return mixed
+     */
+    public function act_Check()
+    {
+        $form = cls::get('core_Form');
+        $form->title = tr('Проверка на смяна на лице');
+        $form->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Лице,mandatory');
+        $form->FLD('date', 'date', 'caption=Дата,mandatory');
+
+        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        $form->setFieldTypeParams('personId', array('groups' => keylist::addKey('', $emplGroupId)));
+        $form->input();
+
+        if ($form->isSubmitted()) {
+            $rec = &$form->rec;
+
+            $scheduleId = null;
+            $shiftId = self::getShift($rec->date, $rec->personId, $scheduleId);
+            $scheduleName = isset($scheduleId) ? hr_Schedules::getHyperlink($scheduleId, true)->getContent() : null;
+            if($shiftId) {
+                $shiftName = hr_Shifts::getTitleById($shiftId);
+                $info = "Смяната на лицето е|* <b>{$shiftName}</b> |по график|* <b>{$scheduleName}</b>";
+
+            } else {
+                $info = "Лицето не е на смяна по график|* <b>{$scheduleName}</b>";
+            }
+
+            $form->info = "<div class='richtext-info-no-image'>" . tr($info) . "</div>";
+        }
+
+        $form->toolbar->addSbBtn('Проверка', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Реконтиране');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $tpl = $this->renderWrapping($form->renderHtml());
+
+        return $tpl;
     }
 }
