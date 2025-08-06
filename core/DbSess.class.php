@@ -373,14 +373,14 @@ class core_DbSess extends core_Manager
     /** Изтича cookie-то. */
     protected function expireCookie(): void
     {
-        @setcookie($this->sessionName, '', [
+        @setcookie($this->sessName, '', [
             'expires'  => time() - 3600,
             'path'     => '/',
             'secure'   => $this->secure,
             'httponly' => $this->httpOnly,
             'samesite' => $this->sameSite ?: 'Lax',
         ]);
-        unset($_COOKIE[$this->sessionName]);
+        unset($_COOKIE[$this->sessName]);
     }
 
 

@@ -125,6 +125,7 @@ class hr_Setup extends core_ProtoSetup
         'hr_ScheduleDetails',
         'hr_Schedules',
         'hr_IndicatorFormulas',
+        'hr_Shifts',
         'migrate::changeAlternatePersonField',
     );
     
