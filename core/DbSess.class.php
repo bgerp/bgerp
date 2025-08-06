@@ -406,28 +406,4 @@ class core_DbSess extends core_Manager
     {
         $data->query->orderBy('id', 'DESC');
     }
-
-
-
-
-
-
-
-
-    /**
-     * Екшън за изчистване на таблицата
-     */
-    function act_Truncate()
-    {
-//        bp($this->regenerateSessionId());
-        $q = $this->getQuery();
-        $q->groupBy('sess_id');
-
-        bp($q->count());
-
-        requireRole('debug');
-        $this->truncate();
-
-        followRetUrl(null, 'Записите са изтрити');
-    }
 }
