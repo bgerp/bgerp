@@ -373,14 +373,36 @@ class core_DbSess extends core_Manager
     /** Изтича cookie-то. */
     protected function expireCookie(): void
     {
-        @setcookie($this->sessName, '', [
-            'expires'  => time() - 3600,
-            'path'     => '/',
-            'secure'   => $this->secure,
-            'httponly' => $this->httpOnly,
-            'samesite' => $this->sameSite ?: 'Lax',
-        ]);
-        unset($_COOKIE[$this->sessName]);
+        $name      = $this->sessName;
+        $secure    = $this->secure;
+        $httpOnly  = $this->httpOnly;
+        $sameSite  = $this->sameSite ?: 'Lax';
+
+        $expires = time() - 3600;
+
+        if (PHP_VERSION_ID >= 70300) {
+            // От PHP 7.3 нагоре – официален масив с опции
+            @setcookie($name, '', [
+                'expires'  => $expires,
+                'path'     => '/',
+                'secure'   => $secure,
+                'httponly' => $httpOnly,
+                'samesite' => $sameSite,
+            ]);
+        } else {
+            // За PHP 7.0–7.2 – SameSite се добавя към path
+            @setcookie(
+                $name,
+                '',
+                $expires,
+                '/; samesite=' . $sameSite,
+                '',
+                $secure,
+                $httpOnly
+            );
+        }
+
+        unset($_COOKIE[$name]);
     }
 
 
