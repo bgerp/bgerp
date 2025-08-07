@@ -334,7 +334,17 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         if(!isset($sortFld) || !isset($sortDirection) || $sortDirection == 'none') return;
 
         $direction = $sortDirection == 'up' ? 'asc' : 'desc';
-        arr::sortObjects($recs, $sortFld, $direction);
+
+        try {
+            arr::sortObjects($recs, $sortFld, $direction);
+        } catch(core_exception_Expect $e){
+            if(haveRole('debug')){
+                core_Statuses::newStatus("Липсва поле за сортиране: {$sortFld}", 'warning');
+            } else {
+                reportException($e);
+                core_Statuses::newStatus("Проблем при сортиране", 'warning');
+            }
+        }
     }
     
     
