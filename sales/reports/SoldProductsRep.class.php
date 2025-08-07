@@ -35,9 +35,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields;
-    
-    
+    protected $summaryListFields= 'primeCost,changeSales,invAmount';
+
+
     /**
      * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
      *
@@ -1378,9 +1378,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             'totalPrimeCostLastYear' => $totalPrimeCostLastYear,
             'totalDeltaLastYear' => $totalDeltaLastYear
         );
-        
-        array_unshift($recs, $totalArr['total']);
-        
+
+       // array_unshift($recs, $totalArr['total']);
+//bp($recs);
         return $recs;
         
         

@@ -84,7 +84,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields = 'readiness,dueDates,execDate,contragentName,dealerId';
+    protected $sortableListFields = 'readiness,execDate,contragentName,dealerId';
 
 
     /**
