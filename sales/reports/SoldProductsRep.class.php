@@ -35,7 +35,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields= 'primeCost,changeSales';
+    protected $summaryListFields= 'primeCost,changeSales,invAmount';
 
 
     /**
