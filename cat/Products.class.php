@@ -1143,7 +1143,7 @@ class cat_Products extends embed_Manager
         $wherePartFive = '';
         foreach (array('reservedQuantity' => 'reservedQuantity', 'expectedQuantity' => 'expectedQuantity', 'freeQuantity' => 'free') as $filter => $field){
             if(isset($filtersArr[$filter])) {
-                $wherePartFive = (!empty($wherePartFive) ? ' OR ' : '') . "#{$field} IS NOT NULL";
+                $wherePartFive .= (!empty($wherePartFive) ? ' OR ' : '') . "#{$field} IS NOT NULL";
                 unset($leftFilter[$filter]);
             }
         }
