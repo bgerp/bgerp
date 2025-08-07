@@ -2240,7 +2240,7 @@ class fileman_Files extends core_Master
             $dangerFileClass .= ' dangerFile';
         }
 
-        $fileNavArr = Mode::get('fileNavArr');
+        $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
 
         // Вербалното име на файла
         $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">';
