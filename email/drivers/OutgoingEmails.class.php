@@ -112,8 +112,6 @@ abstract class email_drivers_OutgoingEmails extends core_BaseClass
         $data->form->input('email');
 
         if ($data->form->rec->email) {
-            $data->form->setReadonly('email');
-
             $rRec = email_AddressesInfo::getRecFor($data->form->rec->email);
             if ($rRec) {
                 $fArr = arr::make($Driver->updateField);
