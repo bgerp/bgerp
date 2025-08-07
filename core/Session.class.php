@@ -262,9 +262,10 @@ class core_Session
                 if (EF_HTTPS == 'MANDATORY') {
                     ini_set('session.cookie_secure', 1);
                 }
-            }
-            if ($this->sid) {
-                session_id($this->sid);
+
+                if ($this->sid) {
+                    session_id($this->sid);
+                }
             }
         }
         
