@@ -568,7 +568,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
             
             $query->EXT('dealerId', 'sales_Sales', 'externalName=dealerId,externalKey=saleId');
-            
+
+            $query->EXT('contragentClassId', 'sales_Sales', 'externalName=contragentClassId,externalKey=saleId');
+
+            $query->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
+
             $query->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
             
             $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
@@ -1368,19 +1372,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
         }
-        
-        //Добавям ред за ОБЩИТЕ суми
-        $totalArr['total'] = (object)array(
-            'totalValue' => $totalValue,
-            'totalDelta' => $totalDelta,
-            'totalPrimeCostPrevious' => $totalPrimeCostPrevious,
-            'totalDeltaPrevious' => $totalDeltaPrevious,
-            'totalPrimeCostLastYear' => $totalPrimeCostLastYear,
-            'totalDeltaLastYear' => $totalDeltaLastYear
-        );
+
+//        //Добавям ред за ОБЩИТЕ суми
+//        $totalArr['total'] = (object)array(
+//            'totalValue' => $totalValue,
+//            'totalDelta' => $totalDelta,
+//            'totalPrimeCostPrevious' => $totalPrimeCostPrevious,
+//            'totalDeltaPrevious' => $totalDeltaPrevious,
+//            'totalPrimeCostLastYear' => $totalPrimeCostLastYear,
+//            'totalDeltaLastYear' => $totalDeltaLastYear
+//        );
 
        // array_unshift($recs, $totalArr['total']);
-//bp($recs);
+
         return $recs;
         
         
@@ -1416,7 +1420,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $invDetQuery->EXT('type', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
         
         $invDetQuery->EXT('folderId', 'sales_Invoices', 'externalName=folderId,externalKey=invoiceId');
-        
+
+        $invDetQuery->EXT('contragentClassId', 'sales_Invoices', 'externalName=contragentClassId,externalKey=invoiceId');
+
+        $invDetQuery->EXT('contragentId', 'sales_Invoices', 'externalName=contragentId,externalKey=invoiceId');
+
         $invDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         
         return $invDetQuery;
