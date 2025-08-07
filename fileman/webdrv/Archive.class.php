@@ -144,7 +144,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
         // Качваме съответния файл
         $fh = $inst->getFile($index);
         
-        $fileNavArr = Mode::get('fileNavArr');
+        $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
         
         // Намираме предишния и следващия файл
         try {
@@ -211,7 +211,7 @@ class fileman_webdrv_Archive extends fileman_webdrv_Generic
             $fileNavArr[$fh]['current'] = $cUrlStr;
             $fileNavArr[$fh]['src'] = $fRec->fileHnd;
             
-            Mode::setPermanent('fileNavArr', $fileNavArr);
+            core_Cache::set('doc_Files', 'fileNavArr|' . core_Users::getCurrent(), $fileNavArr, 100);
         } catch (ErrorException $e) {
             // Не правим нищо
         }

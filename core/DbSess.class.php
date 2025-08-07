@@ -184,7 +184,7 @@ class core_DbSess extends core_Manager
 
         $rec->id = $this->fetchField(array("#sessId = '[#1#]' AND #key = '[#2#]'", $rec->sessId, $rec->key), 'id');
 
-        if (strlen($value) > (EF_SESS_MAX_DATA_LEN/2)) {
+        if (strlen($value) > (EF_SESS_MAX_DATA_LEN - 200)) {
             wp('EF_SESS_MAX_DATA_LEN', strlen($value), EF_SESS_MAX_DATA_LEN, $value, $rec);
         }
 

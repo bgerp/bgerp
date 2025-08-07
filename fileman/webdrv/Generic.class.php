@@ -45,7 +45,7 @@ class fileman_webdrv_Generic extends core_Manager
     protected $canView = 'every_one';
     
     public static function getArrows($fRec){
-        $fileNavArr = Mode::get('fileNavArr');
+        $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
 
         $prevUrl = $fileNavArr[$fRec->fileHnd]['prev'];
         $nextUrl = $fileNavArr[$fRec->fileHnd]['next'];
