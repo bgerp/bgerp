@@ -182,7 +182,7 @@ class currency_Currencies extends core_Master
 
         switch($currency) {
             case 'BGN': 
-                $amount .= "&nbsp;<span class='currencySignNextToAmount'>" . tr('лв') . ".</span>";
+                $amount .= "&nbsp;<span class='currencySignNextToAmount'>" . tr('лв') . "&nbsp;</span>";
                 break;
             case 'USD': 
                 $amount = "\$&nbsp;{$amount}";

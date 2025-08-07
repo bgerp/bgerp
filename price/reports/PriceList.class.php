@@ -374,7 +374,11 @@ class price_reports_PriceList extends frame2_driver_TableData
                 }
             }
 
-            $row->weightVerbal = cat_Products::getParams($dRec->productId, 'weight');
+            $weightVerbal = cat_Products::getParams($dRec->productId, 'weight', true);
+            if(!empty($weightVerbal)){
+                $suffix = cat_Params::fetch("#sysId = 'weight'")->suffix;
+                $row->weight = "{$weightVerbal} {$suffix}";
+            }
         } else {
             Mode::push('noIconImg', true);
             $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
@@ -393,10 +397,8 @@ class price_reports_PriceList extends frame2_driver_TableData
                 $euroRate = currency_CurrencyRates::getRate($rec->date, 'EUR', 'BGN');
                 $priceEuro = round($dRec->price, $decimals) / $euroRate;
                 $priceEuroVerbal = core_Type::getByName("double(decimals={$decimals})")->toVerbal($priceEuro);
-                $row->price .= " / " . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
+                $row->price .= "&nbsp;/&nbsp;" . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
             }
-
-
         }
 
         // Рендиране на опаковките в таблица
