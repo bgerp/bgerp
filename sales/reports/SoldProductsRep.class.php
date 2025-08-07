@@ -35,7 +35,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields;
+    protected $summaryListFields= 'primeCost,changeSales';
 
 
     /**
@@ -1381,8 +1381,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             'totalDeltaLastYear' => $totalDeltaLastYear
         );
 
-        array_unshift($recs, $totalArr['total']);
-
+       // array_unshift($recs, $totalArr['total']);
+//bp($recs);
         return $recs;
 
 
