@@ -945,8 +945,8 @@ class cms_Articles extends core_Master
         $query->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
         $query->where("#domainId = '{$domainId}' AND #state = 'active'");
         $query->where("#footerTitleLink IS NOT NULL AND #footerTitleLink != ''");
-        $query->orderBy('id', 'ASC');
-        
+        $query->orderBy('level', 'ASC');
+
         $links = array();
         while ($rec = $query->fetch()) {
             $link = ht::createLink($rec->footerTitleLink, self::getUrl($rec));
