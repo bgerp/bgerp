@@ -830,8 +830,7 @@ class deals_QuotationDetails extends doc_Detail
             if (is_object($onlyNotOptionalRec)) {
                 if ($onlyNotOptionalRec->livePrice === true) {
 
-                    $rowAmount = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($onlyNotOptionalRec->amount);
-                    $data->summary->value = "<span style='color:blue'>{$rowAmount}</span>";
+                    $data->summary->value = "<span style='color:blue'>{$data->summary->value}</span>";
                     $data->summary->value = ht::createHint($data->summary->value, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
 
                     $data->summary->total = "<span style='color:blue'>{$data->summary->total}</span>";
@@ -999,10 +998,7 @@ class deals_QuotationDetails extends doc_Detail
         if ($masterRec->state == 'draft' || $dCount > 1) {
             $tpl->append($this->renderListToolbar($data), 'ListToolbar');
             $dTpl->append(tr('Оферирани'), 'TITLE');
-
-            if ($shortest !== true) {
-                $dTpl->append($miscMandatory, 'MISC');
-            }
+            $dTpl->append($miscMandatory, 'MISC');
 
             if (isset($data->addNotOptionalBtn)) {
                 $dTpl->append($data->addNotOptionalBtn, 'ADD_BTN');

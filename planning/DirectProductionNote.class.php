@@ -1649,13 +1649,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : null);
+        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
+        $dateIn = $date;
+        if(empty($date) || $date < dt::today()){
+            $dateIn = dt::addSecs($horizonAdd, dt::now());
+        }
+        $dateOut = empty($date) ? $rec->createdOn : $date;
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if($canStore == 'yes'){
             $res[] = (object)array('storeId'          => $rec->storeId,
                 'productId'        => $rec->productId,
-                'date'             => $date,
+                'date'             => $dateIn,
                 'quantityIn'       => $rec->quantity,
                 'quantityOut'      => null,
                 'genericProductId' => null);
@@ -1686,7 +1692,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $res[] = (object)array('storeId'          => $dRec->storeId,
                                    'productId'        => $dRec->productId,
-                                   'date'             => $date,
+                                   'date'             => $dateOut,
                                    'quantityIn'       => $quantityIn,
                                    'quantityOut'      => $quantityOut,
                                    'genericProductId' => $genericProductId);

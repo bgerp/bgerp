@@ -266,6 +266,8 @@ class store_Products extends core_Detail
         // Подготвяме в заявката да може да се търси по полета от друга таблица
         $data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
         $data->query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $data->query->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+
         $data->query->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
         $data->query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $data->query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');

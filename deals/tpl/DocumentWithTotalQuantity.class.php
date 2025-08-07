@@ -41,17 +41,21 @@ abstract class deals_tpl_DocumentWithTotalQuantity extends doc_TplScript
             $pArr[$pRec->id] = empty($pRec->baseUnitRatio) ? 1 : $pRec->baseUnitRatio;
             $baseMeasures[$baseUnitId] = $baseUnitId;
         }
+
         if(countR($baseMeasures) > 1) return;
 
         $baseMeasureId = key($baseMeasures);
         $totalQuantity = 0;
         foreach ($data->recs as $rec){
             if($data->masterData->rec->type == 'dc_note' && $rec->changedQuantity !== true) continue;
+
             $ratio = $pArr[$rec->productId];
-            $totalQuantity += $ratio * $rec->quantity * $rec->quantityInPack;
+            $totalQuantity += $ratio * (($detail instanceof deals_InvoiceDetail) ? ($rec->quantity / $rec->quantityInPack) : $rec->quantity);
         }
 
         if($totalQuantity){
+            $totalQuantity = cat_UoM::round($baseMeasureId, $totalQuantity);
+
             $totalQuantityVerbal = core_Type::getByName("double(smartRound)")->toVerbal($totalQuantity);
             $totalQuantityVerbal = ht::styleNumber($totalQuantityVerbal, $totalQuantity);
             $detail->Master->pushTemplateLg($data->masterData->rec->template);

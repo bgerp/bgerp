@@ -653,6 +653,10 @@ class frame2_Reports extends embed_Manager
                 }
                 
             } catch(core_exception_Expect $e){
+                // Ако потребителя е дебъг да вижда грешката
+                if(haveRole('debug')){
+                    throw $e;
+                }
                 reportException($e);
                 $tpl->replace("<span class='red'><b>" . tr('Проблем при показването на справката') . '</b></span>', 'DRIVER_DATA');
             }
