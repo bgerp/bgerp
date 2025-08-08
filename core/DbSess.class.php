@@ -50,7 +50,7 @@ class core_DbSess extends core_Manager
 
         $this->FLD('sessId', 'varchar(' . $sessHashLen . ')', 'caption=Сесия(хеш),notNull');
         $this->FLD('key',    'varchar(' . EF_SESS_KEY_LEN . ')', 'caption=Ключ,notNull');
-        $this->FLD('type',   'enum(integer, double, string, boolean, serialized, compressed)', 'caption=Тип,notNull');
+        $this->FLD('type',   'enum(integer, double, boolean, string, long-string, serialized, long-serialized)', 'caption=Тип,notNull');
         $this->FLD('value',  'varbinary(' . EF_SESS_MAX_DATA_LEN . ')', 'caption=Данни');
 
         $this->setDbUnique('sessId,key');
@@ -132,12 +132,19 @@ class core_DbSess extends core_Manager
 
         while ($rec = $query->fetch(array("#sessId = '[#1#]'", $this->sessId), true)) {
             switch ($rec->type) {
-                case 'integer':    $value = (int) $rec->value; break;
-                case 'double':     $value = (float) $rec->value; break;
-                case 'boolean':    $value = (bool) $rec->value; break;
-                case 'serialized': $value = unserialize($rec->value); break;
-                case 'compressed': $value = unserialize(gzuncompress($rec->value)); break;
-                default:           $value = $rec->value;
+                case 'integer':     $value = (int) $rec->value; break;
+                case 'double':      $value = (float) $rec->value; break;
+                case 'boolean':     $value = (bool) $rec->value; break;
+                case 'serialized':  $value = unserialize($rec->value); break;
+                case 'long-string': 
+                            $DbSessData = cls::get('core_DbSessData');
+                            $value = $DbSessData->getData($rec->value)); 
+                            break;
+                case 'long-serialized': 
+                            $DbSessData = cls::get('core_DbSessData');
+                            $value = unserialize($DbSessData->getData($rec->value))); 
+                            break;
+                default:            $value = $rec->value;
             }
             $this->vars[$rec->key] = $value;
         }
@@ -166,12 +173,18 @@ class core_DbSess extends core_Manager
 
         if (is_scalar($value)) {
             $type = gettype($value);
+            if($type == 'string' && strlen($value) >= EF_SESS_MAX_DATA_LEN) {
+                $DbSessData = cls::get('core_DbSessData');
+                $value = $DbSessData->setData($value);
+                $type = 'long-string';
+            }
         } else {
             $type  = 'serialized';
             $value = serialize($value);
             if(strlen(strlen($value) >= EF_SESS_MAX_DATA_LEN)) {
-                $value = gzcompress($value);
-                $type = 'compressed';
+                $DbSessData = cls::get('core_DbSessData');
+                $value = $DbSessData->setData($value);
+                $type = 'long-serialized';
             }
         }
 
