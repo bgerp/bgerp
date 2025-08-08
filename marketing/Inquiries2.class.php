@@ -849,7 +849,7 @@ class marketing_Inquiries2 extends embed_Manager
             // Ако може да се създава лица от запитването се слага бутон
             if ($mvc->haveRightFor('makeperson', $rec)) {
                 $companyId = doc_Folders::fetchCoverId($rec->folderId);
-                $data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->personNames, 'buzCompanyId' => $companyId, 'country' => $rec->country), 'ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя');
+                $data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'name' => $rec->personNames, 'buzCompanyId' => $companyId, 'country' => $rec->country), 'ef_icon=img/16/vcard-add.png,title=Създаване на визитка с адресните данни на подателя');
             }
             
             // Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
@@ -1074,15 +1074,6 @@ class marketing_Inquiries2 extends embed_Manager
         $form->setDefault('sourceId', $objectId);
         $form->setDefault('customizeProto', $customizeProto);
 
-        // Записване в сесията кога е отворена страницата за запитването
-        $ip = core_Users::getRealIpAddr();
-        $brid = log_Browsers::getBrid();
-        $key = "inq_{$ip}{$brid}_{$classId}_{$objectId}";
-
-        if(!Mode::get($key)){
-            Mode::setPermanent($key, dt::now());
-        }
-
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setLoginInfoIfNeeded($form);
         
@@ -1192,18 +1183,7 @@ class marketing_Inquiries2 extends embed_Manager
                         log_Browsers::setVars($userData);
                     }
 
-                    $isSpam = false;
-                    $diffInTime = time() - strtotime(Mode::get($key));
-                    if($sourceData['possibleSpam'] && ($diffInTime < 30)){
-                        $isSpam = true;
-                    }
-                    Mode::setPermanent($key, null);
-
-                    if(haveRole('debug')){
-                        core_Statuses::newStatus("Време за попълване|*: {$diffInTime}", 'warning');
-                    }
-
-                    if(!$isSpam){
+                    if(!$sourceData['possibleSpam']){
                         $id = $this->save($rec);
                         doc_Threads::doUpdateThread($rec->threadId);
                         $this->logWrite('Създаване от е-артикул', $id);
@@ -1217,6 +1197,7 @@ class marketing_Inquiries2 extends embed_Manager
                             return redirect($singleUrl, false, '|Благодарим Ви за запитването|*!', 'success');
                         }
                     } else {
+                        usleep(500000);
                         wp('Запитване СПАМ ',$rec, $sourceData);
                         log_System::add(cls::getClassName($classId), "Спряно създаване на запитване (евентуален спам)", $objectId, 'warning');
                     }
