@@ -3124,13 +3124,13 @@ abstract class deals_Helper
             $amountInEuro = round($amount, $decimals) / $rate;
             $amountInEuroRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInEuro);
 
-            return $amountRes . "<br />" . currency_Currencies::decorate($amountInEuroRow, 'EUR', true);
+            return $amountRes . "{$divider}" . currency_Currencies::decorate($amountInEuroRow, 'EUR', true);
         } elseif($currencyId == 'EUR' && $date > '2025-12-31' && $date <= '2026-12-31') {
 
             $amountInBgn = round($amount, $decimals) * $rate;
             $amountInBgnRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInBgn);
 
-            return $amountRes . "<br />" . currency_Currencies::decorate($amountInBgnRow, 'BGN', true);
+            return $amountRes . "{$divider}" . currency_Currencies::decorate($amountInBgnRow, 'BGN', true);
         }
 
         return $amountRow;
