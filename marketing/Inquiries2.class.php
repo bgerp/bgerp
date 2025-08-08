@@ -1049,7 +1049,7 @@ class marketing_Inquiries2 extends embed_Manager
         $proto = $sourceData['protos'];
         $proto = keylist::toArray($proto);
         $title = $sourceData['title'];
-        
+
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
@@ -1074,6 +1074,15 @@ class marketing_Inquiries2 extends embed_Manager
         $form->setDefault('sourceId', $objectId);
         $form->setDefault('customizeProto', $customizeProto);
 
+        // Записване в сесията кога е отворена страницата за запитването
+        $ip = core_Users::getRealIpAddr();
+        $brid = log_Browsers::getBrid();
+        $key = "inq_{$ip}{$brid}_{$classId}_{$objectId}";
+
+        if(!Mode::get($key)){
+            Mode::setPermanent($key, dt::now());
+        }
+
         // Рефрешване на формата ако потребителя се логне докато е в нея
         cms_Helper::setLoginInfoIfNeeded($form);
         
@@ -1094,7 +1103,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $form->input(null, 'silent');
-        
+
         if (countR($proto)) {
             $form->setOptions('proto', $proto);
             if (countR($proto) === 1) {
@@ -1143,7 +1152,7 @@ class marketing_Inquiries2 extends embed_Manager
         // След събмит на формата
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
             // Ако има регистриран потребител с този имейл. Изисква се да се логне
             if ($error = cms_Helper::getEmailError($rec->email)) {
                 $form->setError('email', $error);
@@ -1182,25 +1191,41 @@ class marketing_Inquiries2 extends embed_Manager
                         }
                         log_Browsers::setVars($userData);
                     }
-                    
-                    $id = $this->save($rec);
-                    doc_Threads::doUpdateThread($rec->threadId);
-                    $this->logWrite('Създаване от е-артикул', $id);
-                    if(!empty($routerExplanation)){
-                        $this->logWrite($routerExplanation, $id, 360, core_Users::SYSTEM_USER);
+
+                    $isSpam = false;
+                    $diffInTime = time() - strtotime(Mode::get($key));
+                    if($sourceData['possibleSpam'] && ($diffInTime < 30)){
+                        $isSpam = true;
                     }
-                    
-                    $singleUrl = self::getSingleUrlArray($id);
-                    if (countR($singleUrl)) {
-                        
-                        return redirect($singleUrl, false, '|Благодарим Ви за запитването|*!', 'success');
+                    Mode::setPermanent($key, null);
+
+                    if(haveRole('debug')){
+                        core_Statuses::newStatus("Време за попълване|*: {$diffInTime}", 'warning');
+                    }
+
+                    if(!$isSpam){
+                        $id = $this->save($rec);
+                        doc_Threads::doUpdateThread($rec->threadId);
+                        $this->logWrite('Създаване от е-артикул', $id);
+                        if(!empty($routerExplanation)){
+                            $this->logWrite($routerExplanation, $id, 360, core_Users::SYSTEM_USER);
+                        }
+
+                        $singleUrl = self::getSingleUrlArray($id);
+                        if (countR($singleUrl)) {
+
+                            return redirect($singleUrl, false, '|Благодарим Ви за запитването|*!', 'success');
+                        }
+                    } else {
+                        wp('Запитване СПАМ ',$rec, $sourceData);
+                        log_System::add(cls::getClassName($classId), "Спряно създаване на запитване (евентуален спам)", $objectId, 'warning');
                     }
                     
                     return followRetUrl(null, '|Благодарим Ви за запитването|*!', 'success');
                 }
             }
         }
-        
+
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
         $tpl = $form->renderHtml();

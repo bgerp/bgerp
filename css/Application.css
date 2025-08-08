@@ -8143,5 +8143,10 @@ tr.workInProgressBatchRow {
   font-size: 0.9em; }
 
 .currencySignNextToAmount {
-  display: inline-block; }
+  display: inline-block;
+  min-width: 1.5em;
+  text-align: left; }
+
+.priceListHolder .currencySignNextToAmount {
+  min-width: auto; }
 
