@@ -411,6 +411,10 @@ class hr_Schedules extends core_Master
         $today = dt::today();
         $thisMont = $data->CalendarYear . '-' . dt::getMonth((int) $data->CalendarMonth) . '-';
 
+
+        $scheduleId = isset($data->scheduleId) ? $data->scheduleId : $data->masterId;
+        $Interval   = hr_Schedules::getWorkingIntervals($scheduleId, $data->CalendarFirstDay, dt::getLastDayOfMonth($data->CalendarFirstDay));
+
         while(($d + 2 - $data->CalendarFirstWeekDay) <= $data->CalendarLastDayOfMonth) {
             $db[] = " -" . $d;
             $html .= "\n<tr>";
@@ -425,12 +429,19 @@ class hr_Schedules extends core_Master
                     $time = $data->Calendar[$cDay];
                     $h = (int) $time;
                     $c = (360 + 240 - round(($h+1) * 3600/240)) % 360;
+
+                    $shiftName = null;
+                    if($shiftId = hr_Shifts::getShiftByInterval($cDate, $Interval)){
+                        $shiftName = "<i>" . hr_Shifts::getTitleById($shiftId) . "</i>";
+                        $shiftName = "<div style='font-size:0.8em;'>{$shiftName}</div>";
+                    }
+
                     if($h >= 20 || $h < 4) {
                         $color = "background-color: hsl(0, 0%, 10%);color : hsl($c, 100%, 80%)";
                     } else {
                         $color = "background-color:  hsl(0, 0%, 90%); color : hsl($c, 100%, 20%)";
                     }    
-                    $add = "<span class='add' style='font-size:0.8em; padding:2px; border-radius:5px; {$color}'>" .  $time  . "</span>";
+                    $add = "<span class='add' style='font-size:0.9em; padding:2px; border-radius:5px; {$color}'>" .  $time  . "</span>{$shiftName}";
                     $dayColor = '';
                 } else {
                     if(isset($dStatus->specialDay) && $dStatus->specialDay == 'holiday') {

@@ -92,7 +92,7 @@ class core_DbSess extends core_Manager
     /** 
      * Унищожава текущата сесия (ако има) и изчиства cookie. 
      */
-    public function destroy(): void
+    public function destroy()
     {
         $this->expireCookie();
         $this->vars = array();
@@ -196,6 +196,10 @@ class core_DbSess extends core_Manager
         );
 
         $rec->id = $this->fetchField(array("#sessId = '[#1#]' AND #key = '[#2#]'", $rec->sessId, $rec->key), 'id');
+
+        if (strlen($value) > (EF_SESS_MAX_DATA_LEN - 200)) {
+            wp('EF_SESS_MAX_DATA_LEN', strlen($value), EF_SESS_MAX_DATA_LEN, $value, $rec);
+        }
 
         $res = $this->save_($rec);
 
@@ -384,16 +388,37 @@ class core_DbSess extends core_Manager
     }
 
     /** Изтича cookie-то. */
-    protected function expireCookie(): void
-    {
-        @setcookie($this->sessionName, '', [
-            'expires'  => time() - 3600,
-            'path'     => '/',
-            'secure'   => $this->secure,
-            'httponly' => $this->httpOnly,
-            'samesite' => $this->sameSite ?: 'Lax',
-        ]);
-        unset($_COOKIE[$this->sessionName]);
+    protected function expireCookie() {
+        $name      = $this->sessName;
+        $secure    = $this->secure;
+        $httpOnly  = $this->httpOnly;
+        $sameSite  = $this->sameSite ?: 'Lax';
+
+        $expires = time() - 3600;
+
+        if (PHP_VERSION_ID >= 70300) {
+            // От PHP 7.3 нагоре – официален масив с опции
+            @setcookie($name, '', [
+                'expires'  => $expires,
+                'path'     => '/',
+                'secure'   => $secure,
+                'httponly' => $httpOnly,
+                'samesite' => $sameSite,
+            ]);
+        } else {
+            // За PHP 7.0–7.2 – SameSite се добавя към path
+            @setcookie(
+                $name,
+                '',
+                $expires,
+                '/; samesite=' . $sameSite,
+                '',
+                $secure,
+                $httpOnly
+            );
+        }
+
+        unset($_COOKIE[$name]);
     }
 
 

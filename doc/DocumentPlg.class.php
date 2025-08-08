@@ -1577,8 +1577,8 @@ class doc_DocumentPlg extends core_Plugin
                 if (!empty($linkedFilesArr)) {
                     $ourImgArr = core_Permanent::get('ourImgEmailArr');
                     
-                    $fileNavArr = Mode::get('fileNavArr');
-                    
+                    $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());;
+
                     foreach ($linkedFilesArr as $linkedFh => $name) {
                         $fRec = fileman::fetchByFh($linkedFh);
                         
@@ -1621,7 +1621,7 @@ class doc_DocumentPlg extends core_Plugin
             $fileNavArr[$fh]['next'] = $next;
             $fileNavArr[$fh]['allFilesArr'] = $allFileArr;
             $fileNavArr[$fh]['current'] = $cUrlStr;
-            Mode::setPermanent('fileNavArr', $fileNavArr);
+            core_Cache::set('doc_Files', 'fileNavArr|' . core_Users::getCurrent(), $fileNavArr, 100);
 
             $rUrl = array('fileman_Files', 'single', $fh);
 
