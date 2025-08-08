@@ -2,7 +2,7 @@
 
 defIfNot('EF_SESS_ID_LEN', 32);       // ДЪЛЖИНА на суровия sessId в cookie (хекс)
 defIfNot('EF_SESS_KEY_LEN', 64);
-defIfNot('EF_SESS_MAX_DATA_LEN', 4000);
+defIfNot('EF_SESS_MAX_DATA_LEN', 128);
 
 defIfNot('EF_USERS_SESS_TIMEOUT', 3600 );
 defIfNot('EF_USERS_SESS_LIFETIME', 10 * 3600);
@@ -21,7 +21,7 @@ class core_DbSess extends core_Manager
     public $doReplication = false;
     public static $stopCaching = false;
 
-    public $loadList = 'plg_Sorting,plg_RowTools';
+    public $loadList = 'plg_Sorting,plg_RowTools,plg_SystemWrapper';
 
     public $vars = array();
     protected $loaded = false;
@@ -51,11 +51,11 @@ class core_DbSess extends core_Manager
         $this->FLD('sessId', 'varchar(' . $sessHashLen . ')', 'caption=Сесия(хеш),notNull');
         $this->FLD('key',    'varchar(' . EF_SESS_KEY_LEN . ')', 'caption=Ключ,notNull');
         $this->FLD('type',   'enum(integer, double, boolean, string, long-string, serialized, long-serialized)', 'caption=Тип,notNull');
-        $this->FLD('value',  'varbinary(' . EF_SESS_MAX_DATA_LEN . ')', 'caption=Данни');
+        $this->FLD('value',  'varbinary(' . EF_SESS_MAX_DATA_LEN . ')', 'caption=Данни->Кратки');
+        $this->FLD('longValue',  'blob(1000000000)', 'caption=Данни->Дълги');
 
         $this->setDbUnique('sessId,key');
         $this->setDbIndex('key');
-        $this->dbEngine = 'memory';
     }
 
 
@@ -128,35 +128,34 @@ class core_DbSess extends core_Manager
         expect(isset($this->sessId));
 
         $query = self::getQuery();
-        $query->show('key,type,value');
-
-        while ($rec = $query->fetch(array("#sessId = '[#1#]'", $this->sessId), true)) {
-            switch ($rec->type) {
-                case 'integer':     $value = (int) $rec->value; break;
-                case 'double':      $value = (float) $rec->value; break;
-                case 'boolean':     $value = (bool) $rec->value; break;
-                case 'serialized':  $value = unserialize($rec->value); break;
-                case 'long-string': 
-                            $DbSessData = cls::get('core_DbSessData');
-                            $value = $DbSessData->getData($rec->value)); 
-                            break;
-                case 'long-serialized': 
-                            $DbSessData = cls::get('core_DbSessData');
-                            $value = unserialize($DbSessData->getData($rec->value))); 
-                            break;
-                default:            $value = $rec->value;
+        $query->show('key,type,value,longValue');
+        try {
+            while ($rec = $query->fetch(array("#sessId = '[#1#]'", $this->sessId), true)) {
+                switch ($rec->type) {
+                    case 'integer':     $value = (int) $rec->value; break;
+                    case 'double':      $value = (float) $rec->value; break;
+                    case 'boolean':     $value = (bool) $rec->value; break;
+                    case 'serialized':  $value = unserialize($rec->value); break;
+                    case 'long-string': $value = $rec->longValue; break;
+                    case 'long-serialized': $value =  unserialize($rec->longValue); break;
+                    default:            $value = $rec->value;
+                }
+                $this->vars[$rec->key] = $value;
             }
-            $this->vars[$rec->key] = $value;
-        }
-
-        if((isset($this->vars['__startOn']) && ($this->vars['__startOn'] + $this->maxLifetime < time())) || 
-            (isset($this->vars['__activeOn']) && ($this->vars['__activeOn'] + $this->maxInactiveTime < time()))) {
             
-            $this->vars = array();
-        }
+            // Ако случайно току-що е минало някое от времената за живот на сесията - унищожаваме я
+            if((isset($this->vars['__startOn']) && ($this->vars['__startOn'] + $this->maxLifetime < time())) || 
+                (isset($this->vars['__activeOn']) && ($this->vars['__activeOn'] + $this->maxInactiveTime < time()))) {
+                
+                    $this->destroy(); // трие БД + cookie
+                    return 0;
+            }
 
-        $res = count($this->vars);
-        if ($res) $this->setDbVar('__activeOn', time());
+            $res = count($this->vars);
+            if ($res) $this->setDbVar('__activeOn', time());
+        } catch(core_exception_Db $e) {
+            $res = 0;
+        }
  
         return $res;
     }
@@ -166,6 +165,7 @@ class core_DbSess extends core_Manager
     {
         expect(isset($this->sessId));
         expect(is_array($this->vars));
+        $longValue = null;
 
         $hadVars = (count($this->vars) > 0);
 
@@ -174,16 +174,16 @@ class core_DbSess extends core_Manager
         if (is_scalar($value)) {
             $type = gettype($value);
             if($type == 'string' && strlen($value) >= EF_SESS_MAX_DATA_LEN) {
-                $DbSessData = cls::get('core_DbSessData');
-                $value = $DbSessData->setData($value);
+                $longValue = $value;
+                $value = null;
                 $type = 'long-string';
             }
         } else {
             $type  = 'serialized';
             $value = serialize($value);
-            if(strlen(strlen($value) >= EF_SESS_MAX_DATA_LEN)) {
-                $DbSessData = cls::get('core_DbSessData');
-                $value = $DbSessData->setData($value);
+            if(strlen($value) >= EF_SESS_MAX_DATA_LEN) {
+                $longValue = $value;
+                $value = null;
                 $type = 'long-serialized';
             }
         }
@@ -193,20 +193,20 @@ class core_DbSess extends core_Manager
             'key'    => $key,
             'type'   => $type,
             'value'  => $value,
+            'longValue' => $longValue,
         );
+        
+        try {
+            $rec->id = $this->fetchField(array("#sessId = '[#1#]' AND #key = '[#2#]'", $rec->sessId, $rec->key), 'id');
 
-        $rec->id = $this->fetchField(array("#sessId = '[#1#]' AND #key = '[#2#]'", $rec->sessId, $rec->key), 'id');
+            $res = $this->save_($rec);
 
-        if (strlen($value) > (EF_SESS_MAX_DATA_LEN - 200)) {
-            wp('EF_SESS_MAX_DATA_LEN', strlen($value), EF_SESS_MAX_DATA_LEN, $value, $rec);
-        }
-
-        $res = $this->save_($rec);
-
-        if ($res && !$hadVars) {
-            $now = time();
-            $this->setDbVar('__activeOn', $now);
-            $this->setDbVar('__startOn',  $now);
+            if ($res && !$hadVars) {
+                $now = time();
+                $this->setDbVar('__activeOn', $now);
+                $this->setDbVar('__startOn',  $now);
+            }
+        } catch(core_exception_Db $e) {
         }
     }
 
@@ -259,10 +259,14 @@ class core_DbSess extends core_Manager
             // Ако имаме сесийно куки, но за него нямаме записи в модела - унищожаваме го
             if (strlen($sessId) === EF_SESS_ID_LEN && ctype_xdigit($sessId)) {
                 $hash = $this->hashSessId($sessId);
-                if($this->fetch(array("#sessId = '[#1#]'", $hash))) {  
-                    $this->sessId = $hash;
-                    return true;
+                try {
+                    if($this->fetch(array("#sessId = '[#1#]'", $hash))) {  
+                        $this->sessId = $hash;
+                        return true;
+                    }
+                } catch(core_exception_Db $e) {
                 }
+
             }
         }
 
@@ -293,7 +297,7 @@ class core_DbSess extends core_Manager
     }
     
     /**
-     * Продсигурява зареждането на променливите от сесията
+     * Подсигурява зареждането на променливите от сесията
      */
     private function ensureLoaded()
     {
@@ -322,8 +326,11 @@ class core_DbSess extends core_Manager
         foreach ($current as $k => $v) {
             $this->setDbVar($k, $v); // пише под $newHash
         }
-
-        $this->delete(array("#sessId = '[#1#]'", $oldSessHash));
+        
+        try {
+            $this->delete(array("#sessId = '[#1#]'", $oldSessHash));
+        } catch(core_exception_Db $e) {
+        }
 
         $this->sendCookie($this->sessName, $cookieId);
     }
