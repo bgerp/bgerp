@@ -1049,7 +1049,7 @@ class marketing_Inquiries2 extends embed_Manager
         $proto = $sourceData['protos'];
         $proto = keylist::toArray($proto);
         $title = $sourceData['title'];
-        
+
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
@@ -1094,7 +1094,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $form->input(null, 'silent');
-        
+
         if (countR($proto)) {
             $form->setOptions('proto', $proto);
             if (countR($proto) === 1) {
@@ -1143,7 +1143,7 @@ class marketing_Inquiries2 extends embed_Manager
         // След събмит на формата
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
             // Ако има регистриран потребител с този имейл. Изисква се да се логне
             if ($error = cms_Helper::getEmailError($rec->email)) {
                 $form->setError('email', $error);
@@ -1182,25 +1182,30 @@ class marketing_Inquiries2 extends embed_Manager
                         }
                         log_Browsers::setVars($userData);
                     }
-                    
-                    $id = $this->save($rec);
-                    doc_Threads::doUpdateThread($rec->threadId);
-                    $this->logWrite('Създаване от е-артикул', $id);
-                    if(!empty($routerExplanation)){
-                        $this->logWrite($routerExplanation, $id, 360, core_Users::SYSTEM_USER);
-                    }
-                    
-                    $singleUrl = self::getSingleUrlArray($id);
-                    if (countR($singleUrl)) {
-                        
-                        return redirect($singleUrl, false, '|Благодарим Ви за запитването|*!', 'success');
+
+                    if(!$sourceData['possibleSpam']){
+                        $id = $this->save($rec);
+                        doc_Threads::doUpdateThread($rec->threadId);
+                        $this->logWrite('Създаване от е-артикул', $id);
+                        if(!empty($routerExplanation)){
+                            $this->logWrite($routerExplanation, $id, 360, core_Users::SYSTEM_USER);
+                        }
+
+                        $singleUrl = self::getSingleUrlArray($id);
+                        if (countR($singleUrl)) {
+
+                            return redirect($singleUrl, false, '|Благодарим Ви за запитването|*!', 'success');
+                        }
+                    } else {
+                        wp('Запитване СПАМ ',$rec, $sourceData);
+                        log_System::add(cls::getClassName($classId), "Спряно създаване на запитване (евентуален спам)", $objectId, 'warning');
                     }
                     
                     return followRetUrl(null, '|Благодарим Ви за запитването|*!', 'success');
                 }
             }
         }
-        
+
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
         $tpl = $form->renderHtml();

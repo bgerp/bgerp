@@ -23,22 +23,23 @@ class marketing_InquirySourceIntf
      * Клас на обекта
      */
     public $class;
-    
-    
+
+
     /**
      * Какви са дефолтните данни за създаване на запитване
      *
      * @param mixed $id - ид или запис
-     * @return array $res
-     *          ['title']         - заглавие
-     *          ['drvId']         - ид на драйвер
-     *          ['lg']            - език
-     *          ['protos']        - списък от прототипни артикули
-     *          ['quantityCount'] - опционален брой количества
-     *          ['moq']           - МКП
-     *          ['measureId']     - основна мярка
-     *          ['url']           - линк
      *
+     * @return array $res
+     *               ['title']         - заглавие
+     *               ['drvId']         - ид на драйвер
+     *               ['lg']            - език
+     *               ['protos']        - списък от прототипни артикули
+     *               ['possibleSpam']  - дали е потенциален спам
+     *               ['quantityCount'] - опционален брой количества
+     *               ['moq']           - МКП
+     *               ['measureId']     - основна мярка
+     *               ['url']           - линк
      */
     public function getInquiryData($id)
     {
