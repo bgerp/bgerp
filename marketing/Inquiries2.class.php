@@ -849,7 +849,7 @@ class marketing_Inquiries2 extends embed_Manager
             // Ако може да се създава лица от запитването се слага бутон
             if ($mvc->haveRightFor('makeperson', $rec)) {
                 $companyId = doc_Folders::fetchCoverId($rec->folderId);
-                $data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->personNames, 'buzCompanyId' => $companyId, 'country' => $rec->country), 'ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя');
+                $data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'name' => $rec->personNames, 'buzCompanyId' => $companyId, 'country' => $rec->country), 'ef_icon=img/16/vcard-add.png,title=Създаване на визитка с адресните данни на подателя');
             }
             
             // Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
