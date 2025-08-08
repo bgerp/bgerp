@@ -445,16 +445,6 @@ class deals_QuotationDetails extends doc_Detail
             // резултатите са разделени по продукти и дали са опционални или не
             $pId = $pId . "|{$optional}|" . md5($rec->notes);
 
-            if($rec->optional == 'yes'){
-                if($rec->quantity == 1 || empty($rec->quantity)){
-                    unset($row->packQuantity);
-                    unset($row->packagingId);
-                    $row->amount = str_replace("<br />", " / ", $row->packPrice);
-                    $row->packPrice .= tr("|* |за|* ") . tr(cat_UoM::getShortName($rec->packagingId));
-                    $row->amount .= tr("|* |за|* ") . tr(cat_UoM::getShortName($rec->packagingId));
-                }
-            }
-
             $newRows[$pId][] = $row;
         }
 

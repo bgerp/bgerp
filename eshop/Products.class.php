@@ -168,7 +168,9 @@ class eshop_Products extends core_Master
         $this->FLD('titleParamId', 'key(mvc=cat_Params,select=typeExt,allowEmpty)', 'caption=Заглавие на артикулите в детайла->Параметър');
         
         // Запитване за нестандартен продукт
-        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
+        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId|possibleSpam,silent');
+        $this->FLD('possibleSpam', 'check', 'caption=Запитване->Евентуален спам,input=none');
+
         $this->FLD('proto', 'keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)', 'caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни артикули');
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
@@ -254,6 +256,10 @@ class eshop_Products extends core_Master
         }
         
         if ($form->isSubmitted()) {
+            if($rec->possibleSpam == 'yes'){
+                $form->setWarning('possibleSpam', 'Сигурни ли сте, че искате за този артикул да не се записват направените запитвания|*?');
+            }
+
             $query = self::getQuery();
             $query->EXT('menuId', 'eshop_Groups', 'externalName=menuId,externalKey=groupId');
             if ($rec->id) {
@@ -337,7 +343,12 @@ class eshop_Products extends core_Master
         if(Mode::is('wrapper', 'cms_page_External')){
             $row->name = tr(static::getDisplayTitle($rec));
         }
-        
+
+        if($rec->possibleSpam == 'yes'){
+            if(haveRole('powerUser')){
+                $row->name = ht::createHint($row->name, 'Запитванията няма да се записват, защото артикулът е отбелязан като евентуален спам|*!', 'warning');
+            }
+        }
         $uomId = self::getUomId($rec);
         $rec->coMoq = $mvc->getMoq($rec);
         
@@ -498,6 +509,7 @@ class eshop_Products extends core_Master
      *               ['drvId']         - ид на драйвер
      *               ['lg']            - език
      *               ['protos']        - списък от прототипни артикули
+     *               ['possibleSpam']  - дали е потенциален спам
      *               ['quantityCount'] - опционален брой количества
      *               ['moq']           - МКП
      *               ['measureId']     - основна мярка
@@ -513,6 +525,7 @@ class eshop_Products extends core_Master
             'protos' => $rec->proto,
             'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount,
             'moq' => $this->getMoq($rec),
+            'possibleSpam' => $rec->possibleSpam == 'yes',
             'measureId' => static::getUomId($rec),
             'url' => static::getUrl($rec),
         );
@@ -1295,6 +1308,10 @@ class eshop_Products extends core_Master
             $orderByParamOptions += $activeParams;
         }
         $form->setOptions('orderByParam', $orderByParamOptions);
+
+        if(isset($form->rec->coDriver)){
+            $form->setField('possibleSpam', 'input');
+        }
     }
     
     
