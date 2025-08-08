@@ -226,7 +226,7 @@ class doc_FilesPlg extends core_Plugin
         // Извличаме всички, със съответното id
         $query->where("#dataId = '{$rec->dataId}'");
 
-        $navArr = Mode::get('fileNavArr');
+        $navArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
         if ($navArr && $navArr[$rec->fileHnd]) {
             $fNavArr = $navArr[$rec->fileHnd];
 

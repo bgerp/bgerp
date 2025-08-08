@@ -633,7 +633,7 @@ class trans_LineDetails extends doc_Detail
         $rkoClassId = cash_Rko::getClassId();
         
         $data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$transferClassId} THEN 3 WHEN {$consClassId} THEN 4 WHEN {$pkoClassId} THEN 5 WHEN {$rkoClassId} THEN 6 ELSE 7 END)");
-        $data->query->orderBy('#orderByClassId=ASC,#containerId=ASC');
+        $data->query->orderBy('#orderByClassId=ASC,#createdOn=ASC');
 
         if(Mode::is('printing')){
             $data->query->where("#status != 'removed'");

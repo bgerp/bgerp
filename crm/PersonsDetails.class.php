@@ -42,12 +42,16 @@ class crm_PersonsDetails extends core_Manager
 
             // Ако е инсталиран пакета wtime, ще се подготвят данните за работното време
             if(core_Packs::isInstalled('wtime')){
-                $data->Wtimes = cls::get('wtime_Summary');
-                $WtimeData = new stdClass();
-                $WtimeData->masterMvc = $data->masterMvc;
-                $WtimeData->masterId = $data->masterId;
-                $data->Wtimes->prepareSummary($WtimeData);
-                $data->Summary = $WtimeData;
+                $cu = core_Users::getCurrent();
+                $cuPersonId = crm_Profiles::getPersonByUser($cu);
+                if(haveRole('hr,hrMaster,ceo,wtime') || $data->masterData->rec->inCharge == $cu || $cuPersonId == $data->masterId) {
+                    $data->Wtimes = cls::get('wtime_Summary');
+                    $WtimeData = new stdClass();
+                    $WtimeData->masterMvc = $data->masterMvc;
+                    $WtimeData->masterId = $data->masterId;
+                    $data->Wtimes->prepareSummary($WtimeData);
+                    $data->Summary = $WtimeData;
+                }
             }
         }
 

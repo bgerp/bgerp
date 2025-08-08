@@ -1038,9 +1038,10 @@ class cat_Products extends embed_Manager
      * @param core_Query $query
      * @param string $productIdFld
      * @param string $stateFld
+     * @param string $quantityFld
      * @return void
      */
-    public static function applyAdditionalListFilters($filtersArr, &$query, $productIdFld = 'id', $stateFld = 'state')
+    public static function applyAdditionalListFilters($filtersArr, &$query, $productIdFld = 'id', $stateFld = 'state', $quantityFld = 'quantity')
     {
         $filtersArr = is_array($filtersArr) ? $filtersArr : bgerp_type_CustomFilter::toArray($filtersArr);
         if(!countR($filtersArr)) return;
@@ -1146,7 +1147,7 @@ class cat_Products extends embed_Manager
         $wherePartFive = '';
         foreach (array('reservedQuantity' => 'reservedQuantity', 'expectedQuantity' => 'expectedQuantity', 'freeQuantity' => 'free') as $filter => $field){
             if(isset($filtersArr[$filter])) {
-                $wherePartFive = (!empty($wherePartFive) ? ' OR ' : '') . "#{$field} IS NOT NULL";
+                $wherePartFive .= (!empty($wherePartFive) ? ' OR ' : '') . "#{$field} IS NOT NULL";
                 unset($leftFilter[$filter]);
             }
         }
@@ -1236,6 +1237,30 @@ class cat_Products extends embed_Manager
             }
             $whereArr[] = $wherePartNine;
             unset($leftFilter['replacementsWithoutAsset']);
+        }
+
+        $wherePartTen = '';
+        if(isset($filtersArr['withStock'])) {
+            $wherePartTen .= "#{$quantityFld} != 0";
+            unset($leftFilter['withStock']);
+        }
+        if(isset($filtersArr['withoutStock'])) {
+            $wherePartTen .= (!empty($wherePartTen) ? ' OR ' : '') . "#{$quantityFld} = 0";
+            unset($leftFilter['withoutStock']);
+        }
+
+        if(isset($filtersArr['positiveStock'])) {
+            $wherePartTen .= (!empty($wherePartTen) ? ' OR ' : '') . "#{$quantityFld} > 0";
+            unset($leftFilter['positiveStock']);
+        }
+
+        if(isset($filtersArr['negativeStock'])) {
+            $wherePartTen .= (!empty($wherePartTen) ? ' OR ' : '') . "#{$quantityFld} < 0";
+            unset($leftFilter['negativeStock']);
+        }
+
+        if(!empty($wherePartTen)){
+            $whereArr[] = $wherePartTen;
         }
 
         foreach ($whereArr as $where){
@@ -1648,6 +1673,11 @@ class cat_Products extends embed_Manager
                     cat_products_SharedInFolders::cloneFolders($rec->proto, $rec->id);
                 }
             }
+        }
+
+        // Ако има импортирани артикули - да се изпълни веднага крон процеса за засегнатите групи
+        if(isset($mvc->_haveImportedRecs)){
+            cls::get('cat_Groups')->cron_UpdateTouchedGroupsCnt();
         }
     }
     
@@ -4774,17 +4804,5 @@ class cat_Products extends embed_Manager
         $rec = static::fetchRec($rec);
 
         return self::getDisplayName($rec);
-    }
-
-
-    /**
-     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
-     */
-    public static function on_AfterSessionClose($mvc)
-    {
-        // Ако има импортирани артикули - да се изпълни веднага крон процеса за засегнатите групи
-        if(isset($mvc->_haveImportedRecs)){
-            cls::get('cat_Groups')->cron_UpdateTouchedGroupsCnt();
-        }
     }
 }

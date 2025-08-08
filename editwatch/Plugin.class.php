@@ -58,7 +58,7 @@ class editwatch_Plugin extends core_Plugin
         
         // Записваме кеша на съдържанието към името
         // за да не се използва след обновяване
-        Mode::setPermanent($nameHash, $statusHash);
+        core_Cache::set(get_called_class(), $nameHash, $statusHash, 60);
         
         // Ако не е зададено, рефрешът се извършва на всеки 5 секунди
         $time = $mvc->refreshEditwatchTime ? $mvc->refreshEditwatchTime : 5000;
@@ -155,7 +155,7 @@ class editwatch_Plugin extends core_Plugin
         $nameHash = static::getNameHash($refreshUrl, $hitTime);
         
         // Вземаме съдържанието от предишния запис
-        $savedHash = Mode::get($nameHash);
+        $savedHash = core_Cache::get(get_called_class(), $nameHash);
         
         if (empty($savedHash)) {
             $savedHash = md5($savedHash);
@@ -165,7 +165,7 @@ class editwatch_Plugin extends core_Plugin
         if ($statusHash != $savedHash) {
             
             // Записваме в сесията
-            Mode::setPermanent($nameHash, $statusHash);
+            core_Cache::set(get_called_class(), $nameHash, $statusHash, 60);
             
             // Добавяме резултата
             $resObj = new stdClass();
@@ -192,7 +192,7 @@ class editwatch_Plugin extends core_Plugin
     public static function getNameHash($refreshUrl, $hitTime)
     {
         // От URL-то и hitTime генерираме хеша за името
-        $nameHash = md5(toUrl($refreshUrl) . $hitTime);
+        $nameHash = md5(toUrl($refreshUrl) . '|' . $hitTime . '|' . core_Users::getCurrent());
         
         // Името на хеша, с който е записан в сесията
         $nameHash = 'REFRESH_ROWS_' . $nameHash;

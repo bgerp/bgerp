@@ -561,14 +561,14 @@ class bgerp_Portal extends embed_Manager
         
         $cName = $this->getCacheName($rec);
         
-        $oldCache = Mode::get($cName);
-        
+        $oldCache = core_Cache::get('bgerp_Portal', $cName);
+
         if (!$oldCache || ($oldCache != $newCache)) {
-            Mode::setPermanent($cName, $newCache);
-            
+            core_Cache::set('bgerp_Portal', $cName, $newCache, 120, array('bgerp_Portal'));
+
             return true;
         }
-        
+
         return false;
     }
     
@@ -616,7 +616,7 @@ class bgerp_Portal extends embed_Manager
         
         Mode::set('hitTime', $hitTime);
         
-        return 'PORTAL_AJAX_' . $hitTime . '_' . $rec->originIdCalc;
+        return 'PORTAL_AJAX_' . $hitTime . '_' . $rec->originIdCalc . '_' . core_Users::getCurrent();
     }
     
     

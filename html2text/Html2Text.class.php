@@ -81,45 +81,22 @@ class html2text_Html2Text
     public $width = 70;
     
     
-    /**
-     * List of preg* regular expression patterns to search for,
-     * used in conjunction with $replace.
-     *
-     * @var array $search
-     * @access public
-     *
-     * @see $replace
-     */
     public $search = array(
-        "/\r/", // Non-legal carriage return
-        "/[\n\t]+/", // Newlines and tabs
-        '/<script[^>]*>.*?<\/script>/si', // <script>s -- which strip_tags supposedly has problems with
-        '/<style[^>]*>.*?<\/style>/si', // <script>s -- which strip_tags supposedly has problems with
-        '/<!--.*-->/U', // Comments -- which strip_tags might have problem a with
-        '/<h[123][^>]*>(.+?)<\/h[123]>/i', // H1 - H3
-        '/<h[456][^>]*>(.+?)<\/h[456]>/i', // H4 - H6
-        '/<p[^>]*>/i', // <P>
-        '/<br[^>]*>/i', // <br>
-        '/<b[^>]*>(.+?)<\/b>/i', // <b>
-        '/<i[^>]*>(.+?)<\/i>/i', // <i>
-        '/(<ul[^>]*>|<\/ul>)/i', // <ul> and </ul>
-        '/<li[^>]*>/i', // <li>
-        '/<a.+href="(http\:[^"]+)"[^>]*>(.+?)<\/a>/i', // <a href="">
-        "/<a.+href='(http\:[^']+)'[^>]*>(.+?)<\/a>/i", // <a href=''>
-        '/<hr[^>]*>/i', // <hr>
-        /* New
-         '/<table[^>]*>/i',                          // <hr>
-         '/<\/table[^>]*>/i',                          // <hr>
-         '/<tr[^>]*>/i',                          // <hr>
-         '/<\/tr[^>]*>/i',                          // <hr>
-         '/<td[^>]*>/i',                          // <hr>
-         '/<\/td[^>]*>/i',                          // <hr>
-         '/<th[^>]*>/i',                          // <hr>
-         '/<\/th[^>]*>/i',                          // <hr> */
-        
-        '/(<table[^>]*>|<\/table>)/i', // <table> and </table>
-        '/(<tr[^>]*>|<\/tr>)/i', // <tr> and </tr>
-        '/<td[^>]*>(.+?)<\/td>/i', // <td> and </td>
+        "/\r/",
+        "/[\n\t]+/",
+        '/<script[^>]*>.*?<\/script>/is',
+        '/<style[^>]*>.*?<\/style>/is',
+        '/<!--.*?-->/s',
+        '/<p[^>]*>/i',
+        '/<br[^>]*>/i',
+        '/<b[^>]*>(.+?)<\/b>/i',
+        '/<i[^>]*>(.+?)<\/i>/i',
+        '/(<ul[^>]*>|<\/ul>)/i',
+        '/<li[^>]*>/i',
+        '/<hr[^>]*>/i',
+        '/(<table[^>]*>|<\/table>)/i',
+        '/(<tr[^>]*>|<\/tr>)/i',
+        '/<td[^>]*>(.+?)<\/td>/i',
         '/&nbsp;/i',
         '/&quot;/i',
         '/&gt;/i',
@@ -140,48 +117,23 @@ class html2text_Html2Text
         '/&#149;/',
         '/&reg;/i'
     );
-    
-    
-    /**
-     * List of pattern replacements corresponding to patterns searched.
-     *
-     * @var array $replace
-     * @access public
-     *
-     * @see $search
-     */
+
     public $replace = array(
-        '', // Non-legal carriage return
-        ' ', // Newlines and tabs
-        '', // <script>s -- which strip_tags supposedly has problems with
-        '', // Comments -- which strip_tags might have problem a with
-        '', // Comments -- which strip_tags might have problem a with
-        "strtoupper(\"\n\n\\1\n\n\")", // H1 - H3
-        "ucwords(\"\n\n\\1\n\n\")", // H4 - H6
-        "\n\n\t", // <P>
-        "\n", // <br>
-        '[b]\\1[/b]', // <b>
-        '[i]\\1[/i]', // <i>
-        "\n\n", // <ul> and </ul>
-        "\t*", // <li>
-        '$this->_build_link_list($link_count++, "\\1", "\\2")', // <a href="">
-        
-        '$this->_build_link_list($link_count++, "\\1", "\\2")', // <a href=''>
-        
-        "\n[hr]", // <hr>
-        /*New
-         '[table]',                          // <hr>
-         '[/table]',                          // <hr>
-         '[tr]',                          // <hr>
-         '[/tr]',                          // <hr>
-         '[td]',                          // <hr>
-         '[/td]',                          // <hr>
-         '[td]',                          // <hr>
-         '[/td]',                          // <hr> */
-        
-        "\n\n", // <table> and </table>
-        "\n", // <tr> and </tr>
-        "\t\\1\t", // <td> and </td>
+        '',
+        ' ',
+        '',
+        '',
+        '',
+        "\n\n\t",
+        "\n",
+        '[b]\\1[/b]',
+        '[i]\\1[/i]',
+        "\n\n",
+        "\t*",
+        "\n[hr]",
+        "\n\n",
+        "\n",
+        "\t\\1\t",
         ' ',
         '"',
         '>',
@@ -202,43 +154,23 @@ class html2text_Html2Text
         '*',
         '(R)'
     );
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
+
     public $replaceSimple = array(
-        '', // Non-legal carriage return
-        ' ', // Newlines and tabs
-        '', // <script>s -- which strip_tags supposedly has problems with
-        '', // Comments -- which strip_tags might have problem a with
-        '', // Comments -- which strip_tags might have problem a with
-        "strtoupper(\"\n\n\\1\n\n\")", // H1 - H3
-        "ucwords(\"\n\n\\1\n\n\")", // H4 - H6
-        "\n\n\t", // <P>
-        "\n", // <br>
-        '\\1', // <b>
-        '\\1', // <i>
-        "\n\n", // <ul> and </ul>
-        "\t*", // <li>
-        '$this->_build_link_list($link_count++, "\\1", "\\2")', // <a href="">
-        
-        '$this->_build_link_list($link_count++, "\\1", "\\2")', // <a href=''>
-        
-        "\n_________________________________________________________________", // <hr>
-        /*New
-         '[table]',                          // <hr>
-         '[/table]',                          // <hr>
-         '[tr]',                          // <hr>
-         '[/tr]',                          // <hr>
-         '[td]',                          // <hr>
-         '[/td]',                          // <hr>
-         '[td]',                          // <hr>
-         '[/td]',                          // <hr> */
-        
-        "\n\n", // <table> and </table>
-        "\n", // <tr> and </tr>
-        "\t\\1\t", // <td> and </td>
+        '',
+        ' ',
+        '',
+        '',
+        '',
+        "\n\n\t",
+        "\n",
+        '\\1',
+        '\\1',
+        "\n\n",
+        "\t*",
+        "\n_________________________________________________________________",
+        "\n\n",
+        "\n",
+        "\t\\1\\t",
         ' ',
         '"',
         '>',
@@ -259,7 +191,6 @@ class html2text_Html2Text
         '*',
         '(R)'
     );
-    
     
     /**
      * Indicates whether content in the $html variable has been converted yet.
@@ -282,7 +213,11 @@ class html2text_Html2Text
      */
     public $_link_list;
     
-    
+    public $simple = false;
+
+    public $wapSafe = false;
+ 
+
     /**
      * Просто конвертира
      */
@@ -398,37 +333,67 @@ class html2text_Html2Text
      */
     public function _convert()
     {
-        // Variables used for building the link list
         $link_count = 1;
         $this->_link_list = '';
-        
-        $text = trim(stripslashes($this->html));
-        
-        // Run our defined search-and-replace
-        if ($this->simple) {
-            $text = preg_replace($this->search, $this->replaceSimple, $text);
-        } else {
-            $text = preg_replace($this->search, $this->replace, $text);
+
+        $text = trim($this->html);
+
+        // 1) Пусни „статичните“ замествания (без H1–H6 и <a ...>)
+        $search  = $this->search;
+        $replace = $this->simple ? $this->replaceSimple : $this->replace;
+
+        // махаме правилата, които преди "изпълняваха" PHP
+        foreach ([5, 6, 13, 14] as $i) {
+            unset($search[$i], $replace[$i]);
         }
-        
-        // Strip any other HTML tags
+
+        $text = preg_replace(array_values($search), array_values($replace), $text);
+
+        // 2) H1–H3: ГОЛЕМИ букви
+        $text = preg_replace_callback(
+            '/<h[123][^>]*>(.+?)<\/h[123]>/is',
+            function ($m) {
+                $s = trim($m[1]);
+                return "\n\n" . (function_exists('mb_strtoupper') ? mb_strtoupper($s, 'UTF-8') : strtoupper($s)) . "\n\n";
+            },
+            $text
+        );
+
+        // 3) H4–H6: Title Case
+        $text = preg_replace_callback(
+            '/<h[456][^>]*>(.+?)<\/h[456]>/is',
+            function ($m) {
+                $s = trim($m[1]);
+                if (function_exists('mb_convert_case')) {
+                    $s = mb_convert_case($s, MB_CASE_TITLE, 'UTF-8');
+                } else {
+                    $s = ucwords(strtolower($s));
+                }
+                return "\n\n" . $s . "\n\n";
+            },
+            $text
+        );
+
+        // 4) Линкове (<a ...>) – поддържа http/https и " или '
+        $text = preg_replace_callback(
+            '/<a[^>]+href=["\'](https?:[^"\']+)["\'][^>]*>(.*?)<\/a>/is',
+            function ($m) use (&$link_count) {
+                return $this->_build_link_list($link_count++, $m[1], $m[2]);
+            },
+            $text
+        );
+
+        // 5) Махни останалите HTML тагове
         $text = strip_tags($text);
-        
-        // Bring down number of empty lines to 2 max
+
+        // 6) Нормализирай празните редове
         $text = preg_replace("/\n[[:space:]]+\n/", "\n", $text);
         $text = preg_replace("/[\n]{3,}/", "\n\n", $text);
-        
-        // Add link list
-        //if ( !empty($this->_link_list) ) {
-        //    $text .= "\n\nLinks:\n------\n" . $this->_link_list;
-        //}
-        
-        // Wrap the text to a readable format
-        // for PHP versions >= 4.0.2. Default width is 75
+
+        // 7) Wrap
         $text = wordwrap($text, $this->width);
-        
+
         $this->text = $text;
-        
         $this->_converted = true;
     }
     

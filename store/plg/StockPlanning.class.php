@@ -41,7 +41,15 @@ class store_plg_StockPlanning extends core_Plugin
     public static function on_AfterGetPlannedQuantityDate($mvc, &$res, $rec)
     {
         if(!$res) {
-            $res = !empty($rec->{$mvc->termDateFld}) ? $rec->{$mvc->termDateFld} : (!empty($rec->{$mvc->valiorFld}) ? $rec->{$mvc->valiorFld} : $rec->createdOn);
+            $res = array('isLive' => false);
+            if(!empty($rec->{$mvc->termDateFld})){
+                $res['date'] = $rec->{$mvc->termDateFld};
+            } elseif(!empty($rec->{$mvc->valiorFld})){
+                $res['date'] = $rec->{$mvc->valiorFld};
+            } else {
+                $res['date'] = dt::today() . " 00:00:00";
+                $res['isLive'] = true;
+            }
         }
     }
 
@@ -57,9 +65,12 @@ class store_plg_StockPlanning extends core_Plugin
             // За всеки случаи, се подсигуряваме, че река е пълен!
             $id = is_object($rec) ? $rec->id : $rec;
             $rec = $mvc->fetch($id, '*', false);
-
+            $today = dt::today();
+            $now = dt::now();
             if(!in_array($rec->state, $mvc->updatePlannedStockOnChangeStates) && (!($mvc instanceof deals_DealMaster) && empty($rec->{$mvc->storeFieldName})) || (($mvc instanceof store_Receipts) && $rec->isReverse == 'yes')) return;
-            $date = $mvc->getPlannedQuantityDate($rec);
+
+            $plannedDateArr = $mvc->getPlannedQuantityDate($rec);
+
             if($mvc->mainDetail){
 
                 // Ако има детайл извличат се сумарно какви количества трябва да се запазят
@@ -71,6 +82,7 @@ class store_plg_StockPlanning extends core_Plugin
                 $dQuery->XPR('totalQuantity', 'double', "SUM(#{$Detail->quantityFld})");
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
                 $dQuery->groupBy($Detail->productFld);
+                $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
 
                 // Добавяне на складируемите артикули от детайла на документа
                 while($dRec = $dQuery->fetch()){
@@ -84,6 +96,13 @@ class store_plg_StockPlanning extends core_Plugin
                         $genericProductId = $dRec->{$Detail->productFld};
                     } elseif($dRec->canConvert == 'yes'){
                         $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->{$Detail->productFld}}", 'genericProductId');
+                    }
+
+                    $date = $plannedDateArr['date'];
+                    if($quantityIn && $plannedDateArr['isLive']){
+                        if(dt::verbal2mysql($date, false) <= $today){
+                            $date = dt::addSecs($horizonAdd, $now);
+                        }
                     }
 
                     $res[] = (object)array('storeId' => $rec->{$mvc->storeFieldName},

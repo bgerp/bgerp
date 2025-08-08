@@ -45,7 +45,7 @@ class fileman_webdrv_Generic extends core_Manager
     protected $canView = 'every_one';
     
     public static function getArrows($fRec){
-        $fileNavArr = Mode::get('fileNavArr');
+        $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
 
         $prevUrl = $fileNavArr[$fRec->fileHnd]['prev'];
         $nextUrl = $fileNavArr[$fRec->fileHnd]['next'];
@@ -794,7 +794,7 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Извличаме мета информцията с Apache Tika
             apachetika_Detect::extract($fRec->fileHnd, $params);
@@ -868,7 +868,7 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Инстанция на класа
             $Script = cls::get('fconv_Script');

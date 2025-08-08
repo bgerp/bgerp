@@ -167,7 +167,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Извличаме текстовата част с Apache Tika
             return apachetika_Detect::extract($file, $params);
@@ -279,7 +279,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $outFilePath = '';
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Конфигурационните константи
             $conf = core_Packs::getConfig('docoffice');
@@ -342,7 +342,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         }
         
         // Заключваме процеса за определно време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Стартираме конвертирането синхронно
             $started = static::convertPdfToJpg($script->outFilePath, $params);
@@ -549,7 +549,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         }
         
         // Заключваме процеса за определено време
-        if (core_Locks::get($params['lockId'], 100, 0, false)) {
+        if (core_Locks::obtain($params['lockId'], 100, 0, 0, false)) {
             
             // Извличаме HTML частта с Apache Tika
             apachetika_Detect::extract($fRec->fileHnd, $params);

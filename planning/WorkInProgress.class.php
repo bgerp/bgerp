@@ -149,7 +149,7 @@ class planning_WorkInProgress extends core_Manager
         $oldRecs = $query->fetchAll();
         $res = arr::syncArrays($arr, $oldRecs, 'productId', 'quantity');
 
-        if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
+        if (!core_Locks::obtain(self::SYNC_LOCK_KEY, 60, 3, 1)) {
             self::logWarning('Синхронизирането на незавършеното производство е заключено от друг процес');
 
             return;

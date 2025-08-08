@@ -871,6 +871,7 @@ class eshop_ProductDetails extends core_Detail
      *               ['drvId']         - ид на драйвер
      *               ['lg']            - език
      *               ['protos']        - списък от прототипни артикули
+     *               ['possibleSpam']  - дали е потенциален спам
      *               ['quantityCount'] - опционален брой количества
      *               ['moq']           - МКП
      *               ['measureId']     - основна мярка
@@ -888,6 +889,7 @@ class eshop_ProductDetails extends core_Detail
                      'lg' => cms_Content::getLang(),
                      'protos' => $rec->productId,
                      'quantityCount' => empty($eProductRec->quantityCount) ? 0 : $eProductRec->quantityCount,
+                     'possibleSpam' => $eProductRec->possibleSpam == 'yes',
                      'moq' => $moq,
                      'measureId' => $productRec->measureId,
                      'url' => eshop_Products::getUrl($eProductRec),

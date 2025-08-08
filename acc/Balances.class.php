@@ -338,7 +338,7 @@ class acc_Balances extends core_Master
     {
         // Ако изчисляването е заключено не го изпълняваме
         $lockKey = 'RecalcBalances';
-        if (!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+        if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
             $this->logNotice('Изчисляването на баланса е заключено от друг процес');
 
             followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
@@ -476,7 +476,7 @@ class acc_Balances extends core_Master
         $lockKey = 'RecalcBalances';
 
         // Ако изчисляването е заключено не го изпълняваме
-        if (!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+        if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
             $this->logNotice('Изчисляването на баланса е заключено от друг процес');
 
             return;
@@ -517,7 +517,7 @@ class acc_Balances extends core_Master
             // Преизчисляваме първия отворен баланс (когато в него има промени) 9+1 пъти, за да подаде верни данни на следващите
             $j = 0;
             do {
-                core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME);
+                core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME);
                 $r = self::forceCalc($rec);
                 if($r){
                     $data->recalcedBalances[$rec->toDate] = $rec;

@@ -830,29 +830,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
-    
 
-    /**
-     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
-     */
-    public static function on_AfterSessionClose($mvc)
-    {
-        core_Debug::startTimer('DOCUMENT_SAVE_FILES');
-        foreach ((array)$mvc->saveFileArr as $rec) {
-            try {
-                // Опитваме се да запишем файловете от документа в модела
-                doc_Files::saveFile($mvc, $rec);
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-                
-                // Ако възникне грешка при записването
-                $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
-            }
-        }
-
-        core_Debug::stopTimer('DOCUMENT_SAVE_FILES');
-    }
-    
     
     /**
      * Изпълнява се след запис на документ.
@@ -1076,6 +1054,21 @@ class doc_DocumentPlg extends core_Plugin
 
             $mvc->pendingUpdateModifiedArr = array();
         }
+
+        core_Debug::startTimer('DOCUMENT_SAVE_FILES');
+        foreach ((array)$mvc->saveFileArr as $rec) {
+            try {
+                // Опитваме се да запишем файловете от документа в модела
+                doc_Files::saveFile($mvc, $rec);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+
+                // Ако възникне грешка при записването
+                $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
+            }
+        }
+
+        core_Debug::stopTimer('DOCUMENT_SAVE_FILES');
     }
     
     
@@ -1584,8 +1577,8 @@ class doc_DocumentPlg extends core_Plugin
                 if (!empty($linkedFilesArr)) {
                     $ourImgArr = core_Permanent::get('ourImgEmailArr');
                     
-                    $fileNavArr = Mode::get('fileNavArr');
-                    
+                    $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());;
+
                     foreach ($linkedFilesArr as $linkedFh => $name) {
                         $fRec = fileman::fetchByFh($linkedFh);
                         
@@ -1628,7 +1621,7 @@ class doc_DocumentPlg extends core_Plugin
             $fileNavArr[$fh]['next'] = $next;
             $fileNavArr[$fh]['allFilesArr'] = $allFileArr;
             $fileNavArr[$fh]['current'] = $cUrlStr;
-            Mode::setPermanent('fileNavArr', $fileNavArr);
+            core_Cache::set('doc_Files', 'fileNavArr|' . core_Users::getCurrent(), $fileNavArr, 100);
 
             $rUrl = array('fileman_Files', 'single', $fh);
 

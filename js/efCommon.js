@@ -6527,11 +6527,49 @@ function toggleListFilter()
     var hiddenItems = JSON.parse(localStorage.getItem(formId)); // Зареждаме скритите редове
 
     if (!hiddenItems || hiddenItems.length == 0) {
-        // Ако няма скрити редове в localStorage, скриваме всички с класа
-        $('.listFilter tr.toggable').hide();
-        hiddenItems = []; // Инициализираме празен масив, за да не е null
-        $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")");
-        $('.toggleListFilterBtn').val($('.toggleListFilterBtn').data('open'));
+        hiddenItems = [];
+        var hasHiddenRows = false;
+
+        $('.listFilter tr.toggable').each(function() {
+            var $row = $(this);
+            var shouldHide = true;
+
+            $row.find('select, .select2-src').each(function() {
+                var val = $(this).val();
+                if (val && val !== "all" && val.length > 0) {
+                    shouldHide = false;
+                }
+            });
+
+            $row.find('input[type="text"]').each(function() {
+                if ($(this).val().trim() !== '') {
+                    shouldHide = false;
+                }
+            });
+
+            $row.find('input[type="checkbox"]').each(function() {
+                if ($(this).prop('checked')) {
+                    shouldHide = false;
+                }
+            });
+
+            $row.find('input[type="radio"]').each(function() {
+                if ($(this).prop('checked')) {
+                    shouldHide = false;
+                }
+            });
+
+            if (shouldHide) {
+                $row.hide();
+                hasHiddenRows = true;
+            }
+        });
+
+        if (hasHiddenRows) {
+            $('.toggleListFilterBtn').css('background-image', 'url(' + $('.toggleListFilterBtn').data('plus') + ")").val($('.toggleListFilterBtn').data('open'));
+        } else {
+            $('.toggleListFilterBtn').css('display','none');
+        }
     } else if(hiddenItems.length) {
         // Скриваме редовете, които са били записани като скрити
         $('.listFilter tr.toggable').each(function() {

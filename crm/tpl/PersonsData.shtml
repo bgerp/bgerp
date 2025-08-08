@@ -10,7 +10,7 @@
 
 	<!--ET_BEGIN WTIME_TABLE-->
 	<fieldset class='top-tab-content' style='margin-top:10px'>
-		<legend class='groupTitle'>|Работно време|*</legend>
+		<legend class='groupTitle'>|Работно време|* [#wTimeFilter#]</legend>
 		<div class='detail-info portal [#TAB_STATE#]'>
 			<div class='groupList clearfix21'>
 				[#WTIME_TABLE#]

@@ -85,11 +85,11 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $hash = self::getDocumentStatesHash($data->recs);
         $hashName = self::getStateHashName($data->threadId, $data->recs);
         
-        Mode::setPermanent($hashName, $hash);
+        core_Cache::set(get_called_class(), $hashName, $hash, 60);
         
         if (!Request::get('ajax_mode')) {
             $threadLastSendName = self::getLastSendName($data->threadId);
-            Mode::setPermanent($threadLastSendName, dt::now());
+            core_Cache::set(get_called_class(), $threadLastSendName, dt::now(), 60);
         }
     }
     
@@ -108,7 +108,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $hash = self::getDocumentStatesHash($recsArr);
         $hashName = self::getStateHashName($threadId, $recsArr);
         
-        $oldHash = Mode::get($hashName);
+        $oldHash = core_Cache::get(get_called_class(), $hashName);
         
         if ($oldHash == $hash) {
             
@@ -116,7 +116,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         }
         
         if ($setNew) {
-            Mode::setPermanent($hashName, $hash);
+            core_Cache::set(get_called_class(), $hashName, $hash, 60);
         }
         
         return false;
@@ -146,7 +146,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
             $hitTime = dt::mysql2timestamp();
         }
         
-        $hashName = 'ThreadStatesHash_' . $threadId . '_' . $hitTime;
+        $hashName = 'ThreadStatesHash_' . $threadId . '_' . $hitTime . '_' . core_Users::getCurrent();
         
         return $hashName;
     }
@@ -367,7 +367,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         }
         
         $threadLastSendName = self::getLastSendName($threadId);
-        Mode::setPermanent($threadLastSendName, dt::now());
+        core_Cache::set(get_called_class(), $threadLastSendName, dt::now(), 60);
         
         return false;
     }
@@ -418,7 +418,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
             
             $threadLastSendName = self::getLastSendName($threadId);
             
-            $lastSend = Mode::get($threadLastSendName);
+            $lastSend = core_Cache::get(get_called_class(), $threadLastSendName);
             
             // Намира всички документи, които са променени
             if ($lastSend && countR($data->recs)) {

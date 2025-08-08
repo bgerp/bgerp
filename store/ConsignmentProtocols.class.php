@@ -790,8 +790,8 @@ class store_ConsignmentProtocols extends core_Master
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = $this->getPlannedQuantityDate($rec);
-        
+        $dateArr = $this->getPlannedQuantityDate($rec);
+
         $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
         $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
@@ -808,11 +808,11 @@ class store_ConsignmentProtocols extends core_Master
             }
             
             $res[] = (object)array('storeId'          => $rec->storeId,
-                'productId'        => $dRec->productId,
-                'date'             => $date,
-                'quantityIn'       => null,
-                'quantityOut'      => $dRec->totalQuantity,
-                'genericProductId' => $genericProductId);
+                                   'productId'        => $dRec->productId,
+                                   'date'             => $dateArr['date'],
+                                   'quantityIn'       => null,
+                                   'quantityOut'      => $dRec->totalQuantity,
+                                   'genericProductId' => $genericProductId);
         }
         
         return $res;
@@ -864,8 +864,10 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * За коя дата се заплануват наличностите
      *
-     * @param stdClass $rec - запис
-     * @return datetime     - дата, за която се заплануват наличностите
+     * @param stdClass $rec    - запис
+     * @return array
+     *          ['date']   - дата
+     *          ['isLive'] - дали е ръчно въведена или не
      */
     public function getPlannedQuantityDate_($rec)
     {
@@ -873,8 +875,9 @@ class store_ConsignmentProtocols extends core_Master
         if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
         
         $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
-        
-        return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+        $dateArr = array('date' => dt::addSecs(-1 * $preparationTime, $rec->deliveryOn), 'isLive' => false);
+
+        return $dateArr;
     }
 
     

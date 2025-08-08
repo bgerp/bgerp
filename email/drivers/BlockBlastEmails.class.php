@@ -30,4 +30,18 @@ class email_drivers_BlockBlastEmails extends email_drivers_OutgoingEmails
     {
         $mvc->FLD('fState', 'enum(blocked=Блокирано, ok=OK, error=Грешка)', 'caption=Състояние, after=email, mandatory, silent');
     }
+
+
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param tremol_FiscPrinterDriverWeb $Driver
+     * @param peripheral_Devices     $Embedder
+     * @param core_Form         $form
+     * @param stdClass          $data
+     */
+    protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
+    {
+        $data->form->setReadonly('email');
+    }
 }

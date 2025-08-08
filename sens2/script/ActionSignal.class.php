@@ -134,7 +134,7 @@ class sens2_script_ActionSignal
         // Проверяваме дали семафора позволява да се зададе изхода
         if(!sens2_Semaphores::check($rec->id, $value, $rec->onlyDifferent, $rec->minInterval, $rec->minAttempts)) {
 
-            return 'active';
+            return 'closed';
         }
 
         // Задаваме го на изхода

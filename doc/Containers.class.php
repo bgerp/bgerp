@@ -799,6 +799,20 @@ class doc_Containers extends core_Manager
         
         return new Redirect($retUrl);
     }
+
+
+    /**
+     * Листване
+     */
+    public function act_List()
+    {
+        $tId = Request::get('threadId', 'int');
+
+        // Изчакваме нишката да се отключи
+        core_Locks::obtain('doc_Threads_Update_' . $tId, 0, 30, 10);
+
+        return parent::act_List();
+    }
     
     
     /**
