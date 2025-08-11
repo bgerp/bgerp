@@ -1,7 +1,7 @@
 <?php
 
 defIfNot('EF_SESS_ID_LEN', 32);       // ДЪЛЖИНА на суровия sessId в cookie (хекс)
-defIfNot('EF_SESS_KEY_LEN', 64);
+defIfNot('EF_SESS_KEY_LEN', 128);
 defIfNot('EF_SESS_MAX_DATA_LEN', 128);
 
 defIfNot('EF_USERS_SESS_TIMEOUT', 3600 );
@@ -367,7 +367,7 @@ class core_DbSess extends core_Manager
         $secure = $this->secure || (strcasecmp($this->sameSite, 'None') === 0);
 
         return array(
-            'expires'  => $this->maxLifetime ? (time() + (int) $this->maxLifetime) : 0,
+            'expires'  => 0,
             'path'     => '/',
             'secure'   => (bool) $secure,
             'httponly' => (bool) $this->httpOnly,
@@ -381,7 +381,7 @@ class core_DbSess extends core_Manager
 
         if (PHP_VERSION_ID >= 70300) {
             setcookie($name, $value, array(
-                'expires'  => $p['expires'],
+                'expires'  => 0,
                 'path'     => $p['path'],
                 'secure'   => $p['secure'],
                 'httponly' => $p['httponly'],
