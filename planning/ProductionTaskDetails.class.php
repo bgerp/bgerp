@@ -1222,7 +1222,16 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $convertAgain = true;
                     $expectedSingleNetWeight = null;
                     if(isset($centerRec->paramExpectedNetWeight)){
-                        $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'), $masterRec->productId);
+                        $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
+
+                        // Ако е субпродукт нето теглото ще се взема от параметъра му
+                        if($rec->type == 'production' && ($rec->productId != $jobProductId && $rec->productId != $masterRec->productId)){
+                            $expectedSingleNetWeight = cat_Products::getParams($rec->productId, $centerRec->paramExpectedNetWeight);
+                        } else {
+
+                            // Ако е за крайния артикул или този от ПО се взима от ПО/Заданието/артикула
+                            $expectedSingleNetWeight = static::getParamValue($rec->taskId, $centerRec->paramExpectedNetWeight, $jobProductId, $masterRec->productId);
+                        }
 
                         // Ако параметъра е формула, се прави опит за изчислението ѝ
                         if(cat_Params::haveDriver($centerRec->paramExpectedNetWeight, 'cond_type_Formula')){
@@ -1244,6 +1253,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
 
                     $defaultExpectedSingleWeight = cat_Products::convertToUom($rec->productId, 'kg');
+
+                  //  bp($expectedSingleNetWeight, $defaultExpectedSingleWeight, $rec->productId);
                     if(empty($expectedSingleNetWeight)){
                         $expectedSingleNetWeight = $defaultExpectedSingleWeight;
                         if($rec->type == 'production'){
