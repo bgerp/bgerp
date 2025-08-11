@@ -1254,7 +1254,6 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                     $defaultExpectedSingleWeight = cat_Products::convertToUom($rec->productId, 'kg');
 
-                  //  bp($expectedSingleNetWeight, $defaultExpectedSingleWeight, $rec->productId);
                     if(empty($expectedSingleNetWeight)){
                         $expectedSingleNetWeight = $defaultExpectedSingleWeight;
                         if($rec->type == 'production'){
