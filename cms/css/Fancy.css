@@ -40,6 +40,7 @@ html, body {
     height: 220px;
     margin: 0 auto;
     position: relative;
+    overflow: hidden;
 }
 
 .formTable .formTitle a {
