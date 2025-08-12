@@ -2915,7 +2915,11 @@ class crm_Persons extends core_Master
             $res[] = (object)array('class' => 'purchase_Purchases', 'url' => array('purchase_Purchases', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
             $res[] = (object)array('class' => 'purchase_Quotations', 'url' => array('purchase_Quotations', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true), 'caption' => 'Оферта от доставчик');
         }
-        
+
+        $res[] = (object)array('class' => 'hr_Leaves', 'url' => array('hr_Leaves', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'caption' => 'Отпуска');
+        $res[] = (object)array('class' => 'hr_Sickdays', 'url' => array('hr_Sickdays', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'caption' => 'Болничен');
+        $res[] = (object)array('class' => 'hr_HomeOffice', 'url' => array('hr_Leaves', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'caption' => 'Хоум офис');
+
         return $res;
     }
     

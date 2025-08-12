@@ -2617,10 +2617,13 @@ class planning_Jobs extends core_Master
             }
         }
 
-        $jQuery->XPR('searchFieldXpr', 'text', "CONCAT(' ', #searchKeywords, ' ', #id, ' ', 'job', '', #id)");
         if ($q) {
             $q1 = plg_Search::normalizeText($q);
-            plg_Search::applySearch($q1, $jQuery, 'searchFieldXpr');
+            if(is_numeric($q1)) {
+                $jQuery->where(array("#id = '[#1#]'", $q1));
+            } else {
+                plg_Search::applySearch($q1, $jQuery, 'searchKeywords');
+            }
         }
 
         $previousArr = $similarArr = array();

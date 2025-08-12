@@ -72,7 +72,7 @@
     <!--ET_BEGIN DETAIL_ROW-->
     [#DETAIL_ROW#]
     <div class="product" >
-        <span>[#productId#] <small>[#weight#]</small></span> <b class="nowrap" style="align-items: end; padding-left: 5px">[#price#]</b>
+        <span>[#productId#]<!--ET_BEGIN weight--><small class="quiet"> [#weight#]</small><!--ET_END weight--></span> <b class="nowrap" style="align-items: end; padding-left: 5px;">[#price#]</b>
     </div>
     <!--ET_END DETAIL_ROW-->
     <div class="grid">
