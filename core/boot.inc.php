@@ -704,6 +704,23 @@ function expect404($cond)
 
 
 /**
+ * Генерира грешка, ако аргумента не е TRUE
+ *
+ * @var mixed   $inspect Обект, масив или скалар, който се подава за инспекция
+ * @var boolean $condition
+ */
+function expect410($cond)
+{
+    if (!(boolean) $cond) {
+        $dump = func_get_args();
+        array_shift($dump);
+
+        throw new core_exception_Expect('410 Gone', 'Несъответствие', $dump);
+    }
+}
+
+
+/**
  * Задава стойността(ите) от втория параметър на първия,
  * ако те не са установени
  * @todo: използва ли се тази функция за масиви?
