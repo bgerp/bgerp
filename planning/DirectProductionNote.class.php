@@ -1685,14 +1685,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $quantityIn = $quantityOut = null;
             if($dRec->type == 'input'){
+                $detailDate = $dateOut;
                 $quantityOut = $dRec->totalQuantity;
             } else {
+                $detailDate = $dateIn;
                 $quantityIn = $dRec->totalQuantity;
             }
 
             $res[] = (object)array('storeId'          => $dRec->storeId,
                                    'productId'        => $dRec->productId,
-                                   'date'             => $dateOut,
+                                   'date'             => $detailDate,
                                    'quantityIn'       => $quantityIn,
                                    'quantityOut'      => $quantityOut,
                                    'genericProductId' => $genericProductId);

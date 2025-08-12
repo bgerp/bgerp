@@ -93,7 +93,13 @@ class hr_Schedules extends core_Master
      */
     public $listFields = 'id,name';
 
-     
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutSchedule.shtml';
+
+
     /**
      * Описание на модела
      */
