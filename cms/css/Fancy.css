@@ -40,6 +40,7 @@ html, body {
     height: 220px;
     margin: 0 auto;
     position: relative;
+    overflow: hidden;
 }
 
 .formTable .formTitle a {
@@ -150,6 +151,13 @@ html, body {
  .narrow .footer-links {
      margin-top: 4px;
  }
+
+.footer-links, .footer-links a {
+    color: #180f47 !important;
+    &:hover {
+        color: #231669 !important
+    }
+}
 @media handheld, only screen and (min-width: 1800px) {
     .centerContent {
         width: 1400px !important;
