@@ -1036,16 +1036,16 @@ class marketing_Inquiries2 extends embed_Manager
         Mode::set('showBulletin', false);
         Mode::set('wrapper', 'cms_page_External');
 
-        Request::setProtected('classId, objectId,customizeProtoOpt');
-        expect404($classId = Request::get('classId', 'int'));
-        expect404($objectId = Request::get('objectId', 'int'));
+        Request::setProtected('classId,objectId,customizeProtoOpt');
+        expect410($classId = Request::get('classId', 'int'));
+        expect410($objectId = Request::get('objectId', 'int'));
         $customizeProto = Request::get('customizeProtoOpt', 'enum(yes,no)');
         $customizeProto = !empty($customizeProto) ? $customizeProto : 'yes';
         $Source = cls::getInterface('marketing_InquirySourceIntf', $classId);
         $sourceData = $Source->getInquiryData($objectId);
 
         $this->requireRightFor('new');
-        expect404($drvId = $sourceData['drvId']);
+        expect410($drvId = $sourceData['drvId']);
         $proto = $sourceData['protos'];
         $proto = keylist::toArray($proto);
         $title = $sourceData['title'];

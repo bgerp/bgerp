@@ -2637,7 +2637,7 @@ function refreshForm(form, removeFields) {
 	var frm = $(form);
 
 	frm.css('cursor', 'wait');
-
+    form.inert = true;
 	frm.find('input, select, textarea').css('cursor', 'wait');
     frm.find('#save, #saveAndNew').prop( "disabled", true );
 
@@ -2689,7 +2689,10 @@ function refreshForm(form, removeFields) {
                 if($('[name=' + k + ']').val() == '')
                     $('[name=' + k + ']').val(savedPwd[k]);}
         },  600);
+        form.inert = false;
+
 	}).fail(function(res) {
+        form.inert = false;
 		getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
 	});
 }

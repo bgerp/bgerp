@@ -884,7 +884,7 @@ class core_Html
         }
         
         if ($url) {
-            if ($warning) {
+            if ($warning || $attr['rel'] == 'nofollow') {
                 $attr['onclick'] .= " document.location='{$url}'";
                 $attr['href'] = 'javascript:void(0)';
             } else {

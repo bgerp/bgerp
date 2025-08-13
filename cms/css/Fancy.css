@@ -152,7 +152,7 @@ html, body {
      margin-top: 4px;
  }
 
-.footer-links, .footer-links a {
+.narrow .footer-links, .narrow .footer-links a {
     color: #180f47 !important;
     &:hover {
         color: #231669 !important
