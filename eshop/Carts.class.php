@@ -1287,9 +1287,8 @@ class eshop_Carts extends core_Master
                 Mode::push('text', 'plain');
                 $amount = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
                 $amountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-                Mode::pop('text');
                 $amountVerbal = currency_Currencies::decorate($amountVerbal, $settings->currencyId);
-                $amountVerbal= str_replace('&nbsp;', '', $amountVerbal);
+                Mode::pop('text');
                 $body->replace($amountVerbal, 'PAYMENT_AMOUNT');
             }
         }
