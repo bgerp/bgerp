@@ -1200,7 +1200,6 @@ class doc_DocumentPlg extends core_Plugin
 
         if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('dataType', 'php')) {
             expect($id = Request::get('id', 'int'));
-
             core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 0, 30, 10);
             expect($rec = $mvc->fetch($id), $id);
 

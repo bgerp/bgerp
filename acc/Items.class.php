@@ -677,7 +677,6 @@ class acc_Items extends core_Manager
     public static function notifyObject($id)
     {
         $rec = static::fetchRec($id);
-        
         // Опитваме се да заредим класа на перото
         if ($rec && cls::load($rec->classId, true)) {
             $Class = cls::get($rec->classId);
