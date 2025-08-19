@@ -584,10 +584,10 @@ class wtime_OnSiteEntries extends core_Manager
         $personId = crm_Profiles::getPersonByUser($uId);
         $type = Request::get('type');
         $classId = core_Users::getClassId();
-
-        $zRec = $this->addEntry($personId, dt::now(), $type, '', $classId);
-
-        expect($zRec);
+        try {
+            $zRec = $this->addEntry($personId, dt::now(), $type, '', $classId);
+//            expect($zRec);
+        } catch (core_exception_Expect $e) { }
 
         Mode::setPermanent('trackonline', 'confirmPopup');
 
