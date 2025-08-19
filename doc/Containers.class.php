@@ -806,10 +806,12 @@ class doc_Containers extends core_Manager
      */
     public function act_List()
     {
+//        sleep(1);
         $tId = Request::get('threadId', 'int');
 
         // Изчакваме нишката да се отключи
         core_Locks::obtain('doc_Threads_Update_' . $tId, 0, 30, 10);
+        core_Locks::obtain('doc_Threads_Update_Item_' . $tId, 0, 30, 20, false);
 
         return parent::act_List();
     }
