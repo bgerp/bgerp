@@ -2985,7 +2985,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $now = dt::now();
             $newRes = array();
             foreach($res as $plannedRec){
-                if(dt::verbal2mysql($plannedRec->date, false) <= $today){
+                if(($mvc instanceof purchase_Purchases) && dt::verbal2mysql($plannedRec->date, false) < $today){
                     $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
                     $plannedRec->date = dt::addSecs($horizonAdd, $now);
                 }
