@@ -2981,8 +2981,15 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 
             // За всяко от количествата, които ще се запазват
+            $today = dt::today();
+            $now = dt::now();
             $newRes = array();
             foreach($res as $plannedRec){
+                if(dt::verbal2mysql($plannedRec->date, false) <= $today){
+                    $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
+                    $plannedRec->date = dt::addSecs($horizonAdd, $now);
+                }
+
                 $removeQuantity = 0;
 
                 // Проспадане от запазеното количество, на вече запазеното по документи в нишката
