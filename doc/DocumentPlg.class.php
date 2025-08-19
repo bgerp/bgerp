@@ -1197,9 +1197,11 @@ class doc_DocumentPlg extends core_Plugin
     public function on_BeforeAction($mvc, &$res, $action)
     {
         $notAccessStatusMsg = '|Предишната страница не може да бъде показана, поради липса на права за достъп';
+
         if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('dataType', 'php')) {
             expect($id = Request::get('id', 'int'));
-            
+
+            core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 0, 30, 10);
             expect($rec = $mvc->fetch($id), $id);
 
             // След оттегляне, да редиректва към папката, ако е настроено и има такава възможност
