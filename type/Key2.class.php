@@ -388,13 +388,13 @@ class type_Key2 extends type_Int
                 foreach ($options as $key => $title) {
                     $isGroup = false;
 
-                    $element = null;
+                    $titleClass = null;
                     $class = null;
                     if (is_object($title)) {
                         $isGroup = $title->group ? true : false;
 
                         if (isset($title->attr['class'])) {
-                            $element = (object) array('className' => $title->attr['class']);
+                            $titleClass = $title->attr['class'];
                             $class = $title->attr['class'];
                         }
 
@@ -419,8 +419,13 @@ class type_Key2 extends type_Int
                             $obj->id = null;
                         }
 
-                        if (isset($element)) {
-                            $obj->element = $element;
+                        if (isset($titleClass)) {
+                            if (!$obj->gElement) {
+                                $obj->gElement = new stdClass();
+                                $obj->gElement->className = $titleClass;
+                            } else {
+                                $obj->gElement->className .= ' ' . $titleClass;
+                            }
                         }
                         $res[] = $obj;
                     }

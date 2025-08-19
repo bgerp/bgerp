@@ -42,9 +42,9 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('roleId', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Роля,after=title,mandatory');
-        $fieldset->FLD('from', 'date', 'caption=Период->От,mandatory,after=documents');
-        $fieldset->FLD('to', 'date', 'caption=Период->До,mandatory');
-        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,after=roleId');
+        $fieldset->FLD('from', 'date', 'caption=От,mandatory,after=roleId');
+        $fieldset->FLD('to', 'date', 'caption=До,mandatory,after=from');
+        $fieldset->FLD('documents', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи,after=to');
         $fieldset->FLD('order', 'enum(cnt=брой документи,letter=азбучен ред)', 'caption=Подреди по,after=documents,mandatory,column=none');
     }
     
@@ -62,9 +62,25 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
             }
         }
     }
-    
-    
+
     /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param frame2_driver_Proto $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
+    {
+        $form = $data->form;
+        $rec = $form->rec;
+
+        $form->setDefault('from', '1970-01-01');
+        $form->setDefault('to', dt::today() . '23:59:59');
+    }
+
+
+        /**
      * Кои записи ще се показват в таблицата
      *
      * @param stdClass $rec
