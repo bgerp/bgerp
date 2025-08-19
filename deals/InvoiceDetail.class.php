@@ -196,6 +196,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
             foreach ($dealInfo->dealProducts as $det) {
                 if(!empty($det->discount) && empty($rec->autoDiscount) && empty($rec->inputDiscount)){
                     $det->inputDiscount = $det->discount;
+                } else {
+                    $det->inputDiscount = null;
                 }
 
                 $autoDiscountPercent = $det->autoDiscount;
