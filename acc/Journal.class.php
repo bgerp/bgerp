@@ -249,7 +249,8 @@ class acc_Journal extends core_Master
         while ($iRec = $iQuery->fetch()) {
             $objectRec = cls::get($iRec->classId)->fetch($iRec->objectId);
             if(isset($objectRec->threadId)){
-                core_Locks::obtain('doc_Threads_Update_Item_' . $objectRec->threadId, 5, 0, 0, false);
+                $lockKey = "doc_Threads_Update_Item_{$objectRec->threadId}_" . core_Users::getCurrent();
+                core_Locks::obtain($lockKey, 15, 0, 0, false);
             }
         }
     }
@@ -685,7 +686,8 @@ class acc_Journal extends core_Master
 
                 acc_Items::notifyObject($rec);
                 if(isset($objectRec->threadId)){
-                    core_Locks::release('doc_Threads_Update_Item_' . $objectRec->threadId);
+                    $lockKey = "doc_Threads_Update_Item_{$objectRec->threadId}_" . core_Users::getCurrent();
+                    core_Locks::release($lockKey);
                 }
             }
         }

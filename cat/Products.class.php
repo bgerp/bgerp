@@ -4496,7 +4496,7 @@ class cat_Products extends embed_Manager
         }
 
         if($showReffCol){
-            $csvFields->FLD('reff', 'varchar', 'caption=Ваш реф.');
+            $csvFields->FLD('reff', 'varchar', 'caption=Ваш №');
         }
 
         // Подреждане за запазване на предишна логика

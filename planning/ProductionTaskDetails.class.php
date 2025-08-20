@@ -157,7 +157,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
         $this->FNC('scrapRecId', 'int', 'caption=Време,input=hidden,silent');
-        $this->FNC('inputType', 'enum(materials,services,actions)', 'caption=Тип на влагане,input=hidden,silent');
+        $this->FNC('inputType', 'enum(materials,services,actions,subProducts)', 'caption=Тип на влагане,input=hidden,silent');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('type');
@@ -282,11 +282,19 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($masterRec->isFinal != 'yes') {
                 if(array_key_exists($masterRec->productId, $options)){
                     $form->setDefault('productId', $masterRec->productId);
+                    $form->setReadOnly('productId');
                 }
             } else {
                 $jobProductId = planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId');
                 if(array_key_exists($jobProductId, $options)){
                     $form->setDefault('productId', $jobProductId);
+                    $form->setReadOnly('productId');
+                }
+            }
+
+            if(Request::get('productId', 'int')){
+                if($form->cmd != 'refresh'){
+                    $form->setReadOnly('productId');
                 }
             }
         }
@@ -1420,6 +1428,20 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
                 $btnName = (empty($masterRec->labelPackagingId) || $masterRec->labelPackagingId == $masterRec->measureId) ? 'Прогрес' : "Прогрес|* " . tr(cat_UoM::getTitleById(($masterRec->labelPackagingId)));
                 $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => $retUrl), false, 'ef_icon = img/16/package.png,title=Добавяне на прогрес по операцията');
+
+                // Ако има субпродукти - добавят се бутони за тях
+                $subProducts = array_keys(planning_ProductionTaskProducts::getOptionsByType($data->masterId, 'production', 'subProducts'));
+                if(countR($subProducts) < planning_Setup::get('TASK_SUB_PRODUCT_MIN_BUTTONS')){
+                    foreach ($subProducts as $subProductId){
+                        $code = cat_Products::fetchField($subProductId, 'code');
+                        $subProductName = cat_Products::getTitleById($subProductId);
+                        $subProductName = str_replace("'", '',$subProductName);
+                        $code = !empty($code) ? $code : "Art{$subProductId}";
+                        $data->toolbar->addBtn("Прогр. субпр:|* [{$code}]", array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'inputType' => 'subProducts', 'productId' => $subProductId, 'ret_url' => $retUrl), false, "ef_icon = img/16/package.png,title=Добавяне на прогрес за субпродукт|*: {$subProductName}");
+                    }
+                } else {
+                    $data->toolbar->addBtn("Прогрес: Субпродукти", array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'inputType' => 'subProducts', 'ret_url' => $retUrl), false, "ef_icon = img/16/package.png,title=Добавяне на прогрес за субпродукт");
+                }
             }
 
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'input', 'inputType' => 'materials'))) {
