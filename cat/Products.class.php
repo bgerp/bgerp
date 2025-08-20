@@ -4154,14 +4154,17 @@ class cat_Products extends embed_Manager
             $Detail = cls::get($masterMvc->mainDetail);
         }
 
+        $showReffCol = false;
         $detArr = arr::make($masterMvc->details);
-        $csvFields->FLD('vatPercent', 'varchar');
-
+        $csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
+        $showReff = isset($Detail) ? $Detail->showReffCode : $masterMvc->showReffCode;
+        $listId = cat_plg_ShowCodes::getReffListId($Detail, $mRec->contragentClassId, $mRec->contragentId, $mRec->threadId);
         expect(!empty($detArr));
 
         $recs = array();
         $exportFCls = cls::get(get_called_class());
         $fFieldsArr = array();
+
 
         foreach ($detArr as $dName) {
             if (!cls::load($dName, true)) {
@@ -4226,6 +4229,14 @@ class cat_Products extends embed_Manager
                     $recs[$dRec->id]->_productId = $dRec->{$dInst->productFld};
                     $recs[$dRec->id]->id = $dRec->id;
                     $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId;
+
+                    // Показване на вашия реф, ако има
+                    if (isset($listId)) {
+                        $recs[$dRec->id]->reff = cat_Listings::getReffByProductId($listId, $dRec->{$dInst->productFld}, $dRec->packagingId);
+                        if(!empty($recs[$dRec->id]->reff)){
+                            $showReffCol = true;
+                        }
+                    }
                 }
 
                 setIfNot($dInst->productFld, 'productId');
@@ -4330,8 +4341,6 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
-
-                //$csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
                 $recs[$dRec->id]->{$dInst->productFld} = cat_Products::getVerbal($dRec->{$dInst->productFld}, 'name');
 
                 // Добавяме отстъпката към цената
@@ -4479,8 +4488,12 @@ class cat_Products extends embed_Manager
             }
         }
 
+        if($showReffCol){
+            $csvFields->FLD('reff', 'varchar', 'caption=Ваш реф.');
+        }
+
         // Подреждане за запазване на предишна логика
-        $orderMap = array('code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
+        $orderMap = array('reff', 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
         $fArr = $csvFields->fields;
         $newFArr = array();
         foreach ($fArr as $fName => $fRec) {
