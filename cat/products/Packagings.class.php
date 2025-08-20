@@ -650,6 +650,11 @@ class cat_products_Packagings extends core_Detail
                 $row->packagingId = ht::createHint($row->packagingId, "Опаковката съответства на ЛЕ|*: {$transUnitName}", 'notice', false);
             }
         }
+
+        $packState = cat_UoM::fetchField($rec->packagingId, 'state');
+        if($packState == 'closed' && $rec->state != 'closed'){
+            $row->packagingId = ht::createHint($row->packagingId, 'Мярката/Опаковката е деактивирана за системата!', 'warning', false);
+        }
     }
     
     
