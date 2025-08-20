@@ -140,7 +140,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         }
 
         // 1) Имена на служителите от групите (само активни)
-        $namesByPerson = self::getPersonsNamesFromGroups($rec->crmGroup, true);
+        $namesByPerson = self::getPersonIdsFromCrmGroups($rec->crmGroup, true);
         if (empty($namesByPerson)) {
             return $recs;
         }
@@ -150,6 +150,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         if (!$perRec) {
             return $recs;
         }
+
         $from = isset($perRec->start) ? $perRec->start : (isset($perRec->from) ? $perRec->from : null);
         $to   = isset($perRec->end)   ? $perRec->end   : (isset($perRec->to)   ? $perRec->to   : null);
         if (!$from || !$to) {
@@ -469,10 +470,10 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     }
 
     /**
-     * Връща personId-тата на всички лица, които са в подадените CRM групи.
+     * Връща personId-тата и имената на всички лица, които са в подадените CRM групи.
      *
      * @param string $crmGroupKeylist keylist от crm_Groups (една или повече групи)
-     * @param bool   $activeOnly      ако има hr_Employees – само активните
+     * @param bool   $activeOnly       само активните
      * @return int[]                  [personId => personId]
      */
     protected static function getPersonIdsFromCrmGroups($crmGroupKeylist, $activeOnly = true)
@@ -488,65 +489,32 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 1) Всички лица, чието #groupList съдържа поне една от групите
         $q = crm_Persons::getQuery();
-        $q->show('id,groupList');
-        $q->where("#state != 'rejected'");
 
-        // WHERE LOCATE('|<gId>|', CONCAT('|', #groupList, '|')) за всяка група (OR)
+        $q->show('id,groupList,name');
+
+        if ($activeOnly) {
+            $q->where("#state ='active'");
+        }else{
+            $q->where("#state !='rejected'");
+        }
+
         $ors = array();
+
         foreach ($groupIds as $gId) {
             $gId = (int)$gId;
             $ors[] = "LOCATE('|{$gId}|', CONCAT('|', #groupList, '|'))";
         }
+
         $q->where('(' . implode(' OR ', $ors) . ')');
 
         $personIds = array();
         while ($p = $q->fetch()) {
-            $personIds[$p->id] = $p->id;
+            $personIds[$p->id] = $p->name;
         }
         if (empty($personIds)) {
             return array();
         }
 
-        // 2) По желание: само активни служители
-        if ($activeOnly && class_exists('hr_Employees')) {
-            $eq = hr_Employees::getQuery();
-            $eq->in('personId', array_keys($personIds));
-            $eq->where("#state = 'active'");
-            $eq->show('personId');
-
-            $active = array();
-            while ($e = $eq->fetch()) {
-                $active[$e->personId] = true;
-            }
-            // пресичане
-            $personIds = array_intersect_key($personIds, $active);
-        }
-
         return $personIds; // [personId => personId]
     }
-
-    /**
-     * Връща [personId => име] за лицата от подадените групи (сортирано по име).
-     *
-     * @param string $crmGroupKeylist keylist от crm_Groups
-     * @param bool   $activeOnly
-     * @return array [personId => name]
-     */
-    protected static function getPersonsNamesFromGroups($crmGroupKeylist, $activeOnly = true)
-    {
-        $ids = self::getPersonIdsFromCrmGroups($crmGroupKeylist, $activeOnly);
-        if (empty($ids)) return array();
-
-        $names = array();
-        foreach ($ids as $pid) {
-
-            $names[$pid] = crm_Persons::fetchField($pid, 'name');
-
-        }
-
-        asort($names);
-
-        return $names;
-    }
-
 }
