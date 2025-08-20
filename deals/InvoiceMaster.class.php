@@ -1892,6 +1892,8 @@ abstract class deals_InvoiceMaster extends core_Master
                 $dRec->amount = $dRec->price * $dRec->quantity;
                 $dRec->packPrice = $dRec->price * $dRec->quantityInPack;
                 unset($dRec->discount);
+            } else {
+                $dRec->inputDiscount = null;
             }
 
             if(!($this instanceof sales_Proformas)){
