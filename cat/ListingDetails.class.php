@@ -68,8 +68,14 @@ class cat_ListingDetails extends doc_Detail
      * Единично заглавие
      */
     public $singleTitle = 'Артикул за листване';
-    
-    
+
+
+    /**
+     * Поле за артикул
+     */
+    public $productFld = 'productId';
+
+
     /**
      * Дали в листовия изглед да се показва бутона за добавяне
      */

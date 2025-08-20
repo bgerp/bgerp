@@ -4157,14 +4157,16 @@ class cat_Products extends embed_Manager
         $showReffCol = false;
         $detArr = arr::make($masterMvc->details);
         $csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
-        $showReff = isset($Detail) ? $Detail->showReffCode : $masterMvc->showReffCode;
+        if($masterMvc instanceof cat_Listings){
+            $csvFields->FLD('moq', 'double(smartRound)', 'caption=МКП');
+        }
+
         $listId = cat_plg_ShowCodes::getReffListId($Detail, $mRec->contragentClassId, $mRec->contragentId, $mRec->threadId);
         expect(!empty($detArr));
 
         $recs = array();
         $exportFCls = cls::get(get_called_class());
         $fFieldsArr = array();
-
 
         foreach ($detArr as $dName) {
             if (!cls::load($dName, true)) {
@@ -4229,6 +4231,9 @@ class cat_Products extends embed_Manager
                     $recs[$dRec->id]->_productId = $dRec->{$dInst->productFld};
                     $recs[$dRec->id]->id = $dRec->id;
                     $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId;
+                    if($masterMvc instanceof cat_Listings) {
+                        $recs[$dRec->id]->moq = $dRec->moq;
+                    }
 
                     // Показване на вашия реф, ако има
                     if (isset($listId)) {
@@ -4346,7 +4351,9 @@ class cat_Products extends embed_Manager
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {
                     if(!Mode::is('csvExportInList')) {
-                        if ($recs[$dRec->id]->packPrice && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
+                        $price = ($masterMvc instanceof cat_Listings) ? $recs[$dRec->id]->price : $recs[$dRec->id]->packPrice;
+                        if ($price && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
+                            $recs[$dRec->id]->packPrice = $price;
                             $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
 
                             $caption = 'Цена';
@@ -4508,6 +4515,9 @@ class cat_Products extends embed_Manager
             $newFArr += $fArr;
         }
         $csvFields->fields = $newFArr;
+        if($masterMvc instanceof cat_Listings){
+            unset($csvFields->fields['name']);
+        }
 
         return $recs;
     }
