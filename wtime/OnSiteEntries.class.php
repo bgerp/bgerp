@@ -524,13 +524,31 @@ class wtime_OnSiteEntries extends core_Manager
             }
 
             if ($requiredRoles != 'no_one') {
-
                 $sIps = wtime_Setup::get('SITE_IPS');
                 $ipArr = type_Ip::extractIps($sIps);
                 if (countR($ipArr['ips'])) {
                     $thisIp = core_Users::getRealIpAddr();
                     if (!type_Ip::isInIps($thisIp, $ipArr)) {
                         $requiredRoles = 'no_one';
+                    }
+                }
+            }
+
+            if ($requiredRoles != 'no_one') {
+                if ($userId) {
+                    $personId = crm_Profiles::getPersonByUser($userId);
+                    if (!$personId) {
+                        $requiredRoles = 'no_one';
+                    } else {
+                        $personRec = crm_Persons::fetch($personId, 'groupList');
+                        if (!$personRec) {
+                            $requiredRoles = 'no_one';
+                        } else {
+                            $employeeGroupId = crm_Groups::getIdFromSysId('employees');
+                            if (!keylist::isIn($employeeGroupId, $personRec->groupList)) {
+                                $requiredRoles = 'no_one';
+                            }
+                        }
                     }
                 }
             }

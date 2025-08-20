@@ -130,8 +130,14 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'requestedQuantity,weight,volume,transUnitId,transUnitQuantity';
-    
-    
+
+
+    /**
+     * Да се показва ли вашия номер
+     */
+    public $showReffCode = true;
+
+
     /**
      * Описание на модела (таблицата)
      */

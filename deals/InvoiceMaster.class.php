@@ -1227,7 +1227,9 @@ abstract class deals_InvoiceMaster extends core_Master
                         $aggregateInfo = $firstDocument->getAggregateDealInfo();
                         $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
                         if($plan['eventBalancePayment'] == 'invEndOfMonth' && !empty($plan['deadlineForBalancePayment'])){
-                            $rec->dueDate = $plan['deadlineForBalancePayment'];
+                            if(empty($rec->dueTime) && empty($rec->dueDate)){
+                                $rec->dueDate = $plan['deadlineForBalancePayment'];
+                            }
                         }
                     }
                 }

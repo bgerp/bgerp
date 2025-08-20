@@ -78,6 +78,11 @@ class wtime_Setup extends core_ProtoSetup
         'wtime_Summary',
     );
 
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'wtime_reports_TimeWorked';
+
 
     public $configDescription = array(
         'WTIME_SITE_IPS' => array('text(rows=4)', 'caption=IP-та на всички наши офиси'),

@@ -471,7 +471,11 @@ class planning_ProductionTaskProducts extends core_Detail
             $query->where("#taskId = {$taskId} AND #state != 'closed'");
             $query->where("#type = '{$type}'");
             if(isset($inputType)){
-                if($inputType != 'actions'){
+                if($inputType == 'subProducts'){
+                    $expectProductId = $taskRec->isFinal = 'yes' ? planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId') : $taskRec->productId;
+                    $query->where("#productId != {$expectProductId}");
+                    unset($options[$taskRec->productId]);
+                } elseif($inputType != 'actions'){
                     $query->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
                     if($inputType == 'materials'){
                         $query->where("#canStore = 'yes'");
