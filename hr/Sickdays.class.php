@@ -357,42 +357,7 @@ class hr_Sickdays extends core_Master
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     }
-    
-    
-    /**
-     * Извиква се след изпълняването на екшън
-     */
-    public static function on_AfterAction(&$invoker, &$tpl, $act)
-    {
-        if (strtolower($act) == 'single' && haveRole('hrSickdays,ceo') && !Mode::is('printing')) {
-            
-            // Взимаме ид-то на молбата
-            $id = Request::get('id', 'int');
-            
-            // намираме, кой е текущия потребител
-            $cu = core_Users::getCurrent();
-            
-            // взимаме записа от модела
-            $rec = self::fetch($id);
-            
-            // превръщаме кей листа на споделените потребители в масив
-            $sharedUsers = type_Keylist::toArray($rec->sahredUsers);
-            
-            // добавяме текущия потребител
-            $sharedUsers[$cu] = $cu;
-            
-            // връщаме в кей лист масива
-            $rec->sharedUsers = keylist::fromArray($sharedUsers);
-            
-            self::save($rec, 'sharedUsers');
-            
-            doc_ThreadUsers::removeContainer($rec->containerId);
-            doc_Threads::updateThread($rec->threadId);
-            
-            redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId));
-        }
-    }
-    
+
     
     /**
      * След преобразуване на записа в четим за хора вид.
