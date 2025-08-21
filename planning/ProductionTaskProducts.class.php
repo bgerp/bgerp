@@ -755,33 +755,83 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Извлича информация за субпродуктите отчетени в нишката
      *
-     * @param int $threadId               - ид на нишка
-     * @return array $res                 - масив с резултат за отпадъка
+     * @param int $threadId          - ид на нишка
+     * @param bool $subtractProduced - приспадане на вече заскладените количества
+     * @return array $res            - масив с резултат за отпадъка
      */
-    public static function getSubProductsArr($threadId)
+    public static function getSubProductsArr($threadId, $subtractProduced = false)
     {
+        $jobId = null;
         $res = $tasks = array();
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         if($firstDoc->isInstanceOf('planning_Jobs')){
             $tasks = array_keys(planning_Tasks::getTasksByJob($firstDoc->that, 'active,wakeup,closed,stopped'));
+            $jobId = $firstDoc->that;
         } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
             $tasks = array($firstDoc->that);
+            $jobId = planning_Jobs::fetchField($firstDoc->fetchField('originId'), 'containerId');
         }
         if(!countR($tasks)) return $res;
+
+        // Ако ще се приспадат произведените да се сумират
+        $producedByStoreArr = $producedAll = array();
+        if($subtractProduced){
+            $threads = planning_Jobs::getJobLinkedThreads($jobId);
+            $nQuery = planning_DirectProductionNote::getQuery();
+            $nQuery->where("#state NOT IN ('rejected', 'draft')");
+            $nQuery->in("threadId", $threads);
+            while($nRec = $nQuery->fetch()) {
+                $producedByStoreArr["{$nRec->productId}|{$nRec->packagingId}|{$nRec->storeId}"] += $nRec->quantity;
+                $producedAll["{$nRec->productId}|{$nRec->packagingId}"] += $nRec->quantity;
+            }
+
+            $dQuery = planning_DirectProductNoteDetails::getQuery();
+            $dQuery->EXT('threadId', 'planning_DirectProductionNote', "externalName=threadId,externalKey=noteId");
+            $dQuery->EXT('state', 'planning_DirectProductionNote', "externalName=state,externalKey=noteId");
+            $dQuery->where("#state NOT IN ('rejected', 'draft') AND #type = 'subProduct'");
+            $dQuery->in("threadId", $threads);
+            while($dRec1 = $dQuery->fetch()) {
+                $producedByStoreArr["{$dRec1->productId}|{$dRec1->packagingId}|{$dRec1->storeId}"] += $dRec1->quantity;
+                $producedAll["{$dRec1->productId}|{$dRec1->packagingId}"] += $dRec1->quantity;
+            }
+        }
 
         $dQuery = static::getQuery();
         $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
         $dQuery->where("#type = 'production' AND #plannedQuantity != 0 AND #canStore = 'yes'");
         $dQuery->in('taskId', $tasks);
+
         while($dRec = $dQuery->fetch()){
-            $key = "{$dRec->productId}|{$dRec->packagingId}";
+            $key = $subtractProduced ? "{$dRec->productId}|{$dRec->packagingId}|{$dRec->storeId}": "{$dRec->productId}|{$dRec->packagingId}";
             if(!array_key_exists($key, $res)){
                 $res[$key] = (object)array('packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'productId' => $dRec->productId, 'productLink' => cat_Products::getHyperlink($dRec->productId));
+                if($subtractProduced){
+                    $res[$key]->storeId = $dRec->storeId;
+                }
             }
             $res[$key]->quantity += $dRec->totalQuantity;
         }
 
-        foreach ($res as &$rec){
+        foreach ($res as $k => &$rec){
+            if($subtractProduced){
+                list($pId, $packId,) = explode('|', $k);
+
+                // От всички произведени ще се приспаднат заскладените
+                if(array_key_exists($k, $producedByStoreArr)){
+                    $rec->quantity -= $producedByStoreArr[$k];
+                } else {
+
+                    if(array_key_exists("{$pId}|{$packId}", $producedAll)){
+                        $rec->quantity -= $producedAll["{$pId}|{$packId}"];
+                    }
+                }
+
+                if($rec->quantity <= 0){
+                    unset($res[$k]);
+                    continue;
+                }
+            }
+
             $rec->quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantity) . " " . cat_UoM::getSmartName($rec->packagingId, $rec->quantity);
         }
 
