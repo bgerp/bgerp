@@ -1438,23 +1438,23 @@ class pos_Terminal extends peripheral_Terminal
 
                 // Ако е плащане с карта и има периферия подменя се с връзка с касовия апарат
                 if($paymentId == $cardPaymentId){
-
                     $devices = peripheral_Devices::getDevices('bank_interface_POS');
                     $selectedDevices = array_intersect_key($devices, $peripheralIds);
 
+                    $attr['id'] = 'card-payment';
+                    $attr['data-sendamount'] = 'yes';
+                    $attr['data-notnumericmsg'] = tr('Невалидна сума за плащане|*!');
+                    $attr['data-amountoverallowed'] = tr('Не може да платите повече отколкото се дължи по сметката|*!');
                     if(countR($selectedDevices)){
                         foreach ($selectedDevices as $deviceRec){
                             $intf = cls::getInterface('bank_interface_POS', $deviceRec->driverClass);
 
-                            $attr['id'] = 'card-payment';
+
                             $attr['data-diffamount'] = tr("Има разминаване при отчетено плащане|*: {$deviceRec->name}!");
                             $attr['data-onerror'] = tr("Неуспешно плащане с банковия терминал|*: {$deviceRec->name}!");
                             $attr['data-oncancel'] = tr("Отказвано плащане с банков терминал|*: {$deviceRec->name}!");
                             $diff = abs($rec->paid - $rec->total);
                             $attr['data-maxamount'] = $diff;
-                            $attr['data-amountoverallowed'] = tr('Не може да платите повече отколкото се дължи по сметката|*!');
-                            $attr['data-notnumericmsg'] = tr('Невалидна сума за плащане|*!');
-                            $attr['data-sendamount'] = 'yes';
                             $attr['data-sendfunction'] = $intf->getSendAmountFncName($deviceRec);
 
                             $deviceBtnName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
@@ -1466,7 +1466,10 @@ class pos_Terminal extends peripheral_Terminal
                             $paymentArr["payment{$paymentId}|{$deviceRec->id}"] = (object)array('body' => ht::createElement("div", $attr, $cardCaption, true), 'placeholder' => 'PAYMENTS');
                         }
                     } else {
-                        $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
+                        $attr['data-deviceName'] = '';
+                        $attr['data-oncancel'] = tr("Отказвано плащане|*!");
+                        $attr['data-sendfunction'] = 'sendAmountDummy';
+                        $paymentArr["payment{$paymentId}|"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
                     }
                 } else {
                     $paymentArr["payment{$paymentId}"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');
