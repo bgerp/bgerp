@@ -303,7 +303,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
-            
+
             if (in_array($rec->type, array('pop', 'subProduct'))) {
                 $row->packQuantity .= " {$row->packagingId}";
             }
@@ -753,6 +753,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 }
             }
 
+            planning_DirectProductionNote::logWrite('Импортиране на субпродукти от ПО', $noteId);
             followRetUrl(null, 'Успешно импортирани субпродукти|*!');
         }
 
@@ -762,7 +763,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $tpl = $this->renderWrapping($form->renderHtml());
 
         // Записваме, че потребителя е разглеждал този списък
-        $this->logRead('Разглеждане на реконтиране на документ', $form->rec->id);
+        $this->logRead('Разглеждане на произведени субпродукти', $form->rec->id);
 
         return $tpl;
     }
