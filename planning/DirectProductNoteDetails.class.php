@@ -304,10 +304,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
 
-            if (in_array($rec->type, array('pop', 'subProduct'))) {
-                $row->packQuantity .= " {$row->packagingId}";
-            }
-
             if($rec->isOutsourced == 'yes'){
                 if(!Mode::isReadOnly()) {
                     $row->productId = ht::createHint($row->productId, 'Артикулът е отбелязан да се влага като ишлеме', 'noicon', false);
