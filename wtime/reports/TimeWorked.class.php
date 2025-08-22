@@ -27,7 +27,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields ;
+    protected $sortableListFields;
 
 
     /**
@@ -35,7 +35,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields ;
+    protected $summaryListFields;
 
 
     /**
@@ -57,7 +57,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField = 'personName' ;
+    protected $groupByField = 'personName';
 
 
     /**
@@ -150,11 +150,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         if (!$perRec) return $recs;
 
         $from = isset($perRec->start) ? $perRec->start : (isset($perRec->from) ? $perRec->from : null);
-        $to   = isset($perRec->end)   ? $perRec->end   : (isset($perRec->to)   ? $perRec->to   : null);
+        $to = isset($perRec->end) ? $perRec->end : (isset($perRec->to) ? $perRec->to : null);
         if (!$from || !$to) return $recs;
 
         $from = dt::verbal2mysql($from, false);
-        $to   = dt::verbal2mysql($to,   false);
+        $to = dt::verbal2mysql($to, false);
 
         $dates = array();
         $k = 0;
@@ -166,36 +166,42 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         if (is_object($data)) {
             $data->periodDates = $dates;          // списък с дати за периода
-            $data->persons     = $personsInGroups;  // [personId => name]
+            $data->persons = $personsInGroups;  // [personId => name]
         }
 
         // 3) Намираме смените и времето за всеки ден
         $personsShiftsInPeriod = self::getPersonsShiftsInPeriod($personsInGroups, $dates);  // [pId][Y-m-d] => shiftName|null
 
+        //Отчитане на хоумофис дните
+        $personsShiftsInPeriod = self::getPersonsHomeOfficeDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
+
+        //Отчитане на командировките
+        $personsShiftsInPeriod = self::getPersonsTripDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
+
         //Отчитане на отпуските
-        $personsShiftsInPeriod = self::getPersonsLeavesDaysInPeriod($personsInGroups, $dates,$personsShiftsInPeriod );
+        $personsShiftsInPeriod = self::getPersonsLeavesDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
 
         //Отчитане на болничните
-        $personsShiftsInPeriod = self::getPersonsSickDaysInPeriod($personsInGroups, $dates,$personsShiftsInPeriod );
+        $personsShiftsInPeriod = self::getPersonsSickDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
 
-        $personsTimeInPeriod   = self::getPersonsTimeInPeriod($personsInGroups, $dates);    // [pId][Y-m-d] => seconds
+        $personsTimeInPeriod = self::getPersonsTimeInPeriod($personsInGroups, $dates);    // [pId][Y-m-d] => seconds
 
         // 4) По 3 реда на човек: 'shift', 'onsite', 'ops'
         foreach ($personsInGroups as $pId => $pName) {
 
             // a) ред „смяна“
-            $recs[] = (object) array(
-                'rowType'        => 'shift',
-                'personId'       => $pId,
-                'personName'     => $pName,
+            $recs[] = (object)array(
+                'rowType' => 'shift',
+                'personId' => $pId,
+                'personName' => $pName,
                 'shiftsInPeriod' => isset($personsShiftsInPeriod[$pId]) ? $personsShiftsInPeriod[$pId] : array(),
             );
 
             // b) ред „време“ (секунди)
-            $recs[] = (object) array(
-                'rowType'          => 'onsite',
-                'personId'         => $pId,
-                'personName'       => $pName,
+            $recs[] = (object)array(
+                'rowType' => 'onsite',
+                'personId' => $pId,
+                'personName' => $pName,
                 'onSiteTimeByDate' => isset($personsTimeInPeriod[$pId]) ? $personsTimeInPeriod[$pId] : array(),
             );
 
@@ -204,13 +210,13 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $opsMinutes = array();
             if (!empty($personsTimeInPeriod[$pId])) {
                 foreach ($personsTimeInPeriod[$pId] as $ymd => $sec) {
-                    $opsMinutes[$ymd] = (int) round($sec / 60);
+                    $opsMinutes[$ymd] = (int)round($sec / 60);
                 }
             }
-            $recs[] = (object) array(
-                'rowType'          => 'ops',
-                'personId'         => $pId,
-                'personName'       => $pName,
+            $recs[] = (object)array(
+                'rowType' => 'ops',
+                'personId' => $pId,
+                'personName' => $pName,
                 'opsMinutesByDate' => $opsMinutes,
             );
         }
@@ -244,6 +250,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         return $fld;
     }
+
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
@@ -265,16 +272,16 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // Форматирания
         $fmtHm = function ($seconds) {
-            if (!is_numeric($seconds) || $seconds <= 0) return 'nd';
-            $minutes = (int) round($seconds / 60);
-            $h = (int) floor($minutes / 60);
+            if (!is_numeric($seconds) || $seconds <= 0) return '-';
+            $minutes = (int)round($seconds / 60);
+            $h = (int)floor($minutes / 60);
             $m = $minutes % 60;
             return sprintf('%d:%02d', $h, $m);
         };
         $fmtPct = function ($minutes) {
-            if (!is_numeric($minutes) || $minutes <= 0) return 'nd';
+            if (!is_numeric($minutes) || $minutes <= 0) return '-';
             $pct = round(($minutes / 480) * 100, 1);
-            return ($pct > 0) ? ($pct . '%') : 'nd';
+            return ($pct > 0) ? ($pct . '%') : '-';
         };
 
         // Колоните са изградени по $rec->data->periodDates
@@ -289,15 +296,15 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $code = sprintf('d%02d', $i);
 
             if ($dRec->rowType === 'shift') {
-                $val = trim((string) ($dRec->shiftsInPeriod[$ymd] ?? ''));
-                $row->{$code} = ($val !== '') ? $val : 'nd';
+                $val = trim((string)($dRec->shiftsInPeriod[$ymd] ?? ''));
+                $row->{$code} = ($val !== '') ? $val : '-';
 
             } elseif ($dRec->rowType === 'onsite') {
-                $seconds = (int) ($dRec->onSiteTimeByDate[$ymd] ?? 0);
+                $seconds = (int)($dRec->onSiteTimeByDate[$ymd] ?? 0);
                 $row->{$code} = $fmtHm($seconds);
 
             } else { // 'ops'
-                $mins = (int) ($dRec->opsMinutesByDate[$ymd] ?? 0);
+                $mins = (int)($dRec->opsMinutesByDate[$ymd] ?? 0);
                 $row->{$code} = $fmtPct($mins);
             }
         }
@@ -333,7 +340,8 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     {
         $Date = cls::get('type_Date');
         $Time = cls::get('type_Time');
-        $Users = cls::get('type_Users'); $Enum = cls::get('type_Enum', array('options' => array('selfPrice' => 'политика"Себестойност"', 'catalog' => 'политика"Каталог"', 'accPrice' => 'Счетоводна')));
+        $Users = cls::get('type_Users');
+        $Enum = cls::get('type_Enum', array('options' => array('selfPrice' => 'политика"Себестойност"', 'catalog' => 'политика"Каталог"', 'accPrice' => 'Счетоводна')));
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
@@ -387,8 +395,8 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      * Връща смяната за всеки служител по дни от периода.
      *
      * @param array $personsInGroups [personId => personName]
-     * @param array $dates           ['Y-m-d', ...] (вкл. граници)
-     * @param bool  $returnIds       true => връща id на смяната; false => име на смяната
+     * @param array $dates ['Y-m-d', ...] (вкл. граници)
+     * @param bool $returnIds true => връща id на смяната; false => име на смяната
      * @return array                 [personId][Y-m-d] => shiftId|shiftName|null
      */
     protected static function getPersonsShiftsInPeriod($personsInGroups, $dates, $returnIds = false)
@@ -408,7 +416,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // Инициализация: null за всички комбинации [personId][date]
         foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd ) {
+            foreach ($dates as $ymd) {
                 $result[$personId][$ymd] = null;
             }
         }
@@ -441,7 +449,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      * Връща времето на място (onSite) за всеки служител по дни от периода.
      *
      * @param array $personsInGroups [personId => personName]
-     * @param array $dates           ['Y-m-d', ...] (вкл. граници)
+     * @param array $dates ['Y-m-d', ...] (вкл. граници)
      * @return array                 [personId][Y-m-d] => onSiteSeconds (int)
      */
     protected static function getPersonsTimeInPeriod($personsInGroups, $dates)
@@ -454,7 +462,8 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // Нормализиране на датите и подготовка на бърз lookup
         $normDates = array();
-        $minDate = null; $maxDate = null;
+        $minDate = null;
+        $maxDate = null;
         foreach ($dates as $d) {
             $ymd = dt::verbal2mysql($d, false);   // 'Y-m-d'
             $normDates[$ymd] = true;
@@ -499,7 +508,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      * Добавя отпуските за всеки служител по дни от периода.
      *
      * @param array $personsInGroups [personId => personName]
-     * @param array $dates           ['Y-m-d', ...] (вкл. граници)
+     * @param array $dates ['Y-m-d', ...] (вкл. граници)
      * @return array
      */
     protected static function getPersonsLeavesDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
@@ -526,7 +535,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      * Добавя болничните за всеки служител по дни от периода.
      *
      * @param array $personsInGroups [personId => personName]
-     * @param array $dates           ['Y-m-d', ...] (вкл. граници)
+     * @param array $dates ['Y-m-d', ...] (вкл. граници)
      * @return array
      */
     protected static function getPersonsSickDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
@@ -549,12 +558,66 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
     }
 
+    /**
+     * Добавя командировките за всеки служител по дни от периода.
+     *
+     * @param array $personsInGroups [personId => personName]
+     * @param array $dates ['Y-m-d', ...] (вкл. граници)
+     * @return array
+     */
+    protected static function getPersonsTripDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
+    {
+
+        // За всеки човек и всяка дата проверяваме да ли е бил болничен на датата
+        foreach ($personsInGroups as $personId => $personName) {
+            foreach ($dates as $ymd) {
+
+                // Взимаме смяната (id) за деня
+                $isTripDay = hr_Trips::getTripDay($ymd, $personId);
+
+                if ($isTripDay) {
+                    $personsShiftsInPeriod[$personId][$ymd] = 'К';
+                }
+            }
+        }
+
+        return $personsShiftsInPeriod;
+
+    }
+
+    /**
+     * Добавя хоумофис дните за всеки служител по дни от периода.
+     *
+     * @param array $personsInGroups [personId => personName]
+     * @param array $dates ['Y-m-d', ...] (вкл. граници)
+     * @return array
+     */
+    protected static function getPersonsHomeOfficeDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
+    {
+
+        // За всеки човек и всяка дата проверяваме да ли е бил болничен на датата
+        foreach ($personsInGroups as $personId => $personName) {
+            foreach ($dates as $ymd) {
+
+                // Взимаме смяната (id) за деня
+                $isHomeOfficeDay = hr_HomeOffice::getHomeOfficeDay($ymd, $personId);
+
+                if ($isHomeOfficeDay) {
+                    $personsShiftsInPeriod[$personId][$ymd] = 'Х';
+                }
+            }
+        }
+
+        return $personsShiftsInPeriod;
+
+    }
+
 
     /**
      * Връща personId-тата и имената на всички лица, които са в подадените CRM групи.
      *
      * @param string $crmGroupKeylist keylist от crm_Groups (една или повече групи)
-     * @param bool   $activeOnly       само активните
+     * @param bool $activeOnly само активните
      * @return int[]                  [personId => personId]
      */
     protected static function getPersonIdsFromCrmGroups($crmGroupKeylist, $activeOnly = true)
@@ -575,7 +638,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         if ($activeOnly) {
             $q->where("#state ='active'");
-        }else{
+        } else {
             $q->where("#state !='rejected'");
         }
 
