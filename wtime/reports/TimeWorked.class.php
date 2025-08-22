@@ -169,7 +169,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $data->persons = $personsInGroups;  // [personId => name]
         }
 
-        // 3) Намираме смените и времето за всеки ден
+        // Намираме смените за всеки ден
         $personsShiftsInPeriod = self::getPersonsShiftsInPeriod($personsInGroups, $dates);  // [pId][Y-m-d] => shiftName|null
 
         //Отчитане на хоумофис дните
@@ -184,6 +184,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         //Отчитане на болничните
         $personsShiftsInPeriod = self::getPersonsSickDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
 
+        //Изчисляване на времето за всеки ден
         $personsTimeInPeriod = self::getPersonsTimeInPeriod($personsInGroups, $dates);    // [pId][Y-m-d] => seconds
 
         // 4) По 3 реда на човек: 'shift', 'onsite', 'ops'
