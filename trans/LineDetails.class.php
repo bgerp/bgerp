@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логист. информация,documentHtml=@,address=@,notes=@,classId=Клас';
+    public $listFields = 'num=№,containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логист. информация,documentHtml=@,address=@,notes=@,classId=Клас';
     
     
     /**
@@ -100,8 +100,14 @@ class trans_LineDetails extends doc_Detail
      * Кои полета да се извличат при изтриване
      */
     public $fetchFieldsBeforeDelete = 'id,lineId,containerId';
-    
-    
+
+
+    /**
+     * Дали редовете да са в зебра
+     */
+    public $zebraRows = false;
+
+
     /**
      * Вербалните имена на класовете
      */
@@ -209,6 +215,7 @@ class trans_LineDetails extends doc_Detail
         // Линк към документа
         $handle = $Document->getHandle();
         $row->containerId = "#{$handle}";
+        $row->num = core_Type::getByName('int')->toVerbal($rec->num);
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
             $createdBy = core_Users::getNick($Document->fetchField('createdBy'));
@@ -478,6 +485,7 @@ class trans_LineDetails extends doc_Detail
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');
+        $data->listTableMvc->FNC('num', 'int', 'tdClass=small-field');
 
         if($data->masterData->rec->state == 'rejected'){
             unset($data->listFields['_rowTools']);
@@ -654,8 +662,11 @@ class trans_LineDetails extends doc_Detail
         $documentsWithPayments = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId());
         $paymentDocuments = array_filter($recs, function ($a) use ($paymentDocsClassIds) {return in_array($a->classId, $paymentDocsClassIds) && ($a->status != 'removed');});
 
+        $i = 0;
         $removedRecs = array();
         foreach ($data->recs as $rec){
+            $i++;
+            $rec->num = $i;
             if($rec->status == 'removed'){
                 $rec->classId = 'removed';
                 $removedRecs[$rec->id] = $rec;
@@ -708,6 +719,25 @@ class trans_LineDetails extends doc_Detail
 
         if(countR($removedRecs)){
             $data->recs += $removedRecs;
+        }
+
+        // Подреждане в рамките на документа спрямо избраната настройка
+        $orderBy = trans_Setup::get('ORDER_BY_LINE_DETAILS');
+        if($orderBy != 'createdOn'){
+            $orderedRecs = array();
+            $classIds = arr::extractValuesFromArray($data->recs, 'classId');
+            foreach($classIds as $classId){
+                $recsByClass = array_filter($recs, function($a) use ($classId){return $a->classId == $classId;});
+                if($orderBy == 'containerId'){
+                    arr::sortObjects($recsByClass, 'containerId', 'ASC');
+                } else {
+                    arr::sortObjects($recsByClass, 'createdOn', 'DESC');
+
+                }
+                $orderedRecs += $recsByClass;
+            }
+
+            $data->recs = $orderedRecs;
         }
     }
     
