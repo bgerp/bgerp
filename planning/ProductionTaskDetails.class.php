@@ -259,11 +259,16 @@ class planning_ProductionTaskDetails extends doc_Detail
             $optionField = 'productId';
             $form->setOptions('productId', $options);
             if($rec->inputType == 'actions') {
+                $form->setField('productId', 'caption=Действие');
                 if(countR($optionsWithoutGroups) > 1){
                     $form->setFieldTypeParams('productId', array('forceOpen' => 'forceOpen'));
                 } else {
                     $form->setField('quantity', 'focus');
                 }
+            } elseif($rec->inputType == 'subProducts') {
+                $form->setField('productId', 'caption=Субпродукт');
+            } elseif($rec->inputType == 'materials') {
+                $form->setField('productId', 'caption=Материал');
             }
         }
 
