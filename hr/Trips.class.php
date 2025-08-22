@@ -494,4 +494,32 @@ class hr_Trips extends core_Master
             }
         }
     }
+
+    /**
+     * Ф-я, която връща дали лицето на дадената дата е в командировка
+     *
+     * @param string $date      Дата за проверка (формат YYYY-MM-DD или YYYY-MM-DD HH:MM:SS)
+     * @param int    $personId  Ид на лице
+     * @return bool             true / false
+     */
+    public static function getTripDay($date, $personId)
+    {
+        if (!$date || !$personId) {
+            return false;
+        }
+
+        // Оставяме само датната част, ако е подаден и час
+        if (strpos($date, ' ') !== false) {
+            $date = strstr($date, ' ', true);
+        }
+
+        $q = self::getQuery();
+        $q->where(array("#personId = '[#1#]'", $personId));
+        $q->where("#state = 'active'");
+        // Включително краищата: leaveFrom <= $date <= leaveTo
+        $q->where(array("#startDate <= '[#1#]' AND #toDate >= '[#1#]'", $date));
+        $q->limit(1);
+
+        return (bool)$q->fetch();
+    }
 }
