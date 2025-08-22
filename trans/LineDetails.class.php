@@ -103,12 +103,6 @@ class trans_LineDetails extends doc_Detail
 
 
     /**
-     * Дали редовете да са в зебра
-     */
-    public $zebraRows = false;
-
-
-    /**
      * Вербалните имена на класовете
      */
     private static $classGroups = array('store_ShipmentOrders' => 'Експедиции',
