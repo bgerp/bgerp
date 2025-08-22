@@ -517,9 +517,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
                 // Взимаме смяната (id) за деня
                 $isLeaveDay = hr_Leaves::getLeaveDay($ymd, $personId);
-//if($isLeaveDay)bp($ymd,$isLeaveDay,$personName, $personsShiftsInPeriod[$personId][$ymd]);
+
                 if ($isLeaveDay) {
-                    $personsShiftsInPeriod[$personId][$ymd] = 'Б';
+                    $personsShiftsInPeriod[$personId][$ymd] = 'Отп.';
                 }
             }
         }
