@@ -1468,7 +1468,7 @@ class pos_Terminal extends peripheral_Terminal
                     } else {
                         $devicesGlobal = peripheral_Devices::getDevices('bank_interface_POS', false);
                         if(countR($devicesGlobal)){
-                            $attr['data-deviceName'] = '';
+                            $attr['data-deviceName'] = 'НЕОПРЕДЕЛЕН потвърдете';
                             $attr['data-oncancel'] = tr("Отказвано плащане|*!");
                             $attr['data-sendfunction'] = 'sendAmountDummy';
                             $paymentArr["payment{$paymentId}|"] = (object)array('body' => ht::createElement("div", $attr, tr($paymentTitle), true), 'placeholder' => 'PAYMENTS');

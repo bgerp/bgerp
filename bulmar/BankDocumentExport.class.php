@@ -151,8 +151,6 @@ class bulmar_BankDocumentExport extends core_Manager
         $data->recs = $data->error = array();
         $mapAccounts = countR($data->static->mapAccounts);
 
-        $count = 0;
-       
         foreach (array('recs' => $recs, 'nonCashRecs' => $nonCashRecs) as $key => $arr){
             foreach ($arr as $rec) {
 
@@ -173,7 +171,7 @@ class bulmar_BankDocumentExport extends core_Manager
                             $clone->amount = $iRec->amount;
                             $clone->amountDeal = $iRec->amount * $r;
                             $clone->fromContainerId = $iRec->containerId;
-                            $newRecs[] = $this->prepareRec($clone, $count);
+                            $newRecs[] = $this->prepareRec($clone);
                         }
 
                         $pData->amount = round($pData->amount, 2);
@@ -182,13 +180,13 @@ class bulmar_BankDocumentExport extends core_Manager
                             $clone->amount = $pData->amount;
                             $clone->amountDeal = $pData->amount * $r;
                             $clone->fromContainerId = null;
-                            $newRecs[] = $this->prepareRec($clone, $count);
+                            $newRecs[] = $this->prepareRec($clone);
                         }
                     } else {
-                        $newRecs[] = $this->prepareRec($rec, $count);
+                        $newRecs[] = $this->prepareRec($rec);
                     }
                 } else {
-                    $newRecs[] = $this->prepareNoncashRec($rec, $count);
+                    $newRecs[] = $this->prepareNoncashRec($rec);
                 }
 
                 foreach ($newRecs as $newRec) {
@@ -214,14 +212,13 @@ class bulmar_BankDocumentExport extends core_Manager
     /**
      * Подготовка на данните за инкасирано безналично плащане
      */
-    private function prepareNoncashRec($rec, $count)
+    private function prepareNoncashRec($rec)
     {
         $nRec = new stdClass();
         
         $amount = $rec->amount;
         
         $nRec->id = $rec->id . "003";
-        $nRec->num = $count;
         $nRec->amount = $amount;
         $nRec->valior = $rec->valior;
         $nRec->endDate =  dt::getLastDayOfMonth($nRec->valior);
@@ -274,8 +271,9 @@ class bulmar_BankDocumentExport extends core_Manager
         $content .= "BULSTAT={$static->OWN_COMPANY_BULSTAT}" . "\r\n";
         
         // Добавяме информацията за фактурите
+        $num = 1;
         foreach ($data->recs as $rec) {
-            $line = "{$rec->num}|{$static->documentNumber}|{$rec->id}|{$rec->valior}|{$rec->EIC}|{$rec->endDate}|{$static->folder}|{$rec->contragentName}|" . "\r\n";
+            $line = "{$num}|{$static->documentNumber}|{$rec->id}|{$rec->valior}|{$rec->EIC}|{$rec->endDate}|{$static->folder}|{$rec->contragentName}|" . "\r\n";
 
             switch($rec->type){
                 case 'debitSupplier';
@@ -284,7 +282,7 @@ class bulmar_BankDocumentExport extends core_Manager
                         $debitAcc = $static->debitConnectedPersons;
                     }
 
-                    $line .= "{$rec->num}|1|{$static->operationType}|{$debitAcc}|PN|{$rec->reason}|{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
+                    $line .= "{$num}|1|{$static->operationType}|{$debitAcc}|PN|{$rec->reason}|{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
                 
                 break;
                 case 'creditSupplier';
@@ -292,26 +290,27 @@ class bulmar_BankDocumentExport extends core_Manager
                     if($rec->_isConnectedCompany){
                         $creditAcc = $static->creditConnectedPersons;
                     }
-                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$creditAcc}|PN|{$rec->reason}|{$rec->amount}||" . "\r\n";
+                    $line .= "{$num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$creditAcc}|PN|{$rec->reason}|{$rec->amount}||" . "\r\n";
                 
                 break;
                 case 'creditClient';
-                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$static->creditClient}|AN|{$rec->reason}|{$rec->amount}||" . "\r\n";
+                    $line .= "{$num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$static->creditClient}|AN|{$rec->reason}|{$rec->amount}||" . "\r\n";
                 
                 break;
                 case 'debitClient';
-                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitClient}|AN|{$rec->reason}|{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
+                    $line .= "{$num}|1|{$static->operationType}|{$static->debitClient}|AN|{$rec->reason}|{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
                 
                 break;
                 case 'creditUnknown';
-                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$static->creditUnknown}|||{$rec->amount}||" . "\r\n";
+                    $line .= "{$num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$static->creditUnknown}|||{$rec->amount}||" . "\r\n";
                 break;
                 case 'debitUnknown';
-                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitUnknown}|||{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
+                    $line .= "{$num}|1|{$static->operationType}|{$static->debitUnknown}|||{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
                 break;
             }
 
             $content .= $line;
+            $num++;
         }
        
         // Няма да се импортира ако не завършва на 0
@@ -358,7 +357,7 @@ class bulmar_BankDocumentExport extends core_Manager
     /**
      * Подготвя записа
      */
-    private function prepareRec($rec, $count)
+    private function prepareRec($rec)
     {
         $nRec = new stdClass();
         
@@ -380,7 +379,6 @@ class bulmar_BankDocumentExport extends core_Manager
         }
 
         $nRec->id = $rec->id . (($this->mvc instanceOf bank_IncomeDocuments) ? "001" : "002");
-        $nRec->num = $count;
         $nRec->amount = $amount;
         $nRec->valior = $rec->valior;
         $nRec->endDate =  dt::getLastDayOfMonth($nRec->valior);
