@@ -552,6 +552,21 @@ class core_Manager extends core_Mvc
         
         return $data;
     }
+
+
+    /**
+     * Подготвя формата за филтриране
+     */
+    public function prepareListFilter($data)
+    {
+        $data = parent::prepareListFilter($data);
+
+        if ($data->query) {
+            $data->query->orderBy('id', 'ASC');
+        }
+
+        return $data;
+    }
     
     
     /**
