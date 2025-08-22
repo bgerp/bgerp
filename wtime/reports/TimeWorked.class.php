@@ -370,7 +370,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
             $fieldTpl->append('<b>' . $Users->toVerbal($data->rec->users) . '</b>', 'users');
         } else {
-            $fieldTpl->append('<б>' . 'Всички' . '</б>', 'users');
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'users');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
