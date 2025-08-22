@@ -172,10 +172,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         // 3) Намираме смените и времето за всеки ден
         $personsShiftsInPeriod = self::getPersonsShiftsInPeriod($personsInGroups, $dates);  // [pId][Y-m-d] => shiftName|null
 
-        //Отчитане на болничните
+        //Отчитане на отпуските
         $personsShiftsInPeriod = self::getPersonsLeavesDaysInPeriod($personsInGroups, $dates,$personsShiftsInPeriod );
 
-
+        //Отчитане на болничните
+        $personsShiftsInPeriod = self::getPersonsSickDaysInPeriod($personsInGroups, $dates,$personsShiftsInPeriod );
 
         $personsTimeInPeriod   = self::getPersonsTimeInPeriod($personsInGroups, $dates);    // [pId][Y-m-d] => seconds
 
@@ -255,7 +256,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     {
         $row = new stdClass();
 
-        $row->personName = "<div style='text-align:left;font-weight:600;'>{$dRec->personName}</div>";
+        $row->personName = "<div style='text-align:center;font-weight:600;'>{$dRec->personName}</div>";
 
 
         // Показател
@@ -441,10 +442,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      *
      * @param array $personsInGroups [personId => personName]
      * @param array $dates           ['Y-m-d', ...] (вкл. граници)
-     * @param bool  $returnIds       (не се ползва тук; оставено за съвместимост)
      * @return array                 [personId][Y-m-d] => onSiteSeconds (int)
      */
-    protected static function getPersonsTimeInPeriod($personsInGroups, $dates, $returnIds = false)
+    protected static function getPersonsTimeInPeriod($personsInGroups, $dates)
     {
         $result = array();
 
@@ -496,7 +496,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     }
 
     /**
-     * Добавя болничните за всеки служител по дни от периода.
+     * Добавя отпуските за всеки служител по дни от периода.
      *
      * @param array $personsInGroups [personId => personName]
      * @param array $dates           ['Y-m-d', ...] (вкл. граници)
@@ -505,13 +505,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     protected static function getPersonsLeavesDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
     {
 
-        // Нормализиране на датите и сет за бърз достъп
-        $normDates = array();
-        foreach ($dates as $d) {
-            $ymd = dt::verbal2mysql($d, false); // 'Y-m-d'
-        }
-
-        // За всеки човек и всяка дата намираме смяната чрез hr_Shifts::getShift()
+        // За всеки човек и всяка дата проверяваме дали е бил отпуск на датата
         foreach ($personsInGroups as $personId => $personName) {
             foreach ($dates as $ymd) {
 
@@ -526,8 +520,32 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         return $personsShiftsInPeriod;
 
+    }
 
+    /**
+     * Добавя болничните за всеки служител по дни от периода.
+     *
+     * @param array $personsInGroups [personId => personName]
+     * @param array $dates           ['Y-m-d', ...] (вкл. граници)
+     * @return array
+     */
+    protected static function getPersonsSickDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
+    {
 
+        // За всеки човек и всяка дата проверяваме да ли е бил болничен на датата
+        foreach ($personsInGroups as $personId => $personName) {
+            foreach ($dates as $ymd) {
+
+                // Взимаме смяната (id) за деня
+                $isSickDay = hr_Sickdays::getSickDay($ymd, $personId);
+
+                if ($isSickDay) {
+                    $personsShiftsInPeriod[$personId][$ymd] = 'Б';
+                }
+            }
+        }
+
+        return $personsShiftsInPeriod;
 
     }
 
