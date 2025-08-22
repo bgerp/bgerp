@@ -204,7 +204,7 @@ class wtime_OnSiteEntries extends core_Manager
             }
 
             if($filter->type != 'all'){
-                $data->query->where("#type = {$filter->type}");
+                $data->query->where("#type = '{$filter->type}'");
             }
 
             if (!empty($filter->from)) {
