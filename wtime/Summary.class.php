@@ -151,7 +151,11 @@ class wtime_Summary extends core_Manager
         $row->ROW_ATTR['class'] = ($rec->_isSummary) ? 'state-closed' : 'state-active';
 
         foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
-            $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+            if(empty($rec->{$fld})){
+                unset($row->{$fld});
+            } else {
+                $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+            }
         }
     }
 

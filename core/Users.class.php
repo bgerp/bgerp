@@ -857,6 +857,14 @@ class core_Users extends core_Manager
             $rec->rolesInput = keylist::addKey($rec->rolesInput, $mvc->core_Roles->fetchByName('admin'));
             $rec->state = 'active';
         }
+
+        if ($rec->id) {
+            // При редакция, ако има промяна в състоянието, записваме предишното състояние
+            $oldRec = $mvc->fetch($rec->id);
+            if ($rec->state != $oldRec->state) {
+                $rec->exState = $oldRec->state;
+            }
+        }
     }
     
     

@@ -67,7 +67,7 @@ class hr_Shifts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,name,start,duration,state,createdOn,createdBy';
+    public $listFields = 'id,name,start,duration,color,state,createdOn,createdBy';
 
 
     /**
@@ -84,6 +84,7 @@ class hr_Shifts extends core_Manager
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory');
         $this->FLD('start', 'hour', 'caption=Начало,mandatory,smartCenter');
         $this->FLD('duration', 'time', 'caption=Продължителност,mandatory');
+        $this->FLD('color', 'color_Type', 'caption=Цвят,smartCenter');
 
         $this->setDbUnique('name');
     }

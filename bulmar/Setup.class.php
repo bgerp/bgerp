@@ -112,7 +112,7 @@ defIfNot('BULMAR_INV_CREDIT_AV', 'K412');
 /**
  * Папка за входящи фактури в Bulmar Office
  */
-defIfNot('BULMAR_PURINV_CONTR_FOLDER', '3');
+defIfNot('BULMAR_PURINV_CONTR_FOLDER', '2');
 
 
 /**
