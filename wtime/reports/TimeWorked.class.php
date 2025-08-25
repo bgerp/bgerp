@@ -84,7 +84,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title,single=none');
 
         //Потребители
-        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Потребители->Група потребители,placeholder=Всички,mandatory,after=periods,single=none');
+        $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Група служители,placeholder=Избери група,mandatory,after=periods,single=none');
 
     }
 
@@ -117,6 +117,8 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+
+        $form->setDefault('periods', 153);
 
 
     }
@@ -266,31 +268,55 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         $row->personName = "<div style='text-align:center;font-weight:600;'>{$dRec->personName}</div>";
 
-
         // Показател
         $metricByType = ['shift' => 'смяна', 'onsite' => 'време', 'ops' => '%'];
         $row->metric = $metricByType[$dRec->rowType] ?? '';
 
-        // Форматирания
-        $fmtHm = function ($seconds) {
-            if (!is_numeric($seconds) || $seconds <= 0) return '-';
-            $minutes = (int)round($seconds / 60);
-            $h = (int)floor($minutes / 60);
-            $m = $minutes % 60;
-            return sprintf('%d:%02d', $h, $m);
+        // type_Time за готово форматиране като часове:минути
+        $Time = cls::get('type_Time');
+        $Time->params['noSmart'] = true;   // да не „умничи“
+        $Time->params['uom'] = 'hours';    // входът е в МИНУТИ, изходът е ч:мм
+
+        // Нормализира към МИНУТИ; приема сек/ "mm:ss"/"hh:mm"/"hh:mm:ss"
+        $toMinutes = function ($val) {
+            if ($val === null || $val === '' || $val === 0) return 0;
+
+            // Чисто число -> приемаме секунди (както идват от getPersonsTimeInPeriod)
+            if (is_int($val) || (is_string($val) && ctype_digit($val))) {
+                return (int) floor(((int)$val) / 60);
+            }
+
+            $s = trim((string)$val);
+            if (strpos($s, ':') === false) {
+                // fallback: опит за секунди
+                if (is_numeric($s)) return (int) floor(((int)$s) / 60);
+                return 0;
+            }
+
+            $p = array_map('intval', explode(':', $s));
+            if (count($p) === 3) {               // hh:mm:ss
+                return $p[0] * 60 + $p[1];       // игнорираме секундите
+            } elseif (count($p) === 2) {         // mm:ss ИЛИ hh:mm
+                $a = $p[0]; $b = $p[1];
+                // Хеуристика: ако първата част е >= 60 => mm:ss, иначе hh:mm
+                return ($a >= 60) ? $a : ($a * 60 + $b);
+            }
+
+            return 0;
         };
+
+        // Форматирания за други редове
         $fmtPct = function ($minutes) {
             if (!is_numeric($minutes) || $minutes <= 0) return '-';
             $pct = round(($minutes / 480) * 100, 1);
             return ($pct > 0) ? ($pct . '%') : '-';
         };
 
-        // Колоните са изградени по $rec->data->periodDates
+        // Попълване на дневните колони
         if (!isset($rec->data->periodDates) || !is_array($rec->data->periodDates)) {
             return $row;
         }
 
-        // За всяка дата от периода – попълваме колоните d01, d02, ...
         $i = 0;
         foreach ($rec->data->periodDates as $ymd) {
             $i++;
@@ -301,8 +327,10 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 $row->{$code} = ($val !== '') ? $val : '-';
 
             } elseif ($dRec->rowType === 'onsite') {
-                $seconds = (int)($dRec->onSiteTimeByDate[$ymd] ?? 0);
-                $row->{$code} = $fmtHm($seconds);
+                // Нормализираме към МИНУТИ и използваме type_Time::toVerbal()
+                $raw = $dRec->onSiteTimeByDate[$ymd] ?? 0;     // може да е сек или "mm:ss"
+                $mins = $toMinutes($raw);
+                $row->{$code} = ($mins > 0) ? $Time->toVerbal($mins) : '-';
 
             } else { // 'ops'
                 $mins = (int)($dRec->opsMinutesByDate[$ymd] ?? 0);
@@ -370,7 +398,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
             $fieldTpl->append('<b>' . $Users->toVerbal($data->rec->users) . '</b>', 'users');
         } else {
-            $fieldTpl->append('<б>' . 'Всички' . '</б>', 'users');
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'users');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
@@ -661,5 +689,24 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         }
 
         return $personIds; // [personId => personId]
+    }
+
+    /**
+     * Връща периода на справката - ако има такъв
+     *
+     * @param stdClass $rec
+     * @return array
+     *          ['from'] - начало на период
+     *          ['to']   - край на период
+     */
+    protected function getPeriodRange($rec)
+    {
+        if(isset($rec->periods)){
+            $periodRec = acc_Periods::fetch($rec->periods);
+
+            return array('from' => $periodRec->start, 'to' => $periodRec->end);
+        }
+
+        return array('from' => $rec->fromDate, 'to' => $rec->toDate);
     }
 }
