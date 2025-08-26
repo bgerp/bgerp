@@ -561,10 +561,12 @@ class core_Manager extends core_Mvc
     {
         $data = parent::prepareListFilter($data);
 
-        $data->listFields = arr::make($data->listFields);
+        if ($data && $data->listFields) {
+            $data->listFields = arr::make($data->listFields);
 
-        if ($data->query && $data->listFields && $data->listFields['id']) {
-            $data->query->orderBy('id', 'ASC');
+            if ($data->query && $data->listFields && $data->listFields['id']) {
+                $data->query->orderBy('id', 'ASC');
+            }
         }
 
         return $data;
