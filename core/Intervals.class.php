@@ -356,14 +356,26 @@ class core_Intervals
      */
     public function haveBreak($beginTs, $endTs, $percent)
     {
-        $diff = $endTs - $beginTs;
+        if ($endTs <= $beginTs) return false;
 
-        $workingTimeInFrames = $this->getFrame($beginTs, $endTs);
-        $workTimeOnSchedule = 0;
-        foreach($workingTimeInFrames as $t) {
-            $workTimeOnSchedule += $t[1] - $t[0];
+        // Какъв е прозореца в секунди
+        $window = $endTs - $beginTs;
+
+        // Какво е сечението на работния график в този прозорец
+        $frames  = $this->getFrame($beginTs, $endTs);
+
+        // В този прозорец колко е очакваното работно време
+        $working = 0;
+        foreach ($frames as $t) {
+            $s = (int)$t[0];
+            $e = (int)$t[1];
+            $working += ($e - $s);
         }
 
-        return ($diff / $workTimeOnSchedule) < $percent;
+        // Колко е работното време като % от прозореца
+        $ratio = $working / $window;
+
+        // Ако е под зададения процент - значи има прекъсване
+        return $ratio < $percent;
     }
 }

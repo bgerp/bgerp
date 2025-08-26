@@ -324,9 +324,7 @@ class wtime_OnSiteEntries extends core_Manager
         // Вземаме всички записи
         $onSiteTimes  = self::getPersonEntries($from, $personId);
         $toSave       = [];
-        $today        = dt::today();              // string "Y-m-d"
         $nowTs        = time();
-        $nowDateTime  = new \DateTime();
 
         // Граници за графика
         $scheduleTo   = dt::today() . ' 23:59:59';
@@ -341,7 +339,7 @@ class wtime_OnSiteEntries extends core_Manager
             // Групиране по дата
             $byDate = [];
             foreach ($events as $rec) {
-                $day = (new \DateTime($rec->time))->format('Y-m-d');
+                $day = (new DateTime($rec->time))->format('Y-m-d');
                 $byDate[$day][] = $rec;
             }
 
@@ -350,11 +348,11 @@ class wtime_OnSiteEntries extends core_Manager
             if (!empty($byDate)) {
                 $daysList = array_keys($byDate);
                 sort($daysList);
-                $startDay = new \DateTime(reset($daysList));
-                $endDay   = new \DateTime(end($daysList));
-                $period   = new \DatePeriod(
+                $startDay = new DateTime(reset($daysList));
+                $endDay   = new DateTime(end($daysList));
+                $period   = new DatePeriod(
                     $startDay,
-                    new \DateInterval('P1D'),
+                    new DateInterval('P1D'),
                     (clone $endDay)->modify('+1 day')
                 );
                 foreach ($period as $dt) {
@@ -426,17 +424,11 @@ class wtime_OnSiteEntries extends core_Manager
                 : null;
 
             if ($lastRec && $lastRec->type === 'in') {
-                // Ако е днес, в рамките на график, смятаме до текущия момент
-                if ($lastDay === $today && $Interval->isIn($nowDateTime)) {
-                    $lastRec->onSiteTime = $nowTs - strtotime($lastRec->time);
-                }
-                else {
-                    // иначе както преди: проверка за голяма пауза
-                    $b = strtotime($lastRec->time);
-                    $lastRec->onSiteTime = $Interval->haveBreak($b, $nowTs, 0.9)
-                        ? 0
-                        : ($nowTs - $b);
-                }
+                $b = strtotime($lastRec->time);
+                $lastRec->onSiteTime = $Interval->haveBreak($b, $nowTs, 0.9)
+                    ? 0
+                    : ($nowTs - $b);
+
                 $toSave[$lastRec->id] = $lastRec;
             }
         }
