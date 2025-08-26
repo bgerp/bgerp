@@ -440,7 +440,8 @@ class hr_Schedules extends core_Master
                     if($shiftId = hr_Shifts::getShiftByInterval($cDate, $Interval)){
                         $shiftRec = hr_Shifts::fetch($shiftId);
                         $shiftName = "<i>" . hr_Shifts::getTitleById($shiftId) . "</i>";
-                        $shiftName = "<div style='font-size:0.8em;margin-top:3px;padding:2px; border-radius:5px;background-color: {$shiftRec->color};'>{$shiftName}</div>";
+                        $shiftTextColor = !empty($shiftRec->color) ? str::getReadableTextColor($shiftRec->color) : "#000000";
+                        $shiftName = "<div style='font-size:0.8em;margin-top:3px;padding:2px; border-radius:5px;background-color:{$shiftRec->color};color:{$shiftTextColor};'>{$shiftName}</div>";
                     }
 
                     if($h >= 20 || $h < 4) {
