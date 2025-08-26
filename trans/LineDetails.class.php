@@ -479,7 +479,7 @@ class trans_LineDetails extends doc_Detail
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');
-        $data->listTableMvc->FNC('num', 'int', 'tdClass=small-field');
+        $data->listTableMvc->FNC('num', 'int', 'tdClass=small-field,smartCenter');
 
         if($data->masterData->rec->state == 'rejected'){
             unset($data->listFields['_rowTools']);
