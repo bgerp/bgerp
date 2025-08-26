@@ -300,6 +300,7 @@ class core_Pager extends core_BaseClass
                 if ($resCntCache === null || $resCntCache === false) {
                     $query->mvc->forceProxy();
                     $totalRows = $query->mvc->db->countRows($query->mvc->dbTableName);
+                    $query->mvc->unforceProxy();
                     $resCnt = min($this->rangeEnd + 180, $totalRows);
                     $this->approx = true;
                 } else {
