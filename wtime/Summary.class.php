@@ -181,14 +181,17 @@ class wtime_Summary extends core_Manager
         $form = cls::get('core_Form');
         $form->title = "Преизчисляване на обобщенията";
         $form->FLD('from', 'date', 'caption=От,mandatory');
+        $form->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,placeholder=Всички');
         $form->setDefault('from', dt::addDays(-2, null, false) . " 00:00:00");
+        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        $form->setFieldTypeParams('personId', array('groups' => keylist::addKey('', $emplGroupId)));
         $form->input();
 
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             $msg = "Преизчислени са записите след|*: <b>" . dt::mysql2verbal($rec->from) . "</b>";
             if(in_array($form->cmd, array('debug', 'save'))){
-                $res = self::recalc($rec->from);
+                $res = self::recalc($rec->from, null, $rec->personId);
                 if($form->cmd == 'debug'){
                     bp($res);
                 }
