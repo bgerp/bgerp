@@ -118,8 +118,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('periods', 153);
+        $currentPeriod = acc_Periods::fetchByDate(dt::today());
 
+        $form->setDefault('periods', $currentPeriod);
 
     }
 
@@ -134,6 +135,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+
         $recs = array();
 
         // Нужни са избрани групи и период (acc_Periods)
@@ -664,7 +666,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 2) Заявка: само нужните полета, само в периода
         $q = planning_ProductionTaskDetails::getQuery();
-        $q->show('createdOn,employees,norm');
+       // $q->show('createdOn,employees,norm');
         $q->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $fromStart, $toEnd));
 
         // 3) Филтър: поне един employee да е в $personsInGroups
@@ -677,9 +679,40 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 4) Акумулация по ключ "<personId>|<Y-m-d>"
         $arr  = array();
-        $coef = 1; // бъдещ множител (сега 1)
+
 
         while ($qRec = $q->fetch()) {
+
+                $quantity = $qRec->quantity;
+
+            if(in_array($qRec->type, array('production', 'scrap'))) {
+                $taskRec = planning_Tasks::fetch($qRec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
+                $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
+
+                // Ако артикула е артикула от заданието и операцията е финална или артикула е този от операцията за междинен етап
+                if(($taskRec->isFinal == 'yes' && $qRec->productId == $jobProductId) || $qRec->productId == $taskRec->productId){
+
+                    $isMeasureUom = (isset($taskRec->measureId) && cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom');
+                    if($isMeasureUom){
+                        if($taskRec->indPackagingId == $taskRec->measureId){
+                            $quantity /= $taskRec->quantityInPack;
+                        }
+                    }
+
+                    if($taskRec->measureId != $taskRec->indPackagingId){
+                        if(!empty($taskRec->labelQuantityInPack)){
+                            $indQuantityInPack = $taskRec->labelQuantityInPack;
+                            if($isMeasureUom){
+                                $indQuantityInPack = $indQuantityInPack * $taskRec->quantityInPack;
+                            }
+                            $quantity = ($quantity / $indQuantityInPack);
+                        } elseif ($indQuantityInPack = cat_products_Packagings::getPack($qRec->productId, $taskRec->indPackagingId, 'quantity')) {
+                            $quantity = ($quantity / $indQuantityInPack);
+                        }
+                    }
+                }
+            }
+
             $eArr = keylist::toArray($qRec->employees);
             if (!$eArr) continue;
 
@@ -688,7 +721,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $norm = (int)($normParts[0] ?? 0);
 
             $empCount = countR($eArr);
-            $perEmp   = ($empCount > 0) ? ($norm * $coef / $empCount) : 0;
+            $perEmp   = ($empCount > 0) ? ($norm * $quantity / $empCount) : 0;
 
             $ymd = dt::verbal2mysql($qRec->createdOn, false);
 
