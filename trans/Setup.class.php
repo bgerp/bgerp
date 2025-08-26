@@ -56,7 +56,7 @@ defIfNot('TRANS_END_WORK_TIME', '17:17');
 
 
 /**
- * Подреждане на детайлите в ТЛ->Подредба
+ * Показване на детайлите в Транспортна линия->Подреждане по
  */
 defIfNot('TRANS_ORDER_BY_LINE_DETAILS', 'containerId');
 
@@ -171,7 +171,7 @@ class trans_Setup extends core_ProtoSetup
 
         'TRANS_START_WORK_TIME' => array('hour','caption=Начало и край на работния ден за датите в складовите документи->Начало'),
         'TRANS_END_WORK_TIME' => array('hour','caption=Начало и край на работния ден за датите в складовите документи->Край'),
-        'TRANS_ORDER_BY_LINE_DETAILS' => array('enum(containerId=По документ,createdOn=По създаване (Възх.),createdDesc=По създаване (Низ.))','caption=Подреждане на детайлите в ТЛ->Подредба,customizeBy=trans|ceo'),
+        'TRANS_ORDER_BY_LINE_DETAILS' => array('enum(containerId=№ на документ (възх.),createdOn=Ред на добавяне (възх.),createdDesc=Ред на добавяне (низх.))','caption=Показване на детайлите в Транспортна линия->Подреждане по,customizeBy=trans|ceo'),
     );
     
     

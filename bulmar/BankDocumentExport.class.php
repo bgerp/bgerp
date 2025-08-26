@@ -41,6 +41,17 @@ class bulmar_BankDocumentExport extends core_Manager
      */
     public function prepareExportForm(core_Form &$form)
     {
+        $selectedOwnAccounts = bulmar_Setup::get('SELECTED_ACCOUNTS');
+        $selectedOwnAccountsArr = keylist::toArray($selectedOwnAccounts);
+
+        if(countR($selectedOwnAccountsArr)){
+            $infoTpl = new core_ET(tr("<div class='richtext-message richtext-info'>|Сметки|*:<br /> [#ACCS#]</div>"));
+            foreach ($selectedOwnAccountsArr as $ownAccId){
+                $infoTpl->append(bank_OwnAccounts::getHyperlink($ownAccId) . "<br />", 'ACCS');
+            }
+            $form->info = $infoTpl;
+        }
+
         $form->FLD('from', 'date', 'caption=От,mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
         
