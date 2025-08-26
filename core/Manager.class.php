@@ -602,7 +602,7 @@ class core_Manager extends core_Mvc
     {
         $data = parent::prepareListFilter($data);
 
-        if ($data->query) {
+        if ($data->query && $data->listFields && $data->listFields['id']) {
             $data->query->orderBy('id', 'ASC');
         }
 
