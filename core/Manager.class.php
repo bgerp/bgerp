@@ -136,9 +136,13 @@ class core_Manager extends core_Mvc
      *
      * @return void
      */
-    public function forceProxy($clsName)
+    public function forceProxy($clsName = null)
     {
-        $DC = cls::get($clsName);
+        if (!$clsName) {
+            $DC = $this;
+        } else {
+            $DC = cls::get($clsName);
+        }
 
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
