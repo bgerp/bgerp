@@ -806,7 +806,6 @@ class doc_Containers extends core_Manager
      */
     public function act_List()
     {
-//        sleep(1);
         $tId = Request::get('threadId', 'int');
 
         // Изчакваме нишката да се отключи
