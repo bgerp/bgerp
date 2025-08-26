@@ -312,10 +312,6 @@ class wtime_OnSiteEntries extends core_Manager
     }
 
 
-    function act_Test()
-    {
-        self::calcOnSiteTime('2025-06-01 00:00:00', $personId = 7167);
-    }
     /**
      * Преизчисляване на прекараното време на място.
      *
@@ -328,9 +324,7 @@ class wtime_OnSiteEntries extends core_Manager
         // Вземаме всички записи
         $onSiteTimes  = self::getPersonEntries($from, $personId);
         $toSave       = [];
-        $today        = dt::today();              // string "Y-m-d"
         $nowTs        = time();
-        $nowDateTime  = new \DateTime();
 
         // Граници за графика
         $scheduleTo   = dt::today() . ' 23:59:59';
