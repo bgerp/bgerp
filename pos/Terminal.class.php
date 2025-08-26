@@ -1688,8 +1688,10 @@ class pos_Terminal extends peripheral_Terminal
             Mode::push('text', 'plain');
             $price = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->price);
             Mode::pop('text', 'plain');
-            
+
+            Mode::push('text', 'plain');
             $priceVerbal = currency_Currencies::decorate($price);
+            Mode::pop('text');
             $btnName = "|*{$priceVerbal}&nbsp;/&nbsp;|" . tr($packName);
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
             
