@@ -1628,7 +1628,7 @@ class core_String
     {
         // ---------- Convert input to RGB ----------
         if (is_array($bg) && count($bg) === 3) {
-            [$r,$g,$b] = array_map('intval', $bg);
+            list($r, $g, $b) = array_map('intval', array_values($bg));
         } elseif (is_string($bg)) {
             $s = trim($bg);
             if (preg_match('/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i', $s, $m)) {
