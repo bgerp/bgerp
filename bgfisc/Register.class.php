@@ -95,9 +95,8 @@ class bgfisc_Register extends core_Manager
         $this->FNC('urn', 'varchar', 'caption=УНП,smartCenter');
         
         $this->setDbUnique('classId,objectId');
-        $this->setDbIndex('cashRegNum');
+        $this->setDbIndex('cashRegNum,number');
         $this->setDbIndex('userId');
-        $this->setDbIndex('number');
     }
     
     
@@ -159,13 +158,13 @@ class bgfisc_Register extends core_Manager
         
         $query = self::getQuery();
         $query->where(array("#cashRegNum = '[#1#]'", $deviceRec->serialNumber));
-        $query->where("#number >= {$firstNum}");
         $query->orderBy('number', 'DESC');
+        $query->useIndex('cash_reg_num_number');
         $query->limit(1);
         
         $number = $query->fetch()->number;
         $number = isset($number) ? str::increment($number) : $firstNum;
-        
+
         return $number;
     }
     
