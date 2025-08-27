@@ -373,7 +373,7 @@ class core_Intervals
         }
 
         // Колко е работното време като % от прозореца
-        $ratio = $working / $window;
+        $ratio = round($working / $window, 2);
 
         // Ако е под зададения процент - значи има прекъсване
         return $ratio < $percent;

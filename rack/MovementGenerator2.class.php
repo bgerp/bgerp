@@ -465,7 +465,8 @@ class rack_MovementGenerator2 extends core_Manager
                     $o->retPos = $o->pallet;
 
                     $sessionStoreId = Mode::get('pickupStoreId');
-                    if($sessionStoreId){
+                    if(!$sessionStoreId){
+                        wp('Форсиране на склад', $p, $z, $pK, $allPallets, $qInPallet);
                         $sessionStoreId = store_Stores::getCurrent();
                     }
 

@@ -157,7 +157,8 @@ abstract class deals_ManifactureMaster extends core_Master
         if($form->getField('useResourceAccounts', false)){
             if(isset($form->rec->id)){
                 if(core_Packs::isInstalled('batch')){
-                    if(batch_BatchesInDocuments::count("#containerId = {$form->rec->containerId}")){
+                    $containerId = $form->rec->containerId ?? $mvc->fetchField($form->rec->id, 'containerId');
+                    if(batch_BatchesInDocuments::count("#containerId = {$containerId}")){
                         $form->setReadOnly('useResourceAccounts');
                         $form->setField('useResourceAccounts', array('hint' => 'За да смените типа на влагането, трябва да се изтрият вече разписаните партиди'));
                     }

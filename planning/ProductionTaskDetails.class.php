@@ -723,41 +723,67 @@ class planning_ProductionTaskDetails extends doc_Detail
         if(empty($centerRec->useTareFromParamId) && empty($centerRec->useTareFromPackagings)) return null;
         $result = $weight;
 
-        $tareMeasureId = isset($centerRec->useTareFromParamMeasureId) ? $centerRec->useTareFromParamMeasureId : cat_UoM::fetchBySysId('kg')->id;
+        $tareMeasureId = $centerRec->useTareFromParamMeasureId ?? cat_UoM::fetchBySysId('kg')->id;
         $errorMsgIfNegative = 'Грешка при приспадане на тарата';
         $taskWeightSubtractValue = null;
         $jobProductId = planning_Jobs::fetchField("#containerId = {$originId}", 'productId');
-        if(!empty($centerRec->useTareFromParamId)){
-            $taskWeightSubtractValue = static::getParamValue($taskId, $centerRec->useTareFromParamId, $jobProductId, $taskRec->productId);
-            $paramName = cat_Params::getVerbal($centerRec->useTareFromParamId, 'typeExt');
-            if(isset($taskWeightSubtractValue) && $taskWeightSubtractValue !== false){
 
-                // Ако параметъра е формула, се прави опит за изчислението ѝ
-                if(cat_Params::haveDriver($centerRec->useTareFromParamId, 'cond_type_Formula')){
-                    Mode::push('text', 'plain');
-                    $taskWeightSubtractValue = cat_Params::toVerbal($centerRec->useTareFromParamId, planning_Tasks::getClassId(), $taskId, $taskWeightSubtractValue);
-                    Mode::pop('text');
-                    if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
-                        $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
-                        $msgType = 'warning';
+        $isSubProduct = $productId != $jobProductId && $productId != $taskRec->productId;
 
-                        return $result;
-                    }
-                }
+        // Ако е субпродукт се търси тарата от неговия параметър или опаковката
+        if($isSubProduct){
+            $subProdInfo = planning_ProductionTaskProducts::getInfo($taskId, $productId, 'production');
+            $subProductMeasureId =  cat_Products::fetchField($productId, 'measureId');
 
-                $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
-                $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността от параметъра|* <b>{$paramName}</b> : {$subtractTareWeightValVerbal}";
-            }
-        }
-
-        if(!empty($centerRec->useTareFromPackagings) && empty($taskWeightSubtractValue)){
-            if(isset($taskRec->labelPackagingId) && keylist::isIn($taskRec->labelPackagingId, $centerRec->useTareFromPackagings)){
-                $tareWeight = cat_products_Packagings::fetchField("#productId = {$jobProductId} AND #packagingId = {$taskRec->labelPackagingId}",'tareWeight');
-                $packName = cat_UoM::getShortName($taskRec->labelPackagingId);
-                if(isset($tareWeight)) {
-                    $taskWeightSubtractValue = $tareWeight;
+            // Ако субпродукта се произвежда в основната си мярка се търси първо посочения параметър в центъра за тара
+            if($subProdInfo->packagingId == $subProductMeasureId){
+                if(!empty($centerRec->useTareFromParamId)){
+                    $taskWeightSubtractValue = cat_Products::getParams($productId, $centerRec->useTareFromParamId);
                     $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
-                    $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността на тарата от опаковката|* <b>{$packName}</b> : {$subtractTareWeightValVerbal}";
+                    $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността на тарата от параметъра на субпродукта|* : {$subtractTareWeightValVerbal}";
+                }
+            }
+
+            // Ако няма се търси има ли тара за тази опаковка/мярка
+            if(!$taskWeightSubtractValue){
+                $taskWeightSubtractValue = cat_products_Packagings::fetchField("#productId = {$productId} AND #packagingId = {$subProdInfo->packagingId}",'tareWeight');
+                $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
+                $packName = cat_UoM::getTitleById($subProdInfo->packagingId);
+                $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността на тарата от опаковката|* <b>{$packName}</b> : {$subtractTareWeightValVerbal}";
+            }
+        } else {
+            if(!empty($centerRec->useTareFromParamId)){
+                $taskWeightSubtractValue = static::getParamValue($taskId, $centerRec->useTareFromParamId, $jobProductId, $taskRec->productId);
+                $paramName = cat_Params::getVerbal($centerRec->useTareFromParamId, 'typeExt');
+                if(isset($taskWeightSubtractValue) && $taskWeightSubtractValue !== false){
+
+                    // Ако параметъра е формула, се прави опит за изчислението ѝ
+                    if(cat_Params::haveDriver($centerRec->useTareFromParamId, 'cond_type_Formula')){
+                        Mode::push('text', 'plain');
+                        $taskWeightSubtractValue = cat_Params::toVerbal($centerRec->useTareFromParamId, planning_Tasks::getClassId(), $taskId, $taskWeightSubtractValue);
+                        Mode::pop('text');
+                        if ($taskWeightSubtractValue === cat_BomDetails::CALC_ERROR) {
+                            $msg = "Не може да бъде изчислена и приспадната от теглото стойността на|* <b>{$paramName}</b>";
+                            $msgType = 'warning';
+
+                            return $result;
+                        }
+                    }
+
+                    $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
+                    $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността от параметъра|* <b>{$paramName}</b> : {$subtractTareWeightValVerbal}";
+                }
+            }
+
+            if(!empty($centerRec->useTareFromPackagings) && empty($taskWeightSubtractValue)){
+                if(isset($taskRec->labelPackagingId) && keylist::isIn($taskRec->labelPackagingId, $centerRec->useTareFromPackagings)){
+                    $tareWeight = cat_products_Packagings::fetchField("#productId = {$jobProductId} AND #packagingId = {$taskRec->labelPackagingId}",'tareWeight');
+                    $packName = cat_UoM::getShortName($taskRec->labelPackagingId);
+                    if(isset($tareWeight)) {
+                        $taskWeightSubtractValue = $tareWeight;
+                        $subtractTareWeightValVerbal = cls::get('cat_type_Weight')->toVerbal($taskWeightSubtractValue);
+                        $errorMsgIfNegative = "Получава се невалидно тегло, като се приспадне стойността на тарата от опаковката|* <b>{$packName}</b> : {$subtractTareWeightValVerbal}";
+                    }
                 }
             }
         }

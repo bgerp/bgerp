@@ -438,7 +438,7 @@ class cat_Listings extends core_Master
         
         // Намират се последните продажби за месеца
         $query = sales_Sales::getQuery();
-        $query->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
+        $query->where("#valior >= '{$from}' AND #valior <= '{$today}' AND #state IN ('active', 'closed')");
         $query->groupBy('folderId');
         $query->show('folderId');
         
