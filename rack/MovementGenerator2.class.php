@@ -465,7 +465,7 @@ class rack_MovementGenerator2 extends core_Manager
                     $o->retPos = $o->pallet;
 
                     $sessionStoreId = Mode::get('pickupStoreId');
-                    if($sessionStoreId){
+                    if(!$sessionStoreId){
                         $sessionStoreId = store_Stores::getCurrent();
                     }
 
