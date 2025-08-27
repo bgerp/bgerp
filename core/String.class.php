@@ -1657,8 +1657,10 @@ class core_String
             $Lmax=max($L1,$L2); $Lmin=min($L1,$L2);
             return ($Lmax+0.05)/($Lmin+0.05);
         };
-        $toHex = fn($rgb)=>sprintf('#%02X%02X%02X',$rgb[0],$rgb[1],$rgb[2]);
-
+        
+        $toHex = function (array $rgb): string {
+            return sprintf('#%02X%02X%02X', $rgb[0] ?? 0, $rgb[1] ?? 0, $rgb[2] ?? 0);
+        };
         // ---------- Step 1: Inverted color ----------
         $inv = [255-$r, 255-$g, 255-$b];
         if ($contrast($bgRGB, $inv) >= $minRatio) {
