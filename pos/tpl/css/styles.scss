@@ -592,7 +592,7 @@ select.tabHolder {
 
 	}
 }
-.grid.pictureAndText .element {
+.grid.pictureAndText .element, .grid.rows .element {
 	display: flex;
 	padding: 3px !important;
 	height: 164px;
@@ -658,7 +658,20 @@ select.tabHolder {
 		overflow-wrap: break-word;
 	}
 }
-
+.scrollingGrid {
+	overflow-x: auto !important;      /* включва хоризонтален скрол */
+	overflow-y: hidden !important;    /* няма вертикален скрол */
+	width: 100%;
+	height: 166px;
+	.grid {
+		display: grid;
+		grid-auto-flow: column;  /* елементите вървят по колони */
+		grid-auto-columns: 1fr;
+		> div {
+			width: 130px;
+		}
+	}
+}
 .posResultContragent {
 	justify-content: center;
 	align-content: center;

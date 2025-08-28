@@ -9,6 +9,10 @@
 .grid.picture{
     grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
 }
-.grid.pictureAndText{
+.grid.pictureAndText, .grid.rows{
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
 }
+
+.grid.rows{
+     2grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }

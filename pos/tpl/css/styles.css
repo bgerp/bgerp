@@ -498,7 +498,8 @@ select.tabHolder {
     max-width: 100px;
     height: auto; }
 
-.grid.pictureAndText .element {
+.grid.pictureAndText .element,
+.grid.rows .element {
   display: flex;
   padding: 3px !important;
   height: 164px;
@@ -508,20 +509,25 @@ select.tabHolder {
   align-content: center;
   background: white !important;
   position: relative; }
-  .grid.pictureAndText .element.notSellable {
+  .grid.pictureAndText .element.notSellable,
+  .grid.rows .element.notSellable {
     background-color: #aaaaaa !important; }
-  .grid.pictureAndText .element.selected {
+  .grid.pictureAndText .element.selected,
+  .grid.rows .element.selected {
     padding: 1px !important; }
-    .grid.pictureAndText .element.selected .pos-price {
+    .grid.pictureAndText .element.selected .pos-price,
+    .grid.rows .element.selected .pos-price {
       padding-bottom: 0px !important; }
-  .grid.pictureAndText .element .photo {
+  .grid.pictureAndText .element .photo,
+  .grid.rows .element .photo {
     display: flex;
     width: 100%;
     height: 140px;
     justify-content: center;
     align-items: center;
     overflow: hidden; }
-  .grid.pictureAndText .element .short-title {
+  .grid.pictureAndText .element .short-title,
+  .grid.rows .element .short-title {
     height: 20px;
     text-align: center;
     padding: 2px 0;
@@ -529,14 +535,17 @@ select.tabHolder {
     font-size: 0.95em;
     box-sizing: border-box;
     margin-bottom: 2px; }
-    .grid.pictureAndText .element.noPhoto .short-title {
+    .grid.pictureAndText .element.noPhoto .short-title,
+    .grid.rows .element.noPhoto .short-title {
       height: 100%;
       font-size: 1.25em;
       max-height: 133px;
       overflow: hidden; }
-    .grid.pictureAndText .element.noPhoto .photo {
+    .grid.pictureAndText .element.noPhoto .photo,
+    .grid.rows .element.noPhoto .photo {
       display: none; }
-  .grid.pictureAndText .element .pos-price {
+  .grid.pictureAndText .element .pos-price,
+  .grid.rows .element .pos-price {
     position: absolute;
     bottom: 0px;
     left: 0px;
@@ -552,6 +561,27 @@ select.tabHolder {
   font-size: 15px; }
   .grid.short .pos-title {
     overflow-wrap: break-word; }
+
+.scrollingGrid {
+  overflow-x: auto !important;
+    /*
+   * включва хоризонтален скрол
+   */
+  overflow-y: hidden !important;
+    /*
+   * няма вертикален скрол
+   */
+  width: 100%;
+  height: 166px; }
+  .scrollingGrid .grid {
+    display: grid;
+    grid-auto-flow: column;
+        /*
+     * елементите вървят по колони
+     */
+    grid-auto-columns: 1; }
+    .scrollingGrid .grid > div {
+      width: 130px; }
 
 .posResultContragent {
   justify-content: center;
