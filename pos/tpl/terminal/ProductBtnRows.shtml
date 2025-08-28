@@ -1,5 +1,5 @@
 <div id = '[#elementId#]' class='element [#CLASS#]' title ='[#productId#]' data-url='[#DATA_URL#]' data-productId = '[#id#]' data-enlarge-object-id = '[#DATA_ENLARGE_OBJECT_ID#]' data-enlarge-class-id = '[#DATA_ENLARGE_CLASS_ID#]' data-modal-title = '[#DATA_MODAL_TITLE#]' <!--ET_BEGIN weightMeasure-->data-weight-measure-sys-id = '[#weightMeasure#]'<!--ET_END weightMeasure-->>
-<div class="short-title">[#productId#]r</div>
+<div class="short-title">[#productId#]</div>
 <div class="photo"> [#photo#] </div>
 <span class="pos-price"> [#price#]</span>
 </div>

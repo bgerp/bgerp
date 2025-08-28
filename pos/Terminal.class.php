@@ -1945,7 +1945,9 @@ class pos_Terminal extends peripheral_Terminal
         
         $groupsTable = type_Table::toArray($settings->productGroups);
         $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
+
         $groupTabArr = array('all' => tr('Всички'));
+
         Mode::push('treeShortName', true);
         foreach ($groups as $groupId){
             $groupTabArr[$groupId] = cat_Groups::getVerbal($groupId, 'name');
@@ -1958,21 +1960,19 @@ class pos_Terminal extends peripheral_Terminal
             $resultTpl = new core_ET("<div class='tabs productTabs'><!--ET_BEGIN TAB--><ul class='tabHolder'>[#TAB#]</ul><!--ET_END TAB--></div>");
         }
 
-        if($settings->productBtnTpl != 'rows'){
-            foreach ($groupTabArr as $groupId => $groupName){
-                $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
+        foreach ($groupTabArr as $groupId => $groupName){
+            $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
 
-                $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
-                if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
-                    $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
-                } else {
-                    $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
-                }
-
-                $resultTpl->append($tab, "TAB");
+            $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
+            if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
+                $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
+            } else {
+                $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
             }
-            $tpl->append($resultTpl, 'GROUP_TAB');
+
+            $resultTpl->append($tab, "TAB");
         }
+        $tpl->append($resultTpl, 'GROUP_TAB');
 
         $blockTplPath = ($settings->productBtnTpl == 'wide') ? 'pos/tpl/terminal/ProductBtnWide.shtml' : (($settings->productBtnTpl == 'short') ? 'pos/tpl/terminal/ProductBtnShort.shtml' : (($settings->productBtnTpl == 'picture') ? 'pos/tpl/terminal/ProductBtnPicture.shtml' : (($settings->productBtnTpl == 'rows') ? 'pos/tpl/terminal/ProductBtnRows.shtml' : 'pos/tpl/terminal/ProductBtnPictureAndText.shtml')));
         $block = getTplFromFile($blockTplPath);
@@ -1980,20 +1980,15 @@ class pos_Terminal extends peripheral_Terminal
         $countRows = countR($productRows);
         if($countRows){
             if($settings->productBtnTpl == 'rows'){
-                unset($groupTabArr['all']);
-
                 $groupRows = array();
                 foreach ($groupTabArr as $groupId => $groupName){
+                    if($rec->_selectedGroupId != 'all' && $groupId != $rec->_selectedGroupId) continue;
                     foreach ($productRows as $k => $row) {
                         if (keylist::isIn($groupId, $row->_groups)) {
                             $groupRows[$groupName][$k] = $row;
                             unset($productRows[$k]);
                         }
                     }
-                }
-
-                if(countR($productRows)){
-                    $groupRows = $groupRows + array(tr('Други') => $productRows);
                 }
 
                 foreach ($groupRows as $groupName => $groupProductRows){
@@ -2028,10 +2023,8 @@ class pos_Terminal extends peripheral_Terminal
             $tpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули") . '</div>', 'BLOCK');
         }
 
-        if($settings->productBtnTpl != 'rows'){
-            $tpl->prepend("<div class='withTabs'>");
-            $tpl->append("</div>");
-        }
+        $tpl->prepend("<div class='withTabs'>");
+        $tpl->append("</div>");
         
         return $tpl;
     }
@@ -2218,7 +2211,7 @@ class pos_Terminal extends peripheral_Terminal
         core_Debug::stopTimer('RES_RENDER_PREPARE_RECS');
 
         $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$priceCache}_{$rec->_selectedGroupId}_{$searchString}";
-        $result = core_Cache::get('pos_Terminal', $cacheKey);
+        $result = null;core_Cache::get('pos_Terminal', $cacheKey);
 
         if(!is_array($result)){
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
