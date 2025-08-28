@@ -1176,7 +1176,9 @@ abstract class store_DocumentMaster extends core_Master
             $amount = $sign * $res['amount'];
             $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($amount);
             $amountVerbal = ht::styleNumber($amountVerbal, $res['amount']);
+            Mode::push('text', 'plain');
             $res['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
+            Mode::pop('text');
         }
 
         if(!empty($logisticData["{$part}AddressInfo"])){
