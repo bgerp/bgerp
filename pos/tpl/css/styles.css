@@ -563,23 +563,78 @@ select.tabHolder {
     overflow-wrap: break-word; }
 
 .scrollingGrid {
-  overflow-x: auto !important;
-    /*
-   * включва хоризонтален скрол
-   */
-  overflow-y: hidden !important;
-    /*
-   * няма вертикален скрол
-   */
+  overflow-x: hidden;
+  overflow-y: hidden;
   width: 100%;
-  height: 166px; }
+  height: 166px;
+  -webkit-overflow-scrolling: touch;
+    /*
+   * плавен скрол на мобилни
+   */
+  scrollbar-width: thin;
+    /*
+   * тънък скролбар
+   */
+  scrollbar-color: #cccccc rgba(0, 0, 0, 0);
+    /*
+   * светъл плъзгач върху прозрачен фон
+   */ }
   .scrollingGrid .grid {
+    height: 166px;
     display: grid;
     grid-auto-flow: column;
         /*
-     * елементите вървят по колони
-     */
-    grid-auto-columns: 1; }
+     * само по хоризонтала
+     */ }
+    .scrollingGrid .grid > div {
+      width: 132px; }
+
+/*
+ * при hover включваме хоризонталния скрол
+ */
+.scrollingGrid:hover {
+  overflow-x: auto; }
+
+/*
+ * Firefox
+ */
+.scrollingGrid {
+  scrollbar-width: thin;
+    /*
+   * тънък
+   */
+  scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0);
+    /*
+   * дръжката е полупрозрачна, фон прозрачен
+   */ }
+
+/*
+ * WebKit (Chrome, Safari, Edge)
+ */
+.scrollingGrid::-webkit-scrollbar {
+  height: 6px;
+    /*
+   * нисък скролбар
+   */ }
+
+.scrollingGrid::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0);
+    /*
+   * прозрачен фон
+   */ }
+
+.scrollingGrid::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+    /*
+   * полупрозрачен плъзгач
+   */
+  border-radius: 3px; }
+
+.scrollingGrid::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+    /*
+   * малко по-видим при hover
+   */ }
 
 .posResultContragent {
   justify-content: center;
