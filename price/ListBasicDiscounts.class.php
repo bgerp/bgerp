@@ -451,7 +451,7 @@ class price_ListBasicDiscounts extends core_Detail
         $pQuery->where("#contragentClass = {$contragentClassId} AND #contragentObjectId = {$contragentId}");
         $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $groupKeylist, 'productId');
-        $pQuery->useIndex('state');
+        $pQuery->useIndex('state', 'pos_Receipts');
 
         if($listRec->discountClassPeriod == 'monthly'){
             $firstDay = date('Y-m-01');

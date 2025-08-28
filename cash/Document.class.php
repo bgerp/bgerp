@@ -615,7 +615,9 @@ abstract class cash_Document extends deals_PaymentDocument
         $info['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
 
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
+        Mode::push('text', 'plain');
         $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
+        Mode::pop('text');
         $info['cases'] = array($rec->peroCase);
         $info['stores'] = array();
         if($this->haveRightFor('conto', $rec) && $lineState != 'rejected'){
