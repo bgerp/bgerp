@@ -89,9 +89,9 @@ class bgfisc_Register extends core_Manager
     {
         $this->FLD('classId', 'class', 'caption=Клас,mandatory');
         $this->FLD('objectId', 'int(align=left)', 'caption=Ид на обект,mandatory,tdClass=leftCol wrapText');
-        $this->FLD('cashRegNum', 'varchar', 'caption=Касов апарат №,mandatory,smartCenter');
+        $this->FLD('cashRegNum', 'varchar(64)', 'caption=Касов апарат №,mandatory,smartCenter');
         $this->FLD('userId', 'user', 'caption=Потребител,mandatory');
-        $this->FLD('number', 'varchar', 'caption=Номер,mandatory,smartCenter');
+        $this->FLD('number', 'varchar(64)', 'caption=Номер,mandatory,smartCenter');
         $this->FNC('urn', 'varchar', 'caption=УНП,smartCenter');
         
         $this->setDbUnique('classId,objectId');
