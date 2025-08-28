@@ -216,6 +216,7 @@ class pos_Receipts extends core_Master
 
         $this->setDbIndex('valior');
         $this->setDbIndex('revertId');
+        $this->setDbIndex('state');
     }
 
 

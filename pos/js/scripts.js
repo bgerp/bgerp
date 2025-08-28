@@ -41,7 +41,7 @@ function posActions() {
 		$(".fullScreenCardPayment").css("display", "none");
 		let msg = pressedCardPayment.attr("data-oncancel");
 		$("#modalTitleSpan").text('');
-
+        $("#modalTitleSubSpan").text('');
 		render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
 	});
 
@@ -957,11 +957,13 @@ function pressNavigable(element)
 			let deviceUrl = element.attr("data-deviceUrl");
 			let comPort = element.attr("data-deviceComPort");
 			let deviceName = element.attr("data-deviceName");
+            let subTitle = element.attr('data-modal-subTitle')
+
 			console.log('SEND:' + amount + " TO " + deviceUrl + "/ cPort " + comPort);
 			$(".fullScreenCardPayment").css("display", "block");
 			$('.select-input-pos').prop("disabled", true);
 			$("#modalTitleSpan").text(" " + deviceName);
-
+            $("#modalTitleSubSpan").text(" " + subTitle);
 			let fncName = element.attr("data-sendfunction");
 			window[fncName](amount, deviceUrl, comPort);
 			return;
@@ -1084,6 +1086,7 @@ function getAmountError(err)
 	$(".fullScreenCardPayment").css("display", "none");
 	$('.select-input-pos').prop("disabled", false);
 	$("#modalTitleSpan").text('');
+    $("#modalTitleSubSpan").text('');
 
 	showPaymentErrorStatus();
 	console.log("ERR:" + err);

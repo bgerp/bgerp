@@ -93,6 +93,10 @@ function eshopActions() {
 	
 	// Добавяне на артикул в кошницата
 	$(document.body).on("click", '.eshop-btn', function(event){
+		if ($(event.target).hasClass('order-btn')) {
+			$(event.target).attr('disabled', 'disabled');
+			$(event.target).css('opacity', 0.8);
+		}
 		
 		var url = $(this).attr("data-url");
 	    if(!url) return;

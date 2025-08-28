@@ -136,9 +136,13 @@ class core_Manager extends core_Mvc
      *
      * @return void
      */
-    public function forceProxy($clsName)
+    public function forceProxy($clsName = null)
     {
-        $DC = cls::get($clsName);
+        if (!$clsName) {
+            $DC = $this;
+        } else {
+            $DC = cls::get($clsName);
+        }
 
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
@@ -158,6 +162,11 @@ class core_Manager extends core_Mvc
                     // todo: да праща signal msg на админа
                 }
             } else {
+                $this->db->__origDbName = $this->db->dbName;
+                $this->db->__origDbPass = $this->db->dbPass;
+                $this->db->__origDbUser = $this->db->dbUser;
+                $this->db->__origDbHost = $this->db->dbHost;
+
                 $this->db->dbName = SEARCH_DB_NAME;
                 $this->db->dbPass = SEARCH_DB_PASS;
                 $this->db->dbUser = SEARCH_DB_USER;
@@ -165,6 +174,38 @@ class core_Manager extends core_Mvc
             }
         }
     }
+
+
+    /**
+     * Помощна функция, която спира форсираното използване на друга БД
+     *
+     * @param string $clsName
+     *
+     * @return void
+     */
+    public function unforceProxy($clsName = null)
+    {
+        if (!$clsName) {
+            $DC = $this;
+        } else {
+            $DC = cls::get($clsName);
+        }
+
+        if (defined('SEARCH_DB_HOST')) {
+            if (isset($this->db->__origDbName) && isset($this->db->__origDbPass) && isset($this->db->__origDbUser) && isset($this->db->__origDbHost)) {
+                $this->db->dbName = $this->db->__origDbName;
+                $this->db->dbPass = $this->db->__origDbPass;
+                $this->db->dbUser = $this->db->__origDbUser;
+                $this->db->dbHost = $this->db->__origDbHost;
+                unset($this->db->__origDbHost);
+                unset($this->db->__origDbName);
+                unset($this->db->__origDbPass);
+                unset($this->db->__origDbUser);
+            }
+        }
+    }
+
+
 
     
     /**

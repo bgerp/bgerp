@@ -83,14 +83,14 @@ class wtime_Summary extends core_Manager
     {
         $this->FLD('personId', 'key2(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent');
         $this->FLD('date', 'date', 'caption=Ден');
-        $this->FLD('onSiteTime', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->На място');
-        $this->FLD('onSiteTimeOffSchedule', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->Извънработно');
-        $this->FLD('onSiteTimeOnHolidays', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->Празници');
-        $this->FLD('onSiteTimeOnNonWorkingDays', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->Неработни');
-        $this->FLD('onSiteTimeNightShift', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->Нощем');
-        $this->FLD('onlineTime', 'time(noSmart,uom=minutes)', 'caption=Онлайн->Общо');
-        $this->FLD('onlineTimeRemote', 'time(noSmart,uom=minutes)', 'caption=Онлайн->Хоум офис');
-        $this->FLD('onlineTimeOffSchedule', 'time(noSmart,uom=minutes)', 'caption=Онлайн->Извънработно');
+        $this->FLD('onSiteTime', 'time(noSmart,uom=hours)', 'caption=Време в завода/офиса->На място');
+        $this->FLD('onSiteTimeOffSchedule', 'time(noSmart,uom=hours)', 'caption=Време в завода/офиса->Извънработно');
+        $this->FLD('onSiteTimeOnHolidays', 'time(noSmart,uom=hours)', 'caption=Време в завода/офиса->Празници');
+        $this->FLD('onSiteTimeOnNonWorkingDays', 'time(noSmart,uom=hours)', 'caption=Време в завода/офиса->Неработни');
+        $this->FLD('onSiteTimeNightShift', 'time(noSmart,uom=hours)', 'caption=Време в завода/офиса->Нощем');
+        $this->FLD('onlineTime', 'time(noSmart,uom=hours)', 'caption=Онлайн->Общо');
+        $this->FLD('onlineTimeRemote', 'time(noSmart,uom=hours)', 'caption=Онлайн->Хоум офис');
+        $this->FLD('onlineTimeOffSchedule', 'time(noSmart,uom=hours)', 'caption=Онлайн->Извънработно');
         $this->FLD('lastCalced', 'datetime(format=smartTime)', 'caption=Изчисляване');
 
         $this->setDbUnique('personId,date');
@@ -181,14 +181,17 @@ class wtime_Summary extends core_Manager
         $form = cls::get('core_Form');
         $form->title = "Преизчисляване на обобщенията";
         $form->FLD('from', 'date', 'caption=От,mandatory');
+        $form->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,placeholder=Всички');
         $form->setDefault('from', dt::addDays(-2, null, false) . " 00:00:00");
+        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        $form->setFieldTypeParams('personId', array('groups' => keylist::addKey('', $emplGroupId)));
         $form->input();
 
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             $msg = "Преизчислени са записите след|*: <b>" . dt::mysql2verbal($rec->from) . "</b>";
             if(in_array($form->cmd, array('debug', 'save'))){
-                $res = self::recalc($rec->from);
+                $res = self::recalc($rec->from, null, $rec->personId);
                 if($form->cmd == 'debug'){
                     bp($res);
                 }

@@ -118,8 +118,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
-        $form->setDefault('periods', 153);
+        $currentPeriod = acc_Periods::fetchByDate(dt::today());
 
+        $form->setDefault('periods', $currentPeriod);
 
     }
 
@@ -134,6 +135,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+
         $recs = array();
 
         // Нужни са избрани групи и период (acc_Periods)
@@ -189,6 +191,10 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         //Изчисляване на времето за всеки ден
         $personsTimeInPeriod = self::getPersonsTimeInPeriod($personsInGroups, $dates);    // [pId][Y-m-d] => seconds
 
+        //Изчисляване на заработките
+        $personsProgressInPeriod = self::getProgressInPeriod($personsInGroups, $dates);
+
+
         // 4) По 3 реда на човек: 'shift', 'onsite', 'ops'
         foreach ($personsInGroups as $pId => $pName) {
 
@@ -220,7 +226,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 'rowType' => 'ops',
                 'personId' => $pId,
                 'personName' => $pName,
-                'opsMinutesByDate' => $opsMinutes,
+                'opsMinutesByDate' => isset($personsProgressInPeriod[$pId]) ? $personsProgressInPeriod[$pId] : array(),
             );
         }
 
@@ -264,6 +270,14 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+
+        // type_Time за готово форматиране като часове:минути
+        $Time = cls::get('type_Time');
+        $Time->params['noSmart'] = true;   // да не „умничи“
+        $Time->params['uom'] = 'hours';    // входът е в МИНУТИ, изходът е ч:мм
+
         $row = new stdClass();
 
         $row->personName = "<div style='text-align:center;font-weight:600;'>{$dRec->personName}</div>";
@@ -272,10 +286,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $metricByType = ['shift' => 'смяна', 'onsite' => 'време', 'ops' => '%'];
         $row->metric = $metricByType[$dRec->rowType] ?? '';
 
-        // type_Time за готово форматиране като часове:минути
-        $Time = cls::get('type_Time');
-        $Time->params['noSmart'] = true;   // да не „умничи“
-        $Time->params['uom'] = 'hours';    // входът е в МИНУТИ, изходът е ч:мм
+
 
         // Нормализира към МИНУТИ; приема сек/ "mm:ss"/"hh:mm"/"hh:mm:ss"
         $toMinutes = function ($val) {
@@ -332,9 +343,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 $mins = $toMinutes($raw);
                 $row->{$code} = ($mins > 0) ? $Time->toVerbal($mins) : '-';
 
-            } else { // 'ops'
-                $mins = (int)($dRec->opsMinutesByDate[$ymd] ?? 0);
-                $row->{$code} = $fmtPct($mins);
+            } else { // 'Прогрес'
+                $mins = ($dRec->opsMinutesByDate[$ymd]/60)/480*100;
+                $row->{$code} = $Double->toVerbal($mins);
             }
         }
 
@@ -441,13 +452,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         foreach ($dates as $d) {
             $ymd = dt::verbal2mysql($d, false); // 'Y-m-d'
             $normDates[$ymd] = true;
-        }
-
-        // Инициализация: null за всички комбинации [personId][date]
-        foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd) {
-                $result[$personId][$ymd] = null;
-            }
         }
 
         // За всеки човек и всяка дата намираме смяната чрез hr_Shifts::getShift()
@@ -639,6 +643,104 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         return $personsShiftsInPeriod;
 
+    }
+
+    /**
+     * Намира отработените минути ден по ден за подадения период.
+     *
+     * @param array $personsInGroups [personId => personName]
+     * @param array $dates           ['Y-m-d', ...] (вкл. граници)
+     * @return array                 [personId][Y-m-d] => минути | null
+     */
+    protected static function getProgressInPeriod($personsInGroups, $dates)
+    {
+        if (empty($dates)) {
+            return array();
+        }
+
+        // 1) Период от първата до последната дата (вкл.)
+        $from = dt::verbal2mysql(reset($dates), false);
+        $to   = dt::verbal2mysql(end($dates),   false);
+        $fromStart = $from . ' 00:00:00';
+        $toEnd     = $to   . ' 23:59:59';
+
+        // 2) Заявка: само нужните полета, само в периода
+        $q = planning_ProductionTaskDetails::getQuery();
+       // $q->show('createdOn,employees,norm');
+        $q->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $fromStart, $toEnd));
+
+        // 3) Филтър: поне един employee да е в $personsInGroups
+        $ors = array();
+        foreach (array_keys($personsInGroups) as $pid) {
+            $pid = (int)$pid;
+            $ors[] = "LOCATE('|{$pid}|', CONCAT('|', #employees, '|'))";
+        }
+        $q->where($ors ? '(' . implode(' OR ', $ors) . ')' : '1=0');
+
+        // 4) Акумулация по ключ "<personId>|<Y-m-d>"
+        $arr  = array();
+
+
+        while ($qRec = $q->fetch()) {
+
+                $quantity = $qRec->quantity;
+
+            if(in_array($qRec->type, array('production', 'scrap'))) {
+                $taskRec = planning_Tasks::fetch($qRec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
+                $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
+
+                // Ако артикула е артикула от заданието и операцията е финална или артикула е този от операцията за междинен етап
+                if(($taskRec->isFinal == 'yes' && $qRec->productId == $jobProductId) || $qRec->productId == $taskRec->productId){
+
+                    $isMeasureUom = (isset($taskRec->measureId) && cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom');
+                    if($isMeasureUom){
+                        if($taskRec->indPackagingId == $taskRec->measureId){
+                            $quantity /= $taskRec->quantityInPack;
+                        }
+                    }
+
+                    if($taskRec->measureId != $taskRec->indPackagingId){
+                        if(!empty($taskRec->labelQuantityInPack)){
+                            $indQuantityInPack = $taskRec->labelQuantityInPack;
+                            if($isMeasureUom){
+                                $indQuantityInPack = $indQuantityInPack * $taskRec->quantityInPack;
+                            }
+                            $quantity = ($quantity / $indQuantityInPack);
+                        } elseif ($indQuantityInPack = cat_products_Packagings::getPack($qRec->productId, $taskRec->indPackagingId, 'quantity')) {
+                            $quantity = ($quantity / $indQuantityInPack);
+                        }
+                    }
+                }
+            }
+
+            $eArr = keylist::toArray($qRec->employees);
+            if (!$eArr) continue;
+
+            // Норма: първата част преди '|'
+            $normParts = explode('|', $qRec->norm, 2);
+            $norm = (int)($normParts[0] ?? 0);
+
+            $empCount = countR($eArr);
+            $perEmp   = ($empCount > 0) ? ($norm * $quantity / $empCount) : 0;
+
+            $ymd = dt::verbal2mysql($qRec->createdOn, false);
+
+            foreach ($eArr as $employee) {
+                $key = $employee . '|' . $ymd;
+                $arr[$key] = ($arr[$key] ?? 0) + $perEmp; // избягва Notice при първо натрупване
+            }
+        }
+
+        // 5) Матрица [personId][Y-m-d] => минути (или null, ако няма записи)
+        $personsProgressInPeriod = array();
+        foreach ($personsInGroups as $personId => $personName) {
+            foreach ($dates as $ymd) {
+                $key = $personId . '|' . $ymd; // $dates вече са 'Y-m-d'
+                $personsProgressInPeriod[$personId][$ymd] = isset($arr[$key]) ? $arr[$key] : null;
+            }
+        }
+
+        return $personsProgressInPeriod;
     }
 
 

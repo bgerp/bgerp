@@ -89,15 +89,14 @@ class bgfisc_Register extends core_Manager
     {
         $this->FLD('classId', 'class', 'caption=Клас,mandatory');
         $this->FLD('objectId', 'int(align=left)', 'caption=Ид на обект,mandatory,tdClass=leftCol wrapText');
-        $this->FLD('cashRegNum', 'varchar', 'caption=Касов апарат №,mandatory,smartCenter');
+        $this->FLD('cashRegNum', 'varchar(64)', 'caption=Касов апарат №,mandatory,smartCenter');
         $this->FLD('userId', 'user', 'caption=Потребител,mandatory');
-        $this->FLD('number', 'varchar', 'caption=Номер,mandatory,smartCenter');
+        $this->FLD('number', 'varchar(64)', 'caption=Номер,mandatory,smartCenter');
         $this->FNC('urn', 'varchar', 'caption=УНП,smartCenter');
         
         $this->setDbUnique('classId,objectId');
-        $this->setDbIndex('cashRegNum');
+        $this->setDbIndex('cashRegNum,number');
         $this->setDbIndex('userId');
-        $this->setDbIndex('number');
     }
     
     
@@ -159,13 +158,13 @@ class bgfisc_Register extends core_Manager
         
         $query = self::getQuery();
         $query->where(array("#cashRegNum = '[#1#]'", $deviceRec->serialNumber));
-        $query->where("#number >= {$firstNum}");
         $query->orderBy('number', 'DESC');
+        $query->useIndex('cash_reg_num_number');
         $query->limit(1);
         
         $number = $query->fetch()->number;
         $number = isset($number) ? str::increment($number) : $firstNum;
-        
+
         return $number;
     }
     

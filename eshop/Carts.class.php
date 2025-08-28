@@ -754,6 +754,7 @@ class eshop_Carts extends core_Master
         Request::setProtected('description,accountId');
         $this->requireRightFor('finalize');
         expect($id = Request::get('id', 'int'));
+
         expect($rec = self::fetch($id));
         $msg = '|Благодарим за поръчката|*!';
         if ($rec->state == 'active') {
@@ -783,14 +784,17 @@ class eshop_Carts extends core_Master
         $cu = core_Users::getCurrent('id', false);
         
         Mode::set('currentExternalTab', 'eshop_Carts');
-        
+
+        core_Locks::obtain("finalize_{$id}", 15, 20, 15);
         try{
             $saleRec = self::forceSale($rec);
         } catch(core_exception_Expect $e){
             reportException($e);
             $saleRec = null;
         }
-        
+        core_Locks::release("finalize_{$id}");
+
+
         if (empty($saleRec)) {
             $this->logErr('Проблем при генериране на онлайн продажба', $rec->id);
             $errorMs = 'Опитайте пак! Имаше проблем при завършването на поръчката! Ако все още имате проблем, свържете се с нас.';
