@@ -132,7 +132,6 @@ class wtime_Setup extends core_ProtoSetup
 
         // Инсталиране на плъгин за превод на входящата поща
         $html .= core_Plugins::installPlugin('Working time', 'wtime_plugins_AfterLogin', 'core_Users', 'private');
-        $html .= core_Plugins::installPlugin('Working time popup', 'wtime_plugins_AfterLoginPopup', 'page_Html', 'family');
 
         return $html;
     }
