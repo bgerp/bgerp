@@ -2000,7 +2000,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
 
                 foreach ($groupRows as $groupId => $groupData){
-                    $pTpl = new core_ET("<div class='divider'>[#GROUP_NAME#]</div><div class='grid group{$groupId}'>[#RES#]</div>");
+                    $pTpl = new core_ET("<div class='divider'>[#GROUP_NAME#]</div><div class='grid row group{$groupId}'>[#RES#]</div>");
                     $pTpl->replace($groupData->name, 'GROUP_NAME');
                     foreach ($groupData->rows as $row){
                         $row->elementId = "{$groupId}{$row->id}";
