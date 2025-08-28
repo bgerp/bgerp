@@ -32,7 +32,9 @@ class wtime_plugins_AfterLogin extends core_Plugin
             $lastState = wtime_OnSiteEntries::getLastState(crm_Profiles::getPersonByUser(core_Users::getCurrent()), dt::addDays(-1));
             if (!$lastState || $lastState->type != 'in') {
                 try {
-                    wtime_OnSiteEntries::addEntry(crm_Profiles::getPersonByUser($userRec->id), dt::now(), 'in', '', core_Users::getClassId());
+                    if (wtime_OnSiteEntries::addEntry(crm_Profiles::getPersonByUser($userRec->id), dt::now(), 'in', '', core_Users::getClassId())) {
+                        core_Statuses::newStatus('|Начало на работна сесия за служителя|* ' . core_Users::prepareUserNames($userRec->names));
+                    }
                 } catch (core_exception_Expect $e) { }
             }
         }
