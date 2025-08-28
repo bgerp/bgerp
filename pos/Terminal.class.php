@@ -1936,7 +1936,7 @@ class pos_Terminal extends peripheral_Terminal
         $searchString = plg_Search::normalizeText($string);
         $rec->_selectedGroupId = Mode::get("currentSelectedGroup{$rec->id}");
         $rec->_selectedGroupId = (!empty($rec->_selectedGroupId)) ? $rec->_selectedGroupId : 'all';
-        
+
         $productRows = $this->prepareProductTable($rec, $string, $selectedRec);
         $tpl = new core_ET(tr("|*<!--ET_BEGIN GROUP_TAB-->[#GROUP_TAB#]<!--ET_END GROUP_TAB-->
                                  <div class='contentHolderResults'>
@@ -1955,44 +1955,83 @@ class pos_Terminal extends peripheral_Terminal
         if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
             $resultTpl = new core_ET("<div class='tabs productTabs'><select style='width: 90%' class='tabHolder'>[#TAB#]</select></div>");
         } else {
-            $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
+            $resultTpl = new core_ET("<div class='tabs productTabs'><!--ET_BEGIN TAB--><ul class='tabHolder'>[#TAB#]</ul><!--ET_END TAB--></div>");
         }
-       
-        foreach ($groupTabArr as $groupId => $groupName){
-            $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
-           
-            $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
-            if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
-                $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
-            } else {
-                $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
+
+        if($settings->productBtnTpl != 'rows'){
+            foreach ($groupTabArr as $groupId => $groupName){
+                $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
+
+                $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
+                if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
+                    $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
+                } else {
+                    $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
+                }
+
+                $resultTpl->append($tab, "TAB");
             }
-            
-            $resultTpl->append($tab, "TAB");
+            $tpl->append($resultTpl, 'GROUP_TAB');
         }
-        $tpl->append($resultTpl, 'GROUP_TAB');
-        $blockTplPath = ($settings->productBtnTpl == 'wide') ? 'pos/tpl/terminal/ProductBtnWide.shtml' : (($settings->productBtnTpl == 'short') ? 'pos/tpl/terminal/ProductBtnShort.shtml' : (($settings->productBtnTpl == 'picture') ? 'pos/tpl/terminal/ProductBtnPicture.shtml' : 'pos/tpl/terminal/ProductBtnPictureAndText.shtml'));
+
+        $blockTplPath = ($settings->productBtnTpl == 'wide') ? 'pos/tpl/terminal/ProductBtnWide.shtml' : (($settings->productBtnTpl == 'short') ? 'pos/tpl/terminal/ProductBtnShort.shtml' : (($settings->productBtnTpl == 'picture') ? 'pos/tpl/terminal/ProductBtnPicture.shtml' : (($settings->productBtnTpl == 'rows') ? 'pos/tpl/terminal/ProductBtnRows.shtml' : 'pos/tpl/terminal/ProductBtnPictureAndText.shtml')));
         $block = getTplFromFile($blockTplPath);
 
         $countRows = countR($productRows);
         if($countRows){
-            $pTpl = new core_ET("<div class='grid {$settings->productBtnTpl}'>[#RES#]</div>");
-            foreach ($productRows as $row){
-                $row->elementId = "{$rec->_selectedGroupId}{$row->id}";
-                $bTpl = clone $block;
-                $bTpl->placeObject($row);
-                $bTpl->removeBlocksAndPlaces();
-                $pTpl->append($bTpl, 'RES');
+            if($settings->productBtnTpl == 'rows'){
+                unset($groupTabArr['all']);
+
+                $groupRows = array();
+                foreach ($groupTabArr as $groupId => $groupName){
+                    foreach ($productRows as $k => $row) {
+                        if (keylist::isIn($groupId, $row->_groups)) {
+                            $groupRows[$groupName][$k] = $row;
+                            unset($productRows[$k]);
+                        }
+                    }
+                }
+
+                if(countR($productRows)){
+                    $groupRows = $groupRows + array(tr('Други') => $productRows);
+                }
+
+                foreach ($groupRows as $groupName => $groupProductRows){
+                    $pTpl = new core_ET("<div class='divider'>[#GROUP_NAME#]</div><div class='grid'>[#RES#]</div>");
+                    $pTpl->replace($groupName, 'GROUP_NAME');
+                    foreach ($groupProductRows as $row){
+                        $row->elementId = "{$rec->_selectedGroupId}{$row->id}";
+                        $bTpl = clone $block;
+                        $bTpl->placeObject($row);
+                        $bTpl->removeBlocksAndPlaces();
+                        $pTpl->append($bTpl, 'RES');
+                    }
+
+                    $pTpl->removeBlocksAndPlaces();
+                    $tpl->append($pTpl, 'BLOCK');
+                }
+            } else {
+                $pTpl = new core_ET("<div class='grid {$settings->productBtnTpl}'>[#RES#]</div>");
+
+                foreach ($productRows as $row){
+                    $row->elementId = "{$rec->_selectedGroupId}{$row->id}";
+                    $bTpl = clone $block;
+                    $bTpl->placeObject($row);
+                    $bTpl->removeBlocksAndPlaces();
+                    $pTpl->append($bTpl, 'RES');
+                }
+
+                $pTpl->removeBlocksAndPlaces();
+                $tpl->append($pTpl, 'BLOCK');
             }
-            
-            $pTpl->removeBlocksAndPlaces();
-            $tpl->append($pTpl, 'BLOCK');
         } else {
             $tpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули") . '</div>', 'BLOCK');
         }
-        
-        $tpl->prepend("<div class='withTabs'>");
-        $tpl->append("</div>");
+
+        if($settings->productBtnTpl != 'rows'){
+            $tpl->prepend("<div class='withTabs'>");
+            $tpl->append("</div>");
+        }
         
         return $tpl;
     }
@@ -2275,7 +2314,7 @@ class pos_Terminal extends peripheral_Terminal
 
             $res[$id]->photo = $this->getPosProductPreview($obj->productId, 140, 140, $settings);
             $res[$id]->CLASS = ' pos-add-res-btn navigable enlargable';
-            if($settings->productBtnTpl == 'pictureAndText' && !$res[$id]->photo){
+            if(in_array($settings->productBtnTpl, array('pictureAndText', 'rows')) && !$res[$id]->photo){
                 $res[$id]->CLASS .= " noPhoto";
             }
             $res[$id]->DATA_ENLARGE_OBJECT_ID = $id;
@@ -2325,7 +2364,7 @@ class pos_Terminal extends peripheral_Terminal
     private function getPosProductPreview($productId, $width, $height, $settings = array())
     {
         $photo = cat_Products::getParams($productId, 'preview');
-        if($settings->productBtnTpl == 'pictureAndText' && empty($photo)) return;
+        if(in_array($settings->productBtnTpl, array('pictureAndText', 'rows')) && empty($photo)) return;
 
         $arr = array();
         core_Debug::startTimer('RENDER_RESULT_GET_PREVIEW_THUMB');
