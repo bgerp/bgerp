@@ -1946,7 +1946,10 @@ class pos_Terminal extends peripheral_Terminal
         $groupsTable = type_Table::toArray($settings->productGroups);
         $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
 
-        $groupTabArr = array('all' => tr('Всички'));
+        $groupTabArr = array();
+        if($settings->productBtnTpl != 'rows'){
+            $groupTabArr = array('all' => tr('Всички'));
+        }
 
         Mode::push('treeShortName', true);
         foreach ($groups as $groupId){
@@ -1963,11 +1966,17 @@ class pos_Terminal extends peripheral_Terminal
         foreach ($groupTabArr as $groupId => $groupName){
             $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
 
+            if($settings->productBtnTpl == 'rows'){
+                $dataStr = "data-grid=group{$groupId}";
+            } else {
+                $dataStr = "data-id={$groupId}";
+            }
+
             $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
             if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
-                $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
+                $tab = "<option id='group{$groupId}' {$dataStr}>{$groupName}</option>";
             } else {
-                $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
+                $tab = "<li id='group{$groupId}' {$dataStr} class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
             }
 
             $resultTpl->append($tab, "TAB");
@@ -1982,20 +1991,19 @@ class pos_Terminal extends peripheral_Terminal
             if($settings->productBtnTpl == 'rows'){
                 $groupRows = array();
                 foreach ($groupTabArr as $groupId => $groupName){
-                    if($rec->_selectedGroupId != 'all' && $groupId != $rec->_selectedGroupId) continue;
+                    $groupRows[$groupId] = (object)array('name' => $groupName, 'rows' => array());
                     foreach ($productRows as $k => $row) {
                         if (keylist::isIn($groupId, $row->_groups)) {
-                            $groupRows[$groupName][$k] = $row;
-                            unset($productRows[$k]);
+                            $groupRows[$groupId]->rows[$k] = $row;
                         }
                     }
                 }
 
-                foreach ($groupRows as $groupName => $groupProductRows){
-                    $pTpl = new core_ET("<div class='divider'>[#GROUP_NAME#]</div><div class='grid'>[#RES#]</div>");
-                    $pTpl->replace($groupName, 'GROUP_NAME');
-                    foreach ($groupProductRows as $row){
-                        $row->elementId = "{$rec->_selectedGroupId}{$row->id}";
+                foreach ($groupRows as $groupId => $groupData){
+                    $pTpl = new core_ET("<div class='divider'>[#GROUP_NAME#]</div><div class='grid group{$groupId}'>[#RES#]</div>");
+                    $pTpl->replace($groupData->name, 'GROUP_NAME');
+                    foreach ($groupData->rows as $row){
+                        $row->elementId = "{$groupId}{$row->id}";
                         $bTpl = clone $block;
                         $bTpl->placeObject($row);
                         $bTpl->removeBlocksAndPlaces();
@@ -2135,7 +2143,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
 
                 if($productRec = $cloneQuery->fetch()){
-                    $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $productRec->name, 'nameEn' => $productRec->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null);
+                    $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $productRec->name, 'nameEn' => $productRec->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null, 'groups' => $productRec->groups);
                     $count++;
                 }
             }
@@ -2163,7 +2171,7 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery1->limit($settings->maxSearchProducts);
 
             while($pRec1 = $pQuery1->fetch()){
-                $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn);
+                $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn, 'groups' => $pRec1->groups);
                 $count++;
                 if($count == $settings->maxSearchProducts) break;
             }
@@ -2194,7 +2202,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
 
                 while($pRec2 = $pQuery2->fetch()){
-                    $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId, 'name' => $pRec2->name, 'nameEn' => $pRec2->nameEn);
+                    $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId, 'name' => $pRec2->name, 'nameEn' => $pRec2->nameEn, 'groups' => $pRec2->groups);
                     $count++;
                     if($count == $settings->maxSearchProducts) break;
                 }

@@ -1646,7 +1646,12 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 			if(activeTab.parent().hasClass('receipts')){
 				params.selectedReceiptFilter = id;
 			} else {
-				params.selectedProductGroupId = id;
+                if(id){
+                    params.selectedProductGroupId = id;
+                } else {
+                    let gridClass = activeTab.attr("data-grid");
+                    console.log("TODO SCROLL TO " + gridClass)
+                }
 			}
 		}
 		
