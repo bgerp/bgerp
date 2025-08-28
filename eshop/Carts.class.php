@@ -785,7 +785,7 @@ class eshop_Carts extends core_Master
         
         Mode::set('currentExternalTab', 'eshop_Carts');
 
-        core_Locks::obtain("finalize_{$id}", 15, 20);
+        core_Locks::obtain("finalize_{$id}", 15, 20, 15);
         try{
             $saleRec = self::forceSale($rec);
         } catch(core_exception_Expect $e){
