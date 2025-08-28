@@ -580,8 +580,6 @@ select.tabHolder {
      * елементите вървят по колони
      */
     grid-auto-columns: 1; }
-    .scrollingGrid .grid > div {
-      width: 130px; }
 
 .posResultContragent {
   justify-content: center;

@@ -667,9 +667,6 @@ select.tabHolder {
 		display: grid;
 		grid-auto-flow: column;  /* елементите вървят по колони */
 		grid-auto-columns: 1fr;
-		> div {
-			width: 130px;
-		}
 	}
 }
 .posResultContragent {
