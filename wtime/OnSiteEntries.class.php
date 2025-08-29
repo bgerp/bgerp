@@ -533,7 +533,7 @@ class wtime_OnSiteEntries extends core_Manager
             }
 
             if ($requiredRoles != 'no_one') {
-                $sIps = wtime_Setup::get('SITE_IPS');
+                $sIps = hr_Setup::get('COMPANIES_IP');
                 $ipArr = type_Ip::extractIps($sIps);
                 if (countR($ipArr['ips'])) {
                     $thisIp = core_Users::getRealIpAddr();

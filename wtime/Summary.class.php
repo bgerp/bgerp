@@ -398,7 +398,7 @@ class wtime_Summary extends core_Manager
             $wExcludeLocalMin = wtime_Setup::get('EXCLUDE_LOCAL_MIN');
 
             // Кои са нашите фирмите на нашите офиси
-            $ourIps = wtime_Setup::get('SITE_IPS');
+            $ourIps = hr_Setup::get('COMPANIES_IP');
             $ipArr = type_Ip::extractIps($ourIps);
 
             foreach ($logArr as $userId => $logs) {
