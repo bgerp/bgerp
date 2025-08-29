@@ -82,7 +82,7 @@ class wtime_OnSiteEntries extends core_Manager
     public function description()
     {
         $this->FLD('time', 'datetime(format=smartTime)', 'caption=Време,mandatory');
-        $this->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,mandatory');
+        $this->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,mandatory,silent');
         $this->FLD('type', 'enum(in=Влиза,out=Излиза)', 'caption=Вид');
         $this->FLD('place', 'varchar(64)', 'caption=Място,mandatory,tdClass=leftCol,input=none');
         $this->FLD('onSiteTime', 'time(noSmart,uom=minutes)', 'caption=Време на място,input=none');
@@ -197,6 +197,7 @@ class wtime_OnSiteEntries extends core_Manager
         $showFields = 'selectPeriod,from,to,search,personId,type';
         $data->listFilter->setFieldType('type', 'enum(all=Влиза / Излиза,in=Влиза,out=Излиза)');
         $data->listFilter->setField('type', 'maxRadio=0');
+        $data->listFilter->input('personId', 'silent');
         if(countR($sourceOptions)){
             $data->listFilter->FLD('source', 'varchar', 'caption=Източник,maxRadio=0,placeholder=Всички');
             $data->listFilter->setOptions('source', array('' => '', 'manual' => 'Ръчно добавени') + $sourceOptions);
