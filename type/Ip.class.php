@@ -203,13 +203,15 @@ class type_Ip extends type_Varchar
      *
      * @param string $input - стринг с ип-та
      * @return array
-     *           - 'ips'  => списък от ip2long() на чистите IP-та
-     *           - 'nets' => списък от [net => ip2long(мрежа), mask => bitmask]
+     *           - 'ips'     => списък от ip2long() на чистите IP-та
+     *           - 'ipsRaw'  => списък от оригиналните IP-та (string)
+     *           - 'nets'    => списък от [net => ip2long(мрежа), mask => bitmask]
+     *           - 'netsRaw' => списък от [net => '1.2.3.0', prefix => 24]
      */
     public static function extractIps($input): array
     {
         $lines = preg_split('/[\r\n,;]+/', trim($input));
-        $ips  = $nets = array();
+        $ips = $ipsRaw = $nets = $netsRaw = array();
 
         foreach ($lines as $line) {
             $entry = trim($line);
@@ -223,20 +225,28 @@ class type_Ip extends type_Varchar
                 // Валидация
                 if (filter_var($net, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $prefix >= 0 && $prefix <= 32) {
                     $netLong  = ip2long($net);
-                    // маска: последни (32-prefix) бита нули, останалите единици
                     $maskLong = (~0) << (32 - $prefix);
-                    $nets[]   = ['net' => $netLong, 'mask' => $maskLong];
+
+                    $nets[]    = ['net' => $netLong, 'mask' => $maskLong];
+                    $netsRaw[] = ['net' => $net, 'prefix' => $prefix];
                 }
             }
             // Чист IP
             elseif (filter_var($entry, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                $ips[] = ip2long($entry);
+                $ips[]    = ip2long($entry);
+                $ipsRaw[] = $entry;
             }
             // иначе прескачаме негодни записи
         }
 
-        return array('ips' => $ips, 'nets' => $nets);
+        return array(
+            'ips'     => $ips,
+            'ipsRaw'  => $ipsRaw,
+            'nets'    => $nets,
+            'netsRaw' => $netsRaw,
+        );
     }
+
 
 
     /**
