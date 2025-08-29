@@ -31,7 +31,7 @@ class wtime_OnSiteEntries extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, wtime';
+    public $canList = 'powerUser';
 
 
     /**
@@ -167,6 +167,20 @@ class wtime_OnSiteEntries extends core_Manager
 
 
     /**
+     * Подготвя формата за филтриране
+     */
+    public function prepareListFilter_($data)
+    {
+        parent::prepareListFilter_($data);
+
+        $data->listFilter->FLD('from', 'date', 'caption=От,silent');
+        $data->listFilter->FLD('to', 'date', 'caption=До,silent');
+
+        return $data;
+    }
+
+
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -180,9 +194,7 @@ class wtime_OnSiteEntries extends core_Manager
             $sourceOptions[$sourceClassId] = core_Classes::getTitleById($sourceClassId);
         }
 
-        $showFields = 'selectPeriod,search,personId,type';
-        $data->listFilter->FLD('from', 'date', 'caption=От,silent');
-        $data->listFilter->FLD('to', 'date', 'caption=До,silent');
+        $showFields = 'selectPeriod,from,to,search,personId,type';
         $data->listFilter->setFieldType('type', 'enum(all=Влиза / Излиза,in=Влиза,out=Излиза)');
         $data->listFilter->setField('type', 'maxRadio=0');
         if(countR($sourceOptions)){
@@ -222,6 +234,10 @@ class wtime_OnSiteEntries extends core_Manager
                     $data->query->where("#sourceClassId = {$filter->source}");
                 }
             }
+        }
+
+        if(!haveRole('ceo,wtime')){
+            $data->listFilter->hide = true;
         }
     }
 
@@ -540,6 +556,26 @@ class wtime_OnSiteEntries extends core_Manager
                             if (!keylist::isIn($employeeGroupId, $personRec->groupList)) {
                                 $requiredRoles = 'no_one';
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($action == 'list') {
+
+            // Само потребител със специален достъп от урл-то има права за филтъра на своите входове
+            if(!haveRole('ceo,wtime')){
+                $hash = Request::get('hash');
+                if(empty($hash)){
+                    $requiredRoles = 'no_one';
+                } else{
+                    $checked = str::checkHash($hash,  4, 'filter');
+                    if(!$checked){
+                        $requiredRoles = 'no_one';
+                    } else {
+                        if($userId != $checked){
+                            $requiredRoles = 'no_one';
                         }
                     }
                 }
