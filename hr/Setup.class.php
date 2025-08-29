@@ -95,7 +95,7 @@ class hr_Setup extends core_ProtoSetup
         'HR_EC_MIN' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Долна граница'),
         'HR_EC_MAX' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
         'HR_EMAIL_TO_PERSON' => array('key(mvc=crm_Persons,select=name, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Изпращане на имейл към->Лице'),
-        'HR_COMPANIES_IP' => array('varchar', 'caption=Ip-та на фирмата->IP'),
+        'HR_COMPANIES_IP' => array('text(rows=4)', 'caption=Ip-та на фирмата->IP'),
         'HR_DAYS_IN_HOMEOFFICE' => array('int(min=0)', 'caption=Разрешените дни за работа от вкъщи->Дни,unit=&nbsp;|(за един месец)|*,customizeBy=hrMaster|ceo'),
         'HR_NIGHT_SHIFT_CUR_DAY_START' => array('hour', 'caption=Часове за нощна смяна->Начало: Днес'),
         'HR_NIGHT_SHIFT_NEXT_DAY_END' => array('hour', 'caption=Часове за нощна смяна->Край: Утре'),
