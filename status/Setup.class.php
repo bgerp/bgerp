@@ -10,7 +10,7 @@ defIfNot('STATUS_SALT', md5(EF_SALT . 'status'));
 /**
  * Колко време преди създаването да се показват статус съобщеният
  */
-defIfNot('STATUS_TIME_BEFORE', 1);
+defIfNot('STATUS_TIME_BEFORE', 5);
 
 
 /**
