@@ -1988,20 +1988,31 @@ class pos_Terminal extends peripheral_Terminal
 
         $countRows = countR($productRows);
         if($countRows){
-            if($settings->productBtnTpl == 'rows'){
-                $groupRows = array();
-                foreach ($groupTabArr as $groupId => $groupName){
-                    $groupRows[$groupId] = (object)array('name' => $groupName, 'rows' => array());
-                    foreach ($productRows as $k => $row) {
-                        if (keylist::isIn($groupId, $row->_groups)) {
-                            $groupRows[$groupId]->rows[$k] = $row;
-                        }
+            $gQuery = cat_Groups::getQuery();
+            $gQuery->show('orderProductByInPos,id');
+            $groupRecs = $gQuery->fetchAll();
+
+            $groupRows = array();
+            foreach ($groupTabArr as $groupId => $groupName){
+                $groupRows[$groupId] = (object)array('name' => $groupName, 'rows' => array());
+                foreach ($productRows as $k => $row) {
+                    if (keylist::isIn($groupId, $row->_groups)) {
+                        $groupRows[$groupId]->rows[$k] = $row;
                     }
                 }
+            }
 
+            if($settings->productBtnTpl == 'rows'){
                 foreach ($groupRows as $groupId => $groupData){
-                    $pTpl = new core_ET("<div class='scrollingGrid'> <div class='grid rows group{$groupId}'>[#RES#]</div></div>");
+                    $pTpl = new core_ET("<div class='scrollingGrid'><div class='grid rows group{$groupId}'>[#RES#]</div></div>");
                     $pTpl->replace($groupData->name, 'GROUP_NAME');
+
+                    // Подреждане на артикулите в бутоните спрямо избраното в групата
+                    $orderByGroup = $groupRecs[$groupId]->orderProductByInPos;
+                    $orderField = $orderByGroup == 'name' ? 'productId' : ($orderByGroup == 'code' ? 'code' : 'rating');
+                    $orderByDir = $orderField == 'rating' ? 'DESC' : 'ASC';
+                    arr::sortObjects($groupData->rows, $orderField, $orderByDir);
+
                     foreach ($groupData->rows as $row){
                         $row->elementId = "{$groupId}{$row->id}";
                         $bTpl = clone $block;
@@ -2015,6 +2026,12 @@ class pos_Terminal extends peripheral_Terminal
                 }
             } else {
                 $pTpl = new core_ET("<div class='grid {$settings->productBtnTpl}'>[#RES#]</div>");
+                if(isset($rec->_selectedGroupId)){
+                    $orderByGroup = $groupRecs[$rec->_selectedGroupId]->orderProductByInPos;
+                    $orderField = $orderByGroup == 'name' ? 'productId' : ($orderByGroup == 'code' ? 'code' : 'rating');
+                    $orderByDir = $orderField == 'rating' ? 'DESC' : 'ASC';
+                    arr::sortObjects($productRows, $orderField, $orderByDir);
+                }
 
                 foreach ($productRows as $row){
                     $row->elementId = "{$rec->_selectedGroupId}{$row->id}";
@@ -2218,8 +2235,21 @@ class pos_Terminal extends peripheral_Terminal
         }
         core_Debug::stopTimer('RES_RENDER_PREPARE_RECS');
 
+        // Извличане на рейтингите на продуктите
+        if(countR($sellable)){
+            $rQuery = sales_ProductRatings::getQuery();
+            $rQuery->where("#classId = " . pos_Receipts::getClassId() . " AND #objectClassId = " . cat_Products::getClassId());
+            $rQuery->show('value,objectId');
+            $rQuery->in('objectId', array_keys($sellable));
+            while($rRec = $rQuery->fetch()){
+                if(array_key_exists($rRec->objectId, $sellable)){
+                    $sellable[$rRec->objectId]->rating = $rRec->value;
+                }
+            }
+        }
+
         $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$priceCache}_{$rec->_selectedGroupId}_{$searchString}";
-        $result = core_Cache::get('pos_Terminal', $cacheKey);
+        $result = null;core_Cache::get('pos_Terminal', $cacheKey);
 
         if(!is_array($result)){
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
@@ -2322,6 +2352,8 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->DATA_ENLARGE_CLASS_ID = $productClassId;
             $res[$id]->DATA_MODAL_TITLE = cat_Products::getRecTitle($productRec);
             $res[$id]->id = $id;
+            $res[$id]->rating = $pRec->rating;
+            $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
             if($pRec->canSell != 'yes'){
                 $res[$id]->CLASS .= ' notSellable';
             }
