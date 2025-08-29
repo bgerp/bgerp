@@ -151,6 +151,7 @@ class help_Log extends core_Master
      */
     public static function act_CloseInfo()
     {
+        requireRole('debug');
         // За кой клас се отнася
         $id = core_Request::get('id', 'int');
 
@@ -184,6 +185,8 @@ class help_Log extends core_Master
      */
     public static function act_See()
     {
+        requireRole('debug');
+
         // За кой клас се отнася
         $id = core_Request::get('id', 'int');
 
@@ -207,6 +210,8 @@ class help_Log extends core_Master
 
     public function act_LogDataAdd()
     {
+        requireRole('debug');
+
         //Подготовка на ip
         $arr = array();
         $config = core_Packs::getConfig('hr');
