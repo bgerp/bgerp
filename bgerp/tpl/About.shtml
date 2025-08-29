@@ -14,6 +14,7 @@
                 <li class="list-group-item">|Автор|*: <b>[#AUTHOR#]</b></li>
                 <li class="list-group-item">|Сериен №|*: <b>[#SN#]</b></li>
                 <li class="list-group-item"><div style="text-align: center;">|Инсталирани приложения|*:</div>[#REPOS#]</li>
+                <!--ET_BEGIN LICENSES--><li class="list-group-item" ><div style="text-align: center;">|Лицензи|*:</div>[#LICENSES#]</li><!--ET_END LICENSES-->
                 <li class="list-group-item" ><div style="text-align: center;">|Благодарности|*:</div>[#THANKS#]</li>
             </ul>
         </div>
