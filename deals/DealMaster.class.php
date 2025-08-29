@@ -380,7 +380,10 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         $form->setDefault('makeInvoice', $defaultMakeInvoice);
-        
+        if($data->action == 'clone'){
+            $form->rec->_isBeingCloned = true;
+        }
+
         // Поле за избор на локация - само локациите на контрагента по сделката
         if (!$form->getFieldTypeParam('deliveryLocationId', 'isReadOnly')) {
             $locations = array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
@@ -553,7 +556,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 $form->setWarning('chargeVat', $vatWarning);
             }
         }
-        
+
+        $defPaymentId = deals_Helper::getDefaultChargeVat($mvc, $rec, $mvc->getFieldParam('paymentMethodId', 'salecondSysId'));
+        if($rec->_isBeingCloned){
+            if($rec->paymentMethodId != $defPaymentId){
+                $form->setWarning('paymentMethodId', 'Методът на плащане се различава от дефолтния в търговските условия на контрагента|*: <b>' . cond_PaymentMethods::getTitleById($defPaymentId) . "</b>");
+            }
+        }
+
         // Избраната валута съответства ли на дефолтната
         $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
         $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
