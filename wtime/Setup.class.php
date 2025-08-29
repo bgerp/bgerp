@@ -2,12 +2,6 @@
 
 
 /**
- *  IP-та на всички наши офиси
- */
-defIfNot('WTIME_SITE_IPS', '');
-
-
-/**
  *  До колко минути назад за залепва с предходно събитие при четене
  */
 defIfNot('WTIME_READ_STICK_MIN', '10');
@@ -79,8 +73,16 @@ class wtime_Setup extends core_ProtoSetup
     );
 
 
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    public $defClasses = 'wtime_reports_TimeWorked';
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
     public $configDescription = array(
-        'WTIME_SITE_IPS' => array('text(rows=4)', 'caption=IP-та на всички наши офиси'),
         'WTIME_READ_STICK_MIN' => array('int(min=0)', 'caption=До колко минути назад за залепва->С предходно събитие при четене'),
         'WTIME_WRITE_STICK_MIN' => array('int(min=0)', 'caption=До колко минути назад за залепва->С предходно събитие при запис'),
         'WTIME_MAX_IN_TIME' => array('time', array('caption' => 'Колко време след вход се приема че служителя все още не излязъл->Време')),
@@ -127,7 +129,6 @@ class wtime_Setup extends core_ProtoSetup
 
         // Инсталиране на плъгин за превод на входящата поща
         $html .= core_Plugins::installPlugin('Working time', 'wtime_plugins_AfterLogin', 'core_Users', 'private');
-        $html .= core_Plugins::installPlugin('Working time popup', 'wtime_plugins_AfterLoginPopup', 'page_Html', 'family');
 
         return $html;
     }

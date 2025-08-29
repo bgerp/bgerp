@@ -380,7 +380,10 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
         $form->setDefault('makeInvoice', $defaultMakeInvoice);
-        
+        if($data->action == 'clone'){
+            $form->rec->_isBeingCloned = true;
+        }
+
         // Поле за избор на локация - само локациите на контрагента по сделката
         if (!$form->getFieldTypeParam('deliveryLocationId', 'isReadOnly')) {
             $locations = array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
@@ -553,7 +556,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 $form->setWarning('chargeVat', $vatWarning);
             }
         }
-        
+
+        $defPaymentId = deals_Helper::getDefaultChargeVat($mvc, $rec, $mvc->getFieldParam('paymentMethodId', 'salecondSysId'));
+        if($rec->_isBeingCloned){
+            if($rec->paymentMethodId != $defPaymentId){
+                $form->setWarning('paymentMethodId', 'Методът на плащане се различава от дефолтния в търговските условия на контрагента|*: <b>' . cond_PaymentMethods::getTitleById($defPaymentId) . "</b>");
+            }
+        }
+
         // Избраната валута съответства ли на дефолтната
         $defCurrency = cls::get($rec->contragentClassId)->getDefaultCurrencyId($rec->contragentId);
         $currencyState = currency_Currencies::fetchField("#code = '{$defCurrency}'", 'state');
@@ -1133,7 +1143,10 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         // Ако няма сума, но има обща отстъпка да не може да се активира
         if(isset($rec->id)){
-            if(empty($rec->amountDeal) && price_DiscountsPerDocuments::haveDiscount(get_called_class(), $rec->id)) return false;
+            $me = cls::get(get_called_class());
+            $Detail = cls::get($me->mainDetail);
+            $dCount = $Detail->count("#{$Detail->masterKey} = {$rec->id}");
+            if(!$dCount && price_DiscountsPerDocuments::haveDiscount(get_called_class(), $rec->id)) return false;
         }
 
         return true;
@@ -2978,8 +2991,15 @@ abstract class deals_DealMaster extends deals_DealBase
             }
 
             // За всяко от количествата, които ще се запазват
+            $today = dt::today();
+            $now = dt::now();
             $newRes = array();
             foreach($res as $plannedRec){
+                if(($mvc instanceof purchase_Purchases) && dt::verbal2mysql($plannedRec->date, false) < $today){
+                    $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
+                    $plannedRec->date = dt::addSecs($horizonAdd, $now);
+                }
+
                 $removeQuantity = 0;
 
                 // Проспадане от запазеното количество, на вече запазеното по документи в нишката

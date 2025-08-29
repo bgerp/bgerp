@@ -151,7 +151,6 @@ class cat_Groups extends core_Master
         $this->FLD('nameEn', 'varchar(64,ci,nullIfEmpty)', 'caption=Наименование->Международно');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
-        $this->FLD('orderProductBy', 'enum(name=Име,code=Код)', 'caption=Сортиране по,notNull,value=name,after=parentId');
         $this->FLD('defaultOverheadCostsPercent', 'percent(min=0)', 'input=none,caption=Настройки->Режийни разходи');
 
         // Свойства присъщи на продуктите в групата
@@ -161,6 +160,8 @@ class cat_Groups extends core_Master
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
         						canManifacture=Производими,generic=Генерични)', 'caption=Настройки->Свойства,columns=2,input=none');
+        $this->FLD('orderProductBy', 'enum(name=Име,code=Код)', 'caption=Сортиране на артикулите->Инвентаризация,notNull,value=name');
+        $this->FLD('orderProductByInPos', 'enum(name=Име,code=Код,rating=Най-продаваеми)', 'caption=Сортиране на артикулите->POS,notNull,value=name');
         $this->FLD('notes', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
 
         $this->setDbUnique('sysId');
@@ -176,7 +177,6 @@ class cat_Groups extends core_Master
         $form = &$data->form;
         $rec = $form->rec;
         $form->setField('parentId', 'caption=Настройки->В състава на,remember');
-        $form->setField('orderProductBy', 'caption=Настройки->Сортиране по');
         $form->setField('parentId', 'silent,removeAndRefreshForm=defaultOverheadCostsPercent');
         $form->FLD('addProducts', 'text(rows=2)', 'caption=Допълнително->Добави артикули,input,hint=Кодовете на артикулите трябва да са на нов ред');
 

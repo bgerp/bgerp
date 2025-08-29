@@ -467,5 +467,19 @@ class store_Receipts extends store_DocumentMaster
 
         return cls::get($class);
     }
+
+
+    /**
+     * За коя дата се заплануват наличностите, дефолтна реализация
+     */
+    public static function on_AfterGetPlannedQuantityDate($mvc, &$res, $rec)
+    {
+        if($res['date']){
+            if(!$res['isLive'] && dt::verbal2mysql($res['date'], false) < dt::today()){
+                $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
+                $res['date'] = dt::addSecs($horizonAdd, dt::now());
+            }
+        }
+    }
 }
 

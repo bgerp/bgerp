@@ -4154,9 +4154,14 @@ class cat_Products extends embed_Manager
             $Detail = cls::get($masterMvc->mainDetail);
         }
 
+        $showReffCol = false;
         $detArr = arr::make($masterMvc->details);
-        $csvFields->FLD('vatPercent', 'varchar');
+        $csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
+        if($masterMvc instanceof cat_Listings){
+            $csvFields->FLD('moq', 'double(smartRound)', 'caption=МКП');
+        }
 
+        $listId = cat_plg_ShowCodes::getReffListId($Detail, $mRec->contragentClassId, $mRec->contragentId, $mRec->threadId);
         expect(!empty($detArr));
 
         $recs = array();
@@ -4226,6 +4231,17 @@ class cat_Products extends embed_Manager
                     $recs[$dRec->id]->_productId = $dRec->{$dInst->productFld};
                     $recs[$dRec->id]->id = $dRec->id;
                     $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId;
+                    if($masterMvc instanceof cat_Listings) {
+                        $recs[$dRec->id]->moq = $dRec->moq;
+                    }
+
+                    // Показване на вашия реф, ако има
+                    if (isset($listId)) {
+                        $recs[$dRec->id]->reff = cat_Listings::getReffByProductId($listId, $dRec->{$dInst->productFld}, $dRec->packagingId);
+                        if(!empty($recs[$dRec->id]->reff)){
+                            $showReffCol = true;
+                        }
+                    }
                 }
 
                 setIfNot($dInst->productFld, 'productId');
@@ -4330,14 +4346,14 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
-
-                //$csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
                 $recs[$dRec->id]->{$dInst->productFld} = cat_Products::getVerbal($dRec->{$dInst->productFld}, 'name');
 
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {
                     if(!Mode::is('csvExportInList')) {
-                        if ($recs[$dRec->id]->packPrice && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
+                        $price = ($masterMvc instanceof cat_Listings) ? $recs[$dRec->id]->price : $recs[$dRec->id]->packPrice;
+                        if ($price && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
+                            $recs[$dRec->id]->packPrice = $price;
                             $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
 
                             $caption = 'Цена';
@@ -4479,8 +4495,12 @@ class cat_Products extends embed_Manager
             }
         }
 
+        if($showReffCol){
+            $csvFields->FLD('reff', 'varchar', 'caption=Ваш №');
+        }
+
         // Подреждане за запазване на предишна логика
-        $orderMap = array('code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
+        $orderMap = array('reff', 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
         $fArr = $csvFields->fields;
         $newFArr = array();
         foreach ($fArr as $fName => $fRec) {
@@ -4495,6 +4515,9 @@ class cat_Products extends embed_Manager
             $newFArr += $fArr;
         }
         $csvFields->fields = $newFArr;
+        if($masterMvc instanceof cat_Listings){
+            unset($csvFields->fields['name']);
+        }
 
         return $recs;
     }

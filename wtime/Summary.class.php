@@ -67,7 +67,7 @@ class wtime_Summary extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'date,personId,scheduleId=График,onSiteTime,onSiteTimeOffSchedule,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onlineTime,onlineTimeRemote,onlineTimeOffSchedule,lastCalced';
+    public $listFields = 'history,date,personId,scheduleId=График,onSiteTime,onSiteTimeOffSchedule,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onlineTime,onlineTimeRemote,onlineTimeOffSchedule,lastCalced';
 
 
     /**
@@ -83,14 +83,14 @@ class wtime_Summary extends core_Manager
     {
         $this->FLD('personId', 'key2(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,silent');
         $this->FLD('date', 'date', 'caption=Ден');
-        $this->FLD('onSiteTime', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->На място');
-        $this->FLD('onSiteTimeOffSchedule', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->Извънработно');
-        $this->FLD('onSiteTimeOnHolidays', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->Празници');
-        $this->FLD('onSiteTimeOnNonWorkingDays', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->Неработни');
-        $this->FLD('onSiteTimeNightShift', 'time(noSmart,uom=minutes)', 'caption=Време в завода/офиса->Нощем');
-        $this->FLD('onlineTime', 'time(noSmart,uom=minutes)', 'caption=Онлайн->Общо');
-        $this->FLD('onlineTimeRemote', 'time(noSmart,uom=minutes)', 'caption=Онлайн->Хоум офис');
-        $this->FLD('onlineTimeOffSchedule', 'time(noSmart,uom=minutes)', 'caption=Онлайн->Извънработно');
+        $this->FLD('onSiteTime', 'time(noSmart,uom=hours)', 'caption=Време в завода/офиса->На място');
+        $this->FLD('onSiteTimeOffSchedule', 'time(noSmart,uom=hours)', 'caption=Време в завода/офиса->Извънработно');
+        $this->FLD('onSiteTimeOnHolidays', 'time(noSmart,uom=hours)', 'caption=Време в завода/офиса->Празници');
+        $this->FLD('onSiteTimeOnNonWorkingDays', 'time(noSmart,uom=hours)', 'caption=Време в завода/офиса->Неработни');
+        $this->FLD('onSiteTimeNightShift', 'time(noSmart,uom=hours)', 'caption=Време в завода/офиса->Нощем');
+        $this->FLD('onlineTime', 'time(noSmart,uom=hours)', 'caption=Онлайн->Общо');
+        $this->FLD('onlineTimeRemote', 'time(noSmart,uom=hours)', 'caption=Онлайн->Хоум офис');
+        $this->FLD('onlineTimeOffSchedule', 'time(noSmart,uom=hours)', 'caption=Онлайн->Извънработно');
         $this->FLD('lastCalced', 'datetime(format=smartTime)', 'caption=Изчисляване');
 
         $this->setDbUnique('personId,date');
@@ -104,6 +104,7 @@ class wtime_Summary extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $data->listFields['history'] = '|*&nbsp;';
         $data->groupByFieldStyles = 'background-color:rgba(0, 0, 255, 0.1);';
         $data->listFilter->FLD('from', 'date', 'caption=От,silent');
         $data->listFilter->FLD('to', 'date', 'caption=До,silent');
@@ -140,7 +141,7 @@ class wtime_Summary extends core_Manager
      * Вербализиране на row
      * Поставя хипервръзка на ip-то
      */
-    protected function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if(isset($rec->personId)){
             $personName = crm_Persons::getVerbal($rec->personId, 'name');
@@ -151,7 +152,25 @@ class wtime_Summary extends core_Manager
         $row->ROW_ATTR['class'] = ($rec->_isSummary) ? 'state-closed' : 'state-active';
 
         foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
-            $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+            if(empty($rec->{$fld})){
+                unset($row->{$fld});
+            } else {
+                $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
+            }
+        }
+
+        $from = $rec->_from ?? $rec->date;
+        $to = $rec->_to ?? $rec->date;
+
+        $filterUrl = array('wtime_OnSiteEntries', 'list', 'personId' => $rec->personId, 'selectPeriod' => 'select', 'from' => dt::mysql2verbal($from, 'd.m.Y'), 'to' => dt::mysql2verbal($to, 'd.m.Y'));
+        $protectUrl = !haveRole('ceo,wtime');
+        if($protectUrl){
+            Request::setProtected('personId,selectPeriod,from,to,hash');
+            $filterUrl['hash'] = str::addHash(core_Users::getCurrent(), 4, 'filter');
+        }
+        $row->history = ht::createLink('', $filterUrl, false, 'ef_icon=img/16/clock_history.png');
+        if($protectUrl){
+            Request::removeProtected('personId,selectPeriod,from,to,hash');
         }
     }
 
@@ -177,14 +196,17 @@ class wtime_Summary extends core_Manager
         $form = cls::get('core_Form');
         $form->title = "Преизчисляване на обобщенията";
         $form->FLD('from', 'date', 'caption=От,mandatory');
+        $form->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,placeholder=Всички');
         $form->setDefault('from', dt::addDays(-2, null, false) . " 00:00:00");
+        $emplGroupId = crm_Groups::getIdFromSysId('employees');
+        $form->setFieldTypeParams('personId', array('groups' => keylist::addKey('', $emplGroupId)));
         $form->input();
 
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             $msg = "Преизчислени са записите след|*: <b>" . dt::mysql2verbal($rec->from) . "</b>";
             if(in_array($form->cmd, array('debug', 'save'))){
-                $res = self::recalc($rec->from);
+                $res = self::recalc($rec->from, null, $rec->personId);
                 if($form->cmd == 'debug'){
                     bp($res);
                 }
@@ -376,7 +398,7 @@ class wtime_Summary extends core_Manager
             $wExcludeLocalMin = wtime_Setup::get('EXCLUDE_LOCAL_MIN');
 
             // Кои са нашите фирмите на нашите офиси
-            $ourIps = wtime_Setup::get('SITE_IPS');
+            $ourIps = hr_Setup::get('COMPANIES_IP');
             $ipArr = type_Ip::extractIps($ourIps);
 
             foreach ($logArr as $userId => $logs) {
@@ -667,32 +689,44 @@ class wtime_Summary extends core_Manager
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 10));
         $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
         $data->Pager->itemsCount = $query->count();
+        $fields = $this->selectFields();
+        $fields['-detail'] = true;
 
         $this->prepareListFields($data);
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             if (!$data->Pager->isOnPage()) continue;
-            $data->rows[$rec->id] = self::recToVerbal($rec);
+
+            $rec->_from = $rec->_to = $rec->date;
+            $data->rows[$rec->id] = self::recToVerbal($rec, $fields);
 
             if($rec->date >= $firstDay) {
                 foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
                     $data->totalThisMonth->{$fld} += $rec->{$fld};
+                    $data->totalLastMonth->_summary = true;
                 }
             }
 
             if($rec->date >= $firstDayPrevMonth && $rec->date <= $lastDayPrevMonth) {
                 foreach(arr::make('onSiteTime,onSiteTimeOnHolidays,onSiteTimeOnNonWorkingDays,onSiteTimeNightShift,onSiteTimeOffSchedule,onlineTime,onlineTimeRemote,onlineTimeOffSchedule', true) as $fld){
                     $data->totalLastMonth->{$fld} += $rec->{$fld};
+                    $data->totalLastMonth->_summary = true;
                 }
             }
         }
 
         if(isset($data->totalThisMonth)){
+            $data->totalThisMonth->_from = $firstDay;
+            $data->totalThisMonth->_to = dt::getLastDayOfMonth($firstDay);
+
             $data->totalThisMonthRow = $this->recToVerbal($data->totalThisMonth);
             $data->totalThisMonthRow->date = "<b>" . dt::mysql2verbal($firstDay, 'M') . "</b> (" . tr('Общо') . ")";
         }
 
         if(isset($data->totalLastMonth)){
+            $data->totalLastMonth->_from = $firstDayPrevMonth;
+            $data->totalLastMonth->_to = dt::getLastDayOfMonth($firstDayPrevMonth);
+
             $data->totalLastMonthRow = $this->recToVerbal($data->totalLastMonth);
             $data->totalLastMonthRow->date = "<b>" . dt::mysql2verbal($firstDayPrevMonth, 'M') . "</b> (" . tr('Общо') . ")";
         }
@@ -711,13 +745,14 @@ class wtime_Summary extends core_Manager
         unset($data->listFields['personId']);
         unset($data->listFields['lastCalced']);
         unset($data->listFields['scheduleId']);
+        $data->listFields['history'] = '|*&nbsp;';
 
         $table = cls::get('core_TableView', array('mvc' => $this));
         $data->rows[] = $data->totalThisMonthRow;
         $data->rows[] = $data->totalLastMonthRow;
         $dTable = $table->get($data->rows, $data->listFields);
 
-        //$dTable->append(, ROW_AFTER'')
+
         $tpl->append($dTable);
         if ($data->Pager) {
             $tpl->append($data->Pager->getHtml());

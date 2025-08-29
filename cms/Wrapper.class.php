@@ -35,6 +35,6 @@ class cms_Wrapper extends plg_ProtoWrapper
         $this->TAB('cms_Objects', 'Други->Обекти', 'cms,ceo,admin');
         $this->TAB('cms_Feeds', 'Други->Хранилки', 'cms,ceo,admin');
         $this->TAB('cms_VerbalId', 'Други->Url', 'admin,ceo,admin');
-        $this->TAB('cms_Includes', 'Други->Добавки', 'admin');
+        $this->TAB('cms_Includes', 'Други->Добавки', 'cms,admin');
     }
 }

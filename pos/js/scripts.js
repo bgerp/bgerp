@@ -41,7 +41,7 @@ function posActions() {
 		$(".fullScreenCardPayment").css("display", "none");
 		let msg = pressedCardPayment.attr("data-oncancel");
 		$("#modalTitleSpan").text('');
-
+        $("#modalTitleSubSpan").text('');
 		render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
 	});
 
@@ -182,7 +182,36 @@ function posActions() {
 		}
 	});
 
-	
+	document.querySelectorAll('.scrollingGrid').forEach(grid => {
+		let isDown = false;
+		let startX;
+		let scrollLeft;
+
+		grid.addEventListener('mousedown', (e) => {
+			isDown = true;
+			grid.classList.add('dragging');   // за стил по желание
+			startX = e.pageX - grid.offsetLeft;
+			scrollLeft = grid.scrollLeft;
+		});
+
+		grid.addEventListener('mouseleave', () => {
+			isDown = false;
+			grid.classList.remove('dragging');
+		});
+
+		grid.addEventListener('mouseup', () => {
+			isDown = false;
+			grid.classList.remove('dragging');
+		});
+
+		grid.addEventListener('mousemove', (e) => {
+			if (!isDown) return;
+			e.preventDefault(); // за да не маркира текст
+			const x = e.pageX - grid.offsetLeft;
+			const walk = (x - startX); // разстояние на влачене
+			grid.scrollLeft = scrollLeft - walk;
+		});
+	});
 	/**
 	 * При клик на таба
 	 */
@@ -957,11 +986,13 @@ function pressNavigable(element)
 			let deviceUrl = element.attr("data-deviceUrl");
 			let comPort = element.attr("data-deviceComPort");
 			let deviceName = element.attr("data-deviceName");
+            let subTitle = element.attr('data-modal-subTitle')
+
 			console.log('SEND:' + amount + " TO " + deviceUrl + "/ cPort " + comPort);
 			$(".fullScreenCardPayment").css("display", "block");
 			$('.select-input-pos').prop("disabled", true);
 			$("#modalTitleSpan").text(" " + deviceName);
-
+            $("#modalTitleSubSpan").text(" " + subTitle);
 			let fncName = element.attr("data-sendfunction");
 			window[fncName](amount, deviceUrl, comPort);
 			return;
@@ -1084,6 +1115,7 @@ function getAmountError(err)
 	$(".fullScreenCardPayment").css("display", "none");
 	$('.select-input-pos').prop("disabled", false);
 	$("#modalTitleSpan").text('');
+    $("#modalTitleSubSpan").text('');
 
 	showPaymentErrorStatus();
 	console.log("ERR:" + err);
@@ -1643,7 +1675,12 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 			if(activeTab.parent().hasClass('receipts')){
 				params.selectedReceiptFilter = id;
 			} else {
-				params.selectedProductGroupId = id;
+                if(id){
+                    params.selectedProductGroupId = id;
+                } else {
+                    let gridClass = activeTab.attr("data-grid");
+                    console.log("TODO SCROLL TO " + gridClass)
+                }
 			}
 		}
 		

@@ -498,7 +498,8 @@ select.tabHolder {
     max-width: 100px;
     height: auto; }
 
-.grid.pictureAndText .element {
+.grid.pictureAndText .element,
+.grid.rows .element {
   display: flex;
   padding: 3px !important;
   height: 164px;
@@ -508,20 +509,25 @@ select.tabHolder {
   align-content: center;
   background: white !important;
   position: relative; }
-  .grid.pictureAndText .element.notSellable {
+  .grid.pictureAndText .element.notSellable,
+  .grid.rows .element.notSellable {
     background-color: #aaaaaa !important; }
-  .grid.pictureAndText .element.selected {
+  .grid.pictureAndText .element.selected,
+  .grid.rows .element.selected {
     padding: 1px !important; }
-    .grid.pictureAndText .element.selected .pos-price {
+    .grid.pictureAndText .element.selected .pos-price,
+    .grid.rows .element.selected .pos-price {
       padding-bottom: 0px !important; }
-  .grid.pictureAndText .element .photo {
+  .grid.pictureAndText .element .photo,
+  .grid.rows .element .photo {
     display: flex;
     width: 100%;
     height: 140px;
     justify-content: center;
     align-items: center;
     overflow: hidden; }
-  .grid.pictureAndText .element .short-title {
+  .grid.pictureAndText .element .short-title,
+  .grid.rows .element .short-title {
     height: 20px;
     text-align: center;
     padding: 2px 0;
@@ -529,14 +535,17 @@ select.tabHolder {
     font-size: 0.95em;
     box-sizing: border-box;
     margin-bottom: 2px; }
-    .grid.pictureAndText .element.noPhoto .short-title {
+    .grid.pictureAndText .element.noPhoto .short-title,
+    .grid.rows .element.noPhoto .short-title {
       height: 100%;
       font-size: 1.25em;
       max-height: 133px;
       overflow: hidden; }
-    .grid.pictureAndText .element.noPhoto .photo {
+    .grid.pictureAndText .element.noPhoto .photo,
+    .grid.rows .element.noPhoto .photo {
       display: none; }
-  .grid.pictureAndText .element .pos-price {
+  .grid.pictureAndText .element .pos-price,
+  .grid.rows .element .pos-price {
     position: absolute;
     bottom: 0px;
     left: 0px;
@@ -553,6 +562,104 @@ select.tabHolder {
   .grid.short .pos-title {
     overflow-wrap: break-word; }
 
+.scrollingGrid {
+  overflow-x: hidden;
+  overflow-y: hidden;
+  width: 100%;
+  height: 166px;
+  -webkit-overflow-scrolling: touch;
+    /*
+   * плавен скрол на мобилни
+   */
+  scrollbar-width: thin;
+    /*
+   * тънък скролбар
+   */
+  scrollbar-color: #cccccc rgba(0, 0, 0, 0);
+    /*
+   * светъл плъзгач върху прозрачен фон
+   */ }
+  .scrollingGrid .grid {
+    height: 161px;
+    display: grid;
+    grid-auto-flow: column;
+        /*
+     * само по хоризонтала
+     */ }
+    .scrollingGrid .grid > div {
+      width: 132px; }
+  .scrollingGrid .element {
+    height: 161px !important;
+    padding: 0 !important; }
+
+.grid.rows .element {
+  height: 157px !important;
+  padding: 0 !important; }
+
+.grid.rows .element .photo {
+  width: 132px;
+  height: 132px; }
+
+.grid.rows .element .photo img {
+  width: 100% !important; }
+
+.scrollingGrid {
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 165px;
+  box-sizing: content-box;
+  -webkit-overflow-scrolling: touch;
+    /*
+   * плавно на мобилни
+   */ }
+
+/*
+ * --- Тъч устройства (coarse pointer) ---
+ */
+@media (pointer: coarse) {
+  .scrollingGrid {
+    scrollbar-width: none;
+        /*
+     * Firefox
+     */ }
+
+  .scrollingGrid::-webkit-scrollbar {
+    display: none;
+        /*
+     * WebKit
+     */ } }
+
+/*
+ * --- Desktop (fine pointer) ---
+ */
+@media (pointer: fine) {
+  /*
+   * Firefox
+   */  .scrollingGrid {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0); }
+
+  /*
+   * Chrome/Edge/Safari
+   */  .scrollingGrid::-webkit-scrollbar {
+    -webkit-appearance: none;
+    height: 3px;
+    background: rgba(0, 0, 0, 0); }
+
+  .scrollingGrid::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0); }
+
+  .scrollingGrid::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 2px;
+    transition: background 0.2s ease; }
+
+  .scrollingGrid:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3); }
+
+  .scrollingGrid::-webkit-scrollbar-thumb:active {
+    background: rgba(0, 0, 0, 0.45); } }
+
 .posResultContragent {
   justify-content: center;
   align-content: center;
@@ -561,6 +668,13 @@ select.tabHolder {
   display: flex;
   vertical-align: middle;
   flex-direction: column; }
+
+.scrollingGrid.dragging {
+  cursor: grabbing;
+  user-select: none; }
+
+.scrollingGrid {
+  cursor: grab; }
 
 .posBtns {
   justify-content: center;

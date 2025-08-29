@@ -810,6 +810,8 @@ class doc_Containers extends core_Manager
 
         // Изчакваме нишката да се отключи
         core_Locks::obtain('doc_Threads_Update_' . $tId, 0, 30, 10);
+        $lockKey = "doc_Threads_Update_Item_{$tId}_" . core_Users::getCurrent();
+        core_Locks::obtain($lockKey, 0, 30, 20, false);
 
         return parent::act_List();
     }

@@ -77,8 +77,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * @var string|array
      */
     public $canImport = 'user';
-    
-    
+
+
+    /**
+     * Кой може да го импортира артикули?
+     *
+     * @var string|array
+     */
+    public $canImportsubproducts = 'user';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -294,10 +302,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
 
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-            }
-            
-            if (in_array($rec->type, array('pop', 'subProduct'))) {
-                $row->packQuantity .= " {$row->packagingId}";
             }
 
             if($rec->isOutsourced == 'yes'){
@@ -531,7 +535,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if ($this->haveRightFor('import', (object) array('noteId' => $data->masterId, 'type' => 'subProduct'))) {
             $tpl->append(ht::createBtn('Импорт|* (|субпр.|*)', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'subProduct', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Импортиране на субпродукти')), 'SUB_PRODUCTS_TABLE');
         }
-        
+
+        if ($this->haveRightFor('importsubproducts', (object) array('noteId' => $data->masterId))) {
+            $tpl->append(ht::createBtn('Импорт|* (|Произв.|*)', array($this, 'importsubproducts', 'noteId' => $data->masterId, 'type' => 'subProduct', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Импортиране на въведените с прогрес субпродукти')), 'SUB_PRODUCTS_TABLE');
+        }
+
         // Връщаме шаблона
         return $tpl;
     }
@@ -566,12 +574,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
         }
 
-        if($action == 'import'){
+        if(in_array($action, array('import', 'importsubproducts'))){
             // За да импортира някой, трябва да може да добавя
             $requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
         }
 
-        if(in_array($action, array('add', 'import')) && isset($rec)){
+        if(in_array($action, array('add', 'import', 'importsubproducts')) && isset($rec)){
             if($requiredRoles != 'no_one'){
 
                 // Ако детайла е в ПП в нишка на финална операция
@@ -602,6 +610,15 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 if($canDelete == 'no'){
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+
+        // Ако има произведени субпродукти ще може да се добавят в протокола
+        if($action == 'importsubproducts' && $requiredRoles != 'no_one' && isset($rec->noteId)){
+            $threadId = planning_DirectProductionNote::fetchField($rec->noteId, 'threadId');
+            $subProducts = planning_ProductionTaskProducts::getSubProductsArr($threadId, true);
+            if(!countR($subProducts)){
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -686,5 +703,64 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     public function getBatchMovementDocument($rec)
     {
         return $rec->type == 'subProduct' ? 'in' : 'out';
+    }
+
+    public function act_importsubproducts()
+    {
+        $this->requireRightFor('importsubproducts');
+        expect($noteId = Request::get('noteId', 'int'));
+        expect($noteRec = planning_DirectProductionNote::fetch($noteId));
+        $this->requireRightFor('importsubproducts', (object)array('noteId' => $noteId));
+
+        $form = cls::get('core_Form');
+        $form->title = tr('Импорт на незаскладени субпродукти в') . "|*" . cls::get('planning_DirectProductionNote')->getFormTitleLink($noteId);
+
+        // Подоготовка на формата за добавяне на субпродукти
+        $subProducts = planning_ProductionTaskProducts::getSubProductsArr($noteRec->threadId, true);
+        foreach ($subProducts as $subProductKey => $subProduct) {
+            $caption = cat_Products::getTitleById($subProduct->productId);
+            $caption = str_replace(',', ' ', $caption);
+
+            // Подготовка на полетата
+            $unit = cat_UoM::getShortName($subProduct->packagingId);
+            if($subProduct->storeId){
+                $storeName = store_Stores::getTitleById($subProduct->storeId);
+                $unit .= " (|в склад|*: <b>{$storeName}</b>)";
+            }
+            $form->FLD($subProductKey, 'double(Min=0)', "input,caption={$caption}->К-во,unit={$unit}");
+            $form->setDefault($subProductKey, $subProduct->quantity);
+        }
+        $form->input();
+
+        // Запис на избраните субпродукти
+        if($form->isSubmitted()) {
+            $fRec = $form->rec;
+            foreach ($subProducts as $subProductKey => $subProduct) {
+                if(!empty($fRec->{$subProductKey})){
+                    $dRec = (object)array('noteId'         => $noteRec->id,
+                                          'packagingId'    => $subProduct->packagingId,
+                                          'storeId'        => $subProduct->storeId ?? $noteRec->storeId,
+                                          'type'           => 'subProduct',
+                                          'productId'      => $subProduct->productId,
+                                          'quantity'       => $subProduct->quantity * $subProduct->quantityInPack,
+                                          'quantityInPack' => $subProduct->quantityInPack);
+
+                    $this->save($dRec);
+                }
+            }
+
+            planning_DirectProductionNote::logWrite('Импортиране на субпродукти от ПО', $noteId);
+            followRetUrl(null, 'Успешно импортирани субпродукти|*!');
+        }
+
+        $form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/star_2.png,title=Импорт');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png,title=Прекратяване на действията');
+
+        $tpl = $this->renderWrapping($form->renderHtml());
+
+        // Записваме, че потребителя е разглеждал този списък
+        $this->logRead('Разглеждане на произведени субпродукти', $form->rec->id);
+
+        return $tpl;
     }
 }

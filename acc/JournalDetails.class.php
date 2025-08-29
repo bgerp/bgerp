@@ -319,6 +319,8 @@ class acc_JournalDetails extends core_Detail
                 }
             }
         }
+
+        $mvc->Master->logItemThreads();
     }
     
     
