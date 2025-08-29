@@ -262,6 +262,10 @@ class pos_Points extends core_Master
             if(!empty($rec->otherStores) && keylist::isIn($rec->storeId, $rec->otherStores)){
                 $form->setError('otherStores', 'Основният склад не може да е избран');
             }
+
+            if(empty($rec->productGroups) && $rec->productBtnTpl == 'rows'){
+                $form->setError('productGroups,productBtnTpl', 'Не може да се избере редове, ако няма посочени групи');
+            }
         }
     }
 
