@@ -305,6 +305,16 @@ class core_Master extends core_Manager
                 }
             }
         }
+
+        $show = $this->selectFields("#single == 'show'");
+
+        foreach($data->singleFields as $field => $_) {
+            if((is_scalar($data->rec->{$field}) && strlen($data->rec->{$field}) == 0) || $data->rec->{$field} === null) {
+                if(!$show[$field]) {
+                    unset($data->singleFields[$field]);
+                }
+            }
+        }
         
         if (countR($data->singleFields)) {
             
