@@ -2004,7 +2004,7 @@ class pos_Terminal extends peripheral_Terminal
 
             if($settings->productBtnTpl == 'rows'){
                 foreach ($groupRows as $groupId => $groupData){
-                    $pTpl = new core_ET("<div class='scrollingGrid'><div class='grid rows group{$groupId}'>[#RES#]</div></div>");
+                    $pTpl = new core_ET("<!--ET_BEGIN RES--><div class='scrollingGrid'><div class='grid rows group{$groupId}'>[#RES#]</div></div><!--ET_END RES-->");
                     $pTpl->replace($groupData->name, 'GROUP_NAME');
 
                     // Подреждане на артикулите в бутоните спрямо избраното в групата

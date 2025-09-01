@@ -920,7 +920,7 @@ class log_Debug extends core_Manager
     protected static function getDebugFilePath($debugFile, $addExt = true, $addPath = true)
     {
         $fPath = '';
-        if ($addPath) {
+        if ($addPath && defined('DEBUG_FATAL_ERRORS_PATH')) {
             $fPath = rtrim(DEBUG_FATAL_ERRORS_PATH, '/') . '/';
         }
         

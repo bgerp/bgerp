@@ -182,7 +182,36 @@ function posActions() {
 		}
 	});
 
-	
+	document.querySelectorAll('.scrollingGrid').forEach(grid => {
+		let isDown = false;
+		let startX;
+		let scrollLeft;
+
+		grid.addEventListener('mousedown', (e) => {
+			isDown = true;
+			grid.classList.add('dragging');   // за стил по желание
+			startX = e.pageX - grid.offsetLeft;
+			scrollLeft = grid.scrollLeft;
+		});
+
+		grid.addEventListener('mouseleave', () => {
+			isDown = false;
+			grid.classList.remove('dragging');
+		});
+
+		grid.addEventListener('mouseup', () => {
+			isDown = false;
+			grid.classList.remove('dragging');
+		});
+
+		grid.addEventListener('mousemove', (e) => {
+			if (!isDown) return;
+			e.preventDefault(); // за да не маркира текст
+			const x = e.pageX - grid.offsetLeft;
+			const walk = (x - startX); // разстояние на влачене
+			grid.scrollLeft = scrollLeft - walk;
+		});
+	});
 	/**
 	 * При клик на таба
 	 */

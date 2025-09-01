@@ -1078,7 +1078,7 @@ class core_App
             $urlQuery = http_build_query($params);
         }
         
-        if (isset($urlQuery)) {
+        if (isset($urlQuery) && strlen($urlQuery)) {
             $urlQuery = '/?' . $urlQuery;
         }
         

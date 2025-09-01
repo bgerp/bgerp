@@ -580,7 +580,7 @@ select.tabHolder {
    * светъл плъзгач върху прозрачен фон
    */ }
   .scrollingGrid .grid {
-    height: 166px;
+    height: 161px;
     display: grid;
     grid-auto-flow: column;
         /*
@@ -588,53 +588,77 @@ select.tabHolder {
      */ }
     .scrollingGrid .grid > div {
       width: 132px; }
+  .scrollingGrid .element {
+    height: 161px !important;
+    padding: 0 !important; }
 
-/*
- * при hover включваме хоризонталния скрол
- */
-.scrollingGrid:hover {
-  overflow-x: auto; }
+.grid.rows .element {
+  height: 157px !important;
+  padding: 0 !important; }
 
-/*
- * Firefox
- */
+.grid.rows .element .photo {
+  width: 132px;
+  height: 132px; }
+
+.grid.rows .element .photo img {
+  width: 100% !important; }
+
 .scrollingGrid {
-  scrollbar-width: thin;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 165px;
+  box-sizing: content-box;
+  -webkit-overflow-scrolling: touch;
     /*
-   * тънък
-   */
-  scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0);
-    /*
-   * дръжката е полупрозрачна, фон прозрачен
+   * плавно на мобилни
    */ }
 
 /*
- * WebKit (Chrome, Safari, Edge)
+ * --- Тъч устройства (coarse pointer) ---
  */
-.scrollingGrid::-webkit-scrollbar {
-  height: 6px;
-    /*
-   * нисък скролбар
-   */ }
+@media (pointer: coarse) {
+  .scrollingGrid {
+    scrollbar-width: none;
+        /*
+     * Firefox
+     */ }
 
-.scrollingGrid::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0);
-    /*
-   * прозрачен фон
-   */ }
+  .scrollingGrid::-webkit-scrollbar {
+    display: none;
+        /*
+     * WebKit
+     */ } }
 
-.scrollingGrid::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-    /*
-   * полупрозрачен плъзгач
-   */
-  border-radius: 3px; }
+/*
+ * --- Desktop (fine pointer) ---
+ */
+@media (pointer: fine) {
+  /*
+   * Firefox
+   */  .scrollingGrid {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0); }
 
-.scrollingGrid::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
-    /*
-   * малко по-видим при hover
-   */ }
+  /*
+   * Chrome/Edge/Safari
+   */  .scrollingGrid::-webkit-scrollbar {
+    -webkit-appearance: none;
+    height: 3px;
+    background: rgba(0, 0, 0, 0); }
+
+  .scrollingGrid::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0); }
+
+  .scrollingGrid::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 2px;
+    transition: background 0.2s ease; }
+
+  .scrollingGrid:hover::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3); }
+
+  .scrollingGrid::-webkit-scrollbar-thumb:active {
+    background: rgba(0, 0, 0, 0.45); } }
 
 .posResultContragent {
   justify-content: center;
@@ -644,6 +668,13 @@ select.tabHolder {
   display: flex;
   vertical-align: middle;
   flex-direction: column; }
+
+.scrollingGrid.dragging {
+  cursor: grabbing;
+  user-select: none; }
+
+.scrollingGrid {
+  cursor: grab; }
 
 .posBtns {
   justify-content: center;
