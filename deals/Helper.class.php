@@ -3146,4 +3146,31 @@ abstract class deals_Helper
 
         return $amountRow;
     }
+
+
+    /**
+     * Помощна ф-я обръщаща сума/цена от основната валута към дадена дата в основната валута към подадена дата
+     *
+     * @param string $valior    - към коя дата е сумата в основна валута
+     * @param double $amount    - сумата в основната валута към $valior
+     * @param string|null $date - към основната валута за коя дата, null за сега
+     * @return double           - сумата обърната в основната валута към датата
+     */
+    public static function getSmartBaseCurrency($valior, $amount, $date = null)
+    {
+        $date = $date ?? dt::today();
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($date);
+        $valiorCurrencyCode = acc_Periods::getBaseCurrencyCode($valior);
+
+        if($baseCurrencyCode == $valiorCurrencyCode) return $amount;
+
+        if($baseCurrencyCode == 'EUR' && $valiorCurrencyCode == 'BGN') {
+
+            return $amount / 1.95583;
+        }
+
+        $converted = currency_CurrencyRates::convertAmount($amount, null, $valiorCurrencyCode, $baseCurrencyCode);
+
+        return $converted;
+    }
 }
