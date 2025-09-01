@@ -234,6 +234,17 @@ abstract class deals_Helper
 
         if (!$map['alwaysHideVat']) {
             $mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
+
+            // Ако документа има обща отстъпка и изчислената е в рамките на 0.01 от нея подменя се за да се изравнят
+            if(cls::haveInterface('price_TotalDiscountDocumentIntf', $mvc)) {
+                $docDiscount = price_DiscountsPerDocuments::getDiscount4Document($mvc, $masterRec->id);
+                if(!empty($docDiscount)) {
+                    $discInCurrency = $docDiscount / $masterRec->{$map['rateFld']};
+                    if (abs(round($discInCurrency - $mvc->_total->discount, 2)) <= 0.01) {
+                        $mvc->_total->discount = $discInCurrency;
+                    }
+                }
+            }
         } else {
             $mvc->_total->discount = round($discount, 2);
         }
