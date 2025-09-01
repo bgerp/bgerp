@@ -8150,3 +8150,77 @@ tr.workInProgressBatchRow {
 .priceListHolder .currencySignNextToAmount {
   min-width: auto; }
 
+/*
+ * скриване на част от клетки от листовия, които има дълъг текст
+ */
+td.td-clamp {
+  --fade-color: white;
+  --lines: 2;
+  position: relative;
+  vertical-align: top; }
+
+td.td-clamp .clamp-body {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--lines);
+  overflow: hidden;
+  line-height: 1.4;
+  max-height: calc(1.4--lines);
+  position: relative;
+  cursor: pointer; }
+
+/*
+ * маска
+ */
+td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-body {
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, rgba(0, 0, 0, 0));
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-image: linear-gradient(to bottom, black 50%, rgba(0, 0, 0, 0));
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%; }
+
+/*
+ * fade към цвета на фона (също само при скрит текст)
+ */
+td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-body::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 1.5em;
+  height: 1.4em;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--fade-color));
+  pointer-events: none; }
+
+/*
+ * Разпънато — махни ограниченията и маската
+ */
+td.td-clamp[data-expanded="true"] .clamp-body {
+  -webkit-line-clamp: unset;
+  max-height: none;
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none; }
+
+/*
+ * бутонче
+ */
+td.td-clamp[data-overflow="true"] .clamp-ellipsis {
+  position: absolute;
+  right: 2px;
+  bottom: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #666666;
+  user-select: none; }
+
+.narrow td.td-clamp[data-overflow="true"] .clamp-ellipsis {
+  bottom: 7px; }
+
+td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-ellipsis::after {
+  content: "…"; }
+
+td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after {
+  content: "↥"; }
+
