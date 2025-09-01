@@ -98,8 +98,20 @@ class acc_Periods extends core_Manager
      * Записа на последно затворен период
      */
     private $lastClosed;
-    
-    
+
+
+    /**
+     * Кеш на основната валута по дата
+     */
+    private static $baseCurrCodeToDate = array();
+
+
+    /**
+     * Кеш на основната валута по дата
+     */
+    private static $baseCurrCodeIdToDate = array();
+
+
     /**
      * Описание на модела
      */
@@ -660,6 +672,9 @@ class acc_Periods extends core_Manager
      */
     public static function getBaseCurrencyId($date = null)
     {
+        // Ако има кеширано в хита за датата връща се то
+        if(array_key_exists($date, static::$baseCurrCodeIdToDate)) return static::$baseCurrCodeIdToDate[$date];
+
         $periodRec = static::fetchByDate($date);
         
         if (!($baseCurrencyId = $periodRec->baseCurrencyId)) {
@@ -680,6 +695,9 @@ class acc_Periods extends core_Manager
      */
     public static function getBaseCurrencyCode($date = null)
     {
+        // Ако има кеширано в хита за датата връща се то
+        if(array_key_exists($date, static::$baseCurrCodeToDate)) return static::$baseCurrCodeToDate[$date];
+
         return currency_Currencies::getCodeById(static::getBaseCurrencyId($date));
     }
     
