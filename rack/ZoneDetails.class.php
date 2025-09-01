@@ -213,7 +213,7 @@ class rack_ZoneDetails extends core_Detail
             $row->status = new core_ET($row->status);
             if($rec->_quantityAll && round($rec->_quantityAll / $rec->quantityInPack, 2) < round($rec->documentQuantity / $rec->quantityInPack, 2)){
                 $quantityAllVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->_quantityAll);
-                $row->status = ht::createHint($row->status, "Недостатъчно количество в склада! Генерираното движение е само за наличното|*: {$quantityAllVerbal}", 'warning', false);
+                $row->status = ht::createHint($row->status, "Генерираните движения са за по-малко от необходимото (заявеното от документа) количество|*: {$quantityAllVerbal}", 'warning', false);
                 $row->status->prepend("<span class='notEnoughQuantityForZone'>");
                 $row->status->append("</span>");
             }
