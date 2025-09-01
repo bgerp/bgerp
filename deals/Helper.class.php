@@ -3161,9 +3161,12 @@ abstract class deals_Helper
         $date = $date ?? dt::today();
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($date);
         $valiorCurrencyCode = acc_Periods::getBaseCurrencyCode($valior);
-
         if($baseCurrencyCode == $valiorCurrencyCode) return $amount;
 
+        // Ако сумата е 0, не се променя за да не стане гадно число
+        if(round($amount, 5) == 0) return $amount;
+
+        // Ако от левове ще става евро да се смята по централния курс
         if($baseCurrencyCode == 'EUR' && $valiorCurrencyCode == 'BGN') {
 
             return $amount / 1.95583;
