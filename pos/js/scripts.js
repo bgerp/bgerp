@@ -1445,6 +1445,7 @@ function disableOrEnableEnlargeBtn()
  */
 function addProduct(el) {
 
+	$('.scrollingGrid .fadedElement').removeClass('fadedElement');
 	$(el).addClass('fadedElement');
 	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
 	clearTimeout(timeout);
