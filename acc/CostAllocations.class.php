@@ -95,7 +95,7 @@ class acc_CostAllocations extends core_Manager
         $this->FLD('allocationBy', 'enum(auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none,silent,removeAndRefreshForm=productsData|chosenProducts|allocationFilter');
         $this->FLD('allocationFilter', 'enum(all=Всички артикули,storable=Само складируеми)', 'input=none,caption=Артикули,silent,removeAndRefreshForm=chosenProducts|productsData');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
-        $this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
+        $this->FLD('productsData', 'blob(serialize, compress)', 'input=none,tdClass=td-clamp');
         
         $this->setDbIndex('detailClassId,detailRecId');
     }

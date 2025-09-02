@@ -42,7 +42,7 @@ class fconv_Processes extends core_Manager
             array('notNull' => true, 'caption' => 'Манипулатор')
         );
         
-        $this->FLD('script', 'blob(70000)', 'caption=Скрипт');
+        $this->FLD('script', 'blob(70000)', 'caption=Скрипт,tdClass=td-clamp');
         
         $this->FLD('timeOut', 'int', array('notNull' => true, 'caption' => 'Продължителност'));
         
