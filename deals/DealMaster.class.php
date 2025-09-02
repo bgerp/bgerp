@@ -571,7 +571,12 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($defCurrency != $rec->currencyId && $currencyState == 'active' && !$isCurrencyReadOnly && !haveRole('debug')) {
             $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
         }
-        
+
+        $currencyError = null;
+        if(!currency_Currencies::checkCurrency($rec->currencyId, $rec->valior, $currencyError)){
+            $form->setError('currencyId', $currencyError);
+        }
+
         if ($rec->reff === '') {
             $rec->reff = null;
         }

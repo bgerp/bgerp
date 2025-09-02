@@ -324,7 +324,7 @@ class acc_Periods extends core_Manager
         if ($end == $firstRec->end) {
             if (!$firstRec->id) {
                 $firstRec->vatRate = $conf->ACC_DEFAULT_VAT_RATE;
-                $firstRec->baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
+                $firstRec->baseCurrencyId = currency_Currencies::getIdByCode(acc_Setup::getDefaultCurrencyCode($firstRec->end));
                 self::save($firstRec);
                 $firstRec = self::fetch($firstRec->id);  // За титлата
                 $me->actLog .= "<li style='color:green;'>Създаден е начален период {$firstRec->title}</li>";
@@ -358,7 +358,7 @@ class acc_Periods extends core_Manager
         if ($prevRec->baseCurrencyId) {
             $rec->baseCurrencyId = $prevRec->baseCurrencyId;
         } else {
-            $rec->baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
+            $rec->baseCurrencyId = currency_Currencies::getIdByCode($curPerEnd);
         }
         
         self::save($rec);
@@ -678,8 +678,7 @@ class acc_Periods extends core_Manager
         $periodRec = static::fetchByDate($date);
         
         if (!($baseCurrencyId = $periodRec->baseCurrencyId)) {
-            $conf = core_Packs::getConfig('acc');
-            $baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
+            $baseCurrencyId = currency_Currencies::getIdByCode(acc_Setup::getDefaultCurrencyCode($date));
         }
         
         return $baseCurrencyId;

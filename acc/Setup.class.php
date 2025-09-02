@@ -24,7 +24,14 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
  * Използва се по време на инициализацията на системата, при създаването на първия период
  */
-defIfNot('BASE_CURRENCY_CODE', 'BGN');
+defIfNot('BASE_CURRENCY_CODE', 'EUR');
+
+
+/**
+ * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
+ * Използва се по време на инициализацията на системата, при създаването на първия период
+ */
+defIfNot('BASE_CURRENCY_CODE_OLD', 'BGN');
 
 
 /**
@@ -115,6 +122,12 @@ defIfNot('ACC_ALTERNATE_WINDOW', '');
  * Захранване на стратегия с отрицателни крайни салда
  */
 defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'yes');
+
+
+/**
+ * Колко назад във времето ще се инвалидират балансите
+ */
+defIfNot('ACC_EUROZONE_DATE', '2026-01-01');
 
 
 /**
@@ -627,5 +640,21 @@ class acc_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('acc_ProductPricePerPeriods', 'SyncStockPrices', null, $callOn);
+    }
+
+
+    /**
+     * Коя е основната валута за системата
+     *
+     * @param string|null $date - към коя дата
+     * @return mixed - кода на основната валута
+     */
+    public static function getDefaultCurrencyCode($date = null)
+    {
+        $date = $date ?? dt::today();
+        $conf = core_Packs::getConfig('acc');
+        $eurozoneDate = defined(BGERP_EUROZONE_DATE) ? BGERP_EUROZONE_DATE : $conf->ACC_EUROZONE_DATE;
+
+        return $date < $eurozoneDate ? $conf->BASE_CURRENCY_CODE_OLD : $conf->BASE_CURRENCY_CODE;
     }
 }

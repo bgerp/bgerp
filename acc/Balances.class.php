@@ -437,14 +437,17 @@ class acc_Balances extends core_Master
 
         // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
         $lastRec = self::getBalanceBefore($rec->toDate);
+        $periodCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->toDate);
 
         if ($lastRec) {
 
-            // Ако има зададен период не е междинен баланса, иначе е
-            $isMiddleBalance = (!empty($lastRec->periodId)) ? false : true;
+            // Ако има зададен период не е междинен баланса, иначе е $convertToDate
+            $isMiddleBalance = !!empty($lastRec->periodId);
+            $lastCurrencyCode =  acc_Periods::getBaseCurrencyCode($lastRec->toDate);
+            $convertToDate = $lastCurrencyCode != $periodCurrencyCode ? $rec->toDate : null;
 
             // Зареждаме баланса
-            $bD->loadBalance($lastRec->id, $isMiddleBalance);
+            $bD->loadBalance($lastRec->id, $isMiddleBalance, null, null, null, null, null, $convertToDate);
             $firstDay = dt::addDays(1, $lastRec->toDate);
             $firstDay = dt::verbal2mysql($firstDay, false);
         } else {
@@ -452,7 +455,7 @@ class acc_Balances extends core_Master
         }
 
         // Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
-        $isMiddleBalance = ($rec->periodId) ? false : true;
+        $isMiddleBalance = !$rec->periodId;
         $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
 
         // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)

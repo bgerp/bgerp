@@ -140,7 +140,12 @@ class acc_ArticleDetails extends doc_Detail
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
-        
+
+        $currencyCode = acc_Periods::getBaseCurrencyCode($res->masterData->rec->valior);
+        $res->listFields['debitPrice'] .= "|* <small>({$currencyCode})</small>";
+        $res->listFields['creditPrice'] .= "|* <small>({$currencyCode})</small>";
+        $res->listFields['amount'] .= "|* <small>({$currencyCode})</small>";
+
         if (countR($recs)) {
             foreach ($recs as $id => $rec) {
                 $row = &$rows[$id];

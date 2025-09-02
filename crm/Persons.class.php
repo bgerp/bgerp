@@ -2778,24 +2778,14 @@ class crm_Persons extends core_Master
     public static function getDefaultCurrencyId($id)
     {
         $rec = self::fetch($id);
-        
+
         // Ако контрагента няма държава, то дефолт валутата е BGN
-        if (empty($rec->country)) {
-            
-            return 'BGN';
+        if (empty($rec->country) || $rec->country == drdata_Countries::getIdByName('Bulgaria')) {
+
+            return acc_Periods::getBaseCurrencyCode();
         }
-        
-        // Ако държавата му е България, дефолт валутата е 'BGN'
-        if (drdata_Countries::fetchField($rec->country, 'letterCode2') == 'BG') {
-            
-            return 'BGN';
-        }
-        
-        // Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
-        if (drdata_Countries::isEu($rec->country)) {
-            
-            return 'EUR';
-        }
+
+        if(drdata_Countries::isEur($rec->country)) return 'EUR';
         
         
         // За всички останали е 'USD'

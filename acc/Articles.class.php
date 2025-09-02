@@ -256,7 +256,9 @@ class acc_Articles extends core_Master
         } else {
             $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         }
-        
+
+
+        $row->totalAmount = currency_Currencies::decorate($row->totalAmount, acc_Periods::getBaseCurrencyCode($rec->valior));
         $row->title = $mvc->getLink($rec->id, 0);
     }
     
@@ -346,7 +348,8 @@ class acc_Articles extends core_Master
         if ($rec->state == 'draft') {
             $row->title .= ' (' . tr('чернова') . ')';
         } else {
-            $row->title .= ' (' . $this->getVerbal($rec, 'totalAmount') . ' BGN' . ')';
+            $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+            $row->title .= ' (' . $this->getVerbal($rec, 'totalAmount') . " {$baseCurrencyCode}" . ')';
             $row->title = str_replace('&nbsp;', ' ', $row->title);
         }
         
