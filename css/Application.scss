@@ -9275,26 +9275,36 @@ tr.workInProgressBatchRow {
 	min-width: auto;
 }
 
-/*скриване на част от клетки от листовия, които има дълъг текст*/
-td.td-clamp {
-	--fade-color: #fff;
-	--lines: 2;
+
+
+/*
+скриване на част от клетки от листовия, които има дълъг текст
+*/
+
+td.td-clamp{
+	--fade-color:#fff;              /* сменя се от JS с реалния фон */
+	--lines-collapsed: 3;           /* свито: 3 реда */
+	unquote("--lines-expanded-max: 10;");       /* разпънато: до 10 реда (после скрол) */
+	unquote("--lh: 1.4em;");                    /* височина на ред */
 	position: relative;
 	vertical-align: top;
+	--lines: 3;
+}
+.narrow td.td-clamp[data-overflow="true"] .clamp-ellipsis{
+	bottom: 7px;
 }
 
 td.td-clamp .clamp-body{
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
-	-webkit-line-clamp: var(--lines);
-	overflow: hidden;
+	-webkit-line-clamp: var(--lines-collapsed);
 	line-height: 1.4;
-	max-height: calc(1.4em * var(--lines));
+	overflow: hidden;
 	position: relative;
-	cursor: pointer;
+	max-height: 5.2em;
 }
 
-/* маска */
+/* Маска и fade САМО когато е свито и има скрит текст */
 td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-body{
 	-webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0));
 	-webkit-mask-repeat: no-repeat;
@@ -9304,7 +9314,6 @@ td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-body{
 	mask-size: 100% 100%;
 }
 
-/* fade към цвета на фона (също само при скрит текст) */
 td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-body::after{
 	content: "";
 	position: absolute;
@@ -9314,24 +9323,23 @@ td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-body::after
 	pointer-events: none;
 }
 
-/* Разпънато — махни ограниченията и маската */
 td.td-clamp[data-expanded="true"] .clamp-body{
-	-webkit-line-clamp: unset;
-	max-height: none;
-	overflow: visible;
+	display: block;                       /* ключово: махаме -webkit-box */
+	-webkit-line-clamp: initial;          /* безопасно зануляване */
+	-webkit-box-orient: initial;
+	max-height: unquote("calc(1.4em * var(--lines-expanded-max))");
+	overflow-y: auto;                     /* само вертикален скрол */
+	overflow-x: hidden;
 	-webkit-mask-image: none;
 	mask-image: none;
+	scrollbar-gutter: stable;             /* по избор: запазва място за скролбара */
 }
+
 
 /* бутонче */
 td.td-clamp[data-overflow="true"] .clamp-ellipsis{
-	position: absolute;
-	right: 2px; bottom: 5px;
-	cursor: pointer; font-weight: bold; color: #666; user-select: none;
+	position:absolute; right:-1px; bottom:-1px;
+	cursor:pointer; font-weight:bold; color:#666; user-select:none;
 }
-
-.narrow td.td-clamp[data-overflow="true"] .clamp-ellipsis{
-	bottom: 7px;
-}
-td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-ellipsis::after{ content: "…"; }
-td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after{ content: "↥"; }
+td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-ellipsis::after{ content:"…"; }
+td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after{ content:"↥"; }
