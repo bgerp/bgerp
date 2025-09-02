@@ -438,6 +438,5 @@ class currency_Currencies extends core_Master
         }
 
         return true;
-        bp($currencyId);
     }
 }
