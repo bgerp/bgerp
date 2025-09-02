@@ -557,7 +557,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
-        $defPaymentId = deals_Helper::getDefaultChargeVat($mvc, $rec, $mvc->getFieldParam('paymentMethodId', 'salecondSysId'));
+        $defPaymentId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $mvc->getFieldParam('paymentMethodId', 'salecondSysId'));
         if($rec->_isBeingCloned && !empty($defPaymentId)){
             if($rec->paymentMethodId != $defPaymentId){
                 $form->setWarning('paymentMethodId', 'Методът на плащане се различава от дефолтния в търговските условия на контрагента|*: <b>' . cond_PaymentMethods::getTitleById($defPaymentId) . "</b>");
