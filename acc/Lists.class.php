@@ -115,7 +115,7 @@ class acc_Lists extends core_Manager
         $this->FLD('isDimensional', 'enum(no=Не,yes=Да)', 'caption=Размерност,smartCenter,export,maxRadio=2');
         
         // Списък със свойствата, които се поддържат от тази номенклатура
-        $this->FLD('featureList', 'blob(serialize)', 'caption=Свойства,input=none,single=none');
+        $this->FLD('featureList', 'blob(serialize)', 'caption=Свойства,input=none,single=none,tdClass=td-clamp');
         
         // Уникални индекси
         $this->setDbUnique('num');
