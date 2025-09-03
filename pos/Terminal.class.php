@@ -1936,7 +1936,7 @@ class pos_Terminal extends peripheral_Terminal
         $searchString = plg_Search::normalizeText($string);
         $rec->_selectedGroupId = Mode::get("currentSelectedGroup{$rec->id}");
         $rec->_selectedGroupId = (!empty($rec->_selectedGroupId)) ? $rec->_selectedGroupId : 'all';
-        
+
         $productRows = $this->prepareProductTable($rec, $string, $selectedRec);
         $tpl = new core_ET(tr("|*<!--ET_BEGIN GROUP_TAB-->[#GROUP_TAB#]<!--ET_END GROUP_TAB-->
                                  <div class='contentHolderResults'>
@@ -1945,7 +1945,12 @@ class pos_Terminal extends peripheral_Terminal
         
         $groupsTable = type_Table::toArray($settings->productGroups);
         $groups = arr::extractValuesFromArray($groupsTable, 'groupId');
-        $groupTabArr = array('all' => tr('Всички'));
+
+        $groupTabArr = array();
+        if($settings->productBtnTpl != 'rows'){
+            $groupTabArr = array('all' => tr('Всички'));
+        }
+
         Mode::push('treeShortName', true);
         foreach ($groups as $groupId){
             $groupTabArr[$groupId] = cat_Groups::getVerbal($groupId, 'name');
@@ -1955,42 +1960,94 @@ class pos_Terminal extends peripheral_Terminal
         if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
             $resultTpl = new core_ET("<div class='tabs productTabs'><select style='width: 90%' class='tabHolder'>[#TAB#]</select></div>");
         } else {
-            $resultTpl = new core_ET("<div class='tabs productTabs'><ul class='tabHolder'>[#TAB#]</ul></div>");
+            $resultTpl = new core_ET("<div class='tabs productTabs'><!--ET_BEGIN TAB--><ul class='tabHolder'>[#TAB#]</ul><!--ET_END TAB--></div>");
         }
-       
+
         foreach ($groupTabArr as $groupId => $groupName){
             $active = ($rec->_selectedGroupId == $groupId) ? 'active' : '';
-           
+
+            if($settings->productBtnTpl == 'rows'){
+                $dataStr = "data-grid=group{$groupId}";
+            } else {
+                $dataStr = "data-id={$groupId}";
+            }
+
             $tabTitle = tr("Избор на група|*: \"{$groupName}\"");
             if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
-                $tab = "<option id='group{$groupId}' data-id = '{$groupId}'>{$groupName}</option>";
+                $tab = "<option id='group{$groupId}' {$dataStr}>{$groupName}</option>";
             } else {
-                $tab = "<li id='group{$groupId}' data-id = '{$groupId}' class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
+                $tab = "<li id='group{$groupId}' {$dataStr} class='selectable {$active}' title='{$tabTitle}'>{$groupName}</li>";
             }
-            
+
             $resultTpl->append($tab, "TAB");
         }
         $tpl->append($resultTpl, 'GROUP_TAB');
-        $blockTplPath = ($settings->productBtnTpl == 'wide') ? 'pos/tpl/terminal/ProductBtnWide.shtml' : (($settings->productBtnTpl == 'short') ? 'pos/tpl/terminal/ProductBtnShort.shtml' : (($settings->productBtnTpl == 'picture') ? 'pos/tpl/terminal/ProductBtnPicture.shtml' : 'pos/tpl/terminal/ProductBtnPictureAndText.shtml'));
+
+        $blockTplPath = ($settings->productBtnTpl == 'wide') ? 'pos/tpl/terminal/ProductBtnWide.shtml' : (($settings->productBtnTpl == 'short') ? 'pos/tpl/terminal/ProductBtnShort.shtml' : (($settings->productBtnTpl == 'picture') ? 'pos/tpl/terminal/ProductBtnPicture.shtml' : (($settings->productBtnTpl == 'rows') ? 'pos/tpl/terminal/ProductBtnRows.shtml' : 'pos/tpl/terminal/ProductBtnPictureAndText.shtml')));
         $block = getTplFromFile($blockTplPath);
 
         $countRows = countR($productRows);
         if($countRows){
-            $pTpl = new core_ET("<div class='grid {$settings->productBtnTpl}'>[#RES#]</div>");
-            foreach ($productRows as $row){
-                $row->elementId = "{$rec->_selectedGroupId}{$row->id}";
-                $bTpl = clone $block;
-                $bTpl->placeObject($row);
-                $bTpl->removeBlocksAndPlaces();
-                $pTpl->append($bTpl, 'RES');
+            $gQuery = cat_Groups::getQuery();
+            $gQuery->show('orderProductByInPos,id');
+            $groupRecs = $gQuery->fetchAll();
+
+            $groupRows = array();
+            foreach ($groupTabArr as $groupId => $groupName){
+                $groupRows[$groupId] = (object)array('name' => $groupName, 'rows' => array());
+                foreach ($productRows as $k => $row) {
+                    if (keylist::isIn($groupId, $row->_groups)) {
+                        $groupRows[$groupId]->rows[$k] = $row;
+                    }
+                }
             }
-            
-            $pTpl->removeBlocksAndPlaces();
-            $tpl->append($pTpl, 'BLOCK');
+
+            if($settings->productBtnTpl == 'rows'){
+                foreach ($groupRows as $groupId => $groupData){
+                    $pTpl = new core_ET("<!--ET_BEGIN RES--><div class='scrollingGrid'><div class='grid rows group{$groupId}'>[#RES#]</div></div><!--ET_END RES-->");
+                    $pTpl->replace($groupData->name, 'GROUP_NAME');
+
+                    // Подреждане на артикулите в бутоните спрямо избраното в групата
+                    $orderByGroup = $groupRecs[$groupId]->orderProductByInPos;
+                    $orderField = $orderByGroup == 'name' ? 'productId' : ($orderByGroup == 'code' ? 'code' : 'rating');
+                    $orderByDir = $orderField == 'rating' ? 'DESC' : 'ASC';
+                    arr::sortObjects($groupData->rows, $orderField, $orderByDir);
+
+                    foreach ($groupData->rows as $row){
+                        $row->elementId = "{$groupId}{$row->id}";
+                        $bTpl = clone $block;
+                        $bTpl->placeObject($row);
+                        $bTpl->removeBlocksAndPlaces();
+                        $pTpl->append($bTpl, 'RES');
+                    }
+
+                    $pTpl->removeBlocksAndPlaces();
+                    $tpl->append($pTpl, 'BLOCK');
+                }
+            } else {
+                $pTpl = new core_ET("<div class='grid {$settings->productBtnTpl}'>[#RES#]</div>");
+                if(isset($rec->_selectedGroupId)){
+                    $orderByGroup = $groupRecs[$rec->_selectedGroupId]->orderProductByInPos;
+                    $orderField = $orderByGroup == 'name' ? 'productId' : ($orderByGroup == 'code' ? 'code' : 'rating');
+                    $orderByDir = $orderField == 'rating' ? 'DESC' : 'ASC';
+                    arr::sortObjects($productRows, $orderField, $orderByDir);
+                }
+
+                foreach ($productRows as $row){
+                    $row->elementId = "{$rec->_selectedGroupId}{$row->id}";
+                    $bTpl = clone $block;
+                    $bTpl->placeObject($row);
+                    $bTpl->removeBlocksAndPlaces();
+                    $pTpl->append($bTpl, 'RES');
+                }
+
+                $pTpl->removeBlocksAndPlaces();
+                $tpl->append($pTpl, 'BLOCK');
+            }
         } else {
             $tpl->append('<div class="noFoundInGroup">' . tr("Няма намерени артикули") . '</div>', 'BLOCK');
         }
-        
+
         $tpl->prepend("<div class='withTabs'>");
         $tpl->append("</div>");
         
@@ -2103,7 +2160,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
 
                 if($productRec = $cloneQuery->fetch()){
-                    $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $productRec->name, 'nameEn' => $productRec->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null);
+                    $sellable[$foundRec->productId] = (object)array('id' => $foundRec->productId, 'canSell' => $productRec->canSell,'canStore' => $productRec->canStore, 'measureId' => $productRec->measureId, 'name' => $productRec->name, 'nameEn' => $productRec->nameEn, 'code' => $productRec->code, 'packId' => $foundRec->packagingId ?? null, 'groups' => $productRec->groups);
                     $count++;
                 }
             }
@@ -2131,7 +2188,7 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery1->limit($settings->maxSearchProducts);
 
             while($pRec1 = $pQuery1->fetch()){
-                $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn);
+                $sellable[$pRec1->productId] = (object)array('id' => $pRec1->productId, 'canSell' => $pRec1->canSell, 'code' => $pRec1->code, 'canStore' => $pRec1->canStore, 'measureId' => $pRec1->measureId, 'name' => $pRec1->name, 'nameEn' => $pRec1->nameEn, 'groups' => $pRec1->groups);
                 $count++;
                 if($count == $settings->maxSearchProducts) break;
             }
@@ -2162,7 +2219,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
 
                 while($pRec2 = $pQuery2->fetch()){
-                    $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId, 'name' => $pRec2->name, 'nameEn' => $pRec2->nameEn);
+                    $sellable[$pRec2->productId] = (object)array('id' => $pRec2->productId, 'canSell' => $pRec2->canSell, 'code' => $pRec2->code, 'canStore' => $pRec2->canStore, 'measureId' =>  $pRec2->measureId, 'name' => $pRec2->name, 'nameEn' => $pRec2->nameEn, 'groups' => $pRec2->groups);
                     $count++;
                     if($count == $settings->maxSearchProducts) break;
                 }
@@ -2177,6 +2234,19 @@ class pos_Terminal extends peripheral_Terminal
             $rec->_policy2 = pos_Receipts::isForDefaultContragent($rec) ? null : price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
         core_Debug::stopTimer('RES_RENDER_PREPARE_RECS');
+
+        // Извличане на рейтингите на продуктите
+        if(countR($sellable)){
+            $rQuery = sales_ProductRatings::getQuery();
+            $rQuery->where("#classId = " . pos_Receipts::getClassId() . " AND #objectClassId = " . cat_Products::getClassId());
+            $rQuery->show('value,objectId');
+            $rQuery->in('objectId', array_keys($sellable));
+            while($rRec = $rQuery->fetch()){
+                if(array_key_exists($rRec->objectId, $sellable)){
+                    $sellable[$rRec->objectId]->rating = $rRec->value;
+                }
+            }
+        }
 
         $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$priceCache}_{$rec->_selectedGroupId}_{$searchString}";
         $result = core_Cache::get('pos_Terminal', $cacheKey);
@@ -2275,13 +2345,15 @@ class pos_Terminal extends peripheral_Terminal
 
             $res[$id]->photo = $this->getPosProductPreview($obj->productId, 140, 140, $settings);
             $res[$id]->CLASS = ' pos-add-res-btn navigable enlargable';
-            if($settings->productBtnTpl == 'pictureAndText' && !$res[$id]->photo){
+            if(in_array($settings->productBtnTpl, array('pictureAndText', 'rows')) && !$res[$id]->photo){
                 $res[$id]->CLASS .= " noPhoto";
             }
             $res[$id]->DATA_ENLARGE_OBJECT_ID = $id;
             $res[$id]->DATA_ENLARGE_CLASS_ID = $productClassId;
             $res[$id]->DATA_MODAL_TITLE = cat_Products::getRecTitle($productRec);
             $res[$id]->id = $id;
+            $res[$id]->rating = $pRec->rating;
+            $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
             if($pRec->canSell != 'yes'){
                 $res[$id]->CLASS .= ' notSellable';
             }
@@ -2325,7 +2397,7 @@ class pos_Terminal extends peripheral_Terminal
     private function getPosProductPreview($productId, $width, $height, $settings = array())
     {
         $photo = cat_Products::getParams($productId, 'preview');
-        if($settings->productBtnTpl == 'pictureAndText' && empty($photo)) return;
+        if(in_array($settings->productBtnTpl, array('pictureAndText', 'rows')) && empty($photo)) return;
 
         $arr = array();
         core_Debug::startTimer('RENDER_RESULT_GET_PREVIEW_THUMB');

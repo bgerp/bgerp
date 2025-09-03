@@ -234,6 +234,17 @@ abstract class deals_Helper
 
         if (!$map['alwaysHideVat']) {
             $mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
+
+            // Ако документа има обща отстъпка и изчислената е в рамките на 0.01 от нея подменя се за да се изравнят
+            if(cls::haveInterface('price_TotalDiscountDocumentIntf', $mvc)) {
+                $docDiscount = price_DiscountsPerDocuments::getDiscount4Document($mvc, $masterRec->id);
+                if(!empty($docDiscount)) {
+                    $discInCurrency = $docDiscount / $masterRec->{$map['rateFld']};
+                    if (abs(round($discInCurrency - $mvc->_total->discount, 2)) <= 0.01) {
+                        $mvc->_total->discount = $discInCurrency;
+                    }
+                }
+            }
         } else {
             $mvc->_total->discount = round($discount, 2);
         }
@@ -3134,5 +3145,32 @@ abstract class deals_Helper
         }
 
         return $amountRow;
+    }
+
+
+    /**
+     * Помощна ф-я обръщаща сума/цена от основната валута към дадена дата в основната валута към подадена дата
+     *
+     * @param double $amount    - сумата в основната валута към $valior
+     * @param string $valior    - към коя дата е сумата в основна валута
+     * @param string|null $date - към основната валута за коя дата, null за сега
+     * @return double           - сумата обърната в основната валута към датата
+     */
+    public static function getSmartBaseCurrency($amount, $valior, $date = null)
+    {
+        $date = $date ?? dt::today();
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($date);
+        $valiorCurrencyCode = acc_Periods::getBaseCurrencyCode($valior);
+
+        if($baseCurrencyCode == $valiorCurrencyCode) return $amount;
+
+        if($baseCurrencyCode == 'EUR' && $valiorCurrencyCode == 'BGN') {
+
+            return $amount / 1.95583;
+        }
+
+        $converted = currency_CurrencyRates::convertAmount($amount, null, $valiorCurrencyCode, $baseCurrencyCode);
+
+        return $converted;
     }
 }

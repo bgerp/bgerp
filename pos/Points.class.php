@@ -143,7 +143,7 @@ class pos_Points extends core_Master
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=default,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
         $this->FLD('productGroups', 'table(columns=groupId,captions=Група,validate=pos_Points::validateGroups,groupId_class=leftCell)', 'caption=Настройки->Групи');
-        $this->FLD('productBtnTpl', 'enum(wide=Широк,short=Кратък,picture=Снимка,pictureAndText=Снимка и текст)', 'caption=Настройки->Артикули (Шаблон), notNull, value=wide');
+        $this->FLD('productBtnTpl', 'enum(wide=Широк,short=Кратък,picture=Снимка,pictureAndText=Снимка и текст,rows=Редове)', 'caption=Настройки->Артикули (Шаблон), notNull, value=wide');
         $this->FLD('showProductCode', 'enum(yes=Показване,no=Скриване)', 'caption=Настройки->Артикули (Код), notNull, value=yes');
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
@@ -261,6 +261,10 @@ class pos_Points extends core_Master
         if($form->isSubmitted()){
             if(!empty($rec->otherStores) && keylist::isIn($rec->storeId, $rec->otherStores)){
                 $form->setError('otherStores', 'Основният склад не може да е избран');
+            }
+
+            if(empty($rec->productGroups) && $rec->productBtnTpl == 'rows'){
+                $form->setError('productGroups,productBtnTpl', 'Не може да се избере редове, ако няма посочени групи');
             }
         }
     }

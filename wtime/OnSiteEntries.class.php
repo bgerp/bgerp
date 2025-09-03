@@ -31,7 +31,7 @@ class wtime_OnSiteEntries extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, wtime';
+    public $canList = 'powerUser';
 
 
     /**
@@ -82,7 +82,7 @@ class wtime_OnSiteEntries extends core_Manager
     public function description()
     {
         $this->FLD('time', 'datetime(format=smartTime)', 'caption=Време,mandatory');
-        $this->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,mandatory');
+        $this->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,mandatory,silent');
         $this->FLD('type', 'enum(in=Влиза,out=Излиза)', 'caption=Вид');
         $this->FLD('place', 'varchar(64)', 'caption=Място,mandatory,tdClass=leftCol,input=none');
         $this->FLD('onSiteTime', 'time(noSmart,uom=minutes)', 'caption=Време на място,input=none');
@@ -167,6 +167,20 @@ class wtime_OnSiteEntries extends core_Manager
 
 
     /**
+     * Подготвя формата за филтриране
+     */
+    public function prepareListFilter_($data)
+    {
+        parent::prepareListFilter_($data);
+
+        $data->listFilter->FLD('from', 'date', 'caption=От,silent');
+        $data->listFilter->FLD('to', 'date', 'caption=До,silent');
+
+        return $data;
+    }
+
+
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -180,11 +194,10 @@ class wtime_OnSiteEntries extends core_Manager
             $sourceOptions[$sourceClassId] = core_Classes::getTitleById($sourceClassId);
         }
 
-        $showFields = 'selectPeriod,search,personId,type';
-        $data->listFilter->FLD('from', 'date', 'caption=От,silent');
-        $data->listFilter->FLD('to', 'date', 'caption=До,silent');
+        $showFields = 'selectPeriod,from,to,search,personId,type';
         $data->listFilter->setFieldType('type', 'enum(all=Влиза / Излиза,in=Влиза,out=Излиза)');
         $data->listFilter->setField('type', 'maxRadio=0');
+        $data->listFilter->input('personId', 'silent');
         if(countR($sourceOptions)){
             $data->listFilter->FLD('source', 'varchar', 'caption=Източник,maxRadio=0,placeholder=Всички');
             $data->listFilter->setOptions('source', array('' => '', 'manual' => 'Ръчно добавени') + $sourceOptions);
@@ -222,6 +235,10 @@ class wtime_OnSiteEntries extends core_Manager
                     $data->query->where("#sourceClassId = {$filter->source}");
                 }
             }
+        }
+
+        if(!haveRole('ceo,wtime')){
+            $data->listFilter->hide = true;
         }
     }
 
@@ -516,7 +533,7 @@ class wtime_OnSiteEntries extends core_Manager
             }
 
             if ($requiredRoles != 'no_one') {
-                $sIps = wtime_Setup::get('SITE_IPS');
+                $sIps = hr_Setup::get('COMPANIES_IP');
                 $ipArr = type_Ip::extractIps($sIps);
                 if (countR($ipArr['ips'])) {
                     $thisIp = core_Users::getRealIpAddr();
@@ -540,6 +557,26 @@ class wtime_OnSiteEntries extends core_Manager
                             if (!keylist::isIn($employeeGroupId, $personRec->groupList)) {
                                 $requiredRoles = 'no_one';
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($action == 'list') {
+
+            // Само потребител със специален достъп от урл-то има права за филтъра на своите входове
+            if(!haveRole('ceo,wtime')){
+                $hash = Request::get('hash');
+                if(empty($hash)){
+                    $requiredRoles = 'no_one';
+                } else{
+                    $checked = str::checkHash($hash,  4, 'filter');
+                    if(!$checked){
+                        $requiredRoles = 'no_one';
+                    } else {
+                        if($userId != $checked){
+                            $requiredRoles = 'no_one';
                         }
                     }
                 }

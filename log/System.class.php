@@ -100,7 +100,7 @@ class log_System extends core_Manager
     {
         $this->FLD('className', 'varchar(64)', 'placeholder=Клас, autoFilter, allowEmpty, silent, recently');
         $this->FLD('objectId', 'int');
-        $this->FLD('detail', 'text');
+        $this->FLD('detail', 'text(ci)');
         $this->FLD('lifeDays', 'int', 'value=120, oldFieldName=lifeTime');
         $this->FLD('type', 'enum(info=Инфо,alert=Тревога,err=Грешка,warning=Предупреждение,notice=Известие,debug=Дебъг,logErr=Грешка в лога, logNotice=Известие в лога)', 'caption=Тип');
         $this->FLD('lastSaved', 'datetime(smartTime)', 'caption=Последно');
@@ -270,9 +270,13 @@ class log_System extends core_Manager
         
         $search = trim($fRec->search);
         if ($search) {
-            $search = mb_strtolower($fRec->search);
-            $query->where(array("LOWER (#className) LIKE '%[#1#]%'", $search));
-            $query->orWhere(array("LOWER (#detail) LIKE '%[#1#]%'", $search));
+            $search = trim(mb_strtolower($fRec->search));
+ 
+            if(preg_match("/[a-z][a-z0-9]*_[a-z0-9_]+/i", $search) && ($cls = cls::getClassName($search, true))) {
+                $query->where(array("#className = '[#1#]'", $cls));
+            } else {
+                $query->orWhere(array("#detail LIKE '%[#1#]%'", $search));
+            }
         }
         
         // Филтрираме по тип
