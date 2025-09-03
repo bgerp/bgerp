@@ -479,5 +479,33 @@ abstract class deals_ServiceMaster extends core_Master
 
         return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
     }
+
+    /**
+     * След изпращане на формата
+     */
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        if ($form->isSubmitted()) {
+            $rec = &$form->rec;
+
+            $valiorError = null;
+            if(!deals_Helper::isValiorAllowed($rec->valior, $rec->threadId, $valiorError)) {
+                $form->setError('valior', $valiorError);
+            }
+
+            // Ако валутата на документа не е разрешена ще се подмени след запис
+            if($form->dealInfo->get('currency') == 'BGN'){
+                $valiorBaseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
+                if($rec->currencyId != $valiorBaseCurrencyId){
+                    if(isset($rec->id)){
+                        $rec->_oldValior = $mvc->fetchField($rec->id, 'valior', false);
+                    }
+
+                    $rec->currencyId = $valiorBaseCurrencyId;
+                    $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+                }
+            }
+        }
+    }
 }
 

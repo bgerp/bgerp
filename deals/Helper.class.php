@@ -3176,4 +3176,52 @@ abstract class deals_Helper
 
         return $converted;
     }
+
+
+    /**
+     * Позволен ли е вальора да се избира в нишката на документа
+     *
+     * @param string $valior     - вальор
+     * @param int $threadId      - ид на нишка
+     * @param null|string $error - грешка при избрания вальор
+     * @return bool
+     */
+    public static function isValiorAllowed($valior, $threadId, &$error = null)
+    {
+        if(empty($valior)) return true;
+        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        if(!$firstDoc) return true;
+        $threads = self::getCombinedThreads($threadId);
+
+        // Ако е само една нишка се гледа перото на сделката ѝ
+        if(countR($threads) == 1) {
+            $itemRec = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that);
+            $earliestUsedOn = $itemRec->earliestUsedOn ?? $firstDoc->fetchField('valior');
+        } else {
+
+            // Ако е обединена нишка се взема най-ранното използване на някой от обединението договори
+            $tQuery = doc_Threads::getQuery();
+            $tQuery->in('id', $threads);
+            $tQuery->show('firstDocId');
+            $firstContainerIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'firstDocId');
+
+            $iQuery = acc_Items::getQuery();
+            $iQuery->where("#classId = {$firstDoc->getClassId()}");
+            $iQuery->in('objectId', $firstContainerIds);
+            $iQuery->XPR('min', 'datetime', 'MIN(#earliestUsedOn)');
+            $iQuery->show('min');
+
+            $earliestUsedOn = $iQuery->fetch()->min;
+        }
+
+        // Проверка дали вальора е преди датата на най-ранно използване
+        if(dt::mysql2verbal($valior, 'Y-m-d') < dt::mysql2verbal($earliestUsedOn, 'Y-m-d')) {
+            $earliestUsedOnVerbal = dt::mysql2verbal($earliestUsedOn, 'd.m.Y');
+            $error = "Вальора не може да е преди най-ранното използване на перото на сделката|*: <b>{$earliestUsedOnVerbal}</b>";
+
+            return false;
+        }
+
+        return true;
+    }
 }

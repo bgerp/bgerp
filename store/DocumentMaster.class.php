@@ -242,7 +242,25 @@ abstract class store_DocumentMaster extends core_Master
 
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
+            $valiorError = null;
+            if(!deals_Helper::isValiorAllowed($rec->valior, $rec->threadId, $valiorError)) {
+                $form->setError('valior', $valiorError);
+            }
+
+            // Ако валутата на документа не е разрешена ще се подмени след запис
+            if($form->dealInfo->get('currency') == 'BGN'){
+                $valiorBaseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
+                if($rec->currencyId != $valiorBaseCurrencyId){
+                    if(isset($rec->id)){
+                        $rec->_oldValior = $mvc->fetchField($rec->id, 'valior', false);
+                    }
+
+                    $rec->currencyId = $valiorBaseCurrencyId;
+                    $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+                }
+            }
+
             // Ако има локация и тя е различна от договорената, слагаме предупреждение
             if (!empty($rec->locationId) && $form->dealInfo->get('deliveryLocation') && $rec->locationId != $form->dealInfo->get('deliveryLocation')) {
                 $agreedLocation = crm_Locations::getTitleById($form->dealInfo->get('deliveryLocation'));
@@ -294,6 +312,11 @@ abstract class store_DocumentMaster extends core_Master
     }
 
 
+    function act_Test()
+    {
+        $rec = self::fetch(2800);
+        self::on_AfterCreate($this, $rec);
+    }
     /**
      * След създаване на запис в модела
      */
@@ -478,13 +501,15 @@ abstract class store_DocumentMaster extends core_Master
 
                     // Пропускат се експедираните продукти
                     if ($toShip <= 0) continue;
-
                     $shipProduct = new stdClass();
                     $shipProduct->{$mvc->{$Detail}->masterKey} = $rec->id;
                     $shipProduct->productId = $product->productId;
                     $shipProduct->packagingId = $product->packagingId;
                     $shipProduct->quantity = $toShip;
                     $shipProduct->price = $price;
+                    if($rec->currencyId != $aggregatedDealInfo->get('agreedValior')) {
+                        $shipProduct->price = deals_Helper::getSmartBaseCurrency($shipProduct->price, $aggregatedDealInfo->get('agreedValior'), $rec->valior);
+                    }
                     $shipProduct->discount = $discount;
                     $shipProduct->notes = $product->notes;
                     $shipProduct->quantityInPack = $product->quantityInPack;
@@ -1417,5 +1442,35 @@ abstract class store_DocumentMaster extends core_Master
         $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
 
         return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if(isset($rec->_oldValior)){
+
+            // Ако вальора е сменен и основната валута към стария вальор е различна от тази към новия
+            if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyId($rec->valior)){
+
+                // Преизчисляват се цените от старата основна валута в новата
+                $save = array();
+                $Detail = cls::get($mvc->mainDetail);
+                $dQuery = $Detail->getQuery();
+                $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+                while($dRec = $dQuery->fetch()){
+                    $dRec->price = deals_Helper::getSmartBaseCurrency($dRec->price, $rec->_oldValior, $rec->valior);
+                    $save[$dRec->id] = $dRec;
+                }
+
+                $Detail->saveArray($save);
+                $mvc->updateMaster($rec->id);
+
+                $valiorVerbal = dt::mysql2verbal($rec->valior, 'd.m.Y');
+                core_Statuses::newStatus("Цените на артикулите са преизчислени към основната валута за|*: <b>{$valiorVerbal}</b>");
+            }
+        }
     }
 }

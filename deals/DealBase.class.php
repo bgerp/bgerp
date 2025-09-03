@@ -959,9 +959,14 @@ abstract class deals_DealBase extends core_Master
                             $obj->creditAcc .= "<div style='font-size:0.8em;margin-top:1px'>{$i}. " . acc_Items::getVerbal($ent->{"creditItem{$i}"}, 'titleLink') . '</div>';
                         }
                     }
-                    
+
                     foreach (array('debitQuantity', 'debitPrice', 'creditQuantity', 'creditPrice', 'amount') as $fld) {
-                        $obj->{$fld} = "<span style='float:right'>" . $Double->toVerbal($ent->{$fld}) . '</span>';
+                        $entVerbal = $Double->toVerbal($ent->{$fld});
+                        if(in_array($fld, array('amount', 'debitPrice', 'creditPrice'))){
+                            $entVerbal = currency_Currencies::decorate($entVerbal, acc_Periods::getBaseCurrencyCode($ent->valior), true);
+                        }
+
+                        $obj->{$fld} = "<span style='float:right'>{$entVerbal}</span>";
                     }
                     
                     $history[] = $obj;
