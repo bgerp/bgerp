@@ -563,10 +563,9 @@ select.tabHolder {
     overflow-wrap: break-word; }
 
 .scrollingGrid {
-  overflow-x: hidden;
-  overflow-y: hidden;
   width: 100%;
-  height: 166px;
+  height: 168px;
+  padding-top: 0;
   -webkit-overflow-scrolling: touch;
     /*
    * плавен скрол на мобилни
@@ -578,40 +577,39 @@ select.tabHolder {
   scrollbar-color: #cccccc rgba(0, 0, 0, 0);
     /*
    * светъл плъзгач върху прозрачен фон
-   */ }
-  .scrollingGrid .grid {
-    height: 161px;
-    display: grid;
-    grid-auto-flow: column;
-        /*
-     * само по хоризонтала
-     */ }
-    .scrollingGrid .grid > div {
-      width: 132px; }
-  .scrollingGrid .element {
-    height: 161px !important;
-    padding: 0 !important; }
-
-.grid.rows .element {
-  height: 157px !important;
-  padding: 0 !important; }
-
-.grid.rows .element .photo {
-  width: 132px;
-  height: 132px; }
-
-.grid.rows .element .photo img {
-  width: 100% !important; }
-
-.scrollingGrid {
+   */
   overflow-x: auto;
   overflow-y: hidden;
-  height: 165px;
   box-sizing: content-box;
   -webkit-overflow-scrolling: touch;
     /*
    * плавно на мобилни
-   */ }
+   */
+  scrollbar-gutter: stable both-edges; }
+  .scrollingGrid .grid {
+    height: 168px;
+    display: grid;
+    margin-bottom: 0 !important;
+    grid-auto-flow: column;
+        /*
+     * само по хоризонтала
+     */
+    align-items: stretch; }
+    .scrollingGrid .grid > div {
+      width: 132px; }
+  .scrollingGrid .element {
+    padding: 0 !important; }
+
+.grid.rows .element {
+  height: 158px !important; }
+
+.grid.rows .element .photo {
+  width: 138px;
+  margin-left: -3px;
+  height: 138px; }
+
+.grid.rows .element .photo img {
+  width: 100% !important; }
 
 /*
  * --- Тъч устройства (coarse pointer) ---

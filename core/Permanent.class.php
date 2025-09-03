@@ -89,7 +89,7 @@ class core_Permanent extends core_Manager
     public function description()
     {
         $this->FLD('key', 'identifier(' . (CORE_PERMANENT_HANDLER_SIZE + 3) . ')', 'caption=Ключ,notNull');
-        $this->FLD('data', 'blob(16777215,serialize,compress)', 'caption=Данни');
+        $this->FLD('data', 'blob(16777215,serialize,compress)', 'caption=Данни,tdClass=td-clamp');
         $this->FLD('lifetime', 'int', 'caption=Живот,notNull');
         
         $this->setDbUnique('key');

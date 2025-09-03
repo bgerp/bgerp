@@ -110,6 +110,27 @@
                                 <td>[#allowSmartReturnPos#]</td>
                             </tr>
                             <!--ET_END allowSmartReturnPos-->
+
+                            <!--ET_BEGIN keepMinQtyOnPos-->
+                            <tr>
+                                <td class='dt'>|Минимален остатък по позиции: прилагане|*:</td>
+                                <td>[#keepMinQtyOnPos#]</td>
+                            </tr>
+                            <!--ET_END keepMinQtyOnPos-->
+
+                            <!--ET_BEGIN keepMinQtyOnPos-->
+                            <tr>
+                                <td class='dt'>|Минимален остатък по позиции: количество|*:</td>
+                                <td>[#minQtyOnPos#]</td>
+                            </tr>
+                            <!--ET_END keepMinQtyOnPos-->
+
+                            <!--ET_BEGIN preferOldest-->
+                            <tr>
+                                <td class='dt'>|Прилагане на приоритет на най-стария палет|*:</td>
+                                <td>[#minQtyOnPos#]</td>
+                            </tr>
+                            <!--ET_END preferOldest-->
                         </table>
                     </div>
                 </fieldset>
