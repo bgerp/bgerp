@@ -272,7 +272,8 @@ class trans_Lines extends core_Master
         // Опция за избор на складове по градове
         $storesByLocations = $storeOptions = $locationOptions =  $storesByPCode = $storesByPCodeOptions = array();
         $sQuery = store_Stores::getQuery();
-        $sQuery->where("#state != 'rejected'");
+        $sQuery->where("#state NOT IN ('rejected', 'closed')");
+
         while($sRec = $sQuery->fetch()) {
             $storeOptions[keylist::addKey('-1', $sRec->id)] = store_Stores::getTitleById($sRec->id);
             if(isset($sRec->locationId)){
@@ -297,10 +298,10 @@ class trans_Lines extends core_Master
         if(countR($storesByLocations) || countR($storesByPCodeOptions)){
             $storeOptions = array("s" => (object) array('title' => tr('Складове'), 'group' => true)) + $storeOptions;
             if(countR($locationOptions)){
-                $storeOptions += array("p" => (object) array('title' => tr('В градове'), 'group' => true,)) + $locationOptions;
+               // $storeOptions += array("p" => (object) array('title' => tr('В градове'), 'group' => true,)) + $locationOptions;
             }
             if(countR($storesByPCodeOptions)){
-                $storeOptions += array("c" => (object) array('title' => tr('Пощенски код'), 'group' => true,)) + $storesByPCodeOptions;
+               // $storeOptions += array("c" => (object) array('title' => tr('Пощенски код'), 'group' => true,)) + $storesByPCodeOptions;
             }
         }
 
