@@ -257,7 +257,6 @@ abstract class store_DocumentMaster extends core_Master
                         $rec->_oldValior = $mvc->fetchField($rec->id, 'valior', false);
                         $rec->_oldValior = $rec->_oldValior ?? dt::today();
                     }
-
                     $rec->currencyId = $valiorBaseCurrencyId;
                     $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
                 }
@@ -509,7 +508,7 @@ abstract class store_DocumentMaster extends core_Master
                     $shipProduct->packagingId = $product->packagingId;
                     $shipProduct->quantity = $toShip;
                     $shipProduct->price = $price;
-                    if($rec->currencyId != $aggregatedDealInfo->get('agreedValior')) {
+                    if($rec->currencyId != $aggregatedDealInfo->get('currency')) {
                         $shipProduct->price = deals_Helper::getSmartBaseCurrency($shipProduct->price, $aggregatedDealInfo->get('agreedValior'), $rec->valior);
                     }
                     $shipProduct->discount = $discount;

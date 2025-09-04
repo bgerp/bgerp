@@ -634,6 +634,15 @@ abstract class deals_InvoiceMaster extends core_Master
             $mvc->logWrite('Променено условие от сметка', $rec->id);
         }
 
+        if($rec->_recalcBaseCurrency && $rec->_oldValior){
+            // Ако вальора е сменен и основната валута към стария вальор е различна от тази към новия
+            if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyCode($rec->date)){
+                deals_Helper::recalcDetailPriceInBaseCurrency($mvc, $rec, $rec->_oldValior, $rec->date);
+                $valiorVerbal = dt::mysql2verbal($rec->date, 'd.m.Y');
+                core_Statuses::newStatus("Цените на артикулите са преизчислени към основната валута за|*: <b>{$valiorVerbal}</b>");
+            }
+        }
+
         $Source = $mvc->getSourceOrigin($rec);
         if (!$Source) {
             return;
@@ -693,8 +702,10 @@ abstract class deals_InvoiceMaster extends core_Master
         if ($Source && $Source->haveInterface('deals_InvoiceSourceIntf')) {
             $detailsToSave = $Source->getDetailsFromSource($mvc, $rec->importProducts);
 
+            $sourceValior = $Source->fetchField($Source->valiorFld);
             if (is_array($detailsToSave)) {
                 foreach ($detailsToSave as $det) {
+                    $det->price = deals_Helper::getSmartBaseCurrency($det->price, $sourceValior, $rec->date);
                     $det->_importBatches = $rec->importBatches;
                     $det->{$Detail->masterKey} = $rec->id;
                     unset($det->batches);
@@ -881,11 +892,15 @@ abstract class deals_InvoiceMaster extends core_Master
         
         if ($firstDocument->haveInterface('bgerp_DealAggregatorIntf') && !$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             $aggregateInfo = $firstDocument->getAggregateDealInfo();
-
             $form->setDefault('detailOrderBy', $aggregateInfo->get('detailOrderBy'));
             $form->rec->vatRate = $aggregateInfo->get('vatType');
-            $form->rec->currencyId = $aggregateInfo->get('currency');
-            $form->rec->rate = $aggregateInfo->get('rate');
+            if($aggregateInfo->get('currency') == 'BGN'){
+                $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($rec->date));
+            } else {
+                $form->setDefault('currencyId', $aggregateInfo->get('currency'));
+            }
+            $form->setDefault('rate', $aggregateInfo->get('rate'));
+
             $form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
             
             if ($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)) {
@@ -993,6 +1008,23 @@ abstract class deals_InvoiceMaster extends core_Master
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
 
+            // Ако валутата на документа не е разрешена ще се подмени след запис
+            if($form->aggregateInfo->get('currency') == 'BGN'){
+                $valiorBaseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->date);
+                if($rec->currencyId != $valiorBaseCurrencyId){
+                    $rec->_recalcBaseCurrency = true;
+                    if(isset($rec->id)){
+                        $rec->_oldValior = $mvc->fetchField($rec->id, 'date', false);
+                        $rec->_oldValior = $rec->_oldValior ?? dt::today();
+                    }
+                }
+            }
+
+            $valiorError = null;
+            if(!deals_Helper::isValiorAllowed($rec->date, $rec->threadId, $valiorError)) {
+                $form->setError('date', $valiorError);
+            }
+
             if (isset($rec->dueDate) && $rec->dueDate < $rec->date) {
                 $form->setError('date,dueDate', 'Крайната дата за плащане трябва да е след вальора');
             }
@@ -1002,13 +1034,13 @@ abstract class deals_InvoiceMaster extends core_Master
                 if (!$rec->displayRate) {
                     $form->setError('rate', 'Не може да се изчисли курс');
                 }
-            } else {
+            } elseif(!$rec->_recalcBaseCurrency) {
                 if ($msg = currency_CurrencyRates::hasDeviation($rec->displayRate, $rec->date, $rec->currencyId, null)) {
                     $form->setWarning('displayRate', $msg);
                 }
             }
 
-            if(isset($rec->id) && isset($rec->displayRate) && $rec->type != 'dc_note'){
+            if(isset($rec->id) && isset($rec->displayRate) && $rec->type != 'dc_note' && !$rec->_recalcBaseCurrency){
                 // Предупреждение ако вальора е сменен, но курса е различен от очаквания
                 $expectedRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if(round($expectedRate, 5) != round($rec->displayRate, 5)){
@@ -1200,6 +1232,17 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function beforeInvoiceSave($mvc, $rec)
     {
+        if(isset($rec->_recalcBaseCurrency)){
+            $rec->currencyId = acc_Periods::getBaseCurrencyCode($rec->date);
+            $rec->rate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
+            $rec->displayRate = $rec->rate;
+        }
+
+        // Ако ще се подменя валутата да се подмени
+        if($rec->_changeCurrency){
+            core_Statuses::newStatus("Валутата е сменена за да отговаря на съответната за документа към вальора", 'warning');
+        }
+
         if ($rec->type == 'dc_note') {
             if(!empty($rec->dcChangeAmountDeducted)){
                 $rec->dpAmount = $rec->dcChangeAmountDeducted * $rec->rate;
