@@ -78,7 +78,7 @@ class tags_Tags extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'tags_Wrapper, plg_Created, plg_Search, plg_Sorting, plg_RowTools2, plg_State2, core_UserTranslatePlg';
+    public $loadList = 'cond_Wrapper, plg_Created, plg_Search, plg_Sorting, plg_RowTools2, plg_State2, core_UserTranslatePlg';
 
 
     /**

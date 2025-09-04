@@ -1445,6 +1445,7 @@ function disableOrEnableEnlargeBtn()
  */
 function addProduct(el) {
 
+	$('.scrollingGrid .fadedElement').removeClass('fadedElement');
 	$(el).addClass('fadedElement');
 	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
 	clearTimeout(timeout);
@@ -1682,7 +1683,7 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 					let element = $('.' + gridClass)[0];
 					if (element) {
 
-						if (!$(element).find('.navigable:visible').first().hasClass('selected')) {
+						if (!$(element).find('.navigable:visible').first().hasClass('selected') && !$(element).find('.navigable.selected').length) {
 							selectFirstInRow($(element));
 						} else {
 							// дори да е селектиран, не скролирай ако вече е видим
