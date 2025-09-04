@@ -273,7 +273,7 @@ class trans_Lines extends core_Master
         $storesByLocations = $storeOptions = $locationOptions =  $storesByPCode = $storesByPCodeOptions = array();
         $sQuery = store_Stores::getQuery();
         $sQuery->where("#state NOT IN ('rejected', 'closed')");
-        $sQuery->limit(3);
+
         while($sRec = $sQuery->fetch()) {
             $storeOptions[keylist::addKey('-1', $sRec->id)] = store_Stores::getTitleById($sRec->id);
             if(isset($sRec->locationId)){
