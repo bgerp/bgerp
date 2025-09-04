@@ -24,7 +24,8 @@ class cond_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('cond_DeliveryTerms', 'Доставки', 'ceo,admin');
-        $this->TAB('tags_Tags', 'Тагове', 'ceo, admin');
+        $this->TAB('tags_Tags', 'Тагове->Тагове', 'ceo, admin');
+        $this->TAB('tags_Logs', 'Тагове->Логове', 'ceo, admin');
         $this->TAB('cond_PaymentMethods', 'Плащания->Методи', 'ceo,admin');
         $this->TAB('cond_Payments', 'Плащания->Средства', 'ceo,admin');
         $this->TAB('cond_Ranges', 'Диапазони', 'ceo,admin');

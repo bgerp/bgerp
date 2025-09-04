@@ -2620,12 +2620,14 @@ class cat_Products extends embed_Manager
     {
         // Ако в името имаме '||' го превеждаме
         $name = $rec->name;
-        
-        $lg = core_Lg::getCurrent();
-        if ($lg != 'bg' && !empty($rec->nameEn)) {
-            $name = $rec->nameEn;
+
+        if (!Mode::is('forSearch')) {
+            $lg = core_Lg::getCurrent();
+            if ($lg != 'bg' && !empty($rec->nameEn)) {
+                $name = $rec->nameEn;
+            }
         }
-        
+
         // Иначе го връщаме такова, каквото е
         return $name;
     }
@@ -2643,11 +2645,10 @@ class cat_Products extends embed_Manager
 
             $originalName = $rec->name;
             $part = self::getDisplayName($rec);
-
-            if ($originalName == $part) {
-                $part = core_Lg::transliterate($part);
-            }
             if (!Mode::is('forSearch')) {
+                if ($originalName == $part) {
+                    $part = core_Lg::transliterate($part);
+                }
                 $part = type_Varchar::escape($part);
             }
 
