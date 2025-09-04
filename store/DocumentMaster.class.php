@@ -1456,20 +1456,7 @@ abstract class store_DocumentMaster extends core_Master
 
             // Ако вальора е сменен и основната валута към стария вальор е различна от тази към новия
             if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyCode($rec->valior)){
-
-                // Преизчисляват се цените от старата основна валута в новата
-                $save = array();
-                $Detail = cls::get($mvc->mainDetail);
-                $dQuery = $Detail->getQuery();
-                $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-                while($dRec = $dQuery->fetch()){
-                    $dRec->price = deals_Helper::getSmartBaseCurrency($dRec->price, $rec->_oldValior, $rec->valior);
-                    $save[$dRec->id] = $dRec;
-                }
-
-                $Detail->saveArray($save);
-                $mvc->updateMaster($rec->id);
-
+                deals_Helper::recalcDetailPriceInBaseCurrency($mvc, $rec, $rec->_oldValior, $rec->valior);
                 $valiorVerbal = dt::mysql2verbal($rec->valior, 'd.m.Y');
                 core_Statuses::newStatus("Цените на артикулите са преизчислени към основната валута за|*: <b>{$valiorVerbal}</b>");
             }

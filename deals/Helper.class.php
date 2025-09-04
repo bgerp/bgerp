@@ -3225,4 +3225,31 @@ abstract class deals_Helper
 
         return true;
     }
+
+
+    /**
+     * Рекалкулира детайлите от основната валута към даден период до тази в подадения
+     *
+     * @param core_Mvc $masterMvc
+     * @param stdClass $masterRec
+     * @param string $oldValior
+     * @param string $newValior
+     * @param string $priceFld
+     * @return void
+     */
+    public static function recalcDetailPriceInBaseCurrency($masterMvc, $masterRec, $oldValior, $newValior, $priceFld = 'price')
+    {
+        // Преизчисляват се цените от старата основна валута в новата
+        $save = array();
+        $Detail = cls::get($masterMvc->mainDetail);
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$masterRec->id}");
+        while($dRec = $dQuery->fetch()){
+            $dRec->{$priceFld} = deals_Helper::getSmartBaseCurrency($dRec->price, $oldValior, $newValior);
+            $save[$dRec->id] = $dRec;
+        }
+
+        $Detail->saveArray($save, "id,{$priceFld}");
+        $masterMvc->updateMaster($masterRec->id);
+    }
 }
