@@ -963,7 +963,9 @@ abstract class deals_DealBase extends core_Master
                     foreach (array('debitQuantity', 'debitPrice', 'creditQuantity', 'creditPrice', 'amount') as $fld) {
                         $entVerbal = $Double->toVerbal($ent->{$fld});
                         if(in_array($fld, array('amount', 'debitPrice', 'creditPrice'))){
-                            $entVerbal = currency_Currencies::decorate($entVerbal, acc_Periods::getBaseCurrencyCode($ent->valior), true);
+                            if(!empty($ent->{$fld})){
+                                $entVerbal = currency_Currencies::decorate($entVerbal, acc_Periods::getBaseCurrencyCode($ent->valior), true);
+                            }
                         }
 
                         $obj->{$fld} = "<span style='float:right'>{$entVerbal}</span>";

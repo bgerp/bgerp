@@ -529,9 +529,9 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     public static function getBlAmount($jRecs, $id)
     {
         $itemRec = acc_Items::fetchItem('sales_Sales', $id);
-        $paid = acc_Balances::getBlAmounts($jRecs, '411', null, null, array(null, $itemRec->id, null), array(), $itemRec->earliestUsedOn)->amount;
-        
-        $paid += acc_Balances::getBlAmounts($jRecs, '412', null, null, array(null, $itemRec->id, null), array(), $itemRec->earliestUsedOn)->amount;
+        $valior = sales_Sales::fetchField($id, 'valior');
+        $paid = acc_Balances::getBlAmounts($jRecs, '411', null, null, array(null, $itemRec->id, null), array(), $valior)->amount;
+        $paid += acc_Balances::getBlAmounts($jRecs, '412', null, null, array(null, $itemRec->id, null), array(), $valior)->amount;
         
         return $paid;
     }
@@ -543,8 +543,9 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     public static function getDeliveryAmount($jRecs, $id)
     {
         $itemRec = acc_Items::fetchItem('sales_Sales', $id);
-        $delivered = acc_Balances::getBlAmounts($jRecs, '411', 'debit', null, array(null, $itemRec->id, null), array(), $itemRec->earliestUsedOn)->amount;
-        $delivered -= acc_Balances::getBlAmounts($jRecs, '411', 'debit', '7911', array(), array(), $itemRec->earliestUsedOn)->amount;
+        $valior = sales_Sales::fetchField($id, 'valior');
+        $delivered = acc_Balances::getBlAmounts($jRecs, '411', 'debit', null, array(null, $itemRec->id, null), array(), $valior)->amount;
+        $delivered -= acc_Balances::getBlAmounts($jRecs, '411', 'debit', '7911', array(), array(), $valior)->amount;
 
         return $delivered;
     }

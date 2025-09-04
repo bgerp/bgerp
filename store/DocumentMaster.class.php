@@ -251,9 +251,11 @@ abstract class store_DocumentMaster extends core_Master
             // Ако валутата на документа не е разрешена ще се подмени след запис
             if($form->dealInfo->get('currency') == 'BGN'){
                 $valiorBaseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
+
                 if($rec->currencyId != $valiorBaseCurrencyId){
                     if(isset($rec->id)){
                         $rec->_oldValior = $mvc->fetchField($rec->id, 'valior', false);
+                        $rec->_oldValior = $rec->_oldValior ?? dt::today();
                     }
 
                     $rec->currencyId = $valiorBaseCurrencyId;
@@ -1453,7 +1455,7 @@ abstract class store_DocumentMaster extends core_Master
         if(isset($rec->_oldValior)){
 
             // Ако вальора е сменен и основната валута към стария вальор е различна от тази към новия
-            if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyId($rec->valior)){
+            if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyCode($rec->valior)){
 
                 // Преизчисляват се цените от старата основна валута в новата
                 $save = array();

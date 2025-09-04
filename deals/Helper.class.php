@@ -3196,7 +3196,7 @@ abstract class deals_Helper
         // Ако е само една нишка се гледа перото на сделката ѝ
         if(countR($threads) == 1) {
             $itemRec = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that);
-            $earliestUsedOn = $itemRec->earliestUsedOn ?? $firstDoc->fetchField('valior');
+            $earliestUsedOn = $itemRec->earliestUsedOn ?? dt::today();
         } else {
 
             // Ако е обединена нишка се взема най-ранното използване на някой от обединението договори
@@ -3213,11 +3213,12 @@ abstract class deals_Helper
 
             $earliestUsedOn = $iQuery->fetch()->min;
         }
+        $earliestUsedOn = min($firstDoc->fetchField('valior'), $earliestUsedOn);
 
         // Проверка дали вальора е преди датата на най-ранно използване
         if(dt::mysql2verbal($valior, 'Y-m-d') < dt::mysql2verbal($earliestUsedOn, 'Y-m-d')) {
             $earliestUsedOnVerbal = dt::mysql2verbal($earliestUsedOn, 'd.m.Y');
-            $error = "Вальора не може да е преди най-ранното използване на перото на сделката|*: <b>{$earliestUsedOnVerbal}</b>";
+            $error = "Вальора не може да е преди този на сделката|*: <b>{$earliestUsedOnVerbal}</b>";
 
             return false;
         }

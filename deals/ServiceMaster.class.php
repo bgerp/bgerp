@@ -124,6 +124,29 @@ abstract class deals_ServiceMaster extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        if(isset($rec->_oldValior)){
+
+            // Ако вальора е сменен и основната валута към стария вальор е различна от тази към новия
+            if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyCode($rec->valior)){
+
+                // Преизчисляват се цените от старата основна валута в новата
+                $save = array();
+                $Detail = cls::get($mvc->mainDetail);
+                $dQuery = $Detail->getQuery();
+                $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+                while($dRec = $dQuery->fetch()){
+                    $dRec->price = deals_Helper::getSmartBaseCurrency($dRec->price, $rec->_oldValior, $rec->valior);
+                    $save[$dRec->id] = $dRec;
+                }
+
+                $Detail->saveArray($save);
+                $mvc->updateMaster($rec->id);
+
+                $valiorVerbal = dt::mysql2verbal($rec->valior, 'd.m.Y');
+                core_Statuses::newStatus("Цените на артикулите са преизчислени към основната валута за|*: <b>{$valiorVerbal}</b>");
+            }
+        }
+
         if ($rec->_isCreated !== true) {
             
             return;
@@ -172,6 +195,10 @@ abstract class deals_ServiceMaster extends core_Master
                 $shipProduct->packagingId = $product->packagingId;
                 $shipProduct->quantity = $toShip;
                 $shipProduct->price = $price;
+                if($rec->currencyId != $aggregatedDealInfo->get('agreedValior')) {
+                    $shipProduct->price = deals_Helper::getSmartBaseCurrency($shipProduct->price, $aggregatedDealInfo->get('agreedValior'), $rec->valior);
+                }
+
                 $shipProduct->discount = $discount;
                 $shipProduct->notes = $product->notes;
                 $shipProduct->quantityInPack = $product->quantityInPack;
@@ -493,12 +520,17 @@ abstract class deals_ServiceMaster extends core_Master
                 $form->setError('valior', $valiorError);
             }
 
+            expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
+            expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
+            $dealInfo = $origin->getAggregateDealInfo();
+
             // Ако валутата на документа не е разрешена ще се подмени след запис
-            if($form->dealInfo->get('currency') == 'BGN'){
+            if($dealInfo->get('currency') == 'BGN'){
                 $valiorBaseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
                 if($rec->currencyId != $valiorBaseCurrencyId){
                     if(isset($rec->id)){
                         $rec->_oldValior = $mvc->fetchField($rec->id, 'valior', false);
+                        $rec->_oldValior = $rec->_oldValior ?? dt::today();
                     }
 
                     $rec->currencyId = $valiorBaseCurrencyId;
