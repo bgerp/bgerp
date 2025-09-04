@@ -72,9 +72,9 @@
 
                      </td>
                     <td style='padding-left:10px; padding-top: 10px;'>
-                        <!--ET_BEGIN amountDeal-->
                         <div><span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span></div>
                         <div style="margin: 10px 0;">|Словом|*: [#amountVerbal#]</div>
+                        <!--ET_BEGIN amountDeal-->
                         <div class ='misc' style="margin-left: -7px;">
                             <span class='labels'>|Платени по сделката|*:</span>
                             <span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b>
