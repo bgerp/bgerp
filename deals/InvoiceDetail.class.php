@@ -300,6 +300,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
                     $quantityArr = $cached->recWithIds[$dRec->clonedFromDetailId];
                     $originPrice = deals_Helper::getDisplayPrice($quantityArr['price'], 0, 1, 'no', 5);
+                    $originPrice = deals_Helper::getSmartBaseCurrency($originPrice, $cached->date, $rec->date);
                     $diffPrice = $dRec->packPrice - $originPrice;
 
                     $priceIsChanged = false;
@@ -440,7 +441,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $data->listFields['reason'] = 'Основание';
                 $data->listFields['amount'] = 'Сума';
                 $data->rows = array();
-                
+
                 // Показване на сумата за промяна на известието
                 $Type = core_Type::getByName('double(decimals=2)');
                 $rate = !empty($masterRec->displayRate) ? $masterRec->displayRate : $masterRec->rate;
@@ -547,6 +548,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 // На ДИ и КИ не можем да изтриваме и добавяме
                 if (in_array($action, array('add', 'delete'))) {
                     $res = 'no_one';
+                }
+                if($action == 'edit'){
+                    if($masterRec->state == 'rejected'){
+                        $res = 'no_one';
+                    }
                 }
             }
         }
@@ -714,6 +720,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     // Проверка дали са променени и цената и количеството
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
                     $originRec = $cache->recWithIds[$rec->clonedFromDetailId];
+                    $originRec['price'] = deals_Helper::getSmartBaseCurrency($originRec['price'], $cache->date, $masterRec->date);
+
                     $diffPrice = round($rec->packPrice - $originRec['price'], 5);
                     if(round($rec->quantity, 5) != round($originRec['quantity'], 5) && abs($diffPrice) > 0.0001){
                         $form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');

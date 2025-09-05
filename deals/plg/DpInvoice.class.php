@@ -679,7 +679,6 @@ class deals_plg_DpInvoice extends core_Plugin
     {
         if (!isset($masterRec->dpAmount)) return;
 
-
         $dpAmount = $masterRec->dpAmount;
         $dpVatGroupId = $masterRec->dpVatGroupId;
         if($masterRec->type == 'dc_note'){
