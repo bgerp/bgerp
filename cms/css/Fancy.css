@@ -252,6 +252,11 @@ header img {
     width: 1200px;
     margin: 0 auto;
 }
+.narrow .externalPage .narrowCenter a {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+}
 .wide .socialBtns {
     top: -6px;
 }
