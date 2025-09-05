@@ -74,7 +74,7 @@ class batch_BatchesInDocuments extends core_Manager
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', 'caption=Артикул,mandatory,silent,input=hidden,remember');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double(decimals=4)', 'caption=Количество,input=none');
-        $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
+        $this->FLD('quantityInPack', 'double(decimals=3)', 'input=none,column=none');
         $this->FLD('date', 'date', 'mandatory,caption=Дата,silent,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
         $this->FLD('batch', 'varchar(128)', 'input=none,caption=Партида,after=productId,forceField');
@@ -102,6 +102,23 @@ class batch_BatchesInDocuments extends core_Manager
 
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->storeId = $rec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? planning_WorkInProgress::getHyperlink() : store_Stores::getHyperlink($rec->storeId, true);
+
+
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $rows = &$data->rows;
+        foreach ($rows as $id => $row) {
+            $rec = $data->recs[$id];
+
+            $measureName = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+            $row->quantity .= " " . $measureName;
+        }
     }
 
 
