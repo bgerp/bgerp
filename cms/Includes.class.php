@@ -42,7 +42,7 @@ class cms_Includes extends core_Master
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt,allowEmpty)', 'caption=Домейн,mandatory,autoFilter');
         $this->FLD('place', 'varchar(32)', 'caption=Място,mandatory,suggestions=HTTP_HEADER|HEAD|JS|CSS|META_DESCRIPTION|META_KEYWORDS|STYLES|PAGE_CONTENT|SCRIPTS');
         $this->FLD('mode', 'enum(append, prepend, replace, push)', 'caption=Метод');
-        $this->FLD('code', 'text', 'caption=Код,mandatory,width=100%');
+        $this->FLD('code', 'text', 'caption=Код,mandatory,width=100%,tdClass=td-clamp');
     }
     
     

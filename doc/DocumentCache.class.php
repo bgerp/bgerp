@@ -96,7 +96,7 @@ class doc_DocumentCache extends core_Master
         $this->FLD('key', 'varchar(32)', 'input=none,caption=Ключ');
         $this->FLD('userId', 'user', 'input=none,caption=Потребител');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=none,caption=Документ');
-        $this->FLD('cache', 'blob(10000000, serialize, compress,maxRows=5)', 'input=none,caption=Html,column=none');
+        $this->FLD('cache', 'blob(10000000, serialize, compress,maxRows=5)', 'input=none,caption=Html,column=none,tdClass=td-clamp');
         $this->FLD('createdOn', 'datetime(format=smartTime)', 'input=none,caption=Създаване, oldFieldName=time');
         
         $this->setDbUnique('key');

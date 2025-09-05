@@ -81,7 +81,7 @@ class sens2_Semaphores extends core_Master
      * 
      * @param int $objectId - The identifier of the variable or output to assign the value to (e.g., string or integer).
      * @param double $value - The value to be assigned  
-     * @param bool $onlyDifferent - Boolean flag (true/false) indicating if only a value different from the last assigned one is allowed.
+     * @param bool|null|string $onlyDifferent - Boolean flag (true/false) indicating if only a value different from the last assigned one is allowed.
      * @param $minInterval int - Minimum time (in seconds) required between two assignments.
      * @param int $minAttempts - Minimum number of attempts required to assign a value before permitting the assignment.
      *
@@ -93,6 +93,14 @@ class sens2_Semaphores extends core_Master
         $res = true;
 
         $rec = self::fetch("#objectId = {$objectId}");
+
+        if (isset($onlyDifferent)) {
+            if ($onlyDifferent == 'yes') {
+                $onlyDifferent = true;
+            } elseif ($onlyDifferent == 'no') {
+                $onlyDifferent = null;
+            }
+        }
 
         if(!$rec) {
             $rec = (object) array(
