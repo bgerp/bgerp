@@ -419,8 +419,13 @@ abstract class deals_InvoiceMaster extends core_Master
         }
 
         // Трябва фактурата основание да не е ДИ или КИ
+        $form->setDefault('date', dt::today());
         expect($invArr['type'] == 'invoice');
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($form->rec->valior);
         $unsetArr = array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation', 'sourceContainerId', 'dueDate', 'type', 'originId', 'changeAmount', 'activatedOn', 'activatedBy', 'journalDate', 'dcReason', 'fileHnd', 'responsible', 'numlimit', 'username', 'issuerId', 'dpReason');
+        if($invArr['currencyId'] == 'BGN' && $invArr['currencyId'] != $baseCurrencyCode){
+            $invArr['currencyId'] = $baseCurrencyCode;
+        }
 
         if ($invArr['type'] != 'dc_note') {
             $cache = $this->getInvoiceDetailedInfo($form->rec->originId);
@@ -429,8 +434,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 $form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
                 $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
 
+                $invArr['dealValue'] = deals_Helper::getSmartBaseCurrency($invArr['dealValue'], $invArr['dealValue'], $form->rec->date);
                 $min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
                 $min = round($min, 2);
+
                 $form->rec->changeAmountVat = key($cache->vats);
                 $form->setFieldTypeParams('changeAmount', array('min' => -1 * $min));
               ;
@@ -490,8 +497,6 @@ abstract class deals_InvoiceMaster extends core_Master
         foreach ($invArr as $field => $value) {
             $form->rec->{$field} = $value;
         }
-
-        $form->setDefault('date', dt::today());
         
         $form->setField('vatRate', 'input=hidden');
         $form->setField('deliveryId', 'input=none');
@@ -1638,9 +1643,12 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public function pushDealInfo($id, &$aggregator)
     {
+        $dealValior = $aggregator->get('agreedValior');
         $rec = $this->fetchRec($id);
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         $total = ($rec->type == 'credit_note') ? -1 * $total : $total;
+        $total = deals_Helper::getSmartBaseCurrency($total, $rec->valior, $dealValior);
+
         $dueDate = null;
         setIfNot($dueDate, $rec->dueDate, $rec->date);
         $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
@@ -1650,6 +1658,8 @@ abstract class deals_InvoiceMaster extends core_Master
         $aggregator->setIfNot('invoicedValior', $rec->date);
 
         if (isset($rec->dpAmount)) {
+            $dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->valior, $dealValior);
+
             $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
             if(isset($rec->dpVatGroupId)){
                 $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
@@ -1662,7 +1672,7 @@ abstract class deals_InvoiceMaster extends core_Master
             } elseif ($rec->dpOperation == 'deducted') {
 
                 // Колко е приспаднатото плащане с ддс
-                $deducted = $rec->type == 'dc_note' ? $rec->dpAmount : abs($rec->dpAmount);
+                $deducted = $rec->type == 'dc_note' ? $dpAmount : abs($dpAmount);
                 $vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($deducted) * $vat : 0;
                 $aggregator->sum('downpaymentDeducted', $deducted + $vatAmount);
                 $aggregator->sumByArrIndex('downpaymentDeductedByVats', $deducted + $vatAmount, $dpVatId);
@@ -1682,7 +1692,6 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         $Detail = $this->mainDetail;
-        
         $dQuery = $Detail::getQuery();
         $dQuery->where("#invoiceId = '{$rec->id}'");
         
@@ -1710,7 +1719,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $invoiced[] = $p;
             }
         }
-        
+
         $aggregator->set('invoicedProducts', $invoiced);
     }
     
@@ -1755,6 +1764,7 @@ abstract class deals_InvoiceMaster extends core_Master
             } else {
                 $price = $dRec->packPrice;
             }
+
             $price = round($price, 5);
 
             $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price, 'count' => $count, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId);

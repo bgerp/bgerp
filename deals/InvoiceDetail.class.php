@@ -199,6 +199,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $det->autoDiscount = null;
                 $det->inputDiscount = null;
                 $det->{$this->masterKey} = $id;
+                $det->price = deals_Helper::getSmartBaseCurrency($det->price, $dealInfo->get('agreedValior'), $invoiceRec->date);
+
                 $det->amount = $det->price * $det->quantity;
                 $det->quantity /= $det->quantityInPack;
                 if(is_array($det->batches) && countR($det->batches)){
@@ -236,10 +238,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
         }
 
-        $this->Master->logWrite("Зареждане на артикулите от договора", $invoiceRec->id);
+        $this->Master->logWrite("Зареждане на артикули от договора", $invoiceRec->id);
 
         // Редирект обратно към фактурата
-        return followRetUrl(null, '|Артикулите от сделката са копирани успешно');
+        followRetUrl(null, 'Артикулите от сделката са прехвърлени успешно|*!');
     }
     
     

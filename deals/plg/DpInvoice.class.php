@@ -175,7 +175,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $form->setField('dpVatGroupId', 'autohide');
         }
 
-        $downpayment = (empty($actualDp)) ? null : $actualDp;
+        $downpayment = (empty($actualDp)) ? null : round($actualDp, 2);
         $flag = true;
 
         $dpByVats = $form->dealInfo->get('downpaymentAccruedByVats');
@@ -194,8 +194,8 @@ class deals_plg_DpInvoice extends core_Plugin
             }
 
         } else {
-            $invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
-            $deductedDp = $form->dealInfo->get('downpaymentDeducted');
+            $invoicedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpaymentInvoiced'), $form->dealInfo->get('agreedValior'), $rec->valior);
+            $deductedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpaymentDeducted'), $form->dealInfo->get('agreedValior'), $rec->valior);
         }
 
         // Ако е проформа
@@ -206,7 +206,6 @@ class deals_plg_DpInvoice extends core_Plugin
             // Ако има проформа за аванс и няма таква за приспадане, тази приспада
             if ((!empty($accruedProformaRec) && empty($hasDeductedProforma)) || !empty($actualDp)) {
 
-                //$dpAmount = (($accruedProformaRec->dealValue - $accruedProformaRec->discountAmount)+ $accruedProformaRec->vatAmount);
                 $dpAmount = round($actualDp, 6);
                 $dpOperation = 'deducted';
                 $flag = false;
@@ -427,7 +426,9 @@ class deals_plg_DpInvoice extends core_Plugin
 
             if (!is_null($rec->dpAmount)) {
                 $rec->dpAmount = deals_Helper::getPurePrice($rec->dpAmount, $vat, $rec->rate, $rec->vatRate);
-                $rec->dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->_oldValior, $rec->date);
+                if(isset($rec->_recalcBaseCurrency)){
+                    $rec->dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->_oldValior, $rec->date);
+                }
 
                 if ($rec->vatRate == 'separate') {
                     $rec->dpAmount /= 1 + $vat;
