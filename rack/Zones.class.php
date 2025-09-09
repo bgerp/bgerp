@@ -1244,7 +1244,7 @@ class rack_Zones extends core_Master
             } else {
                 $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             }
-            bp($allocatedPallets);
+
             // Ако има генерирани движения се записват
             $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $batch, $storeId, $workerId, $currentZoneId);
 
