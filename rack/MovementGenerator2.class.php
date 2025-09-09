@@ -7,7 +7,6 @@
  * @package   rack
  *
  * @author    Ivelin Dimov
- * @copyright 2006 -
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -334,6 +333,9 @@ class rack_MovementGenerator2 extends core_Manager
             }
         }
 
+        // Консолидация: слей движенията по палет → зона (за да няма по две/повече за един и същи ключ)
+        $res = self::consolidateMoves($res);
+
         Mode::pop('pickupStoreId');
         return $res;
     }
@@ -389,7 +391,7 @@ class rack_MovementGenerator2 extends core_Manager
             $timeReturn= rack_Setup::get('TIME_RETURN');
         }
 
-        // Склад и минимален остатък (процентно правило, 0 = OFF)
+        // Склад и минимален остатък (процентно правило, 0..1; 0 = OFF)
         $sessionStoreId = Mode::get('pickupStoreId');
         if (!$sessionStoreId) {
             $sessionStoreId = store_Stores::getCurrent();
@@ -629,26 +631,20 @@ class rack_MovementGenerator2 extends core_Manager
         return $res;
     }
 
-
     /**
-     * Минимален остатък (брой единици) според ДРОБЕН дял от пълен палет за склада.
-     * minKeepPct ∈ [0, 1], където 0 => правилото е изключено.
-     * Защита: горна граница 0.8 (80%), за да не блокира пика изцяло.
+     * Минимален остатък (брой единици) според ДРОБЕН дял (0..1) от пълен палет за склада.
+     * 0 => правилото е изключено; горна граница 0.8 (80%), за да не блокира пик.
      */
     private static function getMinKeepQty($storeId, $qInPallet)
     {
         if (!$storeId || $qInPallet <= 0) return 0.0;
 
-        // minKeepPct е дроб между 0 и 1 (пример: 0.10 = 10%)
-        $pct = (float) store_Stores::fetchField($storeId, 'minKeepPct'); // 0..1
+        $pct = (float)store_Stores::fetchField($storeId, 'minKeepPct'); // 0..1
         if ($pct <= 0) return 0.0;
-
-        // ограничаваме в разумни граници (макс 0.8 = 80%)
         if ($pct > 0.8) $pct = 0.8;
 
         return $qInPallet * $pct;
     }
-
 
     /**
      * Чете preferOldest от склада; default TRUE (FIFO), освен ако изрично е 'no'
@@ -728,5 +724,76 @@ class rack_MovementGenerator2 extends core_Manager
         $v = round((float)$v, $precision);
         if (abs($v) < $eps) return 0.0;
         return $v;
+    }
+
+    /**
+     * Сливане на движения по ключ (палет → зона); quantity е сборът към зоните;
+     * ret се акумулира, retPos запазва последната ненулева. Премахва празните.
+     */
+    private static function consolidateMoves($moves)
+    {
+        $byPallet = array();
+
+        foreach ((array)$moves as $m) {
+            if (empty($m) || !isset($m->pallet)) continue;
+
+            $pallet = $m->pallet;
+            if (!isset($byPallet[$pallet])) {
+                $byPallet[$pallet] = (object) array(
+                    'pallet' => $pallet,
+                    'zones'  => array(),
+                    'quantity' => 0.0,
+                    'ret' => null,
+                    'retPos' => null,
+                );
+            }
+
+            // акумулирай по зони
+            if (!empty($m->zones)) {
+                foreach ($m->zones as $zId => $q) {
+                    $q = self::ffix($q);
+                    if ($q <= 0) continue;
+                    if (!isset($byPallet[$pallet]->zones[$zId])) {
+                        $byPallet[$pallet]->zones[$zId] = 0.0;
+                    }
+                    $byPallet[$pallet]->zones[$zId] = self::ffix($byPallet[$pallet]->zones[$zId] + $q);
+                }
+            }
+
+            // ret/retPos
+            if (!empty($m->ret)) {
+                $byPallet[$pallet]->ret = self::ffix((float)$byPallet[$pallet]->ret + (float)$m->ret);
+                if (!empty($m->retPos)) {
+                    $byPallet[$pallet]->retPos = $m->retPos;
+                }
+            }
+        }
+
+        // финализиране
+        $out = array();
+        foreach ($byPallet as $p => $mm) {
+            // чисти ~0 по зони
+            foreach ($mm->zones as $zId => $q) {
+                $q = self::ffix($q);
+                if ($q <= 0) {
+                    unset($mm->zones[$zId]);
+                } else {
+                    $mm->zones[$zId] = $q;
+                }
+            }
+
+            // quantity = сбор към зоните
+            $qty = 0.0;
+            foreach ($mm->zones as $q) $qty += $q;
+            $mm->quantity = self::ffix($qty);
+
+            if (empty($mm->zones) && empty($mm->ret)) {
+                continue;
+            }
+
+            $out[] = $mm;
+        }
+
+        return $out;
     }
 }
