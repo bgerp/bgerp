@@ -77,8 +77,8 @@
                         </div>
                     </td>
                     <!--ET_END amountDeal-->
-                    <td style='padding-left:10px; padding-top: 10px;'>
-                        <div><span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span></div>
+                    <td style='padding-left:10px; padding-top: 10px;width: 25%'>
+                        <table class="no-border fright"><tr><td style='font-size:20px'>|Сума|*:</td><td class='amount' style="margin-right: 0"><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></td></tr></table>
                     </td>
                 </tr>
                 <tr>
