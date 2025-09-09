@@ -57,7 +57,7 @@ class cms_FancyTheme extends core_ProtoInner
 
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
-        $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (500х120px)->Изображение 1');
+        $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (600х120px)->Изображение 1');
         $form->FLD('title', 'varchar(14)', 'caption=Заглавие на сайта->Име на фирмата');
         $form->FLD('subtitle', 'varchar(50)', 'caption=Заглавие на сайта->Подзаглавие');
         $form->FLD('titleColor', 'color_Type', 'caption=Заглавие на сайта->Цвят');
@@ -332,7 +332,7 @@ class cms_FancyTheme extends core_ProtoInner
                 if (!Mode::is('screenMode', 'narrow')) {
                     $img = new thumb_Img(array($img, 1400, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 } else {
-                    $img = new thumb_Img(array($img, 360, 104, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($img, 600, 120, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 }
                 $imageURL = $img->getUrl('forced');
                 $this->haveOwnHeaderImages = true;
