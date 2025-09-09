@@ -67,16 +67,30 @@ class zxcvbn_Plugin extends core_Plugin
                     var val = el.value;
                     if (val) {
                         disableElVal = true;
-                        passColor = 'red';
+                        var passColor = 'red'; 
                         var zxcvbnRes = zxcvbn(val);
-                        if (zxcvbnRes.score < {$minPoints}) {
+                        var score = zxcvbnRes.score;
+                
+                        // Базови цветове по нива
+                        var colors = {
+                            0: '#8B0000', // много слаба
+                            1: '#FF4500', // слаба
+                            2: '#FFD700', // средна
+                            3: '#9ACD32', // добра
+                            4: '#008000'  // много добра
+                        };
+                        
+                        if (score >= {$minPoints}) {
+                            passColor = colors[4];
+                            disableElVal = false;
+                        } else {
+                            passColor = colors[score] || colors[0];
                             if (showWarning) {
                                 alert('{$warningTxt}');
                             }
-                        } else {
-                            passColor = 'green';
-                            disableElVal = false;
+                            disableElVal = true;
                         }
+                        
                         if (el.classList.contains('colorPass')) {
                             el.style.backgroundColor = passColor;
                         }

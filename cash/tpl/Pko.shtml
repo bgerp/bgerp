@@ -81,11 +81,13 @@
                         </div>
                     </td>
                     <!--ET_END amountDeal-->
-                    <td style='padding-left:10px; padding-top: 10px;' class="nowrap">
-                        <table class="no-border"><tr><td style='font-size:20px'>|Сума|*:</td><td class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></td></tr></table>
+                    <td style='padding-left:10px; padding-top: 10px; width: 25%' class="nowrap">
+                        <table class="no-border fright"><tr><td style='font-size:20px'>|Сума|*:</td><td class='amount' style="margin-right: 0"><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></td></tr></table>
                         <!--ET_BEGIN cash_NonCashPaymentDetails-->
-                        <hr style="margin-left: -7px;"/>
+                        <hr style="margin-left: -7px; clear:both;"/>
+                        <table class="no-border fright">
                         [#cash_NonCashPaymentDetails#]
+                        </table>
                         <!--ET_END cash_NonCashPaymentDetails-->
                     </td>
                 </tr>
