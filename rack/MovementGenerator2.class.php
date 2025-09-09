@@ -7,7 +7,6 @@
  * @package   rack
  *
  * @author    Ivelin Dimov
- * @copyright 2006 - …
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -47,10 +46,11 @@ class rack_MovementGenerator2 extends core_Manager
         $form->FLD('packagings', 'table(columns=packagingId|quantity,captions=Опаковка|Количество,widths=8em|8em)', 'caption=Опаковки,mandatory');
         $form->FLD('smallZonesPriority', 'enum(yes=Да,no=Не)', 'caption=Приоритетност на малките количества->Избор');
 
-        $packOptions = array('' => '') + cat_UoM::getPackagingOptions() + cat_UoM::getUomOptions();
-        $form->setFieldTypeParams('packagings', array('packagingId_opt' => $packOptions));
+        $packOptions  = array('' => '') + cat_UoM::getPackagingOptions() + cat_UoM::getUomOptions();
         $createdOnOpt = array(dt::addDays(-4), dt::addDays(-3), dt::addDays(-2), dt::addDays(-1), dt::addDays(1), dt::now());
         $createdOnOpt = array('' => '') + arr::make($createdOnOpt, true);
+
+        $form->setFieldTypeParams('packagings', array('packagingId_opt' => $packOptions));
         $form->setFieldTypeParams('pallets', array('createdOn_opt' => $createdOnOpt));
 
         $form->toolbar = cls::get('core_Toolbar');
@@ -62,9 +62,9 @@ class rack_MovementGenerator2 extends core_Manager
         $mArr = array();
 
         if ($form->isSubmitted()) {
-            $pArr   = json_decode($rec->pallets);
-            $qArr   = json_decode($rec->zones);
-            $packArr= json_decode($rec->packagings);
+            $pArr    = json_decode($rec->pallets);
+            $qArr    = json_decode($rec->zones);
+            $packArr = json_decode($rec->packagings);
 
             foreach ($pArr->pallet as $i => $key) {
                 if ($pArr->quantity[$i]) {
@@ -76,12 +76,14 @@ class rack_MovementGenerator2 extends core_Manager
                     );
                 }
             }
+
             foreach ($qArr->zone as $i => $key) {
                 if ($qArr->quantity[$i]) {
                     $qVerbal = core_Type::getByName('double')->fromVerbal($qArr->quantity[$i]);
                     $q[$key] = $qVerbal;
                 }
             }
+
             foreach ($packArr->packagingId as $i => $key) {
                 if ($packArr->quantity[$i]) {
                     $packs[] = (object) array('packagingId' => $key, 'quantity' => $packArr->quantity[$i]);
@@ -130,17 +132,22 @@ class rack_MovementGenerator2 extends core_Manager
             $preferOldest = self::getPreferOldest($sid);
         }
 
-        $sumZ = array_sum($zones);
+        $sumZ  = array_sum($zones);
         $scale = 1;
 
         if ($scale > 1000000) {
             return false;
         }
 
+        // Скалиране + нормализация на зоните (без ~0 стойности)
         foreach ($zones as $zI => $zQ) {
-            $zones[$zI] *= $scale;
+            $zones[$zI] = self::ffix($zones[$zI] * $scale);
+            if ($zones[$zI] <= 0) {
+                unset($zones[$zI]);
+            }
         }
 
+        // Сортираме опаковките
         asort($packaging);
         $palletId = cat_UoM::fetchBySysId('pallet')->id;
 
@@ -195,7 +202,8 @@ class rack_MovementGenerator2 extends core_Manager
             foreach ($zones as $zI => $zQ) {
                 $sumP -= $zQ;
                 if ($sumP < 0) {
-                    $zones[$zI] += $sumP;
+                    $zones[$zI] = self::ffix($zones[$zI] + $sumP);
+                    if ($zones[$zI] <= 0) unset($zones[$zI]);
                     $sumP = 0;
                 }
             }
@@ -241,10 +249,12 @@ class rack_MovementGenerator2 extends core_Manager
                                 'zones'    => array($zId => $qInPallet),
                             );
 
-                            $pArr[$p] -= $qInPallet;
-                            if ($pArr[$p] == 0) unset($pArr[$p]);
-                            $zones[$zId] -= $qInPallet;
-                            if ($zones[$zId] == 0) unset($zones[$zId]);
+                            $pArr[$p]   = self::ffix($pArr[$p] - $qInPallet);
+                            if ($pArr[$p] <= 0) unset($pArr[$p]);
+
+                            $zones[$zId] = self::ffix($zones[$zId] - $qInPallet);
+                            if ($zones[$zId] <= 0) unset($zones[$zId]);
+
                             $n--;
                         }
                     }
@@ -317,9 +327,14 @@ class rack_MovementGenerator2 extends core_Manager
 
         if (is_array($bestMove)) {
             foreach ($bestMove as $m) {
+                // Пази изхода чист: няма празни движения
+                if (empty($m->zones) && empty($m->ret)) continue;
                 $res[] = $m;
             }
         }
+
+        // Консолидация: слей движенията по палет → зона (за да няма по две/повече за един и същи ключ)
+        $res = self::consolidateMoves($res);
 
         Mode::pop('pickupStoreId');
         return $res;
@@ -376,7 +391,7 @@ class rack_MovementGenerator2 extends core_Manager
             $timeReturn= rack_Setup::get('TIME_RETURN');
         }
 
-        // Склад и минимален остатък (процентно правило, 0 = OFF)
+        // Склад и минимален остатък (процентно правило, 0..1; 0 = OFF)
         $sessionStoreId = Mode::get('pickupStoreId');
         if (!$sessionStoreId) {
             $sessionStoreId = store_Stores::getCurrent();
@@ -396,9 +411,9 @@ class rack_MovementGenerator2 extends core_Manager
 
             $o = $moves[$i] = (object) array(
                 'pallet'   => $allPallets[$pI]->position,
-                'quantity' => $pQ,
+                'quantity' => $pQ,      // ще бъде пренастроено на реално "picked"
                 'zones'    => array(),
-                'pQ'       => $pQ,
+                'pQ'       => $pQ,      // изходно количество на палета
             );
 
             foreach ($zK as $zI) {
@@ -415,21 +430,36 @@ class rack_MovementGenerator2 extends core_Manager
                 if ($available <= 0.0) continue;
 
                 $q = min($zQ, $available);
+                $q = self::ffix($q);
+                if ($q <= 0) continue; // не добавяме ~0 по зоната
 
                 $o->zones[$zI] = $q;
 
-                $pQ = $p[$pI] -= $q;
-                $zQ = $z[$zI] -= $q;
+                // актуализираме източника и зоната
+                $p[$pI] = self::ffix($p[$pI] - $q);
+                $z[$zI] = self::ffix($z[$zI] - $q);
+                $pQ     = $p[$pI];
+                $zQ     = $z[$zI];
 
-                if ($p[$pI] == 0) unset($p[$pI]);
-                if ($z[$zI] == 0) unset($z[$zI]);
+                if ($p[$pI] <= 0) unset($p[$pI]);
+                if ($z[$zI] <= 0) unset($z[$zI]);
+            }
+
+            // реално взетото към зони
+            $picked = self::ffix($o->pQ - $pQ);
+            $o->quantity = $picked;
+
+            // Ако няма взето към зони и няма „връщане“ – не пазим движение
+            if ($picked <= 0 && empty($o->ret)) {
+                unset($moves[$i]);
+                continue;
             }
 
             if ($pQ) {
                 // Ако връщаме над 1/3 от пълен палет, по-добре да вземем само нужното
                 if (isset($qInPallet) && $pQ > $qInPallet / 3) {
-                    $o->quantity = $o->quantity - $pQ;
-                    $o->partial = true;
+                    $o->quantity = self::ffix($o->quantity); // вече е picked
+                    $o->partial  = true;
                 } else {
                     $p[$pI] = 0;
                     $o->ret = $pQ;
@@ -461,19 +491,25 @@ class rack_MovementGenerator2 extends core_Manager
                 // Ако връщаме на същото място – по-добре да не връщаме, а да вземем по-малко
                 if (isset($o->retPos) && ($o->retPos == $o->pallet) && $o->ret > 0) {
                     if (!isset($qInPallet) || $qInPallet != $o->quantity || $o->ret < 0.20 * $qInPallet || $o->ret > 0.80 * $qInPallet) {
-                        $o->quantity = $o->quantity - $o->ret;
+                        $o->quantity = self::ffix($o->quantity - $o->ret);
+                        // възстановяваме палета
                         $p[$pI] = $o->ret;
                         $o->ret = $o->retPos = null;
                     }
                 }
             }
 
-            $o->quantity = round($o->quantity, 6);
+            $o->quantity = self::ffix($o->quantity);
             $i++;
         }
 
         // Оценка на движенията
         foreach ($moves as $m) {
+            // прескачаме празни движения (без зони и без връщане)
+            if (empty($m->zones) && empty($m->ret)) {
+                continue;
+            }
+
             // Вземане
             $rate += ($a = self::isFirstRow($m->pallet) ? $timeGetA : $timeGet);
             $m->timeTake = $a;
@@ -488,6 +524,7 @@ class rack_MovementGenerator2 extends core_Manager
             $q = $m->quantity;
             if (!empty($m->zones)) {
                 foreach ($m->zones as $zI => $zQ) {
+                    if ($zQ <= 0) continue;
                     $rate += $timeZone;
                     $m->zonesTimes[$zI] = $timeZone;
                     if ($q != $zQ) {
@@ -514,7 +551,6 @@ class rack_MovementGenerator2 extends core_Manager
     private static function timeToCount($s, $d, $packs)
     {
         $sec = rack_Setup::get('TIME_COUNT');
-
         krsort($packs);
 
         $sTemp = $s;
@@ -542,7 +578,6 @@ class rack_MovementGenerator2 extends core_Manager
         }
 
         $sI = $dI = $i;
-
         $maxTries = 10;
         $try = 1;
         $res = 0;
@@ -597,18 +632,18 @@ class rack_MovementGenerator2 extends core_Manager
     }
 
     /**
-     * Минимален остатък (брой единици) според % от пълен палет за склада.
-     * 0 => правилото е изключено.
+     * Минимален остатък (брой единици) според ДРОБЕН дял (0..1) от пълен палет за склада.
+     * 0 => правилото е изключено; горна граница 0.8 (80%), за да не блокира пик.
      */
     private static function getMinKeepQty($storeId, $qInPallet)
     {
         if (!$storeId || $qInPallet <= 0) return 0.0;
 
-        $pct = (float)store_Stores::fetchField($storeId, 'minKeepPct'); // 0..80, 0 => OFF
+        $pct = (float)store_Stores::fetchField($storeId, 'minKeepPct'); // 0..1
         if ($pct <= 0) return 0.0;
-        if ($pct > 80.0) $pct = 80.0;
+        if ($pct > 0.8) $pct = 0.8;
 
-        return $qInPallet * ($pct / 100.0);
+        return $qInPallet * $pct;
     }
 
     /**
@@ -678,5 +713,87 @@ class rack_MovementGenerator2 extends core_Manager
         }
 
         return $res;
+    }
+
+    /**
+     * Нормализиране на float: закръгля и клампва близо до 0
+     */
+    private static function ffix($v, $precision = 6)
+    {
+        $eps = pow(10, -$precision);
+        $v = round((float)$v, $precision);
+        if (abs($v) < $eps) return 0.0;
+        return $v;
+    }
+
+    /**
+     * Сливане на движения по ключ (палет → зона); quantity е сборът към зоните;
+     * ret се акумулира, retPos запазва последната ненулева. Премахва празните.
+     */
+    private static function consolidateMoves($moves)
+    {
+        $byPallet = array();
+
+        foreach ((array)$moves as $m) {
+            if (empty($m) || !isset($m->pallet)) continue;
+
+            $pallet = $m->pallet;
+            if (!isset($byPallet[$pallet])) {
+                $byPallet[$pallet] = (object) array(
+                    'pallet' => $pallet,
+                    'zones'  => array(),
+                    'quantity' => 0.0,
+                    'ret' => null,
+                    'retPos' => null,
+                );
+            }
+
+            // акумулирай по зони
+            if (!empty($m->zones)) {
+                foreach ($m->zones as $zId => $q) {
+                    $q = self::ffix($q);
+                    if ($q <= 0) continue;
+                    if (!isset($byPallet[$pallet]->zones[$zId])) {
+                        $byPallet[$pallet]->zones[$zId] = 0.0;
+                    }
+                    $byPallet[$pallet]->zones[$zId] = self::ffix($byPallet[$pallet]->zones[$zId] + $q);
+                }
+            }
+
+            // ret/retPos
+            if (!empty($m->ret)) {
+                $byPallet[$pallet]->ret = self::ffix((float)$byPallet[$pallet]->ret + (float)$m->ret);
+                if (!empty($m->retPos)) {
+                    $byPallet[$pallet]->retPos = $m->retPos;
+                }
+            }
+        }
+
+        // финализиране
+        $out = array();
+        foreach ($byPallet as $p => $mm) {
+            // чисти ~0 по зони
+            foreach ($mm->zones as $zId => $q) {
+                $q = self::ffix($q);
+                if ($q <= 0) {
+                    unset($mm->zones[$zId]);
+                } else {
+                    $mm->zones[$zId] = $q;
+                }
+            }
+
+            // quantity = сбор към зоните
+            $qty = 0.0;
+            foreach ($mm->zones as $q) $qty += $q;
+            $mm->quantity = self::ffix($qty);
+
+            if (empty($mm->zones) && empty($mm->ret)) {
+                continue;
+            }
+
+            $out[] = $mm;
+        }
+
+        return $out;
     }
 }
