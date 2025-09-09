@@ -1770,7 +1770,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $vats = $cacheIds = array();
         $Detail = $this->mainDetail;
         $query = $Detail::getQuery();
-        $docRec = $document->fetch('dpAmount,dpVatGroupId,vatRate,rate,date');
+        $docRec = $document->fetch('dpAmount,dpVatGroupId,vatRate,rate,date,currencyId');
 
         $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
         $query->orderBy('id', 'ASC');
@@ -1800,7 +1800,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $vats["{$v}"] = $v;
         }
 
-        $res = (object) array('vats' => $vats, 'recWithIds' => $cacheIds, 'date' => $docRec->date);
+        $res = (object) array('vats' => $vats, 'recWithIds' => $cacheIds, 'date' => $docRec->date, 'currencyId' => $docRec->currencyId);
 
         return $res;
     }
