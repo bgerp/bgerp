@@ -181,8 +181,8 @@ class deals_plg_DpInvoice extends core_Plugin
         $dpByVats = $form->dealInfo->get('downpaymentAccruedByVats');
         if(countR($dpByVats)){
             $dpVatGroupId =  isset($form->rec->dpVatGroupId) ? $form->rec->dpVatGroupId : key($dpByVats);
+            $invoicedDp = deals_Helper::getSmartBaseCurrency($dpByVats[$dpVatGroupId], $form->dealInfo->get('agreedValior'), $rec->valior);
 
-            $invoicedDp = $dpByVats[$dpVatGroupId];
             $dpDeductedByVats = $form->dealInfo->get('downpaymentDeductedByVats');
             $deductedDp = $dpDeductedByVats[$dpVatGroupId];
 
@@ -192,7 +192,6 @@ class deals_plg_DpInvoice extends core_Plugin
                     $form->setDefault('dpVatGroupId', key($dpByVats));
                 }
             }
-
         } else {
             $invoicedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpaymentInvoiced'), $form->dealInfo->get('agreedValior'), $rec->valior);
             $deductedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpaymentDeducted'), $form->dealInfo->get('agreedValior'), $rec->valior);
@@ -228,7 +227,6 @@ class deals_plg_DpInvoice extends core_Plugin
                     $form->_expectedDownpaymentReduction = true;
                 }
             } else {
-                
                 // Ако няма фактуриран аванс
                 if (empty($invoicedDp)) {
                     if ($flag === true) {
@@ -237,7 +235,6 @@ class deals_plg_DpInvoice extends core_Plugin
                         $dpOperation = 'accrued';
                     }
                 } else {
-
                     // Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
                     $dpAmount = $invoicedDp - $deductedDp;
                     $dpOperation = 'deducted';

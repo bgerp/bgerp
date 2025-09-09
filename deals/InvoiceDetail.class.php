@@ -300,7 +300,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
                     $quantityArr = $cached->recWithIds[$dRec->clonedFromDetailId];
                     $originPrice = deals_Helper::getDisplayPrice($quantityArr['price'], 0, 1, 'no', 5);
-                    if($rec->currencyId != $cached->currencyId){
+                    if(in_array($rec->currencyId, array('BGN', "EUR"))){
                         $originPrice = deals_Helper::getSmartBaseCurrency($originPrice, $cached->date, $rec->date);
                     }
                     $diffPrice = $dRec->packPrice - $originPrice;

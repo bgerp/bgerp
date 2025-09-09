@@ -1256,6 +1256,9 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             $rec->currencyId = acc_Periods::getBaseCurrencyCode($rec->date);
+        }
+
+        if(in_array($rec->currencyId, array('EUR', 'BGN'))){
             $rec->rate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
             $rec->displayRate = $rec->rate;
         }

@@ -258,8 +258,11 @@ abstract class store_DocumentMaster extends core_Master
                         $rec->_oldValior = $rec->_oldValior ?? dt::today();
                     }
                     $rec->currencyId = $valiorBaseCurrencyId;
-                    $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
                 }
+            }
+
+            if(in_array($form->dealInfo->get('currency'), array('EUR', 'BGN'))){
+                $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
             }
 
             // Ако има локация и тя е различна от договорената, слагаме предупреждение
@@ -508,7 +511,7 @@ abstract class store_DocumentMaster extends core_Master
                     $shipProduct->packagingId = $product->packagingId;
                     $shipProduct->quantity = $toShip;
                     $shipProduct->price = $price;
-                    if($rec->currencyId != $aggregatedDealInfo->get('currency')) {
+                    if(in_array($aggregatedDealInfo->get('currency'), array('BGN', "EUR"))) {
                         $shipProduct->price = deals_Helper::getSmartBaseCurrency($shipProduct->price, $aggregatedDealInfo->get('agreedValior'), $rec->valior);
                     }
                     $shipProduct->discount = $discount;
