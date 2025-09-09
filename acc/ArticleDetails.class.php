@@ -351,7 +351,10 @@ class acc_ArticleDetails extends doc_Detail
         if (!$dimensional && !$quantityOnly) {
             $form->setField('amount', 'mandatory');
         }
-        
+
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($masterRec->valior);
+        $form->setField('amount', "unit={$baseCurrencyCode}");
+
         // Добавя списък с предложения за счетоводната операция
         $reasonSuggestions = array('' => '');
         $oQuery = acc_Operations::getQuery();

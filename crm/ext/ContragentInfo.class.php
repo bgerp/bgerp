@@ -207,7 +207,7 @@ class crm_ext_ContragentInfo extends core_manager
                 if (isset($cInfo->{$amountFld})) {
                     $row->{$amountFld} = core_Type::getByName('double(decimals=2)')->toVerbal($cInfo->{$amountFld});
                     if ($fields['-single']) {
-                        $row->{$amountFld} = currency_Currencies::decorate($row->{$amountFld}, $baseCurrencyCode);
+                        $row->{$amountFld} = currency_Currencies::decorate($row->{$amountFld}, $baseCurrencyCode, true);
                     }
 
                     if(!haveRole('ceo,seePriceSale') || haveRole('noPrice')){
