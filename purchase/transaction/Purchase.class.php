@@ -470,7 +470,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getBlAmount($jRecs, $id)
     {
         $itemRec = acc_items::fetchItem('purchase_Purchases', $id);
-        $valior = sales_Sales::fetchField($id, 'valior');
+        $valior = purchase_Purchases::fetchField($id, 'valior');
         $paid = acc_Balances::getBlAmounts($jRecs, '401', null, null, array(null, $itemRec->id, null), array(), $valior)->amount;
         $paid += acc_Balances::getBlAmounts($jRecs, '402', null, null, array(null, $itemRec->id, null), array(), $valior)->amount;
         
@@ -484,7 +484,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getDeliveryAmount($jRecs, $id)
     {
         $itemRec = acc_items::fetchItem('purchase_Purchases', $id);
-        $valior = sales_Sales::fetchField($id, 'valior');
+        $valior = purchase_Purchases::fetchField($id, 'valior');
         $delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit', null, array(null, $itemRec->id, null), array(), $valior)->amount;
         $delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912', array(), array(store_ShipmentOrders::getClassId()), $valior)->amount;
         
