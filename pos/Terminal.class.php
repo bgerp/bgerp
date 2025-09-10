@@ -1956,7 +1956,9 @@ class pos_Terminal extends peripheral_Terminal
             $groupTabArr[$groupId] = cat_Groups::getVerbal($groupId, 'name');
         }
         Mode::pop('treeShortName');
-        $groupTabArr['similar'] = tr('Свързани');
+        if($settings->productBtnTpl != 'rows'){
+            $groupTabArr['similar'] = tr('Свързани');
+        }
         if (Mode::get('screenMode') == 'narrow' && countR($groupsTable) > 3) {
             $resultTpl = new core_ET("<div class='tabs productTabs'><select style='width: 90%' class='tabHolder'>[#TAB#]</select></div>");
         } else {
@@ -2027,10 +2029,12 @@ class pos_Terminal extends peripheral_Terminal
             } else {
                 $pTpl = new core_ET("<div class='grid {$settings->productBtnTpl}'>[#RES#]</div>");
                 if(isset($rec->_selectedGroupId)){
-                    $orderByGroup = $groupRecs[$rec->_selectedGroupId]->orderProductByInPos;
-                    $orderField = $orderByGroup == 'name' ? 'productId' : ($orderByGroup == 'code' ? 'code' : 'rating');
-                    $orderByDir = $orderField == 'rating' ? 'DESC' : 'ASC';
-                    arr::sortObjects($productRows, $orderField, $orderByDir);
+                    if(!in_array($rec->_selectedGroupId, array('all', 'similar'))){
+                        $orderByGroup = $groupRecs[$rec->_selectedGroupId]->orderProductByInPos;
+                        $orderField = $orderByGroup == 'name' ? 'productId' : ($orderByGroup == 'code' ? 'code' : 'rating');
+                        $orderByDir = $orderField == 'rating' ? 'DESC' : 'ASC';
+                        arr::sortObjects($productRows, $orderField, $orderByDir);
+                    }
                 }
 
                 foreach ($productRows as $row){
@@ -2115,6 +2119,7 @@ class pos_Terminal extends peripheral_Terminal
                 } else {
                     $pQuery->where("1=2");
                 }
+
             } elseif(is_numeric($rec->_selectedGroupId)){
                 plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->_selectedGroupId, 'productId');
             } else {

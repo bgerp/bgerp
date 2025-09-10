@@ -528,19 +528,24 @@ select.tabHolder {
     overflow: hidden; }
   .grid.pictureAndText .element .short-title,
   .grid.rows .element .short-title {
-    height: 20px;
+    height: 44px;
     text-align: center;
     padding: 2px 0;
     overflow: hidden;
     font-size: 0.95em;
     box-sizing: border-box;
-    margin-bottom: 2px; }
+    margin-bottom: 2px;
+    background-color: white; }
     .grid.pictureAndText .element.noPhoto .short-title,
     .grid.rows .element.noPhoto .short-title {
       height: 100%;
       font-size: 1.25em;
       max-height: 133px;
-      overflow: hidden; }
+      overflow: hidden;
+      align-items: center;
+      display: flex;
+      justify-content: center;
+      text-align: center; }
     .grid.pictureAndText .element.noPhoto .photo,
     .grid.rows .element.noPhoto .photo {
       display: none; }
