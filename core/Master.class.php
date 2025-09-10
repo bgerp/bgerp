@@ -787,9 +787,10 @@ class core_Master extends core_Manager
         
         // Ако е подадено името на полето
         if ($fieldName) {
-            
+            $rec = self::fetchRec($id);
+
             // Вземаме вербалното име
-            $name = $me->getVerbal($id, $fieldName);
+            $name = $me->getVerbal($rec, $fieldName);
         } else {
             
             // Генерираме име
