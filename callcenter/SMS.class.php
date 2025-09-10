@@ -1069,7 +1069,7 @@ class callcenter_SMS extends core_Master
             }
             
             // Генерираме информационни съобщения
-            if ($send) {
+            if ($sendCnt) {
                 $msg = "|Изпратени съобщения|*: {$sendCnt}";
             } else {
                 $msg = '|Не е изпратено нито едно съобщение';
