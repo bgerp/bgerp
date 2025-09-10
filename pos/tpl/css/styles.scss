@@ -619,13 +619,15 @@ select.tabHolder {
 		align-items: center;overflow: hidden;
 	}
 	.short-title {
-		height: 20px;
+		height: 42px;
 		text-align: center;
 		padding: 2px 0;
 		overflow: hidden;
 		font-size: 0.95em;
 		box-sizing: border-box;
 		margin-bottom: 2px;
+		background-color: #fff;
+
 	}
 	&.noPhoto {
 		.short-title {
@@ -633,6 +635,10 @@ select.tabHolder {
 			font-size: 1.25em;
 			max-height: 133px;
 			overflow: hidden;
+			align-items: center;
+			display: flex;
+			justify-content: center;
+			text-align: center;
 		}
 		.photo {
 			display: none;
