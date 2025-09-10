@@ -887,7 +887,7 @@ class sales_Sales extends deals_DealMaster
         $agreed = deals_Helper::normalizeProducts(array($agreed2));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);
-        $shippedProducts = sales_transaction_Sale::getShippedProducts($entries);
+        $shippedProducts = sales_transaction_Sale::getShippedProducts($entries, $rec);
 
         // Ако има експедирани артикули и е инсталиран пакета за партиди
         if(core_Packs::isInstalled('batch') && countR($shippedProducts) && !Mode::is('onlySimpleDealInfo')){
@@ -1701,7 +1701,7 @@ class sales_Sales extends deals_DealMaster
         // Взимаме артикулите от сметка 701
         $products = array();
         $entries = sales_transaction_Sale::getEntries($rec->id);
-        $shipped = sales_transaction_Sale::getShippedProducts($entries);
+        $shipped = sales_transaction_Sale::getShippedProducts($entries, $rec);
 
         if (countR($shipped)) {
             foreach ($shipped as $ship) {

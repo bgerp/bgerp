@@ -432,7 +432,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($jRecs, $accs = '703,706,701')
+    public static function getShippedProducts($jRecs, $rec, $accs = '703,706,701')
     {
         $res = array();
         
@@ -445,7 +445,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         }
         
         foreach ($dInfo->recs as $p) {
-             
+
              // Обикаляме всяко перо
             foreach (range(1, 3) as $i) {
                 if (isset($p->{"creditItem{$i}"})) {
@@ -460,8 +460,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                         if (empty($res[$index])) {
                             $res[$index] = $obj;
                         }
-                        
-                        $res[$index]->amount += $p->amount;
+
+                        $res[$index]->amount += deals_Helper::getSmartBaseCurrency($p->amount, $p->valior, $rec->valior);
                         $res[$index]->quantity += $p->creditQuantity;
                     }
                 }

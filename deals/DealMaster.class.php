@@ -2982,7 +2982,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $TransactionClassName =  ($mvc instanceof sales_Sales) ? 'sales_transaction_Sale' : 'purchase_transaction_Purchase';
             $field =  ($mvc instanceof sales_Sales) ? 'quantityOut' : 'quantityIn';
             $entries = $TransactionClassName::getEntries($rec->id);
-            $shipped = ($mvc instanceof sales_Sales) ? $TransactionClassName::getShippedProducts($entries, '321') : $TransactionClassName::getShippedProducts($entries, $rec->id, '321');
+            $shipped = ($mvc instanceof sales_Sales) ? $TransactionClassName::getShippedProducts($entries, $rec, '321') : $TransactionClassName::getShippedProducts($entries, $rec->id, '321');
 
             $shippedProducts = arr::extractValuesFromArray($shipped, 'productId');
             $plannedProducts = arr::extractValuesFromArray($res, 'productId');

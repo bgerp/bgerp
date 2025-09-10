@@ -688,7 +688,7 @@ abstract class deals_InvoiceMaster extends core_Master
             
             return;
         }
-        
+
         // И няма детайли
         $Detail = cls::get($mvc->mainDetail);
         if ($Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) {
