@@ -82,7 +82,7 @@ class cms_Feeds extends core_Manager
         $this->FLD('type', 'enum(rss=RSS,rss2=RSS 2.0,atom=ATOM)', 'caption=Тип, notNull, mandatory');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         $this->FLD('maxItems', 'int', 'caption=Максимално, mandatory, notNull');
-        $this->FLD('data', 'blob(serialize,compress)', 'caption=Информация за продукта,input=none');
+        $this->FLD('data', 'blob(serialize,compress)', 'caption=Информация за продукта,input=none,tdClass=td-clamp');
         
         // Определяме уникален индекс
         $this->setDbUnique('title, type');

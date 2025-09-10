@@ -79,7 +79,7 @@ class change_History extends core_Manager
         $this->FLD('objectId', 'int', 'caption=Документ->Обект,tdClass=leftCol,silent');
         $this->FLD('validFrom', 'datetime(format=d.m.y H:i:s)', 'caption=Дата->От');
         $this->FLD('validTo', 'datetime(format=d.m.y H:i:s)', 'caption=Дата->До');
-        $this->FLD('data', 'blob(serialize, compress)', 'caption=Версия');
+        $this->FLD('data', 'blob(serialize, compress)', 'caption=Версия,tdClass=td-clamp');
         $this->FLD('state', 'enum(active=Активен,rejected=Оттеглен)', 'caption=Състояние,notNull=active');
 
         $this->setDbIndex('classId,objectId');

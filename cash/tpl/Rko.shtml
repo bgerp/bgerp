@@ -39,7 +39,7 @@
             <div class='lines'></div>
             <table border='1px' cellpadding='5px'  class='border-table'>
                 <tr>
-                    <td class='aleft' style='padding-top: 10px;width:67%;'>
+                    <td class='aleft' style='padding-top: 10px;'>
                         <!--ET_BEGIN Invoices-->
                         <table>
                             [#InvoicesToDocuments#]
@@ -67,38 +67,27 @@
                         <div><span class='quiet' style="padding: 0 3px;">|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
                         <!--ET_END lineVehicleId-->
                     </td>
-                    <td style='padding-left:10px; padding-top: 10px;'>
-                        <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
+                    <!--ET_BEGIN amountDeal-->
+                    <td>
+                        <div class ='misc'>
+                            <div class="nowrap">
+                                <span class='labels'>|Платени по сделката|*:</span> <span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b>
+                            </div>
+                            <div class="nowrap"><span class='labels'>|Курс|*: <b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></span></div>
+                        </div>
+                    </td>
+                    <!--ET_END amountDeal-->
+                    <td style='padding-left:10px; padding-top: 10px;width: 25%'>
+                        <table class="no-border fright"><tr><td style='font-size:20px'>|Сума|*:</td><td class='amount' style="margin-right: 0"><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></td></tr></table>
                     </td>
                 </tr>
                 <tr>
-                    <td class='with-words' colspan='2'>
+                    <td class='with-words' colspan='3'>
                         |Словом|*: [#amountVerbal#]<br>
                     </td>
                 </tr>
             </table>
             <table class="pko-notes border-table">
-                <!--ET_BEGIN rkoRow-->
-                [#rkoRow#]
-                <tr>
-                    <td colspan='2'>
-                        <table style='width:100%' class="no-border">
-                            <tr>
-                                <!--ET_BEGIN amountDeal-->
-                                <td style='vertical-align:middle !important'>
-                                    <div class ='misc' style='float:right'>
-                                        <div style='margin-top:7px;'>
-                                            <span class='labels'>|Платени по сделката|*:</span>
-                                            <span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b>
-                                        </div>
-                                         <span class='labels'>|Курс|*: <b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></span>
-                                    </div>
-                                </td>
-                                <!--ET_END amountDeal-->
-                            </tr>
-                        </table>
-                </tr>
-                <!--ET_END rkoRow-->
                 <tr>
                     <td style='padding-left:1%;padding-bottom:1%;text-align:center;width:50%;'>
                         <table class='signature-table'  style="width: 100px; margin: 20px auto 0">

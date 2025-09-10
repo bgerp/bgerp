@@ -907,6 +907,10 @@ class pos_Receipts extends core_Master
      */
     public static function checkQuantity($rec, &$error, &$warning = null)
     {
+        // Ако артикулът не е складируем няма какво да му се проверява
+        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if($canStore != 'yes') return true;
+
         // Ако е забранено продаването на неналични артикули да се проверява
         if (store_Setup::canDoShippingWhenStockIsNegative()) return true;
 

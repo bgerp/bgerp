@@ -2045,7 +2045,19 @@ class doc_Threads extends core_Manager
      */
     public static function setModification($id)
     {
+        if (!$id) {
+            wp('Липсва id', $id);
+
+            return ;
+        }
+
         $rec = self::fetch($id);
+        if (!$rec) {
+            wp('Липсва запис', $rec, $id);
+
+            return ;
+        }
+
         $rec->modifiedOn = dt::now();
         $rec->modifiedBy = core_Users::getCurrent();
         self::save($rec, 'modifiedOn,modifiedBy');

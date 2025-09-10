@@ -8150,3 +8150,101 @@ tr.workInProgressBatchRow {
 .priceListHolder .currencySignNextToAmount {
   min-width: auto; }
 
+/*
+ * 
+ * скриване на част от клетки от листовия, които има дълъг текст
+ */
+td.td-clamp {
+  --fade-color: white;
+    /*
+   * сменя се от JS с реалния фон
+   */
+  --lines-collapsed: 3;
+    /*
+   * свито: 3 реда
+   */
+    /*
+   * разпънато: до 10 реда (после скрол)
+   */
+    /*
+   * височина на ред
+   */
+  position: relative;
+  vertical-align: top;
+  --lines: 3; }
+
+
+.narrow td.td-clamp[data-overflow="true"] .clamp-ellipsis {
+  bottom: 7px; }
+
+td.td-clamp .clamp-body {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--lines-collapsed);
+  line-height: 1.4;
+  overflow: hidden;
+  position: relative;
+  max-height: 5.2em; }
+
+/*
+ * Маска и fade САМО когато е свито и има скрит текст
+ */
+td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-body {
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, rgba(0, 0, 0, 0));
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-image: linear-gradient(to bottom, black 50%, rgba(0, 0, 0, 0));
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%; }
+
+td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-body::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 1.5em;
+  height: 1.4em;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--fade-color));
+  pointer-events: none; }
+
+td.td-clamp[data-expanded="true"] .clamp-body {
+  display: block;
+    /*
+   * ключово: махаме -webkit-box
+   */
+  -webkit-line-clamp: initial;
+    /*
+   * безопасно зануляване
+   */
+  -webkit-box-orient: initial;
+  max-height: calc(1.4em * var(--lines-expanded-max));
+  overflow-y: auto;
+    /*
+   * само вертикален скрол
+   */
+  overflow-x: hidden;
+  -webkit-mask-image: none;
+  mask-image: none;
+  scrollbar-gutter: stable;
+    /*
+   * по избор: запазва място за скролбара
+   */ }
+
+/*
+ * бутонче
+ */
+td.td-clamp[data-overflow="true"] .clamp-ellipsis {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #666666;
+  user-select: none; }
+
+td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-ellipsis::after {
+  content: "…"; }
+
+td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after {
+  content: "↥"; }
+
