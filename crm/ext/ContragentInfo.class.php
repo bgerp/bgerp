@@ -470,12 +470,12 @@ class crm_ext_ContragentInfo extends core_manager
             $dQuery = $Cls::getQuery();
             $dQuery->where("#contragentClassId = {$contragentClassId}");
             $dQuery->where("#state IN ('active', 'closed')");
-            $dQuery->show('amountDeal,overdueAmountPerDays,contragentId,paymentState,contragentClassId,currencyId,state,overdueAmount');
+            $dQuery->show('amountDeal,overdueAmountPerDays,contragentId,paymentState,contragentClassId,currencyId,state,overdueAmount,valior');
 
             $paramCache = array();
             while ($sRec = $dQuery->fetch()) {
                 $periodCurrencyId = acc_Periods::getBaseCurrencyCode($sRec->valior);
-                $amountInCurrentBaseCurrency = currency_CurrencyRates::convertAmount($sRec->amountDeal, null, $periodCurrencyId, $baseCurrencyId);
+                $amountInCurrentBaseCurrency = deals_Helper::getSmartBaseCurrency($sRec->amountDeal, $sRec->valior, $baseCurrencyId);
 
                 $res[$key][$sRec->contragentId]['total']['count'] += 1;
                 $res[$key][$sRec->contragentId]['total']['amount'] += $amountInCurrentBaseCurrency;
@@ -487,12 +487,12 @@ class crm_ext_ContragentInfo extends core_manager
 
                         // Ако са продажби ще се смятат отделно активните и просрочените
                         if($sRec->paymentState == 'overdue'){
-                            $amountInCurrentBaseCurrency = currency_CurrencyRates::convertAmount($sRec->overdueAmount, null, $periodCurrencyId, $baseCurrencyId);
+                            $amountInCurrentBaseCurrency = deals_Helper::getSmartBaseCurrency($sRec->overdueAmount, $sRec->valior, $baseCurrencyId);
                             $res[$key][$sRec->contragentId]['overdue']['count'] += 1;
                             $res[$key][$sRec->contragentId]['overdue']['amount'] += $amountInCurrentBaseCurrency;
 
                             // Колко леводни е просрочието
-                            $amountInCurrentBaseCurrency = currency_CurrencyRates::convertAmount($sRec->overdueAmountPerDays, null, $periodCurrencyId, $baseCurrencyId);
+                            $amountInCurrentBaseCurrency = deals_Helper::getSmartBaseCurrency($sRec->overdueAmountPerDays, $sRec->valior, $baseCurrencyId);
                             $res[$key][$sRec->contragentId]['overdue']['threshold'] += $amountInCurrentBaseCurrency;
                             if(!array_key_exists($sRec->contragentId, $paramCache)){
                                 $paramCache[$sRec->contragentId] = cond_Parameters::getParameter($sRec->contragentClassId, $sRec->contragentId, 'saleOverdueAmount');
