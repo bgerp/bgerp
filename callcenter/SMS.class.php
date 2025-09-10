@@ -918,7 +918,8 @@ class callcenter_SMS extends core_Master
         $form->title = 'Изпращане на циркулярни SMS-и';
         
         $form->FNC('service', 'class(interface=callcenter_SentSMSIntf, select=title)', 'caption=Услуга, mandatory,silent,input=input');
-        if (!$objId) {
+
+        if (empty($clsInst->getPresonalizationArr($objId, 1))) {
             $form->FNC('type', 'enum()', 'caption=Към,mandatory,silent,input=input');
             $form->setOptions('type', $groupChoiceArr);
         }
@@ -942,7 +943,7 @@ class callcenter_SMS extends core_Master
         
         $pArr = array();
         if ($form->isSubmitted()) {
-            if ($objId) {
+            if (!isset($form->rec->type)) {
                 $pArr = $clsInst->getPresonalizationArr($objId);
             } else {
                 $pArr = $clsInst->getPresonalizationArr($form->rec->type);
@@ -1000,9 +1001,9 @@ class callcenter_SMS extends core_Master
             $paramsArr['service'] = $form->rec->service;
             
             $countryCode = drdata_Setup::get('COUNTRY_PHONE_CODE', true);
-            
+
+            $isFirstErr = true;
             foreach ($pArr as $pId => $p) {
-                
                 // Опитваме се да определим мобилния номер на получателя
                 $tel = '';
                 if (trim($p['mobile'])) {
@@ -1035,7 +1036,7 @@ class callcenter_SMS extends core_Master
                     
                     break;
                 }
-                
+
                 // Ако не открием мобилен номер, няма да се праща съобщение
                 if (!$mobileNum) {
                     $notMobileCnt++;
@@ -1060,6 +1061,10 @@ class callcenter_SMS extends core_Master
                     $send = callcenter_SMS::sendSmart($mobileNum, $msgArr, $paramsArr);
                 } catch (ErrorException $e) {
                     $clsInst->logWarning("Грешка при изпращане на циркулярно съобщение към '{$type}:${pId}': " . $e->getMessage());
+                    if ($isFirstErr) {
+                        wp('Грешка при изпращане на циркулярно съобщение', $e);
+                        $isFirstErr = false;
+                    }
                     $errCnt++;
                 }
                 
