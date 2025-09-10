@@ -2254,7 +2254,7 @@ class pos_Terminal extends peripheral_Terminal
         }
 
         $cacheKey = "{$rec->_policy1}_{$rec->_policy2}_{$priceCache}_{$rec->_selectedGroupId}_{$searchString}";
-        $result = null;core_Cache::get('pos_Terminal', $cacheKey);
+        $result = core_Cache::get('pos_Terminal', $cacheKey);
 
         if(!is_array($result)){
             core_Debug::startTimer('RES_RENDER_RESULT_VERBAL');
