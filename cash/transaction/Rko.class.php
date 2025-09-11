@@ -79,7 +79,8 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
         $sign = ($reverse) ? -1 : 1;
 
         $dealCurrencyRate = $origin->fetchField('currencyRate');
-
+        $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+        $euroCurrencyId = currency_Currencies::getIdByCode('EUR');
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
         if ($rec->currencyId == $baseCurrencyId) {
             $amount = $rec->amount;
@@ -119,7 +120,19 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
                 'credit' => $transAccArr
             );
         } else {
-            if($rec->currencyId != $baseCurrencyId || $rec->dealCurrencyId != $baseCurrencyId){
+
+            if($rec->currencyId == $baseCurrencyId || ($rec->currencyId == $bgnCurrencyId && $baseCurrencyId == $euroCurrencyId)) {
+                $entry[] = array('amount' => $sign * round($amount, 2),
+                    'debit' => array($rec->debitAccount,
+                        array($rec->contragentClassId, $rec->contragentId),
+                        array($origin->className, $origin->that),
+                        array('currency_Currencies', $rec->dealCurrencyId),
+                        'quantity' => $sign * round($rec->amountDeal, 2)),
+                    'credit' => array($rec->creditAccount,
+                        array('cash_Cases', $rec->peroCase),
+                        array('currency_Currencies', $rec->currencyId),
+                        'quantity' => $sign * round($rec->amount, 2)));
+            } else {
                 $entry[] = array('amount' => $sign * round($dealCurrencyRate * $rec->amountDeal, 2),
                     'debit' => array($rec->debitAccount,
                         array($rec->contragentClassId, $rec->contragentId),
@@ -139,17 +152,6 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
                         array('currency_Currencies', $rec->currencyId),
                         'quantity' => $sign * round($rec->amount, 2))
                 );
-            } else {
-                $entry[] = array('amount' => $sign * round($amount, 2),
-                    'debit' => array($rec->debitAccount,
-                        array($rec->contragentClassId, $rec->contragentId),
-                        array($origin->className, $origin->that),
-                        array('currency_Currencies', $rec->dealCurrencyId),
-                        'quantity' => $sign * round($rec->amountDeal, 2)),
-                    'credit' => array($rec->creditAccount,
-                        array('cash_Cases', $rec->peroCase),
-                        array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $sign * round($rec->amount, 2)));
             }
         }
 
