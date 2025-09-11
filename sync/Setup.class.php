@@ -153,7 +153,7 @@ class sync_Setup extends core_ProtoSetup
 
         if(core_Packs::isInstalled('eshop')){
             $eSettings = cls::get('eshop_Settings');
-            $eSettings->setupMvc();
+            $html .= $eSettings->setupMvc();
         }
 
         return $html;
