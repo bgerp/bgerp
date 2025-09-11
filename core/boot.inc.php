@@ -20,6 +20,11 @@ if (version_compare(phpversion(), '5.5.0') < 0) {
     die;
 }
 
+// Спираме изпълнението при заявка с метод CONNECT
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'CONNECT') {
+    header('HTTP/1.1 405 Method Not Allowed'); exit;
+}
+
 // Зареждаме класовете за обработка на грешки
 require_once(EF_APP_PATH . '/core/exception/Break.class.php');
 

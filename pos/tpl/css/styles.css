@@ -528,19 +528,44 @@ select.tabHolder {
     overflow: hidden; }
   .grid.pictureAndText .element .short-title,
   .grid.rows .element .short-title {
-    height: 20px;
+    display: -webkit-box;
+        /*
+     * за поддръжка
+     */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.2em;
+    max-height: calc(2.6em);
+        /*
+     * максимум 2 реда
+     */
+    -webkit-line-clamp: 2;
+        /*
+     * ограничение до 2 реда
+     */
     text-align: center;
-    padding: 2px 0;
     overflow: hidden;
     font-size: 0.95em;
     box-sizing: border-box;
-    margin-bottom: 2px; }
+    background-color: white;
+    padding: 2px 0 6px 0px !important;
+        /*
+     * малък буфер за ченгелчетата
+     */ }
     .grid.pictureAndText .element.noPhoto .short-title,
     .grid.rows .element.noPhoto .short-title {
       height: 100%;
       font-size: 1.25em;
       max-height: 133px;
-      overflow: hidden; }
+      overflow: hidden;
+      align-items: center;
+      display: flex;
+      justify-content: center;
+      text-align: center;
+      padding: 2px 0px !important;
+            /*
+       * малък буфер за ченгелчетата
+       */ }
     .grid.pictureAndText .element.noPhoto .photo,
     .grid.rows .element.noPhoto .photo {
       display: none; }
