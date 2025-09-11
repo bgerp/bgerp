@@ -223,7 +223,7 @@ class rack_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Връзка между Протокола за влагане и и входящия палетен склад', 'rack_plg_IncomingShipmentDetails', 'planning_ReturnNoteDetails', 'private');
         $html .= $Plugins->installPlugin('Детайл на позициите на артикулите', 'rack_plg_ProductDetail', 'cat_Products', 'private');
 
-        if(core_Packs::isInstalled('store')){
+        if(core_Packs::isInstalled('store', true)){
             $sMvc = cls::get('store_Stores');
             $html .= $sMvc->setupMVC();
         }
