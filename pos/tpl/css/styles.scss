@@ -619,14 +619,18 @@ select.tabHolder {
 		align-items: center;overflow: hidden;
 	}
 	.short-title {
-		height: 44px;
+		display: -webkit-box;          /* за поддръжка */
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		line-height: 1.2em;
+		max-height: calc(1.3em * 2);   /* максимум 2 реда */
+		-webkit-line-clamp: 2;         /* ограничение до 2 реда */
 		text-align: center;
-		padding: 2px 0;
 		overflow: hidden;
 		font-size: 0.95em;
 		box-sizing: border-box;
-		margin-bottom: 2px;
 		background-color: #fff;
+		padding:2px 0  6px  0px !important; /* малък буфер за ченгелчетата */
 
 	}
 	&.noPhoto {
@@ -639,6 +643,7 @@ select.tabHolder {
 			display: flex;
 			justify-content: center;
 			text-align: center;
+			padding: 2px  0px !important; /* малък буфер за ченгелчетата */
 		}
 		.photo {
 			display: none;

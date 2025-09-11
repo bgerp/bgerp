@@ -959,7 +959,15 @@ class pos_Receipts extends core_Master
         $pName = cat_Products::getTitleById($rec->productId);
 
         if ($freeQuantity < 0) {
-            $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity / $quantityInPack);
+            $originalQuantity = $originalFreeQuantity / $quantityInPack;
+
+            // ако мин разп е под 1 но е над 0 да се изпише цялото
+            if($originalQuantity > 0 && $originalQuantity <= 1){
+                $rec->quantity = $originalQuantity;
+                return true;
+            }
+
+            $originalFreeQuantityVerbal = $Double->toVerbal($originalQuantity);
             $error = "|* {$pName}: Количеството e над минималното разполагаемото|* <b>{$originalFreeQuantityVerbal}</b> |в склад|*: " . store_Stores::getTitleById($rec->storeId);
 
             return false;
