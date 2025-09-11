@@ -223,6 +223,11 @@ class rack_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Връзка между Протокола за влагане и и входящия палетен склад', 'rack_plg_IncomingShipmentDetails', 'planning_ReturnNoteDetails', 'private');
         $html .= $Plugins->installPlugin('Детайл на позициите на артикулите', 'rack_plg_ProductDetail', 'cat_Products', 'private');
 
+        if(core_Packs::isInstalled('store', true)){
+            $sMvc = cls::get('store_Stores');
+            $html .= $sMvc->setupMVC();
+        }
+
         return $html;
     }
 
@@ -245,14 +250,4 @@ class rack_Setup extends core_ProtoSetup
         'RACK_ENABLE_PRIORITY_RACKS' => array('enum(yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване'),
         'RACK_POSITION_TO_STRATEGY' => array('enum(bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Стратегия'),
     );
-
-
-    /**
-     * Изпълнява се след setup-а
-     */
-    public function checkConfig()
-    {
-        $sMvc = cls::get('store_Stores');
-        $sMvc->setupMVC();
-    }
 }

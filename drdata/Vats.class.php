@@ -634,7 +634,13 @@ class drdata_Vats extends core_Manager
     {
         // Ако е валиден български ЕИК, прави се опит за извличане от търговския регистър
         if (drdata_Vats::isBulstat($eik)) {
-            $registryContent = @file_get_contents("https://portal.registryagency.bg/CR/api/Deeds/{$eik}");
+            $context = stream_context_create([
+                "ssl" => [
+                        "verify_peer" => false,
+                        "verify_peer_name" => false,
+                    ]
+            ]);
+            $registryContent = @file_get_contents("https://portal.registryagency.bg/CR/api/Deeds/{$eik}", false, $context);
             $result = json_decode($registryContent);
             
             // Ако е намерена фирма, извлича се

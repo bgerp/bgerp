@@ -212,7 +212,7 @@ class store_Stores extends core_Master
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
 
-        if(core_Packs::isInstalled('rack')){
+        if(core_Packs::isInstalled('rack', true)){
             $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да (с предупреждение),yesWithoutWarning=Да (без предупреждение))', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
             $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
             $this->FLD('prioritizeRackGroups', 'enum(,yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване,maxRadio=2,placeholder=Автоматично');

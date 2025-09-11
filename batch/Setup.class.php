@@ -205,6 +205,7 @@ class batch_Setup extends core_ProtoSetup
     public function updateCategoryDefinitions2502()
     {
         $CategoryDef = cls::get('batch_CategoryDefinitions');
+        $CategoryDef->setupMvc();
         $query = $CategoryDef->getQuery();
         $query->FLD('driverClass', 'int');
         $query->FLD('driverRec', 'blob(1000000, serialize, compress)');
