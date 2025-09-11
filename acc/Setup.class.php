@@ -653,7 +653,7 @@ class acc_Setup extends core_ProtoSetup
     {
         $date = $date ?? dt::today();
         $conf = core_Packs::getConfig('acc');
-        $eurozoneDate = defined(BGERP_EUROZONE_DATE) ? BGERP_EUROZONE_DATE : $conf->ACC_EUROZONE_DATE;
+        $eurozoneDate = defined('BGERP_EUROZONE_DATE') ? BGERP_EUROZONE_DATE : $conf->ACC_EUROZONE_DATE;
 
         return $date < $eurozoneDate ? $conf->BASE_CURRENCY_CODE_OLD : $conf->BASE_CURRENCY_CODE;
     }
