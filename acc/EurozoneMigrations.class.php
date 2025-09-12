@@ -51,9 +51,26 @@ class acc_EurozoneMigrations extends core_BaseClass
             $Carts->db->query($query);
         }
 
-        $currencyColName = str::phpToMysqlName('currencyId');
-        $query = "UPDATE {$Settings->dbTableName} SET {$currencyColName} = 'EUR' WHERE {$currencyColName} = 'BGN'";
-        $Settings->db->query($query);
+        $eQuery = eshop_Settings::getQuery();
+        $eQuery->where("#currencyId = 'BGN'");
+        while($eRec = $eQuery->fetch()){
+            $eRec->currencyId = 'EUR';
+            if(!empty($eRec->freeDelivery)){
+                $eRec->freeDelivery /= 1.95583;
+                $eRec->freeDelivery = round($eRec->freeDelivery, 2);
+            }
+            if(!empty($eRec->minOrderAmount)){
+                $eRec->minOrderAmount /= 1.95583;
+                $eRec->minOrderAmount = round($eRec->minOrderAmount, 2);
+            }
+
+            if(!empty($eRec->freeDeliveryByBus)){
+                $eRec->freeDeliveryByBus /= 1.95583;
+                $eRec->freeDeliveryByBus = round($eRec->freeDeliveryByBus, 2);
+            }
+
+            eshop_Settings::save($eRec, 'currencyId,freeDeliveryByBus,minOrderAmount,freeDelivery');
+        }
     }
 
     function act_Test()
