@@ -187,7 +187,7 @@ class eshop_Carts extends core_Master
         $this->FLD('ip', 'varchar', 'caption=Ип,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,input=hidden,silent');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory,removeAndRefreshForm=freeDelivery|freeDeliveryByBus,silent');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory,input=none');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
         $this->FLD('freeDelivery', 'enum(yes=Да,no=Не)', 'caption=Безплатна доставка,input=none,notNull,value=no');
         $this->FLD('totalNoVat', 'double(decimals=2)', 'caption=Общи данни->Стойност без ДДС,input=none,summaryCaption= Сума (без ДДС), summary=amount');
@@ -465,14 +465,15 @@ class eshop_Carts extends core_Master
         $userId = isset($userId) ? $userId : core_Users::getCurrent('id', false);
         $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
         $brid = log_Browsers::getBrid();
-        
+        $settings = cms_Domains::getSettings($domainId);
+
         // Ако има потребител се търси има ли чернова кошница за този потребител, ако не е логнат се търси по Брид-а
         $where = (isset($userId)) ? "#userId = '{$userId}'" : "#userId IS NULL AND #brid = '{$brid}'";
         $rec = self::fetch("{$where} AND #state = 'draft' AND #domainId = {$domainId}");
         
         if (empty($rec) && $bForce === true) {
             $ip = core_Users::getRealIpAddr();
-            $rec = (object) array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft', 'productCount' => 0);
+            $rec = (object) array('ip' => $ip,'brid' => $brid, 'domainId' => $domainId, 'userId' => $userId, 'state' => 'draft', 'productCount' => 0, 'currencyId' => $settings->currencyId);
             self::save($rec);
             
             vislog_History::add('Създаване на количка');
@@ -1427,7 +1428,7 @@ class eshop_Carts extends core_Master
         
         $tpl = getTplFromFile('eshop/tpl/SingleLayoutCartExternal.shtml');
         $tpl->replace(self::renderViewCart($rec), 'CART_TABLE');
-        
+
         self::renderCartToolbar($rec, $tpl);
         self::renderCartSummary($rec, $tpl);
         self::renderCartOrderInfo($rec, $tpl);
@@ -1737,17 +1738,11 @@ class eshop_Carts extends core_Master
         $deliveryNoVat = ($rec->freeDelivery != 'no') ? 0 : currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
         $vatAmount = $total - $totalNoVat - $deliveryNoVat;
 
-        $isBgnDisplayed = ($settings->currencyId == 'BGN');
         $amountWithoutDelivery = (static::calcChargeVat($rec) == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
-        $row->total = currency_Currencies::decorate($row->total, $settings->currencyId);
 
-        if($isBgnDisplayed){
-            $total = round($total, 2);
-            $totalEuro = currency_CurrencyRates::convertAmount($total, null, null, "EUR");
-            $priceEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($totalEuro);
-            $row->total .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
-        }
+        $bgCountryId = drdata_Countries::getIdByName('Bulgaria'); $rec->currencyId = 'EUR';
+        $row->total = deals_Helper::displayDualAmount($row->total, $total, null, $rec->currencyId, $bgCountryId, " / ", true);
 
         // Ако има доставка се показва и нея
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
@@ -1770,43 +1765,20 @@ class eshop_Carts extends core_Master
                 }
                 
                 $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
-                $deliveryAmountV = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-                $deliveryAmountV = currency_Currencies::decorate($deliveryAmountV, $settings->currencyId);
-
-                if($isBgnDisplayed) {
-                    $deliveryAmount = round($deliveryAmount, 2);
-                    $deliveryAmountEuro = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, "EUR");
-                    $deliveryAmountEuro = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmountEuro);
-                    $deliveryAmountV .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($deliveryAmountEuro, 'EUR', true);
-                }
-
-                $row->deliveryAmount = $deliveryAmountV;
+                $row->deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+                $row->deliveryAmount = deals_Helper::displayDualAmount($row->deliveryAmount, $deliveryAmount, null, $rec->currencyId, $bgCountryId, " / ", true);
             }
         }
        
         if(round($rec->total, 4) != round($amountWithoutDelivery, 4) || $rec->freeDelivery == 'yes'){
             $row->amount = $Double->toVerbal($amountWithoutDelivery);
-            $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
-
-            if($isBgnDisplayed) {
-                $amountWithoutDeliveryEuro = currency_CurrencyRates::convertAmount($amountWithoutDelivery, null, null, "EUR");
-                $amountWithoutDeliveryEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($amountWithoutDeliveryEuro);
-                $row->amount .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($amountWithoutDeliveryEuroVerbal, 'EUR', true);
-            }
-
+            $row->amount = deals_Helper::displayDualAmount($row->amount, $amountWithoutDelivery, null, $rec->currencyId, $bgCountryId, " / ", true);
             $row->amountCurrencyId = $row->currencyId;
         }
         
         if (eshop_Carts::calcChargeVat($rec) == 'separate') {
             $row->totalVat = $Double->toVerbal($vatAmount);
-            $row->totalVat = currency_Currencies::decorate($row->totalVat, $settings->currencyId);
-
-            if($isBgnDisplayed) {
-                $totalVatEuro = currency_CurrencyRates::convertAmount($vatAmount, null, null, "EUR");
-                $totalVatEuro = core_Type::getByName('double(decimals=2)')->toVerbal($totalVatEuro);
-                $row->totalVat .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($totalVatEuro, 'EUR', true);
-            }
-
+            $row->totalVat = deals_Helper::displayDualAmount($row->totalVat, $vatAmount, null, $rec->currencyId, $bgCountryId, " / ", true);
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));

@@ -3114,14 +3114,21 @@ abstract class deals_Helper
      * @param string $currencyId  - валута
      * @param int $countryId      - за коя държава
      * @param string $divider     - разделител
+     * @param string $alwaysDecorate - дали винаги да се декорира
      * @return mixed|string
      */
-    public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />")
+    public static function displayDualAmount($amountRow, $amount, $date, $currencyId, $countryId, $divider = "<br />", $alwaysDecorate = false)
     {
         if(!in_array($currencyId, array('BGN', 'EUR')))  return $amountRow;
         $date = isset($date) ? dt::verbal2mysql($date, false) : dt::today();
 
-        if($date > '2026-12-31' || $date <= '2025-07-08') return $amountRow;
+        if($date > '2026-12-31' || $date <= '2025-07-08') {
+            if($alwaysDecorate) {
+                $amountRow = currency_Currencies::decorate($amountRow, $currencyId, true);
+            }
+
+            return $amountRow;
+        }
 
         $bulgariaId = drdata_Countries::getIdByName('Bulgaria');
         if($currencyId == "EUR" && $countryId != $bulgariaId) return $amountRow;
@@ -3131,17 +3138,22 @@ abstract class deals_Helper
         $rate = currency_CurrencyRates::getRate($date, 'EUR', 'BGN');
         $decimals = str::countDecimals($amountRow, false);
 
-        if($currencyId == 'BGN' && $date <= '2025-12-31') {
+        $eurozoneDate = acc_Setup::getEurozoneDate();
+        if($currencyId == 'BGN' && $date < $eurozoneDate) {
             $amountInEuro = round($amount, $decimals) / $rate;
             $amountInEuroRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInEuro);
 
             return $amountRes . "{$divider}" . currency_Currencies::decorate($amountInEuroRow, 'EUR', true);
-        } elseif($currencyId == 'EUR' && $date > '2025-12-31' && $date <= '2026-12-31') {
+        } elseif($currencyId == 'EUR' && $date > $eurozoneDate && $date <= '2026-12-31') {
 
             $amountInBgn = round($amount, $decimals) * $rate;
             $amountInBgnRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInBgn);
 
             return $amountRes . "{$divider}" . currency_Currencies::decorate($amountInBgnRow, 'BGN', true);
+        }
+
+        if($alwaysDecorate) {
+            $amountRow =currency_Currencies::decorate($amountRow, $currencyId, true);
         }
 
         return $amountRow;
