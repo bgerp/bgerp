@@ -653,8 +653,19 @@ class acc_Setup extends core_ProtoSetup
     {
         $date = $date ?? dt::today();
         $conf = core_Packs::getConfig('acc');
-        $eurozoneDate = defined('BGERP_EUROZONE_DATE') ? BGERP_EUROZONE_DATE : $conf->ACC_EUROZONE_DATE;
+        $eurozoneDate = self::getEurozoneDate();
 
         return $date < $eurozoneDate ? $conf->BASE_CURRENCY_CODE_OLD : $conf->BASE_CURRENCY_CODE;
+    }
+
+
+    /**
+     * Помощна ф-я връщаща датата от която сме в еврозоната
+     */
+    public static function getEurozoneDate()
+    {
+        $conf = core_Packs::getConfig('acc');
+
+        return defined('BGERP_EUROZONE_DATE') ? BGERP_EUROZONE_DATE : $conf->ACC_EUROZONE_DATE;
     }
 }

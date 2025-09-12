@@ -213,6 +213,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             }
 
             $sellCost = $dRec->{$mvc->detailSellPriceFld};
+            $sellCost = deals_Helper::getSmartBaseCurrency($sellCost, $valior);
             $discountCalced = $dRec->{$mvc->detailDiscountPriceFld};
             if (isset($dRec->{$mvc->detailDiscountPriceFld}) && $applyDiscount) {
                 $sellCostWithOriginalDiscount = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});

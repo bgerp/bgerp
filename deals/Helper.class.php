@@ -3168,8 +3168,9 @@ abstract class deals_Helper
 
         // Ако от левове ще става евро да се смята по централния курс
         if($baseCurrencyCode == 'EUR' && $valiorCurrencyCode == 'BGN') {
+            $converted = $amount / 1.95583;
 
-            return $amount / 1.95583;
+            return currency_Currencies::round($converted, "EUR");
         }
 
         $converted = currency_CurrencyRates::convertAmount($amount, null, $valiorCurrencyCode, $baseCurrencyCode);
