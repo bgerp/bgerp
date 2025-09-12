@@ -30,7 +30,8 @@ class fileman_Wrapper extends plg_ProtoWrapper
         $this->TAB('fileman_Data', 'Данни', 'debug');
         $this->TAB('fileman_Indexes', 'Индекси', 'debug');
         $this->TAB('fileman_Repositories', 'Хранилища', 'admin, debug');
-        
+        $this->TAB('fileman_Deletes', 'Изтривания', 'debug');
+
         $this->title = 'Файлове';
     }
 }
