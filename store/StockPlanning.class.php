@@ -57,7 +57,13 @@ class store_StockPlanning extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productId,genericProductId,storeId,date,quantityOut,quantityIn,sourceId=Източник->Основен,reffId=Източник->Допълнителен,state=Източник->Състояние,threadId=Източник->Нишка,createdOn,createdBy';
+    public $listFields = 'id,productId,genericProductId,storeId,date,quantityOut,quantityIn,sourceId=Източник->Основен,jobProductId=Източник->Артикул,reffId=Източник->Допълнителен,state=Източник->Състояние,threadId=Източник->Нишка,createdOn,createdBy';
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'jobProductId,reffId';
 
 
     /**
@@ -115,6 +121,9 @@ class store_StockPlanning extends core_Manager
         $state = $Source->fetchField($rec->sourceId, 'state');
         $row->state = $mvc->getFieldType('state')->toVerbal($state);
         $row->ROW_ATTR['class'] = "state-{$state}";
+        if($Source instanceof planning_Jobs){
+            $row->jobProductId = cat_Products::getHyperlink($Source->fetchField($rec->sourceId, 'productId'), true);
+        }
 
         if(isset($rec->reffClassId) && isset($rec->reffId)){
             $SecondSource = cls::get($rec->reffClassId);
