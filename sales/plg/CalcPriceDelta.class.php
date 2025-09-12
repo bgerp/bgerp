@@ -142,7 +142,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $autoDiscountAmount = null;
         $valior = $mvc->getValiorValue($rec);
         while ($dRec = $query->fetch()) {
-            $sellCostWithOriginalDiscount = $dRec->{$mvc->detailSellPriceFld};
+            $sellCostWithOriginalDiscount = deals_Helper::getSmartBaseCurrency($dRec->{$mvc->detailSellPriceFld}, $valior);
             $autoDiscountAmount = null;
             $applyDiscount = true;
 
