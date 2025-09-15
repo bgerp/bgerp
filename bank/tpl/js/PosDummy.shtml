@@ -1,6 +1,8 @@
 function [#_funcName#](amount, deviceUrl, comPort) {
-    if (typeof [#_resFuncName#] === 'function') {
-        let res = "OK|" + amount;
-        [#_resFuncName#](res, amount);
-    }
+    setTimeout(function() {
+        if (typeof [#_resFuncName#] === 'function') {
+            let res = "OK|" + amount;
+            [#_resFuncName#](res, amount);
+        }
+    }, 3000);
 }

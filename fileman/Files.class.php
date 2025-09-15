@@ -1032,7 +1032,7 @@ class fileman_Files extends core_Master
         // Вземаме URL' то
         $url = static::getUrlToSingle($fh, $absolute);
         
-        $attr['rel'] = 'nofollow';
+//        $attr['rel'] = 'nofollow';
         
         $isAbsolute = (boolean) (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'));
         if (!$isAbsolute && fileman_Files::isDanger($rec)) {
@@ -1545,7 +1545,7 @@ class fileman_Files extends core_Master
                     }
                 }
                 
-                $attr['rel'] = 'nofollow';
+//                $attr['rel'] = 'nofollow';
                 
                 if (!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')) {
                     if (static::haveRightFor('single', $fRec)) {

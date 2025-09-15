@@ -43,7 +43,7 @@ class cond_TariffCodes extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2,store_Wrapper,plg_Modified';
+    public $loadList = 'plg_RowTools2,cond_Wrapper,plg_Modified';
 
 
     /**

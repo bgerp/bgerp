@@ -318,7 +318,7 @@ class crm_Persons extends core_Master
     {
         // Име на лицето
         $this->FLD('salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение,export=Csv');
-        $this->FLD('name', 'varchar(255,ci,autocomplete=off)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv, translate=transliterate, class=focus');
+        $this->FLD('name', 'varchar(255,ci,autocomplete=off)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv, translate=transliterate, class=focus, translate=user');
         $this->FNC('nameList', 'varchar(autocomplete=off)', 'sortingLike=name, translate=transliterate');
         
         // Единен Граждански Номер
@@ -2918,7 +2918,7 @@ class crm_Persons extends core_Master
 
         $res[] = (object)array('class' => 'hr_Leaves', 'url' => array('hr_Leaves', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'caption' => 'Отпуска');
         $res[] = (object)array('class' => 'hr_Sickdays', 'url' => array('hr_Sickdays', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'caption' => 'Болничен');
-        $res[] = (object)array('class' => 'hr_HomeOffice', 'url' => array('hr_Leaves', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'caption' => 'Хоум офис');
+        $res[] = (object)array('class' => 'hr_HomeOffice', 'url' => array('hr_HomeOffice', 'add', 'folderId' => $rec->folderId, 'ret_url' => true), 'caption' => 'Хоум офис');
 
         return $res;
     }

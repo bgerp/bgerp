@@ -57,7 +57,7 @@ class cms_FancyTheme extends core_ProtoInner
 
         $form->FLD('fadeDelay', 'int', 'caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000');
         $form->FLD('fadeTransition', 'int', 'caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500');
-        $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (500х120px)->Изображение 1');
+        $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Заглавна картинка за мобилен (600х120px)->Изображение 1');
         $form->FLD('title', 'varchar(14)', 'caption=Заглавие на сайта->Име на фирмата');
         $form->FLD('subtitle', 'varchar(50)', 'caption=Заглавие на сайта->Подзаглавие');
         $form->FLD('titleColor', 'color_Type', 'caption=Заглавие на сайта->Цвят');
@@ -209,6 +209,7 @@ class cms_FancyTheme extends core_ProtoInner
             $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20);
         }
 
+        $css .= "\n    .narrow .externalPage .narrowCenter a, .narrow header { background-color: #$baseColor !important;}";
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover, .cookies .agree {background-color:#{$activeColor};}";
 
         $css .= "\n    .selected-external-tab  {border-top: 3px solid #{$activeColor} !important;}";
@@ -231,7 +232,7 @@ class cms_FancyTheme extends core_ProtoInner
 
         $css .= "\n    #all #maincontent .richtext a:visited, #all #maincontent .articles-menu a:visited, #all #maincontent .blogm-categories a:visited{ color: #{$visitedFontColor};}";
 
-        $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a,.additionalFooter .footer-links, .additionalFooter .footer-links a{color: #{$fontColor} !important;}";
+        $css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontColor} !important;}";
         $css .= "\n    h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px;border:none !important}";
         $css .= "\n    .prevNextNav {border:dotted 1px #ccc; background-color:#eee; margin-top:10px;margin-bottom:7px; width:100%; display:table;}";
         $css .= "\n    .prevNextNav div {margin:5px;}";
@@ -331,7 +332,7 @@ class cms_FancyTheme extends core_ProtoInner
                 if (!Mode::is('screenMode', 'narrow')) {
                     $img = new thumb_Img(array($img, 1400, 220, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 } else {
-                    $img = new thumb_Img(array($img, 360, 104, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $img = new thumb_Img(array($img, 600, 120, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
                 }
                 $imageURL = $img->getUrl('forced');
                 $this->haveOwnHeaderImages = true;

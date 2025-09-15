@@ -12,3 +12,7 @@
 .grid.pictureAndText{
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
 }
+
+.grid.rows{
+    grid-template-columns: repeat(auto-fill, minmax(132px, 132px));
+  }

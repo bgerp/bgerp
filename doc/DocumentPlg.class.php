@@ -919,6 +919,8 @@ class doc_DocumentPlg extends core_Plugin
             
             doc_ThreadUsers::syncContainerRelations($rec->containerId, $sharedArr, $rec->threadId);
         }
+
+        core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 2, 0, 0, true);
     }
     
     
@@ -1197,9 +1199,10 @@ class doc_DocumentPlg extends core_Plugin
     public function on_BeforeAction($mvc, &$res, $action)
     {
         $notAccessStatusMsg = '|Предишната страница не може да бъде показана, поради липса на права за достъп';
+
         if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('dataType', 'php')) {
             expect($id = Request::get('id', 'int'));
-            
+            core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 0, 30, 10);
             expect($rec = $mvc->fetch($id), $id);
 
             // След оттегляне, да редиректва към папката, ако е настроено и има такава възможност
@@ -2743,17 +2746,16 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 }
             } elseif ($action == 'single') {
-                
                 // Ако нямаме достъп до нишката
                 if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && (($rec->createdBy != $userId) || core_Users::haveRole('partner', $rec->createdBy))) {
                     
                     // Ако е инсталиран пакета 'colab'
                     if (core_Packs::isInstalled('colab') && $oRec->threadId) {
-                        
+
                         // И нишката е споделена към контрактора (т.е първия документ в нея е видим и папката на нишката
                         // е споделена с партньора)
                         $isVisibleToContractors = colab_Threads::haveRightFor('single', doc_Threads::fetch($oRec->threadId));
-                        
+
                         if ($isVisibleToContractors && doc_Containers::fetch($rec->containerId)->visibleForPartners == 'yes') {
                             
                             // Тогава позволяваме на контрактора да има достъп до сингъла на този документ

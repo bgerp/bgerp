@@ -31,7 +31,7 @@ class wtime_OnSiteEntries extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, wtime';
+    public $canList = 'powerUser';
 
 
     /**
@@ -82,7 +82,7 @@ class wtime_OnSiteEntries extends core_Manager
     public function description()
     {
         $this->FLD('time', 'datetime(format=smartTime)', 'caption=Време,mandatory');
-        $this->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,mandatory');
+        $this->FLD('personId', 'key2(mvc=crm_Persons,select=names,allowEmpty)', 'caption=Служител,mandatory,silent');
         $this->FLD('type', 'enum(in=Влиза,out=Излиза)', 'caption=Вид');
         $this->FLD('place', 'varchar(64)', 'caption=Място,mandatory,tdClass=leftCol,input=none');
         $this->FLD('onSiteTime', 'time(noSmart,uom=minutes)', 'caption=Време на място,input=none');
@@ -167,6 +167,20 @@ class wtime_OnSiteEntries extends core_Manager
 
 
     /**
+     * Подготвя формата за филтриране
+     */
+    public function prepareListFilter_($data)
+    {
+        parent::prepareListFilter_($data);
+
+        $data->listFilter->FLD('from', 'date', 'caption=От,silent');
+        $data->listFilter->FLD('to', 'date', 'caption=До,silent');
+
+        return $data;
+    }
+
+
+    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
@@ -180,11 +194,10 @@ class wtime_OnSiteEntries extends core_Manager
             $sourceOptions[$sourceClassId] = core_Classes::getTitleById($sourceClassId);
         }
 
-        $showFields = 'selectPeriod,search,personId,type';
-        $data->listFilter->FLD('from', 'date', 'caption=От,silent');
-        $data->listFilter->FLD('to', 'date', 'caption=До,silent');
+        $showFields = 'selectPeriod,from,to,search,personId,type';
         $data->listFilter->setFieldType('type', 'enum(all=Влиза / Излиза,in=Влиза,out=Излиза)');
         $data->listFilter->setField('type', 'maxRadio=0');
+        $data->listFilter->input('personId', 'silent');
         if(countR($sourceOptions)){
             $data->listFilter->FLD('source', 'varchar', 'caption=Източник,maxRadio=0,placeholder=Всички');
             $data->listFilter->setOptions('source', array('' => '', 'manual' => 'Ръчно добавени') + $sourceOptions);
@@ -204,7 +217,7 @@ class wtime_OnSiteEntries extends core_Manager
             }
 
             if($filter->type != 'all'){
-                $data->query->where("#type = {$filter->type}");
+                $data->query->where("#type = '{$filter->type}'");
             }
 
             if (!empty($filter->from)) {
@@ -222,6 +235,10 @@ class wtime_OnSiteEntries extends core_Manager
                     $data->query->where("#sourceClassId = {$filter->source}");
                 }
             }
+        }
+
+        if(!haveRole('ceo,wtime')){
+            $data->listFilter->hide = true;
         }
     }
 
@@ -324,9 +341,7 @@ class wtime_OnSiteEntries extends core_Manager
         // Вземаме всички записи
         $onSiteTimes  = self::getPersonEntries($from, $personId);
         $toSave       = [];
-        $today        = dt::today();              // string "Y-m-d"
         $nowTs        = time();
-        $nowDateTime  = new \DateTime();
 
         // Граници за графика
         $scheduleTo   = dt::today() . ' 23:59:59';
@@ -341,7 +356,7 @@ class wtime_OnSiteEntries extends core_Manager
             // Групиране по дата
             $byDate = [];
             foreach ($events as $rec) {
-                $day = (new \DateTime($rec->time))->format('Y-m-d');
+                $day = (new DateTime($rec->time))->format('Y-m-d');
                 $byDate[$day][] = $rec;
             }
 
@@ -350,11 +365,11 @@ class wtime_OnSiteEntries extends core_Manager
             if (!empty($byDate)) {
                 $daysList = array_keys($byDate);
                 sort($daysList);
-                $startDay = new \DateTime(reset($daysList));
-                $endDay   = new \DateTime(end($daysList));
-                $period   = new \DatePeriod(
+                $startDay = new DateTime(reset($daysList));
+                $endDay   = new DateTime(end($daysList));
+                $period   = new DatePeriod(
                     $startDay,
-                    new \DateInterval('P1D'),
+                    new DateInterval('P1D'),
                     (clone $endDay)->modify('+1 day')
                 );
                 foreach ($period as $dt) {
@@ -426,17 +441,11 @@ class wtime_OnSiteEntries extends core_Manager
                 : null;
 
             if ($lastRec && $lastRec->type === 'in') {
-                // Ако е днес, в рамките на график, смятаме до текущия момент
-                if ($lastDay === $today && $Interval->isIn($nowDateTime)) {
-                    $lastRec->onSiteTime = $nowTs - strtotime($lastRec->time);
-                }
-                else {
-                    // иначе както преди: проверка за голяма пауза
-                    $b = strtotime($lastRec->time);
-                    $lastRec->onSiteTime = $Interval->haveBreak($b, $nowTs, 0.9)
-                        ? 0
-                        : ($nowTs - $b);
-                }
+                $b = strtotime($lastRec->time);
+                $lastRec->onSiteTime = $Interval->haveBreak($b, $nowTs, 0.9)
+                    ? 0
+                    : ($nowTs - $b);
+
                 $toSave[$lastRec->id] = $lastRec;
             }
         }
@@ -524,13 +533,51 @@ class wtime_OnSiteEntries extends core_Manager
             }
 
             if ($requiredRoles != 'no_one') {
-
-                $sIps = wtime_Setup::get('SITE_IPS');
+                $sIps = hr_Setup::get('COMPANIES_IP');
                 $ipArr = type_Ip::extractIps($sIps);
                 if (countR($ipArr['ips'])) {
                     $thisIp = core_Users::getRealIpAddr();
                     if (!type_Ip::isInIps($thisIp, $ipArr)) {
                         $requiredRoles = 'no_one';
+                    }
+                }
+            }
+
+            if ($requiredRoles != 'no_one') {
+                if ($userId) {
+                    $personId = crm_Profiles::getPersonByUser($userId);
+                    if (!$personId) {
+                        $requiredRoles = 'no_one';
+                    } else {
+                        $personRec = crm_Persons::fetch($personId, 'groupList');
+                        if (!$personRec) {
+                            $requiredRoles = 'no_one';
+                        } else {
+                            $employeeGroupId = crm_Groups::getIdFromSysId('employees');
+                            if (!keylist::isIn($employeeGroupId, $personRec->groupList)) {
+                                $requiredRoles = 'no_one';
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($action == 'list') {
+
+            // Само потребител със специален достъп от урл-то има права за филтъра на своите входове
+            if(!haveRole('ceo,wtime')){
+                $hash = Request::get('hash');
+                if(empty($hash)){
+                    $requiredRoles = 'no_one';
+                } else{
+                    $checked = str::checkHash($hash,  4, 'filter');
+                    if(!$checked){
+                        $requiredRoles = 'no_one';
+                    } else {
+                        if($userId != $checked){
+                            $requiredRoles = 'no_one';
+                        }
                     }
                 }
             }
@@ -584,10 +631,10 @@ class wtime_OnSiteEntries extends core_Manager
         $personId = crm_Profiles::getPersonByUser($uId);
         $type = Request::get('type');
         $classId = core_Users::getClassId();
-
-        $zRec = $this->addEntry($personId, dt::now(), $type, '', $classId);
-
-        expect($zRec);
+        try {
+            $zRec = $this->addEntry($personId, dt::now(), $type, '', $classId);
+//            expect($zRec);
+        } catch (core_exception_Expect $e) { }
 
         Mode::setPermanent('trackonline', 'confirmPopup');
 

@@ -926,7 +926,9 @@ class bgfisc_plg_CashDocument extends core_Plugin
             $warning = $mvc->getContoWarning($rec, $rec->isContable);
             
             $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($res['amount']);
+            Mode::push('text', 'plain');
             $res['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
+            Mode::pop('text');
             $res['amountVerbal'] = str_replace('&nbsp;', ' ', $res['amountVerbal']);
             
             $btn = ht::createFnBtn($res['amountVerbal'], '', $warning, "class=document-conto-btn,ef_icon = img/16/tick-circle-frame.png,title=Контиране на документ,data-url={$contoUrl},id={$mvc->getHandle($rec->id)}");

@@ -1613,4 +1613,62 @@ class core_String
 
         return strlen($parts[1]);
     }
+
+
+    /**
+     * Връща цвят за текст спрямо фон:
+     *  1) опитва инверсия (обратен цвят);
+     *  2) ако няма достатъчен контраст -> връща черно или бяло.
+     *
+     * @param string|array $bg - Фонов цвят
+     * @param double $minRatio - Минимален контраст (4.5 нормален текст, 3.0 голям текст)
+     * @return string          - hex цвят за текста
+     */
+    public static function getReadableTextColor($bg, $minRatio = 4.5)
+    {
+        // ---------- Convert input to RGB ----------
+        if (is_array($bg) && count($bg) === 3) {
+            list($r, $g, $b) = array_map('intval', array_values($bg));
+        } elseif (is_string($bg)) {
+            $s = trim($bg);
+            if (preg_match('/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i', $s, $m)) {
+                $hex = ltrim($m[1], '#');
+                if (strlen($hex) === 3) $hex = preg_replace('/(.)/','$1$1',$hex);
+                $r = hexdec(substr($hex,0,2));
+                $g = hexdec(substr($hex,2,2));
+                $b = hexdec(substr($hex,4,2));
+            } elseif (preg_match('/rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)/i', $s, $m)) {
+                $r = (int)$m[1]; $g = (int)$m[2]; $b = (int)$m[3];
+            } else {
+                expect(false, 'Unsupported color format');
+            }
+        } else {
+            expect(false, 'Pass hex string or [r,g,b].');
+        }
+        $bgRGB = [$r,$g,$b];
+
+        // ---------- Helpers ----------
+        $relLum = function($rgb){
+            $f = function($c){ $c/=255; return $c<=0.03928 ? $c/12.92 : pow(($c+0.055)/1.055, 2.4); };
+            return 0.2126*$f($rgb[0]) + 0.7152*$f($rgb[1]) + 0.0722*$f($rgb[2]);
+        };
+        $contrast = function($a,$b) use($relLum){
+            $L1=$relLum($a); $L2=$relLum($b);
+            $Lmax=max($L1,$L2); $Lmin=min($L1,$L2);
+            return ($Lmax+0.05)/($Lmin+0.05);
+        };
+        
+        $toHex = function (array $rgb): string {
+            return sprintf('#%02X%02X%02X', $rgb[0] ?? 0, $rgb[1] ?? 0, $rgb[2] ?? 0);
+        };
+        // ---------- Step 1: Inverted color ----------
+        $inv = [255-$r, 255-$g, 255-$b];
+        if ($contrast($bgRGB, $inv) >= $minRatio) {
+            return $toHex($inv);
+        }
+
+        // ---------- Step 2: Fallback black/white ----------
+        $black=[0,0,0]; $white=[255,255,255];
+        return $contrast($bgRGB,$black) >= $contrast($bgRGB,$white) ? '#000000' : '#FFFFFF';
+    }
 }

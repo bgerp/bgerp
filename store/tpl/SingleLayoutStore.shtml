@@ -110,6 +110,20 @@
                                 <td>[#allowSmartReturnPos#]</td>
                             </tr>
                             <!--ET_END allowSmartReturnPos-->
+
+                            <!--ET_BEGIN minKeepPct-->
+                            <tr>
+                                <td class='dt'>|Минимален остатък по позиции|*:</td>
+                                <td>[#minKeepPct#] |от палет|*</td>
+                            </tr>
+                            <!--ET_END minKeepPct-->
+
+                            <!--ET_BEGIN preferOldest-->
+                            <tr>
+                                <td class='dt'>|Прилагане на приоритет на най-стария палет|*:</td>
+                                <td>[#preferOldest#]</td>
+                            </tr>
+                            <!--ET_END preferOldest-->
                         </table>
                     </div>
                 </fieldset>

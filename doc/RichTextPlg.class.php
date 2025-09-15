@@ -184,7 +184,7 @@ class doc_RichTextPlg extends core_Plugin
             // Атрибути на линка
             $attr['class'] = 'docLink';
             
-            $attr['rel'] = 'nofollow';
+//            $attr['rel'] = 'nofollow';
             
             // Ако изпращаме или принтираме документа
             if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
@@ -262,7 +262,7 @@ class doc_RichTextPlg extends core_Plugin
             // Атрибути на линка
             $attr['class'] = 'docLink';
             
-            $attr['rel'] = 'nofollow';
+//            $attr['rel'] = 'nofollow';
             
             // Ако изпращаме или принтираме документа
             if (Mode::is('text', 'xhtml') || Mode::is('printing')) {

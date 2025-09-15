@@ -221,7 +221,7 @@ class acc_Journal extends core_Master
         if ($rec->state == 'active') {
             $dQuery = acc_JournalDetails::getQuery();
             $dQuery->where("#journalId = {$rec->id}");
-            
+
             while ($dRec = $dQuery->fetch()) {
                 foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item) {
                     if (isset($dRec->{$item})) {
@@ -230,10 +230,32 @@ class acc_Journal extends core_Master
                     }
                 }
             }
+
+            $mvc->logItemThreads();
         }
     }
-    
-    
+
+
+    /**
+     * Локване на нишките на заопашените за обновяване пера
+     * @return void
+     */
+    public function logItemThreads()
+    {
+        if(!countR($this->affectedItems)) return;
+        $iQuery = acc_Items::getQuery();
+        $iQuery->in('id', $this->affectedItems);
+
+        while ($iRec = $iQuery->fetch()) {
+            $objectRec = cls::get($iRec->classId)->fetch($iRec->objectId);
+            if(isset($objectRec->threadId)){
+                $lockKey = "doc_Threads_Update_Item_{$objectRec->threadId}_" . core_Users::getCurrent();
+                core_Locks::obtain($lockKey, 15, 0, 0, false);
+            }
+        }
+    }
+
+
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
@@ -657,9 +679,16 @@ class acc_Journal extends core_Master
             // Увеличаваме времето за изпълнение според броя афектирани пера
             $timeLimit = countR($mvc->affectedItems) * 10;
             core_App::setTimeLimit($timeLimit);
-            
+
             foreach ($mvc->affectedItems as $rec) {
+                $rec = acc_Items::fetchRec($rec);
+                $objectRec = cls::get($rec->classId)->fetch($rec->objectId);
+
                 acc_Items::notifyObject($rec);
+                if(isset($objectRec->threadId)){
+                    $lockKey = "doc_Threads_Update_Item_{$objectRec->threadId}_" . core_Users::getCurrent();
+                    core_Locks::release($lockKey);
+                }
             }
         }
     }

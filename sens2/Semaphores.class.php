@@ -81,7 +81,7 @@ class sens2_Semaphores extends core_Master
      * 
      * @param int $objectId - The identifier of the variable or output to assign the value to (e.g., string or integer).
      * @param double $value - The value to be assigned  
-     * @param bool $onlyDifferent - Boolean flag (true/false) indicating if only a value different from the last assigned one is allowed.
+     * @param bool|null|string $onlyDifferent - Boolean flag (true/false) indicating if only a value different from the last assigned one is allowed.
      * @param $minInterval int - Minimum time (in seconds) required between two assignments.
      * @param int $minAttempts - Minimum number of attempts required to assign a value before permitting the assignment.
      *
@@ -93,6 +93,14 @@ class sens2_Semaphores extends core_Master
         $res = true;
 
         $rec = self::fetch("#objectId = {$objectId}");
+
+        if (isset($onlyDifferent)) {
+            if ($onlyDifferent == 'yes') {
+                $onlyDifferent = true;
+            } elseif ($onlyDifferent == 'no') {
+                $onlyDifferent = null;
+            }
+        }
 
         if(!$rec) {
             $rec = (object) array(
@@ -114,13 +122,13 @@ class sens2_Semaphores extends core_Master
 
         // Ако се приемат само различни стойности, резултата е негативен, ако стойността съвпада с последно зададената
         if($onlyDifferent && $rec->value == $value) {
-            log_System::add('sens2_Semaphores', "1: $onlyDifferent {$rec->value} == {$value}", $rec, 'warning');
+//            log_System::add('sens2_Semaphores', "1: $onlyDifferent {$rec->value} == {$value}", $rec, 'warning');
             $res = false;
         }
         
         // Ако е зададено минимално време, между две присвоявания, проверява се дали е изтекло от последното присвояване
         if($minInterval && dt::addSecs($minInterval, $rec->changedOn) > dt::now()) {
-            log_System::add('sens2_Semaphores', "2: {$minInterval} {$rec->changedOn}", $rec, 'warning');
+//            log_System::add('sens2_Semaphores', "2: {$minInterval} {$rec->changedOn}", $rec, 'warning');
             $res = false;
         }
 
@@ -131,7 +139,7 @@ class sens2_Semaphores extends core_Master
 
         // Ако е зададен минимален брой опити се проверява дали са направени
         if($minAttempts && ($rec->attempts < $minAttempts)) {
-            log_System::add('sens2_Semaphores', "3: {$minAttempts} {$rec->attempts}", $rec, 'warning');
+//            log_System::add('sens2_Semaphores', "3: {$minAttempts} {$rec->attempts}", $rec, 'warning');
             $res = false; 
         }
  

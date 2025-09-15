@@ -44,7 +44,7 @@ class cat_Listings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_Search';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Sorting, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -438,7 +438,7 @@ class cat_Listings extends core_Master
         
         // Намират се последните продажби за месеца
         $query = sales_Sales::getQuery();
-        $query->where("#valior >= '{$from}' AND #valior <= '{$today}' AND (#state = 'active' OR #state = 'closed')");
+        $query->where("#valior >= '{$from}' AND #valior <= '{$today}' AND #state IN ('active', 'closed')");
         $query->groupBy('folderId');
         $query->show('folderId');
         

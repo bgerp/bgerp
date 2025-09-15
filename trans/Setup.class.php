@@ -55,6 +55,11 @@ defIfNot('TRANS_START_WORK_TIME', '08:08');
 defIfNot('TRANS_END_WORK_TIME', '17:17');
 
 
+/**
+ * Показване на детайлите в Транспортна линия->Подреждане по
+ */
+defIfNot('TRANS_ORDER_BY_LINE_DETAILS', 'containerId');
+
 
 /**
  * Транспорт
@@ -166,6 +171,7 @@ class trans_Setup extends core_ProtoSetup
 
         'TRANS_START_WORK_TIME' => array('hour','caption=Начало и край на работния ден за датите в складовите документи->Начало'),
         'TRANS_END_WORK_TIME' => array('hour','caption=Начало и край на работния ден за датите в складовите документи->Край'),
+        'TRANS_ORDER_BY_LINE_DETAILS' => array('enum(containerId=№ на документ (възх.),createdOn=Ред на добавяне (възх.),createdDesc=Ред на добавяне (низх.))','caption=Показване на детайлите в Транспортна линия->Подреждане по,customizeBy=trans|ceo'),
     );
     
     

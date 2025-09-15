@@ -5,9 +5,9 @@
 
         <p style="font-size: 16px; margin-bottom: 20px;">[#TEXT#] <strong>[#USER_NAME#]</strong>?</p>
 
-        <button onclick="location.href='[#CONFIRM_URL#]'" style="margin: 10px; padding: 12px 24px; background-color: #4CAF50; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer;">|Потвърждаване|*</button>
+        <button onclick="location.href='[#CONFIRM_URL#]'" style="margin: 10px; padding: 12px 24px; background-color: #4CAF50; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; text-shadow: none;">|Потвърждаване|*</button>
 
-        <button onclick="location.href='[#SKIP_URL#]'" style="margin: 10px; padding: 12px 24px; background-color: #f44336; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer;">|Пропускане|*</button>
+        <button onclick="location.href='[#SKIP_URL#]'" style="margin: 10px; padding: 12px 24px; background-color: #f44336; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer;text-shadow: none">|Пропускане|*</button>
     </div>
 </div>
 

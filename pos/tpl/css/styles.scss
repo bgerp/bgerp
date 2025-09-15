@@ -592,7 +592,7 @@ select.tabHolder {
 
 	}
 }
-.grid.pictureAndText .element {
+.grid.pictureAndText .element, .grid.rows .element {
 	display: flex;
 	padding: 3px !important;
 	height: 164px;
@@ -619,13 +619,19 @@ select.tabHolder {
 		align-items: center;overflow: hidden;
 	}
 	.short-title {
-		height: 20px;
+		display: -webkit-box;          /* за поддръжка */
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		line-height: 1.2em;
+		max-height: calc(1.3em * 2);   /* максимум 2 реда */
+		-webkit-line-clamp: 2;         /* ограничение до 2 реда */
 		text-align: center;
-		padding: 2px 0;
 		overflow: hidden;
 		font-size: 0.95em;
 		box-sizing: border-box;
-		margin-bottom: 2px;
+		background-color: #fff;
+		padding:2px 0  6px  0px !important; /* малък буфер за ченгелчетата */
+
 	}
 	&.noPhoto {
 		.short-title {
@@ -633,6 +639,11 @@ select.tabHolder {
 			font-size: 1.25em;
 			max-height: 133px;
 			overflow: hidden;
+			align-items: center;
+			display: flex;
+			justify-content: center;
+			text-align: center;
+			padding: 2px  0px !important; /* малък буфер за ченгелчетата */
 		}
 		.photo {
 			display: none;
@@ -658,6 +669,90 @@ select.tabHolder {
 		overflow-wrap: break-word;
 	}
 }
+.scrollingGrid {
+	width: 100%;
+	height: 168px;
+	padding-top: 0;
+	-webkit-overflow-scrolling: touch; /* плавен скрол на мобилни */
+	scrollbar-width: thin;         /* тънък скролбар */
+	scrollbar-color: #ccc transparent; /* светъл плъзгач върху прозрачен фон */
+	overflow-x: auto;
+	overflow-y: hidden;
+	box-sizing: content-box;
+	-webkit-overflow-scrolling: touch; /* плавно на мобилни */
+	scrollbar-gutter: stable both-edges;
+	.grid {
+		height: 168px;
+		display: grid;
+		margin-bottom: 0 !important;
+		grid-auto-flow: column;                    /* само по хоризонтала */
+		align-items: stretch;
+		> div {
+			width: 132px;
+		}
+	}
+	.element {
+		padding: 0 !important;
+	}
+}
+.grid.rows .element {
+	height: 158px !important;
+}
+
+.grid.rows .element .photo {
+	width: 138px;
+	margin-left: -3px;
+	height: 138px;
+}
+.grid.rows .element .photo img {
+	width: 100% !important;
+}
+
+
+
+/* --- Тъч устройства (coarse pointer) --- */
+@media (pointer: coarse) {
+	.scrollingGrid {
+		scrollbar-width: none;              /* Firefox */
+	}
+	.scrollingGrid::-webkit-scrollbar {
+		display: none;                      /* WebKit */
+	}
+}
+
+/* --- Desktop (fine pointer) --- */
+@media (pointer: fine) {
+	/* Firefox */
+	.scrollingGrid {
+		scrollbar-width: thin;
+		scrollbar-color: rgba(0,0,0,.2) transparent;
+	}
+
+	/* Chrome/Edge/Safari */
+	.scrollingGrid::-webkit-scrollbar {
+		-webkit-appearance: none;
+		height: 3px;
+		background: transparent;
+	}
+
+	.scrollingGrid::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	.scrollingGrid::-webkit-scrollbar-thumb {
+		background: rgba(0,0,0,.15);
+		border-radius: 2px;
+		transition: background .2s ease;
+	}
+
+	.scrollingGrid:hover::-webkit-scrollbar-thumb {
+		background: rgba(0,0,0,.3);
+	}
+
+	.scrollingGrid::-webkit-scrollbar-thumb:active {
+		background: rgba(0,0,0,.45);
+	}
+}
 
 .posResultContragent {
 	justify-content: center;
@@ -668,7 +763,13 @@ select.tabHolder {
 	vertical-align:middle;
 	flex-direction: column;
 }
-
+.scrollingGrid.dragging {
+	cursor: grabbing;
+	user-select: none;
+}
+.scrollingGrid {
+	cursor: grab;
+}
 .posBtns {
 	justify-content: center;
 	align-content: center;

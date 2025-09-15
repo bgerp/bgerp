@@ -194,13 +194,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $iAmount = 0;
         if (is_array($dealInfo->dealProducts)) {
             foreach ($dealInfo->dealProducts as $det) {
-                if(!empty($det->discount) && empty($rec->autoDiscount) && empty($rec->inputDiscount)){
-                    $det->inputDiscount = $det->discount;
-                }
-
                 $autoDiscountPercent = $det->autoDiscount;
                 $det->discount = $det->inputDiscount;
                 $det->autoDiscount = null;
+                $det->inputDiscount = null;
                 $det->{$this->masterKey} = $id;
                 $det->amount = $det->price * $det->quantity;
                 $det->quantity /= $det->quantityInPack;

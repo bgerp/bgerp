@@ -289,6 +289,7 @@ class bgerp_Setup extends core_ProtoSetup
             'bgerp_F',
             'bgerp_Filters',
             'bgerp_LastSeenDocumentByUser',
+            'bgerp_Licences',
         );
         
         $instances = array();

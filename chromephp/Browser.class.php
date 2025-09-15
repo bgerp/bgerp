@@ -98,7 +98,9 @@ class chromephp_Browser
             $optArr['footerTemplate'] = '<style type="text/css">.footer{font-size:8px;width:100%;text-align:center;color:#000;padding-left:0.65cm;}</style><div class="footer"><span class="pageNumber"></span> / <span class="totalPages"></span></div>';
             $optArr['headerTemplate'] = '<span></span>';
         }
+        core_Debug::startTimer('CHROMEPHP_CONVERT_TO_PDF');
         $x = base64_decode($page->pdf($optArr)->getBase64());
+        core_Debug::stopTimer('CHROMEPHP_CONVERT_TO_PDF');
         $fh = fileman::absorbStr($x, $bucketName, $fileName);
 
         return $fh;
