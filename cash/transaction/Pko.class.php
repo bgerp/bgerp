@@ -88,14 +88,16 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 
         if ($reverse === true && in_array($rec->operationSysId, array('case2customerRet', 'caseAdvance2customerRet'))) {
             $transAccArr = array('481', array('currency_Currencies', $currencyId481), 'quantity' => $sign * round($amount481, 2));
-            if($rec->currencyId == $baseCurrencyId && $rec->dealCurrencyId == $baseCurrencyId){
+            $amount = $dealCurrencyRate * $rec->amountDeal;
+            if($rec->currencyId == $baseCurrencyId || ($rec->currencyId == $bgnCurrencyId && $baseCurrencyId == $euroCurrencyId)){
                 $transAccArr = array('482', array($rec->contragentClassId, $rec->contragentId),
                     array($origin->className, $origin->that),
                     array('currency_Currencies', $rec->currencyId),
                     'quantity' => $sign * round($rec->amount, 2));
+                $amount = $rec->amount;
             }
 
-            $entry1 = array('amount' => $sign * round($rec->amountDeal * $dealCurrencyRate, 2),
+            $entry1 = array('amount' => $sign * round($amount, 2),
                 'debit' => $transAccArr,
                 'credit' => array($rec->creditAccount,
                     array($rec->contragentClassId, $rec->contragentId),
