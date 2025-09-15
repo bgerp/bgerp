@@ -91,6 +91,8 @@ class type_Richtext extends type_Blob
             // Премахваме от масива
             unset($params['params']['compress']);
         }
+
+        setIfNot($params['rolesForTagCheck'], 'powerUser');
         
         parent::init($params);
     }
@@ -1735,5 +1737,64 @@ class type_Richtext extends type_Blob
         $this->suggestions = arr::make($suggestionsStr, true);
         
         $this->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
+    }
+
+
+
+
+    /**
+     * Проверка за валидност на VAT номер
+     *
+     * Ако проверката е неуспешна - връща само предупреждение
+     */
+    public function isValid($value)
+    {
+        if (!$value) {
+
+            return;
+        }
+
+        $res = parent::isValid($value);
+        $res['value'] = $value;
+
+        if ($this->rolesForTagCheck && haveRole($this->rolesForTagCheck)) {
+            $tArr = $this->validateBBCode($value);
+            if (!empty($tArr)) {
+                $res['warning'] = 'Възможен проблем с грешно затвеорени тагове|*: <b>' . implode(', ', $tArr) . '</b>';
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Проверява дали таговете в текста са коректно затворени
+     *
+     * @param $string
+     *
+     * @return bool
+     */
+    function validateBBCode($string) {
+        // Намираме всички тагове в текста
+        preg_match_all('/\[\/?[a-z]+(?:=[^\]]+)?\]/i', $string, $matches);
+        $tags = $matches[0];
+
+        $stack = array();
+
+        foreach ($tags as $tag) {
+            if (preg_match('/^\[([a-z]+)(?:=[^\]]+)?\]$/i', $tag, $m)) {
+                // Отварящ таг
+                $stack[] = strtolower($m[1]);
+            } elseif (preg_match('/^\[\/([a-z]+)\]$/i', $tag, $m)) {
+                // Затварящ таг
+                $last = array_pop($stack);
+                if ($last !== strtolower($m[1])) {
+                    return false; // Грешен ред или несъответствие
+                }
+            }
+        }
+
+        return $stack;
     }
 }
