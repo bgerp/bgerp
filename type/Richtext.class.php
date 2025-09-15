@@ -1760,7 +1760,7 @@ class type_Richtext extends type_Blob
         if ($this->rolesForTagCheck && haveRole($this->rolesForTagCheck)) {
             $tArr = $this->validateBBCode($value);
             if (!empty($tArr)) {
-                $res['warning'] = 'Възможен проблем с грешно затвеорени тагове|*: <b>' . implode(', ', $tArr) . '</b>';
+                $res['warning'] = 'Възможен проблем със затварящите тагове (символи за форматиране на текста)|*: <b>' . implode(', ', $tArr) . '</b>';
             }
         }
 
