@@ -537,13 +537,16 @@ class acc_plg_DocumentSummary extends core_Plugin
         if($mvc->getField('rate', false)){
             $showFields['rate'] = 'rate';
         }
+        if(isset($mvc->valiorFld)){
+            $showFields[$mvc->valiorFld] = $mvc->valiorFld;
+        }
         $showFields = implode(',', $showFields);
         $sQuery->show($showFields);
-
 
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
         $draftCount = $activeCount = $pendingCount = 0;
+
         while ($rec = $sQuery->fetch()) {
             $mvc->fillSummaryRec($rec, $fieldsArr);
             self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
@@ -614,11 +617,15 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             switch ($fld->summary) {
                 case 'amount':
+
                     $baseAmount = $rec->{$fld->name};
                     if ($mvc->amountIsInNotInBaseCurrency === true && isset($rec->rate)) {
                         $baseAmount *= $rec->rate;
                     }
-                    
+                    if(isset($rec->{$mvc->valiorFld})){
+                        $baseAmount = deals_Helper::getSmartBaseCurrency($baseAmount, $rec->{$mvc->valiorFld});
+                    }
+
                     $res[$fld->name]->amount += $baseAmount;
                     $res[$fld->name]->measure = "<span class='cCode'>{$currencyCode}</span>";
                     break;
