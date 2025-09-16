@@ -1656,10 +1656,10 @@ class sales_Sales extends deals_DealMaster
         if ($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT) {
             return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
         }
-        
+
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
-            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total, $params);
+            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total, $params, $rec->valior);
             
             // Сумира се, ако е изчислен
             if (is_array($fee) && $fee['totalFee'] > 0) {
