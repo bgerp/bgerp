@@ -808,9 +808,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 if($showVat == 'yes'){
                     $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(#{$fld}, 2)");
                 } else {
+                    $condWithoutVat = "(#{$fld})";
                     $condNull = "(#{$fld} / 1.2)";
                     $condNotNUll = "(#{$fld} / (1 + #amountVat / (#amountDeal - #amountVat)))";
-                    $cond = "IF((#amountVat IS NOT NULL AND #amountVat != 0), $condNotNUll, $condNull)";
+                    $cond = "IF(#chargeVat IN ('no', 'exempt'), $condWithoutVat, (IF((#amountVat IS NOT NULL AND #amountVat != 0), $condNotNUll, $condNull)))";
                     $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(($cond), 2)");
                 }
             }
