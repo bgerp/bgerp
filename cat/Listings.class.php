@@ -168,6 +168,7 @@ class cat_Listings extends core_Master
         
         $this->setDbIndex('title,type');
         $this->setDbIndex('sysId');
+        $this->setDbIndex('state');
     }
     
     
