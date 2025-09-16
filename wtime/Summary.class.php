@@ -716,6 +716,7 @@ class wtime_Summary extends core_Manager
         }
 
         if(isset($data->totalThisMonth)){
+            $data->totalThisMonth->personId = $data->masterId;
             $data->totalThisMonth->_from = $firstDay;
             $data->totalThisMonth->_to = dt::getLastDayOfMonth($firstDay);
 
@@ -724,6 +725,7 @@ class wtime_Summary extends core_Manager
         }
 
         if(isset($data->totalLastMonth)){
+            $data->totalLastMonth->personId = $data->masterId;
             $data->totalLastMonth->_from = $firstDayPrevMonth;
             $data->totalLastMonth->_to = dt::getLastDayOfMonth($firstDayPrevMonth);
 

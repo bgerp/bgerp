@@ -1282,7 +1282,7 @@ class cat_products_Packagings extends core_Detail
                 }
 
                 if ($haveState) {
-                    $dQuery->orWhereArr('state', $stateArr);
+                    $dQuery->in('state', $stateArr);
                 }
             }
 
