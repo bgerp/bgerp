@@ -1628,6 +1628,10 @@ abstract class deals_DealMaster extends deals_DealBase
     }
 
 
+    function act_Ivo()
+    {
+        self::on_AfterClosureWithDeal($this, 5525);
+    }
     /**
      * Ако с тази сделка е приключена друга сделка
      */
@@ -1655,9 +1659,13 @@ abstract class deals_DealMaster extends deals_DealBase
                 $id = $firstDoc->fetchField('id');
                 $closedIds[$id] = $id;
                 $products = (array) $dealInfo->get('dealProducts');
-
                 if (countR($products)) {
-                    $details[] = $products;
+                    $convertedProducts = array();
+                    foreach ($products as $p1){
+                        $p1->price = deals_Helper::getSmartBaseCurrency($p1->price, $dealInfo->get('agreedValior'), $rec->valior);
+                        $convertedProducts[] = $p1;
+                    }
+                    $details[] = $convertedProducts;
                 }
             }
         }

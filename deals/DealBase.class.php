@@ -267,7 +267,12 @@ abstract class deals_DealBase extends core_Master
         $dealQuery = $this->getQuery();
         $dealQuery->where("#id != {$rec->id}");
         $dealQuery->where("#folderId = {$rec->folderId}");
-        $dealQuery->where("#currencyId = '{$rec->currencyId}'");
+        if($rec->currencyId == 'EUR'){
+            $dealQuery->in("currencyId", array('BGN', 'EUR'));
+        } else {
+            $dealQuery->where("#currencyId = '{$rec->currencyId}'");
+        }
+
         if($this->getField('deliveryTermId', false)){
             if(isset($rec->deliveryTermId)){
                 $dealQuery->where("#deliveryTermId = '{$rec->deliveryTermId}'");

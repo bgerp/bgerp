@@ -3166,9 +3166,10 @@ abstract class deals_Helper
      * @param double $amount    - сумата в основната валута към $valior
      * @param string $valior    - към коя дата е сумата в основна валута
      * @param string|null $date - към основната валута за коя дата, null за сега
+     * @param bool $autoRound   - дали да се закръгли спрямо валутата или да се остави с по-голяма точност
      * @return double           - сумата обърната в основната валута към датата
      */
-    public static function getSmartBaseCurrency($amount, $valior, $date = null)
+    public static function getSmartBaseCurrency($amount, $valior, $date = null, $autoRound = false)
     {
         $date = $date ?? dt::today();
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($date);
@@ -3182,7 +3183,7 @@ abstract class deals_Helper
         if($baseCurrencyCode == 'EUR' && $valiorCurrencyCode == 'BGN') {
             $converted = $amount / 1.95583;
 
-            return currency_Currencies::round($converted, "EUR");
+            return $autoRound ? currency_Currencies::round($converted, "EUR") : round($converted, 6);
         }
 
         $converted = currency_CurrencyRates::convertAmount($amount, null, $valiorCurrencyCode, $baseCurrencyCode);
