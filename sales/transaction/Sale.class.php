@@ -101,7 +101,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
         }
 
-        if ($actions['ship'] || $actions['pay']) {
+        $receiptId = pos_Receipts::fetchField("#transferredIn = '{$rec->id}'");
+        if (empty($receiptId) && ($actions['ship'] || $actions['pay'])) {
             
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
             
