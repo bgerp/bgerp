@@ -362,6 +362,17 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
         }
 
+        // Ако има споделени потребители в забележките нотифицират се и те
+        if(!empty($rec->lineNotes)){
+            $sharedInNotes = rtac_Plugin::getNicksArr($rec->lineNotes);
+            foreach ($sharedInNotes as $sharedInNoteNick){
+                $sharedUserId = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", strtolower($sharedInNoteNick)), 'id');
+                if(core_Users::isPowerUser($sharedUserId)){
+                    $editorsArr[$sharedUserId] = $sharedUserId;
+                }
+            }
+        }
+
         // Изпращане на нотификация, ако все още имат достъп до документа
         foreach ($editorsArr as $editorUserId){
             $url = null;

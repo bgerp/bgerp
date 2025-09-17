@@ -62,8 +62,9 @@ class change_plg_History extends core_Plugin
         // Ако ще се запише нова версия - проверка с уорнинг
         if($form->isSubmitted()){
             if(!empty($rec->id)){
-                $oldHash = self::getOldRecHash($mvc, $rec);
-                $newFieldHash = self::getNewRecHash($mvc, $rec);
+                $oldHash = self::getOldRecHash($mvc, $rec, true);
+                $newFieldHash = self::getNewRecHash($mvc, $rec, true);
+
                 if($oldHash != $newFieldHash){
                     $validFrom = !empty($rec->newValidFrom) ? $rec->newValidFrom : (dt::today() . " 00:00:00");
                     $validFromVerbal = dt::mysql2verbal($validFrom);
@@ -81,11 +82,13 @@ class change_plg_History extends core_Plugin
      * @param stdClass $rec
      * @return string
      */
-    protected static function getNewRecHash($mvc, $rec)
+    protected static function getNewRecHash($mvc, $rec, $warning = false)
     {
         // Попълване на река с наблюдаваните полета
         $fieldArr = array();
-        $loggableFields = arr::make($mvc->loggableFields, true);
+        setIfNot($loggableWarningFields, $mvc->loggableField4Warning, $mvc->loggableFields);
+        $fieldsToCheck = $warning ? $loggableWarningFields : $mvc->loggableFields;
+        $loggableFields = arr::make($fieldsToCheck, true);
         $exRec = ($rec->id) ? $mvc->fetch($rec->id, $loggableFields, false) : null;
         foreach ($loggableFields as $field){
             $fieldArr[$field] = property_exists($rec, $field) ? trim($rec->{$field}) : tr($exRec->{$field});
@@ -107,11 +110,13 @@ class change_plg_History extends core_Plugin
      * @param stdClass $rec
      * @return string
      */
-    protected static function getOldRecHash($mvc, &$rec)
+    protected static function getOldRecHash($mvc, &$rec, $warning = false)
     {
         $fieldArr = $noArr = array();
         if(isset($rec->id)){
-            $loggableFields = arr::make($mvc->loggableFields, true);
+            setIfNot($loggableWarningFields, $mvc->loggableField4Warning, $mvc->loggableFields);
+            $fieldsToCheck = $warning ? $loggableWarningFields : $mvc->loggableFields;
+            $loggableFields = arr::make($fieldsToCheck, true);
             $exRec = $mvc->fetch($rec->id, '*', false);
             foreach ($loggableFields as $field){
                 $fieldArr[$field] = trim($exRec->{$field});

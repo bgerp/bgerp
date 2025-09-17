@@ -3090,7 +3090,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $CloseDoc = cls::get($mvc->closeDealDoc);
             $closedDocRec = $CloseDoc->fetch("#docClassId = {$mvc->getClassId()} AND #docId = {$rec->id} AND #state = 'active'");
             if($closedDocRec){
-                core_Statuses::newStatus( "Документа не може да се оттегли, докато е контиран |* <b>#{$CloseDoc->getHandle($rec->id)}</b>", 'error');
+                core_Statuses::newStatus( "Документа не може да се оттегли, докато е контиран |* <b>#{$CloseDoc->getHandle($closedDocRec->id)}</b>", 'error');
 
                 return false;
             }

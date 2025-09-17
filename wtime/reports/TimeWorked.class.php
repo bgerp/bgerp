@@ -247,15 +247,23 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
 
-        $fld->FLD('personName', 'varchar', 'caption=Потребител,tdClass=leftCol');
-        $fld->FLD('metric', 'varchar', 'caption=Показател,tdClass=center');
+        if ($export === false) {
 
-        for ($i = 0; $i < countR($rec->data->periodDates); $i++) {
-            $d = dt::addDays($i, $rec->data->periodDates[1]); // Y-m-d
-            $code = sprintf('d%02d', $i + 1);
-            $caption = dt::mysql2verbal($d, 'd.m');
-            $fld->FLD($code, 'varchar', "caption={$caption},tdClass=center,smartCenter");
+            $fld->FLD('personName', 'varchar', 'caption=Потребител,tdClass=leftCol');
+            $fld->FLD('metric', 'varchar', 'caption=Показател,tdClass=center');
+
+            for ($i = 0; $i < countR($rec->data->periodDates); $i++) {
+                $d = dt::addDays($i, $rec->data->periodDates[1]); // Y-m-d
+                $code = sprintf('d%02d', $i + 1);
+                $caption = dt::mysql2verbal($d, 'd.m');
+                $fld->FLD($code, 'varchar', "caption={$caption},tdClass=center,smartCenter");
+            }
+
+        } else {
+
+
         }
+
 
         return $fld;
     }
@@ -287,20 +295,19 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $row->metric = $metricByType[$dRec->rowType] ?? '';
 
 
-
         // Нормализира към МИНУТИ; приема сек/ "mm:ss"/"hh:mm"/"hh:mm:ss"
         $toMinutes = function ($val) {
             if ($val === null || $val === '' || $val === 0) return 0;
 
             // Чисто число -> приемаме секунди (както идват от getPersonsTimeInPeriod)
             if (is_int($val) || (is_string($val) && ctype_digit($val))) {
-                return (int) floor(((int)$val) / 60);
+                return (int)floor(((int)$val) / 60);
             }
 
             $s = trim((string)$val);
             if (strpos($s, ':') === false) {
                 // fallback: опит за секунди
-                if (is_numeric($s)) return (int) floor(((int)$s) / 60);
+                if (is_numeric($s)) return (int)floor(((int)$s) / 60);
                 return 0;
             }
 
@@ -308,7 +315,8 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             if (count($p) === 3) {               // hh:mm:ss
                 return $p[0] * 60 + $p[1];       // игнорираме секундите
             } elseif (count($p) === 2) {         // mm:ss ИЛИ hh:mm
-                $a = $p[0]; $b = $p[1];
+                $a = $p[0];
+                $b = $p[1];
                 // Хеуристика: ако първата част е >= 60 => mm:ss, иначе hh:mm
                 return ($a >= 60) ? $a : ($a * 60 + $b);
             }
@@ -344,7 +352,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 $row->{$code} = ($mins > 0) ? $Time->toVerbal($mins) : '-';
 
             } else { // 'Прогрес'
-                $mins = ($dRec->opsMinutesByDate[$ymd]/60)/480*100;
+                $mins = ($dRec->opsMinutesByDate[$ymd] / 60) / 480 * 100;
                 $row->{$code} = $Double->toVerbal($mins);
             }
         }
@@ -649,7 +657,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      * Намира отработените минути ден по ден за подадения период.
      *
      * @param array $personsInGroups [personId => personName]
-     * @param array $dates           ['Y-m-d', ...] (вкл. граници)
+     * @param array $dates ['Y-m-d', ...] (вкл. граници)
      * @return array                 [personId][Y-m-d] => минути | null
      */
     protected static function getProgressInPeriod($personsInGroups, $dates)
@@ -660,13 +668,13 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 1) Период от първата до последната дата (вкл.)
         $from = dt::verbal2mysql(reset($dates), false);
-        $to   = dt::verbal2mysql(end($dates),   false);
+        $to = dt::verbal2mysql(end($dates), false);
         $fromStart = $from . ' 00:00:00';
-        $toEnd     = $to   . ' 23:59:59';
+        $toEnd = $to . ' 23:59:59';
 
         // 2) Заявка: само нужните полета, само в периода
         $q = planning_ProductionTaskDetails::getQuery();
-       // $q->show('createdOn,employees,norm');
+        // $q->show('createdOn,employees,norm');
         $q->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $fromStart, $toEnd));
 
         // 3) Филтър: поне един employee да е в $personsInGroups
@@ -678,31 +686,31 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $q->where($ors ? '(' . implode(' OR ', $ors) . ')' : '1=0');
 
         // 4) Акумулация по ключ "<personId>|<Y-m-d>"
-        $arr  = array();
+        $arr = array();
 
 
         while ($qRec = $q->fetch()) {
 
-                $quantity = $qRec->quantity;
+            $quantity = $qRec->quantity;
 
-            if(in_array($qRec->type, array('production', 'scrap'))) {
+            if (in_array($qRec->type, array('production', 'scrap'))) {
                 $taskRec = planning_Tasks::fetch($qRec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
                 $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
 
                 // Ако артикула е артикула от заданието и операцията е финална или артикула е този от операцията за междинен етап
-                if(($taskRec->isFinal == 'yes' && $qRec->productId == $jobProductId) || $qRec->productId == $taskRec->productId){
+                if (($taskRec->isFinal == 'yes' && $qRec->productId == $jobProductId) || $qRec->productId == $taskRec->productId) {
 
                     $isMeasureUom = (isset($taskRec->measureId) && cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom');
-                    if($isMeasureUom){
-                        if($taskRec->indPackagingId == $taskRec->measureId){
+                    if ($isMeasureUom) {
+                        if ($taskRec->indPackagingId == $taskRec->measureId) {
                             $quantity /= $taskRec->quantityInPack;
                         }
                     }
 
-                    if($taskRec->measureId != $taskRec->indPackagingId){
-                        if(!empty($taskRec->labelQuantityInPack)){
+                    if ($taskRec->measureId != $taskRec->indPackagingId) {
+                        if (!empty($taskRec->labelQuantityInPack)) {
                             $indQuantityInPack = $taskRec->labelQuantityInPack;
-                            if($isMeasureUom){
+                            if ($isMeasureUom) {
                                 $indQuantityInPack = $indQuantityInPack * $taskRec->quantityInPack;
                             }
                             $quantity = ($quantity / $indQuantityInPack);
@@ -721,7 +729,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $norm = (int)($normParts[0] ?? 0);
 
             $empCount = countR($eArr);
-            $perEmp   = ($empCount > 0) ? ($norm * $quantity / $empCount) : 0;
+            $perEmp = ($empCount > 0) ? ($norm * $quantity / $empCount) : 0;
 
             $ymd = dt::verbal2mysql($qRec->createdOn, false);
 
@@ -803,7 +811,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function getPeriodRange($rec)
     {
-        if(isset($rec->periods)){
+        if (isset($rec->periods)) {
             $periodRec = acc_Periods::fetch($rec->periods);
 
             return array('from' => $periodRec->start, 'to' => $periodRec->end);

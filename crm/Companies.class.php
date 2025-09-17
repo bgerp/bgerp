@@ -313,6 +313,15 @@ class crm_Companies extends core_Master
 
 
     /**
+     * Кои полета ако са променяни да бият предупреждение, че ще се записва нова версия
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableField4Warning = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax';
+
+
+    /**
      * Кои изчислими полета от следените за промяна да се показват при сравнение на версиите
      *
      * @see change_plg_History
