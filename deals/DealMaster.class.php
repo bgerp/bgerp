@@ -1629,10 +1629,6 @@ abstract class deals_DealMaster extends deals_DealBase
     }
 
 
-    function act_Ivo()
-    {
-        self::on_AfterClosureWithDeal($this, 5525);
-    }
     /**
      * Ако с тази сделка е приключена друга сделка
      */

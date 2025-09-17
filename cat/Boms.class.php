@@ -780,11 +780,11 @@ class cat_Boms extends core_Master
                         }
                     }
 
-                    $row->primeCost = currency_Currencies::decorate($row->primeCost, $baseCurrencyCode);
+                    $row->primeCost = currency_Currencies::decorate($row->primeCost, $baseCurrencyCode, true);
                     $row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
                     $row->primeCost .= tr("|*, <i>|при тираж|* {$row->quantityForPrice} {$shortUom}</i>");
                     if(!empty($row->primeCostWithOverheadCost)){
-                        $row->primeCostWithOverheadCost = currency_Currencies::decorate($row->primeCostWithOverheadCost, $baseCurrencyCode);
+                        $row->primeCostWithOverheadCost = currency_Currencies::decorate($row->primeCostWithOverheadCost, $baseCurrencyCode, true);
                     }
                 }
 
