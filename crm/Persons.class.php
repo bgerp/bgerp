@@ -294,6 +294,15 @@ class crm_Persons extends core_Master
 
 
     /**
+     * Кои полета ако са променяни да бият предупреждение, че ще се записва нова версия
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableField4Warning = 'salutation,name,vatId,egn,eori,birthday,country,pCode,place,address,email,tel,mobile,fax,website';
+
+
+    /**
      * Кои изчислими полета от следените за промяна да се показват при сравнение на версиите
      *
      * @see change_plg_History
