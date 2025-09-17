@@ -783,9 +783,17 @@ class crm_Persons extends core_Master
             $dateType = tr($dateType);
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
         }
-        
+
         if ($rec->buzCompanyId && crm_Companies::haveRightFor('single', $rec->buzCompanyId)) {
-            $row->buzCompanyId = ht::createLink($mvc->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
+            $lStyle = array();
+            $cRec = crm_Companies::fetch($rec->buzCompanyId);
+            if ($cRec->state == 'closed') {
+                $lStyle = array('style' => 'background-color:#ddd;');
+            } elseif ($cRec->state == 'rejected') {
+                $lStyle = array('style' => 'background-color:#f3c9c8;');
+            }
+
+            $row->buzCompanyId = ht::createLink(crm_Companies::getVerbal($rec->buzCompanyId, 'name'),array('crm_Companies', 'single', $rec->buzCompanyId), false, $lStyle);
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$row->buzCompanyId}</div>";
         }
     }
