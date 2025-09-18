@@ -294,6 +294,15 @@ class crm_Persons extends core_Master
 
 
     /**
+     * Кои полета ако са променяни да бият предупреждение, че ще се записва нова версия
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableField4Warning = 'salutation,name,vatId,egn,eori,birthday,country,pCode,place,address,email,tel,mobile,fax,website';
+
+
+    /**
      * Кои изчислими полета от следените за промяна да се показват при сравнение на версиите
      *
      * @see change_plg_History
@@ -774,9 +783,17 @@ class crm_Persons extends core_Master
             $dateType = tr($dateType);
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
         }
-        
+
         if ($rec->buzCompanyId && crm_Companies::haveRightFor('single', $rec->buzCompanyId)) {
-            $row->buzCompanyId = ht::createLink($mvc->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
+            $lStyle = array();
+            $cRec = crm_Companies::fetch($rec->buzCompanyId);
+            if ($cRec->state == 'closed') {
+                $lStyle = array('style' => 'background-color:#ddd;');
+            } elseif ($cRec->state == 'rejected') {
+                $lStyle = array('style' => 'background-color:#f3c9c8;');
+            }
+
+            $row->buzCompanyId = ht::createLink(crm_Companies::getVerbal($rec->buzCompanyId, 'name'),array('crm_Companies', 'single', $rec->buzCompanyId), false, $lStyle);
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$row->buzCompanyId}</div>";
         }
     }

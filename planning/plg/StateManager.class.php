@@ -503,7 +503,8 @@ class planning_plg_StateManager extends core_Plugin
         $form = cls::get('core_Form');
         $form->FLD('reason', 'text(rows=2)', 'caption=Основание,mandatory');
         $actionVerbal = strtr($action, $actionArr);
-        $form->title = $actionVerbal . '|* ' . tr('на') . '|* ' . planning_Jobs::getHyperlink($rec->id, true);
+        $form->title = $actionVerbal . '|* |на|* ' . planning_Jobs::getHyperlink($rec->id, true);
+
         $mvc->invoke('AfterGetDemandReasonFormForChange', array(&$form, $action, $rec));
         $form->input();
         
