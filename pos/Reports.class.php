@@ -228,7 +228,7 @@ class pos_Reports extends core_Master
 
             $pointRec = pos_Points::fetch($rec->pointId);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
-            $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+            $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
             setIfNot($row->dealerId, $row->createdBy);
 
             if(empty($rec->operators)){
@@ -275,7 +275,7 @@ class pos_Reports extends core_Master
                 $receiptWithLowerValior =array();
                 $receipts = $query->fetchAll();
                 foreach ($receipts as $receiptRec){
-                    $recCurrencyCode = acc_Periods::getBaseCurrencyCode($receiptRec->waitingOn);
+                    $recCurrencyCode = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
                     if($valiorBaseCurrency != $recCurrencyCode){
                         $haveReceiptsWithDiffCurrency = true;
                     }
@@ -339,7 +339,7 @@ class pos_Reports extends core_Master
                 if(isset($statRow->receiptTotal)){
                     $statRow->receiptTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($statRow->receiptTotal);
                     $statRow->receiptTotalVerbal = ht::styleNumber($statRow->receiptTotalVerbal, $statRow->receiptTotal);
-                    $statRow->receiptTotalVerbal = currency_Currencies::decorate($statRow->receiptTotalVerbal, $data->row->baseCurrency);
+                    $statRow->receiptTotalVerbal = currency_Currencies::decorate($statRow->receiptTotalVerbal, $data->row->baseCurrency, true);
                     $operatorBlock->append($statRow->receiptTotalVerbal, 'operatorTotal');
                 }
 
@@ -363,7 +363,7 @@ class pos_Reports extends core_Master
                     $paymentBlocks->append($paymentName, 'paymentId');
                     $paymentAmountRow = core_Type::getByName('double(decimals=2)')->toVerbal($paymentRec->amount);
                     $paymentAmountRow = ht::styleNumber($paymentAmountRow, $paymentRec->amount);
-                    $paymentAmountRow = currency_Currencies::decorate($paymentAmountRow, $data->row->baseCurrency);
+                    $paymentAmountRow = currency_Currencies::decorate($paymentAmountRow, $data->row->baseCurrency, true);
                     $paymentBlocks->append($paymentAmountRow, 'paymentAmount');
                     if($k == -1){
                         $paymentBlocks->append('reportTotal', 'PAYMENT_CLASS');
