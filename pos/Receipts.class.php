@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, returnedTotal, createdOn, createdBy, waitingOn, waitingBy';
+    public $listFields = 'createdOn, modifiedOn, valior, title=Бележка, currency=Валута, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, returnedTotal, createdOn, createdBy, waitingOn, waitingBy';
 
 
     /**
@@ -336,10 +336,8 @@ class pos_Receipts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         if (!empty($rec->returnedTotal) && empty($rec->revertId)) {
             $row->returnedTotal = ht::styleIfNegative("-{$row->returnedTotal}", -1 * $rec->returnedTotal);
-            $row->returnedCurrency = $row->currency;
         }
         $row->contragentId = static::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('link' => true, 'icon' => true, 'policyId' => $rec->policyId));
         if (isset($rec->voucherId) && core_Packs::isInstalled('voucher')) {
@@ -353,7 +351,6 @@ class pos_Receipts extends core_Master
             $row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
             $row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), true);
             $row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), true);
-            $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
             if ($rec->transferredIn) {
                 $row->transferredIn = sales_Sales::getHyperlink($rec->transferredIn, true);
             }
@@ -391,7 +388,6 @@ class pos_Receipts extends core_Master
             $row->PAID_CAPTION = (isset($rec->revertId)) ? tr('Върнато') : tr('Платено');
             $rec->paid = abs($rec->paid);
             $row->paid = $mvc->getFieldType('paid')->toVerbal($rec->paid);
-            $row->paidCurrency = $row->currency;
             if (!empty($rec->change)) {
                 $row->CHANGE_CLASS = ($rec->change < 0 || isset($rec->revertId)) ? 'changeNegative' : 'changePositive';
                 $row->CHANGE_CAPTION = ($rec->change < 0 || isset($rec->revertId)) ? tr("За плащане") : tr("Ресто");
@@ -435,6 +431,15 @@ class pos_Receipts extends core_Master
 
         if (isset($rec->contragentLocationId)) {
             $row->contragentLocationId = crm_Locations::getHyperlink($rec->contragentLocationId);
+        }
+
+        $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+        if($fields['-single']){
+            foreach (array('total', 'paid', 'change', 'returnedTotal') as $fld){
+                if(isset($rec->{$fld})){
+                    $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $currencyCode, true);
+                }
+            }
         }
     }
 

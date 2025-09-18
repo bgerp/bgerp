@@ -268,9 +268,25 @@ class pos_Reports extends core_Master
                 $form->setError('valior','Няма чакащи (неприключени) бележки с избрания или по-малък вальор|*!');
             } else {
                 $valior = !empty($rec->valior) ? $rec->valior : dt::today();
-                $receiptArr = arr::extractValuesFromArray($query->fetchAll(), 'waitingOn');
-                $found = array_filter($receiptArr, function ($a) use ($valior) { return $a < "{$valior} 00:00:00";});
-                if(countR($found)){
+                $valiorBaseCurrency = acc_Periods::getBaseCurrencyCode($valior);
+
+                // Проверка на бележките, които ще се приключят
+                $haveReceiptsWithDiffCurrency = false;
+                $receiptWithLowerValior =array();
+                $receipts = $query->fetchAll();
+                foreach ($receipts as $receiptRec){
+                    $recCurrencyCode = acc_Periods::getBaseCurrencyCode($receiptRec->waitingOn);
+                    if($valiorBaseCurrency != $recCurrencyCode){
+                        $haveReceiptsWithDiffCurrency = true;
+                    }
+                    if($receiptRec->waitingOn < "{$valior} 00:00:00"){
+                        $receiptWithLowerValior[$receiptRec->id] = $receiptRec->id;
+                    }
+                }
+
+                if($haveReceiptsWithDiffCurrency){
+                    $form->setWarning('valior',"Има бележки във валута различно от основната валута за периода|*: <b>{$valiorBaseCurrency}</b>!");
+                } elseif(countR($receiptWithLowerValior)){
                     $form->setWarning('valior','В отчета ще влязат бележки с по-стара дата от избрания вальор|*!');
                 }
             }
