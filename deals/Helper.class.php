@@ -2540,12 +2540,13 @@ abstract class deals_Helper
             if($firstDocument = doc_Threads::getFirstDocument($threadId)){
                 if($firstDocument->isInstanceOf('sales_Sales')){
                     $sQuery = sales_SalesDetails::getQuery();
+                    $sQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
                     $sQuery->where("#saleId = {$firstDocument->that} AND #productId = {$productId}");
                     $sQuery->orderBy('price', 'ASC');
                     $sQuery->limit(1);
                     $sRec = $sQuery->fetch();
                     if(is_object($sRec)){
-                        $foundPrice = (object)array('price' => $sRec->price, 'discount' => $sRec->discount);
+                        $foundPrice = (object)array('price' => deals_Helper::getSmartBaseCurrency($sRec->price, $sRec->valior, $valior), 'discount' => $sRec->discount);
                     }
                 }
             }
