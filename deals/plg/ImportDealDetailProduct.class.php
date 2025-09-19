@@ -210,6 +210,18 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
         $isPartner = core_Users::haveRole('partner');
         $batchInstalled = core_Packs::isInstalled('batch');
+
+        $masterId = Request::get($mvc->masterKey, 'int');
+        $type = Request::get('type', 'varchar');
+        $metaArr = arr::make($mvc->metaProducts, true);
+        $masterRec = $mvc->Master->fetch($masterId);
+
+        $dealInfo = null;
+        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+        if ($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) {
+            $dealInfo = $firstDoc->getAggregateDealInfo();
+        }
+
         foreach ($rows as $i => &$row) {
 
             // Подготвяме данните за реда
@@ -236,10 +248,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 continue;
             }
 
-            $masterId = Request::get($mvc->masterKey, 'int');
-            $type = Request::get('type', 'varchar');
-            $metaArr = arr::make($mvc->metaProducts, true);
-            $masterRec = $mvc->Master->fetch($masterId);
             if(!countR($metaArr)){
                 if($mvc instanceof planning_DirectProductNoteDetails){
                     if($type == 'subProduct'){
@@ -331,18 +339,38 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
 
             if (!isset($obj->price)) {
-                $Cover = doc_Folders::getCover($folderId);
-                $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
-                $policyInfo = $Policy->getPriceInfo($Cover->getInstance()->getClassId(), $Cover->that, $pRec->productId, null, 1);
-                
+
+                // Ако към мастъра има агрегатор да се вземат цените от него
+                if(isset($dealInfo)){
+                    $products = $dealInfo->get('products');
+                    if (countR($products)) {
+                        foreach ($products as $p) {
+                            if ($pRec->productId == $p->productId && $obj->pack == $p->packagingId) {
+                                $policyInfo = new stdClass();
+                                $policyInfo->price = deals_Helper::getDisplayPrice($p->price, cat_Products::getVat($pRec->productId, $masterRec->{$mvc->Master->valiorFld}), 1, 'no');
+                                $policyInfo->discount = $p->discount;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Ако няма по неговата ЦП
+                if(!is_object($policyInfo)){
+                    $Cover = doc_Folders::getCover($folderId);
+                    $listId = (isset($dealInfo) && $dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
+                    $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
+                    $policyInfo = $Policy->getPriceInfo($Cover->getInstance()->getClassId(), $Cover->that, $pRec->productId, null, 1, $masterRec->{$mvc->Master->valiorFld}, 1, 'no', $listId);
+                }
+
                 if ($Document) {
                     $Document = cls::get($Document->className);
                 }
                 
                 //Ако документа е в покупка не искаме ценова политика
                 if ($Document instanceof sales_Sales ||
-                    $mvc->Master instanceof sales_Sales) {
-                    if (empty($policyInfo->price)) {
+                    $mvc->Master instanceof sales_Sales || $mvc->Master instanceof deals_InvoiceMaster) {
+                    if (!isset($policyInfo->price)) {
                         $err[$i][] = $obj->code . ' |Артикулът няма цена|*';
                     }
                 }
@@ -627,8 +655,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $form->FLD('pricecol', $type, "caption=Съответствие в данните->Цена{$unit}");
             $fields[] = 'pricecol';
         }
-        
-        if (core_Packs::isInstalled('batch') && !($mvc instanceof deals_QuotationDetails)) {
+
+        if (core_Packs::isInstalled('batch') && !($mvc instanceof deals_QuotationDetails) && !($mvc instanceof sales_InvoiceDetails)) {
             $form->FLD('batchcol', $type, "caption=Съответствие в данните->Партида{$unit}");
             $fields[] = 'batchcol';
         }
