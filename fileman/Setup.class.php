@@ -47,7 +47,7 @@ defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 700);
 /**
  * Максималната разрешена памет за използване
  */
-defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '1024M');
+defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '2048M');
 
 
 /**
