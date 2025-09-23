@@ -2236,11 +2236,14 @@ class doc_Folders extends core_Master
                 $cacheKey = "containing|" . implode('|', $documentIds);
                 $folderIds = core_Cache::get('doc_Folders', $cacheKey);
                 if (!is_array($folderIds)) {
-                    $cQuery = doc_Containers::getQuery();
+                    $Containers = cls::get('doc_Containers');
+                    $Containers->forceProxy();
+                    $cQuery = $Containers->getQuery();
                     $cQuery->in('docClass', $documentIds);
                     $cQuery->show('folderId');
                     $cQuery->groupBy('folderId');
                     $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
+                    $Containers->unforceProxy();
                     if(countR($folderIds)) {
                         core_Cache::set('doc_Folders', $cacheKey, $folderIds, 10);
                     }
