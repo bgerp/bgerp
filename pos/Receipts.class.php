@@ -814,7 +814,7 @@ class pos_Receipts extends core_Master
         // Подготвяме масива с данните на новата продажба, подаваме склада и касата на точката
         $posRec = pos_Points::fetch($rec->pointId);
         $settings = pos_Points::getSettings($rec->pointId);
-        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id, 'deliveryLocationId' => $rec->contragentLocationId);
+        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id, 'deliveryLocationId' => $rec->contragentLocationId, 'valior' => $rec->waitingOn);
         $fields['vatExceptionId'] = $settings->vatExceptionId;
         $hasVoucher = isset($rec->voucherId) && core_Packs::isInstalled('voucher');
 
@@ -853,6 +853,10 @@ class pos_Receipts extends core_Master
 
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
+
+        // Освобождават се запазените количества при прехвърляне
+        store_StockPlanning::updateByDocument($this, $rec->id);
+
         if(countR($products)){
             cls::get('pos_ReceiptDetails')->saveArray($products, 'id,transferedIn');
         }
@@ -874,8 +878,9 @@ class pos_Receipts extends core_Master
             sales_Sales::save($saleRec);
             sales_Sales::conto($saleRec->id);
             if($exState == 'closed'){
+                $saleRec->doTransaction = 'no';
                 $saleRec->contoActions = 'activate,pay,ship';
-                cls::get('sales_Sales')->save($saleRec, 'contoActions');
+                cls::get('sales_Sales')->save($saleRec, 'contoActions,doTransaction');
             }
 
             Mode::push('calcAutoDiscounts', false);
@@ -1671,12 +1676,17 @@ class pos_Receipts extends core_Master
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
 
+        $res = array();
+
+        // Ако бележката е прехвърлена няма да запазва нищо
+        if(!empty($rec->transferredIn)) return $res;
+
         $dQuery = pos_ReceiptDetails::getQuery();
         $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
         $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
 
-        $res = array();
+
         while($dRec = $dQuery->fetch()){
             $packRec = cat_products_Packagings::getPack($dRec->productId, $dRec->value);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
