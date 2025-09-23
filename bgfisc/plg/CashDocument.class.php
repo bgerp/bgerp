@@ -189,7 +189,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                         $tolerance = acc_Setup::get('MONEY_TOLERANCE');
 
                         $aboveTolerance = empty($diff) || $diff > $tolerance;
-                        if ($aboveTolerance  && $dealPaid && !$dealBl) {
+                        if ($aboveTolerance  && $dealPaid && $dealBl > 0) {
                             $additionalWarning = "ЦЯЛАТА СУМА ПО ДОКУМЕНТА ИЗГЛЕЖДА ВЕЧЕ Е ПЛАТЕНА|*!";
                             $defaultWarning = (!empty($additionalWarning)) ? "{$additionalWarning}, {$defaultWarning}" : "{$additionalWarning}, Наистина ли желаете документът да бъде контиран|*?";
                         }
