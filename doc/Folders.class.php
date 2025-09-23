@@ -2242,6 +2242,8 @@ class doc_Folders extends core_Master
                     $cQuery->in('docClass', $documentIds);
                     $cQuery->show('folderId');
                     $cQuery->groupBy('folderId');
+                    $cQuery->limit(20);
+                    $cQuery->orderBy('createdOn', 'DESC');
                     $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
                     $Containers->unforceProxy();
                     if(countR($folderIds)) {
