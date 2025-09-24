@@ -119,9 +119,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $rec = $form->rec;
 
         $currentPeriod = acc_Periods::fetchByDate(dt::today());
-
-        $form->setDefault('periods', $currentPeriod);
-
+        if ($currentPeriod) {
+            $form->setDefault('periods', $currentPeriod->id);
+        }
     }
 
 
