@@ -528,7 +528,7 @@ class wtime_OnSiteEntries extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'trackonline') {
-            if (haveRole('noTrackonline', $userId)) {
+            if (!haveRole('trackonline', $userId)) {
                 $requiredRoles = 'no_one';
             }
 
