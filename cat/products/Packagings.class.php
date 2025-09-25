@@ -148,6 +148,7 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Широчина,autohide=any');
         $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Височина,autohide=any');
         $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Подробно->Тара,autohide=any');
+        $this->FLD('usages', 'int', 'input=none,caption=Използвания');
 
         $this->FLD('firstClassId', 'class', 'input=none');
         $this->FLD('firstDocId', 'int', 'input=none');
@@ -1601,17 +1602,19 @@ class cat_products_Packagings extends core_Detail
     function cron_recalcLastUsedPacks()
     {
         // Детайли в които ще проверяваме
-        $from = dt::addMonths(-12);
+        $months = cat_Setup::get('LAST_PACK_USAGES');
+        $from = dt::addMonths(-1 * $months, null, false);
+        $from = "{$from} 00:00:00";
 
         core_Debug::startTimer('GET_PACKS');
         $keyIds = array();
         $pQuery = cat_products_Packagings::getQuery();
         $pQuery->show('productId,packagingId,id');
+        $pQuery->where("#createdOn >= '{$from}'");
         while($pRec = $pQuery->fetch()){
             $keyIds["{$pRec->productId}|{$pRec->packagingId}"] = $pRec->id;
         }
         core_Debug::stopTimer('GET_PACKS');
-
         $usages = array();
 
         core_Debug::startTimer('COUNT_ALL');
@@ -1651,7 +1654,7 @@ class cat_products_Packagings extends core_Detail
             while($dRec = $dQuery->fetch()){
                 $key = "{$dRec->{$productFld}}|{$dRec->{$packagingFld}}";
                 if(!array_key_exists($key, $usages)){
-                    $usages[$key] = (object)array('id' => $keyIds[$key], 'productId' => $dRec->{$productFld}, 'packagingId' => $dRec->{$packagingFld}, 'lastUsages' => 0);
+                    $usages[$key] = (object)array('id' => $keyIds[$key], 'productId' => $dRec->{$productFld}, 'packagingId' => $dRec->{$packagingFld}, 'usages' => 0);
                 };
 
                 $usages[$key]->lastUsages += $dRec->count;
@@ -1672,11 +1675,13 @@ class cat_products_Packagings extends core_Detail
         $keys = array_keys($keyIds);
         $keys = array_combine($keys, $keys);
         $usages = array_intersect_key($usages, $keys);
-        bp($usages);
-        echo "<li>" . countR($usages);
-        echo "<pre>";
-        print_r($usages);
-        echo "</pre>";
+
+        core_Debug::startTimer('SAVE_ALL');
+        $Packagings = cls::get('cat_products_Packagings');
+        if(countR($usages)){
+            $Packagings->saveArray('id,usages');
+        }
+        core_Debug::stopTimer('SAVE_ALL');
         bp();
     }
 }

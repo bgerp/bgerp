@@ -145,6 +145,12 @@ defIfNot('CAT_SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC', 'yes');
 
 
 /**
+ * Колко назад да се броят използванията на продуктовите опаковки->Месеци
+ */
+defIfNot('CAT_LAST_PACK_USAGES', 12);
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -275,6 +281,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_GROUPS_WITH_OVERHEAD_COSTS' => array('keylist(mvc=cat_Groups,select=name)', array('caption' => 'Рецепти: режийни разходи - % по подразбиране и продуктови групи, в които може да се задава->Задаване в групи')),
         'CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC' => array('keylist(mvc=cat_UoM,select=name)', array('caption' => 'Кои опаковки да се пропускат, при избор на опаковка за транспортен обем->Избор')),
         'CAT_SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC' => array('enum(yes=Да,no=Не)', array('caption' => 'Показване на изображението на универсалния артикул във външните документи->Избор')),
+        'CAT_LAST_PACK_USAGES' => array('int(Min=1)', array('caption' => 'Колко назад да се броят използванията на продуктовите опаковки->Месеци')),
     );
     
     
