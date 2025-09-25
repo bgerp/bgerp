@@ -27,9 +27,17 @@ class cat_plg_LogPackUsage extends core_Plugin
 
         // Разширяване на полетата, които да се извличат при изтриване
         $fieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, true);
+        if($mvc instanceof core_Detail){
+            if(!array_key_exists($mvc->masterKey, $fieldsBeforeDelete)){
+                $fieldsBeforeDelete[$mvc->masterKey] = $mvc->masterKey;
+            }
+        }
+
         $fieldsBeforeDelete[$mvc->productFld] = $mvc->productFld;
         $fieldsBeforeDelete += $mvc->getPackagingFields();
         $mvc->fetchFieldsBeforeDelete = implode(',', array_keys($fieldsBeforeDelete));
+
+
     }
 
 
