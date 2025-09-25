@@ -417,7 +417,7 @@ class cat_products_Packagings extends core_Detail
 
         // Ако опаковката вече е използвана не може да се изтрива
         if ($action == 'delete' && isset($rec)) {
-            if (self::isUsed($rec->productId, $rec->packagingId, strtolower(Request::get('Act')) == 'list')) {
+            if (self::canEditOrDeletePack($rec->productId, $rec->packagingId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -588,7 +588,7 @@ class cat_products_Packagings extends core_Detail
                 }
 
                 if ($checkIfPackIsUsed) {
-                    if (self::isUsed($rec->productId, $rec->packagingId, true)) {
+                    if (self::canEditOrDeletePack($rec->productId, $rec->packagingId)) {
                         $form->setReadOnly('packagingId');
                         $form->setReadOnly('quantity');
                     }
@@ -646,6 +646,9 @@ class cat_products_Packagings extends core_Detail
 
         if ($fields['-list']) {
             $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
+            if($rec->createdBy >= self::getPastHorizon()){
+                $row->user = ht::createHint($row->user, "Използвания|*: {$rec->usages}");
+            }
 
             if ($transUnitId = trans_TransportUnits::fetchField("#packagingId = {$rec->packagingId}", 'id')) {
                 $transUnitName = trans_TransportUnits::getTitleById($transUnitId);
@@ -935,8 +938,7 @@ class cat_products_Packagings extends core_Detail
             }
 
             $dRecArr = array();
-            self::isUsed($productId, $packagingId, false, array('active', 'closed'), $dRecArr, true);
-
+            self::logUsage($productId, $packagingId, $remove);
             if ($dRecArr && ($dRecArr['classId'] != $pRec->firstClassId) && ($dRecArr['id'] != $pRec->firstDocId)) {
                 $pRec->firstClassId = $dRecArr['classId'];
                 $pRec->firstDocId = $dRecArr['id'];
@@ -1182,154 +1184,6 @@ class cat_products_Packagings extends core_Detail
         }
 
         return $notMatchArr;
-    }
-
-
-    /**
-     * Дали в бизнес документите е използван артикула с посочената опаковка
-     *
-     * @param int $productId - ид на артикул
-     * @param int $uomId - мярка на артикула
-     * @param bool $cache - дали искаме данните да се кешират при използване или не
-     * @param array $stateArr - масив с позволените състояния
-     * @param array $dRecArr - масив с най-добрият резултат, който откриваме
-     * @param bool $checkAll - дали да се проверят всичките резултати
-     *
-     * @return bool $isUsed -използван или не
-     */
-    public static function isUsed($productId, $uomId, $cache = false, $stateArr = array(), &$dRecArr = array(), $checkAll = false)
-    {
-        // Подобрение за бързодействие при проверка - да се използват новите полета
-        if (!$checkAll) {
-            $pRec = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
-
-            if ($pRec && $pRec->firstClassId) {
-
-                return true;
-            }
-        }
-
-        $cacheKey = "{$productId}|{$uomId}";
-
-        // Ако искаме кеширани данни
-        if ($cache === true) {
-            $isUsed = false;
-
-            // Проверяваме имали кеш
-            $hasCache = core_Cache::get('cat_Products', $cacheKey);
-
-            // Ако артикула е използван в тази си опаковка, кешираме че е използван
-            if ($hasCache !== 'y' && $hasCache !== 'n') {
-
-                // Ако няма проверяваме дали е използван с тази опаковка (без кеш)
-                if (self::isUsed($productId, $uomId, false, $stateArr, $checkAll)) {
-                    core_Cache::set('cat_Products', $cacheKey, 'y', 10080);
-                    $isUsed = true;
-                } else {
-                    core_Cache::set('cat_Products', $cacheKey, 'n', 10080);
-                    $isUsed = false;
-                }
-            } else {
-                $isUsed = ($hasCache == 'y');
-            }
-
-            // Връщаме намерения резултат
-            return $isUsed;
-        }
-
-        // Детайли в които ще проверяваме
-        $details = self::$detailsArr;
-
-        $firstDocTime = false;
-
-        // За всеки от изброените документи проверяваме дали е избран артикула с мярката
-        $isUsed = false;
-        foreach ($details as $Detail) {
-            $dInst = cls::get($Detail);
-            $dQuery = $dInst->getQuery();
-            $dQuery->limit(1);
-
-            $haveModified = false;
-            if (!$dInst->fields['modifiedOn']) {
-                if ($dInst->Master && $dInst->masterKey) {
-                    $mInst = cls::get($dInst->Master);
-                    if ($mInst->fields['modifiedOn']) {
-                        $dQuery->EXT('modifiedOn', $dInst->Master, "externalName=modifiedOn,externalKey={$dInst->masterKey}");
-                        $haveModified = true;
-                    }
-                }
-            } else {
-                $haveModified = true;
-            }
-
-            if ($haveModified) {
-                $dQuery->orderBy('modifiedOn', 'ASC');
-            } else {
-                $dQuery->orderBy('id', 'ASC');
-            }
-
-            if (!empty($stateArr)) {
-
-                $haveState = false;
-                if (!$dInst->fields['state']) {
-                    if ($dInst->Master && $dInst->masterKey) {
-                        $mInst = cls::get($dInst->Master);
-                        if ($mInst->fields['state']) {
-                            $dQuery->EXT('state', $dInst->Master, "externalName=state,externalKey={$dInst->masterKey}");
-                            $haveState = true;
-                        }
-                    }
-                } else {
-                    $haveState = true;
-                }
-
-                if ($haveState) {
-                    $dQuery->in('state', $stateArr);
-                }
-            }
-
-            if ($Detail == 'pos_ReceiptDetails') {
-                $dQuery->where(array("#productId = '[#1#]' AND #action = 'sale|code' AND #value = '[#2#]'", $productId, $uomId));
-            } elseif ($Detail == 'planning_Jobs') {
-                $dQuery->where(array("#productId = '[#1#]' AND (#packagingId = '[#2#]' OR #secondMeasureId = '[#2#]')", $productId, $uomId));
-            } elseif ($Detail == 'cat_BomDetails') {
-                $dQuery->where(array("#resourceId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
-            } elseif ($Detail == 'store_TransfersDetails') {
-                $dQuery->where(array("#newProductId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
-            } elseif ($Detail == 'planning_ProductionTaskDetails') {
-                $dQuery->EXT('labelPackagingId', 'planning_Tasks', 'externalKey=taskId,externalName=labelPackagingId');
-                $dQuery->where(array("#productId = '[#1#]' AND #labelPackagingId = '[#2#]' AND #state != 'rejected'", $productId, $uomId));
-            } else {
-                $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
-            }
-            $dQuery->show('id,modifiedOn');
-            $dRec = $dQuery->fetch();
-
-            if ($dRec) {
-                $isUsed = true;
-
-                if (!$firstDocTime || ($firstDocTime > $dRec->modifiedOn)) {
-                    $firstDocTime = $dRec->modifiedOn;
-
-                    $dRecArr['classId'] = cls::get($Detail)->getClassId();
-                    $dRecArr['id'] = $dRec->id;
-                }
-
-                if (!$checkAll) {
-                    break;
-                }
-            }
-        }
-
-        // Ако няма проверяваме дали е използван с тази опаковка (без кеш)
-        if ($isUsed) {
-            core_Cache::set('cat_Products', $cacheKey, 'y', 10080);
-        } else {
-            core_Cache::set('cat_Products', $cacheKey, 'n', 10080);
-        }
-
-        // Връщаме резултат
-        return $isUsed;
     }
 
 
@@ -1602,35 +1456,44 @@ class cat_products_Packagings extends core_Detail
 
 
     /**
+     * Връща хоризонта в миналото от който ще се следят използванията на опаковките
+     */
+    public static function getPastHorizon()
+    {
+        $months = cat_Setup::get('LAST_PACK_USAGES');
+        $from = dt::addMonths(-1 * $months, null, false);
+
+        return "{$from} 00:00:00";
+    }
+
+
+    /**
      * Обновяване на последните използвания на продуктовите опаковки по разписание
      */
     function cron_recalcLastUsedPacks()
     {
         // Детайли в които ще проверяваме
-        $months = cat_Setup::get('LAST_PACK_USAGES');
-        $from = dt::addMonths(-1 * $months, null, false);
-        $from = "{$from} 00:00:00";
+        $from = self::getPastHorizon();
 
         // Извличат се продуктовите опаковки създавани след посочения хоризонт
         core_Debug::startTimer('GET_PACKS');
-        $keyIds = array();
+        $usages = array();
         $pQuery = cat_products_Packagings::getQuery();
         $pQuery->show('productId,packagingId,id');
         $pQuery->where("#createdOn >= '{$from}'");
         while ($pRec = $pQuery->fetch()) {
-            $keyIds["{$pRec->productId}|{$pRec->packagingId}"] = $pRec->id;
+            $usages["{$pRec->productId}|{$pRec->packagingId}"] = (object)array('id' => $pRec->id, 'productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'usages' => 0);
         }
         core_Debug::stopTimer('GET_PACKS');
-        $usages = array();
 
         // За всеки от детайлите се преброяват използванията
         core_Debug::startTimer('COUNT_ALL');
         foreach (self::$detailsArr as $Detail) {
             core_Debug::startTimer("COUNT {$Detail}");
 
-            $this->calcUsage($Detail, 'packagingId', $from, $keyIds, $usages);
+            $this->calcUsage($Detail, 'packagingId', $from, $usages);
             if($Detail instanceof planning_Jobs){
-                $this->calcUsage($Detail, 'secondMeasureId', $from, $keyIds, $usages);
+                $this->calcUsage($Detail, 'secondMeasureId', $from, $usages);
             }
             core_Debug::stopTimer("COUNT {$Detail}");
             core_Debug::log("END COUNT {$Detail}" . round(core_Debug::$timers["COUNT {$Detail}"]->workingTime, 6));
@@ -1641,11 +1504,6 @@ class cat_products_Packagings extends core_Detail
         core_Debug::log("END COUNT_ALL" . round(core_Debug::$timers["COUNT_ALL"]->workingTime, 6));
 
         // Ще се обновят използванията само на съществуващите продуктови опаковки
-        $keys = array_keys($keyIds);
-        $keys = array_combine($keys, $keys);
-        $usages = array_intersect_key($usages, $keys);
-        $usages = array_filter($usages, function($a) {return isset($a->id);});
-
         core_Debug::startTimer('SAVE_ALL');
         $Packagings = cls::get('cat_products_Packagings');
         if (countR($usages)) {
@@ -1661,11 +1519,10 @@ class cat_products_Packagings extends core_Detail
      * @param mixed $Detail        - детайл
      * @param string $packagingFld - име на полето за опаковката
      * @param string $from         - от коя дата
-     * @param array $keyIds        - ид-та на продукт+опаковка
      * @param array $usages        - масив към който да се добавя бройката
      * @return void
      */
-    private function calcUsage($Detail, $packagingFld, $from, $keyIds, &$usages)
+    private function calcUsage($Detail, $packagingFld, $from, &$usages)
     {
         $dInst = cls::get($Detail);
         $dQuery = $dInst->getQuery();
@@ -1699,11 +1556,53 @@ class cat_products_Packagings extends core_Detail
 
         while ($dRec = $dQuery->fetch()) {
             $key = "{$dRec->{$productFld}}|{$dRec->{$packagingFld}}";
-            if (!array_key_exists($key, $usages)) {
-                $usages[$key] = (object)array('id' => $keyIds[$key], 'productId' => $dRec->{$productFld}, 'packagingId' => $dRec->{$packagingFld}, 'usages' => 0);
-            };
-
-            $usages[$key]->usages += $dRec->count;
+            if (array_key_exists($key, $usages)) {
+                $usages[$key]->usages += $dRec->count;
+            }
         }
+    }
+
+
+    /**
+     * Може ли продуктовата опаковка да бъде редактирана или изтривана
+     *
+     * @param int $productId
+     * @param int $packagingId
+     * @return bool
+     */
+    public static function canEditOrDeletePack($productId, $packagingId)
+    {
+        $rec = self::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
+
+        // Ако е създадена повече от зададеното време - НЕ
+        $pastHorizon = self::getPastHorizon();
+        if($rec->createdOn <= $pastHorizon) return false;
+
+        // Ако е създадена в хоризонта, само ако не е използвана никъде
+        if(is_null($rec->usages) || $rec->usages <= 0) return true;
+
+        return false;
+    }
+
+
+    /**
+     * Логване на използване на продуктовата опаковка
+     *
+     * @param int $productId
+     * @param int $packagingId
+     * @param bool $remove
+     * @return void
+     */
+    public static function logUsage($productId, $packagingId, $remove = false)
+    {
+        $rec = self::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
+
+        if($remove){
+            $rec->usages -= 1;
+        } else {
+            $rec->usages += 1;
+        }
+
+        self::save($rec, 'usages');
     }
 }
