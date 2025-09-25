@@ -1591,11 +1591,12 @@ class cat_products_Packagings extends core_Detail
      * @param int $productId
      * @param int $packagingId
      * @param bool $remove
-     * @return void
+     * @return int
      */
     public static function logUsage($productId, $packagingId, $remove = false)
     {
         $rec = self::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
+        if(empty($rec)) return null;
 
         if($remove){
             $rec->usages -= 1;
@@ -1603,6 +1604,6 @@ class cat_products_Packagings extends core_Detail
             $rec->usages += 1;
         }
 
-        self::save($rec, 'usages');
+        return self::save($rec, 'usages');
     }
 }
