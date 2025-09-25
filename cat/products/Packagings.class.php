@@ -417,7 +417,7 @@ class cat_products_Packagings extends core_Detail
 
         // Ако опаковката вече е използвана не може да се изтрива
         if ($action == 'delete' && isset($rec)) {
-            if (self::canEditOrDeletePack($rec->productId, $rec->packagingId)) {
+            if (!self::canEditOrDeletePack($rec->productId, $rec->packagingId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -588,7 +588,7 @@ class cat_products_Packagings extends core_Detail
                 }
 
                 if ($checkIfPackIsUsed) {
-                    if (self::canEditOrDeletePack($rec->productId, $rec->packagingId)) {
+                    if (!self::canEditOrDeletePack($rec->productId, $rec->packagingId)) {
                         $form->setReadOnly('packagingId');
                         $form->setReadOnly('quantity');
                     }
