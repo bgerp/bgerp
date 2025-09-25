@@ -1603,8 +1603,21 @@ class cat_products_Packagings extends core_Detail
         // Детайли в които ще проверяваме
         $from = dt::addMonths(-12);
 
+        core_Debug::startTimer('GET_PACKS');
+        $keyIds = array();
+        $pQuery = cat_products_Packagings::getQuery();
+        $pQuery->show('productId,packagingId,id');
+        while($pRec = $pQuery->fetch()){
+            $keyIds["{$pRec->productId}|{$pRec->packagingId}"] = $pRec->id;
+        }
+        core_Debug::stopTimer('GET_PACKS');
+
         $usages = array();
+
+        core_Debug::startTimer('COUNT_ALL');
         foreach (self::$detailsArr as $Detail) {
+            core_Debug::startTimer("COUNT {$Detail}");
+
             $dInst = cls::get($Detail);
             $dQuery = $dInst->getQuery();
             if (!$dInst->getField('createdOn', false)) {
@@ -1623,10 +1636,12 @@ class cat_products_Packagings extends core_Detail
                 $packagingFld = 'value';
             } elseif ($Detail == 'planning_ProductionTaskDetails') {
                 $dQuery->EXT('labelPackagingId', 'planning_Tasks', 'externalKey=taskId,externalName=labelPackagingId');
-                $packagingFld ='labelPackagingId';
+                $packagingFld = 'labelPackagingId';
                 $dQuery->where("#state != 'rejected'");
             }
 
+            $dQuery->EXT('pMeasureId', 'cat_Products', "externalName=measureId,externalKey={$productFld}");
+            $dQuery->where("#pMeasureId != #{$packagingFld}");
 
             $dQuery->XPR('count', 'int', "COUNT(#id)");
             $dQuery->groupBy("{$productFld},{$packagingFld}");
@@ -1636,17 +1651,28 @@ class cat_products_Packagings extends core_Detail
             while($dRec = $dQuery->fetch()){
                 $key = "{$dRec->{$productFld}}|{$dRec->{$packagingFld}}";
                 if(!array_key_exists($key, $usages)){
-                    $usages[$key] = (object)array('productId' => $dRec->{$productFld}, 'packagingId' => $dRec->{$packagingFld}, 'lastUsages' => 0);
+                    $usages[$key] = (object)array('id' => $keyIds[$key], 'productId' => $dRec->{$productFld}, 'packagingId' => $dRec->{$packagingFld}, 'lastUsages' => 0);
                 };
 
                 $usages[$key]->lastUsages += $dRec->count;
             }
 
+            core_Debug::stopTimer("COUNT {$Detail}");
+            core_Debug::log("END COUNT {$Detail}" . round(core_Debug::$timers["COUNT {$Detail}"]->workingTime, 6));
 
             //$dQuery->where(array("#productId = '[#1#]' AND (#packagingId = '[#2#]' OR #secondMeasureId = '[#2#]')", $productId, $uomId));
 
         }
+        core_Debug::stopTimer('COUNT_ALL');
+        core_Debug::log("END GET_PACKS" . round(core_Debug::$timers["GET_PACKS"]->workingTime, 6));
+        core_Debug::log("END COUNT_ALL" . round(core_Debug::$timers["COUNT_ALL"]->workingTime, 6));
 
+
+
+        $keys = array_keys($keyIds);
+        $keys = array_combine($keys, $keys);
+        $usages = array_intersect_key($usages, $keys);
+        bp($usages);
         echo "<li>" . countR($usages);
         echo "<pre>";
         print_r($usages);
