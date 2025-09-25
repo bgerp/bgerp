@@ -85,7 +85,7 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified,plg_Created';
+    public $loadList = 'plg_Modified,plg_Created,cat_plg_LogPackUsage';
 
 
     /**
@@ -1500,5 +1500,30 @@ class pos_ReceiptDetails extends core_Detail
         }
 
         return $priceRes;
+    }
+
+
+    /**
+     * Кои са полетата за опаковките, за които ще се логва
+     *
+     * @return array
+     */
+    public static function getPackagingFields_()
+    {
+        return array('value' => 'value');
+    }
+
+
+    /**
+     * След запис да се синхронизира ли опаковката
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public static function canSyncPacks($rec)
+    {
+        $rec = self::fetchRec($rec);
+
+        return $rec->action == 'sale|code';
     }
 }

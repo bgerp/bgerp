@@ -124,7 +124,7 @@ class cat_products_Packagings extends core_Detail
         'purchase_ServicesDetails',
         'cat_ListingDetails',
         'pos_ReceiptDetails',
-        'planning_ProductionTaskDetails',
+        'planning_Tasks',
         'planning_ProductionTaskProducts',
         'store_ConsignmentProtocolDetailsReceived',
         'store_TransfersDetails',
@@ -646,7 +646,7 @@ class cat_products_Packagings extends core_Detail
 
         if ($fields['-list']) {
             $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
-            if($rec->createdBy >= self::getPastHorizon()){
+            if($rec->createdOn >= self::getPastHorizon()){
                 $row->user = ht::createHint($row->user, "Използвания|*: {$rec->usages}");
             }
 
@@ -938,7 +938,6 @@ class cat_products_Packagings extends core_Detail
             }
 
             $dRecArr = array();
-            self::logUsage($productId, $packagingId, $remove);
             if ($dRecArr && ($dRecArr['classId'] != $pRec->firstClassId) && ($dRecArr['id'] != $pRec->firstDocId)) {
                 $pRec->firstClassId = $dRecArr['classId'];
                 $pRec->firstDocId = $dRecArr['id'];
@@ -1491,10 +1490,11 @@ class cat_products_Packagings extends core_Detail
         foreach (self::$detailsArr as $Detail) {
             core_Debug::startTimer("COUNT {$Detail}");
 
-            $this->calcUsage($Detail, 'packagingId', $from, $usages);
-            if($Detail instanceof planning_Jobs){
-                $this->calcUsage($Detail, 'secondMeasureId', $from, $usages);
+            $packagingFields = cls::get($Detail)->getPackagingFields();
+            foreach ($packagingFields as $packagingFieldName){
+                $this->calcUsage($Detail, $packagingFieldName, $from, $usages);
             }
+
             core_Debug::stopTimer("COUNT {$Detail}");
             core_Debug::log("END COUNT {$Detail}" . round(core_Debug::$timers["COUNT {$Detail}"]->workingTime, 6));
         }
@@ -1539,11 +1539,6 @@ class cat_products_Packagings extends core_Detail
         list($productFld, $packagingFld) = array($dInst->productFld, $packagingFld);
         if ($Detail == 'pos_ReceiptDetails') {
             $dQuery->where("#action = 'sale|code'");
-            $packagingFld = 'value';
-        } elseif ($Detail == 'planning_ProductionTaskDetails') {
-            $dQuery->EXT('labelPackagingId', 'planning_Tasks', 'externalKey=taskId,externalName=labelPackagingId');
-            $packagingFld = 'labelPackagingId';
-            $dQuery->where("#state != 'rejected'");
         }
 
         $dQuery->EXT('pMeasureId', 'cat_Products', "externalName=measureId,externalKey={$productFld}");

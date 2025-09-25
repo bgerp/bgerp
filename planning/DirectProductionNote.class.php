@@ -36,7 +36,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, change_Plugin, doc_SharablePlg, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+                    doc_DocumentPlg, plg_Printing, cat_plg_LogPackUsage, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
 
 
 
