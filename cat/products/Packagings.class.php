@@ -1591,4 +1591,66 @@ class cat_products_Packagings extends core_Detail
 
         return $options;
     }
+
+    function act_Test()
+    {
+        requireRole('debug');
+        $this->cron_recalcLastUsedPacks();
+    }
+
+    function cron_recalcLastUsedPacks()
+    {
+        // Детайли в които ще проверяваме
+        $from = dt::addMonths(-12);
+
+        $usages = array();
+        foreach (self::$detailsArr as $Detail) {
+            $dInst = cls::get($Detail);
+            $dQuery = $dInst->getQuery();
+            if (!$dInst->getField('createdOn', false)) {
+                if ($dInst->Master && $dInst->masterKey) {
+                    $mInst = cls::get($dInst->Master);
+                    if ($mInst->fields['createdOn']) {
+                        $dQuery->EXT('createdOn', $dInst->Master->className, "externalName=createdOn,externalKey={$dInst->masterKey}");
+                    }
+                }
+            }
+
+            setIfNot($dInst->productFld, 'productId');
+            list($productFld, $packagingFld) = array($dInst->productFld, 'packagingId');
+            if ($Detail == 'pos_ReceiptDetails') {
+                $dQuery->where("#action = 'sale|code'");
+                $packagingFld = 'value';
+            } elseif ($Detail == 'planning_ProductionTaskDetails') {
+                $dQuery->EXT('labelPackagingId', 'planning_Tasks', 'externalKey=taskId,externalName=labelPackagingId');
+                $packagingFld ='labelPackagingId';
+                $dQuery->where("#state != 'rejected'");
+            }
+
+
+            $dQuery->XPR('count', 'int', "COUNT(#id)");
+            $dQuery->groupBy("{$productFld},{$packagingFld}");
+            $dQuery->where("#createdOn >= '{$from}'");
+            $dQuery->show("{$productFld},{$packagingFld},count");
+
+            while($dRec = $dQuery->fetch()){
+                $key = "{$dRec->{$productFld}}|{$dRec->{$packagingFldctFld}}";
+                if(!array_key_exists($key, $usages)){
+                    $usages[$key] = (object)array('productId' => $dRec->{$productFld}, 'packagingId' => $dRec->{$packagingFld}, 'lastUsages' => 0);
+                };
+
+                $usages[$key]->lastUsages += $dRec->count;
+            }
+
+
+            //$dQuery->where(array("#productId = '[#1#]' AND (#packagingId = '[#2#]' OR #secondMeasureId = '[#2#]')", $productId, $uomId));
+
+        }
+
+        echo "<li>" . countR($usages);
+        echo "<pre>";
+        print_r($usages);
+        echo "</pre>";
+        bp();
+    }
 }
