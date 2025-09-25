@@ -1634,7 +1634,7 @@ class cat_products_Packagings extends core_Detail
             $dQuery->show("{$productFld},{$packagingFld},count");
 
             while($dRec = $dQuery->fetch()){
-                $key = "{$dRec->{$productFld}}|{$dRec->{$packagingFldctFld}}";
+                $key = "{$dRec->{$productFld}}|{$dRec->{$packagingFld}}";
                 if(!array_key_exists($key, $usages)){
                     $usages[$key] = (object)array('productId' => $dRec->{$productFld}, 'packagingId' => $dRec->{$packagingFld}, 'lastUsages' => 0);
                 };
