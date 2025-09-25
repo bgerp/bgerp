@@ -3436,4 +3436,54 @@ class crm_Persons extends core_Master
 
         return null;
     }
+
+
+    /**
+     * Връща personId-тата и имената на всички лица, които са в подадените CRM групи.
+     *
+     * @param string $crmGroupKeylist keylist от crm_Groups (една или повече групи)
+     * @param bool $activeOnly само активните
+     * @return int[]                  [personId => personId]
+     */
+    public static function getPersonIdsFromCrmGroups($crmGroupKeylist, $activeOnly = true)
+    {
+        if (empty($crmGroupKeylist)) {
+            return array();
+        }
+
+        $groupIds = keylist::toArray($crmGroupKeylist);
+        if (empty($groupIds)) {
+            return array();
+        }
+
+        // 1) Всички лица, чието #groupList съдържа поне една от групите
+        $q = self::getQuery();
+
+        $q->show('id,groupList,name');
+
+        if ($activeOnly) {
+            $q->where("#state ='active'");
+        } else {
+            $q->where("#state !='rejected'");
+        }
+
+        $ors = array();
+
+        foreach ($groupIds as $gId) {
+            $gId = (int)$gId;
+            $ors[] = "LOCATE('|{$gId}|', CONCAT('|', #groupList, '|'))";
+        }
+
+        $q->where('(' . implode(' OR ', $ors) . ')');
+
+        $personIds = array();
+        while ($p = $q->fetch()) {
+            $personIds[$p->id] = $p->name;
+        }
+        if (empty($personIds)) {
+            return array();
+        }
+
+        return $personIds; // [personId => personId]
+    }
 }
