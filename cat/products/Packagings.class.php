@@ -1670,8 +1670,6 @@ class cat_products_Packagings extends core_Detail
         core_Debug::log("END GET_PACKS" . round(core_Debug::$timers["GET_PACKS"]->workingTime, 6));
         core_Debug::log("END COUNT_ALL" . round(core_Debug::$timers["COUNT_ALL"]->workingTime, 6));
 
-
-
         $keys = array_keys($keyIds);
         $keys = array_combine($keys, $keys);
         $usages = array_intersect_key($usages, $keys);
@@ -1679,7 +1677,7 @@ class cat_products_Packagings extends core_Detail
         core_Debug::startTimer('SAVE_ALL');
         $Packagings = cls::get('cat_products_Packagings');
         if(countR($usages)){
-            $Packagings->saveArray('id,usages');
+            $Packagings->saveArray($usages, 'id,usages');
         }
         core_Debug::stopTimer('SAVE_ALL');
         bp();
