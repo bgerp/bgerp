@@ -327,6 +327,15 @@ class cat_Setup extends core_ProtoSetup
             'offset' => 10,
             'timeLimit' => 300
         ),
+        array(
+            'systemId' => 'Recalc Last Used Packs',
+            'description' => 'Обновяване на последните използвания на опаковките',
+            'controller' => 'cat_products_Packagings',
+            'action' => 'recalcLastUsedPacks',
+            'period' => 1440,
+            'offset' => 60,
+            'timeLimit' => 300
+        ),
     );
     
     
