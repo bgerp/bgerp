@@ -3445,7 +3445,7 @@ class crm_Persons extends core_Master
      * @param bool $activeOnly само активните
      * @return int[]                  [personId => personId]
      */
-    public static function getPersonIdsFromCrmGroups($crmGroupKeylist, $activeOnly = true)
+    public static function getPersonIdsFromCrmGroups($crmGroupKeylist, $activeOnly = true, $param = 'name')
     {
         if (empty($crmGroupKeylist)) {
             return array();
@@ -3478,7 +3478,12 @@ class crm_Persons extends core_Master
 
         $personIds = array();
         while ($p = $q->fetch()) {
-            $personIds[$p->id] = $p->name;
+            if($param === 'name') {
+                $personIds[$p->id] = $p->name;
+            }else{
+                $personIds[$p->id] = $p->id;
+            }
+
         }
         if (empty($personIds)) {
             return array();
