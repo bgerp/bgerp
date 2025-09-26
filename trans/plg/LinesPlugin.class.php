@@ -363,7 +363,16 @@ class trans_plg_LinesPlugin extends core_Plugin
         }
 
         // Ако има споделени потребители в забележките нотифицират се и те
-        $editorsArr += self::getSharedInLineNote($rec);
+        if(!empty($rec->lineNotes)){
+            $sharedInNotes = rtac_Plugin::getNicksArr($rec->lineNotes);
+            foreach ($sharedInNotes as $sharedInNoteNick){
+                $sharedUserId = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", strtolower($sharedInNoteNick)), 'id');
+                if(core_Users::isPowerUser($sharedUserId)){
+                    $editorsArr[$sharedUserId] = $sharedUserId;
+                }
+            }
+        }
+
         if(is_object($lineRec)){
             doc_ThreadUsers::addShared($lineRec->threadId, $lineRec->containerId, $editorsArr);
         }
@@ -971,38 +980,6 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $mvc->save_($rec, $updateFields);
             }
             $res = true;
-        }
-    }
-
-    protected static function getSharedInLineNote($rec)
-    {
-        // Ако има споделени потребители в забележките нотифицират се и те
-        $editorsArr = array();
-        if(empty($rec->lineNotes)) return $editorsArr;
-
-        $sharedInNotes = rtac_Plugin::getNicksArr($rec->lineNotes);
-        foreach ($sharedInNotes as $sharedInNoteNick){
-            $sharedUserId = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", strtolower($sharedInNoteNick)), 'id');
-            if(core_Users::isPowerUser($sharedUserId)){
-                $editorsArr[$sharedUserId] = $sharedUserId;
-            }
-        }
-
-        return $editorsArr;
-    }
-
-
-    /**
-     * Потребителите които са споделени
-     */
-    public static function on_AfterGetShared($mvc, &$shared, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-
-        $additionallyShared = self::getSharedInLineNote($rec);
-        if(!empty($additionallyShared)){
-            $additionallyShared = keylist::fromArray($additionallyShared);
-            $shared = keylist::merge($additionallyShared, $shared);
         }
     }
 }
