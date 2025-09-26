@@ -834,7 +834,7 @@ class bgerp_Notifications extends core_Manager
             $unsubscribeUrl = array(get_called_class(), 'unsubscribe', $rec->id);
             $attr = array('ef_icon' => 'img/16/no-bell.png', 'title' => 'Автоматично отписване от нотификациите', 'class' => 'button', 'data-url' => toUrl($unsubscribeUrl, 'local'));
             $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
-            $unsubscribeBtn = ht::createLink('Отписване', $unsubscribeUrl, null, $attr);
+            $unsubscribeBtn = ht::createLink(tr('Отписване'), $unsubscribeUrl, null, $attr);
             $tpl->append($unsubscribeBtn);
         }
         
@@ -845,7 +845,7 @@ class bgerp_Notifications extends core_Manager
                 $ctrInst = cls::get($ctr);
                 $settingsUrl = array(get_called_class(), 'settings', $rec->id, 'ret_url' => true);
                 if (($ctrInst instanceof doc_Folders) || ($ctrInst instanceof doc_Threads) || ($ctrInst instanceof doc_Containers) || (cls::haveInterface('doc_DocumentIntf', $ctrInst))) {
-                    $settingsBtn = ht::createLink('Настройки', $settingsUrl, null, array('ef_icon' => 'img/16/cog.png', 'title' => 'Настройки за получаване на нотификация', 'class' => 'button'));
+                    $settingsBtn = ht::createLink(tr('Настройки'), $settingsUrl, null, array('ef_icon' => 'img/16/cog.png', 'title' => 'Настройки за получаване на нотификация', 'class' => 'button'));
                     $tpl->append($settingsBtn);
                 }
             }

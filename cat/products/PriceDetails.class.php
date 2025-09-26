@@ -176,13 +176,13 @@ class cat_products_PriceDetails extends core_Manager
                 }
                 
                 if ($hideIcons === false) {
-                    $btns .= "<div style='text-align:left'>" . ht::createLink('Нова себестойност', $data->addPriceUrl, false, 'title=Добавяне на нова мениджърска себестойност') . '</div>';
+                    $btns .= "<div style='text-align:left'>" . ht::createLink(tr('Нова себестойност'), $data->addPriceUrl, false, 'title=Добавяне на нова мениджърска себестойност') . '</div>';
                 }
                 
                 if (price_Lists::haveRightFor('single', $primeCostListId) && isset($primeCost)) {
                     if ($hideIcons === false) {
                         $threadId = price_Lists::fetchField($primeCostListId, 'threadId');
-                        $btns .= "<div style='text-align:left'>" . ht::createLink('Хронология', array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId), false, 'title=Хронология на себестойността на артикула'). '</div>';
+                        $btns .= "<div style='text-align:left'>" . ht::createLink(tr('Хронология'), array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId), false, 'title=Хронология на себестойността на артикула'). '</div>';
                     }
                 }
             }
