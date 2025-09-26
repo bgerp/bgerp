@@ -25,10 +25,15 @@
   font-size: 20px; }
 
 .with-words {
-  background-color: rgba(200, 200, 200, 0.4);
+  background-color: rgba(230, 230, 230, 0.4);
+  color: #999999;
+  font-size: 0.8em;
   text-align: right;
   padding-top: 3px;
   padding-bottom: 3px; }
+  .with-words .cCode {
+    color: #999999 !important;
+    font-size: 0.8em; }
 
 .notes-block {
   text-align: left;

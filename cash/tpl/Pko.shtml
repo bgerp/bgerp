@@ -65,13 +65,8 @@
                          <div><span class='quiet' style="padding: 0 3px;">|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
                          <!--ET_END lineVehicleId-->
                     <!--ET_END pkoRow-->
-
                      </td>
-
-
                     <td style='padding-left:10px; padding-top: 10px; max-width:50%; min-width: 220px' class="nowrap">
-
-
                         <table class="no-border fright"><tr><td style='font-size:20px'>|Сума|*:</td><td class='amount' style="margin-right: 0"><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></td></tr></table>
                         <div class="clearfix21"></div>
                         <!--ET_BEGIN cash_NonCashPaymentDetails-->
@@ -84,7 +79,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class='with-words' colspan='3'>
+                    <td class='with-words' colspan='2' >
                         |Словом|*: [#amountVerbal#]
                     </td>
                 </tr>
