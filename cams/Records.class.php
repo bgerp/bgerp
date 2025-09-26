@@ -1020,15 +1020,20 @@ class cams_Records extends core_Master
         $rec->period = (int) $conf->CAMS_CLIP_DURATION / 60;
         $rec->offset = 0;
         $res .= core_Cron::addOnce($rec);
-        
-        
+
         $rec = new stdClass();
         $rec->systemId = 'delete_old_video';
         $rec->description = 'Изтриване на старите записи от камерите';
         $rec->controller = 'cams_Records';
         $rec->action = 'DeleteOldRecords';
         $rec->period = (int) 2 * $conf->CAMS_CLIP_DURATION / 60;
-        $rec->offset = mt_rand(0, 8);
+        $offset = mt_rand(0, 8);
+        if($rec->period > $offset) {
+            $rec->offset = $offset;
+        } else {
+            $rec->offset = 0;
+        }
+
 		$rec->isRandOffset = true;
         $res .= core_Cron::addOnce($rec);
         

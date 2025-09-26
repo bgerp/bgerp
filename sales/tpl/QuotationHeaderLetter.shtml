@@ -59,7 +59,7 @@
 	    <table  class = 'products-table' style='width:100%;'>
 	        <tr>
 	            <th>|Условия на офертата|*</th>
-	            <th>|Съставил|*</th>
+	            <th>|Съставил|* [#USERNAME_SIGN_PAD#]</th>
 	        </tr>
 	        <tr>
 	            <td>
@@ -100,9 +100,10 @@
 				        <!--ET_END commonConditionQuote-->
 	                </ol>
 	            </td>
-	            <td class="centered" style='vertical-align: bottom !important'>
-	              <div class='sign_names' style='margin-top: 50px;'>/ [#username#] /</div>
-	            </td>
+                <td class="centered" style='vertical-align: top !important;'>
+                    [#USERNAME_SIGN#]
+                    <div class='sign_names' style='margin-top: 25px;'>/ [#username#] /</div>
+                </td>
 	        </tr>
 	    </table>
     </div>

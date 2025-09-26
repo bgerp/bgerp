@@ -151,9 +151,9 @@ class sync_Setup extends core_ProtoSetup
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('importedProductFiles', 'Файлове от импортирани артикули', null, '1GB', 'user', 'user');
 
-        if(core_Packs::isInstalled('eshop')){
+        if(core_Packs::isInstalled('eshop', true)){
             $eSettings = cls::get('eshop_Settings');
-            $eSettings->setupMvc();
+            $html .= $eSettings->setupMvc();
         }
 
         return $html;
