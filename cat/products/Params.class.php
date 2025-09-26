@@ -764,13 +764,13 @@ class cat_products_Params extends doc_Detail
             if(in_array($paramRec->state, array('rejected', 'closed'))) continue;
 
             $name = cat_Params::getVerbal($paramRec, 'name');
+            $name = str_replace('|', '&#124;', $name);
             if(!empty($paramRec->group)){
                 $groupName = cat_Params::getVerbal($paramRec, 'group');
                 $groupName = str_replace('|', '&#124;', $groupName);
                 $caption = "Параметри за|*: <b>{$groupName}</b>->{$name}";
             } else {
                 $plannedProductName = str_replace('|', '&#124;', $plannedProductName);
-                $name = str_replace('|', '&#124;', $name);
                 $caption = "Параметри за планиране на|*: <b>{$plannedProductName}</b>->|{$name}|*";
             }
             $form->FLD("paramcat{$pId}", 'double', "caption={$caption},before=indPackagingId");
