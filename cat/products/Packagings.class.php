@@ -44,7 +44,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити,user=Създаване';
+    public $listFields = 'productId=Артикул,packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити,user=Създаване';
 
 
     /**
@@ -103,6 +103,12 @@ class cat_products_Packagings extends core_Detail
 
 
     /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 50;
+
+
+    /**
      * Помощен масив за всички детайли и класове, в които може да се съдържа
      */
     protected static $detailsArr = array(
@@ -137,7 +143,7 @@ class cat_products_Packagings extends core_Detail
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', 'input=hidden, silent');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка/Мярка,mandatory,smartCenter,removeAndRefreshForm=quantity|tareWeight|sizeWidth|sizeHeight|sizeDepth|templateId|isSecondMeasure,silent');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
@@ -660,6 +666,8 @@ class cat_products_Packagings extends core_Detail
         if ($packState == 'closed' && $rec->state != 'closed') {
             $row->packagingId = ht::createHint($row->packagingId, 'Мярката/Опаковката е деактивирана за системата!', 'warning', false);
         }
+
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
     }
 
 
@@ -690,6 +698,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         $data->listFields = arr::make($this->listFields, true);
+        unset($data->listFields['productId']);
         $shortMeasure = cat_UoM::getShortName($data->_masterRec->measureId);
         $data->listFields['quantity'] .= "|* <span class='small'>( |{$shortMeasure}|* )</span>";
     }
@@ -1447,12 +1456,6 @@ class cat_products_Packagings extends core_Detail
         return $options;
     }
 
-    function act_Test()
-    {
-        requireRole('debug');
-        $this->cron_recalcLastUsedPacks();
-    }
-
 
     /**
      * Връща хоризонта в миналото от който ще се следят използванията на опаковките
@@ -1600,5 +1603,31 @@ class cat_products_Packagings extends core_Detail
         }
 
         return self::save($rec, 'usages');
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->showFields = 'productId,packagingId';
+        $data->listFilter->setField('productId', 'input,title=Артикул');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input('productId,packagingId');
+
+        if($filter = $data->listFilter->rec){
+            if(!empty($filter->productId)){
+                $data->query->where("#productId = {$filter->productId}");
+            }
+
+            if(!empty($filter->packagingId)){
+                $data->query->where("#packagingId = {$filter->packagingId}");
+            }
+        }
     }
 }
