@@ -848,7 +848,11 @@ class core_Mvc extends core_FieldSet
         } else {
             $res = $me->fields[$fieldName]->type->toVerbal($value);
         }
-        
+
+        if (is_string($res)) {
+            $res = str_replace('|', '&#124;', $res);
+        }
+
         return $res;
     }
     
