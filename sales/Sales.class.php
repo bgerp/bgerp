@@ -358,6 +358,7 @@ class sales_Sales extends deals_DealMaster
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,silent,removeAndRefreshForm=caseId|paymentType');
         $this->setField('chargeVat', 'salecondSysId=saleChargeVat');
         $this->setField('oneTimeDelivery', 'salecondSysId=salesOneTimeDelivery');
+        $this->FLD('doTransaction', 'enum(no=Без,yes=С)', 'input=none,notNull,value=yes');
 
         if (core_Packs::isInstalled('voucher')) {
             $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=id,allowEmpty)', 'caption=Ваучер,input=none');

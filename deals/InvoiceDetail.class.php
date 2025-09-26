@@ -662,7 +662,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         }
                     }
                 }
-                
+
                 if (!$policyInfo) {
                     $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                     $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
@@ -765,5 +765,70 @@ abstract class deals_InvoiceDetail extends doc_Detail
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
         $rec->discount = $oldRec->inputDiscount;
+    }
+
+
+    /**
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int   $masterId - ид на мастъра на детайла
+     * @param array $row      - Обект представляващ артикула за импортиране
+     *                        ->code - код/баркод на артикула
+     *                        ->quantity - К-во на опаковката или в основна мярка
+     *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     *                        ->pack - Опаковката
+     *
+     * @return mixed - резултата от експорта
+     */
+    public function import($masterId, $row)
+    {
+        $Master = $this->Master;
+        $masterRec = $Master->fetch($masterId);
+
+        $pRec = cat_Products::getByCode($row->code);
+        $packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $dRec = (object)array($this->masterKey => $masterId, 'productId' => $pRec->productId, 'packagingId' => $packagingId);
+        $packRec = cat_products_Packagings::getPack($pRec->productId, $dRec->packagingId);
+
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+        $rate = $masterRec->displayRate ?? $masterRec->rate;
+        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
+        if(isset($row->price)){
+            $dRec->price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($dRec->productId, null, $vatExceptionId), $rate, $masterRec->chargeVat);
+            $dRec->price /= $quantityInPack;
+        } else {
+            if(!isset($row->_dealInfo)){
+                $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+                $row->_dealInfo = $firstDoc->getAggregateDealInfo();
+            }
+
+            $products = $row->_dealInfo->get('products');
+            if (countR($products)) {
+                foreach ($products as $p) {
+                    if ($dRec->productId == $p->productId && $dRec->packagingId == $p->packagingId) {
+                        $policyInfo = new stdClass();
+                        $policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->rate, 'no');
+                        $policyInfo->discount = $p->discount;
+                        break;
+                    }
+                }
+            }
+
+            if (!$policyInfo) {
+                $Policy = (isset($this->Policy)) ? $this->Policy : cls::get('price_ListToCustomers');
+                $listId = ($row->_dealInfo->get('priceListId')) ? $row->_dealInfo->get('priceListId') : null;
+                $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
+            }
+
+            $dRec->price = $policyInfo->price;
+            $dRec->discount = $policyInfo->discount;
+        }
+
+        $dRec->quantity = $row->quantity;
+        $dRec->quantityInPack = $quantityInPack;
+        $dRec->amount = $dRec->price * $dRec->quantity;
+
+        return self::save($dRec);
     }
 }

@@ -1896,7 +1896,7 @@ class doc_Threads extends core_Manager
             return;
         }
 
-        core_Locks::obtain('doc_Threads_Update_' . $id, 5, 0, 0, false);
+        core_Locks::obtain('doc_Threads_Update_' . $id, 20, 0, 0, false);
 
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;

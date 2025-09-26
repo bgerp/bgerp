@@ -44,7 +44,7 @@ class store_InventoryNoteDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'store_Wrapper, plg_AlignDecimals2, plg_RowTools2, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,deals_plg_ImportDealDetailProduct,plg_Created,plg_Sorting,plg_Search';
+    public $loadList = 'store_Wrapper, plg_AlignDecimals2, plg_RowTools2, cat_plg_LogPackUsage, plg_PrevAndNext, plg_SaveAndNew, plg_Modified,deals_plg_ImportDealDetailProduct,plg_Created,plg_Sorting,plg_Search';
     
     
     /**

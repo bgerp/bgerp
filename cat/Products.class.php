@@ -575,7 +575,7 @@ class cat_Products extends embed_Manager
                 if (cat_products_Packagings::fetch("#productId = {$rec->id}")) {
                     $isUsed = true;
                 } else {
-                    $isUsed = cat_products_Packagings::isUsed($rec->id, $rec->measureId, true);
+                    $isUsed = cat_products_Packagings::canEditOrDeletePack($rec->id, $rec->measureId);
                 }
                 
                 // Ако артикулът е използван, мярката му не може да бъде сменена

@@ -423,11 +423,20 @@ class rack_MovementGenerator2 extends core_Manager
 
                 // Наличност, достъпна за взимане (спазвайки минимума)
                 $curPalletLeft = (float)$p[$pI];
-                $available = $curPalletLeft;
-                if ($minKeepQty > 0) {
-                    $available = max(0.0, $curPalletLeft - $minKeepQty);
+                // Ако трябва да се вземе точно наличното количество → да
+                if ($curPalletLeft == $zQ) {
+                    $available = $curPalletLeft;
                 }
-                if ($available <= 0.0) continue;
+                // Ако имаме по-малко от нужното → взимаме всичко
+                elseif ($curPalletLeft < $zQ) {
+                    $available = $curPalletLeft;
+                }
+                // Иначе — само ако след движението ще остане поне minKeepQty
+                elseif ($curPalletLeft - $zQ >= $minKeepQty) {
+                    $available = $zQ;
+                } else {
+                    continue; // Не взимаме, за да не нарушим остатъка
+                }
 
                 $q = min($zQ, $available);
                 $q = self::ffix($q);
