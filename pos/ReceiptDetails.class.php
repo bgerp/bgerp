@@ -100,6 +100,13 @@ class pos_ReceiptDetails extends core_Detail
     private static $updatedOperationPlaceholderMap = array('setquantity' => 'quantityUpdated', 'settext' => 'textUpdated', 'setbatch' => 'batchUpdated', 'setprice' => 'priceUpdated', 'setstore' => 'storeUpdated', 'setdiscount' => 'discountUpdated');
 
 
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,receiptId,action,productId,value';
+
+
     /**
      * Описание на модела (таблицата)
      */
