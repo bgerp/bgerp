@@ -1632,7 +1632,7 @@ class crm_Companies extends core_Master
      *
      * @param int $id - ид на записа
      *
-     * @return string(3) - BGN|EUR|USD за дефолт валутата
+     * @return string(3) - EUR|USD за дефолт валутата
      */
     public static function getDefaultCurrencyId($id)
     {
