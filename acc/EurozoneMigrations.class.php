@@ -22,10 +22,42 @@ class acc_EurozoneMigrations extends core_BaseClass
     public static function updatePriceLists()
     {
         $Lists = cls::get('price_Lists');
+        $Discounts = cls::get('price_ListBasicDiscounts');
 
-        $currencyColName = str::phpToMysqlName('currency');
-        $query = "UPDATE {$Lists->dbTableName} SET {$currencyColName} = 'EUR' WHERE {$currencyColName} = 'BGN'";
-        $Lists->db->query($query);
+        $discounts = array();
+        $discQuery = $Discounts->getQuery();
+        $discQuery->where("#amountFrom IS NOT NULL OR #amountTo IS NOT NULL");
+        while($dRec = $discQuery->fetch()){
+            $discounts[$dRec->listId][$dRec->id] = $dRec;
+        }
+
+        $saveDiscounts = array();
+        $query = $Lists->getQuery();
+        $query->where("#currency = 'BGN'");
+        while($rec = $query->fetch()){
+            $rec->currency = 'EUR';
+            $Lists->save_($rec, 'currency');
+
+            if(isset($discounts[$rec->id])){
+                foreach ($discounts[$rec->id] as $dRec1){
+                    if(!empty($dRec1->amountFrom)){
+                        $dRec1->amountFrom /= 1.95583;
+                        $dRec1->amountFrom = round($dRec1->amountFrom, 2);
+                    }
+
+                    if(!empty($dRec1->amountTo)){
+                        $dRec1->amountTo /= 1.95583;
+                        $dRec1->amountTo = round($dRec1->amountTo, 2);
+                    }
+
+                    $saveDiscounts[$dRec1->id] = $dRec1;
+                }
+            }
+        }
+
+        if(countR($saveDiscounts)){
+            $Discounts->saveArray($saveDiscounts, 'id,amountTo,amountFrom');
+        }
     }
 
 
@@ -77,6 +109,6 @@ class acc_EurozoneMigrations extends core_BaseClass
     {
         requireRole('debug');
 
-        self::updateEshopSettings();
+        self::updatePriceLists();
     }
 }
