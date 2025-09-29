@@ -40,7 +40,7 @@ class acc_EurozoneMigrations extends core_BaseClass
 
             if(isset($discounts[$rec->id])){
                 foreach ($discounts[$rec->id] as $dRec1){
-                    if(!empty($dRec1->amountFrom)){
+                    if($dRec1->amountFrom !== null){
                         $dRec1->amountFrom /= 1.95583;
                         $dRec1->amountFrom = round($dRec1->amountFrom, 2);
                     }
@@ -105,10 +105,38 @@ class acc_EurozoneMigrations extends core_BaseClass
         }
     }
 
+
+    /**
+     * Миграция на делтите
+     */
+    public static function updateDeltas()
+    {
+        $Deltas   = cls::get('sales_PrimeCostByDocument');
+
+        $sellCost  = str::phpToMysqlName('sellCost');                       // sell_cost
+        $primeCost = str::phpToMysqlName('primeCost');                      // prime_cost
+        $autoDisc  = str::phpToMysqlName('autoDiscountAmount');             // auto_discount_amount
+        $scwod     = str::phpToMysqlName('sellCostWithOriginalDiscount');   // sell_cost_with_original_discount
+        $tbl = $Deltas->dbTableName;
+
+        $query = "
+UPDATE `{$tbl}`
+SET
+  `{$sellCost}`  = CASE WHEN `{$sellCost}`  IS NOT NULL THEN `{$sellCost}`  / 1.95583 ELSE NULL END,
+  `{$primeCost}` = CASE WHEN `{$primeCost}` IS NOT NULL THEN `{$primeCost}` / 1.95583 ELSE NULL END,
+  `{$autoDisc}`  = CASE WHEN `{$autoDisc}`  IS NOT NULL THEN `{$autoDisc}`  / 1.95583 ELSE NULL END,
+  `{$scwod}`     = CASE WHEN `{$scwod}`     IS NOT NULL THEN `{$scwod}`     / 1.95583 ELSE NULL END
+";
+        $Deltas->db->query($query);
+    }
+
+
+
+
     function act_Test()
     {
         requireRole('debug');
 
-        self::updatePriceLists();
+        //self::updatePriceLists();
     }
 }
