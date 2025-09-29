@@ -848,7 +848,7 @@ class core_Mvc extends core_FieldSet
         } else {
             $res = $me->fields[$fieldName]->type->toVerbal($value);
         }
-        
+
         return $res;
     }
     

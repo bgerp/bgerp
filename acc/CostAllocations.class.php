@@ -547,7 +547,7 @@ class acc_CostAllocations extends core_Manager
             $url['ret_url'] = true;
             
             core_Request::setProtected('detailClassId,detailRecId,containerId,productId');
-            $data->addBtn = ht::createLink('Отнасяне на разходи', toUrl($url), false, 'title=Отнасяне към разходен обект');
+            $data->addBtn = ht::createLink(tr('Отнасяне на разходи'), toUrl($url), false, 'title=Отнасяне към разходен обект');
             core_Request::removeProtected('detailClassId,detailRecId,containerId,productId');
         }
     }

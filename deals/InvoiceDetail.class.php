@@ -780,9 +780,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
         $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
         $rate = $masterRec->displayRate ?? $masterRec->rate;
+        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
 
         if(isset($row->price)){
             $dRec->price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($dRec->productId, null, $vatExceptionId), $rate, $masterRec->chargeVat);
+            $dRec->price /= $quantityInPack;
         } else {
             if(!isset($row->_dealInfo)){
                 $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
@@ -812,7 +814,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
 
         $dRec->quantity = $row->quantity;
-        $dRec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+        $dRec->quantityInPack = $quantityInPack;
         $dRec->amount = $dRec->price * $dRec->quantity;
 
         return self::save($dRec);
