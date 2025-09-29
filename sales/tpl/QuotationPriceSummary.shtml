@@ -16,21 +16,21 @@
       <table class="no-border" style="margin: 0 auto" >
          <!--ET_BEGIN vat02Amount-->
          <tr>
-            <td class="aright" style="padding: 0 10px 0 0;"><b>[#vat02#]:</b> </td>
+            <td class="aright" style="padding: 0 10px 0 0;"><!--ET_BEGIN vat02--><b>[#vat02#]:</b><!--ET_END vat02--></td>
             <td class="aright" style="padding: 0">[#vat02Amount#]</td>
          </tr>
          <!--ET_END vat02Amount-->
 
          <!--ET_BEGIN vat009Amount-->
          <tr>
-            <td class="aright"  style="padding: 0 10px 0 0;"><b>[#vat009#]:</b> </td>
+            <td class="aright"  style="padding: 0 10px 0 0;"><!--ET_BEGIN vat009--><b>[#vat009#]:</b><!--ET_END vat009--></td>
             <td class="aright" style="padding: 0">[#vat009Amount#]</td>
          </tr>
          <!--ET_END vat009Amount-->
 
          <!--ET_BEGIN vat0Amount-->
          <tr>
-            <td class="aright" style="padding: 0 10px 0 0;"><b>[#vat0#]:</b> </td>
+            <td class="aright" style="padding: 0 10px 0 0;"><!--ET_BEGIN vat0--><b>[#vat0#]:</b><!--ET_END vat0--></td>
             <td class="aright" style="padding: 0">[#vat0Amount#]</td>
          </tr>
          <!--ET_END vat0Amount-->
