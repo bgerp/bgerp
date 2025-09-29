@@ -1786,7 +1786,7 @@ class type_Richtext extends type_Blob
 
         $stack = array();
 
-        $ignoreTags = array('hr' => 'hr', 'br' => 'br', 'img' => 'img');
+        $ignoreTags = array('hr' => 'hr', 'br' => 'br', 'img' => 'img', 'em' => 'em', 'link' => 'link');
 
         foreach ($tags as $tag) {
             if (preg_match('/^\[([a-z]+)(?:=[^\]]+)?\]$/i', $tag, $m)) {
