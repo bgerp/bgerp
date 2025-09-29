@@ -337,7 +337,7 @@ class doc_DocumentPlg extends core_Plugin
                 if (doc_Threads::haveRightFor('startthread', $tRec)) {
                     $info = tr('Счетоводното отразяване на стопанските операции в тази нишка е спряно');
                     $info .= '. ' .tr('За да го включите, натиснете') . ' ';
-                    $data->row->STOPPED_INFO = $info . ht::createLink('Пускане', array('doc_Threads', 'startthread', 'id' => $data->rec->threadId, 'retUrl' => true), 'Наистина ли искате да включите счетоводното отразяване на всички спрени документи в нишката|*?', 'class=small-padding-icon, ef_icon=img/16/stock_data_next.png, title=Пускане на счетоводното отразяване на всички спрени документи в нишката');
+                    $data->row->STOPPED_INFO = $info . ht::createLink(tr('Пускане'), array('doc_Threads', 'startthread', 'id' => $data->rec->threadId, 'retUrl' => true), 'Наистина ли искате да включите счетоводното отразяване на всички спрени документи в нишката|*?', 'class=small-padding-icon, ef_icon=img/16/stock_data_next.png, title=Пускане на счетоводното отразяване на всички спрени документи в нишката');
                 }
             }
             
