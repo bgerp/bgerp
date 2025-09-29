@@ -225,6 +225,9 @@ class crm_Persons extends core_Master
     public $singleLayoutFile = 'crm/tpl/SinglePersonLayout.shtml';
 
 
+    /**
+     * Какво може да се прави с избраните
+     */
     public $doWithSelected = 'export=Експортиране';
 
 
@@ -290,7 +293,7 @@ class crm_Persons extends core_Master
      * @see change_plg_History
      * @var string
      */
-    public $loggableFields = 'salutation,name,vatId,egn,eori,birthday,country,pCode,place,address,email,tel,mobile,fax,info,website';
+    public $loggableFields = 'salutation,name,vatId,egn,eori,country,pCode,place,address,email,tel,mobile,fax,info,website';
 
 
     /**
@@ -299,7 +302,7 @@ class crm_Persons extends core_Master
      * @see change_plg_History
      * @var string
      */
-    public $loggableField4Warning = 'salutation,name,vatId,egn,eori,birthday,country,pCode,place,address,email,tel,mobile,fax,website';
+    public $loggableField4Warning = 'salutation,name,vatId,egn,eori,country,pCode,place,address,email,tel,mobile,fax,website';
 
 
     /**
