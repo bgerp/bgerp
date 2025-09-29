@@ -46,7 +46,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper,store_plg_RequestDetail, plg_SaveAndNew, plg_RowNumbering,Policy=purchase_PurchaseLastPricePolicy, 
                         plg_AlignDecimals2,deals_plg_ImportDealDetailProduct, plg_Sorting, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, 
-                        Policy=purchase_PurchaseLastPricePolicy,acc_plg_ExpenseAllocation, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
+                        Policy=purchase_PurchaseLastPricePolicy, cat_plg_LogPackUsage,acc_plg_ExpenseAllocation, plg_PrevAndNext,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
     
     /**

@@ -345,7 +345,7 @@ class batch_Items extends core_Master
                 unset($data->listFields['storeId']);
                 if($filter->store == batch_Items::WORK_IN_PROGRESS_ID){
                     if(planning_WorkInProgress::haveRightFor('list')){
-                        $selectedStoreName = ht::createLink('Незавършено производство', array('planning_WorkInProgress', 'list'));
+                        $selectedStoreName = ht::createLink(tr('Незавършено производство'), array('planning_WorkInProgress', 'list'));
                     } else {
                         $selectedStoreName = tr('Незавършено производство');
                     }

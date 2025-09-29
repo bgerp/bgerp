@@ -405,6 +405,34 @@ class rack_MovementGenerator2 extends core_Manager
         $i = 0;
         $rate = 0;
 
+        // Приоритети при избор на палети
+        usort($pK, function ($a, $b) use ($p, $allPallets, $qInPallet) {
+            $qa = $p[$a];
+            $qb = $p[$b];
+            $pa = $allPallets[$a]->position;
+            $pb = $allPallets[$b]->position;
+
+            // 1. Малки количества → предпочитаме ред A
+            $rowA_a = rack_MovementGenerator2::isFirstRow($pa);
+            $rowA_b = rack_MovementGenerator2::isFirstRow($pb);
+            if ($rowA_a && !$rowA_b) return -1;
+            if (!$rowA_a && $rowA_b) return 1;
+
+            // 2. Цели палети имат приоритет
+            $fullA = ($qa >= $qInPallet);
+            $fullB = ($qb >= $qInPallet);
+            if ($fullA && !$fullB) return -1;
+            if (!$fullA && $fullB) return 1;
+
+            // 3. По-висока позиция има приоритет (за зануляване)
+            if ($pa != $pb) return strcmp($pb, $pa); // по-висока > по-ниска
+
+            // 4. По-старият е с предимство
+            $ageA = isset($allPallets[$a]->age) ? $allPallets[$a]->age : 0;
+            $ageB = isset($allPallets[$b]->age) ? $allPallets[$b]->age : 0;
+            return $ageB <=> $ageA;
+        });
+
         foreach ($pK as $pI) {
             $pQ = (float)$p[$pI];
             if ($pQ <= 0) continue;
@@ -421,21 +449,35 @@ class rack_MovementGenerator2 extends core_Manager
                 if ($zQ <= 0) continue;
                 if ($pQ <= 0) continue;
 
-                // Наличност, достъпна за взимане (спазвайки минимума)
                 $curPalletLeft = (float)$p[$pI];
-                // Ако трябва да се вземе точно наличното количество → да
-                if ($curPalletLeft == $zQ) {
-                    $available = $curPalletLeft;
+
+// Флаг дали да прилагаме правилото за минимален остатък
+                $applyKeepRule = true;
+
+                // 1) Ако всички позиции са под minKeepQty – не прилагаме правилото
+                $applyKeepRule = false;
+                foreach ($p as $ppq) {
+                    if ($ppq > $minKeepQty) {
+                        $applyKeepRule = true;
+                        break;
+                    }
                 }
-                // Ако имаме по-малко от нужното → взимаме всичко
-                elseif ($curPalletLeft < $zQ) {
-                    $available = $curPalletLeft;
+
+                // 2) Ако тази позиция ще се занули – не прилагаме правилото
+                if ($curPalletLeft <= $zQ) {
+                    $applyKeepRule = false;
                 }
-                // Иначе — само ако след движението ще остане поне minKeepQty
-                elseif ($curPalletLeft - $zQ >= $minKeepQty) {
+
+                // Изчисляване на наличното количество
+                if ($curPalletLeft == $zQ || $curPalletLeft < $zQ) {
+                    // Вземаме всичко (или точно нужното)
+                    $available = $curPalletLeft;
+                } elseif (!$applyKeepRule || ($curPalletLeft - $zQ >= $minKeepQty)) {
+                    // Вземаме нужното, ако остатъкът е >= minKeepQty или правилото е изключено
                     $available = $zQ;
                 } else {
-                    continue; // Не взимаме, за да не нарушим остатъка
+                    // Пропускаме, за да не нарушим минималния остатък
+                    continue;
                 }
 
                 $q = min($zQ, $available);

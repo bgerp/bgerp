@@ -354,9 +354,9 @@ class wtime_Summary extends core_Manager
         $userPersons = array();
         $pQuery = crm_Profiles::getQuery();
         $pQuery->show('personId,userId');
-        $noTrackUsers = core_Users::getUsersByRoles('noTrackonline');
-        if(count($noTrackUsers)){
-            $pQuery->notIn("userId", array_keys($noTrackUsers));
+        $trackUsers = core_Users::getUsersByRoles('trackonline');
+        if(count($trackUsers)){
+            $pQuery->in("userId", array_keys($trackUsers));
         }
         if(isset($personId)){
             $pQuery->where("#personId = {$personId}");

@@ -373,12 +373,16 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
         }
 
+        if(is_object($lineRec)){
+            doc_ThreadUsers::addShared($lineRec->threadId, $lineRec->containerId, $editorsArr);
+        }
+
         // Изпращане на нотификация, ако все още имат достъп до документа
         foreach ($editorsArr as $editorUserId){
             $url = null;
 
             // Ако документа е към ТЛ и има достъп до нея - линка сочи на там, иначе към сингъла на документа
-            if(is_object($lineRec) && trans_Lines::haveRightFor('single', $lineRec, $editorUserId)){
+            if(is_object($lineRec)){
                 $url = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $handle, 'editTrans' => true);
             } elseif($mvc->haveRightFor('single', $rec->id, $editorUserId)){
                 $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $handle, 'editTrans' => true);

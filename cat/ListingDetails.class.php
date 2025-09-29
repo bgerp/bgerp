@@ -61,7 +61,7 @@ class cat_ListingDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified, cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_RowNumbering, plg_AlignDecimals2, plg_Sorting, plg_PrevAndNext';
+    public $loadList = 'plg_Modified, cat_Wrapper, plg_RowTools2, cat_plg_LogPackUsage, plg_SaveAndNew, plg_RowNumbering, plg_AlignDecimals2, plg_Sorting, plg_PrevAndNext';
     
     
     /**

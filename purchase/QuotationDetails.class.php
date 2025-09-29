@@ -42,7 +42,7 @@ class purchase_QuotationDetails extends deals_QuotationDetails
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, deals_plg_ImportDealDetailProduct, plg_SaveAndNew,cat_plg_CreateProductFromDocument,plg_PrevAndNext,cat_plg_ShowCodes';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, cat_plg_LogPackUsage, deals_plg_ImportDealDetailProduct, plg_SaveAndNew,cat_plg_CreateProductFromDocument,plg_PrevAndNext,cat_plg_ShowCodes';
 
 
     /**

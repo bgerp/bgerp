@@ -38,7 +38,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_Prototype, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, support_plg_IssueSource, bgerp_plg_Blank';
+    public $loadList = 'doc_plg_Prototype, doc_SharablePlg, cat_plg_LogPackUsage, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, support_plg_IssueSource, bgerp_plg_Blank';
 
 
     /**
@@ -4545,5 +4545,16 @@ class planning_Tasks extends core_Master
         $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
         $placeWithActualStartFirst = ($manualPlanning == 'no');
         $data->recs = planning_TaskManualOrderPerAssets::getOrderedRecs($data->listFilter->rec->assetId, $data->recs, $placeWithActualStartFirst);
+    }
+
+
+    /**
+     * Кои са полетата за опаковките, за които ще се логва
+     *
+     * @return array
+     */
+    public static function getPackagingFields_()
+    {
+        return array('labelPackagingId' => 'labelPackagingId', 'indPackagingId' => 'indPackagingId');
     }
 }
