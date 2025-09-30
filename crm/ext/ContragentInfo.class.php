@@ -474,7 +474,6 @@ class crm_ext_ContragentInfo extends core_manager
 
             $paramCache = array();
             while ($sRec = $dQuery->fetch()) {
-                $periodCurrencyId = acc_Periods::getBaseCurrencyCode($sRec->valior);
                 $amountInCurrentBaseCurrency = deals_Helper::getSmartBaseCurrency($sRec->amountDeal, $sRec->valior, $baseCurrencyId);
 
                 $res[$key][$sRec->contragentId]['total']['count'] += 1;
