@@ -2424,4 +2424,62 @@ class sales_Sales extends deals_DealMaster
             sales_DeliveryData::sync($rec->containerId);
         }
     }
+
+
+    /**
+     * Помощна ф-я експортираща продажбата в посочената в посочената csv
+     *
+     * @param int|stdClass $rec - ид или запис
+     * @return void
+     */
+    public static function autoCreateSaleCsvIfNeeded($rec)
+    {
+        $cartRec = eshop_Carts::fetch("#saleId = {$rec->id}");
+        if(is_object($cartRec)){
+            if (!defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')) return;
+            $logClass = 'eshop_Carts';
+            $prefix = "emagSal";
+        } else {
+            if (!defined('PARTNER_AUTO_EXPORT_SALE_CSV_PATH')) return;
+            $logClass = 'sales_Sales';
+            $prefix = "partnerSal";
+        }
+
+        try{
+            // Ще се експортират всички полета от мастъра и детайла
+            $Sales = cls::get('sales_Sales');
+            $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => $Sales));
+            $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
+            $fields[] = 'ExternalLink';
+            $fields = implode(',', $fields);
+
+            $rec = sales_Sales::fetchRec($rec);
+            $Sales->updateMaster_($rec);
+
+            // Подготовка на експорта
+            $filter = (object)array('fields' => $fields, 'showColumnNames' => 'yes', 'delimiter' => ',', 'enclosure' => '"', 'decimalSign' => '.', 'encoding' => 'utf-8');
+            $filter->_recs[$rec->id] = $rec;
+            Mode::push('csvAlwaysAddEnclosure', true);
+            $content = $Driver->export($filter);
+            Mode::pop('csvAlwaysAddEnclosure');
+
+            $name = "{$prefix}{$rec->id}";
+            if(is_object($cartRec)){
+                $fileName = ESHOP_AUTO_EXPORT_SALE_CSV_PATH . "/{$name}.csv";
+            } else {
+                $fileName = PARTNER_AUTO_EXPORT_SALE_CSV_PATH . "/{$name}.csv";
+            }
+
+            $res = file_put_contents($fileName, $content);
+            if($res){
+                $logClass::logWrite("Експортирано csv: `{$fileName}`", $rec->id);
+                fileman::absorbStr($content, 'exportCsv', "{$name}.csv");
+            } else {
+                $logClass::logErr("Грешка при записване: `{$fileName}`");
+            }
+        } catch (core_exception_Expect $e){
+            reportException($e);
+            $logClass::logErr("Грешка при записване на CSV");
+        }
+    }
 }
