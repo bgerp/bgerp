@@ -182,8 +182,11 @@ abstract class deals_ServiceMaster extends core_Master
                 $shipProduct->packagingId = $product->packagingId;
                 $shipProduct->quantity = $toShip;
                 $shipProduct->price = $price;
-                if(in_array($aggregatedDealInfo->get('currency'), array('BGN', "EUR"))) {
+
+                if($aggregatedDealInfo->get('currency') == 'BGN') {
                     $shipProduct->price = deals_Helper::getSmartBaseCurrency($shipProduct->price, $aggregatedDealInfo->get('agreedValior'), $rec->valior);
+                } else {
+                    $shipProduct->price = $shipProduct->price / $aggregatedDealInfo->get('rate') * $rec->currencyRate;
                 }
 
                 $shipProduct->discount = $discount;

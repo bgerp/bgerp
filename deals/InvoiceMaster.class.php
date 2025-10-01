@@ -713,10 +713,15 @@ abstract class deals_InvoiceMaster extends core_Master
         if ($Source && $Source->haveInterface('deals_InvoiceSourceIntf')) {
             $detailsToSave = $Source->getDetailsFromSource($mvc, $rec->importProducts);
 
-            $sourceValior = $Source->fetchField($Source->valiorFld);
+            $SourceRec = $Source->fetch("currencyId,{$Source->valiorFld}");
             if (is_array($detailsToSave)) {
                 foreach ($detailsToSave as $det) {
-                    $det->price = deals_Helper::getSmartBaseCurrency($det->price, $sourceValior, $rec->date);
+                    if($SourceRec->currencyId == 'BGN'){
+                        $det->price = deals_Helper::getSmartBaseCurrency($det->price, $SourceRec->{$Source->valiorFld}, $rec->date);
+                    } else {
+                        $det->price = ($det->price / $det->rate) * $rec->rate;
+                    }
+
                     $det->_importBatches = $rec->importBatches;
                     $det->{$Detail->masterKey} = $rec->id;
                     unset($det->batches);
@@ -1044,6 +1049,8 @@ abstract class deals_InvoiceMaster extends core_Master
                 $rec->displayRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if (!$rec->displayRate) {
                     $form->setError('rate', 'Не може да се изчисли курс');
+                } else {
+                    $rec->rate = $rec->displayRate;
                 }
             } elseif(!$rec->_recalcBaseCurrency) {
                 if ($msg = currency_CurrencyRates::hasDeviation($rec->displayRate, $rec->date, $rec->currencyId, null)) {
@@ -1945,6 +1952,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *               o quantityInPack - количество в опаковката
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
+     *               o rate           - курса на документа
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
@@ -1980,6 +1988,8 @@ abstract class deals_InvoiceMaster extends core_Master
             unset($dRec->{$Detail->masterKey});
             unset($dRec->createdOn);
             unset($dRec->createdBy);
+
+            $dRec->rate = $rec->rate;
             $details[] = $dRec;
         }
 

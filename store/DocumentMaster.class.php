@@ -511,8 +511,10 @@ abstract class store_DocumentMaster extends core_Master
                     $shipProduct->packagingId = $product->packagingId;
                     $shipProduct->quantity = $toShip;
                     $shipProduct->price = $price;
-                    if(in_array($aggregatedDealInfo->get('currency'), array('BGN', "EUR"))) {
+                    if($aggregatedDealInfo->get('currency') == 'BGN') {
                         $shipProduct->price = deals_Helper::getSmartBaseCurrency($shipProduct->price, $aggregatedDealInfo->get('agreedValior'), $rec->valior);
+                    } else {
+                        $shipProduct->price = $shipProduct->price / $aggregatedDealInfo->get('rate') * $rec->currencyRate;
                     }
                     $shipProduct->discount = $discount;
                     $shipProduct->notes = $product->notes;
@@ -1083,6 +1085,7 @@ abstract class store_DocumentMaster extends core_Master
      *               o quantityInPack - количество в опаковката
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
+     *               o rate           - курса на документа
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
@@ -1105,6 +1108,7 @@ abstract class store_DocumentMaster extends core_Master
             unset($dRec->shipmentId);
             unset($dRec->createdOn);
             unset($dRec->createdBy);
+            $dRec->currencyRate = $rec->currencyRate;
             $details[] = $dRec;
         }
         

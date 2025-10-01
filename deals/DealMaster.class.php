@@ -2525,13 +2525,14 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
      * @param string $strategy - стратегия за намиране
      *
-     * @return array $details - масив с артикули готови за запис
+     * @return array $details         - масив с артикули готови за запис
      *               o productId      - ид на артикул
      *               o packagingId    - ид на опаковка/основна мярка
      *               o quantity       - количество опаковка
      *               o quantityInPack - количество в опаковката
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
+     *               o rate           - курса на документа
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
@@ -2595,6 +2596,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $dRec->discount = $product->discount;
             $dRec->price = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
             $dRec->quantity = $quantity / $product->quantityInPack;
+            $dRec->rate = $rec->currencyRate;
             $details[] = $dRec;
         }
         

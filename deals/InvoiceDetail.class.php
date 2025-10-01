@@ -193,7 +193,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $autoDiscountPercent = null;
         $iAmount = 0;
 
-
         if (is_array($dealInfo->dealProducts)) {
             foreach ($dealInfo->dealProducts as $det) {
                 $autoDiscountPercent = $det->autoDiscount;
@@ -201,8 +200,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $det->autoDiscount = null;
                 $det->inputDiscount = null;
                 $det->{$this->masterKey} = $id;
-                if(in_array($dealInfo->get('currency'), array('BGN', "EUR"))) {
-                    $det->price = deals_Helper::getSmartBaseCurrency($det->price, $dealInfo->get('agreedValior'), $invoiceRec->date);
+
+                if($dealInfo->get('currency') == 'BGN'){
+                    $det->price = deals_Helper::getSmartBaseCurrency($det->price,$dealInfo->get('agreedValior'), $invoiceRec->date);
+                } else {
+                    $det->price = ($det->price / $dealInfo->get('rate')) * $invoiceRec->rate;
                 }
 
                 $det->amount = $det->price * $det->quantity;
@@ -498,7 +500,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
         
         $mvc = cls::get(get_called_class());
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        
+
+        //bp($rec, $masterRec, deals_Helper::getSmartBaseCurrency($rec->price, null, null));
+
         $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
         $modeLg = Mode::get('tplManagerLg');
         $lang = isset($modeLg) ? $modeLg : doc_TplManager::fetchField($masterRec->template, 'lang');

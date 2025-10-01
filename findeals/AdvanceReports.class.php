@@ -435,6 +435,7 @@ class findeals_AdvanceReports extends core_Master
      *               o quantityInPack - количество в опаковката
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
+     *               o rate           - курса на документа
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
@@ -454,6 +455,7 @@ class findeals_AdvanceReports extends core_Master
             unset($dRec->reportId);
             unset($dRec->createdOn);
             unset($dRec->createdBy);
+            $dRec->rate = $rec->currencyRate;
             $details[] = $dRec;
         }
         
