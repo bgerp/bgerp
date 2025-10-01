@@ -1786,15 +1786,27 @@ class type_Richtext extends type_Blob
 
         $stack = array();
 
+        $ignoreTags = array('hr' => 'hr', 'br' => 'br', 'img' => 'img', 'em' => 'em');
+
         foreach ($tags as $tag) {
             if (preg_match('/^\[([a-z]+)(?:=[^\]]+)?\]$/i', $tag, $m)) {
+                if ($ignoreTags[$m[1]]) {
+
+                    continue;
+                }
                 // Отварящ таг
                 $stack[] = strtolower($m[1]);
             } elseif (preg_match('/^\[\/([a-z]+)\]$/i', $tag, $m)) {
+                if ($ignoreTags[$m[1]]) {
+
+                    continue;
+                }
+
                 // Затварящ таг
                 $last = array_pop($stack);
                 if ($last !== strtolower($m[1])) {
-                    return false; // Грешен ред или несъответствие
+                    $stack[$m[1]] = $m[1];
+                    $stack[$last] = $last;
                 }
             }
         }

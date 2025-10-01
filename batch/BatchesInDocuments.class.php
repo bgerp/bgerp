@@ -751,7 +751,9 @@ class batch_BatchesInDocuments extends core_Manager
 
                 if ($form->cmd == 'auto') {
                     $old = (countR($foundBatches)) ? $foundBatches : array();
+                    Mode::push('autoAllocateIn', array('detailRecId' => $detailRecId, 'detailClassId' => $detailClassId));
                     $saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $Detail, $detailRecId, $recInfo->date);
+                    Mode::pop('autoAllocateIn');
                     $intersect = array_diff_key($old, $saveBatches);
                     $delete = (countR($intersect)) ? array_keys($intersect) : array();
                     $logMsg = 'Ръчно преразпределяне на партидите';
