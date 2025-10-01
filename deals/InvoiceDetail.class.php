@@ -192,6 +192,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         // За всеки артикул от договора, копира се 1:1
         $autoDiscountPercent = null;
         $iAmount = 0;
+
+
         if (is_array($dealInfo->dealProducts)) {
             foreach ($dealInfo->dealProducts as $det) {
                 $autoDiscountPercent = $det->autoDiscount;
@@ -199,7 +201,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $det->autoDiscount = null;
                 $det->inputDiscount = null;
                 $det->{$this->masterKey} = $id;
-                $det->price = deals_Helper::getSmartBaseCurrency($det->price, $dealInfo->get('agreedValior'), $invoiceRec->date);
+                if(in_array($dealInfo->get('currency'), array('BGN', "EUR"))) {
+                    $det->price = deals_Helper::getSmartBaseCurrency($det->price, $dealInfo->get('agreedValior'), $invoiceRec->date);
+                }
 
                 $det->amount = $det->price * $det->quantity;
                 $det->quantity /= $det->quantityInPack;
