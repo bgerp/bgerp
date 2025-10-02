@@ -3252,7 +3252,7 @@ abstract class deals_Helper
      * @param string $priceFld
      * @return void
      */
-    public static function recalcDetailPriceInBaseCurrency($masterMvc, $masterRec, $oldValior, $newValior, $priceFld = 'price')
+    public static function recalcDetailPriceInBaseCurrency($masterMvc, $masterRec, $oldValior, $newValior, $oldRate, $rateFld = 'currencyRate', $priceFld = 'price')
     {
         // Преизчисляват се цените от старата основна валута в новата
         $save = array();
@@ -3260,7 +3260,12 @@ abstract class deals_Helper
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$masterRec->id}");
         while($dRec = $dQuery->fetch()){
-            $dRec->{$priceFld} = deals_Helper::getSmartBaseCurrency($dRec->price, $oldValior, $newValior);
+            if($masterRec->_dealCurrencyId == 'BGN') {
+                $dRec->{$priceFld} = deals_Helper::getSmartBaseCurrency($dRec->price, $oldValior, $newValior);
+            } else {
+                $dRec->{$priceFld} = ($dRec->{$priceFld} / $oldRate) * $masterRec->{$rateFld};
+            }
+
             $save[$dRec->id] = $dRec;
         }
 

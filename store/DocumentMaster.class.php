@@ -254,13 +254,23 @@ abstract class store_DocumentMaster extends core_Master
 
                 if($rec->currencyId != $valiorBaseCurrencyId){
                     if(isset($rec->id)){
-                        $rec->_oldValior = $mvc->fetchField($rec->id, 'valior', false);
-                        $rec->_oldValior = $rec->_oldValior ?? dt::today();
+                        $oldRec = $mvc->fetch($rec->id, 'valior,currencyRate', false);
+                        $rec->_oldValior = $oldRec->valior ?? dt::today();
+                        $rec->_oldRate = $oldRec->currencyRate;
                     }
                     $rec->currencyId = $valiorBaseCurrencyId;
                 }
+            } elseif($form->dealInfo->get('currency') == "EUR"){
+                if(isset($rec->id)) {
+                    $oldRec = $mvc->fetch($rec->id, 'valior,currencyRate', false);
+                    if(acc_Periods::getBaseCurrencyCode($oldRec->valior) != acc_Periods::getBaseCurrencyCode($rec->valior)){
+                        $rec->_oldValior = $oldRec->valior ?? dt::today();
+                        $rec->_oldRate = $oldRec->currencyRate;
+                    }
+                }
             }
 
+            $rec->_dealCurrencyId = $form->dealInfo->get('currency');
             if(in_array($form->dealInfo->get('currency'), array('EUR', 'BGN'))){
                 $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
             }
@@ -1462,7 +1472,7 @@ abstract class store_DocumentMaster extends core_Master
 
             // Ако вальора е сменен и основната валута към стария вальор е различна от тази към новия
             if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyCode($rec->valior)){
-                deals_Helper::recalcDetailPriceInBaseCurrency($mvc, $rec, $rec->_oldValior, $rec->valior);
+                deals_Helper::recalcDetailPriceInBaseCurrency($mvc, $rec, $rec->_oldValior, $rec->valior, $rec->_oldRate);
                 $valiorVerbal = dt::mysql2verbal($rec->valior, 'd.m.Y');
                 core_Statuses::newStatus("Цените на артикулите са преизчислени към основната валута за|*: <b>{$valiorVerbal}</b>");
             }
