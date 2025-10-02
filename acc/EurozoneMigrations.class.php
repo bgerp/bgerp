@@ -131,12 +131,32 @@ SET
     }
 
 
+    /**
+     * Миграция на делтите
+     */
+    public static function updatePriceCosts()
+    {
+        $Deltas   = cls::get('price_ProductCosts');
+
+        $euroZoneDate = acc_Setup::getEuroZoneDate();
+        $priceCol  = str::phpToMysqlName('price');
+        $updatedOnCol = str::phpToMysqlName('updatedOn');
+        $tbl = $Deltas->dbTableName;
+
+        $query = "UPDATE `{$tbl}` SET
+        `{$priceCol}`  = CASE WHEN `{$priceCol}`  != 0 THEN `{$priceCol}`  / 1.95583 ELSE NULL END
+        WHERE `{$updatedOnCol}` <= '{$euroZoneDate}'
+        ";
+
+        $Deltas->db->query($query);
+    }
+
 
 
     function act_Test()
     {
         requireRole('debug');
 
-        //self::updatePriceLists();
+        self::updatePriceCosts();
     }
 }
