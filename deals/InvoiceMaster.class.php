@@ -472,6 +472,12 @@ abstract class deals_InvoiceMaster extends core_Master
         $cData = cls::get($form->rec->contragentClassId)->getContragentData($form->rec->contragentId, $dateFromWhichToGetName);
         $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
 
+        if($invArr['currencyId'] == 'EUR' && acc_Periods::getBaseCurrencyCode($invArr['date']) != acc_Periods::getBaseCurrencyCode()){
+            $displayRate = currency_CurrencyRates::getRate($form->rec->date, $invArr['currencyId'], null);
+            $invArr['rate'] = $displayRate;
+            $invArr['displayRate'] = $displayRate;
+        }
+
         if($form->rec->type == 'dc_note') {
             if(empty($originRec->displayContragentId) && $cName == $originRec->contragentName){
                 $unsetArr += arr::make('contragentName,contragentPCode,contragentPlace,contragentAddress,uicNo,contragentEori,contragentVatNo,contragentCountryId', true);
@@ -1033,6 +1039,17 @@ abstract class deals_InvoiceMaster extends core_Master
                         $rec->_oldValior = $mvc->fetchField($rec->id, 'date', false);
                         $rec->_oldValior = $rec->_oldValior ?? dt::today();
                     }
+                }
+            } elseif($form->aggregateInfo->get('currency') == 'EUR'){
+                $oldValior = null;
+                if(isset($rec->id)){
+                    $oldValior = $mvc->fetchField($rec->id, 'date', false);
+                }
+
+                if(acc_Periods::getBaseCurrencyCode($rec->date) != acc_Periods::getBaseCurrencyCode($oldValior)){
+                    $displayRate = currency_CurrencyRates::getRate($form->rec->date, $form->rec->currencyId, null);
+                    $rec->displayRate = $displayRate;
+                    $rec->rate = $displayRate;
                 }
             }
 
