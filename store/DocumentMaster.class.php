@@ -1108,7 +1108,7 @@ abstract class store_DocumentMaster extends core_Master
             unset($dRec->shipmentId);
             unset($dRec->createdOn);
             unset($dRec->createdBy);
-            $dRec->currencyRate = $rec->currencyRate;
+            $dRec->rate = $rec->currencyRate;
             $details[] = $dRec;
         }
         
