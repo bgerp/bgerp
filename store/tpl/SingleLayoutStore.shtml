@@ -118,12 +118,12 @@
                             </tr>
                             <!--ET_END minKeepPct-->
 
-                            <!--ET_BEGIN preferOldest-->
+                            <!--ET_BEGIN fullPalletStrategy-->
                             <tr>
-                                <td class='dt'>|Прилагане на приоритет на най-стария палет|*:</td>
-                                <td>[#preferOldest#]</td>
+                                <td class='dt'>|Стратегия за цял палет|*:</td>
+                                <td>[#fullPalletStrategy#]</td>
                             </tr>
-                            <!--ET_END preferOldest-->
+                            <!--ET_END fullPalletStrategy-->
                         </table>
                     </div>
                 </fieldset>

@@ -218,7 +218,7 @@ class store_Stores extends core_Master
             $this->FLD('prioritizeRackGroups', 'enum(,yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване,maxRadio=2,placeholder=Автоматично');
             $this->FLD('palletBestPositionStrategy', 'enum(,bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Избор,placeholder=Автоматично');
             $this->FLD('allowSmartReturnPos', 'enum(yes=Да,no=Не)', 'caption=Връщане на палет на най-добра позиция->Избор,notNull,value=yes');
-            $this->FLD('preferOldest', 'enum(yes=Да,no=Не)','caption=Приоритет на най-стария палет->Прилагане,notNull,value=yes');
+            $this->FLD('fullPalletStrategy', "enum('oldest','lowest','closest')",'caption=Стратегия за цял палет->Избор,notNull,value=yes');
             $this->FLD('minKeepPct', 'percent','caption=Минимален остатък по позиции->Процент от палет,unit=%');
         }
 
