@@ -156,12 +156,6 @@ class rack_MovementGenerator2 extends core_Manager
         }
         krsort($packArr);
 
-        // ако няма реални опаковки, добавяме "брой" = 1 (за да не се появяват фантомни стъпки като 500)
-        if (empty($packArr)) {
-            $pcsId = cat_UoM::fetchBySysId('pcs')->id;
-            $packArr["1"] = $pcsId;
-        }
-
         Mode::push('pickupStoreId', $storeId);
 
         // подготвяме палетите
