@@ -1365,7 +1365,6 @@ abstract class deals_InvoiceMaster extends core_Master
                 $rec->additionalConditions[0] = $rec->additionalConditionsInput;
             }
         }
-
     }
     
     

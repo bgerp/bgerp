@@ -423,7 +423,8 @@ class deals_plg_DpInvoice extends core_Plugin
 
             if (!is_null($rec->dpAmount)) {
                 $rec->dpAmount = deals_Helper::getPurePrice($rec->dpAmount, $vat, $rec->rate, $rec->vatRate);
-                if(isset($rec->_recalcBaseCurrency)){
+
+                if(isset($rec->_recalcBaseCurrency) && isset($rec->_oldValior)){
                     $rec->dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->_oldValior, $rec->date);
                 }
 
