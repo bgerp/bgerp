@@ -186,6 +186,8 @@ class rack_MovementGenerator2 extends core_Manager
                 $pallets[$id]->_ageDays = 0;
             }
         }
+        // Нормализация на системния № за стратегия 'oldest'
+        self::ensureSysNo($pallets);
 
         // Ако имаме недостиг – приоритизиране на малките зони
         asort($zones);
@@ -202,7 +204,7 @@ class rack_MovementGenerator2 extends core_Manager
 
         $res = array();
 
-        // --- ЕТАП A: ЦЕЛИ ПАЛЕТИ (3.1 + стратегия; „Първи ред до“ е с по-нисък приоритет при равенство)
+        // --- ЕТАП A: ЦЕЛИ ПАЛЕТИ (3.1 + стратегия; „Първи ред до“ е с по-нисък приоритет при равенство САМО за lowest/closest)
         if ($qInPallet > 0) {
             $fullIdx = array();
             foreach ($pArr as $pId => $pQ) {
@@ -210,8 +212,9 @@ class rack_MovementGenerator2 extends core_Manager
                     $fullIdx[] = $pId;
                 }
             }
-            usort($fullIdx, function ($a, $b) use ($pallets, $strategy) {
-                return rack_MovementGenerator2::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, /*deprioFirstRow=*/true);
+            $deprioFirstRow = ($strategy !== 'oldest');
+            usort($fullIdx, function ($a, $b) use ($pallets, $strategy, $deprioFirstRow) {
+                return rack_MovementGenerator2::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, $deprioFirstRow);
             });
 
             foreach ($zones as $zId => $zQ) {
@@ -269,8 +272,9 @@ class rack_MovementGenerator2 extends core_Manager
             usort($firstRowIdx, function ($a, $b) use ($pallets, $strategy) {
                 return rack_MovementGenerator2::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, /*deprioFirstRow=*/false);
             });
-            usort($fullIdxNow, function ($a, $b) use ($pallets, $strategy) {
-                return rack_MovementGenerator2::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, /*deprioFirstRow=*/true);
+            $deprioFirstRow = ($strategy !== 'oldest');
+            usort($fullIdxNow, function ($a, $b) use ($pallets, $strategy, $deprioFirstRow) {
+                return rack_MovementGenerator2::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, $deprioFirstRow);
             });
 
             // 3.2.1: точен разбутан
@@ -464,6 +468,27 @@ class rack_MovementGenerator2 extends core_Manager
     }
 
     /**
+     * Осигурява наличен нормализиран системен № за сравнение при стратегия 'oldest'
+     * Използва: $p->sysNo, или число от етикета (#123), или $p->id, иначе задава PHP_INT_MAX.
+     */
+    private static function ensureSysNo(array &$pallets)
+    {
+        foreach ($pallets as &$p) {
+            if (isset($p->_sysNo)) continue;
+            if (isset($p->sysNo) && is_numeric($p->sysNo)) {
+                $p->_sysNo = (int)$p->sysNo; continue;
+            }
+            if (!empty($p->label) && preg_match('/#\s*(\d+)/', $p->label, $m)) {
+                $p->_sysNo = (int)$m[1]; continue;
+            }
+            if (isset($p->id) && is_numeric($p->id)) {
+                $p->_sysNo = (int)$p->id; continue;
+            }
+            $p->_sysNo = PHP_INT_MAX;
+        }
+    }
+
+    /**
      * Композитен компаратор за сортиране според „Стратегия за цял палет“
      * $deprioFirstRow=true -> редовете „Първи ред до“ са с най-нисък приоритет при равенство (за цели палети)
      */
@@ -473,9 +498,9 @@ class rack_MovementGenerator2 extends core_Manager
         $br = $b->_rowCol ?: self::getRowCol($b->position);
 
         if ($strategy === 'oldest') {
-            $as = isset($a->sysNo) ? (int)$a->sysNo : PHP_INT_MAX;
-            $bs = isset($b->sysNo) ? (int)$b->sysNo : PHP_INT_MAX;
-            if ($as != $bs) return ($as < $bs) ? -1 : 1; // по-малък sysNo е „по-стар“
+            $as = isset($a->_sysNo) ? (int)$a->_sysNo : PHP_INT_MAX;
+            $bs = isset($b->_sysNo) ? (int)$b->_sysNo : PHP_INT_MAX;
+            if ($as !== $bs) return ($as < $bs) ? -1 : 1; // по-малък #ID е „по-стар“
         } elseif ($strategy === 'lowest') {
             if ($ar['row'] != $br['row']) return strcmp($ar['row'], $br['row']);               // по-нисък ред (A<B<C...)
             if ((int)$ar['col'] != (int)$br['col']) return ((int)$ar['col'] < (int)$br['col']) ? -1 : 1; // tie -> по-малка колона
@@ -500,7 +525,7 @@ class rack_MovementGenerator2 extends core_Manager
     {
         $rc = $p->_rowCol ?: self::getRowCol($p->position);
         if ($strategy === 'oldest') {
-            return isset($p->sysNo) ? (int)$p->sysNo : PHP_INT_MAX;
+            return isset($p->_sysNo) ? (int)$p->_sysNo : PHP_INT_MAX;
         } elseif ($strategy === 'lowest') {
             return ord($rc['row']) * 1000 + (int)$rc['col'];
         } else { // closest
@@ -633,8 +658,8 @@ class rack_MovementGenerator2 extends core_Manager
                 foreach ($m->zones as $zI => $zQ) {
                     if ($zQ <= 0) continue;
                     $m->zonesTimes[$zI] = $timeZone;
-                    if ($q != $zQ) {
-                        $m->zonesCountTimes[$zI] = self::timeToCount($q, $zQ, $packs);
+                    if ($q != $зQ) {
+                        $м->zonesCountTimes[$zI] = self::timeToCount($q, $zQ, $packs);
                     }
                 }
             }
@@ -665,7 +690,7 @@ class rack_MovementGenerator2 extends core_Manager
             $sTemp = round($sTemp, 6, PHP_ROUND_HALF_UP);
             $dArr[$i] = (int)($dTemp / $pQ);
             $dTemp -= $dArr[$i] * $pQ;
-            $dTemp = round($dTemp, 6,PHP_ROUND_HALF_UP);
+            $dTemp = round($dTemp, 6, PHP_ROUND_HALF_UP);
             $pArr[$i] = $pQ;
             $i++;
         }
@@ -707,7 +732,7 @@ class rack_MovementGenerator2 extends core_Manager
             if ($dArr[$dI] <= 0) $dI--;
 
             if ($try++ >= $maxTries) {
-                wp($sArr, $dArr, $sI, $dI, $s, $d, $packs);
+                wp($sArr, $dArr, $sI, $dI, $s, $д, $packs);
                 break;
             }
         }
@@ -804,7 +829,7 @@ class rack_MovementGenerator2 extends core_Manager
         foreach ((array)$moves as $m) {
             if (empty($m) || !isset($m->pallet)) continue;
 
-            $pallet = $m->pallet;
+            $pallet = $м->pallet;
             if (!isset($byPallet[$pallet])) {
                 $byPallet[$pallet] = (object) array(
                     'pallet' => $pallet,
