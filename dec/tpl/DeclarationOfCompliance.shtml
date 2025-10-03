@@ -52,12 +52,13 @@
         <table class='signiture'>
             <tr>
                 <td style='width:1%'>Declarer: </td>
-                <td> </td>
+                <td class="centered">[#DECLARATOR_NAME_SIGN_PAD#]</td>
             </tr>
             <tr>
                 <td></td>
                 <td class='nowrap' style='width:1%'>
-                    <span class="sign_names">
+                     [#DECLARATOR_NAME_SIGN#]
+                    <span class="sign_names" style="margin-top: 25px;">
                         <!--ET_BEGIN declaratorInfo-->[#declaratorInfo#]/[#declaratorName#], [#declaratorPosition#]/<!--ET_END declaratorInfo-->
                     </span>
                 </td>
