@@ -44,7 +44,7 @@ class rack_MovementGenerator2 extends core_Manager
         $form = cls::get('core_Form');
         $form->FLD('pallets', 'table(columns=pallet|quantity|createdOn|sysNo,captions=Палет|Количество|Създаване|Системен №,widths=8em|8em|8em|7em)', 'caption=Палети,mandatory');
         $form->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=8em|8em)', 'caption=Зони,mandatory');
-        $form->FLD('packagings', 'table(columns=packagingId|quantity,captions=Опаковка|Количество,widths=8em|8ем)', 'caption=Опаковки,mandatory');
+        $form->FLD('packagings', 'table(columns=packagingId|quantity,captions=Опаковка|Количество,widths=8em|8em)', 'caption=Опаковки,mandatory');
         $form->FLD('smallZonesPriority', 'enum(yes=Да,no=Не)', 'caption=Приоритетност на малките количества->Избор');
 
         $packOptions  = array('' => '') + cat_UoM::getPackagingOptions() + cat_UoM::getUomOptions();
@@ -658,8 +658,8 @@ class rack_MovementGenerator2 extends core_Manager
                 foreach ($m->zones as $zI => $zQ) {
                     if ($zQ <= 0) continue;
                     $m->zonesTimes[$zI] = $timeZone;
-                    if ($q != $зQ) {
-                        $м->zonesCountTimes[$zI] = self::timeToCount($q, $zQ, $packs);
+                    if ($q != $zQ) {
+                        $m->zonesCountTimes[$zI] = self::timeToCount($q, $zQ, $packs);
                     }
                 }
             }
@@ -732,7 +732,7 @@ class rack_MovementGenerator2 extends core_Manager
             if ($dArr[$dI] <= 0) $dI--;
 
             if ($try++ >= $maxTries) {
-                wp($sArr, $dArr, $sI, $dI, $s, $д, $packs);
+                wp($sArr, $dArr, $sI, $dI, $s, $d, $packs);
                 break;
             }
         }
@@ -829,7 +829,7 @@ class rack_MovementGenerator2 extends core_Manager
         foreach ((array)$moves as $m) {
             if (empty($m) || !isset($m->pallet)) continue;
 
-            $pallet = $м->pallet;
+            $pallet = $m->pallet;
             if (!isset($byPallet[$pallet])) {
                 $byPallet[$pallet] = (object) array(
                     'pallet' => $pallet,
