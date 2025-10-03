@@ -590,9 +590,11 @@ class rack_MovementGenerator2 extends core_Manager
             // Вземане
             $m->timeTake = self::isFirstRow($m->pallet) ? $timeGetA : $timeGet;
 
-            // Броене от палета
+            // Броене от палета (пропускаме ако е от първи ред)
             if (isset($m->pQ) && $m->pQ != $m->quantity) {
-                $m->timeCount = self::timeToCount($m->pQ, $m->quantity, $packs);
+                if (!self::isFirstRow($m->pallet)) {
+                    $m->timeCount = self::timeToCount($m->pQ, $m->quantity, $packs);
+                }
             }
 
             // Оставяне по зоните
