@@ -1704,8 +1704,10 @@ abstract class deals_InvoiceMaster extends core_Master
         $aggregator->sum('invoicedAmount', $totalInDealRate);
         $aggregator->setIfNot('invoicedValior', $rec->date);
 
+
+
         if (isset($rec->dpAmount)) {
-            $dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->valior, $dealValior);
+            $dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->date, $dealValior);
 
             $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
             if(isset($rec->dpVatGroupId)){
