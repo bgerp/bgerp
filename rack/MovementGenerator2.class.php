@@ -619,6 +619,12 @@ class rack_MovementGenerator2 extends core_Manager
         $sec = rack_Setup::get('TIME_COUNT');
         krsort($packs);
 
+        // ако няма дефинирани опаковки (артикулът е "в брой"), броим директно по единички
+        if (empty($packs)) {
+            $diff = abs($s - $d);
+            return $sec * $diff;   // време = брой бройки * време за 1 бр.
+        }
+        
         $sTemp = $s; $dTemp = $d; $i = 1;
         $pArr = $sArr = $dArr = array();
 
