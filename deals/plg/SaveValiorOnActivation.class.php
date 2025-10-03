@@ -48,20 +48,17 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
         $valiorToBe = $mvc->getFieldType($mvc->valiorFld)->toVerbal(dt::today());
         $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? $row->{$mvc->valiorFld} : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
     }
-    
-    
+
+
     /**
-     * Извиква се преди запис в модела
+     * След контиране на документа
      *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode    Режим на записа: replace, ignore
+     * @param accda_Da $mvc
+     * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    public static function on_AfterActivation($mvc, &$rec)
     {
-        if($rec->state == 'active' && empty($rec->{$mvc->valiorFld})){
+        if(empty($rec->{$mvc->valiorFld})){
             $rec->{$mvc->valiorFld} = dt::today();
         }
     }
