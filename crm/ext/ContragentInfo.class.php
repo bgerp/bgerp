@@ -287,7 +287,7 @@ class crm_ext_ContragentInfo extends core_manager
         foreach (array('sales' => 'sales_Sales', 'purchases' => 'purchase_Purchases') as $key => $Class){
             $dQuery = $Class::getQuery();
             $dQuery->XPR('since', 'date', 'MIN(DATE(COALESCE(#activatedOn, #valior)))');
-            $dQuery->where("#state = 'active' || #state = 'closed'");
+            $dQuery->where("#state IN ('active', 'closed')");
             $dQuery->where("#contragentClassId = {$contragentClassId}");
             $dQuery->show('contragentId,since');
             $dQuery->groupBy('contragentId');
