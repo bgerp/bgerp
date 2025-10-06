@@ -175,28 +175,31 @@ class doc_Files extends core_Manager
             
             return ;
         }
-        
-        $query = self::getQuery();
-        $query->where(array("#containerId = '[#1#]'", $cId));
-        
-        $updateArr = array('hide' => array(), 'show' => array());
-        
-        $rArr = array();
-        
-        // Всички файлове от контейнера
-        while ($rec = $query->fetch()) {
-            $dataId = $rec->dataId;
-            if (!$dataId) {
-                $rec->show = 'no';
-                self::save($rec, 'show');
-                
-                continue;
+
+        static $rArr = array();
+
+        if (!isset($rArr[$cId])) {
+            $rArr[$cId] = array();
+            $query = self::getQuery();
+            $query->where(array("#containerId = '[#1#]'", $cId));
+
+            $updateArr = array('hide' => array(), 'show' => array());
+
+            // Всички файлове от контейнера
+            while ($rec = $query->fetch()) {
+                $dataId = $rec->dataId;
+                if (!$dataId) {
+                    $rec->show = 'no';
+                    self::save($rec, 'show');
+
+                    continue;
+                }
+
+                $rArr[$cId][] = array('dataId' => $dataId, 'folderId' => $rec->folderId);
             }
-            
-            $rArr[] = array('dataId' => $dataId, 'folderId' => $rec->folderId);
         }
-        
-        foreach ($rArr as $dArr) {
+
+        foreach ($rArr[$cId] as $dArr) {
             $dQuery = self::getQuery();
             $dQuery->where(array("#dataId = '[#1#]'", $dArr['dataId']));
             
@@ -245,6 +248,7 @@ class doc_Files extends core_Manager
                 if (!$hRec->show || $hRec->show != 'no') {
                     $hRec->show = 'no';
                     self::save($hRec, 'show');
+                    $rArr[$cId] = null;
                 }
             }
         }
@@ -257,6 +261,7 @@ class doc_Files extends core_Manager
                     $bestRec->show = 'yes';
                 }
                 self::save($bestRec, 'show');
+                $rArr[$cId] = null;
             }
         }
     }
