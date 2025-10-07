@@ -878,7 +878,7 @@ class acc_ValueCorrections extends core_Master
     {
         // Намират се вальорите на всички експедиции от нишката
         $productValiors = $periods = array();
-        $productIds = $productIds ?? array_keys($rec->productsData);
+        $productIds = $productIds ?? (is_array($rec->productsData) ? $rec->productsData : type_Set::toArray($rec->chosenProducts));
         $storeDocs = array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails', 'sales_Sales' => 'sales_SalesDetails', 'purchase_Purchases' => 'purchase_PurchasesDetails', 'sales_Services' => 'sales_ServicesDetails', 'purchase_Services' => 'purchase_ServicesDetails');
 
         // В кои нишки, ако договора е обединяващ гледа се и в нишките на обединените договори
@@ -894,7 +894,6 @@ class acc_ValueCorrections extends core_Master
             }
         }
 
-
         foreach ($productIds as $productId){
             foreach ($storeDocs as $docName => $detailName){
                 $states = array('active');
@@ -904,6 +903,7 @@ class acc_ValueCorrections extends core_Master
                 $shQuery->EXT('valior', $docName, "externalKey={$Detail->masterKey}");
                 $shQuery->EXT('state', $docName, "externalKey={$Detail->masterKey}");
                 $shQuery->EXT('threadId', $docName, "externalKey={$Detail->masterKey}");
+                $productId = is_object($productId) ? $productId->productId : $productId;
                 $shQuery->where("#productId = {$productId}");
                 $shQuery->in('threadId', $threads);
 
