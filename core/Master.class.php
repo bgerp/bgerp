@@ -1007,7 +1007,7 @@ class core_Master extends core_Manager
     {
         if (countR($mvc->updateQueue)) {
             foreach ($mvc->updateQueue as $id) {
-                core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 2, 0, 0, false);
+                core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 5, 0, 0, false);
                 $mvc->updateMaster($id);
                 core_Locks::release("{$mvc->className}_UpdateMaster_" . $id);
             }
