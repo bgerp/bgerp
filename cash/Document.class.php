@@ -336,7 +336,14 @@ abstract class cash_Document extends deals_PaymentDocument
                 
                 return;
             }
-            
+
+            $currencyError = null;
+            if(!currency_Currencies::checkCurrency($rec->currencyId, $rec->valior, $currencyError, true)){
+                $form->setError('currencyId', $currencyError);
+                return;
+            }
+
+
             $origin = $mvc->getOrigin($form->rec);
             $dealInfo = $origin->getAggregateDealInfo();
 

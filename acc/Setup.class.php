@@ -131,6 +131,18 @@ defIfNot('ACC_EUROZONE_DATE', '2026-01-01');
 
 
 /**
+ * Колко назад във времето ще се инвалидират балансите
+ */
+defIfNot('ACC_EUROZONE_DATE', '2026-01-01');
+
+
+/**
+ * До кога ще може да се приемат плащания в лева
+ */
+defIfNot('ACC_BGN_PAYMENT_UNTIL', '2026-02-01');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -667,5 +679,16 @@ class acc_Setup extends core_ProtoSetup
         $conf = core_Packs::getConfig('acc');
 
         return defined('BGERP_EUROZONE_DATE') ? BGERP_EUROZONE_DATE : $conf->ACC_EUROZONE_DATE;
+    }
+
+
+    /**
+     * Помощна ф-я връщаща до коя дата може да се правят плащания в лева
+     */
+    public static function getBgnDeprecationDate()
+    {
+        $conf = core_Packs::getConfig('acc');
+
+        return defined('BGERP_BGN_PAYMENT_UNTIL') ? BGERP_BGN_PAYMENT_UNTIL : $conf->ACC_BGN_PAYMENT_UNTIL;
     }
 }

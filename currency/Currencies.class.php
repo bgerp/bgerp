@@ -423,18 +423,32 @@ class currency_Currencies extends core_Master
      * @param mixed $currencyId  - ид или код на валута
      * @param string $date       - към коя дата
      * @param string|null $error - грешка
+     * @param bool $forPayment   - дали е само за плащане
      * @return bool
      */
-    public static function checkCurrency($currencyId, $date, &$error = null)
+    public static function checkCurrency($currencyId, $date, &$error = null, $forPayment = false)
     {
         $date = $date ?? dt::today();
         $currencyId = is_numeric($currencyId) ?currency_Currencies::getCodeById($currencyId) : $currencyId;
 
-        if($currencyId == 'BGN' && $currencyId != acc_Periods::getBaseCurrencyCode($date)){
-            $date = dt::mysql2verbal($date, 'd.m.Y');
-            $error = "Валутата не може да бъде избрана към вальор|* <b>{$date}</b>";
+        if($currencyId == 'BGN'){
 
-            return false;
+            if($forPayment){
+                $deprecateAfter = acc_Setup::getBgnDeprecationDate();
+                if($date >= $deprecateAfter){
+                    $dateVerbal = dt::mysql2verbal($deprecateAfter, 'd.m.Y');
+                    $error = "Не може да се приеме плащане в лева с вальор след|* <b>{$dateVerbal}</b>";
+
+                    return false;
+                }
+            } else {
+                if($currencyId != acc_Periods::getBaseCurrencyCode($date)){
+                    $dateVerbal = dt::mysql2verbal($date, 'd.m.Y');
+                    $error = "Валутата не може да бъде избрана към вальор|* <b>{$dateVerbal}</b>";
+
+                    return false;
+                }
+            }
         }
 
         return true;
