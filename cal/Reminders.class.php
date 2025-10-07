@@ -891,7 +891,9 @@ class cal_Reminders extends core_Master
         $newRec = clone($fdRec);
 
         if ($havePlgClone) {
+            Mode::set('replicateThread', 'reminder');
             plg_Clone::unsetFieldsNotToClone($fcMvc, $newRec, $fdRec);
+            Mode::set('replicateThread', false);
         }
 
         if ($draft) {
@@ -922,13 +924,12 @@ class cal_Reminders extends core_Master
         unset($newRec->id, $newRec->threadId, $newRec->containerId, $newRec->createdOn, $newRec->modifiedOn, $newRec->rejectedOn, $newRec->sharedViews);
 
         $now = dt::now();
-
         if ($emulateNextTime) {
-            $now = $rec->calcTimeStart;
+            $now = $rec->timeStart;
         }
 
         // Променяме датите, спрямо сегашните
-        $secs = dt::secsBetween($now, $rec->calcTimeStart);
+        $secs = abs(dt::secsBetween($now, $rec->calcTimeStart));
 
         foreach ($fcMvc->fields as $name => $field) {
             $type = $field->type;
