@@ -44,7 +44,7 @@ class blast_Lists extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'blast_Wrapper,plg_RowTools2,doc_DocumentPlg, plg_Search, 
-                     bgerp_plg_Blank, plg_Clone, doc_SharablePlg';
+                     bgerp_plg_Blank, plg_Clone, doc_SharablePlg, change_Plugin';
     
     
     /**
@@ -171,7 +171,13 @@ class blast_Lists extends core_Master
      * Масив, където се записват списъците с ID-та за обновяване
      */
     protected $listFields = 'id, title, keyField, contactsCnt, lg, negativeList=Игнориране, sharedUsers=Споделяне, createdOn=Създадено->От, createdBy=Създадено->На';
-    
+
+
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'title, negativeList, lg, sharedUsers, priority, keyField';
+
     
     /**
      * Описание на модела (таблицата)
@@ -340,6 +346,10 @@ class blast_Lists extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+        if ($data->form->rec->id) {
+            $data->form->setReadonly('keyField');
+        }
+
         if (!$data->form->rec->fields) {
             $template = new ET(getFileContent('blast/tpl/ListsEditFormTemplates.txt'));
             $data->form->rec->fields = $template->getContent();
