@@ -578,25 +578,20 @@ class currency_CurrencyRates extends core_Detail
             $currencyToCode = acc_Periods::getBaseCurrencyCode($date);
         }
 
+
+        $conf = core_Packs::getConfig('currency');
+        $exchangeDeviation = $conf->EXCHANGE_DEVIATION;
+
         $expectedAmount = self::convertAmount($amountFrom, $date, $currencyFromCode, $currencyToCode);
         if(acc_Setup::getDefaultCurrencyCode($date) == 'EUR'){
-            if($currencyFromCode == 'BGN' && $currencyToCode == 'EUR'){
-                if(round($amountTo, 2) != round($expectedAmount, 2)){
-                    return "|Заверената сума е различна от очакваната|*: " . round($expectedAmount, 2);
-                }
-            } elseif($currencyFromCode == 'EUR' && $currencyToCode == 'BGN'){
-                if(round($amountTo, 2) != round($expectedAmount, 2)){
-                    return "|Заверената сума е различна от очакваната|*: " . round($expectedAmount, 2);
-                }
+            if(($currencyFromCode == 'BGN' && $currencyToCode == 'EUR') || ($currencyFromCode == 'EUR' && $currencyToCode == 'BGN')){
+                $exchangeDeviation = 0.01;
             }
         }
 
-        $conf = core_Packs::getConfig('currency');
-        $percent = $conf->EXCHANGE_DEVIATION * 100;
-        
+        $percent = $exchangeDeviation * 100;
         $difference = 0;
         $minAmount = min($amountTo, $expectedAmount);
-
         if (isset($minAmount)) {
             if(empty($minAmount)){
                 $difference = 100;
