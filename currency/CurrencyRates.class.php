@@ -578,7 +578,6 @@ class currency_CurrencyRates extends core_Detail
             $currencyToCode = acc_Periods::getBaseCurrencyCode($date);
         }
 
-
         $conf = core_Packs::getConfig('currency');
         $exchangeDeviation = $conf->EXCHANGE_DEVIATION;
 
