@@ -258,8 +258,8 @@ class bank_OwnAccounts extends core_Master
         }
         
         if ($rec->bankAccountId) {
-            $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
-            $row->currency = currency_Currencies::getCodeById($currencyId);
+            $accountRec = bank_Accounts::fetch($rec->bankAccountId);
+            $row->currency = bank_Accounts::getDisplayCurrency($accountRec->currencyId);
             $ownAccounts = bank_OwnAccounts::getOwnAccountInfo($rec->id);
 
             $row->bank = bank_Accounts::getVerbal($ownAccounts, 'bank');
@@ -564,9 +564,9 @@ class bank_OwnAccounts extends core_Master
         $result = null;
         
         if ($rec = static::fetch($objectId)) {
-            $account = bank_Accounts::fetch($rec->bankAccountId);
-            
-            $cCode = currency_Currencies::getCodeById($account->currencyId);
+            $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+            $cCode = bank_Accounts::getDisplayCurrency($currencyId);
+
             $result = (object) array(
                 'num' => $rec->id  . ' b',
                 'title' => $cCode . ' - ' . $rec->title,
@@ -617,13 +617,11 @@ class bank_OwnAccounts extends core_Master
             }
             
             if (isset($rec->bankAccountId)) {
-                $account = bank_Accounts::fetch($rec->bankAccountId);
-                $cCode = currency_Currencies::getCodeById($account->currencyId);
-                if (isset($currencyCode) && strtoupper($currencyCode) != $cCode) {
-                    continue;
-                }
-                
-                $verbal = ($selectIban === true) ? $Varchar->toVerbal($account->iban) : $rec->title;
+                $accountRec = bank_Accounts::fetch($rec->bankAccountId);
+                $cCode = bank_Accounts::getDisplayCurrency($accountRec->currencyId);
+                if (isset($currencyCode) && strtoupper($currencyCode) != $cCode) continue;
+
+                $verbal = ($selectIban === true) ? $Varchar->toVerbal($accountRec->iban) : $rec->title;
                 
                 $accounts[$rec->id] = "{$cCode} - {$verbal}";
             }

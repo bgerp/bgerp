@@ -284,6 +284,8 @@ class bank_Accounts extends core_Master
                 }
             }
         }
+
+        $row->currencyId = self::getDisplayCurrency($rec->currencyId);
     }
     
     
@@ -559,5 +561,25 @@ class bank_Accounts extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Показва валутата в която е банковата сметка към датата
+     *
+     * @param int $id
+     * @param null|date $date
+     * @return string
+     */
+    public static function getDisplayCurrency($currencyId, $date = null)
+    {
+        $date = $date ?? dt::today();
+
+        if($date >= acc_Setup::getEurozoneDate()){
+            $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+            if($currencyId == $bgnCurrencyId) return 'EUR/BGN';
+        }
+
+        return currency_Currencies::getCodeById($currencyId);
     }
 }
