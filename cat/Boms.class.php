@@ -850,10 +850,21 @@ class cat_Boms extends core_Master
         $resources['resources'] = array_values($materials);
 
         if (is_array($materials)) {
+            $uRecs = array();
+            $uQuery = cat_UoM::getQuery();
+            $uQuery->in('id', arr::extractValuesFromArray($materials, 'packagingId'));
+            $uQuery->show('id,round');
+            while($uRec = $uQuery->fetch()) {
+                $uRecs[$uRec->id] = $uRec->round;
+            }
+
             foreach ($materials as &$m) {
                 if ($m->propQuantity != cat_BomDetails::CALC_ERROR) {
                     $m->propQuantity /= $m->quantityInPack;
                 }
+
+                $round = isset($uRecs[$m->packagingId]) ? $uRecs[$m->packagingId] : 0;
+                $m->propQuantity = round($m->propQuantity, $round);
             }
         }
 
