@@ -71,7 +71,8 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
         // Ако е обратна транзакцията, сумите и к-та са с минус
         $sign = ($reverse) ? -1 : 1;
 
-        $dealCurrencyRate = $origin->fetchField('currencyRate');
+        $dealRec = $origin->fetch('currencyRate,valior');
+        $dealCurrencyRate = $dealRec->currencyRate;
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
         $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
         $euroCurrencyId = currency_Currencies::getIdByCode('EUR');
@@ -85,6 +86,9 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 
         $currencyId481 = ($rec->currencyId != $baseCurrencyId) ? $rec->currencyId : $rec->dealCurrencyId;
         $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
+
+        $amountE = $dealCurrencyRate * $rec->amountDeal;
+        $amountE = deals_Helper::getSmartBaseCurrency($amountE, $dealRec->valior, $rec->valior);
 
         if ($reverse === true && in_array($rec->operationSysId, array('case2customerRet', 'caseAdvance2customerRet'))) {
 
@@ -135,7 +139,8 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 
                 $entry[] = $entry1;
             } else {
-                $entry2 = array('amount' => $sign * round($dealCurrencyRate * $rec->amountDeal, 2),
+
+                $entry2 = array('amount' => $sign * round($amountE, 2),
                     'debit' => array('481', array('currency_Currencies', $currencyId481),
                         'quantity' => $sign * round($amount481, 2)),
 
