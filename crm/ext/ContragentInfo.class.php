@@ -463,7 +463,7 @@ class crm_ext_ContragentInfo extends core_manager
     private static function getDealData($contragentClassId)
     {
         $res = array();
-        $baseCurrencyId = acc_Periods::getBaseCurrencyCode();
+        $baseCurrencyId = acc_Periods::getBaseCurrencyCode(dt::today());
         foreach (array('sales' => 'sales_Sales', 'purchases' => 'purchase_Purchases') as $key => $Cls){
             
             // Сумиране и преброяване на всички сделки на контрагента

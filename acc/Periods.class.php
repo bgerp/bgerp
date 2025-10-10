@@ -673,11 +673,12 @@ class acc_Periods extends core_Manager
     public static function getBaseCurrencyId($date = null)
     {
         // Ако има кеширано в хита за датата връща се то
-        if(!array_key_exists($date, static::$baseCurrCodeIdToDate)) {
-            static::$baseCurrCodeIdToDate[$date] = currency_Currencies::getIdByCode(acc_Setup::getDefaultCurrencyCode($date));
+        $dateKey = $date ?? dt::today();
+        if(!array_key_exists($dateKey, static::$baseCurrCodeIdToDate)) {
+            static::$baseCurrCodeIdToDate[$dateKey] = currency_Currencies::getIdByCode(acc_Setup::getDefaultCurrencyCode($dateKey));
         }
 
-        return static::$baseCurrCodeIdToDate[$date];
+        return static::$baseCurrCodeIdToDate[$dateKey];
     }
     
     
@@ -691,11 +692,12 @@ class acc_Periods extends core_Manager
     public static function getBaseCurrencyCode($date = null)
     {
         // Ако има кеширано в хита за датата връща се то
-        if(!array_key_exists($date, static::$baseCurrCodeToDate)) {
-            static::$baseCurrCodeToDate[$date] = currency_Currencies::getCodeById(static::getBaseCurrencyId($date));
+        $dateKey = $date ?? dt::today();
+        if(!array_key_exists($dateKey, static::$baseCurrCodeToDate)) {
+            static::$baseCurrCodeToDate[$dateKey] = currency_Currencies::getCodeById(static::getBaseCurrencyId($dateKey));
         }
 
-        return static::$baseCurrCodeToDate[$date];
+        return static::$baseCurrCodeToDate[$dateKey];
     }
     
     
