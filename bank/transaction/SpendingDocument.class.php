@@ -114,7 +114,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                 'credit' => $transAccArr
             );
         } else {
-            if($rec->currencyId == $baseCurrencyId || ($rec->currencyId == $bgnCurrencyId && $baseCurrencyId == $euroCurrencyId)) {
+            if((($rec->currencyId == $rec->dealCurrencyId && in_array($rec->dealCurrencyId, array($bgnCurrencyId, $euroCurrencyId)))) || ($baseCurrencyId == $euroCurrencyId && $rec->currencyId == $euroCurrencyId)) {
                 $entry[] = array('amount' => $sign * round($amount, 2),
                     'debit' => array($rec->debitAccId,
                         array($rec->contragentClassId, $rec->contragentId),
@@ -126,7 +126,6 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                         array('currency_Currencies', $rec->currencyId),
                         'quantity' => $sign * round($rec->amount, 2)));
             } else {
-
                 $entry[] = array('amount' => $sign * $amountE,
                     'debit' => array($rec->debitAccId,
                         array($rec->contragentClassId, $rec->contragentId),
