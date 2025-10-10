@@ -282,7 +282,7 @@ class core_Locks extends core_Manager
 
             usleep($sleep);
 
-            Debug::log("Sleep {$sleep} microSec. in " . __CLASS__);
+            Debug::log("Sleep '{$objectId}' {$sleep} microSec. in " . __CLASS__);
 
             if (static::obtain($objectId, $lockDuration, 0, $timeout, $releaseOnShutDown)) {
                 
