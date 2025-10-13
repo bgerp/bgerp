@@ -380,7 +380,6 @@ class cash_InternalMoneyTransfer extends core_Master
                 break;
             case 'nonecash2bank':
                 $form->setField('paymentId', 'input');
-                $form->setField('currencyId', 'input=hidden');
                 $form->setFieldTypeParams('paymentId', array('allowEmpty' => 'allowEmpty'));
                 $form->setField('paymentId', 'mandatory');
                 $form->setField('debitBank', 'input,mandatory');
@@ -423,8 +422,7 @@ class cash_InternalMoneyTransfer extends core_Master
             $rec->debitAccId = $mvc->allowedOperations[$rec->operationSysId]['debit'];
             $rec->creditAccId = $mvc->allowedOperations[$rec->operationSysId]['credit'];
             
-            // Проверяваме дали валутите на дебитната сметка съвпадат
-            // с тези на кредитната
+            // Проверяваме дали валутите на дебитната сметка съвпадат с тези на кредитната
             $mvc->validateForm($form);
         }
     }
@@ -469,15 +467,15 @@ class cash_InternalMoneyTransfer extends core_Master
                     $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($bankRec->operators, core_Users::getCurrent()));
                 }
 
-                $debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
-                if ($debitInfo->currencyId != $rec->currencyId) {
-                    $form->setError('debitBank', 'Банковата сметка е в друга валута|*!');
+                $currencyError = null;
+                if(!bank_OwnAccounts::canAcceptCurrency($rec->debitBank, $rec->valior, $rec->currencyId, $currencyError)){
+                    $form->setError('valior,currencyId,debitBank', $currencyError);
                 }
                 break;
             case 'nonecash2bank':
-                $debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
-                if ($debitInfo->currencyId != $rec->currencyId) {
-                    $form->setError('debitBank', 'Банковата сметка е в друга валута|*!');
+                $currencyError = null;
+                if(!bank_OwnAccounts::canAcceptCurrency($rec->debitBank, $rec->valior, $rec->currencyId, $currencyError)){
+                    $form->setError('valior,currencyId,debitBank', $currencyError);
                 }
                 break;
             case 'noncash2noncash':

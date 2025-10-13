@@ -344,33 +344,25 @@ class bank_InternalMoneyTransfer extends core_Master
             // Двете банкови сметки трябва да са различни
             if ($rec->creditBank == $rec->debitBank) {
                 $form->setError('debitBank', 'Дестинацията е една и съща !!!');
-                
-                return;
             }
-            
-            $debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
-            
-            if ($creditInfo->currencyId != $debitInfo->currencyId) {
-                $form->setError('debitBank, creditBank', 'Банковите сметки не са в една валута! Документът за обмяна е "Банкова обмяна на валута".');
-                
-                return;
-            }
-            
+
             if ($creditInfo->currencyId != $rec->currencyId) {
                 $form->setError('debitBank, creditBank', 'Банковите сметки не са в посочената валута !!!');
-                
-                return;
+            }
+
+            $currencyError = null;
+            if(!bank_OwnAccounts::canAcceptCurrency($rec->debitBank, $rec->valior, $creditInfo->currencyId, $currencyError)){
+                $form->setError('valior,currencyId,debitBank', $currencyError);
             }
         } elseif ($rec->operationSysId == 'bank2case') {
             $caseRec = cash_Cases::fetch($rec->debitCase);
             if ($caseRec->autoShare == 'yes') {
                 $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($caseRec->cashiers, core_Users::getCurrent()));
             }
-            
-            if ($creditInfo->currencyId != $rec->currencyId) {
-                $form->setError('debitEnt1,creditEnt1', 'Банковата сметка не е в посочената валута !!!');
-                
-                return;
+
+            $currencyError = null;
+            if(!bank_OwnAccounts::canAcceptCurrency($rec->creditBank, $rec->valior, $creditInfo->currencyId, $currencyError)){
+                $form->setError('valior,currencyId,creditBank', $currencyError);
             }
         }
     }
