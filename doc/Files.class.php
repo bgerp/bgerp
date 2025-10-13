@@ -178,12 +178,12 @@ class doc_Files extends core_Manager
 
         static $rArr = array();
 
+        $updateArr = array('hide' => array(), 'show' => array());
+
         if (!isset($rArr[$cId])) {
             $rArr[$cId] = array();
             $query = self::getQuery();
             $query->where(array("#containerId = '[#1#]'", $cId));
-
-            $updateArr = array('hide' => array(), 'show' => array());
 
             // Всички файлове от контейнера
             while ($rec = $query->fetch()) {
@@ -226,13 +226,13 @@ class doc_Files extends core_Manager
                     continue;
                 }
                 
-                if (!isset($bestRec) || ($bestRec->CreatedOn > $cRec->createdOn)) {
+                if (!isset($bestRec) || ($bestRec->createdOn > $cRec->createdOn)) {
                     if (isset($bestRec)) {
                         $hideArr[$bestRec->id] = $bestRec;
                     }
                     
                     $bestRec = $dRec;
-                    $bestRec->CreatedOn = $cRec->createdOn;
+                    $bestRec->createdOn = $cRec->createdOn;
                 } else {
                     $hideArr[$dRec->id] = $dRec;
                 }
@@ -243,7 +243,7 @@ class doc_Files extends core_Manager
         }
 
         // Скриваме файлове, които не трябва да се показват
-        foreach ($updateArr['hide'] as $hideArr) {
+        foreach ((array) $updateArr['hide'] as $hideArr) {
             foreach ($hideArr as $hRec) {
                 if (!$hRec->show || $hRec->show != 'no') {
                     $hRec->show = 'no';
@@ -254,7 +254,7 @@ class doc_Files extends core_Manager
         }
         
         // Показваме файла
-        foreach ($updateArr['show'] as $bestRec) {
+        foreach ((array) $updateArr['show'] as $bestRec) {
             self::fixShow($bestRec);
             if (isset($bestRec) && (!$bestRec->show || $bestRec->show != 'yes')) {
                 if ($bestRec->show != 'isSearch') {
