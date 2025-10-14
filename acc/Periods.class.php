@@ -868,4 +868,14 @@ class acc_Periods extends core_Manager
 
         return $date;
     }
+
+
+    /**
+     * Чистене на кеш
+     */
+    public static function clearCache()
+    {
+        self::$baseCurrCodeToDate = array();
+        self::$baseCurrCodeIdToDate = array();
+    }
 }
