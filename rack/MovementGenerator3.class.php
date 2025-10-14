@@ -6,12 +6,12 @@
  * @category  bgerp
  * @package   rack
  *
- * @author    Ivelin Dimov
+ * @author    Ivelin Dimov, Stefan Arsov
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class rack_MovementGenerator2 extends core_Manager
+class rack_MovementGenerator3 extends core_Manager
 {
     public $loadList = 'rack_Wrapper';
     public $title = 'Генератор на движения';
@@ -195,15 +195,15 @@ class rack_MovementGenerator2 extends core_Manager
 				// Локален алокатор: разпределя $take по подзоните според оставащите им нужди
 				$allocToZones = function ($take) use (&$groupRemZones) {
 					$assigned = [];
-					$rem = rack_MovementGenerator2::ffix($take);
+					$rem = rack_MovementGenerator3::ffix($take);
 					foreach ($groupRemZones as $zId => $zNeed) {
 						if ($rem <= 0) break;
-						$zNeed = rack_MovementGenerator2::ffix($zNeed);
+						$zNeed = rack_MovementGenerator3::ffix($zNeed);
 						if ($zNeed <= 0) continue;
 						$put = min($zNeed, $rem);
-						$assigned[$zId] = rack_MovementGenerator2::ffix($put);
-						$groupRemZones[$zId] = rack_MovementGenerator2::ffix($zNeed - $put);
-						$rem = rack_MovementGenerator2::ffix($rem - $put);
+						$assigned[$zId] = rack_MovementGenerator3::ffix($put);
+						$groupRemZones[$zId] = rack_MovementGenerator3::ffix($zNeed - $put);
+						$rem = rack_MovementGenerator3::ffix($rem - $put);
 					}
 					return $assigned;
 				};
@@ -219,7 +219,7 @@ class rack_MovementGenerator2 extends core_Manager
 
 					$deprioFirstRow = ($strategy !== 'oldest');
 					usort($fullIdxNow, function ($a, $b) use ($pallets, $strategy, $deprioFirstRow) {
-						return rack_MovementGenerator2::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, $deprioFirstRow);
+						return rack_MovementGenerator3::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, $deprioFirstRow);
 					});
 
 					$pickId = $fullIdxNow[0];
@@ -259,7 +259,7 @@ class rack_MovementGenerator2 extends core_Manager
 				$frSum = 0.0; foreach ($firstRowIdx as $frId) $frSum += self::ffix($pArr[$frId]);
 				if ($frSum >= $remaining) {
 					usort($firstRowIdx, function ($a, $b) use ($pallets, $strategy) {
-						return rack_MovementGenerator2::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, false);
+						return rack_MovementGenerator3::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, false);
 					});
 					foreach ($firstRowIdx as $frId) {
 						if ($remaining <= 0) break;
@@ -314,7 +314,7 @@ class rack_MovementGenerator2 extends core_Manager
 
 						// допълване от „Първи ред до“
 						usort($firstRowIdx, function ($a, $b) use ($pallets, $strategy) {
-							return rack_MovementGenerator2::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, false);
+							return rack_MovementGenerator3::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, false);
 						});
 						foreach ($firstRowIdx as $frId) {
 							if ($remaining <= 0) break;
@@ -436,7 +436,7 @@ class rack_MovementGenerator2 extends core_Manager
 					if (!empty($fullIdxNow)) {
 						$deprioFirstRow = ($strategy !== 'oldest');
 						usort($fullIdxNow, function ($a, $b) use ($pallets, $strategy, $deprioFirstRow) {
-							return rack_MovementGenerator2::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, $deprioFirstRow);
+							return rack_MovementGenerator3::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, $deprioFirstRow);
 						});
 						$pid = $fullIdxNow[0];
 						$take = min(self::ffix($pArr[$pid]), $remaining);
@@ -471,7 +471,7 @@ class rack_MovementGenerator2 extends core_Manager
             foreach ($pArr as $pId => $pQ) if ($pQ >= $qInPallet) $fullIdx[] = $pId;
             $deprioFirstRow = ($strategy !== 'oldest');
             usort($fullIdx, function ($a, $b) use ($pallets, $strategy, $deprioFirstRow) {
-                return rack_MovementGenerator2::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, $deprioFirstRow);
+                return rack_MovementGenerator3::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, $deprioFirstRow);
             });
 
             // раздаване на цели палети по зоните
