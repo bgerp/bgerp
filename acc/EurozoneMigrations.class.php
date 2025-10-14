@@ -160,8 +160,11 @@ SET
         $StorePrices = cls::get('acc_ProductPricePerPeriods');
 
         $priceCol = str::phpToMysqlName('price');
+        $dateCol = str::phpToMysqlName('date');
+
+        $eurozoneDate = acc_Setup::getEuroZoneDate();
         $tbl = $StorePrices->dbTableName;
-        $query = "UPDATE `{$tbl}` SET `{$priceCol}`  = (`{$priceCol}`  / 1.95583);";
+        $query = "UPDATE `{$tbl}` SET `{$priceCol}`  = (`{$priceCol}`  / 1.95583) WHERE `{$dateCol}` < '{$eurozoneDate}'";
         $StorePrices->db->query($query);
     }
 
