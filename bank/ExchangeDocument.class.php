@@ -147,12 +147,12 @@ class bank_ExchangeDocument extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
+        $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory,silent,removeAndRefreshForm=reason');
         $this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
-        $this->FLD('peroFrom', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=От->Банк. сметка');
+        $this->FLD('peroFrom', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=От->Банк. сметка,silent,removeAndRefreshForm');
         $this->FLD('creditPrice', 'double(smartRound,decimals=2)', 'input=none');
         $this->FLD('creditQuantity', 'double(smartRound,decimals=2,maxAllowedDecimals=2)', 'caption=От->Сума');
-        $this->FLD('peroTo', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=Към->Банк. сметка');
+        $this->FLD('peroTo', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=Към->Банк. сметка,silent,removeAndRefreshForm');
         $this->FLD('debitQuantity', 'double(smartRound,decimals=2,maxAllowedDecimals=2)', 'caption=Към->Сума');
         $this->FLD('debitPrice', 'double(smartRound,decimals=2)', 'input=none');
         $this->FLD('equals', 'double(smartRound,decimals=2)', 'input=none,caption=Общо,summary=amount');
@@ -215,13 +215,24 @@ class bank_ExchangeDocument extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = &$data->form;
+        $rec = &$form->rec;
         $today = dt::verbal2mysql();
         $cBank = bank_OwnAccounts::getCurrent();
         $form->rec->folderId = bank_OwnAccounts::forceCoverAndFolder($cBank);
         $form->setDefault('peroFrom', $cBank);
         $form->setDefault('valior', $today);
         $form->setReadOnly('peroFrom');
-        $form->setOptions('peroTo', bank_OwnAccounts::getOwnAccounts());
+        $form->setOptions('peroTo', array('' => '') + bank_OwnAccounts::getOwnAccounts());
+
+        if(isset($rec->peroFrom)){
+            $creditCurrencyCode = bank_OwnAccounts::getDefaultCurrency($rec->peroFrom, $rec->valior, true);
+            $form->setField('creditQuantity', "unit={$creditCurrencyCode}");
+        }
+
+        if(isset($rec->peroTo)){
+            $debitCurrencyCode = bank_OwnAccounts::getDefaultCurrency($rec->peroTo, $rec->valior, true);
+            $form->setField('debitQuantity', "unit={$debitCurrencyCode}");
+        }
     }
     
     
@@ -239,31 +250,30 @@ class bank_ExchangeDocument extends core_Master
                 return;
             }
             
-            $creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
-            $debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
-            
-            if ($creditAccInfo->currencyId == $debitAccInfo->currencyId) {
-                $form->setWarning('peroFrom, peroTo', 'Валутите са едни и същи, няма смяна на валута !!!');
+            $creditCurrencyCode = bank_OwnAccounts::getDefaultCurrency($rec->peroFrom, $rec->valior, true);
+            $debitCurrencyCode = bank_OwnAccounts::getDefaultCurrency($rec->peroTo, $rec->valior, true);
+            $valiorVerbal = dt::mysql2verbal($rec->valior);
+            if ($creditCurrencyCode == $debitCurrencyCode) {
+                $form->setWarning('peroFrom, peroTo', "Валутите са едни и същи, няма смяна на валута към вальор|* <b>{$valiorVerbal}</b>");
             }
             
             // Изчисляваме курса на превалутирането спрямо входните данни
-            $cCode = currency_Currencies::getCodeById($creditAccInfo->currencyId);
-            $dCode = currency_Currencies::getCodeById($debitAccInfo->currencyId);
-            $cRate = currency_CurrencyRates::getRate($rec->valior, $cCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+
+            $cRate = currency_CurrencyRates::getRate($rec->valior, $creditCurrencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
             currency_CurrencyRates::checkRateAndRedirect($cRate);
             $rec->creditPrice = $cRate;
             $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
             $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);
             
-            if ($msg = currency_CurrencyRates::checkAmounts($rec->creditQuantity, $rec->debitQuantity, $rec->valior, $cCode, $dCode)) {
+            if ($msg = currency_CurrencyRates::checkAmounts($rec->creditQuantity, $rec->debitQuantity, $rec->valior, $creditCurrencyCode, $debitCurrencyCode)) {
                 $form->setError('debitQuantity', $msg);
             }
             
             // Каква е равностойноста на обменената сума в основната валута за периода
-            if ($dCode == acc_Periods::getBaseCurrencyCode($rec->valior)) {
+            if ($debitCurrencyCode == acc_Periods::getBaseCurrencyCode($rec->valior)) {
                 $rec->equals = $rec->creditQuantity * $rec->rate;
             } else {
-                $rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, null);
+                $rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $debitCurrencyCode, null);
             }
 
             $bankRec = bank_OwnAccounts::fetch($rec->peroTo);
