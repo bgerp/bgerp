@@ -141,6 +141,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         }
         ksort($groupedDetails);
 
+        $today = dt::today();
         $now = dt::now();
         foreach ($groupedDetails as $toDate => $details){
             $saveArr = array();
@@ -183,11 +184,16 @@ class acc_ProductPricePerPeriods extends core_Manager
                 if(empty($toDate)){
                     wp("PRICE_CACHE_NO_DATE", $dRec, $toDate, $balanceIds);
                 }
+
+                // Сумата се обръща от основната валута за периода към тази сега
+                $price = round($dRec->price, 5);
+                $priceInBaseCurrency = deals_Helper::getSmartBaseCurrency($price, $toDate, $today);
+
                 $rec = (object)array('date' => $toDate,
                                      'otherItemId' => $item1Id,
                                      'productItemId' => $item2Id,
                                      'updatedOn' => $now,
-                                     'price' => round($dRec->price, 5),
+                                     'price' => $priceInBaseCurrency,
                                      'type' => $type);
                 $saveArr[] = $rec;
                 $prevArr[$key] = $dRec->price;
@@ -299,6 +305,9 @@ class acc_ProductPricePerPeriods extends core_Manager
                 redirect(array($mvc, 'filter', 'toDate' => $rec->toDate, 'productItemId' => $rec->productItemId, 'otherItemId' => $rec->otherItemId, 'type' => $rec->type));
             }
         }
+
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+        $data->listFields['price'] .= "|* <small>({$baseCurrencyCode})</small>";
     }
 
 

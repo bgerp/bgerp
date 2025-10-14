@@ -152,11 +152,29 @@ SET
     }
 
 
+    /**
+     * Обновява кешираните складови сб-ст
+     */
+    public static function updatePricesByDate()
+    {
+        $StorePrices = cls::get('acc_ProductPricePerPeriods');
+
+        $priceCol = str::phpToMysqlName('price');
+        $tbl = $StorePrices->dbTableName;
+        $query = "UPDATE `{$tbl}` SET `{$priceCol}`  = (`{$priceCol}`  / 1.95583);";
+        $StorePrices->db->query($query);
+    }
+
 
     function act_Test()
     {
         requireRole('debug');
 
+        core_App::setTimeLimit(800, false);
+        self::updatePriceLists();
+        self::updateDeltas();
+        self::updateEshopSettings();
         self::updatePriceCosts();
+        self::updatePricesByDate();
     }
 }
