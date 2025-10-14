@@ -232,6 +232,8 @@ class bank_ExchangeDocument extends core_Master
         if(isset($rec->peroTo)){
             $debitCurrencyCode = bank_OwnAccounts::getDefaultCurrency($rec->peroTo, $rec->valior, true);
             $form->setField('debitQuantity', "unit={$debitCurrencyCode}");
+        } else {
+            $form->setField('debitQuantity', 'input=none');
         }
     }
     
@@ -254,11 +256,10 @@ class bank_ExchangeDocument extends core_Master
             $debitCurrencyCode = bank_OwnAccounts::getDefaultCurrency($rec->peroTo, $rec->valior, true);
             $valiorVerbal = dt::mysql2verbal($rec->valior);
             if ($creditCurrencyCode == $debitCurrencyCode) {
-                $form->setWarning('peroFrom, peroTo', "Валутите са едни и същи, няма смяна на валута към вальор|* <b>{$valiorVerbal}</b>");
+                $form->setError('peroFrom, peroTo', "Валутите са едни и същи, няма смяна на валута към вальор|* <b>{$valiorVerbal}</b>");
             }
             
             // Изчисляваме курса на превалутирането спрямо входните данни
-
             $cRate = currency_CurrencyRates::getRate($rec->valior, $creditCurrencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
             currency_CurrencyRates::checkRateAndRedirect($cRate);
             $rec->creditPrice = $cRate;
