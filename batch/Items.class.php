@@ -821,10 +821,25 @@ class batch_Items extends core_Master
         if(isset($batch)){
             $bQuery->where(array("#batch = '[#1#]'", $batch));
         }
-        $bQuery->where("#state = 'active'");
-        $bQuery->groupBy('batch');
+
+        if($autoAllocate = Mode::get('autoAllocateIn')){
+            $cloneBatchQuery = clone $bQuery;
+            $cloneBatchQuery->XPR('dateCalc', 'date', 'COALESCE(#date, CURDATE())');
+            $cloneBatchQuery->where("#state IN ('draft', 'pending')");
+            $cloneBatchQuery->where("#dateCalc <= '{$date}'");
+            while ($bRec1 = $cloneBatchQuery->fetch()) {
+                if($bRec1->detailClassId == $autoAllocate['detailClassId'] && $bRec1->detailRecId == $autoAllocate['detailRecId']) continue;
+                if (array_key_exists($bRec1->batch, $res)){
+                     $sign = $bRec1->operation == 'in' ? 1 : -1;
+                     $res[$bRec1->batch] += $sign * $bRec1->quantity;
+                }
+            }
+        }
+
         $bQuery->where("#date <= '{$date}'");
+        $bQuery->groupBy('batch');
         $bQuery->show('batch');
+        $bQuery->where("#state = 'active'");
 
         while ($bRec = $bQuery->fetch()) {
             if (!array_key_exists($bRec->batch, $res) && $onlyActiveBatches === false) {

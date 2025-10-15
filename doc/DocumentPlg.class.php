@@ -920,7 +920,7 @@ class doc_DocumentPlg extends core_Plugin
             doc_ThreadUsers::syncContainerRelations($rec->containerId, $sharedArr, $rec->threadId);
         }
 
-        core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 2, 0, 0, true);
+        core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 4, 0, 0, true);
     }
     
     

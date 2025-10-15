@@ -2444,6 +2444,13 @@ pre.document {
 .normalText {
   font-weight: normal !important; }
 
+.transUnitQuantity {
+  font-weight: bold;
+  padding: 1px 2px;
+  background: rgba(205, 205, 205, 0.7);
+  border: 1px solid #aaaaaa;
+  border-radius: 3px; }
+
 .cell {
   border: 1px solid #999999;
   vertical-align: top; }

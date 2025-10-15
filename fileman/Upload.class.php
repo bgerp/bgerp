@@ -65,7 +65,7 @@ class fileman_Upload extends core_Manager
         if (Request::get('Upload')) {
             $resEt = new ET();
             
-            $this->makeUpload($_FILES, $bucketId, $resEt, $callback);
+            $this->makeUpload($_FILES, $bucketId, $resEt, $callback, $success);
             
             if (Request::get('ajax_mode')) {
                 core_App::outputJson(array('success' => $success, 'res' => $resEt->getContent()));
@@ -99,7 +99,7 @@ class fileman_Upload extends core_Manager
      * 
      * @return array
      */
-    public static function makeUpload($files, $bucketId, &$resEt = null, $callback = null)
+    public static function makeUpload($files, $bucketId, &$resEt = null, $callback = null, &$success = null)
     {
         $resArr = array();
         

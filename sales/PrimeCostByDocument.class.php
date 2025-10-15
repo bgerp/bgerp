@@ -584,7 +584,7 @@ class sales_PrimeCostByDocument extends core_Manager
             // Ако датата на последната продажба е в интервала между константите - няма да се начислява
             $lDate = $lastDateArr[$iRec->productId][$iRec->folderId];
             if(isset($lDate)){
-                if($lDate <= $thresholdTo && $lDate >= $thresholdFrom) continue;
+                if($lDate < $thresholdTo && $lDate >= $thresholdFrom) continue;
             }
 
             $Document = $masters[$iRec->containerId][0];

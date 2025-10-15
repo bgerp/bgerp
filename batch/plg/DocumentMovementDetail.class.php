@@ -210,7 +210,9 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
             $info = $mvc->getRowInfo($rec);
 
             if (isset($info->operation['out'])) {
+                Mode::push('autoAllocateIn', array('detailRecId' => $mvc->getClassId(), 'detailClassId' => $rec->id));
                 $batches = $BatchClass->allocateQuantityToBatches($info->quantity, $info->operation['out'], $mvc, $rec->id, $info->date);
+                Mode::pop('autoAllocateIn');
                 batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $batches);
             }
         }

@@ -368,7 +368,7 @@ class trans_Lines extends core_Master
         }
 
         if (Request::get('editTrans')) {
-            bgerp_Notifications::clear(getCurrentUrl(), '*');
+            bgerp_Notifications::clear(getCurrentUrl());
         }
     }
 

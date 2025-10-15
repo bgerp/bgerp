@@ -142,6 +142,13 @@ class sales_reports_SalesByCreators extends frame2_driver_TableData
             $query->where("#createdBy = $rec->creator");
         }
 
+        // Синхронизира таймлимита с броя записи //
+        $maxTimeLimit = $query->count() * 10;
+        $maxTimeLimit = max(array($maxTimeLimit, 300));
+        if ($maxTimeLimit > 300) {
+            core_App::setTimeLimit($maxTimeLimit);
+        }
+
         while ($sRec = $query->fetch()) {
 
             if (!array_key_exists($id, $recs)) {
