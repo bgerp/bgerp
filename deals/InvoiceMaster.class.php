@@ -1694,17 +1694,16 @@ abstract class deals_InvoiceMaster extends core_Master
         $rec = $this->fetchRec($id);
         $total = $rec->dealValue + $rec->vatAmount - $rec->discountAmount;
         $total = ($rec->type == 'credit_note') ? -1 * $total : $total;
-        $total = deals_Helper::getSmartBaseCurrency($total, $rec->date, $dealValior);
+
+        $displayRate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+        //$totalInDealBaseCurrency = deals_Helper::getSmartBaseCurrency($total, $rec->date, $dealValior);
+        $totalInDealBaseCurrency = ($total / $displayRate) * $aggregator->get('rate');
 
         $dueDate = null;
         setIfNot($dueDate, $rec->dueDate, $rec->date);
-        $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $total, 'type' => $rec->type));
-        $displayRate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
-        $totalInDealRate = ($total / $displayRate) * $rec->rate;
-        $aggregator->sum('invoicedAmount', $totalInDealRate);
+        $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $totalInDealBaseCurrency, 'type' => $rec->type));
+        $aggregator->sum('invoicedAmount', $totalInDealBaseCurrency);
         $aggregator->setIfNot('invoicedValior', $rec->date);
-
-
 
         if (isset($rec->dpAmount)) {
             $dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->date, $dealValior);
@@ -1715,9 +1714,9 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             $dpVatId = $rec->dpVatGroupId ?? acc_VatGroups::getDefaultIdByDate($rec->date);
             if ($rec->dpOperation == 'accrued') {
-                $aggregator->sum('downpaymentInvoiced', $totalInDealRate);
+                $aggregator->sum('downpaymentInvoiced', $totalInDealBaseCurrency);
 
-                $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealRate, $dpVatId);
+                $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealBaseCurrency, $dpVatId);
             } elseif ($rec->dpOperation == 'deducted') {
 
                 // Колко е приспаднатото плащане с ддс
@@ -1733,9 +1732,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $originRec = doc_Containers::getDocument($rec->originId)->fetch('dpOperation,dpVatGroupId,date');
 
                 if ($originRec->dpOperation == 'accrued') {
-                    $aggregator->sum('downpaymentInvoiced', $totalInDealRate);
+                    $aggregator->sum('downpaymentInvoiced', $totalInDealBaseCurrency);
                     $dpVatId = $originRec->dpVatGroupId ?? acc_VatGroups::getDefaultIdByDate($originRec->date);
-                    $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealRate, $dpVatId);
+                    $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealBaseCurrency, $dpVatId);
                 }
             }
         }
