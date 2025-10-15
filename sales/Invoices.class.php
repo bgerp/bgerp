@@ -554,10 +554,15 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         if ($rec->state == 'active') {
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            $firstRec = $firstDoc->fetch('containerId,currencyId');
             $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
             $amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+            if($firstRec->currencyId != $rec->currencyId){
+                $amount = currency_CurrencyRates::convertAmount($amount, null, $rec->currencyId, $firstRec->currencyId);
+            }
             $amount = round($amount, 2);
-            $originId = $rec->originId ?? doc_Threads::getFirstContainerId($rec->threadId);
+            $originId = $rec->originId ?? $firstRec->containerId;
 
             if ($amount < 0) {
                 if (cash_Rko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
@@ -795,7 +800,7 @@ class sales_Invoices extends deals_InvoiceMaster
             
             return false;
         }
-        
+
         $queryBefore = clone $query;
         $query->orderBy('number', 'DESC');
         $queryBefore->where("#date < '{$date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");

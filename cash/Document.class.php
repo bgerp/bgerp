@@ -224,17 +224,24 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $Document = doc_Containers::getDocument($fromContainerId);
         $documentRec = $Document->fetch();
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $firstRec = $firstDoc->fetch('currencyRate,currencyId');
+        $willConvert = ($firstRec->currencyId != $documentRec->currencyId);
+
         if($Document->isInstanceOf('deals_InvoiceMaster')){ 
-            $minus = ($documentRec->type == 'dc_note') ? 0 : 0.005;
+            $minus = ($documentRec->type == 'dc_note' || $willConvert) ? 0 : 0.005;
             $amount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount - $minus;
             $amount /= ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
-            $amount = round($amount, 2);
         } elseif($Document->isInstanceOf('store_DocumentMaster')){
             $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
-            $amount = round($amount, 2);
+        }
+
+        if($firstRec->currencyId != $documentRec->currencyId){
+            $amount = currency_CurrencyRates::convertAmount($amount, null, $documentRec->currencyId, $firstRec->currencyId);
         }
 
         if(isset($amount)){
+            $amount = round($amount, 2);
             $amount = abs($amount);
         }
 
