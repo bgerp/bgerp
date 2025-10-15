@@ -3438,6 +3438,10 @@ th.leftCol {
   white-space: nowrap;
   text-align: left !important; }
 
+td.centerCell {
+  text-align: center !important;
+  vertical-align: middle !important; }
+
 td.centerCol {
   white-space: nowrap;
   text-align: center; }
