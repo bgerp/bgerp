@@ -1684,9 +1684,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @see bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$aggregator)
     {

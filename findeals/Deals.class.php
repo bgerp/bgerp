@@ -805,9 +805,7 @@ class findeals_Deals extends deals_DealBase
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @see bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$result)
     {

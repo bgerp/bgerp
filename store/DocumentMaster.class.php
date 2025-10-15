@@ -826,7 +826,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
+     * @return void
      *
      * @see bgerp_DealIntf::getDealInfo()
      */

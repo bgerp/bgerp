@@ -332,9 +332,7 @@ abstract class deals_Document extends deals_PaymentDocument
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @see bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$aggregator)
     {

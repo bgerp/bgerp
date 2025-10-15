@@ -459,11 +459,7 @@ abstract class bank_Document extends deals_PaymentDocument
     /**
      * Имплементация на @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @link bgerp_DealIntf::getDealInfo()
-     *
-     * @see  bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$aggregator)
     {
