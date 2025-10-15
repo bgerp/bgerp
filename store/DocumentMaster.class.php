@@ -326,11 +326,6 @@ abstract class store_DocumentMaster extends core_Master
     }
 
 
-    function act_Test()
-    {
-        $rec = self::fetch(2800);
-        self::on_AfterCreate($this, $rec);
-    }
     /**
      * След създаване на запис в модела
      */

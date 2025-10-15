@@ -504,12 +504,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($jRecs, $id, $accs = '321,302,601,602,60010,60020,60201', $groupByStore = false, $onlySupplier = true, $groupByExpense = false)
+    public static function getShippedProducts($jRecs, $rec, $accs = '321,302,601,602,60010,60020,60201', $groupByStore = false, $onlySupplier = true, $groupByExpense = false)
     {
         $res = array();
-        
+        $rec = purchase_Purchases::fetchRec($rec);
+
         // Извличаме тези, отнасящи се за експедиране
-        $itemId = acc_items::fetchItem('purchase_Purchases', $id)->id;
+        $itemId = acc_items::fetchItem('purchase_Purchases', $rec->id)->id;
+
         $from = ($onlySupplier === true) ? '401' : null;
         $dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'debit', $from);
         
@@ -536,8 +538,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     if (empty($res[$index])) {
                         $res[$index] = $obj;
                     }
-                    
-                    $res[$index]->amount += $p->amount;
+
+                    $amount = deals_Helper::getSmartBaseCurrency($p->amount, $p->valior, $rec->valior);
+                    $res[$index]->amount += $amount;
                     $res[$index]->quantity += $p->debitQuantity;
                     
                     if ($groupByStore === true) {
@@ -546,7 +549,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                         if ($p->{"debitItem{$storePositionId}"}) {
                             $storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
                             
-                            $res[$index]->inStores[$storeItem->objectId]['amount'] += $p->amount;
+                            $res[$index]->inStores[$storeItem->objectId]['amount'] += $amount;
                             $res[$index]->inStores[$storeItem->objectId]['quantity'] += $p->debitQuantity;
                         }
                     }
@@ -557,7 +560,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                         if ($p->{"debitItem{$expensePositionId}"}) {
                             $expenseItem = acc_Items::fetch($p->{"debitItem{$expensePositionId}"})->id;
                             
-                            $res[$index]->expenseItems[$expenseItem]['amount'] += $p->amount;
+                            $res[$index]->expenseItems[$expenseItem]['amount'] += $amount;
                             $res[$index]->expenseItems[$expenseItem]['quantity'] += $p->debitQuantity;
                         }
                     }

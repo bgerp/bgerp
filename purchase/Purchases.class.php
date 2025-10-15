@@ -624,7 +624,9 @@ class purchase_Purchases extends deals_DealMaster
         $agreed = deals_Helper::normalizeProducts(array($agreed2));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);
-        $result->set('shippedProducts', purchase_transaction_Purchase::getShippedProducts($entries, $rec->id));
+
+        $shippedProducts = purchase_transaction_Purchase::getShippedProducts($entries, $rec);
+        $result->set('shippedProducts', $shippedProducts);
     }
     
     
@@ -793,7 +795,7 @@ class purchase_Purchases extends deals_DealMaster
 
         $products = array();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
-        $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, $accounts, true, true, true);
+        $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec, $accounts, true, true, true);
         
         $contQuery = doc_Containers::getQuery();
         $contQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");

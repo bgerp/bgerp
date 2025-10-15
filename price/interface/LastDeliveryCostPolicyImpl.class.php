@@ -105,7 +105,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
                     // от документите от вида "Корекция на стойност". В обикновените записи имаше приложени
                     // само корекциите от документа когато той е към същата сделка. Когато е към друга не се вземаха
                     // затова трябваше да се добавят ръчно към записите
-                    $purchaseProducts[$purRec->requestId] = purchase_transaction_Purchase::getShippedProducts($entries, $purRec->requestId, '321,302,601,602,60010,60020,60201', false, false);
+                    $purchaseProducts[$purRec->requestId] = purchase_transaction_Purchase::getShippedProducts($entries, $purRec, '321,302,601,602,60010,60020,60201', false, false);
                     
                     // Добавяне и на разпределените разходи, ако има
                     foreach ($purchaseProducts[$purRec->requestId] as $o1) {
