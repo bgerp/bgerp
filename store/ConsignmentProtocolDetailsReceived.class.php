@@ -47,19 +47,19 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store, distributor';
+    public $canEdit = 'ceo, store, distributor,sales,purchase';
 
 
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store, distributor';
+    public $canAdd = 'ceo, store, distributor,sales,purchase';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store, distributor';
+    public $canDelete = 'ceo, store, distributor,sales,purchase';
     
     
     /**
@@ -75,11 +75,11 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     
     
     /**
-     * Кой може да го импортира артикули?
+     * Кой може да импортира артикули?
      *
      * @var string|array
      */
-    public $canImport = 'ceo, store, distributor';
+    public $canImport = 'ceo, store, distributor,sales,purchase';
 
 
     /**
@@ -101,7 +101,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      *
      * @var string|array
      */
-    public $canCreateproduct = 'ceo, store';
+    public $canCreateproduct = 'ceo, store,sales,purchase';
 
 
     /**
