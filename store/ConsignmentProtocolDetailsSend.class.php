@@ -40,7 +40,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      *
      * @var string|array
      */
-    public $canImport = 'ceo, store, distributor';
+    public $canImport = 'ceo, store, distributor, sales, purchase';
     
     
     /**
@@ -48,7 +48,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
      *
      * @var string|array
      */
-    public $canCreateproduct = 'ceo, store';
+    public $canCreateproduct = 'ceo, store, sales, purchase';
     
     
     /**
@@ -61,19 +61,19 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store, distributor';
+    public $canEdit = 'ceo, store, distributor, sales, purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store, distributor';
+    public $canAdd = 'ceo, store, distributor, sales, purchase';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store, distributor';
+    public $canDelete = 'ceo, store, distributor, sales, purchase';
     
     
     /**
