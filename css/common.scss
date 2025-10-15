@@ -3802,6 +3802,11 @@ td.leftCol, th.leftCol {
 	text-align:left !important;
 }
 
+td.centerCell {
+  text-align:center !important;
+  vertical-align: middle !important;
+}
+
 td.centerCol {
 	white-space:nowrap;
 	text-align:center;
