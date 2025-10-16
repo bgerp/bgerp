@@ -1487,9 +1487,4 @@ abstract class deals_QuotationMaster extends core_Master
     {
         return false;
     }
-
-    public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
-    {
-        core_Statuses::newStatus("$rec->id: {$rec->currencyRate}", 'warning');
-    }
 }
