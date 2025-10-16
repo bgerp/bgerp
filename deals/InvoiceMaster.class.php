@@ -1694,8 +1694,11 @@ abstract class deals_InvoiceMaster extends core_Master
         $total = ($rec->type == 'credit_note') ? -1 * $total : $total;
 
         $displayRate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
-        //$totalInDealBaseCurrency = deals_Helper::getSmartBaseCurrency($total, $rec->date, $dealValior);
-        $totalInDealBaseCurrency = ($total / $displayRate) * $aggregator->get('rate');
+        if($rec->currencyId == 'EUR'){
+            $totalInDealBaseCurrency = deals_Helper::getSmartBaseCurrency($total, $rec->date, $dealValior);
+        } else {
+            $totalInDealBaseCurrency = ($total / $displayRate) * $aggregator->get('rate');
+        }
 
         $dueDate = null;
         setIfNot($dueDate, $rec->dueDate, $rec->date);
