@@ -26,7 +26,7 @@ class acc_EurozoneMigrations extends core_BaseClass
 
         $discounts = array();
         $discQuery = $Discounts->getQuery();
-        $discQuery->where("#amountFrom IS NOT NULL OR #amountTo IS NOT NULL");
+        $discQuery->where("#amountFrom IS NOT NULL OR #amountTo IS NOT NULL OR #discountAmount IS NOT NULL");
         while($dRec = $discQuery->fetch()){
             $discounts[$dRec->listId][$dRec->id] = $dRec;
         }
@@ -50,13 +50,18 @@ class acc_EurozoneMigrations extends core_BaseClass
                         $dRec1->amountTo = round($dRec1->amountTo, 2);
                     }
 
+                    if(!empty($dRec1->discountAmount)){
+                        $dRec1->discountAmount /= 1.95583;
+                        $dRec1->discountAmount = round($dRec1->discountAmount, 2);
+                    }
+
                     $saveDiscounts[$dRec1->id] = $dRec1;
                 }
             }
         }
 
         if(countR($saveDiscounts)){
-            $Discounts->saveArray($saveDiscounts, 'id,amountTo,amountFrom');
+            $Discounts->saveArray($saveDiscounts, 'id,amountTo,amountFrom,discountAmount');
         }
     }
 
