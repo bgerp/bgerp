@@ -143,7 +143,9 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 
                 $dRec = array();
                 $sign = ($rec->isReverse == 'yes') ? -1 : 1;
-                
+
+                $price = empty($price) ? $price : deals_Helper::getSmartBaseCurrency($price, $clone->valior);
+                $amount = empty($amount) ? $amount : deals_Helper::getSmartBaseCurrency($amount, $clone->valior);
                 $dRec = (object) array(
                     
                     'valior' => $clone->valior,

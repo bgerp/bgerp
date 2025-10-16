@@ -136,6 +136,31 @@ SET
     /**
      * Миграция на делтите
      */
+    public static function updatePurchases()
+    {
+        $PData   = cls::get('purchase_PurchasesData');
+
+        $eurozoneDate = acc_Setup::getEuroZoneDate();
+        $valiorCol = str::phpToMysqlName('valior');
+        $priceCol  = str::phpToMysqlName('price');                       // sell_cost
+        $amount = str::phpToMysqlName('amount');                      // prime_cost
+        $expensesCol  = str::phpToMysqlName('expenses');             // auto_discount_amount
+        $tbl = $PData->dbTableName;
+
+        $query = "
+UPDATE `{$tbl}`
+SET
+  `{$priceCol}`  = CASE WHEN `{$priceCol}`  IS NOT NULL THEN `{$priceCol}`  / 1.95583 ELSE NULL END,
+  `{$amount}` = CASE WHEN `{$amount}` IS NOT NULL THEN `{$amount}` / 1.95583 ELSE NULL END,
+  `{$expensesCol}`  = CASE WHEN `{$expensesCol}`  IS NOT NULL THEN `{$expensesCol}`  / 1.95583 ELSE NULL END";
+
+        $PData->db->query($query);
+    }
+
+
+    /**
+     * Миграция на делтите
+     */
     public static function updatePriceCosts()
     {
         $Deltas   = cls::get('price_ProductCosts');
@@ -178,6 +203,7 @@ SET
         core_App::setTimeLimit(800, false);
         self::updatePriceLists();
         self::updateDeltas();
+        self::updatePurchases();
         self::updateEshopSettings();
         self::updatePriceCosts();
         self::updatePricesByDate();

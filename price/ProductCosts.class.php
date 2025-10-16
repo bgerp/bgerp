@@ -153,6 +153,7 @@ class price_ProductCosts extends core_Manager
 
         // Изчисляване на всяка от засегнатите политики, себестойностите на засегнатите пера
         $totalProducts = $update = array();
+
         foreach ($PolicyOptions as $policyId) {
             if (cls::load($policyId, true)) {
                 
@@ -167,7 +168,6 @@ class price_ProductCosts extends core_Manager
                 // Ако има такива, ще се прави опит за изчисляване на себестойносттите
                 $count = countR($affectedProducts);
                 if($count){
-                    
                     core_App::setTimeLimit($count * 0.5, false,60);
                     $calced = $Interface->calcCosts($affectedProducts);
                     $update = array_merge($update, $calced);

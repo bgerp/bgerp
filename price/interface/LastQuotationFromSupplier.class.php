@@ -108,13 +108,15 @@ class price_interface_LastQuotationFromSupplier extends price_interface_BaseCost
 
             // Връщане на първата оферирана цена с най-голяма дата
             if (!isset($res[$quoteRec->productId])) {
+                $price = deals_Helper::getSmartBaseCurrency($quoteRec->quantity, $quoteRec->date);
+
                 $res[$quoteRec->productId] = (object)array('productId'     => $quoteRec->productId,
                                                            'classId'       => $this->getClassId(),
                                                            'sourceClassId' => $classId,
                                                            'sourceId'      => $quoteRec->quotationId,
                                                            'valior'        => null,
                                                            'quantity'      => $quoteRec->quantity,
-                                                           'price'         => round($quoteRec->price, 5));
+                                                           'price'         => round($price, 5));
             };
         }
 
