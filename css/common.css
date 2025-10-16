@@ -1588,7 +1588,8 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
 .formMiddleCaption {
   margin: 0 10px !important;
   border: solid 1px #cccccc;
-  background: #eeeeee; }
+  background: #eeeeee;
+  padding: 3px 5px !important; }
 
 .formNotice {
   background-color: #ffff66;
