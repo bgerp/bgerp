@@ -108,7 +108,7 @@ class price_interface_LastQuotationFromSupplier extends price_interface_BaseCost
 
             // Връщане на първата оферирана цена с най-голяма дата
             if (!isset($res[$quoteRec->productId])) {
-                $price = deals_Helper::getSmartBaseCurrency($quoteRec->quantity, $quoteRec->date);
+                $price = deals_Helper::getSmartBaseCurrency($quoteRec->price, $quoteRec->date);
 
                 $res[$quoteRec->productId] = (object)array('productId'     => $quoteRec->productId,
                                                            'classId'       => $this->getClassId(),

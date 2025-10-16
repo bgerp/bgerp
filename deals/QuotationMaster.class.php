@@ -246,13 +246,6 @@ abstract class deals_QuotationMaster extends core_Master
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
 
-            if (empty($rec->currencyRate)) {
-                $rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
-                if (!$rec->currencyRate) {
-                    $form->setError('currencyRate', 'Не може да се изчисли курс');
-                }
-            }
-
             if (isset($rec->date, $rec->validFor)) {
                 $expireOn = dt::verbal2mysql(dt::addSecs($rec->validFor, $rec->date), false);
                 if ($expireOn < dt::today()) {
@@ -273,6 +266,11 @@ abstract class deals_QuotationMaster extends core_Master
                 $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
             }
 
+            $currencyError = null;
+            if(!currency_Currencies::checkCurrency($rec->currencyId, $rec->date, $currencyError)){
+                $form->setError('currencyId', $currencyError);
+            }
+
             if (isset($rec->deliveryTermTime, $rec->deliveryTime)) {
                 $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
             }
@@ -288,6 +286,18 @@ abstract class deals_QuotationMaster extends core_Master
 
             if(isset($rec->deliveryTermId)){
                 cond_DeliveryTerms::inputDocumentForm($rec->deliveryTermId, $form, $mvc);
+            }
+
+            if(!$form->gotErrors()){
+                $oldDate = isset($rec->id) ? $mvc->fetchField($rec->id, 'date', false) : null;
+                $calcRate = empty($rec->id) || (isset($oldDate) && acc_Periods::getBaseCurrencyCode($rec->date) != acc_Periods::getBaseCurrencyCode($oldDate));
+
+                if (empty($rec->currencyRate) || $calcRate) {
+                    $rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
+                    if (!$rec->currencyRate) {
+                        $form->setError('currencyRate', 'Не може да се изчисли курс');
+                    }
+                }
             }
         }
     }
@@ -1476,5 +1486,10 @@ abstract class deals_QuotationMaster extends core_Master
     public function showDualPrices($folderId)
     {
         return false;
+    }
+
+    public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
+    {
+        core_Statuses::newStatus("$rec->id: {$rec->currencyRate}", 'warning');
     }
 }
