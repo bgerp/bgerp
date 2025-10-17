@@ -2918,6 +2918,7 @@ abstract class deals_Helper
     {
         $fieldset->FLD('code', 'varchar', 'caption=Код,detailField');
         $fieldset->FLD($mvc->productFld, 'varchar', 'caption=Артикул,detailField');
+        $fieldset->FLD('notes', 'text', 'caption=Забележки,detailField');
         if(core_Packs::isInstalled('batch')){
             $fieldset->FLD('batch', 'varchar', 'caption=Партида,detailField');
         }

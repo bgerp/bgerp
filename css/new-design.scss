@@ -1184,6 +1184,9 @@ select, input, textarea , .chzn-container-single .chzn-single, .chzn-container-a
     .formTitle, .formGroup, .narrow .vertical .formTitle {
         background: color-mix(in srgb, var(--theme-color) 20%, #666 80%) !important;
     }
+  .formMiddleCaption {
+    background: color-mix(in srgb, var(--theme-color) 20%, #eee 80%) !important;
+  }
 }
 
 
