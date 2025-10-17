@@ -2614,13 +2614,6 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->valior = dt::today();
             $mvc->save($rec, 'valior');
         }
-
-        // Ако продажбата е създадена от партньор и се иска да се експортира като csv - да се
-        if(core_Users::isContractor($rec->createdBy)) {
-            if(!Mode::is('doNotExportSaleWhenPending')) {
-                sales_Sales::autoCreateSaleCsvIfNeeded($rec);
-            }
-        }
     }
 
 

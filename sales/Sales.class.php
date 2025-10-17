@@ -2053,6 +2053,7 @@ class sales_Sales extends deals_DealMaster
                     $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
                 }
 
+                $rec->sNote = $rec->note;
                 if(core_Packs::isInstalled('eshop')){
                     if($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}")){
                         $rec->tel = $cartRec->tel;
@@ -2325,6 +2326,7 @@ class sales_Sales extends deals_DealMaster
         $fieldset->FLD('email', 'email', 'caption=Поръчител->Имейл');
         $fieldset->FLD('cartId', 'int', 'caption=Поръчител->Количка №');
         $fieldset->FLD('instruction', 'int', 'caption=Поръчител->Инструкции');
+        $fieldset->FLD('sNote', 'text', 'caption=Условия');
     }
 
 
@@ -2420,6 +2422,23 @@ class sales_Sales extends deals_DealMaster
     {
         if(in_array($rec->state, array('active', 'pending'))){
             sales_DeliveryData::sync($rec->containerId);
+        }
+    }
+
+
+    /**
+     * След като документа става чакащ
+     */
+    public static function on_AfterSavePendingDocument($mvc, &$rec)
+    {
+        if($rec->state == 'pending'){
+
+            // Ако продажбата е създадена от партньор и се иска да се експортира като csv - да се
+            if(core_Users::isContractor($rec->createdBy)) {
+                if(!Mode::is('doNotExportSaleWhenPending')) {
+                    sales_Sales::autoCreateSaleCsvIfNeeded($rec);
+                }
+            }
         }
     }
 
