@@ -4247,7 +4247,7 @@ class cat_Products extends embed_Manager
 
                 setIfNot($dInst->productFld, 'productId');
 
-                foreach (array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
+                foreach (array("{$dInst->productFld}" => 'Артикул', 'notes' => 'Забележки','packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
 
                     if (!isset($dInst->fields[$fName]) && !isset($dRec->{$fName}) && !array_key_exists($fName, (array) $dRec)) {
 
@@ -4377,6 +4377,7 @@ class cat_Products extends embed_Manager
                 }
 
                 $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld}, $vatExceptionId);
+                $recs[$dRec->id]->notes = $dRec->notes;
 
                 // За добавяне на бачовете
                 if ($allFFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
@@ -4501,7 +4502,7 @@ class cat_Products extends embed_Manager
         }
 
         // Подреждане за запазване на предишна логика
-        $orderMap = array('reff', 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
+        $orderMap = array('reff', 'code', 'notes', 'packQuantity', 'packagingId', 'packPrice', 'batch');
         $fArr = $csvFields->fields;
         $newFArr = array();
         foreach ($fArr as $fName => $fRec) {
