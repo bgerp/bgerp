@@ -35,11 +35,13 @@ class acc_plg_Contable extends core_Plugin
         
         setIfNot($mvc->canDebugreconto, 'debug');
         setIfNot($mvc->canCorrection, 'ceo, accMaster');
+        setIfNot($mvc->currencyFld, 'currencyId');
         setIfNot($mvc->valiorFld, 'valior');
         setIfNot($mvc->lockBalances, false);
         setIfNot($mvc->fieldsNotToClone, $mvc->valiorFld);
         setIfNot($mvc->canViewpsingle, 'powerUser');
         setIfNot($mvc->moveDocToFolder, false);
+        setIfNot($mvc->checkCurrencyWhenConto, false);
         setIfNot($mvc->autoHideDoc, false); // @see doc_HiddenContainers - да не се скрива автоматично
         setIfNot($mvc->ignoreListCheckOnNullWhenConto, null);
 
@@ -1016,6 +1018,30 @@ class acc_plg_Contable extends core_Plugin
 
                 $mvc->save($rec, $rollbackFields);
                 $res = true;
+            }
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        if($mvc->checkCurrencyWhenConto){
+            $rec = $mvc->fetchRec($id);
+
+            // Преди активиране се проверява дали все пак валутата на документа е допустима към вальора
+            $currencyError = null;
+            if (!currency_Currencies::checkCurrency($rec->{$mvc->currencyFld}, $rec->{$mvc->valiorFld}, $currencyError)) {
+                if($mvc instanceof deals_DealMaster){
+                    if(!empty($rec->contoActions)){
+                        $rec->contoActions = null;
+                        $mvc->save_($rec, 'contoActions');
+                    }
+                }
+
+                redirect(array($mvc, 'single', $rec->id), false, $currencyError, 'error');
             }
         }
     }

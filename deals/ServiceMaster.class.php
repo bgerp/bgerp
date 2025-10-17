@@ -49,6 +49,12 @@ abstract class deals_ServiceMaster extends core_Master
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
      * Кои са задължителните полета за модела
      */
     protected static function setServiceFields($mvc)

@@ -444,7 +444,7 @@ class currency_Currencies extends core_Master
             } else {
                 if($currencyId != acc_Periods::getBaseCurrencyCode($date)){
                     $dateVerbal = dt::mysql2verbal($date, 'd.m.Y');
-                    $error = "Валутата не може да бъде избрана към вальор|* <b>{$dateVerbal}</b>";
+                    $error = "Валутата |*<b>{$currencyId}</b> |не може да бъде избрана към вальор|* <b>{$dateVerbal}</b>";
 
                     return false;
                 }

@@ -115,6 +115,12 @@ abstract class deals_DealMaster extends deals_DealBase
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -2870,6 +2876,7 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         // Ако има избрано условие на доставка, пзоволява ли да бъде контиран документа
         $rec = $mvc->fetchRec($id);
+
         if(isset($rec->deliveryTermId)){
             $error = null;
             if(!cond_DeliveryTerms::checkDeliveryDataOnActivation($rec->deliveryTermId, $rec, $rec->deliveryData, $mvc, $error)){

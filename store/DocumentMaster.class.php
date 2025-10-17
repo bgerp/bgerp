@@ -97,6 +97,12 @@ abstract class store_DocumentMaster extends core_Master
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
      * Работен кеш
      */
     protected static $logisticDataCache = array('cData' => array(), 'locationId' => array(), 'countryId' => array());

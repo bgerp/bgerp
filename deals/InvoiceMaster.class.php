@@ -137,6 +137,12 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
