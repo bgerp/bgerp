@@ -139,6 +139,20 @@ defIfNot('FILEMAN_DELETE_UNUSED_AFTER', 63113904);
 
 
 /**
+ * Максимален размер на част от файл при качване
+ * 2MB
+ */
+defIfNot('FILEMAN_CHUNK_SIZE', 2097152); // 2MB
+
+
+/**
+ * Максимален размер на част от файл при качване
+ * 2MB
+ */
+defIfNot('FILEMAN_USE_CHUNK_UPLOAD', 'no');
+
+
+/**
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
  *
@@ -223,6 +237,10 @@ class fileman_Setup extends core_ProtoSetup
         'FILEMAN_INDEXES_KEEP_DAYS' => array('time(suggestions=1 година|2 години|3 години,unit=days)', 'caption=Време за съхранение на индексите на файловете->Време'),
 
         'FILEMAN_DELETE_UNUSED_AFTER' => array('time(suggestions=1 година|2 години|5 години,unit=year)', 'canView=debug, caption=Изтриване на неизползваните файлове->Време'),
+
+        'FILEMAN_CHUNK_SIZE' => array('fileman_FileSize', 'caption=Максимален размер на част от файл при качване->Размер'),
+
+        'FILEMAN_USE_CHUNK_UPLOAD' => array('enum(no=Не,yes=Да)', 'caption=Използване на качване на части->Избор')
     );
     
     
@@ -262,6 +280,8 @@ class fileman_Setup extends core_ProtoSetup
         'fileman_import_Base64',
 
         'migrate::fixLastUse2338',
+
+        'migrate::forceChunkUpload2542',
     );
     
     
@@ -474,6 +494,19 @@ class fileman_Setup extends core_ProtoSetup
         $query->show('id');
         while ($rec = $query->fetch()) {
             fileman_Data::updateLastUse($rec->id);
+        }
+    }
+
+
+    /**
+     * Миграция за задаване на качване на части по подразбиране
+     */
+    public static function forceChunkUpload2542()
+    {
+        // Ако няма запис в модела
+        if (defined('BGERP_GIT_BRANCH') && (BGERP_GIT_BRANCH == 'dev')) {
+            // Добавяме в записите
+            core_Packs::setConfig('fileman', array('FILEMAN_USE_CHUNK_UPLOAD' => 'yes', 'FILEMAN_CHUNK_SIZE' => 524288));
         }
     }
 }
