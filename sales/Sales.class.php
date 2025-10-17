@@ -2429,6 +2429,23 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
+     * След като документа става чакащ
+     */
+    public static function on_AfterSavePendingDocument($mvc, &$rec)
+    {
+        if($rec->state == 'pending'){
+
+            // Ако продажбата е създадена от партньор и се иска да се експортира като csv - да се
+            if(core_Users::isContractor($rec->createdBy)) {
+                if(!Mode::is('doNotExportSaleWhenPending')) {
+                    sales_Sales::autoCreateSaleCsvIfNeeded($rec);
+                }
+            }
+        }
+    }
+
+
+    /**
      * Помощна ф-я експортираща продажбата в посочената в посочената csv
      *
      * @param int|stdClass $rec - ид или запис
