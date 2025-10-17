@@ -504,7 +504,7 @@ class fileman_Setup extends core_ProtoSetup
     public static function forceChunkUpload2542()
     {
         // Ако няма запис в модела
-        if (defined('BGERP_GIT_BRANCH') && (BGERP_GIT_BRANCH == 'dev')) {
+        if (defined('BGERP_GIT_BRANCH') && ((BGERP_GIT_BRANCH == 'dev') || (BGERP_GIT_BRANCH == 'test'))) {
             // Добавяме в записите
             core_Packs::setConfig('fileman', array('FILEMAN_USE_CHUNK_UPLOAD' => 'yes', 'FILEMAN_CHUNK_SIZE' => 524288));
         }
