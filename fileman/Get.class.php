@@ -324,14 +324,18 @@ class fileman_Get extends core_Manager
      */
     public function act_Dialog()
     {
+        Request::setProtected('callback, bucketId, validUntil');
+
         set_time_limit(300);
         
         $form = cls::get('core_Form', array('name' => 'Download', 'method' => 'GET'));
         $form->FNC('bucketId', 'int', 'input=none,silent');
         $form->FNC('callback', 'varchar', 'input=none,silent');
+        $form->FNC('validUntil', 'varchar', 'input=none,validUntil');
         $form->FNC('url', 'url(1200)', 'caption=URL,mandatory');
-        
-        $rec = $form->input('bucketId,callback,url', true);
+        $rec = $form->input('bucketId,callback,validUntil,url', true);
+        expect($rec->validUntil && ($rec->validUntil > dt::now()), 'Линкът за качване е изтекъл');
+
         if ($form->isSubmitted()) {
             if (!defined('BGERP_GIT_BRANCH') || (BGERP_GIT_BRANCH != 'dev')) {
                 $pArr = core_Url::parseUrl($form->rec->url);

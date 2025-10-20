@@ -207,12 +207,17 @@ class fileman_Log extends core_Manager
      */
     public function act_Dialog()
     {
+        Request::setProtected('callback, bucketId, validUntil');
+
         // Вземаме id' то на кофата
         $bucketId = Request::get('bucketId', 'int');
         
         // Вземаме callBack'а
         $callback = Request::get('callback', 'identifier');
-        
+
+        $validUntil = Request::get('validUntil', 'datetime');
+        expect($validUntil && ($validUntil > dt::now()), 'Линкът за качване е изтекъл');
+
         // Сетваме нужните променливи
         Mode::set('dialogOpened', true);
         Mode::set('callback', $callback);

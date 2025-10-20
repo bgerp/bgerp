@@ -39,8 +39,11 @@ class fileman_Upload extends core_Manager
         // Дали ще качаваме много файлове едновременно
         $allowMultiUpload = false;
         
-        Request::setProtected('callback, bucketId');
-        
+        Request::setProtected('callback, bucketId, validUntil');
+
+        $validUntil = Request::get('validUntil', 'datetime');
+        expect($validUntil && ($validUntil > dt::now()), 'Линкът за качване е изтекъл');
+
         // Вземаме callBack'а
         if ($callback = Request::get('callback', 'identifier')) {
             

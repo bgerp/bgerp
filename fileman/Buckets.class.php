@@ -213,11 +213,11 @@ class fileman_Buckets extends core_Manager
     /**
      * Дали дадения файл отговаря на условията в посочената папка?
      */
-    public function isValid(&$err, $bucketId, $fileName, $filePath)
+    public static function isValid(&$err, $bucketId, $fileName, $filePath = null, $fSize = null)
     {
-        $rec = $this->fetch($bucketId);
+        $rec = self::fetch($bucketId);
         
-        $row = $this->recToVerbal($rec);
+        $row = self::recToVerbal($rec);
         
         if (trim($rec->extensions)) {
             $extensions = arr::make($rec->extensions, true);
@@ -230,8 +230,16 @@ class fileman_Buckets extends core_Manager
                 }
             }
         }
-        
-        if (filesize($filePath) > $rec->maxSize) {
+
+        if (!isset($fSize)) {
+            if (isset($filePath)) {
+                $fSize = filesize($filePath);
+            } else {
+                $fSize = 0;
+            }
+        }
+
+        if ($fSize > $rec->maxSize) {
             $err[] = "Допустимия размер за файл в кофата е|*: <b>{$row->maxSize}</b>.";
         }
         
