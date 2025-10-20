@@ -290,6 +290,7 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         $unsetFields = array('id', 'date', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template', 'activatedOn', 'activatedBy', 'username', 'issuerId');
+        $proformaDate = $proformaRec->date;
         foreach ($unsetFields as $fld) {
             unset($proformaRec->{$fld});
         }
@@ -297,8 +298,10 @@ class sales_Invoices extends deals_InvoiceMaster
         foreach (($proformaRec) as $k => $v) {
             $form->rec->{$k} = $v;
         }
+
         if ($form->rec->dpAmount) {
-            $form->rec->dpAmount = abs($form->rec->dpAmount);
+            $dpAmount = deals_Helper::getSmartBaseCurrency($form->rec->dpAmount, $proformaDate);
+            $form->rec->dpAmount = abs($dpAmount);
         }
     }
 
@@ -310,6 +313,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $form = &$data->form;
         $rec = &$form->rec;
+
         $defInfo = '';
 
         if(isset($rec->id)){
