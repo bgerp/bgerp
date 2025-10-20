@@ -1821,4 +1821,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             return false;
         }
     }
+
+
+    /**
+     * Преди редирект след грешка при контиране
+     */
+    protected static function on_BeforeContoRedirectError($mvc, $rec)
+    {
+        if(!empty($rec->debitAmount)) {
+            $rec->debitAmount = null;
+            $mvc->save_($rec, 'debitAmount');
+        }
+    }
 }
