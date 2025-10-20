@@ -378,7 +378,7 @@ class deals_plg_DpInvoice extends core_Plugin
                             $form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
                         }
                     } else {
-                        if (round(abs($rec->dpAmount), 2) > round($invoicedDp - $deductedDp, 2)) {
+                        if (round(abs($rec->dpAmount), 2) > round(($invoicedDp - $deductedDp) / $rec->rate, 2)) {
                             $downpayment = round(($invoicedDp - $deductedDp) / $rec->rate, 2);
                             $dVerbal = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($downpayment);
                             $form->setWarning('amountDeducted', "|Въведеният за приспадане аванс е по-голям от начисления|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*");
