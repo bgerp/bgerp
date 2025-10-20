@@ -116,15 +116,12 @@ class acc_plg_Contable extends core_Plugin
                 Mode::pop('recontoTransaction');
             } catch(core_exception_Expect  $e){
                 reportException($e);
-                if($mvc instanceof deals_DealMaster){
-                    $rec->contoActions = null;
-                    $mvc->save_($rec, 'contoActions');
-                }
 
                 if(is_object($deletedRec)){
                     acc_Journal::restoreDeleted($mvc, $rec->id, $deletedRec, $deletedRec->_details);
                 }
 
+                $mvc->invoke('beforeContoRedirectError', array($rec));
                 $url = $mvc->getSingleUrlArray($rec->id);
                 redirect($url, false, '|' . $e->getMessage(), 'error');
             }
@@ -600,12 +597,7 @@ class acc_plg_Contable extends core_Plugin
         try {
             self::conto($mvc, $rec);
         } catch (acc_journal_RejectRedirect $e) {
-            if($mvc instanceof deals_DealMaster){
-                $rec->contoActions = null;
-                $mvc->save_($rec, 'contoActions');
-            }
-
-            $mvc->invoke('beforeContoRedirectError', array($rec, $e));
+            $mvc->invoke('beforeContoRedirectError', array($rec));
             $url = $mvc->getSingleUrlArray($rec->id);
             redirect($url, false, '|' . $e->getMessage(), 'error');
         }

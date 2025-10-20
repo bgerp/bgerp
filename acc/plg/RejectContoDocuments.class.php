@@ -130,7 +130,13 @@ class acc_plg_RejectContoDocuments extends core_Plugin
     public static function on_BeforeConto($mvc, &$res, $id)
     {
         // Ако не може да се оттегля, връща FALSE за да се стопира оттеглянето
-        return $mvc->canRejectOrRestore($id, 'conto');
+        $result = $mvc->canRejectOrRestore($id, 'conto');
+        if(!$result){
+            $rec = $mvc->fetchRec($id);
+            $mvc->invoke('beforeContoRedirectError', array($rec));
+        }
+
+        return $result;
     }
     
     
