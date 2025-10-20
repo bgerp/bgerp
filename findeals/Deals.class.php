@@ -458,6 +458,11 @@ class findeals_Deals extends deals_DealBase
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
+            $currencyError = null;
+            if(!currency_Currencies::checkCurrency($rec->currencyId, $rec->valior, $currencyError)){
+                $form->setError('currencyId', $currencyError);
+            }
+
             if (isset($rec->contragentItemId)) {
                 $item = acc_Items::fetch($rec->contragentItemId);
                 $rec->secondContragentClassId = $item->classId;
@@ -640,7 +645,8 @@ class findeals_Deals extends deals_DealBase
                     $recs[$index] = $jRec;
                 }
                 $r = &$recs[$index];
-                
+                $jRec->amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $jRec->valior, $rec->valior);
+
                 $jRec->amount /= $rate;
                 if ($jRec->debitItem2 == $item->id && $jRec->debitAccId == $rec->accountId) {
                     $r->debitA += $jRec->amount;
@@ -650,7 +656,6 @@ class findeals_Deals extends deals_DealBase
                     $r->creditA += $jRec->amount;
                 }
             }
-
 
             // За всеки резултат, ако е в границите на пейджъра, го показваме
             if (countR($recs)) {
@@ -673,7 +678,7 @@ class findeals_Deals extends deals_DealBase
                 }
             }
         }
-        
+
         foreach (array('amountDeal', 'debitAmount', 'creditAmount', 'curDebitAmount', 'curCreditAmount') as $fld) {
             if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
                 @$data->rec->{$fld} /= $rate;
@@ -789,7 +794,7 @@ class findeals_Deals extends deals_DealBase
         if ($this->haveRightFor('single', $rec) && isset($rec->amountDeal)) {
             $rate = (!empty($rec->currencyRate)) ? $rec->currencyRate : 1;
             $amount = $rec->amountDeal / $rate;
-            $amount = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($amount);
+            $amount = core_Type::getByName("double(decimals=2)")->toVerbal($amount);
             if ($rec->amountDeal < 0) {
                 $amount = "<span class='red'>{$amount}</span>";
             }
@@ -828,9 +833,8 @@ class findeals_Deals extends deals_DealBase
         $cItemId = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId)->id;
         $curItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
         
-        $blAmount = acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $curItemId))->amount;
-        
-        $paid = acc_Balances::getBlAmounts($entries, '501,503')->amount;
+        $blAmount = acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $curItemId), array(), $rec->valior)->amount;
+        $paid = acc_Balances::getBlAmounts($entries, '501,503', null, null, array(), array(), $rec->valior)->amount;
         
         $result->set('amount', 0);
         $result->set('amountPaid', $paid);
@@ -839,8 +843,6 @@ class findeals_Deals extends deals_DealBase
         $result->set('currency', $rec->currencyId);
         $result->set('rate', $rec->currencyRate);
         $result->set('contoActions', false);
-        
-        //@TODO Временно, докато се премахне от фактурите
         $result->setIfNot('vatType', 'yes');
     }
     

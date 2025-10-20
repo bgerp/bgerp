@@ -74,7 +74,12 @@
 		            <td>[#dealName#]</td>
 		        </tr>
 		        <!--ET_END dealName-->
-		        
+                <!--ET_BEGIN valior-->
+                <tr>
+                    <td>|Вальор|*</td>
+                    <td>[#valior#]</td>
+                </tr>
+                <!--ET_END valior-->
 		        <!--ET_BEGIN currencyRate-->
 		        <tr>
 		            <td>|Курс|*</td>
