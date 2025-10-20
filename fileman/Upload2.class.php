@@ -35,7 +35,7 @@ class fileman_Upload2 extends core_Manager
      * @todo Чака за документация...
      */
     public function act_Dialog()
-    {bp(fileman_Setup::get('CHUNK_SIZE'));
+    {
         // Дали ще качаваме много файлове едновременно
         $allowMultiUpload = false;
 
