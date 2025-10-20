@@ -326,6 +326,13 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
         }
 
+        if($mvc->getField($mvc->currencyFld, false)){
+            $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ", {$mvc->currencyFld}";
+            $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
+            $data->listFilter->setField($mvc->currencyFld, "caption=Валута,input");
+            $data->listFilter->showFields .= ",{$mvc->currencyFld}";
+        }
+
         // Добавяме към формата за търсене търсене и по Състояние
         if (!Request::get('Rejected', 'int')) {
             if($mvc->filterAllowState){
@@ -349,6 +356,10 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         // Ако формата за търсене е изпратена
         if ($filter = $data->listFilter->rec) {
+            if(!empty($filter->{$mvc->currencyFld})){
+                $data->query->where("#{$mvc->currencyFld} = '{$filter->{$mvc->currencyFld}}'");
+            }
+
             if(!empty($filter->fState) && $filter->fState != 'all'){
                 $data->query->where("#state = '{$filter->fState}'");
             }
