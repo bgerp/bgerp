@@ -139,7 +139,7 @@ SET
 
 
     /**
-     * Миграция на делтите
+     * Миграция на доставките
      */
     public static function updatePurchases()
     {
@@ -164,7 +164,7 @@ SET
 
 
     /**
-     * Миграция на делтите
+     * Миграция на кешираните цени
      */
     public static function updatePriceCosts()
     {
