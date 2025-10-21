@@ -544,7 +544,7 @@ abstract class deals_ServiceMaster extends core_Master
                 }
 
                 $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
-            } else {
+            } elseif(acc_Periods::getBaseCurrencyCode($rec->valior) != acc_Periods::getBaseCurrencyCode($dealInfo->get('agreedValior'))){
                 $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
             }
         }
