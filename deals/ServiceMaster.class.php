@@ -544,6 +544,8 @@ abstract class deals_ServiceMaster extends core_Master
                 }
 
                 $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            } else {
+                $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
             }
         }
     }
