@@ -277,9 +277,7 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             $rec->_dealCurrencyId = $form->dealInfo->get('currency');
-            if(in_array($form->dealInfo->get('currency'), array('EUR', 'BGN'))){
-                $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
-            }
+            $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
 
             // Ако има локация и тя е различна от договорената, слагаме предупреждение
             if (!empty($rec->locationId) && $form->dealInfo->get('deliveryLocation') && $rec->locationId != $form->dealInfo->get('deliveryLocation')) {
