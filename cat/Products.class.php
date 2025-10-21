@@ -4249,7 +4249,7 @@ class cat_Products extends embed_Manager
 
                 setIfNot($dInst->productFld, 'productId');
 
-                foreach (array("{$dInst->productFld}" => 'Артикул', 'notes' => 'Забележки','packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
+                foreach (array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка", 'notes' => 'Забележки') as $fName => $fCaption) {
 
                     if (!isset($dInst->fields[$fName]) && !isset($dRec->{$fName}) && !array_key_exists($fName, (array) $dRec)) {
 
@@ -4504,7 +4504,7 @@ class cat_Products extends embed_Manager
         }
 
         // Подреждане за запазване на предишна логика
-        $orderMap = array('reff', 'code', 'notes', 'packQuantity', 'packagingId', 'packPrice', 'batch');
+        $orderMap = array('reff', 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch', 'notes');
         $fArr = $csvFields->fields;
         $newFArr = array();
         foreach ($fArr as $fName => $fRec) {
