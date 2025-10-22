@@ -578,4 +578,42 @@ class cat_ListingDetails extends doc_Detail
         $vat = ($masterRec->vat == 'yes') ? 'с ДДС' : 'без ДДС';
         $data->listFields['price'] = tr('Цена') . "|* <small>({$masterRec->currencyId})</small> |{$vat}|*";
     }
+
+
+	/**
+	 * След подготовката на редовете за списъка — подрежда ги според настройката в мастъра
+	 */
+	public static function on_AfterPrepareListRows($mvc, &$res, &$data)
+	{
+		if (empty($data->masterData->rec->detailOrderBy)) return;
+
+		$order = $data->masterData->rec->detailOrderBy;
+
+		// Ако е по ред на добавяне, не променяме нищо
+		if ($order == 'added') return;
+
+		$productInfo = array();
+		foreach ($data->recs as $id => $rec) {
+			$pRec = cat_Products::fetch($rec->productId, 'code,name');
+			$productInfo[$rec->productId] = ($order == 'code')
+				? mb_strtolower($pRec->code)
+				: mb_strtolower($pRec->name);
+		}
+
+		// Сортиране
+		uasort($data->recs, function($a, $b) use ($productInfo) {
+			return strcmp($productInfo[$a->productId], $productInfo[$b->productId]);
+		});
+
+		// Подравняване на визуалните редове
+		if (is_array($data->rows)) {
+			$newRows = array();
+			foreach ($data->recs as $id => $rec) {
+				if (isset($data->rows[$id])) {
+					$newRows[$id] = $data->rows[$id];
+				}
+			}
+			$data->rows = $newRows;
+		}
+	}
 }
