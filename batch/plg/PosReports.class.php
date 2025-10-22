@@ -126,7 +126,7 @@ class batch_plg_PosReports extends core_Plugin
     /**
      * Преди редирект след грешка при контиране
      */
-    public static function on_BeforeContoRedirectError($mvc, $rec, acc_journal_RejectRedirect $e)
+    public static function on_BeforeContoRedirectError($mvc, $rec)
     {
         batch_BatchesInDocuments::delete("#containerId = '{$rec->containerId}'");
     }

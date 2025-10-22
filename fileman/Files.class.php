@@ -1224,13 +1224,15 @@ class fileman_Files extends core_Master
     /**
      * @todo Чака за документация...
      */
-    public static function getUrLForAddFile($bucketId, $callback)
+    public static function getUrLForAddFile($bucketId, $callback, $validUntil = null)
     {
         // Защитаваме променливите
-        Request::setProtected('bucketId,callback');
-        
+        Request::setProtected('bucketId,callback,validUntil');
+
+        setIfNot($validUntil, dt::addSecs(3600));
+
         // Задаваме линка
-        $url = array('fileman_Files', 'AddFile', 'bucketId' => $bucketId, 'callback' => $callback);
+        $url = array('fileman_Files', 'AddFile', 'bucketId' => $bucketId, 'callback' => $callback, 'validUntil' => $validUntil);
         
         return toUrl($url);
     }
@@ -1876,22 +1878,23 @@ class fileman_Files extends core_Master
     public function act_AddFile()
     {
         // Защитаваме променливите
-        Request::setProtected('bucketId,callback');
+        Request::setProtected('bucketId,callback,validUntil');
         
         // Името на класа
         $class = fileman_DialogWrapper::getLastUploadTab();
-        
+
         // Инстанция на класа
         $class = cls::get($class);
-        
+
         // Вземаме екшъна
         $act = $class->getActionForAddFile();
         
         // Други допълнителни данни
         $bucketId = Request::get('bucketId', 'int');
         $callback = Request::get('callback');
-        
-        $url = array($class, $act, 'bucketId' => $bucketId, 'callback' => $callback);
+        $validUntil = Request::get('validUntil');
+
+        $url = array($class, $act, 'bucketId' => $bucketId, 'callback' => $callback, 'validUntil' => $validUntil);
         
         return new Redirect($url);
     }
