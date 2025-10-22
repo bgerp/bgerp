@@ -113,6 +113,12 @@ class acc_Periods extends core_Manager
 
 
     /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = false;
+
+
+    /**
      * Описание на модела
      */
     public function description()
