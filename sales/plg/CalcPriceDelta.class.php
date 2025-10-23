@@ -198,7 +198,11 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                         $primeCost = cat_Products::getPrimeCost($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $valior, price_ListRules::PRICE_LIST_COST);
                     }
                 }
-                
+
+                if(isset($primeCost)){
+                    $primeCost = deals_Helper::getSmartBaseCurrency($primeCost, $valior);
+                }
+
                 // Ако ще се изчислява лайв себестойноста на ен смята се какъв би бил транспорта и се добавя към себестойността
                 if(isset($primeCost) && $calcLiveSoDelta == 'yes' && isset($TransportShipmentArr) && $dRec->canStore == 'yes' && isset($Calculator)){
 
