@@ -28,12 +28,13 @@ class fileman_DialogWrapper extends core_Plugin
             
             $tabs = cls::get('core_Tabs');
             
-            Request::setProtected('callback,bucketId');
+            Request::setProtected('callback,bucketId,validUntil');
             
             // Вземаме параметрите от заявката
             $bucketId = Request::get('bucketId', 'int');
             $callback = Request::get('callback', 'identifier');
-            
+            $validUntil = Request::get('validUntil', 'datetime');
+
             // Вземаме кофата
             $Buckets = cls::get('fileman_Buckets');
             
@@ -54,10 +55,11 @@ class fileman_DialogWrapper extends core_Plugin
             }
             
             $tabArr = $this->getTabsArr();
-            
+
             $url = array(
                 'bucketId' => $bucketId,
-                'callback' => $callback);
+                'callback' => $callback,
+                'validUntil' => $validUntil);
             
             foreach ($tabArr as $name => $params) {
                 $params = arr::make($params);
@@ -73,11 +75,11 @@ class fileman_DialogWrapper extends core_Plugin
                 
                 $tabs->TAB($name, $title, $url, $name);
             }
-            
+
             $tabs->htmlClass = 'filemanUpload';
-            
+
             $tpl = $tabs->renderHtml($tpl, $invoker->className);
-            
+
             // $tpl->prepend('<br>');
             
             $tpl->prepend($this->info->title . ' « ' . $conf->EF_APP_TITLE, 'PAGE_TITLE');
@@ -123,6 +125,14 @@ class fileman_DialogWrapper extends core_Plugin
             // Качването на файлове да е избран
             $lastUploadTab = 'fileman_Upload';
         }
+
+        if (strpos($lastUploadTab, 'fileman_Upload') !== false) {
+            if (fileman_Setup::get('USE_CHUNK_UPLOAD') == 'yes') {
+                $lastUploadTab = 'fileman_Upload2';
+            } else {
+                $lastUploadTab = 'fileman_Upload';
+            }
+        }
         
         return $lastUploadTab;
     }
@@ -150,12 +160,19 @@ class fileman_DialogWrapper extends core_Plugin
     public function getTabsArr()
     {
         $tabs = array();
-        
-        // Ако има права за добавяне
-        if (fileman_Upload::haveRightFor('add')) {
-            $tabs['fileman_Upload'] = 'caption=Качване,Ctr=fileman_Upload,Act=Dialog';
+
+        if (fileman_Setup::get('USE_CHUNK_UPLOAD') == 'yes') {
+            // Ако има права за добавяне
+            if (fileman_Upload2::haveRightFor('add')) {
+                $tabs['fileman_Upload2'] = 'caption=Качване,Ctr=fileman_Upload2,Act=Dialog';
+            }
+        } else {
+            // Ако има права за добавяне
+            if (fileman_Upload::haveRightFor('add')) {
+                $tabs['fileman_Upload'] = 'caption=Качване,Ctr=fileman_Upload,Act=Dialog';
+            }
         }
-        
+
         // Ако има права за добавяне
         if (fileman_Get::haveRightFor('add')) {
             $tabs['fileman_Get'] = 'caption=От URL,Ctr=fileman_Get,Act=Dialog';
