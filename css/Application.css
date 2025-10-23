@@ -1710,6 +1710,9 @@ a.tUnsighted {
 .doc_drivers_LatestDocPortal .tagsHolder {
   display: block; }
 
+.ibex_drivers_IbexPrices .tagsHolder {
+  display: block; }
+
 .narrow .tagsHolder {
   margin-top: -10px; }
 
