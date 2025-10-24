@@ -892,7 +892,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'fastMarker' => $fastMarker,
                                     'invoiceCurrentSumm' => $invDiff,
                                     'payDocuments' => $paydocs->used,
-                                    'contragent' => $iRec->contragentName
+                                    'contragent' => $iRec->contragentName,
+                                    'type' => $iRec->type,
                                 );
                             }
                             $checkedPInvoices[$pInv] = $pInv;

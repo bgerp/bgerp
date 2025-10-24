@@ -151,7 +151,6 @@ class help_Log extends core_Master
      */
     public static function act_CloseInfo()
     {
-        requireRole('debug');
         // За кой клас се отнася
         $id = core_Request::get('id', 'int');
 
@@ -176,6 +175,7 @@ class help_Log extends core_Master
 
             return array();
         }
+
         shutdown();
     }
 
@@ -185,8 +185,6 @@ class help_Log extends core_Master
      */
     public static function act_See()
     {
-        requireRole('debug');
-
         // За кой клас се отнася
         $id = core_Request::get('id', 'int');
 
@@ -205,84 +203,7 @@ class help_Log extends core_Master
 
             return array();
         }
+
         shutdown();
     }
-
-    public function act_LogDataAdd()
-    {
-        requireRole('debug');
-
-        //Подготовка на ip
-        $arr = array();
-        $config = core_Packs::getConfig('hr');
-        $arr = explode(',', $config->HR_COMPANIES_IP);
-
-        if ((empty($arr) || (countR($arr) == 1 && $arr[0] == ''))) {
-
-            foreach (array(1 => '88.88.88.88', 2 => '11.11.11.11', 3 => '22.22.22.22', 4 => '33.33.33.33') as $v) {
-                if (!log_Ips::fetch("#ip = $v")) {
-                    $ip = $v;
-                    break;
-                }
-            }
-
-            $rec = new stdClass();
-            $rec->ip = $ip;
-            $rec->country2 = 'BG';
-            $rec->createdOn = dt::now();
-            $rec->host = null;
-            $rec->users = null;
-
-            cls::get('log_Ips')->save_($rec);
-
-        }
-
-        if (!$ipId = log_Ips::fetchField(array("#ip = '[#1#]'", $arr[0]), 'id')) {
-            $rec = new stdClass();
-            $rec->ip = $arr[0];
-            $rec->country2 = 'BG';
-            $rec->createdOn = dt::now();
-            $rec->host = null;
-            $rec->users = null;
-
-            cls::get('log_Ips')->save_($rec);
-            $ipId = log_Ips::fetchField(array("#ip = '[#1#]'", $arr[0]), 'id');
-        };
-
-        $actDay = '2023-04-18 12:00:00';
-
-        $time = dt::mysql2timestamp($actDay);
-
-        $minAdd = 6;
-
-        $counter = 4;
-        for ($i = 1; $i <= $counter; $i++) {
-
-            $objectId = dt::mysql2timestamp()+$i;
-
-            $userId = null;
-
-            $bridId = log_Browsers::getBridId();
-
-            $rec = new stdClass();
-            $rec->ipId = $ipId;
-            $rec->brId = $bridId;
-            $rec->userId = isset($userId) ? $userId : core_Users::getCurrent();
-            $rec->actionCrc = log_Actions::getActionCrc('message');
-            $rec->classCrc = log_Classes::getClassCrc('className');
-            $rec->objectId = $objectId;
-            $rec->time = $time;
-            $rec->type = 'type';
-            $rec->lifeTime = 180 * 86400;
-
-            $time += $minAdd * 60 * $i;
-
-            $LogData = cls::get('log_Data');
-            $LogData->save_($rec);
-        }
-        return " Дата на отчета : $actDay,  Добавени минути:$minAdd, $counter пъти ";
-
-    }
-
-
 }

@@ -726,7 +726,7 @@ class core_Debug
         }
         
         if (!empty($state['update'])) {
-            $data['update'] = ht::createLink('Обновяване на системата', (array) $state['update']);
+            $data['update'] = ht::createLink(tr('Обновяване на системата'), (array) $state['update']);
         }
         
         // Показваме линковете за работа със сигнала
@@ -744,11 +744,11 @@ class core_Debug
                 }
                 
                 if ($canList) {
-                    $data['errTitle'] .= ht::createLink('разглеждане', array('log_Debug', 'default', 'debugFile' => $bName));
+                    $data['errTitle'] .= ht::createLink(tr('разглеждане'), array('log_Debug', 'default', 'debugFile' => $bName));
                     
                     $dUrl = log_Debug::getDownalodUrl($bName);
                     if ($dUrl) {
-                        $data['errTitle'] .= '|' . ht::createLink('сваляне', $dUrl);
+                        $data['errTitle'] .= '|' . ht::createLink(tr('сваляне'), $dUrl);
                     }
                 }
                 
@@ -757,7 +757,7 @@ class core_Debug
                         $data['errTitle'] .= '|';
                     }
                     
-                    $data['errTitle'] .= log_Debug::getReportLink($bName, 'сигнал', false);
+                    $data['errTitle'] .= log_Debug::getReportLink($bName, tr('сигнал'), false);
                 }
                 
                 $data['errTitle'] .= '</span>';
@@ -783,19 +783,19 @@ class core_Debug
         }
         
         if (!empty($state['update'])) {
-            $state['update'] = ht::createLink('Инициализиране', $state['update'], null, 'ef_icon=img/16/refresh-img.png');
+            $state['update'] = ht::createLink(tr('Инициализиране'), $state['update'], null, 'ef_icon=img/16/refresh-img.png');
         }
         
-        $state['back'] = ht::createLink('Назад', 'javascript:onclick=history.back(-1)', null, 'ef_icon=img/16/back-img.png');
+        $state['back'] = ht::createLink(tr('Назад'), 'javascript:onclick=history.back(-1)', null, 'ef_icon=img/16/back-img.png');
         
-        $state['forward'] = ht::createLink('Към сайта', array('Index'), null, 'ef_icon=img/16/next-img.png');
-        
+        $state['forward'] = ht::createLink(tr('Към сайта'), array('Index'), null, 'ef_icon=img/16/next-img.png');
+
         $state['date'] = dt::now();
         $state['uri'] = str::limitLen($_SERVER['REQUEST_URI'], 255);
         
         if (log_Debug::haveRightFor('report') && $state['_debugFileName']) {
             $bName = basename($state['_debugFileName'], '.debug');
-            $state['signal'] = log_Debug::getReportLink($bName, 'Сигнал', 'img/16/headset.png', 'signalLink');
+            $state['signal'] = log_Debug::getReportLink($bName, tr('Сигнал'), 'img/16/headset.png', 'signalLink');
         }
         
         $page = $tpl->render($state);
@@ -916,7 +916,11 @@ class core_Debug
         }
         
         list($state['httpStatusMsg'], $state['httpStatusMsgBg'], $state['background']) = self::getHttpStatusMsg($state['httpStatusCode']);
-        
+
+        if (is_string($state['httpStatusMsgBg'])) {
+            $state['httpStatusMsgBg'] = tr($state['httpStatusMsgBg']);
+        }
+
         return $state;
     }
     

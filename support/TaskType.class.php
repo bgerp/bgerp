@@ -765,6 +765,7 @@ class support_TaskType extends core_Mvc
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
 
         $Tasks = cls::get('cal_Tasks');
+        $Tasks->rowToolsColumn['hnd'] = 'nowrap';
         $table = cls::get('core_TableView', array('mvc' => clone $Tasks));
         $Tasks->invoke('BeforeRenderListTable', array($tpl, &$data));
         $tableTpl = $table->get($data->rows, $data->listFields);

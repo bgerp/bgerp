@@ -1968,6 +1968,10 @@ a.tUnsighted {
 	display: block;
 }
 
+.ibex_drivers_IbexPrices .tagsHolder {
+	display: block;
+}
+
 .narrow .tagsHolder {
 	margin-top: -10px;
 }
@@ -2827,6 +2831,9 @@ max-width: 400px;
 }
 .normalText {
 	font-weight: normal !important;
+}
+.transUnitQuantity {
+	font-weight: bold;
 }
 .cell {
 	border: 1px solid #999;

@@ -358,6 +358,7 @@ class sales_Sales extends deals_DealMaster
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,silent,removeAndRefreshForm=caseId|paymentType');
         $this->setField('chargeVat', 'salecondSysId=saleChargeVat');
         $this->setField('oneTimeDelivery', 'salecondSysId=salesOneTimeDelivery');
+        $this->FLD('doTransaction', 'enum(no=Без,yes=С)', 'input=none,notNull,value=yes');
 
         if (core_Packs::isInstalled('voucher')) {
             $this->FLD('voucherId', 'key(mvc=voucher_Cards,select=id,allowEmpty)', 'caption=Ваучер,input=none');
@@ -2053,6 +2054,7 @@ class sales_Sales extends deals_DealMaster
                     $rec->invoices = str_replace('#Inv', '', implode(', ', $invoices));
                 }
 
+                $rec->sNote = $rec->note;
                 if(core_Packs::isInstalled('eshop')){
                     if($cartRec = eshop_Carts::fetch("#saleId = {$rec->id}")){
                         $rec->tel = $cartRec->tel;
@@ -2325,6 +2327,7 @@ class sales_Sales extends deals_DealMaster
         $fieldset->FLD('email', 'email', 'caption=Поръчител->Имейл');
         $fieldset->FLD('cartId', 'int', 'caption=Поръчител->Количка №');
         $fieldset->FLD('instruction', 'int', 'caption=Поръчител->Инструкции');
+        $fieldset->FLD('sNote', 'text', 'caption=Условия');
     }
 
 
@@ -2420,6 +2423,81 @@ class sales_Sales extends deals_DealMaster
     {
         if(in_array($rec->state, array('active', 'pending'))){
             sales_DeliveryData::sync($rec->containerId);
+        }
+    }
+
+
+    /**
+     * След като документа става чакащ
+     */
+    public static function on_AfterSavePendingDocument($mvc, &$rec)
+    {
+        if($rec->state == 'pending'){
+
+            // Ако продажбата е създадена от партньор и се иска да се експортира като csv - да се
+            if(core_Users::isContractor($rec->createdBy)) {
+                if(!Mode::is('doNotExportSaleWhenPending')) {
+                    sales_Sales::autoCreateSaleCsvIfNeeded($rec);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Помощна ф-я експортираща продажбата в посочената в посочената csv
+     *
+     * @param int|stdClass $rec - ид или запис
+     * @return void
+     */
+    public static function autoCreateSaleCsvIfNeeded($rec)
+    {
+        $cartRec = eshop_Carts::fetch("#saleId = {$rec->id}");
+        if(is_object($cartRec)){
+            if (!defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')) return;
+            $logClass = 'eshop_Carts';
+            $prefix = "emagSal";
+        } else {
+            if (!defined('PARTNER_AUTO_EXPORT_SALE_CSV_PATH')) return;
+            $logClass = 'sales_Sales';
+            $prefix = "partnerSal";
+        }
+
+        try{
+            // Ще се експортират всички полета от мастъра и детайла
+            $Sales = cls::get('sales_Sales');
+            $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => $Sales));
+            $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
+            $fields[] = 'ExternalLink';
+            $fields = implode(',', $fields);
+
+            $rec = sales_Sales::fetchRec($rec);
+            $Sales->updateMaster_($rec);
+
+            // Подготовка на експорта
+            $filter = (object)array('fields' => $fields, 'showColumnNames' => 'yes', 'delimiter' => ',', 'enclosure' => '"', 'decimalSign' => '.', 'encoding' => 'utf-8');
+            $filter->_recs[$rec->id] = $rec;
+            Mode::push('csvAlwaysAddEnclosure', true);
+            $content = $Driver->export($filter);
+            Mode::pop('csvAlwaysAddEnclosure');
+
+            $name = "{$prefix}{$rec->id}";
+            if(is_object($cartRec)){
+                $fileName = ESHOP_AUTO_EXPORT_SALE_CSV_PATH . "/{$name}.csv";
+            } else {
+                $fileName = PARTNER_AUTO_EXPORT_SALE_CSV_PATH . "/{$name}.csv";
+            }
+
+            $res = file_put_contents($fileName, $content);
+            if($res){
+                $logClass::logWrite("Експортирано csv: `{$fileName}`", $rec->id);
+                fileman::absorbStr($content, 'exportCsv', "{$name}.csv");
+            } else {
+                $logClass::logErr("Грешка при записване: `{$fileName}`");
+            }
+        } catch (core_exception_Expect $e){
+            reportException($e);
+            $logClass::logErr("Грешка при записване на CSV");
         }
     }
 }

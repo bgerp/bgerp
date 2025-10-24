@@ -1055,6 +1055,15 @@ class i18n_Charset extends core_MVC
      */
     public static function iconv_($str, $fromCharset, $toCharset = 'UTF-8', $mode = '')
     {
+        // Вдигаме лимита на паметта, ако е по-малък от 2048M
+        // Понякога iconv и mb_convert_encoding изискват много памет
+        // особено при големи стрингове
+        // Това е само предпазна мярка, ако все пак не стига паметта, ще дава грешка
+        $mLimit = '2048M';
+        if (core_Os::getBytesFromMemoryLimit() < core_Os::getBytesFromMemoryLimit($mLimit)) {
+            ini_set('memory_limit', $mLimit);
+        }
+
         list($toCharset, $mode) = explode('//', $toCharset);
         
         if ($mode && strpos($mode, '//') !== 0) {

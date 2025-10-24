@@ -61,7 +61,7 @@ class cat_ListingDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified, cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_RowNumbering, plg_AlignDecimals2, plg_Sorting, plg_PrevAndNext';
+    public $loadList = 'plg_Modified, cat_Wrapper, plg_RowTools2, cat_plg_LogPackUsage, plg_SaveAndNew, plg_RowNumbering, plg_AlignDecimals2, plg_Sorting, plg_PrevAndNext';
     
     
     /**
@@ -124,7 +124,8 @@ class cat_ListingDetails extends doc_Detail
         $this->FLD('moq', 'double(smartRound,Min=0)', 'caption=МКП||MOQ');
         $this->FLD('multiplicity', 'double(Min=0)', 'caption=Кратност');
         $this->FLD('price', 'double(Min=0)', 'caption=Цена');
-        
+
+        $this->setDbIndex('productId,packagingId,modifiedOn');
         $this->setDbUnique('listId,productId,packagingId');
         $this->setDbUnique('listId,reff');
     }
@@ -577,4 +578,42 @@ class cat_ListingDetails extends doc_Detail
         $vat = ($masterRec->vat == 'yes') ? 'с ДДС' : 'без ДДС';
         $data->listFields['price'] = tr('Цена') . "|* <small>({$masterRec->currencyId})</small> |{$vat}|*";
     }
+
+
+	/**
+	 * След подготовката на редовете за списъка — подрежда ги според настройката в мастъра
+	 */
+	public static function on_AfterPrepareListRows($mvc, &$res, &$data)
+	{
+		if (empty($data->masterData->rec->detailOrderBy)) return;
+
+		$order = $data->masterData->rec->detailOrderBy;
+
+		// Ако е по ред на добавяне, не променяме нищо
+		if ($order == 'added') return;
+
+		$productInfo = array();
+		foreach ($data->recs as $id => $rec) {
+			$pRec = cat_Products::fetch($rec->productId, 'code,name');
+			$productInfo[$rec->productId] = ($order == 'code')
+				? mb_strtolower($pRec->code)
+				: mb_strtolower($pRec->name);
+		}
+
+		// Сортиране
+		uasort($data->recs, function($a, $b) use ($productInfo) {
+			return strcmp($productInfo[$a->productId], $productInfo[$b->productId]);
+		});
+
+		// Подравняване на визуалните редове
+		if (is_array($data->rows)) {
+			$newRows = array();
+			foreach ($data->recs as $id => $rec) {
+				if (isset($data->rows[$id])) {
+					$newRows[$id] = $data->rows[$id];
+				}
+			}
+			$data->rows = $newRows;
+		}
+	}
 }

@@ -3540,7 +3540,7 @@ class email_Incomings extends core_Master
             $content = preg_replace('/\s+/ui', ' ', $content);
 
             // Стрингове за отписване
-            $unsStr = 'Stop emails|Stop future emails|To stop these messages|Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
+            $unsStr = 'Stop emails|Stop future emails|To stop these messages|stop these messages|Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
             $unsStr = str::utf2ascii($unsStr);
             $unsStr = preg_replace('/\s+/ui', ' ', $unsStr);
 

@@ -1,9 +1,7 @@
 <?php
 
-
 /**
  * Листвани артикули
- *
  *
  * @category  bgerp
  * @package   cat
@@ -21,138 +19,121 @@ class cat_Listings extends core_Master
      * Дали се очаква в документа да има файлове
      */
     public $expectFiles = false;
-    
-    
+
     /**
      * Дали се очаква в документа да има други документи
      */
     public $expectDocs = false;
-    
-    
+
     /**
      * Заглавие
      */
     public $title = 'Листвания на артикули';
-    
-    
+
     /**
      * Наименование на единичния обект
      */
     public $singleTitle = 'Листване на артикули';
-    
-    
+
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Sorting, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_Search';
-    
-    
+    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Sorting, doc_ActivatePlg, plg_Clone, doc_DocumentPlg, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_Search, change_Plugin';
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'folderId';
-    
-    
+
     /**
      * Абревиатура
      */
     public $abbr = 'Lst';
-    
-    
+	
+	/**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'detailOrderBy';
+
     /**
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = true;
-    
-    
+
     /**
      * Детайла, на модела
      */
     public $details = 'cat_ListingDetails';
-    
-    
+
     /**
      * Кой е основния детайл
      */
     public $mainDetail = 'cat_ListingDetails';
-    
-    
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'doc=Документ,title, folderId, modifiedOn,modifiedBy';
-    
-    
+
     /**
      * Кой може да го промени?
      */
     public $canEdit = 'listArt,ceo';
-    
-    
+
     /**
      * Кой има право да добавя?
      */
     public $canAdd = 'listArt,ceo';
-    
-    
+
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'listArt,ceo';
-    
-    
+
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'listing,ceo';
-    
-    
+
     /**
      * Работен кеш
      */
     protected static $cache = array();
-    
-    
+
     /**
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'cat/tpl/SingleLayoutListing.shtml';
-    
-    
+
     /**
      * Групиране на документите
      */
     public $newBtnGroup = '3.99|Търговия';
-    
-    
+
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders,crm_ContragentAccRegIntf';
-    
-    
+
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
      * @see plg_Clone
      */
     public $cloneDetails = 'cat_ListingDetails';
-    
-    
+
     /**
      * Полета, които при клониране да не са попълнени
      *
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'title';
-    
-    
+
     /**
      * Икона за еденичен изглед
      */
     public $singleIcon = 'img/16/choose-icon.png';
-    
-    
+
     /**
      * Описание на модела (таблицата)
      */
@@ -162,15 +143,18 @@ class cat_Listings extends core_Master
         $this->FLD('type', 'enum(canSell=Продаваеми артикули,canBuy=Купуваеми артикули)', 'mandatory,caption=Артикули,notNull,value=canSell');
         $this->FLD('isPublic', 'enum(yes=Да,no=Не)', 'mandatory,caption=Публичен,input=none');
         $this->FLD('sysId', 'varchar', 'input=none');
-        
+
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Допълнително->Валута');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=Допълнително->ДДС');
-        
+
+        // Ново поле за подреждане на артикулите
+        $this->FLD('detailOrderBy', 'enum(code=По код,name=По име,added=По ред на добавяне)', 'caption=Артикули->Подреждане по, input, notNull, value=code, help=Определя реда на артикулите в листа и при вмъкване в документи');
+
         $this->setDbIndex('title,type');
         $this->setDbIndex('sysId');
+        $this->setDbIndex('state');
     }
-    
-    
+
     /**
      * Преди показване на форма за добавяне/промяна
      */
@@ -178,7 +162,7 @@ class cat_Listings extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+
         if (isset($rec->id)) {
             if (cat_ListingDetails::fetchField("#listId = {$rec->id}")) {
                 $form->setReadOnly('type');
@@ -198,9 +182,11 @@ class cat_Listings extends core_Master
             $Class = $rec->type == 'canSell' ? 'sales_Sales' : 'purchase_Purchases';
             $form->setDefault('vat', ($Cover->shouldChargeVat($Class)) ? 'yes' : 'no');
         }
+
+        // ➕ По подразбиране сортиране по код
+        $form->setDefault('detailOrderBy', 'code');
     }
-    
-    
+
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
@@ -209,17 +195,16 @@ class cat_Listings extends core_Master
         $rec = $this->fetch($id);
         $row = new stdClass();
         $title = $this->getVerbal($rec, 'title');
-        
+
         $row->title = $title . " №{$rec->id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->recTitle = $row->title;
         $row->state = $rec->state;
-        
+
         return $row;
     }
-    
-    
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
@@ -235,8 +220,7 @@ class cat_Listings extends core_Master
             }
         }
     }
-    
-    
+
     /**
      * Извиква се след успешен запис в модела
      */
@@ -251,66 +235,64 @@ class cat_Listings extends core_Master
             }
         }
     }
-    
-    
+
     /**
      * Кешира и връща всички листвани артикули за клиента
-     *
-     * @param int|stdClass $listId       - ид на лист
-     * @param int|NULL     $storeId      - ид на склад
-     * @param int|NULL     $limit        - ограничение
-     * @param boolean      $onlyActive   - дали да са само активни артикулите
-     *
-     * @return array
      */
     public static function getAll($listId, $storeId = null, $limit = null, $onlyActive = false)
     {
         expect($listRec = cat_Listings::fetchRec($listId));
-        
+
         $instock = null;
-        
-        // Ако е зададен склад
+
         if (isset($storeId)) {
-            
-            // Намиране на всички налични артикули в склада
             $pQuery = store_Products::getQuery();
             $pQuery->where("#storeId = {$storeId}");
             $pQuery->where('#quantity > 0');
             $pQuery->show('productId');
             $instock = arr::extractValuesFromArray($pQuery->fetchAll(), 'productId');
         }
-        
-        // Ако няма наличен кеш за контрагента, извлича се наново
+
         if (!isset(self::$cache[$listRec->id])) {
             self::$cache[$listRec->id] = array();
-            
-            // Кои са листваните артикули за контрагента
+
             $query = cat_ListingDetails::getQuery();
             $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $query->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
             $query->EXT($listRec->type, 'cat_Products', "externalName={$listRec->type},externalKey=productId");
             $query->where("#listId = {$listRec->id} AND #{$listRec->type} = 'yes'");
-            
+
             if($onlyActive === true){
                 $query->where("#state = 'active'");
             }
-            
+
             if (is_array($instock) && countR($instock)) {
-                
-                // Артикулите се подреждат така че наличните в склада да са по-напред
                 $instock = implode(',', $instock);
                 $query->XPR('instock', 'int', "(CASE WHEN #productId IN (${instock}) THEN 0 ELSE 1 END)");
-                $query->orderBy('instock,id', 'ASC');
-            } else {
-                $query->orderBy('id', 'ASC');
+                $query->orderBy('instock', 'ASC');
             }
-            
-            // Ако има зададен лимит
+
+            // ➕ Подреждане според настройката в листа
+            $order = $listRec->detailOrderBy ?? 'code';
+            switch ($order) {
+                case 'name':
+                    $query->EXT('productName', 'cat_Products', 'externalName=name,externalKey=productId');
+                    $query->orderBy('productName', 'ASC');
+                    break;
+                case 'code':
+					// Полето 'code' вече е добавено по-горе, само сортираме по него
+					$query->orderBy('code', 'ASC');
+					break;
+                case 'added':
+                default:
+                    $query->orderBy('id', 'ASC');
+                    break;
+            }
+
             if (isset($limit)) {
                 $query->limit($limit);
             }
-            
-            // Добавя се всеки запис, групиран според типа
+
             while ($rec = $query->fetch()) {
                 $reff = (!empty($rec->reff)) ? $rec->reff : $rec->code;
                 if($packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId)) {
@@ -322,57 +304,39 @@ class cat_Listings extends core_Master
                         $vat = cat_Products::getVat($rec->productId);
                         $rec->price /= 1 + $vat;
                     }
-                    
+
                     $rate = currency_CurrencyRates::getRate(null, $listRec->currencyId, null);
-                    
                     $price = $rec->price * $rate;
                     $obj->price = $price;
                 }
-                
+
                 self::$cache[$listRec->id][$rec->id] = $obj;
             }
         }
-        
-        // Връщане на кешираните данни
+
         return self::$cache[$listRec->id];
     }
-    
-    
+
     /**
-     * Помощна ф-я връщаща намерения код според артикула и опаковката, ако няма опаковка
-     * се връща първия намерен код
-     *
-     * @param int      $listId      - ид на списък
-     * @param int      $productId   - ид на артикул
-     * @param int|NULL $packagingId - ид на опаковка, NULL ако не е известна
-     *
-     * @return string|NULL - намерения код или NULL
+     * Помощна ф-я връщаща намерения код според артикула и опаковката
      */
     public static function getReffByProductId($listId, $productId, $packagingId = null)
     {
-        // Извличане на всичките листвани артикули
         $all = self::getAll($listId);
-        
-        // Намират се записите за търсения артикул
         $res = array_filter($all, function (&$e) use ($productId, $packagingId) {
             if (isset($packagingId)) {
                 if ($e->productId == $productId && $e->packagingId == $packagingId) return true;
             } else {
                 if ($e->productId == $productId) return true;
             }
-            
             return false;
         });
-        
-        // Ако има намерен поне един запис се връща кода
+
         $firstFound = $res[key($res)];
         $reff = (is_object($firstFound)) ? (($firstFound->reff != $firstFound->code) ? $firstFound->reff : null) : null;
-        
-        // Връща се намерения код
         return $reff;
     }
-    
-    
+
     /**
      * Подредба на записите
      */
@@ -381,35 +345,31 @@ class cat_Listings extends core_Master
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        // Сортиране на записите по num
         $data->query->orderBy('id');
     }
-    
-    
+
     /**
      * Изпълнява се преди оттеглянето на документа
      */
     protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        
+
         $id1 = cond_Parameters::fetchIdBySysId('salesList');
         $id2 = cond_Parameters::fetchIdBySysId('purchaseList');
-        
+
         $cQuery = cond_ConditionsToCustomers::getQuery();
         $cQuery->in('conditionId', array($id1, $id2));
         $cQuery->where("#value = {$rec->id}");
-        
+
         $found = array();
         while ($cRec = $cQuery->fetch()) {
             $found[] = '<b>' . cls::get($cRec->cClass)->getTitleById($cRec->cId) . '</b>';
         }
-        
+
         if (countR($found)) {
             $implode = implode(', ', $found);
             core_Statuses::newStatus('Документа не може да се оттегли, защото е избран като търговско условие за|* ' . $implode, 'warning');
-            
             return false;
         }
     }

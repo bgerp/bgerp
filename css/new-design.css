@@ -1079,7 +1079,10 @@ white)) {
   .formTitle,
   .formGroup,
   .narrow .vertical .formTitle {
-    background: color-mix(in srgb, var(--theme-color) 20%, #666666 80%) !important; } }
+    background: color-mix(in srgb, var(--theme-color) 20%, #666666 80%) !important; }
+
+  .formMiddleCaption {
+    background: color-mix(in srgb, var(--theme-color) 20%, #eeeeee 80%) !important; } }
 
 .formTitle a,
 .formGroup a {

@@ -1220,7 +1220,7 @@ class rack_Zones extends core_Master
             if (!countR($palletsArr)) continue;
 
             // Какво е разпределянето на палетите
-            if(rack_Setup::get('PICKUP_STRATEGY') == 'ver2') {
+            if (in_array(rack_Setup::get('PICKUP_STRATEGY'), ['ver2', 'ver3'])) {
 
                 // Извличане само на опаковките на артикула + основната мярка
                 if(!array_key_exists($pRec->productId, static::$cache)){
@@ -1240,7 +1240,14 @@ class rack_Zones extends core_Master
                     static::$cache[$pRec->productId] = $packagings;
                 }
 
-                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId], null, null, $storeId);
+                if(rack_Setup::get('PICKUP_STRATEGY') == 'ver2') {
+					$allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId], null, null, $storeId);
+				}
+				
+				if(rack_Setup::get('PICKUP_STRATEGY') == 'ver3') {
+					$allocatedPallets = rack_MovementGenerator3::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId], null, null, $storeId);
+				}
+				
             } else {
                 $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             }

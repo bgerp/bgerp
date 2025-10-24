@@ -47,7 +47,7 @@ defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 700);
 /**
  * Максималната разрешена памет за използване
  */
-defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '1024M');
+defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '2048M');
 
 
 /**
@@ -130,6 +130,26 @@ defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
  */
 defIfNot('FILEMAN_INDEXES_KEEP_DAYS', 63113904);
 
+
+/**
+ * Изтриване на неизползвани файлове след
+ * 2 години
+ */
+defIfNot('FILEMAN_DELETE_UNUSED_AFTER', 63113904);
+
+
+/**
+ * Максимален размер на част от файл при качване
+ * 2MB
+ */
+defIfNot('FILEMAN_CHUNK_SIZE', 2097152); // 2MB
+
+
+/**
+ * Максимален размер на част от файл при качване
+ * 2MB
+ */
+defIfNot('FILEMAN_USE_CHUNK_UPLOAD', 'no');
 
 
 /**
@@ -215,6 +235,12 @@ class fileman_Setup extends core_ProtoSetup
         'FILEMAN_OCR' => array('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за OCR обработка->Програма'),
 
         'FILEMAN_INDEXES_KEEP_DAYS' => array('time(suggestions=1 година|2 години|3 години,unit=days)', 'caption=Време за съхранение на индексите на файловете->Време'),
+
+        'FILEMAN_DELETE_UNUSED_AFTER' => array('time(suggestions=1 година|2 години|5 години,unit=year)', 'canView=debug, caption=Изтриване на неизползваните файлове->Време'),
+
+        'FILEMAN_CHUNK_SIZE' => array('fileman_FileSize', 'caption=Максимален размер на част от файл при качване->Размер'),
+
+        'FILEMAN_USE_CHUNK_UPLOAD' => array('enum(no=Не,yes=Да)', 'caption=Използване на качване на части->Избор')
     );
     
     
@@ -249,10 +275,13 @@ class fileman_Setup extends core_ProtoSetup
         
         // Установяваме модела за последни файлове
         'fileman_Log',
-        
+        'fileman_Deletes',
+
         'fileman_import_Base64',
 
         'migrate::fixLastUse2338',
+
+        'migrate::forceChunkUpload2542',
     );
     
     
@@ -316,6 +345,17 @@ class fileman_Setup extends core_ProtoSetup
         $rec->action = 'DeleteOldIndexes';
         $rec->period = 24 * 60;
         $rec->timeLimit = 50;
+        $rec->offset = mt_rand(0, 300);
+        $rec->isRandOffset = true;
+        $html .= core_Cron::addOnce($rec);
+
+        $rec = new stdClass();
+        $rec->systemId = 'DeleteOldFiles';
+        $rec->description = 'Изтриване на старите файлове';
+        $rec->controller = 'fileman_Deletes';
+        $rec->action = 'deleteOldFiles';
+        $rec->period = 24 * 60;
+        $rec->timeLimit = 500;
         $rec->offset = mt_rand(0, 300);
         $rec->isRandOffset = true;
         $html .= core_Cron::addOnce($rec);
@@ -454,6 +494,19 @@ class fileman_Setup extends core_ProtoSetup
         $query->show('id');
         while ($rec = $query->fetch()) {
             fileman_Data::updateLastUse($rec->id);
+        }
+    }
+
+
+    /**
+     * Миграция за задаване на качване на части по подразбиране
+     */
+    public static function forceChunkUpload2542()
+    {
+        // Ако няма запис в модела
+        if (defined('BGERP_GIT_BRANCH') && ((BGERP_GIT_BRANCH == 'dev') || (BGERP_GIT_BRANCH == 'test'))) {
+            // Добавяме в записите
+            core_Packs::setConfig('fileman', array('FILEMAN_USE_CHUNK_UPLOAD' => 'yes', 'FILEMAN_CHUNK_SIZE' => 524288));
         }
     }
 }

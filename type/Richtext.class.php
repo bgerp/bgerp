@@ -91,6 +91,8 @@ class type_Richtext extends type_Blob
             // Премахваме от масива
             unset($params['params']['compress']);
         }
+
+        setIfNot($params['rolesForTagCheck'], 'powerUser');
         
         parent::init($params);
     }
@@ -1735,5 +1737,80 @@ class type_Richtext extends type_Blob
         $this->suggestions = arr::make($suggestionsStr, true);
         
         $this->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
+    }
+
+
+
+
+    /**
+     * Проверка за валидност на VAT номер
+     *
+     * Ако проверката е неуспешна - връща само предупреждение
+     */
+    public function isValid($value)
+    {
+        if (!$value) {
+
+            return;
+        }
+
+        $res = parent::isValid($value);
+        $res['value'] = $value;
+
+        if ($this->rolesForTagCheck && haveRole($this->rolesForTagCheck)) {
+            $tArr = $this->validateBBCode($value);
+            if (!empty($tArr)) {
+                $tArr = arr::make($tArr, true);
+                foreach ($tArr as $i => $t) {
+                    $tArr[$i] = "[{$t}]...[/{$t}]";
+                }
+                $res['warning'] = 'Възможен проблем със затварящите тагове (символи за форматиране на текста)|*: <b>' . implode(', ', $tArr) . '</b>';
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Проверява дали таговете в текста са коректно затворени
+     *
+     * @param $string
+     *
+     * @return bool
+     */
+    function validateBBCode($string) {
+        // Намираме всички тагове в текста
+        preg_match_all('/\[\/?[a-z]+(?:=[^\]]+)?\]/i', $string, $matches);
+        $tags = $matches[0];
+
+        $stack = array();
+
+        $ignoreTags = array('hr' => 'hr', 'br' => 'br', 'img' => 'img', 'em' => 'em');
+
+        foreach ($tags as $tag) {
+            if (preg_match('/^\[([a-z]+)(?:=[^\]]+)?\]$/i', $tag, $m)) {
+                if ($ignoreTags[$m[1]]) {
+
+                    continue;
+                }
+                // Отварящ таг
+                $stack[] = strtolower($m[1]);
+            } elseif (preg_match('/^\[\/([a-z]+)\]$/i', $tag, $m)) {
+                if ($ignoreTags[$m[1]]) {
+
+                    continue;
+                }
+
+                // Затварящ таг
+                $last = array_pop($stack);
+                if ($last !== strtolower($m[1])) {
+                    $stack[$m[1]] = $m[1];
+                    $stack[$last] = $last;
+                }
+            }
+        }
+
+        return $stack;
     }
 }

@@ -575,7 +575,7 @@ class cat_Products extends embed_Manager
                 if (cat_products_Packagings::fetch("#productId = {$rec->id}")) {
                     $isUsed = true;
                 } else {
-                    $isUsed = cat_products_Packagings::isUsed($rec->id, $rec->measureId, true);
+                    $isUsed = cat_products_Packagings::canEditOrDeletePack($rec->id, $rec->measureId);
                 }
                 
                 // Ако артикулът е използван, мярката му не може да бъде сменена
@@ -4251,7 +4251,7 @@ class cat_Products extends embed_Manager
 
                 setIfNot($dInst->productFld, 'productId');
 
-                foreach (array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
+                foreach (array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка", 'notes' => 'Забележки') as $fName => $fCaption) {
 
                     if (!isset($dInst->fields[$fName]) && !isset($dRec->{$fName}) && !array_key_exists($fName, (array) $dRec)) {
 
@@ -4381,6 +4381,7 @@ class cat_Products extends embed_Manager
                 }
 
                 $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld}, $vatExceptionId);
+                $recs[$dRec->id]->notes = $dRec->notes;
 
                 // За добавяне на бачовете
                 if ($allFFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
@@ -4505,7 +4506,7 @@ class cat_Products extends embed_Manager
         }
 
         // Подреждане за запазване на предишна логика
-        $orderMap = array('reff', 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
+        $orderMap = array('reff', 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch', 'notes');
         $fArr = $csvFields->fields;
         $newFArr = array();
         foreach ($fArr as $fName => $fRec) {

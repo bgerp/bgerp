@@ -153,7 +153,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $salQuery = sales_Sales::getQuery();
 
-        $salQuery->in('state', array('rejected', 'draft'), true);
+        $salQuery->in('state', array('rejected', 'draft', 'pending'), true);
 
         $salQuery->where("#closedOn IS NULL OR #closedOn > '$checkDate'");
 

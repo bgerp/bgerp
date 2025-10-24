@@ -517,8 +517,12 @@ class fileman_Data extends core_Manager
             if (dt::now() >= $endOn) {
                 break;
             }
+
+            if ($rec->processed != 'yes') {
+                $rec->processed = 'yes';
+                self::save($rec, 'processed');
+            }
             
-            $procSuccess = null;
             foreach ($classesArr as $classId => $clsName) {
                 if (dt::now() >= $endOn) {
                     break;
@@ -530,11 +534,6 @@ class fileman_Data extends core_Manager
                 if ($procSuccess === false) {
                     break;
                 }
-            }
-            
-            if ($procSuccess !== false && $rec->processed != 'yes') {
-                $rec->processed = 'yes';
-                self::save($rec, 'processed');
             }
         }
     }

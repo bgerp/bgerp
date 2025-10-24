@@ -2217,9 +2217,11 @@ class eshop_Products extends core_Master
                 $settings[$dRec->domainId] = cms_Domains::getSettings($dRec->domainId);
             }
             $listId = $settings[$dRec->domainId]->listId;
-            $price = price_ListRules::getPrice($listId, $dRec->productId, null, $datetime);
-            if (isset($price)) {
-                $save[$dRec->eshopProductId]->haveProductsWithPrice = 'yes';
+            if(isset($listId)){
+                $price = price_ListRules::getPrice($listId, $dRec->productId, null, $datetime);
+                if (isset($price)) {
+                    $save[$dRec->eshopProductId]->haveProductsWithPrice = 'yes';
+                }
             }
         }
 
