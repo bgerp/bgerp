@@ -963,41 +963,41 @@ class cams_Records extends core_Master
         if ($keepDays > 0) {
             $thresholdTime = strtotime(dt::addDays(-$keepDays));
             
-            /**
-             * 1. Изтриване на стари mp4/jpg файлове от CAMS_VIDEOS_PATH
-             */
-            $iterator = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator(CAMS_VIDEOS_PATH, FilesystemIterator::SKIP_DOTS),
-                RecursiveIteratorIterator::CHILD_FIRST
-                );
+//             /**
+//              * 1. Изтриване на стари mp4/jpg файлове от CAMS_VIDEOS_PATH
+//              */
+//             $iterator = new RecursiveIteratorIterator(
+//                 new RecursiveDirectoryIterator(CAMS_VIDEOS_PATH, FilesystemIterator::SKIP_DOTS),
+//                 RecursiveIteratorIterator::CHILD_FIRST
+//                 );
             
-            foreach ($iterator as $fileInfo) {
-                if ($fileInfo->isFile() && strtolower($fileInfo->getExtension()) == 'mp4') {
-                    if ($fileInfo->getMTime() < $thresholdTime) {
-                        if (@unlink($fileInfo->getPathname())) {
-                            $delFiles++;
-                        }
-                    }
-                }
-            }
+//             foreach ($iterator as $fileInfo) {
+//                 if ($fileInfo->isFile() && strtolower($fileInfo->getExtension()) == 'mp4') {
+//                     if ($fileInfo->getMTime() < $thresholdTime) {
+//                         if (@unlink($fileInfo->getPathname())) {
+//                             $delFiles++;
+//                         }
+//                     }
+//                 }
+//             }
             
-            /**
-             * 2. Изтриване на стари jpg файлове от CAMS_IMAGES_PATH
-             */
-            $iterator2 = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator(CAMS_IMAGES_PATH, FilesystemIterator::SKIP_DOTS),
-                RecursiveIteratorIterator::CHILD_FIRST
-                );
+//             /**
+//              * 2. Изтриване на стари jpg файлове от CAMS_IMAGES_PATH
+//              */
+//             $iterator2 = new RecursiveIteratorIterator(
+//                 new RecursiveDirectoryIterator(CAMS_IMAGES_PATH, FilesystemIterator::SKIP_DOTS),
+//                 RecursiveIteratorIterator::CHILD_FIRST
+//                 );
             
-            foreach ($iterator2 as $fileInfo) {
-                if ($fileInfo->isFile() && strtolower($fileInfo->getExtension()) == 'jpg') {
-                    if ($fileInfo->getMTime() < $thresholdTime) {
-                        if (@unlink($fileInfo->getPathname())) {
-                            $delFiles++;
-                        }
-                    }
-                }
-            }
+//             foreach ($iterator2 as $fileInfo) {
+//                 if ($fileInfo->isFile() && strtolower($fileInfo->getExtension()) == 'jpg') {
+//                     if ($fileInfo->getMTime() < $thresholdTime) {
+//                         if (@unlink($fileInfo->getPathname())) {
+//                             $delFiles++;
+//                         }
+//                     }
+//                 }
+//             }
             
             /**
              * 3. Изтриване на записи в базата по стария критерий
@@ -1006,11 +1006,11 @@ class cams_Records extends core_Master
             $query->where("#startTime < '{$thresholdTime}' AND #marked != 'yes'");
             $query->orderBy('startTime');
             while ($rec = $query->fetch()) {
-                $this->delete($rec->id);
+                $this->deleteRecAndFiles($rec->id);
                 $deleted++;
             }
             
-            return "Изтрити са {$deleted} записа в базата и {$delFiles} файла (по-стари от {$keepDays} дни).";
+            return "Изтрити са {$deleted} записа в базата (по-стари от {$keepDays} дни).";
         }
         
         // РЕЖИМ 2: Старото поведение (CAMS_KEEP_DAYS == 0)
