@@ -961,7 +961,7 @@ class cams_Records extends core_Master
         
         // РЕЖИМ 1: Политика за пазене (CAMS_KEEP_DAYS > 0)
         if ($keepDays > 0) {
-            $thresholdTime = strtotime(dt::addDays(-$keepDays));
+            $thresholdTime = dt::addDays(-$keepDays);
             
 //             /**
 //              * 1. Изтриване на стари mp4/jpg файлове от CAMS_VIDEOS_PATH
@@ -1006,7 +1006,7 @@ class cams_Records extends core_Master
             $query->where("#startTime < '{$thresholdTime}' AND #marked != 'yes'");
             $query->orderBy('startTime');
             while ($rec = $query->fetch()) {
-                $this->deleteRecAndFiles($rec->id);
+                $this->deleteRecAndFiles($rec->id, $delFiles);
                 $deleted++;
             }
             
