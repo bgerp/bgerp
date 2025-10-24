@@ -1004,13 +1004,13 @@ class cams_Records extends core_Master
              */
             $query = $this->getQuery();
             $query->where("#startTime < '{$thresholdTime}' AND #marked != 'yes'");
-            $query->orderBy('startTime');
+            $query->limit(1000);
             while ($rec = $query->fetch()) {
-                $this->deleteRecAndFiles($rec->id, $delFiles);
+                $this->deleteRecAndFiles($rec, $delFiles);
                 $deleted++;
             }
             
-            return "Изтрити са {$deleted} записа в базата (по-стари от {$keepDays} дни).";
+            return "Изтрити са {$deleted} записа в базата и {$delFiles} файла (по-стари от {$keepDays} дни).";
         }
         
         // РЕЖИМ 2: Старото поведение (CAMS_KEEP_DAYS == 0)
