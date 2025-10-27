@@ -18,11 +18,6 @@
 class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
 {
     /**
-     * Разделител от срока на годност
-     */
-    const SEPARATOR = '|';
-
-    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
