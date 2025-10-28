@@ -1169,7 +1169,7 @@ class core_DateTime
                 $suffix = "-ви";
             } elseif (in_array($day, [2, 22])) {
                 $suffix = "-ри";
-            } elseif (in_array($day, [7, 8])) {
+            } elseif (in_array($day, [7, 8, 28])) {
                 $suffix = "-ми";
             } else {
                 $suffix = "-ти";
