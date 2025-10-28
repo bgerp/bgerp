@@ -361,10 +361,6 @@ abstract class deals_ManifactureMaster extends core_Master
                             $res = false;
                         }
                     }
-                } elseif($firstDocument->isInstanceOf('planning_Jobs')) {
-                    $msg = "Документът не може да бъде контиран, защото заданието е приключено|*!";
-                    core_Statuses::newStatus($msg, 'error');
-                    $res = false;
                 }
             } elseif($firstDocument->isInstanceOf('planning_Jobs') || $firstDocument->isInstanceOf('planning_Tasks')){
                 $firstRec = $firstDocument->fetch('state,timeClosed');
