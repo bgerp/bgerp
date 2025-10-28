@@ -361,13 +361,27 @@ abstract class deals_ManifactureMaster extends core_Master
                             $res = false;
                         }
                     }
-                }
-            } elseif($firstDocument->isInstanceOf('planning_Jobs') || $firstDocument->isInstanceOf('planning_Tasks')){
-                $state = $firstDocument->fetchField('state');
-                if($state == 'closed'){
-                    $msg = "Документът не може да бъде оттеглен/възстановен, докато първият документ в нишката е затворен|*!";
+                } elseif($firstDocument->isInstanceOf('planning_Jobs')) {
+                    $msg = "Документът не може да бъде контиран, защото заданието е приключено|*!";
                     core_Statuses::newStatus($msg, 'error');
                     $res = false;
+                }
+            } elseif($firstDocument->isInstanceOf('planning_Jobs') || $firstDocument->isInstanceOf('planning_Tasks')){
+                $firstRec = $firstDocument->fetch('state,timeClosed');
+                if($firstRec->state == 'closed'){
+                    $allow = true;
+
+                    if(in_array($rec->state, array('active', 'rejected'))){
+                        if($rec->activatedOn <= $firstRec->timeClosed){
+                            $allow = false;
+                        }
+                    }
+
+                    if(!$allow){
+                        $msg = "Документът не може да бъде оттеглен/възстановен, докато първият документ в нишката е затворен|*!";
+                        core_Statuses::newStatus($msg, 'error');
+                        $res = false;
+                    }
                 }
             }
         }
