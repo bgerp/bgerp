@@ -238,7 +238,13 @@ class deals_plg_EditClonedDetails extends core_Plugin
                     $det->quantityInPack = $det->baseQuantity / $det->packQuantity;
                     $det->price = $det->packPrice / $det->quantityInPack;
                 }
-                
+
+                // Ако има курс обръща се в този на документа
+                if(isset($det->_rate)){
+                    $det->price /= $det->_rate;
+                    $det->price *= $rec->currencyRate;
+                }
+
                 $newPackQuantity = $updatePackQuantity = 0;
                 if (is_array($det->batches) && core_Packs::isInstalled('batch')) {
                     foreach ($det->batches as &$bRec) {

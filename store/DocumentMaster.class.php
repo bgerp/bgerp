@@ -1428,6 +1428,7 @@ abstract class store_DocumentMaster extends core_Master
             $Detail = cls::get($Source->mainDetail);
             $id = $Source->that;
         }
+        $currencyRate = $Detail->Master->fetchField($id, 'currencyRate');
 
         $res = array();
         $dQuery = $Detail->getQuery();
@@ -1436,6 +1437,12 @@ abstract class store_DocumentMaster extends core_Master
             if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
                 $dRec->_genericProductId = $genericProductId;
             }
+
+            // Какъв е курса на документа от който е извлечен детайла
+            if(isset($currencyRate)){
+                $dRec->_rate = $currencyRate;
+            }
+
             $res[$dRec->id] = $dRec;
         }
         $res = array('recs' => $res, 'detailMvc' => $Detail);
