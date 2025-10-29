@@ -1719,8 +1719,6 @@ abstract class deals_InvoiceMaster extends core_Master
         $aggregator->setIfNot('invoicedValior', $rec->date);
 
         if (isset($rec->dpAmount)) {
-            $dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->date, $dealValior);
-
             $vat = acc_Periods::fetchByDate($rec->date)->vatRate;
             if(isset($rec->dpVatGroupId)){
                 $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
@@ -1731,9 +1729,8 @@ abstract class deals_InvoiceMaster extends core_Master
 
                 $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealBaseCurrency, $dpVatId);
             } elseif ($rec->dpOperation == 'deducted') {
-
                 // Колко е приспаднатото плащане с ддс
-                $deducted = $rec->type == 'dc_note' ? $dpAmount : abs($dpAmount);
+                $deducted = $rec->type == 'dc_note' ? $totalInDealBaseCurrency : abs($totalInDealBaseCurrency);
                 $vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($deducted) * $vat : 0;
                 $aggregator->sum('downpaymentDeducted', $deducted + $vatAmount);
                 $aggregator->sumByArrIndex('downpaymentDeductedByVats', $deducted + $vatAmount, $dpVatId);
