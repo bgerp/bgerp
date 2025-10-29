@@ -55,6 +55,12 @@ abstract class deals_ServiceMaster extends core_Master
 
 
     /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
+    /**
      * Кои са задължителните полета за модела
      */
     protected static function setServiceFields($mvc)

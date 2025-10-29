@@ -110,8 +110,14 @@ class acc_ValueCorrections extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'valior';
-    
-    
+
+
+    /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'rate';
+
+
     /**
      * Описание на модела
      */

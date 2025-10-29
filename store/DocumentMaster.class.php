@@ -109,6 +109,12 @@ abstract class store_DocumentMaster extends core_Master
 
 
     /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)

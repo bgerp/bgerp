@@ -162,8 +162,14 @@ class findeals_AdvanceReports extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior,modifiedOn';
-    
-    
+
+
+    /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
     /**
      * Описание на модела (таблицата)
      */

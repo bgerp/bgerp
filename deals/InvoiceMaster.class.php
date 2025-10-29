@@ -143,6 +143,12 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'rate';
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)

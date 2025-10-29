@@ -121,6 +121,12 @@ abstract class deals_DealMaster extends deals_DealBase
 
 
     /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc

@@ -203,8 +203,14 @@ class findeals_Deals extends deals_DealBase
      * Полета, които при клониране да не са попълнени
      */
     public $fieldsNotToClone = 'valior, amountDeal, currencyRate, baseAmount';
-    
-    
+
+
+    /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
     /**
      * Описание на модела (таблицата)
      */

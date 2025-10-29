@@ -36,10 +36,20 @@ class deals_plg_EditClonedDetails extends core_Plugin
             $Detail = cls::get($mvc->mainDetail);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->clonedFromId}");
+            if(isset($Detail->Master->rateFldName)){
+                $currencyRate = $Detail->Master->fetchField($rec->clonedFromId, $Detail->Master->rateFldName);
+            }
+
             while($dRec = $dQuery->fetch()){
                 if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
                     $dRec->_genericProductId = $genericProductId;
                 }
+
+                // Какъв е курса на документа от който е извлечен детайла
+                if(isset($currencyRate)){
+                    $dRec->_rate = $currencyRate;
+                }
+
                 $recs[$dRec->id] = $dRec;
             }
             $res = array('recs' => $recs, 'detailMvc' => $Detail);
@@ -242,7 +252,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 // Ако има курс обръща се в този на документа
                 if(isset($det->_rate)){
                     $det->price /= $det->_rate;
-                    $det->price *= $rec->currencyRate;
+                    $det->price *= $rec->{$mvc->rateFldName};
                 }
 
                 $newPackQuantity = $updatePackQuantity = 0;
