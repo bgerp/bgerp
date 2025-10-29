@@ -1353,31 +1353,42 @@ class rack_Zones extends core_Master
             $zoneMovements = $mQuery->fetchAll();
         }
 
-        while ($dRec = $dQuery->fetch()) {
-            $notActiveQuantity = 0;
-            array_walk($zoneMovements, function($a) use ($dRec, &$notActiveQuantity){
-                if($dRec->productId == $a->productId && $dRec->packagingId == $a->packagingId && $dRec->batch == $a->batch){
-                    $zones = rack_Movements::getZoneArr($a);
-                    $quantityInZoneArr = array_values(array_filter($zones, function($z) use ($dRec){return $z->zone == $dRec->zoneId;}));
-                    if(is_object($quantityInZoneArr[0])){
-                        $notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
-                    }
-                }
-            });
+        // 🔸 Обединяване на заявки по продукт + партида (игнорира опаковката)
+		// Цел: комбиниране на движения в различни зони при смесени опаковки
+		while ($dRec = $dQuery->fetch()) {
+			$notActiveQuantity = 0;
+			array_walk($zoneMovements, function($a) use ($dRec, &$notActiveQuantity){
+				if($dRec->productId == $a->productId && $dRec->batch == $a->batch){
+					$zones = rack_Movements::getZoneArr($a);
+					$quantityInZoneArr = array_values(array_filter($zones, function($z) use ($dRec){return $z->zone == $dRec->zoneId;}));
+					if(is_object($quantityInZoneArr[0])){
+						$notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
+					}
+				}
+			});
 
-            // Участват само тези по които се очакват още движения
-            $needed = $dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity;
-            if (empty($needed) || $needed < 0) continue;
+			// Участват само тези по които се очакват още движения
+			$needed = $dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity;
+			if (empty($needed) || $needed < 0) continue;
 
-            $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->batch}";
-            if (!array_key_exists($key, $res->products)) {
-                $res->products[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array(), 'batch' => $dRec->batch);
-                $res->zones[$dRec->zoneId] = $dRec->zoneId;
-            }
+			// 🔹 Ключът вече не включва packagingId
+			$key = "{$dRec->productId}|{$dRec->batch}";
+			if (!array_key_exists($key, $res->products)) {
+				$res->products[$key] = (object)[
+					'productId' => $dRec->productId,
+					// 🔸 първата срещната опаковка се ползва като "основна"
+					'packagingId' => $dRec->packagingId,
+					'zones' => [],
+					'batch' => $dRec->batch
+				];
+				$res->zones[$dRec->zoneId] = $dRec->zoneId;
+			}
 
-            $res->products[$key]->zones[$dRec->zoneId] += ($dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity);
-        }
-
+			// 🔹 Ако за същия продукт в друга зона има друга опаковка — обединяваме по зони
+			$res->products[$key]->zones[$dRec->zoneId] =
+				($res->products[$key]->zones[$dRec->zoneId] ?? 0) + $needed;
+		}
+		
         return $res;
     }
 

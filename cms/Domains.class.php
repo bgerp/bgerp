@@ -818,20 +818,14 @@ class cms_Domains extends core_Embedder
         $cacheKey = 'getDomainOptions|' . $uniqDomains . '|' . $cu;
         $cacheType = get_called_class();
 
-        $optArr = core_Cache::get($cacheType, $cacheKey);
-        if ($optArr !== false) {
-
-            return $optArr;
-        }
+        $optArr = core_Cache::get($cacheType, $cacheKey, 1440, array('cms_Domains'));
+        if ($optArr !== false) return $optArr;
 
         $options = $domains = array();
         $query = self::getQuery();
         while ($rec = $query->fetch()) {
             if(isset($cu)){
-                if(!self::haveRightFor('select', $rec, $cu)){
-                    
-                    continue;
-                }
+                if(!self::haveRightFor('select', $rec, $cu)) continue;
             }
             
             if($uniqDomains) {

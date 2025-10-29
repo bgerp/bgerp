@@ -869,6 +869,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $details[$key] = $obj1;
                         $details[$key]->quantityFromBom += $d3->quantityFromBom;
                     }
+
+                    // Ако има субпродукти се проверява и имат партидност се зарежда тази с която биха влезли в склада
+                    if(core_Packs::isInstalled('batch')){
+                        if($details[$key]->type == 'subProduct'){
+                            if($batchDef = batch_Defs::getBatchDef($details[$key]->productId)){
+                                $defValue = $batchDef->getAutoValue($this, $rec->id, $rec->storeId, $rec->valior);
+                                if(isset($defValue)){
+                                    $details[$key]->batches[$defValue] += $details[$key]->quantity;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
