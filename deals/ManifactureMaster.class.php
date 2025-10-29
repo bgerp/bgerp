@@ -216,6 +216,24 @@ abstract class deals_ManifactureMaster extends core_Master
             if(($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
             $requiredRoles = 'no_one';
         }
+
+        // протоколите не може да се контират/създават/заявка/възстановяват ако заданието е затворено и минал зададения прозорец
+        if(in_array($action, array('add', 'conto', 'restore', 'pending')) && isset($rec->threadId)){
+            if($requiredRoles != 'no_one') {
+                $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+
+                if(isset($firstDoc) && $firstDoc->isInstanceOf('planning_Jobs')){
+                    $jobRec = $firstDoc->fetch('state,timeClosed');
+                    if($jobRec->state == 'closed'){
+                        $allowTime = planning_Setup::get('ALLOW_STORE_DOCS_IN_JOB');
+                        $canDoUntil = dt::addSecs($allowTime, $jobRec->timeClosed);
+                        if(dt::now() > $canDoUntil){
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+            }
+        }
     }
     
     

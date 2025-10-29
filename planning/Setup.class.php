@@ -242,6 +242,12 @@ defIfNot('PLANNING_TASK_SUB_PRODUCT_MIN_BUTTONS', '5');
 
 
 /**
+ * До кога след приключване на заданието да се контират протоколи за влагане и връщане->Време
+ */
+defIfNot('PLANNING_ALLOW_STORE_DOCS_IN_JOB', '0');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -329,6 +335,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_PRODUCTION_DELETE_SYSTEM_DETAILS' => array('enum(yes=Да,no=Не)', array('caption' => 'Изтриване на редове от ПП с очаквано количество по рецепта/за влагане->Избор')),
         'PLANNING_MANUAL_ORDER_IN_ASSET' => array('enum(yes=Да,no=Не)', array('caption' => 'САМО ръчно подреждане на операциите на оборудването->Избор')),
         'PLANNING_TASK_SUB_PRODUCT_MIN_BUTTONS' => array('int(Min=0)', array('caption' => 'Колко индивидуални бутони за субпродукти да се показват в ПО->Брой')),
+        'PLANNING_ALLOW_STORE_DOCS_IN_JOB' => array('time', array('caption' => 'До кога след приключване на заданието да се контират протоколи за влагане и връщане->Време')),
     );
 
 
