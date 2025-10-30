@@ -854,7 +854,7 @@ class acc_Balances extends core_Master
      * @params array $items - масив с пера, които трябва да са на посочените позиции
      * @params array $ignoreClassIds - записите от кои класове да се игнорират
      * @param string|null $toBaseCurrencyDate - към основната валута за коя дата
-     *  @param string|null $useCurrencyField  - да се сумира по валута, а не по сума
+     * @param bool $useCurrencyField  - да се сумира по валута, а не по сума
      * @return stdClass $res - обект със следната структура:
      *                  ->amount - крайното салдо на сметката, ако няма записи е 0
      *                  ->recs   - тази част от подадените записи, участвали в образуването на салдото
@@ -952,7 +952,7 @@ class acc_Balances extends core_Master
             if (in_array($rec->debitAccId, $newAccArr)) {
                 if ($skipDebit !== true) {
                     if ($type === null || $type == 'debit') {
-                        if($useCurrencyField == 'debitQuantity'){
+                        if($useCurrencyField){
                             $res->amount += $rec->debitQuantity;
                         } else {
                             $res->amount += deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
@@ -967,8 +967,8 @@ class acc_Balances extends core_Master
                     $sign = ($type === null) ? -1 : 1;
                     
                     if ($type === null || $type == 'credit') {
-                        if($useCurrencyField == 'creditQuantity'){
-                            $res->amount += $rec->creditQuantity;
+                        if($useCurrencyField){
+                            $res->amount += $sign * $rec->creditQuantity;
                         } else {
                             $res->amount += $sign * deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
                         }

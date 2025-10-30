@@ -472,14 +472,11 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $rec = purchase_Purchases::fetchRec($id);
         $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
 
-        $useCurrencyField = null;
-        if(!in_array($rec->currencyId, array('EUR', 'BGN'))){
-            $useCurrencyField = 'creditQuantity';
-        }
-
+        $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
         $paid = acc_Balances::getBlAmounts($jRecs, '401', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
         $paid += acc_Balances::getBlAmounts($jRecs, '402', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
-        
+        $paid = $useCurrencyField ? $paid * $rec->currencyRate : $paid;
+
         return $paid;
     }
     
@@ -492,14 +489,11 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $rec = purchase_Purchases::fetchRec($id);
         $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
 
-        $useCurrencyField = null;
-        if(!in_array($rec->currencyId, array('EUR', 'BGN'))){
-            $useCurrencyField = 'creditQuantity';
-        }
-
+        $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
         $delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit', null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
         $delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912', array(), array(store_ShipmentOrders::getClassId()), $rec->valior, $useCurrencyField)->amount;
-        
+        $delivered = $useCurrencyField ? $delivered * $rec->currencyRate : $delivered;
+
         return $delivered;
     }
     
