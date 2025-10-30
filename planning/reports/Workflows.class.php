@@ -88,16 +88,16 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $fieldset->FLD('to', 'datetime', 'caption=До,after=start,single=none,mandatory');
 
         $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,after=to,single=none');
+
         $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources)', 'caption=Машини,placeholder=Всички,after=centre,single=none,input=none');
+
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none,input=none');
 
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=selfPrices,single=none');
+        $fieldset->FLD('group', 'key2(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=employees,removeAndRefreshForm,silent,single=none');
 
-       // $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
+        $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
 
-
-
-        $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=employees,mandatory,removeAndRefreshForm,single=none');
+        $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=products,mandatory,removeAndRefreshForm,single=none');
 
         $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,removeAndRefreshForm,after=typeOfReport,single=none');
 
@@ -125,6 +125,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
         if ($rec->typeOfReport == 'short') {
             $form->setField('resultsOn', 'input=none');
         }
+
+        //bp($rec->group);
+
+        $suggestions1 = cat_Products::getProducts(null, null, null, null, null, null, false, $rec->group);
+
+        $form->setSuggestions('products', $suggestions1);
 
     }
 
@@ -185,6 +191,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
             plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
         }
 
+        //Филтър по артикул
+        if (isset($rec->products)) {
+            $query->where("#productId = {$rec->products} ");
+        }
 
         //Филтър по служители
         if ($rec->employees && $rec->resultsOn != 'arts') {
