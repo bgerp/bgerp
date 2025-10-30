@@ -262,7 +262,7 @@ class cat_ListingDetails extends doc_Detail
                     $hint = 'Артикулът няма цена по ценовата политика на контрагента';
                     $hint2 = 'Актуалната цена по политика';
                 }
-                
+
                 if (!isset($rec->price)) {
                     if (!isset($policyInfo->price)) {
                         $row->productId = ht::createHint($row->productId, $hint, 'warning', false);
@@ -274,7 +274,7 @@ class cat_ListingDetails extends doc_Detail
                         $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
                         $rec->price = deals_Helper::getDisplayPrice($policyInfo->price, $vat, $rate, $listRec->vat);
                         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                        
+
                         $rec->price *= $quantityInPack;
                         $row->price = $mvc->getFieldType('price')->toVerbal($rec->price);
                         $row->price = "<span style='color:blue'>{$row->price}</span>";
@@ -445,7 +445,7 @@ class cat_ListingDetails extends doc_Detail
                 foreach ($toSave as $r) {
                     $newRec = (object) $r;
                     $newRec->listId = $listRec->id;
-                    
+
                     $this->save($newRec, null, 'REPLACE');
                     $count++;
                 }
