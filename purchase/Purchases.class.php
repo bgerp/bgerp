@@ -512,14 +512,14 @@ class purchase_Purchases extends deals_DealMaster
         purchase_transaction_Purchase::clearCache();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         
-        $deliveredAmount = purchase_transaction_Purchase::getDeliveryAmount($entries, $rec->id);
+        $deliveredAmount = purchase_transaction_Purchase::getDeliveryAmount($entries, $rec);
         $paidAmount = purchase_transaction_Purchase::getPaidAmount($entries, $rec);
         
         $result->set('agreedDownpayment', $downPayment);
         $result->set('downpayment', purchase_transaction_Purchase::getDownpayment($entries));
         $result->set('amountPaid', $paidAmount);
         $result->set('deliveryAmount', $deliveredAmount);
-        $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries, $rec->id));
+        $result->set('blAmount', purchase_transaction_Purchase::getBlAmount($entries, $rec));
 
         // Опитваме се да намерим очакваното плащане
         $expectedPayment = null;

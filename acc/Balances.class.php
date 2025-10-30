@@ -849,15 +849,17 @@ class acc_Balances extends core_Master
      *
      * @param array       $jRecs   - масив с данни от журнала
      * @param string      $accs    - Масив от сметки на които ще се изчислява крайното салдо
-     * @param string|NULL $type    - кредното, дебитното или крайното салдо
+     * @param string|null $type    - кредното, дебитното или крайното салдо
      * @param string      $accFrom - сметки с които може да кореспондира
      * @params array $items - масив с пера, които трябва да са на посочените позиции
      * @params array $ignoreClassIds - записите от кои класове да се игнорират
+     * @param string|null $toBaseCurrencyDate - към основната валута за коя дата
+     *  @param string|null $useCurrencyField  - да се сумира по валута, а не по сума
      * @return stdClass $res - обект със следната структура:
      *                  ->amount - крайното салдо на сметката, ако няма записи е 0
      *                  ->recs   - тази част от подадените записи, участвали в образуването на салдото
      */
-    public static function getBlAmounts($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $ignoreClassIds = array(), $toBaseCurrencyDate = null)
+    public static function getBlAmounts($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $ignoreClassIds = array(), $toBaseCurrencyDate = null, $useCurrencyField = false)
     {
         $res = new stdClass();
         $res->amount = 0;
@@ -950,7 +952,11 @@ class acc_Balances extends core_Master
             if (in_array($rec->debitAccId, $newAccArr)) {
                 if ($skipDebit !== true) {
                     if ($type === null || $type == 'debit') {
-                        $res->amount += deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
+                        if($useCurrencyField == 'debitQuantity'){
+                            $res->amount += $rec->debitQuantity;
+                        } else {
+                            $res->amount += deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
+                        }
                         $add = true;
                     }
                 }
@@ -961,7 +967,11 @@ class acc_Balances extends core_Master
                     $sign = ($type === null) ? -1 : 1;
                     
                     if ($type === null || $type == 'credit') {
-                        $res->amount += $sign * deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
+                        if($useCurrencyField == 'creditQuantity'){
+                            $res->amount += $rec->creditQuantity;
+                        } else {
+                            $res->amount += $sign * deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
+                        }
                     }
                     
                     $add = true;
