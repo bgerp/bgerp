@@ -99,7 +99,7 @@ class cat_products_Packagings extends core_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'eanCode,firstClassId,firstDocId';
+    public $fieldsNotToClone = 'eanCode,firstClassId,firstDocId,usages';
 
 
     /**

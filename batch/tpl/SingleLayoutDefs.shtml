@@ -15,7 +15,13 @@
                 	<!--ET_BEGIN format-->
                 	<tr><td class="quiet">|Формат|*:</td> <td>[#format#]</td></tr>
                 	<!--ET_END format-->
-                	
+
+                    <!--ET_BEGIN paramId-->
+                    <tr><td class="quiet">|Параметър|*:</td> <td>[#paramId#]</td></tr>
+                    <!--ET_END paramId-->
+                    <!--ET_BEGIN strategy-->
+                    <tr><td class="quiet">|Изписване|*:</td> <td>[#strategy#]</td></tr>
+                    <!--ET_END strategy-->
                 	<!--ET_BEGIN length-->
                 	<tr><td class="quiet">|Дължина|*:</td> <td>[#length#]</td></tr>
                 	<!--ET_END length-->
