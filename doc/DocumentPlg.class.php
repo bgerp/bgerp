@@ -4386,6 +4386,8 @@ class doc_DocumentPlg extends core_Plugin
             if (!$rec->_notModified) {
                 $dKey = $mvc->className . '|' . $rec->id;
                 $mvc->pendingUpdateModifiedArr[$dKey] = array('id' => $rec->id, 'mvc' => $mvc, 'modifiedOn' => dt::now(), 'modifiedBy' => core_Users::getCurrent());
+
+                core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 4, 0, 0, true);
             }
         }
     }

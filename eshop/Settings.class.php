@@ -401,6 +401,7 @@ class eshop_Settings extends core_Master
                 }
                 $form->setDefault('objectId', key($options));
             } else {
+                $form->info = "<div class='formError'>" . tr("Всички налични домейни имат вече настройки|*!") . "</info>";
                 $form->setReadOnly('objectId');
             }
         }
