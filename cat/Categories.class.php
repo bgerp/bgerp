@@ -239,8 +239,6 @@ class cat_Categories extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-
-
         if ($fields['-list']) {
             if ($rec->useAsProto == 'no') {
                 $row->useAsProto = "<span class='quiet'>{$row->useAsProto}</span>";
@@ -509,10 +507,7 @@ class cat_Categories extends core_Master
     {
         $rec = $this->fetchRec($id);
 
-        if ($rec->useAsProto != 'no') {
-            
-            return 'template';
-        }
+        if ($rec->useAsProto == 'yes') return 'template';
         
         return 'public';
     }
