@@ -1199,7 +1199,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             // Ако няма настройка за приспадане на тарата да не се показва колонката за нето
             $masterCenterRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetMeasureId');
-            if(empty($masterCenterRec->useTareFromParamId) && empty($masterCenterRec->useTareFromPackagings)){
+            if(empty($masterCenterRec->useTareFromParamId) && empty($masterCenterRec->useTareFromPackagings) && !planning_ProductionTaskProducts::count("#taskId = {$data->masterId} AND #tareWeight IS NOT NULL")){
                 unset($data->listFields['netWeight']);
             }
         } else {
