@@ -390,7 +390,7 @@ abstract class deals_Helper
         }
 
         if(haveRole('debug')) {
-            $arr['currencyRateHint'] = ht::createHint('', "Валутен курс: {$currencyRate}", 'img/16/bug.png', false);
+            $arr['currencyRateHint'] = ht::createHint('', "Валутен курс|*: {$currencyRate}", 'img/16/bug.png', false);
         }
 
         return (object) $arr;
