@@ -35,7 +35,7 @@ class crm_GroupEmbed extends core_BaseClass
     public static function addFields(&$form)
     {
         $form->FLD('crmGroup', 'key(mvc=crm_Groups,select=name)', 'caption=Група контрагенти');
-        $form->FLD('layout', 'enum(standard=Стандартен)', 'caption=Лейаут');
+        $form->FLD('layout', 'enum(standard=Стандартен, short=Кратък)', 'caption=Лейаут');
     }
     
     
@@ -55,11 +55,9 @@ class crm_GroupEmbed extends core_BaseClass
             
             return '';
         }
-        
-       
-        
-        $tpl = new ET(getFileContent('crm/tpl/ContragetExternalList.shtml'));
- 
+
+        $tpl =  ($rec->layout === 'standard') ?  new ET(getFileContent('crm/tpl/ContragetExternalList.shtml')) : new ET(getFileContent('crm/tpl/ContragetExternalShort.shtml'));
+
         $contragents = array();
 
         // Извличане на визитките
@@ -68,8 +66,9 @@ class crm_GroupEmbed extends core_BaseClass
         while($cRec = $cQuery->fetch()) {
             $contragents[$cRec->id] = crm_Companies::recToVerbal($cRec);
             $contragents[$cRec->id]->name = crm_Companies::getVerbal($cRec, 'name');
+            $contragents[$cRec->id]->link = $cRec->website;
             if ($cRec->logo) {
-                $thumb = new thumb_Img(array($cRec->logo, 100, 100, 'fileman', $contragents[$cRec->id]->name));
+                $thumb = new thumb_Img(array($cRec->logo, 250, 250, 'fileman', $contragents[$cRec->id]->name));
                 $contragents[$cRec->id]->logo = $thumb->createImg();
             } else {
                 $contragents[$cRec->id]->logo = ht::createImg(array('class' => 'logoImg', 'alt' => $contragents[$cRec->id]->name, 'src' => sbf("img/noimage120.gif", '')));
