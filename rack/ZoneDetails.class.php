@@ -425,11 +425,9 @@ class rack_ZoneDetails extends core_Detail
         $allocated = is_array($allocated) ? $allocated : array();
 
         list($productId, $packagingId, $batch) = array($rec->productId, $rec->packagingId, $rec->batch);
-        $data->recs = array_filter($movementArr, function($o) use($productId, $batch, $allocated){
-			return $o->productId == $productId
-				&& $o->batch == $batch
-				&& !array_key_exists($o->id, $allocated);
-		});
+        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch, $allocated){
+            return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch && !array_key_exists($o->id, $allocated);
+        });
 
         if(countR($data->recs)){
             $masterRec->_noMovements = true;
