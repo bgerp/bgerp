@@ -1376,8 +1376,8 @@ class rack_Zones extends core_Master
 			if (!array_key_exists($key, $res->products)) {
 				$res->products[$key] = (object)[
 					'productId' => $dRec->productId,
-					// 🔸 винаги "основната мярка на артикула" се ползва като "основна"
-					'packagingId' => cat_Products::fetchField($dRec->productId, 'measureId'),
+					// 🔸 първата срещната опаковка се ползва като "основна"
+					'packagingId' => $dRec->packagingId,
 					'zones' => [],
 					'batch' => $dRec->batch
 				];
