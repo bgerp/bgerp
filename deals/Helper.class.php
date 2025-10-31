@@ -389,6 +389,10 @@ abstract class deals_Helper
             $arr['vat02BaseCurrencyId'] = $baseCurrency;
         }
 
+        if(haveRole('debug')) {
+            $arr['currencyRateHint'] = ht::createHint('', "Валутен курс: {$currencyRate}", 'img/16/bug.png', false);
+        }
+
         return (object) $arr;
     }
     
