@@ -93,9 +93,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none,input=none');
 
-        $fieldset->FLD('group', 'key2(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=employees,removeAndRefreshForm,silent,single=none');
+        $fieldset->FLD('group', 'key2(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=employees,removeAndRefreshForm=productId,silent,single=none');
 
-        $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
+        $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Филтри->Артикули,placeholder=Всички,silent,after=group,single=none,class=w100');
 
         $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=products,mandatory,removeAndRefreshForm,single=none');
 
@@ -126,11 +126,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $form->setField('resultsOn', 'input=none');
         }
 
-        //bp($rec->group);
-
-        $suggestions1 = cat_Products::getProducts(null, null, null, null, null, null, false, $rec->group);
-
-        $form->setSuggestions('products', $suggestions1);
+        //Зарежда полето артикули
+        if(isset($rec->group)){
+            $form->setFieldTypeParams('productId', array('groups' => keylist::addKey('', $rec->group)));
+        } else {
+            $form->setField('productId', 'input=none');
+        }
 
     }
 
@@ -192,7 +193,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         //Филтър по артикул
-        if (isset($rec->products)) {
+        if (isset($rec->productId)) {
             $query->where("#productId = {$rec->products} ");
         }
 

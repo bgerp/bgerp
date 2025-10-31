@@ -285,7 +285,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $dealerRolesList = implode('|', arr::make($mvc->dealerRolesList, true));
         $dealerRolesForAll = implode('|', arr::make($mvc->dealerRolesForAll, true));
         
-        $mvc->FLD('valior', 'date', 'caption=Дата,notChangeableByContractor');
+        $mvc->FLD('valior', 'date', 'caption=Дата');
         $mvc->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         
         // Стойности
@@ -530,6 +530,12 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         if (!$form->isSubmitted()) return;
         $rec = &$form->rec;
+
+        if(core_Users::isContractor()){
+            if(!empty($rec->valior) && $rec->valior <= dt::today()){
+                $form->setError('valior', 'Вальорът не може да е в миналото|*!');
+            }
+        }
 
         // Какъв е новия курс
         $rec->_newCurrencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
