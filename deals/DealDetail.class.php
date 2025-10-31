@@ -745,7 +745,7 @@ abstract class deals_DealDetail extends doc_Detail
                     }
 
                     if($hasChangedQuantity){
-                        $msg = "Списъкът е импортиран успешно";
+                        $msg = "Списъкът е импортиран успешно|*!";
                         $logText = "Импортиране на артикули от списък";
                     }
                 }
@@ -754,7 +754,7 @@ abstract class deals_DealDetail extends doc_Detail
                     foreach ($toSave as $saveRec) {
                         $this->save($saveRec);
                     }
-                    $msg = "Списъкът е импортиран успешно";
+                    $msg = "Списъкът е импортиран успешно|*!";
                     $logText = "Импортиране на артикули от списък";
                 }
                 
