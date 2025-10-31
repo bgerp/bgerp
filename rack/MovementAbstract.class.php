@@ -208,21 +208,30 @@ abstract class rack_MovementAbstract extends core_Manager
             $zoneQuantities = array();
             foreach ($zones as $zoneRec) {
                 $class = ($rec->state == 'active') ? "class='movement-position-notice'" : "";
-                if($zRec = rack_Zones::fetch($zoneRec->zone, 'id,num')){
-                    $num = $zRec->num;
-                    $zoneTitle = rack_Zones::getDisplayZone($zoneRec->zone, false, false);
-                    if($makeLinks){
-                        $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
-                    }
-                } else {
-                    $num = $zoneRec->zone;
-                    $zoneTitle = ht::createHint($zoneRec->zone, 'Зоната вече не съществува', 'warning');
-                }
+                if (!empty($zoneRec->zone) && ($zRec = rack_Zones::fetch($zoneRec->zone, 'id,num'))) {
+					$num = $zRec->num;
+					$zoneTitle = rack_Zones::getDisplayZone($zoneRec->zone, false, false);
+					if ($makeLinks) {
+						$zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
+					}
+				} else {
+					$num = is_scalar($zoneRec->zone) ? $zoneRec->zone : '?';
+					$zoneTitle = ht::createHint($zoneRec->zone ?: 'Без зона', 'Зоната вече не съществува или е невалидна', 'warning');
+				}
                 $zoneQuantities[$zoneRec->zone] = (object)array('quantity' => round($zoneRec->quantity * $rec->quantityInPack, 6), 'position' => $zoneTitle, 'class' => $class, 'num' => $num);
             }
 
-            arr::sortObjects($zoneQuantities, 'num', 'ASC');
-            $quantities += $zoneQuantities;
+            // 🔄 Сортиране на зоните: първо текущата, после останалите по num
+			arr::sortObjects($zoneQuantities, 'num', 'ASC');
+
+			if (!empty($rec->_currentZoneId) && isset($zoneQuantities[$rec->_currentZoneId])) {
+				// Изваждаме текущата зона и я поставяме първа
+				$current = [$rec->_currentZoneId => $zoneQuantities[$rec->_currentZoneId]];
+				unset($zoneQuantities[$rec->_currentZoneId]);
+				$zoneQuantities = $current + $zoneQuantities;
+			}
+
+			$quantities += $zoneQuantities;
 
             if (!empty($positionTo) && round($restQuantity, 6)) {
                 if($rec->positionTo != $rec->position){
