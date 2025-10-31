@@ -57,7 +57,7 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $datetime = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = true, $discountListId = null)
     {
-        $date =  !empty($date) ? $date : dt::today();
+        $date =  !empty($datetime) ? $datetime : dt::today();
 
         // Проверява се имали последна цена по оферта
         if ($quotationPriceFirst === true) {
