@@ -28,27 +28,33 @@
     line-height: 1.5rem;
     color: #555;
 }
-.logo {
+
+.company-box .logo {
     width: 23%;
     max-width: 100px;
     min-width: 100px;
 }
-.narrow .logo {
+
+.narrow .company-box .logo {
     width: 25%;
 }
+
 .narrow .company-holder .website {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 0.85em !important;
 }
+
 .company-holder .website {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.logo img {
+
+.company-box .logo img {
     max-width: 100px !important;
+    height: auto;
 }
 
 .info {
@@ -66,4 +72,28 @@
 .company-box:hover {
     transform: translateY(-10px);
     border-color: #ccc;
+}
+
+.logoBox {
+    margin: 40px 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.logoBox .logo {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    transition: all 0.2s;
+}
+
+.logoBox .logo img {
+    width: 100%;
+    height: auto;
+}
+
+.logoBox .logo:hover {
+    filter: brightness(1.1);
+    scale: 1.2;
 }
