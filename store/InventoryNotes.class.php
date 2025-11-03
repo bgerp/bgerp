@@ -612,33 +612,39 @@ class store_InventoryNotes extends core_Master
         
         // Подготвяме записите в нормален вид
         if (is_array($bRecs)) {
+            $productItems = arr::extractValuesFromArray($bRecs, "ent{$productPositionId}Id");
+            $iRecs = $productGroups = array();
+            if(countR($productItems)){
+                $iQuery = acc_Items::getQuery();
+                $iQuery->in('id', $productItems);
+                $iQuery->show('objectId');
+                $iRecs = $iQuery->fetchAll();
+
+                $pIds = arr::extractValuesFromArray($iRecs, 'objectId');
+                $catQuery = cat_Products::getQuery();
+                $catQuery->in('id', $pIds);
+                $catQuery->show('groups');
+                $productGroups = $catQuery->fetchAll();
+            }
+
             foreach ($bRecs as $bRec) {
                 
                 // Записите, които не са от избрания склад ги пропускаме
-                if ($bRec->ent1Id != $storeItemId) {
-                    continue;
-                }
+                if ($bRec->ent1Id != $storeItemId) continue;
 
-                core_Debug::startTimer('SYNC_BALANCE_FETCH_ITEMS');
-                $productId = acc_Items::fetchField($bRec->{"ent{$productPositionId}Id"}, 'objectId');
-                core_Debug::stopTimer('SYNC_BALANCE_FETCH_ITEMS');
-
+                $productId = $iRecs[$bRec->{"ent{$productPositionId}Id"}]->objectId;
                 $aRec = (object) array('noteId' => $rec->id,
-                    'productId' => $productId,
-                    'groups' => null,
-                    'modifiedOn' => $now,
-                    'createdBy' => core_Users::SYSTEM_USER,
-                    'blQuantity' => $bRec->blQuantity);
+                                       'productId' => $productId,
+                                       'groups' => null,
+                                       'modifiedOn' => $now,
+                                       'createdBy' => core_Users::SYSTEM_USER,
+                                       'blQuantity' => $bRec->blQuantity);
                 $aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
 
-                core_Debug::startTimer('SYNC_BALANCE_FETCH_PRODUCT_GROUPS');
-                $groups = cat_Products::fetchField($productId, 'groups');
-                core_Debug::stopTimer('SYNC_BALANCE_FETCH_PRODUCT_GROUPS');
-
-                if (!empty($groups)) {
-                    $aRec->groups = $groups;
+                if (!empty($productGroups[$productId]->groups)) {
+                    $aRec->groups = $productGroups[$productId]->groups;
                 }
-                
+
                 $res[$productId] = $aRec;
             }
         }
@@ -652,6 +658,15 @@ class store_InventoryNotes extends core_Master
             core_Debug::stopTimer('SYNC_BALANCE_BATCH_MOVEMENT');
 
             $withMovementsButNotInBalance = array_diff_key($withMovements, $res);
+
+            $productGroups = array();
+            if(countR($withMovementsButNotInBalance)){
+                $catQuery = cat_Products::getQuery();
+                $catQuery->in('id', array_keys($withMovementsButNotInBalance));
+                $catQuery->show('groups');
+                $productGroups = $catQuery->fetchAll();
+            }
+
             foreach($withMovementsButNotInBalance as $pId => $q){
                 if(empty($q)) continue;
 
@@ -663,12 +678,8 @@ class store_InventoryNotes extends core_Master
                     'blQuantity' => 0);
                 $aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
 
-                core_Debug::startTimer('SYNC_BALANCE_FETCH_PRODUCT_GROUPS_2');
-                $groups = cat_Products::fetchField($pId, 'groups');
-                core_Debug::stopTimer('SYNC_BALANCE_FETCH_PRODUCT_GROUPS_2');
-
-                if (!empty($groups)) {
-                    $aRec->groups = $groups;
+                if (!empty($productGroups[$pId]->groups)) {
+                    $aRec->groups = $productGroups[$pId]->groups;
                 }
 
                 $res[$pId] = $aRec;
