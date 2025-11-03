@@ -97,7 +97,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Филтри->Артикули,placeholder=Всички,silent,after=group,single=none,class=w100');
 
-        $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=products,mandatory,removeAndRefreshForm,single=none');
+        $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=productId,mandatory,removeAndRefreshForm,single=none');
 
         $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,removeAndRefreshForm,after=typeOfReport,single=none');
 
@@ -194,7 +194,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Филтър по артикул
         if (isset($rec->productId)) {
-            $query->where("#productId = {$rec->products} ");
+            $query->where("#productId = {$rec->productId} ");
         }
 
         //Филтър по служители
