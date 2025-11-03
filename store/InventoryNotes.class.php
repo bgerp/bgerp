@@ -1223,4 +1223,16 @@ class store_InventoryNotes extends core_Master
             }
         }
     }
+
+
+    /**
+     * Връща масив с файловете цитирани в артикула
+     *
+     * @param int|stdClass $id - ид или запис
+     * @return array           - масив от файл хендлъри и имена
+     */
+    public function getLinkedFiles($id)
+    {
+        return array();
+    }
 }
