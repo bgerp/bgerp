@@ -267,7 +267,7 @@ abstract class store_DocumentMaster extends core_Master
                 if($rec->currencyId != $valiorBaseCurrencyId){
                     if(isset($rec->id)){
                         $oldRec = $mvc->fetch($rec->id, 'valior,currencyRate', false);
-                        $rec->_oldValior = $oldRec->valior ?? dt::today();
+                        $rec->_oldValior = $oldRec->valior ?? dt::verbal2mysql($rec->createdOn, false);
                         $rec->_oldRate = $oldRec->currencyRate;
                     }
                     $rec->currencyId = $valiorBaseCurrencyId;
@@ -276,7 +276,7 @@ abstract class store_DocumentMaster extends core_Master
                 if(isset($rec->id)) {
                     $oldRec = $mvc->fetch($rec->id, 'valior,currencyRate', false);
                     if(acc_Periods::getBaseCurrencyCode($oldRec->valior) != acc_Periods::getBaseCurrencyCode($rec->valior)){
-                        $rec->_oldValior = $oldRec->valior ?? dt::today();
+                        $rec->_oldValior = $oldRec->valior ?? dt::verbal2mysql($rec->createdOn, false);
                         $rec->_oldRate = $oldRec->currencyRate;
                     }
                 }

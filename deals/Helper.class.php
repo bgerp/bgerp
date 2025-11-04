@@ -3266,7 +3266,8 @@ abstract class deals_Helper
         $dQuery->where("#{$Detail->masterKey} = {$masterRec->id}");
         while($dRec = $dQuery->fetch()){
             if($masterRec->_dealCurrencyId == 'BGN') {
-                $dRec->{$priceFld} = deals_Helper::getSmartBaseCurrency($dRec->price, $oldValior, $newValior);
+
+                $dRec->{$priceFld} = deals_Helper::getSmartBaseCurrency($dRec->{$priceFld}, $oldValior, $newValior);
             } else {
                 $dRec->{$priceFld} = ($dRec->{$priceFld} / $oldRate) * $masterRec->{$rateFld};
             }
