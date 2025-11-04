@@ -154,7 +154,7 @@ class currency_Currencies extends core_Master
      */
     public static function getIdByCode($code)
     {
-        expect($id = self::fetchField(array("#code = '[#1#]'", $code), 'id'));
+        expect($id = self::fetchField(array("#code = '[#1#]'", $code), 'id'), $code);
 
         return $id;
     }

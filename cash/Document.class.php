@@ -242,8 +242,9 @@ abstract class cash_Document extends deals_PaymentDocument
             $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
         }
 
-        if($firstRec->currencyId != $documentRec->currencyId){
-            $amount = currency_CurrencyRates::convertAmount($amount, null, $documentRec->currencyId, $firstRec->currencyId);
+        $documentCurrencyId = is_numeric($documentRec->currencyId) ? currency_Currencies::getCodeById($documentRec->currencyId) : $documentRec->currencyId;
+        if($firstRec->currencyId != $documentCurrencyId){
+            $amount = currency_CurrencyRates::convertAmount($amount, null, $documentCurrencyId, $firstRec->currencyId);
         }
 
         if(isset($amount)){
