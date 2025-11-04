@@ -278,15 +278,11 @@ class bgfisc_plg_CashDocument extends core_Plugin
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        if (!self::isApplicable($form->rec->threadId)) {
-            
-            return;
-        }
-        
-        $form->setReadOnly('currencyId');
+        $rec = &$form->rec;
+        if (!self::isApplicable($rec->threadId)) return;
         
         if($form->isSubmitted()){
-            if(isset($form->rec->_allIsPaid)){
+            if(isset($rec->_allIsPaid)){
                 $form->setWarning('amountDeal', 'Цялата сума по документа е платена|! |Наистина ли желаете да продължите|*?');
             }
         }

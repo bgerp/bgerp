@@ -279,8 +279,15 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
+
+        if(core_Packs::isInstalled('bgfisc') && dt::today() > acc_Setup::getEurozoneDate()){
+            if(isset($form->rec->peroCase)){
+                $form->setDefault('currencyId', currency_Currencies::getIdByCode('EUR'));
+                $form->setReadOnly('currencyId');
+            }
+        }
         $form->setDefault('currencyId', $cId);
-        
+
         $expectedPayment = null;
         $realOriginId = isset($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
         $realOriginId = isset($realOriginId) ? $realOriginId : doc_Threads::getFirstContainerId($form->rec->threadId);
