@@ -161,6 +161,12 @@ abstract class bank_Document extends deals_PaymentDocument
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
      * Добавяне на дефолтни полета
      *
      * @param core_Mvc $mvc

@@ -57,6 +57,12 @@ abstract class cash_Document extends deals_PaymentDocument
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
      * Дали към документа може да се отнася повече от една ф-ра
      * @see deals_InvoicesToDocuments
      */

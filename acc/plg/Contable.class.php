@@ -1025,7 +1025,9 @@ class acc_plg_Contable extends core_Plugin
 
             // Преди активиране се проверява дали все пак валутата на документа е допустима към вальора
             $currencyError = null;
-            if (!currency_Currencies::checkCurrency($rec->{$mvc->currencyFld}, $rec->{$mvc->valiorFld}, $currencyError)) {
+            $checkCurrencyForPayment = ($mvc instanceof deals_PaymentDocument);
+
+            if (!currency_Currencies::checkCurrency($rec->{$mvc->currencyFld}, $rec->{$mvc->valiorFld}, $currencyError, $checkCurrencyForPayment)) {
                 if($mvc instanceof deals_DealMaster){
                     if(!empty($rec->contoActions)){
                         $rec->contoActions = null;
