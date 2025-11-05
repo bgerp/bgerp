@@ -674,7 +674,18 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row->weight = ht::styleNumber($row->weight, $dRec->weight);
 
         if ($rec->typeOfReport == 'short' && isset($dRec->employees)) {
-            $row->employees = crm_Persons::getTitleById(($dRec->employees)) . ' - ' . planning_Hr::getCodeLink($dRec->employees);
+
+            if (isset($dRec->employees)) {
+                foreach (keylist::toArray($dRec->employees) as $key => $val) {
+
+                    $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val]);
+
+                    $name = crm_Persons::fetch($val)->name.' / '.planning_Hr::getCodeLink($val);
+                    $pers = ht::createLink($name, array('crm_Persons', 'single', $val)) . ' - ' . $indTimeSum . ' мин.';
+
+                    $row->employees .= $pers . '</br>';
+                }
+            }
 
             $row->indTimeSum = $Double->toVerbal($dRec->indTimeSum / 60);
         } else {
