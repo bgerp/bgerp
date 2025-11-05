@@ -179,6 +179,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $query->EXT('originId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'originId'));
         $query->where("#state != 'rejected' ");
 
+        // Синхронизира таймлимита с броя записи //
+        $maxTimeLimit = $query->count() * 20;
+        $maxTimeLimit = max(array($maxTimeLimit, 300));
+        if ($maxTimeLimit > 300) {
+            core_App::setTimeLimit($maxTimeLimit);
+        }
+
         //Филтър по център на дейност
         if ($rec->centre) {
 
