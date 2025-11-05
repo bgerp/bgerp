@@ -2475,11 +2475,15 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $this->requireRightFor('edit');
         expect(core_Users::isPowerUser());
-        $contragentClassId = Request::get('contragentClassId', 'int');
-        $contragentId = Request::get('contragentId', 'int');
-        
+        expect($contragentClassId = Request::get('contragentClassId', 'int'));
+        expect($contragentId = Request::get('contragentId', 'int'));
+        expect($currencyId = Request::get('currencyId', 'varchar'));
+
+        if($currencyId == 'BGN' && dt::today() >= acc_Setup::getEurozoneDate()) {
+            $currencyId = "EUR";
+        }
         $query = $this->getQuery();
-        $query->where("#state = 'draft' AND #contragentId = {$contragentId} AND #contragentClassId = {$contragentClassId}");
+        $query->where("#state = 'draft' AND #currencyId = '{$currencyId}' AND #contragentId = {$contragentId} AND #contragentClassId = {$contragentClassId}");
         
         $options = array();
         while ($rec = $query->fetch()) {

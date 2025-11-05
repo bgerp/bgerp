@@ -280,7 +280,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
 
-        if(core_Packs::isInstalled('bgfisc') && dt::today() > acc_Setup::getEurozoneDate()){
+        if(core_Packs::isInstalled('bgfisc') && dt::today() >= acc_Setup::getEurozoneDate()){
             if(isset($form->rec->peroCase)){
                 $form->setDefault('currencyId', currency_Currencies::getIdByCode('EUR'));
                 $form->setReadOnly('currencyId');

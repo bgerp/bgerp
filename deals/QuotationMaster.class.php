@@ -953,6 +953,17 @@ abstract class deals_QuotationMaster extends core_Master
             }
         }
 
+        // Ако офертата е в лева, но сме след еврозоната - ще е в евро вече продажбата
+        if(dt::today() >= acc_Setup::getEurozoneDate()){
+            if($fields['currencyId'] == 'BGN'){
+                $fields['currencyId'] = "EUR";
+            }
+        }
+
+        if(acc_Periods::getBaseCurrencyCode($rec->date) != acc_Periods::getBaseCurrencyCode()){
+            $fields['currencyRate'] = currency_CurrencyRates::getRate(dt::today(), $fields['currencyId'], null);
+        }
+
         // Създаваме нова продажба от офертата
         $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
 
@@ -1345,7 +1356,7 @@ abstract class deals_QuotationMaster extends core_Master
             // Опит да се намери съществуваща чернова сделка
             if (!Request::get('dealId', "key(mvc={$DealClass->className})") && !Request::get('stop')) {
 
-                return new Redirect(array($DealClass, 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => true, 'quotationId' => $rec->id));
+                return new Redirect(array($DealClass, 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'currencyId' => $rec->currencyId, 'ret_url' => true, 'quotationId' => $rec->id));
             }
         }
 
@@ -1362,7 +1373,17 @@ abstract class deals_QuotationMaster extends core_Master
         }
 
         // За всеки детайл на офертата подаваме го като детайл на сделката
+        $saleRec = sales_Sales::fetchRec($sId);
         foreach ($items as $item) {
+            // Ако основната валута е сменена - прави се преизчисляване
+            if(dt::today() >= acc_Setup::getEurozoneDate()){
+                if($rec->currencyId == 'BGN'){
+                    $item->price = deals_Helper::getSmartBaseCurrency($item->price, $rec->date, $saleRec->valior);
+                } else {
+                    $item->price = ($item->price / $rec->currencyRate) * $saleRec->currencyRate;
+                }
+            }
+
             $addedRecId = $DealClass::addRow($sId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
 
             if($DealClass instanceof sales_Sales){
