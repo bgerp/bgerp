@@ -46,13 +46,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField = 'assetResources';
+   // protected $groupByField = 'assetResources';
+    protected $groupByField ;
 
 
     /**
      * По-кое поле да се групират данните след групиране, вътре в групата
      */
-    protected $subGroupFieldOrder = 'productId';
+    //protected $subGroupFieldOrder = 'productId';
+    protected $subGroupFieldOrder ;
 
 
     /**

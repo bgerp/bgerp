@@ -602,34 +602,49 @@ class store_InventoryNotes extends core_Master
         $now = dt::now();
         
         // Изчисляваме баланс за подадения период за склада
+        core_Debug::startTimer('SYNC_BALANCE_GET_BALANCE');
         $storeItemId = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
         $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => false, 'item1' => $storeItemId, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
+        core_Debug::stopTimer('SYNC_BALANCE_GET_BALANCE');
+
         $productPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
         
         // Подготвяме записите в нормален вид
         if (is_array($bRecs)) {
+            $productItems = arr::extractValuesFromArray($bRecs, "ent{$productPositionId}Id");
+            $iRecs = $productGroups = array();
+            if(countR($productItems)){
+                $iQuery = acc_Items::getQuery();
+                $iQuery->in('id', $productItems);
+                $iQuery->show('objectId');
+                $iRecs = $iQuery->fetchAll();
+
+                $pIds = arr::extractValuesFromArray($iRecs, 'objectId');
+                $catQuery = cat_Products::getQuery();
+                $catQuery->in('id', $pIds);
+                $catQuery->show('groups');
+                $productGroups = $catQuery->fetchAll();
+            }
+
             foreach ($bRecs as $bRec) {
                 
                 // Записите, които не са от избрания склад ги пропускаме
-                if ($bRec->ent1Id != $storeItemId) {
-                    continue;
-                }
-                
-                $productId = acc_Items::fetchField($bRec->{"ent{$productPositionId}Id"}, 'objectId');
+                if ($bRec->ent1Id != $storeItemId) continue;
+
+                $productId = $iRecs[$bRec->{"ent{$productPositionId}Id"}]->objectId;
                 $aRec = (object) array('noteId' => $rec->id,
-                    'productId' => $productId,
-                    'groups' => null,
-                    'modifiedOn' => $now,
-                    'createdBy' => core_Users::SYSTEM_USER,
-                    'blQuantity' => $bRec->blQuantity);
+                                       'productId' => $productId,
+                                       'groups' => null,
+                                       'modifiedOn' => $now,
+                                       'createdBy' => core_Users::SYSTEM_USER,
+                                       'blQuantity' => $bRec->blQuantity);
                 $aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
-                
-                $groups = cat_Products::fetchField($productId, 'groups');
-                if (!empty($groups)) {
-                    $aRec->groups = $groups;
+
+                if (!empty($productGroups[$productId]->groups)) {
+                    $aRec->groups = $productGroups[$productId]->groups;
                 }
-                
+
                 $res[$productId] = $aRec;
             }
         }
@@ -638,8 +653,20 @@ class store_InventoryNotes extends core_Master
         if($rec->expandByBatches == 'yes'){
 
             // Тези от баланса, които има наличности по партиди и не се срещат от баланса ще се добавят с 0-во очаквано
+            core_Debug::startTimer('SYNC_BALANCE_BATCH_MOVEMENT');
             $withMovements = batch_Items::getProductsWithMovement($rec->storeId, null, $to);
+            core_Debug::stopTimer('SYNC_BALANCE_BATCH_MOVEMENT');
+
             $withMovementsButNotInBalance = array_diff_key($withMovements, $res);
+
+            $productGroups = array();
+            if(countR($withMovementsButNotInBalance)){
+                $catQuery = cat_Products::getQuery();
+                $catQuery->in('id', array_keys($withMovementsButNotInBalance));
+                $catQuery->show('groups');
+                $productGroups = $catQuery->fetchAll();
+            }
+
             foreach($withMovementsButNotInBalance as $pId => $q){
                 if(empty($q)) continue;
 
@@ -651,9 +678,8 @@ class store_InventoryNotes extends core_Master
                     'blQuantity' => 0);
                 $aRec->searchKeywords = $Summary->getSearchKeywords($aRec);
 
-                $groups = cat_Products::fetchField($pId, 'groups');
-                if (!empty($groups)) {
-                    $aRec->groups = $groups;
+                if (!empty($productGroups[$pId]->groups)) {
+                    $aRec->groups = $productGroups[$pId]->groups;
                 }
 
                 $res[$pId] = $aRec;
@@ -681,7 +707,9 @@ class store_InventoryNotes extends core_Master
         core_App::setTimeLimit(800);
         
         // Извличаме артикулите от баланса
+        core_Debug::startTimer('SYNC_BALANCE_RECS');
         $balanceArr = $this->getProductsFromBalance($rec);
+        core_Debug::stopTimer('SYNC_BALANCE_RECS');
 
         if($rec->quantitiesFilter != 'all'){
             $balanceArr = array_filter($balanceArr, function($a) use ($rec){
@@ -694,8 +722,10 @@ class store_InventoryNotes extends core_Master
         }
 
         // Извличаме текущите записи
+        core_Debug::startTimer('SYNC_CURRENT_PRODUCTS');
         $currentArr = $this->getCurrentProducts($rec);
-        
+        core_Debug::stopTimer('SYNC_CURRENT_PRODUCTS');
+
         // Избраните групи
         $rGroup = cat_Groups::getDescendantArray($rec->groups);
         $rGroup = keylist::toArray($rGroup);
@@ -737,8 +767,9 @@ class store_InventoryNotes extends core_Master
         
         // Ако трябва да се трият артикули
         if (countR($syncedArr['delete'])) {
+            core_Debug::startTimer('SYNC_DELETE_RECS');
             foreach ($syncedArr['delete'] as $deleteId) {
-                
+
                 // Трием само тези, които нямат въведено количество
                 $sRec = store_InventoryNoteSummary::fetch($deleteId, 'productId,quantity,createdBy');
                 if (!isset($sRec->quantity) && ($sRec->createdBy == core_Users::SYSTEM_USER || empty($sRec->createdBy))) {
@@ -746,10 +777,12 @@ class store_InventoryNotes extends core_Master
                     store_InventoryNoteSummary::delete($deleteId);
                 }
             }
+            core_Debug::stopTimer('SYNC_DELETE_RECS');
         }
 
         // Ако е инсталиран пакета за партиди
         if(core_Packs::isInstalled('batch')){
+            core_Debug::startTimer('SYNC_RECALC_SUMMARY');
             $recalcQuery = store_InventoryNoteSummary::getQuery();
             $recalcQuery->where("#noteId = {$rec->id} AND #quantityHasAddedValues = 'yes'");
             $productsWithBatches = batch_Items::getProductsWithDefs(false);
@@ -760,6 +793,7 @@ class store_InventoryNotes extends core_Master
                     store_InventoryNoteSummary::recalc($sRec);
                 }
             }
+            core_Debug::stopTimer('SYNC_RECALC_SUMMARY');
         }
 
         self::logWrite('Синхронизиране на данните', $rec->id);
@@ -1199,5 +1233,17 @@ class store_InventoryNotes extends core_Master
                 $res .= ' ' . $keywords;
             }
         }
+    }
+
+
+    /**
+     * Връща масив с файловете цитирани в артикула
+     *
+     * @param int|stdClass $id - ид или запис
+     * @return array           - масив от файл хендлъри и имена
+     */
+    public function getLinkedFiles($id)
+    {
+        return array();
     }
 }
