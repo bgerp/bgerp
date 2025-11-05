@@ -1116,7 +1116,18 @@ abstract class deals_QuotationMaster extends core_Master
                         $this->logErr($errorMsg, $rec->id);
                     }
 
+                    $saleRec = sales_Sales::fetchRec($sId);
                     foreach ($saveRecs as $dRec){
+
+                        // Ако основната валута е сменена - прави се преизчисляване
+                        if(dt::today() >= acc_Setup::getEurozoneDate()){
+                            if($rec->currencyId == 'BGN'){
+                                $dRec->price = deals_Helper::getSmartBaseCurrency($dRec->price, $rec->date, $saleRec->valior);
+                            } else {
+                                $dRec->price = ($dRec->price / $rec->currencyRate) * $saleRec->currencyRate;
+                            }
+                        }
+
                         // Копира се и транспорта, ако има
                         $addedRecId = $DealClassName::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
                         if($DealClassName == 'sales_Sales'){
