@@ -42,8 +42,6 @@ class type_Email extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        $oValue = $value;
-
         $value = trim($value);
         
         $value = static::replaceEscaped($value);
@@ -52,7 +50,6 @@ class type_Email extends type_Varchar
             
             return;
         }
-        echo $value; die;
 
         if (!$this->isValidEmail($value)) {
             $this->error = 'Некоректен имейл';
