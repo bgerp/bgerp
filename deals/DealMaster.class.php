@@ -176,8 +176,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 // Ако крайния им срок е в миналото и има НЕПЛАТЕНО
                 if(strtotime($dueDate) < $todayTimestamp){
                     $explained .= " e по-малко от сега<br />";
-                    $diff = ($invRec->amount - $invRec->payout) * $invRec->rate;
-                    $explained .= " Неплатено({$invRec->containerId}) :{$diff} (сметнато от " .$invRec->amount * $invRec->rate . " минус " . $invRec->payout * $invRec->rate .")<br />";
+                    $diff = round(($invRec->amount - $invRec->payout) * $invRec->rate, );
+                    $explained .= " Неплатено({$invRec->containerId}) :{$diff} (сметнато от " . round($invRec->amount * $invRec->rate, 2) . " минус " . round($invRec->payout * $invRec->rate, 2) .")<br />";
                     if(round($diff, 2) > 0){
                         $explained .= " е над нула<br />";
 
@@ -3326,16 +3326,18 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         requireRole('debug');
         $threadId = Request::get('threadId', 'int');
-        $payments = deals_Helper::getInvoicePayments($threadId);
 
         $payments1 = deals_Helper::getInvoicePayments($threadId, null, false, false);
+
+        $payments = deals_Helper::getInvoicePayments($threadId);
+
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $pRec = $firstDoc->fetch();
 
         $debug = '';
         $paymentState = $firstDoc->getInstance()->getPaymentState($pRec, null, $debug);
         echo $debug;
-        bp($payments, $payments1, $paymentState, $pRec);
+        bp($payments1, $payments, $paymentState, $pRec);
     }
 
 
