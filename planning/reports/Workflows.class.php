@@ -95,9 +95,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none,input=none');
 
-        $fieldset->FLD('group', 'key2(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=employees,removeAndRefreshForm=productId,silent,single=none');
+        //$fieldset->FLD('group', 'key2(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=employees,removeAndRefreshForm=productId,silent,single=none');
 
-        $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Филтри->Артикули,placeholder=Всички,silent,after=group,single=none,class=w100');
+        $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Филтри->Артикули,placeholder=Всички,silent,after=employees,single=none,class=w100');
 
         $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=productId,mandatory,removeAndRefreshForm,single=none');
 
@@ -129,11 +129,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         //Зарежда полето артикули
-        if(isset($rec->group)){
-            $form->setFieldTypeParams('productId', array('groups' => keylist::addKey('', $rec->group)));
-        } else {
-            $form->setField('productId', 'input=none');
-        }
+       // $form->setFieldTypeParams('productId', array('isPublic' => 'yes'));
 
     }
 
@@ -198,7 +194,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Филтър по групи артикули
         if (isset($rec->group)) {
-            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
+           // plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
         }
 
         //Филтър по артикул
