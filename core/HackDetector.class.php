@@ -24,10 +24,7 @@ class core_HackDetector extends core_MVC
         
         if(!defined('BGERP_HACK_TOLERANCE')) return;
 
-        $score = max(
-                self::sqlInjectionScore($str),
-                self::xssLikelihoodScore($str),
-            );
+        $score = max(self::sqlInjectionScore($str), self::xssLikelihoodScore($str));
 
         if($score > $threashole ?? BGERP_HACK_TOLERANCE) {
             error('400 Bad Request');
