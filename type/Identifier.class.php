@@ -30,7 +30,7 @@ class type_Identifier extends type_Varchar
         }
         
         // Проверяваме дали е валиден
-        $res = self::isValid($value);
+        $res = $this->isValid($value);
         
         // Ако има грешка, показваме нея
         if ($res['error']) {

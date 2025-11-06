@@ -360,7 +360,7 @@ class cms_Articles extends core_Master
         $navData->cnt = 0;
         $navData->showCnt = 0;
 
-        if (($q = Request::get('q')) && $menuId > 0 && !$rec) {
+        if (($q = Request::get('q', 'varchar')) && $menuId > 0 && !$rec) {
             $rec = new stdClass();
             $navData->q = $q;
             $rec->menuId = $menuId;
@@ -524,7 +524,7 @@ class cms_Articles extends core_Master
         
         if ($data->menuId > 0 && ($data->searchCtr)) {
             if (!$data->q) {
-                $data->q = Request::get('q');
+                $data->q = Request::get('q', 'varchar');
             }
             $searchForm = cls::get('core_Form', array('method' => 'GET'));
             $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));

@@ -93,6 +93,11 @@ class type_Varchar extends core_Type
                 $value = null; 
             }
         }
+ 
+        if(strlen($value) > 4) {
+            // Проверка за опити за хакване
+            core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
+        }
 
         return $value;
     }
