@@ -434,10 +434,15 @@ class eshop_CartDetails extends core_Detail
 
                 $quantityExpected = store_Products::getQuantities($rec->productId, $settings->inStockStores, $horizon)->free;
                 if(!empty($quantityExpected)){
-
                     $row->productId .= "<br><span  class='option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
                 }
             }
+        }
+
+        $requireReferrerId = cat_Params::force('requireReferrer', 'Изискуем препоръчител', 'cond_type_YesOrNo', null, '', false, false);
+        $requireReferrer = cat_Products::getParams($rec->productId, $requireReferrerId);
+        if($requireReferrer == 'yes'){
+            $row->productId .= "<span class='option-not-in-stock requirerReferer'>" . tr('Изисква препоръка') . '</span>';
         }
     }
     

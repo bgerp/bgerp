@@ -3926,6 +3926,9 @@ span.sharing-history-title {
   .option-not-in-stock.saleDebug {
     background-color: #a8f3b4 !important;
     color: black !important; }
+  .option-not-in-stock.requirerReferer {
+    background-color: rgba(243, 255, 142, 0.8) !important;
+    color: black !important; }
 
 .eshop-product-list-param {
   font-size: 0.85em;

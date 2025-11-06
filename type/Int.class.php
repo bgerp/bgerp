@@ -82,6 +82,9 @@ class type_Int extends core_Type
         if (preg_replace('`([^x+\-*=/\(\)\d\^<>&|\.]*)`', '', $val) != $val) {
             $this->error = 'Недопустими символи в число/израз';
             
+            // Проверка за опити за хакване
+            core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
+
             return false;
         }
         

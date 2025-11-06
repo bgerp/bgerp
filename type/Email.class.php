@@ -50,10 +50,13 @@ class type_Email extends type_Varchar
             
             return;
         }
-        
+
         if (!$this->isValidEmail($value)) {
             $this->error = 'Некоректен имейл';
             
+            // Проверка за опити за хакване
+            core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
+
             return false;
         }
 

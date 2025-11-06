@@ -768,7 +768,7 @@ class type_Key extends type_Int
         // Приключваме, ако няма заявка за търсене
         $hnd = Request::get('hnd');
         
-        $q = Request::get('q');
+        $q = Request::get('q', 'varchar');
         
         $q = plg_Search::normalizeText($q);
         

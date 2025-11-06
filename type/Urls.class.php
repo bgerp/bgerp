@@ -95,6 +95,9 @@ class type_Urls extends type_Varchar
         
         if (countR($invalidUrls = self::getInvalidUrls($value))) {
             $res['error'] = parent::escape('Стойността не е валидно URL|*: ' . implode($this->params['urlDelimiter'], $invalidUrls));
+            
+            // Проверка за опити за хакване
+            core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
         }
         
         return $res;

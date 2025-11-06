@@ -448,7 +448,7 @@ class select2_Plugin extends core_Plugin
             $maxSuggestions = $invoker->getMaxSuggestions();
         }
         
-        $q = Request::get('q');
+        $q = Request::get('q', 'varchar');
 
         $matchOnlyStartsWith = Request::get('matchOnlyStartsWith') ? true : false;
 

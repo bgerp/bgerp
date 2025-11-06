@@ -3202,7 +3202,7 @@ class doc_Threads extends core_Manager
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        core_Locks::obtain('doc_Threads_Update_' . $rec->id, 60, 0, 0, false);
+        core_Locks::obtain('doc_Threads_Update_' . $rec->id, 90, 0, 0, false);
 
         self::invalidateDocumentCache($rec->id);
     }
