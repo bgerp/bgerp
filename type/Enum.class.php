@@ -68,6 +68,9 @@ class type_Enum extends core_Type
             
             $this->error = 'Недопустима стойност за изброим тип';
             
+            // Проверка за опити за хакване
+            core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
+
             return false;
         }
         

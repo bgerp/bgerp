@@ -763,7 +763,7 @@ class forum_Postings extends core_Detail
         $data->ForumTheme = forum_Boards::getThemeClass();
         $data->action = 'search';
         $data->display = 'public';
-        $data->q = Request::get('q');
+        $data->q = Request::get('q', 'varchar');
         
         $this->prepareSearch($data);
         
