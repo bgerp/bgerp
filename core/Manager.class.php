@@ -1347,7 +1347,7 @@ class core_Manager extends core_Mvc
         }
         
         // Приключваме, ако няма заявка за търсене
-        $q = Request::get('q');
+        $q = Request::get('q', 'varchar');
         
         if (!$q) {
             return array(

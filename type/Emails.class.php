@@ -119,15 +119,17 @@ class type_Emails extends type_Varchar
      */
     public function fromVerbal($value)
     {
+        $oValue = $value;
+
         $value = trim($value);
         
         $value = type_Email::replaceEscaped($value);
 
         if (empty($value)) {
-            
+
             return;
         }
-
+ 
         if (!$this->params['showOriginal']) {
             if (strlen($value)) {
                 //Вземаме всички имейли
@@ -164,10 +166,13 @@ class type_Emails extends type_Varchar
             
             return $res;
         }
-        
+ 
         //
         if (countR($invalidEmails = self::getInvalidEmails($value))) {
             $res['error'] = parent::escape('Стойността не е валиден имейл|*: ' . implode(', ', $invalidEmails));
+            
+            // Проверка за опити за хакване
+            core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
         }
         
         return $res;

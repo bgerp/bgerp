@@ -329,8 +329,9 @@ class eshop_Groups extends core_Master
         cms_Content::setCurrent($data->menuId);
 
         $layout = $this->getLayout();
-       
-        if (($q = Request::get('q')) && $menuId > 0) {
+ 
+        if (($q = Request::get('q', 'varchar')) && $menuId > 0) {
+ 
             $layout->replace(cms_Content::renderSearchResults($menuId, $q), 'PAGE_CONTENT');
             
             vislog_History::add("Търсене в продуктите: {$q}");
