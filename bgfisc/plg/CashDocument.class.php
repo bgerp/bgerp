@@ -181,6 +181,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
                 if($firstDocument->isInstanceOf('deals_DealMaster')){
                     $dealPaid = $firstDocument->fetchField('amountPaid');
+                    $dealBl = $firstDocument->fetchField('amountBl');
 
                     // Проверява се дали не се прави опит за надплащане над допустимия толеранс
                     if($rec->amountDeal >= $expectedAmount){
@@ -188,8 +189,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                         $tolerance = acc_Setup::get('MONEY_TOLERANCE');
 
                         $aboveTolerance = empty($diff) || $diff > $tolerance;
-
-                        if ($aboveTolerance  && $dealPaid) {
+                        if ($aboveTolerance  && $dealPaid && $dealBl <= 0) {
                             $additionalWarning = "ЦЯЛАТА СУМА ПО ДОКУМЕНТА ИЗГЛЕЖДА ВЕЧЕ Е ПЛАТЕНА|*!";
                             $defaultWarning = (!empty($additionalWarning)) ? "{$additionalWarning}, {$defaultWarning}" : "{$additionalWarning}, Наистина ли желаете документът да бъде контиран|*?";
                         }

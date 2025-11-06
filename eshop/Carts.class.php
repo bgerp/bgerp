@@ -1093,7 +1093,9 @@ class eshop_Carts extends core_Master
         } else {
             
             // Ако не е става на заявка
+            Mode::push('doNotExportSaleWhenPending', true);
             $saleRec = self::makeSalePending($saleId);
+            Mode::pop('doNotExportSaleWhenPending');
             eshop_Carts::logDebug("Продажбата #Sal{$saleId} към онлайн поръчка, става на заявка", $rec->id);
         }
         cls::get('sales_Sales')->updateMaster($saleRec);
@@ -1127,7 +1129,7 @@ class eshop_Carts extends core_Master
         doc_Threads::updateThread($threadRec->id);
 
         if(defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')){
-            static::autoCreateSaleCsvIfNeeded($saleRec);
+            sales_Sales::autoCreateSaleCsvIfNeeded($saleRec);
         }
 
         return $saleRec;
@@ -3305,51 +3307,6 @@ class eshop_Carts extends core_Master
             if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
                 $res = ' ' . $res . ' ' . plg_Search::normalizeText(voucher_Cards::fetchField($rec->voucherId, 'number'));
             }
-        }
-    }
-
-
-    /**
-     * Помощна ф-я експортираща създадена онлайн продажба в посочена директория като csv
-     *
-     * @param int|stdClass $saleRec - ид или запис
-     * @return void
-     */
-    public static function autoCreateSaleCsvIfNeeded($saleRec)
-    {
-        // Ако няма посочена директория - не се прави нищо
-        if (!defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')) return;
-
-        try{
-            // Ще се експортират всички полета от мастъра и детайла
-            $Sales = cls::get('sales_Sales');
-            $Driver = cls::get('bgerp_plg_CsvExport', array('mvc' => $Sales));
-            $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
-            $fields[] = 'ExternalLink';
-            $fields = implode(',', $fields);
-
-            $saleRec = sales_Sales::fetchRec($saleRec);
-            $Sales->updateMaster_($saleRec);
-
-            // Подготовка на експорта
-            $filter = (object)array('fields' => $fields, 'showColumnNames' => 'yes', 'delimiter' => ',', 'enclosure' => '"', 'decimalSign' => '.', 'encoding' => 'utf-8');
-            $filter->_recs[$saleRec->id] = $saleRec;
-            Mode::push('csvAlwaysAddEnclosure', true);
-            $content = $Driver->export($filter);
-            Mode::pop('csvAlwaysAddEnclosure');
-
-            $name = "emagSal{$saleRec->id}";
-            $fileName = ESHOP_AUTO_EXPORT_SALE_CSV_PATH . "/{$name}.csv";
-            $res = @file_put_contents($fileName, $content);
-            if($res){
-                eshop_Carts::logDebug("Експортирано csv: `{$fileName}`");
-                fileman::absorbStr($content, 'exportCsv', "{$name}.csv");
-            } else {
-                eshop_Carts::logErr("Грешка при записване: `{$fileName}`");
-            }
-        } catch (core_exception_Expect $e){
-            reportException($e);
-            eshop_Carts::logErr("Грешка при записване на CSV");
         }
     }
 

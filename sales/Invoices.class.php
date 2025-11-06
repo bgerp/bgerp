@@ -494,7 +494,7 @@ class sales_Invoices extends deals_InvoiceMaster
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
             if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
                 if(!drdata_Vats::isBulstat($rec->contragentVatNo)){
-                    $form->setError('contragentVatNo', 'Невалиден български данъчен номер');
+                   $form->setError('contragentVatNo', 'Невалиден български данъчен номер');
                 }
             }
         }

@@ -66,7 +66,7 @@ class tags_Logs extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'tags_Wrapper, plg_Created, plg_Sorting';
+    public $loadList = 'cond_Wrapper, plg_Created, plg_Sorting';
 
 
     /**

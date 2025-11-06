@@ -528,19 +528,44 @@ select.tabHolder {
     overflow: hidden; }
   .grid.pictureAndText .element .short-title,
   .grid.rows .element .short-title {
-    height: 20px;
+    display: -webkit-box;
+        /*
+     * за поддръжка
+     */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.2em;
+    max-height: calc(2.6em);
+        /*
+     * максимум 2 реда
+     */
+    -webkit-line-clamp: 2;
+        /*
+     * ограничение до 2 реда
+     */
     text-align: center;
-    padding: 2px 0;
     overflow: hidden;
     font-size: 0.95em;
     box-sizing: border-box;
-    margin-bottom: 2px; }
+    background-color: white;
+    padding: 2px 0 6px 0px !important;
+        /*
+     * малък буфер за ченгелчетата
+     */ }
     .grid.pictureAndText .element.noPhoto .short-title,
     .grid.rows .element.noPhoto .short-title {
       height: 100%;
       font-size: 1.25em;
       max-height: 133px;
-      overflow: hidden; }
+      overflow: hidden;
+      align-items: center;
+      display: flex;
+      justify-content: center;
+      text-align: center;
+      padding: 2px 0px !important;
+            /*
+       * малък буфер за ченгелчетата
+       */ }
     .grid.pictureAndText .element.noPhoto .photo,
     .grid.rows .element.noPhoto .photo {
       display: none; }
@@ -563,10 +588,9 @@ select.tabHolder {
     overflow-wrap: break-word; }
 
 .scrollingGrid {
-  overflow-x: hidden;
-  overflow-y: hidden;
   width: 100%;
-  height: 166px;
+  height: 168px;
+  padding-top: 0;
   -webkit-overflow-scrolling: touch;
     /*
    * плавен скрол на мобилни
@@ -578,40 +602,39 @@ select.tabHolder {
   scrollbar-color: #cccccc rgba(0, 0, 0, 0);
     /*
    * светъл плъзгач върху прозрачен фон
-   */ }
-  .scrollingGrid .grid {
-    height: 161px;
-    display: grid;
-    grid-auto-flow: column;
-        /*
-     * само по хоризонтала
-     */ }
-    .scrollingGrid .grid > div {
-      width: 132px; }
-  .scrollingGrid .element {
-    height: 161px !important;
-    padding: 0 !important; }
-
-.grid.rows .element {
-  height: 157px !important;
-  padding: 0 !important; }
-
-.grid.rows .element .photo {
-  width: 132px;
-  height: 132px; }
-
-.grid.rows .element .photo img {
-  width: 100% !important; }
-
-.scrollingGrid {
+   */
   overflow-x: auto;
   overflow-y: hidden;
-  height: 165px;
   box-sizing: content-box;
   -webkit-overflow-scrolling: touch;
     /*
    * плавно на мобилни
-   */ }
+   */
+  scrollbar-gutter: stable both-edges; }
+  .scrollingGrid .grid {
+    height: 168px;
+    display: grid;
+    margin-bottom: 0 !important;
+    grid-auto-flow: column;
+        /*
+     * само по хоризонтала
+     */
+    align-items: stretch; }
+    .scrollingGrid .grid > div {
+      width: 132px; }
+  .scrollingGrid .element {
+    padding: 0 !important; }
+
+.grid.rows .element {
+  height: 158px !important; }
+
+.grid.rows .element .photo {
+  width: 138px;
+  margin-left: -3px;
+  height: 138px; }
+
+.grid.rows .element .photo img {
+  width: 100% !important; }
 
 /*
  * --- Тъч устройства (coarse pointer) ---

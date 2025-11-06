@@ -6719,8 +6719,15 @@ function selectAllCheckboxes() {
  */
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("td.td-clamp").forEach(td => {
-        const lines = parseInt(td.dataset.lines || 2, 10);
-        td.style.setProperty("--lines", lines);
+        const collapsedLines = parseInt(td.dataset.lines || 3, 10);     // по подразбиране 3
+        const expandedMax    = parseInt(td.dataset.maxLines || 10, 10); // по подразбиране 10
+
+        td.style.setProperty("--lines-collapsed", collapsedLines);
+        td.style.setProperty("--lines-expanded-max", expandedMax);
+
+        // вземи реалния фон и го сложи във --fade-color
+        const bg = getComputedStyle(td).backgroundColor;
+        td.style.setProperty("--fade-color", bg);
 
         // wrap
         const body = document.createElement("div");
@@ -6732,31 +6739,32 @@ document.addEventListener("DOMContentLoaded", () => {
         ellipsis.className = "clamp-ellipsis";
         td.appendChild(ellipsis);
 
-        // взимаме реалния фон за fade
-        const bg = getComputedStyle(td).backgroundColor || "#fff";
-        td.style.setProperty("--fade-color", bg);
+        td.dataset.expanded = td.dataset.expanded || "false";
 
-        const check = () => {
-            td.dataset.expanded = "false";
-            td.dataset.overflow = body.scrollHeight > body.clientHeight + 1 ? "true" : "";
-            ellipsis.style.display = td.dataset.overflow ? "inline" : "none";
+        const measureOverflowCollapsed = () => {
+            const prev = td.dataset.expanded;          // запази текущото състояние
+            td.dataset.expanded = "false";             // временно свиваме за измерване
+            const over = body.scrollHeight > body.clientHeight + 1;
+            td.dataset.overflow = over ? "true" : "";
+            ellipsis.style.display = over ? "inline" : "none";
+            td.dataset.expanded = prev;                // връщаме състоянието
         };
 
-        check();
-        window.addEventListener("resize", check);
+        measureOverflowCollapsed();
+        window.addEventListener("resize", measureOverflowCollapsed);
 
         ellipsis.addEventListener("click", () => {
-            const expanded = td.dataset.expanded === "true";
-            td.dataset.expanded = expanded ? "false" : "true";
+            td.dataset.expanded = td.dataset.expanded === "true" ? "false" : "true";
+            measureOverflowCollapsed(); // поднови видимостта на „…/↥“
         });
 
         body.addEventListener("click", () => {
-            const expanded = td.dataset.expanded === "true";
-            td.dataset.expanded = expanded ? "false" : "true";
+            td.dataset.expanded = td.dataset.expanded === "true" ? "false" : "true";
+            measureOverflowCollapsed(); // поднови видимостта на „…/↥“
         });
+
     });
 });
-
 
 runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);

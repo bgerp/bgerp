@@ -1,4 +1,6 @@
 <!--ET_BEGIN NON_CASH_PAYMENT-->
 [#NON_CASH_PAYMENT#]
-<div><span>[#buttons#][#paymentId#]:</span><span class='amount' style = 'font-size:0.8em'><b>[#amount#]</b></span></div>
+    <tr>
+        <td class="aright">[#buttons#][#paymentId#]:</td><td class='amount' style = 'font-size:0.8em; margin-right: 0'><b>[#amount#]</b></td>
+    </tr>
 <!--ET_END NON_CASH_PAYMENT-->

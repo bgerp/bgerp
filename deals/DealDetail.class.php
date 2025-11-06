@@ -580,11 +580,37 @@ abstract class deals_DealDetail extends doc_Detail
         $query->where("#{$this->masterKey} = {$saleId}");
         $recs = $query->fetchAll();
 
-        foreach ($listed as &$list) {
-            $list->code = cat_Products::getVerbal($list->productId, 'code');
-        }
-        
-        arr::sortObjects($listed, 'code', 'asc', 'stri');
+        // Подготвяме данни за сортиране: code, name и id на реда от листа (detailId)
+		$listingRec = cat_Listings::fetch($listId, 'detailOrderBy');
+		foreach ($listed as $detailId => &$list) {
+			// пазим id на реда в листа, за "по ред на добавяне"
+			$list->_detailId = $detailId;
+
+			// code/name – ще са налични за сортиране
+			$list->code = cat_Products::getVerbal($list->productId, 'code');
+			$list->name = cat_Products::getVerbal($list->productId, 'name');
+		}
+		unset($list); // break reference
+
+		// Сортиране според избора в листа
+		$orderBy = $listingRec->detailOrderBy ?? 'code';
+		switch ($orderBy) {
+			case 'name':
+				// по име на артикула (естествено)
+				arr::sortObjects($listed, 'name', 'asc', 'stri');
+				break;
+
+			case 'added':
+				// по ред на добавяне (ID на реда от cat_ListingDetails)
+				arr::sortObjects($listed, '_detailId', 'asc', 'native');
+				break;
+
+			case 'code':
+			default:
+				// по код на артикула (дефолтно поведение)
+				arr::sortObjects($listed, 'code', 'asc', 'stri');
+				break;
+		}
         
         // Подготовка на полетата на формата
         $this->prepareImportListForm($form, $listed, $recs, $saleRec);
@@ -719,7 +745,7 @@ abstract class deals_DealDetail extends doc_Detail
                     }
 
                     if($hasChangedQuantity){
-                        $msg = "Списъкът е импортиран успешно";
+                        $msg = "Списъкът е импортиран успешно|*!";
                         $logText = "Импортиране на артикули от списък";
                     }
                 }
@@ -728,7 +754,7 @@ abstract class deals_DealDetail extends doc_Detail
                     foreach ($toSave as $saveRec) {
                         $this->save($saveRec);
                     }
-                    $msg = "Списъкът е импортиран успешно";
+                    $msg = "Списъкът е импортиран успешно|*!";
                     $logText = "Импортиране на артикули от списък";
                 }
                 

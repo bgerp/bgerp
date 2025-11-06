@@ -101,7 +101,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
         }
 
-        if ($actions['ship'] || $actions['pay']) {
+        if ($rec->doTransaction != 'no' && ($actions['ship'] || $actions['pay'])) {
             
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
             

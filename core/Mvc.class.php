@@ -848,7 +848,7 @@ class core_Mvc extends core_FieldSet
         } else {
             $res = $me->fields[$fieldName]->type->toVerbal($value);
         }
-        
+
         return $res;
     }
     
@@ -899,6 +899,7 @@ class core_Mvc extends core_FieldSet
                 
                 foreach ($places as $place) {
                     $cRec->{$place} = type_Varchar::escape($rec->{$place});
+                    $cRec->{$place} = str_replace('|', '&#124;', $cRec->{$place});
                 }
             }
             

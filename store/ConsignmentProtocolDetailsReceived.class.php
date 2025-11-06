@@ -41,25 +41,25 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument, doc_plg_HidePrices,deals_plg_ImportDealDetailProduct,plg_PrevAndNext,store_plg_TransportDataDetail';
+                        plg_AlignDecimals2, cat_plg_LogPackUsage, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument, doc_plg_HidePrices,deals_plg_ImportDealDetailProduct,plg_PrevAndNext,store_plg_TransportDataDetail';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store, distributor';
+    public $canEdit = 'ceo, store, distributor,sales,purchase';
 
 
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store, distributor';
+    public $canAdd = 'ceo, store, distributor,sales,purchase';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store, distributor';
+    public $canDelete = 'ceo, store, distributor,sales,purchase';
     
     
     /**
@@ -75,11 +75,11 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     
     
     /**
-     * Кой може да го импортира артикули?
+     * Кой може да импортира артикули?
      *
      * @var string|array
      */
-    public $canImport = 'ceo, store, distributor';
+    public $canImport = 'ceo, store, distributor,sales,purchase';
 
 
     /**
@@ -101,7 +101,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      *
      * @var string|array
      */
-    public $canCreateproduct = 'ceo, store';
+    public $canCreateproduct = 'ceo, store,sales,purchase';
 
 
     /**

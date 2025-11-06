@@ -31,7 +31,7 @@ class batch_Features extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'itemId,name,classId,value';
+    public $listFields = 'productId=Артикул,storeId=Склад,batch=Партида,name,classId,value';
     
     
     /**
@@ -179,5 +179,21 @@ class batch_Features extends core_Manager
                 reportException($e);
             }
         }
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     * @param array    $fields
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $iRec = batch_Items::fetch($rec->itemId);
+        $iRow = batch_Items::recToVerbal($iRec, $fields);
+        list($row->productId, $row->storeId, $row->batch) = array($iRow->productId, $iRow->storeId, $iRow->batch);
     }
 }

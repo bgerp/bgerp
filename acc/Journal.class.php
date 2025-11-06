@@ -1146,7 +1146,7 @@ class acc_Journal extends core_Master
     /**
      * Кои са контираните документи без журнал
      *
-     * @param array $res
+     * @return array $res
      */
     private static function getPostedDocumentsWithoutJournal()
     {
@@ -1164,7 +1164,12 @@ class acc_Journal extends core_Master
                 $jRecs[$jRec->docId] = $jRec->docId;
             }
 
-            if(countR($jRecs)){
+            $countRecs = countR($jRecs);
+
+            if($countRecs){
+                core_App::setTimeLimit(0.4 * $countRecs, false, 300);
+
+                // Извличат се записите от документите, които НЯМАТ журнали
                 $query = $Class->getQuery();
                 $query->in("state", array('closed', 'active'));
                 $query->show('id');
@@ -1174,11 +1179,27 @@ class acc_Journal extends core_Master
                     $query->where("#contoActions != '' AND #contoActions != 'activate'");
                 }
 
-                while($rec = $query->fetch()){
-                    if($Class instanceof store_ShipmentOrders || $Class instanceof store_Receipts){
-                        $Detail = cls::get($Class->mainDetail);
-                        if(!$Detail->count("#{$Detail->masterKey} = {$rec->id}")) continue;
+                $recs = $query->fetchAll();
+
+                // Колко детайла имат се преброява с една заявка
+                $detailCount = array();
+                if($Class instanceof store_ShipmentOrders || $Class instanceof store_Receipts){
+                    $Detail = cls::get($Class->mainDetail);
+                    $dQuery = $Detail->getQuery();
+                    $dQuery->XPR('count', 'int', 'COUNT(#id)');
+                    $dQuery->in($Detail->masterKey, array_keys($recs));
+                    $dQuery->groupBy("{$Detail->masterKey}");
+                    $dQuery->show("{$Detail->masterKey},count");
+                    while($dRec = $dQuery->fetch()){
+                        $detailCount[$dRec->{"{$Detail->masterKey}"}] = $dRec->count;
                     }
+                }
+
+                foreach($recs as $rec){
+                    if(array_key_exists($rec->id, $detailCount)){
+                        if(empty($detailCount[$rec->id])) continue;
+                    }
+
                     if(!array_key_exists($Class->className, $res)){
                         $res[$Class->className] = array();
                     }

@@ -814,7 +814,7 @@ class pos_Receipts extends core_Master
         // Подготвяме масива с данните на новата продажба, подаваме склада и касата на точката
         $posRec = pos_Points::fetch($rec->pointId);
         $settings = pos_Points::getSettings($rec->pointId);
-        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id, 'deliveryLocationId' => $rec->contragentLocationId);
+        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id, 'deliveryLocationId' => $rec->contragentLocationId, 'valior' => $rec->waitingOn);
         $fields['vatExceptionId'] = $settings->vatExceptionId;
         $hasVoucher = isset($rec->voucherId) && core_Packs::isInstalled('voucher');
 
@@ -853,6 +853,10 @@ class pos_Receipts extends core_Master
 
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
+
+        // Освобождават се запазените количества при прехвърляне
+        store_StockPlanning::updateByDocument($this, $rec->id);
+
         if(countR($products)){
             cls::get('pos_ReceiptDetails')->saveArray($products, 'id,transferedIn');
         }
@@ -874,8 +878,9 @@ class pos_Receipts extends core_Master
             sales_Sales::save($saleRec);
             sales_Sales::conto($saleRec->id);
             if($exState == 'closed'){
+                $saleRec->doTransaction = 'no';
                 $saleRec->contoActions = 'activate,pay,ship';
-                cls::get('sales_Sales')->save($saleRec, 'contoActions');
+                cls::get('sales_Sales')->save($saleRec, 'contoActions,doTransaction');
             }
 
             Mode::push('calcAutoDiscounts', false);
@@ -907,6 +912,10 @@ class pos_Receipts extends core_Master
      */
     public static function checkQuantity($rec, &$error, &$warning = null)
     {
+        // Ако артикулът не е складируем няма какво да му се проверява
+        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if($canStore != 'yes') return true;
+
         // Ако е забранено продаването на неналични артикули да се проверява
         if (store_Setup::canDoShippingWhenStockIsNegative()) return true;
 
@@ -955,7 +964,15 @@ class pos_Receipts extends core_Master
         $pName = cat_Products::getTitleById($rec->productId);
 
         if ($freeQuantity < 0) {
-            $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity / $quantityInPack);
+            $originalQuantity = $originalFreeQuantity / $quantityInPack;
+
+            // ако мин разп е под 1 но е над 0 да се изпише цялото
+            if($originalQuantity > 0 && $originalQuantity <= 1){
+                $rec->quantity = $originalQuantity;
+                return true;
+            }
+
+            $originalFreeQuantityVerbal = $Double->toVerbal($originalQuantity);
             $error = "|* {$pName}: Количеството e над минималното разполагаемото|* <b>{$originalFreeQuantityVerbal}</b> |в склад|*: " . store_Stores::getTitleById($rec->storeId);
 
             return false;
@@ -1659,12 +1676,17 @@ class pos_Receipts extends core_Master
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
 
+        $res = array();
+
+        // Ако бележката е прехвърлена няма да запазва нищо
+        if(!empty($rec->transferredIn)) return $res;
+
         $dQuery = pos_ReceiptDetails::getQuery();
         $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
         $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
 
-        $res = array();
+
         while($dRec = $dQuery->fetch()){
             $packRec = cat_products_Packagings::getPack($dRec->productId, $dRec->value);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;

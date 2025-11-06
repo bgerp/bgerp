@@ -66,11 +66,17 @@ class price_interface_AverageCostPricePolicyImpl extends price_interface_BaseCos
        
         // Извличане на данните за покупки за тези артикули
         $valiorFrom = dt::verbal2mysql(dt::addMonths(-12), false);
-        
+
+        // Последните доставки от кеш модела за доставките
         $purQuery = purchase_PurchasesData::getQuery();
         $purQuery->in('productId', $affectedTargetedProducts);
         $purQuery->where("#state != 'rejected' AND #valior >= '{$valiorFrom}'");
         $purQuery->show('quantity,price,productId,expenses');
+
+        // Игнорират се записите от инвентаризациите
+        $iClassId = store_InventoryNotes::getClassId();
+        $purQuery->where("#docClassId != {$iClassId}");
+
         $purQuery->orderBy('valior,id', "DESC");
         $all = $purQuery->fetchAll();
         

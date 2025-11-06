@@ -83,13 +83,6 @@
                             </tr>
                             <!--ET_END samePosPallets-->
 
-                            <!--ET_BEGIN closeCombinedMovementsAtOnce-->
-                            <tr>
-                                <td class='dt'>|Приключване на комбинирани движения|*:</td>
-                                <td>[#closeCombinedMovementsAtOnce#]</td>
-                            </tr>
-                            <!--ET_END closeCombinedMovementsAtOnce-->
-
                             <!--ET_BEGIN prioritizeRackGroups-->
                             <tr>
                                 <td class='dt'>|Използване на приоритетни стелажи|*:</td>
@@ -110,6 +103,27 @@
                                 <td>[#allowSmartReturnPos#]</td>
                             </tr>
                             <!--ET_END allowSmartReturnPos-->
+
+                            <!--ET_BEGIN closeCombinedMovementsAtOnce-->
+                            <tr>
+                                <td class='dt'>|Приключване на комбинирани движения|*:</td>
+                                <td>[#closeCombinedMovementsAtOnce#]</td>
+                            </tr>
+                            <!--ET_END closeCombinedMovementsAtOnce-->
+
+                            <!--ET_BEGIN fullPalletStrategy-->
+                            <tr>
+                                <td class='dt'>|Вземане / разбутване на цял палет (само за ver3)|*:</td>
+                                <td>[#fullPalletStrategy#]</td>
+                            </tr>
+                            <!--ET_END fullPalletStrategy-->
+
+                            <!--ET_BEGIN minKeepPct-->
+                            <tr>
+                                <td class='dt'>|Минимален остатък по позиции (само за ver3)|*:</td>
+                                <td>[#minKeepPct#] |от палет|*</td>
+                            </tr>
+                            <!--ET_END minKeepPct-->
                         </table>
                     </div>
                 </fieldset>

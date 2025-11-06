@@ -285,7 +285,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $dealerRolesList = implode('|', arr::make($mvc->dealerRolesList, true));
         $dealerRolesForAll = implode('|', arr::make($mvc->dealerRolesForAll, true));
         
-        $mvc->FLD('valior', 'date', 'caption=Дата,notChangeableByContractor');
+        $mvc->FLD('valior', 'date', 'caption=Дата');
         $mvc->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         
         // Стойности
@@ -531,6 +531,12 @@ abstract class deals_DealMaster extends deals_DealBase
         if (!$form->isSubmitted()) return;
         $rec = &$form->rec;
 
+        if(core_Users::isContractor()){
+            if(!empty($rec->valior) && $rec->valior <= dt::today()){
+                $form->setError('valior', 'Вальорът не може да е в миналото|*!');
+            }
+        }
+
         // Какъв е новия курс
         $rec->_newCurrencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
         if(!empty($rec->currencyManualRate)){
@@ -557,8 +563,8 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
-        $defPaymentId = deals_Helper::getDefaultChargeVat($mvc, $rec, $mvc->getFieldParam('paymentMethodId', 'salecondSysId'));
-        if($rec->_isBeingCloned){
+        $defPaymentId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $mvc->getFieldParam('paymentMethodId', 'salecondSysId'));
+        if($rec->_isBeingCloned && !empty($defPaymentId)){
             if($rec->paymentMethodId != $defPaymentId){
                 $form->setWarning('paymentMethodId', 'Методът на плащане се различава от дефолтния в търговските условия на контрагента|*: <b>' . cond_PaymentMethods::getTitleById($defPaymentId) . "</b>");
             }
@@ -803,9 +809,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 if($showVat == 'yes'){
                     $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(#{$fld}, 2)");
                 } else {
+                    $condWithoutVat = "(#{$fld})";
                     $condNull = "(#{$fld} / 1.2)";
                     $condNotNUll = "(#{$fld} / (1 + #amountVat / (#amountDeal - #amountVat)))";
-                    $cond = "IF((#amountVat IS NOT NULL AND #amountVat != 0), $condNotNUll, $condNull)";
+                    $cond = "IF(#chargeVat IN ('no', 'exempt'), $condWithoutVat, (IF((#amountVat IS NOT NULL AND #amountVat != 0), $condNotNUll, $condNull)))";
                     $summaryQuery->XPR("{$fld}Calc", 'double', "ROUND(($cond), 2)");
                 }
             }
@@ -1892,8 +1899,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if ($contoRes !== false) {
                 $this->invoke('AfterContoQuickSale', array($rec));
             } else {
-                $rec->contoActions = null;
-                $this->save_($rec, 'contoActions');
+                $this->invoke('beforeContoRedirectError', array($rec));
             }
             
             // Редирект
@@ -2866,10 +2872,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         if($mvc->setErrorIfDeliveryTimeIsNotSet($rec)) {
-            if(!empty($rec->contoActions)){
-                $rec->contoActions = null;
-                $mvc->save_($rec, 'contoActions');
-            }
+            $mvc->invoke('beforeContoRedirectError', array($rec));
             redirect(array($mvc, 'single', $rec->id), false, '|Преди активирането, трябва задължително да е посочено време/дата на доставка', 'error');
         }
     }
@@ -3080,7 +3083,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $CloseDoc = cls::get($mvc->closeDealDoc);
             $closedDocRec = $CloseDoc->fetch("#docClassId = {$mvc->getClassId()} AND #docId = {$rec->id} AND #state = 'active'");
             if($closedDocRec){
-                core_Statuses::newStatus( "Документа не може да се оттегли, докато е контиран |* <b>#{$CloseDoc->getHandle($rec->id)}</b>", 'error');
+                core_Statuses::newStatus( "Документа не може да се оттегли, докато е контиран |* <b>#{$CloseDoc->getHandle($closedDocRec->id)}</b>", 'error');
 
                 return false;
             }
@@ -3305,5 +3308,17 @@ abstract class deals_DealMaster extends deals_DealBase
         $paymentState = $firstDoc->getInstance()->getPaymentState($pRec, null, $debug);
         echo $debug;
         bp($payments, $payments1, $paymentState, $pRec);
+    }
+
+
+    /**
+     * Преди редирект след грешка при контиране
+     */
+    protected static function on_BeforeContoRedirectError($mvc, $rec)
+    {
+        if(!empty($rec->contoActions)) {
+            $rec->contoActions = null;
+            $mvc->save_($rec, 'contoActions');
+        }
     }
 }

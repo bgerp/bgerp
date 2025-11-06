@@ -36,7 +36,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, change_Plugin, doc_SharablePlg, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+                    doc_DocumentPlg, plg_Printing, cat_plg_LogPackUsage, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
 
 
 
@@ -868,6 +868,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $obj1->quantityFromBom = 0;
                         $details[$key] = $obj1;
                         $details[$key]->quantityFromBom += $d3->quantityFromBom;
+                    }
+
+                    // Ако има субпродукти се проверява и имат партидност се зарежда тази с която биха влезли в склада
+                    if(core_Packs::isInstalled('batch')){
+                        if($details[$key]->type == 'subProduct'){
+                            if($batchDef = batch_Defs::getBatchDef($details[$key]->productId)){
+                                $defValue = $batchDef->getAutoValue($this, $rec->id, $rec->storeId, $rec->valior);
+                                if(isset($defValue)){
+                                    $details[$key]->batches[$defValue] += $details[$key]->quantity;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1819,6 +1831,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             core_Statuses::newStatus($errorMsg, 'error');
 
             return false;
+        }
+    }
+
+
+    /**
+     * Преди редирект след грешка при контиране
+     */
+    protected static function on_BeforeContoRedirectError($mvc, $rec)
+    {
+        if(!empty($rec->debitAmount)) {
+            $rec->debitAmount = null;
+            $mvc->save_($rec, 'debitAmount');
         }
     }
 }

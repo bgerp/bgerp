@@ -450,9 +450,8 @@ class rack_plg_Shipments extends core_Plugin
         arr::sortObjects($movementRecs, 'id', 'ASC');
 
         $zDetail = rack_ZoneDetails::getQuery();
-        $zDetail->where("#zoneId = {$data->zoneId}");
+        $zDetail->where("#zoneId = {$data->zoneId} AND #documentQuantity IS NOT NULL");
         $zDetail->orderBy('id', 'ASC');
-
         $details = array();
         $Detail = cls::get($data->mvc->mainDetail);
         $dQuery = $Detail->getQuery();

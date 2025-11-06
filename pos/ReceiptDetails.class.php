@@ -85,7 +85,7 @@ class pos_ReceiptDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified,plg_Created';
+    public $loadList = 'plg_Modified,plg_Created,cat_plg_LogPackUsage';
 
 
     /**
@@ -98,6 +98,13 @@ class pos_ReceiptDetails extends core_Detail
      * Плейсхолдър за клас за обновяване
      */
     private static $updatedOperationPlaceholderMap = array('setquantity' => 'quantityUpdated', 'settext' => 'textUpdated', 'setbatch' => 'batchUpdated', 'setprice' => 'priceUpdated', 'setstore' => 'storeUpdated', 'setdiscount' => 'discountUpdated');
+
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,receiptId,action,productId,value';
 
 
     /**
@@ -165,7 +172,7 @@ class pos_ReceiptDetails extends core_Detail
                     if (!isset($receiptRec->revertId)) {
                         $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($receiptRec->id), 'productId');
                         $errorStartStr = 'Не може да платите, докато има артикули изискващи препоръчител и няма такъв';
-                        if ($error = voucher_Cards::getErrorForVoucherAndProducts($receiptRec->voucherId, $productArr, $errorStartStr)) {
+                        if ($error = voucher_Cards::getErrorForVoucherAndProducts($receiptRec->voucherId, $productArr, $receiptRec->contragentClass, $receiptRec->contragentObjectId, $errorStartStr)) {
                             expect(false, $error);
                         }
                     }
@@ -1500,5 +1507,30 @@ class pos_ReceiptDetails extends core_Detail
         }
 
         return $priceRes;
+    }
+
+
+    /**
+     * Кои са полетата за опаковките, за които ще се логва
+     *
+     * @return array
+     */
+    public static function getPackagingFields_()
+    {
+        return array('value' => 'value');
+    }
+
+
+    /**
+     * След запис да се синхронизира ли опаковката
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public static function canSyncPacks($rec)
+    {
+        $rec = self::fetchRec($rec);
+
+        return $rec->action == 'sale|code';
     }
 }

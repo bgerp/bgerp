@@ -938,63 +938,123 @@ class cams_Records extends core_Master
     
     
     /**
-     * Изтрива стари записи, ако дисковото пространство е под лимита
+     * Изтрива стари записи според политика за пазене (CAMS_KEEP_DAYS)
+     * или при недостиг на дисково пространство (старото поведение).
      */
     public function cron_DeleteOldRecords()
     {
         $conf = core_Packs::getConfig('cams');
         
-        if (!file_exists(CAMS_VIDEOS_PATH) || !is_writable(CAMS_VIDEOS_PATH)) {
-            
-            return;
+        if (!file_exists(CAMS_VIDEOS_PATH) || !is_writable(CAMS_VIDEOS_PATH) || !file_exists(CAMS_IMAGES_PATH) || !is_writable(CAMS_IMAGES_PATH)) {
+            return "Няма права за изтриване в CAMS_VIDEOS_PATH или CAMS_IMAGES_PATH";
         }
         
-        $freeSpace = disk_free_space(CAMS_VIDEOS_PATH);
+        // Нормализиране на стойността на константата
+        $keepDays = 0;
+        $val = $conf->CAMS_KEEP_DAYS;
+        if (is_numeric($val) && $val >= 0) {
+            $keepDays = (int)$val;
+        }
+        
+        $deleted  = 0;
+        $delFiles = 0;
+        
+        // РЕЖИМ 1: Политика за пазене (CAMS_KEEP_DAYS > 0)
+        if ($keepDays > 0) {
+            $thresholdTime = dt::addDays(-$keepDays);
+            
+//             /**
+//              * 1. Изтриване на стари mp4/jpg файлове от CAMS_VIDEOS_PATH
+//              */
+//             $iterator = new RecursiveIteratorIterator(
+//                 new RecursiveDirectoryIterator(CAMS_VIDEOS_PATH, FilesystemIterator::SKIP_DOTS),
+//                 RecursiveIteratorIterator::CHILD_FIRST
+//                 );
+            
+//             foreach ($iterator as $fileInfo) {
+//                 if ($fileInfo->isFile() && strtolower($fileInfo->getExtension()) == 'mp4') {
+//                     if ($fileInfo->getMTime() < $thresholdTime) {
+//                         if (@unlink($fileInfo->getPathname())) {
+//                             $delFiles++;
+//                         }
+//                     }
+//                 }
+//             }
+            
+//             /**
+//              * 2. Изтриване на стари jpg файлове от CAMS_IMAGES_PATH
+//              */
+//             $iterator2 = new RecursiveIteratorIterator(
+//                 new RecursiveDirectoryIterator(CAMS_IMAGES_PATH, FilesystemIterator::SKIP_DOTS),
+//                 RecursiveIteratorIterator::CHILD_FIRST
+//                 );
+            
+//             foreach ($iterator2 as $fileInfo) {
+//                 if ($fileInfo->isFile() && strtolower($fileInfo->getExtension()) == 'jpg') {
+//                     if ($fileInfo->getMTime() < $thresholdTime) {
+//                         if (@unlink($fileInfo->getPathname())) {
+//                             $delFiles++;
+//                         }
+//                     }
+//                 }
+//             }
+            
+            /**
+             * 3. Изтриване на записи в базата по стария критерий
+             */
+            $query = $this->getQuery();
+            $query->where("#startTime < '{$thresholdTime}' AND #marked != 'yes'");
+            $query->limit(1000);
+            while ($rec = $query->fetch()) {
+                $this->deleteRecAndFiles($rec, $delFiles);
+                $deleted++;
+            }
+            
+            return "Изтрити са {$deleted} записа в базата и {$delFiles} файла (по-стари от {$keepDays} дни).";
+        }
+        
+        // РЕЖИМ 2: Старото поведение (CAMS_KEEP_DAYS == 0)
+        $freeSpace = @disk_free_space(CAMS_VIDEOS_PATH);
         
         if ($freeSpace < $conf->CAMS_MIN_DISK_SPACE) {
             $query = $this->getQuery();
-            
             $query->orderBy('startTime');
             
-            // Тези, които са под 1 ден не ги закачаме
+            // Последните 24 часа не се пипат
             $before1day = dt::addDays(-1);
-            
             $query->where("#startTime < '{$before1day}' AND #marked != 'yes'");
             
-            $deleted = $delFiels = 0;
-            
-            while (disk_free_space(CAMS_VIDEOS_PATH) < $conf->CAMS_MIN_DISK_SPACE && ($rec = $query->fetch())) {
-                if ($rec->id) {
-                    $this->delete($rec->id);
-                    
-                    $fPaths = $this->getFilePaths($rec->startTime, $rec->cameraId);
-                    
-                    if (@unlink($fPaths->videoFile)) {
-                        $delFils++;
-                    }
-                    
-                    if (@unlink($fPaths->imageFile)) {
-                        $delFils++;
-                    }
-                    
-                    if (@unlink($fPaths->thumbFile)) {
-                        $delFils++;
-                    }
-                    
-                    if (@unlink($fPaths->flvFile)) {
-                        $delFils++;
-                    }
-                    
+            while (@disk_free_space(CAMS_VIDEOS_PATH) < $conf->CAMS_MIN_DISK_SPACE && ($rec = $query->fetch())) {
+                if (!empty($rec->id)) {
+                    $this->deleteRecAndFiles($rec, $delFiles);
                     $deleted++;
                 }
             }
             
-            return "Изтрити са {$deleted} записа в базата и {$delFils} файла";
+            return "Изтрити са {$deleted} записа в базата и {$delFiles} файла (освобождаване на място).";
         }
         
-        return 'Не са изтрити записи от камерите, място все още има';
+        return 'Не са изтрити записи от камерите, място все още има.';
     }
     
+    /**
+     * Помощен метод: изтрива запис и свързаните файлове.
+     * Заб.: $delFiles се подава по референция, за да броим изтритите файлове.
+     *
+     * @param stdClass $rec
+     * @param int      $delFiles
+     */
+    protected function deleteRecAndFiles($rec, &$delFiles)
+    {
+        $this->delete($rec->id);
+        
+        $fPaths = $this->getFilePaths($rec->startTime, $rec->cameraId);
+        
+        if (!empty($fPaths->videoFile) && @unlink($fPaths->videoFile)) { $delFiles++; }
+        if (!empty($fPaths->imageFile) && @unlink($fPaths->imageFile)) { $delFiles++; }
+        if (!empty($fPaths->thumbFile) && @unlink($fPaths->thumbFile)) { $delFiles++; }
+        if (!empty($fPaths->flvFile)   && @unlink($fPaths->flvFile))   { $delFiles++; }
+    }
     
     /**
      * Изпълнява се след начално установяване(настройка) на модела
@@ -1020,15 +1080,20 @@ class cams_Records extends core_Master
         $rec->period = (int) $conf->CAMS_CLIP_DURATION / 60;
         $rec->offset = 0;
         $res .= core_Cron::addOnce($rec);
-        
-        
+
         $rec = new stdClass();
         $rec->systemId = 'delete_old_video';
         $rec->description = 'Изтриване на старите записи от камерите';
         $rec->controller = 'cams_Records';
         $rec->action = 'DeleteOldRecords';
         $rec->period = (int) 2 * $conf->CAMS_CLIP_DURATION / 60;
-        $rec->offset = mt_rand(0, 8);
+        $offset = mt_rand(0, 8);
+        if($rec->period > $offset) {
+            $rec->offset = $offset;
+        } else {
+            $rec->offset = 0;
+        }
+
 		$rec->isRandOffset = true;
         $res .= core_Cron::addOnce($rec);
         

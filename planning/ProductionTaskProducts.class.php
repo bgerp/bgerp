@@ -32,19 +32,19 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,plannedQuantity=Количества->План.,limit=Количества->Макс.,totalQuantity=Количества->Изп.,packagingId=Количества->Мярка,totalWeight=Количества->Тегло,storeId,indTime=Норма->Ед.,totalTime=Норма->Общо,modified=Промяна';
+    public $listFields = 'type,productId,plannedQuantity=Количества->План.,limit=Количества->Макс.,totalQuantity=Количества->Изп.,packagingId=Количества->Мярка,totalWeight=Количества->Тегло,netWeight=Количества->Нето (ед.),tareWeight=Количества->Тара (ед.),storeId,indTime=Норма->Ед.,totalTime=Норма->Общо,modified=Промяна';
     
     
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'indTime,totalTime,totalWeight,limit,storeId';
+    public $hideListFieldsIfEmpty = 'indTime,totalTime,totalWeight,limit,storeId,netWeight,tareWeight';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, planning_plg_ReplaceProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper,plg_State2';
+    public $loadList = 'plg_RowTools2, plg_AlignDecimals2, cat_plg_LogPackUsage, planning_plg_ReplaceProducts, plg_SaveAndNew, plg_Modified, plg_Created, planning_Wrapper,plg_State2';
     
     
     /**
@@ -128,7 +128,7 @@ class planning_ProductionTaskProducts extends core_Detail
     {
         $this->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
         $this->FLD('type', 'enum(input=Влагане,waste=Отпадък,production=Произвеждане)', 'caption=Операция,remember,silent,input=hidden');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax,titleFld=name)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|limit|indTime,tdClass=productCell leftCol wrap');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax,titleFld=name)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|limit|indTime|netWeight|tareWeight,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,tdClass=small-field nowrap,silent,removeAndRefreshForm');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
@@ -136,6 +136,8 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('totalQuantity', 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull');
         $this->FLD('limit', 'double(min=0,smartRound)', 'caption=Макс. к-во,input=none');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Норма');
+        $this->FLD('netWeight', 'cat_type_Weight(smartRound=no)', 'caption=Опаковка->Нето,input=none');
+        $this->FLD('tareWeight', 'cat_type_Weight(smartRound=no)', 'caption=Опаковка->Тара,input=none');
         $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,input=none');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо тегло,input=none');
 
@@ -172,7 +174,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $productInfo = cat_Products::getProductInfo($rec->productId);
             if (!isset($productInfo->meta['canStore'])) {
                 $form->setField('storeId', 'input=none');
-                
+
                 if ($rec->type == 'input') {
                     $form->setField('limit', 'input');
                     if (isset($masterRec->assetId)) {
@@ -186,10 +188,19 @@ class planning_ProductionTaskProducts extends core_Detail
                         }
                     }
                 }
-            } elseif (empty($rec->id)) {
-                $form->setDefault('storeId', $masterRec->storeId);
+            } else {
+                if($rec->type == 'production'){
+                    $uomVerbal = cat_UoM::getSmartName($rec->packagingId, 1);
+                    $unit = "|за|* {$uomVerbal}";
+                    $form->setField('netWeight', "input,unit={$unit}");
+                    $form->setField('tareWeight', "input,unit={$unit}");
+                }
+
+                if(empty($rec->id)){
+                    $form->setDefault('storeId', $masterRec->storeId);
+                }
             }
-            
+
             // Поле за бързо добавяне на прогрес, ако може
             if (empty($rec->id) && $rec->type != 'waste' && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
                 $caption = ($rec->type == 'input') ? 'Бърз Прогрес (на момента)->Вложено' : 'Бърз Прогрес (на момента)->Произведено';
@@ -557,7 +568,7 @@ class planning_ProductionTaskProducts extends core_Detail
         // Ако има запис в артикули за него, връща се оттам
         $query = self::getQuery();
         $query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
-        $query->show('productId,indTime,packagingId,plannedQuantity,totalQuantity,limit');
+        $query->show('productId,indTime,packagingId,plannedQuantity,totalQuantity,limit,netWeight,tareWeight');
         if ($rec = $query->fetch()) return $rec;
 
         if (isset($assetId)) {
@@ -613,7 +624,7 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
     {
-        $data->singleTitle = ($data->form->rec->type == 'input') ? 'артикул за влагане' : (($data->form->rec->type == 'waste') ? 'отпадъчен артикул' : 'заготовка');
+        $data->singleTitle = ($data->form->rec->type == 'input') ? 'артикул за влагане' : (($data->form->rec->type == 'waste') ? 'отпадъчен артикул' : 'артикул за произвеждане');
     }
 
 

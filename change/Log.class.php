@@ -76,7 +76,7 @@ class change_Log extends core_Manager
         $this->FLD('docClass', 'class', 'caption=Документ->Клас');
         $this->FLD('docId', 'int', 'caption=Документ->Обект');
         $this->FLD('field', 'varchar', 'caption=Поле');
-        $this->FLD('value', 'blob(1000000,compress,serialize)', 'caption=Стойности');
+        $this->FLD('value', 'blob(1000000,compress,serialize)', 'caption=Стойности,tdClass=td-clamp');
         
         $this->FNC('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, input=none');
         $this->FNC('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, input=none');

@@ -39,8 +39,11 @@ class fileman_Upload extends core_Manager
         // Дали ще качаваме много файлове едновременно
         $allowMultiUpload = false;
         
-        Request::setProtected('callback, bucketId');
-        
+        Request::setProtected('callback, bucketId, validUntil');
+
+        $validUntil = Request::get('validUntil', 'datetime');
+        expect($validUntil && ($validUntil > dt::now()), 'Линкът за качване е изтекъл');
+
         // Вземаме callBack'а
         if ($callback = Request::get('callback', 'identifier')) {
             
@@ -65,7 +68,7 @@ class fileman_Upload extends core_Manager
         if (Request::get('Upload')) {
             $resEt = new ET();
             
-            $this->makeUpload($_FILES, $bucketId, $resEt, $callback);
+            $this->makeUpload($_FILES, $bucketId, $resEt, $callback, $success);
             
             if (Request::get('ajax_mode')) {
                 core_App::outputJson(array('success' => $success, 'res' => $resEt->getContent()));
@@ -99,7 +102,7 @@ class fileman_Upload extends core_Manager
      * 
      * @return array
      */
-    public static function makeUpload($files, $bucketId, &$resEt = null, $callback = null)
+    public static function makeUpload($files, $bucketId, &$resEt = null, $callback = null, &$success = null)
     {
         $resArr = array();
         

@@ -201,7 +201,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('contragentCountry', 'varchar(255)', 'input=hidden');
         $mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
         $mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-        $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Вал.,silent,removeAndRefreshForm=rate|amount');
+        $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent,removeAndRefreshForm=rate|amount');
         $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min77=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
@@ -681,6 +681,21 @@ abstract class cash_Document extends deals_PaymentDocument
 
         // Ако има транс. линия с дефолтна каса
         $priorityCases = array();
+
+        // Ако докуемнта е към ориджин с приоритет е касата от него
+        if(isset($rec->originId)){
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('deals_DealMaster')){
+                $originCaseId = $origin->fetchField('caseId');
+            } elseif($origin->isInstanceOf('cash_Document')) {
+                $originCaseId = $origin->fetchField('peroCase');
+            }
+
+            if(isset($originCaseId)){
+                $priorityCases[$originCaseId] = $originCaseId;
+            }
+        }
+
         if(!empty($rec->{$this->lineFieldName})){
             if($lineDefaultCaseId = trans_Lines::fetchField($rec->{$this->lineFieldName}, 'defaultCaseId')){
                 $priorityCases[] = $lineDefaultCaseId;
@@ -693,7 +708,7 @@ abstract class cash_Document extends deals_PaymentDocument
             $priorityCases[$sessionCaseId] = $sessionCaseId;
         }
 
-        // Проверяват се първо касата от ТЛ и тази от сесията и се връща първата с която може да контира потребителя
+        // Проверяват се първо касата от оридижна, после касата от ТЛ и тази от сесията и се връща първата с която може да контира потребителя
         foreach ($priorityCases as $defaultCaseId){
             $clone = clone $rec;
             $clone->peroCase = $defaultCaseId;

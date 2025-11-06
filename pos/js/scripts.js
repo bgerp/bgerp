@@ -1445,6 +1445,7 @@ function disableOrEnableEnlargeBtn()
  */
 function addProduct(el) {
 
+	$('.scrollingGrid .fadedElement').removeClass('fadedElement');
 	$(el).addClass('fadedElement');
 	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
 	clearTimeout(timeout);
@@ -1678,8 +1679,24 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
                 if(id){
                     params.selectedProductGroupId = id;
                 } else {
-                    let gridClass = activeTab.attr("data-grid");
-                    console.log("TODO SCROLL TO " + gridClass)
+					let gridClass = activeTab.attr("data-grid");
+					let element = $('.' + gridClass)[0];
+					if (element) {
+
+						if (!$(element).find('.navigable:visible').first().hasClass('selected') && !$(element).find('.navigable.selected').length) {
+							selectFirstInRow($(element));
+						} else {
+							// дори да е селектиран, не скролирай ако вече е видим
+							const $first = $(element).find('.navigable:visible').first();
+							const container = $(element).closest('.scrollingGrid')[0];
+							if (container && !isVisibleInContainer($first[0], container, 4)) {
+								const prev = container.style.scrollBehavior;
+								container.style.scrollBehavior = 'auto';
+								$first[0].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+								container.style.scrollBehavior = prev || '';
+							}
+						}
+					}
                 }
 			}
 		}
@@ -1691,6 +1708,38 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 		processUrl(url, params);
 
 	}, timeoutTime);
+}
+
+function isVisibleInContainer(el, container, margin = 0) {
+	const r = el.getBoundingClientRect();
+	const c = container.getBoundingClientRect();
+	return (
+		r.left   >= c.left + margin &&
+		r.right  <= c.right - margin &&
+		r.top    >= c.top + margin &&
+		r.bottom <= c.bottom - margin
+	);
+}
+
+function selectFirstInRow($row) {
+	const $first = $row.find('.navigable:visible').first();
+	if (!$first.length) return;
+
+	// 1) селекция без click
+	$('.navigable.selected').removeClass('selected');
+	$first.addClass('selected');
+
+	const id = $first.attr('id');
+	if (id) sessionStorage.setItem('focused', id);
+
+	// 2) скрол само при нужда И спрямо контейнера
+	const container = $row.closest('.scrollingGrid')[0] || document.scrollingElement;
+	if (!isVisibleInContainer($first[0], container, 4)) {
+		const prev = container.style.scrollBehavior;
+		container.style.scrollBehavior = 'auto';        // без плавност => без подскачане
+		$first[0].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+		container.style.scrollBehavior = prev || '';
+	}
 }
 
 

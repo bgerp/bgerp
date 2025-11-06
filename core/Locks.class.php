@@ -139,8 +139,10 @@ class core_Locks extends core_Manager
 
         $lockExpire = time() + $lockDuration;
 
-        // Увеличаваме времето за изпълнение (евентуално) за времето до изтичане на лок-а
-        core_App::setTimeLimit($lockDuration);
+        if ($lockDuration) {
+            // Увеличаваме времето за изпълнение (евентуално) за времето до изтичане на лок-а
+            core_App::setTimeLimit($lockDuration);
+        }
 
         $rec = $Locks->locks[$objectId];
 
@@ -282,7 +284,7 @@ class core_Locks extends core_Manager
 
             usleep($sleep);
 
-            Debug::log("Sleep {$sleep} microSec. in " . __CLASS__);
+            Debug::log("Sleep '{$objectId}' {$sleep} microSec. in " . __CLASS__);
 
             if (static::obtain($objectId, $lockDuration, 0, $timeout, $releaseOnShutDown)) {
                 
