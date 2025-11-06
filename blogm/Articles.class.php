@@ -152,8 +152,8 @@ class blogm_Articles extends core_Master
                 $row->thumb = ht::createLink(ht::createElement('img', array('src' => $imageURL, 'alt' => $row->seoTitle, 'class' => 'blogmBrowseImg')), self::getUrl($rec));
             }
         }
-        
-        if ($q = Request::get('q')) {
+     
+        if ($q = Request::get('q', 'varchar')) {
             $row->body = plg_Search::highlight($row->body, $q, 'searchContent');
         }
         
@@ -688,10 +688,10 @@ class blogm_Articles extends core_Master
         $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->categoryId, $showAll);
 
         $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
-        $data->q = Request::get('q');
+        $data->q = Request::get('q', 'varchar');
 
         // Архив
-        $data->archive = Request::get('archive');
+        $data->archive = Request::get('archive', 'varchar');
 
         if ($data->archive) {
             list($data->archiveY, $data->archiveM) = explode('|', $data->archive);

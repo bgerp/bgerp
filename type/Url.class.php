@@ -90,6 +90,14 @@ class type_Url extends type_Varchar
         }
         
         $res = $this->isValid($value);
+
+        if(isset($res['error'])) {
+            
+            $this->error = $res['error'];
+            core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
+
+            return false;
+        }
         
         return $value;
     }
