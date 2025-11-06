@@ -1927,24 +1927,29 @@ abstract class deals_Helper
                     $amount = round($pRec->amountDeal, 2);
                     $type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
                 }
-                $rate = !empty($pRec->amountDeal) ? round($pRec->amount / $pRec->amountDeal, 4) : 0;
 
                 $pCurrencyCode = currency_Currencies::getCodeById($pData->dealCurrencyId);
+                $rate = !empty($pRec->amountDeal) ? round($pRec->amount / $pRec->amountDeal, 4) : 0;
+                $rate1 = $rate;
+                if($rate == 1) {
+                    $rate1 = currency_CurrencyRates::getRate($pRec->valior, $pCurrencyCode, null);
+                }
+
                 if(countR($invArr)){
                     foreach ($invArr as $iRec){
                         $pData->amount -= $iRec->amount;
                         $iAmount = !empty($rate) ? $sign * round($iRec->amount / $rate, 2) : 0;
-                        $payArr["{$pRec->containerId}|{$iRec->containerId}"] = (object) array('containerId' => $pRec->containerId, 'amount' => $iAmount, 'available' => $iAmount, 'to' => $invMap[$iRec->containerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
+                        $payArr["{$pRec->containerId}|{$iRec->containerId}"] = (object) array('containerId' => $pRec->containerId, 'amount' => $iAmount, 'available' => $iAmount, 'to' => $invMap[$iRec->containerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate1, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
                     }
 
                     $pData->amount = round($pData->amount, 2);
                     if(!empty($pData->amount)){
                         $rAmount = $sign * $pData->amount;
-                        $payArr["{$pRec->containerId}|"] = (object) array('containerId' => $pRec->containerId, 'amount' => $rAmount, 'available' => $rAmount, 'to' => null, 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
+                        $payArr["{$pRec->containerId}|"] = (object) array('containerId' => $pRec->containerId, 'amount' => $rAmount, 'available' => $rAmount, 'to' => null, 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate1, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
                     }
                 } else {
                     $amount = $sign * $amount;
-                    $payArr[$pRec->containerId] = (object) array('containerId' => $pRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => $invMap[$pRec->fromContainerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
+                    $payArr[$pRec->containerId] = (object) array('containerId' => $pRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => $invMap[$pRec->fromContainerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate1, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
                 }
             }
         }
