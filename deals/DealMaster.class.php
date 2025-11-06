@@ -3327,9 +3327,9 @@ abstract class deals_DealMaster extends deals_DealBase
         requireRole('debug');
         $threadId = Request::get('threadId', 'int');
 
-        $payments1 = deals_Helper::getInvoicePayments($threadId, null, false, false);
-
-        $payments = deals_Helper::getInvoicePayments($threadId);
+        $payment1 = deals_Helper::getInvoicePayments($threadId, null, false);
+        $payments2 = deals_Helper::getInvoicePayments($threadId, null, false, false);
+        $payment3 = deals_Helper::getInvoicePayments($threadId);
 
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $pRec = $firstDoc->fetch();
@@ -3337,7 +3337,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $debug = '';
         $paymentState = $firstDoc->getInstance()->getPaymentState($pRec, null, $debug);
         echo $debug;
-        bp($payments1, $payments, $paymentState, $pRec);
+        bp($payment1, $payments2, $payment3);
     }
 
 
