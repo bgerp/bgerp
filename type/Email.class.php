@@ -52,8 +52,7 @@ class type_Email extends type_Varchar
             
             return;
         }
-        echo $value; die;
-
+        
         if (!$this->isValidEmail($value)) {
             $this->error = 'Некоректен имейл';
             
