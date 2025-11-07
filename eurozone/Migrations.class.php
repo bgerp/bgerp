@@ -248,6 +248,13 @@ SET
     }
 
 
+    /**
+     * Копиране на данните на една таблица в друга - копие
+     *
+     * @param mixed $class - клас от който да се копира
+     * @param mixed $copyClass   - в таблицата на кой клас да се копира
+     * @return void
+     */
     private static function prepareCopyTable($class, $copyClass)
     {
         $Class = cls::get($class);
@@ -266,7 +273,6 @@ SET
 
         $query = "TRUNCATE TABLE {$copyTable};";
         $Copy->db->query($query);
-
 
         $query = "INSERT INTO {$copyTable} SELECT {$selectFieldsStr} FROM {$originalTable};";
         $Copy->db->query($query);
