@@ -209,7 +209,7 @@ class cms_FancyTheme extends core_ProtoInner
             $bgcolorActive = phpcolor_Adapter::changeColor($bgcolorActive, 'lighten', 20);
         }
 
-        $css .= "\n    .narrow .externalPage .narrowCenter a, .narrow header { background-color: #$baseColor !important;}";
+        $css .= "\n    .narrow .externalPage .narrowCenter a { background-color: #$baseColor !important;}";
         $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover, .cookies .agree {background-color:#{$activeColor};}";
 
         $css .= "\n    .selected-external-tab  {border-top: 3px solid #{$activeColor} !important;}";
