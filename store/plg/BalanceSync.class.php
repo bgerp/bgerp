@@ -69,15 +69,18 @@ class store_plg_BalanceSync extends core_Plugin
                 }
             }
         }
-        
+
         // Извличаме наведнъж записите им
         $cache = array();
-        $itemQuery = acc_Items::getQuery();
-        $itemQuery->in('id', $itemIds);
-        while ($i = $itemQuery->fetch()) {
-            $cache[$i->id] = $i;
+        if(countR($itemIds)){
+            $itemQuery = acc_Items::getQuery();
+            $itemQuery->in('id', $itemIds);
+            $itemQuery->show('id,classId,objectId');
+            while ($i = $itemQuery->fetch()) {
+                $cache[$i->id] = $i;
+            }
         }
-        
+
         // За всеки запис от баланса
         $now = dt::now();
         foreach ($recs as $rec) {

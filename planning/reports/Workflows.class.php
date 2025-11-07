@@ -46,13 +46,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField = 'assetResources';
+   // protected $groupByField = 'assetResources';
+    protected $groupByField ;
 
 
     /**
      * По-кое поле да се групират данните след групиране, вътре в групата
      */
-    protected $subGroupFieldOrder = 'productId';
+    //protected $subGroupFieldOrder = 'productId';
+    protected $subGroupFieldOrder ;
 
 
     /**
@@ -93,13 +95,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none,input=none');
 
-        $fieldset->FLD('group', 'key2(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=employees,removeAndRefreshForm,silent,single=none');
+        //$fieldset->FLD('group', 'key2(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=employees,removeAndRefreshForm=productId,silent,single=none');
 
-        $fieldset->FLD('products', 'key2(mvc=cat_Products,select=name)', 'caption=Филтри->Артикули,placeholder=Всички,after=group,single=none,class=w100');
+        $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Настройки и филтри->Тип на отчета,after=employees,mandatory,removeAndRefreshForm,single=none');
 
-        $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=products,mandatory,removeAndRefreshForm,single=none');
+        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Настройки и филтри->Разбивка по,removeAndRefreshForm,after=typeOfReport,single=none');
 
-        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,removeAndRefreshForm,after=typeOfReport,single=none');
+        $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Настройки и филтри->Артикули,placeholder=Всички,silent,after=resultsOn,single=none,class=w100');
 
         $fieldset->FNC('indTimeSumArr', 'blob', 'caption=Времена,input=none,single=none');
     }
@@ -126,11 +128,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $form->setField('resultsOn', 'input=none');
         }
 
-        //bp($rec->group);
-
-        $suggestions1 = cat_Products::getProducts(null, null, null, null, null, null, false, $rec->group);
-
-        $form->setSuggestions('products', $suggestions1);
+        //Зарежда полето артикули
+       // $form->setFieldTypeParams('productId', array('isPublic' => 'yes'));
 
     }
 
@@ -176,6 +175,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $query->EXT('originId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'originId'));
         $query->where("#state != 'rejected' ");
 
+
+        // Синхронизира таймлимита с броя записи //
+        $query1 = $pDetails->getQuery();
+        $maxTimeLimit = $query1->count() * 20;
+        $maxTimeLimit = max(array($maxTimeLimit, 300));
+        if ($maxTimeLimit > 300) {
+            core_App::setTimeLimit($maxTimeLimit);
+        }
+
         //Филтър по център на дейност
         if ($rec->centre) {
 
@@ -188,12 +196,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Филтър по групи артикули
         if (isset($rec->group)) {
-            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
+           // plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
         }
 
         //Филтър по артикул
-        if (isset($rec->products)) {
-            $query->where("#productId = {$rec->products} ");
+        if (isset($rec->productId)) {
+            $query->where("#productId = {$rec->productId} ");
         }
 
         //Филтър по служители
@@ -254,6 +262,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $taskArr = $taskQuery->fetchAll();
         }
 
+        //Масив с имена на служителите за използване в цикъла
+        $emplQuery =  crm_Persons::getQuery();
+        $allEmplArr = array();
+        while ($eplRec  = $emplQuery->fetch()) {
+            $allEmplArr[$eplRec->id] = $eplRec->name;
+        }
+
         foreach ($taskDetails as $tRec) {
             $id = self::breakdownBy($tRec, $rec);
 
@@ -277,7 +292,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $quantityInPack = 1;
                 if (isset($iRec->indPackagingId)) {
                     if ($packRec = cat_products_Packagings::getPack($tRec->productId, $iRec->indPackagingId)) {
-
                         $quantityInPack = $packRec->quantity;
                     }
 
@@ -299,7 +313,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $labelQuantity = 1 / $divisor;
 
                     $employees = $val;
-                    $employeesName = crm_Persons::getTitleById($val);
+                    $employeesName = $allEmplArr[$val];
                 }
 
                 if ($divisor) {
@@ -671,7 +685,18 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row->weight = ht::styleNumber($row->weight, $dRec->weight);
 
         if ($rec->typeOfReport == 'short' && isset($dRec->employees)) {
-            $row->employees = crm_Persons::getTitleById(($dRec->employees)) . ' - ' . planning_Hr::getCodeLink($dRec->employees);
+
+            if (isset($dRec->employees)) {
+                foreach (keylist::toArray($dRec->employees) as $key => $val) {
+
+                    $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val]);
+
+                    $name = crm_Persons::fetch($val)->name.' / '.planning_Hr::getCodeLink($val);
+                    $pers = ht::createLink($name, array('crm_Persons', 'single', $val)) . ' - ' . $indTimeSum . ' мин.';
+
+                    $row->employees .= $pers . '</br>';
+                }
+            }
 
             $row->indTimeSum = $Double->toVerbal($dRec->indTimeSum / 60);
         } else {

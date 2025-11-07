@@ -512,7 +512,7 @@ class crm_ext_Cards extends core_Manager
                     $cartRec->voucherId = $voucherInfo['id'];
                     eshop_Carts::save($cartRec);
                     voucher_Cards::mark($cartRec->voucherId, true, eshop_Carts::getClassId(), $cartRec->id);
-                    followRetUrl(null, 'Ваучерът е добавен');
+                    followRetUrl(null, 'Ваучерът е добавен|*!');
                 }
             }
         }

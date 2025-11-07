@@ -172,7 +172,7 @@ class pos_ReceiptDetails extends core_Detail
                     if (!isset($receiptRec->revertId)) {
                         $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($receiptRec->id), 'productId');
                         $errorStartStr = 'Не може да платите, докато има артикули изискващи препоръчител и няма такъв';
-                        if ($error = voucher_Cards::getErrorForVoucherAndProducts($receiptRec->voucherId, $productArr, $errorStartStr)) {
+                        if ($error = voucher_Cards::getErrorForVoucherAndProducts($receiptRec->voucherId, $productArr, $receiptRec->contragentClass, $receiptRec->contragentObjectId, $errorStartStr)) {
                             expect(false, $error);
                         }
                     }

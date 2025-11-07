@@ -378,7 +378,7 @@ class type_Key2 extends type_Int
             
             $this->params = $hnd;
             
-            $q = trim(Request::get('q'));
+            $q = trim(Request::get('q', 'varchar'));
             
             $select = new ET('<option value="">&nbsp;</option>');
             

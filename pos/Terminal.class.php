@@ -1415,7 +1415,8 @@ class pos_Terminal extends peripheral_Terminal
             if(!isset($rec->revertId)){
                 $productArr = arr::extractValuesFromArray(pos_Receipts::getProducts($rec->id), 'productId');
                 $errorStartStr = 'Не може да платите, докато има артикули изискващи препоръчител и няма такъв';
-                if ($error = voucher_Cards::getErrorForVoucherAndProducts($rec->voucherId, $productArr, $errorStartStr)) {
+
+                if ($error = voucher_Cards::getErrorForVoucherAndProducts($rec->voucherId, $productArr, $rec->contragentClass, $rec->contragentObjectId, $errorStartStr)) {
                     $tpl->append(tr($error), 'PAYMENT_ERROR');
                     $rec->_disableAllPayments = true;
                 }

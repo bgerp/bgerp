@@ -320,7 +320,7 @@ class core_Manager extends core_Mvc
      */
     public function act_Default()
     {
-        if (!isset($this->dbTableName)) {
+        if (!isset($this->dbTableName) || !strlen(trim($this->dbTableName)) || !trim($this->dbTableName)) {
             $res = $this->renderWrapping('<h2>Този модел няма таблица</h2>');
         } else {
             $res = $this->act_List();
@@ -1347,7 +1347,7 @@ class core_Manager extends core_Mvc
         }
         
         // Приключваме, ако няма заявка за търсене
-        $q = Request::get('q');
+        $q = Request::get('q', 'varchar');
         
         if (!$q) {
             return array(

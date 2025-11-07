@@ -185,7 +185,7 @@ class select2_PluginSelect extends core_Plugin
 
         $matchOnlyStartsWith = Request::get('matchOnlyStartsWith') ? true : false;
         
-        $q = Request::get('q');
+        $q = Request::get('q', 'varchar');
         
         select2_Adapter::getAjaxRes($invoker->selectOpt, $hnd, $q, $maxSuggestions, $matchOnlyStartsWith);
         

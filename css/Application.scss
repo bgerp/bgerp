@@ -2820,6 +2820,10 @@ max-width: 400px;
 	margin-top: 3px;
 }
 
+.shortTime {
+	white-space: wrap !important;
+	width: 70px !important;
+}
 .boldText {
 	font-weight: bold;
 }
@@ -4600,6 +4604,11 @@ fieldset.sharing-history {
 		background-color: rgb(168, 243, 180, 0.9)  !important;
 		color:black !important;
 	}
+
+    &.requirerReferer {
+       background-color: rgba(243, 255, 142, 0.8) !important;
+       color: black !important;
+    }
 }
 .eshop-product-list-param {
 	font-size: 0.85em;

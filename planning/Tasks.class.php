@@ -295,7 +295,7 @@ class planning_Tasks extends core_Master
         $this->FLD('isFinal', 'enum(yes=Да,no=Не)', 'input=hidden,caption=Финална,silent');
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=К-во в мярка,input=none');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none');
-        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|simultaneity,alwaysShowInListFilter');
+        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|simultaneity,alwaysShowInListFilter,tdClass=small');
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=0)', 'caption=Оператори,silent');
@@ -431,7 +431,7 @@ class planning_Tasks extends core_Master
 
         if(isset($data->assetData) && countR($data->assetData->params)){
             Mode::push('text', 'xhtml');
-            $data->assetData->paramCaption = 'От обордуването';
+            $data->assetData->paramCaption = 'От оборудването';
             $assetTpl = cat_products_Params::renderParams($data->assetData);
             $tpl->append($assetTpl, 'ASSET_PARAMS');
             Mode::pop('text');
@@ -2161,12 +2161,17 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $data->listFilter->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Центрове');
+        $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf'));
         $data->listFilter->setFieldTypeParams('folder', array('coverClasses' => 'planning_Centers', 'orderBy' => 'title=ASC'));
-        $data->listFilter->setField('folder', 'silent,autoFilter');
+        $data->listFilter->setField('folder', 'input=none');
+        $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
+        $data->listFilter->showFields .= ',folders';
 
         // Добавят се за избор само използваните в ПО оборудвания
-        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folder);
+        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders);
+
         if (countR($assetInTasks)) {
             $data->listFilter->setField('assetId', 'caption=Оборудване,silent,autoFilter');
             $data->listFilter->setOptions('assetId', array('' => '') + $assetInTasks);
@@ -2188,12 +2193,16 @@ class planning_Tasks extends core_Master
                     $cUrl['isFinalSelect'] = 'all';
                     $cUrl['state'] = 'manualOrder';
                     $cUrl['selectPeriod'] = 'gr0';
-                    unset($cUrl['folder']);
+                    unset($cUrl['folders']);
                     unset($cUrl['search']);
                     $cUrl['reorder'] = true;
                     $cUrl['ret_url'] = true;
                     $data->listFilter->toolbar->addBtn("Подреждане", $cUrl, 'title=Преподреждане на операциите,ef_icon=img/16/arrow_switch2.png');
                 }
+            }
+
+            if (isset($filter->folders)) {
+                $data->query->in("folderId", $filter->folders);
             }
         }
 
@@ -3023,13 +3032,8 @@ class planning_Tasks extends core_Master
 
         // Ако има избран център - тези параметри от тях/ ако няма всички параметри от центровете с листвани задачи
         if(!$data->masterMvc){
-            if (isset($data->listFilter->rec->folder)) {
-                $folderIds = array($data->listFilter->rec->folder);
-            } else {
-                $folderIds = arr::extractValuesFromArray($data->recs, 'folderId');
-            }
-
-            if(countR($folderIds)){
+            if(!empty($data->listFilter->rec->folders)){
+                $folderIds = keylist::toArray($data->listFilter->rec->folders);
                 $cQuery = planning_Centers::getQuery();
                 $cQuery->in('folderId', $folderIds);
                 $cQuery->where("#planningParams IS NOT NULL");
@@ -3093,7 +3097,12 @@ class planning_Tasks extends core_Master
 
         $data->listTableMvc->setField('notes', 'tdClass=notesCol');
         foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId', 'folderId', 'jobQuantity', 'plannedQuantity') as $fld) {
-            $dateClass = in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? "{$tableClass} openModal" : ($fld == 'title' ? "{$tableClass} titleTags" : $tableClass);
+            $dateClass = $tableClass
+                . (in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? ' openModal' : '')
+                . (in_array($fld, array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart')) ? ' shortTime' : '')
+                . ($fld === 'title' ? ' titleTags' : '')
+                . ($fld === 'jobQuantity' ? ' quiet' : '');
+
             $data->listTableMvc->setField($fld, "tdClass={$dateClass}");
         }
         $data->listTableMvc->setField('dependantProgress', "tdClass={$tableClass} dependantProgress");
