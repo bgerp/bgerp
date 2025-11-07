@@ -601,6 +601,12 @@ class eshop_ProductDetails extends core_Detail
             }
         }
 
+        $requireReferrerId = cat_Params::force('requireReferrer', 'Изискуем препоръчител', 'cond_type_YesOrNo', null, '', false, false);
+        $requireReferrer = cat_Products::getParams($rec->productId, $requireReferrerId);
+        if($requireReferrer == 'yes'){
+            $row->saleInfo .= "<span class='{$class} option-not-in-stock requirerReferer'>" . tr('Изисква препоръка') . '</span>';
+        }
+
         if($rec->_listView !== true){
             $row->catalogPrice = "<div class='eshop-product-price-holder'>{$row->catalogPrice}</div>";
             if(!empty($row->btn)){
