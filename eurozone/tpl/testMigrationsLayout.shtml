@@ -1,0 +1,20 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <h3 style="padding:5px;" class=" [#STATE_CLASS#]">
+        |Тестове на миграции за еврозоната|*
+    </h3>
+    <div class='scrolling-holder'>
+        <table class="styled-table">
+            [#MIGRATIONS#]
+            <!--ET_BEGIN BLOCK-->
+            [#BLOCK#]
+            <tr>
+                <td class="title-style">[#name#]</td>
+                <td>[#testBtn#]</td>
+                <td>[#tableLink#]</td>
+                <td>[#copyLink#]</td>
+            </tr>
+            <!--ET_END BLOCK-->
+        </table>
+    </div>
+</div>
