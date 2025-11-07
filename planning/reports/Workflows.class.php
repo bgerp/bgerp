@@ -175,8 +175,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $query->EXT('originId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'originId'));
         $query->where("#state != 'rejected' ");
 
+
         // Синхронизира таймлимита с броя записи //
-        $maxTimeLimit = $query->count() * 20;
+        $query1 = $pDetails->getQuery();
+        $maxTimeLimit = $query1->count() * 20;
         $maxTimeLimit = max(array($maxTimeLimit, 300));
         if ($maxTimeLimit > 300) {
             core_App::setTimeLimit($maxTimeLimit);
@@ -260,6 +262,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $taskArr = $taskQuery->fetchAll();
         }
 
+        //Масив с имена на служителите за използване в цикъла
+        $emplQuery =  crm_Persons::getQuery();
+        $allEmplArr = array();
+        while ($eplRec  = $emplQuery->fetch()) {
+            $allEmplArr[$eplRec->id] = $eplRec->name;
+        }
+
         foreach ($taskDetails as $tRec) {
             $id = self::breakdownBy($tRec, $rec);
 
@@ -283,7 +292,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $quantityInPack = 1;
                 if (isset($iRec->indPackagingId)) {
                     if ($packRec = cat_products_Packagings::getPack($tRec->productId, $iRec->indPackagingId)) {
-
                         $quantityInPack = $packRec->quantity;
                     }
 
@@ -305,7 +313,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $labelQuantity = 1 / $divisor;
 
                     $employees = $val;
-                    $employeesName = crm_Persons::getTitleById($val);
+                    $employeesName = $allEmplArr[$val];
                 }
 
                 if ($divisor) {
