@@ -228,9 +228,38 @@ SET
 
     );
 
+
+    /**
+     * Подмяна на периодите след еврозоната да са с евро
+     */
+    public function updateCreatedPeriods()
+    {
+        $eurozoneDate = acc_Setup::getEuroZoneDate();
+        $prevEndBeforeEurozone = dt::getLastDayOfMonth(dt::addMonths(-1, $eurozoneDate));
+
+        $Periods = cls::get('acc_Periods');
+        $euroId = currency_Currencies::getIdByCode('EUR');
+        $bgnId = currency_Currencies::getIdByCode('BGN');
+
+        $savePeriods = array();
+        $pQuery = $Periods->getQuery();
+        $pQuery->where("#baseCurrencyId = {$bgnId} AND #end > '{$prevEndBeforeEurozone}'");
+        while($pRec = $pQuery->fetch()){
+            $pRec->baseCurrencyId = $euroId;
+            $savePeriods[$pRec->id] = $pRec;
+        }
+
+        if(countR($savePeriods)){
+            $Periods->saveArray($savePeriods, 'id,baseCurrencyId');
+        }
+    }
+
+
     function act_Test()
     {
         requireRole('debug');
+
+
 
         expect($fnc = Request::get('fnc'));
         expect(method_exists($this, $fnc));
@@ -239,10 +268,11 @@ SET
 
         followRetUrl(null, 'Успешно минал тест');
 
-        //self::updatePriceLists();
+        self::updateCreatedPeriods();
+        self::updatePriceLists();
         self::updateDeltas();
         self::updatePurchases();
-        //self::updateEshopSettings();
+        self::updateEshopSettings();
         self::updatePriceCosts();
         self::updatePricesByDate();
     }
