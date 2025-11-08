@@ -150,7 +150,6 @@ class doc_Folders extends core_Master
         $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
         
         $this->setDbUnique('coverId,coverClass');
-
         $this->setDbIndex('last');
         $this->setDbIndex('createdOn');
     }
@@ -817,7 +816,7 @@ class doc_Folders extends core_Master
         $tQuery->where(array("#folderId = '[#1#]'", $folderId));
         $tQuery->groupBy('visibleForPartners,state,firstDocClass');
         
-        $tQuery->XPR('cnt', 'int', 'COUNT(#id)');
+        $tQuery->XPR('cnt', 'int', 'COUNT(*)');
         
         $tQuery->show('visibleForPartners,state,firstDocClass,cnt');
         
