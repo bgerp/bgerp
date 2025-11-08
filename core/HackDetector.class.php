@@ -26,7 +26,7 @@ class core_HackDetector extends core_MVC
 
         $score = max(self::sqlInjectionScore($str), self::xssLikelihoodScore($str));
 
-        if($score > $threashole ?? BGERP_HACK_TOLERANCE) {
+        if($score > ($threashole ?? BGERP_HACK_TOLERANCE)) {
             error('400 Bad Request');
         }
     }
@@ -181,55 +181,56 @@ class core_HackDetector extends core_MVC
         if ($clean === '') return 0;
 
         $score = 0.0;
+        $mark = [];
 
         // Helper checker
-        $hit = function(bool $cond, float $w) use (&$score){ if ($cond) $score += $w; };
+        $hit = function(bool $cond, float $w, string $flag) use (&$score, &$mark){ if ($cond) $score += $w; $mark[$flag] = $w; };
 
         // --- High-risk direct script execution ---
         // <script ...> or obfuscated split like <scri<script>pt>
-        $hit(preg_match('/<\s*script\b/', $clean), 2.3);
-        $hit(preg_match('/scri\s*<\s*script\s*>\s*pt|<\s*\/\s*script\s*>/', $clean), 0.8);
+        $hit(preg_match('/<\s*script\b/', $clean), 2.3, '0');
+        $hit(preg_match('/scri\s*<\s*script\s*>\s*pt|<\s*\/\s*script\s*>/', $clean), 0.8, '1');
 
         // javascript: or vbscript: URLs (href/src/etc)
-        $hit(preg_match('/\b(?:href|src|xlink:href|formaction|lowsrc|background)\s*=\s*["\']?\s*javascript:/', $clean), 2.0);
-        $hit(preg_match('/\b(?:href|src|xlink:href)\s*=\s*["\']?\s*vbscript:/', $clean), 1.2);
+        $hit(preg_match('/\b(?:href|src|xlink:href|formaction|lowsrc|background)\s*=\s*["\']?\s*javascript:/', $clean), 2.0, '2');
+        $hit(preg_match('/\b(?:href|src|xlink:href)\s*=\s*["\']?\s*vbscript:/', $clean), 1.2, '3');
 
         // data: URIs with script-capable mime (svg/xml/html)
-        $hit(preg_match('/\b(?:src|href)\s*=\s*["\']?\s*data:\s*(?:text\/html|image\/svg\+xml|application\/xml)/', $clean), 1.6);
+        $hit(preg_match('/\b(?:src|href)\s*=\s*["\']?\s*data:\s*(?:text\/html|image\/svg\+xml|application\/xml)/', $clean), 1.6, '4');
 
         // on* event handlers (onerror, onload, onclick, etc.)
-        $hit(preg_match('/\bon[a-z0-9_-]{3,}\s*=\s*["\']?/', $clean), 1.6);
+        $hit(preg_match('/\bon[a-z0-9_-]{3,}\s*=\s*["\']?/', $clean), 1.6, '5');
 
         // srcdoc (iframe HTML injection)
-        $hit(preg_match('/\bsrcdoc\s*=\s*["\']/', $clean), 1.4);
+        $hit(preg_match('/\bsrcdoc\s*=\s*["\']/', $clean), 1.4, '6');
 
         // document.* / window.* / alert( / prompt( / confirm(
-        $hit(preg_match('/\b(?:alert|prompt|confirm)\s*\(|\bdocument\.(?:cookie|write|location)|\bwindow\./', $clean), 1.0);
+        $hit(preg_match('/\b(?:alert|prompt|confirm)\s*\(|\bdocument\.(?:cookie|write|location)|\bwindow\./', $clean), 1.0, '7');
 
         // --- Dangerous elements/contexts ---
-        $hit(preg_match('/<\s*(?:iframe|object|embed|link|meta|svg|math|foreignobject|base)\b/', $clean), 1.2);
+        $hit(preg_match('/<\s*(?:iframe|object|embed|link|meta|svg|math|foreignobject|base)\b/', $clean), 1.2, '8');
         // <img ... onerror= / svg onload=
-        $hit(preg_match('/<\s*img\b[^>]*\bon[a-z0-9_-]{3,}\s*=/', $clean), 1.2);
-        $hit(preg_match('/<\s*svg\b[^>]*\bon[a-z0-9_-]{3,}\s*=/', $clean), 1.2);
+        $hit(preg_match('/<\s*img\b[^>]*\bon[a-z0-9_-]{3,}\s*=/', $clean), 1.2, '9');
+        $hit(preg_match('/<\s*svg\b[^>]*\bon[a-z0-9_-]{3,}\s*=/', $clean), 1.2, '10');
 
         // meta refresh to javascript/data
-        $hit(preg_match('/<\s*meta\b[^>]*http-equiv\s*=\s*["\']?refresh[^>]*content\s*=\s*["\'][^"\']*(?:url\s*=\s*javascript:|data:)/', $clean), 1.4);
+        $hit(preg_match('/<\s*meta\b[^>]*http-equiv\s*=\s*["\']?refresh[^>]*content\s*=\s*["\'][^"\']*(?:url\s*=\s*javascript:|data:)/', $clean), 1.4, '11');
 
         // base href that could alter relative links target (less certain)
-        $hit(preg_match('/<\s*base\b[^>]*href\s*=\s*["\']?javascript:/', $clean), 1.0);
+        $hit(preg_match('/<\s*base\b[^>]*href\s*=\s*["\']?javascript:/', $clean), 1.0, '12');
 
         // style attribute / CSS with expression() or url(javascript:...)
-        $hit(preg_match('/\bstyle\s*=\s*["\'][^"\']*(?:expression\s*\(|url\s*\(\s*javascript:)/', $clean), 1.3);
+        $hit(preg_match('/\bstyle\s*=\s*["\'][^"\']*(?:expression\s*\(|url\s*\(\s*javascript:)/', $clean), 1.3, '13');
 
         // SVG/XLink javascript
-        $hit(preg_match('/\bxlink:href\s*=\s*["\']\s*javascript:/', $clean), 1.5);
+        $hit(preg_match('/\bxlink:href\s*=\s*["\']\s*javascript:/', $clean), 1.5, '14');
 
         // Template-esque curly payloads combined with tags (weak signal)
-        $hit(preg_match('/{{[^}]+}}.*<[^>]+>/', $clean), 0.4);
+        $hit(preg_match('/{{[^}]+}}.*<[^>]+>/', $clean), 0.4, '15');
 
         // Attribute breaking + JS start (e.g., '" onerror=' / "';alert(1);//)
-        $hit(preg_match('/["\'][\s\/]*on[a-z0-9_-]{3,}\s*=/', $clean), 0.9);
-        $hit(preg_match('/["\']\s*;\s*(?:alert|prompt|confirm)\s*\(/', $clean), 0.9);
+        $hit(preg_match('/["\'][\s\/]*on[a-z0-9_-]{3,}\s*=/', $clean), 0.9, '16');
+        $hit(preg_match('/["\']\s*;\s*(?:alert|prompt|confirm)\s*\(/', $clean), 0.9, '17');
 
         // Many angle brackets & quotes density (generic but useful)
         $specials = preg_match_all('/[<>"\'`]/', $clean);
@@ -247,7 +248,7 @@ class core_HackDetector extends core_MVC
         if ($score <= 1.2)       return 1;
         if ($score <= 2.2)       return 2;
         if ($score <= 3.2)       return 3;
-
+ 
         return 4;
     }
 
