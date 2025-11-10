@@ -204,6 +204,11 @@ class acc_BalanceDetails extends core_Detail
                 if(strpos($sortBy, 'NotNull') !== false){
                     $sortBy = str_replace('NotNull', '', $sortBy);
                     $data->recs = array_filter($data->recs, function($a) use($sortBy) {return abs(round($a->{$sortBy}, 2)) > 0;});
+                } elseif($sortBy == 'closeToZero'){
+                    $sortBy = 'blAmount';
+                    $data->recs = array_filter($data->recs, function($a) {
+                        return !(abs($a->blQuantity) > 0.001 or abs($a->blAmount) > 0.05);
+                    });
                 }
                 arr::sortObjects($data->recs, $sortBy, 'desc');
             }
@@ -814,7 +819,7 @@ class acc_BalanceDetails extends core_Detail
         foreach ($listRecs as $i => $listRec) {
             $this->setGroupingForField($i, $listRec, $form, $items[$i]);
         }
-        $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо,baseAmountNotNull=Начално салдо (Различно от 0),debitAmountNotNull=Дебитен оборот (Различно от 0),creditAmountNotNull=Кредитен оборот (Различно от 0),blAmountNotNull=Крайно салдо (Различно от 0))', 'caption=Подредба,input');
+        $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо,baseAmountNotNull=Начално салдо (Различно от 0),debitAmountNotNull=Дебитен оборот (Различно от 0),creditAmountNotNull=Кредитен оборот (Различно от 0),blAmountNotNull=Крайно салдо (Различно от 0),closeToZero=Крайни салда (Близки до 0))', 'caption=Подредба,input');
         $form->showFields .= 'sortBy,';
         $form->showFields = trim($form->showFields, ',');
         
@@ -1043,7 +1048,7 @@ class acc_BalanceDetails extends core_Detail
         
         // Да се пропускат записите с нулево крайно салдо, при зареждането на не-междинен баланс
         if (!$isMiddleBalance) {
-            $query->where('#blQuantity != 0 OR #blAmount != 0');
+            $query->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.05');
         }
 
         $feedWithNegativeBlQuantity = acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY');

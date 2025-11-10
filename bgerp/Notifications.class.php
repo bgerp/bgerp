@@ -1559,8 +1559,12 @@ class bgerp_Notifications extends core_Manager
         }
         
         if ($userId > 0) {
-            $query = self::getQuery();
-            $cnt = $query->count("#userId = ${userId} AND #state = 'active' AND #hidden = 'no'");
+            $cnt = core_Cache::get('OpenNtfCnt', $userId);
+            if(!is_int($cnt)) {
+                $query = self::getQuery();
+                $cnt = $query->count("#userId = ${userId} AND #state = 'active' AND #hidden = 'no'");
+                core_Cache::set('OpenNtfCnt', $userId, $cnt, 600);
+            }
         } else {
             $cnt = 0;
         }
@@ -2031,6 +2035,9 @@ class bgerp_Notifications extends core_Manager
      */
     public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = null)
     {
+        // Премахва кеша за броя на нотификациите на този потребител
+        core_Cache::remove('OpenNtfCnt', $rec->userId);
+
         if ($rec->id) {
             if ($fields !== null) {
                 $fields = arr::make($fields, true);
