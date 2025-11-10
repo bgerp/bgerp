@@ -109,7 +109,7 @@ class acc_Balances extends core_Master
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'id, periodId, fromDate, toDate, lastAlternation, lastCalculate, count=Редове';
+    public $listFields = 'id, periodId, fromDate, toDate, lastAlternation, lastCalculate';
 
 
     /**
@@ -226,11 +226,6 @@ class acc_Balances extends core_Master
 
         if ($mvc->haveRightFor('forcecalc', $rec)) {
             $row->lastCalculate .= ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
-        }
-
-        if ($fields['-list']) {
-            $count = acc_BalanceDetails::count("#balanceId = {$rec->id}");
-            $row->count = core_Type::getByName('int')->toVerbal($count);
         }
     }
 
