@@ -326,11 +326,23 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
         }
 
+        // Ако има поле по валута да се филтрира по нея
         if($mvc->getField($mvc->currencyFld, false)){
             $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ", {$mvc->currencyFld}";
             $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setField($mvc->currencyFld, "caption=Валута,input");
             $data->listFilter->showFields .= ",{$mvc->currencyFld}";
+        }
+
+        // Ако има поле за шаблон - по него
+        if($mvc->hasPlugin('doc_plg_TplManager')){
+            $templateOptions = doc_TplManager::getTemplates($mvc);
+            if(countR($templateOptions)){
+                $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ",template";
+                $data->listFilter->setOptions('template', array('' => '') + $templateOptions);
+                $data->listFilter->setField('template', "caption=Шаблон");
+                $data->listFilter->showFields .= ",template";
+            }
         }
 
         // Добавяме към формата за търсене търсене и по Състояние
@@ -358,6 +370,10 @@ class acc_plg_DocumentSummary extends core_Plugin
         if ($filter = $data->listFilter->rec) {
             if(!empty($filter->{$mvc->currencyFld})){
                 $data->query->where("#{$mvc->currencyFld} = '{$filter->{$mvc->currencyFld}}'");
+            }
+
+            if(!empty($filter->template)){
+                $data->query->where("#template = '{$filter->template}'");
             }
 
             if(!empty($filter->fState) && $filter->fState != 'all'){
