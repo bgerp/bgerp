@@ -98,7 +98,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'firstProgress=Начало,lastProgressProduction=Край,dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=Следв. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка,gaps=@';
+    public $listFields = 'firstProgress=Начало,lastProgressProduction=Край,dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Про-грес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=Следв. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка,gaps=@';
 
 
     /**
@@ -2160,12 +2160,17 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $data->listFilter->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Центрове');
+        $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf'));
         $data->listFilter->setFieldTypeParams('folder', array('coverClasses' => 'planning_Centers', 'orderBy' => 'title=ASC'));
-        $data->listFilter->setField('folder', 'silent,autoFilter');
+        $data->listFilter->setField('folder', 'input=none');
+        $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
+        $data->listFilter->showFields .= ',folders';
 
         // Добавят се за избор само използваните в ПО оборудвания
-        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folder);
+        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders);
+
         if (countR($assetInTasks)) {
             $data->listFilter->setField('assetId', 'caption=Оборудване,silent,autoFilter');
             $data->listFilter->setOptions('assetId', array('' => '') + $assetInTasks);
@@ -2187,12 +2192,16 @@ class planning_Tasks extends core_Master
                     $cUrl['isFinalSelect'] = 'all';
                     $cUrl['state'] = 'manualOrder';
                     $cUrl['selectPeriod'] = 'gr0';
-                    unset($cUrl['folder']);
+                    unset($cUrl['folders']);
                     unset($cUrl['search']);
                     $cUrl['reorder'] = true;
                     $cUrl['ret_url'] = true;
                     $data->listFilter->toolbar->addBtn("Подреждане", $cUrl, 'title=Преподреждане на операциите,ef_icon=img/16/arrow_switch2.png');
                 }
+            }
+
+            if (isset($filter->folders)) {
+                $data->query->in("folderId", $filter->folders);
             }
         }
 
@@ -3022,13 +3031,8 @@ class planning_Tasks extends core_Master
 
         // Ако има избран център - тези параметри от тях/ ако няма всички параметри от центровете с листвани задачи
         if(!$data->masterMvc){
-            if (isset($data->listFilter->rec->folder)) {
-                $folderIds = array($data->listFilter->rec->folder);
-            } else {
-                $folderIds = arr::extractValuesFromArray($data->recs, 'folderId');
-            }
-
-            if(countR($folderIds)){
+            if(!empty($data->listFilter->rec->folders)){
+                $folderIds = keylist::toArray($data->listFilter->rec->folders);
                 $cQuery = planning_Centers::getQuery();
                 $cQuery->in('folderId', $folderIds);
                 $cQuery->where("#planningParams IS NOT NULL");
@@ -3092,7 +3096,12 @@ class planning_Tasks extends core_Master
 
         $data->listTableMvc->setField('notes', 'tdClass=notesCol');
         foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId', 'folderId', 'jobQuantity', 'plannedQuantity') as $fld) {
-            $dateClass = in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? "{$tableClass} openModal" : ($fld == 'title' ? "{$tableClass} titleTags" : ($fld == 'jobQuantity' ? "{$tableClass} quiet" : $tableClass));
+            $dateClass = $tableClass
+                . (in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? ' openModal' : '')
+                . (in_array($fld, array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart')) ? ' shortTime' : '')
+                . ($fld === 'title' ? ' titleTags' : '')
+                . ($fld === 'jobQuantity' ? ' quiet' : '');
+
             $data->listTableMvc->setField($fld, "tdClass={$dateClass}");
         }
         $data->listTableMvc->setField('dependantProgress', "tdClass={$tableClass} dependantProgress");
