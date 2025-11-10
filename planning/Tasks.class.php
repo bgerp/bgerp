@@ -98,7 +98,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'firstProgress=Начало,lastProgressProduction=Край,dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Прогрес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=Следв. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка,gaps=@';
+    public $listFields = 'firstProgress=Начало,lastProgressProduction=Край,dependantProgress=Пред.,prevExpectedTimeEnd=Пред. край,expectedTimeStart=Тек. начало,title=Текуща,progress=Про-грес,expectedTimeEnd=Тек. край,nextExpectedTimeStart=Следв. начало,nextId=Следв.,dueDate=Падеж,originId=Задание,jobQuantity=Тираж (Зад.),plannedQuantity=Тираж (ПО),folderId,assetId,saleId=Доставка,notes=Забележка,gaps=@';
 
 
     /**
@@ -3097,7 +3097,12 @@ class planning_Tasks extends core_Master
 
         $data->listTableMvc->setField('notes', 'tdClass=notesCol');
         foreach (array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart', 'dueDate', 'dependantProgress', 'nextId', 'title', 'originId', 'progress', 'saleId', 'folderId', 'jobQuantity', 'plannedQuantity') as $fld) {
-            $dateClass = in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? "{$tableClass} openModal" : ($fld == 'title' ? "{$tableClass} titleTags" : ($fld == 'jobQuantity' ? "{$tableClass} quiet" : $tableClass));
+            $dateClass = $tableClass
+                . (in_array($fld, array('expectedTimeStart', 'expectedTimeEnd')) ? ' openModal' : '')
+                . (in_array($fld, array('prevExpectedTimeEnd', 'expectedTimeStart', 'expectedTimeEnd', 'nextExpectedTimeStart')) ? ' shortTime' : '')
+                . ($fld === 'title' ? ' titleTags' : '')
+                . ($fld === 'jobQuantity' ? ' quiet' : '');
+
             $data->listTableMvc->setField($fld, "tdClass={$dateClass}");
         }
         $data->listTableMvc->setField('dependantProgress', "tdClass={$tableClass} dependantProgress");
