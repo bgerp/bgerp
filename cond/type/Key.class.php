@@ -27,6 +27,8 @@ class cond_type_Key extends cond_type_abstract_Proto
         $fieldset->FLD('class', 'varchar', 'caption=Конкретизиране->Клас,mandatory,silent,removeAndRefreshForm=select');
         $fieldset->FLD('select', 'varchar', 'caption=Конкретизиране->Поле за избор,after=mvc');
         $fieldset->FLD('selectBg', 'varchar', 'caption=Конкретизиране->Поле за избор (БГ),after=select');
+        $fieldset->FLD('displayVerbal', 'varchar', 'caption=Конкретизиране->Поле за показване,after=selectBg');
+
     }
 
 
@@ -127,9 +129,14 @@ class cond_type_Key extends cond_type_abstract_Proto
     {
         $Class = cls::get($rec->class);
         $select = $rec->select;
-        if ($rec->selectBg && core_Lg::getCurrent() == 'bg') {
-            $select = $rec->selectBg;
+        if(isset($rec->displayVerbal)){
+            $select = $rec->displayVerbal;
+        } else {
+            if ($rec->selectBg && core_Lg::getCurrent() == 'bg') {
+                $select = $rec->selectBg;
+            }
         }
+
         $verbal = $Class->getVerbal($value, $select);
 
         // Обръщане в линк, ако може

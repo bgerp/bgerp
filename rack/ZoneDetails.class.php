@@ -459,6 +459,26 @@ class rack_ZoneDetails extends core_Detail
             $mRec->_currentZoneId = $masterRec->id;
             $data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
         }
+		
+		
+		// Сигнализираме, ако се взема цялото налично количество от палетмястото (т.е. че няма нужда да се брои)
+        foreach ($data->rows as $mId => &$rRow) {
+            $mRec = $data->recs[$mId];
+            if (!empty($mRec->palletId) && $mRec->quantity > 0) {
+                $availableQty = rack_Pallets::fetchField($mRec->palletId, 'quantity');
+                if (!empty($availableQty) && abs($mRec->quantity - $availableQty) < 0.0001) {
+                    if (!empty($rRow->movement)) {
+                        $rRow->movement = preg_replace(
+							'/\(([^)]+)\)(?=.*»)/u',
+							'(	<span style="background:#c0c0c0; border-radius:6px; padding:1px 6px; font-weight:bold; color:#000;" title="Цялото налично количество на позицията!">$1</span> )',
+							$rRow->movement,
+							1 // само първото срещане
+						);
+                    }
+                }
+            }
+        }
+		
 
         // Рендиране на таблицата
         $tpl = new core_ET('');

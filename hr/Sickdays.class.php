@@ -232,7 +232,7 @@ class hr_Sickdays extends core_Master
                                         7=Свободен-с право да напуска населеното място в границите на РБ)', 'caption=Болничен лист->Режим на лечение,placeholder=Изберете');
         $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('s'))), 'caption=Информация->Икона за ника, maxRadio=4,columns=4,notNull,value=s2');
         $this->FLD('note', 'richtext(rows=5,bucket=Notes)', 'caption=Информация->Бележки');
-        $this->FLD('icdCode', 'varchar(5)', 'caption=Болничен лист->MKБ код, hint=Международна класификация на болестите');
+        $this->FLD('icdCode', 'key2(mvc=bglocal_MKB,select=title)', 'caption=Болничен лист->MKБ код, hint=Международна класификация на болестите');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник, oldFieldName=alternatePerson');
