@@ -6252,7 +6252,7 @@ $.fn.isInViewport = function () {
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
 function focusOnce(id) {
-    if($('body').hasClass('narrow')) return;
+    if($('body').hasClass('narrow') && (window.innerWidth < 600 || window.innerHeight < 600)) return;
     var state = getHitState();
 
     if (state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
