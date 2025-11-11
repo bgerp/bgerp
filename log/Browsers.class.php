@@ -165,6 +165,8 @@ class log_Browsers extends core_Master
      */
     public static function getBridId($generate = true)
     {
+        static $bridId = null;
+
         if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
             $Session = cls::get('core_DbSess');
         } else {
@@ -175,24 +177,22 @@ class log_Browsers extends core_Master
             
             return ;
         }
-        
-        if (!($bridId = Mode::get('bridId'))) {
+
+        if (!$bridId) {
             $brid = self::getBrid($generate);
-            
+
             if (!$brid) {
-                
+
                 return ;
             }
-            
+
             $bridRec = self::getRecFromBrid($brid);
-            
+
             if ($bridRec) {
                 $bridId = $bridRec->id;
-                
-                Mode::setPermanent('bridId', $bridId);
             }
         }
-        
+
         return $bridId;
     }
     
