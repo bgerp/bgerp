@@ -176,7 +176,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 // Ако крайния им срок е в миналото и има НЕПЛАТЕНО
                 if(strtotime($dueDate) < $todayTimestamp){
                     $explained .= " e по-малко от сега<br />";
-                    $diff = round(($invRec->amount - $invRec->payout) * $invRec->rate, );
+                    $diff = round(($invRec->amount - $invRec->payout) * $invRec->rate, 2);
+                    
                     $explained .= " Неплатено({$invRec->containerId}) :{$diff} (сметнато от " . round($invRec->amount * $invRec->rate, 2) . " минус " . round($invRec->payout * $invRec->rate, 2) .")<br />";
                     if(round($diff, 2) > 0){
                         $explained .= " е над нула<br />";
