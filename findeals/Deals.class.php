@@ -241,6 +241,7 @@ class findeals_Deals extends deals_DealBase
         $this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=vatExceptionId');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен,stopped=Спряно,template=Шаблон)', 'caption=Състояние, input=none');
         $this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
+        $this->FLD('oldCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'input=none,caption=Стара валута');
 
         // Индекс
         $this->setDbIndex('dealManId');
@@ -402,6 +403,14 @@ class findeals_Deals extends deals_DealBase
         $contragentListNum = acc_Lists::fetchBySystemId('contractors')->num;
         $form->setFieldTypeParams('contragentItemId', array('lists' => $contragentListNum));
         $form->setField('baseAmount', "unit={$rec->currencyId}");
+
+        // След еврозоната няма да може да се създават ФД в лева
+        if(dt::today() >= acc_Setup::getEurozoneDate()){
+            $currencyOptions = cls::get('currency_Currencies')->makeArray4Select('code', "#state = 'active' AND #code != 'BGN'");
+            if(!haveRole('debug')){
+                $form->setOptions('currencyId', $currencyOptions);
+            }
+        }
     }
     
     
@@ -840,6 +849,11 @@ class findeals_Deals extends deals_DealBase
         $curItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
         
         $blAmount = acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $curItemId), array(), $rec->valior)->amount;
+        if(isset($rec->oldCurrencyId)){
+            $oItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->oldCurrencyId))->id;
+            $blAmount += acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $oItemId), array(), $rec->valior)->amount;
+        }
+
         $paid = acc_Balances::getBlAmounts($entries, '501,503', null, null, array(), array(), $rec->valior)->amount;
         
         $result->set('amount', 0);
@@ -1134,6 +1148,22 @@ class findeals_Deals extends deals_DealBase
     {
         if ($clsId = $mvc->getClassId()) {
             $query->where("#dealManId = '{$clsId}'");
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        if(dt::today() >= acc_Setup::getEurozoneDate()){
+            $rec = $mvc->fetchRec($id);
+            if($rec->currencyId == 'BGN'){
+                core_Statuses::newStatus('Не може да взъстановите финансова сделка в лева след влизането ни в еврозоната|*!', 'error');
+
+                return false;
+            }
         }
     }
 }
