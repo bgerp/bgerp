@@ -470,7 +470,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->to);
         $baseCurrencyId = currency_Currencies::getIdByCode($baseCurrency);
 
-        //При групиране по кои крупи да работи: групи артикули или категории артикули
+        //При групиране по кои групи да работи: групи артикули или категории артикули
         if ($rec->typeOfGroups == 'art') {
             $checkForGruping = 'group';
         } elseif (($rec->typeOfGroups == 'category')) {
@@ -795,6 +795,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $quantityPrevious = $primeCostPrevious = $deltaPrevious = 0;
             $quantityLastYear = $primeCostLastYear = $deltaLastYear = 0;
 
+
             if ($rec->quantityType == 'shipped') {
                 $DetClass = cls::get($recPrime->detailClassId);
                 $price = 'sellCost';
@@ -897,7 +898,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->compare == 'year') {
                 if ($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear) {
 
-                    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+                    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails ) {
 
                         $quantityLastYear = (-1) * $recPrime->quantity;
                         $primeCostLastYear = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
@@ -948,7 +949,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     $delta = (-1) * $recPrime->delta;
 
-                } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
+                } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports || $DetClass instanceof sales_ServicesDetails) {
                     $quantity = $recPrime->quantity;
 
                     $primeCost = $recPrime->{"${price}"} * $recPrime->quantity;
