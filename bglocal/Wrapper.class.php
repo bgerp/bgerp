@@ -28,6 +28,7 @@ class bglocal_Wrapper extends plg_ProtoWrapper
         $this->TAB('bglocal_Banks', 'Банки');
         $this->TAB('bglocal_NKPD', 'НКПД');
         $this->TAB('bglocal_NKID', 'НКИД');
+        $this->TAB('bglocal_MKB', 'МКБ');
         
         $this->title = 'Данни за България';
     }

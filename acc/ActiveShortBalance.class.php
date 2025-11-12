@@ -215,7 +215,7 @@ class acc_ActiveShortBalance
             $bQuery = acc_BalanceDetails::getQuery();
             $bQuery->show('accountId,ent1Id,ent2Id,ent3Id,blAmount,blQuantity');
             acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3']);
-            $bQuery->where('#blQuantity != 0 OR #blAmount != 0');
+            $bQuery->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.05');
             
             while ($bRec = $bQuery->fetch()) {
                 if (!isset($accInfos[$bRec->accountId])) {
