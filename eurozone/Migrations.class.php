@@ -260,7 +260,6 @@ SET
         requireRole('debug');
 
 
-
         expect($fnc = Request::get('fnc'));
         expect(method_exists($this, $fnc));
 
@@ -345,5 +344,48 @@ SET
         }
 
         return $tpl;
+    }
+
+
+    /**
+     * Миграция на полетата за финансовите сделки
+     */
+    public static function updateFinDeals()
+    {
+        $Deals = cls::get('findeals_Deals');
+        $eurozoneDate = acc_Setup::getEuroZoneDate();
+        $query = $Deals->getQuery();
+        $query->where("#currencyId = 'BGN' AND #state = 'active'");
+
+        while($rec = $query->fetch()) {
+            $rec->currencyId = 'EUR';
+            $rec->oldCurrencyId = 'BGN';
+            if ($rec->valior >= $eurozoneDate) {
+                $rec->currencyRate = 1;
+            } else {
+                $rec->currencyRate = 1.95583;
+            }
+            $rec->amountDeal = 0;
+
+            if (!empty($rec->baseAmount) && $rec->currencyRate != 1) {
+                $rec->baseAmount /= $rec->currencyRate;
+                $rec->baseAmount = round($rec->baseAmount, 2);
+            }
+
+            $Deals->save($rec, 'currencyId,currencyRate,oldCurrencyId,baseAmount,amountDeal');
+            $Deals->logWrite('Мигриране от лева в евро след еврозоната', $rec->id);
+            acc_Journal::reconto($rec->containerId);
+
+            $itemRec = acc_Items::fetchItem($Deals, $rec->id);
+            $Deals->invoke('AfterJournalItemAffect', array($rec, $itemRec));
+        }
+    }
+
+
+    function act_Test2()
+    {
+        requireRole('debug');
+
+        self::updateFinDeals();
     }
 }
