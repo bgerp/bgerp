@@ -1,0 +1,199 @@
+<div class='scrolling-holder'>
+    <table class="innerTable border-table paddingCells">
+        <tbody>
+        <tr>
+            <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
+            <td class="cell centered" rowspan='2' style='width:30%;'>
+                <div class="document-title">|експедиционно нареждане|*</div>
+                <!--ET_BEGIN operationSysId-->
+                <small>( [#operationSysId#] )</small>
+                <!--ET_END operationSysId-->
+                <div style="padding-top:5px;">
+                    № <span class="bigData">[#id#]</span> /
+                    <span class="bigData">[#valior#]</span>
+                    <!--ET_BEGIN reff-->
+                    <div>|Ваш реф|* <span class="bigData">[#reff#]</span></div>
+                    <!--ET_END reff-->
+                </div>
+                <!--ET_BEGIN state-->
+                <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
+                <!--ET_END state-->
+
+                <!--ET_BEGIN MISC_BLOCK-->
+                [#MISC_BLOCK#]
+                <table class="document-block no-border">
+                    <!--ET_BEGIN storeReadiness-->
+                    <tr>
+                        <td class="block-caption leftCol">In stock</td>
+                        <td><div class="block-instock">[#storeReadiness#]</div></td>
+                    </tr>
+                    <!--ET_END storeReadiness-->
+                    <!--ET_BEGIN zoneReadiness-->
+                    <tr>
+                        <td class="block-caption leftCol">Zone [#zoneId#]</td>
+                        <td><div class="block-readiness">[#zoneReadiness#]</div></td>
+                    </tr>
+                    <!--ET_END zoneReadiness-->
+                </table>
+                <!--ET_END MISC_BLOCK-->
+            </td>
+            <td class="cell custom-header-bg" style='width:35%;'><b>|Доставчик|*</b></td>
+        </tr>
+        <tr>
+            <td class="cell">
+                [#/deals/tpl/ContragentHeaderBlock.shtml#]
+                <!--ET_BEGIN locationId-->
+                <hr style="margin: 3px 0 1px;">
+                <div>
+                    |До обект|*: [#locationId#]
+                </div>
+                <!--ET_END locationId-->
+            </td>
+            <td class="cell">
+                [#/deals/tpl/MyCompanyBlock.shtml#]
+                <!--ET_BEGIN storeId-->
+                <hr style="margin: 3px 0 1px;">
+                <div>
+                    |От склад|*: [#storeId#]
+                </div>
+                <!--ET_END storeId-->
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div class="lines"></div>
+<div class="scrolling-holder">
+    <div class="details">
+        [#store_ShipmentOrderDetails#]
+        <!--ET_BEGIN store_DocumentPackagingDetail-->
+        <div class="lines"></div>
+        <div style="margin-top2:1px">
+            <div class="safeKeepingDetail">|Отговорно пазене|*</div>
+            [#store_DocumentPackagingDetail#]
+        </div>
+        <!--ET_END store_DocumentPackagingDetail-->
+    </div>
+</div>
+<div class="lines"></div>
+<div class="scrolling-holder">
+    <table class="innerTable footer-notes paddingCells" style="width:100%">
+        <tbody>
+        <tr>
+            <td class="topCell first vtop" style='width:60%;'>
+                <table class='shipment-table' style='width:100%;'>
+                    <!--ET_BEGIN deliveryTable-->
+                    [#deliveryTable#]
+                    <!--ET_BEGIN readyOn-->
+                    <tr>
+                        <td class='quiet nowrap aright' style="width: 1%">|Готовност|*:</td>
+                        <td>[#readyOn#]</td>
+                    </tr>
+                    <!--ET_END readyOn-->
+                    <!--ET_BEGIN deliveryTime-->
+                    <tr>
+                        <td class='quiet nowrap aright' style='width:1%;'>|Товарене|*:</td>
+                        <td>[#deliveryTime#]</td>
+                    </tr>
+                    <!--ET_END deliveryTime-->
+                    <!--ET_BEGIN shipmentOn-->
+                    <tr>
+                        <td class='quiet nowrap aright' style="width: 1%">|Експедиране|*:</td>
+                        <td>[#shipmentOn#]</td>
+                    </tr>
+                    <!--ET_END shipmentOn-->
+
+                    <!--ET_BEGIN deliveryOn-->
+                    <tr>
+                        <td class='quiet nowrap aright' style="width: 1%">|Доставка|*:</td>
+                        <td>[#deliveryOn#]</td>
+                    </tr>
+                    <!--ET_END deliveryOn-->
+                    <!--ET_BEGIN deliveryAddressBlock-->
+                    [#deliveryAddressBlock#]
+                    <tr>
+                        <td class='quiet nowrap aright' style="width: 1%">|До адрес|*:</td>
+                        <td>
+                            [#deliveryTo#] [#deliveryLocationAddress#]
+                        </td>
+                    </tr>
+                    <!--ET_END deliveryAddressBlock-->
+                    <!--ET_BEGIN lineId-->
+                    <tr>
+                        <td class='quiet nowrap aright' style="width: 1%">|Транспорт|*: </td>
+                        <td>[#lineId#]</td>
+                    </tr>
+                    <!--ET_END lineId-->
+                    <!--ET_BEGIN lineForwarderId-->
+                    <tr>
+                        <td class='nowrap quiet aright' style="width: 1%">|Спедитор|*: </td>
+                        <td>[#lineForwarderId#]</td>
+                    </tr>
+                    <!--ET_END lineForwarderId-->
+                    <!--ET_BEGIN lineVehicleId-->
+                    <tr>
+                        <td class='nowrap quiet aright' style="width: 1%">|МПС|*: </td>
+                        <td>[#lineVehicleId#]</td>
+                    </tr>
+                    <!--ET_END lineVehicleId-->
+                    <!--ET_BEGIN note-->
+                    <tr>
+                        <td colspan="2" >
+                            <hr>
+                            [#note#]
+                        </td>
+                    </tr>
+                    <!--ET_END note-->
+                    <tr>
+                        <td colspan="2" >
+                            <hr>
+                        </td>
+                    </tr>
+                    <!--ET_END deliveryTable-->
+                    <tr>
+                        <td colspan="2" >
+                            <span class='half-col'>|Общо бруто тегло|*:&nbsp;[#weight#]</span>
+                            <span class='half-col'>|Общо нето тегло|*:&nbsp;[#netWeight#]</span>
+                            <span class='half-col'>|Общо тара|*:&nbsp;[#tareWeight#]</span>
+                            <span class='half-col'>|Общ обем|*:&nbsp;[#volume#]</span>
+                        </td>
+                    </tr>
+                    <!--ET_BEGIN logisticInfo-->
+                    <tr>
+                        <td colspan="2" >
+                            <hr>
+                            <span class='quiet'>|Логистични единици|*:</span> [#logisticInfo#]</td>
+                    </tr>
+                    <!--ET_END logisticInfo-->
+                </table>
+                <hr>
+                <!--ET_BEGIN InvoicesToDocuments-->
+                <table>
+                    [#InvoicesToDocuments#]
+                </table>
+                <!--ET_END InvoicesToDocuments-->
+            </td>
+            <td>
+                <table class='centered special-borders' style='width:100%;'>
+                    <tr>
+                        <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
+                        <td class='centered'>|Съставил|*:</td>
+                    </tr>
+                    <tr>
+                        <td class='border-right' style='height:40px;'></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                        <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class='footerDocBlock'   style="border-top: none !important">
+        [#/doc/tpl/Copyright.shtml#]
+    </div>
+</div>

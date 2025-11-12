@@ -194,8 +194,8 @@ class acc_BalanceDetails extends core_Detail
                 } elseif($sortBy == 'closeToZero'){
                     $sortBy = 'blAmount';
                     $data->recs = array_filter($data->recs, function($a) {
-                        return (abs(round($a->blAmount, 2)) < 0.05 && $a->blAmount != 0) && (abs(round($a->blQuantity, 3)) < 0.001 && $a->blQuantity != 0);}
-                    );
+                        return !(abs($a->blQuantity) > 0.001 or abs($a->blAmount) > 0.05);
+                    });
                 }
                 arr::sortObjects($data->recs, $sortBy, 'desc');
             }

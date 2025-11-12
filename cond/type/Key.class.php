@@ -26,6 +26,9 @@ class cond_type_Key extends cond_type_abstract_Proto
     {
         $fieldset->FLD('class', 'varchar', 'caption=Конкретизиране->Клас,mandatory,silent,removeAndRefreshForm=select');
         $fieldset->FLD('select', 'varchar', 'caption=Конкретизиране->Поле за избор,after=mvc');
+        $fieldset->FLD('selectBg', 'varchar', 'caption=Конкретизиране->Поле за избор (БГ),after=select');
+        $fieldset->FLD('displayVerbal', 'varchar', 'caption=Конкретизиране->Поле за показване,after=selectBg');
+
     }
 
 
@@ -90,9 +93,14 @@ class cond_type_Key extends cond_type_abstract_Proto
         if(in_array($rec->class, array('crm_Companies', 'crm_Persons', 'cat_Products', 'doc_Folders'))){
             $Type = core_Type::getByName("key2(mvc={$rec->class},select={$select})");
         } else {
+            $typeParams = "mvc={$rec->class}";
+            $typeParams .= ",select={$select}";
+            if($rec->selectBg){
+                $typeParams .= ",selectBg={$rec->selectBg}";
+            }
 
             // Само незатворените записи
-            $Type = core_Type::getByName("key(mvc={$rec->class},select={$select})");
+            $Type = core_Type::getByName("key({$typeParams})");
             $Class = cls::get($rec->class);
             if($Class->getField('state', false)){
                 $options = cls::get($rec->class)->makeArray4Select($select, "#state != 'rejected' AND #state != 'closed'");
@@ -120,7 +128,16 @@ class cond_type_Key extends cond_type_abstract_Proto
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
         $Class = cls::get($rec->class);
-        $verbal = $Class->getVerbal($value, $rec->select);
+        $select = $rec->select;
+        if(isset($rec->displayVerbal)){
+            $select = $rec->displayVerbal;
+        } else {
+            if ($rec->selectBg && core_Lg::getCurrent() == 'bg') {
+                $select = $rec->selectBg;
+            }
+        }
+
+        $verbal = $Class->getVerbal($value, $select);
 
         // Обръщане в линк, ако може
         if(!Mode::isReadOnly()){
