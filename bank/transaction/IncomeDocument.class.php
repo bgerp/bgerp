@@ -90,6 +90,9 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
 
         $amountE = $dealCurrencyRate * $rec->amountDeal;
+        if($rec->dealCurrencyId != $dealRec->currencyId){
+            $amountE = $amount;
+        }
         $amountE = deals_Helper::getSmartBaseCurrency($amountE, $dealRec->valior, $rec->valior);
 
         if ($reverse === true && in_array($rec->operationSysId, array('bank2customerRet', 'bankAdvance2customerRet'))) {

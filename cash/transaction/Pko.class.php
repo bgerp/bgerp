@@ -71,7 +71,7 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
         // Ако е обратна транзакцията, сумите и к-та са с минус
         $sign = ($reverse) ? -1 : 1;
 
-        $dealRec = $origin->fetch('currencyRate,valior');
+        $dealRec = $origin->fetch();
         $dealCurrencyRate = $dealRec->currencyRate;
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
         $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
@@ -88,6 +88,9 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
         $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
 
         $amountE = $dealCurrencyRate * $rec->amountDeal;
+        if($rec->dealCurrencyId != $dealRec->currencyId){
+            $amountE = $amount;
+        }
         $amountE = deals_Helper::getSmartBaseCurrency($amountE, $dealRec->valior, $rec->valior);
 
         if ($reverse === true && in_array($rec->operationSysId, array('case2customerRet', 'caseAdvance2customerRet'))) {
