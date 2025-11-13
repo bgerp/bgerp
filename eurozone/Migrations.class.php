@@ -350,9 +350,9 @@ SET
     /**
      * Миграция на полетата за финансовите сделки
      */
-    public static function updateFinDeals()
+    public static function updateFinDeals($class)
     {
-        $Deals = cls::get('findeals_Deals');
+        $Deals = cls::get($class);
         $eurozoneDate = acc_Setup::getEuroZoneDate();
         $query = $Deals->getQuery();
         $query->where("#currencyId = 'BGN' AND #state = 'active'");
@@ -386,6 +386,7 @@ SET
     {
         requireRole('debug');
 
-        self::updateFinDeals();
+        //self::updateFinDeals('findeals_Deals');
+        self::updateFinDeals('findeals_AdvanceDeals');
     }
 }

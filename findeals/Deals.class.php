@@ -406,7 +406,7 @@ class findeals_Deals extends deals_DealBase
 
         // След еврозоната няма да може да се създават ФД в лева
         if(dt::today() >= acc_Setup::getEurozoneDate()){
-            $currencyOptions = cls::get('currency_Currencies')->makeArray4Select('code', "#state = 'active' AND #code != 'BGN'");
+            $currencyOptions = cls::get('currency_Currencies')->makeArray4Select('code', "#state = 'active' AND #code != 'BGN'", 'code');
             if(!haveRole('debug')){
                 $form->setOptions('currencyId', $currencyOptions);
             }

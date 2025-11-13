@@ -923,20 +923,22 @@ abstract class deals_InvoiceMaster extends core_Master
             $type = 'invoice';
         }
         $form->setDefault('type', $type);
-        
+        $aggregateInfo = $firstDocument->getAggregateDealInfo();
+
+
+        $form->rec->vatRate = $aggregateInfo->get('vatType');
+
         if ($firstDocument->haveInterface('bgerp_DealAggregatorIntf') && !$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
-            $aggregateInfo = $firstDocument->getAggregateDealInfo();
             $form->setDefault('detailOrderBy', $aggregateInfo->get('detailOrderBy'));
-            $form->rec->vatRate = $aggregateInfo->get('vatType');
+
             if($aggregateInfo->get('currency') == 'BGN'){
                 $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($rec->date));
             } else {
                 $form->setDefault('currencyId', $aggregateInfo->get('currency'));
             }
             $form->setDefault('rate', $aggregateInfo->get('rate'));
-
             $form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
-            
+
             if ($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)) {
                 $paymentMethodId = $aggregateInfo->get('paymentMethodId');
                 $plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
@@ -959,10 +961,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 $form->setDefault('deliveryPlaceId', $aggregateInfo->get('deliveryLocation'));
             }
             $form->setDefault('paymentMethodId', $aggregateInfo->paymentMethodId);
-            
-            $data->aggregateInfo = $aggregateInfo;
-            $form->aggregateInfo = $aggregateInfo;
         }
+
+        $data->aggregateInfo = $aggregateInfo;
+        $form->aggregateInfo = $aggregateInfo;
 
         // Ако ориджина също е фактура
         $origin = $mvc->getSourceOrigin($form->rec);
@@ -2438,5 +2440,11 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // Няма да се изисква, ако се стигне до тук
         return false;
+    }
+
+
+    public static function on_BeforeSave($mvc, $id, $rec)
+    {
+       // bp($rec);
     }
 }
