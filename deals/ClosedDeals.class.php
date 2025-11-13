@@ -302,12 +302,16 @@ abstract class deals_ClosedDeals extends core_Master
         $Double = core_Type::getByName('double(decimals=2)');
 
         // При редакция се показва очаквания, приход разход
+        $skipClasses = array(acc_RatesDifferences::getClassId());
+        $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
+
+        $displayValior = $rec->valior ? $rec->valior : ($rec->valiorStrategy == 'createdOn' ? $rec->createdOn : $biggestValior);
         if (round($liveAmount, 2) > 0) {
             $incomeAmount = $liveAmount;
-            $form->info = tr('Извънреден приход|*: <b style="color:blue">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($rec->valior);
+            $form->info = tr('Извънреден приход|*: <b style="color:blue">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($displayValior);
         } elseif (round($liveAmount, 2) < 0) {
             $costAmount = abs($liveAmount);
-            $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($rec->valior);
+            $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($displayValior);
         }
 
         if($form->isSubmitted()){
@@ -315,8 +319,6 @@ abstract class deals_ClosedDeals extends core_Master
                 if(empty($rec->valior)){
                     $form->setError('valior', 'Трябва да е посочена конкретна дата');
                 } else {
-                    $skipClasses = array(acc_RatesDifferences::getClassId());
-                    $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
                     if(!empty($biggestValior) && $rec->valior < $biggestValior){
                         $biggestValiorVerbal = core_Type::getByName('date')->toVerbal($biggestValior);
                         $form->setError('valior', "Датата e преди най-големия вальор към сделката:|* <b>{$biggestValiorVerbal}</b>");
@@ -503,9 +505,9 @@ abstract class deals_ClosedDeals extends core_Master
 
         if($rec->state == 'draft'){
             $row->costAmount = ht::styleNumber($row->costAmount, abs($costAmount), 'blue');
-            $row->costAmount = ht::createHint($row->costAmount, 'Сумата ще бъде записана при контиране');
+            $row->costAmount = ht::createHint($row->costAmount, 'Сумата ще бъде записана при контиране|*!');
             $row->incomeAmount = ht::styleNumber($row->incomeAmount, abs($incomeAmount), 'blue');
-            $row->incomeAmount = ht::createHint($row->incomeAmount, 'Сумата ще бъде записана при контиране');
+            $row->incomeAmount = ht::createHint($row->incomeAmount, 'Сумата ще бъде записана при контиране|*!');
         }
 
         $row->title = static::getLink($rec->id, 0);
