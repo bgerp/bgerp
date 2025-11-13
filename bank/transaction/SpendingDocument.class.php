@@ -86,7 +86,8 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
         $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
 
         $amountE = $dealCurrencyRate * $rec->amountDeal;
-        if($rec->dealCurrencyId != $dealRec->currencyId){
+        $dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
+        if($dealCurrencyCode != $dealRec->currencyId){
             $amountE = $amount;
         }
 

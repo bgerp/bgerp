@@ -138,7 +138,8 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
                         'quantity' => $sign * round($rec->amount, 2)));
             } else {
                 $amountE = $dealCurrencyRate * $rec->amountDeal;
-                if($rec->dealCurrencyId != $dealRec->currencyId){
+                $dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
+                if($dealCurrencyCode != $dealRec->currencyId){
                     $amountE = $amount;
                 }
                 $amountE = deals_Helper::getSmartBaseCurrency($amountE, $dealRec->valior, $rec->valior);

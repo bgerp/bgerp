@@ -88,7 +88,8 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
         $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
 
         $amountE = $dealCurrencyRate * $rec->amountDeal;
-        if($rec->dealCurrencyId != $dealRec->currencyId){
+        $dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
+        if($dealCurrencyCode != $dealRec->currencyId){
             $amountE = $amount;
         }
         $amountE = deals_Helper::getSmartBaseCurrency($amountE, $dealRec->valior, $rec->valior);
@@ -127,6 +128,7 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 
         } else {
             if((($rec->currencyId == $rec->dealCurrencyId && in_array($rec->dealCurrencyId, array($bgnCurrencyId, $euroCurrencyId)))) || ($baseCurrencyId == $euroCurrencyId && $rec->currencyId == $euroCurrencyId)) {
+
                 $entry1 = array('amount' => $sign * round($amount, 2),
                     'debit' => array($rec->debitAccount,
                         array('cash_Cases', $rec->peroCase),
@@ -141,6 +143,7 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 
                 $entry[] = $entry1;
             } else {
+
                 $entry2 = array('amount' => $sign * round($amountE, 2),
                     'debit' => array('481', array('currency_Currencies', $currencyId481),
                         'quantity' => $sign * round($amount481, 2)),
