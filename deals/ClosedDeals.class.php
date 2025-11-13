@@ -421,7 +421,7 @@ abstract class deals_ClosedDeals extends core_Master
             $DocClass->save($firstRec, 'modifiedOn,modifiedBy,state,closedOn');
             $DocClass->logWrite('Приключено с документ за приключване', $firstRec->id);
             if (empty($saveFields)) {
-                $rec->amount = $mvc->getClosedDealAmount($rec->threadId);
+                $rec->amount = $mvc->getClosedDealAmount($rec);
                 $mvc->save($rec, 'amount');
             }
 
@@ -810,13 +810,14 @@ abstract class deals_ClosedDeals extends core_Master
      *
      * @return float $amount - разликата на платеното и експедираното
      */
-    protected function getClosedDealAmount($threadId)
+    protected function getClosedDealAmount($rec)
     {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $rec = $this->fetchRec($rec);
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
 
-        $cost = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['debit'], 'debit')->amount;
-        $inc = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['credit'], 'credit')->amount;
+        $cost = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['debit'], 'debit', null, array(), array(), $rec->valior)->amount;
+        $inc = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['credit'], 'credit', null, array(), array(), $rec->valior)->amount;
 
         // Разликата между платеното и доставеното
         return $inc - $cost;
