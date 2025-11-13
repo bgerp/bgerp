@@ -80,12 +80,12 @@
                     <td>[#valior#]</td>
                 </tr>
                 <!--ET_END valior-->
-		        <!--ET_BEGIN currencyRate-->
-		        <tr>
-		            <td>|Курс|*</td>
-		            <td>[#currencyRate#]</td>
-		        </tr>
-		        <!--ET_END currencyRate-->
+                <!--ET_BEGIN currencyId-->
+                <tr>
+                    <td>|Валута|*</td>
+                    <td>[#currencyId#] <!--ET_BEGIN oldCurrencyId-->(<i><small>|Стара валута|*: <span class="quiet">[#oldCurrencyId#]</span></small></i>)<!--ET_END oldCurrencyId--><!--ET_END oldCurrencyId--><!--ET_BEGIn currencyRate-->, |курс|* [#currencyRate#]<!--ET_END currencyRate--></td>
+                </tr>
+                <!--ET_END currencyRate-->
 		        
 		        <!--ET_BEGIN description-->
 		        <tr>
