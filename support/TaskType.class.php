@@ -128,20 +128,20 @@ class support_TaskType extends core_Mvc
         
         $form->setOptions('typeId', $atOpt);
         
-        if (!haveRole('user') && !core_Users::isSystemUser()) {
-            $brid = log_Browsers::getBrid(false);
-            if ($brid) {
-                $vArr = log_Browsers::getVars(array('name', 'email'));
-                
-                if ($vArr['name']) {
-                    $form->setDefault('name', $vArr['name']);
-                }
-                
-                if ($vArr['email']) {
-                    $form->setDefault('email', $vArr['email']);
-                }
-            }
-        }
+//        if (!haveRole('user') && !core_Users::isSystemUser()) {
+//            $brid = log_Browsers::getBrid(false);
+//            if ($brid) {
+//                $vArr = log_Browsers::getVars(array('name', 'email'));
+//
+//                if ($vArr['name']) {
+//                    $form->setDefault('name', $vArr['name']);
+//                }
+//
+//                if ($vArr['email']) {
+//                    $form->setDefault('email', $vArr['email']);
+//                }
+//            }
+//        }
         
         $sRec = support_Systems::fetch($systemId);
         if ($sRec->defaultType) {
