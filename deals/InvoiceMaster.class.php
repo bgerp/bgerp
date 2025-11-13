@@ -666,6 +666,7 @@ abstract class deals_InvoiceMaster extends core_Master
             if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyCode($rec->date)){
                 $valiorVerbal = dt::mysql2verbal($rec->date, 'd.m.Y');
                 if(empty($rec->changeAmount)){
+
                     deals_Helper::recalcDetailPriceInBaseCurrency($mvc, $rec, $rec->_oldValior, $rec->date, $rec->_oldRate, 'rate');
                 }
                 core_Statuses::newStatus("Цените на артикулите са преизчислени към основната валута за|*: <b>{$valiorVerbal}</b>");
@@ -1052,14 +1053,14 @@ abstract class deals_InvoiceMaster extends core_Master
                     $rec->_recalcBaseCurrency = true;
                     if(isset($rec->id)){
                         $oldRec = $mvc->fetch($rec->id, 'date,rate', false);
-                        $rec->_oldValior = $oldRec->date ?? dt::today();
+                        $rec->_oldValior = $oldRec->valior ?? dt::verbal2mysql($rec->createdOn, false);
                         $rec->_oldRate = $oldRec->rate;
                     }
                 }
             } elseif($form->aggregateInfo->get('currency') == 'EUR'){
                 if(isset($rec->id)){
                     $oldRec = $mvc->fetch($rec->id, 'date,rate', false);
-                    $rec->_oldValior = $oldRec->date;
+                    $rec->_oldValior = $oldRec->valior ?? dt::verbal2mysql($rec->createdOn, false);
                     $rec->_oldRate = $oldRec->rate;
                 }
 
@@ -2440,11 +2441,5 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // Няма да се изисква, ако се стигне до тук
         return false;
-    }
-
-
-    public static function on_BeforeSave($mvc, $id, $rec)
-    {
-       // bp($rec);
     }
 }
