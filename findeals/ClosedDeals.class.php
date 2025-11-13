@@ -98,7 +98,7 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'notes,docId,classId, id';
+    public $searchFields = 'notes,docId,classId';
 
 
     /**

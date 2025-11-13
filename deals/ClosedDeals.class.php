@@ -304,10 +304,10 @@ abstract class deals_ClosedDeals extends core_Master
         // При редакция се показва очаквания, приход разход
         if (round($liveAmount, 2) > 0) {
             $incomeAmount = $liveAmount;
-            $form->info = tr('Извънреден приход|*: <b style="color:blue">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode();
+            $form->info = tr('Извънреден приход|*: <b style="color:blue">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($rec->valior);
         } elseif (round($liveAmount, 2) < 0) {
             $costAmount = abs($liveAmount);
-            $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode();
+            $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($rec->valior);
         }
 
         if($form->isSubmitted()){
@@ -508,7 +508,6 @@ abstract class deals_ClosedDeals extends core_Master
             $row->incomeAmount = ht::createHint($row->incomeAmount, 'Сумата ще бъде записана при контиране');
         }
 
-        $row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         $row->title = static::getLink($rec->id, 0);
         $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
 
@@ -517,7 +516,8 @@ abstract class deals_ClosedDeals extends core_Master
             $row->valior = $me->getFieldType('valior')->toVerbal($rec->valior);
             $row->valior = "<span style='color:blue'>{$row->valior}</span>";
         }
-        
+        $row->currencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
+
         return $row;
     }
     

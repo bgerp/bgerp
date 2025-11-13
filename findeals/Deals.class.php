@@ -698,12 +698,9 @@ class findeals_Deals extends deals_DealBase
             if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
                 @$data->rec->{$fld} /= $rate;
             }
-            $data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($data->rec->{$fld});
-            if ($data->rec->{$fld} == 0) {
-                $data->row->{$fld} = "<span class='quiet'>{$data->row->{$fld}}</span>";
-            } elseif ($data->rec->{$fld} < 0) {
-                $data->row->{$fld} = "<span class='red'>{$data->row->{$fld}}</span>";
-            }
+            $roundedVal = round($data->rec->{$fld}, 2);
+            $data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($roundedVal);
+            $data->row->{$fld} =  ht::styleNumber($data->row->{$fld}, $roundedVal);
         }
 
         if(round($data->rec->debitAmount, 4) == round($data->rec->curDebitAmount, 4)){
@@ -853,12 +850,11 @@ class findeals_Deals extends deals_DealBase
             $oItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->oldCurrencyId))->id;
             $blAmount += acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $oItemId), array(), $rec->valior)->amount;
         }
-
         $paid = acc_Balances::getBlAmounts($entries, '501,503', null, null, array(), array(), $rec->valior)->amount;
         
         $result->set('amount', 0);
         $result->set('amountPaid', $paid);
-        $result->set('blAmount', $blAmount);
+        $result->set('blAmount', round($blAmount, 4));
         $result->set('agreedValior', $rec->createdOn);
         $result->set('currency', $rec->currencyId);
         $result->set('rate', $rec->currencyRate);

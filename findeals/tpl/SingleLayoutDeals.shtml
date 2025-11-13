@@ -83,7 +83,7 @@
                 <!--ET_BEGIN currencyId-->
                 <tr>
                     <td>|Валута|*</td>
-                    <td>[#currencyId#] <!--ET_BEGIN oldCurrencyId-->(<i><small>|Стара валута|*: <span class="quiet">[#oldCurrencyId#]</span></small></i>)<!--ET_END oldCurrencyId--><!--ET_END oldCurrencyId--><!--ET_BEGIn currencyRate-->, |курс|* [#currencyRate#]<!--ET_END currencyRate--></td>
+                    <td>[#currencyId#]<!--ET_BEGIN oldCurrencyId--> (<i><small>|Стара валута|*: <span class="quiet">[#oldCurrencyId#]</span></small></i>)<!--ET_END oldCurrencyId--><!--ET_END oldCurrencyId--><!--ET_BEGIN currencyRate-->, |курс|* [#currencyRate#]<!--ET_END currencyRate--></td>
                 </tr>
                 <!--ET_END currencyRate-->
 		        

@@ -714,11 +714,12 @@ class acc_Balances extends core_Master
      * @param string      $accs    - Масив от сметки на които ще се изчислява крайното салдо
      * @param string|NULL $type    - кредното, дебитното или крайното салдо
      * @param string      $accFrom - сметки с които може да кореспондира
+     * @param string|null $toBaseCurrencyDate - към основната валута за коя дата
      * @params array $items - масив с пера, които трябва да са на посочените позиции
      *
      * @return stdClass $res - К-та групирани по размерната номенклатура
      */
-    public static function getBlQuantities($jRecs, $accs, $type = null, $accFrom = null, $items = array())
+    public static function getBlQuantities($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $toBaseCurrencyDate = null)
     {
         $res = array();
         
@@ -749,6 +750,7 @@ class acc_Balances extends core_Master
         }
         
         // За всеки запис
+        $toBaseCurrencyDate = $toBaseCurrencyDate ?? dt::today();
         foreach ($jRecs as $rec) {
             
             // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
@@ -813,7 +815,7 @@ class acc_Balances extends core_Master
                     }
                     
                     $res[$index]->quantity += $rec->debitQuantity;
-                    $res[$index]->amount += $rec->amount;
+                    $res[$index]->amount += deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
                 }
             }
             
@@ -834,7 +836,7 @@ class acc_Balances extends core_Master
                     }
                     
                     $res[$index]->quantity += $sign * $rec->creditQuantity;
-                    $res[$index]->amount += $sign * $rec->amount;
+                    $res[$index]->amount += $sign * deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
                 }
             }
         }
