@@ -71,7 +71,7 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         // Ако е обратна транзакцията, сумите и к-та са с минус
         $sign = ($reverse) ? -1 : 1;
 
-        $dealRec = $origin->fetch('currencyRate,valior');
+        $dealRec = $origin->fetch('currencyRate,valior,currencyId');
         $dealCurrencyRate = $dealRec->currencyRate;
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
 
