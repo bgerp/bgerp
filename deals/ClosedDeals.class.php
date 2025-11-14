@@ -757,7 +757,9 @@ abstract class deals_ClosedDeals extends core_Master
         }
         $valiors = arr::extractValuesFromArray($jRecs, 'valior');
         if($firstDocValior = $firstDoc->fetchField($firstDoc->valiorFld)){
-            $valiors[$firstDocValior] = $firstDocValior;
+            if(!$firstDoc->isInstanceOf('findeals_Deals')){
+                $valiors[$firstDocValior] = $firstDocValior;
+            }
         }
 
         if(countR($valiors)) return max($valiors);
