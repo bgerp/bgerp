@@ -35,7 +35,7 @@ class type_Text extends core_Type
     public function init($params = array())
     {
         parent::init($params);
-        setIfNot($this->viewRows, 10);
+        setIfNot($this->viewRows, $params['params']['viewRows'], $params['viewRows'], 10);
     }
 
 
