@@ -27,8 +27,18 @@ class type_Text extends core_Type
      * Дължина на полето в mySql таблица
      */
     public $dbFieldLen = 65536;
-    
-    
+
+
+    /**
+     * Конструктор. Дава възможност за инициализация
+     */
+    public function init($params = array())
+    {
+        parent::init($params);
+        setIfNot($this->viewRows, 10);
+    }
+
+
     /**
      * Рендира HTML инпут поле
      */

@@ -93,10 +93,12 @@ class type_Richtext extends type_Blob
         }
 
         setIfNot($params['rolesForTagCheck'], 'powerUser');
+
+        setIfNot($this->viewRows, 20);
         
         parent::init($params);
     }
-    
+
     
     /**
      * Рендира HTML инпут поле
