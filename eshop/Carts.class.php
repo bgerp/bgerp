@@ -1725,6 +1725,7 @@ class eshop_Carts extends core_Master
     {
         $Double = core_Type::getByName('double(decimals=2)');
         $rec = self::fetchRec($id, '*', false);
+
         if (empty($rec->productCount) && empty($rec->personNames)) {
             
             return;
@@ -1734,8 +1735,9 @@ class eshop_Carts extends core_Master
         
         $row = self::recToVerbal($rec, $fields);
         $settings = cms_Domains::getSettings($rec->domainId);
-        
+
         $total = currency_CurrencyRates::convertAmount($rec->total, null, null, $settings->currencyId);
+
         $totalNoVat = currency_CurrencyRates::convertAmount($rec->totalNoVat, null, null, $settings->currencyId);
         $deliveryNoVat = ($rec->freeDelivery != 'no') ? 0 : currency_CurrencyRates::convertAmount($rec->deliveryNoVat, null, null, $settings->currencyId);
         $vatAmount = $total - $totalNoVat - $deliveryNoVat;
@@ -1743,7 +1745,7 @@ class eshop_Carts extends core_Master
         $amountWithoutDelivery = (static::calcChargeVat($rec) == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
 
-        $bgCountryId = drdata_Countries::getIdByName('Bulgaria'); $rec->currencyId = 'EUR';
+        $bgCountryId = drdata_Countries::getIdByName('Bulgaria');
         $row->total = deals_Helper::displayDualAmount($row->total, $total, null, $rec->currencyId, $bgCountryId, " / ", true);
 
         // Ако има доставка се показва и нея
@@ -1785,6 +1787,7 @@ class eshop_Carts extends core_Master
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
         unset($row->invoiceVatNo);
+        //bp($row);
         $tpl->placeObject($row);
         
         if (isset($rec->paymentId)) {
