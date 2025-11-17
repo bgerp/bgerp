@@ -2451,7 +2451,7 @@ class sales_Sales extends deals_DealMaster
      */
     public static function autoCreateSaleCsvIfNeeded($rec)
     {
-        $cartRec = eshop_Carts::fetch("#saleId = {$rec->id}");
+        $cartRec = core_Packs::isInstalled('eshop') ? eshop_Carts::fetch("#saleId = {$rec->id}") : null;
         if(is_object($cartRec)){
             if (!defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')) return;
             $logClass = 'eshop_Carts';
