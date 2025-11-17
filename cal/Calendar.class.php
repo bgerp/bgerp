@@ -972,7 +972,7 @@ class cal_Calendar extends core_Master
         if (!isset($date)) {
             $date = dt::now(false);
         }
-        
+
         list($date) = explode(' ', $date);
 
         $fromTime = $date . ' 00:00:00';
@@ -984,17 +984,21 @@ class cal_Calendar extends core_Master
             $typeStr .= "#type = '{$type}'";
         }
 
-        $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users) AND ({$typeStr})");
-        
+        if (!empty($typeStr)) {
+            $typeStr = " AND ({$typeStr})";
+        }
+
+        $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users){$typeStr}");
+
         if ($rec) {
-            
+
             return true;
         }
-        
+
         return false;
     }
-    
-    
+
+
     /**
      * Функция показваща събитията за даден ден
      */
