@@ -74,7 +74,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FLD('quantity', 'double', 'caption=Количество', 'tdClass=small-field,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $mvc->FLD('price', 'double', 'caption=Цена, input=none');
-        $mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
+        $mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
@@ -207,7 +207,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     $det->price = ($det->price / $dealInfo->get('rate')) * $invoiceRec->rate;
                 }
 
-                $det->amount = $det->price * $det->quantity;
                 $det->quantity /= $det->quantityInPack;
                 if(is_array($det->batches) && countR($det->batches)){
                     $det->_batches = array_keys($det->batches);
@@ -259,15 +258,27 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
-        if (!isset($rec->price) || empty($rec->quantityInPack)) {
-            
-            return;
-        }
+        if (!isset($rec->price) || empty($rec->quantityInPack)) return;
+
         
         $rec->packPrice = $rec->price * $rec->quantityInPack;
     }
-    
-    
+
+
+    /**
+     * Изчисляване на сумата на реда
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public static function on_CalcAmount(core_Mvc $mvc, $rec)
+    {
+        if (empty($rec->price) || empty($rec->quantityInPack) || empty($rec->quantity)) return;
+
+        $rec->amount = $rec->price * $rec->quantityInPack * $rec->quantity;
+    }
+
+
     /**
      * След калкулиране на общата сума
      */
@@ -714,8 +725,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
 
             if(!$form->gotErrors()){
-                // Записваме основната мярка на продукта
-                $rec->amount = $rec->packPrice * $rec->quantity;
 
                 // При редакция, ако е променена опаковката слагаме преудпреждение
                 if ($rec->id) {
