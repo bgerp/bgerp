@@ -94,7 +94,7 @@ class type_Richtext extends type_Blob
 
         setIfNot($params['rolesForTagCheck'], 'powerUser');
 
-        setIfNot($this->viewrows, $params['params']['viewrows'], $params['viewrows'], 3);
+        setIfNot($this->viewrows, $params['params']['viewrows'], $params['viewrows'], 10);
         
         parent::init($params);
     }
