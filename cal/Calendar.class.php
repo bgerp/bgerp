@@ -928,7 +928,7 @@ class cal_Calendar extends core_Master
      *
      * @return string датата, която се явява първата възможна и е работна
      */
-    public static function nextWorkingDay($date = NULL, $userId = null, $direction = 1, $country = 'bg', $typeArr = array())
+    public static function nextWorkingDay($date = NULL, $userId = null, $direction = 1, $country = 'bg', $typeArr = array('leaves', 'sick'))
     {
         if ($userId === null) {
             $userId = core_Users::getCurrent();
@@ -961,7 +961,7 @@ class cal_Calendar extends core_Master
     /**
      * Връща дали дадения служител ще отсъства на уречената дата
      */
-    public static function isAbsent($date, $userId, $typeArr = array('leaves', 'sick') , &$rec = null)
+    public static function isAbsent($date, $userId, $typeArr = array('leaves', 'sick'), &$rec = null)
     {
         // Системните и анонимните потребители не отсъстват
         if ($userId <= 0) {
