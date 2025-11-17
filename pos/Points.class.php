@@ -132,7 +132,7 @@ class pos_Points extends core_Master
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory');
+        $this->FLD('name', 'varchar(32)', 'caption=Наименование, mandatory');
         $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Настройки->Политика, mandatory');
         $this->FLD('discountPolicyId', 'key(mvc=price_Lists, select=title, allowEmpty)', 'caption=Настройки->Политика за отстъпки');

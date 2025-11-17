@@ -336,18 +336,30 @@ class acc_Balances extends core_Master
      */
     function act_ForceCalc()
     {
-        // Ако изчисляването е заключено не го изпълняваме
-        $lockKey = 'RecalcBalances';
-        if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
-            $this->logNotice('Изчисляването на баланса е заключено от друг процес');
-
-            followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
-        }
-
         $this->requireRightFor('forcecalc');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('forcecalc', $rec);
+
+        // Дали ще се изчаква преизчисляването на балансите преди да се форсира друго
+        $checkForLock = true;
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if ($alternateWindow) {
+            $windowStart = dt::addSecs(-1 * $alternateWindow, null, false);
+            if($rec->toDate < $windowStart) {
+                $checkForLock = false;
+            }
+        }
+
+        if($checkForLock){
+            // Ако изчисляването е заключено не го изпълняваме
+            $lockKey = 'RecalcBalances';
+            if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+                $this->logNotice('Изчисляването на баланса е заключено от друг процес');
+
+                followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
+            }
+        }
 
         self::forceCalc($rec, true);
         self::logWrite('Ръчно преизчисляване на баланса', $rec->id);

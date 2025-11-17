@@ -29,6 +29,7 @@ class bglocal_Wrapper extends plg_ProtoWrapper
         $this->TAB('bglocal_NKPD', 'НКПД');
         $this->TAB('bglocal_NKID', 'НКИД');
         $this->TAB('bglocal_MKB', 'МКБ');
+        $this->TAB('bglocal_HScode', 'КН номенклатура');
         
         $this->title = 'Данни за България';
     }
