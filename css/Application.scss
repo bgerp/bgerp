@@ -9299,12 +9299,8 @@ tr.workInProgressBatchRow {
 
 td.td-clamp{
 	--fade-color:#fff;              /* сменя се от JS с реалния фон */
-	--lines-collapsed: 3;           /* свито: 3 реда */
-	unquote("--lines-expanded-max: 10;");       /* разпънато: до 10 реда (после скрол) */
-	unquote("--lh: 1.4em;");                    /* височина на ред */
 	position: relative;
 	vertical-align: top;
-	--lines: 3;
 }
 .narrow td.td-clamp[data-overflow="true"] .clamp-ellipsis{
 	bottom: 7px;
@@ -9313,11 +9309,10 @@ td.td-clamp{
 td.td-clamp .clamp-body{
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
-	-webkit-line-clamp: var(--lines-collapsed);
-	line-height: 1.4;
+	line-height: 1.4em;
 	overflow: hidden;
 	position: relative;
-	max-height: 5.2em;
+	max-height: var(--max-height);
 }
 
 /* Маска и fade САМО когато е свито и има скрит текст */
@@ -9343,7 +9338,7 @@ td.td-clamp[data-expanded="true"] .clamp-body{
 	display: block;                       /* ключово: махаме -webkit-box */
 	-webkit-line-clamp: initial;          /* безопасно зануляване */
 	-webkit-box-orient: initial;
-	max-height: unquote("calc(1.4em * var(--lines-expanded-max))");
+	max-height: var(--max-scroll);
 	overflow-y: auto;                     /* само вертикален скрол */
 	overflow-x: hidden;
 	-webkit-mask-image: none;
