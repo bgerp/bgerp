@@ -55,6 +55,7 @@ class bglocal_Setup extends core_ProtoSetup
         'bglocal_NKPD',
         'bglocal_DistrictCourts',
         'bglocal_MKB',
+        'bglocal_HScode',
     );
     
     
