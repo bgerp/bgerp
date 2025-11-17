@@ -577,8 +577,8 @@ class acc_Setup extends core_ProtoSetup
         $repairAccountsDefault = core_Packs::getConfigValue('acc', 'ACC_BALANCE_REPAIR_ACCOUNTS');
         if (strlen($repairAccountsDefault) === 0) {
             $accArray = array();
-            $accAcounts = arr::make(static::$accAccount, true);
-            foreach ($accAcounts as $accSysId) {
+            $accAccounts = arr::make(static::$accAccount, true);
+            foreach ($accAccounts as $accSysId) {
                 $accId = acc_Accounts::getRecBySystemId($accSysId)->id;
                 $accArray[$accId] = $accSysId;
             }
