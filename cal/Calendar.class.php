@@ -975,20 +975,14 @@ class cal_Calendar extends core_Master
 
         list($date) = explode(' ', $date);
 
-        $fromTime = $date . ' 00:00:00';
-        $toTime   = $date   . ' 23:59:59';
-
-        $typeStr = '';
-        foreach ($typeArr as $type) {
-            $typeStr .= $typeStr ? " OR " : '';
-            $typeStr .= "#type = '{$type}'";
-        }
-
-        if (!empty($typeStr)) {
-            $typeStr = " AND ({$typeStr})";
-        }
-
-        $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users){$typeStr}");
+        $query = self::getQuery();
+        $query->where(array("#time >= '[#1#]'", $date . ' 00:00:00'));
+        $query->where(array("#time <= '[#1#]'", $date . ' 23:59:59'));
+        $query->likeKeylist('users', $userId);
+        $query->in('type', $typeArr);
+        $query->limit(1);
+        $query->show('id');
+        $rec = $query->fetch();
 
         if ($rec) {
 
