@@ -924,10 +924,11 @@ class cal_Calendar extends core_Master
      * @param int $userId Потребителят за когото се проверява. Ако не е посочен се отчитат само общите почивни дни
      * @param string $direction Посока на търсене : +1 - следващ ден, -1 - предишен ден
      * @param string $country Двубуквен код на дъжавата в контекста на която се търси
+     * @param array $typeArr
      *
      * @return string датата, която се явява първата възможна и е работна
      */
-    public static function nextWorkingDay($date = NULL, $userId = null, $direction = 1, $country = 'bg')
+    public static function nextWorkingDay($date = NULL, $userId = null, $direction = 1, $country = 'bg', $typeArr = array())
     {
         if ($userId === null) {
             $userId = core_Users::getCurrent();
@@ -944,7 +945,7 @@ class cal_Calendar extends core_Master
         do {
             $date = dt::addDays($dPos, $date);
             
-            if (!self::isHoliday($date, $country) && !self::isAbsent($date, $userId)) {
+            if (!self::isHoliday($date, $country) && !self::isAbsent($date, $userId, $typeArr)) {
                 if (!--$dAbs) break;
             }
             

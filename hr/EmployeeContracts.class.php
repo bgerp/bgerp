@@ -812,7 +812,7 @@ class hr_EmployeeContracts extends core_Master
             if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recSick->startDate) {
                 $persons[$id] = (object) array('stateInfo' => 'sickDay',
                     'stateDateFrom' => $recSick->startDate,
-                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recSick->toDate, crm_Profiles::getUserByPerson($id))),
+                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recSick->toDate, crm_Profiles::getUserByPerson($id), 1, 'bg', array('sick'))),
                     'stateAlternatePersons' => $recSick->alternatePersons,
                     'stateAnswerSystem' => $recSick->answerSystem,
                     'stateEmoji' => $recSick->emoji,
@@ -829,7 +829,7 @@ class hr_EmployeeContracts extends core_Master
             if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recLeave->leaveFrom) {
                 $persons[$id] = (object) array('stateInfo' => 'leaveDay',
                     'stateDateFrom' => $recLeave->leaveFrom,
-                    'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))),
+                    'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id), 1, 'bg', array('leaves'))),
                     'stateAlternatePersons' => $recLeave->alternatePersons,
                     'stateAnswerSystem' => $recLeave->answerSystem,
                     'stateEmoji' => $recLeave->emoji,);
@@ -846,7 +846,7 @@ class hr_EmployeeContracts extends core_Master
             if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recHome->startDate) {
                 $persons[$id] = (object) array('stateInfo' => 'homeOffice',
                     'stateDateFrom' => $recHome->startDate,
-                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recHome->toDate, crm_Profiles::getUserByPerson($id))),
+                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recHome->toDate, crm_Profiles::getUserByPerson($id), 1, 'bg', array('house'))),
                     'stateAlternatePersons' => $recHome->alternatePersons,
                     'stateAnswerSystem' => $recHome->answerSystem,
                     'stateEmoji' => $recHome->emoji,
@@ -862,7 +862,7 @@ class hr_EmployeeContracts extends core_Master
             if (!isset($persons[$id]) || ($persons[$id]->stateDateFrom > $recTrip->startDate)) {
                 $persons[$id] = (object) array('stateInfo' => 'tripDay',
                     'stateDateFrom' => $recTrip->startDate,
-                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recTrip->toDate, crm_Profiles::getUserByPerson($id))),
+                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recTrip->toDate, crm_Profiles::getUserByPerson($id), 1, 'bg', array('working-travel'))),
                     'stateAlternatePersons' => $recTrip->alternatePersons,
                     'stateAnswerSystem' => $recTrip->answerSystem,
                     'stateEmoji' => $recTrip->emoji,
