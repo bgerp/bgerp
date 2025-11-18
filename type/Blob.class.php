@@ -29,7 +29,7 @@ class type_Blob extends core_Type
     public function init($params = array())
     {
         parent::init($params);
-        setIfNot($this->viewrows, $params['params']['viewrows'], $params['viewrows'], 20);
+        setIfNot($this->viewrows, $params['params']['viewrows'], $params['viewrows'], 6);
     }
 
 
