@@ -216,8 +216,8 @@ class sales_Services extends deals_ServiceMaster
             $rec->isReverse = (isset($operation['reverse'])) ? 'yes' : 'no';
         }
     }
-    
-    
+
+
     /**
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
@@ -233,6 +233,7 @@ class sales_Services extends deals_ServiceMaster
      *               o quantityInPack - количество в опаковката
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
+     *               o rate           - курса на документа
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
@@ -252,6 +253,7 @@ class sales_Services extends deals_ServiceMaster
             unset($dRec->shipmentId);
             unset($dRec->createdOn);
             unset($dRec->createdBy);
+            $dRec->rate = $rec->currencyRate;
             $details[] = $dRec;
         }
         

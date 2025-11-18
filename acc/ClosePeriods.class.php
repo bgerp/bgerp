@@ -253,7 +253,8 @@ class acc_ClosePeriods extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($fields['-single']) {
-            $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
+            $periodRec = acc_Periods::fetch($rec->periodId);
+            $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($periodRec->end);
             
             foreach (range(1, 4) as $id) {
                 if (isset($row->{"amountVatGroup{$id}"})) {
@@ -272,10 +273,6 @@ class acc_ClosePeriods extends core_Master
             
             $rec->amountWithoutInvoice = ($rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4) - $rec->amountFromInvoices;
             $row->amountWithoutInvoice = $Double->toVerbal($rec->amountWithoutInvoice). " <span class='cCode'>{$row->baseCurrencyId}</span>";
-            if ($rec->amountWithoutInvoice < 0) {
-                $row->amountWithoutInvoice = "<span class='red'>{$row->amountWithoutInvoice}</span>";
-            }
-            
             $row->amountFromInvoices .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
         }
         
@@ -287,9 +284,7 @@ class acc_ClosePeriods extends core_Master
         }
         
         foreach (array('amountVatGroup1', 'amountVatGroup2', 'amountVatGroup3', 'amountVatGroup4', 'amountWithoutInvoice', 'amountKeepBalance', 'amountFromInvoices') as $fld) {
-            if ($rec->{$fld} == 0) {
-                $row->{$fld} = "<span class='quiet'>{$row->{$fld}}</span>";
-            }
+            $row->{$fld} = ht::styleNumber($row->{$fld}, $rec->{$fld});
         }
         
         $row->amountKeepBalance .= " <span class='cCode'>{$row->baseCurrencyId}</span>";

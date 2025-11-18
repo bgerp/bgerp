@@ -248,7 +248,9 @@ class hr_Indicators extends core_Manager
 
             try{
                 // Взимаме връщания масив от интерфейсния метод
+                core_Debug::startTimer("{$sMvc->className}_CALC_INDICATORS");
                 $data = $sMvc->getIndicatorValues($timeline);
+                core_Debug::stopTimer("{$sMvc->className}_CALC_INDICATORS");
                 
             } catch(core_exception_Expect $e){
                 // Ако грешката е сетната при ръчно обновяване от дебъг потребител - да се визуализира

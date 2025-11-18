@@ -124,7 +124,7 @@ class sales_TransportValues extends core_Manager
      *                     ['totalFee']  - обща сума на целия транспорт, в основна валута без ДДС
      *                     ['singleFee'] - цената от транспорта за 1-ца от артикула, в основна валута без ДДС
      */
-    public static function getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalVolumicWeight, $deliveryData)
+    public static function getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalVolumicWeight, $deliveryData, $valior)
     {
         // Има ли в условието на доставка, драйвер за изчисляване на цени?
         $TransportCostDriver = cond_DeliveryTerms::getTransportCalculator($deliveryTermId);
@@ -136,9 +136,9 @@ class sales_TransportValues extends core_Manager
         $weight = cat_Products::getTransportWeight($productId, $quantity);
         $volume = cat_Products::getTransportVolume($productId, $quantity);
         $volumicWeight = $TransportCostDriver->getVolumicWeight($weight, $volume, $deliveryTermId, $deliveryData);
-        
+
         $totalVolumicWeight = self::normalizeTotalWeight($totalVolumicWeight, $productId, $TransportCostDriver, $deliveryTermId, $deliveryData);
-        $totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $deliveryData);
+        $totalFee = $TransportCostDriver->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $deliveryData, $valior);
         
         $fee = $totalFee['fee'];
         
@@ -564,7 +564,7 @@ class sales_TransportValues extends core_Manager
      * @param array|NULL $params - параметри
      * @return NULL|array $feeArray        - сумата на транспорта
      */
-    public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = null, $pCode = null, $params = array())
+    public static function getCostArray($deliveryTermId, $contragentClassId, $contragentId, $productId, $packagingId, $quantity, $deliveryLocationId, $countryId = null, $pCode = null, $params = array(), $valior = null)
     {
         //  Ако изрично е забранено начисляване не се начислява
         if($params['deliveryCalcTransport'] == 'no' || empty($productId)) {
@@ -586,7 +586,7 @@ class sales_TransportValues extends core_Manager
         
         $ourCompany = crm_Companies::fetchOurCompany();
         $params = $params + array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
-        $feeArr = self::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $params);
+        $feeArr = self::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $params, $valior);
         
         return $feeArr;
     }
@@ -744,7 +744,7 @@ class sales_TransportValues extends core_Manager
             }
         }
 
-        $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $locationId, $countryId, $PCode, $deliveryData);
+        $feeArr = self::getCostArray($masterRec->{$map['deliveryTermId']}, $masterRec->{$map['contragentClassId']}, $masterRec->{$map['contragentId']}, $rec->{$map['productId']}, $rec->{$map['packagingId']}, $rec->{$map['quantity']}, $locationId, $countryId, $PCode, $deliveryData, $masterRec->{$map['valior']});
         
         // Ако има такъв към цената се добавя
         if (is_array($feeArr)) {

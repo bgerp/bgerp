@@ -946,8 +946,8 @@ class sales_PrimeCostByDocument extends core_Manager
         $data->listFilter->setDefault('primeCostType', 'all');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
-        $data->query->orderBy('valior', 'DESC');
 
+        $orderByValior = true;
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productId)){
                 $data->query->where("#productId={$rec->productId}");
@@ -982,8 +982,8 @@ class sales_PrimeCostByDocument extends core_Manager
                             return $obj->fetchField('containerId');
                         }, $descendants));
                         $in = array_merge($in, $descendantArr);
+                        $data->query->orderBy('id', 'ASC');
                     }
-                    
                     $data->query->in('containerId', $in);
                 } elseif(type_Int::isInt($rec->documentId)){
                     $data->query->where("#containerId = {$rec->documentId}");
@@ -992,6 +992,10 @@ class sales_PrimeCostByDocument extends core_Manager
 
             if (!empty($rec->folder)) {
                 $data->query->where("#folderId = {$rec->folder}");
+            }
+
+            if($orderByValior) {
+                $data->query->orderBy('valior', 'DESC');
             }
         }
     }

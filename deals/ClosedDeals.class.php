@@ -302,12 +302,16 @@ abstract class deals_ClosedDeals extends core_Master
         $Double = core_Type::getByName('double(decimals=2)');
 
         // При редакция се показва очаквания, приход разход
+        $skipClasses = array(acc_RatesDifferences::getClassId());
+        $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
+
+        $displayValior = $rec->valior ? $rec->valior : ($rec->valiorStrategy == 'createdOn' ? $rec->createdOn : $biggestValior);
         if (round($liveAmount, 2) > 0) {
             $incomeAmount = $liveAmount;
-            $form->info = tr('Извънреден приход|*: <b style="color:blue">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode();
+            $form->info = tr('Извънреден приход|*: <b style="color:blue">') . $Double->toVerbal($incomeAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($displayValior);
         } elseif (round($liveAmount, 2) < 0) {
             $costAmount = abs($liveAmount);
-            $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode();
+            $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode($displayValior);
         }
 
         if($form->isSubmitted()){
@@ -315,8 +319,6 @@ abstract class deals_ClosedDeals extends core_Master
                 if(empty($rec->valior)){
                     $form->setError('valior', 'Трябва да е посочена конкретна дата');
                 } else {
-                    $skipClasses = array(acc_RatesDifferences::getClassId());
-                    $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
                     if(!empty($biggestValior) && $rec->valior < $biggestValior){
                         $biggestValiorVerbal = core_Type::getByName('date')->toVerbal($biggestValior);
                         $form->setError('valior', "Датата e преди най-големия вальор към сделката:|* <b>{$biggestValiorVerbal}</b>");
@@ -419,7 +421,7 @@ abstract class deals_ClosedDeals extends core_Master
             $DocClass->save($firstRec, 'modifiedOn,modifiedBy,state,closedOn');
             $DocClass->logWrite('Приключено с документ за приключване', $firstRec->id);
             if (empty($saveFields)) {
-                $rec->amount = $mvc->getClosedDealAmount($rec->threadId);
+                $rec->amount = $mvc->getClosedDealAmount($rec);
                 $mvc->save($rec, 'amount');
             }
 
@@ -503,12 +505,11 @@ abstract class deals_ClosedDeals extends core_Master
 
         if($rec->state == 'draft'){
             $row->costAmount = ht::styleNumber($row->costAmount, abs($costAmount), 'blue');
-            $row->costAmount = ht::createHint($row->costAmount, 'Сумата ще бъде записана при контиране');
+            $row->costAmount = ht::createHint($row->costAmount, 'Сумата ще бъде записана при контиране|*!');
             $row->incomeAmount = ht::styleNumber($row->incomeAmount, abs($incomeAmount), 'blue');
-            $row->incomeAmount = ht::createHint($row->incomeAmount, 'Сумата ще бъде записана при контиране');
+            $row->incomeAmount = ht::createHint($row->incomeAmount, 'Сумата ще бъде записана при контиране|*!');
         }
 
-        $row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         $row->title = static::getLink($rec->id, 0);
         $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
 
@@ -517,7 +518,8 @@ abstract class deals_ClosedDeals extends core_Master
             $row->valior = $me->getFieldType('valior')->toVerbal($rec->valior);
             $row->valior = "<span style='color:blue'>{$row->valior}</span>";
         }
-        
+        $row->currencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
+
         return $row;
     }
     
@@ -755,7 +757,9 @@ abstract class deals_ClosedDeals extends core_Master
         }
         $valiors = arr::extractValuesFromArray($jRecs, 'valior');
         if($firstDocValior = $firstDoc->fetchField($firstDoc->valiorFld)){
-            $valiors[$firstDocValior] = $firstDocValior;
+            if(!$firstDoc->isInstanceOf('findeals_Deals')){
+                $valiors[$firstDocValior] = $firstDocValior;
+            }
         }
 
         if(countR($valiors)) return max($valiors);
@@ -808,13 +812,14 @@ abstract class deals_ClosedDeals extends core_Master
      *
      * @return float $amount - разликата на платеното и експедираното
      */
-    protected function getClosedDealAmount($threadId)
+    protected function getClosedDealAmount($rec)
     {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
+        $rec = $this->fetchRec($rec);
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
 
-        $cost = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['debit'], 'debit')->amount;
-        $inc = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['credit'], 'credit')->amount;
+        $cost = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['debit'], 'debit', null, array(), array(), $rec->valior)->amount;
+        $inc = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['credit'], 'credit', null, array(), array(), $rec->valior)->amount;
 
         // Разликата между платеното и доставеното
         return $inc - $cost;

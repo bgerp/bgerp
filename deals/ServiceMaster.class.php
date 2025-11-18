@@ -49,6 +49,18 @@ abstract class deals_ServiceMaster extends core_Master
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
+    /**
      * Кои са задължителните полета за модела
      */
     protected static function setServiceFields($mvc)
@@ -124,6 +136,16 @@ abstract class deals_ServiceMaster extends core_Master
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        if(isset($rec->_oldValior)){
+
+            // Ако вальора е сменен и основната валута към стария вальор е различна от тази към новия
+            if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyCode($rec->valior)){
+                deals_Helper::recalcDetailPriceInBaseCurrency($mvc, $rec, $rec->_oldValior, $rec->valior, $rec->_oldRate);
+                $valiorVerbal = dt::mysql2verbal($rec->valior, 'd.m.Y');
+                core_Statuses::newStatus("Цените на артикулите са преизчислени към основната валута за|*: <b>{$valiorVerbal}</b>");
+            }
+        }
+
         if ($rec->_isCreated !== true) {
             
             return;
@@ -172,6 +194,13 @@ abstract class deals_ServiceMaster extends core_Master
                 $shipProduct->packagingId = $product->packagingId;
                 $shipProduct->quantity = $toShip;
                 $shipProduct->price = $price;
+
+                if($aggregatedDealInfo->get('currency') == 'BGN') {
+                    $shipProduct->price = deals_Helper::getSmartBaseCurrency($shipProduct->price, $aggregatedDealInfo->get('agreedValior'), $rec->valior);
+                } else {
+                    $shipProduct->price = $shipProduct->price / $aggregatedDealInfo->get('rate') * $rec->currencyRate;
+                }
+
                 $shipProduct->discount = $discount;
                 $shipProduct->notes = $product->notes;
                 $shipProduct->quantityInPack = $product->quantityInPack;
@@ -478,6 +507,53 @@ abstract class deals_ServiceMaster extends core_Master
         $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
 
         return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
+    }
+
+    /**
+     * След изпращане на формата
+     */
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        if ($form->isSubmitted()) {
+            $rec = &$form->rec;
+
+            $valiorError = null;
+            if(!deals_Helper::isValiorAllowed($rec->valior, $rec->threadId, $valiorError)) {
+                $form->setError('valior', $valiorError);
+            }
+
+            expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
+            expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
+            $dealInfo = $origin->getAggregateDealInfo();
+
+            // Ако валутата на документа не е разрешена ще се подмени след запис
+            $rec->_dealCurrencyId = $dealInfo->get('currency');
+            if($dealInfo->get('currency') == 'BGN'){
+                $valiorBaseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
+                if($rec->currencyId != $valiorBaseCurrencyId){
+                    if(isset($rec->id)){
+                        $oldRec = $mvc->fetch($rec->id, 'valior,currencyRate', false);
+                        $rec->_oldValior = $oldRec->valior ?? dt::today();
+                        $rec->_oldRate = $oldRec->currencyRate;
+                    }
+
+                    $rec->currencyId = $valiorBaseCurrencyId;
+                    $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+                }
+            } elseif($dealInfo->get('currency') == 'EUR'){
+                if(isset($rec->id)) {
+                    $oldRec = $mvc->fetch($rec->id, 'valior,currencyRate', false);
+                    if(acc_Periods::getBaseCurrencyCode($oldRec->valior) != acc_Periods::getBaseCurrencyCode($rec->valior)){
+                        $rec->_oldValior = $oldRec->valior ?? dt::today();
+                        $rec->_oldRate = $oldRec->currencyRate;
+                    }
+                }
+
+                $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            } elseif(acc_Periods::getBaseCurrencyCode($rec->valior) != acc_Periods::getBaseCurrencyCode($dealInfo->get('agreedValior'))){
+                $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            }
+        }
     }
 }
 

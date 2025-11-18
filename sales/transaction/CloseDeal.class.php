@@ -101,7 +101,8 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
                 }
             }
             
-            $quantities = acc_Balances::getBlQuantities($jRecs, '411');
+            $quantities = acc_Balances::getBlQuantities($jRecs, '411', null, null, array(), $valior);
+
             foreach ($downpaymentAmounts as $index => $obj) {
                 if (!array_key_exists($index, $quantities)) {
                     $quantities[$index] = new stdClass();

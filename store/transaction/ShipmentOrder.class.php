@@ -221,30 +221,38 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId = currency_Currencies::getIdByCode($currencyCode);
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
-        
+        $originCurrencyCode = $origin->fetchField('currencyId');
+
         foreach ($rec->details as $detailRec) {
             if (empty($detailRec->quantity) && Mode::get('saveTransaction')) {
                 continue;
             }
-            
+
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
             $amount = round($amount, 2);
-            
+
             // Вложимите кредит 706, другите 701
             $creditAccId = '701';
             $canStore = cat_Products::fetchField($detailRec->productId, 'canStore');
-           
+
+            $rec->_takingCurrencyId = $currencyId;
+            $convertedInCurrency = $amount;
+            if($originCurrencyCode != $rec->currencyId){
+                $convertedInCurrency = round(currency_Currencyrates::convertAmount($amount, $rec->valior, $rec->currencyId, $originCurrencyCode), 2);
+                $rec->_takingCurrencyId = currency_Currencies::getIdByCode($originCurrencyCode);
+            }
+
             if($canStore == 'yes'){
                 $entries[] = array(
                     'amount' => $sign * $amount * $currencyRate, // В основна валута
-                    
+
                     'debit' => array(
                         $rec->accountId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array($origin->className, $origin->that),			// Перо 2 - Сделка
-                        array('currency_Currencies', $currencyId),     		// Перо 3 - Валута
-                        'quantity' => $sign * $amount, // "брой пари" във валутата на продажбата
+                        array('currency_Currencies', $rec->_takingCurrencyId),     		// Перо 3 - Валута
+                        'quantity' => $sign * $convertedInCurrency, // "брой пари" във валутата на продажбата
                     ),
                     
                     'credit' => array(
@@ -263,8 +271,8 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
                         $rec->accountId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                         array($origin->className, $origin->that),			// Перо 2 - Сделка
-                        array('currency_Currencies', $currencyId),     		// Перо 3 - Валута
-                        'quantity' => $sign * $amount, // "брой пари" във валутата на продажбата
+                        array('currency_Currencies', $rec->_takingCurrencyId),     		// Перо 3 - Валута
+                        'quantity' => $sign * $convertedInCurrency, // "брой пари" във валутата на продажбата
                     ),
                     
                     'credit' => array(
@@ -283,14 +291,18 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         if ($this->class->_total->vat) {
             $vat = $this->class->_total->vat;
             $vatAmount = $this->class->_total->vat * $currencyRate;
+
+            if($originCurrencyCode != $rec->currencyId){
+                $vat = round(currency_Currencyrates::convertAmount($vat, $rec->valior, $rec->currencyId, $originCurrencyCode), 2);
+            }
+
             $entries[] = array(
                 'amount' => $sign * $vatAmount, // В основна валута
-                
                 'debit' => array(
                     $rec->accountId,
                     array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                     array($origin->className, $origin->that),			// Перо 2 - Сделка
-                    array('currency_Currencies', $currencyId), // Перо 3 - Валута
+                    array('currency_Currencies', $rec->_takingCurrencyId), // Перо 3 - Валута
                     'quantity' => $sign * $vat, // "брой пари" във валутата на продажбата
                 ),
                 

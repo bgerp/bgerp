@@ -258,8 +258,8 @@ class bank_OwnAccounts extends core_Master
         }
         
         if ($rec->bankAccountId) {
-            $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
-            $row->currency = currency_Currencies::getCodeById($currencyId);
+            $accountRec = bank_Accounts::fetch($rec->bankAccountId);
+            $row->currency = bank_Accounts::getDisplayCurrency($accountRec->currencyId);
             $ownAccounts = bank_OwnAccounts::getOwnAccountInfo($rec->id);
 
             $row->bank = bank_Accounts::getVerbal($ownAccounts, 'bank');
@@ -564,9 +564,9 @@ class bank_OwnAccounts extends core_Master
         $result = null;
         
         if ($rec = static::fetch($objectId)) {
-            $account = bank_Accounts::fetch($rec->bankAccountId);
-            
-            $cCode = currency_Currencies::getCodeById($account->currencyId);
+            $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+            $cCode = bank_Accounts::getDisplayCurrency($currencyId);
+
             $result = (object) array(
                 'num' => $rec->id  . ' b',
                 'title' => $cCode . ' - ' . $rec->title,
@@ -617,13 +617,11 @@ class bank_OwnAccounts extends core_Master
             }
             
             if (isset($rec->bankAccountId)) {
-                $account = bank_Accounts::fetch($rec->bankAccountId);
-                $cCode = currency_Currencies::getCodeById($account->currencyId);
-                if (isset($currencyCode) && strtoupper($currencyCode) != $cCode) {
-                    continue;
-                }
-                
-                $verbal = ($selectIban === true) ? $Varchar->toVerbal($account->iban) : $rec->title;
+                $accountRec = bank_Accounts::fetch($rec->bankAccountId);
+                $cCode = bank_Accounts::getDisplayCurrency($accountRec->currencyId);
+                if (isset($currencyCode) && strtoupper($currencyCode) != $cCode) continue;
+
+                $verbal = ($selectIban === true) ? $Varchar->toVerbal($accountRec->iban) : $rec->title;
                 
                 $accounts[$rec->id] = "{$cCode} - {$verbal}";
             }
@@ -673,5 +671,55 @@ class bank_OwnAccounts extends core_Master
             $bRec->exState = 'closed';
         }
         bank_Accounts::save($bRec, 'state,exState');
+    }
+
+
+    /**
+     * Коя е дефолтната валута на сметката към датата
+     *
+     * @param int|stdClass $id  - ид или запис на наша банкова сметка
+     * @param string|null $date - към коя дата, null за сега
+     * @param bool $returnCode  - дали да се върне кода или ид-то на валутата
+     * @return string|int       - коя е валутата (ид или трибуквен код)
+     */
+    public static function getDefaultCurrency($id, $date = null, $returnCode = false)
+    {
+        $date = $date ?? dt::today();
+        $rec = self::fetchRec($id);
+        $accCurrencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+
+        if($date >= acc_Setup::getEurozoneDate()){
+            $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+            if($accCurrencyId == $bgnCurrencyId) return ($returnCode) ? 'EUR' : currency_Currencies::getIdByCode('EUR');
+        }
+
+        return ($returnCode) ? currency_Currencies::getCodeById($accCurrencyId) : $accCurrencyId;
+    }
+
+
+    /**
+     * Разрешена ли е подадената валута към вальора, за тази наша банкова сметка
+     *
+     * @param stdClass|int $id       - ид или запис
+     * @param string|null $date      - към коя дата, null за сега
+     * @param string|int $currencyId - коя валута (ид или трибуквен код)
+     * @param string|null $error     - ако не се допуска каква е грешката
+     * @return bool                  - позволена ли е валутата или не
+     */
+    public static function canAcceptCurrency($id, $date, $currencyId, &$error = null)
+    {
+        $rec = self::fetchRec($id);
+        $defaultCurrencyCode = self::getDefaultCurrency($rec, $date, true);
+        $currencyCode = is_numeric($currencyId) ? currency_Currencies::getCodeById($currencyId) : $currencyId;
+
+        // Ако дефолтната валута на сметката към датата е различна от подадената - бие се ерор
+        if($defaultCurrencyCode != $currencyCode) {
+            $dateVerbal = dt::mysql2verbal($date, 'd.m.Y');
+            $error = "Сметката не поддържа избраната валута към вальор|* <b>{$dateVerbal}</b>. |Очаквана валута|* <b>{$defaultCurrencyCode}</b>";
+
+            return false;
+        }
+
+        return true;
     }
 }

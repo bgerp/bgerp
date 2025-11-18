@@ -226,12 +226,7 @@ class eshop_ProductDetails extends core_Detail
                     $price *= 1 + cat_Products::getVat($productId, null, $settings->vatExceptionId);
                 }
                 $price = currency_CurrencyRates::convertAmount($price, null, null, $settings->currencyId);
-
                 $res->price = price_Lists::roundPrice($listId, $price);
-                if($settings->currencyId == 'BGN'){
-                    $priceEuro = currency_CurrencyRates::convertAmount($price, null, $settings->currencyId, 'EUR');
-                    $res->priceEuro = price_Lists::roundPrice($listId, $priceEuro);
-                }
 
                 if (!empty($priceObject->discount)) {
                     $res->discount = $priceObject->discount;
@@ -460,11 +455,7 @@ class eshop_ProductDetails extends core_Detail
                 if($catalogPriceInfo->price == 0){
                     $row->catalogPrice = "<span class='green'>" . tr('Безплатно') . "</span>";
                 } else {
-                    $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId);
-                    if(isset($catalogPriceInfo->priceEuro)){
-                        $priceEuroVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($catalogPriceInfo->priceEuro);
-                        $row->catalogPrice .= " <span style='font-weight:normal;'>/</span> " . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
-                    }
+                    $row->catalogPrice = deals_Helper::displayDualAmount($row->catalogPrice, $catalogPriceInfo->price, null, $settings->currencyId, drdata_Countries::getIdByName('Bulgaria'), ' / ', true);
                 }
 
                 $row->catalogPrice = "<b>{$row->catalogPrice}</b>";

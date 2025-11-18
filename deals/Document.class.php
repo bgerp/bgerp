@@ -332,11 +332,29 @@ abstract class deals_Document extends deals_PaymentDocument
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @see bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$aggregator)
     {
+    }
+
+    /**
+     * Връща информация за сумите по платежния документ
+     *
+     * @param mixed $id
+     * @return object
+     */
+    public function getPaymentData($id)
+    {
+        if(is_object($id)){
+            $rec = $id;
+        } else {
+            $rec = $this->fetchRec($id, '*', false);
+        }
+
+        $Origin = $this->getOrigin($rec);
+        $dealCurrencyId = currency_Currencies::getIdByCode($Origin->fetchField('currencyId'));
+
+        return (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId, 'amountDeal' => $rec->amountDeal, 'dealCurrencyId' => $dealCurrencyId, 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
     }
 }

@@ -48,9 +48,15 @@ class sales_Quotations extends deals_QuotationMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Sorting, sales_Wrapper, doc_plg_Close, doc_EmailCreatePlg, acc_plg_DocumentSummary, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, plg_Clone, cat_plg_UsingProductVat, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys,cat_plg_AddSearchKeywords, plg_Search';
-    
-    
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, deals_plg_SaveValiorOnActivation, plg_Clone, cat_plg_UsingProductVat, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys,cat_plg_AddSearchKeywords, plg_Search';
+
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $valiorFld = 'date';
+
+
     /**
      * Кой може да затваря?
      */
@@ -457,7 +463,7 @@ class sales_Quotations extends deals_QuotationMaster
         
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
-            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total, $params);
+            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total, $params, $rec->date);
             
             // Сумира се, ако е изчислен
             if (is_array($fee) && $fee['totalFee'] > 0) {
@@ -583,8 +589,8 @@ class sales_Quotations extends deals_QuotationMaster
         
         // Ако няма дата попълваме текущата след активиране
         if (empty($rec->date)) {
-            $updateFields[] = 'date';
-            $rec->date = dt::today();
+            //$updateFields[] = 'date';
+            //$rec->date = dt::today();
         }
         
         if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
@@ -632,8 +638,15 @@ class sales_Quotations extends deals_QuotationMaster
     {
         // Ако има избрано условие на доставка, позволява ли да бъде контиран документа
         $rec = $mvc->fetch($res->id);
+
+        $error = null;
+        if (!currency_Currencies::checkCurrency($rec->currencyId, $rec->date, $error)) {
+            core_Statuses::newStatus($error, 'error');
+
+            return false;
+        }
+
         if(isset($rec->deliveryTermId)){
-            $error = null;
             if(!cond_DeliveryTerms::checkDeliveryDataOnActivation($rec->deliveryTermId, $rec, $rec->deliveryData, $mvc, $error)){
                 core_Statuses::newStatus($error, 'error');
 
@@ -641,13 +654,11 @@ class sales_Quotations extends deals_QuotationMaster
             }
         }
 
-        $errorMsg = null;
-        if(deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)){
-            core_Statuses::newStatus($errorMsg, 'error');
+        if(deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $error)){
+            core_Statuses::newStatus($error, 'error');
 
             return false;
         }
-
 
         $saveRecs = $productsWithoutPrices = $productIds = array();
         $Detail = cls::get($mvc->mainDetail);
