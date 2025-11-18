@@ -408,10 +408,15 @@ class sales_Proformas extends deals_InvoiceMaster
         }
         
         if ($rec->state == 'active') {
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            $firstRec = $firstDoc->fetch('currencyId,containerId');
             $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
             $amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+            if($firstRec->currencyId != $rec->currencyId){
+                $amount = currency_CurrencyRates::convertAmount($amount, null, $rec->currencyId, $firstRec->currencyId);
+            }
             $amount = round($amount, 2);
-            $originId = isset($rec->originId) ? $rec->originId : doc_Threads::getFirstContainerId($rec->threadId);
+            $originId = $rec->originId ?? $firstRec->containerId;
             
             if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $originId, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към проформата');

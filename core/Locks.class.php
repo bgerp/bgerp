@@ -139,7 +139,7 @@ class core_Locks extends core_Manager
 
         $lockExpire = time() + $lockDuration;
 
-        if ($lockDuration) {
+        if ($lockDuration && $maxTrays && $timeout) {
             // Увеличаваме времето за изпълнение (евентуално) за времето до изтичане на лок-а
             core_App::setTimeLimit($lockDuration);
         }

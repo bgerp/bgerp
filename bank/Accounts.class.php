@@ -194,18 +194,19 @@ class bank_Accounts extends core_Master
     {
         $rec = $form->rec;
         $contragentRec = cls::get($rec->contragentCls)->fetch($rec->contragentId);
-        
         if (!$rec->id) {
             // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
             if ($contragentRec->country) {
                 $countryRec = drdata_Countries::fetch($contragentRec->country);
-                $cCode = $countryRec->currencyCode;
-                $form->setDefault('currencyId', currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));
+                if($countryRec->id == drdata_Countries::getIdByName('Bulgaria')){
+                    $cCode = acc_Periods::getBaseCurrencyCode();
+                } else {
+                    $cCode = $countryRec->currencyCode;
+                }
+                $form->setDefault('currencyId', currency_Currencies::getIdByCode($cCode));
             } else {
                 // По дефолт е основната валута в системата
-                $conf = core_Packs::getConfig('acc');
-                $defaultCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
-                $form->setDefault('currencyId', $defaultCurrencyId);
+                $form->setDefault('currencyId', acc_Setup::getDefaultCurrencyCode());
             }
         }
         
@@ -283,6 +284,8 @@ class bank_Accounts extends core_Master
                 }
             }
         }
+
+        $row->currencyId = self::getDisplayCurrency($rec->currencyId);
     }
     
     
@@ -558,5 +561,25 @@ class bank_Accounts extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Показва валутата в която е банковата сметка към датата
+     *
+     * @param int $id
+     * @param null|date $date
+     * @return string
+     */
+    public static function getDisplayCurrency($currencyId, $date = null)
+    {
+        $date = $date ?? dt::today();
+
+        if($date >= acc_Setup::getEurozoneDate()){
+            $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+            if($currencyId == $bgnCurrencyId) return 'EUR/BGN';
+        }
+
+        return currency_Currencies::getCodeById($currencyId);
     }
 }

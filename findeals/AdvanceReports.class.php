@@ -11,7 +11,7 @@
  * @package   findeals
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -41,9 +41,9 @@ class findeals_AdvanceReports extends core_Master
      */
     public $loadList = 'plg_RowTools2, findeals_Wrapper, plg_Printing, acc_plg_Contable, 
                     doc_DocumentPlg, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
-    
-    
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, deals_plg_SaveValiorOnActivation';
+
+
     /**
      * Кой може да го разглежда?
      */
@@ -162,15 +162,21 @@ class findeals_AdvanceReports extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior,modifiedOn';
-    
-    
+
+
+    /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('operationSysId', 'varchar', 'caption=Операция,input=hidden');
-        $this->FLD('valior', 'date', 'caption=Дата, mandatory');
+        $this->FLD('valior', 'date', 'caption=Дата');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=currencyRate');
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden,oldFieldName=rate');
         $this->FLD('amount', 'double(decimals=2)', 'input=none,caption=Общо,notNull');
@@ -191,7 +197,6 @@ class findeals_AdvanceReports extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = &$data->form;
-        $form->setDefault('valior', dt::now());
         
         expect($origin = $mvc->getOrigin($form->rec));
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
@@ -201,8 +206,8 @@ class findeals_AdvanceReports extends core_Master
         
         $form->dealInfo = $dealInfo;
         $form->setDefault('operationSysId', 'debitDeals');
-        
         $form->setDefault('currencyId', $dealInfo->get('currency'));
+        $form->setReadOnly('currencyId');
         $Cover = doc_Folders::getCover($form->rec->folderId);
         
         $form->setDefault('contragentClassId', $Cover->getClassId());
@@ -225,13 +230,17 @@ class findeals_AdvanceReports extends core_Master
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            $operations = $form->dealInfo->get('allowedPaymentOperations');
             $operation = $form->dealInfo->allowedPaymentOperations[$rec->operationSysId];
             $rec->creditAccount = $operation['credit'];
             $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
             
             if (!$rec->currencyRate) {
                 $form->setError('currencyRate', 'Не може да се изчисли курс');
+            }
+
+            $currencyError = null;
+            if(!currency_Currencies::checkCurrency($rec->currencyId, $rec->valior, $currencyError)){
+                $form->setError('currencyId', $currencyError);
             }
         }
     }
@@ -393,9 +402,7 @@ class findeals_AdvanceReports extends core_Master
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @see bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$aggregator)
     {
@@ -435,6 +442,7 @@ class findeals_AdvanceReports extends core_Master
      *               o quantityInPack - количество в опаковката
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
+     *               o rate           - курса на документа
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
@@ -454,6 +462,7 @@ class findeals_AdvanceReports extends core_Master
             unset($dRec->reportId);
             unset($dRec->createdOn);
             unset($dRec->createdBy);
+            $dRec->rate = $rec->currencyRate;
             $details[] = $dRec;
         }
         

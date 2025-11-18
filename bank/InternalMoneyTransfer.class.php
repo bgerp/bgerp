@@ -333,8 +333,10 @@ class bank_InternalMoneyTransfer extends core_Master
     public function validateForm($form)
     {
         $rec = &$form->rec;
-        $creditInfo = bank_OwnAccounts::getOwnAccountInfo($rec->creditBank);
-        
+
+        $defaultCreditId = bank_OwnAccounts::getDefaultCurrency($rec->creditBank, $rec->valior);
+        $dateVerbal = dt::mysql2verbal($rec->valior, 'd.m.Y');
+
         if ($rec->operationSysId == 'bank2bank') {
             $bankRec = bank_OwnAccounts::fetch($rec->debitBank);
             if ($bankRec->autoShare == 'yes') {
@@ -344,33 +346,25 @@ class bank_InternalMoneyTransfer extends core_Master
             // Двете банкови сметки трябва да са различни
             if ($rec->creditBank == $rec->debitBank) {
                 $form->setError('debitBank', 'Дестинацията е една и съща !!!');
-                
-                return;
             }
-            
-            $debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
-            
-            if ($creditInfo->currencyId != $debitInfo->currencyId) {
-                $form->setError('debitBank, creditBank', 'Банковите сметки не са в една валута! Документът за обмяна е "Банкова обмяна на валута".');
-                
-                return;
+
+            $defaultDebitId = bank_OwnAccounts::getDefaultCurrency($rec->debitBank, $rec->valior);
+            if($rec->currencyId != $defaultCreditId){
+                $form->setError('creditBank', "Изходящата сметка не е в избраната валута към вальор|* <b>{$dateVerbal}</b>!");
             }
-            
-            if ($creditInfo->currencyId != $rec->currencyId) {
-                $form->setError('debitBank, creditBank', 'Банковите сметки не са в посочената валута !!!');
-                
-                return;
+
+            if($rec->currencyId != $defaultDebitId){
+                $form->setError('debitBank', "Входящата сметка не е в избраната валута към този вальор|* <b>{$dateVerbal}!");
             }
         } elseif ($rec->operationSysId == 'bank2case') {
             $caseRec = cash_Cases::fetch($rec->debitCase);
             if ($caseRec->autoShare == 'yes') {
                 $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($caseRec->cashiers, core_Users::getCurrent()));
             }
-            
-            if ($creditInfo->currencyId != $rec->currencyId) {
-                $form->setError('debitEnt1,creditEnt1', 'Банковата сметка не е в посочената валута !!!');
-                
-                return;
+
+            $defaultCreditId = bank_OwnAccounts::getDefaultCurrency($rec->creditBank, $rec->valior);
+            if($rec->currencyId != $defaultCreditId){
+                $form->setError('creditBank', "Изходящата сметка не е в избраната валута към вальор|* <b>{$dateVerbal}</b>!");
             }
         }
     }

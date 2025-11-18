@@ -305,7 +305,7 @@ class pos_Terminal extends peripheral_Terminal
                 $Double = core_Type::getByName('double(decimals=2)');
                 
                 $row = new stdClass();
-                $row->price = currency_Currencies::decorate($Double->toVerbal($calcedPrice));
+                $row->price = currency_Currencies::decorate($Double->toVerbal($calcedPrice), null, true);
                 $row->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
                 $row->info = cat_Products::getVerbal($productRec, 'info');
                 
@@ -1691,7 +1691,7 @@ class pos_Terminal extends peripheral_Terminal
             Mode::pop('text', 'plain');
 
             Mode::push('text', 'plain');
-            $priceVerbal = currency_Currencies::decorate($price);
+            $priceVerbal = currency_Currencies::decorate($price, null, true);
             Mode::pop('text');
             $btnName = "|*{$priceVerbal}&nbsp;/&nbsp;|" . tr($packName);
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
@@ -2337,7 +2337,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
 
                 $obj->price = $price;
-                $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
+                $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price), null, true);
             }
             
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);

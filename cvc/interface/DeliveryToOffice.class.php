@@ -55,24 +55,24 @@ class cvc_interface_DeliveryToOffice extends core_BaseClass
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int   $deliveryTermId     - условие на доставка
-     * @param float $volumicWeight      - единичното обемно тегло
-     * @param int   $totalVolumicWeight - Общото обемно тегло
-     * @param array $params             - други параметри
-     *
+     * @param int   $deliveryTermId           - условие на доставка
+     * @param float $volumicWeight            - единичното обемно тегло
+     * @param int   $totalVolumicWeight       - общото обемно тегло
+     * @param array $params                   - други параметри
+     * @param null|string $toBaseCurrencyDate - към основната валута за коя дата
      * @return array
      *               ['fee']          - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
      *               ['deliveryTime'] - срока на доставка в секунди ако го има
      *               ['explain']      - текстово обяснение на изчислението
      */
-    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params)
+    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params, $toBaseCurrencyDate = null)
     {
         $officeId = $params['officeId'];
         $params['deliveryCountry'] = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
 
         // Временно работи с навлата
         $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
-        $res = $FeeZones->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params);
+        $res = $FeeZones->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params, $toBaseCurrencyDate);
 
         return $res;
     }

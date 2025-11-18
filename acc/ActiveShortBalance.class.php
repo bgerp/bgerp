@@ -99,10 +99,14 @@ class acc_ActiveShortBalance
     {
         if (countR($recs)) {
             $sysIds = array();
-            
+
             // За всеки запис
-            foreach ($recs as $rec) {
-                
+            foreach ($recs as &$rec) {
+                $lastDayValior = dt::getLastDayOfMonth($rec->valior);
+                foreach (array('creditPrice', 'debitPrice', 'amount') as &$v){
+                    $rec->{$v} = deals_Helper::getSmartBaseCurrency($rec->{$v}, $lastDayValior, $this->to);
+                }
+
                 // За дебита и кредита
                 foreach (array('debit', 'credit') as $type) {
                     $accId = $rec->{"{$type}AccId"};
@@ -189,7 +193,7 @@ class acc_ActiveShortBalance
     /**
      * Изчислява баланса преди зададените дати в '$this->from' и '$this->to'
      */
-    public function getBalanceBefore($accs, &$accArr = null)
+    public function getBalanceBefore($accs, &$accArr = null, &$balanceRec = null)
     {
         $newBalance = array();
         $accInfos = array();
@@ -292,8 +296,13 @@ class acc_ActiveShortBalance
     public function getBalance($accs)
     {
         $accArr = array();
-        $newBalance = $this->getBalanceBefore($accs, $accArr);
-        
+        $newBalance = $this->getBalanceBefore($accs, $accArr, $beforeBalanceRec);
+        foreach ($newBalance as &$b1) {
+            foreach (array('blAmount', 'baseAmount') as &$v) {
+                $b1[$v] = deals_Helper::getSmartBaseCurrency($b1[$v], $beforeBalanceRec->toDate, $this->to);
+            }
+        }
+
         // Извличаме записите, направени в избрания период на търсене
         $jQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($jQuery, $this->from, $this->to, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3']);
@@ -310,7 +319,10 @@ class acc_ActiveShortBalance
                 }
             }
         }
-        
+
+
+
+
         return $newBalance;
     }
     
@@ -359,15 +371,32 @@ class acc_ActiveShortBalance
         
         // Изчисляваме крайното салдо за аналитичната сметка в периода преди избраните дати
         $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => $accSysId, 'item1' => $item1, 'item2' => $item2, 'item3' => $item3, 'strict' => $strict, 'cacheBalance' => false));
-        $calcedBalance = $Balance->getBalanceBefore($accSysId);
-        
+        $balanceBeforeRec = null;
+        $accArr = array();
+        $calcedBalance = $Balance->getBalanceBefore($accSysId, $accArr, $balanceBeforeRec);
+
+        $convertToDate = false;
+        $beforeCurrencyCode = acc_Periods::getBaseCurrencyCode($balanceBeforeRec->toDate);
+        $toCurrencyCode = acc_Periods::getBaseCurrencyCode($to);
+        $toEndDate = dt::getLastDayOfMonth($to);
+        if($beforeCurrencyCode != $toCurrencyCode){
+            $convertToDate = true;
+        }
+
         $indexArr = $accId . '|' . $item1 . '|' . $item2 . '|' . $item3;
         
         // Ако няма данни досега, започваме с нулеви крайни салда
         if (!isset($calcedBalance[$indexArr])) {
             $calcedBalance[$indexArr] = array('blAmount' => 0, 'blQuantity' => 0);
         }
-        
+
+        if($convertToDate){
+            foreach ($calcedBalance as &$b){
+                $b['blAmount'] = deals_Helper::getSmartBaseCurrency($b['blAmount'], $balanceBeforeRec->toDate, $to);
+                $b['baseAmount'] = deals_Helper::getSmartBaseCurrency($b['baseAmount'], $balanceBeforeRec->toDate, $to);
+            }
+        }
+
         // Извличаме записите точно в периода на филтъра
         $jQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($jQuery, $from, $to, $accSysId, null, $item1, $item2, $item3, $strict);
@@ -381,6 +410,11 @@ class acc_ActiveShortBalance
         // Обхождаме всички записи и натрупваме сумите им към крайното салдо
         if (countR($entriesInPeriod)) {
             foreach ($entriesInPeriod as $jRec) {
+                $valDate = dt::getLastDayOfMonth($jRec->valior);
+                foreach (array('amount', 'debitPrice', 'creditPrice') as $v){
+                    $jRec->{$v} = deals_Helper::getSmartBaseCurrency($jRec->{$v}, $valDate, $toEndDate);
+                }
+
                 $entry = array('id' => $jRec->id,
                     'docType' => $jRec->docType,
                     'docId' => $jRec->docId,
@@ -478,8 +512,7 @@ class acc_ActiveShortBalance
                 foreach ($groupedRecs as &$dRec2) {
                     $dRec2['baseQuantity'] = $calcedBalance[$indexArr]['blQuantity'];
                     $dRec2['baseAmount'] = $calcedBalance[$indexArr]['blAmount'];
-                    
-                    
+
                     $blAmount = $dRec2['debitAmount'] - $dRec2['creditAmount'];
                     $blQuantity = $dRec2['debitQuantity'] - $dRec2['creditQuantity'];
                     

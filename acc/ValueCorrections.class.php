@@ -110,8 +110,14 @@ class acc_ValueCorrections extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'valior';
-    
-    
+
+
+    /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'rate';
+
+
     /**
      * Описание на модела
      */
@@ -207,13 +213,12 @@ class acc_ValueCorrections extends core_Master
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
         $pRec->amount /= $rec->rate;
         $pRec->allocated /= $rec->rate;
-        
-        foreach (array('amount', 'allocated', 'quantity', 'allocated') as $fld) {
+
+        foreach (array('amount', 'allocated', 'quantity') as $fld) {
             if (isset($pRec->{$fld})) {
                 $row->{$fld} = $Double->toVerbal($pRec->{$fld});
             }
         }
-        
         if (isset($pRec->transportWeight)) {
             $row->transportWeight = cls::get('cat_type_Weight')->toVerbal($pRec->transportWeight);
         }
@@ -253,6 +258,7 @@ class acc_ValueCorrections extends core_Master
         }
         
         // Подговяме кешираната информация за артикулите във вербален вид
+        $firstDoc = doc_Threads::getFirstDocument($data->rec->threadId)->fetch();
         $productRows = array();
         $count = 1;
         foreach ($data->rec->productsData as $pRec) {
@@ -261,8 +267,7 @@ class acc_ValueCorrections extends core_Master
             $productRows[] = $row;
             $count++;
         }
-        
-        $listFields = arr::make("count=№,name=Артикул,amount=Сума,allocated=|Разпределени|* ({$data->row->baseCurrencyCode}) |без ДДС|*", true);
+        $listFields = arr::make("count=№,name=Артикул,amount=Сума|* <small>({$firstDoc->currencyId})</small> ,allocated=|Разпределени|*<small> ({$data->row->baseCurrencyCode})</small> |без ДДС|*", true);
         
         // Взависимост от признака на разпределяне, показваме колоната възоснова на която е разпределено
         switch ($data->rec->allocateBy) {
@@ -426,35 +431,53 @@ class acc_ValueCorrections extends core_Master
         
         // Ако е събмитната формата
         if ($form->isSubmitted()) {
-            if (!isset($rec->rate)) {
-                // Изчисляваме курса към основната валута ако не е дефиниран
-                $rec->rate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
-                if (!$rec->rate) {
-                    $form->setError('rate', 'Не може да се изчисли курс');
+
+            $productData = type_Set::toArray($rec->chosenProducts);
+            $defaultValior = $mvc->getDefaultValior($rec, $productData);
+            if(empty($defaultValior)){
+                $form->setError('chosenProducts', 'Не може да се определи, защото има артикули с експедиции в различни сч. периоди|*!');
+            }
+
+            $doc = doc_Threads::getFirstDocument($rec->threadId);
+            $firstDocRec = $doc->fetch('chargeVat,currencyId,currencyRate,containerId');
+            $currencyId = $rec->currencyId;
+            $currencyRate = $rec->rate;
+            $amount = $rec->amount;
+
+            if (!$form->gotErrors()) {
+                if($firstDocRec->currencyId == 'BGN'){
+                    $oldCurrencyId = $currencyId;
+                    $currencyId = acc_Periods::getBaseCurrencyCode($defaultValior);
+                    $currencyRate = currency_CurrencyRates::getRate($defaultValior, $currencyId, null);
+                    $amount = currency_CurrencyRates::convertAmount($amount, $defaultValior, $oldCurrencyId, $currencyId);
+                    if (!$rec->rate) {
+                        $form->setError('rate', 'Не може да се изчисли курс');
+                    }
                 }
             }
-            
-            // Намираме контейнера на първия документ в нишката
-            $doc = doc_Threads::getFirstDocument($rec->threadId);
-            $correspondingContainerId = $doc->fetchField('containerId');
-            
+
             if (!$form->gotErrors()) {
-                $rec->correspondingDealOriginId = $correspondingContainerId;
-                $rec->amount *= $rec->rate;
-                
+                $rec->correspondingDealOriginId = $firstDocRec->containerId;
+                $amount *= $rec->rate;
+                $amount = round($amount, 2);
                 if ($form->chargeVat == 'yes' || $form->chargeVat == 'separate') {
-                    $productData = type_Set::toArray($rec->chosenProducts);
                     $intersectedProducts = array_intersect_key($form->allProducts, $productData);
                     $averageRate = $mvc->getAverageVatRate($intersectedProducts, $rec);
-                    $rec->amount /= (1 + $averageRate);
-                    $rec->amount = round($rec->amount, 2);
+                    $amount /= (1 + $averageRate);
+                    $amount = round($amount, 2);
                 }
-                
+
                 // Кешираме от всички възможни продукти, тези които са били избрани във функционалното поле
                 $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
-                $error = self::allocateAmount($rec->productsData, $rec->amount, $rec->allocateBy);
+                $error = self::allocateAmount($rec->productsData, $amount, $rec->allocateBy);
                 if (!empty($error)) {
                     $form->setError('allocateBy', $error);
+                }
+
+                if (!$form->gotErrors()) {
+                    $rec->amount = $amount;
+                    $rec->currencyId = $currencyId;
+                    $rec->rate = $currencyRate;
                 }
             }
         }
@@ -470,11 +493,12 @@ class acc_ValueCorrections extends core_Master
      */
     public function getAverageVatRate($productArr, $rec)
     {
+        $valior = $this->getDefaultValior($rec);
         $totalArr = array();
         $total = $averageVatSum = 0;
         foreach ($productArr as $pRec){
             $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
-            $vat = cat_Products::getVat($pRec->productId, $rec->valior, $vatExceptionId);
+            $vat = cat_Products::getVat($pRec->productId, $valior, $vatExceptionId);
             if($rec->allocateBy == 'value'){
                 $currentAmount = $pRec->amount;
             } else {
@@ -856,11 +880,11 @@ class acc_ValueCorrections extends core_Master
      * @param $rec
      * @return date|null $valior
      */
-    public function getDefaultValior($rec)
+    public function getDefaultValior($rec, $productIds = null)
     {
         // Намират се вальорите на всички експедиции от нишката
         $productValiors = $periods = array();
-        $productIds = array_keys($rec->productsData);
+        $productIds = $productIds ?? (is_array($rec->productsData) ? $rec->productsData : type_Set::toArray($rec->chosenProducts));
         $storeDocs = array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails', 'sales_Sales' => 'sales_SalesDetails', 'purchase_Purchases' => 'purchase_PurchasesDetails', 'sales_Services' => 'sales_ServicesDetails', 'purchase_Services' => 'purchase_ServicesDetails');
 
         // В кои нишки, ако договора е обединяващ гледа се и в нишките на обединените договори
@@ -876,7 +900,6 @@ class acc_ValueCorrections extends core_Master
             }
         }
 
-
         foreach ($productIds as $productId){
             foreach ($storeDocs as $docName => $detailName){
                 $states = array('active');
@@ -886,6 +909,7 @@ class acc_ValueCorrections extends core_Master
                 $shQuery->EXT('valior', $docName, "externalKey={$Detail->masterKey}");
                 $shQuery->EXT('state', $docName, "externalKey={$Detail->masterKey}");
                 $shQuery->EXT('threadId', $docName, "externalKey={$Detail->masterKey}");
+                $productId = is_object($productId) ? $productId->productId : $productId;
                 $shQuery->where("#productId = {$productId}");
                 $shQuery->in('threadId', $threads);
 

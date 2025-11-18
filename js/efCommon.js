@@ -6741,12 +6741,16 @@ function selectAllCheckboxes() {
 Възможност за скрива на част от редовете в дълги листови таблици
  */
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("td.td-clamp").forEach(td => {
-        const collapsedLines = parseInt(td.dataset.lines || 3, 10);     // по подразбиране 3
+
+    document.querySelectorAll("td[data-viewrows]").forEach(td => {
+        $(td).addClass('td-clamp');
+        const collapsedLines = parseInt(td.dataset.viewrows || 3, 10);     // по подразбиране 3
         const expandedMax    = parseInt(td.dataset.maxLines || 10, 10); // по подразбиране 10
 
         td.style.setProperty("--lines-collapsed", collapsedLines);
         td.style.setProperty("--lines-expanded-max", expandedMax);
+        td.style.setProperty("--max-height", collapsedLines * 1.4 + "em");
+        td.style.setProperty("--max-scroll", expandedMax * 1.4 + "em");
 
         // вземи реалния фон и го сложи във --fade-color
         const bg = getComputedStyle(td).backgroundColor;

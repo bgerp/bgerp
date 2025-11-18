@@ -53,22 +53,22 @@ class bglocal_interface_FreeShipping extends core_BaseClass
 
         return max($weight, $volume * $m);
     }
-    
-    
+
+
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int   $deliveryTermId     - условие на доставка
-     * @param float $volumicWeight      - единичното обемно тегло
-     * @param int   $totalVolumicWeight - Общото обемно тегло
-     * @param array $params             - други параметри
-     *
+     * @param int   $deliveryTermId           - условие на доставка
+     * @param float $volumicWeight            - единичното обемно тегло
+     * @param int   $totalVolumicWeight       - общото обемно тегло
+     * @param array $params                   - други параметри
+     * @param null|string $toBaseCurrencyDate - към основната валута за коя дата
      * @return array
      *               ['fee']          - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
      *               ['deliveryTime'] - срока на доставка в секунди ако го има
      *               ['explain']      - текстово обяснение на изчислението
      */
-    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params)
+    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params, $toBaseCurrencyDate = null)
     {
         return array('fee' => 0);
     }

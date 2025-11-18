@@ -144,7 +144,7 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
 
             // Ако има такива ще се извлекат от кешираните цени по периоди
             $productsInOtherBalances = array();
-            $productsToDate = acc_ProductPricePerPeriods::getPricesToDate($balanceRec->fromDate, $productsNotInBalance, null, 'stores,costs');
+            $productsToDate = acc_ProductPricePerPeriods::getPricesToDate($balanceRec->fromDate, $productsNotInBalance, null, 'stores,costs', false);
             foreach ($productsToDate as $pRec){
                 $productsInOtherBalances[$pRec->productItemId][] = $pRec->price;
             }
