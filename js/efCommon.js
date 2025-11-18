@@ -6748,9 +6748,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const collapsedLines = parseInt(td.dataset.viewrows || 3, 10);     // по подразбиране 3
         const expandedMax    = parseInt(td.dataset.maxLines || 10, 10); // по подразбиране 10
 
+        let mh = collapsedLines * 1.4;
         td.style.setProperty("--lines-collapsed", collapsedLines);
         td.style.setProperty("--lines-expanded-max", expandedMax);
-        td.style.setProperty("--max-height", collapsedLines * 1.4 + "em");
+        td.style.setProperty("--max-height", mh.toFixed(1) + "em");
         td.style.setProperty("--max-scroll", expandedMax * 1.4 + "em");
 
         // вземи реалния фон и го сложи във --fade-color
