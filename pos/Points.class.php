@@ -277,10 +277,19 @@ class pos_Points extends core_Master
      *
      * @return array $payments
      */
-    public static function fetchSelected($pointId)
+    public static function fetchSelectedPayments($pointId)
     {
         // Ако са посочени конкретни, само те се разрешават
         $payments = keylist::toArray(static::getSettings($pointId, 'payments'));
+
+        // Ако сме в еврозоната и сме преди датата на депрекейтване на лева - да може да се плаща и безналично с Лева
+        $today = dt::today();
+        if($today > acc_Setup::getEurozoneDate() && $today <= acc_Setup::getBgnDeprecationDate()){
+            if($bgnPaymentId = eurozone_Setup::getBgnPaymentId()){
+                $payments[$bgnPaymentId] = $bgnPaymentId;
+            }
+        }
+
         if(!countR($payments)) return array();
 
         $paymentQuery = cond_Payments::getQuery();

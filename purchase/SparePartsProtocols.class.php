@@ -288,8 +288,9 @@ class purchase_SparePartsProtocols extends core_Master
 
         $iQuery = purchase_InvoiceDetails::getQuery();
         $iQuery->where("#invoiceId = '{$invoiceRec->id}'");
+        $iQuery->XPR("amountCalced", 'double', "#price * #quantityInPack * #quantity");
         $iQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-        $iQuery->where("#amount > {$toAboveAmount}");
+        $iQuery->where("#amountCalced > {$toAboveAmount}");
         $iQuery->show('productId,quantity,amount');
         $replacementsIds = cat_Groups::getKeylistBySysIds('replacements');
         plg_ExpandInput::applyExtendedInputSearch('cat_Products', $iQuery, $replacementsIds, 'productId');

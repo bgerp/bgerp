@@ -391,21 +391,35 @@ class bgfisc_plg_CashDocument extends core_Plugin
         if (empty($res)) {
             $errors = $res = array();
             $cashAmount = $rec->amount;
-            
+
+            $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+
             if ($mvc instanceof cash_Pko) {
                 $dQuery = cash_NonCashPaymentDetails::getQuery();
                 $dQuery->where("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'");
                 while ($dRec = $dQuery->fetch()) {
-                    if (!$paymentCode = $Driver->getPaymentCode($registerRec, $dRec->paymentId)) {
-                        $title = cond_Payments::getTitleById($dRec->paymentId);
-                        $errors[] = $title;
-                        continue;
+                    $paymentCode = 0;
+
+                    // Ако сме в периода на работата с двете валути безналичното плащане в БГН да се приема за платено в брой
+                    $skipCheck = false;
+                    if($dRec->paymentId == eurozone_Setup::getBgnPaymentId()) {
+                        if ($valior > acc_Setup::getEurozoneDate() && $valior <= acc_Setup::getBgnDeprecationDate()) {
+                            $skipCheck = true;
+                        }
                     }
-                    
-                    $dRec->amount = cond_Payments::toBaseCurrency($dRec->paymentId, $dRec->amount, $rec->valior);
+
+                    if(!$skipCheck){
+                        if (!$paymentCode = $Driver->getPaymentCode($registerRec, $dRec->paymentId)) {
+                            $title = cond_Payments::getTitleById($dRec->paymentId);
+                            $errors[] = $title;
+                            continue;
+                        }
+                    }
+
+                    $dRec->amount = cond_Payments::toBaseCurrency($dRec->paymentId, $dRec->amount, $valior);
                     $dRec->amount /= $rec->rate;
                     $dRec->amount = round($dRec->amount, 2);
-                    $cashAmount -= $dRec->amount;
+
                     $arr = array('PAYMENT_TYPE' => $paymentCode, 'PAYMENT_AMOUNT' => $dRec->amount);
                     
                     $paymentRec = cond_Payments::fetch($dRec->paymentId, 'title,text');
@@ -415,7 +429,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                     
                     $res[] = $arr;
                 }
-                
+
                 if (count($errors)) {
                     $msg = 'Следните плащания нямат код във ФУ|*: ' . implode(',', $errors);
                     throw new core_exception_Expect($msg, 'Несъответствие');
@@ -875,8 +889,15 @@ class bgfisc_plg_CashDocument extends core_Plugin
         }
         
         // За всеки безналичен метод проверява се има ли код във ФУ
+        $valior = !empty($data->masterData->rec->valior) ? $data->masterData->rec->valior : dt::today();
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
+
+            // Ако сме в периода за приемане на плащане в лева да не се проверява дали съответства код
+            if($rec->paymentId == eurozone_Setup::getBgnPaymentId()){
+                if($valior > acc_Setup::getEurozoneDate() && $valior <= acc_Setup::getBgnDeprecationDate()) continue;
+            }
+
             if($rec->paymentId == -1) continue;
             if(!$Driver->getPaymentCode($registerRec, $rec->paymentId)){
                 $row->paymentId = "<b class='red'>{$row->paymentId}</b>";
