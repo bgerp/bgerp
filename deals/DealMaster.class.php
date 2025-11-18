@@ -550,6 +550,10 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
+        if(!empty($rec->currencyManualRate) && acc_Periods::getBaseCurrencyCode($rec->valior) == $rec->currencyId && $rec->currencyManualRate != 1){
+            $form->setError('currencyManualRate', "Валутата е основна за периода и курсът ѝ не може да е различен от 1|*!");
+        }
+
         // Какъв е новия курс
         $rec->_newCurrencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
         if(!empty($rec->currencyManualRate)){
