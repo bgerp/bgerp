@@ -82,8 +82,7 @@ class email_Fingerprints extends core_Manager
         $this->FLD('deleted', 'enum(no=Не, yes=Да)', 'caption=Изтрито,notNull');
         
         $this->setDbUnique('hash');
-        $this->setDbIndex('uid');
-        $this->setDbIndex('accountId,uid');
+        $this->setDbIndex('accountId,uid,id');
     }
     
     

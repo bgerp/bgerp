@@ -44,9 +44,7 @@ class bgfisc_plg_Receipts extends core_Plugin
         $deviceRec = bgfisc_Register::getFiscDevice($caseId, $serialNum);
         if($serialNum == bgfisc_Register::WITHOUT_REG_NUM) return;
 
-        $deviceRec = bgfisc_Register::getFiscDevice($caseId);
         unset($buttons['close']);
-        
         $url = ($mvc->haveRightFor('printFiscReceipt', $rec)) ? array('pos_Receipts', 'printfiscreceipt', $rec->id) : array();
         $attr = array('class' => "printReceiptBtn posBtns", 'title' => 'Отпечаване на фискален бон');
 
@@ -249,10 +247,21 @@ class bgfisc_plg_Receipts extends core_Plugin
         $query->where("#receiptId = '{$rec->id}'");
         $query->where("#action LIKE '%payment%'");
         $query->show('action,amount');
-        
+
+        $today = dt::today();
+        $bgnPaymentId = eurozone_Setup::getBgnPaymentId();
         while ($dRec = $query->fetch()) {
             list(, $paymentType) = explode('|', $dRec->action);
+
             $code = 0;
+            $amount = $dRec->amount;
+            if($today > acc_Setup::getEurozoneDate() && $today <= acc_Setup::getBgnDeprecationDate()){
+                if($paymentType == $bgnPaymentId){
+                    $paymentType = -1;
+                    $amount = round(cond_Payments::toBaseCurrency($bgnPaymentId, $amount, $rec->valior), 2);
+                }
+            }
+
             if ($paymentType != -1){
                 $paymentCode = $Driver->getPaymentCode($driverRec, $paymentType);
                 if(isset($paymentCode)){
@@ -266,9 +275,9 @@ class bgfisc_plg_Receipts extends core_Plugin
             if (!array_key_exists($code, $res)) {
                 $res[$code] = array('PAYMENT_TYPE' => $code, 'PAYMENT_AMOUNT' => 0);
             }
-            $res[$code]['PAYMENT_AMOUNT'] += abs($dRec->amount);
+            $res[$code]['PAYMENT_AMOUNT'] += abs($amount);
         }
-        
+
         if (count($errors)) {
             $msg = 'Следните плащания нямат код във ФУ|*: ' . implode(',', $errors);
             throw new core_exception_Expect($msg, 'Несъответствие');
@@ -298,8 +307,9 @@ class bgfisc_plg_Receipts extends core_Plugin
      * След взимане на файловете за пушване към терминала
      *
      * @param core_Mvc $mvc
-     * @param mixed    $res
      * @param core_ET  $tpl
+     * @param stdClass $rec
+     *
      */
     public static function on_AfterPushTerminalFiles($mvc, &$tpl, $rec)
     {
@@ -364,7 +374,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                 // Какви са артикулите в бележката
                 $products = self::getReceiptItems($rec);
                 $payments = self::getReceiptPayments($rec, $interface, $lRec);
-                
+
                 $fiscalArr = array('products' => $products, 'IS_PRINT_VAT' => 1, 'payments' => $payments);
                 
                 if (isset($rec->revertId)) {

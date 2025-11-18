@@ -83,4 +83,17 @@ class eurozone_Setup extends core_ProtoSetup
 
         return $html;
     }
+
+
+    /**
+     * Връща ИД-то на безналичния метод за плащане - лева
+     * @return mixed
+     */
+    public static function getBgnPaymentId()
+    {
+        $bgnPaymentName = eurozone_Migrations::BGN_NON_CASH_PAYMENT_NAME;
+        $paymentId = cond_Payments::fetchField("#title = '{$bgnPaymentName}'");
+
+        return $paymentId;
+    }
 }

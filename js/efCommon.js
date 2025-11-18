@@ -6746,12 +6746,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("td[data-viewrows]").forEach(td => {
         $(td).addClass('td-clamp');
         const collapsedLines = parseInt(td.dataset.viewrows || 3, 10);     // по подразбиране 3
-        const expandedMax    = parseInt(td.dataset.maxLines || 10, 10); // по подразбиране 10
+        const expandedMax    = parseInt(td.dataset.maxLines || 16, 10); // по подразбиране 10
 
+        let mh = collapsedLines * 1.4;
+        let ms = expandedMax * 1.4;
         td.style.setProperty("--lines-collapsed", collapsedLines);
         td.style.setProperty("--lines-expanded-max", expandedMax);
-        td.style.setProperty("--max-height", collapsedLines * 1.4 + "em");
-        td.style.setProperty("--max-scroll", expandedMax * 1.4 + "em");
+        td.style.setProperty("--max-height", mh.toFixed(1) + "em");
+        td.style.setProperty("--max-scroll", ms.toFixed(1) + "em");
 
         // вземи реалния фон и го сложи във --fade-color
         const bg = getComputedStyle(td).backgroundColor;

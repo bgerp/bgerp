@@ -17,6 +17,12 @@
 class eurozone_Migrations extends core_BaseClass
 {
     /**
+     * Константа за име на безналичния метод за плащане лева
+     */
+    const BGN_NON_CASH_PAYMENT_NAME = 'BGN';
+
+
+    /**
      * Мигрира ЦП от BGN в EUR
      */
     public static function updatePriceLists()
@@ -391,12 +397,14 @@ SET
     }
 
 
+    /**
+     * Добавя безналичен метод за плащане - ЛЕВА
+     */
     public function addBgnPayment()
     {
         core_Users::forceSystemUser();
-        $rec = (object)array('title' => 'BGN', 'change' => 'yes', 'currencyCode' => 'BGN', 'synonym' => 'bgn');
+        $rec = (object)array('title' => self::BGN_NON_CASH_PAYMENT_NAME, 'change' => 'yes', 'currencyCode' => 'BGN', 'synonym' => 'bgn');
         cond_Payments::save($rec);
         core_Users::cancelSystemUser();
-
     }
 }

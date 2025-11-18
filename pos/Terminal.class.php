@@ -1426,7 +1426,7 @@ class pos_Terminal extends peripheral_Terminal
         $disClass = ($payUrl && !$rec->_disableAllPayments) ? 'navigable' : 'disabledBtn';
         $paymentArr = array();
         $paymentArr["payment-1"] = (object)array('body' => ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true), 'placeholder' => 'PAYMENTS');
-        $payments = pos_Points::fetchSelected($rec->pointId);
+        $payments = pos_Points::fetchSelectedPayments($rec->pointId);
 
         $pointRec = pos_Points::fetch($rec->pointId);
         $peripheralIds = keylist::toArray($pointRec->bankPeripherals);
@@ -1490,7 +1490,7 @@ class pos_Terminal extends peripheral_Terminal
         $warning =  ($contoUrl) ? 'Наистина ли желаете да приключите продажбата|*?' : false;
         $closeBtn = ht::createLink('Приключено', $contoUrl, $warning, array('class' => "{$disClass} posBtns closeBtn"));
         $paymentArr["close"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
-        
+
         // Добавяне на бутон за приключване на бележката
         cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
 
