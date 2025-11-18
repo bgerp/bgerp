@@ -52,7 +52,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                     $name = 'Фактурата';
                 }
                 
-                acc_journal_RejectRedirect::expect(false, "{$name} няма номер");
+                acc_journal_RejectRedirect::expect(false, "{$name} няма номер|*!");
             }
         }
         

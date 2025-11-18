@@ -255,14 +255,14 @@ class cat_ListingDetails extends doc_Detail
             if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
                 if ($listRec->type == 'canBuy') {
                     $policyInfo = cls::get('purchase_PurchaseLastPricePolicy')->getPriceInfo($Cover->getClassId(), $Cover->that, $rec->productId, $rec->packagingId, 1);
-                    $hint = 'Артикулът няма цена по-която е купуван от контрагента';
-                    $hint2 = 'Артикулът е купен последно на тази цена';
+                    $hint = 'Артикулът няма цена по-която е купуван от контрагента|*!';
+                    $hint2 = 'Артикулът е купен последно на тази цена|*!';
                 } else {
                     $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($Cover->getClassId(), $Cover->that, $rec->productId, $rec->packagingId, 1);
-                    $hint = 'Артикулът няма цена по ценовата политика на контрагента';
-                    $hint2 = 'Актуалната цена по политика';
+                    $hint = 'Артикулът няма цена по ценовата политика на контрагента|*!';
+                    $hint2 = 'Актуалната цена по политика|*!';
                 }
-                
+
                 if (!isset($rec->price)) {
                     if (!isset($policyInfo->price)) {
                         $row->productId = ht::createHint($row->productId, $hint, 'warning', false);
@@ -274,7 +274,7 @@ class cat_ListingDetails extends doc_Detail
                         $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
                         $rec->price = deals_Helper::getDisplayPrice($policyInfo->price, $vat, $rate, $listRec->vat);
                         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                        
+
                         $rec->price *= $quantityInPack;
                         $row->price = $mvc->getFieldType('price')->toVerbal($rec->price);
                         $row->price = "<span style='color:blue'>{$row->price}</span>";
@@ -288,14 +288,14 @@ class cat_ListingDetails extends doc_Detail
                 if ($type != 'yes') {
                     $vType = ($listRec->type == 'canBuy') ? 'купуваем' : 'продаваем';
                     $row->productId = "<span class='red'>{$row->productId}</span>";
-                    $row->productId = ht::createHint($row->productId, "Артикулът вече не е {$vType}", 'error', false);
+                    $row->productId = ht::createHint($row->productId, "Артикулът вече не е {$vType}|*!", 'error', false);
                 }
             }
             
             $exPack = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, ($exPack->quantity) ? $exPack->quantity : 1);
             if($deactivatedPack){
-                $row->packagingId = ht::createHint($row->packagingId, 'Опаковката/мярката е деактивирана в момента', 'warning', false);
+                $row->packagingId = ht::createHint($row->packagingId, 'Опаковката/мярката е деактивирана в момента|*!', 'warning', false);
             }
         }
     }
@@ -445,7 +445,7 @@ class cat_ListingDetails extends doc_Detail
                 foreach ($toSave as $r) {
                     $newRec = (object) $r;
                     $newRec->listId = $listRec->id;
-                    
+
                     $this->save($newRec, null, 'REPLACE');
                     $count++;
                 }

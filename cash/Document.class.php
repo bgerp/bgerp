@@ -57,6 +57,12 @@ abstract class cash_Document extends deals_PaymentDocument
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
      * Дали към документа може да се отнася повече от една ф-ра
      * @see deals_InvoicesToDocuments
      */
@@ -224,17 +230,25 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $Document = doc_Containers::getDocument($fromContainerId);
         $documentRec = $Document->fetch();
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $firstRec = $firstDoc->fetch('currencyRate,currencyId');
+        $willConvert = ($firstRec->currencyId != $documentRec->currencyId);
+
         if($Document->isInstanceOf('deals_InvoiceMaster')){ 
-            $minus = ($documentRec->type == 'dc_note') ? 0 : 0.005;
+            $minus = ($documentRec->type == 'dc_note' || $willConvert) ? 0 : 0.005;
             $amount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount - $minus;
             $amount /= ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
-            $amount = round($amount, 2);
         } elseif($Document->isInstanceOf('store_DocumentMaster')){
             $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
-            $amount = round($amount, 2);
+        }
+
+        $documentCurrencyId = is_numeric($documentRec->currencyId) ? currency_Currencies::getCodeById($documentRec->currencyId) : $documentRec->currencyId;
+        if($firstRec->currencyId != $documentCurrencyId){
+            $amount = currency_CurrencyRates::convertAmount($amount, null, $documentCurrencyId, $firstRec->currencyId);
         }
 
         if(isset($amount)){
+            $amount = round($amount, 2);
             $amount = abs($amount);
         }
 
@@ -265,8 +279,15 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
+
+        if(core_Packs::isInstalled('bgfisc') && dt::today() >= acc_Setup::getEurozoneDate()){
+            if(isset($form->rec->peroCase)){
+                $form->setDefault('currencyId', currency_Currencies::getIdByCode('EUR'));
+                $form->setReadOnly('currencyId');
+            }
+        }
         $form->setDefault('currencyId', $cId);
-        
+
         $expectedPayment = null;
         $realOriginId = isset($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
         $realOriginId = isset($realOriginId) ? $realOriginId : doc_Threads::getFirstContainerId($form->rec->threadId);
@@ -336,7 +357,14 @@ abstract class cash_Document extends deals_PaymentDocument
                 
                 return;
             }
-            
+
+            $currencyError = null;
+            if(!currency_Currencies::checkCurrency($rec->currencyId, $rec->valior, $currencyError, true)){
+                $form->setError('currencyId', $currencyError);
+                return;
+            }
+
+
             $origin = $mvc->getOrigin($form->rec);
             $dealInfo = $origin->getAggregateDealInfo();
 
@@ -477,9 +505,7 @@ abstract class cash_Document extends deals_PaymentDocument
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @see bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$aggregator)
     {

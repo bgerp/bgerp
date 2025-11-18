@@ -62,7 +62,7 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
         // Намираме всички покупки по, които няма доставени
         $allPurchases = $this->getPurchasesWithProducts($affectedTargetedProducts, false, true);
         $classId = purchase_Purchases::getClassId();
-        
+
         // За всяка покупка
         foreach ($allPurchases as $purRec) {
             
@@ -70,16 +70,17 @@ class price_interface_LastActiveDeliveryCostPolicyImpl extends price_interface_B
             // създаване, така сме сигурни че ще се вземе първата срещната цена, която е цената по
             // последна активна поръчка
             if (!isset($res[$purRec->productId])) {
+                $price = deals_Helper::getSmartBaseCurrency($purRec->price, $purRec->valior);
                 $res[$purRec->productId] = (object)array('productId'     => $purRec->productId,
                                                          'classId'       => $this->getClassId(),
                                                          'sourceClassId' => $classId,
                                                          'sourceId'      => $purRec->requestId,
                                                          'valior'        => null,
                                                          'quantity'      => $purRec->quantity,
-                                                         'price'         => round($purRec->price, 5));
+                                                         'price'         => round($price, 5));
             };
         }
-        
+
         // Връщаме намерените цени
         return $res;
     }

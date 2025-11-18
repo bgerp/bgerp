@@ -218,17 +218,17 @@ class tcost_FeeZones extends core_Master
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int   $deliveryTermId     - условие на доставка
-     * @param float $volumicWeight      - единичното обемно тегло
-     * @param int   $totalVolumicWeight - Общото обемно тегло
-     * @param array $params             - други параметри
-     *
+     * @param int   $deliveryTermId           - условие на доставка
+     * @param float $volumicWeight            - единичното обемно тегло
+     * @param int   $totalVolumicWeight       - общото обемно тегло
+     * @param array $params                   - други параметри
+     * @param null|string $toBaseCurrencyDate - към основната валута за коя дата
      * @return array
      *               ['fee']          - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
      *               ['deliveryTime'] - срока на доставка в секунди ако го има
      *               ['explain']      - текстово обяснение на изчислението
      */
-    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params)
+    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params, $toBaseCurrencyDate = null)
     {
         $toCountry = $params['deliveryCountry'];
         $toPostalCode = $params['deliveryPCode'];
@@ -246,7 +246,7 @@ class tcost_FeeZones extends core_Master
         // Опит за калкулиране на цена по посочените данни
         $zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $toCountry, $toPostalCode);
         $fee = tcost_Fees::calcFee($zoneRec, $totalVolumicWeight, $singleWeight);
-        
+
         $zoneId = $fee[2];
         $deliveryTime = ($fee[3]) ? $fee[3] : null;
         
@@ -265,7 +265,11 @@ class tcost_FeeZones extends core_Master
             $delTimeExplained = $deliveryTime / (24 * 60 * 60);
             $explain = ", {$termCode}, ZONE = '{$zoneName}', VOL_WT = '{$singleWeight}', TAX = {$taxes['tax']}, ADD_PER_KG = {$taxes['addPerKg']}, TOTAL_VOL_WT = '{$totalVolumicWeight}', DEL_TIME = '{$delTimeExplained} d'";
         }
-        
+
+        $toBaseCurrencyDate = dt::verbal2mysql($toBaseCurrencyDate, false);
+        $fee = deals_Helper::getSmartBaseCurrency($fee, null, $toBaseCurrencyDate);
+
+
         $res = array('fee' => $fee, 'deliveryTime' => $deliveryTime, 'explain' => $explain);
        
         // Връщане на изчислената цена

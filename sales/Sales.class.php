@@ -712,9 +712,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @see bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$result)
     {
@@ -766,7 +764,7 @@ class sales_Sales extends deals_DealMaster
         core_Debug::stopTimer('GET_SALE_ENTRIES');
 
         if(!Mode::is('onlySimpleDealInfo')){
-            $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries, $rec->id);
+            $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries, $rec);
             $paidAmount = sales_transaction_Sale::getPaidAmount($entries, $rec);
             $result->set('agreedDownpayment', $downPayment);
             $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
@@ -888,7 +886,7 @@ class sales_Sales extends deals_DealMaster
         $agreed = deals_Helper::normalizeProducts(array($agreed2));
         $result->set('products', $agreed);
         $result->set('contoActions', $actions);
-        $shippedProducts = sales_transaction_Sale::getShippedProducts($entries);
+        $shippedProducts = sales_transaction_Sale::getShippedProducts($entries, $rec);
 
         // Ако има експедирани артикули и е инсталиран пакета за партиди
         if(core_Packs::isInstalled('batch') && countR($shippedProducts) && !Mode::is('onlySimpleDealInfo')){
@@ -1657,10 +1655,10 @@ class sales_Sales extends deals_DealMaster
         if ($total == cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT) {
             return cond_TransportCalc::NOT_FOUND_TOTAL_VOLUMIC_WEIGHT;
         }
-        
+
         // За всеки артикул се изчислява очаквания му транспорт
         foreach ($products as $p2) {
-            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total, $params);
+            $fee = sales_TransportValues::getTransportCost($rec->deliveryTermId, $p2->productId, $p2->packagingId, $p2->quantity, $total, $params, $rec->valior);
             
             // Сумира се, ако е изчислен
             if (is_array($fee) && $fee['totalFee'] > 0) {
@@ -1702,7 +1700,7 @@ class sales_Sales extends deals_DealMaster
         // Взимаме артикулите от сметка 701
         $products = array();
         $entries = sales_transaction_Sale::getEntries($rec->id);
-        $shipped = sales_transaction_Sale::getShippedProducts($entries);
+        $shipped = sales_transaction_Sale::getShippedProducts($entries, $rec);
 
         if (countR($shipped)) {
             foreach ($shipped as $ship) {
@@ -2453,7 +2451,7 @@ class sales_Sales extends deals_DealMaster
      */
     public static function autoCreateSaleCsvIfNeeded($rec)
     {
-        $cartRec = eshop_Carts::fetch("#saleId = {$rec->id}");
+        $cartRec = core_Packs::isInstalled('eshop') ? eshop_Carts::fetch("#saleId = {$rec->id}") : null;
         if(is_object($cartRec)){
             if (!defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')) return;
             $logClass = 'eshop_Carts';

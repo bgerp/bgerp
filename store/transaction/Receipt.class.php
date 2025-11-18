@@ -160,6 +160,12 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $firstRec = $firstDoc->fetch();
 
+        $takingCurrencyId = $currencyId;
+        $originCurrencyCode = $origin->fetchField('currencyId');
+        if($originCurrencyCode != $rec->currencyId){
+            $takingCurrencyId = currency_Currencies::getIdByCode($originCurrencyCode);
+        }
+
         // Ако документа е с включено/отделно ддс и към покупка - ще се прави контировка за артикултие с данъчен кредит
         $checkVatCredit = $firstDoc->isInstanceOf('purchase_Purchases') && $firstRec->haveVatCreditProducts == 'no';
         $entriesLast = array();
@@ -176,6 +182,11 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
             $vatExceptionId = cond_VatExceptions::getFromThreadId($rec->threadId);
             $revertVatPercent = ($checkVatCredit) ? cat_Products::getVat($detailRec->productId, $rec->valior, $vatExceptionId) : null;
             $reason = $reverse ? ($hasDifferentReverseEntries ? 'Експедиране (връщане без ограничения) на Артикули към Доставчик' : "Връщане на Артикули към Доставчик - в месеца и от склада на доставката им") : null;
+
+            $convertedInCurrency = $amount;
+            if($originCurrencyCode != $rec->currencyId){
+                $convertedInCurrency = round(currency_Currencyrates::convertAmount($amount, $rec->valior, $rec->currencyId, $originCurrencyCode), 2);
+            }
 
             if($canStore != 'yes'){
                 // Към кои разходни обекти ще се разпределят разходите
@@ -199,8 +210,8 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                         'credit' => array($rec->accountId,
                             array($rec->contragentClassId, $rec->contragentId),
                             array($origin->className, $origin->that),
-                            array('currency_Currencies', $currencyId),
-                            'quantity' => $sign * $amount,
+                            array('currency_Currencies', $takingCurrencyId),
+                            'quantity' => $sign * $convertedInCurrency,
                         ),
                         'reason' => $dRec1->reason,
                     );
@@ -242,6 +253,10 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                 );
 
                 $cQuantity = $sign * $amount;
+                if($originCurrencyCode != $rec->currencyId){
+                    $cQuantity = round(currency_Currencyrates::convertAmount($cQuantity, $rec->valior, $rec->currencyId, $originCurrencyCode), 2);
+                }
+
                 $amount = $sign * $amount * $rec->currencyRate;
                 $amountPure = $amount;
 
@@ -258,7 +273,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                         $rec->accountId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
                         array($origin->className, $origin->that),		   // Перо 2 - Сделка
-                        array('currency_Currencies', $currencyId),          // Перо 3 - Валута
+                        array('currency_Currencies', $takingCurrencyId),          // Перо 3 - Валута
                         'quantity' => $cQuantity, // "брой пари" във валутата на покупката
                     ),
                     'reason' => $reason,
@@ -288,6 +303,12 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         if ($this->class->_total->vat) {
             $vat = $this->class->_total->vat;
             $vatAmount = $this->class->_total->vat * $currencyRate;
+
+            if($originCurrencyCode != $rec->currencyId){
+                $vat = round(currency_Currencyrates::convertAmount($vat, $rec->valior, $rec->currencyId, $originCurrencyCode), 2);
+            }
+
+
             $entries[] = array(
                 'amount' => $sign * $vatAmount, // В основна валута
                 
@@ -295,7 +316,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
                     $rec->accountId,
                     array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                     array($origin->className, $origin->that),			// Перо 2 - Сделка
-                    array('currency_Currencies', $currencyId), // Перо 3 - Валута
+                    array('currency_Currencies', $takingCurrencyId), // Перо 3 - Валута
                     'quantity' => $sign * $vat, // "брой пари" във валутата на продажбата
                 ),
                 

@@ -230,16 +230,25 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $form = $data->form;
-        $rec = $form->rec;
+        $form = &$data->form;
+        $rec = &$form->rec;
 
         $origin = $mvc->getOrigin($form->rec);
 
         if ($origin->isInstanceOf('findeals_AdvanceReports')) {
-            $form->setDefault('vatRate', $origin->fetchField('chargeVat'));
-            $form->setDefault('currencyId', $origin->fetchField('currencyId'));
-            $form->setDefault('rate', $origin->fetchField('currencyRate'));
-            
+            $originRec = $origin->fetch();
+            $finDeal = doc_Threads::getFirstDocument($originRec->threadId);
+            $dealRec = $finDeal->fetch();
+
+            if($originRec->currencyId == 'BGN' && $dealRec->currencyId == 'EUR') {
+                $form->setDefault('currencyId', 'EUR');
+                $form->setDefault('rate', currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
+            } else {
+                $form->setDefault('currencyId', $originRec->currencyId);
+                $form->setDefault('rate', $originRec->currencyRate);
+            }
+
+            $form->setDefault('vatRate', $originRec->chargeVat);
             $additionalInfo = tr('|Към авансов отчет|*: #') . $origin->getHandle() . PHP_EOL;
             $form->setDefault('additionalInfo', $additionalInfo);
         }
@@ -513,9 +522,14 @@ class purchase_Invoices extends deals_InvoiceMaster
         $rec = $data->rec;
         
         if ($rec->state == 'active') {
-            $minus = ($rec->type == 'dc_note') ? 0 : 0.005;
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            $firstRec = $firstDoc->fetch();
+            $minus = ($rec->type == 'dc_note' || $firstRec->currencyId != $rec->currencyId) ? 0 : 0.005;
             $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - $minus;
             $amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+            if($firstRec->currencyId != $rec->currencyId){
+                $amount = currency_CurrencyRates::convertAmount($amount, null, $rec->currencyId, $firstRec->currencyId);
+            }
             $amount = round($amount, 2);
             
             if ($amount < 0) {

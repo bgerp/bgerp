@@ -55,15 +55,15 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
         $docRec = $firstDoc->fetch();
         $amount = $info->get('blAmount');
 
-        $valior = $this->class->getValiorDate($rec);
+        $this->valior = $this->class->getValiorDate($rec);
         if (Mode::get('saveTransaction')) {
-            $rec->valior = $valior;
+            $rec->valior = $this->valior;
         }
 
         // Създаване на обекта за транзакция
         $result = (object) array(
             'reason' => $rec->notes,
-            'valior' => $valior,
+            'valior' => $this->valior,
             'totalAmount' => 0,
             'entries' => array(),
         );
@@ -92,7 +92,7 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
             }
             
             $sysId = acc_Accounts::fetchField($docRec->accountId, 'systemId');
-            $quantities = acc_Balances::getBlQuantities($jRecs, $sysId);
+            $quantities = acc_Balances::getBlQuantities($jRecs, $sysId, null, null, array(), $this->valior);
             
             if (is_array($quantities)) {
                 foreach ($quantities as $index => $obj) {
@@ -119,9 +119,8 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
             array($firstDoc->className, $docRec->id),
             $index,
             'quantity' => abs($quantity));
-        
+
         if ($amount > 0) {
-            
             // Ако РС има дебитно салдо
             $entry = array('amount' => $amount,
                 'debit' => array('6913',

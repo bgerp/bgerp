@@ -67,10 +67,17 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
         
         $origin = findeals_DebitDocuments::getOrigin($rec);
-        $originCodeId = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
+        $originRec = $origin->fetch('currencyId,valior,currencyRate');
+        $originCodeId = currency_Currencies::getIdByCode($originRec->currencyId);
         
         $doc = doc_Containers::getDocument($rec->dealId);
-        $dealCodeId = currency_Currencies::getIdByCode($doc->fetchField('currencyId'));
+        $dealRec = $doc->fetch();
+        $dealCodeId = currency_Currencies::getIdByCode($dealRec->currencyId);
+        $docCurrencyRate = $dealRec->currencyRate;
+        if($rec->currencyId != $dealCodeId && isset($dealRec->oldCurrencyId)){
+            $dealCodeId = currency_Currencies::getIdByCode($dealRec->oldCurrencyId);
+            $docCurrencyRate = 1;
+        }
 
         if ($rec->currencyId == $baseCurrencyId) {
             $amount = $rec->amountDeal;
@@ -80,12 +87,11 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
             $originRate = $origin->fetchField('currencyRate');
             $amount = $rec->amount * $originRate;
         }
-        
-        $dealRec = $doc->fetch();
+
         $originCurrencyId = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
         $findeal2findeal = $doc->isInstanceOf('findeals_Deals') && $origin->isinstanceOf('findeals_Deals');
-
         if($rec->currencyId == $originCurrencyId && $rec->currencyId == $baseCurrencyId) {
+
             // Дебитираме разчетната сметка на избраната финансова сделка
             $debitArr = array($rec->debitAccount,
                 array($dealRec->contragentClassId, $dealRec->contragentId),
@@ -105,9 +111,8 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
                 'credit' => $creditArr,);
         } else {
             $amountCredit = $amount;
+            $amountDebit = deals_Helper::getSmartBaseCurrency($rec->amountDeal * $docCurrencyRate, $dealRec->valior, $rec->valior);
 
-            $originRate = $doc->fetchField('currencyRate');
-            $amountDebit = $rec->amountDeal * $originRate;
             $entries[] = array('amount' => $sign * round($amountDebit, 2),
                 'debit' => array($rec->debitAccount,
                     array($dealRec->contragentClassId, $dealRec->contragentId),
@@ -116,11 +121,10 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
                     'quantity' => $sign * round($rec->amountDeal, 2)),
                 'credit' => array(481, array('currency_Currencies', $dealCodeId), 'quantity' => $sign * round($rec->amountDeal, 2)));
 
-            $amountCredit = $amountCredit;
             $debitQuantity = $rec->amountDeal;
             if($findeal2findeal){
-                $amountCredit = $rec->amount * $origin->fetchField('currencyRate');
-                $debitQuantity = $amountCredit;
+                $amountCredit = $rec->amount * $originRec->currencyRate;
+                $debitQuantity = deals_Helper::getSmartBaseCurrency($amountCredit, $originRec->valior, $rec->valior);
             }
 
             $entries[] = array('amount' => $sign * round($amountCredit, 2),

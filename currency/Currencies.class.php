@@ -20,117 +20,117 @@ class currency_Currencies extends core_Master
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'acc_RegisterIntf, currency_CurrenciesAccRegIntf, acc_RegistryDefaultCostIntf';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_RowTools2, currency_Wrapper, acc_plg_Registry,
                      plg_Sorting, plg_State2';
-    
-    
+
+
     /**
      * Шаблон за единичния изглед
      */
     public $singleLayoutFile = 'currency/tpl/SingleLayoutCurrency.shtml';
-    
-    
+
+
     /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Валута';
-    
-    
+
+
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/zone_money.png';
-    
-    
+
+
     /**
      * Кой може да изтрива
      */
     public $canDelete = 'no_one';
-    
-    
+
+
     /**
      * Кой може да го прочете?
      */
     public $canRead = 'ceo,admin,cash,bank,currency,acc';
-    
-    
+
+
     /**
      * Кой може да добавя?
      */
     public $canAdd = 'ceo,admin,cash,bank,currency,acc';
-    
-    
+
+
     /**
      * Кой може да редактира системните данни
      */
     public $canEditsysdata = 'ceo,admin,cash,bank,currency,acc';
-    
-    
+
+
     /**
      * Кой може да променя?
      */
     public $canEdit = 'ceo,admin,cash,bank,currency,acc';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,admin,cash,bank,currency,acc';
-    
-    
+
+
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,admin,cash,bank,currency,acc';
-    
-    
+
+
     /**
      * Кой може да променя състоянието на валутата
      */
     public $canChangestate = 'ceo,currency,admin';
-    
-    
+
+
     /**
      * Заглавие
      */
     public $title = 'Списък с всички валути';
-    
-    
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'name, code, lastUpdate, lastRate, state';
-    
-    
+
+
     /**
      * Полето "name" да е хипервръзка към единичния изглед
      */
     public $rowToolsSingleField = 'name';
-    
-    
+
+
     /**
      * Полетата, които ще се показват в единичния изглед
      */
     public $singleFields = 'name, code, lastUpdate, lastRate, groups';
-    
-    
+
+
     /**
      * Детайли на модела
      */
     public $details = 'currency_CurrencyRates';
-    
-    
+
+
     /**
      * В коя номенклатура да се добави при активиране
      */
     public $addToListOnActivation = 'currencies';
-    
-    
+
+
     /**
      * Описание на модела
      */
@@ -140,11 +140,11 @@ class currency_Currencies extends core_Master
         $this->FLD('code', 'varchar(3)', 'caption=Код,mandatory,smartCenter');
         $this->FLD('lastUpdate', 'date', 'caption=Последно->Обновяване, input=none');
         $this->FLD('lastRate', 'double(decimals=5)', 'caption=Последно->Курс, input=none,smartCenter');
-        
+
         $this->setDbUnique('code');
     }
-    
-    
+
+
     /**
      * Връща id-то на валутата с посочения трибуквен ISO код
      *
@@ -154,15 +154,15 @@ class currency_Currencies extends core_Master
      */
     public static function getIdByCode($code)
     {
-        expect($id = self::fetchField(array("#code = '[#1#]'", $code), 'id'));
-        
+        expect($id = self::fetchField(array("#code = '[#1#]'", $code), 'id'), $code);
+
         return $id;
     }
-    
+
 
     /**
      * Декорира сумата с показване на валутата след сумата
-     * 
+     *
      * @param string $amount - сума
      * @param mixed $currency - ид или код на валута
      * @param mixed $isOurCurrency - дали е наша валута
@@ -171,20 +171,20 @@ class currency_Currencies extends core_Master
      */
     public static function decorate($amount, $currency = null, $isOurCurrency = false)
     {
-        if(is_numeric($currency)) {
+        if (is_numeric($currency)) {
             $currency = self::getCodeById($currency);
-        } 
+        }
 
-        if(!strlen($currency) == 3) {
+        if (!strlen($currency) == 3) {
             $currency = acc_Periods::getBaseCurrencyCode();
         }
         $currency = strtoupper($currency);
 
-        switch($currency) {
-            case 'BGN': 
+        switch ($currency) {
+            case 'BGN':
                 $amount .= "&nbsp;<span class='currencySignNextToAmount'>" . tr('лв') . ".</span>";
                 break;
-            case 'USD': 
+            case 'USD':
                 $amount = "\$&nbsp;{$amount}";
                 break;
             case "EUR":
@@ -193,11 +193,11 @@ class currency_Currencies extends core_Master
             case "GBP":
                 $amount = "£&nbsp;{$amount}";
                 break;
-            default: 
+            default:
                 $amount .= '&nbsp;<span class="cCode">' . $currency . '</span>';
         }
 
-        if(Mode::get('text', 'plain')){
+        if (Mode::get('text', 'plain')) {
             $amount = strip_tags($amount);
             $amount = str_replace('&nbsp;', ' ', $amount);
         }
@@ -205,7 +205,7 @@ class currency_Currencies extends core_Master
         return $amount;
     }
 
-    
+
     /**
      * Връща кода на валутата по зададено id
      *
@@ -216,11 +216,11 @@ class currency_Currencies extends core_Master
     public static function getCodeById($id)
     {
         expect($code = self::fetchField($id, 'code'));
-        
+
         return $code;
     }
-    
-    
+
+
     /**
      * Приготвяне на данните, ако имаме groupId от $_GET
      * В този случай няма да листваме всички записи, а само тези, които
@@ -234,44 +234,33 @@ class currency_Currencies extends core_Master
     {
         if ($groupId = Request::get('groupId', 'int')) {
             $groupRec = $mvc->CurrencyGroups->fetch($groupId);
-            
+
             // Полето 'groups' е keylist и затова имаме LIKE
             $data->query->where("#groups LIKE '%|{$groupId}|%'");
-            
+
             // Сменяме заглавието
             $data->title = 'Валути в група "|*' . $groupRec->name . '"';
         }
     }
-    
-    
+
+
     /**
-     *
-     *
-     * @param currency_Currencies $mvc
-     * @param object              $data
-     * @param object              $data
+     * След подготовка на записите
      */
     public static function on_AfterPrepareListRecs($mvc, &$res, $data)
     {
-        $accConf = core_Packs::getConfig('acc');
-        
-        $bgnRate = $mvc->fetchField(array("#code = '[#1#]'", $accConf->BASE_CURRENCY_CODE), 'lastRate');
-        
-        if (!$bgnRate) {
-            
-            return ;
-        }
-        
-        foreach ((array) $data->recs as $rec) {
-            if (!$rec->lastRate) {
-                continue;
-            }
-            
+        $bgnRate = $mvc->fetchField(array("#code = '[#1#]'", acc_Setup::getDefaultCurrencyCode(), 'lastRate'));
+
+        if (!$bgnRate) return;
+
+        foreach ((array)$data->recs as $rec) {
+            if (!$rec->lastRate) continue;
+
             $rec->lastRate = $bgnRate / $rec->lastRate;
         }
     }
-    
-    
+
+
     /**
      * Преди рендиране на детайлите
      */
@@ -279,8 +268,8 @@ class currency_Currencies extends core_Master
     {
         return false;
     }
-    
-    
+
+
     /**
      * Смяна на бутона
      *
@@ -291,11 +280,11 @@ class currency_Currencies extends core_Master
     public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->removeBtn('btnAdd');
-        
+
         $data->toolbar->addBtn('Нова валута', array($mvc, 'Add', 'groupId' => Request::get('groupId', 'int')), null, 'title=Създаване на нова валута');
     }
-    
-    
+
+
     /**
      * Слагаме default за checkbox-овете на полето 'groups', когато редактираме групи на дадена валута
      *
@@ -309,8 +298,8 @@ class currency_Currencies extends core_Master
             $data->form->setDefault('groups', '|' . $groupId . '|');
         }
     }
-    
-    
+
+
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
@@ -321,40 +310,40 @@ class currency_Currencies extends core_Master
             0 => 'name',
             1 => 'csv_code',
             2 => 'state',);
-        
+
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Изпълнява се преди импортирването на данните
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
         if (isset($rec->csv_code) && strlen($rec->csv_code) != 0) {
-            
+
             // Ако данните идват от csv файл
             $rec->code = $rec->csv_code;
-            
+
             if (!$rec->id) {
                 $rec->lastUpdate = dt::verbal2mysql();
             }
-            
+
             if ($rec->code == 'EUR') {
                 $rec->lastRate = 1;
             }
         }
     }
-    
-    
+
+
     /**
      * Функция за закръгляне на валута, която
      * трябва да се използва във всички бизнес документи за показване на суми
      *
-     * @param float     $amount - сума
+     * @param float $amount - сума
      * @param string(3) $code   -трибуквен код на валута
      */
     public static function round($amount, $code = null)
@@ -363,57 +352,57 @@ class currency_Currencies extends core_Master
         //@TODO да не е мокъп
         return round($amount, 2);
     }
-    
-    
+
+
     /*******************************************************************************************
      *
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
      *
      ******************************************************************************************/
-    
-    
+
+
     /**
+     * @param int $objectId
      * @see crm_ContragentAccRegIntf::getItemRec
      *
-     * @param int $objectId
      */
     public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
         $result = null;
-        
+
         if ($rec = $self->fetch($objectId)) {
-            $result = (object) array(
+            $result = (object)array(
                 'num' => $rec->code,
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );
         }
-        
+
         return $result;
     }
-    
-    
+
+
     /**
+     * @param int $objectId
      * @see crm_ContragentAccRegIntf::itemInUse
      *
-     * @param int $objectId
      */
     public static function itemInUse($objectId)
     {
         // @todo!
     }
-    
-    
+
+
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
-    
-    
+
+
     /**
      * Връща дефолтната единична цена отговаряща на количеството
      *
-     * @param mixed $id       - ид/запис на обекта
+     * @param mixed $id - ид/запис на обекта
      * @param float $quantity - За какво количество
      *
      * @return float|NULL - дефолтната единична цена
@@ -423,7 +412,45 @@ class currency_Currencies extends core_Master
         $today = dt::now();
         $code = static::getCodeById($id);
         $toCode = acc_Periods::getBaseCurrencyCode($today);
-        
+
         return currency_CurrencyRates::getRate($today, $code, $toCode);
+    }
+
+
+    /**
+     * Може ли валутата да се избира за посочената дата
+     *
+     * @param mixed $currencyId  - ид или код на валута
+     * @param string $date       - към коя дата
+     * @param string|null $error - грешка
+     * @param bool $forPayment   - дали е само за плащане
+     * @return bool
+     */
+    public static function checkCurrency($currencyId, $date, &$error = null, $forPayment = false)
+    {
+        $date = $date ?? dt::today();
+        $currencyId = is_numeric($currencyId) ?currency_Currencies::getCodeById($currencyId) : $currencyId;
+
+        if($currencyId == 'BGN'){
+
+            if($forPayment){
+                $deprecateAfter = acc_Setup::getBgnDeprecationDate();
+                if($date >= $deprecateAfter){
+                    $dateVerbal = dt::mysql2verbal($deprecateAfter, 'd.m.Y');
+                    $error = "Не може да се приеме плащане в лева с вальор след|* <b>{$dateVerbal}</b>";
+
+                    return false;
+                }
+            } else {
+                if($currencyId != acc_Periods::getBaseCurrencyCode($date)){
+                    $dateVerbal = dt::mysql2verbal($date, 'd.m.Y');
+                    $error = "Валутата |*<b>{$currencyId}</b> |не може да бъде избрана към вальор|* <b>{$dateVerbal}</b>";
+
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

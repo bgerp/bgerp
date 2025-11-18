@@ -412,4 +412,15 @@ class acc_JournalDetails extends core_Detail
         // Връщане на резултата от записа
         return $id;
     }
+
+    /**
+     * След подготовка на полетата
+     */
+    protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->valior);
+        foreach (array('debitPrice', 'creditPrice', 'amount') as $fld){
+            $data->listFields[$fld] .= "|*&nbsp;<small>($baseCurrencyCode)</small>";
+        }
+    }
 }

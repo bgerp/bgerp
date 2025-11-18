@@ -577,14 +577,20 @@ class currency_CurrencyRates extends core_Detail
         if (!$currencyToCode) {
             $currencyToCode = acc_Periods::getBaseCurrencyCode($date);
         }
-        $expectedAmount = self::convertAmount($amountFrom, $date, $currencyFromCode, $currencyToCode);
-        
+
         $conf = core_Packs::getConfig('currency');
-        $percent = $conf->EXCHANGE_DEVIATION * 100;
-        
+        $exchangeDeviation = $conf->EXCHANGE_DEVIATION;
+
+        $expectedAmount = self::convertAmount($amountFrom, $date, $currencyFromCode, $currencyToCode);
+        if(acc_Setup::getDefaultCurrencyCode($date) == 'EUR'){
+            if(($currencyFromCode == 'BGN' && $currencyToCode == 'EUR') || ($currencyFromCode == 'EUR' && $currencyToCode == 'BGN')){
+                $exchangeDeviation = 0.01;
+            }
+        }
+
+        $percent = $exchangeDeviation * 100;
         $difference = 0;
         $minAmount = min($amountTo, $expectedAmount);
-
         if (isset($minAmount)) {
             if(empty($minAmount)){
                 $difference = 100;

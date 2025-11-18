@@ -258,7 +258,7 @@ class bgerp_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'bgerp_drivers_Recently, bgerp_drivers_Notifications, bgerp_drivers_Calendar, bgerp_drivers_Tasks';
+    public $defClasses = 'bgerp_drivers_Recently, bgerp_drivers_Notifications, bgerp_drivers_Calendar, bgerp_drivers_Tasks, bgerp_drivers_UpdateToEur';
     
     
     /**
@@ -612,6 +612,8 @@ class bgerp_Setup extends core_ProtoSetup
         $res .= $this->callMigrate('setNewPortal46194', 'bgerp');
         $res .= $this->callMigrate('removeTestFilters2824', 'bgerp');
 
+        $res .= $this->callMigrate('setNewPortal2547', 'bgerp');
+
         core_ProtoSetup::$dbInit = $dbUpdate;
 
         return $res;
@@ -672,6 +674,44 @@ class bgerp_Setup extends core_ProtoSetup
             $rec->state = 'yes';
 
             $Portal->save($rec);
+        }
+    }
+
+
+    /**
+     * Миграция за изтриване на старите данни в портала и за добавяне на новите интерфейси
+     * Тази миграция се пуска и при нова инсталация. Не трябва да се трие.
+     * Трябва да се вика в loadSetupData
+     */
+    public function setNewPortal2547()
+    {
+        $Portal = cls::get('bgerp_Portal');
+
+        $iArr = array('bgerp_drivers_UpdateToEur' => array('perPage' => 15, 'column' => 'center', 'order' => 800, 'color' => 'orange'));
+
+        foreach ($iArr as $iName => $iData) {
+
+            // Ако драйверите не са добавени
+            core_Classes::add($iName);
+
+            $rec = new stdClass();
+            $rec->{$Portal->driverClassField} = $iName::getClassId();
+
+            foreach ($iData as $cName => $cVal) {
+                $rec->{$cName} = $cVal;
+            }
+
+            $adminsArr = core_Users::getByRole('admin');
+            $ceoArr = core_Users::getByRole('ceo');
+            $allArr = array_merge($adminsArr, $ceoArr);
+
+            setIfNot($rec->color, 'pink');
+            $rec->state = 'yes';
+
+            foreach ($allArr as $uId) {
+                $rec->userOrRole = $uId;
+                $Portal->save($rec);
+            }
         }
     }
 
