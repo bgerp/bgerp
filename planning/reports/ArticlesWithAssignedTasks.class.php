@@ -229,7 +229,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             }
             
             // Връзки към задачи от артикул
-            $recArt = cat_Products::fetch($jobses->productId);
+            $recArt = cat_Products::fetchField($jobses->productId,'containerId');
             
             $resArrProduct = doc_Linked::getRecsForType('doc', $recArt->containerId, false);
             
@@ -370,7 +370,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
     
     
     /**
-     * Вербализиране на редовете, които ще се показват на текущата страница в отчета
+     * Вербализиране на редовете, които ще се показват на текущатаfyh страница в отчета
      *
      * @param stdClass $rec
      *                       - записа
@@ -439,16 +439,8 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
             
-            $row->jobsId .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" . ht::createLink(
-                "#{$handle}",
-                
-                $singleUrl,
-                
-                false,
-                
-                "ef_icon={$Task->singleIcon}"
-            
-            ) . '</span>' . ' »  ' .
+            $row->jobsId .= "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" .
+                ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Task->singleIcon}") . '</span>' . ' »  ' .
                  "<span class= 'quiet small'>" . $folderLink . '</span>' . ' »  ' . '</div>';
         }
         
