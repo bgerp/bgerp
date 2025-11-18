@@ -690,25 +690,24 @@ class bgerp_Setup extends core_ProtoSetup
         $iArr = array('bgerp_drivers_UpdateToEur' => array('perPage' => 15, 'column' => 'center', 'order' => 800, 'color' => 'orange'));
 
         foreach ($iArr as $iName => $iData) {
-
             // Ако драйверите не са добавени
             core_Classes::add($iName);
 
-            $rec = new stdClass();
-            $rec->{$Portal->driverClassField} = $iName::getClassId();
-
-            foreach ($iData as $cName => $cVal) {
-                $rec->{$cName} = $cVal;
-            }
-
             $adminsArr = core_Users::getByRole('admin');
             $ceoArr = core_Users::getByRole('ceo');
-            $allArr = array_merge($adminsArr, $ceoArr);
-
-            setIfNot($rec->color, 'pink');
-            $rec->state = 'yes';
+            $allArr = array_unique(array_merge($adminsArr, $ceoArr));
 
             foreach ($allArr as $uId) {
+                $rec = new stdClass();
+                $rec->{$Portal->driverClassField} = $iName::getClassId();
+
+                foreach ($iData as $cName => $cVal) {
+                    $rec->{$cName} = $cVal;
+                }
+
+                setIfNot($rec->color, 'pink');
+                $rec->state = 'yes';
+
                 $rec->userOrRole = $uId;
                 $Portal->save($rec);
             }
