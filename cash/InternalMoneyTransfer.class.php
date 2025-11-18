@@ -468,15 +468,20 @@ class cash_InternalMoneyTransfer extends core_Master
                 }
 
                 $currencyError = null;
-                if(!bank_OwnAccounts::canAcceptCurrency($rec->debitBank, $rec->valior, $rec->currencyId, $currencyError)){
-                    $form->setError('valior,currencyId,debitBank', $currencyError);
+                if(isset($rec->debitBank)){
+                    if(!bank_OwnAccounts::canAcceptCurrency($rec->debitBank, $rec->valior, $rec->currencyId, $currencyError)){
+                        $form->setError('valior,currencyId,debitBank', $currencyError);
+                    }
                 }
                 break;
             case 'nonecash2bank':
                 $currencyError = null;
-                if(!bank_OwnAccounts::canAcceptCurrency($rec->debitBank, $rec->valior, $rec->currencyId, $currencyError)){
-                    $form->setError('valior,currencyId,debitBank', $currencyError);
+                if(isset($rec->debitBank)){
+                    if(!bank_OwnAccounts::canAcceptCurrency($rec->debitBank, $rec->valior, $rec->currencyId, $currencyError)){
+                        $form->setError('valior,currencyId,debitBank', $currencyError);
+                    }
                 }
+
                 break;
             case 'noncash2noncash':
                 if ($rec->creditCase == $rec->debitCase && $rec->paymentId == $rec->paymentDebitId) {

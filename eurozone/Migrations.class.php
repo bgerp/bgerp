@@ -267,6 +267,7 @@ SET
 
         followRetUrl(null, 'Успешно минал тест');
 
+        self::addBgnPayment();
         self::updateCreatedPeriods();
         self::updatePriceLists();
         self::updateDeltas();
@@ -386,7 +387,16 @@ SET
     {
         requireRole('debug');
 
-        //self::updateFinDeals('findeals_Deals');
-        self::updateFinDeals('findeals_AdvanceDeals');
+        self::addBgnPayment();
+    }
+
+
+    public function addBgnPayment()
+    {
+        core_Users::forceSystemUser();
+        $rec = (object)array('title' => 'BGN', 'change' => 'yes', 'currencyCode' => 'BGN', 'synonym' => 'bgn');
+        cond_Payments::save($rec);
+        core_Users::cancelSystemUser();
+
     }
 }

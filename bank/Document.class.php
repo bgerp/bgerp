@@ -359,9 +359,11 @@ abstract class bank_Document extends deals_PaymentDocument
             }
 
             $currencyError = null;
-            if(!bank_OwnAccounts::canAcceptCurrency($rec->ownAccount, $rec->valior, $rec->currencyId, $currencyError)){
-                $form->setError('valior,currencyId', $currencyError);
-                return;
+            if(isset($rec->ownAccount)){
+                if(!bank_OwnAccounts::canAcceptCurrency($rec->ownAccount, $rec->valior, $rec->currencyId, $currencyError)){
+                    $form->setError('valior,currencyId', $currencyError);
+                    return;
+                }
             }
 
             $origin = $mvc->getOrigin($form->rec);
