@@ -455,8 +455,10 @@ class remote_BgerpDriver extends core_Mvc
             core_App::flushAndClose();
             sleep(5);
             Debug::log('Sleep 5 sec. in ' . __CLASS__);
-            
+
+            core_Users::forceSystemUser();
             $me->cron_UpdateRemoteNotification();
+            core_Users::cancelSystemUser();
         }
     }
     
