@@ -44,6 +44,13 @@ class bglocal_HScode extends core_Master
      * Кой може да пише?
      */
     public $canWrite = 'admin,hr';
+   
+    
+    /**
+     * Кой има право да добавя?
+     */
+    public $canAdd = 'admin';
+    
     
     
     /**
