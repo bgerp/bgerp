@@ -1048,7 +1048,7 @@ class acc_BalanceDetails extends core_Detail
         
         // Да се пропускат записите с нулево крайно салдо, при зареждането на не-междинен баланс
         if (!$isMiddleBalance) {
-            $query->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.05');
+            $query->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.01');
         }
 
         $feedWithNegativeBlQuantity = acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY');
