@@ -37,7 +37,7 @@ class price_Updates extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type=За,name=Наименование,sourceClass1,sourceClass2,sourceClass3,costAdd,costValue=Сб-ст,appliedOn,createdOn,createdBy,updateMode=Обновяване';
+    public $listFields = 'type=За,name=Наименование,sourceClass1,sourceClass2,sourceClass3,costAdd,costAddAmount,costValue=Сб-ст,appliedOn,createdOn,createdBy,updateMode=Обновяване';
     
     /**
      * Кой може да го промени?
@@ -87,8 +87,8 @@ class price_Updates extends core_Manager
         $this->FLD('sourceClass2', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 2');
         $this->FLD('sourceClass3', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 3');
         
-        $this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Добавка');
-        $this->FLD('costAddAmount', 'double(Min=0,decimals=2)', "caption=Добавка|* (|Сума|*),unit=|*BGN (|добавя се твърдо|*)");
+        $this->FLD('costAdd', 'percent(Min=0,max=1)', 'caption=Добавка->%');
+        $this->FLD('costAddAmount', 'double(Min=0,decimals=2)', "caption=Добавка->Сума");
         $this->FLD('minChange', 'percent(Min=0,max=1)', 'caption=Мин. промяна');
         
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
@@ -144,6 +144,9 @@ class price_Updates extends core_Manager
             $form->setField('objectId', 'caption=Артикул');
             $form->setOptions('objectId', array($rec->objectId => cat_Products::getTitleById($rec->objectId)));
         }
+
+        $currencyCode = acc_Periods::getBaseCurrencyCode();
+        $form->setField('costAddAmount', "unit=|*{$currencyCode} (|добавя се твърдо|*)");
     }
     
     
@@ -233,8 +236,12 @@ class price_Updates extends core_Manager
                 $row->{$fld} = cls::get($rec->{$fld})->getName(true);
             }
         }
-        
+
         $row->ROW_ATTR['class'] = 'state-active';
+        if(!empty($rec->costAddAmount)){
+            $currencyCode = acc_Periods::getBaseCurrencyCode();
+            $row->costAddAmount = currency_Currencies::decorate($row->costAddAmount, $currencyCode, true);
+        }
     }
     
     
@@ -808,7 +815,7 @@ class price_Updates extends core_Manager
         $tpl->append($arr[$rec->updateMode], 'updateMode');
         $surcharge = $uRow->costAdd;
         if(!empty($rec->costAddAmount)){
-            $surcharge .= ((!empty($surcharge)) ? tr('|* |и|* ') : '') . $uRow->costAddAmount . " BGN";
+            $surcharge .= ((!empty($surcharge)) ? tr('|* |и|* ') : '') . $uRow->costAddAmount;
         }
 
         if (price_Updates::haveRightFor('saveprimecost', $rec)) {

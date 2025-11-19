@@ -393,7 +393,7 @@ SET
     {
         requireRole('debug');
 
-        self::addBgnPayment();
+        self::updatePriceUpdates();
     }
 
 
@@ -406,5 +406,19 @@ SET
         $rec = (object)array('title' => self::BGN_NON_CASH_PAYMENT_NAME, 'change' => 'yes', 'currencyCode' => 'BGN', 'synonym' => 'bgn');
         cond_Payments::save($rec);
         core_Users::cancelSystemUser();
+    }
+
+
+    /**
+     * Миграция на твърдите надценки за обновяване на себестойностите
+     */
+    public static function updatePriceUpdates()
+    {
+        $Updates = cls::get('price_Updates');
+        $costAddAmountCol = str::phpToMysqlName('costAddAmount');
+
+        $tbl = $Updates->dbTableName;
+        $query = "UPDATE `{$tbl}` SET `{$costAddAmountCol}`  = (`{$costAddAmountCol}`  / 1.95583) WHERE `{$costAddAmountCol}` IS NOT NULL";
+        $Updates->db->query($query);
     }
 }
