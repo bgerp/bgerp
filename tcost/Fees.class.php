@@ -163,7 +163,6 @@ class tcost_Fees extends core_Detail
                     }
                 }
             }
-
         }
     }
     
