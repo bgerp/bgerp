@@ -23,20 +23,20 @@ class zbar_Setup extends core_ProtoSetup
      * Версия на пакета
      */
     public $version = '0.1';
-    
-    
+
+
     /**
      * Описание на модула
      */
     public $info = 'Пакет за прочитана на баркодове от файл';
-    
-    
+
+
     /**
      * Пакет без инсталация
      */
     public $noInstall = true;
-    
-    
+
+
     /**
      * Проверява дали програмата е инсталирана в сървъра
      *
@@ -46,7 +46,7 @@ class zbar_Setup extends core_ProtoSetup
     {
         $program = 'zbarimg';
         $haveError = false;
-        
+
         if (core_Os::isWindows()) {
             $res = @exec("{$program} --help", $output, $code);
             if ($code !== 0) {
@@ -58,9 +58,9 @@ class zbar_Setup extends core_ProtoSetup
                 $haveError = true;
             }
         }
-        
+
         if ($haveError) {
-            
+
             return "Програмата '{$program}' не е инсталирана.";
         }
     }

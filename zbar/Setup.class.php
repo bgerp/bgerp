@@ -2,34 +2,22 @@
 
 
 /**
- * Символ за индикиране на табовете в които се пише
- */
-defIfNot('WRITETAB_SYMBOL', '✍');
-
-
-/**
- * Цвят на символа
- */
-defIfNot('WRITETAB_COLOR', '#ffffff');
-
-
-/**
- * Фон на символа
- */
-defIfNot('WRITETAB_BGROUND', '#ff3333');
-
-
-/**
- * @category  bgerp
- * @package   writetab
+ * Клас 'zbar_Setup'
  *
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * Исталиране/деинсталиране на Apachetika
+ *
+ *
+ * @category  bgerp
+ * @package   zbar
+ *
+ * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
+ * @link
  */
-class writetab_Setup extends core_ProtoSetup
+class zbar_Setup extends core_ProtoSetup
 {
     /**
      * Версия на пакета
@@ -38,46 +26,42 @@ class writetab_Setup extends core_ProtoSetup
     
     
     /**
-     * Мениджър - входна точка в пакета
-     */
-    public $startCtr = '';
-    
-    
-    /**
-     * Екшън - входна точка в пакета
-     */
-    public $startAct = '';
-    
-    
-    /**
      * Описание на модула
      */
-    public $info = 'Индикиране на табовете в които са отворени форми за въвеждане';
+    public $info = 'Пакет за прочитана на баркодове от файл';
     
     
     /**
-     * Описание на конфигурационните константи
+     * Пакет без инсталация
      */
-    public $configDescription = array(
-        'WRITETAB_SYMBOL' => array('varchar(1)', 'mandatory, caption=Символ'),
-        'WRITETAB_COLOR' => array('color_Type', 'mandatory, caption=Цвят'),
-        'WRITETAB_BGROUND' => array('color_Type', 'mandatory, caption=Фон'),
-    );
+    public $noInstall = true;
     
     
     /**
-     * Инсталиране на пакета
+     * Проверява дали програмата е инсталирана в сървъра
+     *
+     * @return NULL|string
      */
-    public function install()
+    public function checkConfig()
     {
-        $html = parent::install();
+        $program = 'zbarimg';
+        $haveError = false;
         
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
+        if (core_Os::isWindows()) {
+            $res = @exec("{$program} --help", $output, $code);
+            if ($code !== 0) {
+                $haveError = true;
+            }
+        } else {
+            $res = @exec("which {$program}", $output, $code);
+            if (!$res) {
+                $haveError = true;
+            }
+        }
         
-        // Инсталираме клавиатурата към password полета
-        $html .= $Plugins->installPlugin('Write Tabs', 'writetab_Plugin', 'core_Form', 'private');
-        
-        return $html;
+        if ($haveError) {
+            
+            return "Програмата '{$program}' не е инсталирана.";
+        }
     }
 }
