@@ -180,52 +180,151 @@ class rack_ZoneDetails extends core_Detail
     
     
     /**
-     * След рендиране на детайлите се скриват ценовите данни от резултатите
-     * ако потребителя няма права
-     */
-    protected static function on_AfterPrepareDetail($mvc, $res, &$data)
-    {
-        if(!countR($data->rows)) return;
-        setIfNot($data->inlineDetail, false);
-        setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
-        $requestedProductId = Request::get('productId', 'int');
-        if(Mode::is('printing')){
-            $data->filter = 'notClosed';
-        }
+	 * След рендиране на детайлите се скриват ценовите данни от резултатите
+	 * ако потребителя няма права
+	 */
+	protected static function on_AfterPrepareDetail($mvc, $res, &$data)
+	{
+		if(!countR($data->rows)) return;
+		setIfNot($data->inlineDetail, false);
+		setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
+		$requestedProductId = Request::get('productId', 'int');
+		if(Mode::is('printing')){
+			$data->filter = 'notClosed';
+		}
 
-        // Допълнително обикаляне на записите
-        foreach ($data->rows as $id => &$row){
-            $rec = $data->recs[$id];
-            $productCode = cat_Products::fetchField($rec->productId, 'code');
-            $row->_code = !empty($productCode) ? $productCode : "Art{$rec->id}";
+		// Индекс: има ли заявка (documentQuantity>0) за даден продукт/партида?
+		$hasRequest = array(); // key "productId|batch" => true
+		foreach ($data->recs as $_id => $_rec) {
+			$k = (int)$_rec->productId . '|' . (string)$_rec->batch;
+			if (!empty($_rec->documentQuantity)) {
+				$hasRequest[$k] = true;
+			}
+		}
 
-            $row->ROW_ATTR['class'] = 'row-added';
-            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->filter);
-            if(!empty($movementsHtml)){
-                $row->movementsHtml = $movementsHtml;
-            }
-            
-            // Ако няма движения и к-та са 0, реда се маркира
-            if((empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements)) || (isset($requestedProductId) && $rec->productId != $requestedProductId)){
-                unset($data->rows[$id]);
-            }
+		foreach ($data->rows as $id => &$row){
+			$rec = $data->recs[$id];
 
-            $row->status = new core_ET($row->status);
-            if($rec->_quantityAll && round($rec->_quantityAll / $rec->quantityInPack, 2) < round($rec->documentQuantity / $rec->quantityInPack, 2)){
-                $quantityAllVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->_quantityAll);
-                $row->status = ht::createHint($row->status, "Генерираните движения са за по-малко от необходимото (заявеното от документа) количество|*: {$quantityAllVerbal}", 'warning', false);
-                $row->status->prepend("<span class='notEnoughQuantityForZone'>");
-                $row->status->append("</span>");
-            }
+			$productCode = cat_Products::fetchField($rec->productId, 'code');
+			$row->_code = !empty($productCode) ? $productCode : "Art{$rec->id}";
 
-            if($mvc->haveRightFor('editdetailindocument', $rec)){
-                $changeBtn = ht::createLink('', array($mvc, 'editdetailindocument', $rec->id, 'ret_url' => true), 'Наистина ли искате да промените количеството в реда на документа|*?', 'class=changeQuantityBtn,ef_icon=img/16/arrow_refresh.png,title=Задаване на това количество в реда на документа');
-                $row->status->append($changeBtn);
-            }
-        }
+			$row->ROW_ATTR['class'] = 'row-added';
+			$movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->filter);
+			if(!empty($movementsHtml)){
+				$row->movementsHtml = $movementsHtml;
+			}
 
-        arr::sortObjects($data->rows, '_code', 'asc', 'str');
-    }
+			// Филтър по productId (ако е подаден)
+			if((isset($requestedProductId) && $rec->productId != $requestedProductId)){
+				unset($data->rows[$id]);
+				continue;
+			}
+
+			// СКРИВАНЕ НА "ПАРАЗИТНИЯ" РЕД:
+			// - в базова мярка, без заявено количество (NULL/0)
+			// - има друг ред за същия продукт/партида със заявка
+			$measureId = (int) cat_Products::fetchField($rec->productId, 'measureId');
+			$hasReqKey = (int)$rec->productId . '|' . (string)$rec->batch;
+			$docIsEmpty = (is_null($rec->documentQuantity) || (float)$rec->documentQuantity == 0.0);
+
+			if ($docIsEmpty && (int)$rec->packagingId === $measureId && !empty($hasRequest[$hasReqKey])) {
+				unset($data->rows[$id]);
+				continue;
+			}
+
+			// >>> ПОДМЯНА НА СТАТУСА: лявото число = реално изпълненото (active+closed) за текущия документ
+			// Контейнерът (документът), вързан към текущата зона
+			$containerId = rack_Zones::fetchField($data->masterData->rec->id, 'containerId');
+
+			// По подразбиране ползваме нагласеното/заявеното (ver1/ver2)
+			$leftShown  = (float)$rec->movementQuantity;
+			$rightShown = (float)$rec->documentQuantity;
+
+			if ($containerId) {
+				// Сумираме реално изпълненото в БАЗОВА мярка за ТОЗИ документ (states = active+closed)
+				$doneBase = 0.0;
+
+				$q = rack_Movements::getQuery();
+				$q->in('state', array('active','closed'));
+				$q->where("#productId = {$rec->productId}");
+
+				if ($rec->batch !== null && $rec->batch !== '') {
+					$q->where(array("#batch = '[#1#]'", $rec->batch));
+				} else {
+					$q->where("#batch IS NULL OR #batch = ''");
+				}
+
+				// Само движения, вързани към този документ
+				$q->where(array("LOCATE('|[#1#]|', #documents)", (int)$containerId));
+				$q->show('zones,quantityInPack');
+
+				while ($m = $q->fetch()) {
+					$zones = type_Table::toArray($m->zones);
+					if (!is_array($zones)) continue;
+					foreach ($zones as $z) {
+						if ((int)$z->zone === (int)$data->masterData->rec->id) {
+							// z->quantity е в "брой опаковки" на движението; quantityInPack → базова мярка
+							$doneBase += (float)$z->quantity * (float)$m->quantityInPack;
+						}
+					}
+				}
+
+				// Превръщаме в МЯРКАТА НА РЕДА (опаковката на заявката)
+				$qtyInPack = max(1.0, (float)$rec->quantityInPack);
+				$leftShown = $doneBase / $qtyInPack;
+			}
+
+			// Вербализация и оцветяване
+			$movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal(core_Math::roundNumber($leftShown));
+			$documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal(core_Math::roundNumber($rightShown));
+
+			$cmpLeft  = round((float)$leftShown, 4);
+			$cmpRight = round((float)$rightShown, 4);
+			$moveStatusColor = ($cmpLeft < $cmpRight) ? '#ff7a7a' : (($cmpLeft == $cmpRight) ? '#ccc' : '#8484ff');
+
+			$row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
+			// <<< край на подмяната на статуса
+
+			// Ако няма движения и к-та са 0, реда се маркира за скриване
+			if((empty($rec->movementQuantity) && empty($rec->documentQuantity) && empty($rec->_movements))){
+				unset($data->rows[$id]);
+				continue;
+			}
+
+			// Подсказка при недостатъчно общо генерирано
+			$row->status = new core_ET($row->status);
+
+			// СРАВНЕНИЕ В ОПАКОВКАТА НА ЗАЯВКАТА:
+			// - documentQuantity вече е в опаковката на реда (нормализирана в on_BeforeRecToVerbal).
+			// - _generatedBase е в базова мярка → делим на request qtyInPack, за да минем в опаковката на реда.
+			$genInRequestPack = 0.0;
+			if (!empty($rec->_generatedBase)) {
+				$genInRequestPack = (float)$rec->_generatedBase / max(1.0, (float)$rec->quantityInPack);
+			}
+
+			$docInRequestPack = (float)$rec->documentQuantity;
+
+			// Показваме предупреждение, ако генерираното е по-малко от заявеното.
+			if ($genInRequestPack + 1e-6 < $docInRequestPack) {
+				$quantityAllVerbal = core_Type::getByName('double(smartRound)')->toVerbal($genInRequestPack);
+				$row->status = ht::createHint(
+					$row->status,
+					"Генерираните движения са за по-малко от необходимото (заявеното от документа) количество|*: {$quantityAllVerbal}",
+					'warning',
+					false
+				);
+				$row->status->prepend("<span class='notEnoughQuantityForZone'>");
+				$row->status->append("</span>");
+			}
+
+			if($mvc->haveRightFor('editdetailindocument', $rec)){
+				$changeBtn = ht::createLink('', array($mvc, 'editdetailindocument', $rec->id, 'ret_url' => true), 'Наистина ли искате да промените количеството в реда на документа|*?', 'class=changeQuantityBtn,ef_icon=img/16/arrow_refresh.png,title=Задаване на това количество в реда на документа');
+				$row->status->append($changeBtn);
+			}
+		}
+
+		arr::sortObjects($data->rows, '_code', 'asc', 'str');
+	}
     
     
     /**
@@ -421,13 +520,28 @@ class rack_ZoneDetails extends core_Detail
 
         $Movements->setField('workerId', "tdClass=inline-workerId");
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $filter);
-        $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
-        $allocated = is_array($allocated) ? $allocated : array();
+		$allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
+		$allocated = is_array($allocated) ? $allocated : array();
 
-        list($productId, $packagingId, $batch) = array($rec->productId, $rec->packagingId, $rec->batch);
-        $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch, $allocated){
-            return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch && !array_key_exists($o->id, $allocated);
-        });
+		list($productId, $packagingId, $batch) = array($rec->productId, $rec->packagingId, $rec->batch);
+
+		// При ver3 показваме всички движения за продукта/партидата в зоната,
+		// независимо в каква опаковка са (MG3 разцепва по опаковки).
+		if (rack_Setup::get('PICKUP_STRATEGY') == 'ver3') {
+			$data->recs = array_filter($movementArr, function($o) use ($productId, $batch, $allocated) {
+				return (int)$o->productId === (int)$productId
+					&& (string)$o->batch === (string)$batch
+					&& !array_key_exists($o->id, $allocated);
+			});
+		} else {
+			// Старо поведение за ver1/ver2 – привързано към опаковката на реда
+			$data->recs = array_filter($movementArr, function($o) use ($productId, $packagingId, $batch, $allocated) {
+				return (int)$o->productId === (int)$productId
+					&& (int)$o->packagingId === (int)$packagingId
+					&& (string)$o->batch === (string)$batch
+					&& !array_key_exists($o->id, $allocated);
+			});
+		}
 
         if(countR($data->recs)){
             $masterRec->_noMovements = true;
@@ -439,16 +553,25 @@ class rack_ZoneDetails extends core_Detail
         }
         
         $requestedProductId = Request::get('productId', 'int');
-        $rec->_quantityAll = 0;
 
-        foreach ($data->recs as $mRec) {
-            $zArr = type_Table::toArray($mRec->zones);
-            foreach ($zArr as $zA){
-                if($zA->zone == $masterRec->id){
-                    $rec->_quantityAll += $zA->quantity;
-                }
-            }
-            if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
+		/**
+		 * Генерирано КЪМ МОМЕНТА количество за тази зона в БАЗОВА мярка.
+		 * (Сумира по всички движения в $data->recs за конкретната зона,
+		 * умножавайки "брой опаковки" по quantityInPack.)
+		 */
+		$rec->_generatedBase = 0.0;
+
+		foreach ($data->recs as $mRec) {
+			$zArr = type_Table::toArray($mRec->zones);
+			foreach ($zArr as $zA){
+				if ((int)$zA->zone === (int)$masterRec->id) {
+					// zA->quantity е "брой опаковки" за опаковката на ТОВА движение
+					// quantityInPack → конверсия към базова мярка
+					$rec->_generatedBase += (float)$zA->quantity * (float)$mRec->quantityInPack;
+				}
+			}
+
+			if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
             
             $fields = $Movements->selectFields();
             $fields['-list'] = true;
