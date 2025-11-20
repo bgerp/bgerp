@@ -374,4 +374,54 @@ class bank_ExchangeDocument extends core_Master
         
         return $row;
     }
+
+
+    /**
+     * Форсира създаване на банкова обмяна на валута
+     *
+     * @param int $bankFromId        - от коя б-сметка
+     * @param int $bankToId          - към коя б-сметка
+     * @param string|null $valior    - вальор
+     * @param int $creditCurrencyId  - от коя валута
+     * @param double $creditQuantity - к-во на валутата в кредита
+     * @param int $debitCurrencyId   - в коя валута
+     * @param double $debitQuantity  - к-во на валутата в дебита
+     * @param string|null $reason    - основание
+     * @return object $exchangeRec
+     */
+    public static function create($bankFromId, $bankToId, $valior, $creditCurrencyId, $creditQuantity, $debitCurrencyId, $debitQuantity, $reason = null)
+    {
+        $valior = $valior ?? dt::today();
+        $fromBankRec = bank_OwnAccounts::fetch($bankFromId);
+
+        // Подготовка на данните на записа
+        $exchangeRec = (object)array('valior' => $valior,
+                                     'peroFrom' => $bankFromId,
+                                     'peroTo' => $bankToId,
+                                     'reason' => $reason,
+                                     'creditCurrency' => $creditCurrencyId,
+                                     'creditQuantity' => $creditQuantity,
+                                     'debitCurrency' => $debitCurrencyId,
+                                     'debitQuantity' => $debitQuantity,
+                                     'folderId' => $fromBankRec->folderId);
+
+        $cRate = currency_CurrencyRates::getRate($exchangeRec->valior, currency_Currencies::getCodeById($exchangeRec->creditCurrency), acc_Periods::getBaseCurrencyCode($exchangeRec->valior));
+        $exchangeRec->creditPrice = $cRate;
+        $exchangeRec->debitPrice = ($exchangeRec->creditQuantity * $exchangeRec->creditPrice) / $exchangeRec->debitQuantity;
+        $exchangeRec->rate = round($exchangeRec->creditPrice / $exchangeRec->debitPrice, 4);
+        $exchangeRec->equals = $exchangeRec->creditQuantity * $exchangeRec->rate;
+
+        $cu = core_Users::getCurrent();
+        if ($fromBankRec->autoShare == 'yes') {
+            $exchangeRec->sharedUsers = keylist::removeKey($fromBankRec->operators, $cu);
+        }
+
+        // Запис и споделяне на текущия потребител с него (ако не е системния)
+        bank_ExchangeDocument::save($exchangeRec);
+        if(!core_Users::isSystemUser()){
+            doc_ThreadUsers::addShared($exchangeRec->threadId, $exchangeRec->containerId, $cu);
+        }
+
+        return $exchangeRec;
+    }
 }
