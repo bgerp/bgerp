@@ -798,12 +798,4 @@ class bank_Register extends core_Manager
 
         $data->query->orderBy('#valior=DESC,ownAccountId,id');
     }
-
-
-    function act_Test()
-    {
-        requireRole('debug');
-
-        cls::get('bank_Setup')->addCurrenciesToExchangeDocs2547();
-    }
 }
