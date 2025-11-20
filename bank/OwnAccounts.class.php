@@ -467,6 +467,19 @@ class bank_OwnAccounts extends core_Master
         if ($form->isSubmitted()) {
             $form->rec->_isSubmitted = true;
 
+            // При редакция се проверява може ли да се смени валутата
+            if(isset($rec->id)){
+                $exRec = bank_OwnAccounts::fetch($rec->id, '*', false);
+                $bankAccountRec = bank_Accounts::fetch($exRec->bankAccountId);
+
+                if($rec->currencyId != $bankAccountRec->currencyId){
+                    $cBalance = self::getBalanceTo($form->rec->id, $bankAccountRec->currencyId);
+                    if(isset($cBalance->quantity)){
+                        $form->setError('currencyId', 'Не може да бъде сменена валутата след като е имало вече салдо по нея|*!');
+                    }
+                }
+            }
+
             if (empty($rec->bankAccountId)) {
                 $accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
                 
