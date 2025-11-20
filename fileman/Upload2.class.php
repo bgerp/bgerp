@@ -42,7 +42,6 @@ class fileman_Upload2 extends core_Manager
         Request::setProtected('callback, bucketId, validUntil');
 
         $validUntil = Request::get('validUntil', 'datetime');
-        expect($validUntil && ($validUntil > dt::now()), 'Линкът за качване е изтекъл');
 
         // Вземаме callBack'а
         if ($callback = Request::get('callback', 'identifier')) {
@@ -73,7 +72,30 @@ class fileman_Upload2 extends core_Manager
 
         $tpl->prepend($add);
 
+        $this->checkLinkValidity($validUntil, $tpl);
+
         return $this->renderDialog($tpl);
+    }
+
+
+    /**
+     * Проверява валидността на линка за качване
+     *
+     * @param $tpl
+     * @param $validUntil
+     *
+     * @return null|string
+     */
+    public static function checkLinkValidity($validUntil, &$tpl = null)
+    {
+        if (!$validUntil || $validUntil < dt::now()) {
+            $msg = tr('Тази връзка вече не е активна!|* Обновете предишната страница и опитайте пак!');
+            $tpl = new ET('<div class="red">' . $msg . '</div>');
+
+            return $msg;
+        }
+
+        return null;
     }
 
 
