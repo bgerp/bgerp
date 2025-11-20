@@ -1159,7 +1159,7 @@ class cat_Boms extends core_Master
             $tpl->append($title, 'title');
         }
         
-        $data->listFields = arr::make('title=Рецепта,type=Вид,quantity=Количество,createdBy=От||By,createdOn=На');
+        $data->listFields = arr::make('title=Рецепта,type=Вид,action=Като,quantity=Количество,createdBy=От||By,createdOn=На');
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $details = $table->get($data->rows, $data->listFields);
@@ -1171,10 +1171,8 @@ class cat_Boms extends core_Master
         if ($data->notManifacturable === true) {
             $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
-        } elseif($data->fromConvertable && $data->masterData->rec->canConvert != 'yes'){
-            $tpl->replace(" <span class='red small'>(" . tr('Артикулът не е вложим') . ')</span>', 'title');
-            $tpl->append('state-rejected', 'TAB_STATE');
         }
+
         $tpl->append($details, 'content');
         
         if(!Mode::isReadOnly()){
