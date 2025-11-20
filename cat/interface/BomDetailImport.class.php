@@ -168,7 +168,7 @@ class cat_interface_BomDetailImport extends core_Manager
             doc_Linked::add($bomRec->containerId, $fileId, 'doc', 'file');
         }
 
-        $msg = "Добавени редове|*: {$added}. |Пропуснати са|* {$skipped}";
+        $msg = "Добавени редове|*: {$added}. |Пропуснати са|* {$skipped}.";
 
         return $msg;
     }
