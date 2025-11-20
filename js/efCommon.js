@@ -6744,7 +6744,9 @@ function selectAllCheckboxes() {
 document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll("td[data-viewrows]").forEach(td => {
-        $(td).addClass('td-clamp');
+
+        if(td.offsetHeight > 60) $(td).addClass('td-clamp');
+
         const collapsedLines = parseInt(td.dataset.viewrows || 3, 10);     // по подразбиране 3
         const expandedMax    = parseInt(td.dataset.maxLines || 16, 10); // по подразбиране 10
 
