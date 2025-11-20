@@ -99,4 +99,42 @@ class bank_Setup extends core_ProtoSetup
         $documents = array('bank_IncomeDocuments', 'bank_SpendingDocuments');
         core_CallOnTime::setCall('doc_Setup', 'recontoActivePayments', $documents, $callOn);
     }
+
+
+    /**
+     * Миграция на банковата обмяна на валути за избор на валута на банковата сметка
+     */
+    function addCurrenciesToExchangeDocs2547()
+    {
+        $accCurrencies = array();
+        $bQuery = bank_OwnAccounts::getQuery();
+        $bQuery->EXT('currencyId', 'bank_Accounts', "externalName=currencyId,externalKey=bankAccountId");
+        $bQuery->show('currencyId,id');
+        while($bRec = $bQuery->fetch()) {
+            $accCurrencies[$bRec->id] = $bRec->currencyId;
+        }
+
+        $Exchange = cls::get('bank_ExchangeDocument');
+        $Exchange->setupMvc();
+
+        $save = array();
+        $eQuery = $Exchange->getQuery();
+        $recs = $eQuery->fetchAll();
+        $count = countR($recs);
+        core_App::setTimeLimit($count * 0.4, false, 300);
+
+        foreach ($recs as $eRec) {
+            foreach (array('peroFrom' => 'creditCurrency', 'peroTo' => 'debitCurrency') as $accFld => $cFld) {
+                if(!empty($eRec->{$accFld}) && array_key_exists($eRec->{$accFld}, $accCurrencies)){
+                    $eRec->{$cFld} = $accCurrencies[$eRec->{$accFld}];
+                }
+            }
+
+            $save[$eRec->id] = $eRec;
+        }
+
+        if(countR($save)){
+            $Exchange->saveArray($save, 'id,creditCurrency,debitCurrency');
+        }
+    }
 }
