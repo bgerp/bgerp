@@ -1732,8 +1732,13 @@ abstract class deals_InvoiceMaster extends core_Master
 
                 $aggregator->sumByArrIndex('downpaymentAccruedByVats', $totalInDealBaseCurrency, $dpVatId);
             } elseif ($rec->dpOperation == 'deducted') {
+                if($rec->currencyId == 'EUR'){
+                    $deductedDealBaseCurrency = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->date, $dealValior);
+                } else {
+                    $deductedDealBaseCurrency = ($rec->dpAmount / $displayRate) * $aggregator->get('rate');
+                }
                 // Колко е приспаднатото плащане с ддс
-                $deducted = $rec->type == 'dc_note' ? $totalInDealBaseCurrency : abs($totalInDealBaseCurrency);
+                $deducted = $rec->type == 'dc_note' ? $deductedDealBaseCurrency : abs($deductedDealBaseCurrency);
                 $vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($deducted) * $vat : 0;
                 $aggregator->sum('downpaymentDeducted', $deducted + $vatAmount);
                 $aggregator->sumByArrIndex('downpaymentDeductedByVats', $deducted + $vatAmount, $dpVatId);

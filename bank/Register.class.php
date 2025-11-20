@@ -557,15 +557,6 @@ class bank_Register extends core_Manager
         return $res1;
     }
 
-    public function act_TestFolders()
-    {
-        requireRole('admin');
-
-        $res = $this->getFolders();
-
-        bp($res);
-    }
-
 
     /**
      * Връща масив със записи за всички отворени документи
@@ -695,16 +686,6 @@ class bank_Register extends core_Manager
         }
 
         return array($docs, $folders);
-    }
-
-
-    public function act_Match()
-    {
-        requireRole('admin,ceo,bank');
-
-        $res = self::findMatches();
-
-        return new Redirect(array('bank_register'), "Обработени {$res} записа");
     }
 
 

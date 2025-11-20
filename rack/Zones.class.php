@@ -1083,192 +1083,312 @@ class rack_Zones extends core_Master
 
 
     /**
-     * Изтриване на чакащите движения към зоната
-     *
-     * @param mixed $zoneIds
-     * @param int $userId
-     * @param null|array $productIds
-     * @return void
-     */
-    private static function deletePendingZoneMovements($zoneIds, $userId, $productIds = null)
-    {
-        $productIds = arr::make($productIds, true);
+	 * Изтриване на чакащите движения към зоната
+	 *
+	 * @param mixed      $zoneIds
+	 * @param int        $userId
+	 * @param array|null $productIds
+	 * @return void
+	 */
+	private static function deletePendingZoneMovements($zoneIds, $userId, $productIds = null)
+	{
+		$productIds = arr::make($productIds, true);
 
-        $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$userId}");
-        if($userId == core_Users::SYSTEM_USER){
-            $mQuery->where("#modifiedBy = {$userId}");
-        }
-        if(countR($productIds)){
-            $mQuery->in('productId', $productIds);
-        }
+		// !!! ЕДИНСТВЕН mQuery – НЕ го презадавай по-надолу
+		$mQuery = rack_Movements::getQuery();
+		$mQuery->where("#zoneList IS NOT NULL");
 
-        if (isset($zoneIds)) {
-            $zoneIds = arr::make($zoneIds, true);
-            $mQuery->likeKeylist('zoneList', $zoneIds);
-        }
+		if ($userId == core_Users::SYSTEM_USER) {
+			// Чистим ВСИЧКИ системни pending/waiting за избраните зони/продукти
+			$mQuery->where("#state IN ('pending','waiting')");
+			$mQuery->where("(#createdBy = {$userId} OR #modifiedBy = {$userId})");
+		} else {
+			// За конкретен потребител – чистим поне pending, създадени от него
+			$mQuery->where("#state = 'pending'");
+			$mQuery->where("#createdBy = {$userId}");
+		}
 
-        $mQuery->show('id');
-        $isOriginalSystemUser = core_Users::isSystemUser();
-        if(!$isOriginalSystemUser){
-            core_Users::forceSystemUser();
-        }
+		if (isset($zoneIds)) {
+			$zoneIds = arr::make($zoneIds, true);
+			$mQuery->likeKeylist('zoneList', keylist::fromArray($zoneIds));
+		}
 
-        $deleted = 0;
-        while ($mRec = $mQuery->fetch()) {
-            rack_Movements::delete($mRec->id);
-            $deleted++;
-        }
+		if (countR($productIds)) {
+			$mQuery->in('productId', $productIds);
+		}
 
-        if(!$isOriginalSystemUser) {
-            core_Users::cancelSystemUser();
-        }
+		$mQuery->show('id');
 
-        $zoneStringLog = implode('|', $zoneIds);
-        $productStringLog = implode('|', $productIds);
-        rack_Movements::logDebug("RACK DELETE PENDING COUNT ({$deleted}) - '{$zoneStringLog}'- PROD -'{$productStringLog}'");
-    }
+		$isOriginalSystemUser = core_Users::isSystemUser();
+		if (!$isOriginalSystemUser) core_Users::forceSystemUser();
+
+		$deleted = 0;
+		while ($mRec = $mQuery->fetch()) {
+			rack_Movements::delete($mRec->id);
+			$deleted++;
+		}
+
+		if (!$isOriginalSystemUser) core_Users::cancelSystemUser();
+
+		$zoneStringLog    = implode('|', arr::make($zoneIds, true));
+		$productStringLog = implode('|', $productIds);
+		rack_Movements::logDebug("RACK DELETE PENDING/WATING COUNT ({$deleted}) - '{$zoneStringLog}' - PROD '{$productStringLog}'");
+	}
 
 
-    /**
+	/**
      * Генерира очакваните движения за зоните в склада
      *
-     * @param int $storeId - ид на склад
-     * @param array|null $zoneIds - ид-та само на избраните зони
-     * @param null $workerId - ид на дефолтен товарач
-     * @param array|null $productIds - ид-та на артикули
-     * @param boolean $deletePendingSystemMovementsInZoneFirst - да се изтрият ли първи системните движения
-     * @param int|null $currentZoneId - от коя зона сме тръгнали
+     * @param int         $storeId   - ид на склад
+     * @param array|int   $zoneIds   - ид-та само на избраните зони или една зона
+     * @param int|null    $workerId  - ид на дефолтен товарач
+     * @param array|null  $productIds - ид-та на артикули
+     * @param bool        $deletePendingSystemMovementsInZoneFirst - да се изтрият ли първо системните движения
+     * @param int|null    $currentZoneId - от коя зона сме тръгнали
      */
     private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true, $currentZoneId = null)
     {
-        // Ако се иска да се изтрият движенията към зоната
-        if($deletePendingSystemMovementsInZoneFirst){
+        // 0) При нужда - чистим чакащите системни движения за посочените зони/продукти
+        if ($deletePendingSystemMovementsInZoneFirst) {
             static::deletePendingZoneMovements($zoneIds, core_Users::SYSTEM_USER, $productIds);
         }
 
-        // Какви са очакваните количества
-        $expected = self::getExpectedProducts($storeId, $zoneIds, $productIds);
+        // 1) Очакваните количества по зони/редове от документите
+		$expected = self::getExpectedProducts($storeId, $zoneIds, $productIds);
 
+		// 2) ver3: агрегиране на нуждите в БАЗОВА мярка (без повторно конвертиране)
+		//    + КРИТИЧНО: приспадаме вече "изпълненото" (active+closed) по документ за всяка зона
+		$useVer3 = (rack_Setup::get('PICKUP_STRATEGY') == 'ver3');
+		if ($useVer3) {
+			// агрегирани нужди в base uom
+			$iterProducts = array_values(rack_Ver3Base::aggregateExpectedBase($expected));
+
+			// приспадане на вече изпълненото за конкретния документ във всяка зона (active + closed)			
+			// Оптимизираната версия – 1 заявка + PHP агрегация:
+			rack_Ver3Base::subtractDoneBaseForAllZoneDocsOptimized($iterProducts);
+		} else {
+			$iterProducts = $expected->products;
+		}
+
+        // константа за "Под"
         $floor = rack_PositionType::FLOOR;
-        foreach ($expected->products as $pRec) {
+
+        // 3) За всеки продукт/партида от групата зони
+        foreach ($iterProducts as $pRec) {
+
+            // Партидност (ако продуктът е партиден)
             $BatchClass = batch_Defs::getBatchDef($pRec->productId);
+            $batch      = is_object($BatchClass) ? $pRec->batch : null;
 
-            // Ако в зоната реда е с определена партидност - то трябва да се подадат само палетите с тази партидност.
-            // Ако в зоната реда е без партидност, но продукта има партидност - се търсят само палетите, които са с празна партидност
-            $batch = (is_object($BatchClass)) ? $pRec->batch : null;
+            // Зоните, които подаваме към MG (за ver3: базовите агрегирани)
+            $zonesForMg = $useVer3
+                ? (is_array($pRec->zonesBase) ? $pRec->zonesBase : (is_array($pRec->zones) ? $pRec->zones : array()))
+                : (is_array($pRec->zones) ? $pRec->zones : array());
 
-            // Какви са наличните палети за избор (запазените се приспадат)
+            if (!is_array($zonesForMg) || !count($zonesForMg)) {
+                continue;
+            }
+
+            // Налични палети (приспада запазените)
             $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true, true);
-            $requiredQuantityOnZones = array_sum($pRec->zones);
 
-            // Ако е склада се използват приоритетни стелажи
-            if(rack_Racks::canUsePriorityRacks($storeId)){
+            // Общо нужно по зоните (в базова мярка)
+            $requiredQuantityOnZones = array_sum($zonesForMg);
 
-                // Коя е групата на първата зона, очаква се че всички зони са от една група!
-                $firstZoneId = key($pRec->zones);
-                $groupId = rack_Zones::fetchField($firstZoneId, 'groupId');
+            // 3.1) Приоритетни стелажи (ако са активни за склада)
+            if (rack_Racks::canUsePriorityRacks($storeId)) {
+                $firstZoneId = key($zonesForMg);
+                $groupId     = rack_Zones::fetchField($firstZoneId, 'groupId');
 
-                // Кои стелажи са с приоритет при групата на зоните
-                if(!array_key_exists($groupId, static::$cachedRacksByGroup)){
-                    $rQuery = rack_Racks::getQuery();
+                if (!array_key_exists($groupId, static::$cachedRacksByGroup)) {
+                    $rQuery  = rack_Racks::getQuery();
                     $rQuery->where("#storeId = {$storeId}");
-                    $groupId = isset($groupId) ? $groupId : '-1';
-                    $rQuery->where("LOCATE('|{$groupId}|', #groups)");
+                    $gid = isset($groupId) ? $groupId : '-1';
+                    $rQuery->where("LOCATE('|{$gid}|', #groups)");
                     $rQuery->show('num');
                     static::$cachedRacksByGroup[$groupId] = arr::extractValuesFromArray($rQuery->fetchAll(), 'num');
                 }
 
-                // Оставяне само на тези палети, които са на тези стелажи
+                // филтриране само на палети от приоритетните стелажи (ако са достатъчни)
                 $rackNums = static::$cachedRacksByGroup[$groupId];
-                $onlyPalletsInThoseRacks = array();
-                array_walk($rackNums, function($a) use (&$onlyPalletsInThoseRacks, $pallets){
-                    foreach ($pallets as $k => $palletRec){
-                        list($n,,) = rack_PositionType::toArray($palletRec->position);
-                        if($n == $a){
-                            $onlyPalletsInThoseRacks[$k] = $palletRec;
-                        }
+                $onlyInPriority = array();
+                foreach ($pallets as $k => $palletRec) {
+                    list($n,,) = rack_PositionType::toArray($palletRec->position);
+                    if (in_array($n, $rackNums)) {
+                        $onlyInPriority[$k] = $palletRec;
                     }
-                });
-
-                // Ако палетите от приоритетните стелажи са достатъчни за зоната, използват се само те
-                $onPriorityRacks = arr::sumValuesArray($onlyPalletsInThoseRacks, 'quantity');
-                if($onPriorityRacks >= $requiredQuantityOnZones){
-                    $pallets = $onlyPalletsInThoseRacks;
+                }
+                $onPriority = arr::sumValuesArray($onlyInPriority, 'quantity');
+                if ($onPriority >= $requiredQuantityOnZones) {
+                    $pallets = $onlyInPriority;
                 }
             }
 
-            // Ако к-то по палети е достатъчно за изпълнение, не се добавя ПОД-а, @TODO да се изнесе в mainP2Q
+            // 3.2) Ако сумата по палетите не стига – добавяме наличното на „Под“
             $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             if ($quantityOnPallets < $requiredQuantityOnZones) {
-                $floorQuantity = rack_Products::getFloorQuantity($pRec->productId, $batch, $storeId);
+                $floorQuantity        = rack_Products::getFloorQuantity($pRec->productId, $batch, $storeId);
                 $floorWaitingQuantity = rack_Pallets::getSumInZoneMovements($pRec->productId, $batch, null, 'waiting');
                 $floorPendingQuantity = rack_Pallets::getSumInZoneMovements($pRec->productId, $batch, null, 'pending');
-
-                $floorQuantity -= $floorWaitingQuantity;
-                $floorQuantity -= $floorPendingQuantity;
+                $floorQuantity       -= $floorWaitingQuantity;
+                $floorQuantity       -= $floorPendingQuantity;
                 if ($floorQuantity > 0) {
-                    $pallets[$floor] = (object)array('quantity' => $floorQuantity, 'position' => $floor);
+                    $pallets[$floor] = (object) array('quantity' => $floorQuantity, 'position' => $floor);
                 }
             }
 
+            // За ver1 ще ни трябва масив позиция=>количество
             $palletsArr = array();
             foreach ($pallets as $obj) {
                 $palletsArr[$obj->position] = $obj->quantity;
             }
+            if (!count($palletsArr) && !count($pallets)) {
+                continue;
+            }
 
-            if (!countR($palletsArr)) continue;
+            // 4) Разпределение (според стратегията)
+            $allocatedPallets      = array(); // за ver1/ver2
+            $allocatedPalletsBase  = array(); // за ver3 (в базова мярка)
 
-            // Какво е разпределянето на палетите
-            if (in_array(rack_Setup::get('PICKUP_STRATEGY'), ['ver2', 'ver3'])) {
+            if (rack_Setup::get('PICKUP_STRATEGY') == 'ver2') {
 
-                // Извличане само на опаковките на артикула + основната мярка
-                if(!array_key_exists($pRec->productId, static::$cache)){
+                // Опаковки на продукта (само product packagings + основна мярка)
+                if (!array_key_exists($pRec->productId, static::$cache)) {
                     $packQuery = cat_products_Packagings::getQuery();
                     $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
                     $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging' AND #state != 'closed'");
                     $packQuery->show('quantity,packagingId');
                     $packagings = array();
-                    while($packRec = $packQuery->fetch()) {
+                    while ($packRec = $packQuery->fetch()) {
                         $packagings[$packRec->packagingId] = $packRec;
                     }
-                    if(!countR($packagings)){
+                    if (!countR($packagings)) {
                         $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
-                        $packagings[] = (object)array('packagingId' => $measureId, 'quantity' => 1);
+                        $packagings[] = (object) array('packagingId' => $measureId, 'quantity' => 1);
                     }
-
                     static::$cache[$pRec->productId] = $packagings;
                 }
 
-                if(rack_Setup::get('PICKUP_STRATEGY') == 'ver2') {
-					$allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId], null, null, $storeId);
-				}
-				
-				if(rack_Setup::get('PICKUP_STRATEGY') == 'ver3') {
-					$allocatedPallets = rack_MovementGenerator3::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId], null, null, $storeId);
-				}
-				
+                $allocatedPallets = rack_MovementGenerator2::mainP2Q(
+                    $pallets,
+                    $pRec->zones,
+                    static::$cache[$pRec->productId],
+                    null,
+                    null,
+                    $storeId
+                );
+
+            } elseif ($useVer3) {
+                // ver3: MG3 върху агрегирани базови нужди; после обратно разцепване по опаковки
+                if (!array_key_exists($pRec->productId, static::$cache)) {
+                    $packQuery = cat_products_Packagings::getQuery();
+                    $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                    $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging' AND #state != 'closed'");
+                    $packQuery->show('quantity,packagingId');
+                    $packagings = array();
+                    while ($packRec = $packQuery->fetch()) {
+                        $packagings[$packRec->packagingId] = $packRec;
+                    }
+                    if (!countR($packagings)) {
+                        $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
+                        $packagings[] = (object) array('packagingId' => $measureId, 'quantity' => 1);
+                    }
+                    static::$cache[$pRec->productId] = $packagings;
+                }
+                $packagings = static::$cache[$pRec->productId];
+
+                // 4.1) MG3 алокация по базови агрегирани нужди
+                $allocatedPalletsBase = rack_MovementGenerator3::mainP2Q(
+                    $pallets,
+                    $zonesForMg,     // вече в базова мярка
+                    $packagings,     // само продуктови опаковки + основна мярка
+                    null,
+                    null,
+                    $storeId
+                );
+
+                // 4.2) Карта на „зона → заявени опаковки“
+                $requestedMap = rack_Ver3Base::requestedByZoneBaseMap($expected, $pRec->productId, $batch);
+
+                // 4.3) Описание на опаковките (packId => qtyInBase)
+                $packsDesc = rack_Ver3Base::getAllPacksDesc($pRec->productId);
+
+                // 4.4) Разцепване на базовата алокация по опаковки
+                $__byPack = rack_Ver3Base::splitAllocatedToPackaged(
+                    $pRec->productId,
+                    $allocatedPalletsBase,
+                    $packsDesc,
+                    $requestedMap
+                );
+
             } else {
+                // ver1
                 $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             }
 
-            // Ако има генерирани движения се записват
-            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $batch, $storeId, $workerId, $currentZoneId);
+            // 5) Изграждане на движения
+            if ($useVer3) {
+                $movements = array();
+                if (is_array($__byPack)) {
+                    foreach ($__byPack as $__packId => $__allocArr) {
+                        if (!is_array($__allocArr) || !count($__allocArr)) continue;
 
-            // Движенията се създават от името на системата
-            $isOriginalSystemUser = core_Users::isSystemUser();
-            if(!$isOriginalSystemUser) {
-                core_Users::forceSystemUser();
-            }
+                        $mm = rack_MovementGenerator::getMovements(
+                            $__allocArr,
+                            $pRec->productId,
+                            $__packId,
+                            $batch,
+                            $storeId,
+                            $workerId,
+                            $currentZoneId
+                        );
 
-            foreach ($movements as $movementRec) {
-                rack_Movements::save($movementRec);
-            }
+                        if (is_array($mm) && count($mm)) {
+                            $movements = array_merge($movements, $mm);
+                        }
+                    }
+                } else {
+                    // fallback – ако по някаква причина няма разделяне по опаковки
+                    $fallbackPackId = cat_Products::fetchField($pRec->productId, 'measureId');
+                    $movements = rack_MovementGenerator::getMovements(
+                        $allocatedPalletsBase,
+                        $pRec->productId,
+                        $fallbackPackId,
+                        $batch,
+                        $storeId,
+                        $workerId,
+                        $currentZoneId
+                    );
+                }
 
-            if(!$isOriginalSystemUser) {
-                core_Users::cancelSystemUser();
+                // запис на движенията (системен потребител)
+                $isOriginalSystemUser = core_Users::isSystemUser();
+                if (!$isOriginalSystemUser) core_Users::forceSystemUser();
+                foreach ($movements as $movementRec) {
+                    rack_Movements::save($movementRec);
+                }
+                if (!$isOriginalSystemUser) core_Users::cancelSystemUser();
+
+            } else {
+                // ver1 / ver2: стандартен път
+                $movements = rack_MovementGenerator::getMovements(
+                    $allocatedPallets,
+                    $pRec->productId,
+                    $pRec->packagingId,
+                    $batch,
+                    $storeId,
+                    $workerId,
+                    $currentZoneId
+                );
+
+                $isOriginalSystemUser = core_Users::isSystemUser();
+                if (!$isOriginalSystemUser) core_Users::forceSystemUser();
+                foreach ($movements as $movementRec) {
+                    rack_Movements::save($movementRec);
+                }
+                if (!$isOriginalSystemUser) core_Users::cancelSystemUser();
             }
-        }
+        } // край foreach $iterProducts
     }
 
 

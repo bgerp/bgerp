@@ -80,7 +80,7 @@ class acc_ActiveShortBalance
             // Подготвяме заявката към базата данни
             $jQuery = acc_JournalDetails::getQuery();
             acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3'], $strict);
-            
+
             // Изчисляваме мини баланса
             $this->recs = $jQuery->fetchAll();
             
@@ -293,7 +293,7 @@ class acc_ActiveShortBalance
      * взима началните салда от последния изчислен баланс и към тях натрупва записите от журнала
      * които не са влезли в баланса
      */
-    public function getBalance($accs)
+    public function getBalance($accs, $items = array())
     {
         $accArr = array();
         $newBalance = $this->getBalanceBefore($accs, $accArr, $beforeBalanceRec);
@@ -320,8 +320,11 @@ class acc_ActiveShortBalance
             }
         }
 
+        if(countR($items)){
+            $itemKey = implode('|', $items);
 
-
+            return $newBalance[$itemKey];
+        }
 
         return $newBalance;
     }
