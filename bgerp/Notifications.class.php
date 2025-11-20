@@ -1763,7 +1763,7 @@ class bgerp_Notifications extends core_Manager
             $url['externalTab'] = Mode::get('currentExternalTab');
         }
 
-        if (core_Users::getCurrent() || (($brid = log_Browsers::getBrid(false)) && core_LoginLog::isLoggedBefore(null, false, $brid))) {
+        if (core_Users::getCurrent()) {
             core_Ajax::subscribe($tpl, $url, 'notificationsCnt', 5000);
         }
 
