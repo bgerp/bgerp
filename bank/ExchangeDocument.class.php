@@ -371,7 +371,11 @@ class bank_ExchangeDocument extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
         $row->recTitle = $rec->reason;
-        
+
+        $cCurrencyCode = currency_Currencies::getCodeById($rec->creditCurrency);
+        $dCurrencyCode = currency_Currencies::getCodeById($rec->debitCurrency);
+        $row->subTitle = $rec->reason. ": {$cCurrencyCode} » {$dCurrencyCode}";
+
         return $row;
     }
 
