@@ -216,7 +216,6 @@ class fileman_Log extends core_Manager
         $callback = Request::get('callback', 'identifier');
 
         $validUntil = Request::get('validUntil', 'datetime');
-        expect($validUntil && ($validUntil > dt::now()), 'Линкът за качване е изтекъл');
 
         // Сетваме нужните променливи
         Mode::set('dialogOpened', true);
@@ -228,10 +227,14 @@ class fileman_Log extends core_Manager
         
         $tpl->push('fileman/js/lastUsed.js', 'JS');
         jquery_Jquery::run($tpl, 'lastUsedActions();');
-        
-        // Рендираме диалоговия прозорец
-//        return $this->renderDialog($tpl);
-        
+
+        if (fileman_Upload2::checkLinkValidity($validUntil, $tpl)) {
+
+            // Рендираме диалоговия прозорец
+            return $this->renderDialog($tpl);
+        }
+
+
         // Връщаме шаблона
         return $tpl;
     }
