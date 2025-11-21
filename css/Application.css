@@ -2436,7 +2436,9 @@ pre.document {
   margin-top: 3px; }
 
 .shortTime {
-  white-space: wrap !important;
+  white-space: wrap !important; }
+
+.planning_Tasks .shortTime {
   width: 70px !important; }
 
 .boldText {
