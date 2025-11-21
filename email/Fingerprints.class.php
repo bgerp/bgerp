@@ -109,7 +109,7 @@ class email_Fingerprints extends core_Manager
             $data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
         }
         
-        $data->query->orderBy('#id', 'DESC');
+        $data->query->orderBy('id', 'DESC');
     }
     
     

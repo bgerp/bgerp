@@ -967,6 +967,8 @@ class email_Incomings extends core_Master
         if ($form->rec->accId) {
             $data->query->where(array("#accId= '[#1#]'", $form->rec->accId));
         }
+
+        $data->query->orderBy('id', 'DESC');
     }
     
     

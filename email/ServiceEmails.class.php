@@ -209,4 +209,13 @@ class email_ServiceEmails extends core_Manager
         
         return $res;
     }
+
+
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('id', 'DESC');
+    }
 }
