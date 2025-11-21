@@ -1083,7 +1083,11 @@ class rack_Zones extends core_Master
 
 
     /**
-	 * Изтриване на чакащите движения към зоната
+	 * Изтриване на чакащите движения към зоната (само системно-създадени "pending")
+	 *
+	 * - Пази "waiting" (запазени) -> те не се трият.
+	 * - Пази "pending", върнати от оператор (modifiedBy != SYSTEM_USER).
+	 * - Трие само "pending", които са създадени ОТ системата И последно модифицирани ОТ системата.
 	 *
 	 * @param mixed      $zoneIds
 	 * @param int        $userId
@@ -1094,16 +1098,17 @@ class rack_Zones extends core_Master
 	{
 		$productIds = arr::make($productIds, true);
 
-		// !!! ЕДИНСТВЕН mQuery – НЕ го презадавай по-надолу
 		$mQuery = rack_Movements::getQuery();
 		$mQuery->where("#zoneList IS NOT NULL");
 
 		if ($userId == core_Users::SYSTEM_USER) {
-			// Чистим ВСИЧКИ системни pending/waiting за избраните зони/продукти
-			$mQuery->where("#state IN ('pending','waiting')");
-			$mQuery->where("(#createdBy = {$userId} OR #modifiedBy = {$userId})");
+			// ⚠️ ТРИЕМ САМО системно-създадени и системно-модифицирани PENDING
+			$mQuery->where("#state = 'pending'");
+			$mQuery->where("#createdBy = {$userId}");
+			$mQuery->where("#modifiedBy = {$userId}");
+			// не трогваме 'waiting' (запазени) и 'pending', върнати от оператор
 		} else {
-			// За конкретен потребител – чистим поне pending, създадени от него
+			// За конкретен потребител – чистим само неговите "pending", които той е създал
 			$mQuery->where("#state = 'pending'");
 			$mQuery->where("#createdBy = {$userId}");
 		}
@@ -1132,7 +1137,7 @@ class rack_Zones extends core_Master
 
 		$zoneStringLog    = implode('|', arr::make($zoneIds, true));
 		$productStringLog = implode('|', $productIds);
-		rack_Movements::logDebug("RACK DELETE PENDING/WATING COUNT ({$deleted}) - '{$zoneStringLog}' - PROD '{$productStringLog}'");
+		rack_Movements::logDebug("RACK DELETE SYSTEM-PENDING COUNT ({$deleted}) - '{$zoneStringLog}' - PROD '{$productStringLog}'");
 	}
 
 
