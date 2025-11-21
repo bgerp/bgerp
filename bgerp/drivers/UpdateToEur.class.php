@@ -88,7 +88,7 @@ class bgerp_drivers_UpdateToEur extends core_BaseClass
 
         $data->tpl = new ET('
                                 <div class="clearfix21 portal" style="margin-bottom:25px;">
-                                <div class="legend">Подготовка към EUR</div>
+                                <div class="legend">Подготовка за преминаване към EUR</div>
                                     <p style="color: #333; margin: 5px 0; line-height: 1.5em; text-indent: 20px; font-weight: bold;">Системата ви е подготвена за преминаване към евро, но са необходими допълнителни миграции. </p>
                                     <p style="color: #333; margin: 5px 0; line-height: 1.5em; text-indent: 20px; font-weight: bold;">Моля, свържете се с ' . $eLink . '!</p>
                                 </div>
