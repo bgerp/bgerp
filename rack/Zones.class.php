@@ -1083,62 +1083,51 @@ class rack_Zones extends core_Master
 
 
     /**
-	 * Изтриване на чакащите движения към зоната (само системно-създадени "pending")
-	 *
-	 * - Пази "waiting" (запазени) -> те не се трият.
-	 * - Пази "pending", върнати от оператор (modifiedBy != SYSTEM_USER).
-	 * - Трие само "pending", които са създадени ОТ системата И последно модифицирани ОТ системата.
-	 *
-	 * @param mixed      $zoneIds
-	 * @param int        $userId
-	 * @param array|null $productIds
-	 * @return void
-	 */
-	private static function deletePendingZoneMovements($zoneIds, $userId, $productIds = null)
-	{
-		$productIds = arr::make($productIds, true);
+     * Изтриване на чакащите движения към зоната
+     *
+     * @param mixed $zoneIds
+     * @param int $userId
+     * @param null|array $productIds
+     * @return void
+     */
+    private static function deletePendingZoneMovements($zoneIds, $userId, $productIds = null)
+    {
+        $productIds = arr::make($productIds, true);
 
-		$mQuery = rack_Movements::getQuery();
-		$mQuery->where("#zoneList IS NOT NULL");
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$userId}");
+        if($userId == core_Users::SYSTEM_USER){
+            $mQuery->where("#modifiedBy = {$userId}");
+        }
+        if(countR($productIds)){
+            $mQuery->in('productId', $productIds);
+        }
 
-		if ($userId == core_Users::SYSTEM_USER) {
-			// ⚠️ ТРИЕМ САМО системно-създадени и системно-модифицирани PENDING
-			$mQuery->where("#state = 'pending'");
-			$mQuery->where("#createdBy = {$userId}");
-			$mQuery->where("#modifiedBy = {$userId}");
-			// не трогваме 'waiting' (запазени) и 'pending', върнати от оператор
-		} else {
-			// За конкретен потребител – чистим само неговите "pending", които той е създал
-			$mQuery->where("#state = 'pending'");
-			$mQuery->where("#createdBy = {$userId}");
-		}
+        if (isset($zoneIds)) {
+            $zoneIds = arr::make($zoneIds, true);
+            $mQuery->likeKeylist('zoneList', $zoneIds);
+        }
 
-		if (isset($zoneIds)) {
-			$zoneIds = arr::make($zoneIds, true);
-			$mQuery->likeKeylist('zoneList', keylist::fromArray($zoneIds));
-		}
+        $mQuery->show('id');
+        $isOriginalSystemUser = core_Users::isSystemUser();
+        if(!$isOriginalSystemUser){
+            core_Users::forceSystemUser();
+        }
 
-		if (countR($productIds)) {
-			$mQuery->in('productId', $productIds);
-		}
+        $deleted = 0;
+        while ($mRec = $mQuery->fetch()) {
+            rack_Movements::delete($mRec->id);
+            $deleted++;
+        }
 
-		$mQuery->show('id');
+        if(!$isOriginalSystemUser) {
+            core_Users::cancelSystemUser();
+        }
 
-		$isOriginalSystemUser = core_Users::isSystemUser();
-		if (!$isOriginalSystemUser) core_Users::forceSystemUser();
-
-		$deleted = 0;
-		while ($mRec = $mQuery->fetch()) {
-			rack_Movements::delete($mRec->id);
-			$deleted++;
-		}
-
-		if (!$isOriginalSystemUser) core_Users::cancelSystemUser();
-
-		$zoneStringLog    = implode('|', arr::make($zoneIds, true));
-		$productStringLog = implode('|', $productIds);
-		rack_Movements::logDebug("RACK DELETE SYSTEM-PENDING COUNT ({$deleted}) - '{$zoneStringLog}' - PROD '{$productStringLog}'");
-	}
+        $zoneStringLog = implode('|', $zoneIds);
+        $productStringLog = implode('|', $productIds);
+        rack_Movements::logDebug("RACK DELETE PENDING COUNT ({$deleted}) - '{$zoneStringLog}'- PROD -'{$productStringLog}'");
+    }
 
 
 	/**
@@ -1468,27 +1457,44 @@ class rack_Zones extends core_Master
             $dQuery->in('zoneId', $zoneIds);
 
             $mQuery = rack_Movements::getQuery();
-            $mQuery->where("#state = 'pending' || #state = 'waiting'");
-            $zoneIds = arr::make($zoneIds, true);
-            $mQuery->likeKeylist('zoneList', keylist::fromArray($zoneIds));
-            if(countR($productIds)){
-                $mQuery->in('productId', $productIds);
-            }
 
-            $zoneMovements = $mQuery->fetchAll();
+			/* ВЕР.3: търсим движения за зоните, които са променени от ПОТРЕБИТЕЛ,
+			 * за да отчетем върнати/запазени от човек (а не от системата).
+			 * Вземаме всякакво състояние ≠ 'closed', но по-надолу приспадаме
+			 * САМО не-активните, защото активните вече са в movementQuantity.
+			 */
+			$mQuery->where("#state IN ('pending','waiting','active')");
+			$mQuery->where("#modifiedBy != " . core_Users::SYSTEM_USER);
+
+			$mQuery->likeKeylist('zoneList', keylist::fromArray($zoneIds));
+
+			if (countR($productIds)) {
+				$mQuery->in('productId', $productIds);
+			}
+
+			$zoneMovements = $mQuery->fetchAll();
         }
 
         while ($dRec = $dQuery->fetch()) {
             $notActiveQuantity = 0;
-            array_walk($zoneMovements, function($a) use ($dRec, &$notActiveQuantity){
-                if($dRec->productId == $a->productId && $dRec->packagingId == $a->packagingId && $dRec->batch == $a->batch){
-                    $zones = rack_Movements::getZoneArr($a);
-                    $quantityInZoneArr = array_values(array_filter($zones, function($z) use ($dRec){return $z->zone == $dRec->zoneId;}));
-                    if(is_object($quantityInZoneArr[0])){
-                        $notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
-                    }
-                }
-            });
+			array_walk($zoneMovements, function ($a) use ($dRec, &$notActiveQuantity) {
+				if ($dRec->productId == $a->productId && $dRec->batch == $a->batch) {
+
+					// Активните НЕ ги приспадаме тук (вече са в movementQuantity на детайла)
+					if ($a->state == 'active') return;
+
+					$zones = rack_Movements::getZoneArr($a);
+
+					$quantityInZoneArr = array_values(array_filter($zones, function ($z) use ($dRec) {
+						return $z->zone == $dRec->zoneId;
+					}));
+
+					if (isset($quantityInZoneArr[0]) && is_object($quantityInZoneArr[0])) {
+						// към БАЗОВА мярка → умножаваме по quantityInPack
+						$notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
+					}
+				}
+			});
 
             // Участват само тези по които се очакват още движения
             $needed = $dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity;

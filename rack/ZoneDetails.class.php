@@ -112,7 +112,8 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
         $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
 
-        $this->setDbIndex('zoneId,productId,packagingId,batch');
+        $this->setDbIndex('zoneId,productId,packagingId,batch'); // най-честият филтър
+		$this->setDbIndex('productId,packagingId,batch');        // вторичен
     }
     
     
