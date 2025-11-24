@@ -170,8 +170,9 @@ class fileman_Upload2 extends core_Manager
             if (!$isExist) {
                 $tPath = fileman::getTempPath();
                 if (!is_dir($tPath) || !is_readable($tPath)) {
-                    self::logErr('Грешка при създаване на временна директория');
-                    core_App::outputJson(array('ok' => false, 'error' => 'Грешка при качване'));
+                    self::logWarning('Грешка при създаване на временна директория');
+                    wp('Грешка при създаване на временна директория', $tPath, $json);
+                    core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване')));
                 }
                 $uploadId = basename($tPath);
             }
@@ -196,8 +197,9 @@ class fileman_Upload2 extends core_Manager
             $addMeta = @file_put_contents(rtrim($tPath, '/') . "/" . $metaFileName, json_encode($meta));
 
             if (!$addMeta) {
-                self::logErr('Грешка при запис на ' . $metaFileName . ' в ' . $tPath);
-                core_App::outputJson(array('ok' => false, 'error' => 'Грешка при качване'));
+                self::logWarning('Грешка при запис на ' . $metaFileName . ' в ' . $tPath);
+                wp('Грешка при запис на ' . $metaFileName . ' в ' . $tPath, $tPath, $json, $uploadId);
+                core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване')));
             }
 
             core_App::outputJson(array('ok' => true,
@@ -217,8 +219,9 @@ class fileman_Upload2 extends core_Manager
         $uploadId = base64_decode(core_Crypt::base36ToBase64($uploadId));
 
         if (!$uploadId || !trim($uploadId)) {
-            self::logErr('Липсва uploadId');
-            core_App::outputJson(array('ok' => false, 'error' => tr('Липсва uploadId')));
+            self::logWarning('Липсва uploadId');
+            wp('Липсва uploadId', $json, $uploadId, $uploadIdOrig);
+            core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване')));
         }
         $uploadId = preg_replace('/[^a-z0-9]/', '', $uploadId);
 
@@ -227,7 +230,7 @@ class fileman_Upload2 extends core_Manager
         $tPath = rtrim($tDir, '/') . '/' . $uploadId;
         if (!is_dir($tPath) || !is_readable($tPath)) {
             self::logWarning('Неизвестно uploadId');
-            core_App::outputJson(array('ok' => false, 'error' => tr('Липсва временна директория'), 'uploadId' => $uploadIdOrig));
+            core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване'), 'uploadId' => $uploadIdOrig));
         }
 
         // Проверка на meta.json
@@ -239,13 +242,13 @@ class fileman_Upload2 extends core_Manager
         $meta = @json_decode(file_get_contents($metaFile), true);
         if (!$meta) {
             self::logWarning('Грешка при четене на ' . $metaFileName);
-            core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при четене'), 'uploadId' => $uploadIdOrig));
+            core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване'), 'uploadId' => $uploadIdOrig));
         }
 
         // Проверки на метаданните
         if (((int) $meta['size'] !== (int) $size) || ($meta['name'] !== $name) || ($meta['sha256'] !== $sha256) || ((int)$meta['bucketId'] !== (int)$bucketId)) {
             self::logWarning('Несъответствие в метаданните: ' . core_Type::mixedToString(array('meta' => $meta, 'size' => $size, 'name' => $name, 'sha256' => $sha256, 'bucketId' => $bucketId)));
-            core_App::outputJson(array('ok' => false, 'error' => tr('Несъответствие в метаданните'), 'uploadId' => $uploadIdOrig));
+            core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване'), 'uploadId' => $uploadIdOrig));
         }
 
         // Качване на частите на файла
@@ -254,18 +257,18 @@ class fileman_Upload2 extends core_Manager
             $chunkIndex = Request::get('chunkIndex', 'int');
 
             if (!isset($chunkIndex) || ($chunkIndex < 0)) {
-                core_App::outputJson(array('ok' => false, 'error' => tr('Липсва chunkIndex'), 'uploadId' => $uploadIdOrig));
+                core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване'), 'uploadId' => $uploadIdOrig));
             }
 
             if (empty($_FILES['chunk']['tmp_name'])) {
-                core_App::outputJson(array('ok' => false, 'error' => tr('Липсва chunk'), 'uploadId' => $uploadIdOrig));
+                core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване'), 'uploadId' => $uploadIdOrig));
             }
 
             // Запис на самия chunk под фиксирано име
             $chunkPath = sprintf('%s/part.%06d', $tPath, $chunkIndex);
 
             if (!move_uploaded_file($_FILES['chunk']['tmp_name'], $chunkPath)) {
-                core_App::outputJson(array('ok' => false, 'error' => tr('Неуспешен запис на chunk'), 'uploadId' => $uploadIdOrig));
+                core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване'), 'uploadId' => $uploadIdOrig));
             }
 
             // Обновяване на прогреса
@@ -300,7 +303,7 @@ class fileman_Upload2 extends core_Manager
 
         if ($written !== (int)$meta['size']) {
             @unlink($assembled);
-            core_App::outputJson(array('ok' => false, 'error' => tr('Размерът на сглобения файл е различен'), 'uploadId' => $uploadIdOrig));
+            core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване'), 'uploadId' => $uploadIdOrig));
         }
 
         // Валидация SHA-256 на сървър
@@ -313,7 +316,7 @@ class fileman_Upload2 extends core_Manager
         fclose($f);
         $srvHash = hash_final($ctx);
         if ($srvHash !== $sha256) {
-            core_App::outputJson(array('ok' => false, 'error' => tr('SHA-256 не съвпада'), 'uploadId' => $uploadIdOrig));
+            core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване'), 'uploadId' => $uploadIdOrig));
         }
 
         // Подаваме към makeUpload(), за да минат всички твои валидатори и логове
@@ -323,7 +326,7 @@ class fileman_Upload2 extends core_Manager
             // ако rename не може през FS, пробваме копиране
             if (!@copy($assembled, $fakeTmp)) {
                 @unlink($assembled);
-                core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качването')));
+                core_App::outputJson(array('ok' => false, 'error' => tr('Грешка при качване')));
             }
             @unlink($assembled);
         }

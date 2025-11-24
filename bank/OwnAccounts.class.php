@@ -467,6 +467,19 @@ class bank_OwnAccounts extends core_Master
         if ($form->isSubmitted()) {
             $form->rec->_isSubmitted = true;
 
+            // При редакция се проверява може ли да се смени валутата
+            if(isset($rec->id)){
+                $exRec = bank_OwnAccounts::fetch($rec->id, '*', false);
+                $bankAccountRec = bank_Accounts::fetch($exRec->bankAccountId);
+
+                if($rec->currencyId != $bankAccountRec->currencyId){
+                    $cBalance = self::getBalanceTo($form->rec->id, $bankAccountRec->currencyId);
+                    if(isset($cBalance->quantity)){
+                        $form->setError('currencyId', 'Не може да бъде сменена валутата след като е имало вече салдо по нея|*!');
+                    }
+                }
+            }
+
             if (empty($rec->bankAccountId)) {
                 $accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
                 
@@ -807,7 +820,7 @@ class bank_OwnAccounts extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = self::fetch($id));
         $this->requireRightFor('convertbgnquantitytoeuro', $rec);
-        if($exchangeRec = self::convertBgnQuantitiesToEuro($id)){
+        if($exchangeRec = self::createBgnExchangeDocument($id)){
             redirect(array('bank_ExchangeDocument', 'single', $exchangeRec->id), false, 'Банковата обмяна на валути е успешно създадена|*!');
         }
 
@@ -821,9 +834,11 @@ class bank_OwnAccounts extends core_Master
      * @param int $id
      * @return stdClass|null $exchangeRec
      */
-    public static function convertBgnQuantitiesToEuro($id)
+    public static function createBgnExchangeDocument($id)
     {
         $rec = self::fetchRec($id);
+
+        // Ако нашата сметка има салдо в BGN ще се създаде БОВ, който ще го конвертира в евро
         $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
         $eurCurrencyId = currency_Currencies::getIdByCode('EUR');
         $bgnBalance = self::getBalanceTo($id, $bgnCurrencyId);
@@ -831,12 +846,12 @@ class bank_OwnAccounts extends core_Master
         if(round($bgnBalanceQuantity, 4) == 0) return null;
 
         $euroQuantity = round(abs($bgnBalanceQuantity) / 1.95583, 2);
-        $today = dt::today();
 
+        $today = dt::today();
         if($bgnBalanceQuantity > 0){
-            $exchangeRec = bank_ExchangeDocument::create($rec->id, $rec->id, $today, $bgnCurrencyId, abs($bgnBalanceQuantity), $eurCurrencyId, $euroQuantity, 'aaaaa');
+            $exchangeRec = bank_ExchangeDocument::create($rec->id, $rec->id, $today, $bgnCurrencyId, abs($bgnBalanceQuantity), $eurCurrencyId, $euroQuantity, 'Изчистване на левово салдо за преминаването в еврозоната');
         } else {
-            $exchangeRec = bank_ExchangeDocument::create($rec->id, $rec->id, $today, $eurCurrencyId, $euroQuantity, $bgnCurrencyId, abs($bgnBalanceQuantity), 'aaaaa');
+            $exchangeRec = bank_ExchangeDocument::create($rec->id, $rec->id, $today, $eurCurrencyId, $euroQuantity, $bgnCurrencyId, abs($bgnBalanceQuantity), 'Изчистване на левово салдо за преминаването в еврозоната');
         }
 
         return $exchangeRec;

@@ -288,9 +288,6 @@ class drdata_Eori extends core_Manager
                             $rArr['city'] = $response[0]->companyDetails->address->cityName;
                         }
                     } else {
-                        if (!is_array($response)) {
-                            wp('Невалиден отговор от HMRC за EORI номер: ' . $eori, $response, $responseJson);
-                        }
                         $res = self::statusInvalid;
                     }
                 }

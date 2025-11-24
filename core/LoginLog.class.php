@@ -220,13 +220,21 @@ class core_LoginLog extends core_Manager
      *
      * @param string $ip
      * @param bool $or
+     * @param string $brid
      *
      * @return bool
      */
-    public static function isLoggedBefore($ip = null, $or = false)
+    public static function isLoggedBefore($ip = null, $or = false, $brid = null)
     {
-        $brid = log_Browsers::getBrid();
-        
+        if (!isset($brid)) {
+            $brid = log_Browsers::getBrid();
+        }
+
+        if (!isset($brid)) {
+
+            return false;
+        }
+
         $query = self::getQuery();
         $query->where(array("#brid = '[#1#]'", $brid));
         

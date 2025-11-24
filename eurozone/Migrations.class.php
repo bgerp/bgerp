@@ -273,6 +273,7 @@ SET
 
         followRetUrl(null, 'Успешно минал тест');
 
+        self::convertBgnAccounts2Euro();
         self::addBgnPayment();
         self::updateCreatedPeriods();
         self::updatePriceLists();
@@ -393,7 +394,7 @@ SET
     {
         requireRole('debug');
 
-        self::updatePriceUpdates();
+        self::convertBgnAccounts2Euro();
     }
 
 
@@ -420,5 +421,27 @@ SET
         $tbl = $Updates->dbTableName;
         $query = "UPDATE `{$tbl}` SET `{$costAddAmountCol}`  = (`{$costAddAmountCol}`  / 1.95583) WHERE `{$costAddAmountCol}` IS NOT NULL";
         $Updates->db->query($query);
+    }
+
+
+    /**
+     * Конвертиране на левовите сметки в еврови
+     */
+    public static function convertBgnAccounts2Euro()
+    {
+        $bQuery = bank_OwnAccounts::getQuery();
+        $bQuery->EXT('currencyId', 'bank_Accounts', "externalName=currencyId,externalKey=bankAccountId");
+        $bQuery->where("#state NOT IN ('closed', 'rejected')");
+        $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+        $bQuery->where("#currencyId = '{$bgnCurrencyId}'");
+        while($bRec = $bQuery->fetch()){
+            if($exChangeRec = bank_OwnAccounts::createBgnExchangeDocument($bRec)){
+                try{
+                    cls::get('bank_ExchangeDocument')->conto($exChangeRec);
+                } catch(acc_journal_RejectRedirect $e){
+                    wp('Проблем при мигриране на салдо', $e, $bRec, $exChangeRec);
+                }
+            }
+        }
     }
 }
