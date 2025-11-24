@@ -72,7 +72,7 @@ class cond_Texts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'body, createdOn,createdOn,createdBy, access, group';
+    public $listFields = 'title, body, createdOn,createdOn,createdBy, access, group';
     
     
     /**
@@ -80,7 +80,7 @@ class cond_Texts extends core_Manager
      */
     public function description()
     {
-        $this->FLD('title', 'varchar(256)', 'caption=Заглавие, oldFieldName = name');
+        $this->FLD('title', 'varchar(256)', 'caption=Име, mandatory');
         $this->FLD('body', 'richtext(rows=10,bucket=Comments, passage)', 'caption=Описание, mandatory');
         $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
         $this->FLD('lang', 'enum(bg,en)', 'caption=Език');
@@ -147,6 +147,12 @@ class cond_Texts extends core_Manager
                         $res = 'no_one';
                     }
                 }
+            }
+        }
+
+        if (Mode::get('dialogOpened')) {
+            if ($action == 'delete') {
+                $res = 'no_one';
             }
         }
     }
@@ -259,7 +265,7 @@ class cond_Texts extends core_Manager
 
         $form->setDefault('author', $cu);
 
-        $form->showFields = 'search,author,langWithAllSelect, group';
+        $form->showFields = 'search, author, group, langWithAllSelect';
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->view = 'vertical';
         $form->class = 'simpleForm';
@@ -304,6 +310,7 @@ class cond_Texts extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
         if (Mode::get('dialogOpened')) {
+
             $callback = Mode::get('callback');
             $str = json_encode($rec->body);
             
@@ -312,7 +319,7 @@ class cond_Texts extends core_Manager
 //            $attr = array('onclick' => "console.log('test');", "class" => "file-log-link");
             $title = ht::createLink($rec->title, '#', false, $attr);
             
-            $string = str_replace(array("\r", "\n"), array('', ' '), $rec->body);
+            $string = str_replace(array("\r", "\n"), array('', ' '), str::limitLen($rec->body, 200));
             
             Mode::push('text', 'plain');
             
@@ -336,5 +343,17 @@ class cond_Texts extends core_Manager
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         $data->listTableMvc->FLD('created', 'varchar', 'tdClass=createdInfo');
+    }
+
+
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     */
+    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+        if (Mode::get('dialogOpened')) {
+            $data->listFields['body'] = $data->listFields['title'];
+            unset($data->listFields['title']);
+        }
     }
 }
