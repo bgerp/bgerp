@@ -444,4 +444,10 @@ SET
             }
         }
     }
+
+    public function act_updatePeriods()
+    {
+        requireRole('debug');
+        self::updateCreatedPeriods();
+    }
 }
