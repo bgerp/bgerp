@@ -160,11 +160,8 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
     private function getCloseEntry($amount, $quantity, $index, &$totalAmount, $docRec, $firstDoc)
     {
         $entry = array();
-        
-        if (round($amount, 2) == 0) {
-            
-            return $entry;
-        }
+        $amount = round($amount, 2);
+        if (empty($amount)) return $entry;
         
         if ($amount < 0) {
             
