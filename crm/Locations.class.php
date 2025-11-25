@@ -376,7 +376,7 @@ class crm_Locations extends core_Master
         if (isset($fields['-single'])) {
             if (isset($rec->image)) {
                 $Fancybox = cls::get('fancybox_Fancybox');
-                $row->image = $Fancybox->getImage($rec->image, array(188, 188), array(580, 580));
+                $row->image = $Fancybox->getImage($rec->image, array(188, 188), array(1200, 800));
             }
             
             if (!$rec->gpsCoords) {
