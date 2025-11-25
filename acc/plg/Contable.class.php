@@ -76,8 +76,10 @@ class acc_plg_Contable extends core_Plugin
             $id = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
             $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+            Mode::push('debugTransaction', true);
             $transaction = $transactionSource->getTransaction($rec);
-            
+            Mode::pop('debugTransaction');
+
             Mode::set('wrapper', 'page_Empty');
             
             $transactionRes = null;
