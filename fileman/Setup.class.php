@@ -149,7 +149,7 @@ defIfNot('FILEMAN_CHUNK_SIZE', 2097152); // 2MB
  * Максимален размер на част от файл при качване
  * 2MB
  */
-defIfNot('FILEMAN_USE_CHUNK_UPLOAD', 'no');
+defIfNot('FILEMAN_USE_CHUNK_UPLOAD', 'yes');
 
 
 /**
@@ -280,8 +280,6 @@ class fileman_Setup extends core_ProtoSetup
         'fileman_import_Base64',
 
         'migrate::fixLastUse2338',
-
-        'migrate::forceChunkUpload2542',
     );
     
     
@@ -494,19 +492,6 @@ class fileman_Setup extends core_ProtoSetup
         $query->show('id');
         while ($rec = $query->fetch()) {
             fileman_Data::updateLastUse($rec->id);
-        }
-    }
-
-
-    /**
-     * Миграция за задаване на качване на части по подразбиране
-     */
-    public static function forceChunkUpload2542()
-    {
-        // Ако няма запис в модела
-        if (defined('BGERP_GIT_BRANCH') && ((BGERP_GIT_BRANCH == 'dev') || (BGERP_GIT_BRANCH == 'test'))) {
-            // Добавяме в записите
-            core_Packs::setConfig('fileman', array('FILEMAN_USE_CHUNK_UPLOAD' => 'yes', 'FILEMAN_CHUNK_SIZE' => 524288));
         }
     }
 }
