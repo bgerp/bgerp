@@ -461,6 +461,13 @@ SET
     }
 
 
+    public function act_updateHrPositions()
+    {
+        requireRole('debug');
+        self::updateHrPositions();
+    }
+
+
     /**
      * Обновяване на сумите на позициите в моята фирма
      * @return void
