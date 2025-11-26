@@ -299,10 +299,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                     //Масив с бързи продажби
                     if (strpos($sale->contoActions, 'pay')) {
-                        $fastSales[$sale->id] = ($sale->amountPaid - $sale->amountVat);
+                        //$fastSales[$sale->id] = ($sale->amountPaid - $sale->amountVat);
+
+                        // Превалутиране за ЕЗ
+                        $sale->amountPaid = deals_Helper::getSmartBaseCurrency($sale->amountPaid, $sale->valior, $rec->checkDate);
+                        $sale->amountVat = deals_Helper::getSmartBaseCurrency($sale->amountVat, $sale->valior, $rec->checkDate);
+                        $fastSales[$sale->id] = $sale->amountPaid - $sale->amountVat;
+
                     }
                 }
-
 
                 //Изваждаме нишките за проверка  са избрани НЕПЛАТЕНИ
                 //Ако са избрани ВСИЧКИ записваме масив $allInvoices със всички фактури
@@ -314,7 +319,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if ($maxTimeLimit > 300) {
                     core_App::setTimeLimit($maxTimeLimit);
                 }
-                //      bp($invQuery->count(),$invQuery->fetchAll());
+
                 while ($salesInvoice = $invQuery->fetch()) {
 
                     //Ако към проформата НЯМА изрично насочени плащания, НЕ Я ВКЛЮЧВАМЕ в справката
@@ -359,35 +364,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                         $paydocs = $invoicePayments[$salesInvoice->containerId];
 
-                        //Намиране на плащанията насочени към ДИ и КИ   if ($salesInvoice->type != 'invoice') {
-                        ////                            $dcPay = array();
-                        ////
-                        ////                            foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay) {
-                        ////
-                        ////                                $q = $Pay::getQuery()->where("#fromContainerId IS NOT NULL AND #fromContainerId = {$salesInvoice->containerId}");
-                        ////
-                        ////                                $q->in('state', array('active', 'closed'));
-                        ////
-                        //////                                foreach ($q->fetchAll() as $key => $val) {
-                        //////
-                        //////                                    //Фактурата към която е издадено ИЗВЕСТИЕТО
-                        //////                                    $originDoc = doc_Containers::getDocument($salesInvoice->originId);
-                        //////
-                        //////                                    $dcPayArrKey = "$Pay" . '/' . "$key";
-                        //////
-                        //////                                    //Масив за изкуствено коригиране на сумите плащани по фактурите. И датите
-                        //////                                    $m = in_array($Pay, array('cash_Pko', 'bank_IncomeDocuments')) ? -1 : 1;
-                        //////                                    $invAdjustmentArr[$originDoc->that] += $val->amountDeal * $m;
-                        //////
-                        //////                                    $dcPay[$dcPayArrKey] = (object)array('amount' => $val->amountDeal,
-                        //////                                        'payDate' => $val->valior,
-                        //////                                    );
-                        //////                                }
-                        ////                            }
-                        ////                        }
-//
                         $subKey = ($InvDoc == 'sales_Proformas') ? 'P' : 'S';
                         $key = $salesInvoice->id . $subKey;
+
+                        // Превалутиране за ЕЗ
+                        $salesInvoice->dealValue = deals_Helper::getSmartBaseCurrency($salesInvoice->dealValue, $sale->date, $rec->checkDate);
+                        $salesInvoice->discountAmount = deals_Helper::getSmartBaseCurrency($salesInvoice->discountAmount, $sale->date, $rec->checkDate);
+                        $salesInvoice->vatAmount = deals_Helper::getSmartBaseCurrency($salesInvoice->vatAmount, $sale->date, $rec->checkDate);
 
                         $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) / $salesInvoice->rate + $salesInvoice->vatAmount;
 
@@ -412,7 +395,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 'type' => $salesInvoice->type,
                                 'payDocuments' => $paydocs->used,
                                 'fastMarker' => $fastMarker,
-                                'invoicePayout' => $paydocs->payout,
+                                'invoicePayout' => deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate),
                                 // 'dcPay' => $dcPay
                             );
                         }
@@ -464,6 +447,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                             //Проверка дали отчетена вече фактура не се повтаря
                             if (in_array($inv, $checkedSInvoices)) continue;
+
+                            // Превалутиране за ЕЗ
+                            $paydocs->amount = deals_Helper::getSmartBaseCurrency($paydocs->amount, $sale->date, $rec->checkDate);
+                            $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $sale->date, $rec->checkDate);
 
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
@@ -559,7 +546,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'currencyId' => $iRec->currencyId,
                                     'rate' => $iRec->rate,
                                     'invoiceValue' => $paydocs->amount,
-                                    'invoiceVAT' => $iRec->vatAmount,
+                                    'invoiceVAT' => deals_Helper::getSmartBaseCurrency($iRec->vatAmount, $iRec->date, $rec->checkDate),
                                     'invoicePayout' => $paydocs->payout,
                                     'type' => $iRec->type,
                                     'fastMarker' => $fastMarker,
@@ -677,6 +664,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all') {
 
+                    // Превалутиране за ЕЗ
+                    $purchaseInvoices->dealValue = deals_Helper::getSmartBaseCurrency($purchaseInvoices->dealValue, $purchaseInvoices->date, $rec->checkDate);
+                    $purchaseInvoices->discountAmount = deals_Helper::getSmartBaseCurrency($purchaseInvoices->discountAmount, $purchaseInvoices->date, $rec->checkDate);
+                    $purchaseInvoices->vatAmount = deals_Helper::getSmartBaseCurrency($purchaseInvoices->vatAmount, $purchaseInvoices->date, $rec->checkDate);
+
                     $invoiceValue = (($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount) / $purchaseInvoices->rate;
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
 
@@ -684,33 +676,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $invoicePayments = (deals_Helper::getInvoicePayments($purchaseInvoices->threadId, $checkDate, false, false));
 
                     $paydocs = $invoicePayments[$purchaseInvoices->containerId];
-
-//                    //Намиране на плащанията насочени към ДИ и КИ
-//                    if ($purchaseInvoices->type != 'invoice') {
-//                        $dcPay = array();
-//                        foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay) {
-//
-//                            $q = $Pay::getQuery()->where("#fromContainerId IS NOT NULL AND #fromContainerId = {$purchaseInvoices->containerId}");
-//
-//                            $q->in('state', array('active', 'closed'));
-//
-////                            foreach ($q->fetchAll() as $key => $val) {
-////
-////                                //Фактурата към която е издадено ИЗВЕСТИЕТО
-////                                $originDoc = doc_Containers::getDocument($purchaseInvoices->originId);
-////
-////                                $dcPayArrKey = "${Pay}" . '/' . "${key}";
-////
-////                                //Масив за изкуствено коригиране на сумите плащани по фактурите. И датите
-////                                $m = in_array($Pay, array('cash_Pko', 'bank_IncomeDocuments')) ? -1 : 1;
-////                                $invAdjustmentArr[$originDoc->that] += $val->amountDeal * $m;
-////
-////                                $dcPay[$dcPayArrKey] = (object)array('amount' => $val->amountDeal,
-////                                    'payDate' => $val->valior,
-////                                );
-////                            }
-//                        }
-//                    }
 
                     // масива с фактурите за показване
                     if (!array_key_exists($purchaseInvoices->id, $pRecsAll)) {
@@ -730,7 +695,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             'contragent' => $purchaseInvoices->contragentName,
                             'type' => $purchaseInvoices->type,
                             'payDocuments' => $paydocs->used,
-                            'invoicePayout' => $paydocs->payout,
+                            'invoicePayout' =>deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate),
                             'fastMarker' => $fastMarker,
                             //'dcPay' => $dcPay
                         );
@@ -797,6 +762,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                             //Проверка дали отчетена вече фактура не се повтаря
                             if (in_array($pInv, $checkedPInvoices)) continue;
+
+                            // Превалутиране за ЕЗ
+                            $paydocs->amount = deals_Helper::getSmartBaseCurrency($paydocs->amount, $sale->date, $rec->checkDate);
+                            $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $sale->date, $rec->checkDate);
 
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
@@ -887,7 +856,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'currencyId' => $iRec->currencyId,
                                     'rate' => $iRec->rate,
                                     'invoiceValue' => $paydocs->amount,
-                                    'invoiceVAT' => $iRec->vatAmount,
+                                    'invoiceVAT' => deals_Helper::getSmartBaseCurrency($iRec->vatAmount, $iRec->date, $rec->checkDate),
                                     'invoicePayout' => $paydocs->payout,
                                     'fastMarker' => $fastMarker,
                                     'invoiceCurrentSumm' => $invDiff,
@@ -1122,7 +1091,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
-        //  if($dRec->invoiceNo != 478)bp($dRec);
+
         if ($dRec->fastMarker == 1) {
 
             $paidAmount = $dRec->invoicePayout * $dRec->rate;
