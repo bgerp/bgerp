@@ -84,7 +84,7 @@ class hr_Payroll extends core_Manager
     {
         // Ключ към мастъра
         $this->FLD('periodId', 'key(mvc=acc_Periods, select=title, where=#state !\\= \\\'closed\\\', allowEmpty=true)', 'caption=Период,tdClass=nowrap');
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Лице,tdClass=nowrap');
+        $this->FLD('personId', 'key2(mvc=crm_Persons,select=name)', 'caption=Лице,tdClass=nowrap');
         $this->FLD('indicators', 'blob(serialize)', 'caption=Индикатори');
         $this->FLD('formula', 'text', 'caption=Формула');
         $this->FLD('salary', 'double', 'caption=Заплата,width=100%');
@@ -119,5 +119,32 @@ class hr_Payroll extends core_Manager
         }
         
         $row->personId = crm_Persons::getHyperlink($rec->personId, true);
+    }
+
+
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->showFields = 'periodId,personId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input();
+
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        if($filter = $data->listFilter->rec){
+            if(!empty($filter->periodId)){
+                $data->query->where("#periodId = {$filter->periodId}");
+                unset($data->listFields['periodId']);
+            }
+
+            if(!empty($filter->personId)){
+                $data->query->where("#personId = {$filter->personId}");
+            }
+        }
+
+        $data->query->orderBy('periodId=DESC,id=ASC');
+
     }
 }
