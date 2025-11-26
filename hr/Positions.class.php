@@ -171,5 +171,13 @@ class hr_Positions extends core_Master
         if ($mvc->haveRightFor('single', $rec)) {
             $row->id = ht::createLink($row->id, array($mvc, 'list', $rec->id));
         }
+
+        if(isset($rec->salaryBase)){
+            $row->salaryBase = currency_Currencies::decorate($rec->salaryBase, null, true);
+        }
+
+        if(isset($rec->compensations)){
+            $row->compensations = currency_Currencies::decorate($rec->compensations, null, true);
+        }
     }
 }

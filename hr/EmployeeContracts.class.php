@@ -187,12 +187,13 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name)', 'caption=Работа->Център,mandatory,autoFilter');
         
         // Позиция в отдела
-        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност,mandatory,autoFilter');
-        
+        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name,allowEmpty)', 'caption=Работа->Длъжност,mandatory,silent,removeAndRefreshForm');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,maxRadio=1)', 'caption=Възнаграждение->Валута,silent,removeAndRefreshForm');
+
         // Възнаграждения
         $this->FLD('salaryBase', 'double(decimals=2)', 'caption=Възнаграждение->Основно');
         $this->FLD('forYearsOfService', 'percent(decimals=2)', 'caption=Възнаграждение->За стаж');
-        $this->FLD('compersations', 'double(decimals=2)', 'caption=Възнаграждение->За вредности');
+        $this->FLD('compensations', 'double(decimals=2)', 'caption=Възнаграждение->За вредности,oldFieldName=compersations');
         $this->FLD('degreePay', 'double(decimals=2)', 'caption=Възнаграждение->За научна степен');
         
         // Срокове
@@ -233,31 +234,42 @@ class hr_EmployeeContracts extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        $rec = $data->form->rec;
-        
-        // Скриваме опцията за номеклатурата
-        //$data->form->fields['lists']->input = "none";
-        
+        $form = &$data->form;
+        $rec = &$data->form->rec;
         $coverClass = doc_Folders::fetchCoverClassName($rec->folderId);
         
         //Полето Служител->Име не може да се променя
         if ('crm_Persons' == $coverClass) {
-            $data->form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
-            $data->form->setReadonly('personId');
+            $form->setDefault('personId', doc_Folders::fetchCoverId($rec->folderId));
+            $form->setReadonly('personId');
         }
         
         // по дефолт слагаме днешна дата
-        $data->form->setDefault('dateId', dt::verbal2mysql());
+        $form->setDefault('dateId', dt::verbal2mysql());
         
         // избор за Управители
         $managers = $mvc->getManagers();
-        $data->form->setOptions('managerId', $managers);
+        $form->setOptions('managerId', $managers);
         
         if (!haveRole('ceo,hr')) {
-            $data->form->setField('numId', 'input=none');
+            $form->setField('numId', 'input=none');
         }
-        
-        $data->form->setDefault('numId', self::getNexNumber());
+
+        $form->setDefault('numId', self::getNexNumber());
+        $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
+
+        if(isset($rec->positionId)) {
+            $positionRec = hr_Positions::fetch($rec->positionId);
+            foreach (array('salaryBase', 'forYearsOfService', 'compensations') as $fld){
+                $placeholder = $positionRec->{$fld};
+                if($fld != 'forYearsOfService'){
+                    $placeholder = currency_CurrencyRates::convertAmount($placeholder, null, null, $rec->currencyId);
+                    $placeholder = round($placeholder, 2);
+                }
+
+                $form->setField($fld, "placeholder={$placeholder}");
+            }
+        }
     }
     
     
@@ -285,10 +297,7 @@ class hr_EmployeeContracts extends core_Master
         $rec = $data->rec;
         
         $row->script = hr_ContractTypes::fetchField($rec->typeId, 'script');
-        
-        //tuk
-        //$row->num = $data->rec->id;
-        
+
         $employeeRec = crm_Persons::fetch($rec->personId);
         
         foreach ($employeeRec as $fld => $value) {
@@ -321,47 +330,47 @@ class hr_EmployeeContracts extends core_Master
         }
         
         // Взимаме данните за Длъжността
-        $position = hr_Positions::recToVerbal(hr_Positions::fetch($rec->positionId, 'name, salaryBase, forYearsOfService, compensations,
-                                                    annualLeave, notice, probation'));
-        
-        
+        $positionRec = hr_Positions::fetch($rec->positionId);
+        $positionRow = hr_Positions::recToVerbal($positionRec);
+
         if ((!$rec->salaryBase || !$rec->forYearsOfService || !$rec->compensations) &&
             (!$rec->annualLeave || !$rec->notice || !$rec->probation)) {
-            
+
             // Професията
-            $row->positionsId = $position->professionId;
-            
-            // Заплатата
-            $row->salaryBase = $position->salaryBase;
+            $row->positionsId = $positionRow->professionId;
+
+            $positionSalaryBase = currency_CurrencyRates::convertAmount($positionRec->salaryBase, null, null, $rec->currencyId);
+            $row->salaryBase = core_Type::getByName('double(decimals=2)')->toVerbal($positionSalaryBase);
             
             // Процент прослужено време
-            $row->forYearsOfService = $position->forYearsOfService;
-            
+            $row->forYearsOfService = $positionRow->forYearsOfService;
+
+            $positionCompensation = currency_CurrencyRates::convertAmount($positionRec->compensations, null, null, $rec->currencyId);
+            $row->compensations = core_Type::getByName('double(decimals=2)')->toVerbal($positionCompensation);
+
             // Заплащане за вредност
-            $row->compensations = $position->compensations;
+            $row->compensations = $positionRow->compensations;
             
             // Годишен отпуск
-            $row->annualLeave = $position->annualLeave;
+            $row->annualLeave = $positionRow->annualLeave;
             
             // Предизвестие
-            $row->notice = $position->notice;
+            $row->notice = $positionRow->notice;
             
             // Изпитателен срок
-            $row->probation = $position->probation;
+            $row->probation = $positionRow->probation;
         }
         
         // Професията
-        $row->positionsId = $position->professionId;
+        $row->positionsId = $positionRow->professionId;
         
         // Период на изплащане на възнаграждението
-        $row->frequensity = $position->frequensity;
-        
-        // Извличане на данните за професията
-        $nkpd = hr_Positions::fetchField($rec->positionId, 'nkpd');
+        $row->frequensity = $positionRow->frequensity;
+
         
         // Национална класификация на професиите и длъжностите
         $row->professionsRec = new stdClass();
-        $row->professionsRec_nkpd = bglocal_NKPD::getTitleById($nkpd);
+        $row->professionsRec_nkpd = bglocal_NKPD::getTitleById($positionRec->nkpd);
         
         // Национална класификация на икономическите дейности
         $row->departmentRec = new stdClass();
@@ -387,7 +396,11 @@ class hr_EmployeeContracts extends core_Master
         
         // Продължителността на договора
         $row->term = (int) $rec->term;
-        
+
+        if(!empty($row->salaryBase)){
+            $row->salaryBase = currency_Currencies::decorate($row->salaryBase, $rec->currencyId, true);
+        }
+
         $res = $data;
     }
     
@@ -430,10 +443,11 @@ class hr_EmployeeContracts extends core_Master
             
             // намираме сечението на останалите полета и полетата от шаблона
             $mandatoryFields = array_intersect($formField, $matches[1]);
-            
+
+            $positionRec = isset($rec->positionId) ? hr_Positions::fetch($rec->positionId) : null;
             foreach ($mandatoryFields as $field) {
                 // Ако имаме непопълнено поле от гореполучения масив
-                if ($rec->$field == null) {
+                if (!isset($rec->{$field}) && !isset($positionRec->{$field})) {
                     // Предупреждамае потребителя
                     $form->setWarning($field, 'Непопълнено поле' . "\n" . '|* <b>|' . $form->fields[$field]->caption . '!' . '|*</b> |');
                 }
@@ -461,13 +475,6 @@ class hr_EmployeeContracts extends core_Master
             if (!$rec->personId) {
                 $rec->personId = self::fetch($rec->id)->personId;
             }
-            
-            // Взимаме запълването до сега
-            $employmentOccupied = hr_Positions::fetchField($position, 'employmentOccupied');
-            
-            // Изчисляваме работното време
-            $houresInSec = self::houresForAWeek($rec->id);
-            $houres = $houresInSec / 60 / 60;
             
             $recPosition = new stdClass();
             $recPosition->id = $position;
@@ -504,9 +511,9 @@ class hr_EmployeeContracts extends core_Master
     public static function on_BeforeRenderSingle($mvc, &$res, $data)
     {
         $row = $data->row;
-        
+
         $lsTpl = cls::get('legalscript_Engine', array('script' => $row->script));
-        
+
         unset($row->script);
         
         $contract = $lsTpl->render($row);

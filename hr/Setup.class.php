@@ -127,6 +127,7 @@ class hr_Setup extends core_ProtoSetup
         'hr_IndicatorFormulas',
         'hr_Shifts',
         'migrate::changeAlternatePersonField',
+        'migrate::updateContracts',
     );
     
     
@@ -216,6 +217,28 @@ class hr_Setup extends core_ProtoSetup
                 $cRec->alternatePersons = type_Keylist::addKey(array(), $cRec->alternatePersons);
                 $cls->save_($cRec, 'alternatePersons');
             }
+        }
+    }
+
+
+    /**
+     * Обновяване на трудовите договори
+     */
+    public static function updateContracts()
+    {
+        $Contracts = cls::get('hr_EmployeeContracts');
+        $Contracts->setupMvc();
+
+        $save = array();
+        $query = $Contracts->getQuery();
+        $query->where("#currencyId IS NULL");
+        while($rec = $query->fetch()) {
+            $rec->currencyId = 'BGN';
+            $save[$rec->id] = $rec;
+        }
+
+        if(countR($save)) {
+            $Contracts->saveArray($save, 'id,currencyId');
         }
     }
 }

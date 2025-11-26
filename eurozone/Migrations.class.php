@@ -272,16 +272,6 @@ SET
         self::$fnc(true);
 
         followRetUrl(null, 'Успешно минал тест');
-
-        self::convertBgnAccounts2Euro();
-        self::addBgnPayment();
-        self::updateCreatedPeriods();
-        self::updatePriceLists();
-        self::updateDeltas();
-        self::updatePurchases();
-        self::updateEshopSettings();
-        self::updatePriceCosts();
-        self::updatePricesByDate();
     }
 
 
@@ -313,6 +303,25 @@ SET
 
         $query = "INSERT INTO {$copyTable} SELECT {$selectFieldsStr} FROM {$originalTable};";
         $Copy->db->query($query);
+    }
+
+
+    /**
+     * Ръчно извикване на всички миграции
+     */
+    public function act_migrateAll()
+    {
+        requireRole('debug');
+        self::convertBgnAccounts2Euro();
+        self::addBgnPayment();
+        self::updateCreatedPeriods();
+        self::updatePriceLists();
+        self::updateDeltas();
+        self::updatePurchases();
+        self::updateEshopSettings();
+        self::updatePriceCosts();
+        self::updatePricesByDate();
+        self::updateHrPositions();
     }
 
 
@@ -449,5 +458,29 @@ SET
     {
         requireRole('debug');
         self::updateCreatedPeriods();
+    }
+
+
+    /**
+     * Обновяване на сумите на позициите в моята фирма
+     * @return void
+     */
+    public function updateHrPositions()
+    {
+        $Positions = cls::get('hr_Positions');
+
+        $query = $Positions->getQuery();
+        $query->where("#salaryBase IS NOT NULL || #compensations IS NOT NULL");
+        while($rec = $query->fetch()) {
+            if(isset($rec->salaryBase)) {
+                $rec->salaryBase = round($rec->salaryBase / 1.95583, 2);
+            }
+
+            if(isset($rec->compensations)) {
+                $rec->compensations = round($rec->compensations / 1.95583, 2);
+            }
+
+            $Positions->save($rec, 'salaryBase,compensations');
+        }
     }
 }
