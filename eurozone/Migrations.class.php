@@ -406,6 +406,12 @@ SET
         self::convertBgnAccounts2Euro();
     }
 
+    function act_Test3()
+    {
+        requireRole('debug');
+
+        self::addBgnPayment();
+    }
 
     /**
      * Добавя безналичен метод за плащане - ЛЕВА
