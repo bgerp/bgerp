@@ -490,16 +490,5 @@ SET
 
             $Positions->save($rec, 'salaryBase,compensations');
         }
-
-        foreach (array('hr_Deductions', 'hr_Bonuses') as $cls){
-            $Class = cls::get($cls);
-            $Class->setupMvc();
-
-            $currencyIdCol = str::phpToMysqlName('currencyId');
-            $tbl = $Class->dbTableName;
-
-            $query = "UPDATE `{$tbl}` SET `{$currencyIdCol}` = 'BGN' WHERE `{$currencyIdCol}` IS NULL";
-            $Class->db->query($query);
-        }
     }
 }

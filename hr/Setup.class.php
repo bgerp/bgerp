@@ -85,7 +85,7 @@ class hr_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Човешки ресурси';
+    public $info = 'Управление на човешките ресурси';
     
     
     /**
@@ -127,7 +127,8 @@ class hr_Setup extends core_ProtoSetup
         'hr_IndicatorFormulas',
         'hr_Shifts',
         'migrate::changeAlternatePersonField',
-        'migrate::updateContracts',
+        'migrate::updateContracts2548',
+        'migrate::updateBonusesAndDeductions2548',
     );
     
     
@@ -224,7 +225,7 @@ class hr_Setup extends core_ProtoSetup
     /**
      * Обновяване на трудовите договори
      */
-    public static function updateContracts()
+    public static function updateContracts2548()
     {
         $Contracts = cls::get('hr_EmployeeContracts');
         $Contracts->setupMvc();
@@ -239,6 +240,23 @@ class hr_Setup extends core_ProtoSetup
 
         if(countR($save)) {
             $Contracts->saveArray($save, 'id,currencyId');
+        }
+    }
+
+    /**
+     * Обновяване на бонусите и удръжките
+     */
+    public function updateBonusesAndDeductions2548()
+    {
+        foreach (array('hr_Deductions', 'hr_Bonuses') as $cls){
+            $Class = cls::get($cls);
+            $Class->setupMvc();
+
+            $currencyIdCol = str::phpToMysqlName('currencyId');
+            $tbl = $Class->dbTableName;
+
+            $query = "UPDATE `{$tbl}` SET `{$currencyIdCol}` = 'BGN' WHERE `{$currencyIdCol}` IS NULL";
+            $Class->db->query($query);
         }
     }
 }
