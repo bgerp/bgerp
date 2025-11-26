@@ -297,8 +297,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             //Превалутиране на сумите
             $recPrime->sellCost1 = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, $recPrime->valior, $rec->to);
 
-            if($recPrime->sellCost)bp($recPrime,$recPrime->sellCost1,$recPrime->sellCost,$recPrime->valior, $rec->to);
-
             $recPrime->autoDiscountAmount = deals_Helper::getSmartBaseCurrency($recPrime->autoDiscountAmount, $recPrime->valior, $rec->to);
             $recPrime->sellCostWithOriginalDiscount = deals_Helper::getSmartBaseCurrency($recPrime->sellCostWithOriginalDiscount, $recPrime->valior, $rec->to);
             $recPrime->primeCost = deals_Helper::getSmartBaseCurrency($recPrime->primeCost, $recPrime->valior, $rec->to);
