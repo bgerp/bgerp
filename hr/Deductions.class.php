@@ -39,7 +39,7 @@ class hr_Deductions extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_State, plg_SaveAndNew, doc_plg_TransferDoc, bgerp_plg_Blank,plg_Sorting, 
-    				 doc_DocumentPlg, doc_ActivatePlg,hr_Wrapper,acc_plg_DocumentSummary';
+    				 doc_DocumentPlg, doc_ActivatePlg,hr_Wrapper,acc_plg_DocumentSummary, deals_plg_SaveValiorOnActivation';
     
     
     /**
@@ -93,7 +93,7 @@ class hr_Deductions extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'personId,date, type, title';
+    public $searchFields = 'personId,date,type';
     
     
     /**
@@ -130,6 +130,11 @@ class hr_Deductions extends core_Master
      * За плъгина acc_plg_DocumentSummary
      */
     public $filterFieldDateFrom = 'date';
+
+
+    /**
+     * За плъгина acc_plg_DocumentSummary
+     */
     public $filterFieldDateTo = 'date';
     
     
@@ -137,27 +142,24 @@ class hr_Deductions extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, date,modifiedOn';
-    
-    
+
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $valiorFld = 'date';
+
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('date', 'date', 'caption=Дата,oldFieldName=periodId');
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
-        $this->FLD('type', 'richtext(bucket=Notes)', 'caption=Произход на удръжката');
-        $this->FLD('sum', 'double', 'caption=Сума,mandatory');
-        $this->FNC('title', 'varchar', 'column=none');
-    }
-    
-    
-    /**
-     * Изчисление на title
-     */
-    protected static function on_CalcTitle($mvc, $rec)
-    {
-        $rec->title = "Удръжка  №{$rec->id}";
+        $this->FLD('date', 'date', 'caption=Дата');
+        $this->FLD('personId', 'key2(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител,mandatory');
+        $this->FLD('type', 'richtext(bucket=Notes)', 'caption=Основание,mandatory');
+        $this->FLD('sum', 'double(Min=0,decimals=2)', 'caption=Сума,mandatory');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,maxRadio=1)', 'caption=Валута,silent,removeAndRefreshForm');
     }
     
     
@@ -175,14 +177,9 @@ class hr_Deductions extends core_Master
             $name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
             $row->personId = ht::createLink($name, array('crm_Persons', 'single', 'id' => $rec->personId), null, 'ef_icon = img/16/vcard.png');
         }
-        
-        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-        $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
-        
-        if ($rec->sum) {
-            $row->sum = $Double->toVerbal($rec->sum);
-            $row->sum .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
-        }
+
+        $row->sum = currency_Currencies::decorate($row->sum, $rec->currencyId, true);
+        $row->title = $mvc->getLink($rec->id, 0);
     }
     
     
@@ -195,6 +192,7 @@ class hr_Deductions extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $data->listFilter->setFieldTypeParams('personId', array('allowEmpty' => 'allowEmpty', 'groups' => keylist::addKey('', crm_Groups::getIdFromSysId('employees'))));
         $data->listFilter->showFields = 'personId,date';
         $data->listFilter->view = 'vertical';
         $data->listFilter->input('personId, date', 'silent');
@@ -237,13 +235,16 @@ class hr_Deductions extends core_Master
         if($iRec->state == 'closed') return $result;
 
         while ($rec = $query->fetch()) {
+            $periodRec = acc_Periods::fetchByDate($rec->date);
+            $periodCurrencyCode = currency_Currencies::getCodeById($periodRec->baseCurrencyId);
+
             $result[] = (object) array(
                 'date' => $rec->date,
                 'personId' => $rec->personId,
                 'docId' => $rec->id,
                 'docClass' => core_Classes::getId('hr_Deductions'),
                 'indicatorId' => $iRec->id,
-                'value' => $rec->sum,
+                'value' => currency_CurrencyRates::convertAmount($rec->sum, $rec->date, $rec->currencyId, $periodCurrencyCode),
                 'isRejected' => $rec->state == 'rejected',
             );
         }
@@ -335,7 +336,8 @@ class hr_Deductions extends core_Master
         $row->authorId = $rec->createdBy;
         
         $row->recTitle = $this->getRecTitle($rec, false);
-        
+        $row->subTitle = crm_Persons::getTitleById($rec->personId);
+
         return $row;
     }
     
@@ -350,5 +352,18 @@ class hr_Deductions extends core_Master
         $title = tr('Удръжка  №|*'. $rec->id . ' за|* ') . $me->getVerbal($rec, 'personId');
         
         return $title;
+    }
+
+    /**
+     * Модифициране на edit формата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+        $form = &$data->form;
+        $form->setFieldTypeParams('personId', array('groups' => keylist::addKey('', crm_Groups::getIdFromSysId('employees'))));
     }
 }

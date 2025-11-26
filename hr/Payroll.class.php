@@ -87,7 +87,7 @@ class hr_Payroll extends core_Manager
         $this->FLD('personId', 'key2(mvc=crm_Persons,select=name)', 'caption=Лице,tdClass=nowrap');
         $this->FLD('indicators', 'blob(serialize)', 'caption=Индикатори');
         $this->FLD('formula', 'text', 'caption=Формула');
-        $this->FLD('salary', 'double', 'caption=Заплата,width=100%');
+        $this->FLD('salary', 'double(decimals=2)', 'caption=Заплата,width=100%');
         $this->FLD('status', 'varchar', 'caption=Статус,mandatory');
         
         $this->setDbUnique('periodId,personId');
@@ -117,8 +117,12 @@ class hr_Payroll extends core_Manager
         if (!empty($rec->status)) {
             $row->data .= "<div>{$rec->status}</div>";
         }
-        
+
+        $periodCurrency = currency_Currencies::getCodeById(acc_Periods::fetchField($rec->periodId, 'baseCurrencyId'));
         $row->personId = crm_Persons::getHyperlink($rec->personId, true);
+
+        $row->salary = currency_Currencies::decorate($row->salary, $periodCurrency, true);
+        $row->salary = ht::styleNumber($row->salary, $rec->salary);
     }
 
 
