@@ -190,7 +190,7 @@ class transsrv_Import extends core_BaseClass
         
         $purQuery = purchase_Purchases::getQuery();
         $purQuery->where("#folderId = '{$folderId}'");
-        $purQuery->where("#chargeVat = '{$chargeVat}'");
+        $purQuery->where("#chargeVat = '{$chargeVat}' AND #currencyId = '{$data->currencyId}'");
         $purQuery->where("#state = 'draft'");
         $purQuery->orderBy('valior', 'DESC');
         $purQuery->show('id');
