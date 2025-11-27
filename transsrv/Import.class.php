@@ -107,13 +107,14 @@ class transsrv_Import extends core_BaseClass
             
             // Добавя транспортната услуга към покупката
             if ($purchaseId) {
-                $purRec = purchase_Purchases::fetch($purchaseId, 'threadId,containerId');
+                $purRec = purchase_Purchases::fetch($purchaseId, 'threadId,containerId,valior');
                 doc_ThreadUsers::addShared($purRec->threadId, $purRec->containerId, core_Users::getCurrent());
                 
                 $data->fromCountry = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $data->fromCountry), 'id');
                 $data->toCountry = drdata_Countries::fetchField(array("#commonName = '[#1#]'", $data->toCountry), 'id');
                 
                 core_Request::setProtected('d');
+                $data->price = currency_CurrencyRates::convertAmount($data->price, $purRec->valior, $data->currencyId, null);
                 redirect(array('purchase_PurchasesDetails', 'CreateProduct', 'requestId' => $purchaseId, 'innerClass' => transsrv_ProductDrv::getClassId(), 'd' => $data, 'ret_url' => purchase_Purchases::getSingleUrlArray($purchaseId)));
             }
         } catch (core_exception_Expect $e) {
@@ -173,7 +174,7 @@ class transsrv_Import extends core_BaseClass
         $toCountryId = drdata_Countries::fetchField("#commonName = '{$data->toCountry}'");
         $fromEu = drdata_Countries::isEu($fromCountryId);
         $toEu = drdata_Countries::isEu($toCountryId);
-        
+
         /*
     	 * Натоварване - разтоварване
     	 * България - България - 20% ДДС
@@ -201,7 +202,7 @@ class transsrv_Import extends core_BaseClass
         }
         
         $Cover = doc_Folders::getCover($folderId);
-        $options = array('template' => doc_TplManager::fetchField("#name = 'Заявка за транспорт'", 'id'), 'chargeVat' => $chargeVat);
+        $options = array('template' => doc_TplManager::fetchField("#name = 'Заявка за транспорт'", 'id'), 'chargeVat' => $chargeVat, 'currencyId' => $data->currencyId);
         $purchaseId = purchase_Purchases::createNewDraft($Cover->getClassId(), $Cover->that, $options);
         
         $handle = purchase_Purchases::getHandle($purchaseId);
