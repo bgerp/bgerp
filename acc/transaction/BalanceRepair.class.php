@@ -130,9 +130,6 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                 }
             }
 
-
-
-
             // Ако не са продължаваме
             if ($continue) {
                 continue;
@@ -141,32 +138,35 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
             // Ако има поне едно перо
             if (!empty($bRec->ent1Id) || !empty($bRec->ent2Id) || !empty($bRec->ent3Id)) {
 
-                // Проверяваме всички пера
-                $continue = true;
+                if($dRec->repairAll != 'yes'){
 
-                foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent) {
-                    if (!empty($bRec->{$ent})) {
+                    // Проверяваме всички пера
+                    $continue = true;
 
-                        // Ако има поне едно затворено, и то е затворено преди края на периода
-                        if ($itemsArr['items'][$bRec->{$ent}]->state == 'closed') {
-                            $jQuery = acc_JournalDetails::getQuery();
-                            acc_JournalDetails::filterQuery($jQuery, null, dt::now(), $bRec->accountNum, $bRec->{$ent});
-                            $jQuery->XPR('maxValior', 'date', 'MAX(#valior)');
-                            $jQuery->limit(1);
-                            $jQuery->show('maxValior');
-                            $maxValior = $jQuery->fetch()->maxValior;
+                    foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent) {
+                        if (!empty($bRec->{$ent})) {
 
-                            if($maxValior <= $periodRec->end){
-                                $continue = false;
-                                break;
+                            // Ако има поне едно затворено, и то е затворено преди края на периода
+                            if ($itemsArr['items'][$bRec->{$ent}]->state == 'closed') {
+                                $jQuery = acc_JournalDetails::getQuery();
+                                acc_JournalDetails::filterQuery($jQuery, null, dt::now(), $bRec->accountNum, $bRec->{$ent});
+                                $jQuery->XPR('maxValior', 'date', 'MAX(#valior)');
+                                $jQuery->limit(1);
+                                $jQuery->show('maxValior');
+                                $maxValior = $jQuery->fetch()->maxValior;
+
+                                if($maxValior <= $periodRec->end){
+                                    $continue = false;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
 
-                // Ако всички пера са отворени продължаваме без да правим нищо
-                if ($continue) {
-                    continue;
+                    // Ако всички пера са отворени продължаваме без да правим нищо
+                    if ($continue) {
+                        continue;
+                    }
                 }
             }
 
