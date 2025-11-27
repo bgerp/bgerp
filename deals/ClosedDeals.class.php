@@ -421,7 +421,7 @@ abstract class deals_ClosedDeals extends core_Master
             $DocClass->save($firstRec, 'modifiedOn,modifiedBy,state,closedOn');
             $DocClass->logWrite('Приключено с документ за приключване', $firstRec->id);
             if (empty($saveFields)) {
-                $rec->amount = $mvc->getClosedDealAmount($rec);
+                $rec->amount = $mvc->getLiveAmount($rec);
                 $mvc->save($rec, 'amount');
             }
 
@@ -801,28 +801,6 @@ abstract class deals_ClosedDeals extends core_Master
 
         // и връщаме намерената дата
         return $date;
-    }
-
-
-    /**
-     * Връща разликата с която ще се приключи сделката
-     *
-     * @param mixed $threadId - ид на нишката или core_ObjectReference
-     *                        към първия документ в нишката
-     *
-     * @return float $amount - разликата на платеното и експедираното
-     */
-    protected function getClosedDealAmount($rec)
-    {
-        $rec = $this->fetchRec($rec);
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
-
-        $cost = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['debit'], 'debit', null, array(), array(), $rec->valior)->amount;
-        $inc = acc_Balances::getBlAmounts($jRecs, $this->incomeAndCostAccounts['credit'], 'credit', null, array(), array(), $rec->valior)->amount;
-
-        // Разликата между платеното и доставеното
-        return $inc - $cost;
     }
 
 

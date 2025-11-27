@@ -1,35 +1,79 @@
 <div class="singleView">
     [#SingleToolbar#]
-    <h2>
-        <div style="padding: 5px;" class="state [#STATE_CLASS#]">Длъжност <b style="color:green;">[#name#]</b></div>
-    </h2>
-    <table class="styled-table" style="width: 100%">
-        <tr>
-            <td class="title-style"> №</td>
-            <td>[#id#]</td>
-        </tr>
-        <tr>
-            <td class="title-style">Наименование</td>
-            <td>[#name#]</td>
-        </tr>
-        <!--ET_BEGIN nkpd-->
-        <tr>
-            <td class="title-style">НКПД</td>
-            <td>[#nkpd#]</td>
-        </tr>
-        <!--ET_END nkpd-->
+    <div class="info-table">
+
+        <h2 style="line-height:30px" class=" [#STATE_CLASS#]">Длъжност: [#name#]</h2>
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Характеристика|*</legend>
+            <ul>
+                <!--ET_BEGIN nkpd-->
+                <li class="info">
+                    <span class="gray-title">|Номер по НКПД|*: </span> [#nkpd#]
+                </li>
+                <!--ET_END nkpd-->
+                <!--ET_BEGIN probation-->
+                <li class="info">
+                    <span class="gray-title">|Изпитателен срок|*: </span> [#probation#]
+                </li>
+                <!--ET_END probation-->
+                <!--ET_BEGIN annualLeave-->
+                <li class="info">
+                    <span class="gray-title">|Годишен отпуск|*: </span> [#annualLeave#]
+                </li>
+                <!--ET_END annualLeave-->
+                <!--ET_BEGIN notice-->
+                <li class="info">
+                    <span class="gray-title">|Предизвестие|*: </span> [#notice#]
+                </li>
+                <!--ET_END notice-->
+                <li class="info">
+                    <span class="gray-title">|Създаване|*: </span> [#createdOn#] |от|* [#createdBy#]
+                </li>
+            </ul>
+        </fieldset>
         <!--ET_BEGIN descriptions-->
-        <tr>
-            <td class="title-style">Характеристика</td>
-            <td>[#descriptions#]</td>
-        </tr>
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Описание|*</legend>
+            [#descriptions#]
+        </fieldset>
         <!--ET_END descriptions-->
-        <!--ET_BEGIN employersCnt-->
-        <tr>
-            <td class="title-style">Служители</td>
-            <td>[#employersCnt#]</td>
-        </tr>
-        <!--ET_END employersCnt-->
-    </table>
-    <div><span class="title-style">Създаване: </span> от [#createdBy#] на [#createdOn#]</div>
+        <!--ET_BEGIN SALARY-->
+        [#SALARY#]
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Възнаграждаване|*</legend>
+            <ul>
+                <!--ET_BEGIN salaryBase-->
+                <li class="info">
+                    <span class="gray-title">|Основно|*: </span> [#salaryBase#]
+                </li>
+                <!--ET_END salaryBase-->
+                <!--ET_BEGIN forYearsOfService-->
+                <li class="info">
+                    <span class="gray-title">|За стаж|*: </span> [#forYearsOfService#]
+                </li>
+                <!--ET_END forYearsOfService-->
+                <!--ET_BEGIN compensations-->
+                <li class="info">
+                    <span class="gray-title">|За вредности|*: </span> [#compensations#]
+                </li>
+                <!--ET_END compensations-->
+                <!--ET_BEGIN frequensity-->
+                <li class="info">
+                    <span class="gray-title">|Периодичност|*: </span> [#frequensity#]
+                </li>
+                <!--ET_END frequensity-->
+                <!--ET_BEGIN downpayment-->
+                <li class="info">
+                    <span class="gray-title">|Аванс|*: </span> [#downpayment#]
+                </li>
+                <!--ET_END downpayment-->
+                <!--ET_BEGIN formula-->
+                <li class="info">
+                    <span class="gray-title">|Формула|*: </span> [#formula#]
+                </li>
+                <!--ET_END formula-->
+            </ul>
+        </fieldset>
+        <!--ET_END SALARY-->
+    </div>
 </div>

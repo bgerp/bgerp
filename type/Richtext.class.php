@@ -92,7 +92,7 @@ class type_Richtext extends type_Blob
             unset($params['params']['compress']);
         }
 
-        setIfNot($params['rolesForTagCheck'], 'powerUser');
+        setIfNot($params['rolesForTagCheck'], 'no_one');
 
         setIfNot($this->viewrows, $params['params']['viewrows'], $params['viewrows'], 6);
         
@@ -1745,7 +1745,7 @@ class type_Richtext extends type_Blob
 
 
     /**
-     * Проверка за валидност на VAT номер
+     * Проверка за валидност на полето
      *
      * Ако проверката е неуспешна - връща само предупреждение
      */

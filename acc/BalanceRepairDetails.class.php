@@ -43,7 +43,7 @@ class acc_BalanceRepairDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'accountId, blQuantity=Поправка на количеството->Салдо под, blRoundQuantity=Поправка на количеството->Закръгляне, blAmount=Поправка на сумата->Салдо под, blRoundAmount=Поправка на сумата->Закръгляне';
+    public $listFields = 'accountId, repairAll=Поправка на,blQuantity=Поправка на количеството->Салдо под, blRoundQuantity=Поправка на количеството->Закръгляне, blAmount=Поправка на сумата->Салдо под, blRoundAmount=Поправка на сумата->Закръгляне';
 
 
     /**
@@ -110,11 +110,14 @@ class acc_BalanceRepairDetails extends doc_Detail
         $this->FLD('repairId', 'key(mvc=acc_BalanceRepairs)', 'column=none,input=hidden,silent,mandatory');
         $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory');
         $this->FLD('reason', 'varchar', 'caption=Информация');
+        $this->FLD('repairAll', 'enum(yes=Всички,no=Само тези с поне едно затворено перо)', 'caption=Поправка на->Избор,notNull,value=no');
+
         $this->FLD('blRoundQuantity', 'enum(,1,2,3,4,5)', 'caption=Поправка на стойността на количеството->Закръгляне,silent,removeAndRefreshForm=blQuantity');
         $this->FLD('blQuantity', 'double', 'caption=Поправка на стойността на количеството->Зануляване на крайно салдо');
         $this->FLD('blRoundAmount', 'enum(,1,2,3,4,5)', 'caption=Поправка на стойността на сумата->Закръгляне,silent,removeAndRefreshForm=blAmount');
         $this->FLD('blAmount', 'double', 'caption=Поправка на стойността на сумата->Зануляване на крайно салдо');
-        
+
+
         $this->setDbUnique('repairId,accountId');
     }
 

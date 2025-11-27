@@ -63,7 +63,8 @@ class hr_Sickdays extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'startDate,toDate,fitNoteFile,fitNoteNum,fitNoteDate,paidByEmployer,paidByHI,note';
+    public $changableFields = 'startDate,toDate, fitKind,fitType,fitNoteFile,fitNoteNum,fitNoteDate,fitNoteFile,reason,icdCode,
+                               treatment,paidByEmployer,paidByHI,note';
 
     
     /**
@@ -197,7 +198,7 @@ class hr_Sickdays extends core_Master
         $this->FLD('fitType', 'enum(first=Първичен, continued=Продължение)', 'caption=Болничен лист->Вид, maxRadio=2,columns=2,notNull,value=first');
         $this->FLD('fitNoteDate', 'date', 'caption=Болничен лист->Издаден на,after=icdCode, changable');
         $this->FLD('fitNoteFile', 'fileman_FileType(bucket=humanResources)', 'caption=Болничен лист->Файл,after=icdCode');
-        $this->FLD('reason', 'enum(1=общо заболяване,
+        $this->FLD('reason', 'enum(,1=общо заболяване,
                                     2=професионална болест,
                                     4=злополука – трудова по чл. 55 ал.1 от КСО,
                                     5=злополука – трудова по чл. 55 ал.2 от КСО,
@@ -222,7 +223,7 @@ class hr_Sickdays extends core_Master
                                     24=санаторно-курортно лечение поради професионална болест,
                                     25=придружаване на дете до 3-годишна възраст в болнично заведение,
                                     26=придружаване и гледане на дете до 18-годишна възраст,
-                                    27=придружаване и гледане на болен над 18-годишна възраст)', 'caption=Болничен лист->Причина');
+                                    27=придружаване и гледане на болен над 18-годишна възраст)', 'caption=Болничен лист->Причина,placeholder=Изберете');
         $this->FLD('treatment', 'enum(,1=болничен,
                                         2=санаторно-курортен,
                                         3=домашен-стаен,
@@ -239,7 +240,6 @@ class hr_Sickdays extends core_Master
         $this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=hidden, changable');
         $this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=hidden,changable');
         $this->FNC('title', 'varchar', 'column=none');
-        
         
         $this->FLD('sharedUsers', 'userList(roles=hrSickdays|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }

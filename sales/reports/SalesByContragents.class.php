@@ -293,6 +293,15 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $unicartLast = $salesArrLast = array();
 
         while ($recPrime = $query->fetch()) {
+
+            //Превалутиране на сумите
+            $recPrime->sellCost1 = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, $recPrime->valior, $rec->to);
+
+            $recPrime->autoDiscountAmount = deals_Helper::getSmartBaseCurrency($recPrime->autoDiscountAmount, $recPrime->valior, $rec->to);
+            $recPrime->sellCostWithOriginalDiscount = deals_Helper::getSmartBaseCurrency($recPrime->sellCostWithOriginalDiscount, $recPrime->valior, $rec->to);
+            $recPrime->primeCost = deals_Helper::getSmartBaseCurrency($recPrime->primeCost, $recPrime->valior, $rec->to);
+            $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+
             $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
             $contragentId = $contragentClassId = $contragentClassName = 0;
             $detClassName = $masterClassName = $masterKey = $contragentGroups = 0;
@@ -356,8 +365,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $id = $recPrime->folderId;
 
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
+
                 if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+
                         $sellValuePrevious = (-1) * $recPrime->sellCost * $recPrime->quantity;
                         $deltaPrevious = (-1) * $recPrime->delta;
                     } else {
@@ -395,6 +406,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             if ($rec->compare == 'year') {
                 if ($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear) {
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+
                         $sellValueLastYear = (-1) * $recPrime->sellCost * $recPrime->quantity;
                         $deltaLastYear = (-1) * $recPrime->delta;
                     } else {
@@ -985,6 +997,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                                     <div class='small'>
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN currency--><div>|Валута|*: [#currency#]</div><!--ET_END currency-->
                                         <!--ET_BEGIN firstMonth--><div>|Месец 1|*: [#firstMonth#]</div><!--ET_END firstMonth-->
                                         <!--ET_BEGIN secondMonth--><div>|Месец 2|*: [#secondMonth#]</div><!--ET_END secondMonth-->
                                         <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
@@ -1043,6 +1056,19 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
                 $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
             }
+
+            //Валута
+            $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->to);
+
+//                $currency = currency_Currencies::getCodeById($data->rec->currency);
+//                if ($currency == $baseCurrency) {
+//                    $currency = $baseCurrency . ' (основна)';
+//                }
+//                $fieldTpl->append('<b>' . $currency . '</b>', 'currency');
+
+
+                $fieldTpl->append('<b>' . $baseCurrency . ' (основна)' . '</b>', 'currency');
+
 
             $marker = 0;
 
