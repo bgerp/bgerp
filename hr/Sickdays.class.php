@@ -63,7 +63,8 @@ class hr_Sickdays extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'startDate,toDate,fitNoteFile,fitNoteNum,fitNoteDate,paidByEmployer,paidByHI,note';
+    public $changableFields = 'startDate,toDate, fitKind,fitType,fitNoteFile,fitNoteNum,fitNoteDate,fitNoteFile,reason,icdCode,
+                               treatment,paidByEmployer,paidByHI,note';
 
     
     /**
@@ -239,7 +240,6 @@ class hr_Sickdays extends core_Master
         $this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=hidden, changable');
         $this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=hidden,changable');
         $this->FNC('title', 'varchar', 'column=none');
-        
         
         $this->FLD('sharedUsers', 'userList(roles=hrSickdays|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
