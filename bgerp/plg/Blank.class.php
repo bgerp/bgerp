@@ -219,14 +219,20 @@ class bgerp_plg_Blank extends core_Plugin
             $form->FNC('useBlank', 'enum(yes=Да,no=Не)', 'caption=Бланка, silent, input');
             $form->addAttr('useBlank', array('onchange' => 'this.form.submit();'));
 
-            $form->setDefault('useBlank', 'yes');
+            // Гледа се от кеша дали има записан избор за този потребител
+            $cu = core_Users::getCurrent();
+            setIfNot($mvc->defaultPrintingBlankMode, 'yes');
+            $lastPrintedBlank = core_Permanent::get("printBlank_{$mvc->className}_{$cu}");
+            $lastPrintedBlank = $lastPrintedBlank ?? $mvc->defaultPrintingBlankMode;
+
+            $form->setDefault('useBlank', $lastPrintedBlank);
             $form->input();
 
-            if ($form->isSubmitted()) {
-                if ($form->rec->useBlank == 'no') {
-                    Mode::set('noBlank', true);
-                }
+            if ($form->rec->useBlank == 'no') {
+                Mode::set('noBlank', true);
             }
+
+            core_Permanent::set("printBlank_{$mvc->className}_{$cu}", $form->rec->useBlank, core_Permanent::FOREVER_VALUE);
 
             Mode::push('forcePrinting', true);
             $data->_selectTplForm = $form->renderHtml();

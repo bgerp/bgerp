@@ -52,7 +52,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, cat_plg_LogPackUsage, doc_DocumentPlg, doc_plg_Tabs, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, support_plg_IssueSource, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, cat_plg_LogPackUsage, doc_DocumentPlg, doc_plg_Tabs, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, support_plg_IssueSource, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_SaveAndNew, bgerp_plg_Blank';
     
     
     /**
@@ -232,6 +232,18 @@ class planning_Jobs extends core_Master
      * @see acc_plg_DocumentSummary
      */
     public $filterAllowState = false;
+
+
+    /**
+     * Дали при печат да може да се избира да се печата С/без фирмена бланка
+     */
+    public $allowPrintingWithoutBlank = true;
+
+
+    /**
+     * Какъв да е дефолтния избор за печат на фирмена бланка
+     */
+    public $defaultPrintingBlankMode = 'no';
 
 
     /**
