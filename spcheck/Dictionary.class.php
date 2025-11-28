@@ -264,6 +264,12 @@ class spcheck_Dictionary extends core_Manager
                     $check = false;
                 }
             }
+
+            if ($check) {
+                if ($lastTag == '<style>') {
+                    $check = false;
+                }
+            }
         }
         
         // Игнорираме думи, които отговарят на шаблоните ни
