@@ -541,15 +541,17 @@ class trans_Lines extends core_Master
             $isStoreDocument = $Document->haveInterface('store_iface_DocumentIntf');
 
             if (!$isStoreDocument) {
-                if ($transInfo['baseAmount'] < 0) {
+                $toBaseAmount = currency_CurrencyRates::convertAmount($transInfo['baseAmount'], null, $transInfo['currencyId']);
+
+                if ($toBaseAmount < 0) {
                     if($dRec->containerState == 'active'){
-                        $amountReturned += $transInfo['baseAmount'];
+                        $amountReturned += $toBaseAmount;
                     }
                 } else {
                     if($dRec->containerState == 'active'){
-                        $amount += $transInfo['baseAmount'];
+                        $amount += $toBaseAmount;
                     }
-                    $amountExpected += $transInfo['baseAmount'];
+                    $amountExpected += $toBaseAmount;
                 }
             }
 
