@@ -2820,10 +2820,13 @@ max-width: 400px;
 	margin-top: 3px;
 }
 
-.shortTime {
+ .shortTime {
 	white-space: wrap !important;
-	width: 70px !important;
 }
+ .planning_Tasks .shortTime {
+   width: 70px !important;
+ }
+ 
 .boldText {
 	font-weight: bold;
 }
@@ -6863,7 +6866,9 @@ div.location.public {
 .favouritesBtn.linkWithIcon:hover {
 	cursor: pointer;
 }
-
+.narrow .toolbar .toggleListFilterBtn {
+	padding-left: 25px !important;
+}
 #all .hasLogoutBlock .cms-row ,.hasLogoutBlock .centerContent {
 	padding-top: 30px;
 }

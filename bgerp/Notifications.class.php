@@ -1762,8 +1762,11 @@ class bgerp_Notifications extends core_Manager
             // Ако е събскрайбнато от външния изглед на партньор да се подава и кой е избрания таб
             $url['externalTab'] = Mode::get('currentExternalTab');
         }
-        core_Ajax::subscribe($tpl, $url, 'notificationsCnt', 5000);
-        
+
+        if (core_Users::getCurrent()) {
+            core_Ajax::subscribe($tpl, $url, 'notificationsCnt', 5000);
+        }
+
         return $tpl;
     }
     

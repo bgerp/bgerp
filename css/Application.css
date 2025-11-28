@@ -2436,7 +2436,9 @@ pre.document {
   margin-top: 3px; }
 
 .shortTime {
-  white-space: wrap !important;
+  white-space: wrap !important; }
+
+.planning_Tasks .shortTime {
   width: 70px !important; }
 
 .boldText {
@@ -6001,6 +6003,9 @@ div.location.public {
 
 .favouritesBtn.linkWithIcon:hover {
   cursor: pointer; }
+
+.narrow .toolbar .toggleListFilterBtn {
+  padding-left: 25px !important; }
 
 #all .hasLogoutBlock .cms-row,
 .hasLogoutBlock .centerContent {

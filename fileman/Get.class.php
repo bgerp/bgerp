@@ -334,7 +334,10 @@ class fileman_Get extends core_Manager
         $form->FNC('validUntil', 'varchar', 'input=none,validUntil');
         $form->FNC('url', 'url(1200)', 'caption=URL,mandatory');
         $rec = $form->input('bucketId,callback,validUntil,url', true);
-        expect($rec->validUntil && ($rec->validUntil > dt::now()), 'Линкът за качване е изтекъл');
+
+        if ($errMsg = fileman_Upload2::checkLinkValidity($rec->validUntil)) {
+            $form->setError('url', $errMsg);
+        }
 
         if ($form->isSubmitted()) {
             if (!defined('BGERP_GIT_BRANCH') || (BGERP_GIT_BRANCH != 'dev')) {

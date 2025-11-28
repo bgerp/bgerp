@@ -167,8 +167,14 @@ class hr_Trips extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, startDate,toDate,modifiedOn';
-    
-    
+
+
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'currencyId,amountRoad,amountDaily,amountHouse';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -183,9 +189,10 @@ class hr_Trips extends core_Master
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник, oldFieldName=alternatePerson');
-        $this->FLD('amountRoad', 'double(decimals=2)', 'caption=Начисления->Пътни,input=none, changable');
-        $this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни,input=none, changable');
-        $this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни,input=none, changable');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,maxRadio=1,allowEmpty)', 'caption=Начисления->Валута,silent,removeAndRefreshForm');
+        $this->FLD('amountRoad', 'double(decimals=2)', 'caption=Начисления->Пътни');
+        $this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни');
+        $this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни');
         $this->FNC('title', 'varchar', 'column=none');
         
         $this->FLD('sharedUsers', 'userList(roles=hrTrips|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
@@ -237,16 +244,26 @@ class hr_Trips extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
+            $rec = $form->rec;
+
             // Размяна, ако периодите са объркани
-            if (isset($form->rec->startDate, $form->rec->toDate) && ($form->rec->startDate > $form->rec->toDate)) {
+            if (isset($rec->startDate, $rec->toDate) && ($rec->startDate > $rec->toDate)) {
                 $form->setError('startDate, toDate', 'Началната дата трябва да е по-малка от крайната');
             }
 
-            $iArr = hr_Leaves::getIntersections($form->rec->personId, $form->rec->startDate, $form->rec->toDate, $form->rec->id, get_called_class());
             // за всяка една молба отговаряща на условията проверяваме
+            $iArr = hr_Leaves::getIntersections($rec->personId, $rec->startDate, $rec->toDate, $rec->id, get_called_class());
             if (!empty($iArr)) {
                 // и изписваме предупреждение
                 $form->setError('startDate, toDate', "|Засичане по време с: |*" . implode('<br>', $iArr));
+            }
+
+            if(!empty($rec->currencyId) && empty($rec->amountRoad) && empty($rec->amountDaily) && empty($rec->amountHouse)) {
+                $form->setError('currencyId,amountRoad,amountDaily,amountHouse', "Избрана е валута без да има въведени суми");
+            }
+
+            if(empty($rec->currencyId) && (!empty($rec->amountRoad) || !empty($rec->amountDaily) || !empty($rec->amountHouse))) {
+                $form->setError('currencyId,amountRoad,amountDaily,amountHouse', "Въведени са суми, без да е избрана валута");
             }
         }
     }
@@ -273,6 +290,19 @@ class hr_Trips extends core_Master
                 $form->setField('sharedUsers', 'mandatory');
             }
         }
+
+        if($data->action != 'changefields'){
+            foreach (array('amountRoad', 'amountDaily', 'amountHouse', 'currencyId') as $fld){
+                $form->setField($fld, "autohide");
+            }
+        }
+
+        // Ако има избрана валута да се показва като unit след полето за сумите
+        if(isset($rec->currencyId)) {
+            foreach (array('amountRoad', 'amountDaily', 'amountHouse') as $fld){
+                $form->setField($fld, "unit={$rec->currencyId}");
+            }
+        }
     }
     
     
@@ -285,23 +315,10 @@ class hr_Trips extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-        
-        $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
-        
-        if ($rec->amountRoad) {
-            $row->amountRoad = $Double->toVerbal($rec->amountRoad);
-            $row->amountRoad .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
-        }
-        
-        if ($rec->amountDaily) {
-            $row->amountDaily = $Double->toVerbal($rec->amountDaily);
-            $row->amountDaily .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
-        }
-        
-        if ($rec->amountHouse) {
-            $row->amountHouse = $Double->toVerbal($rec->amountHouse);
-            $row->amountHouse .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
+        foreach (array('amountRoad', 'amountDaily', 'amountHouse') as $fld){
+            if(!empty($rec->{$fld})){
+                $row->{$fld} = currency_Currencies::decorate($rec->{$fld}, $rec->currencyId, true);
+            }
         }
 
         $row->alternatePersons = hr_Leaves::purifyeAlternatePersons($rec->alternatePersons);
@@ -411,7 +428,10 @@ class hr_Trips extends core_Master
         
         //Създателя
         $row->author = $this->getVerbal($rec, 'createdBy');
-        
+
+        $startDate = $this->getVerbal($rec, 'startDate');
+        $toDate = $this->getVerbal($rec, 'toDate');
+
         //Състояние
         $row->state = $rec->state;
         
@@ -419,7 +439,8 @@ class hr_Trips extends core_Master
         $row->authorId = $rec->createdBy;
         
         $row->recTitle = $this->getRecTitle($rec, false);
-        
+        $row->subTitle = "{$startDate} - {$toDate}";
+
         return $row;
     }
     

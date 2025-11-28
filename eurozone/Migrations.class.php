@@ -272,15 +272,6 @@ SET
         self::$fnc(true);
 
         followRetUrl(null, 'Успешно минал тест');
-
-        self::addBgnPayment();
-        self::updateCreatedPeriods();
-        self::updatePriceLists();
-        self::updateDeltas();
-        self::updatePurchases();
-        self::updateEshopSettings();
-        self::updatePriceCosts();
-        self::updatePricesByDate();
     }
 
 
@@ -312,6 +303,25 @@ SET
 
         $query = "INSERT INTO {$copyTable} SELECT {$selectFieldsStr} FROM {$originalTable};";
         $Copy->db->query($query);
+    }
+
+
+    /**
+     * Ръчно извикване на всички миграции
+     */
+    public function act_migrateAll()
+    {
+        requireRole('debug');
+        self::convertBgnAccounts2Euro();
+        self::addBgnPayment();
+        self::updateCreatedPeriods();
+        self::updatePriceLists();
+        self::updateDeltas();
+        self::updatePurchases();
+        self::updateEshopSettings();
+        self::updatePriceCosts();
+        self::updatePricesByDate();
+        self::updateHr();
     }
 
 
@@ -393,9 +403,15 @@ SET
     {
         requireRole('debug');
 
-        self::addBgnPayment();
+        self::convertBgnAccounts2Euro();
     }
 
+    function act_Test3()
+    {
+        requireRole('debug');
+
+        self::addBgnPayment();
+    }
 
     /**
      * Добавя безналичен метод за плащане - ЛЕВА
@@ -406,5 +422,79 @@ SET
         $rec = (object)array('title' => self::BGN_NON_CASH_PAYMENT_NAME, 'change' => 'yes', 'currencyCode' => 'BGN', 'synonym' => 'bgn');
         cond_Payments::save($rec);
         core_Users::cancelSystemUser();
+    }
+
+
+    /**
+     * Миграция на твърдите надценки за обновяване на себестойностите
+     */
+    public static function updatePriceUpdates()
+    {
+        $Updates = cls::get('price_Updates');
+        $costAddAmountCol = str::phpToMysqlName('costAddAmount');
+
+        $tbl = $Updates->dbTableName;
+        $query = "UPDATE `{$tbl}` SET `{$costAddAmountCol}`  = (`{$costAddAmountCol}`  / 1.95583) WHERE `{$costAddAmountCol}` IS NOT NULL";
+        $Updates->db->query($query);
+    }
+
+
+    /**
+     * Конвертиране на левовите сметки в еврови
+     */
+    public static function convertBgnAccounts2Euro()
+    {
+        $bQuery = bank_OwnAccounts::getQuery();
+        $bQuery->EXT('currencyId', 'bank_Accounts', "externalName=currencyId,externalKey=bankAccountId");
+        $bQuery->where("#state NOT IN ('closed', 'rejected')");
+        $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+        $bQuery->where("#currencyId = '{$bgnCurrencyId}'");
+        while($bRec = $bQuery->fetch()){
+            if($exChangeRec = bank_OwnAccounts::createBgnExchangeDocument($bRec)){
+                try{
+                    cls::get('bank_ExchangeDocument')->conto($exChangeRec);
+                } catch(acc_journal_RejectRedirect $e){
+                    wp('Проблем при мигриране на салдо', $e, $bRec, $exChangeRec);
+                }
+            }
+        }
+    }
+
+    public function act_updatePeriods()
+    {
+        requireRole('debug');
+        self::updateCreatedPeriods();
+    }
+
+
+    public function act_updateHr()
+    {
+        requireRole('debug');
+        self::updateHr();
+    }
+
+
+    /**
+     * Обновяване на сумите на позициите в моята фирма
+     * @return void
+     */
+    public function updateHr()
+    {
+        $Positions = cls::get('hr_Positions');
+        $Positions->setupMvc();
+
+        $query = $Positions->getQuery();
+        $query->where("#salaryBase IS NOT NULL || #compensations IS NOT NULL");
+        while($rec = $query->fetch()) {
+            if(isset($rec->salaryBase)) {
+                $rec->salaryBase = round($rec->salaryBase / 1.95583, 2);
+            }
+
+            if(isset($rec->compensations)) {
+                $rec->compensations = round($rec->compensations / 1.95583, 2);
+            }
+
+            $Positions->save($rec, 'salaryBase,compensations');
+        }
     }
 }

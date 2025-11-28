@@ -74,4 +74,35 @@ class cond_RichTextPlg extends core_Plugin
             $toolbarArr->add($addPassage, 'filesAndDoc', 1000.056);
         }
     }
+
+    /**
+     * Обработваме елементите линковете, които сочат към докъментната система
+     */
+    public function on_AfterCatchRichElements($mvc, &$html)
+    {
+        $this->mvc = $mvc;
+
+        $html = preg_replace_callback("/\[passage(=([0-9]{1,32})|)\](.*?)\[\/passage\]([\r\n]{0,2})/is", array($this, '_catchPassage'), $html);
+    }
+
+
+    /**
+     * Заменя елемента [passage=???] .... [/passage]
+     */
+    public function _catchPassage($match)
+    {
+        $recId = $match[2];
+        $pText = $match[3];
+
+        if (!$recId || !is_numeric($recId)) {
+
+            return $match[0];
+        }
+
+        $place = $this->mvc->getPlace();
+
+        $this->mvc->_htmlBoard[$place] = cond_Texts::replaceView($pText, $recId);
+
+        return "[#{$place}#]";
+    }
 }

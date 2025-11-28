@@ -107,6 +107,12 @@ class hr_ContractTypes extends core_Master
     public function on_AfterSetUpMvc($mvc, &$res)
     {
         if (!self::count()) {
+            $cancelSystemUser = false;
+            if(!core_Users::isSystemUser()){
+                core_Users::forceSystemUser();
+                $cancelSystemUser = true;
+            }
+
             // Безсрочен трудов договор
             $rec = new stdClass();
             $rec->name = 'Безсрочен трудов договор';
@@ -127,13 +133,17 @@ class hr_ContractTypes extends core_Master
             $rec->script = getFileContent('hr/tpl/ReplacementContract.ls.shtml');
             $rec->sysId = $rec->name;
             self::save($rec);
+
+            if($cancelSystemUser){
+                core_Users::cancelSystemUser();
+            }
         
         // Ако имаме вече създадени шаблони
         } else {
             $query = self::getQuery();
-            
+
             // Намираме тези, които са създадени от системата
-            $query->where('#createdBy = -1');
+            $query->where('#createdBy = -1 OR #createdBy = 0');
             $sysContracts = array();
             
             while ($recPrev = $query->fetch()) {

@@ -126,7 +126,7 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
 
         } else {
 
-            if((($rec->currencyId == $rec->dealCurrencyId && in_array($rec->dealCurrencyId, array($bgnCurrencyId, $euroCurrencyId)))) || ($baseCurrencyId == $euroCurrencyId && $rec->currencyId == $euroCurrencyId)) {
+            if((($rec->currencyId == $rec->dealCurrencyId && in_array($rec->dealCurrencyId, array($bgnCurrencyId, $euroCurrencyId)))) || ($baseCurrencyId == $euroCurrencyId && $rec->currencyId == $euroCurrencyId && $rec->dealCurrencyId != $bgnCurrencyId)) {
                 $entry1 = array('amount' => $sign * round($amount, 2),
                     'debit' => array($rec->debitAccId,
                         array('bank_OwnAccounts', $rec->ownAccount),

@@ -46,26 +46,23 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
-        
-        $cOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom, 'currencyId');
-        $dOwnAcc = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
-        
+
         $toBank = array('503',
             array('bank_OwnAccounts', $rec->peroTo),
-            array('currency_Currencies', $dOwnAcc->currencyId),
+            array('currency_Currencies', $rec->debitCurrency),
             'quantity' => $rec->debitQuantity);
         
         $fromBank = array('503',
             array('bank_OwnAccounts', $rec->peroFrom),
-            array('currency_Currencies', $cOwnAcc->currencyId),
+            array('currency_Currencies', $rec->creditCurrency),
             'quantity' => $rec->creditQuantity);
         
-        if ($dOwnAcc->currencyId == $baseCurrencyId && $cOwnAcc->currencyId != $baseCurrencyId) {
+        if ($rec->debitCurrency == $baseCurrencyId && $rec->creditCurrency != $baseCurrencyId) {
             $entry = array();
             $entry[] = array('amount' => $rec->debitQuantity,
                 'debit' => $toBank,
-                'credit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity));
-            $entry[] = array('debit' => array('481', array('currency_Currencies', $cOwnAcc->currencyId), 'quantity' => $rec->creditQuantity),
+                'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
+            $entry[] = array('debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
                 'credit' => $fromBank);
         } else {
             $entry = array('debit' => $toBank, 'credit' => $fromBank);

@@ -198,10 +198,13 @@ class hr_Indicators extends core_Manager
                 crm_Persons::forceGroup($personId, 'employees');
             }
         }
-        
+
+        $positionQuery = hr_Positions::getQuery();
+        $positions = $positionQuery->fetchAll();
+
         if (is_array($persons)) {
             foreach ($periods as $rec) {
-                self::calcPeriod($rec);
+                self::calcPeriod($rec, $positions);
             }
         }
     }
@@ -337,20 +340,19 @@ class hr_Indicators extends core_Manager
     /**
      * Калкулира заплащането на всички, които имат трудов договор за посочения период
      */
-    private static function calcPeriod($pRec)
+    private static function calcPeriod($pRec, $positions)
     {
         // Намираме последните, активни договори за назначения, които се засичат с периода
         $start = (empty($pRec->start)) ? '0000-00-00' : $pRec->start;
         $end = (empty($pRec->end)) ? '0000-00-00' : $pRec->end;
 
         $ecQuery = hr_EmployeeContracts::getQuery();
-        $ecQuery->where("#state = 'active' OR #state = 'closed'");
+        $ecQuery->where("#state IN ('active', 'closed')");
         $ecQuery->where("#startFrom <= '{$end}'");
         $ecQuery->where("(#endOn IS NULL) OR (#endOn >= '{$start}')");
         $ecQuery->orderBy('#dateId', 'DESC');
         
         $ecArr = array();
-        
         while ($ecRec = $ecQuery->fetch()) {
             if (!isset($ecArr[$ecRec->personId])) {
                 $ecArr[$ecRec->personId] = $ecRec;
@@ -377,16 +379,23 @@ class hr_Indicators extends core_Manager
                 $zeroInd[$n] = 0;
             }
         }
-        
+
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
+        $baseCurrencyCode = currency_Currencies::getCodeById($pRec->baseCurrencyId);
         foreach ($ecArr as $personId => $ecRec) {
             $sum = array();
             
             if (isset($ecRec->positionId)) {
-                $posRec = hr_Positions::fetch($ecRec->positionId);
-                $salaryBase = (!empty($ecRec->salaryBase)) ? $ecRec->salaryBase : $posRec->salaryBase;
+                $posRec = $positions[$ecRec->positionId];
+                $salaryBase = 0;
+                if (!empty($ecRec->salaryBase)) {
+                    $salaryBase = currency_CurrencyRates::convertAmount($ecRec->salaryBase, null, $ecRec->currencyId, $baseCurrencyCode);
+                } elseif(!empty($posRec->salaryBase)){
+                    $salaryBase = currency_CurrencyRates::convertAmount($posRec->salaryBase, null, null, $baseCurrencyCode);
+                }
+
                 if (!empty($salaryBase)) {
-                    $sum['BaseSalary'] = $salaryBase;
+                    $sum['BaseSalary'] = round($salaryBase, 2);
                 }
             }
             
@@ -407,7 +416,7 @@ class hr_Indicators extends core_Manager
             }
             
             if ($replaceFormula && $ecRec->positionId) {
-                $prlRec->formula = hr_Positions::fetchField($ecRec->positionId, 'formula');
+                $prlRec->formula = $positions[$ecRec->positionId]->formula;
             }
             
             // Ако няма формула. Няма смисъл да се изчислява ведомост
@@ -421,27 +430,25 @@ class hr_Indicators extends core_Manager
             
             // Изчисляване на заплатата
             $prlRec->salary = null;
-            if ($prlRec->formula) {
-                $contex = array();
-                foreach ($zeroInd as $name => $zero) {
-                    if (strpos($prlRec->formula, $name) !== false) {
-                        $contex['$' . $name] = $sum[$name] + $zero;
-                    }
+            $context = array();
+            foreach ($zeroInd as $name => $zero) {
+                if (strpos($prlRec->formula, $name) !== false) {
+                    $context['$' . $name] = $sum[$name] + $zero;
                 }
-                
-                uksort($contex, 'str::sortByLengthReverse');
-                
-                // Заместваме променливите и индикаторите
-                $expr = strtr($prlRec->formula, $contex);
-                
-                if (str::prepareMathExpr($expr) === false) {
-                    $prlRec->error = 'Невъзможно изчисление';
-                } else {
-                    $success = null;
-                    $prlRec->salary = str::calcMathExpr($expr, $success);
-                    if ($success === false) {
-                        $prlRec->error = 'Грешка в калкулацията';
-                    }
+            }
+
+            uksort($context, 'str::sortByLengthReverse');
+
+            // Заместваме променливите и индикаторите
+            $expr = strtr($prlRec->formula, $context);
+
+            if (str::prepareMathExpr($expr) === false) {
+                $prlRec->error = 'Невъзможно изчисление';
+            } else {
+                $success = null;
+                $prlRec->salary = str::calcMathExpr($expr, $success);
+                if ($success === false) {
+                    $prlRec->error = 'Грешка в калкулацията';
                 }
             }
             

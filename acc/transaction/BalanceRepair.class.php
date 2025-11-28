@@ -106,32 +106,75 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 
         // За всеки запис
         while ($bRec = $bQuery->fetch()) {
-            $continue = true;
 
-            $blAmount = $blQuantity = null;
-            
-            // Ако крайното салдо и к-во са в допустимите граници
-            foreach (array('Quantity', 'Amount') as $fld) {
-                if (!empty($dRec->{"bl{$fld}"})) {
-                    $var = &${"bl{$fld}"};
-                    $diff = $bRec->{"bl{$fld}"};
-                    
-                    if ($diff != 0 && $diff >= -1 * $dRec->{"bl{$fld}"} && $diff <= $dRec->{"bl{$fld}"}) {
-                        $var = $diff;
-                        $continue = false;
-                    }
-                } elseif(!empty($dRec->{"blRound{$fld}"})){
-                    $var = &${"bl{$fld}"};
-                    $diff = round(round($bRec->{"bl{$fld}"}, $dRec->{"blRound{$fld}"}) - $bRec->{"bl{$fld}"}, 10);
-                    if($diff){
-                        $var = $diff;
-                        $continue = false;
-                    }
+            $blAmount  = $blQuantity = null;
+
+            // Има ли изобщо настройки за к-во и/или сума
+            $hasQtyCfg = !empty($dRec->blQuantity) || !empty($dRec->blRoundQuantity);
+            $hasAmtCfg = !empty($dRec->blAmount)   || !empty($dRec->blRoundAmount);
+
+            // По подразбиране:
+            // - ако НЯМА настройка за даденото поле -> то не участва в проверката (счита се за "ОК")
+            // - ако ИМА настройка -> чакаме да видим дали е в прага
+            $qtyOk = !$hasQtyCfg;
+            $amtOk = !$hasAmtCfg;
+
+            /* --------- Количество --------- */
+            if (!empty($dRec->blQuantity)) {
+                // режим "праг" по количество
+                $diffQty = $bRec->blQuantity;
+                if ($diffQty != 0 && $diffQty >= -1 * $dRec->blQuantity && $diffQty <= $dRec->blQuantity) {
+                    $blQuantity = $diffQty;
+                    $qtyOk = true;
+                } else {
+                    $qtyOk = false;
+                }
+            } elseif (!empty($dRec->blRoundQuantity)) {
+                // режим "закръгляне" по количество
+                $diffQty = round(round($bRec->blQuantity, $dRec->blRoundQuantity) - $bRec->blQuantity, 10);
+                if ($diffQty) {
+                    $blQuantity = $diffQty;
+                    $qtyOk = true;
+                } else {
+                    // има настройка, но няма разлика => няма какво да се поправя по количество
+                    $qtyOk = false;
                 }
             }
 
-            // Ако не са продължаваме
-            if ($continue) {
+            /* --------- Сума --------- */
+            if (!empty($dRec->blAmount)) {
+                // режим "праг" по сума
+                $diffAmt = $bRec->blAmount;
+                if ($diffAmt != 0 && $diffAmt >= -1 * $dRec->blAmount && $diffAmt <= $dRec->blAmount) {
+                    $blAmount = $diffAmt;
+                    $amtOk = true;
+                } else {
+                    $amtOk = false;
+                }
+            } elseif (!empty($dRec->blRoundAmount)) {
+                // режим "закръгляне" по сума
+                $diffAmt = round(round($bRec->blAmount, $dRec->blRoundAmount) - $bRec->blAmount, 10);
+                if ($diffAmt) {
+                    $blAmount = $diffAmt;
+                    $amtOk = true;
+                } else {
+                    $amtOk = false;
+                }
+            }
+
+            /*
+             * От тук нататък:
+             * - за всяко поле, за което ИМА настройка, изискваме то да е "в прага"/да има разлика
+             * - искаме AND между количество и сума
+             */
+
+            if (($hasQtyCfg && !$qtyOk) || ($hasAmtCfg && !$amtOk)) {
+                // поне една от зададените (к-во или сума) е извън прага => НЕ бараме записа
+                continue;
+            }
+
+            // ако няма реална разлика за записване – също пропускаме
+            if (is_null($blQuantity) && is_null($blAmount)) {
                 continue;
             }
 

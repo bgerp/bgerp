@@ -45,20 +45,20 @@ class hr_Bonuses extends core_Master
      * Активен таб на менюто
      */
     public $menuPage = 'Персонал:Документи';
-    
-    
+
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $valiorFld = 'date';
+
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_State, plg_SaveAndNew, doc_plg_TransferDoc, bgerp_plg_Blank,plg_Sorting, 
-    				 doc_DocumentPlg, doc_ActivatePlg,hr_Wrapper,acc_plg_DocumentSummary, hr_EmailCreatePlg';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,hrMaster';
-    
+    				 doc_DocumentPlg, doc_ActivatePlg,hr_Wrapper,acc_plg_DocumentSummary, hr_EmailCreatePlg, deals_plg_SaveValiorOnActivation';
+
     
     /**
      * Кой има право да променя?
@@ -99,13 +99,13 @@ class hr_Bonuses extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, date, personId, type, sum';
+    public $listFields = 'date,title=Документ,personId,sum,type';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'personId,date, type, title';
+    public $searchFields = 'type,personId,date';
     
     
     /**
@@ -121,15 +121,14 @@ class hr_Bonuses extends core_Master
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'type';
-    
-    
-    /**
      * За плъгина acc_plg_DocumentSummary
      */
     public $filterFieldDateFrom = 'date';
+
+    /**
+     *
+     * За плъгина acc_plg_DocumentSummary
+     */
     public $filterFieldDateTo = 'date';
     
     
@@ -157,19 +156,10 @@ class hr_Bonuses extends core_Master
     public function description()
     {
         $this->FLD('date', 'date', 'caption=Дата,oldFieldName=periodId');
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител');
-        $this->FLD('type', 'richtext(bucket=Notes)', 'caption=Произход на бонуса');
-        $this->FLD('sum', 'double', 'caption=Сума,mandatory');
-        $this->FNC('title', 'varchar', 'column=none');
-    }
-    
-    
-    /**
-     * Изчисление на title
-     */
-    protected static function on_CalcTitle($mvc, $rec)
-    {
-        $rec->title = "Премия  №{$rec->id}";
+        $this->FLD('personId', 'key2(mvc=crm_Persons,select=name,allowEmpty)', 'mandatory,caption=Служител');
+        $this->FLD('type', 'richtext(bucket=Notes)', 'caption=Основание,mandatory');
+        $this->FLD('sum', 'double(Min=0,decimals=2)', 'caption=Сума,mandatory');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,maxRadio=1)', 'caption=Валута,silent,removeAndRefreshForm');
     }
     
     
@@ -187,14 +177,9 @@ class hr_Bonuses extends core_Master
             $name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
             $row->personId = ht::createLink($name, array('crm_Persons', 'single', 'id' => $rec->personId), null, 'ef_icon = img/16/vcard.png');
         }
-        
-        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-        $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->from);
-        
-        if ($rec->sum) {
-            $row->sum = $Double->toVerbal($rec->sum);
-            $row->sum .= " <span class='cCode'>{$row->baseCurrencyId}</span>";
-        }
+
+        $row->sum = currency_Currencies::decorate($row->sum, $rec->currencyId, true);
+        $row->title = $mvc->getLink($rec->id, 0);
     }
     
     
@@ -207,6 +192,7 @@ class hr_Bonuses extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $data->listFilter->setFieldTypeParams('personId', array('allowEmpty' => 'allowEmpty', 'groups' => keylist::addKey('', crm_Groups::getIdFromSysId('employees'))));
         $data->listFilter->showFields = 'personId,date';
         $data->listFilter->view = 'vertical';
         $data->listFilter->input('personId, date', 'silent');
@@ -247,15 +233,19 @@ class hr_Bonuses extends core_Master
         $result = array();
         $iRec = hr_IndicatorNames::force('Бонус', __CLASS__, 1);
         if($iRec->state == 'closed') return $result;
-        
+
+
         while ($rec = $query->fetch()) {
+            $periodRec = acc_Periods::fetchByDate($rec->date);
+            $periodCurrencyCode = currency_Currencies::getCodeById($periodRec->baseCurrencyId);
+
             $result[] = (object) array(
                 'date' => $rec->date,
                 'personId' => $rec->personId,
                 'docId' => $rec->id,
                 'docClass' => core_Classes::getId('hr_Bonuses'),
                 'indicatorId' => $iRec->id,
-                'value' => $rec->sum,
+                'value' => currency_CurrencyRates::convertAmount($rec->sum, $rec->date, $rec->currencyId, $periodCurrencyCode),
                 'isRejected' => $rec->state == 'rejected',
             );
         }
@@ -347,11 +337,26 @@ class hr_Bonuses extends core_Master
         $row->authorId = $rec->createdBy;
         
         $row->recTitle = $this->getRecTitle($rec, false);
-        
+        $row->subTitle = crm_Persons::getTitleById($rec->personId);
+
         return $row;
     }
-    
-    
+
+
+    /**
+     * Модифициране на edit формата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+        $form = &$data->form;
+        $form->setFieldTypeParams('personId', array('groups' => keylist::addKey('', crm_Groups::getIdFromSysId('employees'))));
+    }
+
+
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */

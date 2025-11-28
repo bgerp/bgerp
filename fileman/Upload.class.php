@@ -42,7 +42,6 @@ class fileman_Upload extends core_Manager
         Request::setProtected('callback, bucketId, validUntil');
 
         $validUntil = Request::get('validUntil', 'datetime');
-        expect($validUntil && ($validUntil > dt::now()), 'Линкът за качване е изтекъл');
 
         // Вземаме callBack'а
         if ($callback = Request::get('callback', 'identifier')) {
@@ -87,7 +86,9 @@ class fileman_Upload extends core_Manager
         $tpl = $this->getProgressTpl($allowMultiUpload, $maxAllowedFileSize);
         
         $tpl->prepend($add);
-        
+
+        fileman_Upload2::checkLinkValidity($validUntil, $tpl);
+
         return $this->renderDialog($tpl);
     }
     
