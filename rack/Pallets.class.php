@@ -144,7 +144,6 @@ class rack_Pallets extends core_Manager
         $this->setDbIndex('state');
         $this->setDbIndex('storeId');
         $this->setDbIndex('position');
-		$this->setDbIndex('storeId,productId,batch');  // за getAvailablePallets()
     }
 
 
