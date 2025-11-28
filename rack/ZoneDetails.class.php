@@ -112,7 +112,45 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
         $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
 
-        $this->setDbIndex('zoneId,productId,packagingId,batch');
+        $this->setDbIndex('zoneId,productId,packagingId,batch'); // най-честият филтър
+        $this->setDbIndex('productId,packagingId,batch');        // вторичен
+    }
+    
+    /**
+     * ВРЪЩА колко е 1 опаковка (packagingId) в БАЗОВА мярка за конкретния продукт.
+     * Ако няма запис в cat_products_Packagings – ползва UoM конверсия към base measure.
+     *
+     * @param int $productId
+     * @param int $packagingId
+     * @return float
+     */
+    private static function qtyInBaseForOnePack_($productId, $packagingId)
+    {
+        $packRec = cat_products_Packagings::getPack($productId, $packagingId);
+        if (is_object($packRec) && isset($packRec->quantity) && $packRec->quantity > 0) {
+            return (float)$packRec->quantity;
+        }
+        // Fallback: 1 from packagingId → base measure of the product
+        $baseUomId = (int) cat_Products::fetchField($productId, 'measureId');
+        if ($baseUomId && method_exists('cat_UoM', 'convertValue')) {
+            // колко base са 1 от packagingId
+            return (float) cat_UoM::convertValue(1, $packagingId, $baseUomId);
+        }
+        return 1.0;
+    }
+
+    /**
+     * Закръгля стойност според полето "round" на съответната мярка.
+     *
+     * @param float $q
+     * @param int   $uomId
+     * @return float
+     */
+    private static function roundByUom_($q, $uomId)
+    {
+        $dec = (int) cat_UoM::fetchField($uomId, 'round');
+        $dec = ($dec !== null) ? $dec : 3;
+        return round((float)$q, $dec);
     }
     
     
@@ -296,20 +334,26 @@ class rack_ZoneDetails extends core_Detail
 
 			// СРАВНЕНИЕ В ОПАКОВКАТА НА ЗАЯВКАТА:
 			// - documentQuantity вече е в опаковката на реда (нормализирана в on_BeforeRecToVerbal).
-			// - _generatedBase е в базова мярка → делим на request qtyInPack, за да минем в опаковката на реда.
-			$genInRequestPack = 0.0;
-			if (!empty($rec->_generatedBase)) {
-				$genInRequestPack = (float)$rec->_generatedBase / max(1.0, (float)$rec->quantityInPack);
-			}
-
+			// - _generatedBase е в базова мярка → делим на реалния qtyInPack (добавен fallback към UoM конверсия).
+            $qtyInPackReal = self::qtyInBaseForOnePack_($rec->productId, $rec->packagingId);
+			$genInRequestPack = (float)$rec->_generatedBase / max(1e-12, (float)$qtyInPackReal);
 			$docInRequestPack = (float)$rec->documentQuantity;
 
-			// Показваме предупреждение, ако генерираното е по-малко от заявеното.
-			if ($genInRequestPack + 1e-6 < $docInRequestPack) {
-				$quantityAllVerbal = core_Type::getByName('double(smartRound)')->toVerbal($genInRequestPack);
+            // Сравнение след закръгляне по "round" на съответната мярка
+            $genCmp = self::roundByUom_($genInRequestPack, $rec->packagingId);
+            $docCmp = self::roundByUom_($docInRequestPack, $rec->packagingId);
+
+			// Показваме предупреждение, ако генерираното (закръглено по мярка) е по-малко от заявеното.
+			if ($genCmp < $docCmp) {
+                $dec = (int) cat_UoM::fetchField($rec->packagingId, 'round');
+                $dec = ($dec !== null) ? $dec : 3;
+                $Double = core_Type::getByName("double(decimals={$dec})");
+                $quantityAllVerbal = $Double->toVerbal($genCmp);
+                $uShort = cat_UoM::getShortName($rec->packagingId);
+
 				$row->status = ht::createHint(
 					$row->status,
-					"Генерираните движения са за по-малко от необходимото (заявеното от документа) количество|*: {$quantityAllVerbal}",
+					"Генерираните движения са за по-малко от необходимото (заявеното от документа) количество|*: {$quantityAllVerbal} {$uShort}",
 					'warning',
 					false
 				);
@@ -520,28 +564,28 @@ class rack_ZoneDetails extends core_Detail
 
         $Movements->setField('workerId', "tdClass=inline-workerId");
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $filter);
-		$allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
-		$allocated = is_array($allocated) ? $allocated : array();
+        $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
+        $allocated = is_array($allocated) ? $allocated : array();
 
-		list($productId, $packagingId, $batch) = array($rec->productId, $rec->packagingId, $rec->batch);
+        list($productId, $packagingId, $batch) = array($rec->productId, $rec->packagingId, $rec->batch);
 
-		// При ver3 показваме всички движения за продукта/партидата в зоната,
-		// независимо в каква опаковка са (MG3 разцепва по опаковки).
-		if (rack_Setup::get('PICKUP_STRATEGY') == 'ver3') {
-			$data->recs = array_filter($movementArr, function($o) use ($productId, $batch, $allocated) {
-				return (int)$o->productId === (int)$productId
-					&& (string)$o->batch === (string)$batch
-					&& !array_key_exists($o->id, $allocated);
-			});
-		} else {
-			// Старо поведение за ver1/ver2 – привързано към опаковката на реда
-			$data->recs = array_filter($movementArr, function($o) use ($productId, $packagingId, $batch, $allocated) {
-				return (int)$o->productId === (int)$productId
-					&& (int)$o->packagingId === (int)$packagingId
-					&& (string)$o->batch === (string)$batch
-					&& !array_key_exists($o->id, $allocated);
-			});
-		}
+        // При ver3 показваме всички движения за продукта/партидата в зоната,
+        // независимо в каква опаковка са (MG3 разцепва по опаковки).
+        if (rack_Setup::get('PICKUP_STRATEGY') == 'ver3') {
+            $data->recs = array_filter($movementArr, function($o) use ($productId, $batch, $allocated) {
+                return (int)$o->productId === (int)$productId
+                    && (string)$o->batch === (string)$batch
+                    && !array_key_exists($o->id, $allocated);
+            });
+        } else {
+            // Старо поведение за ver1/ver2 – привързано към опаковката на реда
+            $data->recs = array_filter($movementArr, function($o) use ($productId, $packagingId, $batch, $allocated) {
+                return (int)$o->productId === (int)$productId
+                    && (int)$o->packagingId === (int)$packagingId
+                    && (string)$o->batch === (string)$batch
+                    && !array_key_exists($o->id, $allocated);
+            });
+        }
 
         if(countR($data->recs)){
             $masterRec->_noMovements = true;
@@ -554,24 +598,24 @@ class rack_ZoneDetails extends core_Detail
         
         $requestedProductId = Request::get('productId', 'int');
 
-		/**
-		 * Генерирано КЪМ МОМЕНТА количество за тази зона в БАЗОВА мярка.
-		 * (Сумира по всички движения в $data->recs за конкретната зона,
-		 * умножавайки "брой опаковки" по quantityInPack.)
-		 */
-		$rec->_generatedBase = 0.0;
+        /**
+         * Генерирано КЪМ МОМЕНТА количество за тази зона в БАЗОВА мярка.
+         * (Сумира по всички движения в $data->recs за конкретната зона,
+         * умножавайки "брой опаковки" по quantityInPack.)
+         */
+        $rec->_generatedBase = 0.0;
 
-		foreach ($data->recs as $mRec) {
-			$zArr = type_Table::toArray($mRec->zones);
-			foreach ($zArr as $zA){
-				if ((int)$zA->zone === (int)$masterRec->id) {
-					// zA->quantity е "брой опаковки" за опаковката на ТОВА движение
-					// quantityInPack → конверсия към базова мярка
-					$rec->_generatedBase += (float)$zA->quantity * (float)$mRec->quantityInPack;
-				}
-			}
+        foreach ($data->recs as $mRec) {
+            $zArr = type_Table::toArray($mRec->zones);
+            foreach ($zArr as $zA){
+                if ((int)$zA->zone === (int)$masterRec->id) {
+                    // zA->quantity е "брой опаковки" за опаковката на ТОВА движение
+                    // quantityInPack → конверсия към базова мярка
+                    $rec->_generatedBase += (float)$zA->quantity * (float)$mRec->quantityInPack;
+                }
+            }
 
-			if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
+            if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
             
             $fields = $Movements->selectFields();
             $fields['-list'] = true;
@@ -582,9 +626,9 @@ class rack_ZoneDetails extends core_Detail
             $mRec->_currentZoneId = $masterRec->id;
             $data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
         }
-		
-		
-		// Сигнализираме, ако се взема цялото налично количество от палетмястото (т.е. че няма нужда да се брои)
+        
+        
+        // Сигнализираме, ако се взема цялото налично количество от палетмястото (т.е. че няма нужда да се брои)
         foreach ($data->rows as $mId => &$rRow) {
             $mRec = $data->recs[$mId];
             if (!empty($mRec->palletId) && $mRec->quantity > 0) {
@@ -592,16 +636,16 @@ class rack_ZoneDetails extends core_Detail
                 if (!empty($availableQty) && abs($mRec->quantity - $availableQty) < 0.0001) {
                     if (!empty($rRow->movement)) {
                         $rRow->movement = preg_replace(
-							'/\(([^)]+)\)(?=.*»)/u',
-							'(	<span style="background:#c0c0c0; border-radius:6px; padding:1px 6px; font-weight:bold; color:#000;" title="Цялото налично количество на позицията!">$1</span> )',
-							$rRow->movement,
-							1 // само първото срещане
-						);
+                            '/\(([^)]+)\)(?=.*»)/u',
+                            '(	<span style="background:#c0c0c0; border-radius:6px; padding:1px 6px; font-weight:bold; color:#000;" title="Цялото налично количество на позицията!">$1</span> )',
+                            $rRow->movement,
+                            1 // само първото срещане
+                        );
                     }
                 }
             }
         }
-		
+        
 
         // Рендиране на таблицата
         $tpl = new core_ET('');
@@ -849,9 +893,9 @@ class rack_ZoneDetails extends core_Detail
             $prevAndNextIndicator = ($index + 1) . "/{$batchCount}";
             $form->toolbar->addFnBtn($prevAndNextIndicator, '', 'class=noicon fright,order=30');
             if (isset($order[$prevNum])) {
-                $form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30, title = Предишен');
-            } else {
                 $form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=btn-disabled noicon fright,disabled,order=30, title = Предишен');
+            } else {
+                $form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30, title = Предишен');
             }
         }
 
