@@ -6866,7 +6866,9 @@ div.location.public {
 .favouritesBtn.linkWithIcon:hover {
 	cursor: pointer;
 }
-
+.narrow .toolbar .toggleListFilterBtn {
+	padding-left: 25px !important;
+}
 #all .hasLogoutBlock .cms-row ,.hasLogoutBlock .centerContent {
 	padding-top: 30px;
 }
