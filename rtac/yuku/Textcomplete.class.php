@@ -100,7 +100,19 @@ class rtac_yuku_Textcomplete extends core_Manager
 
                                 return text.indexOf(term) === 0 ? element : null;
                             } else {
-                                var text = element.search.toLowerCase();
+                                if (!element.search) {
+                                    if (!element) {
+                                        return null;
+                                    }
+                                    if (typeof element == 'number') {
+                                        var text = element.toString().toLowerCase();
+                                    } else {
+                                        var text = element.toLowerCase();
+                                    }
+                                    
+                                } else {
+                                    var text = element.search.toLowerCase();
+                                }
                                 
                                 // Ако започват с буквата/думата или преди интервала има такава буква/дума
                                 if ((text.indexOf(term) === 0) || (text.indexOf(' ' + term) != -1)) {
