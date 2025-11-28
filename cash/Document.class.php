@@ -642,7 +642,7 @@ abstract class cash_Document extends deals_PaymentDocument
 
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
         Mode::push('text', 'plain');
-        $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
+        $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId, true);
         Mode::pop('text');
         $info['cases'] = array($rec->peroCase);
         $info['stores'] = array();
