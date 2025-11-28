@@ -129,6 +129,7 @@ class hr_Setup extends core_ProtoSetup
         'migrate::changeAlternatePersonField',
         'migrate::updateContracts2548',
         'migrate::updateBonusesAndDeductions2548',
+        'migrate::updateTrips2548',
     );
     
     
@@ -258,5 +259,24 @@ class hr_Setup extends core_ProtoSetup
             $query = "UPDATE `{$tbl}` SET `{$currencyIdCol}` = 'BGN' WHERE `{$currencyIdCol}` IS NULL";
             $Class->db->query($query);
         }
+    }
+
+
+    /**
+     * Обновяване на командировките
+     */
+    public function updateTrips2548()
+    {
+        $Trips = cls::get('hr_Trips');
+        $Trips->setupMvc();
+
+        $currencyIdCol = str::phpToMysqlName('currencyId');
+        $amountRoadCol = str::phpToMysqlName('amountRoad');
+        $amountDailyCol = str::phpToMysqlName('amountDaily');
+        $amountHouseCol = str::phpToMysqlName('amountHouse');
+        $tbl = $Trips->dbTableName;
+
+        $query = "UPDATE `{$tbl}` SET `{$currencyIdCol}` = 'BGN' WHERE (`{$amountRoadCol}` IS NOT NULL OR `{$amountDailyCol}` IS NOT NULL OR `{$amountHouseCol}` IS NOT NULL)";
+        $Trips->db->query($query);
     }
 }
