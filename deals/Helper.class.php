@@ -1918,6 +1918,7 @@ abstract class deals_Helper
 
                 $sign = ($pRec->isReverse == 'yes') ? -1 : 1;
                 $invArr = deals_InvoicesToDocuments::getInvoiceArr($pRec->containerId);
+
                 $pData = $Pdoc->getPaymentData($pRec->id);
 
                 if (in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))) {
@@ -1944,15 +1945,17 @@ abstract class deals_Helper
 
                     $pData->amount = round($pData->amount, 2);
                     if(!empty($pData->amount)){
-                        $rAmount = $sign * $pData->amount;
+                        $rAmount = $sign * round($pData->amount / $rate1, 2);
                         $payArr["{$pRec->containerId}|"] = (object) array('containerId' => $pRec->containerId, 'amount' => $rAmount, 'available' => $rAmount, 'to' => null, 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate1, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
                     }
+
                 } else {
                     $amount = $sign * $amount;
                     $payArr[$pRec->containerId] = (object) array('containerId' => $pRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => $invMap[$pRec->fromContainerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate1, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
                 }
             }
         }
+
 
         // Ако в нишките има активни или приключени сделки с плащане да участват и те
         foreach(array('sales_Sales', 'purchase_Purchases') as $dealDoc){
@@ -1977,7 +1980,6 @@ abstract class deals_Helper
             // плащанията, които не са към конкретна фактура не се показват
             $payArr = array_filter($payArr, function ($a) {return isset($a->to);});
         }
-
 
         self::allocationOfPayments($newInvoiceArr, $payArr);
         core_Debug::stopTimer("CALC_INVOICE_PAYMENTS");
