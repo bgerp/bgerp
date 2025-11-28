@@ -86,6 +86,15 @@ class cond_Texts extends core_Manager
         $this->FLD('lang', 'enum(bg,en)', 'caption=Език');
         $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група, silent');
         $this->FNC('Protected', 'varchar', 'input=hidden, silent');
+
+        $this->FLD('view', 'text', 'caption=Оформление->Изглед, autohide, placeholder={{CONTENT}}' .
+        "\n{{IMAGE_1}}" .
+        "\n{{IMAGE_2}}" .
+        "\n{{IMAGE_3}}" . ', rows=7, hint=Използвайте {{CONTENT}} за съдържанието на пасажа' .
+        "\n{{IMAGE_1}} {{IMAGE_2}} и {{IMAGE_3}} за позициониране на изображенията в текста");
+        $this->FLD('img1', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение 1, autohide');
+        $this->FLD('img2', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение 2, autohide');
+        $this->FLD('img3', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение 3, autohide');
     }
     
     
@@ -220,6 +229,8 @@ class cond_Texts extends core_Manager
         if (!haveRole('admin, ceo')) {
             unset($data->form->fields['access']->type->options['public']);
         }
+
+        $data->form->setSuggestions('view', array('{{CONTENT}}' => '{{CONTENT}}', '{{IMAGE_1}}' => '{{IMAGE_1}}', '{{IMAGE_2}}' => '{{IMAGE_2}}', '{{IMAGE_3}}' => '{{IMAGE_3}}'));
     }
 
     
@@ -312,11 +323,17 @@ class cond_Texts extends core_Manager
         if (Mode::get('dialogOpened')) {
 
             $callback = Mode::get('callback');
-            $str = json_encode($rec->body);
+
+            $placeBody = $rec->body;
+
+            if ($rec->view) {
+                $placeBody = "[passage={$rec->id}]{$rec->body}[/passage]";
+            }
+
+            $str = json_encode($placeBody);
             
             $attr = array('onclick' => "if(window.opener.{$callback}(${str}) != true) self.close(); else self.focus();", 'class' => 'file-log-link');
 
-//            $attr = array('onclick' => "console.log('test');", "class" => "file-log-link");
             $title = ht::createLink($rec->title, '#', false, $attr);
             
             $string = str_replace(array("\r", "\n"), array('', ' '), str::limitLen($rec->body, 200));
@@ -333,7 +350,40 @@ class cond_Texts extends core_Manager
             $string = $mvc->fields['body']->type->toVerbal($string);
 
             $row->body = "<span class='passageHolder'>" . $title . $string . '</span>';
+        } else {
+            if ($rec->view) {
+                $row->body = $mvc->replaceView($row->body, $rec);
+            }
         }
+    }
+
+
+    /**
+     * Връща съдържанието на пасажа, вмъкнато в изгледа му
+     *
+     * @param string $body
+     * @param int|stdClass $rec
+     *
+     * @return string
+     */
+    public static function replaceView($body, $rec)
+    {
+        $res = $rec->body;
+        $rec = self::fetchRec($rec);
+        if ($rec->view) {
+            $res = str_replace('{{CONTENT}}', $body, $rec->view);
+
+            for ($i=1; $i<=3; $i++) {
+                $imgField = 'img' . $i;
+                $imgUrl = '';
+                if ($rec->{$imgField}) {
+                    $imgUrl = fileman_Download::getDownloadUrl($rec->{$imgField}, 1000000);
+                }
+                $res = str_replace('{{IMAGE_' . $i . '}}', $imgUrl, $res);
+            }
+        }
+
+        return $res;
     }
     
     
