@@ -229,9 +229,9 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             }
             
             // Връзки към задачи от артикул
-            $recArt = cat_Products::fetchField($jobses->productId,'containerId');
+            $recContId = cat_Products::fetchField($jobses->productId,'containerId');
             
-            $resArrProduct = doc_Linked::getRecsForType('doc', $recArt->containerId, false);
+            $resArrProduct = doc_Linked::getRecsForType('doc', $recContId, false);
             
             foreach ($resArrProduct as $d) {
                 $linkFrom = 'art';
@@ -240,7 +240,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                     continue;
                 }
                 $Document = doc_Containers::getDocument($d->inVal);
-                
+
                 if (core_Users::getCurrent() != $d->credatedBy) {
                     if (! $Document->haveRightFor('single', $rec->createdBy)) {
                         continue;
