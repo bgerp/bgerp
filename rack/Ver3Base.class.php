@@ -124,30 +124,6 @@ class rack_Ver3Base
         return $set;
     }
 
-    /**
-     * Избор на „групова“ опаковка:
-     * 1) ако има заявени опаковки → най-едрата измежду заявените;
-     * 2) иначе → най-едрата от всички валидни (вкл. UoM).
-     */
-    public static function chooseGroupPackaging($productId, $packsDesc = null, $requestedSet = null)
-    {
-        if (!$packsDesc) $packsDesc = self::getAllPacksDesc($productId);
-
-        if (is_array($requestedSet) && count($requestedSet) && is_array($packsDesc)) {
-            foreach ($packsDesc as $p) {
-                if (isset($requestedSet[$p->packagingId])) {
-                    return $p->packagingId; // първият е най-едър
-                }
-            }
-        }
-
-        if (is_array($packsDesc) && count($packsDesc)) {
-            return $packsDesc[0]->packagingId;
-        }
-
-        return self::getBaseMeasureId($productId);
-    }
-
 
 
     /**
