@@ -106,13 +106,6 @@ class rack_Movements extends rack_MovementAbstract
     public function description()
     {
         parent::setFields($this);
-		
-		$this->setDbIndex('storeId,state');        // филтрите по склад/статус
-		$this->setDbIndex('storeId,modifiedOn');   // за getContentHash (ORDER BY modifiedOn DESC LIMIT 1)
-		$this->setDbIndex('storeId,createdBy');    // за почистване на pending от system
-		$this->setDbIndex('storeId,modifiedBy');   // за префетча на user-modified
-		$this->setDbIndex('productId,packagingId,batch'); // за филтри по продукт/опаковка/партида
-		$this->setDbIndex('storeId,state,productId');
     }
     
     
