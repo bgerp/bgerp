@@ -315,19 +315,33 @@ class rack_ZoneDetails extends core_Detail
             $docCmp = round($docInRequestPack, $roundDigits);
 
             if ($genCmp < $docCmp) {
-                $Double     = core_Type::getByName("double(decimals={$roundDigits})");
-                $uomShort   = cat_UoM::getShortName($rec->packagingId);
-                $genDisplay = $Double->toVerbal($genInRequestPack);
+				$Double   = core_Type::getByName("double(decimals={$roundDigits})");
+				$uomShort = cat_UoM::getShortName($rec->packagingId);
 
-                $row->status = ht::createHint(
-                    $row->status,
-                    "Генерираните движения са за по-малко от необходимото (заявеното от документа) количество|*: {$genDisplay} {$uomShort}",
-                    'warning',
-                    false
-                );
-                $row->status->prepend("<span class='notEnoughQuantityForZone'>");
-                $row->status->append("</span>");
-            }
+				// Вербализация:
+				// - ако количеството е цяло число -> без дробна част
+				// - иначе -> с точността на мярката
+				$eps = pow(10, -$roundDigits);        // граница за "почти цяло"
+				$genDisplayNum = $genInRequestPack;
+
+				if (abs($genDisplayNum - round($genDisplayNum)) < $eps) {
+					// цяло число – без десетични знаци
+					$DoubleInt  = core_Type::getByName("double(decimals=0)");
+					$genDisplay = $DoubleInt->toVerbal($genDisplayNum);
+				} else {
+					// има реална дробна част – оставяме я
+					$genDisplay = $Double->toVerbal($genDisplayNum);
+				}
+
+				$row->status = ht::createHint(
+					$row->status,
+					"Генерираните движения са за по-малко от необходимото (заявеното от документа) количество|*: {$genDisplay} {$uomShort}",
+					'warning',
+					false
+				);
+				$row->status->prepend("<span class='notEnoughQuantityForZone'>");
+				$row->status->append("</span>");
+			}
 
             if($mvc->haveRightFor('editdetailindocument', $rec)){
                 $changeBtn = ht::createLink('', array($mvc, 'editdetailindocument', $rec->id, 'ret_url' => true), 'Наистина ли искате да промените количеството в реда на документа|*?', 'class=changeQuantityBtn,ef_icon=img/16/arrow_refresh.png,title=Задаване на това количество в реда на документа');
@@ -560,40 +574,32 @@ class rack_ZoneDetails extends core_Detail
         }
 
         $rec->_movements = $data->recs;
-        if(countR($rec->_movements)){
-            $allocated += $rec->_movements;
-        }
-        
-        $requestedProductId = Request::get('productId', 'int');
+		if (countR($rec->_movements)) {
+			$allocated += $rec->_movements;
+		}
 
-        /**
-         * Генерирано КЪМ МОМЕНТА количество за тази зона в БАЗОВА мярка.
-         * (Сумира по всички движения в $data->recs за конкретната зона,
-         * умножавайки "брой опаковки" по quantityInPack.)
-         */
-        $rec->_generatedBase = 0.0;
+		// Общото "генерирано" количество в базова мярка
+		$rec->_generatedBase = static::getGeneratedBaseForDetail($masterRec, $rec);
 
-        foreach ($data->recs as $mRec) {
-            $zArr = type_Table::toArray($mRec->zones);
-            foreach ($zArr as $zA){
-                if ((int)$zA->zone === (int)$masterRec->id) {
-                    // zA->quantity е "брой опаковки" за опаковката на ТОВА движение
-                    // quantityInPack → конверсия към базова мярка
-                    $rec->_generatedBase += (float)$zA->quantity * (float)$mRec->quantityInPack;
-                }
-            }
+		$requestedProductId = Request::get('productId', 'int');
 
-            if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
-            
-            $fields = $Movements->selectFields();
-            $fields['-list'] = true;
-            $fields['-inline'] = true;
-            if($masterRec->_isSingle === true){
-                $fields['-inline-single'] = true;
-            }
-            $mRec->_currentZoneId = $masterRec->id;
-            $data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
-        }
+		foreach ($data->recs as $mRec) {
+
+			// Филтър по productId в терминала (ако има такъв)
+			if (isset($requestedProductId) && $mRec->productId != $requestedProductId) {
+				continue;
+			}
+
+			$fields = $Movements->selectFields();
+			$fields['-list']   = true;
+			$fields['-inline'] = true;
+			if ($masterRec->_isSingle === true) {
+				$fields['-inline-single'] = true;
+			}
+
+			$mRec->_currentZoneId = $masterRec->id;
+			$data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
+		}
         
         
         // Сигнализираме, ако се взема цялото налично количество от палетмястото (т.е. че няма нужда да се брои)
@@ -1018,4 +1024,85 @@ class rack_ZoneDetails extends core_Detail
 
         followRetUrl(null, "Успешно е променено количеството в|* #{$Document->getHandle()} ");
     }
+	
+	
+	/**
+	 * Връща общото "генерирано" количество в БАЗОВА мярка
+	 * за даден детайлен ред (зона + документ + продукт + партида).
+	 *
+	 * ВКЛЮЧВА всички състояния: pending, waiting, active, closed.
+	 * - pending / waiting: броят се винаги (висят в тази зона за текущия документ)
+	 * - active / closed: броят се само ако са вързани към документа на зоната
+	 *   чрез полето `documents`.
+	 *
+	 * Така:
+	 *  - не зависим от филтъра в терминала (Свободни/Моите/…)
+	 *  - не броим затворени движения за стари документи в същата зона.
+	 *
+	 * @param stdClass $zoneRec  Запис от rack_Zones (мастър)
+	 * @param stdClass $detRec   Запис от rack_ZoneDetails (детайл)
+	 * @return float             Количество в базова мярка
+	 */
+	protected static function getGeneratedBaseForDetail($zoneRec, $detRec)
+	{
+		$zoneId      = (int) $zoneRec->id;
+		$containerId = isset($zoneRec->containerId) ? (int) $zoneRec->containerId : 0;
+
+		$res = 0.0;
+
+		$q = rack_Movements::getQuery();
+
+		// Продукт
+		$q->where("#productId = {$detRec->productId}");
+
+		// Партида: празна към празна, непразна към непразна
+		if ($detRec->batch !== null && $detRec->batch !== '') {
+			$q->where(array("#batch = '[#1#]'", $detRec->batch));
+		} else {
+			$q->where("#batch IS NULL OR #batch = ''");
+		}
+
+		// Ограничаваме по зони (и без това после ще проверяваме табличното поле)
+		$q->where("LOCATE('|{$zoneId}|', #zoneList)");
+
+		// Трябват ни зоните, коефициентът към базова мярка, състоянието и документите
+		$q->show('zones,quantityInPack,state,documents');
+
+		while ($m = $q->fetch()) {
+
+			$state = (string) $m->state;
+			$allow = false;
+
+			if (in_array($state, array('pending', 'waiting'), true)) {
+				// Всички pending / waiting в тази зона са "генерирани" за текущия документ
+				$allow = true;
+			} else {
+				// active / closed – броим ги само ако са вързани към документа на зоната
+				if ($containerId) {
+					$docsArr = !empty($m->documents) ? keylist::toArray($m->documents) : array();
+					if (isset($docsArr[$containerId])) {
+						$allow = true;
+					}
+				} else {
+					// Зона без документ – няма с какво да сравняваме, но не е критично
+					$allow = true;
+				}
+			}
+
+			if (!$allow) continue;
+
+			// Табличното поле със зоните
+			$zones = type_Table::toArray($m->zones);
+			if (!is_array($zones) || !count($zones)) continue;
+
+			foreach ($zones as $z) {
+				if ((int)$z->zone === $zoneId) {
+					// z->quantity = брой опаковки, quantityInPack => към базова мярка
+					$res += (float)$z->quantity * (float)$m->quantityInPack;
+				}
+			}
+		}
+
+		return $res;
+	}
 }
