@@ -835,68 +835,118 @@ class rack_Zones extends core_Master
     }
 
 
-    /**
-     * Обновява данни в мастъра
-     *
-     * @param int $id първичен ключ на статия
-     *
-     * @return int $id ид-то на обновения запис
-     */
     public function updateMaster_($id)
-    {
-        $rec = $this->fetchRec($id);
-        $isStarted = false;
+	{
+		// Самата зона
+		$rec = $this->fetchRec($id);
 
-        $dRecs = array();
-        $dQuery = rack_ZoneDetails::getQuery();
-        $dQuery->where("#zoneId = {$rec->id}");
-        while ($dRec = $dQuery->fetch()) {
-            if(!empty($dRec->movementQuantity)){
-                $isStarted = true;
-            }
+		// Всички детайли в зоната с някакво заявено количество (в БАЗОВА мярка)
+		$dRecs = array();
+		$dQuery = rack_ZoneDetails::getQuery();
+		$dQuery->where("#zoneId = {$rec->id}");
+		while ($dRec = $dQuery->fetch()) {
+			if (!empty($dRec->documentQuantity)) {
+				$dRecs[] = $dRec;
+			}
+		}
 
-            if(!empty($dRec->documentQuantity)){
-                $dRecs[] = $dRec;
-            }
-        }
+		$readiness = 0;
+		$isStarted = false;
+		$count = countR($dRecs);
 
-        /**
-         * Готовността се изчислява така
-         * (% изпълнение на ред 1) х [ 1 / (брой редове в документа) ] + (% изпълнение на ред 2) х [ 1 /
-         * (брой редове в документа) ] + ...
-         */
-        $readiness = 0;
-        $count = countR($dRecs);
-        foreach ($dRecs as $dRec) {
-            $dReadiness = ($dRec->movementQuantity / $dRec->documentQuantity);
-            $readiness += $dReadiness / $count;
-        }
+		// Ако няма детайли или няма документ – няма какво да изчисляваме
+		if ($count && isset($rec->containerId)) {
+			$containerId = (int) $rec->containerId;
 
-        // Запомняне на старата готовност и изчисляване на новата
-        $oldReadiness = null;
-        if($isStarted){
-            $oldReadiness = $rec->readiness;
-            $rec->readiness = $readiness;
-        } else {
-            $rec->readiness = null;
-        }
+			/**
+			 * Готовността се изчислява така:
+			 *  - за всеки ред в зоната намираме реално изпълненото по документа количество (в БАЗОВА мярка)
+			 *    от движенията със state IN ('active','closed'), вързани към този документ и зона;
+			 *  - делим го на заявеното по документа количество за този ред;
+			 *  - правим средно аритметично от процентите на всички редове.
+			 */
+			foreach ($dRecs as $dRec) {
 
-        $this->save($rec, 'readiness');
+				$docBase = (float) $dRec->documentQuantity;
+				if ($docBase <= 0) {
+					// ред със странно или нулево количество – пропускаме
+					continue;
+				}
 
-        // Ако готовността е току що станала на 100% или от 100% е паднала
-        if(isset($rec->containerId)){
-            $Document = doc_Containers::getDocument($rec->containerId);
-            if(($oldReadiness == 1 && $rec->readiness != 1) || ($rec->readiness == 1 && $oldReadiness != 1)){
+				// Реално изпълненото по документа за този ред и тази зона (в БАЗОВА мярка)
+				$doneBase = 0.0;
 
-                // Ако документа в зоната е закачен към транспортна линия - тя се маркира да се обнови
-                if($Document->getInstance()->hasPlugin('trans_plg_LinesPlugin')){
-                    if($documentLineId = $Document->fetchField($Document->lineFieldName)){
-                        $this->syncLinesOnShutdown[] = $documentLineId;
-                    }
-                }
-            }
-        }
-    }
+				$q = rack_Movements::getQuery();
+				$q->in('state', array('active', 'closed'));
+				$q->where("#productId = {$dRec->productId}");
+
+				// Филтър по партида – както в детайла
+				if ($dRec->batch !== null && $dRec->batch !== '') {
+					$q->where(array("#batch = '[#1#]'", $dRec->batch));
+				} else {
+					$q->where("#batch IS NULL OR #batch = ''");
+				}
+
+				// Само движения, вързани към този документ
+				$q->where(array("LOCATE('|[#1#]|', #documents)", $containerId));
+
+				// Трябват ни зоните и quantityInPack, за да сметнем реалната база
+				$q->show('zones,quantityInPack');
+
+				while ($m = $q->fetch()) {
+					$zones = type_Table::toArray($m->zones);
+					if (!is_array($zones)) {
+						continue;
+					}
+
+					foreach ($zones as $z) {
+						if ((int)$z->zone === (int)$rec->id) {
+							// z->quantity е в опаковки на движението; quantityInPack -> базова мярка
+							$doneBase += (float)$z->quantity * (float)$m->quantityInPack;
+						}
+					}
+				}
+
+				if ($doneBase > 0) {
+					$isStarted = true;
+				}
+
+				// Процент за този ред, ограничен в [0;1]
+				$dReadiness = $doneBase / $docBase;
+				if ($dReadiness < 0)  $dReadiness = 0;
+				if ($dReadiness > 1)  $dReadiness = 1;
+
+				// Средно аритметично на % за всички редове
+				$readiness += $dReadiness / $count;
+			}
+		}
+
+		// Запомняме старата готовност и записваме новата
+		$oldReadiness = null;
+		if ($isStarted) {
+			$oldReadiness = $rec->readiness;
+			$rec->readiness = $readiness;
+		} else {
+			// няма нито едно реално изпълнено движение – показваме "none"
+			$rec->readiness = null;
+		}
+
+		$this->save($rec, 'readiness');
+
+		// Останалото (уведомяване на документа при преминаване през 100%) оставяме както е
+		if (isset($rec->containerId)) {
+			$Document = doc_Containers::getDocument($rec->containerId);
+			if (($oldReadiness == 1 && $rec->readiness != 1) || ($rec->readiness == 1 && $oldReadiness != 1)) {
+
+				// Ако документа в зоната е закачен към транспортна линия - тя се маркира да се обнови
+				if ($Document->getInstance()->hasPlugin('trans_plg_LinesPlugin')) {
+					if ($documentLineId = $Document->fetchField($Document->lineFieldName)) {
+						$this->syncLinesOnShutdown[] = $documentLineId;
+					}
+				}
+			}
+		}
+	}
 
 
     /**
