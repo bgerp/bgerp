@@ -103,73 +103,84 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         
         $Items = cls::get('acc_Items');
         $itemsArr = $Items->getCachedItems();
+        $accInfo = acc_Accounts::getAccountInfo($dRec->accountId);
+        $isDimensional = $accInfo->isDimensional;
 
         // За всеки запис
         while ($bRec = $bQuery->fetch()) {
-
             $blAmount  = $blQuantity = null;
 
-            // Има ли изобщо настройки за к-во и/или сума
-            $hasQtyCfg = !empty($dRec->blQuantity) || !empty($dRec->blRoundQuantity);
-            $hasAmtCfg = !empty($dRec->blAmount)   || !empty($dRec->blRoundAmount);
+            // Смятаме дали изобщо има настройки за к-во/сума
+            // ⚠ За количество = само ако сметката е дименсионна
+            $hasQtyCfg = $isDimensional && (!empty($dRec->blQuantity) || !empty($dRec->blRoundQuantity));
+            $hasAmtCfg = !empty($dRec->blAmount) || !empty($dRec->blRoundAmount);
 
             // По подразбиране:
-            // - ако НЯМА настройка за даденото поле -> то не участва в проверката (счита се за "ОК")
-            // - ако ИМА настройка -> чакаме да видим дали е в прага
+            // - ако НЯМА настройка за даденото поле -> то се счита "ОК" (не участва в AND проверката)
+            // - ако ИМА настройка -> ще трябва да го валидираме
             $qtyOk = !$hasQtyCfg;
             $amtOk = !$hasAmtCfg;
 
             /* --------- Количество --------- */
-            if (!empty($dRec->blQuantity)) {
-                // режим "праг" по количество
-                $diffQty = $bRec->blQuantity;
-                if ($diffQty != 0 && $diffQty >= -1 * $dRec->blQuantity && $diffQty <= $dRec->blQuantity) {
-                    $blQuantity = $diffQty;
-                    $qtyOk = true;
-                } else {
-                    $qtyOk = false;
-                }
-            } elseif (!empty($dRec->blRoundQuantity)) {
-                // режим "закръгляне" по количество
-                $diffQty = round(round($bRec->blQuantity, $dRec->blRoundQuantity) - $bRec->blQuantity, 10);
-                if ($diffQty) {
-                    $blQuantity = $diffQty;
-                    $qtyOk = true;
-                } else {
-                    // има настройка, но няма разлика => няма какво да се поправя по количество
-                    $qtyOk = false;
+            // Само за дименсионни сметки!
+            if ($hasQtyCfg) {
+
+                if (!empty($dRec->blQuantity)) {
+                    // режим "праг" по количество
+                    $diffQty = $bRec->blQuantity;
+                    if ($diffQty != 0 && $diffQty >= -1 * $dRec->blQuantity && $diffQty <= $dRec->blQuantity) {
+                        $blQuantity = $diffQty;
+                        $qtyOk = true;
+                    } else {
+                        $qtyOk = false;
+                    }
+
+                } elseif (!empty($dRec->blRoundQuantity)) {
+                    // режим "закръгляне" по количество (до N знака след запетаята)
+                    $diffQty = round(round($bRec->blQuantity, (int)$dRec->blRoundQuantity) - $bRec->blQuantity, 10);
+                    if ($diffQty) {
+                        $blQuantity = $diffQty;
+                        $qtyOk = true;
+                    } else {
+                        // има настройка, но няма разлика => няма какво да пипаме по количество
+                        $qtyOk = false;
+                    }
                 }
             }
 
             /* --------- Сума --------- */
-            if (!empty($dRec->blAmount)) {
-                // режим "праг" по сума
-                $diffAmt = $bRec->blAmount;
-                if ($diffAmt != 0 && $diffAmt >= -1 * $dRec->blAmount && $diffAmt <= $dRec->blAmount) {
-                    $blAmount = $diffAmt;
-                    $amtOk = true;
-                } else {
-                    $amtOk = false;
-                }
-            } elseif (!empty($dRec->blRoundAmount)) {
-                // режим "закръгляне" по сума
-                $diffAmt = round(round($bRec->blAmount, $dRec->blRoundAmount) - $bRec->blAmount, 10);
-                if ($diffAmt) {
-                    $blAmount = $diffAmt;
-                    $amtOk = true;
-                } else {
-                    $amtOk = false;
+            if ($hasAmtCfg) {
+
+                if (!empty($dRec->blAmount)) {
+                    // режим "праг" по сума
+                    $diffAmt = $bRec->blAmount;
+                    if ($diffAmt != 0 && $diffAmt >= -1 * $dRec->blAmount && $diffAmt <= $dRec->blAmount) {
+                        $blAmount = $diffAmt;
+                        $amtOk = true;
+                    } else {
+                        $amtOk = false;
+                    }
+
+                } elseif (!empty($dRec->blRoundAmount)) {
+                    // режим "закръгляне" по сума
+                    $diffAmt = round(round($bRec->blAmount, (int)$dRec->blRoundAmount) - $bRec->blAmount, 10);
+                    if ($diffAmt) {
+                        $blAmount = $diffAmt;
+                        $amtOk = true;
+                    } else {
+                        $amtOk = false;
+                    }
                 }
             }
 
             /*
-             * От тук нататък:
-             * - за всяко поле, за което ИМА настройка, изискваме то да е "в прага"/да има разлика
-             * - искаме AND между количество и сума
+             * Финална логика:
+             * - за всяко поле, за което ИМА настройка, изискваме то да е "ОК" (в прага / има разлика)
+             * - ако сметката е недименсионна, hasQtyCfg е false -> quantity изобщо не участва
+             * - AND между количество и сума за тези, които са включени
              */
-
             if (($hasQtyCfg && !$qtyOk) || ($hasAmtCfg && !$amtOk)) {
-                // поне една от зададените (к-во или сума) е извън прага => НЕ бараме записа
+                // поне едно от зададените (к-во или сума) не е в прага => НЕ бараме записа
                 continue;
             }
 
@@ -180,7 +191,6 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 
             // Ако има поне едно перо
             if (!empty($bRec->ent1Id) || !empty($bRec->ent2Id) || !empty($bRec->ent3Id)) {
-
                 if($dRec->repairAll != 'yes'){
 
                     // Проверяваме всички пера

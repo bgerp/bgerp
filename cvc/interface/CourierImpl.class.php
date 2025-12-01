@@ -547,6 +547,10 @@ class cvc_interface_CourierImpl extends core_Manager
 
         // Рендиране на ценовата информация
         $tpl = getTplFromFile('cvc/tpl/CalculationResult.shtml');
+        $currencyId = dt::today() >= acc_Setup::getEurozoneDate() ? 'EUR' : 'BGN';
+
+        $res['price'] = currency_Currencies::decorate($res['price'], $currencyId, true);
+        $res['priceWithVAT'] = currency_Currencies::decorate($res['priceWithVAT'], $currencyId, true);
         $tpl->replace($res['price'], 'price');
         $tpl->replace($res['priceWithVAT'], 'priceWithVat');
         foreach ($res['details'] as $additionalText){

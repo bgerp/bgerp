@@ -3261,7 +3261,7 @@ abstract class deals_Helper
         }
 
         if($alwaysDecorate) {
-            $amountRow =currency_Currencies::decorate($amountRow, $currencyId, true);
+            $amountRow = currency_Currencies::decorate($amountRow, $currencyId, true);
         }
 
         return $amountRow;

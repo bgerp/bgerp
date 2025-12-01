@@ -197,8 +197,8 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
         $mvc->FLD('reason', 'richtext(rows=2, bucket=Notes)', 'caption=Основание');
         $mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
-        $mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
-        $mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
+        $mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса');
+        $mvc->FLD('contragentName', 'varchar(255)', 'caption=Плащане->Вносител,mandatory');
         $mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
         $mvc->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
         $mvc->FLD('contragentAdress', 'varchar(255)', 'input=hidden');
@@ -207,8 +207,9 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('contragentCountry', 'varchar(255)', 'input=hidden');
         $mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
         $mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-        $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent,removeAndRefreshForm=rate|amount');
-        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min77=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
+        $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Плащане->Валута,silent,removeAndRefreshForm=rate|amount');
+        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Плащане->Сума,summary=amount,input=hidden');
+        $mvc->FLD('amountGiven', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Плащане->Дадено');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
         $mvc->FLD('issuer', 'varchar', 'caption=Допълнително->Съставил');
@@ -280,9 +281,9 @@ abstract class cash_Document extends deals_PaymentDocument
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
 
-        if(core_Packs::isInstalled('bgfisc') && dt::today() >= acc_Setup::getEurozoneDate()){
-            if(isset($form->rec->peroCase)){
-                $form->setDefault('currencyId', currency_Currencies::getIdByCode('EUR'));
+        if(dt::today() >= acc_Setup::getEurozoneDate()) {
+            $form->setDefault('currencyId', currency_Currencies::getIdByCode('EUR'));
+            if(core_Packs::isInstalled('bgfisc')){
                 $form->setReadOnly('currencyId');
             }
         }
@@ -317,10 +318,16 @@ abstract class cash_Document extends deals_PaymentDocument
         
         if ($mvc instanceof cash_Rko || (isset($defaultOperation) && array_key_exists($defaultOperation, $options))) {
             $form->setDefault('operationSysId', $defaultOperation);
-           
+
             $dAmount = round($amount, 2);
             if ($dAmount != 0) {
                 $form->setDefault('amountDeal', $dAmount);
+
+                if(dt::today() >= acc_Setup::getEurozoneDate()) {
+                    if($rec->dealCurrencyId == currency_Currencies::getIdByCode('BGN') && $rec->currencyId == currency_Currencies::getIdByCode('EUR')){
+                        $form->setDefault('amount', round($dAmount / 1.95583, 2));
+                    }
+                }
             }
         }
         
@@ -344,10 +351,6 @@ abstract class cash_Document extends deals_PaymentDocument
         
         if ($form->rec->currencyId != $form->rec->dealCurrencyId) {
             $form->setField('amount', 'input');
-        }
-        
-        if (!isset($form->rec->peroCase)) {
-            $form->setField('currencyId', 'input=hidden');
         }
         
         if ($form->isSubmitted()) {
@@ -406,6 +409,9 @@ abstract class cash_Document extends deals_PaymentDocument
             }
             
             $mvc->invoke('AfterSubmitInputEditForm', array($form));
+            if (isset($rec->amountGiven) && $rec->amountGiven < $rec->amount) {
+                $form->setError('amountGiven', 'Сумата трябва да е над сумата по документа');
+            }
         }
     }
     
@@ -581,6 +587,16 @@ abstract class cash_Document extends deals_PaymentDocument
             if ($origin = $mvc->getOrigin($rec)) {
                 $options = $origin->allowedPaymentOperations;
                 $row->operationSysId = $options[$rec->operationSysId]['title'];
+            }
+
+            // Ако има посочено колко е платено - показва се и рестото
+            if(isset($rec->amountGiven)){
+                $cData = doc_Folders::getContragentData($rec->folderId);
+                $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+                $change = $rec->amountGiven - $rec->amount;
+                $changeRow = $mvc->getFieldType('amountGiven')->toVerbal($change);
+                $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
+                $row->change = deals_Helper::displayDualAmount($changeRow, $change, $rec->activatedOn, $currencyCode, $cData->countryId, ' / ', true);
             }
         }
     }
