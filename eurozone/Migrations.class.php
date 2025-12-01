@@ -168,13 +168,15 @@ SET
         $amount = str::phpToMysqlName('amount');                      // prime_cost
         $expensesCol  = str::phpToMysqlName('expenses');             // auto_discount_amount
         $tbl = $SaveClass->dbTableName;
+        $valiorCol = str::phpToMysqlName('valior');
+        $eurozoneDate = acc_Setup::getEuroZoneDate();
 
         $query = "
 UPDATE `{$tbl}`
 SET
   `{$priceCol}`  = CASE WHEN `{$priceCol}`  IS NOT NULL THEN `{$priceCol}`  / 1.95583 ELSE NULL END,
   `{$amount}` = CASE WHEN `{$amount}` IS NOT NULL THEN `{$amount}` / 1.95583 ELSE NULL END,
-  `{$expensesCol}`  = CASE WHEN `{$expensesCol}`  IS NOT NULL THEN `{$expensesCol}`  / 1.95583 ELSE NULL END";
+  `{$expensesCol}`  = CASE WHEN `{$expensesCol}`  IS NOT NULL THEN `{$expensesCol}`  / 1.95583 ELSE NULL END WHERE `{$valiorCol}` < '{$eurozoneDate}'";
 
         $SaveClass->db->query($query);
     }
@@ -231,7 +233,6 @@ SET
         'purchases' => array('name' => 'Доставки', 'function' => 'updatePurchases', 'class' => 'purchase_PurchasesData', 'copy' => 'eurozone_PurchasesDataTest'),
         'stocks' => array('name' => 'Складови сб-ст', 'function' => 'updatePricesByDate', 'class' => 'acc_ProductPricePerPeriods', 'copy' => 'eurozone_ProductPricePerPeriodsTest'),
         'prices' => array('name' => 'Цени на артикули', 'function' => 'updatePriceCosts', 'class' => 'price_ProductCosts', 'copy' => 'eurozone_ProductCostsTest'),
-
     );
 
 
@@ -312,16 +313,8 @@ SET
     public function act_migrateAll()
     {
         requireRole('debug');
-        self::convertBgnAccounts2Euro();
-        self::addBgnPayment();
-        self::updateCreatedPeriods();
-        self::updatePriceLists();
-        self::updateDeltas();
-        self::updatePurchases();
-        self::updateEshopSettings();
-        self::updatePriceCosts();
-        self::updatePricesByDate();
-        self::updateHr();
+
+        self::callback_migrateAll();
     }
 
 
@@ -416,7 +409,7 @@ SET
     /**
      * Добавя безналичен метод за плащане - ЛЕВА
      */
-    public function addBgnPayment()
+    public static function addBgnPayment()
     {
         core_Users::forceSystemUser();
         $rec = (object)array('title' => self::BGN_NON_CASH_PAYMENT_NAME, 'change' => 'yes', 'currencyCode' => 'BGN', 'synonym' => 'bgn');
@@ -478,7 +471,7 @@ SET
      * Обновяване на сумите на позициите в моята фирма
      * @return void
      */
-    public function updateHr()
+    public static function updateHr()
     {
         $Positions = cls::get('hr_Positions');
         $Positions->setupMvc();
@@ -496,5 +489,31 @@ SET
 
             $Positions->save($rec, 'salaryBase,compensations');
         }
+    }
+
+
+    /**
+     * Функция, която се вика по крон по разписание за обновяване на валутата на сч. периоди
+     */
+    public static function callback_updatePeriods()
+    {
+        self::updateCreatedPeriods();
+    }
+
+
+    /**
+     * Функция, която се вика по крон по разписание за мигриране на документите за еврозоната
+     */
+    public static function callback_migrateAll()
+    {
+        self::addBgnPayment();
+        self::updatePriceLists();
+        self::updateDeltas();
+        self::updatePurchases();
+        self::updateEshopSettings();
+        self::updatePriceCosts();
+        self::updatePricesByDate();
+        self::convertBgnAccounts2Euro();
+        self::updateHr();
     }
 }

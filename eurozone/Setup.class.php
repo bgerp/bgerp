@@ -2,6 +2,12 @@
 
 
 /**
+ * Мигриране на системата за еврозоната на
+ */
+defIfNot('EUROZONE_SET_MIGRATIONS', 'no');
+
+
+/**
  * class eurozone_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -49,13 +55,21 @@ class eurozone_Setup extends core_ProtoSetup
 
 
     /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'EUROZONE_SET_MIGRATIONS' => array('enum(no=Не е настроено,yes=Настроено е)', 'caption=Мигриране на системата за еврозоната на|* 01.01.2026->Моля свържете се с наш представител да зададе обновяването->Избор,callOnChange=eurozone_Setup::setCallOnTimeMigrations'),
+    );
+
+
+    /**
      * Описание на системните действия
      */
     public $systemActions = array(
         array(
             'title' => 'Тест миграция',
             'url' => array(
-                'eurozone_Setup',
+                'eurozone_Migrations',
                 'testMigrations',
                 'ret_url' => true
             ),
@@ -66,12 +80,6 @@ class eurozone_Setup extends core_ProtoSetup
             'roles' => 'debug',
         ),
     );
-
-
-    /**
-     * Описание на конфигурационните константи
-     */
-    public $configDescription = array();
 
 
     /**
@@ -95,5 +103,36 @@ class eurozone_Setup extends core_ProtoSetup
         $paymentId = cond_Payments::fetchField("#title = '{$bgnPaymentName}'");
 
         return $paymentId;
+    }
+
+
+    /**
+     * Менижиране на формата формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        if (!haveRole('debug')) {
+            $configForm->setReadOnly('EUROZONE_SET_MIGRATIONS');
+        }
+    }
+
+
+    /**
+     * Изпълнява се при промяна на стойноста на миграцията
+     *
+     * @param $Type
+     * @param $oldValue
+     * @param $newValue
+     * @return void
+     */
+    public static function setCallOnTimeMigrations($Type, $oldValue, $newValue)
+    {
+        if($newValue == 'yes'){
+            core_CallOnTime::setCall('eurozone_Migrations', 'updatePeriods', null, '2025-12-31 23:00:00');
+            core_CallOnTime::setCall('eurozone_Migrations', 'migrateAll', null, '2026-01-01 00:00:00');
+        }
     }
 }
