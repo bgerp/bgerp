@@ -153,14 +153,7 @@ class rack_ZoneDetails extends core_Detail
         $moveStatusColor = (round($rec->movementQuantity, 4) < round($rec->documentQuantity, 4)) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
 
-        if(!Mode::is('printing')){
-
-            // Ако има повече нагласено от очакането добавя се бутон за връщане на количеството
-            if($mvc->haveRightFor('returnquantitymovement', $rec)){
-                $row->status = ht::createLink('', array($mvc, 'ReturnQuantityMovement', $rec->id, 'ret_url' => true), false, 'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество') . $row->status;
-            }
-        }
-        
+       
         if ($Definition = batch_Defs::getBatchDef($rec->productId)) {
             if(!empty($rec->batch)){
                 $row->batch = $Definition->toVerbal($rec->batch);
@@ -341,6 +334,20 @@ class rack_ZoneDetails extends core_Detail
 				);
 				$row->status->prepend("<span class='notEnoughQuantityForZone'>");
 				$row->status->append("</span>");
+			}
+			
+			// Бутон за връщане на нагласено количество от зоната (минусче)
+			// (по дизайн се показва само ако изпълненото е повече от заявеното)
+			if (!Mode::is('printing') && $cmpLeft > $cmpRight && $mvc->haveRightFor('returnquantitymovement')) {
+				$minusBtn = ht::createLink(
+					'',
+					array($mvc, 'returnquantitymovement', $rec->id, 'ret_url' => true),
+					false,
+					'class=minusImg,ef_icon=img/16/minus-white.png,title=Връщане на нагласено количество'
+				);
+
+				// $row->status вече е core_ET, затова добавяме бутона в началото
+				$row->status->prepend($minusBtn);
 			}
 
             if($mvc->haveRightFor('editdetailindocument', $rec)){
@@ -661,16 +668,12 @@ class rack_ZoneDetails extends core_Detail
             }
         }
 
-        if($action == 'returnquantitymovement'){
+        if ($action == 'returnquantitymovement') {
+            // Правата за обратно движение се свеждат до правата
+            // за добавяне на движение в rack_Movements.
+            // Проверка дали реално има излишно количество се прави
+            // вътре в act_ReturnQuantityMovement().
             $requiredRoles = rack_Movements::getRequiredRoles('add', null, $userId);
-            if($requiredRoles != 'no_one'){
-                if(isset($rec)){
-                    $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
-                    if($overQuantity <= 0){
-                        $requiredRoles = 'no_one';
-                    }
-                }
-            }
         }
 
         // Кой може от зоната да редактира реда в детайла на документа
@@ -888,19 +891,42 @@ class rack_ZoneDetails extends core_Detail
      * Екшън генериращ движение за връщане от зоната
      */
     public function act_ReturnQuantityMovement()
-    {
-        $this->requireRightFor('returnquantitymovement');
-        expect($id = Request::get('id', 'int'));
-        expect($rec = static::fetch($id));
-        $this->requireRightFor('returnquantitymovement', $rec);
-        $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
+	{
+		// Проверяваме общите права за обратно движение
+		$this->requireRightFor('returnquantitymovement');
 
-        // Създава се обратно движение
-        $newRec = static::makeReturnQuantityMovement($rec->zoneId, $rec->productId, $rec->batch, $rec->packagingId, $overQuantity);
-        rack_Movements::save($newRec);
+		expect($id = Request::get('id', 'int'));
+		expect($rec = static::fetch($id));
 
-        followRetUrl(null, '|Създадено е обратно движение за връщане на останалото количество в зоната');
-    }
+		// Зона на реда
+		$zoneRec = rack_Zones::fetchRec($rec->zoneId);
+
+		// Реално "генерирано/изпълнено" количество за тази зона+документ (в базова мярка)
+		$generatedBase = static::getGeneratedBaseForDetail($zoneRec, $rec);
+
+		// Заявеното количество по документа (в базова мярка)
+		$documentBase = (float) $rec->documentQuantity;
+
+		// Излишък = изпълнено - заявено
+		$overQuantity = round($generatedBase - $documentBase, 7);
+
+		// Ако няма реален излишък – не правим движение
+		if ($overQuantity <= 0) {
+			followRetUrl(null, '|Няма излишно количество за връщане от тази зона');
+		}
+
+		// Създава се обратно движение за излишъка
+		$newRec = static::makeReturnQuantityMovement(
+			$zoneRec,              // може да е и $rec->zoneId, функцията сама ще направи fetchRec()
+			$rec->productId,
+			$rec->batch,
+			$rec->packagingId,
+			$overQuantity          // в базова мярка
+		);
+		rack_Movements::save($newRec);
+
+		followRetUrl(null, '|Създадено е обратно движение за връщане на останалото количество в зоната');
+	}
 
 
     /**
