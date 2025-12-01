@@ -108,7 +108,7 @@ class acc_BalanceRepairDetails extends doc_Detail
     public function description()
     {
         $this->FLD('repairId', 'key(mvc=acc_BalanceRepairs)', 'column=none,input=hidden,silent,mandatory');
-        $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory');
+        $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent,removeAndRefreshForm=blQuantity|blRoundQuantity');
         $this->FLD('reason', 'varchar', 'caption=Информация');
         $this->FLD('repairAll', 'enum(yes=Всички,no=Само тези с поне едно затворено перо)', 'caption=Поправка на->Избор,notNull,value=no');
 
@@ -202,12 +202,22 @@ class acc_BalanceRepairDetails extends doc_Detail
         }
         
         $form->setOptions('accountId', $options);
-        
+
+        if(isset($rec->accountId)){
+            $isDimensional = acc_Accounts::getAccountInfo($rec->accountId)->isDimensional;
+            if(!$isDimensional){
+                $form->setField('blRoundQuantity', 'input=none');
+                $form->setField('blQuantity', 'input=none');
+            }
+        }
+
         // Задаване на дефолти при нужда
         $useDefaults = acc_Setup::get('BALANCE_REPAIR_NO_DEFAULTS');
         if($useDefaults != 'yes'){
             if(empty($rec->blRoundQuantity)){
-                $form->setDefault('blQuantity', acc_Setup::get('BALANCE_REPAIR_QUANTITY_BELLOW'));
+                if($isDimensional){
+                    $form->setDefault('blQuantity', acc_Setup::get('BALANCE_REPAIR_QUANTITY_BELLOW'));
+                }
             }
 
             if(empty($rec->blRoundAmount)){

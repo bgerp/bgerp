@@ -421,7 +421,16 @@ abstract class deals_ClosedDeals extends core_Master
             $DocClass->save($firstRec, 'modifiedOn,modifiedBy,state,closedOn');
             $DocClass->logWrite('Приключено с документ за приключване', $firstRec->id);
             if (empty($saveFields)) {
-                $rec->amount = $mvc->getLiveAmount($rec);
+
+                // Изчислява се на база записите в журнала
+                $journalRec = acc_Journal::fetchByDoc($mvc, $rec->id);
+                $nQuery = acc_JournalDetails::getQuery();
+                $nQuery->where("#journalId = {$journalRec->id}");
+                $jRecs = $nQuery->fetchAll();
+                $cost = acc_Balances::getBlAmounts($jRecs, $mvc->incomeAndCostAccounts['debit'], 'debit', null, array(), array(), $rec->valior)->amount;
+                $inc = acc_Balances::getBlAmounts($jRecs, $mvc->incomeAndCostAccounts['credit'], 'credit', null, array(), array(), $rec->valior)->amount;
+                $rec->amount = $inc - $cost;
+
                 $mvc->save($rec, 'amount');
             }
 

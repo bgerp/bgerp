@@ -295,12 +295,12 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         while ($recPrime = $query->fetch()) {
 
             //Превалутиране на сумите
-            $recPrime->sellCost1 = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, $recPrime->valior, $rec->to);
+            $recPrime->sellCost = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, null, $rec->to);
 
-            $recPrime->autoDiscountAmount = deals_Helper::getSmartBaseCurrency($recPrime->autoDiscountAmount, $recPrime->valior, $rec->to);
-            $recPrime->sellCostWithOriginalDiscount = deals_Helper::getSmartBaseCurrency($recPrime->sellCostWithOriginalDiscount, $recPrime->valior, $rec->to);
-            $recPrime->primeCost = deals_Helper::getSmartBaseCurrency($recPrime->primeCost, $recPrime->valior, $rec->to);
-            $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+            $recPrime->autoDiscountAmount = deals_Helper::getSmartBaseCurrency($recPrime->autoDiscountAmount, null, $rec->to);
+            $recPrime->sellCostWithOriginalDiscount = deals_Helper::getSmartBaseCurrency($recPrime->sellCostWithOriginalDiscount, null, $rec->to);
+            $recPrime->primeCost = deals_Helper::getSmartBaseCurrency($recPrime->primeCost, null, $rec->to);
+            $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, null, $rec->to);
 
             $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
             $contragentId = $contragentClassId = $contragentClassName = 0;

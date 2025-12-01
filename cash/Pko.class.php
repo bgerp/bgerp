@@ -97,7 +97,7 @@ class cash_Pko extends cash_Document
     {
         // Зареждаме полетата от бащата
         parent::getFields($this);
-        $this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
+        $this->FLD('depositor', 'varchar(255)', 'caption=Плащане->Броил,mandatory,after=contragentName');
         $this->FLD('bankPeripheralDeviceId', "key(mvc=peripheral_Devices,select=name)", "input=hidden,caption=Безналично плащане->БПТ,before=contragentName,hint=Банков паричен терминал");
     }
     
