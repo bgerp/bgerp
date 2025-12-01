@@ -69,7 +69,7 @@
                     <td style='padding-left:10px; padding-top: 10px; max-width:50%; min-width: 220px' class="nowrap">
                         <table class="no-border fright"><tr><td style='font-size:20px'>|Сума|*:</td><td class='amount' style="margin-right: 0"><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></td></tr>
                             <!--ET_BEGIN amountGiven-->
-                            <tr><td style='font-size: 0.8em;'>|Дадено|*:</td><td class='amount' style="margin-right: 0"><span class='cCode'>[#amountGivenCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountGiven#]</b></td></tr>
+                            <tr><td style='font-size: 0.8em;'>|Дадено|*:</td><td class='amount' style="margin-right: 0"><b>[#amountGiven#]</b></td></tr>
                             <tr><td style='font-size: 0.8em;'>|Ресто|*:</td><td class='amount' style="margin-right: 0"><b>[#change#]</b></td></tr>
                             <!--ET_END amountGiven-->
                         </table>

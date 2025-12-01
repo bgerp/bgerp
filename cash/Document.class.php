@@ -208,7 +208,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
         $mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
         $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Плащане->Валута,silent,removeAndRefreshForm=rate|amount');
-        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min77=0,maxAllowedDecimals=2)', 'caption=Плащане->Сума,summary=amount,input=hidden');
+        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Плащане->Сума,summary=amount,input=hidden');
         $mvc->FLD('amountGiven', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Плащане->Дадено');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
@@ -592,10 +592,11 @@ abstract class cash_Document extends deals_PaymentDocument
             // Ако има посочено колко е платено - показва се и рестото
             if(isset($rec->amountGiven)){
                 $cData = doc_Folders::getContragentData($rec->folderId);
-                $row->amountGivenCurrencyId = $row->currencyId;
+                $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
                 $change = $rec->amountGiven - $rec->amount;
-                $changeRow = $mvc->getFieldType('amount')->toVerbal($change);
-                $row->change = deals_Helper::displayDualAmount($changeRow, $change, $rec->activatedOn, currency_Currencies::getCodeById($rec->currencyId), $cData->countryId, ' / ');
+                $changeRow = $mvc->getFieldType('amountGiven')->toVerbal($change);
+                $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
+                $row->change = deals_Helper::displayDualAmount($changeRow, $change, $rec->activatedOn, $currencyCode, $cData->countryId, ' / ', true);
             }
         }
     }
