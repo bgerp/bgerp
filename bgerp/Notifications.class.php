@@ -1560,9 +1560,9 @@ class bgerp_Notifications extends core_Manager
         
         if ($userId > 0) {
             $cnt = core_Cache::get('OpenNtfCnt', $userId);
-            if(!is_int($cnt)) {
+            if($cnt === false) {
                 $query = self::getQuery();
-                $cnt = $query->count("#userId = ${userId} AND #state = 'active' AND #hidden = 'no'");
+                $cnt = $query->count("#userId = {$userId} AND #state = 'active' AND #hidden = 'no'");
                 core_Cache::set('OpenNtfCnt', $userId, $cnt, 600);
             }
         } else {
