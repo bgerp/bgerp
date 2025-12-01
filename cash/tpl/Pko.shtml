@@ -64,14 +64,17 @@
                          <!--ET_BEGIN lineVehicleId-->
                          <div><span class='quiet' style="padding: 0 3px;">|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
                          <!--ET_END lineVehicleId-->
+
+                         <!--ET_BEGIN amountGiven-->
+                         <hr>
+                         <div><span class='quiet' style="padding: 0 3px;">|В брой|*:</span>  [#amountGiven#] »  <span class='quiet' style="padding: 0 3px 0 10px;">|Ресто|*:</span> [#change#] </div>
+                        <!--ET_END amountGiven-->
                     <!--ET_END pkoRow-->
                      </td>
                     <td style='padding-left:10px; padding-top: 10px; max-width:50%; min-width: 220px' class="nowrap">
-                        <table class="no-border fright"><tr><td style='font-size:20px'>|Сума|*:</td><td class='amount' style="margin-right: 0"><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></td></tr>
-                            <!--ET_BEGIN amountGiven-->
-                            <tr><td style='font-size: 0.8em;'>|Дадено|*:</td><td class='amount' style="margin-right: 0"><b>[#amountGiven#]</b></td></tr>
-                            <tr><td style='font-size: 0.8em;'>|Ресто|*:</td><td class='amount' style="margin-right: 0"><b>[#change#]</b></td></tr>
-                            <!--ET_END amountGiven-->
+                        <table class="no-border fright">
+                            <tr><td style='font-size:20px'>|Сума|*:</td><td class='amount' style="margin-right: 0"><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></td></tr>
+
                         </table>
                         <div class="clearfix21"></div>
                         <!--ET_BEGIN cash_NonCashPaymentDetails-->
