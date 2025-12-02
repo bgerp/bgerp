@@ -202,28 +202,29 @@ class acc_BalanceRepairDetails extends doc_Detail
         }
         
         $form->setOptions('accountId', $options);
-        $isDimensional = acc_Accounts::getAccountInfo($rec->accountId)->isDimensional;
 
         if(isset($rec->accountId)){
+            $isDimensional = acc_Accounts::getAccountInfo($rec->accountId)->isDimensional;
+
             if(!$isDimensional){
                 $form->setField('blRoundQuantity', 'input=none');
                 $form->setField('blQuantity', 'input=none');
             }
-        }
 
-        // Задаване на дефолти при нужда
-        if(!isset($rec->id)){
-            $useDefaults = acc_Setup::get('BALANCE_REPAIR_NO_DEFAULTS');
+            // Задаване на дефолти при нужда
+            if(!isset($rec->id)){
+                $useDefaults = acc_Setup::get('BALANCE_REPAIR_NO_DEFAULTS');
 
-            if($useDefaults != 'yes'){
-                if(empty($rec->blRoundQuantity)){
-                    if($isDimensional){
-                        $form->setDefault('blQuantity', acc_Setup::get('BALANCE_REPAIR_QUANTITY_BELLOW'));
+                if($useDefaults != 'yes'){
+                    if(empty($rec->blRoundQuantity)){
+                        if($isDimensional){
+                            $form->setDefault('blQuantity', acc_Setup::get('BALANCE_REPAIR_QUANTITY_BELLOW'));
+                        }
                     }
-                }
 
-                if(empty($rec->blRoundAmount)){
-                    $form->setDefault('blAmount', acc_Setup::get('BALANCE_REPAIR_AMOUNT_BELLOW'));
+                    if(empty($rec->blRoundAmount)){
+                        $form->setDefault('blAmount', acc_Setup::get('BALANCE_REPAIR_AMOUNT_BELLOW'));
+                    }
                 }
             }
         }
