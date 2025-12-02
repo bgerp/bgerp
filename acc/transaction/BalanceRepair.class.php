@@ -105,6 +105,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         $itemsArr = $Items->getCachedItems();
         $accInfo = acc_Accounts::getAccountInfo($dRec->accountId);
         $isDimensional = $accInfo->isDimensional;
+        $now = dt::now();
 
         // За всеки запис
         while ($bRec = $bQuery->fetch()) {
@@ -210,7 +211,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                             // Ако има поне едно затворено, и то е затворено преди края на периода
                             if ($itemsArr['items'][$bRec->{$ent}]->state == 'closed') {
                                 $jQuery = acc_JournalDetails::getQuery();
-                                acc_JournalDetails::filterQuery($jQuery, null, dt::now(), $bRec->accountNum, $bRec->{$ent});
+                                acc_JournalDetails::filterQuery($jQuery, null, $now, $bRec->accountNum, $bRec->{$ent});
                                 $jQuery->XPR('maxValior', 'date', 'MAX(#valior)');
                                 $jQuery->limit(1);
                                 $jQuery->show('maxValior');

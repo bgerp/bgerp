@@ -264,6 +264,10 @@ class acc_BalanceRepairs extends core_Master
             
             foreach ($defaultAccounts as $accountId){
                 $dRec = (object)array('repairId' => $rec->id, 'accountId' => $accountId, 'blQuantity' => $defaultQuantity, 'blAmount' => $defaultAmount);
+                if(!acc_Accounts::getAccountInfo($accountId)->isDimensional){
+                    $dRec->blQuantity = null;
+                }
+
                 acc_BalanceRepairDetails::save($dRec);
             }
         }
