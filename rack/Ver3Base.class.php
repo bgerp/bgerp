@@ -334,7 +334,9 @@ class rack_Ver3Base
                 // z->quantity е в брой опаковки; quantityInPack => към базовата мярка
                 $sumBase = (float)$z->quantity * (float)$m->quantityInPack;
 
-                if ($sumBase <= 0) continue;
+                // 0 няма смисъл да се сумаризира; отрицателните ТРЯБВА да участват,
+                // за да „нулират“ обратните движения в зоната
+                if ($sumBase == 0.0) continue;
 
                 $key = "{$pid}|{$batchKey}|{$zId}";
                 if (!isset($done[$key])) $done[$key] = 0.0;
