@@ -105,6 +105,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         $itemsArr = $Items->getCachedItems();
         $accInfo = acc_Accounts::getAccountInfo($dRec->accountId);
         $isDimensional = $accInfo->isDimensional;
+        $now = dt::now();
 
         // За всеки запис
         while ($bRec = $bQuery->fetch()) {
@@ -119,18 +120,25 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                     // режим "праг" по количество
                     $diff = $bRec->blQuantity;
 
-                    // ако е в прага и не е 0 - обираме
-                    if ($diff != 0 && $diff >= -1 * $dRec->blQuantity && $diff <= $dRec->blQuantity) {
-                        $blQuantity = $diff;
-                        $hasQty = true;
+                    // ако е в прага -> условието за количество е изпълнено
+                    if ($diff >= -1 * $dRec->blQuantity && $diff <= $dRec->blQuantity) {
+                        if ($diff != 0) {
+                            // само ако има реална разлика, записваме корекция
+                            $blQuantity = $diff;
+                        }
+                        $hasQty = true;      // 0 също е "ОК" и не блокира
                     }
+
                 } elseif (!empty($dRec->blRoundQuantity)) {
                     // режим "закръгляне" по количество
                     $diff = round(round($bRec->blQuantity, (int)$dRec->blRoundQuantity) - $bRec->blQuantity, 10);
 
                     if ($diff) {
-                        // има реална разлика за обиране
                         $blQuantity = $diff;
+                        $hasQty = true;
+                    } else {
+                        // има настройка, но няма разлика -> количеството не е за корекция
+                        // но е "ОК" за AND проверката:
                         $hasQty = true;
                     }
                 } else {
@@ -142,13 +150,18 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                 $hasQty = true;
             }
 
+
             /* --------- Сума --------- */
             if (!empty($dRec->blAmount)) {
                 // режим "праг" по сума
                 $diff = $bRec->blAmount;
 
-                if ($diff != 0 && $diff >= -1 * $dRec->blAmount && $diff <= $dRec->blAmount) {
-                    $blAmount = $diff;
+                // ако е в прага → условието за сума е изпълнено (вкл. 0)
+                if ($diff >= -1 * $dRec->blAmount && $diff <= $dRec->blAmount) {
+                    if ($diff != 0) {
+                        // само ако има реална разлика, записваме корекция
+                        $blAmount = $diff;
+                    }
                     $hasAmountQty = true;
                 }
 
@@ -156,10 +169,13 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                 // режим "закръгляне" по сума
                 $diff = round(round($bRec->blAmount, (int)$dRec->blRoundAmount) - $bRec->blAmount, 10);
 
+                // тук diff е "разликата от закръглянето"
                 if ($diff) {
-                    $blAmount = $diff;          // ← ТУК Е ВАЖНАТА КОРЕКЦИЯ
-                    $hasAmountQty = true;
+                    $blAmount = $diff;
                 }
+                // дори да е 0, сума не трябва да блокира AND-а – просто няма корекция
+                $hasAmountQty = true;
+
             } else {
                 // няма никаква настройка за сума → не участва в условието (считаме го за "ОК")
                 $hasAmountQty = true;
@@ -195,7 +211,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                             // Ако има поне едно затворено, и то е затворено преди края на периода
                             if ($itemsArr['items'][$bRec->{$ent}]->state == 'closed') {
                                 $jQuery = acc_JournalDetails::getQuery();
-                                acc_JournalDetails::filterQuery($jQuery, null, dt::now(), $bRec->accountNum, $bRec->{$ent});
+                                acc_JournalDetails::filterQuery($jQuery, null, $now, $bRec->accountNum, $bRec->{$ent});
                                 $jQuery->XPR('maxValior', 'date', 'MAX(#valior)');
                                 $jQuery->limit(1);
                                 $jQuery->show('maxValior');
