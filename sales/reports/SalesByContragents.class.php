@@ -79,6 +79,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
         $fieldset->FLD('seeDelta', 'set(yes = )', 'caption=Делти,after=articleType,single=none');
         $fieldset->FLD('see', 'set(sales=Сделки, articles=Артикули)', 'caption=Покажи,maxRadio=2,after=articleType,single=none,silent');
+
+        $fieldset->FNC('currency', 'key(mvc=currency_Currencies,select=code,allowEmpty)', 'caption=Валута,single=none');
     }
 
 
@@ -589,8 +591,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $v->salesArrPrevious = countR($salesArrPrev[$v->folderId]);
             $v->salesArrLast = countR($salesArrLast[$v->folderId]);
 
-            $unicartTotal +=$v->unicart;
-            $salesArrTotal +=$v->salesArr;
+            $unicartTotal += $v->unicart;
+            $salesArrTotal += $v->salesArr;
 
         }
 
@@ -759,7 +761,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
                 $contragentClassName = $dRec->contragentClassName;
 
-                $contragent = $contragentClassName::getTitleById($dRec->contragentId,false);
+                $contragent = $contragentClassName::getTitleById($dRec->contragentId, false);
 
             }
         }
@@ -1005,6 +1007,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                                         <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
                                         <!--ET_BEGIN group--><div>|Групи продукти|*: [#group#]</div><!--ET_END group-->
                                         <!--ET_BEGIN compare--><div>|Сравнение|*: [#compare#]</div><!--ET_END compare-->
+                                        <!--ET_BEGIN currency--><div>|Валута|*: [#currency#]</div><!--ET_END currency-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -1056,35 +1059,27 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
                 $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
             }
+        }
 
-            //Валута
-            $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->to);
+        //Валута
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->to);
 
-//                $currency = currency_Currencies::getCodeById($data->rec->currency);
-//                if ($currency == $baseCurrency) {
-//                    $currency = $baseCurrency . ' (основна)';
-//                }
-//                $fieldTpl->append('<b>' . $currency . '</b>', 'currency');
+        $fieldTpl->append('<b>' . $baseCurrency . '</b>', 'currency');
 
+        $marker = 0;
 
-                $fieldTpl->append('<b>' . $baseCurrency . ' (основна)' . '</b>', 'currency');
+        if (isset($data->rec->contragent)) {
+            foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
+                $marker++;
 
+                $contragentVerb .= (doc_Folders::getTitleById($contragent));
 
-            $marker = 0;
-
-            if (isset($data->rec->contragent)) {
-                foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
-                    $marker++;
-
-                    $contragentVerb .= (doc_Folders::getTitleById($contragent));
-
-                    if ((countR(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
-                        $contragentVerb .= ', ';
-                    }
+                if ((countR(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
+                    $contragentVerb .= ', ';
                 }
-
-                $fieldTpl->append('<b>' . $contragentVerb . '</b>', 'contragent');
             }
+
+            $fieldTpl->append('<b>' . $contragentVerb . '</b>', 'contragent');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'contragent');
         }
@@ -1149,7 +1144,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $saleValue = $dRec->totalValue;
             $delta = $dRec->totalDelta;
 
-            $res->saleValue =$saleValue;
+            $res->saleValue = $saleValue;
             $res->delta = $delta;
 
             $res->articles = $dRec->totalUnicart;
