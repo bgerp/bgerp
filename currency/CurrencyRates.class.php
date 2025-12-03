@@ -311,6 +311,14 @@ class currency_CurrencyRates extends core_Detail
      */
     public static function convertAmount($amount, $date = null, $from = null, $to = null)
     {
+        $fromId = is_null($from) ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($from);
+        $toId = is_null($to)   ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($to);
+
+        // Ако от лева се обръща в евро се дели на 1.95583 а не да се умножава по 0.51129 защото се получават разлики спрямо очакваното
+        if($fromId == currency_Currencies::getIdByCode('BGN') && $toId == currency_Currencies::getIdByCode('EUR')) {
+            return $amount / static::getRate($date, $to, $from);
+        }
+
         return $amount * static::getRate($date, $from, $to);
     }
     
