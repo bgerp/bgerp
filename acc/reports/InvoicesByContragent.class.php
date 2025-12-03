@@ -304,6 +304,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         // Превалутиране за ЕЗ
                         $sale->amountPaid = deals_Helper::getSmartBaseCurrency($sale->amountPaid, $sale->valior, $rec->checkDate);
                         $sale->amountVat = deals_Helper::getSmartBaseCurrency($sale->amountVat, $sale->valior, $rec->checkDate);
+
                         $fastSales[$sale->id] = $sale->amountPaid - $sale->amountVat;
 
                     }
@@ -368,9 +369,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         $key = $salesInvoice->id . $subKey;
 
                         // Превалутиране за ЕЗ
-                        $salesInvoice->dealValue = deals_Helper::getSmartBaseCurrency($salesInvoice->dealValue, $sale->date, $rec->checkDate);
-                        $salesInvoice->discountAmount = deals_Helper::getSmartBaseCurrency($salesInvoice->discountAmount, $sale->date, $rec->checkDate);
-                        $salesInvoice->vatAmount = deals_Helper::getSmartBaseCurrency($salesInvoice->vatAmount, $sale->date, $rec->checkDate);
+                        $salesInvoice->dealValue = deals_Helper::getSmartBaseCurrency($salesInvoice->dealValue, $salesInvoice->date, $rec->checkDate);
+                        $salesInvoice->discountAmount = deals_Helper::getSmartBaseCurrency($salesInvoice->discountAmount, $salesInvoice->date, $rec->checkDate);
+                        $salesInvoice->vatAmount = deals_Helper::getSmartBaseCurrency($salesInvoice->vatAmount, $salesInvoice->date, $rec->checkDate);
 
                         $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) / $salesInvoice->rate + $salesInvoice->vatAmount;
 
@@ -449,8 +450,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             if (in_array($inv, $checkedSInvoices)) continue;
 
                             // Превалутиране за ЕЗ
-                            $paydocs->amount = deals_Helper::getSmartBaseCurrency($paydocs->amount, $sale->date, $rec->checkDate);
-                            $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $sale->date, $rec->checkDate);
+                            $paydocs->amount = deals_Helper::getSmartBaseCurrency($paydocs->amount, $paydocs->date, $rec->checkDate);
+                            $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate);
 
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
@@ -764,8 +765,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             if (in_array($pInv, $checkedPInvoices)) continue;
 
                             // Превалутиране за ЕЗ
-                            $paydocs->amount = deals_Helper::getSmartBaseCurrency($paydocs->amount, $sale->date, $rec->checkDate);
-                            $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $sale->date, $rec->checkDate);
+                            $paydocs->amount = deals_Helper::getSmartBaseCurrency($paydocs->amount, $paydocs->date, $rec->checkDate);
+                            $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate);
 
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
@@ -1044,7 +1045,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
                     $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
                 }
-                $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', 'caption=Стойност BGN');
+
+                $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
+                $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', "caption=Стойност $baseCurrency");
                 $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума->лв.,smartCenter');
                 $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания->дата,smartCenter');
             }
