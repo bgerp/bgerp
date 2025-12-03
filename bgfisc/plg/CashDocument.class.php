@@ -390,7 +390,6 @@ class bgfisc_plg_CashDocument extends core_Plugin
     {
         if (empty($res)) {
             $errors = $res = array();
-            $cashAmount = $rec->amount;
 
             $valior = !empty($rec->valior) ? $rec->valior : dt::today();
 
@@ -434,6 +433,17 @@ class bgfisc_plg_CashDocument extends core_Plugin
                     $msg = 'Следните плащания нямат код във ФУ|*: ' . implode(',', $errors);
                     throw new core_exception_Expect($msg, 'Несъответствие');
                 }
+            }
+
+            // Ако има точно посочено дадено - подава се то за да се изчисли рестото
+            if($rec->amountGiven){
+                $paid = $rec->amountGiven * $rec->rate;
+                if(dt::today() >= acc_Setup::getEurozoneDate()){
+                    if($rec->currencyId == currency_Currencies::getIdByCode('BGN') && $rec->dealCurrencyId == currency_Currencies::getIdByCode('EUR')){
+                        $paid = round($rec->amountGiven / 1.95583, 2);
+                    }
+                }
+                $res[] = array('PAYMENT_TYPE' => 0, 'PAYMENT_AMOUNT' => $paid);
             }
         }
     }
@@ -582,8 +592,17 @@ class bgfisc_plg_CashDocument extends core_Plugin
     private static function getFiscProductsFromShipmentDocument($Driver, $registerRec, $mvc, $Origin, $originRec, $rec)
     {
         $anotherRes = bgfisc_plg_PrintFiscReceipt::getProductsByOrigin($originRec->containerId, $Driver, $registerRec);
-        
-        if (round($originRec->amountDelivered, 2) == round($rec->amount * $rec->rate, 2)) {
+        $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+        $euroCurrencyId = currency_Currencies::getIdByCode('EUR');
+
+        $amount = $rec->amount * $rec->rate;
+        if(dt::today() >= acc_Setup::getEurozoneDate()){
+            if($rec->currencyId == $bgnCurrencyId && $rec->dealCurrencyId == $euroCurrencyId){
+                $amount = $rec->amountDeal;
+            }
+        }
+
+        if (round($originRec->amountDelivered, 2) == round($amount, 2)) {
             $res = $anotherRes;
         } else {
             $vats = array();
