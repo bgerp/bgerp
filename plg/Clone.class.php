@@ -386,24 +386,31 @@ class plg_Clone extends core_Plugin
                             $oldRec = clone $dRec;
 
                             $dontCloneFields = arr::make($Detail->getFieldsNotToClone($oldRec), true);
+                            if(!Mode::is('cloneDetailsFromPrototype') || ($oldRec->createdBy != core_Users::SYSTEM_USER)){
+                                $dontCloneFields['createdBy'] = 'createdBy';
+                                $dontCloneFields['modifiedBy'] = 'modifiedBy';
+                            }
+
                             $dontCloneFields['modifiedOn'] = 'modifiedOn';
-                            $dontCloneFields['modifiedBy'] = 'modifiedBy';
                             $dontCloneFields['createdOn'] = 'createdOn';
-                            $dontCloneFields['createdBy'] = 'createdBy';
+
                             $dontCloneFields['activatedOn'] = 'activatedOn';
                             $dontCloneFields['activatedBy'] = 'activatedBy';
 
                             $dRec->{$Detail->masterKey} = $newMasterId;
                             unset($dRec->id);
                             $dRec->_isClone = true;
-                            
+                            if(Mode::is('cloneDetailsFromPrototype') && $oldRec->createdBy == core_Users::SYSTEM_USER){
+                                $dRec->_notModified = true;
+                            }
+
                             // Ако има махаме ги от $form->rec
                             if (countR($dontCloneFields)) {
                                 foreach ($dontCloneFields as $unsetField) {
                                     unset($dRec->{$unsetField});
                                 }
                             }
-                            
+
                             if($Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec))){
                                 $fields = null;
                                 if ($Detail->isUnique($dRec, $fields)) {
