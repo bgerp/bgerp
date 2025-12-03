@@ -3116,7 +3116,7 @@ class doc_Containers extends core_Manager
         $repRec->action = 'repair';
         $repRec->period = 5;
         $repRec->offset = 0;
-        $repRec->delay = 0;
+        $repRec->delay = 20;
         $repRec->timeLimit = 200;
         $res .= core_Cron::addOnce($repRec);
     }

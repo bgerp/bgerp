@@ -281,17 +281,33 @@ abstract class cash_Document extends deals_PaymentDocument
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
 
-        if(dt::today() >= acc_Setup::getEurozoneDate()) {
-            $form->setDefault('currencyId', currency_Currencies::getIdByCode('EUR'));
-            if(core_Packs::isInstalled('bgfisc')){
-                $form->setReadOnly('currencyId');
+        $eurId = currency_Currencies::getIdByCode('EUR');
+        $bgnId = currency_Currencies::getIdByCode('BGN');
+        $today = dt::today();
+        $baseCurrencyId = acc_Periods::getBaseCurrencyId($today);
+
+        if($today >= acc_Setup::getEurozoneDate()){
+            if($cId == $bgnId){
+                $form->setDefault('currencyId', $eurId);
             }
         }
-        $form->setDefault('currencyId', $cId);
+
+        // Ако е инсталиран бгфиск има ограничение по допустимите валути
+        if(core_Packs::isInstalled('bgfisc')){
+            $form->setDefault('currencyId', $baseCurrencyId);
+            $currencyOptions = array($bgnId => 'BGN', $eurId => 'EUR');
+            if($today >= acc_Setup::getEurozoneDate() && $today <= acc_Setup::getBgnDeprecationDate()) {
+                $form->setOptions('currencyId', $currencyOptions);
+            } else {
+                $form->setReadOnly('currencyId');
+            }
+        } else {
+            $form->setDefault('currencyId', $cId);
+        }
 
         $expectedPayment = null;
-        $realOriginId = isset($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
-        $realOriginId = isset($realOriginId) ? $realOriginId : doc_Threads::getFirstContainerId($form->rec->threadId);
+        $realOriginId = $form->rec->fromContainerId ?? $form->rec->originId;
+        $realOriginId = $realOriginId ?? doc_Threads::getFirstContainerId($form->rec->threadId);
         if($expectedPayment1 = $mvc->getExpectedAmount($realOriginId, $form->rec)){
             $expectedPayment = $expectedPayment1 * $dealInfo->get('rate');
         }
@@ -367,7 +383,6 @@ abstract class cash_Document extends deals_PaymentDocument
                 return;
             }
 
-
             $origin = $mvc->getOrigin($form->rec);
             $dealInfo = $origin->getAggregateDealInfo();
 
@@ -409,7 +424,7 @@ abstract class cash_Document extends deals_PaymentDocument
             }
             
             $mvc->invoke('AfterSubmitInputEditForm', array($form));
-            if (isset($rec->amountGiven) && $rec->amountGiven < $rec->amount) {
+            if (isset($rec->amountGiven) && $rec->amountGiven <= $rec->amount) {
                 $form->setError('amountGiven', 'Сумата трябва да е над сумата по документа');
             }
         }
@@ -591,12 +606,27 @@ abstract class cash_Document extends deals_PaymentDocument
 
             // Ако има посочено колко е платено - показва се и рестото
             if(isset($rec->amountGiven)){
-                $cData = doc_Folders::getContragentData($rec->folderId);
+                $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
+
                 $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
                 $change = $rec->amountGiven - $rec->amount;
-                $changeRow = $mvc->getFieldType('amountGiven')->toVerbal($change);
-                $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
-                $row->change = deals_Helper::displayDualAmount($changeRow, $change, $rec->activatedOn, $currencyCode, $cData->countryId, ' / ', true);
+                if(in_array($currencyCode, array('BGN', 'EUR'))){
+                    $changeBgn = $currencyCode == 'BGN' ? $change : round($change * 1.95583, 2);
+                    $changeEur = $currencyCode == 'EUR' ? $change : round($change / 1.95583, 2);
+
+                    $changeBgnRow = core_Type::getByName("double(decimals=2)")->toVerbal($changeBgn);
+                    $changeBgnRow = currency_Currencies::decorate($changeBgnRow, 'BGN', true);
+
+                    $changeEuroRow = core_Type::getByName("double(decimals=2)")->toVerbal($changeEur);
+                    $changeEuroRow = currency_Currencies::decorate($changeEuroRow, 'EUR', true);
+                    if($currencyCode == 'BGN'){
+                        $row->change = "{$changeBgnRow} / {$changeEuroRow}";
+                    } else {
+                        $row->change = "{$changeEuroRow} / {$changeBgnRow}";
+                    }
+                } else {
+                    $row->change = core_Type::getByName("double(decimals=2)")->toVerbal($change);
+                }
             }
         }
     }

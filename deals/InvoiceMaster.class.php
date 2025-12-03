@@ -1053,14 +1053,14 @@ abstract class deals_InvoiceMaster extends core_Master
                     $rec->_recalcBaseCurrency = true;
                     if(isset($rec->id)){
                         $oldRec = $mvc->fetch($rec->id, 'date,rate', false);
-                        $rec->_oldValior = $oldRec->valior ?? dt::verbal2mysql($rec->createdOn, false);
+                        $rec->_oldValior = $oldRec->date ?? dt::verbal2mysql($rec->createdOn, false);
                         $rec->_oldRate = $oldRec->rate;
                     }
                 }
             } elseif($form->aggregateInfo->get('currency') == 'EUR'){
                 if(isset($rec->id)){
                     $oldRec = $mvc->fetch($rec->id, 'date,rate', false);
-                    $rec->_oldValior = $oldRec->valior ?? dt::verbal2mysql($rec->createdOn, false);
+                    $rec->_oldValior = $oldRec->date ?? dt::verbal2mysql($rec->createdOn, false);
                     $rec->_oldRate = $oldRec->rate;
                 }
 

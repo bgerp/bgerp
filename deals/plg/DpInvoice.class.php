@@ -244,7 +244,7 @@ class deals_plg_DpInvoice extends core_Plugin
 
         $rate = ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
         $dpAmount /= $rate;
-        $dpAmount = round($dpAmount, 6);
+        $dpAmount = round($dpAmount, 2);
 
         $isForeignCountryId = $form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'");
         $expectAdvanceForeignerDp = sales_Setup::get('EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS');
@@ -285,7 +285,7 @@ class deals_plg_DpInvoice extends core_Plugin
             if (isset($agreedDp)) {
                 $sAmount = $agreedDp;
                 $sAmount = $agreedDp / $rate;
-                $sAmount = core_Math::roundNumber($sAmount);
+                $sAmount = round($sAmount, 2);
                 $suggestions = array('' => '', "{$sAmount}" => $sAmount);
                 $form->setSuggestions('amountAccrued', $suggestions);
             }
