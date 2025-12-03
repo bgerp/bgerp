@@ -999,7 +999,6 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                                     <div class='small'>
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
-                                        <!--ET_BEGIN currency--><div>|Валута|*: [#currency#]</div><!--ET_END currency-->
                                         <!--ET_BEGIN firstMonth--><div>|Месец 1|*: [#firstMonth#]</div><!--ET_END firstMonth-->
                                         <!--ET_BEGIN secondMonth--><div>|Месец 2|*: [#secondMonth#]</div><!--ET_END secondMonth-->
                                         <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
