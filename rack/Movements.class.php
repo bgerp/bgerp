@@ -1294,28 +1294,59 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         // Проверяване и на движенията по зоните
+        //
+        // Работим изцяло в базовата мярка на артикула:
+        //  - в rack_ZoneDetails movementQuantity/documentQuantity са в базова мярка
+        //  - $zone->quantity (от $transaction->zonesQuantityArr) също е в базова мярка
+        //
+        // За всяка зона сумираме наличното movementQuantity и заявеното
+        // documentQuantity по ВСИЧКИ опаковки за даден продукт+партида,
+        // за да няма разминаване при смесени опаковки (чувал, клетка и т.н.).
         $zoneErrors = $zoneWarnings = array();
+
         foreach ($transaction->zonesQuantityArr as $zone) {
-            $zRec = rack_ZoneDetails::fetch(array("#zoneId = {$zone->zone} AND #productId = {$transaction->productId} AND #packagingId = {$transaction->packagingId} AND #batch = '[#1#]'", $transaction->batch));
-            $movementQuantity = is_object($zRec) ? $zRec->movementQuantity : null;
-            $documentQuantity = is_object($zRec) ? $zRec->documentQuantity : null;
+
+            // Сумиране по всички опаковки в зоната за този продукт/партида
+            $zQuery = rack_ZoneDetails::getQuery();
+            $zQuery->where("#zoneId = {$zone->zone}");
+            $zQuery->where("#productId = {$transaction->productId}");
+
+            if ($transaction->batch !== null && $transaction->batch !== '') {
+                $zQuery->where(array("#batch = '[#1#]'", $transaction->batch));
+            } else {
+                $zQuery->where("#batch IS NULL OR #batch = ''");
+            }
+
+            // Всички суми са в базова мярка
+            $zQuery->XPR('movementSum', 'double', 'SUM(COALESCE(#movementQuantity, 0))');
+            $zQuery->XPR('documentSum', 'double', 'SUM(COALESCE(#documentQuantity, 0))');
+
+            $zRec = $zQuery->fetch();
+
+            $movementQuantity = $zRec ? (float) $zRec->movementSum : 0.0;
+            $documentQuantity = $zRec ? (float) $zRec->documentSum : 0.0;
+
+            // Какво ще стане в зоната след изпълнение на текущото движение (в базова мярка)
             $diff = round($movementQuantity, 4) + round($zone->quantity, 4);
+
+            // Не допускаме да паднем под 0 – отрицателна наличност
             if ($diff < 0) {
                 $zoneErrors[] = rack_Zones::getHyperlink($zone->zone, false);
             }
-            
-            if (!empty($documentQuantity) && $diff > $documentQuantity) {
+
+            // Ако има заявено количество по документи и го надхвърляме – предупреждение
+            if ($documentQuantity > 0 && $diff > $documentQuantity) {
                 $zoneWarnings[] = rack_Zones::getHyperlink($zone->zone, false);
             }
         }
-        
+
         if (countR($zoneErrors)) {
             $res->errors = 'В зони|*: <b>' . implode(', ', $zoneErrors) . '</b> |се получава отрицателно количество|*';
             $res->errorFields[] = 'zones';
-            
+
             return $res;
         }
-        
+
         if (countR($zoneWarnings)) {
             $res->warnings[] = 'В зони|*: <b>' . implode(', ', $zoneWarnings) . '</b> |се получава по-голямо количество от необходимото|*';
             $res->warningFields[] = 'zones';
