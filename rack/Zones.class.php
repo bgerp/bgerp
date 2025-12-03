@@ -1493,6 +1493,9 @@ class rack_Zones extends core_Master
         $productIds = arr::make($productIds, true);
         $res = (object)array('products' => array());
         $res->zones = (is_numeric($zoneIds)) ? array($zoneIds => $zoneIds) : ((is_array($zoneIds)) ? $zoneIds : array());
+		
+		// Работим ли с новия генератор на движения ver.3?
+		$useVer3 = (rack_Setup::get('PICKUP_STRATEGY') == 'ver3');
 
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
@@ -1546,17 +1549,31 @@ class rack_Zones extends core_Master
 				}
 			});
 
-            // Участват само тези по които се очакват още движения
-            $needed = $dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity;
-            if (empty($needed) || $needed < 0) continue;
+			// Участват само тези по които се очакват още движения
+			if ($useVer3) {
+				// ver.3: movementQuantity ще се приспадне по-късно чрез rack_Ver3Base::subtractDoneBaseForAllZoneDocsOptimized()
+				// тук приспадаме само „ръчно“ запазеното/върнатото (notActiveQuantity)
+				$needed = $dRec->documentQuantity - $notActiveQuantity;
+			} else {
+				// ver.1/2: старото поведение – приспадаме и movementQuantity
+				$needed = $dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity;
+			}
 
-            $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->batch}";
-            if (!array_key_exists($key, $res->products)) {
-                $res->products[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'zones' => array(), 'batch' => $dRec->batch);
-                $res->zones[$dRec->zoneId] = $dRec->zoneId;
-            }
+			if (empty($needed) || $needed < 0) continue;
 
-            $res->products[$key]->zones[$dRec->zoneId] += ($dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity);
+			$key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->batch}";
+			if (!array_key_exists($key, $res->products)) {
+				$res->products[$key] = (object)array(
+					'productId'    => $dRec->productId,
+					'packagingId'  => $dRec->packagingId,
+					'zones'        => array(),
+					'batch'        => $dRec->batch
+				);
+				$res->zones[$dRec->zoneId] = $dRec->zoneId;
+			}
+
+			// тук вече използваме изчисленото $needed, а не повтаряме формулата
+			$res->products[$key]->zones[$dRec->zoneId] += $needed;
         }
 
         return $res;
