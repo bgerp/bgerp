@@ -1350,6 +1350,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
                                         <!--ET_BEGIN contragent--><div>|Контрагент|*: <b>[#contragent#]</b></div><!--ET_END contragent-->
+                                        <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
                                         <!--ET_BEGIN typeOfInvoice--> <div>|Фактури|*: <b>[#typeOfInvoice#]</b></div><!--ET_END typeOfInvoice-->
                                         <!--ET_BEGIN unpaid--><div>|Плащане|*: <b>[#unpaid#]</b></div><!--ET_END unpaid-->
                                         <!--ET_BEGIN paymentType--><div>|Начин на плащане|*: <b>[#paymentType#]</b></div><!--ET_END paymentType-->
@@ -1370,6 +1371,23 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $inv,
                 'typeOfInvoice'
             );
+        }
+
+        if (isset($data->rec->contragent) || isset($data->rec->crmGroup)) {
+            $marker = 0;
+            if (isset($data->rec->crmGroup)) {
+                foreach (type_Keylist::toArray($data->rec->crmGroup) as $group) {
+                    $marker++;
+
+                    $groupVerb .= (crm_Groups::getTitleById($group));
+
+                    if ((countR((type_Keylist::toArray($data->rec->crmGroup))) - $marker) != 0) {
+                        $groupVerb .= ', ';
+                    }
+                }
+
+                $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
+            }
         }
 
         if (isset($data->rec->unpaid)) {
