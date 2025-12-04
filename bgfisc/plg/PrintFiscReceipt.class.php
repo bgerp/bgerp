@@ -125,7 +125,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         
         $payments = $mvc->getDocumentFiscPayments($rec, $Driver, $registerRec);
         $productsArr = $mvc->getProducts4FiscReceipt($rec, $Driver, $registerRec);
-       
+
         $textArr = array();
         array_walk($payments, function($a) use(&$textArr){if(array_key_exists('PAYMENT_TEXT', $a)){$textArr[$a['PAYMENT_TEXT']] = $a['PAYMENT_TEXT'];}});
         $fiscalArr = array('products' => $productsArr, 'payments' => $payments);

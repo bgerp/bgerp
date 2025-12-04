@@ -250,9 +250,11 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 }
 
                 // Ако има курс обръща се в този на документа
-                if(isset($det->_rate)){
-                    $det->price /= $det->_rate;
-                    $det->price *= $rec->{$mvc->rateFldName};
+                if(!in_array($rec->{$mvc->currencyFld}, array('EUR', 'BGN'))){
+                    if(isset($det->_rate)){
+                        $det->price /= $det->_rate;
+                        $det->price *= $rec->{$mvc->rateFldName};
+                    }
                 }
 
                 $newPackQuantity = $updatePackQuantity = 0;

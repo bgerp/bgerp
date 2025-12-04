@@ -453,77 +453,103 @@ class lab_Tests extends core_Master
      * @param stdClass $data
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
-    {
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        $data->listFilter->FNC('dateStart', 'date', 'caption=От,placeholder=От');
-        
-        $data->listFilter->showFields = 'dateStart';
-        
-        $data->listFilter->FNC('dateEnd', 'date', 'caption=До,placeholder=До');
-        
-        $data->listFilter->showFields .= ',dateEnd';
-        
-        $data->listFilter->FNC(
-            
-            'paramIdFilter',
-            
-            'varchar',
-            'caption=Параметри,placeholder=Параметър'
-        
-        );
-        
-        $paramsForChois = self::suggestionsParams();
-        
-        $data->listFilter->setOptions('paramIdFilter', array('' => ' ') + $paramsForChois);
-        
-        $data->listFilter->showFields .= ',paramIdFilter';
-        
-        $data->listFilter->showFields .= ',search';
-        
-        $data->listFilter->input();
-        
-        $data->query->where("#state != 'rejected'");
-        
-        if ($data->listFilter->isSubmitted()) {
-            if ($data->listFilter->rec->dateStart) {
-                $data->query->where(array("#activatedOn > '[#1#]'", $data->listFilter->rec->dateStart));
-            }
-            
-            if ($data->listFilter->rec->dateEnd) {
-                $data->query->where(array("#activatedOn < '[#1#]'", $data->listFilter->rec->dateEnd));
-            }
-            
-            // Сортиране на записите по дата на активиране
-            $data->query->orderBy('#activatedOn', 'DESC');
-            
-            $data->query->orderBy('#createdOn', 'DESC');
-            
-            if ($data->listFilter->rec->paramIdFilter) {
-                list($paramsCheckId, $paramName, $methodCheckId) = explode('.', $data->listFilter->rec->paramIdFilter);
-                
-                $data->query->EXT('paramValue', 'lab_TestDetails', 'externalName=value,remoteKey=testId');
-                
-                $data->query->EXT('paramName', 'lab_TestDetails', 'externalName=paramName,remoteKey=testId');
-                
-                $data->query->EXT('methodId', 'lab_TestDetails', 'externalName=methodId,remoteKey=testId');
-                
-                $data->query->where(array("#paramName = '[#1#]'", $data->listFilter->rec->paramIdFilter));
-                
-                $data->query->where(array("#methodId = '[#1#]'", $methodCheckId));
-                
-                $data->query->orderBy('paramValue', 'DESC');
-                
-                $data->listFields = arr::make($data->listFields, true);
-                
-                $mvc->FNC('paramValue', 'double(2)');
-                
-                $data->listFields['paramValue'] = 'Стойност'/* type_Varchar::escape(lab_Parameters::fetchField($data->listFilter->rec->paramIdFilter,'name'))*/;
-            }
-        }
-    }
+	{
+		$data->listFilter->view = 'horizontal';
+		
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+		
+		$data->listFilter->FNC('dateStart', 'date', 'caption=От,placeholder=От');
+		$data->listFilter->showFields = 'dateStart';
+		
+		$data->listFilter->FNC('dateEnd', 'date', 'caption=До,placeholder=До');
+		$data->listFilter->showFields .= ',dateEnd';
+		
+		$data->listFilter->FNC(
+			'paramIdFilter',
+			'varchar',
+			'caption=Параметри,placeholder=Параметър'
+		);
+		
+		$paramsForChois = self::suggestionsParams();
+		$data->listFilter->setOptions('paramIdFilter', array('' => ' ') + $paramsForChois);
+		
+		$data->listFilter->showFields .= ',paramIdFilter';
+		$data->listFilter->showFields .= ',search';
+		
+		$data->listFilter->input();
+		
+		// да не се показват изтритите
+		$data->query->where("#state != 'rejected'");
+		
+		/* ===================== НОВО: сортировка ===================== */
+		// 1) Приоритет по статус:
+		//    draft (Чернова) → pending (Заявка) → active/wakeup (Активен/Събуден)
+		//    → closed/stopped (Приключен/Спрян) → останалите
+		$data->query->XPR(
+			'stateOrder',
+			'int',
+			"CASE
+				WHEN #state = 'draft' THEN 1
+				WHEN #state = 'pending' THEN 2
+				WHEN #state = 'active' OR #state = 'wakeup' THEN 3
+				WHEN #state = 'closed' OR #state = 'stopped' THEN 4
+				ELSE 5
+			END"
+		);
+		
+		// 2) Дата за сортиране:
+		//    - за closed/stopped: lastChangedOn (дата на приключване),
+		//      ако няма → activatedOn, ако няма → createdOn
+		//    - за останалите: activatedOn, ако няма → createdOn
+		$data->query->XPR(
+			'sortDate',
+			'datetime',
+			"CASE
+				WHEN #state = 'closed' OR #state = 'stopped'
+					THEN IFNULL(#lastChangedOn, IFNULL(#activatedOn, #createdOn))
+				ELSE IFNULL(#activatedOn, #createdOn)
+			END"
+		);
+		
+		// 3) Реалната подредба
+		$data->query->orderBy('#stateOrder', 'ASC');
+		$data->query->orderBy('#sortDate', 'DESC');
+		$data->query->orderBy('#id', 'DESC');
+		/* =================== КРАЙ НА НОВОТО ===================== */
+		
+		if ($data->listFilter->isSubmitted()) {
+			if ($data->listFilter->rec->dateStart) {
+				$data->query->where(array("#activatedOn > '[#1#]'", $data->listFilter->rec->dateStart));
+			}
+			
+			if ($data->listFilter->rec->dateEnd) {
+				$data->query->where(array("#activatedOn < '[#1#]'", $data->listFilter->rec->dateEnd));
+			}
+			
+			// !!! Старото сортиране по activatedOn/createdOn вече не е нужно
+			// (оставяме само stateOrder + sortDate от общата част)
+			
+			if ($data->listFilter->rec->paramIdFilter) {
+				list($paramsCheckId, $paramName, $methodCheckId) =
+					explode('.', $data->listFilter->rec->paramIdFilter);
+				
+				$data->query->EXT('paramValue', 'lab_TestDetails', 'externalName=value,remoteKey=testId');
+				$data->query->EXT('paramName', 'lab_TestDetails', 'externalName=paramName,remoteKey=testId');
+				$data->query->EXT('methodId',  'lab_TestDetails', 'externalName=methodId,remoteKey=testId');
+				
+				$data->query->where(array("#paramName = '[#1#]'", $data->listFilter->rec->paramIdFilter));
+				$data->query->where(array("#methodId = '[#1#]'", $methodCheckId));
+				
+				// допълнително сортиране по стойност, но вътре в вече
+				// подредените по stateOrder/sortDate записи
+				$data->query->orderBy('paramValue', 'DESC');
+				
+				$data->listFields = arr::make($data->listFields, true);
+				$mvc->FNC('paramValue', 'double(2)');
+				$data->listFields['paramValue'] = 'Стойност';
+			}
+		}
+	}
     
     
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $listFields)
