@@ -63,6 +63,12 @@ class eurozone_Setup extends core_ProtoSetup
 
 
     /**
+     * Роли за достъп до модула
+     */
+    public $roles = 'euro';
+
+
+    /**
      * Описание на системните действия
      */
     public $systemActions = array(
@@ -77,7 +83,7 @@ class eurozone_Setup extends core_ProtoSetup
                 'title' => 'Тестове на миграции',
                 'ef_icon' => 'img/16/arrow_refresh.png'
             ),
-            'roles' => 'debug',
+            'roles' => 'euro',
         ),
     );
 
@@ -114,7 +120,7 @@ class eurozone_Setup extends core_ProtoSetup
      */
     public function manageConfigDescriptionForm(&$configForm)
     {
-        if (!haveRole('debug')) {
+        if (!haveRole('euro')) {
             $configForm->setReadOnly('EUROZONE_SET_MIGRATIONS');
         }
     }

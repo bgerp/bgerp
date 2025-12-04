@@ -1434,8 +1434,8 @@ abstract class store_DocumentMaster extends core_Master
             $Detail = cls::get($Source->mainDetail);
             $id = $Source->that;
         }
-        $currencyRate = $Detail->Master->fetchField($id, 'currencyRate');
 
+        $masterRec = $Detail->Master->fetch($id, 'currencyRate,currencyId,valior');
         $res = array();
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
@@ -1445,8 +1445,11 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             // Какъв е курса на документа от който е извлечен детайла
-            if(isset($currencyRate)){
-                $dRec->_rate = $currencyRate;
+            if(isset($masterRec->currencyRate)){
+                $dRec->_rate = $masterRec->currencyRate;
+            }
+            if(isset($masterRec->valior)){
+                $dRec->_valior = $masterRec->valior;
             }
 
             $res[$dRec->id] = $dRec;
