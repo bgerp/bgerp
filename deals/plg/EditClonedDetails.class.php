@@ -250,11 +250,13 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 }
 
                 // Ако има курс обръща се в този на документа
-                if(!in_array($rec->{$mvc->currencyFld}, array('EUR', 'BGN'))){
+                if(!in_array($rec->{$mvc->currencyFld}, array('BGN', 'EUR'))){
                     if(isset($det->_rate)){
                         $det->price /= $det->_rate;
                         $det->price *= $rec->{$mvc->rateFldName};
                     }
+               } elseif($det->_valior) {
+                    $det->price = deals_Helper::getSmartBaseCurrency($det->price, $det->_valior, $rec->{$mvc->valiorFld});
                 }
 
                 $newPackQuantity = $updatePackQuantity = 0;
