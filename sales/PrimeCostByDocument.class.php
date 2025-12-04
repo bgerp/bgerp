@@ -574,7 +574,12 @@ class sales_PrimeCostByDocument extends core_Manager
         $months = sales_Setup::get('DELTA_NEW_PRODUCT_TO');
 
         $now = dt::now();
-        $thresholdTo = dt::verbal2mysql(dt::getLastDayOfMonth(dt::addMonths(-1 * $months, $now)), false);
+
+        // трябва да намираш последния ден на предишния месец преди СЕГА, и от него да вадиш
+        // константата Х месеца. Така ще се обхванат случаите, когато договорът и ЕН са в различни месеци.
+        $lastDayPrevMonth = dt::getLastDayOfMonth(dt::addMonths(-1, $now));
+        $thresholdTo = dt::verbal2mysql(dt::addMonths(-1 * $months, $lastDayPrevMonth), false);
+
         $thresholdFrom = dt::verbal2mysql(dt::addSecs(-1 * $from, $thresholdTo), false);
 
         foreach($indicatorRecs as $iRec){
