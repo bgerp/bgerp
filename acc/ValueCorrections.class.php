@@ -364,6 +364,14 @@ class acc_ValueCorrections extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
+        // Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
+        expect($firstDoc = doc_Threads::getFirstDocument($rec->threadId));
+        $firstDocRec = $firstDoc->fetch('chargeVat,currencyId,currencyRate');
+
+        self::addProductsFromOriginToForm($form, $firstDoc, $mvc);
+        $form->setDefault('currencyId', $firstDocRec->currencyId);
+        $form->setReadOnly('currencyId');
+
         // Ако се създава към известие зареждат се дефолт данните от него
         $form->setDefault('allocateBy', 'value');
         if (isset($rec->fromContainerId)) {
@@ -371,7 +379,9 @@ class acc_ValueCorrections extends core_Master
             if($fromContainer->isInstanceOf('deals_InvoiceMaster')){
                 $invRec = $fromContainer->fetch();
                 $defaultAmount = abs($invRec->dealValue / (($invRec->displayRate ?? $invRec->rate)));
-                $form->setDefault('amount', round($defaultAmount, 2));
+                $amount = currency_CurrencyRates::convertAmount($defaultAmount, null, $invRec->currencyId, $rec->currencyId);
+
+                $form->setDefault('amount', round($amount, 2));
                 if($invRec->dealValue <= 0){
                     $form->setDefault('action', 'decrease');
                 } else {
@@ -379,14 +389,6 @@ class acc_ValueCorrections extends core_Master
                 }
             }
         }
-
-        // Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
-        expect($firstDoc = doc_Threads::getFirstDocument($rec->threadId));
-        self::addProductsFromOriginToForm($form, $firstDoc, $mvc);
-
-        $firstDocRec = $firstDoc->fetch('chargeVat,currencyId,currencyRate');
-        $form->setDefault('currencyId', $firstDocRec->currencyId);
-        $form->setReadOnly('currencyId');
 
         // Ако избраната валута е основната за периода, не се показва курса
         if($rec->currencyId == acc_Periods::getBaseCurrencyCode()){
