@@ -411,10 +411,14 @@ SET
      */
     public static function addBgnPayment()
     {
-        core_Users::forceSystemUser();
-        $rec = (object)array('title' => self::BGN_NON_CASH_PAYMENT_NAME, 'change' => 'yes', 'currencyCode' => 'BGN', 'synonym' => 'bgn');
-        cond_Payments::save($rec);
-        core_Users::cancelSystemUser();
+        $rec = cond_Payments::fetch(array("#title = '[#1#]'", self::BGN_NON_CASH_PAYMENT_NAME));
+        if(!is_object($rec)){
+            $rec = (object)array('title' => self::BGN_NON_CASH_PAYMENT_NAME, 'change' => 'yes', 'currencyCode' => 'BGN', 'synonym' => 'bgn');
+
+            core_Users::forceSystemUser();
+            cond_Payments::save($rec);
+            core_Users::cancelSystemUser();
+        }
     }
 
 
@@ -493,27 +497,143 @@ SET
 
 
     /**
-     * Функция, която се вика по крон по разписание за обновяване на валутата на сч. периоди
+     * Нагласяне за мигриране на системата към еврозоната
      */
-    public static function callback_updatePeriods()
+    function cron_migrateToEuro()
     {
-        self::updateCreatedPeriods();
-    }
+        // Ако системата не е подготвена - нищо не се прави
+        $isSet = eurozone_Setup::get('SET_MIGRATIONS');
+        if($isSet != 'yes') return;
 
+        // Ако системата вече е мигрирана да не се прави нищо
+        $isMigrated = eurozone_Setup::get('MIGRATE_SYSTEM');
+        if($isMigrated == 'yes') return;
 
-    /**
-     * Функция, която се вика по крон по разписание за мигриране на документите за еврозоната
-     */
-    public static function callback_migrateAll()
-    {
-        self::addBgnPayment();
-        self::updatePriceLists();
-        self::updateDeltas();
-        self::updatePurchases();
-        self::updateEshopSettings();
-        self::updatePriceCosts();
-        self::updatePricesByDate();
-        self::convertBgnAccounts2Euro();
-        self::updateHr();
+        // Ако сме преди еврозоната също
+        if(dt::today() < '2026-01-01') return;
+
+        /*
+         * $conf = core_Packs::getConfig('eurozone');
+        foreach ($conf->_data as $const => $val){
+            if($const != 'EUROZONE_SET_MIGRATIONS'){
+                core_Packs::setConfig('eurozone', array($const => 'no'));
+            }
+        }*/
+
+        $errors = array();
+
+        // Мигриране на сч. периоди
+        try {
+            self::updateCreatedPeriods();
+        } catch(Exception $e){
+            $errors[] = "при периодите:" . $e->getMessage();
+        }
+
+        // Добавяне на безналично плащане БГН
+        try {
+            self::addBgnPayment();
+        } catch(Exception $e){
+            $errors[] = "при безн. плащане:" . $e->getMessage();
+        }
+
+        // Мигриране на ЦП, ако не са мигрирани вече
+        if(eurozone_Setup::get('MIGRATE_PRICE_LISTS') != 'yes'){
+            try {
+                self::updatePriceLists();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_PRICE_LISTS' => 'yes'));
+            } catch(Exception $e){
+                $errors[] = "при ЦП:" . $e->getMessage();
+            }
+        }
+
+        // Мигриране на Делтите, ако не са мигрирани вече
+        if(eurozone_Setup::get('MIGRATE_DELTAS') != 'yes'){
+            try {
+                self::updateDeltas();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_DELTAS' => 'yes'));
+            } catch(Exception $e){
+                $errors[] = "при делти:" . $e->getMessage();
+            }
+        }
+
+        // Мигриране на Покупките, ако не са мигрирани вече
+        if(eurozone_Setup::get('MIGRATE_PURCHASES') != 'yes'){
+            try {
+                self::updatePurchases();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_PURCHASES' => 'yes'));
+            } catch(Exception $e){
+                $errors[] = "при покупки:" . $e->getMessage();
+            }
+        }
+
+        // Мигриране на онлайн магазина, ако не е
+        try {
+            self::updateEshopSettings();
+        } catch(Exception $e){
+            $errors[] = "при ешопа:" . $e->getMessage();
+        }
+
+        // Мигриране на кеш цените, ако не е
+        if(eurozone_Setup::get('MIGRATE_COSTS') != 'yes'){
+            try {
+                self::updatePriceCosts();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_COSTS' => 'yes'));
+            } catch(Exception $e){
+                $errors[] = "при кеш. цени:" . $e->getMessage();
+            }
+        }
+
+        // Мигриране на складовите цени, ако не е
+        if(eurozone_Setup::get('MIGRATE_STORE_PRICES') != 'yes'){
+            try {
+                self::updatePricesByDate();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_STORE_PRICES' => 'yes'));
+            } catch(Exception $e){
+                $errors[] = "при складови цени:" . $e->getMessage();
+            }
+        }
+
+        // Мигриране на HR, ако не е
+        if(eurozone_Setup::get('MIGRATE_HR') != 'yes'){
+            try {
+                self::updateHr();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_HR' => 'yes'));
+            } catch(Exception $e){
+                $errors[] = "при HR:" . $e->getMessage();
+            }
+        }
+
+        // Мигриране на сметките, ако не е
+        if(eurozone_Setup::get('MIGRATE_ACCOUNTS') != 'yes'){
+            try {
+                self::convertBgnAccounts2Euro();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_ACCOUNTS' => 'yes'));
+            } catch(Exception $e){
+                $errors[] = "при б. сметки:" . $e->getMessage();
+            }
+        }
+
+        if(countR($errors)){
+            wp("ЕВРО миграция", $errors);
+            foreach ($errors as $error) {
+                log_System::add('eurozone_Migrations', "ЕВРО мигр.: {$error}", null, 'err');
+            }
+
+            $admins = core_Users::getByRole('admin');
+            foreach ($admins as $adminId) {
+                bgerp_Notifications::add('Имаше проблем при преминаване към Евро', array('log_System', 'list', 'type' => 'err', 'search' => 'ЕВРО мигр'), $adminId, 'critical');
+            }
+
+            return;
+        }
+
+        // Ако не е имало грешки маркираме, че миграцията е минала успешно!
+        core_Cron::delete("#systemId = 'MigrateToEuro'");
+        $admins = core_Users::getByRole('admin');
+        foreach ($admins as $adminId) {
+            bgerp_Notifications::add('Системата е мигрирана към евро успешно', array(), $adminId, 'critical');
+        }
+
+        core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_SYSTEM' => 'yes'));
     }
 }
