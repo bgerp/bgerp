@@ -154,7 +154,7 @@ class eurozone_Setup extends core_ProtoSetup
             $rec->timeLimit = 300;
             $html .= core_Cron::addOnce($rec);
         } else {
-            $html .= "Системата вече е минала в еврозоната";
+            $html .= "Системата вече е обновена за еврозоната";
         }
 
         return $html;

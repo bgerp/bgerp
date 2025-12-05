@@ -627,13 +627,16 @@ SET
             return;
         }
 
-        // Ако не е имало грешки маркираме, че миграцията е минала успешно!
+        // Ако не е имало грешки изтрива се крон процеса
         core_Cron::delete("#systemId = 'MigrateToEuro'");
+
+        // Админите се нотифицират
         $admins = core_Users::getByRole('admin');
         foreach ($admins as $adminId) {
             bgerp_Notifications::add('Системата е мигрирана към евро успешно', array(), $adminId, 'critical');
         }
 
+        // Записва се, че системата е вече мигрирана
         core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_SYSTEM' => 'yes'));
     }
 }
