@@ -283,7 +283,7 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             $rec->_dealCurrencyId = $form->dealInfo->get('currency');
-            if(in_array($form->dealInfo->get('currency'), array('EUR', 'BGN')) || (acc_Periods::getBaseCurrencyCode($rec->valior) != acc_Periods::getBaseCurrencyCode($form->dealInfo->get('agreedValior')))) {
+            if((acc_Periods::getBaseCurrencyCode($rec->valior) != acc_Periods::getBaseCurrencyCode($form->dealInfo->get('agreedValior')))) {
                 $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
             }
 
