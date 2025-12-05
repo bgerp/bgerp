@@ -317,11 +317,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
                     $quantityArr = $cached->recWithIds[$dRec->clonedFromDetailId];
                     $originPrice = deals_Helper::getDisplayPrice($quantityArr['price'], 0, 1, 'no', 5);
+
                     if(in_array($rec->currencyId, array('BGN', "EUR"))){
                         $originPrice = deals_Helper::getSmartBaseCurrency($originPrice, $cached->date, $rec->date);
+                    } else {
+                        $originPrice /= $cached->rate;
+                        $originPrice *= $rec->rate;
                     }
-                    $diffPrice = $dRec->packPrice - $originPrice;
 
+                    $diffPrice = $dRec->packPrice - $originPrice;
                     $priceIsChanged = false;
                     $diffPrice = round($diffPrice, 5);
                     if(abs($diffPrice) > 0.0001){
