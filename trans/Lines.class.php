@@ -502,7 +502,6 @@ class trans_Lines extends core_Master
         }
 
         $row->handler = $mvc->getHyperlink($rec->id, true);
-        $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         if (isset($fields['-list'])) {
             $row->start = str_replace(' ', '<br>', $row->start);
             if (!empty($rec->stores)) {
@@ -534,14 +533,14 @@ class trans_Lines extends core_Master
 
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
-
+        $today = dt::today();
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
             $transInfo = $Document->getTransportLineInfo($rec->id);
             $isStoreDocument = $Document->haveInterface('store_iface_DocumentIntf');
 
             if (!$isStoreDocument) {
-                $toBaseAmount = currency_CurrencyRates::convertAmount($transInfo['baseAmount'], null, $transInfo['currencyId']);
+                $toBaseAmount = deals_Helper::getSmartBaseCurrency($transInfo['baseAmount'], $transInfo['valior'], $today);
 
                 if ($toBaseAmount < 0) {
                     if($dRec->containerState == 'active'){
@@ -580,10 +579,14 @@ class trans_Lines extends core_Master
         $row->weight = (!empty($weight)) ? cls::get('cat_type_Weight')->toVerbal($weight) : "<span class='quiet'>N/A</span>";
         $row->volume = (!empty($volume)) ? cls::get('cat_type_Volume')->toVerbal($volume) : "<span class='quiet'>N/A</span>";
 
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         $row->totalAmountExpected = core_Type::getByName('double(decimals=2)')->toVerbal($amountExpected);
-        $row->totalAmountExpected = ht::styleNumber($row->totalAmountExpected, $amount);
+        $row->totalAmountExpected = currency_Currencies::decorate($row->totalAmountExpected, $baseCurrencyCode, true);
+        $row->totalAmountExpected = ht::styleNumber($row->totalAmountExpected, $amountExpected);
 
         $row->totalAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
+        $row->totalAmount = currency_Currencies::decorate($row->totalAmount, $baseCurrencyCode, true);
+
         if($amount < $amountExpected){
             $row->totalAmount = "<b class='red'>{$row->totalAmount}</b>";
         } else {
@@ -591,6 +594,7 @@ class trans_Lines extends core_Master
         }
 
         $row->totalAmountReturn = core_Type::getByName('double(decimals=2)')->toVerbal(abs($amountReturned));
+        $row->totalAmountReturn = currency_Currencies::decorate($row->totalAmountReturn, $baseCurrencyCode, true);
         $row->totalAmountReturn = ht::styleNumber($row->totalAmountReturn, abs($amountReturned));
     }
 

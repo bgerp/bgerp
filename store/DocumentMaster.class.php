@@ -1161,6 +1161,7 @@ abstract class store_DocumentMaster extends core_Master
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
      *               ['deliveryOn']     date        - Доставка на
+     *               ['valior']         date        - Вальор
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -1234,6 +1235,7 @@ abstract class store_DocumentMaster extends core_Master
         if(!empty($logisticData["{$part}AddressInfo"])){
             $res['addressInfo'] = $logisticData["{$part}AddressInfo"];
         }
+        $res['valior'] = $rec->valior ?? dt::today();
 
         return $res;
     }
