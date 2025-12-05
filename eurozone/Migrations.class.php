@@ -463,6 +463,22 @@ SET
 
 
     /**
+     * Изчистване на константите
+     */
+    function act_ClearConf()
+    {
+        requireRole('debug');
+
+        $conf = core_Packs::getConfig('eurozone');
+        foreach ($conf->_data as $const => $val) {
+            if ($const != 'EUROZONE_SET_MIGRATIONS') {
+                core_Packs::setConfig('eurozone', array($const => 'no'));
+            }
+        }
+    }
+
+
+    /**
      * Нагласяне за мигриране на системата към еврозоната
      */
     function cron_migrateToEuro()
@@ -487,16 +503,9 @@ SET
             return 'Не е настъпила датата на еврозоната';
         }
 
+        core_App::setTimeLimit(800);
+
         $html = '';
-
-        /*
-         * $conf = core_Packs::getConfig('eurozone');
-        foreach ($conf->_data as $const => $val){
-            if($const != 'EUROZONE_SET_MIGRATIONS'){
-                core_Packs::setConfig('eurozone', array($const => 'no'));
-            }
-        }*/
-
         $errors = array();
 
         // Мигриране на сч. периоди
@@ -535,6 +544,8 @@ SET
                 $errors[] = "при ЦП:" . $e->getMessage();
                 $html .= "<li>Мигриране на ЦП ГРЕШКА {$e->getMessage()}</li>";
             }
+        } else {
+            $html .= "<li>ЦП са вече мигрирани</li>";
         }
 
         // Мигриране на Делтите, ако не са мигрирани вече
@@ -548,6 +559,8 @@ SET
                 $html .= "<li>Мигриране на Делти ГРЕШКА {$e->getMessage()}</li>";
                 $errors[] = "при делти:" . $e->getMessage();
             }
+        } else {
+            $html .= "<li>Делтите са вече мигрирани</li>";
         }
 
         // Мигриране на Покупките, ако не са мигрирани вече
@@ -561,6 +574,8 @@ SET
                 $errors[] = "при покупки:" . $e->getMessage();
                 $html .= "<li>Мигриране на покупки ГРЕШКА {$e->getMessage()}</li>";
             }
+        } else {
+            $html .= "<li>Покупки са вече мигрирани</li>";
         }
 
         // Мигриране на онлайн магазина, ако не е
@@ -584,6 +599,8 @@ SET
                 $errors[] = "при кеш. цени:" . $e->getMessage();
                 $html .= "<li>Мигриране на кеш. цени ГРЕШКА {$e->getMessage()}</li>";
             }
+        } else {
+            $html .= "<li>Кеш цените са вече мигрирани</li>";
         }
 
         // Мигриране на складовите цени, ако не е
@@ -597,6 +614,8 @@ SET
                 $errors[] = "при складови цени:" . $e->getMessage();
                 $html .= "<li>Мигриране на складови цени ГРЕШКА {$e->getMessage()}</li>";
             }
+        } else {
+            $html .= "<li>Складови цени са вече мигрирани</li>";
         }
 
         // Мигриране на HR, ако не е
@@ -610,6 +629,8 @@ SET
                 $errors[] = "при HR:" . $e->getMessage();
                 $html .= "<li>Мигриране на HR ГРЕШКА {$e->getMessage()}</li>";
             }
+        } else {
+            $html .= "<li>HR са вече мигрирани</li>";
         }
 
         // Мигриране на сметките, ако не е
@@ -623,6 +644,8 @@ SET
                 $errors[] = "при б. сметки:" . $e->getMessage();
                 $html .= "<li>Мигриране на б. сметки {$e->getMessage()}</li>";
             }
+        } else {
+            $html .= "<li>Б. сметки са вече мигрирани</li>";
         }
 
         if(countR($errors)){
