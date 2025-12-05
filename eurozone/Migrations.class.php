@@ -503,6 +503,9 @@ SET
             return 'Не е настъпила датата на еврозоната';
         }
 
+        // Заключване на системата
+        core_SystemLock::block('Migration For Eurozone...', 180);
+
         core_App::setTimeLimit(800);
 
         $html = '';
