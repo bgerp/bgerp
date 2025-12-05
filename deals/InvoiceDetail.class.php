@@ -743,7 +743,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     // Проверка дали са променени и цената и количеството
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
                     $originRec = $cache->recWithIds[$rec->clonedFromDetailId];
-                    $originRec['price'] = deals_Helper::getSmartBaseCurrency($originRec['price'], $cache->date, $masterRec->date);
+
+                    if(in_array($masterRec->currencyId, array('BGN', "EUR"))){
+                        $originRec['price'] = deals_Helper::getSmartBaseCurrency($originRec['price'], $cache->date, $masterRec->date);
+                    } else {
+                        $originRec['price'] /= $cache->rate;
+                        $originRec['price'] *= $masterRec->rate;
+                    }
 
                     $diffPrice = round($rec->packPrice - $originRec['price'], 5);
                     if(round($rec->quantity, 5) != round($originRec['quantity'], 5) && abs($diffPrice) > 0.0001){
