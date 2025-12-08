@@ -89,6 +89,8 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan,single=internal');
         $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan,single=internal');
         $fieldset->FLD('templateType', 'enum(default=Стандартен изглед,foods=Храни)', 'caption=Допълнително->Изглед,after=lang,single=internal');
+        $fieldset->FLD('templateCssClass', 'varchar(16)', 'caption=Допълнително->CSS клас,after=templateType,single=internal');
+
     }
 
 
@@ -830,6 +832,10 @@ class price_reports_PriceList extends frame2_driver_TableData
                     $tpl->append($block, 'GRID');
                 }
             }
+        }
+
+        if(!empty($rec->templateCssClass)){
+            $tpl->append($rec->templateCssClass, 'templateCssClass');
         }
 
         return $tpl;
