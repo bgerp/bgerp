@@ -219,7 +219,7 @@ abstract class deals_ManifactureMaster extends core_Master
 
         // протоколите не може да се контират/създават/заявка/възстановяват ако заданието е затворено и минал зададения прозорец
         if(in_array($action, array('add', 'conto', 'restore', 'pending')) && isset($rec->threadId)){
-            if($requiredRoles != 'no_one') {
+            if($requiredRoles != 'no_one' && !($mvc instanceof planning_ProductionDocument)) {
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 
                 if(isset($firstDoc) && $firstDoc->isInstanceOf('planning_Jobs')){
