@@ -56,6 +56,18 @@ defIfNot('EUROZONE_MIGRATE_ACCOUNTS', 'no');
 
 
 /**
+ * Мигрирани ли са ФС
+ */
+defIfNot('EUROZONE_MIGRATE_FINDEALS', 'no');
+
+
+/**
+ * Мигрирани ли са СА
+ */
+defIfNot('EUROZONE_MIGRATE_ADVANCE_FINDEALS', 'no');
+
+
+/**
  * class eurozone_Setup
  *
  * Инсталиране/Деинсталиране на
