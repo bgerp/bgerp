@@ -325,35 +325,57 @@ SET
         requireRole('euro');
         $tpl = getTplFromFile('eurozone/tpl/testMigrationsLayout.shtml');
 
-        $isMigrated = eurozone_Setup::getConfig('MIGRATE_SYSTEM');
-        if(!$isMigrated){
-            foreach ($this->migrations as $data){
-                $blockTpl = clone $tpl->getBlock('BLOCK');
-                $blockTpl->replace($data['name'], 'name');
+        foreach ($this->migrations as $data){
+            $blockTpl = clone $tpl->getBlock('BLOCK');
+            $blockTpl->replace($data['name'], 'name');
 
-                $testUrl = array($this, 'test', "fnc" => $data['function'], 'ret_url' => true);
-                $testBtn = ht::createBtn("Тествай", $testUrl);
-                $blockTpl->replace($testBtn, 'testBtn');
+            $testUrl = array($this, 'test', "fnc" => $data['function'], 'ret_url' => true);
+            $testBtn = ht::createBtn("Тествай", $testUrl);
+            $blockTpl->replace($testBtn, 'testBtn');
 
-                $listUrl = $copyUrl = array();
-                if($data['class']::haveRightFor('list')){
-                    $listUrl = array($data['class'], 'list');
-                }
-                if($data['copy']::haveRightFor('list')){
-                    $copyUrl = array($data['copy'], 'list');
-                }
-
-                if($data['class'] == 'acc_ProductPricePerPeriods'){
-                    $copyUrl['type'] = $listUrl = 'stores';
-                }
-
-                $blockTpl->replace(ht::createLink('Оригинал', $listUrl, false, array('target' => '_blank')), 'tableLink');
-                $blockTpl->replace(ht::createLink('Копие', $copyUrl, false, array('target' => '_blank')), 'copyLink');
-                $blockTpl->removeBlocksAndPlaces();
-                $tpl->append($blockTpl, 'MIGRATIONS');
+            $listUrl = $copyUrl = array();
+            if($data['class']::haveRightFor('list')){
+                $listUrl = array($data['class'], 'list');
             }
-        } else {
+            if($data['copy']::haveRightFor('list')){
+                $copyUrl = array($data['copy'], 'list');
+            }
 
+            if($data['class'] == 'acc_ProductPricePerPeriods'){
+                $copyUrl['type'] = $listUrl = 'stores';
+            }
+
+            $blockTpl->replace(ht::createLink('Оригинал', $listUrl, false, array('target' => '_blank')), 'tableLink');
+            $blockTpl->replace(ht::createLink('Копие', $copyUrl, false, array('target' => '_blank')), 'copyLink');
+            $blockTpl->removeBlocksAndPlaces();
+            $tpl->append($blockTpl, 'MIGRATIONS');
+        }
+
+        $conf = core_Packs::getConfig('eurozone');
+
+        $data = $conf->_data;
+        if($data['EUROZONE_MIGRATE_SYSTEM'] == 'yes'){
+            $tpl->append("<h2>Системата е мигрирана</h2>", 'RESULT');
+
+            $const = array('EUROZONE_MIGRATE_PRICE_LISTS' => 'Ценови политики',
+                           'EUROZONE_MIGRATE_DELTAS' => 'Делти',
+                           'EUROZONE_MIGRATE_PURCHASES' => 'Доставки',
+                           'EUROZONE_MIGRATE_COSTS' => 'Кеширани продуктови цени',
+                           'EUROZONE_MIGRATE_STORE_PRICES' => 'Складови цени',
+                           'EUROZONE_MIGRATE_HR' => 'Позиции във фирмата',
+                           'EUROZONE_MIGRATE_ACCOUNTS' => 'Банкови сметки',
+                           'EUROZONE_MIGRATE_FINDEALS' => 'Финансови сделки',
+                           'EUROZONE_MIGRATE_ADVANCE_FINDEALS' => 'Служебни аванси');
+
+            $tpl->append("<li style='color:green;'>Сч. периоди са мигрирани</li>", 'RESULT');
+            $tpl->append("<li style='color:green;'>ЕШОП настройки са мигрирани</li>", 'RESULT');
+            foreach ($const as $constName => $constValue){
+                if($data[$constName] == 'yes'){
+                    $tpl->append("<li style='color:green;'>{$constValue} са мигрирани</li>", 'RESULT');
+                } else {
+                    $tpl->append("<li style='color:red;'>{$constValue} НЕ са мигрирани</li>", 'RESULT');
+                }
+            }
         }
 
         return $tpl;
