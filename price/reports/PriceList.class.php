@@ -818,8 +818,8 @@ class price_reports_PriceList extends frame2_driver_TableData
             $cDay = dt::mysql2verbal($date, 'd');
             $lg = ($rec->lang == 'auto') ? null : $rec->lang;
             $cDayWithSuffix = dt::getDayWithSuffix($cDay, $lg);
-            $cMonth = mb_strtolower(dt::mysql2verbal($date, 'F'));
-            $tpl->append("{$cDayWithSuffix} {$cMonth}", 'currentDate');
+            $cMonth = mb_strtolower(dt::mysql2verbal($date, 'm'));
+            $tpl->append("{$cDay}/{$cMonth}", 'currentDate');
 
             $counter = 0;
             foreach ($data->rows as $row){
