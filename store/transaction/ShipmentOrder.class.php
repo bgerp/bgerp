@@ -72,7 +72,8 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
             $property = ($rec->isReverse == 'yes') ? 'canBuy' : 'canSell';
            
             // Проверка дали артикулите отговарят на нужните свойства
-            $productArr = arr::extractValuesFromArray($rec->details, 'productId');
+            $productArr = array();
+            array_walk($rec->details, function($a) use (&$productArr) { if(!empty($a->quantity)) {$productArr[$a->productId] = $a->productId;}});
             if (countR($productArr)) {
                 $msg = ($rec->isReverse == 'yes') ? 'купуваеми' : 'продаваеми';
                 $msg = "трябва да са {$msg} и да не са генерични";
@@ -224,9 +225,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         $originCurrencyCode = $origin->fetchField('currencyId');
 
         foreach ($rec->details as $detailRec) {
-            if (empty($detailRec->quantity) && Mode::get('saveTransaction')) {
-                continue;
-            }
+            if (empty($detailRec->quantity)) continue;
 
             $amount = $detailRec->amount;
             $amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
@@ -340,9 +339,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         acc_journal_Exception::expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         
         foreach ($rec->details as $detailRec) {
-            if (empty($detailRec->quantity) && Mode::get('saveTransaction')) {
-                continue;
-            }
+            if (empty($detailRec->quantity)) continue;
             
             $pInfo = cat_Products::getProductInfo($detailRec->productId, $detailRec->packagingId);
             if(!isset($pInfo->meta['canStore'])) continue;
