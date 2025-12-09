@@ -911,12 +911,21 @@ class pos_ReceiptDetails extends core_Detail
                     $row->productId = cat_Products::getHyperlink($rec->productId, true);
                 }
 
+                $row->amount = currency_Currencies::decorate($row->amount, $row->currency, true);
+                $row->price = currency_Currencies::decorate($row->price, $row->currency, true);
 
                 break;
             case 'payment':
                 $row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
                 $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
                 $row->amount = ht::styleNumber($row->amount, $rec->amount);
+
+                $paymentRec = ($action->value != -1) ? cond_Payments::fetch($action->value) : 0;
+                if($paymentRec->currencyCode){
+                    $row->amount = currency_Currencies::decorate($row->amount, $paymentRec->currencyCode, true);
+                } else {
+                    $row->amount = currency_Currencies::decorate($row->amount, $row->currency, true);
+                }
 
                 $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if($action->value == $cardPaymentId){

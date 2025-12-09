@@ -763,7 +763,7 @@ class cat_Boms extends core_Master
                     $row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantityForPrice);
                     $rec->primeCost = ($price) ? $price : 0;
 
-                    $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->modifiedOn);
+                    $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
                     $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
                     $row->primeCost = $Double->toVerbal($rec->primeCost);
 

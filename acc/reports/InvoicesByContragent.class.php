@@ -193,11 +193,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         // Фактури ПРОДАЖБИ
         if ($rec->typeOfInvoice == 'out') {
 
-            if (haveRole('admin')) {
-                // bp(self::unpaidAktiveInvoices($rec,$checkDate));
-            }
-
-
             $sRecs = array();
             $sRecsAll = array();
             $invAdjustmentArr = array();
@@ -373,7 +368,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         $salesInvoice->discountAmount = deals_Helper::getSmartBaseCurrency($salesInvoice->discountAmount, $salesInvoice->date, $rec->checkDate);
                         $salesInvoice->vatAmount = deals_Helper::getSmartBaseCurrency($salesInvoice->vatAmount, $salesInvoice->date, $rec->checkDate);
 
-                        $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) / $salesInvoice->rate + $salesInvoice->vatAmount;
+
+
+                        $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount)+ $salesInvoice->vatAmount ;
+                       // bp($invoiceValue,$salesInvoice->dealValue,$salesInvoice->vatAmount,$salesInvoice->rate);
 
                         $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
 
@@ -696,7 +694,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             'contragent' => $purchaseInvoices->contragentName,
                             'type' => $purchaseInvoices->type,
                             'payDocuments' => $paydocs->used,
-                            'invoicePayout' =>deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate),
+                            'invoicePayout' => deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate),
                             'fastMarker' => $fastMarker,
                             //'dcPay' => $dcPay
                         );
@@ -1042,21 +1040,21 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             if ($rec->unpaid == 'all') {
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-                if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
-                    $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
-                }
+                //if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
+                $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
+                // }
 
                 $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
                 $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', "caption=Стойност $baseCurrency");
-                $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума->лв.,smartCenter');
+                $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', "caption=Платено->Сума->$baseCurrency,smartCenter");
                 $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания->дата,smartCenter');
             }
 
             if ($rec->unpaid == 'unpaid') {
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-                if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
-                    $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
-                }
+                //if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
+                $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
+                // }
                 $fld->FLD('invoiceValueBaseCurr', 'double(decimals=2)', 'caption=Стойност-> Сума-> лв.,smartCenter');
                 $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума->лв.,smartCenter');
                 $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания->дата,smartCenter');
@@ -1303,11 +1301,31 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $invoiceValue = $rec->unpaid == 'all' ? $dRec->invoiceValue : $dRec->invoiceValue;
 
-        if ($dRec->currencyId != 'BGN') {
-            $row->invoiceValue = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
+        $euroZoneDate = acc_Setup::getEurozoneDate();
+
+        $type = core_Type::getByName('double(decimals=2)');
+
+        if ($dRec->invoiceDate < $euroZoneDate) {
+            if ($dRec->currencyId == 'BGN' && $baseCurrency == 'EUR') {
+                $row->invoiceValue = $type->toVerbal($invoiceValue * 1.95583);
+            } elseif($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
+                $row->invoiceValue = $type->toVerbal($invoiceValue);
+            }elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
+                $row->invoiceValue = $type->toVerbal($invoiceValue / $dRec->rate);
+            }elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'EUR') {
+                $row->invoiceValue = $type->toVerbal($invoiceValue * 1.95583 / $dRec->rate);
+            }
+        }
+        if ($dRec->invoiceDate > $euroZoneDate) {
+            if ($dRec->currencyId == 'EUR' && $baseCurrency == 'EUR') {
+                $row->invoiceValue = $type->toVerbal($invoiceValue );
+            } elseif($dRec->currencyId != 'EUR' && $baseCurrency == 'EUR') {
+                $row->invoiceValue = $type->toVerbal($invoiceValue / $dRec->rate);
+            }
         }
 
-        $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue * $dRec->rate);
+        $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue );
 
         if ($dRec->invoiceCurrentSumm > 0) {
             $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm * $dRec->rate);

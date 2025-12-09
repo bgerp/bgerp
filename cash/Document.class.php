@@ -541,8 +541,11 @@ abstract class cash_Document extends deals_PaymentDocument
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->title = $mvc->getLink($rec->id, 0);
-        
+
+
         if ($fields['-single']) {
+            $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+
             if ($rec->dealCurrencyId != $rec->currencyId) {
                 $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
 
@@ -574,8 +577,7 @@ abstract class cash_Document extends deals_PaymentDocument
             }
             
             $SpellNumber = cls::get('core_SpellNumber');
-            $currecyCode = currency_Currencies::getCodeById($rec->currencyId);
-            $amountVerbal = $SpellNumber->asCurrency($rec->amount, 'bg', false, $currecyCode);
+            $amountVerbal = $SpellNumber->asCurrency($rec->amount, 'bg', false, $currencyCode);
             $row->amountVerbal = str::mbUcfirst($amountVerbal);
             
             // Вземаме данните за нашата фирма
@@ -608,7 +610,6 @@ abstract class cash_Document extends deals_PaymentDocument
             if(isset($rec->amountGiven)){
                 $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
 
-                $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
                 $change = $rec->amountGiven - $rec->amount;
                 if(in_array($currencyCode, array('BGN', 'EUR'))){
                     $changeBgn = $currencyCode == 'BGN' ? $change : round($change * 1.95583, 2);
@@ -676,6 +677,7 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
      *               ['deliveryOn']     date        - Доставка на
+     *               ['valior']         date        - Вальор
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -706,7 +708,9 @@ abstract class cash_Document extends deals_PaymentDocument
             $info['amountVerbal'] = "<span id={$this->getHandle($rec->id)}>{$info['amountVerbal']}</span>";
             $info['amountVerbal'] = ht::styleNumber($info['amountVerbal'], $info['amount']);
         }
-        
+
+        $info['valior'] = $rec->valior ?? dt::today();
+
         return $info;
     }
     
