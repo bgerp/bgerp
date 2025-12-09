@@ -538,7 +538,7 @@ SET
         }
 
         // Заключване на системата
-        //core_SystemLock::block('Migration For Eurozone...', 55);
+        core_SystemLock::block('Start Eurozone Migration... Start Eurozone Backup...', 10);
         core_App::setTimeLimit(800);
 
         // Създаване на копие на чувствителните таблици
@@ -550,6 +550,7 @@ SET
         }
         $errors = array();
 
+        core_SystemLock::block('Migrate periods...', 10);
         // Мигриране на сч. периоди
         try {
             self::updateCreatedPeriods();
@@ -560,6 +561,7 @@ SET
             $html .= "<li>Мигриране на СЧ. Периоди ГРЕШКА: {$e->getMessage()}</li>";
         }
 
+        core_SystemLock::block('Migrate cond payments...', 10);
         // Добавяне на безналично плащане БГН
         try {
             self::addBgnPayment();
@@ -569,6 +571,8 @@ SET
             $errors[] = "при безн. плащане:" . $e->getMessage();
             $html .= "<li>Мигриране на безналично плащане лева ГРЕШКА {$e->getMessage()}</li>";
         }
+
+        core_SystemLock::block('Migrate findeals...', 10);
 
         // Миграция на финансовите сделки
         if(eurozone_Setup::get('MIGRATE_FINDEALS') != 'yes'){
@@ -584,6 +588,7 @@ SET
         }
 
         // Миграция на служебните аванси
+        core_SystemLock::block('Migrate advance findeals...', 10);
         if(eurozone_Setup::get('MIGRATE_ADVANCE_FINDEALS') != 'yes'){
             try {
                 self::updateFinDeals('findeals_AdvanceDeals');
@@ -597,6 +602,7 @@ SET
         }
 
         // Мигриране на ЦП, ако не са мигрирани вече
+        core_SystemLock::block('Migrate price lists...', 10);
         if(eurozone_Setup::get('MIGRATE_PRICE_LISTS') != 'yes'){
             try {
                 self::updatePriceLists();
@@ -612,6 +618,7 @@ SET
         }
 
         // Мигриране на Делтите, ако не са мигрирани вече
+        core_SystemLock::block('Migrate deltas...', 10);
         if(eurozone_Setup::get('MIGRATE_DELTAS') != 'yes'){
             try {
                 self::updateDeltas();
@@ -627,6 +634,7 @@ SET
         }
 
         // Мигриране на Покупките, ако не са мигрирани вече
+        core_SystemLock::block('Migrate purchases...', 10);
         if(eurozone_Setup::get('MIGRATE_PURCHASES') != 'yes'){
             try {
                 self::updatePurchases();
@@ -642,6 +650,7 @@ SET
         }
 
         // Мигриране на онлайн магазина, ако не е
+        core_SystemLock::block('Migrate eshop...', 10);
         try {
             self::updateEshopSettings();
             $html .= "<li>Мигриране на ешоп Успешно";
@@ -652,6 +661,7 @@ SET
         }
 
         // Мигриране на кеш цените, ако не е
+        core_SystemLock::block('Migrate product costs...', 10);
         if(eurozone_Setup::get('MIGRATE_COSTS') != 'yes'){
             try {
                 self::updatePriceCosts();
@@ -667,6 +677,7 @@ SET
         }
 
         // Мигриране на складовите цени, ако не е
+        core_SystemLock::block('Migrate store prices...', 10);
         if(eurozone_Setup::get('MIGRATE_STORE_PRICES') != 'yes'){
             try {
                 self::updatePricesByDate();
@@ -682,6 +693,7 @@ SET
         }
 
         // Мигриране на HR, ако не е
+        core_SystemLock::block('Migrate HR...', 10);
         if(eurozone_Setup::get('MIGRATE_HR') != 'yes'){
             try {
                 self::updateHr();
@@ -697,6 +709,7 @@ SET
         }
 
         // Мигриране на сметките, ако не е
+        core_SystemLock::block('Migrate Bank accounts...', 10);
         if(eurozone_Setup::get('MIGRATE_ACCOUNTS') != 'yes'){
             try {
                 self::convertBgnAccounts2Euro();
@@ -729,6 +742,7 @@ SET
         core_Cron::delete("#systemId = 'MigrateToEuro'");
 
         // Админите се нотифицират
+        core_SystemLock::block('Finishing migration...', 10);
         $admins = core_Users::getByRole('admin');
         foreach ($admins as $adminId) {
             bgerp_Notifications::add('Системата е мигрирана към евро успешно', array(), $adminId, 'critical');

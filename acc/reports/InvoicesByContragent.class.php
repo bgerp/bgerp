@@ -668,7 +668,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $purchaseInvoices->discountAmount = deals_Helper::getSmartBaseCurrency($purchaseInvoices->discountAmount, $purchaseInvoices->date, $rec->checkDate);
                     $purchaseInvoices->vatAmount = deals_Helper::getSmartBaseCurrency($purchaseInvoices->vatAmount, $purchaseInvoices->date, $rec->checkDate);
 
-                    $invoiceValue = (($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount) / $purchaseInvoices->rate;
+                    $invoiceValue = (($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount);
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
 
                     // масив от фактури в тази нишка //
@@ -1223,6 +1223,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         $Double = core_Type::getByName('double(decimals=2)');
+        $euroZoneDate = acc_Setup::getEurozoneDate();
 
         $row = new stdClass();
 
@@ -1267,6 +1268,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($rec->unpaid == 'all') {
 
             $allCurrency = ($dRec->totalInvoiceValue) ? $dRec->currencyId : '';
+            if($allCurrency == 'BGN' && $rec->checkDate > $euroZoneDate){
+                $allCurrency = 'EUR';
+            }
+
             $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' ' . $allCurrency;
             if ($dRec->totalInvoiceOverPaid > 0.01) {
                 $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
@@ -1302,7 +1307,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $invoiceValue = $rec->unpaid == 'all' ? $dRec->invoiceValue : $dRec->invoiceValue;
 
         $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
-        $euroZoneDate = acc_Setup::getEurozoneDate();
+
 
         $type = core_Type::getByName('double(decimals=2)');
 
