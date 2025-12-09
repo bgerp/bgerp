@@ -394,9 +394,10 @@ class pos_Receipts extends core_Master
                 $row->CHANGE_CAPTION = ($rec->change < 0 || isset($rec->revertId)) ? tr("За плащане") : tr("Ресто");
                 $row->change = $mvc->getFieldType('change')->toVerbal(abs($rec->change));
 
-                if($row->currency == 'EUR'){
-                    Mode::push('text', 'plaint');
-                    $row->change = currency_Currencies::decorate($row->change, $row->currency, true);
+                $row->change = currency_Currencies::decorate($row->change, $row->currency, true);
+
+                if($row->currency == 'EUR' && $rec->change > 0){
+                    Mode::push('text', 'plain');
                     $bgnChange = deals_Helper::getSmartBaseCurrency(abs($rec->change), $rec->createdOn, '2024-01-01', true);
                     $bgnVal = $mvc->getFieldType('change')->toVerbal($bgnChange);
                     $row->change .= "&nbsp;/&nbsp;" . currency_Currencies::decorate($bgnVal, 'BGN', true) . "</small>";
