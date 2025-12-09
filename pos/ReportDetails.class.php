@@ -314,7 +314,7 @@ class pos_ReportDetails extends core_Manager
         $fieldset->FLD('created', 'varchar', 'smartCenter');
         $fieldset->FLD('waiting', 'varchar', 'smartCenter');
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
-        $fields = arr::make("receiptId=Бележка,total=|*{$data->masterData->row->baseCurrency},created=Създаване,waiting=Чакащо", true);
+        $fields = arr::make("receiptId=Бележка,total=Сума,created=Създаване,waiting=Чакащо", true);
 
         // Рендиране на таблицата с резултатите
         $dTpl = $table->get($data->receiptRows, $fields);
