@@ -428,9 +428,9 @@ class pos_Reports extends core_Master
                 if($change[$rRec->receiptId]){
                     $changeAmount = $change[$rRec->receiptId];
                     if($action[1] == $bgnPaymentId){
-                        $change =currency_CurrencyRates::convertAmount($changeAmount, $rRec->createdOn, null, 'BGN');
+                        $changeAmount =currency_CurrencyRates::convertAmount($changeAmount, $rRec->createdOn, null, 'BGN');
                     }
-                    $rRec->amount -= $change;
+                    $rRec->amount -= $changeAmount;
                     unset($change[$rRec->receiptId]);
                 }
             }
