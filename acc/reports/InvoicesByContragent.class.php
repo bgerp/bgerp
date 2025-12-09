@@ -369,9 +369,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         $salesInvoice->vatAmount = deals_Helper::getSmartBaseCurrency($salesInvoice->vatAmount, $salesInvoice->date, $rec->checkDate);
 
 
-
-                        $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount)+ $salesInvoice->vatAmount ;
-                       // bp($invoiceValue,$salesInvoice->dealValue,$salesInvoice->vatAmount,$salesInvoice->rate);
+                        $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) + $salesInvoice->vatAmount;
+                        // bp($invoiceValue,$salesInvoice->dealValue,$salesInvoice->vatAmount,$salesInvoice->rate);
 
                         $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
 
@@ -1268,11 +1267,20 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($rec->unpaid == 'all') {
 
             $allCurrency = ($dRec->totalInvoiceValue) ? $dRec->currencyId : '';
-            if($allCurrency == 'BGN' && $rec->checkDate > $euroZoneDate){
-                $allCurrency = 'EUR';
+            //След превалутирането
+            $div = 1;
+
+            if ($rec->checkDate > $euroZoneDate) {
+                if ($allCurrency == 'BGN') {
+                    $allCurrency = 'EUR';
+                }
+
+            } else {
+
+                $div = $dRec->rate;
             }
 
-            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' ' . $allCurrency;
+            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue / $div) . ' ' . $allCurrency;
             if ($dRec->totalInvoiceOverPaid > 0.01) {
                 $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
             }
@@ -1314,23 +1322,23 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($dRec->invoiceDate < $euroZoneDate) {
             if ($dRec->currencyId == 'BGN' && $baseCurrency == 'EUR') {
                 $row->invoiceValue = $type->toVerbal($invoiceValue * 1.95583);
-            } elseif($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
+            } elseif ($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
                 $row->invoiceValue = $type->toVerbal($invoiceValue);
-            }elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
+            } elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
                 $row->invoiceValue = $type->toVerbal($invoiceValue / $dRec->rate);
-            }elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'EUR') {
+            } elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'EUR') {
                 $row->invoiceValue = $type->toVerbal($invoiceValue * 1.95583 / $dRec->rate);
             }
         }
         if ($dRec->invoiceDate > $euroZoneDate) {
             if ($dRec->currencyId == 'EUR' && $baseCurrency == 'EUR') {
-                $row->invoiceValue = $type->toVerbal($invoiceValue );
-            } elseif($dRec->currencyId != 'EUR' && $baseCurrency == 'EUR') {
+                $row->invoiceValue = $type->toVerbal($invoiceValue);
+            } elseif ($dRec->currencyId != 'EUR' && $baseCurrency == 'EUR') {
                 $row->invoiceValue = $type->toVerbal($invoiceValue / $dRec->rate);
             }
         }
 
-        $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue );
+        $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
 
         if ($dRec->invoiceCurrentSumm > 0) {
             $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm * $dRec->rate);

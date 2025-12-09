@@ -1365,7 +1365,7 @@ table.total {
 table.total th{
 	font-weight:normal;
 	text-align: right !important;
-	padding: 0 15px 0 10px;
+	padding: 0 5px 0 15px;
 }
 
 table.total td{
@@ -1394,6 +1394,7 @@ td.paidCaption, td.changePositive, td.changeNegative {
 }
 .currencySignNextToAmount {
 	font-size: 0.9em;
+	min-width: auto;
 }
 th.changePositive, td.changePositive {
 	color:green;
