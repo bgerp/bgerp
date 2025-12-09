@@ -427,7 +427,7 @@ class crm_Companies extends core_Master
         // Филтриране по група
         $data->listFilter->FNC(
             'groupId',
-            'key(mvc=crm_Groups,select=name,allowEmpty)',
+            'key(mvc=crm_Groups,select=name,allowEmpty,where=#state !\\= \\\'rejected\\\')',
             'placeholder=Всички групи,caption=Група,input,silent,autoFilter'
         );
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
