@@ -1187,7 +1187,6 @@ class pos_Receipts extends core_Master
             }
 
             $data->rows[$rec->id]->total = ht::styleNumber($data->rows[$rec->id]->total, $rec->total);
-            $data->rows[$rec->id]->total .= " <span class='cCode'>{$baseCurrencyCode}</span>";
             $data->rows[$rec->id]->num = $num;
         }
     }
