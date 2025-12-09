@@ -1093,6 +1093,11 @@ a.more-btn {
 .narrow .more-btn {
 	float: none;
 }
+
+.narrow input.more-btn {
+	min-width: 20px;
+}
+
 .more-btn.show-btn {
 	background-image: url(../img/16/toggle2.png) !important;
 }
