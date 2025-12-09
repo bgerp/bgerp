@@ -74,7 +74,7 @@ class pos_ReportDetails extends core_Manager
             $detail->listFields = "value=Артикул, pack=Мярка, quantity=К-во, amount=|*{$data->masterData->row->baseCurrency}, storeId=Склад,contragentId=Клиент,userId=Оператор";
         } else {
             $actionVal = 'payment';
-            $detail->listFields = "value=Плащане, pack=Валута, amount=|*{$data->masterData->row->baseCurrency},contragentId=Клиент,userId=Оператор";
+            $detail->listFields = "value=Плащане, amount=|*{$data->masterData->row->baseCurrency},contragentId=Клиент,userId=Оператор";
         }
 
         $detail->rows = array_filter($detail->receiptDetails, function($a) use ($actionVal){ return $a->action == $actionVal;});
@@ -148,7 +148,6 @@ class pos_ReportDetails extends core_Manager
         $row = new stdClass();
 
         $Double = core_Type::getByName('double(decimals=2)');
-        $currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
         $quantityVerbal = $Double->toVerbal($obj->quantity);
         $row->quantity = ht::styleNumber($quantityVerbal, $obj->amount);
         if ($obj->action == 'sale') {
@@ -183,7 +182,6 @@ class pos_ReportDetails extends core_Manager
         } else {
 
             // Ако детайла е плащане
-            $row->pack = $currencyCode;
             $value = ($obj->value != -1) ? cond_Payments::getTitleById($obj->value) : tr('В брой');
             $row->value = "<i>{$value}</i>";
             $row->ROW_ATTR['class'] = 'report-payment';
