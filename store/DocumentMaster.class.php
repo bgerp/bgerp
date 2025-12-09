@@ -283,7 +283,7 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             $rec->_dealCurrencyId = $form->dealInfo->get('currency');
-            if(in_array($form->dealInfo->get('currency'), array('EUR', 'BGN')) || (acc_Periods::getBaseCurrencyCode($rec->valior) != acc_Periods::getBaseCurrencyCode($form->dealInfo->get('agreedValior')))) {
+            if((acc_Periods::getBaseCurrencyCode($rec->valior) != acc_Periods::getBaseCurrencyCode($form->dealInfo->get('agreedValior')))) {
                 $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
             }
 
@@ -1161,6 +1161,7 @@ abstract class store_DocumentMaster extends core_Master
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
      *               ['deliveryOn']     date        - Доставка на
+     *               ['valior']         date        - Вальор
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -1234,6 +1235,7 @@ abstract class store_DocumentMaster extends core_Master
         if(!empty($logisticData["{$part}AddressInfo"])){
             $res['addressInfo'] = $logisticData["{$part}AddressInfo"];
         }
+        $res['valior'] = $rec->valior ?? dt::today();
 
         return $res;
     }

@@ -1,8 +1,8 @@
 <div class="singleView">
     [#SingleToolbar#]
-    <h3 style="padding:5px;" class=" [#STATE_CLASS#]">
+    <h2 style="padding:5px;" class=" [#STATE_CLASS#]">
         |Тестове на миграции за еврозоната|*
-    </h3>
+    </h2>
     <div class='scrolling-holder'>
         <table class="styled-table">
             [#MIGRATIONS#]
@@ -17,4 +17,12 @@
             <!--ET_END BLOCK-->
         </table>
     </div>
+
+    <!--ET_BEGIN RESULT-->
+    <div class='scrolling-holder'>
+        <ol>
+        [#RESULT#]
+        </ol>
+    </div>
+    <!--ET_END RESULT-->
 </div>

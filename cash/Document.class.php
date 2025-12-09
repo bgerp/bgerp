@@ -677,6 +677,7 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
      *               ['deliveryOn']     date        - Доставка на
+     *               ['valior']         date        - Вальор
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -707,7 +708,9 @@ abstract class cash_Document extends deals_PaymentDocument
             $info['amountVerbal'] = "<span id={$this->getHandle($rec->id)}>{$info['amountVerbal']}</span>";
             $info['amountVerbal'] = ht::styleNumber($info['amountVerbal'], $info['amount']);
         }
-        
+
+        $info['valior'] = $rec->valior ?? dt::today();
+
         return $info;
     }
     

@@ -484,7 +484,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $cData = cls::get($form->rec->contragentClassId)->getContragentData($form->rec->contragentId, $dateFromWhichToGetName);
         $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
 
-        if($invArr['currencyId'] == 'EUR' && acc_Periods::getBaseCurrencyCode($invArr['date']) != acc_Periods::getBaseCurrencyCode()){
+        if($invArr['currencyId'] != 'BGN' && acc_Periods::getBaseCurrencyCode($invArr['date']) != acc_Periods::getBaseCurrencyCode()){
             $displayRate = currency_CurrencyRates::getRate($form->rec->date, $invArr['currencyId'], null);
             $invArr['rate'] = $displayRate;
             $invArr['displayRate'] = $displayRate;
@@ -1848,7 +1848,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $vats["{$v}"] = $v;
         }
 
-        $res = (object) array('vats' => $vats, 'recWithIds' => $cacheIds, 'date' => $docRec->date, 'currencyId' => $docRec->currencyId);
+        $res = (object) array('vats' => $vats, 'recWithIds' => $cacheIds, 'date' => $docRec->date, 'currencyId' => $docRec->currencyId, 'rate' => $docRec->rate);
 
         return $res;
     }

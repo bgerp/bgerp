@@ -355,6 +355,6 @@ abstract class deals_Document extends deals_PaymentDocument
         $Origin = $this->getOrigin($rec);
         $dealCurrencyId = currency_Currencies::getIdByCode($Origin->fetchField('currencyId'));
 
-        return (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId, 'amountDeal' => $rec->amountDeal, 'dealCurrencyId' => $dealCurrencyId, 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
+        return (object)array('amount' => $rec->amountDeal, 'currencyId' => $rec->currencyId, 'amountDeal' => $rec->amount, 'dealCurrencyId' => $dealCurrencyId, 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
     }
 }

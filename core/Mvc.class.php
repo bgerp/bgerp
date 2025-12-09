@@ -1694,4 +1694,24 @@ class core_Mvc extends core_FieldSet
         
         return $html;
     }
+
+
+    /**
+     * Създава копие (backup) на таблицата на модела (ако вече няма създадено такова)
+     *
+     * @param string $copyTableNamePrefix - префикс към името на таблицата за бекъп
+     * @return void
+     */
+    public function copyTable($copyTableNamePrefix = '_backup')
+    {
+        $tableName = $this->dbTableName;
+        $backup    = "{$tableName}{$copyTableNamePrefix}";
+
+        // Прави копие на таблицата ако няма
+        $createQuery = "CREATE TABLE IF NOT EXISTS `$backup` LIKE `$tableName`;";
+        $this->db->query($createQuery);
+
+        $query = "INSERT INTO `$backup` SELECT * FROM `$tableName` WHERE NOT EXISTS (SELECT 1 FROM `$backup` LIMIT 1);";
+        $this->db->query($query);
+    }
 }

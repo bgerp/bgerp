@@ -442,11 +442,10 @@ class pos_Receipts extends core_Master
             $row->contragentLocationId = crm_Locations::getHyperlink($rec->contragentLocationId);
         }
 
-        if($fields['-single']){
-            foreach (array('total', 'paid', 'change', 'returnedTotal') as $fld){
-                if(isset($rec->{$fld})){
-                    $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $currencyCode, true);
-                }
+        $currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+        foreach (array('total', 'paid', 'returnedTotal') as $fld){
+            if(!empty($rec->{$fld}) && $rec->{$fld} > 0) {
+                $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $currencyCode, true);
             }
         }
     }

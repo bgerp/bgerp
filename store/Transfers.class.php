@@ -645,6 +645,7 @@ class store_Transfers extends core_Master
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
      *               ['deliveryOn']     date        - Доставка на
+     *               ['valior']         date        - Вальор
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -667,6 +668,7 @@ class store_Transfers extends core_Master
                 $res['features'] = keylist::toArray($toStoreLocation->features);
             }
         }
+        $res['valior'] = $rec->valior ?? dt::today();
 
         return $res;
     }

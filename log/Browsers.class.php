@@ -251,10 +251,10 @@ class log_Browsers extends core_Master
                 // На случаен принцип обновяваме живота на кукито
                 if (rand(1, 20) == 16) {
                     self::updateBridCookieLifetime($brid);
+
+                    // Добавяме в модела
+                    self::add($brid);
                 }
-                
-                // Добавяме в модела
-                self::add($brid);
                 
                 return $brid;
             }
@@ -496,6 +496,14 @@ class log_Browsers extends core_Master
      */
     public static function add($brid)
     {
+        static $sBridArr = array();
+        if ($sBridArr[$brid]) {
+
+            return ;
+        }
+
+        $sBridArr[$brid] = true;
+
         if (!$rec = self::fetch(array("#brid = '[#1#]'", $brid))) {
             $rec = new stdClass();
             $rec->brid = $brid;

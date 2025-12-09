@@ -407,7 +407,9 @@ class acc_ReportDetails extends core_Manager
                 // Името на сметката излиза над таблицата
                 $content = new ET("<span class='accTitle'>{$accNum}</span>");
                 $fields = $data->listFields;
-                
+                $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->balanceRec->fromDate);
+                $fields['blAmount'] .= ", {$baseCurrencyCode}";
+
                 // Ако няма номенклатура артикул в сметката, не показваме еденичната цена
                 if (!acc_Lists::getPosition($accInfo->rec->systemId, 'cat_ProductAccRegIntf')) {
                     unset($fields['blPrice']);

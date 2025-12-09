@@ -23,6 +23,12 @@ class eurozone_Migrations extends core_BaseClass
 
 
     /**
+     * Класове, които да се бекъпнат
+     */
+    private static $backupClasses = array('eshop_Settings', 'sales_PrimeCostByDocument', 'purchase_PurchasesData', 'price_ProductCosts', 'acc_ProductPricePerPeriods', 'price_Updates', 'hr_Positions');
+
+
+    /**
      * Мигрира ЦП от BGN в EUR
      */
     public static function updatePriceLists()
@@ -138,7 +144,6 @@ class eurozone_Migrations extends core_BaseClass
         $scwod     = str::phpToMysqlName('sellCostWithOriginalDiscount');   // sell_cost_with_original_discount
 
         $tbl = $SaveClass->dbTableName;
-
         $query = "
 UPDATE `{$tbl}`
 SET
@@ -262,10 +267,14 @@ SET
     }
 
 
+    /**
+     * Екшън за тестове
+     */
     function act_Test()
     {
-        requireRole('debug');
+        requireRole('euro');
 
+        sleep(4);
 
         expect($fnc = Request::get('fnc'));
         expect(method_exists($this, $fnc));
@@ -308,23 +317,12 @@ SET
 
 
     /**
-     * Ръчно извикване на всички миграции
-     */
-    public function act_migrateAll()
-    {
-        requireRole('debug');
-
-        self::callback_migrateAll();
-    }
-
-
-    /**
      * Екшън реконтиращ всички документи където участва дадена сметка
      * в даден интервал
      */
     public function act_testMigrations()
     {
-        requireRole('debug');
+        requireRole('euro');
         $tpl = getTplFromFile('eurozone/tpl/testMigrationsLayout.shtml');
 
         foreach ($this->migrations as $data){
@@ -353,6 +351,33 @@ SET
             $tpl->append($blockTpl, 'MIGRATIONS');
         }
 
+        $conf = core_Packs::getConfig('eurozone');
+
+        $data = $conf->_data;
+        if($data['EUROZONE_MIGRATE_SYSTEM'] == 'yes'){
+            $tpl->append("<h2>Системата е мигрирана</h2>", 'RESULT');
+
+            $const = array('EUROZONE_MIGRATE_PRICE_LISTS' => 'Ценови политики',
+                           'EUROZONE_MIGRATE_DELTAS' => 'Делти',
+                           'EUROZONE_MIGRATE_PURCHASES' => 'Доставки',
+                           'EUROZONE_MIGRATE_COSTS' => 'Кеширани продуктови цени',
+                           'EUROZONE_MIGRATE_STORE_PRICES' => 'Складови цени',
+                           'EUROZONE_MIGRATE_HR' => 'Позиции във фирмата',
+                           'EUROZONE_MIGRATE_ACCOUNTS' => 'Банкови сметки',
+                           'EUROZONE_MIGRATE_FINDEALS' => 'Финансови сделки',
+                           'EUROZONE_MIGRATE_ADVANCE_FINDEALS' => 'Служебни аванси');
+
+            $tpl->append("<li style='color:green;'>Сч. периоди са мигрирани</li>", 'RESULT');
+            $tpl->append("<li style='color:green;'>ЕШОП настройки са мигрирани</li>", 'RESULT');
+            foreach ($const as $constName => $constValue){
+                if($data[$constName] == 'yes'){
+                    $tpl->append("<li style='color:green;'>{$constValue} са мигрирани</li>", 'RESULT');
+                } else {
+                    $tpl->append("<li style='color:red;'>{$constValue} НЕ са мигрирани</li>", 'RESULT');
+                }
+            }
+        }
+
         return $tpl;
     }
 
@@ -365,7 +390,7 @@ SET
         $Deals = cls::get($class);
         $eurozoneDate = acc_Setup::getEuroZoneDate();
         $query = $Deals->getQuery();
-        $query->where("#currencyId = 'BGN' AND #state = 'active'");
+        $query->where("#currencyId = 'BGN' AND #state NOT IN ('closed', 'rejected')");
 
         while($rec = $query->fetch()) {
             $rec->currencyId = 'EUR';
@@ -384,37 +409,29 @@ SET
 
             $Deals->save($rec, 'currencyId,currencyRate,oldCurrencyId,baseAmount,amountDeal');
             $Deals->logWrite('Мигриране от лева в евро след еврозоната', $rec->id);
-            acc_Journal::reconto($rec->containerId);
 
-            $itemRec = acc_Items::fetchItem($Deals, $rec->id);
-            $Deals->invoke('AfterJournalItemAffect', array($rec, $itemRec));
+            if($rec->state == 'active'){
+                acc_Journal::reconto($rec->containerId);
+                $itemRec = acc_Items::fetchItem($Deals, $rec->id);
+                $Deals->invoke('AfterJournalItemAffect', array($rec, $itemRec));
+            }
         }
     }
 
-
-    function act_Test2()
-    {
-        requireRole('debug');
-
-        self::convertBgnAccounts2Euro();
-    }
-
-    function act_Test3()
-    {
-        requireRole('debug');
-
-        self::addBgnPayment();
-    }
 
     /**
      * Добавя безналичен метод за плащане - ЛЕВА
      */
     public static function addBgnPayment()
     {
-        core_Users::forceSystemUser();
-        $rec = (object)array('title' => self::BGN_NON_CASH_PAYMENT_NAME, 'change' => 'yes', 'currencyCode' => 'BGN', 'synonym' => 'bgn');
-        cond_Payments::save($rec);
-        core_Users::cancelSystemUser();
+        $rec = cond_Payments::fetch(array("#title = '[#1#]'", self::BGN_NON_CASH_PAYMENT_NAME));
+        if(!is_object($rec)){
+            $rec = (object)array('title' => self::BGN_NON_CASH_PAYMENT_NAME, 'change' => 'yes', 'currencyCode' => 'BGN', 'synonym' => 'bgn');
+
+            core_Users::forceSystemUser();
+            cond_Payments::save($rec);
+            core_Users::cancelSystemUser();
+        }
     }
 
 
@@ -453,19 +470,6 @@ SET
         }
     }
 
-    public function act_updatePeriods()
-    {
-        requireRole('debug');
-        self::updateCreatedPeriods();
-    }
-
-
-    public function act_updateHr()
-    {
-        requireRole('debug');
-        self::updateHr();
-    }
-
 
     /**
      * Обновяване на сумите на позициите в моята фирма
@@ -493,27 +497,248 @@ SET
 
 
     /**
-     * Функция, която се вика по крон по разписание за обновяване на валутата на сч. периоди
+     * Изчистване на константите
      */
-    public static function callback_updatePeriods()
+    function act_ClearConf()
     {
-        self::updateCreatedPeriods();
+        requireRole('debug');
+        $conf = core_Packs::getConfig('eurozone');
+
+        foreach ($conf->_data as $const => $val) {
+            if ($const != 'EUROZONE_SET_MIGRATIONS') {
+                core_Packs::setConfig('eurozone', array($const => 'no'));
+            }
+        }
     }
 
 
     /**
-     * Функция, която се вика по крон по разписание за мигриране на документите за еврозоната
+     * Нагласяне за мигриране на системата към еврозоната
      */
-    public static function callback_migrateAll()
+    function cron_migrateToEuro()
     {
-        self::addBgnPayment();
-        self::updatePriceLists();
-        self::updateDeltas();
-        self::updatePurchases();
-        self::updateEshopSettings();
-        self::updatePriceCosts();
-        self::updatePricesByDate();
-        self::convertBgnAccounts2Euro();
-        self::updateHr();
+        // Ако системата не е подготвена - нищо не се прави
+        $isSet = eurozone_Setup::get('SET_MIGRATIONS');
+        if($isSet != 'yes') {
+
+            return 'Системата още не е нагласена';
+        }
+
+        // Ако системата вече е мигрирана да не се прави нищо
+        $isMigrated = eurozone_Setup::get('MIGRATE_SYSTEM');
+        if($isMigrated == 'yes') {
+
+            return 'Системата е вече мигрирана';
+        }
+
+        // Ако сме преди еврозоната също
+        if(dt::today() < acc_Setup::getEurozoneDate()) {
+
+            return 'Не е настъпила датата на еврозоната';
+        }
+
+        // Заключване на системата
+        core_SystemLock::block('Migration For Eurozone...', 180);
+        core_App::setTimeLimit(800);
+
+        // Създаване на копие на чувствителните таблици
+        $html = '';
+        foreach (self::$backupClasses as $class){
+            $Class = cls::get($class);
+            $Class->copyTable();
+            $html .= "<li>Създаване на копие на: {$Class->className}</li>";
+        }
+        $errors = array();
+
+        // Мигриране на сч. периоди
+        try {
+            self::updateCreatedPeriods();
+            $html .= "<li>Мигриране на СЧ. Периоди успешно</li>";
+        } catch(Exception $e){
+            wp($e);
+            $errors[] = "при периодите:" . $e->getMessage();
+            $html .= "<li>Мигриране на СЧ. Периоди ГРЕШКА: {$e->getMessage()}</li>";
+        }
+
+        // Добавяне на безналично плащане БГН
+        try {
+            self::addBgnPayment();
+            $html .= "<li>Мигриране на безналично плащане лева Успешно</li>";
+        } catch(Exception $e){
+            wp($e);
+            $errors[] = "при безн. плащане:" . $e->getMessage();
+            $html .= "<li>Мигриране на безналично плащане лева ГРЕШКА {$e->getMessage()}</li>";
+        }
+
+        // Миграция на финансовите сделки
+        if(eurozone_Setup::get('MIGRATE_FINDEALS') != 'yes'){
+            try {
+                self::updateFinDeals('findeals_Deals');
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_FINDEALS' => 'yes'));
+                $html .= "<li>Мигриране на финансови сделки Успешно</li>";
+            } catch(Exception $e){
+                wp($e);
+                $errors[] = "при ФС:" . $e->getMessage();
+                $html .= "<li>Мигриране на ФС ГРЕШКА {$e->getMessage()}</li>";
+            }
+        }
+
+        // Миграция на служебните аванси
+        if(eurozone_Setup::get('MIGRATE_ADVANCE_FINDEALS') != 'yes'){
+            try {
+                self::updateFinDeals('findeals_AdvanceDeals');
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_ADVANCE_FINDEALS' => 'yes'));
+                $html .= "<li>Мигриране на СА Успешно</li>";
+            } catch(Exception $e){
+                wp($e);
+                $errors[] = "при СА:" . $e->getMessage();
+                $html .= "<li>Мигриране на СА ГРЕШКА {$e->getMessage()}</li>";
+            }
+        }
+
+        // Мигриране на ЦП, ако не са мигрирани вече
+        if(eurozone_Setup::get('MIGRATE_PRICE_LISTS') != 'yes'){
+            try {
+                self::updatePriceLists();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_PRICE_LISTS' => 'yes'));
+                $html .= "<li>Мигриране на ЦП Успешно</li>";
+            } catch(Exception $e){
+                wp($e);
+                $errors[] = "при ЦП:" . $e->getMessage();
+                $html .= "<li>Мигриране на ЦП ГРЕШКА {$e->getMessage()}</li>";
+            }
+        } else {
+            $html .= "<li>ЦП са вече мигрирани</li>";
+        }
+
+        // Мигриране на Делтите, ако не са мигрирани вече
+        if(eurozone_Setup::get('MIGRATE_DELTAS') != 'yes'){
+            try {
+                self::updateDeltas();
+                $html .= "<li>Мигриране на Делти Успешно</li>";
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_DELTAS' => 'yes'));
+            } catch(Exception $e){
+                wp($e);
+                $html .= "<li>Мигриране на Делти ГРЕШКА {$e->getMessage()}</li>";
+                $errors[] = "при делти:" . $e->getMessage();
+            }
+        } else {
+            $html .= "<li>Делтите са вече мигрирани</li>";
+        }
+
+        // Мигриране на Покупките, ако не са мигрирани вече
+        if(eurozone_Setup::get('MIGRATE_PURCHASES') != 'yes'){
+            try {
+                self::updatePurchases();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_PURCHASES' => 'yes'));
+                $html .= "<li>Мигриране на покупки Успешно</li>";
+            } catch(Exception $e){
+                wp($e);
+                $errors[] = "при покупки:" . $e->getMessage();
+                $html .= "<li>Мигриране на покупки ГРЕШКА {$e->getMessage()}</li>";
+            }
+        } else {
+            $html .= "<li>Покупки са вече мигрирани</li>";
+        }
+
+        // Мигриране на онлайн магазина, ако не е
+        try {
+            self::updateEshopSettings();
+            $html .= "<li>Мигриране на ешоп Успешно";
+        } catch(Exception $e){
+            wp($e);
+            $errors[] = "при ешопа:" . $e->getMessage();
+            $html .= "<li>Мигриране на ешоп ГРЕШКА {$e->getMessage()}</li>";
+        }
+
+        // Мигриране на кеш цените, ако не е
+        if(eurozone_Setup::get('MIGRATE_COSTS') != 'yes'){
+            try {
+                self::updatePriceCosts();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_COSTS' => 'yes'));
+                $html .= "<li>Мигриране на кеш. цени Успешно</li>";
+            } catch(Exception $e){
+                wp($e);
+                $errors[] = "при кеш. цени:" . $e->getMessage();
+                $html .= "<li>Мигриране на кеш. цени ГРЕШКА {$e->getMessage()}</li>";
+            }
+        } else {
+            $html .= "<li>Кеш цените са вече мигрирани</li>";
+        }
+
+        // Мигриране на складовите цени, ако не е
+        if(eurozone_Setup::get('MIGRATE_STORE_PRICES') != 'yes'){
+            try {
+                self::updatePricesByDate();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_STORE_PRICES' => 'yes'));
+                $html .= "<li>Мигриране на складови цени Успешно</li>";
+            } catch(Exception $e){
+                wp($e);
+                $errors[] = "при складови цени:" . $e->getMessage();
+                $html .= "<li>Мигриране на складови цени ГРЕШКА {$e->getMessage()}</li>";
+            }
+        } else {
+            $html .= "<li>Складови цени са вече мигрирани</li>";
+        }
+
+        // Мигриране на HR, ако не е
+        if(eurozone_Setup::get('MIGRATE_HR') != 'yes'){
+            try {
+                self::updateHr();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_HR' => 'yes'));
+                $html .= "<li>Мигриране на HR Успешно</li>";
+            } catch(Exception $e){
+                wp($e);
+                $errors[] = "при HR:" . $e->getMessage();
+                $html .= "<li>Мигриране на HR ГРЕШКА {$e->getMessage()}</li>";
+            }
+        } else {
+            $html .= "<li>HR са вече мигрирани</li>";
+        }
+
+        // Мигриране на сметките, ако не е
+        if(eurozone_Setup::get('MIGRATE_ACCOUNTS') != 'yes'){
+            try {
+                self::convertBgnAccounts2Euro();
+                core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_ACCOUNTS' => 'yes'));
+                $html .= "<li>Мигриране на б. сметки Успешно</li>";
+            } catch(Exception $e){
+                wp($e);
+                $errors[] = "при б. сметки:" . $e->getMessage();
+                $html .= "<li>Мигриране на б. сметки {$e->getMessage()}</li>";
+            }
+        } else {
+            $html .= "<li>Б. сметки са вече мигрирани</li>";
+        }
+
+        if(countR($errors)){
+            wp("ЕВРО миграция", $errors);
+            foreach ($errors as $error) {
+                log_System::add('eurozone_Migrations', "ЕВРО мигр.: {$error}", null, 'err');
+            }
+
+            $admins = core_Users::getByRole('admin');
+            foreach ($admins as $adminId) {
+                bgerp_Notifications::add('Имаше проблем при преминаване към Евро', array('log_System', 'list', 'type' => 'err', 'search' => 'ЕВРО мигр'), $adminId, 'critical');
+            }
+
+            return $html;
+        }
+
+        // Ако не е имало грешки изтрива се крон процеса
+        core_Cron::delete("#systemId = 'MigrateToEuro'");
+
+        // Админите се нотифицират
+        $admins = core_Users::getByRole('admin');
+        foreach ($admins as $adminId) {
+            bgerp_Notifications::add('Системата е мигрирана към евро успешно', array(), $adminId, 'critical');
+        }
+
+        // Записва се, че системата е вече мигрирана
+        core_Packs::setConfig('eurozone', array('EUROZONE_MIGRATE_SYSTEM' => 'yes'));
+
+        $html .= "<li>Системата е мигрирана успешно</li>";
+
+        return $html;
     }
 }

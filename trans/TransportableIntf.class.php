@@ -51,6 +51,7 @@ class trans_TransportableIntf
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
      *               ['deliveryOn']     date        - Доставка на
+     *               ['valior']         date        - Вальор
      */
     public function getTransportLineInfo($rec, $lineId)
     {
