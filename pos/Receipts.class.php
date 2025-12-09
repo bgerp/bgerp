@@ -443,7 +443,7 @@ class pos_Receipts extends core_Master
         }
 
         $currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-        foreach (array('total', 'paid', 'change', 'returnedTotal') as $fld){
+        foreach (array('total', 'paid', 'returnedTotal') as $fld){
             if(!empty($rec->{$fld}) && $rec->{$fld} > 0) {
                 $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $currencyCode, true);
             }
