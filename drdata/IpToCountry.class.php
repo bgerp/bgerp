@@ -34,14 +34,13 @@ class drdata_IpToCountry extends core_Manager
      */
     public function description()
     {
-        $this->FLD('minIp', 'int', 'unsigned,mandatory,caption=IP->минимално');
-        $this->FLD('maxIp', 'int', 'unsigned,mandatory,caption=Ip->максимално');
+        $this->FLD('minIp', 'int', 'unsigned,notNull,mandatory,caption=IP->минимално');
+        $this->FLD('maxIp', 'int', 'unsigned,notNull,mandatory,caption=Ip->максимално');
         $this->FLD('country2', 'varchar(2)', 'mandatory,caption=Код на държава');
         
         $this->load('drdata_Countries,drdata_Wrapper');
-        $this->setDbIndex('minIp');
-        $this->setDbIndex('maxIp');
-        $this->setDbIndex('minIp, maxIp');
+
+        $this->setDbIndex('minIp,maxIp,id,country2');
         
         $this->dbEngine = 'MYISAM';
     }
@@ -104,12 +103,33 @@ class drdata_IpToCountry extends core_Manager
             return $ipToCountry[$ip];
         }
 
-//        $cRec = drdata_IpToCountry::fetch("#minIp <= INET_ATON('{$ip}') AND #maxIp >= INET_ATON('{$ip}')");
-//        $ipToCountry[$ip] = $cRec->country2;
-        $ipToCountry[$ip] = drdata_IpToCountry::fetchField(array("#minIp <= '[#1#]' AND #maxIp >= '[#1#]'", sprintf("%u", ip2long($ip))), 'country2');
+        $query = self::getQuery();
+        $query->show('country2, id');
+        $ipInt = sprintf("%u", ip2long($ip));
+        $query->where("#minIp <= {$ipInt} AND #maxIp >= {$ipInt}");
+        $query->orderBy('minIp=DESC');
+        $query->limit(1);
+        $rec = $query->fetch();
+   
+        if($rec && isset($rec->country2)) {
+            $ipToCountry[$ip] = $rec->country2;
+        } else {
+            $ipToCountry[$ip] = '??';
+        }
 
         core_Cache::set('drdata_IpToCountry', 'ipToCountry', $ipToCountry, 1000000);
 
         return $ipToCountry[$ip];
+    }
+
+
+    public function act_Test()
+    {
+        RequireRole('debug');
+        $ip = Request::get('ip', 'type_Ip');
+
+        $country = self::get($ip);
+
+        return $country;
     }
 }

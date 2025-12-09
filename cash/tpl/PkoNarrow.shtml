@@ -132,7 +132,13 @@
 										</td>
 									</tr>
 										<!--ET_END lineVehicleId-->
-		                                
+									<!--ET_BEGIN amountGiven-->
+									<tr>
+										<td colspan=2>
+											<div><span class='quiet' style="padding: 0 3px;">|В брой|*:</span>  [#amountGiven#] »  <span class='quiet' style="padding: 0 3px 0 10px;">|Ресто|*:</span> [#change#] </div>
+										</td>
+									</tr>
+									<!--ET_END amountGiven-->
 		                                <!--ET_BEGIN amountDeal-->
 									<tr>
 		                                <td style='vertical-align:middle !important'>
@@ -146,7 +152,6 @@
 		                                </td>
 									</tr>
 		                                <!--ET_END amountDeal-->
-		                            </tr>
 		                        </table>
 		                </tr>
 		                <!--ET_END pkoRow-->

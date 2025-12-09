@@ -1028,6 +1028,8 @@ class cat_Products extends embed_Manager
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->query->orderBy('id', 'ASC');
+
+        $data->listFields['price'] .= "|* <small>(" . acc_Periods::getBaseCurrencyCode(). ")</small>";
     }
 
 

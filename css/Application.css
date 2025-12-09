@@ -2435,6 +2435,12 @@ pre.document {
   margin-bottom: -2px;
   margin-top: 3px; }
 
+.shortTime {
+  white-space: wrap !important; }
+
+.planning_Tasks .shortTime {
+  width: 70px !important; }
+
 .boldText {
   font-weight: bold; }
 
@@ -5998,6 +6004,9 @@ div.location.public {
 .favouritesBtn.linkWithIcon:hover {
   cursor: pointer; }
 
+.narrow .toolbar .toggleListFilterBtn {
+  padding-left: 25px !important; }
+
 #all .hasLogoutBlock .cms-row,
 .hasLogoutBlock .centerContent {
   padding-top: 30px; }
@@ -8168,20 +8177,8 @@ td.td-clamp {
     /*
    * сменя се от JS с реалния фон
    */
-  --lines-collapsed: 3;
-    /*
-   * свито: 3 реда
-   */
-    /*
-   * разпънато: до 10 реда (после скрол)
-   */
-    /*
-   * височина на ред
-   */
   position: relative;
-  vertical-align: top;
-  --lines: 3; }
-
+  vertical-align: top; }
 
 .narrow td.td-clamp[data-overflow="true"] .clamp-ellipsis {
   bottom: 7px; }
@@ -8189,11 +8186,10 @@ td.td-clamp {
 td.td-clamp .clamp-body {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: var(--lines-collapsed);
-  line-height: 1.4;
+  line-height: 1.4em;
   overflow: hidden;
   position: relative;
-  max-height: 5.2em; }
+  max-height: var(--max-height); }
 
 /*
  * Маска и fade САМО когато е свито и има скрит текст
@@ -8226,7 +8222,7 @@ td.td-clamp[data-expanded="true"] .clamp-body {
    * безопасно зануляване
    */
   -webkit-box-orient: initial;
-  max-height: calc(1.4em * var(--lines-expanded-max));
+  max-height: var(--max-scroll);
   overflow-y: auto;
     /*
    * само вертикален скрол

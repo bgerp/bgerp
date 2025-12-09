@@ -45,8 +45,9 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $hint = $mvc->hasPlugin('acc_plg_Contable') ? 'Вальорът ще бъде записан при контиране|*!' : 'Вальорът ще бъде записан при активиране|*!';
         $valiorToBe = $mvc->getFieldType($mvc->valiorFld)->toVerbal(dt::today());
-        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? $row->{$mvc->valiorFld} : ((Mode::is('printing') || Mode::is('text', 'xhtml')) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
+        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? $row->{$mvc->valiorFld} : ((Mode::is('printing') || Mode::is('text', 'xhtml')) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", $hint));
     }
 
 

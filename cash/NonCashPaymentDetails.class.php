@@ -103,14 +103,12 @@ class cash_NonCashPaymentDetails extends core_Manager
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
 
-
-
             if (!$canSeePrices) {
                 $data->rows[$rec->id]->amount = doc_plg_HidePrices::getBuriedElement();
             }
 
             $amount = cond_Payments::toBaseCurrency($rec->paymentId, $rec->amount, $data->masterData->rec->valior, $toCurrencyCode);
-            $restAmount -= $amount;
+            $restAmount -= round($amount, 2);
         }
 
         if ($restAmount > 0 && countR($data->recs)) {

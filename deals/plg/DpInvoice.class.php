@@ -65,7 +65,7 @@ class deals_plg_DpInvoice extends core_Plugin
         $form->dealInfo = $dealInfo;
         
         $unit = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? 'с ДДС' : 'без ДДС';
-        
+
         $form->FNC('amountAccrued', 'double', "caption=Аванс->Начисляване,input,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
         $form->FNC('amountDeducted', 'double', "caption=Аванс->Приспадане,input,before=dpAmount,unit=|*{$rec->currencyId} |{$unit}|*");
         if (in_array($rec->vatRate, array('yes', 'separate'))) {
@@ -163,10 +163,10 @@ class deals_plg_DpInvoice extends core_Plugin
     private static function getDefaultDpData(core_Form &$form, $mvc)
     {
         $rec = $form->rec;
-        
+
         // Договореното до момента
-        $agreedDp = $form->dealInfo->get('agreedDownpayment');
-        $actualDp = $form->dealInfo->get('downpayment');
+        $agreedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('agreedDownpayment'), $form->dealInfo->get('agreedValior'), $rec->valior);
+        $actualDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpayment'), $form->dealInfo->get('agreedValior'), $rec->valior);
 
         if(!$agreedDp){
             $form->setField('amountAccrued', 'autohide');
@@ -175,15 +175,14 @@ class deals_plg_DpInvoice extends core_Plugin
             $form->setField('dpVatGroupId', 'autohide');
         }
 
-
-        $downpayment = (empty($actualDp)) ? null : $actualDp;
+        $downpayment = (empty($actualDp)) ? null : round($actualDp, 2);
         $flag = true;
 
         $dpByVats = $form->dealInfo->get('downpaymentAccruedByVats');
         if(countR($dpByVats)){
             $dpVatGroupId =  isset($form->rec->dpVatGroupId) ? $form->rec->dpVatGroupId : key($dpByVats);
+            $invoicedDp = deals_Helper::getSmartBaseCurrency($dpByVats[$dpVatGroupId], $form->dealInfo->get('agreedValior'), $rec->valior);
 
-            $invoicedDp = $dpByVats[$dpVatGroupId];
             $dpDeductedByVats = $form->dealInfo->get('downpaymentDeductedByVats');
             $deductedDp = $dpDeductedByVats[$dpVatGroupId];
 
@@ -193,10 +192,9 @@ class deals_plg_DpInvoice extends core_Plugin
                     $form->setDefault('dpVatGroupId', key($dpByVats));
                 }
             }
-
         } else {
-            $invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
-            $deductedDp = $form->dealInfo->get('downpaymentDeducted');
+            $invoicedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpaymentInvoiced'), $form->dealInfo->get('agreedValior'), $rec->valior);
+            $deductedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpaymentDeducted'), $form->dealInfo->get('agreedValior'), $rec->valior);
         }
 
         // Ако е проформа
@@ -207,7 +205,6 @@ class deals_plg_DpInvoice extends core_Plugin
             // Ако има проформа за аванс и няма таква за приспадане, тази приспада
             if ((!empty($accruedProformaRec) && empty($hasDeductedProforma)) || !empty($actualDp)) {
 
-                //$dpAmount = (($accruedProformaRec->dealValue - $accruedProformaRec->discountAmount)+ $accruedProformaRec->vatAmount);
                 $dpAmount = round($actualDp, 6);
                 $dpOperation = 'deducted';
                 $flag = false;
@@ -230,7 +227,6 @@ class deals_plg_DpInvoice extends core_Plugin
                     $form->_expectedDownpaymentReduction = true;
                 }
             } else {
-                
                 // Ако няма фактуриран аванс
                 if (empty($invoicedDp)) {
                     if ($flag === true) {
@@ -239,19 +235,16 @@ class deals_plg_DpInvoice extends core_Plugin
                         $dpOperation = 'accrued';
                     }
                 } else {
-
                     // Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
                     $dpAmount = $invoicedDp - $deductedDp;
                     $dpOperation = 'deducted';
                 }
             }
         }
-        
+
         $rate = ($form->rec->rate) ? $form->rec->rate : $form->dealInfo->get('rate');
-        
         $dpAmount /= $rate;
-        $dpAmount = round($dpAmount, 6);
-        $expectAdvanceForeignerDp = null;
+        $dpAmount = round($dpAmount, 2);
 
         $isForeignCountryId = $form->rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'");
         $expectAdvanceForeignerDp = sales_Setup::get('EXPECT_DOWNPAYMENT_FROM_FOREIGN_CLIENTS');
@@ -290,9 +283,9 @@ class deals_plg_DpInvoice extends core_Plugin
                 break;
             case 'none':
             if (isset($agreedDp)) {
-                $dpField = $form->getField('amountAccrued');
-
-                $sAmount = core_Math::roundNumber($agreedDp / $rate);
+                $sAmount = $agreedDp;
+                $sAmount = $agreedDp / $rate;
+                $sAmount = round($sAmount, 2);
                 $suggestions = array('' => '', "{$sAmount}" => $sAmount);
                 $form->setSuggestions('amountAccrued', $suggestions);
             }
@@ -331,11 +324,11 @@ class deals_plg_DpInvoice extends core_Plugin
             
             $rec = &$form->rec;
 
-            $agreedDp = $form->dealInfo->get('agreedDownpayment');
-            $actualDp = $form->dealInfo->get('downpayment');
-            $invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
-            $deductedDp = $form->dealInfo->get('downpaymentDeducted');
-            
+            $agreedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('agreedDownpayment'), $form->dealInfo->get('agreedValior'), $rec->date);
+            $actualDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpayment'), $form->dealInfo->get('agreedValior'), $rec->date);
+            $invoicedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpaymentInvoiced'), $form->dealInfo->get('agreedValior'), $rec->date);
+            $deductedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('downpaymentDeducted'), $form->dealInfo->get('agreedValior'), $rec->date);
+
             if (isset($rec->amountAccrued, $rec->amountDeducted)) {
                 $form->setError('amountAccrued,amountDeducted', 'Не може едновременно да се начислява и да се приспада аванс');
                 
@@ -361,11 +354,14 @@ class deals_plg_DpInvoice extends core_Plugin
                 }
                 
                 $downpayment = core_Math::roundNumber($downpayment / $rec->rate);
+
                 if ($rec->dpAmount > ($downpayment * 1.05 + 1) && $changeAct !== true) {
                     $dVerbal = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($downpayment);
                     $warning = ($downpayment === (double) 0) ? 'Зададена е сума, без да се очаква аванс по сделката' : "|Въведения аванс е по-голям от очаквания|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*";
-                    
-                    $form->setWarning('amountAccrued', $warning);
+
+                    if(!$rec->_recalcBaseCurrency){
+                        $form->setWarning('amountAccrued', $warning);
+                    }
                 }
             }
             
@@ -378,9 +374,10 @@ class deals_plg_DpInvoice extends core_Plugin
                             $form->setWarning('amountDeducted', 'Избрано е приспадане на аванс, без да има начислен такъв');
                         }
                     } else {
-                        if (abs($rec->dpAmount) > core_Math::roundNumber($invoicedDp - $deductedDp)) {
-                            $downpayment = core_Math::roundNumber(($invoicedDp - $deductedDp) / $rec->rate);
-                            $dVerbal = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($downpayment);
+
+                        if (round(abs($rec->dpAmount), 2) > round(($invoicedDp - $deductedDp) / $form->dealInfo->get('rate'), 2)) {
+                            $downpayment = round(($invoicedDp - $deductedDp) / $form->dealInfo->get('rate'), 2);
+                            $dVerbal = core_Type::getByName('double(smartRound)')->toVerbal($downpayment);
                             $form->setWarning('amountDeducted', "|Въведеният за приспадане аванс е по-голям от начисления|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*");
                         }
                     }
@@ -421,9 +418,16 @@ class deals_plg_DpInvoice extends core_Plugin
                     $vat = acc_VatGroups::fetchField($rec->dpVatGroupId, 'vat');
                 }
             }
-            
+
+
+
             if (!is_null($rec->dpAmount)) {
                 $rec->dpAmount = deals_Helper::getPurePrice($rec->dpAmount, $vat, $rec->rate, $rec->vatRate);
+
+                if(isset($rec->_recalcBaseCurrency) && isset($rec->_oldValior)){
+                    $rec->dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->_oldValior, $rec->date);
+                }
+
                 if ($rec->vatRate == 'separate') {
                     $rec->dpAmount /= 1 + $vat;
                 }
@@ -672,7 +676,6 @@ class deals_plg_DpInvoice extends core_Plugin
     public static function on_AfterCalculateAmount($mvc, &$res, &$recs, &$masterRec)
     {
         if (!isset($masterRec->dpAmount)) return;
-
 
         $dpAmount = $masterRec->dpAmount;
         $dpVatGroupId = $masterRec->dpVatGroupId;

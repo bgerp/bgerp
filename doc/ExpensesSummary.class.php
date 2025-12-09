@@ -120,7 +120,7 @@ class doc_ExpensesSummary extends core_Manager
         $itemRec = acc_Items::fetchItem($data->masterMvc, $masterRec->id);
         $data->rows = array();
         $data->recs = self::updateSummary($rec->containerId, $itemRec);
-     
+
         if (is_array($data->recs)) {
             $count = 1;
             foreach ($data->recs as $index => $r) {
@@ -129,6 +129,7 @@ class doc_ExpensesSummary extends core_Manager
                     $count++;
                 }
 
+                $r->amount = deals_Helper::getSmartBaseCurrency($r->amount, $r->valior, null, true);
                 $data->rows[$index] = $this->getVerbalRow($r);
             }
         }

@@ -97,11 +97,11 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //$fieldset->FLD('group', 'key2(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=employees,removeAndRefreshForm=productId,silent,single=none');
 
-        $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Филтри->Артикули,placeholder=Всички,silent,after=employees,single=none,class=w100');
+        $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Настройки и филтри->Тип на отчета,after=employees,mandatory,removeAndRefreshForm,single=none');
 
-        $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=productId,mandatory,removeAndRefreshForm,single=none');
+        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Настройки и филтри->Разбивка по,removeAndRefreshForm,after=typeOfReport,single=none');
 
-        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,removeAndRefreshForm,after=typeOfReport,single=none');
+        $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Настройки и филтри->Артикули,placeholder=Всички,silent,after=resultsOn,single=none,class=w100');
 
         $fieldset->FNC('indTimeSumArr', 'blob', 'caption=Времена,input=none,single=none');
     }
@@ -175,8 +175,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $query->EXT('originId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'originId'));
         $query->where("#state != 'rejected' ");
 
+
         // Синхронизира таймлимита с броя записи //
-        $maxTimeLimit = $query->count() * 20;
+        $query1 = $pDetails->getQuery();
+        $maxTimeLimit = $query1->count() * 20;
         $maxTimeLimit = max(array($maxTimeLimit, 300));
         if ($maxTimeLimit > 300) {
             core_App::setTimeLimit($maxTimeLimit);
@@ -260,6 +262,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $taskArr = $taskQuery->fetchAll();
         }
 
+        //Масив с имена на служителите за използване в цикъла
+        $emplQuery =  crm_Persons::getQuery();
+        $allEmplArr = array();
+        while ($eplRec  = $emplQuery->fetch()) {
+            $allEmplArr[$eplRec->id] = $eplRec->name;
+        }
 
         foreach ($taskDetails as $tRec) {
             $id = self::breakdownBy($tRec, $rec);
@@ -284,7 +292,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $quantityInPack = 1;
                 if (isset($iRec->indPackagingId)) {
                     if ($packRec = cat_products_Packagings::getPack($tRec->productId, $iRec->indPackagingId)) {
-
                         $quantityInPack = $packRec->quantity;
                     }
 
@@ -306,7 +313,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $labelQuantity = 1 / $divisor;
 
                     $employees = $val;
-                    $employeesName = crm_Persons::getTitleById($val);
+                    $employeesName = $allEmplArr[$val];
                 }
 
                 if ($divisor) {
@@ -474,7 +481,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                             'type' => $clone->type,
                             'indTime' => $clone->indTime,
                             'indPackagingId' => $clone->indPackagingId,
-                            'indTimeSum' => $indTimeSum/60,
+                            'indTimeSum' => $indTimeSum,
                             'employees' => '|' . $v . '|',
                             'employeesName' => $employeesName,
                             'assetResources' => $clone->assetResources,
@@ -497,7 +504,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         $obj->scrap += $clone->scrap / $divisor;
                         $obj->labelQuantity += $labelQuantity / $divisor;
                         $obj->weight += $clone->weight / $divisor;
-                        $obj->indTimeSum += $indTimeSum/60;
+                        $obj->indTimeSum += $indTimeSum;
                     }
                 }
 
@@ -515,9 +522,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 arr::sortObjects($recs, 'employeesName', 'asc', 'stri');
             }
 
-            $this->summaryListFields = 'indTimeSum';
-
-
         }
 
         $rec->indTimeSumArr = $indTimeSumArr;
@@ -528,13 +532,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
         if ($rec->typeOfReport == 'full' && ($rec->resultsOn == 'arts' || $rec->resultsOn == 'machines')) {
             array_unshift($recs, $typesQuantities);
         }
-
-//        foreach ($recs as $key => $val) {
-//
-//            if(!$val->total && $val->indTimeSum){
-//               // $val->indTimeSum = $val->indTimeSum / 60;
-//            }
-//        }
 
         return $recs;
     }
@@ -570,7 +567,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $fld->FLD('scrap', 'double(decimals=2)', 'caption=Брак');
                 $fld->FLD('weight', 'double(decimals=2)', 'caption=Тегло');
 
-                $fld->FLD('indTimeSum', 'double(decimals=2)', 'caption=Минути');
+                $fld->FLD('min', 'double(decimals=2)', 'caption=Минути');
                 if ($rec->resultsOn != 'arts') {
                     if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                         $fld->FLD('employees', 'varchar', 'caption=Служител');
@@ -611,7 +608,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $fld->FLD('scrap', 'double(decimals=2)', 'caption=Брак');
                 $fld->FLD('weight', 'double(decimals=2)', 'caption=Тегло');
 
-                $fld->FLD('indTimeSum', 'double(decimals=2)', 'caption=Минути');
+                $fld->FLD('min', 'double(decimals=2)', 'caption=Минути');
             }
 
             if ($rec->typeOfReport == 'short') {
@@ -722,9 +719,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $row->assetResources = '';
         }
 
-        $inMin = $dRec->indTimeSum;
-        $row->indTimeSum = $Double->toVerbal($inMin);
-        $row->indTimeSum = ht::styleNumber($row->indTimeSum, $inMin);
+        $inMin = $dRec->indTimeSum / 60;
+        $row->min = $Double->toVerbal($inMin);
+        $row->min = ht::styleNumber($row->min, $inMin);
 
         return $row;
     }

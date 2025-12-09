@@ -336,18 +336,30 @@ class acc_Balances extends core_Master
      */
     function act_ForceCalc()
     {
-        // Ако изчисляването е заключено не го изпълняваме
-        $lockKey = 'RecalcBalances';
-        if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
-            $this->logNotice('Изчисляването на баланса е заключено от друг процес');
-
-            followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
-        }
-
         $this->requireRightFor('forcecalc');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('forcecalc', $rec);
+
+        // Дали ще се изчаква преизчисляването на балансите преди да се форсира друго
+        $checkForLock = true;
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if ($alternateWindow) {
+            $windowStart = dt::addSecs(-1 * $alternateWindow, null, false);
+            if($rec->toDate < $windowStart) {
+                $checkForLock = false;
+            }
+        }
+
+        if($checkForLock){
+            // Ако изчисляването е заключено не го изпълняваме
+            $lockKey = 'RecalcBalances';
+            if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+                $this->logNotice('Изчисляването на баланса е заключено от друг процес');
+
+                followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
+            }
+        }
 
         self::forceCalc($rec, true);
         self::logWrite('Ръчно преизчисляване на баланса', $rec->id);
@@ -437,14 +449,17 @@ class acc_Balances extends core_Master
 
         // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
         $lastRec = self::getBalanceBefore($rec->toDate);
+        $periodCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->toDate);
 
         if ($lastRec) {
 
-            // Ако има зададен период не е междинен баланса, иначе е
-            $isMiddleBalance = (!empty($lastRec->periodId)) ? false : true;
+            // Ако има зададен период не е междинен баланса, иначе е $convertToDate
+            $isMiddleBalance = !!empty($lastRec->periodId);
+            $lastCurrencyCode =  acc_Periods::getBaseCurrencyCode($lastRec->toDate);
+            $convertToDate = $lastCurrencyCode != $periodCurrencyCode ? $rec->toDate : null;
 
             // Зареждаме баланса
-            $bD->loadBalance($lastRec->id, $isMiddleBalance);
+            $bD->loadBalance($lastRec->id, $isMiddleBalance, null, null, null, null, null, $convertToDate);
             $firstDay = dt::addDays(1, $lastRec->toDate);
             $firstDay = dt::verbal2mysql($firstDay, false);
         } else {
@@ -452,7 +467,7 @@ class acc_Balances extends core_Master
         }
 
         // Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
-        $isMiddleBalance = ($rec->periodId) ? false : true;
+        $isMiddleBalance = !$rec->periodId;
         $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
 
         // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
@@ -711,11 +726,12 @@ class acc_Balances extends core_Master
      * @param string      $accs    - Масив от сметки на които ще се изчислява крайното салдо
      * @param string|NULL $type    - кредното, дебитното или крайното салдо
      * @param string      $accFrom - сметки с които може да кореспондира
+     * @param string|null $toBaseCurrencyDate - към основната валута за коя дата
      * @params array $items - масив с пера, които трябва да са на посочените позиции
      *
      * @return stdClass $res - К-та групирани по размерната номенклатура
      */
-    public static function getBlQuantities($jRecs, $accs, $type = null, $accFrom = null, $items = array())
+    public static function getBlQuantities($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $toBaseCurrencyDate = null)
     {
         $res = array();
         
@@ -746,6 +762,7 @@ class acc_Balances extends core_Master
         }
         
         // За всеки запис
+        $toBaseCurrencyDate = $toBaseCurrencyDate ?? dt::today();
         foreach ($jRecs as $rec) {
             
             // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
@@ -810,7 +827,7 @@ class acc_Balances extends core_Master
                     }
                     
                     $res[$index]->quantity += $rec->debitQuantity;
-                    $res[$index]->amount += $rec->amount;
+                    $res[$index]->amount += deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
                 }
             }
             
@@ -831,7 +848,7 @@ class acc_Balances extends core_Master
                     }
                     
                     $res[$index]->quantity += $sign * $rec->creditQuantity;
-                    $res[$index]->amount += $sign * $rec->amount;
+                    $res[$index]->amount += $sign * deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
                 }
             }
         }
@@ -846,15 +863,17 @@ class acc_Balances extends core_Master
      *
      * @param array       $jRecs   - масив с данни от журнала
      * @param string      $accs    - Масив от сметки на които ще се изчислява крайното салдо
-     * @param string|NULL $type    - кредното, дебитното или крайното салдо
+     * @param string|null $type    - кредното, дебитното или крайното салдо
      * @param string      $accFrom - сметки с които може да кореспондира
      * @params array $items - масив с пера, които трябва да са на посочените позиции
      * @params array $ignoreClassIds - записите от кои класове да се игнорират
+     * @param string|null $toBaseCurrencyDate - към основната валута за коя дата
+     * @param bool $useCurrencyField  - да се сумира по валута, а не по сума
      * @return stdClass $res - обект със следната структура:
      *                  ->amount - крайното салдо на сметката, ако няма записи е 0
      *                  ->recs   - тази част от подадените записи, участвали в образуването на салдото
      */
-    public static function getBlAmounts($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $ignoreClassIds = array())
+    public static function getBlAmounts($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $ignoreClassIds = array(), $toBaseCurrencyDate = null, $useCurrencyField = false)
     {
         $res = new stdClass();
         $res->amount = 0;
@@ -868,7 +887,8 @@ class acc_Balances extends core_Master
         if ($type) {
             expect(in_array($type, array('debit', 'credit')));
         }
-        
+
+        $toBaseCurrencyDate = $toBaseCurrencyDate ?? dt::today();
         $newAccArr = $corespondingAccArr = array();
         $accArr = arr::make($accs);
         $fromArr = arr::make($accFrom);
@@ -946,18 +966,26 @@ class acc_Balances extends core_Master
             if (in_array($rec->debitAccId, $newAccArr)) {
                 if ($skipDebit !== true) {
                     if ($type === null || $type == 'debit') {
-                        $res->amount += $rec->amount;
+                        if($useCurrencyField){
+                            $res->amount += $rec->debitQuantity;
+                        } else {
+                            $res->amount += deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
+                        }
                         $add = true;
                     }
                 }
             }
-            
+
             if (in_array($rec->creditAccId, $newAccArr)) {
                 if ($skipCredit !== true) {
                     $sign = ($type === null) ? -1 : 1;
                     
                     if ($type === null || $type == 'credit') {
-                        $res->amount += $sign * $rec->amount;
+                        if($useCurrencyField){
+                            $res->amount += $sign * $rec->creditQuantity;
+                        } else {
+                            $res->amount += $sign * deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
+                        }
                     }
                     
                     $add = true;
@@ -968,10 +996,10 @@ class acc_Balances extends core_Master
             if ($add) {
                 $res->recs[$rec->id] = $rec;
             }
-            
-            $res->amount = round($res->amount, 6);
+
+            $res->amount = round($res->amount, 8);
         }
-        
+
         // Връщане на резултата
         return $res;
     }

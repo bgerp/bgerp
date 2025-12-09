@@ -82,7 +82,8 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
             $lastRec = $detailQuery->fetch();
             if (!$lastRec) return;
 
-            $rec = (object)array('price' => $lastRec->price, 'discount' => $lastRec->discount);
+            $price = deals_Helper::getSmartBaseCurrency($lastRec->price, $lastRec->valior, $date);
+            $rec = (object)array('price' => $price, 'discount' => $lastRec->discount);
         }
 
         if (!is_null($rec->price)) {

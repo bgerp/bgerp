@@ -70,7 +70,9 @@ abstract class deals_PaymentDocument extends core_Master
         if (!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
             $recTitle = tr('Заличено');
         } else {
+            Mode::push('text', 'plain');
             $recTitle = currency_Currencies::decorate($rec->amount, $rec->currencyId);
+            Mode::pop('text');
         }
 
         $date = ($rec->valior) ? $rec->valior : ($rec->termDate ?? null);

@@ -47,7 +47,7 @@
                         <!--ET_END clonedFromId-->
                         <!--ET_BEGIN makeTaskCostObjects-->
                         <tr>
-                            <td class='dt'>|Задачите да са разходни обекти|*:</td>
+                            <td class='dt'>|Разходни обекти|* (|Задачи|*):</td>
                             <td>[#makeTaskCostObjects#]</td>
                         </tr>
                         <!--ET_END makeTaskCostObjects-->

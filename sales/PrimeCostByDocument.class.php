@@ -574,7 +574,12 @@ class sales_PrimeCostByDocument extends core_Manager
         $months = sales_Setup::get('DELTA_NEW_PRODUCT_TO');
 
         $now = dt::now();
-        $thresholdTo = dt::verbal2mysql(dt::getLastDayOfMonth(dt::addMonths(-1 * $months, $now)), false);
+
+        // трябва да намираш последния ден на предишния месец преди СЕГА, и от него да вадиш
+        // константата Х месеца. Така ще се обхванат случаите, когато договорът и ЕН са в различни месеци.
+        $lastDayPrevMonth = dt::getLastDayOfMonth(dt::addMonths(-1, $now));
+        $thresholdTo = dt::verbal2mysql(dt::addMonths(-1 * $months, $lastDayPrevMonth), false);
+
         $thresholdFrom = dt::verbal2mysql(dt::addSecs(-1 * $from, $thresholdTo), false);
 
         foreach($indicatorRecs as $iRec){
@@ -946,8 +951,8 @@ class sales_PrimeCostByDocument extends core_Manager
         $data->listFilter->setDefault('primeCostType', 'all');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
-        $data->query->orderBy('valior', 'DESC');
 
+        $orderByValior = true;
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->productId)){
                 $data->query->where("#productId={$rec->productId}");
@@ -982,8 +987,8 @@ class sales_PrimeCostByDocument extends core_Manager
                             return $obj->fetchField('containerId');
                         }, $descendants));
                         $in = array_merge($in, $descendantArr);
+                        $data->query->orderBy('id', 'ASC');
                     }
-                    
                     $data->query->in('containerId', $in);
                 } elseif(type_Int::isInt($rec->documentId)){
                     $data->query->where("#containerId = {$rec->documentId}");
@@ -992,6 +997,10 @@ class sales_PrimeCostByDocument extends core_Manager
 
             if (!empty($rec->folder)) {
                 $data->query->where("#folderId = {$rec->folder}");
+            }
+
+            if($orderByValior) {
+                $data->query->orderBy('valior', 'DESC');
             }
         }
     }

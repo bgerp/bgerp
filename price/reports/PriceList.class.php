@@ -89,6 +89,8 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan,single=internal');
         $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan,single=internal');
         $fieldset->FLD('templateType', 'enum(default=Стандартен изглед,foods=Храни)', 'caption=Допълнително->Изглед,after=lang,single=internal');
+        $fieldset->FLD('templateCssClass', 'varchar(16)', 'caption=Допълнително->CSS клас,after=templateType,single=internal');
+
     }
 
 
@@ -816,8 +818,8 @@ class price_reports_PriceList extends frame2_driver_TableData
             $cDay = dt::mysql2verbal($date, 'd');
             $lg = ($rec->lang == 'auto') ? null : $rec->lang;
             $cDayWithSuffix = dt::getDayWithSuffix($cDay, $lg);
-            $cMonth = mb_strtolower(dt::mysql2verbal($date, 'F'));
-            $tpl->append("{$cDayWithSuffix} {$cMonth}", 'currentDate');
+            $cMonth = mb_strtolower(dt::mysql2verbal($date, 'm'));
+            $tpl->append("{$cDay}/{$cMonth}", 'currentDate');
 
             $counter = 0;
             foreach ($data->rows as $row){
@@ -830,6 +832,10 @@ class price_reports_PriceList extends frame2_driver_TableData
                     $tpl->append($block, 'GRID');
                 }
             }
+        }
+
+        if(!empty($rec->templateCssClass)){
+            $tpl->append($rec->templateCssClass, 'templateCssClass');
         }
 
         return $tpl;

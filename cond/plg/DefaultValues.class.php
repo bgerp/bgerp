@@ -243,7 +243,16 @@ class cond_plg_DefaultValues extends core_Plugin
         $query->show($name);
         $query->limit(1);
 
-        return $query->fetch()->{$name};
+        $val = $query->fetch()->{$name};
+
+        // Ако се взима последната валута и сме след датата за влизане в ЕЗ - ще се подмени с евро
+        if($name == 'currencyId' && $val == 'BGN'){
+            if($val != acc_Periods::getBaseCurrencyCode()){
+                $val = 'EUR';
+            }
+        }
+
+        return $val;
     }
     
     

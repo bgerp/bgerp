@@ -190,11 +190,22 @@ class status_Messages extends core_Manager
             // Статусите за него
             $query->where(array("#userId = '[#1#]'", $userId));
         }
-        
-        // Статусите за съответния SID
-        $sid = self::getSid();
-        $query->where(array("#sid = '[#1#]'", $sid));
-        
+
+        if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
+            $Session = cls::get('core_DbSess');
+        } else {
+            $Session = cls::get('core_Session');
+        }
+
+        // Ако сесията е стартирана, тогава вземаме статустите за съответния SID
+        if ($Session->isStarted()) {
+            // Статусите за съответния SID
+            $sid = self::getSid();
+            $query->where(array("#sid = '[#1#]'", $sid));
+        } else {
+            $sid = null;
+        }
+
         // Само логнатите потребители могат да видят статусите без sid
         if ($userId > 0) {
             $query->orWhere('#sid IS NULL');

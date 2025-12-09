@@ -422,7 +422,7 @@ class rack_plg_Shipments extends core_Plugin
                         $mRec->brState = 'active';
                     }
 
-                    $Movements->save($mRec, 'state,brState,packagings,workerId,modifiedOn,modifiedBy');
+                    $Movements->save($mRec, 'state,brState,packagings,workerId,modifiedOn,modifiedBy,documents,canceledOn,canceledBy');
                     $ok++;
 
                     core_Locks::release("movement{$mRec->id}");

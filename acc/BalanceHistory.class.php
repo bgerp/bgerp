@@ -84,7 +84,7 @@ class acc_BalanceHistory extends core_Manager
         $data = new stdClass();
         
         $balanceRec = $this->getBalanceBetween($from, $to);
-        
+
         $data->rec = new stdClass();
         $data->rec->accountId = $accId;
         $data->rec->ent1Id = $ent1;
@@ -205,10 +205,12 @@ class acc_BalanceHistory extends core_Manager
         $data->allRecs = $combined1;
         
         $this->prepareMiddleBalance($data);
+        $currencyCode = acc_Periods::getBaseCurrencyCode($data->toDate);
 
         // За всеки запис, обръщаме го във вербален вид
         if (countR($data->recs)) {
             foreach ($data->recs as $jRec) {
+                $jRec['_currencyCode'] = $currencyCode;
                 $data->rows[] = $this->getVerbalHistoryRow($jRec);
             }
         }
@@ -439,7 +441,7 @@ class acc_BalanceHistory extends core_Manager
         
         // Извличане на всички записи към избрания период за посочените пера
         $accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
-        
+
         // Извличаме хронологията за перата
         $isGrouped = !(($data->isGrouped !== 'yes'));
         $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, false);
@@ -539,7 +541,6 @@ class acc_BalanceHistory extends core_Manager
         // Ако има отрицателна сума показва се в червено
         foreach (array('debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld) {
             $arr[$fld] = $Double->toVerbal($rec[$fld]);
-            
             if (round($rec[$fld], 6) < 0) {
                 $arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
             }
@@ -643,6 +644,8 @@ class acc_BalanceHistory extends core_Manager
         // Колко са дните в избрания период
         $daysInPeriod = dt::daysBetween($data->toDate, $data->fromDate) + 1;
 
+        $currencyCode = acc_Periods::getBaseCurrencyCode($data->toDate);
+
         // Средното салдо е събраната сума върху дните в периода
         $data->rec->midQuantity = $quantity / $daysInPeriod;
         $data->rec->midAmount = $amount / $daysInPeriod;
@@ -652,6 +655,10 @@ class acc_BalanceHistory extends core_Manager
         $data->row->midAmount = $Double->toVerbal($data->rec->midAmount);
         $data->row->maxBlQuantity = $Double->toVerbal($data->rec->maxBlQuantity);
         $data->row->minBlQuantity = $Double->toVerbal($data->rec->minBlQuantity);
+
+        foreach (array('baseAmount', 'blAmount', 'midAmount') as $fld) {
+            $data->row->{$fld} = currency_Currencies::decorate($data->row->{$fld}, $currencyCode, true);
+        }
     }
     
     
@@ -693,16 +700,17 @@ class acc_BalanceHistory extends core_Manager
         }
         
         // Подготвяме таблицата с данните извлечени от журнала
+        $currencyCode = acc_Periods::getBaseCurrencyCode($data->toDate);
         $table = cls::get('core_TableView', array('mvc' => $this->Balance));
         $data->listFields = array('valior' => 'Вальор',
             'docId' => 'Документ',
             'reason' => 'Забележки',
             'debitQuantity' => 'Дебит->К-во',
-            'debitAmount' => 'Дебит->Сума',
+            'debitAmount' => "Дебит->Сума|* <small>({$currencyCode})</small>",
             'creditQuantity' => 'Кредит->К-во',
-            'creditAmount' => 'Кредит->Сума',
+            'creditAmount' => "Кредит->Сума|* <small>({$currencyCode})</small>",
             'blQuantity' => 'Остатък->К-во',
-            'blAmount' => 'Остатък->Сума',
+            'blAmount' => "Остатък->Сума|* <small>({$currencyCode})</small>",
         );
 
         // Ако равнят не показваме количествата

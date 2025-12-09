@@ -170,11 +170,11 @@ class blogm_Comments extends core_Detail
             $now = $Crypt->encodeVar(time(), $key);
             $data->commentForm->setHidden('renderOn', $now);
             
-            $valsArr = log_Browsers::getVars(array('name', 'email', 'web'));
-            
-            foreach ($valsArr as $vName => $val) {
-                $data->commentForm->setDefault($vName, $val);
-            }
+//            $valsArr = log_Browsers::getVars(array('name', 'email', 'web'));
+//
+//            foreach ($valsArr as $vName => $val) {
+//                $data->commentForm->setDefault($vName, $val);
+//            }
             
             $data->commentForm->toolbar->addSbBtn('Изпращане');
         }

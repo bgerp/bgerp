@@ -63,7 +63,8 @@ class hr_Sickdays extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'startDate,toDate,fitNoteFile,fitNoteNum,fitNoteDate,paidByEmployer,paidByHI,note';
+    public $changableFields = 'startDate,toDate, fitKind,fitType,fitNoteFile,fitNoteNum,fitNoteDate,fitNoteFile,reason,icdCode,
+                               treatment,paidByEmployer,paidByHI,note';
 
     
     /**
@@ -197,14 +198,14 @@ class hr_Sickdays extends core_Master
         $this->FLD('fitType', 'enum(first=Първичен, continued=Продължение)', 'caption=Болничен лист->Вид, maxRadio=2,columns=2,notNull,value=first');
         $this->FLD('fitNoteDate', 'date', 'caption=Болничен лист->Издаден на,after=icdCode, changable');
         $this->FLD('fitNoteFile', 'fileman_FileType(bucket=humanResources)', 'caption=Болничен лист->Файл,after=icdCode');
-        $this->FLD('reason', 'enum(1=общо заболяване,
+        $this->FLD('reason', 'enum(,1=общо заболяване,
                                     2=професионална болест,
-                                    4=злополука – трудова по чл. 55, ал.1 от КСО,
-                                    5=злополука – трудова по чл. 55, ал.2 от КСО,
+                                    4=злополука – трудова по чл. 55 ал.1 от КСО,
+                                    5=злополука – трудова по чл. 55 ал.2 от КСО,
                                     6=злополука – нетрудова,
                                     7=изследване поради общо заболяване,
-                                    8=изследване поради трудова злополука чл. 55, ал.1 от КСО,
-                                    9=изследване поради трудова злополука чл. 55, ал.2 от КСО,
+                                    8=изследване поради трудова злополука чл. 55 ал.1 от КСО,
+                                    9=изследване поради трудова злополука чл. 55 ал.2 от КСО,
                                     10=изследване поради професионална болест,
                                     11=бацило/ паразито носителство,
                                     12=карантина,
@@ -212,17 +213,17 @@ class hr_Sickdays extends core_Master
                                     14=бременност,
                                     15=майчинство,
                                     16=трудоустрояване – общо заболяване,
-                                    17=трудоустрояване – трудова злополука чл. 55, ал.1 от КСО,
-                                    18=трудоустрояване – трудова злополука чл. 55, ал.2 от КСО,
+                                    17=трудоустрояване – трудова злополука чл. 55 ал.1 от КСО,
+                                    18=трудоустрояване – трудова злополука чл. 55 ал.2 от КСО,
                                     19=трудоустрояване – професионална болест,
                                     20=трудоустрояване – бременност,
                                     21=санаторно-курортно лечение поради общо заболяване,
-                                    22=санаторно-курортно лечение поради трудова злополука чл. 55, ал.1 от КСО,
-                                    23=санаторно-курортно лечение поради трудова злополука чл. 55, ал.2 от КСО,
+                                    22=санаторно-курортно лечение поради трудова злополука чл. 55 ал.1 от КСО,
+                                    23=санаторно-курортно лечение поради трудова злополука чл. 55 ал.2 от КСО,
                                     24=санаторно-курортно лечение поради професионална болест,
                                     25=придружаване на дете до 3-годишна възраст в болнично заведение,
                                     26=придружаване и гледане на дете до 18-годишна възраст,
-                                    27=придружаване и гледане на болен над 18-годишна възраст)', 'caption=Болничен лист->Причина');
+                                    27=придружаване и гледане на болен над 18-годишна възраст)', 'caption=Болничен лист->Причина,placeholder=Изберете');
         $this->FLD('treatment', 'enum(,1=болничен,
                                         2=санаторно-курортен,
                                         3=домашен-стаен,
@@ -232,14 +233,13 @@ class hr_Sickdays extends core_Master
                                         7=Свободен-с право да напуска населеното място в границите на РБ)', 'caption=Болничен лист->Режим на лечение,placeholder=Изберете');
         $this->FLD('emoji', cls::get('type_Enum', array('options' => hr_Leaves::getEmojiesWithPrefix('s'))), 'caption=Информация->Икона за ника, maxRadio=4,columns=4,notNull,value=s2');
         $this->FLD('note', 'richtext(rows=5,bucket=Notes)', 'caption=Информация->Бележки');
-        $this->FLD('icdCode', 'varchar(5)', 'caption=Болничен лист->MKБ код, hint=Международна класификация на болестите');
+        $this->FLD('icdCode', 'key2(mvc=bglocal_MKB,select=title)', 'caption=Болничен лист->MKБ код, hint=Международна класификация на болестите,placeholder=Изберете');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('alternatePersons', 'keylist(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник, oldFieldName=alternatePerson');
         $this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=hidden, changable');
         $this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=hidden,changable');
         $this->FNC('title', 'varchar', 'column=none');
-        
         
         $this->FLD('sharedUsers', 'userList(roles=hrSickdays|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }

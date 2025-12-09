@@ -21,8 +21,18 @@ class type_Blob extends core_Type
      * Стойност по подразбиране
      */
     public $defaultValue = '';
-    
-    
+
+
+    /**
+     * Конструктор. Дава възможност за инициализация
+     */
+    public function init($params = array())
+    {
+        parent::init($params);
+        setIfNot($this->viewrows, $params['params']['viewrows'], $params['viewrows'], 6);
+    }
+
+
     /**
      * Рендира HTML инпут поле
      */

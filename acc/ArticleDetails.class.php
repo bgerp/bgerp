@@ -140,7 +140,12 @@ class acc_ArticleDetails extends doc_Detail
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
-        
+
+        $currencyCode = acc_Periods::getBaseCurrencyCode($res->masterData->rec->valior);
+        $res->listFields['debitPrice'] .= "|* <small>({$currencyCode})</small>";
+        $res->listFields['creditPrice'] .= "|* <small>({$currencyCode})</small>";
+        $res->listFields['amount'] .= "|* <small>({$currencyCode})</small>";
+
         if (countR($recs)) {
             foreach ($recs as $id => $rec) {
                 $row = &$rows[$id];
@@ -346,7 +351,10 @@ class acc_ArticleDetails extends doc_Detail
         if (!$dimensional && !$quantityOnly) {
             $form->setField('amount', 'mandatory');
         }
-        
+
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($masterRec->valior);
+        $form->setField('amount', "unit={$baseCurrencyCode}");
+
         // Добавя списък с предложения за счетоводната операция
         $reasonSuggestions = array('' => '');
         $oQuery = acc_Operations::getQuery();

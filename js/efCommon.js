@@ -2693,14 +2693,24 @@ function refreshForm(form, removeFields) {
 
     var frm = $(form);
 
-    frm.css('cursor', 'wait');
+    // Визуален ефект
+    frm.css('opacity', '0.6');
+
+    // Блокираме формата
     form.inert = true;
-    frm.find('input, select, textarea').css('cursor', 'wait');
+    $('body').css('cursor', 'wait');
     frm.find('#save, #saveAndNew').prop("disabled", true);
+
+    //  Блокираме и select2 елементите (те не са вътре във формата)
+    $('.select2-container').css({
+        'pointer-events': 'none',
+        'opacity': '0.6',
+        'cursor': 'wait'
+    });
 
     // Запазваме всички пароли преди ajax
     var savedPwd = [];
-    $('input[type=password]').each(function () {
+    frm.find('input[type=password]').each(function () {
         savedPwd[$(this).attr('name')] = $(this).val();
     });
 
@@ -2748,12 +2758,25 @@ function refreshForm(form, removeFields) {
                     $('[name=' + k + ']').val(savedPwd[k]);
             }
         }, 600);
-        form.inert = false;
 
-    }).fail(function (res) {
-        form.inert = false;
-        getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
-    });
+   }).fail(function (res) {
+       getEO().log('Грешка при AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
+   }).always(function () {
+       // Отключваме формата
+       form.inert = false;
+
+       frm.css({
+           'opacity': '1'
+       });
+
+       $('body').css('cursor', 'auto');
+       // Отключваме select2
+       $('.select2-container').css({
+           'pointer-events': 'auto',
+           'opacity': '1',
+           'cursor': 'auto'
+       });
+   });
 }
 
 
@@ -6228,7 +6251,7 @@ $.fn.isInViewport = function () {
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
 function focusOnce(id) {
-    if($('body').hasClass('narrow')) return;
+    if($('body').hasClass('narrow') && (window.innerWidth < 600 || window.innerHeight < 600)) return;
     var state = getHitState();
 
     if (state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
@@ -6718,12 +6741,20 @@ function selectAllCheckboxes() {
 Възможност за скрива на част от редовете в дълги листови таблици
  */
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("td.td-clamp").forEach(td => {
-        const collapsedLines = parseInt(td.dataset.lines || 3, 10);     // по подразбиране 3
-        const expandedMax    = parseInt(td.dataset.maxLines || 10, 10); // по подразбиране 10
 
+    document.querySelectorAll("td[data-viewrows]").forEach(td => {
+
+        if(td.offsetHeight > 60) $(td).addClass('td-clamp');
+
+        const collapsedLines = parseInt(td.dataset.viewrows || 3, 10);     // по подразбиране 3
+        const expandedMax    = parseInt(td.dataset.maxLines || 16, 10); // по подразбиране 10
+
+        let mh = collapsedLines * 1.4;
+        let ms = expandedMax * 1.4;
         td.style.setProperty("--lines-collapsed", collapsedLines);
         td.style.setProperty("--lines-expanded-max", expandedMax);
+        td.style.setProperty("--max-height", mh.toFixed(1) + "em");
+        td.style.setProperty("--max-scroll", ms.toFixed(1) + "em");
 
         // вземи реалния фон и го сложи във --fade-color
         const bg = getComputedStyle(td).backgroundColor;

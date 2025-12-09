@@ -326,6 +326,25 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
         }
 
+        // Ако има поле по валута да се филтрира по нея
+        if($mvc->getField($mvc->currencyFld, false)){
+            $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ", {$mvc->currencyFld}";
+            $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
+            $data->listFilter->setField($mvc->currencyFld, "caption=Валута,input");
+            $data->listFilter->showFields .= ",{$mvc->currencyFld}";
+        }
+
+        // Ако има поле за шаблон - по него
+        if($mvc->hasPlugin('doc_plg_TplManager')){
+            $templateOptions = doc_TplManager::getTemplates($mvc);
+            if(countR($templateOptions)){
+                $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ",template";
+                $data->listFilter->setOptions('template', array('' => '') + $templateOptions);
+                $data->listFilter->setField('template', "caption=Шаблон");
+                $data->listFilter->showFields .= ",template";
+            }
+        }
+
         // Добавяме към формата за търсене търсене и по Състояние
         if (!Request::get('Rejected', 'int')) {
             if($mvc->filterAllowState){
@@ -349,6 +368,14 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         // Ако формата за търсене е изпратена
         if ($filter = $data->listFilter->rec) {
+            if(!empty($filter->{$mvc->currencyFld})){
+                $data->query->where("#{$mvc->currencyFld} = '{$filter->{$mvc->currencyFld}}'");
+            }
+
+            if(!empty($filter->template)){
+                $data->query->where("#template = '{$filter->template}'");
+            }
+
             if(!empty($filter->fState) && $filter->fState != 'all'){
                 $data->query->where("#state = '{$filter->fState}'");
             }
@@ -537,13 +564,16 @@ class acc_plg_DocumentSummary extends core_Plugin
         if($mvc->getField('rate', false)){
             $showFields['rate'] = 'rate';
         }
+        if(isset($mvc->valiorFld)){
+            $showFields[$mvc->valiorFld] = $mvc->valiorFld;
+        }
         $showFields = implode(',', $showFields);
         $sQuery->show($showFields);
-
 
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
         $draftCount = $activeCount = $pendingCount = 0;
+
         while ($rec = $sQuery->fetch()) {
             $mvc->fillSummaryRec($rec, $fieldsArr);
             self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
@@ -614,11 +644,15 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             switch ($fld->summary) {
                 case 'amount':
+
                     $baseAmount = $rec->{$fld->name};
                     if ($mvc->amountIsInNotInBaseCurrency === true && isset($rec->rate)) {
                         $baseAmount *= $rec->rate;
                     }
-                    
+                    if(isset($rec->{$mvc->valiorFld})){
+                        $baseAmount = deals_Helper::getSmartBaseCurrency($baseAmount, $rec->{$mvc->valiorFld});
+                    }
+
                     $res[$fld->name]->amount += $baseAmount;
                     $res[$fld->name]->measure = "<span class='cCode'>{$currencyCode}</span>";
                     break;

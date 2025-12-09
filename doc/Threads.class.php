@@ -191,6 +191,7 @@ class doc_Threads extends core_Manager
         $this->setDbIndex('last, id');
         $this->setDbIndex('firstContainerId');
         $this->setDbIndex('firstDocClass');
+        $this->setDbIndex('folderId, visibleForPartners,state,firstDocClass');
     }
     
     

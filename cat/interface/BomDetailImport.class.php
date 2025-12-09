@@ -61,6 +61,7 @@ class cat_interface_BomDetailImport extends core_Manager
 
         $fields['productId'] = array('caption' => 'Код', 'mandatory' => 'mandatory');
         $fields['propQuantity'] = array('caption' => 'Количество');
+        $fields['description'] = array('caption' => 'Описание');
         $fields['parentId'] = array('caption' => 'Уточнения->Етап', 'notColumn' => true, 'default' => null, 'type' => 'varchar', 'options' => $stepOptions, 'allowEmpty' => true);
         $fields['type'] = array('caption' => 'Уточнения->Вид', 'notColumn' => true, 'default' => null, 'type' => 'varchar', 'options' => arr::make('input=Влагане,pop=Отпадък,stage=Етап,subProduct=Субпродукт'));
 
@@ -121,11 +122,12 @@ class cat_interface_BomDetailImport extends core_Manager
                 } elseif($rec->type == 'subProduct' && $pRec->canManifacture != 'yes'){
                     $errors[] = 'Субпродуктът не е производим';
                     $add = false;
-                }else {
+                } else {
                     $rec->resourceId = $pRec->id;
                     $rec->packagingId = cat_Products::fetchField($pRec->id, 'measureId');
                     $rec->quantityInPack = 1;
                     $rec->bomId = $bomRec->id;
+                    $rec->description = cls::get('type_Richtext')->fromVerbal($rec->description);
                     $rec->parentId = empty($fields['parentId']) ? null : $fields['parentId'];
 
                     $notAllowed = array();
@@ -166,7 +168,7 @@ class cat_interface_BomDetailImport extends core_Manager
             doc_Linked::add($bomRec->containerId, $fileId, 'doc', 'file');
         }
 
-        $msg = "Добавени редове|*: {$added}. |Пропуснати са|* {$skipped}";
+        $msg = "Добавени редове|*: {$added}. |Пропуснати са|* {$skipped}.";
 
         return $msg;
     }

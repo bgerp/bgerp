@@ -35,6 +35,8 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
         expect($origin = $this->class->getOrigin($rec));
+
+        $rec->valior = $rec->valior ?? dt::today();
         $originRec = $origin->fetch();
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
         

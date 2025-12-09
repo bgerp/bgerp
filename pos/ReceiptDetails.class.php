@@ -360,108 +360,108 @@ class pos_ReceiptDetails extends core_Detail
                         }
                     }
 
-                    $sucessMsg = 'Количеството на реда е променено|*!';
+                    $successMsg = 'Количеството на реда е променено|*!';
                     break;
-               case 'setdiscount':
-                   $setDiscounts = pos_Points::getSettings($receiptRec->pointId, 'setDiscounts');
-                   expect($setDiscounts == 'yes', 'Задаването на отстъпки/надценки не е разрешено|*!');
-                   $discount = core_Type::getByName('percent')->fromVerbal($firstValue);
+                case 'setdiscount':
+                    $setDiscounts = pos_Points::getSettings($receiptRec->pointId, 'setDiscounts');
+                    expect($setDiscounts == 'yes', 'Задаването на отстъпки/надценки не е разрешено|*!');
+                    $discount = core_Type::getByName('percent')->fromVerbal($firstValue);
 
-                   if(isset($discount)){
-                       expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между -100% и 100%|*!');
-                       if($discount != 0){
-                           if(strpos($string, '%') === 0){
-                               $discount = -1 * $discount;
+                    if(isset($discount)){
+                        expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между -100% и 100%|*!');
+                        if($discount != 0){
+                            if(strpos($string, '%') === 0){
+                                $discount = -1 * $discount;
                             }
-                       } else {
-                           $discount = null;
-                       }
+                        } else {
+                            $discount = null;
+                        }
 
-                       $rec->discountPercent = $discount;
-                       $sucessMsg = 'Отстъпката на реда е променена|*!';
-                   } else {
-                       $skip = true;
-                   }
+                        $rec->discountPercent = $discount;
+                        $successMsg = 'Отстъпката на реда е променена|*!';
+                    } else {
+                        $skip = true;
+                    }
 
-                   break;
-               case 'setprice':
-                   $setPrices = pos_Points::getSettings($receiptRec->pointId, 'setPrices');
-                   expect($setPrices == 'yes', 'Ръчното задаване на цена не е разрешено|*!');
+                    break;
+                case 'setprice':
+                    $setPrices = pos_Points::getSettings($receiptRec->pointId, 'setPrices');
+                    expect($setPrices == 'yes', 'Ръчното задаване на цена не е разрешено|*!');
 
-                   if(!empty($firstValue)){
-                       $firstValue = str_replace('*', '', $firstValue);
-                       expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Неразпозната цена');
-                       expect($price >= 0, 'Невалидна цена|*!');
+                    if(!empty($firstValue)){
+                        $firstValue = str_replace('*', '', $firstValue);
+                        expect($price = core_Type::getByName('double')->fromVerbal($firstValue), 'Неразпозната цена');
+                        expect($price >= 0, 'Невалидна цена|*!');
 
-                       $price /= 1 + $rec->param;
-                       $rec->price = $price;
-                       $rec->amount = $rec->price * $rec->quantity;
-                       $sucessMsg = 'Цената на реда е променена|*!';
-                   } else {
-                       $skip = true;
-                   }
+                        $price /= 1 + $rec->param;
+                        $rec->price = $price;
+                        $rec->amount = $rec->price * $rec->quantity;
+                        $successMsg = 'Цената на реда е променена|*!';
+                    } else {
+                        $skip = true;
+                    }
 
-                   break;
-               case 'settext':
-                   $text = core_Type::getByName('text')->fromVerbal($firstValue);
-                   $text = str::removeWhiteSpace(trim($text), ' ');
+                    break;
+                case 'settext':
+                    $text = core_Type::getByName('text')->fromVerbal($firstValue);
+                    $text = str::removeWhiteSpace(trim($text), ' ');
 
-                   $rec->text = (!empty($text)) ? $text : null;
-                   $sucessMsg = 'Променено пояснение на реда|*!';
-                   break;
-               case 'setbatch':
-                   expect(core_Packs::isInstalled('batch'), 'Пакета за партидности не е инсталиран');
-                   $batchDef = batch_Defs::getBatchDef($rec->productId);
-                   expect($batchDef, 'Артикулът няма партидност');
-                   if(!empty($string)){
-                       $batechErrorMsg = null;
-                       if(!$batchDef->isValid($string, $rec->quantity, $batechErrorMsg)){
-                           expect(false, $batechErrorMsg);
-                       }
-                       $rec->batch = $batchDef->normalize($string);
-                   } else {
-                       $rec->batch = null;
-                   }
+                    $rec->text = (!empty($text)) ? $text : null;
+                    $successMsg = 'Променено пояснение на реда|*!';
+                    break;
+                case 'setbatch':
+                    expect(core_Packs::isInstalled('batch'), 'Пакета за партидности не е инсталиран');
+                    $batchDef = batch_Defs::getBatchDef($rec->productId);
+                    expect($batchDef, 'Артикулът няма партидност');
+                    if(!empty($string)){
+                        $batechErrorMsg = null;
+                        if(!$batchDef->isValid($string, $rec->quantity, $batechErrorMsg)){
+                            expect(false, $batechErrorMsg);
+                        }
+                        $rec->batch = $batchDef->normalize($string);
+                    } else {
+                        $rec->batch = null;
+                    }
 
-                   $foundRec = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
-                   if(isset($foundRec->id) && $foundRec->id != $rec->id){
-                       expect(false, 'Партидата е вече зададена на друг ред');
-                   }
+                    $foundRec = $this->findSale($rec->productId, $rec->receiptId, $rec->value, $rec->batch);
+                    if(isset($foundRec->id) && $foundRec->id != $rec->id){
+                        expect(false, 'Партидата е вече зададена на друг ред');
+                    }
 
-                   // Проверка дали количеството е допустимо
-                   $errorQuantity = $warningQuantity = null;
-                   if (!pos_Receipts::checkQuantity($rec, $errorQuantity, $warningQuantity)) {
-                       expect(false, $errorQuantity);
-                   }
+                    // Проверка дали количеството е допустимо
+                    $errorQuantity = $warningQuantity = null;
+                    if (!pos_Receipts::checkQuantity($rec, $errorQuantity, $warningQuantity)) {
+                        expect(false, $errorQuantity);
+                    }
 
-                   if(!empty($warningQuantity)){
-                       core_Statuses::newStatus($warningQuantity, 'warning');
-                   }
-                   break;
-               case 'setstore':
-                   if($productRec->canStore != 'yes'){
-                       expect(false, "Не може да се зададе склад, защото артикула е услуга");
-                   }
+                    if(!empty($warningQuantity)){
+                        core_Statuses::newStatus($warningQuantity, 'warning');
+                    }
+                    break;
+                case 'setstore':
+                    if($productRec->canStore != 'yes'){
+                        expect(false, "Не може да се зададе склад, защото артикула е услуга");
+                    }
 
-                   $stores = pos_Points::getStores($receiptRec->pointId);
-                   expect(in_array($firstValue, $stores), 'Невъзможен склад за избор');
-                   $rec->storeId = $firstValue;
+                    $stores = pos_Points::getStores($receiptRec->pointId);
+                    expect(in_array($firstValue, $stores), 'Невъзможен склад за избор');
+                    $rec->storeId = $firstValue;
 
-                   // Проверка дали количеството е допустимо
-                   $errorQuantity = $warningQuantity = null;
-                   if (!pos_Receipts::checkQuantity($rec, $errorQuantity, $warningQuantity)) {
-                       expect(false, $errorQuantity);
-                   }
+                    // Проверка дали количеството е допустимо
+                    $errorQuantity = $warningQuantity = null;
+                    if (!pos_Receipts::checkQuantity($rec, $errorQuantity, $warningQuantity)) {
+                        expect(false, $errorQuantity);
+                    }
 
-                   if(!empty($warningQuantity)){
-                       core_Statuses::newStatus($warningQuantity, 'warning');
-                   }
+                    if(!empty($warningQuantity)){
+                        core_Statuses::newStatus($warningQuantity, 'warning');
+                    }
 
-                   break;
+                    break;
             }
 
             if($this->save($rec) && $skip !== true){
-                $this->Master->logInAct($sucessMsg, $receiptId);
+                $this->Master->logInAct($successMsg, $receiptId);
                 Mode::setPermanent("currentSearchString{$receiptId}", null);
                 Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => $operation));
             }
@@ -911,12 +911,21 @@ class pos_ReceiptDetails extends core_Detail
                     $row->productId = cat_Products::getHyperlink($rec->productId, true);
                 }
 
+                $row->amount = currency_Currencies::decorate($row->amount, $row->currency, true);
+                $row->price = currency_Currencies::decorate($row->price, $row->currency, true);
 
                 break;
             case 'payment':
                 $row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr('В брой');
                 $row->paymentCaption = (empty($receiptRec->revertId)) ? tr('Плащане') : tr('Връщане');
                 $row->amount = ht::styleNumber($row->amount, $rec->amount);
+
+                $paymentRec = ($action->value != -1) ? cond_Payments::fetch($action->value) : 0;
+                if($paymentRec->currencyCode){
+                    $row->amount = currency_Currencies::decorate($row->amount, $paymentRec->currencyCode, true);
+                } else {
+                    $row->amount = currency_Currencies::decorate($row->amount, $row->currency, true);
+                }
 
                 $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 if($action->value == $cardPaymentId){
@@ -970,7 +979,7 @@ class pos_ReceiptDetails extends core_Detail
         if($rec->id == $lastEdited['id']){
             $operationPlaceholder = self::$updatedOperationPlaceholderMap[$lastEdited['action']];
             if($operationPlaceholder){
-               $row->{$operationPlaceholder} = 'updatedDiv flash';
+                $row->{$operationPlaceholder} = 'updatedDiv flash';
             }
         }
 
@@ -1236,6 +1245,8 @@ class pos_ReceiptDetails extends core_Detail
         $query->where("#receiptId = {$receiptId}");
         $query->where("#action LIKE '%sale%' || #action LIKE '%payment%'");
 
+        $bgnPaymentId = eurozone_Setup::getBgnPaymentId();
+        $payments = array();
         while ($rec = $query->fetch()) {
             $sign = isset($rec->revertId) ? -1 : 1;
             $obj = new stdClass();
@@ -1253,7 +1264,9 @@ class pos_ReceiptDetails extends core_Detail
                     $rec->amount = $sign * ($rec->amount);
                 }
             } else {
-                if (!$rec->amount) {
+                if (!$rec->amount) continue;
+                if(array_key_exists($rec->action, $payments)){
+                    $payments[$rec->action]->amount += $rec->amount;
                     continue;
                 }
 
@@ -1261,10 +1274,6 @@ class pos_ReceiptDetails extends core_Detail
                 list(, $obj->value) = explode('|', $rec->action);
                 $obj->pack = null;
                 $obj->caseId = $caseId;
-
-                if($obj->value == -1){
-                    $rec->amount -= $masterRec->change;
-                }
             }
 
             setIfNot($obj->userId, $rec->waitingBy, $rec->receiptCreatedBy);
@@ -1274,8 +1283,23 @@ class pos_ReceiptDetails extends core_Detail
             $obj->amount = $rec->amount * (1 - $rec->discountPercent);
             $obj->date = $masterRec->createdOn;
 
-            $result[] = $obj;
+            if ($rec->productId) {
+                $result[] = $obj;
+            } else {
+                $payments[$rec->action] = $obj;
+            }
         }
+
+        // От вече сумираните плащания се приспада рестото
+        if(!empty($masterRec->change)){
+            if(array_key_exists("payment|-1", $payments)){
+                $payments["payment|-1"]->amount -= $masterRec->change;
+            } elseif(array_key_exists("payment|{$bgnPaymentId}", $payments)){
+                $change =currency_CurrencyRates::convertAmount($masterRec->change, $masterRec->createdOn, null, 'BGN');
+                $payments["payment|{$bgnPaymentId}"]->amount -= $change;
+            }
+        }
+        $result = array_merge($result, array_values($payments));
 
         return $result;
     }

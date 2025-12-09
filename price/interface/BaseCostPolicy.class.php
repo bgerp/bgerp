@@ -70,7 +70,7 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
         if ($onlyActive === true) {
             $pQuery->where("#state = 'active'");
         } else {
-            $pQuery->where("#state = 'active' OR #state = 'closed'");
+            $pQuery->where("#state IN ('active', 'closed')");
         }
         
         if ($withDelivery === true) {

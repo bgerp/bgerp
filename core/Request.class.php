@@ -236,7 +236,7 @@ class core_Request
                 error('@Некоректна стойност за входен параметър', $name, $inputType->error, $originalValue);
             }
         } else {
-            if($value) {
+            if($value && $type !== false) {
                 // Проверка за опити за хакване
                 core_HackDetector::check($value, 3);  
             }

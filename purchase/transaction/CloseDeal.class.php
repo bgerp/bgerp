@@ -312,11 +312,9 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     private function getCloseEntry($amount, $quantity, $index, &$totalAmount, $docRec, $firstDoc)
     {
         $entry = array();
-        
-        if (round($amount, 2) == 0) {
-            
-            return $entry;
-        }
+        $amount = round($amount, 2);
+        if (empty($amount)) return $entry;
+
         $quantity = round($quantity, 9);
         
         // Сметка 401 има Дебитно (Dt) салдо

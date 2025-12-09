@@ -131,7 +131,7 @@ class cond_DeliveryTerms extends core_Master
     {
         $this->FLD('codeName', 'varchar', 'caption=Код');
         $this->FLD('properties', 'set(cmr=ЧМР,transport=Транспорт,insurance=Застраховка,vodeu=ВОД за Чужбина ЕС)', 'caption=Свойства');
-        $this->FLD('term', 'text(rows=3)', 'caption=Обяснение,tdClass=td-clamp');
+        $this->FLD('term', 'text(rows=3,viewrows=2)', 'caption=Обяснение');
         $this->FLD('forSeller', 'text(rows=3)', 'caption=За продавача');
         $this->FLD('forBuyer', 'text(rows=3)', 'caption=За купувача');
         $this->FLD('transport', 'text(rows=3)', 'caption=Транспорт');
