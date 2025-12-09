@@ -1364,14 +1364,14 @@ table.total {
 
 table.total th{
 	font-weight:normal;
-	text-align: right;
-	padding: 0px 15px;
+	text-align: right !important;
+	padding: 0 15px 0 10px;
 }
 
 table.total td{
 	text-align:right;
 	font-weight:bold;
-	padding: 0px 15px;
+	padding: 0 5px 0 20px;
 }
 .largeCell {
 	min-width: 350px !important;
@@ -1381,7 +1381,7 @@ hr {
 }
 
 td.totalLabel {
-	font-size:1.9em;
+	font-size:1.65em;
 	font-weight:bold;
 }
 
@@ -1390,9 +1390,11 @@ th.paidCaption, td.paidCaption {
 }
 
 td.paidCaption, td.changePositive, td.changeNegative {
-	font-size:1.4em;
+	font-size:1.2em;
 }
-
+.currencySignNextToAmount {
+	font-size: 0.9em;
+}
 th.changePositive, td.changePositive {
 	color:green;
 	white-space: nowrap;
