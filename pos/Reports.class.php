@@ -398,6 +398,7 @@ class pos_Reports extends core_Master
         $rQuery->EXT('change', 'pos_Receipts', 'externalName=change,externalKey=receiptId');
         $rQuery->XPR('calcedUser', 'int', "COALESCE(#waitingReceiptBy, #createdReceiptBy)");
         $rQuery->where("#action LIKE '%payment%'");
+        $rQuery->orderBy("#receiptId=ASC,#action=ASC");
         if(countR($receiptIds)){
             $rQuery->in('receiptId', $receiptIds);
         } else {
@@ -406,11 +407,38 @@ class pos_Reports extends core_Master
 
         $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
         $totalArr = (object)array('receiptBy' => tr('Общо'), 'payments' => array());
-        while($rRec = $rQuery->fetch()){
-            $action = explode('|', $rRec->action);
-            if($action[1] == -1){
-                $rRec->amount -= $rRec->change;
+
+        $bgnPaymentId = eurozone_Setup::getBgnPaymentId();
+
+        $summedPayments = $change = array();
+        $rDetails = $rQuery->fetchAll();
+        foreach ($rDetails as $rRec1){
+            $key = "{$rRec1->receiptId}|{$rRec1->deviceId}|{$rRec1->action}";
+            if(!array_key_exists($key, $summedPayments)){
+                $summedPayments[$key] = $rRec1;
+            } else {
+                $summedPayments[$key]->amount += $rRec1->amount;
             }
+            $change[$rRec1->receiptId] = $rRec1->change;
+        }
+
+        foreach ($summedPayments as &$rRec){
+            $action = explode('|', $rRec->action);
+            if($action[1] == -1 || $action[1] == $bgnPaymentId){
+                if($change[$rRec->receiptId]){
+                    $changeAmount = $change[$rRec->receiptId];
+                    if($action[1] == $bgnPaymentId){
+                        $change =currency_CurrencyRates::convertAmount($changeAmount, $rRec->createdOn, null, 'BGN');
+                    }
+                    $rRec->amount -= $change;
+                    unset($change[$rRec->receiptId]);
+                }
+            }
+
+            if($action[1] != -1){
+                $rRec->amount = cond_Payments::toBaseCurrency($action[1], $rRec->amount);
+            }
+
             if (!array_key_exists($rRec->calcedUser, $data->statisticArr)) {
                 $data->statisticArr[$rRec->calcedUser] = (object) array('receiptBy' => crm_Profiles::createLink($rRec->calcedUser), 'receiptTotal' => 0, 'payments' => array());
             }

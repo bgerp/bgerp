@@ -274,7 +274,7 @@ SET
     {
         requireRole('euro');
 
-        sleep(4);
+        sleep(60);
 
         expect($fnc = Request::get('fnc'));
         expect(method_exists($this, $fnc));
@@ -342,7 +342,7 @@ SET
             }
 
             if($data['class'] == 'acc_ProductPricePerPeriods'){
-                $copyUrl['type'] = $listUrl = 'stores';
+                $copyUrl['type'] = $listUrl['type'] = 'stores';
             }
 
             $blockTpl->replace(ht::createLink('Оригинал', $listUrl, false, array('target' => '_blank')), 'tableLink');

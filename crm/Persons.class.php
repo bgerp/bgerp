@@ -415,7 +415,7 @@ class crm_Persons extends core_Master
 
         $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent,autoFilter');
 
-        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent,autoFilter');
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty,where=#state !\\= \\\'rejected\\\')', 'placeholder=Всички групи,caption=Група,input,silent,autoFilter');
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent,autoFilter');
 
         $data->listFilter->view = 'horizontal';
