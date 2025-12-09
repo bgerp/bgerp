@@ -342,7 +342,7 @@ SET
             }
 
             if($data['class'] == 'acc_ProductPricePerPeriods'){
-                $copyUrl['type'] = $listUrl = 'stores';
+                $copyUrl['type'] = $listUrl['type'] = 'stores';
             }
 
             $blockTpl->replace(ht::createLink('Оригинал', $listUrl, false, array('target' => '_blank')), 'tableLink');
