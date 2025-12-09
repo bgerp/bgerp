@@ -369,9 +369,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         $salesInvoice->vatAmount = deals_Helper::getSmartBaseCurrency($salesInvoice->vatAmount, $salesInvoice->date, $rec->checkDate);
 
 
-
-                        $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount)+ $salesInvoice->vatAmount ;
-                       // bp($invoiceValue,$salesInvoice->dealValue,$salesInvoice->vatAmount,$salesInvoice->rate);
+                        $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) + $salesInvoice->vatAmount;
+                        // bp($invoiceValue,$salesInvoice->dealValue,$salesInvoice->vatAmount,$salesInvoice->rate);
 
                         $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
 
@@ -668,7 +667,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $purchaseInvoices->discountAmount = deals_Helper::getSmartBaseCurrency($purchaseInvoices->discountAmount, $purchaseInvoices->date, $rec->checkDate);
                     $purchaseInvoices->vatAmount = deals_Helper::getSmartBaseCurrency($purchaseInvoices->vatAmount, $purchaseInvoices->date, $rec->checkDate);
 
-                    $invoiceValue = (($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount) / $purchaseInvoices->rate;
+                    $invoiceValue = (($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount);
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
 
                     // масив от фактури в тази нишка //
@@ -1223,6 +1222,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         $Double = core_Type::getByName('double(decimals=2)');
+        $euroZoneDate = acc_Setup::getEurozoneDate();
 
         $row = new stdClass();
 
@@ -1267,7 +1267,20 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($rec->unpaid == 'all') {
 
             $allCurrency = ($dRec->totalInvoiceValue) ? $dRec->currencyId : '';
-            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' ' . $allCurrency;
+            //След превалутирането
+            $div = 1;
+
+            if ($rec->checkDate > $euroZoneDate) {
+                if ($allCurrency == 'BGN') {
+                    $allCurrency = 'EUR';
+                }
+
+            } else {
+
+                $div = $dRec->rate;
+            }
+
+            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue / $div) . ' ' . $allCurrency;
             if ($dRec->totalInvoiceOverPaid > 0.01) {
                 $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
             }
@@ -1302,30 +1315,30 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $invoiceValue = $rec->unpaid == 'all' ? $dRec->invoiceValue : $dRec->invoiceValue;
 
         $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
-        $euroZoneDate = acc_Setup::getEurozoneDate();
+
 
         $type = core_Type::getByName('double(decimals=2)');
 
         if ($dRec->invoiceDate < $euroZoneDate) {
             if ($dRec->currencyId == 'BGN' && $baseCurrency == 'EUR') {
                 $row->invoiceValue = $type->toVerbal($invoiceValue * 1.95583);
-            } elseif($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
+            } elseif ($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
                 $row->invoiceValue = $type->toVerbal($invoiceValue);
-            }elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
+            } elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
                 $row->invoiceValue = $type->toVerbal($invoiceValue / $dRec->rate);
-            }elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'EUR') {
+            } elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'EUR') {
                 $row->invoiceValue = $type->toVerbal($invoiceValue * 1.95583 / $dRec->rate);
             }
         }
         if ($dRec->invoiceDate > $euroZoneDate) {
             if ($dRec->currencyId == 'EUR' && $baseCurrency == 'EUR') {
-                $row->invoiceValue = $type->toVerbal($invoiceValue );
-            } elseif($dRec->currencyId != 'EUR' && $baseCurrency == 'EUR') {
+                $row->invoiceValue = $type->toVerbal($invoiceValue);
+            } elseif ($dRec->currencyId != 'EUR' && $baseCurrency == 'EUR') {
                 $row->invoiceValue = $type->toVerbal($invoiceValue / $dRec->rate);
             }
         }
 
-        $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue );
+        $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
 
         if ($dRec->invoiceCurrentSumm > 0) {
             $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm * $dRec->rate);
