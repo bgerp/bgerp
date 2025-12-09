@@ -538,7 +538,7 @@ SET
         }
 
         // Заключване на системата
-        core_SystemLock::block('Migration For Eurozone...', 55);
+        //core_SystemLock::block('Migration For Eurozone...', 55);
         core_App::setTimeLimit(800);
 
         // Създаване на копие на чувствителните таблици
