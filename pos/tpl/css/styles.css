@@ -1209,7 +1209,7 @@ table.total {
 table.total th {
   font-weight: normal;
   text-align: right !important;
-  padding: 0 15px 0 10px; }
+  padding: 0 5px 0 15px; }
 
 table.total td {
   text-align: right;
@@ -1236,7 +1236,8 @@ td.changeNegative {
   font-size: 1.2em; }
 
 .currencySignNextToAmount {
-  font-size: 0.9em; }
+  font-size: 0.9em;
+  min-width: auto; }
 
 th.changePositive,
 td.changePositive {
