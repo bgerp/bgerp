@@ -459,7 +459,7 @@ class pos_Reports extends core_Master
             $data->statisticArr[$rRec->calcedUser]->payments[$action[1]]->amount += $rRec->amount;
             $totalArr->payments[$action[1]]->amount += $rRec->amount;
         }
-       // bp($data->statisticArr, $summedPayments);
+
         if(countR($data->statisticArr) > 1){
             $data->statisticArr += array('-1' => $totalArr);
         }
