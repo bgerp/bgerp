@@ -274,7 +274,7 @@ SET
     {
         requireRole('euro');
 
-        sleep(4);
+        sleep(60);
 
         expect($fnc = Request::get('fnc'));
         expect(method_exists($this, $fnc));
