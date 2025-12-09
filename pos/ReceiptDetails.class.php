@@ -1295,7 +1295,8 @@ class pos_ReceiptDetails extends core_Detail
             if(array_key_exists("payment|-1", $payments)){
                 $payments["payment|-1"]->amount -= $masterRec->change;
             } elseif(array_key_exists("payment|{$bgnPaymentId}", $payments)){
-                $payments["payment|{$bgnPaymentId}"]->amount -= $masterRec->change;
+                $change =currency_CurrencyRates::convertAmount($masterRec->change, $masterRec->createdOn, null, 'BGN');
+                $payments["payment|{$bgnPaymentId}"]->amount -= $change;
             }
         }
         $result = array_merge($result, array_values($payments));
