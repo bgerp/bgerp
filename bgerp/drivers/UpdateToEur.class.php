@@ -83,7 +83,7 @@ class bgerp_drivers_UpdateToEur extends core_BaseClass
         if ($expId && crm_Companies::haveRightFor('single', $expId)) {
             $eLink = crm_Companies::getLinkToSingle($expId, 'name');
         } else {
-            $eLink = ht::createLink('Експерта ООД', 'http://experta.bg/Bg/Danni', false, array('target' => '_blank'));
+            $eLink = ht::createLink('Експерта ООД', 'https://experta.bg/Bg/Danni', false, array('target' => '_blank'));
         }
 
         if (cls::load('eurozone_Setup', true)) {
