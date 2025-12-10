@@ -83,16 +83,41 @@ class bgerp_drivers_UpdateToEur extends core_BaseClass
         if ($expId && crm_Companies::haveRightFor('single', $expId)) {
             $eLink = crm_Companies::getLinkToSingle($expId, 'name');
         } else {
-            $eLink = ht::createLink('Експерта ООД', 'http://experta.bg/Bg/Danni', false, array('target' => '_blank'));
+            $eLink = ht::createLink('Експерта ООД', 'https://experta.bg/Bg/Danni', false, array('target' => '_blank'));
         }
 
-        $data->tpl = new ET('
+        if (cls::load('eurozone_Setup', true)) {
+            if (eurozone_Setup::get('SET_MIGRATIONS') === 'yes') {
+                $preparation = 'Подготовката на вашата система за преминаване към евро е успешно завършена.';
+                $nextSteps = 'За следващите стъпки и полезни инструкции, моля посетете:';
+
+                // Ако вече работим с евро
+                if ((eurozone_Setup::get('MIGRATE_SYSTEM') === 'yes')) {
+                    $preparation = 'Преминаването към евро е успешно завършено!';
+                    $nextSteps = 'За полезни съвети, моля посетете: ';
+                }
+
+                $bLink = ht::createLink('bgerp.com', 'https://bgerp.com/Bg/Parvi-stapki-s-EUR', false, array('target' => '_blank', 'ef_icon' => 'img/16/bgerp.png'));
+                $data->tpl = new ET('
+                                    <div class="clearfix21 portal" style="margin-bottom:25px;">
+                                    <div class="legend">' . tr('Първи стъпки с EUR') . '</div>
+                                        <p style="color: #333; margin: 5px 0; line-height: 1.5em; text-indent: 20px; font-weight: bold;">' . tr($preparation) . ' </p>
+                                        <p style="color: #333; margin: 5px 0; line-height: 1.5em; text-indent: 20px; font-weight: bold;">' . tr($nextSteps) . ' '  . $bLink . ' </p>
+                                        <p style="color: #333; margin: 5px 0; line-height: 1.5em; text-indent: 20px; font-weight: bold;">' . tr('Ако имате въпроси, можете да се свържете и с') . ' ' . $eLink . '!</p>
+                                    </div>
+                                  ');
+            }
+        }
+
+        if (!$data->tpl) {
+            $data->tpl = new ET('
                                 <div class="clearfix21 portal" style="margin-bottom:25px;">
-                                <div class="legend">Подготовка за преминаване към EUR</div>
-                                    <p style="color: #333; margin: 5px 0; line-height: 1.5em; text-indent: 20px; font-weight: bold;">Системата ви е подготвена за преминаване към евро, но са необходими допълнителни миграции. </p>
-                                    <p style="color: #333; margin: 5px 0; line-height: 1.5em; text-indent: 20px; font-weight: bold;">Моля, свържете се с ' . $eLink . '!</p>
+                                <div class="legend">' . tr('Подготовка за преминаване към EUR') . '</div>
+                                    <p style="color: #333; margin: 5px 0; line-height: 1.5em; text-indent: 20px; font-weight: bold;">' . tr('Системата ви е подготвена за преминаване към евро, но са необходими допълнителни миграции.') . ' </p>
+                                    <p style="color: #333; margin: 5px 0; line-height: 1.5em; text-indent: 20px; font-weight: bold;">' . tr('Моля, свържете се с') . ' ' . $eLink . '!</p>
                                 </div>
                               ');
+        }
 
         return $data->tpl;
     }
