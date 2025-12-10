@@ -109,7 +109,9 @@ class cash_Pko extends cash_Document
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $paymentSuggestions = cls::get('cond_Payments')->makeArray4Select('title', '#state != "closed"');
+
+        $nonCashBgnId = eurozone_Setup::getBgnPaymentId();
+        $paymentSuggestions = cls::get('cond_Payments')->makeArray4Select('title', "#state != 'closed' AND #id != {$nonCashBgnId}");
         if(!countR($paymentSuggestions)) return;
 
         // Добавяне на таблица за избор на безналични плащания

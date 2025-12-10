@@ -612,7 +612,7 @@ class bgerp_Setup extends core_ProtoSetup
         $res .= $this->callMigrate('setNewPortal46194', 'bgerp');
         $res .= $this->callMigrate('removeTestFilters2824', 'bgerp');
 
-        $res .= $this->callMigrate('setNewPortal2547', 'bgerp');
+        $res .= $this->callMigrate('setNewPortal2550', 'bgerp');
 
         core_ProtoSetup::$dbInit = $dbUpdate;
 
@@ -683,7 +683,7 @@ class bgerp_Setup extends core_ProtoSetup
      * Тази миграция се пуска и при нова инсталация. Не трябва да се трие.
      * Трябва да се вика в loadSetupData
      */
-    public function setNewPortal2547()
+    public function setNewPortal2550()
     {
         $Portal = cls::get('bgerp_Portal');
 
@@ -693,9 +693,11 @@ class bgerp_Setup extends core_ProtoSetup
             // Ако драйверите не са добавени
             core_Classes::add($iName);
 
-            $adminsArr = core_Users::getByRole('admin');
-            $ceoArr = core_Users::getByRole('ceo');
-            $allArr = array_unique(array_merge($adminsArr, $ceoArr));
+            $allArr = array();
+            foreach (array('admin', 'ceo', 'acc', 'sales', 'purchase', 'findeals') as $role) {
+                $rArr = core_Users::getByRole($role);
+                $allArr = array_unique(array_merge($rArr, $allArr));
+            }
 
             foreach ($allArr as $uId) {
                 $rec = new stdClass();
@@ -709,6 +711,13 @@ class bgerp_Setup extends core_ProtoSetup
                 $rec->state = 'yes';
 
                 $rec->userOrRole = $uId;
+
+                // Да не се дублират записите
+                if ($Portal->fetch(array("#{$Portal->driverClassField} = '[#1#]' AND #userOrRole = '[#2#]'", $rec->{$Portal->driverClassField}, $rec->userOrRole))) {
+
+                    continue;
+                }
+
                 $Portal->save($rec);
             }
         }
