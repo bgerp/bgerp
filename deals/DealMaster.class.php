@@ -901,7 +901,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $fields = arr::make('amountDelivered,amountToDeliver,amountPaid,amountToPay,amountInvoiced,amountToInvoice', true);
         $fields['-subTitle'] = true;
         $row = $this->recToVerbal($rec, $fields);
-        
+
         $subTitle = tr('Дост:') . " {$row->amountDelivered} ({$row->amountToDeliver})";
         if (!empty($rec->amountPaid)) {
             $subTitle .= ', ' . tr('Плат:') . " {$row->amountPaid} ({$row->amountToPay})";
@@ -1302,34 +1302,34 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->amountToPay = round($rec->amountDelivered - $rec->amountPaid, 2);
             $rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
         }
-        
+
         $actions = type_Set::toArray($rec->contoActions);
         
         foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct') as $amnt) {
             if (round($rec->{"amount{$amnt}"}, 2) == 0) {
-                $coreConf = core_Packs::getConfig('core');
-                $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
-                $row->{"amount{$amnt}"} = '<span class="quiet">0' . $pointSign . '00</span>';
+                $row->{"amount{$amnt}"} = ht::styleNumber($amountType->toVerbal(0), 0);
             } else {
                 if (!empty($rec->currencyRate)) {
                     $value = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
                 } else {
                     $value = round($rec->{"amount{$amnt}"}, 2);
                 }
-                
                 $row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
         }
-        
-        foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct') as $amnt) {
-            if (round($rec->{"amount{$amnt}"}, 2) == 0) {
-                continue;
+
+        if(isset($fields['-subTitle'])){
+            if($rec->currencyId != acc_Periods::getBaseCurrencyCode()) {
+                foreach (array('amountDelivered', 'amountToDeliver', 'amountInvoiced', 'amountToInvoice', 'amountPaid', 'amountToPay') as $fld){
+                    $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $rec->currencyId, true);
+                }
             }
-            
-            $color = (round($rec->{"amount{$amnt}"}, 2) < 0) ? 'red' : 'green';
-            $row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
-        
+
+        foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct') as $amnt) {
+            $row->{"amount{$amnt}"} = ht::styleNumber($row->{"amount{$amnt}"}, round($rec->{"amount{$amnt}"}, 2), 'green');
+        }
+
         // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
         $row->paymentState = $mvc->getVerbal($rec, 'paymentState');
         $row->paymentStateCaption = tr('Чакащо плащане');
