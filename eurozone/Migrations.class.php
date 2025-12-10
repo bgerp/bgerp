@@ -545,7 +545,7 @@ SET
         $html = '';
         foreach (self::$backupClasses as $class){
             $Class = cls::get($class);
-            $Class->copyTable();
+            $Class->copyTable('_backup_eu');
             $html .= "<li>Създаване на копие на: {$Class->className}</li>";
         }
         $errors = array();
@@ -745,7 +745,7 @@ SET
         core_SystemLock::block('Finishing migration...', 10);
         $admins = core_Users::getByRole('admin');
         foreach ($admins as $adminId) {
-            bgerp_Notifications::add('Системата е мигрирана към евро успешно', array(), $adminId, 'critical');
+            bgerp_Notifications::add('Системата е мигрирана към евро успешно', array('Portal', 'show'), $adminId, 'critical');
         }
 
         // Записва се, че системата е вече мигрирана

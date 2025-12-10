@@ -204,7 +204,12 @@ class bgerp_Portal extends embed_Manager
         $cu = core_Users::getCurrent();
         
         $isNarrow = Mode::is('screenMode', 'narrow');
-        
+
+        // Чистене на нотификация ако води към портала директно
+        if(Request::get('status')){
+            bgerp_Notifications::clear(array('Portal', 'show', 'status' => 'ok'));
+        }
+
         if ($isNarrow) {
             $tpl = new ET("
                             <div class='sub-header'>
