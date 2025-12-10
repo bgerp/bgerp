@@ -763,11 +763,12 @@ class price_ListRules extends core_Detail
                 break;
             
             case 'value':
-                $currency = isset($rec->currency) ? $rec->currency : $masterRec->currency;
-                $vat = isset($rec->vat) ? $rec->vat : $masterRec->vat;
+                $currency = $rec->currency ?? $masterRec->currency;
+                $vat = $rec->vat ?? $masterRec->vat;
                 $vat = ($vat == 'yes') ? 'с ДДС' : 'без ДДС';
-                
-                $row->rule = tr("|*{$price} <span class='cCode'>{$currency}</span> |{$vat}|*");
+                $price = currency_Currencies::decorate($price, $currency, true);
+
+                $row->rule = $price . "<small>" . tr(" {$vat}") . "</small>";
                 if(!empty($rec->discount)){
                     $discount = $mvc->getVerbal($rec, 'discount');
                     $row->rule .= "&nbsp;<span style= 'font-weight:normal;' class='small'>(&nbsp;" . tr('TO') . ":&nbsp;{$discount})</span>";
