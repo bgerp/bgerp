@@ -377,4 +377,184 @@ class rack_Ver3Base
             }
         }
     }
+	
+    /**
+     * Връща "предпочитаната" опаковка за редакция на движение.
+     *
+     * Приоритети:
+     *  1) Ако има currentZoneId в заявката -> взимаме packagingId от
+     *     rack_ZoneDetails за този продукт/партида в тази зона.
+     *  2) Иначе: събираме всички зони от движението и избира
+     *     най-малката опаковка (по най-малко базови единици).
+     *
+     * @param stdClass $mRec   Запис от rack_Movements
+     * @return int|null        packagingId или NULL
+     */
+    public static function getPreferredEditPackagingId($mRec)
+    {
+        if (rack_Setup::get('PICKUP_STRATEGY') != 'ver3') {
+            return null;
+        }
+
+        if (!is_object($mRec) || empty($mRec->productId)) {
+            return null;
+        }
+
+        $productId = (int)$mRec->productId;
+        $batch     = isset($mRec->batch) ? (string)$mRec->batch : null;
+
+        /*--------------------------------------------------------------
+         * 1) Опит: конкретна зона от която идва формата (currentZoneId)
+         *------------------------------------------------------------*/
+        $zoneId = Request::get('currentZoneId', 'int');
+
+        if ($zoneId) {
+            $zd = rack_ZoneDetails::getQuery();
+            $zd->where("#zoneId = {$zoneId} AND #productId = {$productId}");
+
+            if ($batch === null || $batch === '') {
+                $zd->where("#batch IS NULL OR #batch = ''");
+            } else {
+                $zd->where(array("#batch = '[#1#]'", $batch));
+            }
+
+            // Само заявки с количество, все пак
+            $zd->where('#documentQuantity IS NOT NULL AND #documentQuantity <> 0');
+            $zd->orderBy('#id', 'DESC');
+			$zd->limit(1);
+			$zd->show('packagingId');
+
+            if ($dRec = $zd->fetch()) {
+                if (!empty($dRec->packagingId)) {
+                    return (int)$dRec->packagingId;
+                }
+            }
+        }
+
+        /*--------------------------------------------------------------
+         * 2) Фолбек: всички зони от комбинираното движение
+         *    -> най-малката опаковка (досегашното поведение)
+         *------------------------------------------------------------*/
+        $zoneIds = array();
+
+        if (!empty($mRec->zoneList)) {
+            $zoneIds = keylist::toArray($mRec->zoneList);
+        }
+
+        if (!count($zoneIds) && !empty($mRec->zones)) {
+            $zObj = @json_decode($mRec->zones);
+            if (is_object($zObj) && isset($zObj->zone) && is_array($zObj->zone)) {
+                foreach ($zObj->zone as $zId) {
+                    $zId = (int)$zId;
+                    if ($zId > 0) {
+                        $zoneIds[$zId] = $zId;
+                    }
+                }
+            }
+        }
+
+        if (!count($zoneIds)) {
+            return null;
+        }
+
+        $q = rack_ZoneDetails::getQuery();
+        $q->in('zoneId', $zoneIds);
+        $q->where("#productId = {$productId}");
+
+        if ($batch === null || $batch === '') {
+            $q->where("#batch IS NULL OR #batch = ''");
+        } else {
+            $q->where(array("#batch = '[#1#]'", $batch));
+        }
+
+        $q->where('#documentQuantity IS NOT NULL AND #documentQuantity <> 0');
+        $q->show('packagingId');
+
+        $packs = array();   // packagingId => qtyPerUnit (към базова мярка)
+
+        while ($dRec = $q->fetch()) {
+            if (empty($dRec->packagingId)) continue;
+            $packs[$dRec->packagingId] = self::qtyPerUnit($productId, $dRec->packagingId);
+        }
+
+        if (!count($packs)) {
+            return null;
+        }
+
+        // Най-малката опаковка = тази с най-малко базови единици
+        asort($packs, SORT_NUMERIC);
+        reset($packs);
+
+        return (int)key($packs);
+    }
+
+    /**
+     * Нормализира запис от rack_Movements за редакция така, че:
+     *  - packagingId да е мярката/опаковката от заявката/документа;
+     *  - packQuantity и количествата по зони да са конвертирани към нея;
+     *  - реалното количество в базова мярка да остане СЪЩОТО.
+     *
+     * ВАЖНО: Работи само върху подадения обект ($mRec) – НЕ записва в БД.
+     *
+     * @param stdClass $mRec  Запис от rack_Movements (по референция!)
+     */
+    public static function normalizeMovementForEdit(&$mRec)
+    {
+        // Само за стратегия ver3
+        if (rack_Setup::get('PICKUP_STRATEGY') != 'ver3') {
+            return;
+        }
+
+        if (!is_object($mRec) || empty($mRec->productId)) {
+            return;
+        }
+
+        // Ако няма никакви зони към движението – няма какво да търсим
+        if (empty($mRec->zoneList) && empty($mRec->zones)) {
+            return;
+        }
+
+        $productId   = (int) $mRec->productId;
+        $oldPackId   = isset($mRec->packagingId) ? (int) $mRec->packagingId : 0;
+        $preferredId = self::getPreferredEditPackagingId($mRec);
+
+        // Няма по-добра опаковка или съвпада със сегашната
+        if (empty($preferredId) || $preferredId == $oldPackId) {
+            return;
+        }
+
+        // Колко базови единици има в 1 брой от старата и новата мярка
+        $oldPer = self::qtyPerUnit($productId, $oldPackId);
+        $newPer = self::qtyPerUnit($productId, $preferredId);
+
+        if ($oldPer <= 0 || $newPer <= 0) {
+            return;
+        }
+
+        // ratio = старите базови / новите базови
+        // базовото количество остава същото:
+        //   qtyBase = packQty_old * oldPer = (packQty_old * ratio) * newPer
+        $ratio = $oldPer / $newPer;
+
+        // Конвертиране на общото количество в опаковки (ако има зададено)
+        if (isset($mRec->packQuantity) && $mRec->packQuantity !== null && $mRec->packQuantity !== '') {
+            $mRec->packQuantity = (double) $mRec->packQuantity * $ratio;
+        }
+
+        // Конвертиране на количествата по зони – работим с JSON като масив
+        if (!empty($mRec->zones)) {
+            $zArr = @json_decode($mRec->zones, true);
+            if (is_array($zArr) && isset($zArr['quantity']) && is_array($zArr['quantity'])) {
+                foreach ($zArr['quantity'] as $idx => $q) {
+                    $q = (double) $q;
+                    $zArr['quantity'][$idx] = $q * $ratio;
+                }
+                $mRec->zones = json_encode($zArr);
+            }
+        }
+
+        // Задаваме новата опаковка – quantityInPack ще се преизчисли
+        // в on_AfterPrepareEditForm на rack_Movements
+        $mRec->packagingId = $preferredId;
+    }
 }
