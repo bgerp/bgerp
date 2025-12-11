@@ -55,6 +55,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         set_time_limit(300);
 
         $rec = $this->class->fetchRec($id);
+        $rec->valior = !empty($rec->valior) ? $rec->valior : dt::today();
+
         $posRec = pos_Points::fetch($rec->pointId);
         $paymentsArr = $productsArr = $totalVat = $entries = $batchesByStores = array();
         core_Debug::startTimer('GET_TRANSACTION');
@@ -122,8 +124,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                 $entries = array_merge($entries, $this->getVatPart($rec, $totalVat, $posRec));
             }
         }
-        
-        $rec->valior = !empty($rec->valior) ? $rec->valior : dt::today();
+
         $transaction = (object) array(
             'reason' => 'Отчет за POS продажба №' . $rec->id,
             'valior' => $rec->valior,
@@ -377,22 +378,32 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
         $nonCashPayments = array();
-        
+
+        $nonCashBgnPaymentId = eurozone_Setup::getBgnPaymentId();
+        $isInBgnUsageDate = ($rec->valior > acc_Setup::getEurozoneDate() && $rec->valior <= acc_Setup::getBgnDeprecationDate());
+
         foreach ($paymentsArr as $payment) {
-            
+
+            $debitCurrencyId = $currencyId;
+            $debitQuantity = $payment->amount;
             if ($payment->value != -1) {
                 $payment->originalAmount = $payment->amount;
                 $payment->amount = cond_Payments::toBaseCurrency($payment->value, $payment->amount, $payment->date);
             }
-            
+
+            if($isInBgnUsageDate && $payment->value == $nonCashBgnPaymentId){
+                $debitCurrencyId = currency_Currencies::getIdByCode('BGN');
+                $debitQuantity = $payment->originalAmount;
+            }
+
             $entries[] = array(
                 'amount' => currency_Currencies::round($payment->amount),
                 
                 'debit' => array(
                     '501', // Сметка "501. Каси"
                     array('cash_Cases', $posRec->caseId),
-                    array('currency_Currencies', $currencyId),
-                    'quantity' => currency_Currencies::round($payment->amount),
+                    array('currency_Currencies', $debitCurrencyId),
+                    'quantity' => currency_Currencies::round($debitQuantity),
                 ),
                 
                 'credit' => array(
@@ -405,9 +416,11 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             );
             
             $this->totalAmount += currency_Currencies::round($payment->amount);
-            
+
             if ($payment->value != -1) {
-                $nonCashPayments[] = $payment;
+                if(!($isInBgnUsageDate && $payment->value == $nonCashBgnPaymentId)) {
+                    $nonCashPayments[] = $payment;
+                }
             }
         }
         

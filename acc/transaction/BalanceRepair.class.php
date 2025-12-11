@@ -103,70 +103,132 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         
         $Items = cls::get('acc_Items');
         $itemsArr = $Items->getCachedItems();
+        $accInfo = acc_Accounts::getAccountInfo($dRec->accountId);
+        $isDimensional = $accInfo->isDimensional;
+        $now = dt::now();
 
         // За всеки запис
         while ($bRec = $bQuery->fetch()) {
-            $continue = true;
-
             $blAmount = $blQuantity = null;
-            
-            // Ако крайното салдо и к-во са в допустимите граници
-            foreach (array('Quantity', 'Amount') as $fld) {
-                if (!empty($dRec->{"bl{$fld}"})) {
-                    $var = &${"bl{$fld}"};
-                    $diff = $bRec->{"bl{$fld}"};
-                    
-                    if ($diff != 0 && $diff >= -1 * $dRec->{"bl{$fld}"} && $diff <= $dRec->{"bl{$fld}"}) {
-                        $var = $diff;
-                        $continue = false;
+
+            $hasQty       = false;   // условието за количество е удовлетворено
+            $hasAmountQty = false;   // условието за сума е удовлетворено
+
+            /* --------- Количество --------- */
+            if ($isDimensional) {
+                if (!empty($dRec->blQuantity)) {
+                    // режим "праг" по количество
+                    $diff = $bRec->blQuantity;
+
+                    // ако е в прага -> условието за количество е изпълнено
+                    if ($diff >= -1 * $dRec->blQuantity && $diff <= $dRec->blQuantity) {
+                        if ($diff != 0) {
+                            // само ако има реална разлика, записваме корекция
+                            $blQuantity = $diff;
+                        }
+                        $hasQty = true;      // 0 също е "ОК" и не блокира
                     }
-                } elseif(!empty($dRec->{"blRound{$fld}"})){
-                    $var = &${"bl{$fld}"};
-                    $diff = round(round($bRec->{"bl{$fld}"}, $dRec->{"blRound{$fld}"}) - $bRec->{"bl{$fld}"}, 10);
-                    if($diff){
-                        $var = $diff;
-                        $continue = false;
+
+                } elseif (!empty($dRec->blRoundQuantity)) {
+                    // режим "закръгляне" по количество
+                    $diff = round(round($bRec->blQuantity, (int)$dRec->blRoundQuantity) - $bRec->blQuantity, 10);
+
+                    if ($diff) {
+                        $blQuantity = $diff;
+                        $hasQty = true;
+                    } else {
+                        // има настройка, но няма разлика -> количеството не е за корекция
+                        // но е "ОК" за AND проверката:
+                        $hasQty = true;
                     }
+                } else {
+                    // няма никаква настройка за количество → не участва в условието (считаме го за "ОК")
+                    $hasQty = true;
                 }
+            } else {
+                // недименсионна сметка – количеството не участва в логиката, считаме го за "ОК"
+                $hasQty = true;
             }
 
 
+            /* --------- Сума --------- */
+            if (!empty($dRec->blAmount)) {
+                // режим "праг" по сума
+                $diff = $bRec->blAmount;
 
+                // ако е в прага → условието за сума е изпълнено (вкл. 0)
+                if ($diff >= -1 * $dRec->blAmount && $diff <= $dRec->blAmount) {
+                    if ($diff != 0) {
+                        // само ако има реална разлика, записваме корекция
+                        $blAmount = $diff;
+                    }
+                    $hasAmountQty = true;
+                }
 
-            // Ако не са продължаваме
-            if ($continue) {
+            } elseif (!empty($dRec->blRoundAmount)) {
+                // режим "закръгляне" по сума
+                $diff = round(round($bRec->blAmount, (int)$dRec->blRoundAmount) - $bRec->blAmount, 10);
+
+                // тук diff е "разликата от закръглянето"
+                if ($diff) {
+                    $blAmount = $diff;
+                }
+                // дори да е 0, сума не трябва да блокира AND-а – просто няма корекция
+                $hasAmountQty = true;
+
+            } else {
+                // няма никаква настройка за сума → не участва в условието (считаме го за "ОК")
+                $hasAmountQty = true;
+            }
+
+            /* --------- Общото условие --------- */
+
+            // 1) Искаме **И** количеството, И сумата да са "ОК" според настройките
+            if (!($hasAmountQty && $hasQty)) {
+                continue;
+            }
+
+            // 2) Ако и по баланс количество, и по баланс сума са 0 – няма какво да поправяме
+            if (round($bRec->blQuantity, 10) == 0 && round($bRec->blAmount, 10) == 0) {
+                continue;
+            }
+
+            // 3) Допълнително – ако не сме натрупали никаква корекция по нито едно от двете
+            if (is_null($blQuantity) && is_null($blAmount)) {
                 continue;
             }
 
             // Ако има поне едно перо
             if (!empty($bRec->ent1Id) || !empty($bRec->ent2Id) || !empty($bRec->ent3Id)) {
+                if($dRec->repairAll != 'yes'){
 
-                // Проверяваме всички пера
-                $continue = true;
+                    // Проверяваме всички пера
+                    $continue = true;
 
-                foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent) {
-                    if (!empty($bRec->{$ent})) {
+                    foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent) {
+                        if (!empty($bRec->{$ent})) {
 
-                        // Ако има поне едно затворено, и то е затворено преди края на периода
-                        if ($itemsArr['items'][$bRec->{$ent}]->state == 'closed') {
-                            $jQuery = acc_JournalDetails::getQuery();
-                            acc_JournalDetails::filterQuery($jQuery, null, dt::now(), $bRec->accountNum, $bRec->{$ent});
-                            $jQuery->XPR('maxValior', 'date', 'MAX(#valior)');
-                            $jQuery->limit(1);
-                            $jQuery->show('maxValior');
-                            $maxValior = $jQuery->fetch()->maxValior;
+                            // Ако има поне едно затворено, и то е затворено преди края на периода
+                            if ($itemsArr['items'][$bRec->{$ent}]->state == 'closed') {
+                                $jQuery = acc_JournalDetails::getQuery();
+                                acc_JournalDetails::filterQuery($jQuery, null, $now, $bRec->accountNum, $bRec->{$ent});
+                                $jQuery->XPR('maxValior', 'date', 'MAX(#valior)');
+                                $jQuery->limit(1);
+                                $jQuery->show('maxValior');
+                                $maxValior = $jQuery->fetch()->maxValior;
 
-                            if($maxValior <= $periodRec->end){
-                                $continue = false;
-                                break;
+                                if($maxValior <= $periodRec->end){
+                                    $continue = false;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
 
-                // Ако всички пера са отворени продължаваме без да правим нищо
-                if ($continue) {
-                    continue;
+                    // Ако всички пера са отворени продължаваме без да правим нищо
+                    if ($continue) {
+                        continue;
+                    }
                 }
             }
 

@@ -166,6 +166,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $form->setField($dateField, "placeholder={$placeholder}");
                 }
             }
+            $mvc->recalcAutoDates[$rec->id] = $rec;
         }
 
         $form->input(null, 'silent');
@@ -231,7 +232,8 @@ class trans_plg_LinesPlugin extends core_Plugin
         if ($form->isSubmitted()) {
             $formRec = $form->rec;
             if (isset($formRec->lineId)) {
-
+                $lineRec = trans_Lines::fetch("#id = {$formRec->lineId}");
+                
                 // Ако има избрана линия, проверка трябва ли задължително да има МОЛ
                 $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
                 if ($firstDocument && $firstDocument->isInstanceOf('deals_DealMaster')) {
@@ -239,6 +241,20 @@ class trans_plg_LinesPlugin extends core_Plugin
                         if (cond_PaymentMethods::isCOD($methodId) && !trans_Lines::fetchField("#id = {$formRec->lineId} AND #forwarderPersonId IS NOT NULL")) {
                             $form->setError('lineId', 'При наложен платеж, избраната линия трябва да има материално отговорно лице|*!');
                         }
+                    }
+                }
+
+                if(cls::haveInterface('store_iface_DocumentIntf', $mvc)) {
+                    $clone = clone $rec;
+                    foreach ($form->rec as $f => $v) {
+                        $clone->{$f} = $v;
+                    }
+                    $lineDateFields = $mvc->getShipmentDateFields($clone);
+                    $deliveryOn = !empty($form->rec->deliveryTime) ? $form->rec->deliveryTime : $lineDateFields['deliveryTime']['placeholder'];
+
+                    if($lineRec->start < $deliveryOn) {
+                        $deliveryOn = dt::mysql2verbal($deliveryOn);
+                        $form->setWarning('lineId', "Началото на линията е преди очакваната дата на товарене|*: {$deliveryOn}!");
                     }
                 }
             }
@@ -288,7 +304,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $mvc->logWrite(static::EDIT_LOG_ACTION, $rec->id);
 
                 // Нотифициране на всички други потребители, редактирали транспорта преди
-                static::notifyTransportEditors($mvc, $rec);
+                self::notifyTransportEditors($mvc, $rec);
 
                 if (!$rec->lineId) {
                     trans_LineDetails::delete("#containerId = {$rec->containerId}");
@@ -339,13 +355,34 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Оставят се само потребителите различни от посочения, които са редактирали транспорта
         unset($editorsArr[$userId]);
+        if(isset($rec->{$mvc->storeFieldName})){
+            $notifyUsers = store_Stores::fetchField($rec->{$mvc->storeFieldName}, 'notifyUsers');
+            if(!empty($notifyUsers)){
+                $editorsArr += keylist::toArray($notifyUsers);
+            }
+        }
+
+        // Ако има споделени потребители в забележките нотифицират се и те
+        if(!empty($rec->lineNotes)){
+            $sharedInNotes = rtac_Plugin::getNicksArr($rec->lineNotes);
+            foreach ($sharedInNotes as $sharedInNoteNick){
+                $sharedUserId = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", strtolower($sharedInNoteNick)), 'id');
+                if(core_Users::isPowerUser($sharedUserId)){
+                    $editorsArr[$sharedUserId] = $sharedUserId;
+                }
+            }
+        }
+
+        if(is_object($lineRec)){
+            doc_ThreadUsers::addShared($lineRec->threadId, $lineRec->containerId, $editorsArr);
+        }
 
         // Изпращане на нотификация, ако все още имат достъп до документа
         foreach ($editorsArr as $editorUserId){
             $url = null;
 
             // Ако документа е към ТЛ и има достъп до нея - линка сочи на там, иначе към сингъла на документа
-            if(is_object($lineRec) && trans_Lines::haveRightFor('single', $lineRec, $editorUserId)){
+            if(is_object($lineRec)){
                 $url = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $handle, 'editTrans' => true);
             } elseif($mvc->haveRightFor('single', $rec->id, $editorUserId)){
                 $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $handle, 'editTrans' => true);
@@ -733,7 +770,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         // Обновяване на линиите
         if (is_array($mvc->syncLineDetails)) {
@@ -926,6 +963,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Извличат се изчислените дати
         $shippedDates = $mvc->getShipmentDateFields($rec);
+
         foreach ($shippedDates as $dateFld => $obj){
 
             // Ако има лайв изчислена записва се в река

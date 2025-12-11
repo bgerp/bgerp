@@ -154,13 +154,13 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $recs = array();
 
         $pQuery = store_Products::getQuery();
-        $pQuery->where("#isPublic = 'yes'");
 
         $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $pQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
 
+        //$pQuery->where("#state != 'closed'");
         $pQuery->where("#isPublic = 'yes'");
 
         //Филтър по групи артикули
@@ -175,7 +175,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
             //Намиране на ниската цена
             //Ако е избрана някаква себестойност
             if ($rec->policyClassId) {
-                $lowPrice = price_ProductCosts::getPrice($pRec->productId, core_Classes::fetch($rec->policyClassId)->name);
+                $lowPrice1 = price_ProductCosts::getPrice($pRec->productId, core_Classes::fetch($rec->policyClassId)->name);
             }
             if ($rec->priceListLow) {
                 $lowPrice = price_ListRules::getPrice($rec->priceListLow, $pRec->productId, null, dt::today());
@@ -195,10 +195,12 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
             $d = ($rec->typePercent == 'up') ? $lowPrice : $hiPrice;
 
-            if ($hiPrice && $lowPrice) {
+            $epsilon = 1e-6; // минимална стойност, различна от нула
+
+            if ($hiPrice && $lowPrice && abs($d) > $epsilon) {
                 $diffPercent = $diffPrice / $d;
             } else {
-                $diffPercent = '';
+                $diffPercent = 0; // или null, или каквото има смисъл
             }
 
             $id = $pRec->productId;

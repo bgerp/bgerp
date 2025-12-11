@@ -355,7 +355,7 @@ class email_Incomings extends core_Master
         // Заключваме тегленето от тази пощенска кутия
         $lockKey = 'Inbox:' . $accRec->id;
         
-        if (!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
+        if (!core_Locks::obtain($lockKey, $maxFetchingTime, 3, 1)) {
             email_Accounts::logWarning('Кутията е заключена от друг процес', $accRec->id, 7);
             
             return;
@@ -826,14 +826,14 @@ class email_Incomings extends core_Master
         if ($imapConn->accRec->protocol == 'imap') {
             $maxUid = core_Permanent::get('IMAP_MAX_UID_' . $imapConn->accRec->id);
             if (!$maxUid) {
-
                 $query = email_Fingerprints::getQuery();
-                $query->XPR('maxUid', 'int', 'max(#uid)');
-                $query->show('maxUid');
+                $query->show('uid');
+                $query->where(array("#accountId = '[#1#]'", $imapConn->accRec->id));
+                $query->orderBy('#uid', 'DESC');
                 $query->limit(1);
-                $maxRec = $query->fetch("#accountId = {$imapConn->accRec->id}");
+                $maxRec = $query->fetch();
 
-                $maxUid = $maxRec->maxUid;
+                $maxUid = $maxRec->uid;
             }
         }
 
@@ -967,6 +967,8 @@ class email_Incomings extends core_Master
         if ($form->rec->accId) {
             $data->query->where(array("#accId= '[#1#]'", $form->rec->accId));
         }
+
+        $data->query->orderBy('id', 'DESC');
     }
     
     
@@ -2598,6 +2600,7 @@ class email_Incomings extends core_Master
         $spamScore = $spamScore + ($spamScore * $tolerance);
         
         if (isset($score) && ($score >= $spamScore)) {
+            $rec->brState = $rec->state;
             $rec->state = 'rejected';
             self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) със СПАМ рейтинг = '{$score}'", $rec->id);
         }
@@ -2616,6 +2619,7 @@ class email_Incomings extends core_Master
                 $fQuery->where('#dangerRate >= 0.001');
                 
                 if ($fQuery->count()) {
+                    $rec->brState = $rec->state;
                     $rec->state = 'rejected';
                     self::logNotice("Автоматично оттеглен имейл ({$rec->subject}) с вирусен файл", $rec->id);
                 }
@@ -3450,7 +3454,19 @@ class email_Incomings extends core_Master
 
             $url = array('email_ServiceRules', 'add', 'docId' => $data->rec->containerId, 'email' => $data->rec->fromEml, 'subject' => $data->rec->subject, 'ret_url' => true);
 
-            $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=2, order=19');
+            $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=3, order=19');
+
+            $url['driverClass'] = email_drivers_BlockBlastEmails::getClassId();
+            $url['fState'] = 'blocked';
+            $data->toolbar->addBtn('Отписване ЦЕ', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило за отписване от циркулярен имейл, row=3, order=19.1');
+
+            $url['driverClass'] = email_drivers_RouteOutgoingEmails::getClassId();
+            $data->toolbar->addBtn('Пренасочване', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило за пренасочване към друг имейл, row=3, order=19.2');
+
+            $url['driverClass'] = email_drivers_CheckEmails::getClassId();
+            $url['rejectAfter'] = 0;
+            $url['subject'] = '';
+            $data->toolbar->addBtn('Блокиране', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило за блокиране на имейлите, row=3, order=19.2');
         }
 
         if (email_AddressesInfo::haveRightFor('powerUser')) {
@@ -3526,7 +3542,7 @@ class email_Incomings extends core_Master
             $content = preg_replace('/\s+/ui', ' ', $content);
 
             // Стрингове за отписване
-            $unsStr = 'Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
+            $unsStr = 'Stop emails|Stop future emails|To stop these messages|stop these messages|Unsubscribe|Opt out|Remove me|Stop receiving these emails|Change email preferences|Manage preferences|Manage subscription|Cancel subscription|Do not contact|Do not email|Update settings|Email settings|Opt-out|Unenroll|Deregister|Deactivate|Email opt-out|Cancelar suscripción|Dejar de recibir correos|Preferencias de correo|No contactar|No enviar correo|Configuración de correo|Se désabonner|Arrêter de recevoir ces emails|Préférences de messagerie|Ne pas contacter|Ne pas envoyer de mail|Paramètres de messagerie|Abmelden|Hören Sie auf|diese E-Mails zu empfangen|E-Mail-Einstellungen|Nicht kontaktieren|Keine Email senden|E-Mail-Präferenzen|Отписване|Отпиши';
             $unsStr = str::utf2ascii($unsStr);
             $unsStr = preg_replace('/\s+/ui', ' ', $unsStr);
 

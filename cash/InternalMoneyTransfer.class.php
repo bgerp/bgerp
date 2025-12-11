@@ -88,8 +88,20 @@ class cash_InternalMoneyTransfer extends core_Master
      * Абревиатура
      */
     public $abbr = 'Cvt';
-    
-    
+
+
+    /**
+     * Детайли
+     */
+    public $details = 'cash_InternalMoneyTransferDetails';
+
+
+    /**
+     * В кои детайли да не се изисква да има запис за активиране
+     */
+    public $ignoreDetailsToCheckWhenTryingToPost = 'cash_InternalMoneyTransferDetails';
+
+
     /**
      * Кой може да пише?
      */
@@ -124,8 +136,14 @@ class cash_InternalMoneyTransfer extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'operationSysId,reason,creditCase,debitBank,debitCase';
-    
-    
+
+
+    /**
+     * Кой може да налива чакащите плащания за инкасиране
+     */
+    public $canCollectnoncashpayments = 'ceo, acc, cash, bank';
+
+
     /**
      * Позволени операции
      */
@@ -177,7 +195,9 @@ class cash_InternalMoneyTransfer extends core_Master
     public function description()
     {
         $this->FLD('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасиране на безналични плащания (Банка),nonecash2case=Инкасиране на безналични плащания (Каса),noncash2noncash=Вътрешна касова обмяна на безналични плащания)', 'caption=Операция,mandatory,silent');
-        $this->FLD('amount', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Сума,mandatory,summary=amount,silent');
+        $this->FLD('amount', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,silent,mandatory');
+        $this->FLD('amountDetails', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Сума (Детайли),input=none');
+
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
         $this->FLD('reason', 'richtext(rows=3)', 'caption=Основание,input,mandatory');
@@ -186,7 +206,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title)', 'caption=От->Безналично плащане,input=none,silent');
         $this->FLD('debitAccId', 'acc_type_Account()', 'caption=Дебит,input=none');
         $this->FLD('debitCase', 'key(mvc=cash_Cases, select=name)', 'caption=Към->Каса,input=none');
-        $this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'caption=Към->Банк. сметка,input=none');
+        $this->FLD('debitBank', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'caption=Към->Банк. сметка,input=none,silent');
         $this->FLD('paymentDebitId', 'key(mvc=cond_Payments, select=title)', 'caption=Към->Безналично плащане,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Контиран,stopped=Спряно, pending=Заявка)','caption=Статус, input=none');
         $this->FLD('sourceId', 'key(mvc=doc_Containers,select=id)', 'input=hidden,silent');
@@ -218,6 +238,12 @@ class cash_InternalMoneyTransfer extends core_Master
                 if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'debitBank')) {
                     $requiredRoles = 'no_one';
                 }
+            }
+        }
+
+        if($action == 'collectnoncashpayments' && isset($rec)) {
+            if($rec->state != 'draft' || $rec->operationSysId != 'nonecash2bank') {
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -273,25 +299,40 @@ class cash_InternalMoneyTransfer extends core_Master
         $form = cls::get('core_Form');
         $form->method = 'GET';
         $form->FNC('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасиране на безналични плащания (Банка),nonecash2case=Инкасиране на безналични плащания (Каса),noncash2noncash=Вътрешна касова обмяна на безналични плащания)', 'input,caption=Операция');
-        $form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка');
+        $form->FNC('folderId', 'key(mvc=doc_Folders,select=title)', 'input=hidden,caption=Папка,silent');
         $form->FNC('linkedHashKey', 'varchar', 'caption=Линк хеш, silent, input=hidden');
         $form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
+        $form->input(null, 'silent');
         $form->title = 'Нов вътрешен касов трансфер';
         $form->toolbar->addSbBtn('Напред', '', 'ef_icon = img/16/move.png, title=Продължете напред');
-        
+
         $retUrl = getRetUrl();
         if (empty($retUrl)) {
             $retUrl = toUrl(array('cash_InternalMoneyTransfer', 'list'));
         }
         
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-        
-        $folderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
-        $folderRec = doc_Folders::fetch($folderId);
-        if (!doc_Folders::haveRightToObject($folderRec)) {
-            $folderId = static::getDefaultFolder(null, false);
+
+        $folderId = null;
+        $cFolderId = $form->rec->folderId;
+        if(isset($cFolderId)){
+            $Cover = doc_Folders::getCover($cFolderId);
+            if($Cover->isInstanceOf('cash_Cases')){
+                if (doc_Folders::haveRightToObject($cFolderId)) {
+                    $folderId = $cFolderId;
+                }
+            }
         }
-        
+
+        if(!isset($folderId)){
+            $cFolderId = cash_Cases::forceCoverAndFolder(cash_Cases::getCurrent());
+            $cFolderRec = doc_Folders::fetch($cFolderId);
+            if (doc_Folders::haveRightToObject($cFolderRec)) {
+                $folderId = $cFolderId;
+            }
+        }
+
+        $folderId = $folderId ?? static::getDefaultFolder(null, false);
         $form->setDefault('folderId', $folderId);
         
         return $form;
@@ -311,35 +352,57 @@ class cash_InternalMoneyTransfer extends core_Master
         } else {
             $operationSysId = $form->rec->operationSysId;
         }
-        
+
+        $Cover = doc_Folders::getCover($form->rec->folderId);
+        if($Cover->isInstanceOf('cash_Cases')){
+            if(bgerp_plg_FLB::canUse($Cover->getInstance(), $Cover->fetch(), null, 'select')){
+                $form->setDefault('creditCase', $Cover->that);
+            }
+        }
+
         switch ($operationSysId) {
             case 'case2case':
                 $form->setField('debitCase', 'input');
                 $form->setDefault('debitCase', cash_Cases::getCurrent());
+
                 break;
             case 'nonecash2case':
                 $form->setField('paymentId', 'input');
+                $form->setFieldTypeParams('paymentId', array('allowEmpty' => 'allowEmpty'));
+                $form->setField('paymentId', 'mandatory');
                 $form->setField('debitCase', 'input');
                 $form->setDefault('debitCase', cash_Cases::getCurrent());
+
                 break;
             case 'case2bank':
-                $form->setField('debitBank', 'input');
+                $form->setField('debitBank', 'input,mandatory');
                 $form->setOptions('debitBank', bank_OwnAccounts::getOwnAccounts());
                 break;
             case 'nonecash2bank':
                 $form->setField('paymentId', 'input');
-                $form->setField('currencyId', 'input=hidden');
-                
-                $form->setField('debitBank', 'input');
+                $form->setFieldTypeParams('paymentId', array('allowEmpty' => 'allowEmpty'));
+                $form->setField('paymentId', 'mandatory');
+                $form->setField('debitBank', 'input,mandatory');
+                $form->input('debitBank', 'silent');
                 $form->setOptions('debitBank', bank_OwnAccounts::getOwnAccounts());
+
+                if(isset($form->rec->id)){
+                    if(cash_InternalMoneyTransferDetails::count("#transferId = '{$form->rec->id}'")){
+                        $form->setReadOnly('creditCase');
+                        $form->setReadOnly('debitBank');
+                        $form->setReadOnly('paymentId');
+                    }
+                }
+
                 break;
             case 'noncash2noncash':
+                $form->setField('amount', 'mandatory');
                 $form->setField('paymentId', 'input');
                 $form->setField('currencyId', 'input=hidden');
                 $form->setField('debitCase', 'input');
                 $form->setField('paymentDebitId', 'input');
                 $form->setDefault('debitCase', cash_Cases::getCurrent());
-                
+
                 break;
         }
         $form->setReadOnly('operationSysId');
@@ -359,8 +422,7 @@ class cash_InternalMoneyTransfer extends core_Master
             $rec->debitAccId = $mvc->allowedOperations[$rec->operationSysId]['debit'];
             $rec->creditAccId = $mvc->allowedOperations[$rec->operationSysId]['credit'];
             
-            // Проверяваме дали валутите на дебитната сметка съвпадат
-            // с тези на кредитната
+            // Проверяваме дали валутите на дебитната сметка съвпадат с тези на кредитната
             $mvc->validateForm($form);
         }
     }
@@ -391,8 +453,7 @@ class cash_InternalMoneyTransfer extends core_Master
             case 'case2case':
                 $caseRec = cash_Cases::fetch($rec->debitCase);
                 if ($caseRec->autoShare == 'yes') {
-                    $rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
-                    $rec->sharedUsers = keylist::removeKey($rec->sharedUsers, core_Users::getCurrent());
+                    $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($caseRec->cashiers, core_Users::getCurrent()));
                 }
                 
                 // Двете Каси трябва да са различни
@@ -403,19 +464,24 @@ class cash_InternalMoneyTransfer extends core_Master
             case 'case2bank':
                 $bankRec = bank_OwnAccounts::fetch($rec->debitBank);
                 if ($bankRec->autoShare == 'yes') {
-                    $rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
+                    $rec->sharedUsers = keylist::merge($rec->sharedUsers, keylist::removeKey($bankRec->operators, core_Users::getCurrent()));
                 }
-                
-                $debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
-                if ($debitInfo->currencyId != $rec->currencyId) {
-                    $form->setError('debitBank', 'Банковата сметка е в друга валута|*!');
+
+                $currencyError = null;
+                if(isset($rec->debitBank)){
+                    if(!bank_OwnAccounts::canAcceptCurrency($rec->debitBank, $rec->valior, $rec->currencyId, $currencyError)){
+                        $form->setError('valior,currencyId,debitBank', $currencyError);
+                    }
                 }
                 break;
             case 'nonecash2bank':
-                $debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
-                if ($debitInfo->currencyId != $rec->currencyId) {
-                    $form->setError('debitBank', 'Банковата сметка е в друга валута|*!');
+                $currencyError = null;
+                if(isset($rec->debitBank)){
+                    if(!bank_OwnAccounts::canAcceptCurrency($rec->debitBank, $rec->valior, $rec->currencyId, $currencyError)){
+                        $form->setError('valior,currencyId,debitBank', $currencyError);
+                    }
                 }
+
                 break;
             case 'noncash2noncash':
                 if ($rec->creditCase == $rec->debitCase && $rec->paymentId == $rec->paymentDebitId) {
@@ -432,7 +498,7 @@ class cash_InternalMoneyTransfer extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->title = $mvc->getLink($rec->id, 0);
-        
+
         if ($fields['-single']) {
             $row->currency = currency_Currencies::getCodeById($rec->currencyId);
             
@@ -444,22 +510,30 @@ class cash_InternalMoneyTransfer extends core_Master
                 $row->equals = $mvc->getFieldType('amount')->toVerbal($equals);
                 $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
             }
-            
-            $row->creditCase = cash_Cases::getHyperLink($rec->creditCase, true);
+
+            if(!empty($rec->amountDetails)){
+                if($rec->operationSysId == 'nonecash2bank'){
+                    if(round($rec->amount, 2) != round($rec->amountDetails, 2)){
+                        $row->amount = ht::createHint($row->amount, "Сумата се различава от сумарното по детайли|*: {$row->amountDetails}", 'warning', false);
+                    }
+                }
+            }
+
+            $row->creditCase = tr('Каса|*: ') . cash_Cases::getHyperLink($rec->creditCase);
             if(isset($rec->paymentId)){
                 $row->creditCase .= " ({$row->paymentId})";
             }
             
             if ($rec->debitCase) {
-                $row->creditCase .= " » " . cash_Cases::getHyperLink($rec->debitCase, true);
-            
+                $row->creditCase .= " <span class='quiet'>»</span> " . tr('Каса|*: ') . cash_Cases::getHyperLink($rec->debitCase);
+
                 if(isset($rec->paymentDebitId)){
                     $row->creditCase .= " ({$row->paymentDebitId})";
                 }
             }
             
             if ($rec->debitBank) {
-                $row->creditCase .= " » " . bank_OwnAccounts::getHyperLink($rec->debitBank, true);
+                $row->creditCase .= " <span class='quiet'>»</span> " . tr('Банкова сметка|*: ') . bank_OwnAccounts::getHyperLink($rec->debitBank);
             }
             
             if(isset($rec->sourceId)){
@@ -515,6 +589,13 @@ class cash_InternalMoneyTransfer extends core_Master
         // Споделяме текущия потребител със нишката на заданието
         $cu = core_Users::getCurrent();
         doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
+
+        if($rec->operationSysId == 'nonecash2bank'){
+            $count = $mvc->syncNotCollectedRecs($rec);
+            if($count){
+                core_Statuses::newStatus("Събрани записи за инкасиране|*: {$count}");
+            }
+        }
     }
 
 
@@ -524,5 +605,120 @@ class cash_InternalMoneyTransfer extends core_Master
     public function getLinkedDocCommentToOrigin_($rec)
     {
         return $this->getVerbal($rec, 'operationSysId');
+    }
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($rec->operationSysId == 'nonecash2bank' && !empty($rec->amountDetails)){
+            if(round($rec->amount, 2) != round($rec->amountDetails, 2)){
+                core_Statuses::newStatus('Въведената сума се различава от очакваната за инкасиране - трябва да се уеднаквят|*!', 'warning');
+
+                return false;
+            }
+        }
+    }
+
+
+    /**
+     * Наливане на всички чакащи плащания за инкасиране
+     */
+    function act_collectnoncashpayments()
+    {
+        $this->requireRightFor('collectnoncashpayments');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = self::fetch($id));
+        $this->requireRightFor('collectnoncashpayments', $rec);
+
+        $count = $this->syncNotCollectedRecs($rec);
+        $msg = $count ? "Добавени нови плащания за инкасиране|*: {$count}" : "Няма нови плащания за инкасиране за тази сметка";
+
+        followRetUrl(null, $msg);
+    }
+
+
+    /**
+     * Кои са чакащите безналични плащания
+     *
+     * @param stdClass $rec
+     * @return int
+     */
+    private function syncNotCollectedRecs($rec)
+    {
+        // Извличане на необратните плащания - чакащи за инкасиране
+        $dQuery = cash_InternalMoneyTransferDetails::getQuery();
+        $dQuery->where("#transferId = {$rec->id}");
+        $alreadyCollected = arr::extractValuesFromArray($dQuery->fetchAll(), 'recId');
+        $notCollected = cash_NonCashPaymentDetails::getNotCollectedRecs($rec->paymentId, $rec->creditCase, $rec->debitBank, $rec->sourceId);
+        $toAdd = array_diff_key($notCollected, $alreadyCollected);
+
+        // Записват се в модела
+        foreach ($toAdd as $nonCashRec) {
+            $dRec = (object) array('transferId' => $rec->id, 'recId' => $nonCashRec->id);
+            cash_InternalMoneyTransferDetails::save($dRec);
+            $nonCashRec->transferredContainerId = $rec->containerId;
+            cash_NonCashPaymentDetails::save($nonCashRec, 'transferredContainerId');
+        }
+
+        return countR($toAdd);
+    }
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = &$data->rec;
+
+        if ($mvc->haveRightFor('collectnoncashpayments', $rec)) {
+            $data->toolbar->addBtn('За инкасиране', array($mvc, 'collectnoncashpayments', 'id' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Добавяне на чакащите за инкасиране плащания,rows=2');
+        }
+    }
+
+
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     *
+     * @return int $id ид-то на обновения запис
+     */
+    public function updateMaster_($id)
+    {
+        $rec = $this->fetchRec($id);
+
+        // Изчисляване на сумата на база събраните плащания за инкасиране
+        $amount = null;
+        $dQuery = cash_InternalMoneyTransferDetails::getQuery();
+        $dQuery->EXT('paymentId', 'cash_NonCashPaymentDetails', 'externalName=paymentId,externalKey=recId');
+        $dQuery->where("#transferId = {$rec->id}");
+        while($dRec = $dQuery->fetch()) {
+            $amount += cond_Payments::toBaseCurrency($dRec->paymentId, $dRec->amount, $rec->valior);
+        }
+        $rec->amountDetails = $amount;
+
+        $this->save($rec, 'amountDetails');
+    }
+
+
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        if($rec->operationSysId == 'nonecash2bank'){
+            cash_InternalMoneyTransferDetails::delete("#transferId = {$rec->id}");
+        }
     }
 }

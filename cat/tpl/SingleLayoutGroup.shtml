@@ -21,7 +21,9 @@
             <!--ET_BEGIN parentId-->
             <div style="margin-bottom:2px"><span class="quiet">|В състава на|*:</span> [#parentId#]</div>
             <!--ET_END parentId-->
-            <div style="margin-bottom:2px"><span class="quiet">|Сортиране по|*:</span> [#orderProductBy#]</div>
+            <div style="margin-bottom:2px"><span class="quiet">|Сортиране в инвентаризация|*:</span> [#orderProductBy#]</div>
+            <div style="margin-bottom:2px"><span class="quiet">|Сортиране в POS|*:</span> [#orderProductByInPos#]</div>
+
             <!--ET_BEGIN defaultOverheadCostsPercent-->
             <div style="margin-bottom:2px"><span class="quiet">|Режийни разходи|*:</span> [#defaultOverheadCostsPercent#]</div>
             <!--ET_END defaultOverheadCostsPercent-->

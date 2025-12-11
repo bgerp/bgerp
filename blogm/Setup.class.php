@@ -42,6 +42,42 @@ defIfNot('BLOGM_TYPE', 'blog');
 
 
 /**
+ *  Показване на "Категории" над списъка с категории
+ */
+defIfNot('BLOGM_SHOW_CATEGORIES_ROOT', 'yes');
+
+
+/**
+ *  Заглавие на страницата с всички статии->Показване
+ */
+defIfNot('BLOGM_SHOW_ALL_ARTICLE_CAPTION', 'yes');
+
+
+/**
+ *  Дължина на краткото описание на статиите в списъка->Минимално
+ */
+defIfNot('BLOGM_ARTICLE_ANNOTATION_MIN_LENGTH', '350');
+
+
+/**
+ *  Дължина на краткото описание на статиите в списъка->Максимално
+ */
+defIfNot('BLOGM_ARTICLE_ANNOTATION_MAX_LENGTH', '450');
+
+
+/**
+ *  Показване винаги разпънати категориите в навигацията->Избор
+ */
+defIfNot('BLOGM_SHOW_EXPANDED_CATEGORIES_IN_NAV', 'no');
+
+
+/**
+ *  До колко пътища в категориите на блог статията да се показват->Брой
+ */
+defIfNot('BLOGM_ARTICLE_NAVIGATION_MAX_PATH', '0');
+
+
+/**
  * class blogm_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -98,9 +134,12 @@ class blogm_Setup extends core_ProtoSetup
         'BLOGM_ARTICLES_PER_PAGE' => array('int', 'caption=Колко статии да се показват на една страница->Брой'),
         'BLOGM_SPAM_WORDS' => array('text', 'caption=Определяне на SPAM рейтинг на коментар->Думи'),
         'BLOGM_ALL_ARTICLES_IN_PAGE_TITLE' => array('varchar', 'caption=Заглавие на страницата с всички статии->Заглавие'),
-
-
-
+        'BLOGM_SHOW_ALL_ARTICLE_CAPTION' => array('enum(yes=Да,no=Не)', 'caption=Заглавие на страницата с всички статии->Показване'),
+        'BLOGM_SHOW_CATEGORIES_ROOT' => array('enum(yes=Да,no=Не)', 'caption=Показване на "Категории" над списъка с категории->Избор'),
+        'BLOGM_ARTICLE_ANNOTATION_MIN_LENGTH' => array('int', 'caption=Дължина на краткото описание на статиите в списъка->Минимално'),
+        'BLOGM_ARTICLE_ANNOTATION_MAX_LENGTH' => array('int', 'caption=Дължина на краткото описание на статиите в списъка->Максимално'),
+        'BLOGM_SHOW_EXPANDED_CATEGORIES_IN_NAV' => array('enum(yes=Да,no=Не)', 'caption=Показване винаги разпънати категориите в навигацията->Избор'),
+        'BLOGM_ARTICLE_NAVIGATION_MAX_PATH' => array('int(min=0)', 'caption=До колко пътища в категориите на блог статията да се показват->Брой'),
     );
     
     

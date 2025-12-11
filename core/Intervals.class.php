@@ -5,36 +5,37 @@
  * В частен случай може да се използва за времеви интервали, представени като 
  * timestamps
  */
-class core_Intervals {
-    
+class core_Intervals
+{
+
     /**
      * Масив с числовите интервали
      */
     private $data = array();
-    
+
     /**
-     * Добавя възможен числов интервеал. Ако началото му или краят му попада в съществуващ интервал - то те се обединяват
+     * Добавя възможен числов интервал. Ако началото му или краят му попада в съществуващ интервал - то те се обединяват
      */
     public function add($begin, $end)
     {
         expect($begin <= $end, $begin, $end);
 
         $new = array($begin, $end);
-        
+
         // Бързо проверяваме дали не трябва да го сложим в края
-        if(!count($this->data) || self::comp1($new, end($this->data)) === 1)  {
+        if (!count($this->data) || self::comp1($new, end($this->data)) === 1) {
             $this->data[] = $new;
 
             return;
         }
- 
+
         // Циклим по всички интервали
         $last = null;
         $first = null;
-        foreach($this->data as $i => $int) {
- 
+        foreach ($this->data as $i => $int) {
+
             $c = self::comp1($new, $int);
-            switch($c) {
+            switch ($c) {
                 case 1: // $new > $int
                     $last = $i;
                     break;
@@ -44,7 +45,7 @@ class core_Intervals {
                 default: // $new overlap $int
                     expect($c === 0);
                     $new = self::getUnion($new, $int);
-             }
+            }
         }
 
         $this->data = $this->combine($last, array($new), $first);
@@ -65,9 +66,9 @@ class core_Intervals {
         $last = null;
         $first = null;
         $add = array();
-        foreach($this->data as $i => $int) {
+        foreach ($this->data as $i => $int) {
             $c = self::comp($new, $int);
-            switch($c) {
+            switch ($c) {
                 case 1: // $new > $int
                     $last = $i;
                     break;
@@ -77,7 +78,7 @@ class core_Intervals {
                 default: // $new overlap $int
                     expect($c === 0, $c);
                     $add = array_merge($add, self::getDiff($int, $new));
-             }
+            }
         }
 
         $this->data = $this->combine($last, $add, $first);
@@ -88,37 +89,37 @@ class core_Intervals {
      * Консумира посоченият интервал, като се среми да използва само интервали между $begin и $end
      * Връща масив с начало на консумацията и края й, или false в случай на неуспех
      *
-     * @param int $duration             - продължителност в секунди
-     * @param int|null $begin           - timestamp на от коя дата или null за без такава
-     * @param int|null$end              - timestamp на до коя дата или null за без такава
+     * @param int $duration - продължителност в секунди
+     * @param int|null $begin - timestamp на от коя дата или null за без такава
+     * @param int|null $end - timestamp на до коя дата или null за без такава
      * @param int|null $interruptOffset - секунди, при прекъсване или null ако няма
      * @return array|false              - масив с начална и крайна дата или false ако не може да се сметне
      * @throws core_exception_Expect
      */
     public function consume($duration, $begin = null, $end = null, $interruptOffset = null)
     {
-        if(isset($begin) && isset($end)) {
+        if (isset($begin) && isset($end)) {
             expect($begin <= $end, $begin, $end);
         }
 
         $last = null;
         $first = null;
         $add = array();
-        foreach($this->data as $i => $int) {
+        foreach ($this->data as $i => $int) {
             // Ако края на интервала е по-малък от началото на разрешеното - пропускаме
-            if(isset($begin) && $begin > $int[1] ) {
+            if (isset($begin) && $begin > $int[1]) {
                 $last = $i;
                 continue;
             }
 
             // Ако началото на интервала е по-голямо от параметъра $end то спираме цикъла
-            if(isset($end) && $end > $int[0] || $duration == 0) {
+            if (isset($end) && $end > $int[0] || $duration == 0) {
                 $first = $i;
                 break;
             }
 
             expect($duration > 0, $duration);
-            
+
             // Масив за консумация, която ще бъде отрязана
             $new = array();
 
@@ -138,7 +139,7 @@ class core_Intervals {
 
         $this->data = $this->combine($last, $add, $first);
 
-        if(isset($min) && isset($max)) {
+        if (isset($min) && isset($max)) {
 
             return array($min, $max);
         }
@@ -156,7 +157,7 @@ class core_Intervals {
         $new = array($begin, $end);
         $sect = array();
 
-        foreach($this->data as $i => $int) {
+        foreach ($this->data as $i => $int) {
             $sect = array_merge($sect, self::getIntersect($new, $int));
         }
 
@@ -164,17 +165,16 @@ class core_Intervals {
     }
 
 
-
     /**
      * Връща интервала, който съдържа входната точка
      */
     public function getByPoint($x)
     {
-        foreach($this->data as $i => $int) {
-           if($x >= $int[0] && $x <= $int[1]) {
+        foreach ($this->data as $i => $int) {
+            if ($x >= $int[0] && $x <= $int[1]) {
 
-               return $int;
-           }
+                return $int;
+            }
         }
 
         return null;
@@ -187,34 +187,32 @@ class core_Intervals {
     public function getTotalSum()
     {
         $sum = 0;
-        foreach($this->data as $i => $int) {
+        foreach ($this->data as $i => $int) {
             $sum += $int[1] - $int[0];
         }
- 
+
         return $sum;
     }
-
-
 
 
     /**
      * Комбинира резултата
      */
-    private function combine($last, $add, $first) 
+    private function combine($last, $add, $first)
     {
         $res = array();
 
         // Добавяме началните интервали, ако има
-        if(is_int($last)) {
-            $res = array_slice($this->data, 0, $last+1); 
+        if (is_int($last)) {
+            $res = array_slice($this->data, 0, $last + 1);
         }
-        
+
         // Добавяме новите интервали
         $res = array_merge($res, $add);
-        
+
         // Добавяме останалите до края интервали
-        if(is_int($first)) {
-            $res = array_merge($res, array_slice($this->data, $first)); 
+        if (is_int($first)) {
+            $res = array_merge($res, array_slice($this->data, $first));
         }
 
         return $res;
@@ -231,20 +229,20 @@ class core_Intervals {
     public static function getDiff($a, $b, $minLength = null)
     {
         $diff = array();
-        if($b[0] > $a[0] && $b[1] < $a[1]) {
-            if(!isset($minLength) || ($b[0] - $a[0]) >= $minLength) {
-                $diff[] = array($a[0], $b[0]-1);
+        if ($b[0] > $a[0] && $b[1] < $a[1]) {
+            if (!isset($minLength) || ($b[0] - $a[0]) >= $minLength) {
+                $diff[] = array($a[0], $b[0] - 1);
             }
-            if(!isset($minLength) || ($a[1] - $b[1]) >= $minLength) {
-                $diff[] = array($b[1]+1, $a[1]);
+            if (!isset($minLength) || ($a[1] - $b[1]) >= $minLength) {
+                $diff[] = array($b[1] + 1, $a[1]);
             }
-        } elseif($b[0] <= $a[0] && $b[1] < $a[1]) {
-            if(!isset($minLength) || ($a[1] - $b[1]) >= $minLength) {
-                $diff[] = array($b[1]+1, $a[1]);
+        } elseif ($b[0] <= $a[0] && $b[1] < $a[1]) {
+            if (!isset($minLength) || ($a[1] - $b[1]) >= $minLength) {
+                $diff[] = array($b[1] + 1, $a[1]);
             }
-        } elseif($b[0] > $a[0] && $b[1] >= $a[1]) {
-            if(!isset($minLength) || ($b[0] - $a[0]) >= $minLength) {
-                $diff[] = array($a[0], $b[0]-1);
+        } elseif ($b[0] > $a[0] && $b[1] >= $a[1]) {
+            if (!isset($minLength) || ($b[0] - $a[0]) >= $minLength) {
+                $diff[] = array($a[0], $b[0] - 1);
             }
         } else {
             expect($b[0] <= $a[0] && $b[1] >= $a[1], $b, $a);
@@ -263,7 +261,7 @@ class core_Intervals {
         $max = max($a[0], $b[0]);
         $min = min($a[1], $b[1]);
 
-        if($max <= $min) {
+        if ($max <= $min) {
             $res[] = array($max, $min);
         }
 
@@ -279,9 +277,9 @@ class core_Intervals {
         $res = array();
         $min = min($a[0], $b[0]);
         $max = max($a[1], $b[1]);
-  
+
         $res = array($min, $max);
-    
+
         return $res;
     }
 
@@ -302,14 +300,14 @@ class core_Intervals {
     {
         return ($b[1] < $a[0] - 1) - ($a[1] < $b[0] + 1);
     }
-    
+
 
     /**
      * Връща масива с интервалите, като преобразува числата към дати, третирайки ги като timestamps
      */
     public function getDates()
     {
-        foreach($this->data as $i => $int) {
+        foreach ($this->data as $i => $int) {
             $res[$i] = array(dt::timestamp2Mysql($int[0]), dt::timestamp2Mysql($int[1]));
         }
 
@@ -345,5 +343,39 @@ class core_Intervals {
         }
 
         return false;
+    }
+
+
+    /**
+     * Дали в подадения интервал има прекъсване в работното време от определен процент
+     *
+     * @param int $beginTs
+     * @param int $endTs
+     * @param double $percent
+     * @return bool
+     */
+    public function haveBreak($beginTs, $endTs, $percent)
+    {
+        if ($endTs <= $beginTs) return false;
+
+        // Какъв е прозореца в секунди
+        $window = $endTs - $beginTs;
+
+        // Какво е сечението на работния график в този прозорец
+        $frames  = $this->getFrame($beginTs, $endTs);
+
+        // В този прозорец колко е очакваното работно време
+        $working = 0;
+        foreach ($frames as $t) {
+            $s = (int)$t[0];
+            $e = (int)$t[1];
+            $working += ($e - $s);
+        }
+
+        // Колко е работното време като % от прозореца
+        $ratio = round($working / $window, 2);
+
+        // Ако е под зададения процент - значи има прекъсване
+        return $ratio < $percent;
     }
 }

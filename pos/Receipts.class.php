@@ -37,7 +37,7 @@ class pos_Receipts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'createdOn, modifiedOn, valior, title=Бележка, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, returnedTotal, createdOn, createdBy, waitingOn, waitingBy';
+    public $listFields = 'createdOn, modifiedOn, valior, title=Бележка, currency=Валута, pointId=Точка, contragentId=Контрагент, productCount, total, paid, change, state, returnedTotal, createdOn, createdBy, waitingOn, waitingBy';
 
 
     /**
@@ -216,6 +216,7 @@ class pos_Receipts extends core_Master
 
         $this->setDbIndex('valior');
         $this->setDbIndex('revertId');
+        $this->setDbIndex('state');
     }
 
 
@@ -335,13 +336,11 @@ class pos_Receipts extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         if (!empty($rec->returnedTotal) && empty($rec->revertId)) {
             $row->returnedTotal = ht::styleIfNegative("-{$row->returnedTotal}", -1 * $rec->returnedTotal);
-            $row->returnedCurrency = $row->currency;
         }
         $row->contragentId = static::getMaskedContragent($rec->contragentClass, $rec->contragentObjectId, $rec->pointId, array('link' => true, 'icon' => true, 'policyId' => $rec->policyId));
-        if (isset($rec->voucherId)) {
+        if (isset($rec->voucherId) && core_Packs::isInstalled('voucher')) {
             $row->voucherId = voucher_Cards::getVerbal($rec->voucherId, 'number');
         }
 
@@ -352,7 +351,6 @@ class pos_Receipts extends core_Master
             $row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
             $row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), true);
             $row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), true);
-            $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
             if ($rec->transferredIn) {
                 $row->transferredIn = sales_Sales::getHyperlink($rec->transferredIn, true);
             }
@@ -376,7 +374,7 @@ class pos_Receipts extends core_Master
                 $row->voucherCaption = tr('Ваучер');
             }
         } else {
-            if (!empty($rec->voucherId)) {
+            if (!empty($rec->voucherId) && core_Packs::isInstalled('voucher')) {
                 $voucherRec = voucher_Cards::fetch($rec->voucherId);
                 if(isset($voucherRec->referrer)){
                     $row->voucherId = ht::createHint($row->voucherId, "Препоръчител|*: " . crm_Persons::getTitleById($voucherRec->referrer));
@@ -384,18 +382,27 @@ class pos_Receipts extends core_Master
             }
         }
 
+        $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         $rec->total = abs($rec->total);
         $row->total = $mvc->getFieldType('change')->toVerbal($rec->total);
         if (!empty($rec->paid)) {
             $row->PAID_CAPTION = (isset($rec->revertId)) ? tr('Върнато') : tr('Платено');
             $rec->paid = abs($rec->paid);
             $row->paid = $mvc->getFieldType('paid')->toVerbal($rec->paid);
-            $row->paidCurrency = $row->currency;
             if (!empty($rec->change)) {
                 $row->CHANGE_CLASS = ($rec->change < 0 || isset($rec->revertId)) ? 'changeNegative' : 'changePositive';
                 $row->CHANGE_CAPTION = ($rec->change < 0 || isset($rec->revertId)) ? tr("За плащане") : tr("Ресто");
                 $row->change = $mvc->getFieldType('change')->toVerbal(abs($rec->change));
-                $row->changeCurrency = $row->currency;
+
+                $row->change = currency_Currencies::decorate($row->change, $row->currency, true);
+
+                if($row->currency == 'EUR' && $rec->change > 0){
+                    Mode::push('text', 'plain');
+                    $bgnChange = deals_Helper::getSmartBaseCurrency(abs($rec->change), $rec->createdOn, '2024-01-01', true);
+                    $bgnVal = $mvc->getFieldType('change')->toVerbal($bgnChange);
+                    $row->change .= "&nbsp;/&nbsp;" . currency_Currencies::decorate($bgnVal, 'BGN', true) . "</small>";
+                    Mode::pop('text');
+                }
             } else {
                 unset($row->change);
             }
@@ -435,6 +442,13 @@ class pos_Receipts extends core_Master
         if (isset($rec->contragentLocationId)) {
             $row->contragentLocationId = crm_Locations::getHyperlink($rec->contragentLocationId);
         }
+
+        $currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+        foreach (array('total', 'paid', 'returnedTotal') as $fld){
+            if(!empty($rec->{$fld}) && $rec->{$fld} > 0) {
+                $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $currencyCode, true);
+            }
+        }
     }
 
 
@@ -449,6 +463,12 @@ class pos_Receipts extends core_Master
 
         if ($mvc->haveRightFor('manualpending', $data->rec)) {
             $data->toolbar->addBtn('Чакащо (Ръчно)', array($mvc, 'manualpending', 'id' => $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/tick-circle-frame.png,warning=Наистина ли желаете ръчно да направите бележката чакаща|*?');
+        }
+
+        if(cash_NonCashPaymentDetails::haveRightFor('list')){
+            if(cash_NonCashPaymentDetails::count("#classId = {$mvc->getClassId()} AND #objectId = {$data->rec->id}")){
+                $data->toolbar->addBtn('Безналични', array('cash_NonCashPaymentDetails', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $data->rec->id), "ef_icon=img/16/bug.png,title=Безналичните плащания към документа,row=2");
+            }
         }
     }
 
@@ -490,7 +510,7 @@ class pos_Receipts extends core_Master
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
 
-            $products[] = (object)array('productId' => $rec->productId,
+            $products[$rec->id] = (object)array('productId' => $rec->productId,
                 'price' => $rec->price / $quantityInPack,
                 'packagingId' => $rec->value,
                 'text' => $rec->text,
@@ -498,6 +518,7 @@ class pos_Receipts extends core_Master
                 'discount' => $rec->discountPercent,
                 'autoDiscount' => $rec->autoDiscount,
                 'batch' => $rec->batch,
+                'id' => $rec->id,
                 'quantity' => $rec->quantity);
         }
 
@@ -595,12 +616,18 @@ class pos_Receipts extends core_Master
         $pQuery = cond_Payments::getQuery();
         $pQuery->where("#state = 'active'");
         $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
+
+        $devices = peripheral_Devices::getDevices('bank_interface_POS', false);
         while ($pRec = $pQuery->fetch()) {
             $paymentName = cond_Payments::getTitleById($pRec->id, false);
             $paymentOptions[$pRec->id] = $paymentName;
             if ($pRec->id == $cardPaymentId) {
-                $paymentOptions["{$pRec->id}|card"] = "{$paymentName} [Потв.]";
-                $paymentOptions["{$pRec->id}|manual"] = "{$paymentName} [Ръчно потв.]";
+                $paymentOptions["{$pRec->id}|card|"] = "Карта [Потв.]";
+                $paymentOptions["{$pRec->id}|manual|"] = "Карта [Ръчно потв.]";
+                foreach ($devices as $deviceRec) {
+                    $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
+                    $paymentOptions["{$pRec->id}||{$deviceRec->id}"] = "{$deviceName}";
+                }
             }
         }
         $data->listFilter->FLD('payment', 'varchar', 'caption=Плащане');
@@ -629,8 +656,15 @@ class pos_Receipts extends core_Master
                     if (is_numeric($filter->payment)) {
                         $dQuery->where("#action = 'payment|{$filter->payment}'");
                     } else {
-                        list($paymentId, $paymentParam) = explode('|', $filter->payment);
-                        $dQuery->where("#action = 'payment|{$paymentId}' AND #param = '{$paymentParam}'");
+                        list($paymentId, $paymentParam, $deviceId) = explode('|', $filter->payment);
+                        $dQuery->where("#action = 'payment|{$paymentId}'");
+                        if(!empty($paymentParam)){
+                            $dQuery->where("#param = '{$paymentParam}'");
+                        }
+
+                        if(!empty($deviceId)){
+                            $dQuery->where("#deviceId = '{$deviceId}'");
+                        }
                     }
                     $dQuery->in("receiptId", $foundIds);
                     $dQuery->show('receiptId');
@@ -793,7 +827,7 @@ class pos_Receipts extends core_Master
         // Подготвяме масива с данните на новата продажба, подаваме склада и касата на точката
         $posRec = pos_Points::fetch($rec->pointId);
         $settings = pos_Points::getSettings($rec->pointId);
-        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id, 'deliveryLocationId' => $rec->contragentLocationId);
+        $fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId, 'receiptId' => $rec->id, 'deliveryLocationId' => $rec->contragentLocationId, 'valior' => $rec->waitingOn);
         $fields['vatExceptionId'] = $settings->vatExceptionId;
         $hasVoucher = isset($rec->voucherId) && core_Packs::isInstalled('voucher');
 
@@ -803,24 +837,25 @@ class pos_Receipts extends core_Master
             $fields['note'] = tr("Ваучер") . ": *{$endVoucher}";
         }
 
+        // Намираме продуктите на бележката (трябва да има поне един)
+        $products = $this->getProducts($rec->id);
+
         // Опитваме се да създадем чернова на нова продажба породена от бележката
         if ($sId = sales_Sales::createNewDraft($contragentClassId, $contragentId, $fields)) {
             if($hasVoucher){
                 voucher_Cards::mark($rec->voucherId, true, sales_Sales::getClassId(), $sId);
             }
+
             sales_Sales::logWrite('Прехвърлена от POS продажба', $sId);
 
-            // Намираме продуктите на бележката (трябва да има поне един)
-            $products = $this->getProducts($rec->id);
-
             // Всеки продукт се прехвърля едно към 1
-            foreach ($products as $product) {
+            foreach ($products as &$product) {
                 if ($product->discount < 0) {
                     $product->price *= (1 + abs($product->discount));
                     $product->discount = null;
                 }
 
-                sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text, $product->batch, $product->autoDiscount);
+                $product->transferedIn = sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount, null, null, $product->text, $product->batch, $product->autoDiscount);
             }
         }
 
@@ -831,6 +866,14 @@ class pos_Receipts extends core_Master
 
         $this->save($rec);
         $this->logInAct('Прехвърляне на бележка', $rec->id);
+
+        // Освобождават се запазените количества при прехвърляне
+        store_StockPlanning::updateByDocument($this, $rec->id);
+
+        if(countR($products)){
+            cls::get('pos_ReceiptDetails')->saveArray($products, 'id,transferedIn');
+        }
+
         if ($exState == 'draft') {
             Mode::push('calcAutoDiscounts', false);
             cls::get('sales_Sales')->flushUpdateQueue($sId);
@@ -848,8 +891,9 @@ class pos_Receipts extends core_Master
             sales_Sales::save($saleRec);
             sales_Sales::conto($saleRec->id);
             if($exState == 'closed'){
+                $saleRec->doTransaction = 'no';
                 $saleRec->contoActions = 'activate,pay,ship';
-                cls::get('sales_Sales')->save($saleRec, 'contoActions');
+                cls::get('sales_Sales')->save($saleRec, 'contoActions,doTransaction');
             }
 
             Mode::push('calcAutoDiscounts', false);
@@ -881,12 +925,15 @@ class pos_Receipts extends core_Master
      */
     public static function checkQuantity($rec, &$error, &$warning = null)
     {
-        // Ако е забранено продаването на неналични артикули да се проверява
-        $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
-        if ($notInStockChosen == 'yes') {
+        // Ако артикулът не е складируем няма какво да му се проверява
+        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if($canStore != 'yes') return true;
 
-            return true;
-        }
+        // Ако е забранено продаването на неналични артикули да се проверява
+        if (store_Setup::canDoShippingWhenStockIsNegative()) return true;
+
+        $instantBomRec = cat_Products::getLastActiveBom($rec->productId, 'instant');
+        if(is_object($instantBomRec)) return true;
 
         $today = dt::today();
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
@@ -917,39 +964,38 @@ class pos_Receipts extends core_Master
             }
         }
 
-        $originalQuantityInStock = $quantityInStock;
         $originalFreeQuantityNow = $freeQuantityNow;
         $originalFreeQuantity = $freeQuantity;
 
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
-        $quantityInStock -= round($rec->quantity * $quantityInPack, 2);
-        $freeQuantity -= round($rec->quantity * $quantityInPack, 2);
-        $freeQuantityNow -= round($rec->quantity * $quantityInPack, 2);
+        $freeQuantity -= round($rec->quantity * $quantityInPack, 3);
+        $freeQuantityNow -= round($rec->quantity * $quantityInPack, 3);
 
-        $freeQuantityNow = round($freeQuantityNow, 2);
-        $freeQuantity = round($freeQuantity, 2);
-        $quantityInStock = round($quantityInStock, 2);
-        $Double = core_Type::getByName('double(decimals=2)');
+        $freeQuantityNow = round($freeQuantityNow, 3);
+        $freeQuantity = round($freeQuantity, 3);
+        $Double = core_Type::getByName('double(smartRound)');
         $pName = cat_Products::getTitleById($rec->productId);
 
-        if ($quantityInStock < 0) {
-            $originalQuantityInStockVerbal = $Double->toVerbal($originalQuantityInStock);
-            $error = "|* {$pName}: |Количеството не е налично в склад|*: " . store_Stores::getTitleById($rec->storeId);
-            $error .= ". |Налично в момента|* {$originalQuantityInStockVerbal}";
+        if ($freeQuantity < 0) {
+            $originalQuantity = $originalFreeQuantity / $quantityInPack;
+
+            // ако мин разп е под 1 но е над 0 да се изпише цялото
+            if($originalQuantity > 0 && $originalQuantity <= 1){
+                $rec->quantity = $originalQuantity;
+                return true;
+            }
+
+            $originalFreeQuantityVerbal = $Double->toVerbal($originalQuantity);
+            $error = "|* {$pName}: Количеството e над минималното разполагаемото|* <b>{$originalFreeQuantityVerbal}</b> |в склад|*: " . store_Stores::getTitleById($rec->storeId);
 
             return false;
         }
 
         if ($freeQuantityNow < 0) {
             $originalFreeQuantityNowVerbal = $Double->toVerbal($originalFreeQuantityNow);
-            $warning = "|* {$pName}: Количеството e над разполагаемото|* {$originalFreeQuantityNowVerbal} |днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
+            $warning = "|* {$pName}: Количеството e над разполагаемото|* <b>{$originalFreeQuantityNowVerbal}</b> |днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
 
             return true;
-        }
-
-        if ($freeQuantity < 0) {
-            $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity);
-            $warning = "|* {$pName}: Количеството e над минималното разполагаемото|* {$originalFreeQuantityVerbal} |в склад|*: " . store_Stores::getTitleById($rec->storeId);
         }
 
         return true;
@@ -996,6 +1042,12 @@ class pos_Receipts extends core_Master
 
         $this->markAsWaiting($rec);
 
+        $autoDiscCacheKey = core_Permanent::get("autoDiscCache|{$this->className}|{$rec->id}");
+        if(!empty($autoDiscCacheKey)){
+            core_Cache::remove($this->className, $autoDiscCacheKey);
+        }
+        core_Permanent::remove("autoDiscCache|{$this->className}|{$rec->id}");
+
         // Създаване на нова чернова бележка
         return new Redirect(array($this, 'new'));
     }
@@ -1039,6 +1091,23 @@ class pos_Receipts extends core_Master
             cls::get('pos_ReceiptDetails')->saveArray($dRecs, 'id,discountPercent,inputDiscount');
             $this->logInAct('Приключване на бележка', $rec->id);
 
+            // Записване и на безналичните плащания в другия модел регистър
+            $nonCashPayments = array();
+            $dQuery = $Details->getQuery();
+            $dQuery->where("#receiptId = {$rec->id} AND #action  LIKE '%payment%'");
+            while ($dRec = $dQuery->fetch()) {
+                list(, $paymentId) = explode('|', $dRec->action);
+                if($paymentId > 0){
+                    $key = "{$paymentId}|{$dRec->deviceId}|{$dRec->param}";
+                    if(!array_key_exists($key, $nonCashPayments)){
+                        $nonCashPayments[$key] = (object)array('classId' => $this->getClassId(), 'objectId' => $rec->id, 'paymentId' => $paymentId, 'amount' => 0, 'deviceId' => $dRec->deviceId, 'param' => $dRec->param);
+                    }
+                    $nonCashPayments[$key]->amount += $dRec->amount;
+                }
+            }
+
+            cls::get('cash_NonCashPaymentDetails')->saveArray($nonCashPayments);
+
             // Нотифициране на драйвера на артикулите, че той е включен в чакаща бележка
             $Products = cls::get('cat_Products');
             foreach ($dRecs as $dRec1) {
@@ -1046,7 +1115,7 @@ class pos_Receipts extends core_Master
                 $Driver->invoke('AfterDocumentInWhichIsUsedHasChangedState', array($Products, $dRec1->productId, $this, $rec->id, $Details, $dRec1->id, 'waiting'));
             }
 
-            if(isset($rec->voucherId)){
+            if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
 
                 // Ако е сторно ваучерът се освобождава, ако не е се маркира като използван
                 if(isset($rec->revertId)){
@@ -1118,7 +1187,6 @@ class pos_Receipts extends core_Master
             }
 
             $data->rows[$rec->id]->total = ht::styleNumber($data->rows[$rec->id]->total, $rec->total);
-            $data->rows[$rec->id]->total .= " <span class='cCode'>{$baseCurrencyCode}</span>";
             $data->rows[$rec->id]->num = $num;
         }
     }
@@ -1620,12 +1688,17 @@ class pos_Receipts extends core_Master
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
 
+        $res = array();
+
+        // Ако бележката е прехвърлена няма да запазва нищо
+        if(!empty($rec->transferredIn)) return $res;
+
         $dQuery = pos_ReceiptDetails::getQuery();
         $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
         $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
 
-        $res = array();
+
         while($dRec = $dQuery->fetch()){
             $packRec = cat_products_Packagings::getPack($dRec->productId, $dRec->value);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
@@ -1660,12 +1733,13 @@ class pos_Receipts extends core_Master
      *
      * @param int $productId
      * @param int $pointId
+     * @param bool $checkFreeQuantity
      * @return double
      */
-    public static function getBiggestQuantity($productId, $pointId)
+    public static function getBiggestQuantity($productId, $pointId, $checkFreeQuantity = false)
     {
         $stores = pos_Points::getStores($pointId);
-        $storeArr = store_Products::getQuantitiesByStore($productId, null, $stores);
+        $storeArr = store_Products::getQuantitiesByStore($productId, null, $stores, $checkFreeQuantity);
         arsort($storeArr);
 
         return $storeArr[key($storeArr)];

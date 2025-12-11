@@ -329,8 +329,9 @@ class eshop_Groups extends core_Master
         cms_Content::setCurrent($data->menuId);
 
         $layout = $this->getLayout();
-       
-        if (($q = Request::get('q')) && $menuId > 0) {
+ 
+        if (($q = Request::get('q', 'varchar')) && $menuId > 0) {
+ 
             $layout->replace(cms_Content::renderSearchResults($menuId, $q), 'PAGE_CONTENT');
             
             vislog_History::add("Търсене в продуктите: {$q}");
@@ -438,6 +439,7 @@ class eshop_Groups extends core_Master
 
         $this->prepareGroup($data);
         $this->prepareNavigation($data);
+
         plg_AlignDecimals2::alignDecimals(cls::get('eshop_Products'), $data->products->recs, $data->products->rows);
         
         $layout = $this->getLayout();
@@ -678,23 +680,27 @@ class eshop_Groups extends core_Master
             $groupId = $data->groupId;
         }
 
-        if ($groupId && $groupId > 0) {
-            $fRec = self::fetch($groupId);
-            
-            $parentGroupsArr = array($fRec->id);
-            
-            $sisCond = '';
-            if ($fRec->saoParentId) {
-                $sisCond = " OR #saoParentId = {$fRec->saoParentId} ";
+
+        $showAll = eshop_Setup::get('SHOW_EXPANDED_GROUPS_IN_NAV') == 'yes';
+        if(!$showAll){
+            if ($groupId && $groupId > 0) {
+                $fRec = self::fetch($groupId);
+
+                $parentGroupsArr = array($fRec->id);
+
+                $sisCond = '';
+                if ($fRec->saoParentId) {
+                    $sisCond = " OR #saoParentId = {$fRec->saoParentId} ";
+                }
+                while ($fRec->saoLevel > 1) {
+                    $parentGroupsArr[] = $fRec->id;
+                    $fRec = self::fetch($fRec->saoParentId);
+                }
+                $parentGroupsList = implode(',', $parentGroupsArr);
+                $query->where("#id IN ({$parentGroupsList}) OR #saoParentId IN ({$parentGroupsList}) {$sisCond} OR #saoLevel <= 1");
+            } else {
+                $query->where('#saoLevel <= 1');
             }
-            while ($fRec->saoLevel > 1) {
-                $parentGroupsArr[] = $fRec->id;
-                $fRec = self::fetch($fRec->saoParentId);
-            }
-            $parentGroupsList = implode(',', $parentGroupsArr);
-            $query->where("#id IN ({$parentGroupsList}) OR #saoParentId IN ({$parentGroupsList}) {$sisCond} OR #saoLevel <= 1");
-        } else {
-            $query->where('#saoLevel <= 1');
         }
         
         $query->where("#menuId = '{$menuId}' OR LOCATE('|{$menuId}|', #sharedMenus)");

@@ -223,6 +223,7 @@ class label_CsvFileProxy extends label_ProtoSequencerImpl
         $rows = $columnNames = array();
         if($ext == 'csv'){
             $fileData = fileman_Files::extractStr($fileRec->fileHnd);
+            $fileData = i18n_Charset::convertToUtf8($fileData);
             $rows = csv_Lib::getCsvRows($fileData);
             $columnNames = csv_Lib::getCsvColNames($fileData);
         }

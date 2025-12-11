@@ -46,13 +46,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
     /**
      * По-кое поле да се групират листовите данни
      */
+   // protected $groupByField = 'assetResources';
     protected $groupByField ;
 
 
     /**
      * По-кое поле да се групират данните след групиране, вътре в групата
      */
-    protected $subGroupFieldOrder;
+    //protected $subGroupFieldOrder = 'productId';
+    protected $subGroupFieldOrder ;
 
 
     /**
@@ -88,12 +90,18 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $fieldset->FLD('to', 'datetime', 'caption=До,after=start,single=none,mandatory');
 
         $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Центрове,after=to,single=none');
+
         $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources)', 'caption=Машини,placeholder=Всички,after=centre,single=none,input=none');
+
         $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none,input=none');
 
-        $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=employees,mandatory,removeAndRefreshForm,single=none');
+        //$fieldset->FLD('group', 'key2(mvc=cat_Groups,select=name)', 'caption=Филтри->Група артикули,placeholder=Всички,after=employees,removeAndRefreshForm=productId,silent,single=none');
 
-        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,removeAndRefreshForm,after=typeOfReport,single=none');
+        $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Настройки и филтри->Тип на отчета,after=employees,mandatory,removeAndRefreshForm,single=none');
+
+        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Настройки и филтри->Разбивка по,removeAndRefreshForm,after=typeOfReport,single=none');
+
+        $fieldset->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Настройки и филтри->Артикули,placeholder=Всички,silent,after=resultsOn,single=none,class=w100');
 
         $fieldset->FNC('indTimeSumArr', 'blob', 'caption=Времена,input=none,single=none');
     }
@@ -119,6 +127,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
         if ($rec->typeOfReport == 'short') {
             $form->setField('resultsOn', 'input=none');
         }
+
+        //Зарежда полето артикули
+       // $form->setFieldTypeParams('productId', array('isPublic' => 'yes'));
 
     }
 
@@ -164,6 +175,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $query->EXT('originId', 'planning_Tasks', array('onCond' => "#planning_Tasks.id = #planning_ProductionTaskDetails.taskId", 'join' => 'INNER', 'externalName' => 'originId'));
         $query->where("#state != 'rejected' ");
 
+
+        // Синхронизира таймлимита с броя записи //
+        $query1 = $pDetails->getQuery();
+        $maxTimeLimit = $query1->count() * 20;
+        $maxTimeLimit = max(array($maxTimeLimit, 300));
+        if ($maxTimeLimit > 300) {
+            core_App::setTimeLimit($maxTimeLimit);
+        }
+
         //Филтър по център на дейност
         if ($rec->centre) {
 
@@ -172,6 +192,16 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $cQuery->show('folderId');
             $centFoldersArr = arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
             $query->in('folderId', $centFoldersArr);
+        }
+
+        //Филтър по групи артикули
+        if (isset($rec->group)) {
+           // plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $rec->group, 'productId');
+        }
+
+        //Филтър по артикул
+        if (isset($rec->productId)) {
+            $query->where("#productId = {$rec->productId} ");
         }
 
         //Филтър по служители
@@ -232,6 +262,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $taskArr = $taskQuery->fetchAll();
         }
 
+        //Масив с имена на служителите за използване в цикъла
+        $emplQuery =  crm_Persons::getQuery();
+        $allEmplArr = array();
+        while ($eplRec  = $emplQuery->fetch()) {
+            $allEmplArr[$eplRec->id] = $eplRec->name;
+        }
+
         foreach ($taskDetails as $tRec) {
             $id = self::breakdownBy($tRec, $rec);
 
@@ -255,7 +292,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $quantityInPack = 1;
                 if (isset($iRec->indPackagingId)) {
                     if ($packRec = cat_products_Packagings::getPack($tRec->productId, $iRec->indPackagingId)) {
-
                         $quantityInPack = $packRec->quantity;
                     }
 
@@ -277,7 +313,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $labelQuantity = 1 / $divisor;
 
                     $employees = $val;
-                    $employeesName = crm_Persons::getTitleById($val);
+                    $employeesName = $allEmplArr[$val];
                 }
 
                 if ($divisor) {
@@ -523,7 +559,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $fld->FLD('jobs', 'varchar', 'caption=Задание');
                 $fld->FLD('taskId', 'varchar', 'caption=Операция');
-                $fld->FLD('article', 'varchar', 'caption=Артикул');
+                $fld->FLD('productId', 'varchar', 'caption=Етап');
 
                 $fld->FLD('measureId', 'varchar', 'caption=Произведено->Мярка,tdClass=centered');
                 $fld->FLD('quantity', 'double(decimals=2)', 'caption=Произведено->Кол');
@@ -564,7 +600,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $fld->FLD('jobs', 'varchar', 'caption=Задание');
                 $fld->FLD('taskId', 'varchar', 'caption=Операция');
-                $fld->FLD('article', 'varchar', 'caption=Артикул');
+                $fld->FLD('productId', 'varchar', 'caption=Етап');
 
                 $fld->FLD('measureId', 'varchar', 'caption=Произведено->Мярка,tdClass=centered');
                 $fld->FLD('quantity', 'double(decimals=2)', 'caption=Произведено->Кол');
@@ -634,7 +670,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $row->taskId = '№'.$dRec->saoOrder.' / '. planning_Tasks::getHyperlink($dRec->taskId, true);
         }
 
-        $row->article = cat_Products::getHyperlink($dRec->productId, true);
+        $row->productId = cat_Products::getHyperlink($dRec->productId, true);
 
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
         $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
@@ -649,7 +685,18 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row->weight = ht::styleNumber($row->weight, $dRec->weight);
 
         if ($rec->typeOfReport == 'short' && isset($dRec->employees)) {
-            $row->employees = crm_Persons::getTitleById(($dRec->employees)) . ' - ' . planning_Hr::getCodeLink($dRec->employees);
+
+            if (isset($dRec->employees)) {
+                foreach (keylist::toArray($dRec->employees) as $key => $val) {
+
+                    $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val]);
+
+                    $name = crm_Persons::fetch($val)->name.' / '.planning_Hr::getCodeLink($val);
+                    $pers = ht::createLink($name, array('crm_Persons', 'single', $val)) . ' - ' . $indTimeSum . ' мин.';
+
+                    $row->employees .= $pers . '</br>';
+                }
+            }
 
             $row->indTimeSum = $Double->toVerbal($dRec->indTimeSum / 60);
         } else {
@@ -843,7 +890,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
         if(!$dRec->total) {
             $res->taskId = planning_Tasks::getTitleById($dRec->taskId);
-            $res->article = cat_Products::getTitleById($dRec->productId);
+            $res->productId = cat_Products::getTitleById($dRec->productId);
             $res->measureId = cat_UoM::getShortName($dRec->measureId);
         }
         if (isset($dRec->employees)) {
@@ -1023,6 +1070,58 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
         return $form->renderHtml();
     }
+
+//    /**
+//     * Групиране и сортиране на резултатите по поле
+//     *
+//     * @param array $recs
+//     * @param string $groupField
+//     * @param string|null $sortFld
+//     * @param string|null $sortDirection
+//     * @param string|null $subGroupFieldOrder
+//     *
+//     * @return array $newRecs
+//     */
+//    protected function orderByGroupField($recs, $groupField, $sortFld = null, $sortDirection = null,$subGroupFieldOrder)
+//    {
+//        $newRecs = array();
+//
+//        if ($recs) {
+//            $timeLimit = countR($recs) * 0.05;
+//
+//            if ($timeLimit >= 30) {
+//                core_App::setTimeLimit($timeLimit);
+//            }
+//        }
+//
+//        foreach ($recs as $i => $r) {
+//
+//            // Извличане на тези записи от със същата стойност за групиране
+//            $groupedArr = array($i => $r);
+//            $subArr = array_filter($recs, function ($a) use ($r, $groupField) {
+//                return ($a->{$groupField} == $r->{$groupField});
+//            });
+//
+//
+//
+//            // Сортират се допълнително ако е указано
+//            $groupedArr += $subArr;
+////bp($groupedArr);
+//            frame2_driver_TableData::sortRecsByDirection($groupedArr, $sortFld, $sortDirection);
+//
+//            // Сортира се вътре във всяка група по втори показател $subGroupFieldOrder ако не е null
+//            if ($groupField && $subGroupFieldOrder){
+//                unset($groupedArr[0]);
+//                arr::sortObjects($groupedArr, $subGroupFieldOrder, 'asc');
+//
+//
+//            }
+//
+//            $newRecs += $groupedArr;
+//        }
+//
+//        return $newRecs;
+//    }
 
 
 }

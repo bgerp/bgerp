@@ -376,7 +376,7 @@ class crm_Locations extends core_Master
         if (isset($fields['-single'])) {
             if (isset($rec->image)) {
                 $Fancybox = cls::get('fancybox_Fancybox');
-                $row->image = $Fancybox->getImage($rec->image, array(188, 188), array(580, 580));
+                $row->image = $Fancybox->getImage($rec->image, array(188, 188), array(1200, 800));
             }
             
             if (!$rec->gpsCoords) {
@@ -633,7 +633,7 @@ class crm_Locations extends core_Master
         
         $recs = array();
         while ($rec = $query->fetch()) {
-            if(isset($onlyWithRoutesInNextNdays) && !countR(sales_Routes::getRouteOptions($rec->id, $onlyWithRoutesInNextNdays))) continue;
+            if(isset($onlyWithRoutesInNextNdays) && !countR(sales_Routes::getRouteOptions($rec->id, $onlyWithRoutesInNextNdays, 'delivery'))) continue;
             
             $recs[$rec->id] = $rec;
         }
@@ -813,7 +813,7 @@ class crm_Locations extends core_Master
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         if (!empty($mvc->updatedRecs)) {
             foreach ((array) $mvc->updatedRecs as $id => $rec) {

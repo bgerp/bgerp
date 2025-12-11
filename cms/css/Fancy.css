@@ -40,6 +40,7 @@ html, body {
     height: 220px;
     margin: 0 auto;
     position: relative;
+    overflow: hidden;
 }
 
 .formTable .formTitle a {
@@ -150,6 +151,13 @@ html, body {
  .narrow .footer-links {
      margin-top: 4px;
  }
+
+.narrow .footer-links, .narrow .footer-links a {
+    color: #180f47 !important;
+    &:hover {
+        color: #231669 !important
+    }
+}
 @media handheld, only screen and (min-width: 1800px) {
     .centerContent {
         width: 1400px !important;
@@ -179,6 +187,9 @@ html, body {
     }
     .wide .app-subtitle {
         font-size: 1.1em;
+    }
+    .wide  .headerImg{
+        text-align: center;
     }
 }
 @media handheld, only screen and (max-width: 600px) {
@@ -241,6 +252,16 @@ header img {
     width: 1200px;
     margin: 0 auto;
 }
+.narrow .externalPage .narrowCenter a {
+    display: flex;
+    max-width: 100%;
+    align-content: center;
+    justify-content: center;
+    overflow-x: hidden;
+}
+
+
+
 .wide .socialBtns {
     top: -6px;
 }
@@ -269,6 +290,9 @@ header img {
         height: auto !important;
         position: relative;
         display: block;
+    }
+    .wide .narrowCenter {
+        height: auto !important;
     }
     .wide .fadein {
         display: block;

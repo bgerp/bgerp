@@ -221,7 +221,7 @@ class acc_Journal extends core_Master
         if ($rec->state == 'active') {
             $dQuery = acc_JournalDetails::getQuery();
             $dQuery->where("#journalId = {$rec->id}");
-            
+
             while ($dRec = $dQuery->fetch()) {
                 foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $item) {
                     if (isset($dRec->{$item})) {
@@ -230,10 +230,32 @@ class acc_Journal extends core_Master
                     }
                 }
             }
+
+            $mvc->logItemThreads();
         }
     }
-    
-    
+
+
+    /**
+     * Локване на нишките на заопашените за обновяване пера
+     * @return void
+     */
+    public function logItemThreads()
+    {
+        if(!countR($this->affectedItems)) return;
+        $iQuery = acc_Items::getQuery();
+        $iQuery->in('id', $this->affectedItems);
+
+        while ($iRec = $iQuery->fetch()) {
+            $objectRec = cls::get($iRec->classId)->fetch($iRec->objectId);
+            if(isset($objectRec->threadId)){
+                $lockKey = "doc_Threads_Update_Item_{$objectRec->threadId}_" . core_Users::getCurrent();
+                core_Locks::obtain($lockKey, 15, 0, 0, false);
+            }
+        }
+    }
+
+
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
@@ -657,9 +679,16 @@ class acc_Journal extends core_Master
             // Увеличаваме времето за изпълнение според броя афектирани пера
             $timeLimit = countR($mvc->affectedItems) * 10;
             core_App::setTimeLimit($timeLimit);
-            
+
             foreach ($mvc->affectedItems as $rec) {
+                $rec = acc_Items::fetchRec($rec);
+                $objectRec = cls::get($rec->classId)->fetch($rec->objectId);
+
                 acc_Items::notifyObject($rec);
+                if(isset($objectRec->threadId)){
+                    $lockKey = "doc_Threads_Update_Item_{$objectRec->threadId}_" . core_Users::getCurrent();
+                    core_Locks::release($lockKey);
+                }
             }
         }
     }
@@ -1117,7 +1146,7 @@ class acc_Journal extends core_Master
     /**
      * Кои са контираните документи без журнал
      *
-     * @param array $res
+     * @return array $res
      */
     private static function getPostedDocumentsWithoutJournal()
     {
@@ -1135,7 +1164,12 @@ class acc_Journal extends core_Master
                 $jRecs[$jRec->docId] = $jRec->docId;
             }
 
-            if(countR($jRecs)){
+            $countRecs = countR($jRecs);
+
+            if($countRecs){
+                core_App::setTimeLimit(0.4 * $countRecs, false, 300);
+
+                // Извличат се записите от документите, които НЯМАТ журнали
                 $query = $Class->getQuery();
                 $query->in("state", array('closed', 'active'));
                 $query->show('id');
@@ -1145,11 +1179,27 @@ class acc_Journal extends core_Master
                     $query->where("#contoActions != '' AND #contoActions != 'activate'");
                 }
 
-                while($rec = $query->fetch()){
-                    if($Class instanceof store_ShipmentOrders || $Class instanceof store_Receipts){
-                        $Detail = cls::get($Class->mainDetail);
-                        if(!$Detail->count("#{$Detail->masterKey} = {$rec->id}")) continue;
+                $recs = $query->fetchAll();
+
+                // Колко детайла имат се преброява с една заявка
+                $detailCount = array();
+                if($Class instanceof store_ShipmentOrders || $Class instanceof store_Receipts){
+                    $Detail = cls::get($Class->mainDetail);
+                    $dQuery = $Detail->getQuery();
+                    $dQuery->XPR('count', 'int', 'COUNT(#id)');
+                    $dQuery->in($Detail->masterKey, array_keys($recs));
+                    $dQuery->groupBy("{$Detail->masterKey}");
+                    $dQuery->show("{$Detail->masterKey},count");
+                    while($dRec = $dQuery->fetch()){
+                        $detailCount[$dRec->{"{$Detail->masterKey}"}] = $dRec->count;
                     }
+                }
+
+                foreach($recs as $rec){
+                    if(array_key_exists($rec->id, $detailCount)){
+                        if(empty($detailCount[$rec->id])) continue;
+                    }
+
                     if(!array_key_exists($Class->className, $res)){
                         $res[$Class->className] = array();
                     }
@@ -1193,5 +1243,58 @@ class acc_Journal extends core_Master
         }
 
         return $tpl;
+    }
+
+
+    /**
+     * Репликираща миграция реконтиране на активни документи, който да може да се вика по разписание
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    public function callback_recontoActiveDocuments($data)
+    {
+        // Взимат се записите от документа с вальор след последния затворен период
+        $lastClosedPeriod = acc_Periods::getLastClosed();
+        $Class = cls::get($data->class);
+        $query = $Class->getQuery();
+        if(is_object($lastClosedPeriod)){
+            $query->where("#{$Class->valiorFld} > '{$lastClosedPeriod->end}'");
+        }
+
+        // Ако е стигнато до определено ид - да се продължи след него
+        if(isset($data->lastId)){
+            $query->where("#id > '{$data->lastId}'");
+        }
+
+        // Само активните документи отговарящи на условията
+        $query->where("#state = 'active'");
+        foreach ($data->fields as $fld => $value){
+            $query->where("#{$fld} = '{$value}'");
+        }
+        $query->orderBy('id', 'ASC');
+        $query->limit(150);
+
+        $recs = $query->fetchAll();
+        $count = countR($recs);
+        core_App::setTimeLimit($count * 0.4, false, 300);
+
+        // Реконтиране
+        $data->lastId = null;
+        foreach ($recs as $rec){
+            try{
+                acc_Journal::reconto($rec->containerId);
+                $Class->logWrite('Реконтиране от миграция', $rec->id);
+            } catch(core_exception_Expect $e){
+                reportException($e);
+            }
+            $data->lastId = $rec->id;
+        }
+
+        // Само репликиране на миграцията ако има все пак поне едно обходено ид
+        if(isset($data->lastId)){
+            $callOn = dt::addSecs(120);
+            core_CallOnTime::setCall('acc_Journal', 'recontoActiveDocuments', $data, $callOn);
+        }
     }
 }

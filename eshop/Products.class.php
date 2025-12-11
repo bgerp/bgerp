@@ -168,7 +168,9 @@ class eshop_Products extends core_Master
         $this->FLD('titleParamId', 'key(mvc=cat_Params,select=typeExt,allowEmpty)', 'caption=Заглавие на артикулите в детайла->Параметър');
         
         // Запитване за нестандартен продукт
-        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId,silent');
+        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams|proto|measureId|possibleSpam,silent');
+        $this->FLD('possibleSpam', 'check', 'caption=Запитване->Евентуален спам,input=none');
+
         $this->FLD('proto', 'keylist(mvc=cat_Products,allowEmpty,select=name,select2MinItems=100)', 'caption=Запитване->Прототип,input=hidden,silent,placeholder=Популярни артикули');
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
@@ -254,6 +256,10 @@ class eshop_Products extends core_Master
         }
         
         if ($form->isSubmitted()) {
+            if($rec->possibleSpam == 'yes'){
+                $form->setWarning('possibleSpam', 'Сигурни ли сте, че искате за този артикул да не се записват направените запитвания|*?');
+            }
+
             $query = self::getQuery();
             $query->EXT('menuId', 'eshop_Groups', 'externalName=menuId,externalKey=groupId');
             if ($rec->id) {
@@ -337,7 +343,12 @@ class eshop_Products extends core_Master
         if(Mode::is('wrapper', 'cms_page_External')){
             $row->name = tr(static::getDisplayTitle($rec));
         }
-        
+
+        if($rec->possibleSpam == 'yes'){
+            if(haveRole('powerUser')){
+                $row->name = ht::createHint($row->name, 'Запитванията няма да се записват, защото артикулът е отбелязан като евентуален спам|*!', 'warning');
+            }
+        }
         $uomId = self::getUomId($rec);
         $rec->coMoq = $mvc->getMoq($rec);
         
@@ -353,7 +364,8 @@ class eshop_Products extends core_Master
         } else {
             $row->coMoq = null;
         }
-        
+
+        $haveInquiryBtn = false;
         if ($rec->coDriver) {
             if (marketing_Inquiries2::haveRightFor('new')) {
                 if (cls::load($rec->coDriver, true)) {
@@ -362,6 +374,7 @@ class eshop_Products extends core_Master
                     $url = array('marketing_Inquiries2', 'new', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => true);
                     $row->coInquiry = ht::createLink(tr('Запитване'), $url, null, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
                     Request::removeProtected('classId,objectId');
+                    $haveInquiryBtn = true;
                 }
             }
         }
@@ -369,7 +382,22 @@ class eshop_Products extends core_Master
         if (isset($rec->coDriver) && !cls::load($rec->coDriver, true)) {
             $row->coDriver = "<span class='red'>" . tr('Несъществуващ клас') . '</span>';
         }
-        
+
+        // Ако няма бутон за запитване - гледа се дали има само един детайл за запитване и се показва и този бутон
+        if(!$haveInquiryBtn){
+            $dQuery = eshop_ProductDetails::getQuery();
+            $dQuery->where("#eshopProductId = {$rec->id} AND #action IN ('inquiry', 'both')");
+            if($dQuery->count() == 1){
+                $dRec = $dQuery->fetch();
+                $dRec->recId = $dRec->id;
+                $dRow = eshop_ProductDetails::getExternalRow($dRec);
+
+                if($dRow->btnInquiry instanceof core_ET){
+                    $row->coInquiry = $dRow->btnInquiry;
+                }
+            }
+        }
+
         if (isset($fields['-single'])) {
             $row->orderByParam = ($rec->orderByParam == '_code') ? tr('Код') : (($rec->orderByParam == '_title') ? tr('Заглавие') : (($rec->orderByParam == '_createdOn') ? tr('Създаване') : cat_Params::getVerbal($rec->orderByParam, 'typeExt')));
             
@@ -481,6 +509,7 @@ class eshop_Products extends core_Master
      *               ['drvId']         - ид на драйвер
      *               ['lg']            - език
      *               ['protos']        - списък от прототипни артикули
+     *               ['possibleSpam']  - дали е потенциален спам
      *               ['quantityCount'] - опционален брой количества
      *               ['moq']           - МКП
      *               ['measureId']     - основна мярка
@@ -496,6 +525,7 @@ class eshop_Products extends core_Master
             'protos' => $rec->proto,
             'quantityCount' => empty($rec->quantityCount) ? 0 : $rec->quantityCount,
             'moq' => $this->getMoq($rec),
+            'possibleSpam' => $rec->possibleSpam == 'yes',
             'measureId' => static::getUomId($rec),
             'url' => static::getUrl($rec),
         );
@@ -964,7 +994,7 @@ class eshop_Products extends core_Master
         // Подготвяме SEO данните
         $rec = clone($data->rec);
         cms_Content::prepareSeo($rec, array('seoDescription' => $rec->info, 'seoTitle' => $rec->name, 'seoThumb' => $rec->image));
-        
+
         eshop_Groups::prepareNavigation($data->groups);
         
         $tpl = eshop_Groups::getLayout();
@@ -1063,7 +1093,7 @@ class eshop_Products extends core_Master
         }
         
         // Навигация до артикула
-        $data->row->productPath = $menuLink . ' » ' . $groupLink;
+        $data->row->productPath = $menuLink . ' » ' . $groupLink . " » <span>" . $data->row->name . "</span>";
         $uniqueProductsArr = arr::extractValuesFromArray($data->detailData->recs, 'productId');
 
         if(haveRole('debug') && $data->hideProductIfItIsWithoutPrices){
@@ -1278,6 +1308,10 @@ class eshop_Products extends core_Master
             $orderByParamOptions += $activeParams;
         }
         $form->setOptions('orderByParam', $orderByParamOptions);
+
+        if(isset($form->rec->coDriver)){
+            $form->setField('possibleSpam', 'input');
+        }
     }
     
     
@@ -2183,9 +2217,11 @@ class eshop_Products extends core_Master
                 $settings[$dRec->domainId] = cms_Domains::getSettings($dRec->domainId);
             }
             $listId = $settings[$dRec->domainId]->listId;
-            $price = price_ListRules::getPrice($listId, $dRec->productId, null, $datetime);
-            if (isset($price)) {
-                $save[$dRec->eshopProductId]->haveProductsWithPrice = 'yes';
+            if(isset($listId)){
+                $price = price_ListRules::getPrice($listId, $dRec->productId, null, $datetime);
+                if (isset($price)) {
+                    $save[$dRec->eshopProductId]->haveProductsWithPrice = 'yes';
+                }
             }
         }
 

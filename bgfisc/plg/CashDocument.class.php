@@ -181,6 +181,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
                 if($firstDocument->isInstanceOf('deals_DealMaster')){
                     $dealPaid = $firstDocument->fetchField('amountPaid');
+                    $dealBl = $firstDocument->fetchField('amountBl');
 
                     // Проверява се дали не се прави опит за надплащане над допустимия толеранс
                     if($rec->amountDeal >= $expectedAmount){
@@ -188,8 +189,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                         $tolerance = acc_Setup::get('MONEY_TOLERANCE');
 
                         $aboveTolerance = empty($diff) || $diff > $tolerance;
-
-                        if ($aboveTolerance  && $dealPaid) {
+                        if ($aboveTolerance  && $dealPaid && $dealBl <= 0) {
                             $additionalWarning = "ЦЯЛАТА СУМА ПО ДОКУМЕНТА ИЗГЛЕЖДА ВЕЧЕ Е ПЛАТЕНА|*!";
                             $defaultWarning = (!empty($additionalWarning)) ? "{$additionalWarning}, {$defaultWarning}" : "{$additionalWarning}, Наистина ли желаете документът да бъде контиран|*?";
                         }
@@ -278,15 +278,11 @@ class bgfisc_plg_CashDocument extends core_Plugin
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        if (!self::isApplicable($form->rec->threadId)) {
-            
-            return;
-        }
-        
-        $form->setReadOnly('currencyId');
+        $rec = &$form->rec;
+        if (!self::isApplicable($rec->threadId)) return;
         
         if($form->isSubmitted()){
-            if(isset($form->rec->_allIsPaid)){
+            if(isset($rec->_allIsPaid)){
                 $form->setWarning('amountDeal', 'Цялата сума по документа е платена|! |Наистина ли желаете да продължите|*?');
             }
         }
@@ -394,22 +390,35 @@ class bgfisc_plg_CashDocument extends core_Plugin
     {
         if (empty($res)) {
             $errors = $res = array();
-            $cashAmount = $rec->amount;
-            
+
+            $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+
             if ($mvc instanceof cash_Pko) {
                 $dQuery = cash_NonCashPaymentDetails::getQuery();
-                $dQuery->where("#documentId = '{$rec->id}'");
+                $dQuery->where("#classId = {$mvc->getClassId()} AND #objectId = '{$rec->id}'");
                 while ($dRec = $dQuery->fetch()) {
-                    if (!$paymentCode = $Driver->getPaymentCode($registerRec, $dRec->paymentId)) {
-                        $title = cond_Payments::getTitleById($dRec->paymentId);
-                        $errors[] = $title;
-                        continue;
+                    $paymentCode = 0;
+
+                    // Ако сме в периода на работата с двете валути безналичното плащане в БГН да се приема за платено в брой
+                    $skipCheck = false;
+                    if($dRec->paymentId == eurozone_Setup::getBgnPaymentId()) {
+                        if ($valior > acc_Setup::getEurozoneDate() && $valior <= acc_Setup::getBgnDeprecationDate()) {
+                            $skipCheck = true;
+                        }
                     }
-                    
-                    $dRec->amount = cond_Payments::toBaseCurrency($dRec->paymentId, $dRec->amount, $rec->valior);
+
+                    if(!$skipCheck){
+                        if (!$paymentCode = $Driver->getPaymentCode($registerRec, $dRec->paymentId)) {
+                            $title = cond_Payments::getTitleById($dRec->paymentId);
+                            $errors[] = $title;
+                            continue;
+                        }
+                    }
+
+                    $dRec->amount = cond_Payments::toBaseCurrency($dRec->paymentId, $dRec->amount, $valior);
                     $dRec->amount /= $rec->rate;
                     $dRec->amount = round($dRec->amount, 2);
-                    $cashAmount -= $dRec->amount;
+
                     $arr = array('PAYMENT_TYPE' => $paymentCode, 'PAYMENT_AMOUNT' => $dRec->amount);
                     
                     $paymentRec = cond_Payments::fetch($dRec->paymentId, 'title,text');
@@ -419,11 +428,22 @@ class bgfisc_plg_CashDocument extends core_Plugin
                     
                     $res[] = $arr;
                 }
-                
+
                 if (count($errors)) {
                     $msg = 'Следните плащания нямат код във ФУ|*: ' . implode(',', $errors);
                     throw new core_exception_Expect($msg, 'Несъответствие');
                 }
+            }
+
+            // Ако има точно посочено дадено - подава се то за да се изчисли рестото
+            if($rec->amountGiven){
+                $paid = $rec->amountGiven * $rec->rate;
+                if(dt::today() >= acc_Setup::getEurozoneDate()){
+                    if($rec->currencyId == currency_Currencies::getIdByCode('BGN') && $rec->dealCurrencyId == currency_Currencies::getIdByCode('EUR')){
+                        $paid = round($rec->amountGiven / 1.95583, 2);
+                    }
+                }
+                $res[] = array('PAYMENT_TYPE' => 0, 'PAYMENT_AMOUNT' => $paid);
             }
         }
     }
@@ -572,8 +592,17 @@ class bgfisc_plg_CashDocument extends core_Plugin
     private static function getFiscProductsFromShipmentDocument($Driver, $registerRec, $mvc, $Origin, $originRec, $rec)
     {
         $anotherRes = bgfisc_plg_PrintFiscReceipt::getProductsByOrigin($originRec->containerId, $Driver, $registerRec);
-        
-        if (round($originRec->amountDelivered, 2) == round($rec->amount * $rec->rate, 2)) {
+        $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+        $euroCurrencyId = currency_Currencies::getIdByCode('EUR');
+
+        $amount = $rec->amount * $rec->rate;
+        if(dt::today() >= acc_Setup::getEurozoneDate()){
+            if($rec->currencyId == $bgnCurrencyId && $rec->dealCurrencyId == $euroCurrencyId){
+                $amount = $rec->amountDeal;
+            }
+        }
+
+        if (round($originRec->amountDelivered, 2) == round($amount, 2)) {
             $res = $anotherRes;
         } else {
             $vats = array();
@@ -619,7 +648,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
             $resArr = array();
             $mvc->requireRightFor('conto', $rec);
             
-            core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
+            core_Locks::obtain("lock_{$mvc->className}_{$rec->id}", 90, 15, 5, false);
             
             try {
                 $mvc->conto($rec->id);
@@ -757,7 +786,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
                     }
 
                     if(!$form->gotErrors()){
-                        core_Locks::get("lock_{$mvc->className}_{$rec->id}", 90, 5, false);
+                        core_Locks::obtain("lock_{$mvc->className}_{$rec->id}", 90, 15, 5, false);
                         $mvc->logWrite('Ръчно контиране на документа', $rec);
                         $mvc->conto($rec);
                         if(!empty($qrCode)){
@@ -879,8 +908,15 @@ class bgfisc_plg_CashDocument extends core_Plugin
         }
         
         // За всеки безналичен метод проверява се има ли код във ФУ
+        $valior = !empty($data->masterData->rec->valior) ? $data->masterData->rec->valior : dt::today();
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
+
+            // Ако сме в периода за приемане на плащане в лева да не се проверява дали съответства код
+            if($rec->paymentId == eurozone_Setup::getBgnPaymentId()){
+                if($valior > acc_Setup::getEurozoneDate() && $valior <= acc_Setup::getBgnDeprecationDate()) continue;
+            }
+
             if($rec->paymentId == -1) continue;
             if(!$Driver->getPaymentCode($registerRec, $rec->paymentId)){
                 $row->paymentId = "<b class='red'>{$row->paymentId}</b>";
@@ -926,7 +962,9 @@ class bgfisc_plg_CashDocument extends core_Plugin
             $warning = $mvc->getContoWarning($rec, $rec->isContable);
             
             $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($res['amount']);
+            Mode::push('text', 'plain');
             $res['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
+            Mode::pop('text');
             $res['amountVerbal'] = str_replace('&nbsp;', ' ', $res['amountVerbal']);
             
             $btn = ht::createFnBtn($res['amountVerbal'], '', $warning, "class=document-conto-btn,ef_icon = img/16/tick-circle-frame.png,title=Контиране на документ,data-url={$contoUrl},id={$mvc->getHandle($rec->id)}");

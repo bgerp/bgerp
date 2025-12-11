@@ -56,7 +56,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'detailOrderBy,note,courierApi';
+    public $changableFields = 'detailOrderBy,note,courierApi,sharedUsers';
 
 
     /**
@@ -115,6 +115,18 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Кой може да го види?
      */
     public $canViewprices = 'ceo,acc';
+
+
+    /**
+     * Кой може да печата движенията?
+     */
+    public $canPrintzonemovements = 'ceo,rack';
+
+
+    /**
+     * Кой може да приключва всички движения?
+     */
+    public $canDoallmovements = 'ceo,rack';
 
 
     /**
@@ -451,6 +463,10 @@ class store_ShipmentOrders extends store_DocumentMaster
         $tplArr[] = array('name' => 'Packing list за митница',
             'content' => 'store/tpl/SingleLayoutPackagingListGrouped.shtml', 'lang' => 'en',
             'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight'));
+
+        $tplArr[] = array('name' => 'Експедиционно нареждане за SAF-T',
+            'content' => 'store/tpl/SingleLayoutShipmentOrderSaft.shtml', 'lang' => 'bg',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
 
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
@@ -790,19 +806,25 @@ class store_ShipmentOrders extends store_DocumentMaster
             $mvc->save_($rec, $saveFields);
         }
 
-        // Кеширане на тарифния код
+        // Кеширане на тарифния код и държава на произход
         $saveRecs = array();
         $Details = cls::get('store_ShipmentOrderDetails');
         $dQuery = store_ShipmentOrderDetails::getQuery();
-        $dQuery->where("#shipmentId = {$rec->id}");
+        $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $dQuery->where("#shipmentId = {$rec->id} AND #canStore = 'yes'");
         while($dRec = $dQuery->fetch()){
             if(empty($dRec->tariffCode)){
                 $dRec->tariffCode = cat_Products::getParams($dRec->productId, 'customsTariffNumber');
-                $saveRecs[] = $dRec;
             }
+
+            $originCountryId = cat_Products::getParams($dRec->productId, 'originCountry');
+            $countryId = $originCountryId ?? drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+            $dRec->countryOfOrigin = $countryId;
+
+            $saveRecs[] = $dRec;
         }
 
-        $Details->saveArray($saveRecs, 'id,tariffCode');
+        $Details->saveArray($saveRecs, 'id,tariffCode,countryOfOrigin');
     }
 
 
@@ -849,9 +871,11 @@ class store_ShipmentOrders extends store_DocumentMaster
                      'deliveryOn' => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => false));
 
         if (isset($rec)) {
-            $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn);
+            $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn, $rec->deliveryTime);
+            $loadingOn = !empty($rec->deliveryTime) ? $rec->deliveryTime : $rec->deliveryTimeCalc;
             $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
-            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn, $loadingOn);
+            $res['deliveryOn']['placeholder'] = ($cache && !empty($rec->deliveryOnCalc)) ? $rec->deliveryOnCalc : trans_Helper::calcDeliveryOnDate($rec->threadId, $rec->valior);
         }
 
         return $res;
@@ -915,19 +939,34 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * За коя дата се заплануват наличностите
      *
-     * @param stdClass $rec - запис
-     * @return datetime     - дата, за която се заплануват наличностите
+     * @param stdClass $rec    - запис
+     * @return array
+     *          ['date']   - дата
+     *          ['isLive'] - дали е ръчно въведена или не
      */
     public function getPlannedQuantityDate_($rec)
     {
+        $dateArr = array('isLive' => false);
+
         // Ако има ръчно въведена дата на доставка, връща се тя
-        if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
+        if (!empty($rec->deliveryTime)) {
+            $dateArr['date'] = $rec->deliveryTime;
+        } else {
+            // Връща се първата намерена от: лайв изчислената, вальора, датата на активиране, датата на създаване
+            $loadingDate = $this->getDefaultLoadingDate($rec, $rec->deliveryOn);
+            if (!empty($loadingDate)) {
+                $dateArr['date'] = $loadingDate;
+            } elseif(!empty($rec->valior)){
+                $dateArr['date'] = $rec->valior;
+            }
+        }
 
-        // Връща се първата намерена от: лайв изчислената, вальора, датата на активиране, датата на създаване
-        $loadingDate = $this->getDefaultLoadingDate($rec, $rec->deliveryOn);
-        setIfNot($loadingDate, $rec->valior, $rec->activatedOn, $rec->createdOn);
+        if(empty($dateArr['date'])){
+            $dateArr['date'] = dt::today() . " 00:00:00";
+            $dateArr['isLive'] = true;
+        }
 
-        return $loadingDate;
+        return $dateArr;
     }
 
 
@@ -1001,5 +1040,16 @@ class store_ShipmentOrders extends store_DocumentMaster
         $class = 'store_Receipts';
 
         return cls::get($class);
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if(in_array($rec->state, array('active', 'pending'))){
+            sales_DeliveryData::sync($rec->containerId);
+        }
     }
 }

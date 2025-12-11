@@ -272,6 +272,9 @@ class price_ListBasicDiscounts extends core_Detail
             // Взимане на предишните продажби от кеша, ако няма се изчисляват на моментаПро
             $cacheKey = "{$contragentClassId}|{$contragentId}|{$basicDiscountListRec->id}|" . implode('|', $groupIds);
             $salesByNow = core_Cache::get($Master->className, $cacheKey);
+            if($Master->className == 'pos_Receipts'){
+                core_Permanent::set("autoDiscCache|{$Master->className}|{$masterRec->id}", $cacheKey, 48 * 60);
+            }
             if(!is_array($salesByNow)){
                 $salesByNow = static::getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $basicDiscountListRec);
                 core_Cache::set($Master->className, $cacheKey, $salesByNow, 1);
@@ -448,6 +451,7 @@ class price_ListBasicDiscounts extends core_Detail
         $pQuery->where("#contragentClass = {$contragentClassId} AND #contragentObjectId = {$contragentId}");
         $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $groupKeylist, 'productId');
+        $pQuery->useIndex('state', 'pos_Receipts');
 
         if($listRec->discountClassPeriod == 'monthly'){
             $firstDay = date('Y-m-01');

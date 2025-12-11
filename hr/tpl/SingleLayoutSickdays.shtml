@@ -18,19 +18,32 @@
         <!--ET_BEGIN fitNoteNum-->
         <p><b>|Болничен лист|*:</b> № [#fitNoteNum#]</p>
         <!--ET_END fitNoteNum-->
-         <!--ET_BEGIN fitNoteDate-->
+        <!--ET_BEGIN fitKind-->
+        <p><b>|Тип|*:</b> [#fitKind#]</p>
+        <!--ET_END fitKind-->
+        <!--ET_BEGIN fitType-->
+        <p><b>|Вид|*:</b> [#fitType#]</p>
+        <!--ET_END fitType-->
+        <!--ET_BEGIN reason-->
+        <p><b>|Причина|*:</b> [#reason#]</p>
+        <!--ET_END reason-->
+        <!--ET_BEGIN treatment-->
+        <p><b>|Режим на лечение|*:</b> [#treatment#]</p>
+        <!--ET_END treatment-->
+        <!--ET_BEGIN icdCode-->
+        <p><b>|Код по МКБ|*:</b> [#icdCode#]</p>
+        <!--ET_END icdCode-->
+        <!--ET_BEGIN fitNoteDate-->
         <p><b>|Издаден на|*:</b> [#fitNoteDate#]</p>
         <!--ET_END fitNoteDate-->
         <!--ET_BEGIN fitNoteFile-->
         <p><b>|Файл|*:</b>[#fitNoteFile#]</p>
         <!--ET_END fitNoteFile-->
-        <p><b>|Причина|*:</b> [#reason#]</p>
+     
         <!--ET_BEGIN note-->
         <div class='richtext-holder'><b>|Забележка|*:</b> [#note#]</div>
         <!--ET_END note-->
-        <!--ET_BEGIN icdCode-->
-        <p><b>|Код по MKB|*:</b> [#icdCode#]</p>
-        <!--ET_END icdCode-->
+
 
         <table class="inlineRichTable listTable" style="width:48%">
         	<tr>

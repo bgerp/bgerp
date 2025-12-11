@@ -14,6 +14,10 @@
 				<!--ET_BEGIN repeat-->
 				<div style='margin-top: 5px;'>[#repeat#]</div>
 				<!--ET_END repeat-->
+				<!--ET_BEGIN shipmentOn-->
+				<div style='margin-top: 5px;'><span class="quiet">|Експедиране|*:</span> <b>[#shipmentOn#]</b></div>
+				<!--ET_END shipmentOn-->
+
 				<!--ET_BEGIN state-->
 				<div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
 				<!--ET_END state-->
@@ -88,8 +92,8 @@
 			<table class="listTable lineSummary" style="margin-top:10px;margin-bottom:10px">
 				<thead>
 				<tr>
-					<td class="sum-th">|Инкасирано|*, [#baseCurrencyCode#]</td>
-					<td class="sum-th">|Изплатено|*, [#baseCurrencyCode#]</td>
+					<td class="sum-th">|Инкасирано|*</td>
+					<td class="sum-th">|Изплатено|*</td>
 					<td class="sum-th">|Общо бруто тегло|*</td>
 					<td class="sum-th">|Общ обем|*</td>
 					<td class="sum-th">|Общо ЛЕ|*</td>
@@ -112,12 +116,9 @@
 						<!--ET_BEGIN stores-->
 						<span style='font-weight:normal' class="quiet">|Складове|*</span>: [#stores#]<br>
 						<!--ET_END stores-->
-						<!--ET_BEGIN countries-->
-						<span style='font-weight:normal' class="quiet">|Държави|*</span>: [#countries#]<br>
-						<!--ET_END countries-->
-						<!--ET_BEGIN places-->
-						<span style='font-weight:normal' class="quiet">|Населени места|*</span>: [#places#]<br>
-						<!--ET_END places-->
+						<!--ET_BEGIN destinations-->
+						<span style='font-weight:normal' class="quiet">|Дестинации|*</span>: [#destinations#]<br>
+						<!--ET_END destinations-->
 					</td>
 				</tr>
 			</table>

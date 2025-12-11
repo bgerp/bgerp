@@ -745,15 +745,18 @@ class cms_Content extends core_Manager
      */
     public static function getSeoDescription($text, $minLen = 280, $maxLen = 350)
     {
+        // Обръща се текства в хтмл, ако е ричтекст
         $rt = cls::get('type_RichText');
-        $text = $rt->stripTags($rt->toHtml($text));
-        
+        $text = $rt->toHtml($text);
+
+        // Реплейсват се стиловете и таговете, ако има такива
+        $text = preg_replace('/<style(.*?)>(.*?)<\/style>/is', '', $text);
+        $text = strip_tags($text);
+
         $text = preg_replace("/([\p{L}0-9_]{3,16}\\.) /ui", "$1\n", $text);
-        
         $lines = explode("\n", $text);
         
         $res = '';
-        
         foreach ($lines as $l) {
             $res .= ' ' . $l;
             if (mb_strlen($res) >= $minLen) {

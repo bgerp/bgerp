@@ -60,20 +60,28 @@
                                 <td class='dt'>|Мярка на наличностите|*:</td>
                                 <td>[#displayStockMeasure#]</td>
                             </tr>
+                            <!--ET_BEGIN notifyUsers-->
+                            <tr>
+                                <td class='dt'>|Нотифициране при промяна на транспортна линия|*:</td>
+                                <td>[#notifyUsers#]</td>
+                            </tr>
+                            <!--ET_END notifyUsers-->
+                        </table>
+                    </div>
+                </fieldset>
 
+                <!--ET_BEGIN RACK_BLOCK-->
+                [#RACK_BLOCK#]
+                <fieldset class="detail-info">
+                    <legend class="groupTitle">|Настройки за работа с палетния склад|*</legend>
+                    <div class="groupList">
+                        <table>
                             <!--ET_BEGIN samePosPallets-->
                             <tr>
                                 <td class='dt'>|Различни палети на една позиция|*:</td>
                                 <td>[#samePosPallets#]</td>
                             </tr>
                             <!--ET_END samePosPallets-->
-
-                            <!--ET_BEGIN closeCombinedMovementsAtOnce-->
-                            <tr>
-                                <td class='dt'>|Приключване на комбинирани движения|*:</td>
-                                <td>[#closeCombinedMovementsAtOnce#]</td>
-                            </tr>
-                            <!--ET_END closeCombinedMovementsAtOnce-->
 
                             <!--ET_BEGIN prioritizeRackGroups-->
                             <tr>
@@ -88,10 +96,39 @@
                                 <td>[#palletBestPositionStrategy#]</td>
                             </tr>
                             <!--ET_END palletBestPositionStrategy-->
+
+                            <!--ET_BEGIN allowSmartReturnPos-->
+                            <tr>
+                                <td class='dt'>|Връщане на палет на най-добра позиция|*:</td>
+                                <td>[#allowSmartReturnPos#]</td>
+                            </tr>
+                            <!--ET_END allowSmartReturnPos-->
+
+                            <!--ET_BEGIN closeCombinedMovementsAtOnce-->
+                            <tr>
+                                <td class='dt'>|Приключване на комбинирани движения|*:</td>
+                                <td>[#closeCombinedMovementsAtOnce#]</td>
+                            </tr>
+                            <!--ET_END closeCombinedMovementsAtOnce-->
+
+                            <!--ET_BEGIN fullPalletStrategy-->
+                            <tr>
+                                <td class='dt'>|Вземане / разбутване на цял палет (само за ver3)|*:</td>
+                                <td>[#fullPalletStrategy#]</td>
+                            </tr>
+                            <!--ET_END fullPalletStrategy-->
+
+                            <!--ET_BEGIN minKeepPct-->
+                            <tr>
+                                <td class='dt'>|Минимален остатък по позиции (само за ver3)|*:</td>
+                                <td>[#minKeepPct#] |от палет|*</td>
+                            </tr>
+                            <!--ET_END minKeepPct-->
                         </table>
                     </div>
                 </fieldset>
-                
+                <!--ET_END RACK_BLOCK-->
+
                 <fieldset class="detail-info">
                 <legend class="groupTitle">|Кой може да контира документи, в които е избран склада|*</legend>
                 <div class="groupList">

@@ -1050,4 +1050,32 @@ class hr_Leaves extends core_Master
         // Редиректваме
         return new Redirect($link, '|Успешно отказахте молба за отпуска');
     }
+
+    /**
+     * Ф-я, която връща дали лицето на дадената дата е в отпуск
+     *
+     * @param string $date      Дата за проверка (формат YYYY-MM-DD или YYYY-MM-DD HH:MM:SS)
+     * @param int    $personId  Ид на лице
+     * @return bool             true / false
+     */
+    public static function getLeaveDay($date, $personId)
+    {
+        if (!$date || !$personId) {
+            return false;
+        }
+
+        // Оставяме само датната част, ако е подаден и час
+        if (strpos($date, ' ') !== false) {
+            $date = strstr($date, ' ', true);
+        }
+
+        $q = self::getQuery();
+        $q->where(array("#personId = '[#1#]'", $personId));
+        $q->where("#state = 'active'");
+        // Включително краищата: leaveFrom <= $date <= leaveTo
+        $q->where(array("#leaveFrom <= '[#1#]' AND #leaveTo >= '[#1#]'", $date));
+        $q->limit(1);
+
+        return (bool)$q->fetch();
+    }
 }

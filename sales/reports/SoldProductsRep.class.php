@@ -35,9 +35,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields;
-    
-    
+    protected $summaryListFields= 'primeCost,changeSales,invAmount';
+
+
     /**
      * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
      *
@@ -82,13 +82,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,removeAndRefreshForm,silent');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,removeAndRefreshForm,silent');
-        
-        $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,removeAndRefreshForm,single=none,input=none,silent');
+
+        $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=to,removeAndRefreshForm,single=none,input=none,silent');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,removeAndRefreshForm,single=none,input=none,silent');
-        
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,silent,mandatory');
-        
-        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealers');
+
+    //   $fieldset->FLD('dealers', 'userlist(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,silent,mandatory');
+        $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=names)', 'caption=Търговци->Търговец,placeholder=Всички,after=secondMonth,single=none');
+        $fieldset->FLD('dealersTeam', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Търговци->Екип,placeholder=Всички,after=dealers,single=none');
+
+
+        $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealersTeam');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
         
         $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
@@ -188,15 +191,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
+
         $form = $data->form;
-        
+        $rec = $form->rec;
         if (date('d') < 10) {
             $form->setDefault('selectPeriod', 'last_month');
         } else {
             $form->setDefault('selectPeriod', 'cur_month');
         }
-        
-        $rec = $form->rec;
         $suggestions = $prodSuggestions = $prodSalesArr = $posProdsArr = $prodArr = array();
         
         if ($rec->compare == 'month') {
@@ -220,7 +222,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('category', 'input=hidden');
             $form->setField('group', 'input=hidden');
         }
-        
+
+        $form->input('selectPeriod,from,to',true);
         $periodStart = $rec->from;
         $periodEnd = $rec->to;
         
@@ -271,6 +274,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if ($rec->quantityType == 'invoiced') {
             
             $form->setField('dealers', 'input=none');
+            $form->setField('dealersTeam', 'input=none');
         }
         
         // POS продажби
@@ -379,13 +383,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $salesQuery = sales_Sales::getQuery();
         
         $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
-        
-        $salesQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
-        
+
+     //   $salesQuery->where("#valior >= '{$periodStart}' AND #valior <= '{$periodEnd}'");
+
         $salesQuery->groupBy('folderId');
         
         $salesQuery->show('folderId, contragentId, folderTitle');
-        
         $suggestionContragents = array();
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
@@ -417,6 +420,37 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         asort($suggestionContragents);
         
         $form->setSuggestions('contragent', $suggestionContragents);
+
+        $suggestionDealers = [];
+
+// Взимаме ID на ролята 'powerUser'
+        $powerUserRoleId = core_Roles::fetchByName('powerUser');
+
+        if ($powerUserRoleId) {
+
+            // Обхождаме всички потребители
+            $dealers = core_Users::getQuery();
+            while ($delRec = $dealers->fetch()) {
+                // Добавяме само ако имат точно ролята powerUser
+                if (keylist::isIn($powerUserRoleId, $delRec->roles)) {
+                    $suggestionDealers[$delRec->id] = $delRec->nick;
+                }
+            }
+        }
+
+        $form->setSuggestions('dealers', $suggestionDealers);
+
+
+        $suggestionTeams = array();
+        $teams = core_Roles::getRolesByType('team');
+        foreach (keylist::toArray($teams) as $team) {
+
+            $teRec = core_Roles::fetch($team);
+            $suggestionTeams[$teRec->id] = $teRec->role;
+        }
+
+        $form->setSuggestions('dealersTeam', $suggestionTeams);
+
     }
     
     
@@ -433,8 +467,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Код и Id  на основната валута в края на периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->to);
         $baseCurrencyId = currency_Currencies::getIdByCode($baseCurrency);
-        
-        //При групиране по кои крупи да работи: групи артикули или категории артикули
+
+        //При групиране по кои групи да работи: групи артикули или категории артикули
         if ($rec->typeOfGroups == 'art') {
             $checkForGruping = 'group';
         } elseif (($rec->typeOfGroups == 'category')) {
@@ -534,7 +568,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
             
             $query->EXT('dealerId', 'sales_Sales', 'externalName=dealerId,externalKey=saleId');
-            
+
+            $query->EXT('contragentClassId', 'sales_Sales', 'externalName=contragentClassId,externalKey=saleId');
+
+            $query->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
+
             $query->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
             
             $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
@@ -590,14 +628,35 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
         }
-        
-        
-        //Филтър за ДИЛЪР
-        if ($rec->quantityType != 'invoiced' && isset($rec->dealers)) {
-            if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
-                $dealers = keylist::toArray($rec->dealers);
-                
-                $query->in('dealerId', $dealers);
+
+
+        // Филтър за ДИЛЪР
+        if ($rec->quantityType != 'invoiced') {
+            $dealersArr = [];
+
+            // Добавяне на потребителите избрани в полето dealers
+            if (!empty($rec->dealers)) {
+                $dealersArr = keylist::toArray($rec->dealers);
+            }
+
+            // Добавяне на потребителите от избраните роли (екипи)
+            if (!empty($rec->dealersTeam)) {
+                $roleIds = keylist::toArray($rec->dealersTeam);
+
+                // Вземаме всички потребители, които имат поне една от ролите
+                $q = core_Users::getQuery();
+                foreach ($roleIds as $roleId) {
+                    $q->orWhere("#roles LIKE '%|{$roleId}|%'");
+                }
+
+                while ($user = $q->fetch()) {
+                    $dealersArr[$user->id] = $user->id;
+                }
+            }
+
+            // Ако има натрупани дилъри, филтрираме
+            if (!empty($dealersArr)) {
+                $query->in('dealerId', $dealersArr);
             }
         }
         
@@ -612,9 +671,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $contragentsArr[] = [$Cover->getClassId(), $Cover->that];
                 
             }
-            
+
             if (!$rec->crmGroup && $rec->contragent) {
-                
+
                 // Генерираме частта от заявката, която съдържа IN условието
                 $in_clause = implode(", ", array_map(function ($pair) {
                     return "('" . $pair[0] . "', '" . $pair[1] . "')";
@@ -733,7 +792,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $quantity = $primeCost = $delta = 0;
             $quantityPrevious = $primeCostPrevious = $deltaPrevious = 0;
             $quantityLastYear = $primeCostLastYear = $deltaLastYear = 0;
-            
+
+
             if ($rec->quantityType == 'shipped') {
                 $DetClass = cls::get($recPrime->detailClassId);
                 $price = 'sellCost';
@@ -835,9 +895,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             //Данни за ПРЕДХОДНА ГОДИНА
             if ($rec->compare == 'year') {
                 if ($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear) {
-                    
-                    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
-                        
+
+                    if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails ) {
+
                         $quantityLastYear = (-1) * $recPrime->quantity;
                         $primeCostLastYear = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
                         $deltaLastYear = (-1) * $recPrime->delta;
@@ -886,8 +946,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $primeCost = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
                     
                     $delta = (-1) * $recPrime->delta;
-                    
-                } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
+
+                } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports || $DetClass instanceof sales_ServicesDetails) {
                     $quantity = $recPrime->quantity;
                     
                     $primeCost = $recPrime->{"${price}"} * $recPrime->quantity;
@@ -1313,19 +1373,19 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
         }
-        
-        //Добавям ред за ОБЩИТЕ суми
-        $totalArr['total'] = (object)array(
-            'totalValue' => $totalValue,
-            'totalDelta' => $totalDelta,
-            'totalPrimeCostPrevious' => $totalPrimeCostPrevious,
-            'totalDeltaPrevious' => $totalDeltaPrevious,
-            'totalPrimeCostLastYear' => $totalPrimeCostLastYear,
-            'totalDeltaLastYear' => $totalDeltaLastYear
-        );
-        
-        array_unshift($recs, $totalArr['total']);
-        
+
+//        //Добавям ред за ОБЩИТЕ суми
+//        $totalArr['total'] = (object)array(
+//            'totalValue' => $totalValue,
+//            'totalDelta' => $totalDelta,
+//            'totalPrimeCostPrevious' => $totalPrimeCostPrevious,
+//            'totalDeltaPrevious' => $totalDeltaPrevious,
+//            'totalPrimeCostLastYear' => $totalPrimeCostLastYear,
+//            'totalDeltaLastYear' => $totalDeltaLastYear
+//        );
+
+       // array_unshift($recs, $totalArr['total']);
+
         return $recs;
         
         
@@ -1361,7 +1421,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $invDetQuery->EXT('type', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
         
         $invDetQuery->EXT('folderId', 'sales_Invoices', 'externalName=folderId,externalKey=invoiceId');
-        
+
+        $invDetQuery->EXT('contragentClassId', 'sales_Invoices', 'externalName=contragentClassId,externalKey=invoiceId');
+
+        $invDetQuery->EXT('contragentId', 'sales_Invoices', 'externalName=contragentId,externalKey=invoiceId');
+
         $invDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         
         return $invDetQuery;
@@ -1893,6 +1957,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                         <!--ET_BEGIN firstMonth--><div>|Месец 1|*: [#firstMonth#]</div><!--ET_END firstMonth-->
                                         <!--ET_BEGIN secondMonth--><div>|Месец 2|*: [#secondMonth#]</div><!--ET_END secondMonth-->
                                         <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
+                                         <!--ET_BEGIN dealersTeam--><div>|Екипи|*: [#dealersTeam#]</div><!--ET_END dealersTeam-->
                                         <!--ET_BEGIN contragent--><div>|Контрагент|*: [#contragent#]</div><!--ET_END contragent-->
                                         <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
                                         <!--ET_BEGIN group--><div>|Групи продукти|*: [#group#]</div><!--ET_END group-->
@@ -1928,17 +1993,36 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (isset($data->rec->secondMonth)) {
             $fieldTpl->append('<b>' . acc_Periods::fetch($data->rec->secondMonth)->title . '</b>', 'secondMonth');
         }
-        
-        if ((isset($data->rec->dealers)) && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
+
+        //Показваме избраните търговци
+        if ((isset($data->rec->dealers)) && ($data->rec->quantityType != 'invoiced') && ((min(array_keys(keylist::toArray($data->rec->dealers))) >= 1))) {
+
             foreach (type_Keylist::toArray($data->rec->dealers) as $dealer) {
                 $dealersVerb .= (core_Users::getTitleById($dealer) . ', ');
             }
-            
-            $fieldTpl->append('<b>' . trim($dealersVerb, ',  ') . '</b>', 'dealers');
+
+                $fieldTpl->append('<b>' . trim($dealersVerb, ',  ') . '</b>', 'dealers');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'dealers');
         }
-        
+        // Показваме избраните екипи търговци
+        if (!empty($data->rec->dealersTeam) && $data->rec->quantityType != 'invoiced') {
+            // Преобразуваме keylist в масив от id-та
+            $teamIds = keylist::toArray($data->rec->dealersTeam);
+            $teamNames = [];
+            $marker1 = 0;$role = '';
+            foreach ($teamIds as $roleId) {
+
+                $marker1++;
+                // Вземаме името на всяка роля чрез core_Roles
+                $role .= core_Roles::fetch($roleId)->role . ', ';
+
+            }
+                $fieldTpl->append('<b>' . $role . '</b>', 'dealersTeam');
+
+        }
+
+
         if (isset($data->rec->contragent) || isset($data->rec->crmGroup)) {
             $marker = 0;
             if (isset($data->rec->crmGroup)) {

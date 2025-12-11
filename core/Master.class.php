@@ -305,6 +305,16 @@ class core_Master extends core_Manager
                 }
             }
         }
+
+        $show = $this->selectFields("#single == 'show'");
+
+        foreach($data->singleFields as $field => $_) {
+            if((is_scalar($data->rec->{$field}) && strlen($data->rec->{$field}) == 0) || $data->rec->{$field} === null) {
+                if(!$show[$field]) {
+                    unset($data->singleFields[$field]);
+                }
+            }
+        }
         
         if (countR($data->singleFields)) {
             
@@ -777,9 +787,10 @@ class core_Master extends core_Manager
         
         // Ако е подадено името на полето
         if ($fieldName) {
-            
+            $rec = self::fetchRec($id);
+
             // Вземаме вербалното име
-            $name = $me->getVerbal($id, $fieldName);
+            $name = $me->getVerbal($rec, $fieldName);
         } else {
             
             // Генерираме име
@@ -996,7 +1007,9 @@ class core_Master extends core_Manager
     {
         if (countR($mvc->updateQueue)) {
             foreach ($mvc->updateQueue as $id) {
+                core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 5, 0, 0, false);
                 $mvc->updateMaster($id);
+                core_Locks::release("{$mvc->className}_UpdateMaster_" . $id);
             }
         }
     }

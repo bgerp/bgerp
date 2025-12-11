@@ -131,7 +131,10 @@ class blogm_Articles extends core_Master
         $rec->body = trim($rec->body);
         
         if ($fields['-browse']) {
-            $row->annotation = ($rec->seoDescription ? $rec->seoDescription : cms_Content::getSeoDescription($rec->body, 350, 450)) . ' ' .
+
+            $minLen = blogm_Setup::get('ARTICLE_ANNOTATION_MIN_LENGTH');
+            $maxLen = blogm_Setup::get('ARTICLE_ANNOTATION_MAX_LENGTH');
+            $row->annotation = ($rec->seoDescription ? $rec->seoDescription : cms_Content::getSeoDescription($rec->body, $minLen, $maxLen)) . ' ' .
                 ht::createLink('...', self::getUrl($rec), null, array('title' => tr('Виж цялата статия')));
             
             $thumb = $rec->seoThumb;
@@ -149,8 +152,8 @@ class blogm_Articles extends core_Master
                 $row->thumb = ht::createLink(ht::createElement('img', array('src' => $imageURL, 'alt' => $row->seoTitle, 'class' => 'blogmBrowseImg')), self::getUrl($rec));
             }
         }
-        
-        if ($q = Request::get('q')) {
+     
+        if ($q = Request::get('q', 'varchar')) {
             $row->body = plg_Search::highlight($row->body, $q, 'searchContent');
         }
         
@@ -181,9 +184,75 @@ class blogm_Articles extends core_Master
         if(blogm_Setup::get('TYPE') == 'news'){
             unset($row->author);
         }
+
+        // Ако се рендира статия във външната част
+        if ($fields['-article']) {
+            $categories = keylist::toArray($rec->categories);
+            $Category = cls::get('blogm_Categories');
+
+            $cMenuId = Request::get('cMenuId', 'int');
+            if(empty($cMenuId)){
+                $cMenuId = static::getDefaultMenuId($rec);
+            }
+
+            $maxPath = blogm_Setup::get('ARTICLE_NAVIGATION_MAX_PATH');
+            if($maxPath){
+                // Показва се и навигацията във всичките категории дето е включена
+                $navigationArr = $Category->getNestedTree($categories);
+                $pathArr = $mvc->flattenNavPaths($navigationArr, $cMenuId);
+
+                $leftPath = array();
+                $count = 0;
+                foreach ($pathArr as $element) {
+                    $element .= " » " . "<span>" . strip_tags($row->title) . "</span>";
+
+                    $leftPath[] = $element;
+                    $count++;
+                    if ($count >= $maxPath) {
+                        break;
+                    }
+                }
+
+                $row->articleNavBar = '';
+                foreach ($leftPath as $path) {
+                    $row->articleNavBar .= "<div class='pathRow'>{$path}</div>";
+                }
+            }
+        }
     }
-    
-    
+
+
+    /**
+     * Вербализира пътя към навигацията
+     *
+     * @param array $navigation
+     * @param int $menuId
+     * @param array $prefix
+     *
+     * @return array $result
+     */
+    private function flattenNavPaths($navigation, $menuId, $prefix = array())
+    {
+        $result = array();
+
+        foreach ($navigation as $id => $children) {
+            $url = ht::createLink(blogm_Categories::getTitleById($id),  array('blogm_Articles', 'browse', 'cMenuId' => $menuId, 'category' => $id));
+            $newPath = array_merge($prefix, [$url]);
+
+            if (empty($children)) {
+                // Стигнахме листо – запазваме целия път
+                $result[] = implode(' » ', $newPath);
+            } else {
+                // Продължаваме надолу
+                $childPaths = $this->flattenNavPaths($children, $menuId, $newPath);
+                $result = array_merge($result, $childPaths);
+            }
+        }
+
+        return $result;
+    }
+
+
     /**
      * Изпълнява се преди всеки запис
      */
@@ -363,7 +432,9 @@ class blogm_Articles extends core_Master
         $data->menuId = $cMenuId;
         $data->category = $categoryId;
         $data->menuRec = cms_Content::fetch($data->menuId);
-        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->category);
+
+        $showAll = blogm_Setup::get('SHOW_EXPANDED_CATEGORIES_IN_NAV') == 'yes';
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->category, $showAll);
         $data->rec = $rec;
 
         cms_Content::setCurrent($cMenuId);
@@ -613,14 +684,16 @@ class blogm_Articles extends core_Master
         $data->query = $this->getQuery();
         $data->category = Request::get('category', 'int');
 
-        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->categoryId);
+        $showAll = blogm_Setup::get('SHOW_EXPANDED_CATEGORIES_IN_NAV') == 'yes';
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->categoryId, $showAll);
+
         $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
-        $data->q = Request::get('q');
+        $data->q = Request::get('q', 'varchar');
 
         // Архив
-        $data->archive = Request::get('archive');
+        $data->archive = Request::get('archive', 'varchar');
 
-        if ($data->archive) {
+        if (!empty($data->archive)) {
             list($data->archiveY, $data->archiveM) = explode('|', $data->archive);
             expect(is_numeric($data->archiveY) && is_numeric($data->archiveM));
             $data->archiveM = str_pad($data->archiveM, 2, '0', STR_PAD_LEFT);
@@ -731,7 +804,8 @@ class blogm_Articles extends core_Master
         
         // Определяне на титлата
         // Ако е посочено заглавие по-което се търси
-        if (isset($data->q)) {
+        $showRoot = blogm_Setup::get('SHOW_ALL_ARTICLE_CAPTION');
+        if (!empty($data->q)) {
             $domainId = cms_Domains::getPublicDomain('id');
             $clsId = core_Classes::getId('blogm_Articles');
             
@@ -742,7 +816,7 @@ class blogm_Articles extends core_Master
             
             $data->title = null;
             $data->rows = array();
-        } elseif (isset($data->archive)) {
+        } elseif (!empty($data->archive)) {
             $data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
         } elseif (isset($data->category)) {
             $catRec = blogm_Categories::fetch($data->category);
@@ -750,15 +824,20 @@ class blogm_Articles extends core_Master
                 error('404 Липсваща категория', array("Липсва категория:  {$data->category}"));
             }
 
-            $str = $blogType ? 'Статии в' : 'Новини в';
-            $data->title = tr($str) .  ' "<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
+            if($showRoot == 'yes'){
+                $str = $blogType ? 'Статии в' : 'Новини в';
+                $data->title = tr($str) .  ' "<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
+            }
+
             $data->descr = blogm_Categories::getVerbal($catRec, 'description');
             if (!countR($data->rows)) {
                 $str = (blogm_Setup::get('TYPE') == 'blog') ? 'Няма статии в тази категория' : 'Няма новини в тази категория';
                 $data->descr .= "<p><b style='color:#666;'>" . tr($str) . '</b></p>';
             }
         } else {
-            $data->title = tr(blogm_Setup::get('ALL_ARTICLES_IN_PAGE_TITLE'));
+            if($showRoot == 'yes'){
+                $data->title = tr(blogm_Setup::get('ALL_ARTICLES_IN_PAGE_TITLE'));
+            }
             if (!countR($data->rows)) {
                 $str = ($blogType == 'blog') ? 'Няма статии в този блог' : 'Няма новини в този блог';
                 $data->descr .= "<p><b style='color:#666;'>" . tr($str) . '</b></p>';
@@ -779,6 +858,14 @@ class blogm_Articles extends core_Master
     {
         $layout = $data->ThemeClass->getBrowseLayout();
 
+        // Показва се и навигацията във всичките категории дето е включена
+        $navigationArr = cls::get('blogm_Categories')->getNestedTree($data->categoryId);
+        if(countR($navigationArr)){
+            $pathArr = $this->flattenNavPaths($navigationArr, $data->menuId);
+            $pathArr[0] .= " » <span>" . strip_tags($data->title) . "</span>";
+            $layout->replace($pathArr[key($pathArr)], 'navigationBar');
+        }
+
         if (countR($data->rows)) {
             foreach ($data->rows as $row) {
                 $rowTpl = $layout->getBlock('ROW');
@@ -786,8 +873,7 @@ class blogm_Articles extends core_Master
                 $rowTpl->append2master();
             }
         }
-        
-        
+
         $layout->replace($data->title, 'BROWSE_HEADER');
         $layout->replace($data->descr, 'BROWSE_DESCR');
         $layout->append($data->pager->getPrevNext('« по-стари', 'по-нови »'));

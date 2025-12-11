@@ -243,7 +243,7 @@ class core_DateTime
     public static function getTimezoneDiff()
     {
         $timeZoneDiff = Mode::get('timezoneDiff');
-        
+
         return $timeZoneDiff;
     }
     
@@ -487,7 +487,7 @@ class core_DateTime
     public static function getColorByTime($datetime, $baseDatetime = null)
     {
         if (!$baseDatetime) {
-            $baseDatetime = self::now();
+            $baseDatetime = self::now(true, true);
         }
         
         $dist = strtotime($baseDatetime) - strtotime($datetime);
@@ -544,7 +544,7 @@ class core_DateTime
      * Превръща вербална дата/време вкъм MySQL-ска data.
      * Ако няма параметър, връща текущото време, в страната, където е часовата зона.
      */
-    public static function verbal2mysql($verbDate = '', $full = true)
+    public static function verbal2mysql($verbDate = '', $full = true, $useTimeZone = false)
     {
         if ($verbDate != '') {
             $verbDate = trim(strtolower($verbDate));
@@ -632,7 +632,11 @@ class core_DateTime
                 $date = sprintf($full ? '%04d-%02d-%02d %02d:%02d:%02d' : '%04d-%02d-%02d', $year, $month, $day, $hours, $minutes, $seconds);
             }
         } else {
-            $date = date($full ? 'Y-m-d H:i:s' : 'Y-m-d', time());
+            $offset = 0;
+            if ($useTimeZone) {
+                $offset = dt::getTimezoneDiff();
+            }
+            $date = date($full ? 'Y-m-d H:i:s' : 'Y-m-d', time() - $offset);
         }
         
         return $date;
@@ -646,9 +650,9 @@ class core_DateTime
      *
      * @return string
      */
-    public static function now($full = true)
+    public static function now($full = true, $useTimeZone = false)
     {
-        return self::verbal2mysql('', $full);
+        return self::verbal2mysql('', $full, $useTimeZone);
     }
     
     
@@ -1165,7 +1169,7 @@ class core_DateTime
                 $suffix = "-ви";
             } elseif (in_array($day, [2, 22])) {
                 $suffix = "-ри";
-            } elseif (in_array($day, [7, 8])) {
+            } elseif (in_array($day, [7, 8, 27, 28])) {
                 $suffix = "-ми";
             } else {
                 $suffix = "-ти";

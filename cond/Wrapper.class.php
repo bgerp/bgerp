@@ -24,7 +24,8 @@ class cond_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('cond_DeliveryTerms', 'Доставки', 'ceo,admin');
-        $this->TAB('tags_Tags', 'Тагове', 'ceo, admin');
+        $this->TAB('tags_Tags', 'Тагове->Тагове', 'ceo, admin');
+        $this->TAB('tags_Logs', 'Тагове->Логове', 'ceo, admin');
         $this->TAB('cond_PaymentMethods', 'Плащания->Методи', 'ceo,admin');
         $this->TAB('cond_Payments', 'Плащания->Средства', 'ceo,admin');
         $this->TAB('cond_Ranges', 'Диапазони', 'ceo,admin');
@@ -38,6 +39,7 @@ class cond_Wrapper extends plg_ProtoWrapper
         $this->TAB('cond_Groups', 'Пасажи->Групи', 'ceo,admin');
         $this->TAB('cond_Allergens', 'Алергени', 'ceo,admin');
         $this->TAB('cond_TariffCodes', 'МТК', 'admin,ceo');
+        $this->TAB('bgerp_Filters', 'Филтри', 'admin');
         $this->TAB('doc_LinkedTemplates', 'Връзки', 'admin');
         $this->TAB('cond_ConditionsToCustomers', 'Debug->Условия към контрагенти', 'debug');
         $this->TAB('uiext_ObjectLabels', 'Debug->Тагнати обекти', 'debug');

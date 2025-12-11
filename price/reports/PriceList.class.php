@@ -89,6 +89,8 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('lang', 'enum(auto=Текущ,bg=Български,en=Английски)', 'caption=Допълнително->Език,after=showEan,single=internal');
         $fieldset->FLD('showUiextLabels', 'enum(yes=Включено,no=Изключено)', 'caption=Допълнително->Тагове на редовете,after=showEan,single=internal');
         $fieldset->FLD('templateType', 'enum(default=Стандартен изглед,foods=Храни)', 'caption=Допълнително->Изглед,after=lang,single=internal');
+        $fieldset->FLD('templateCssClass', 'varchar(16)', 'caption=Допълнително->CSS клас,after=templateType,single=internal');
+
     }
 
 
@@ -102,8 +104,11 @@ class price_reports_PriceList extends frame2_driver_TableData
      */
     public function getTitle($rec, $isPlain = false)
     {
-        $policyName = price_Lists::getTitleById($rec->policyId);
-        $title = "Ценоразпис \"{$policyName}\"";
+        $title = $rec->title;
+        if(empty($title)) {
+            $policyName = price_Lists::getTitleById($rec->policyId);
+            $title = "Ценоразпис \"{$policyName}\"";
+        }
         
         return $title;
     }
@@ -371,7 +376,11 @@ class price_reports_PriceList extends frame2_driver_TableData
                 }
             }
 
-            $row->weightVerbal = cat_Products::getParams($dRec->productId, 'weight');
+            $weightVerbal = cat_Products::getParams($dRec->productId, 'weight', true);
+            if(!empty($weightVerbal)){
+                $suffix = cat_Params::fetch("#sysId = 'weight'")->suffix;
+                $row->weight = "{$weightVerbal} {$suffix}";
+            }
         } else {
             Mode::push('noIconImg', true);
             $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, $display, 'public', $rec->lang, null, false);
@@ -386,6 +395,12 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row->price = core_Type::getByName("double(decimals={$decimals})")->toVerbal($dRec->price);
         if($rec->templateType == 'foods'){
             $row->price = currency_Currencies::decorate($row->price, $rec->currencyId);
+            if($rec->currencyId == 'BGN'){
+                $euroRate = currency_CurrencyRates::getRate($rec->date, 'EUR', 'BGN');
+                $priceEuro = round($dRec->price, $decimals) / $euroRate;
+                $priceEuroVerbal = core_Type::getByName("double(decimals={$decimals})")->toVerbal($priceEuro);
+                $row->price .= "&nbsp;/&nbsp;" . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
+            }
         }
 
         // Рендиране на опаковките в таблица
@@ -793,13 +808,18 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected function renderCustomLayout($rec, $data)
     {
         if($tpl = parent::renderCustomLayout($rec, $data)){
-            $now = dt::now();
-            $cDay = dt::mysql2verbal($now, 'd');
 
+            // Коя дата да показваме ако специалния изглед
+            $date = dt::now();
+            $cH = dt::mysql2verbal($date, 'H');
+            if($cH >= '18'){
+                $date = dt::addDays(1, $date);
+            }
+            $cDay = dt::mysql2verbal($date, 'd');
             $lg = ($rec->lang == 'auto') ? null : $rec->lang;
             $cDayWithSuffix = dt::getDayWithSuffix($cDay, $lg);
-            $cMonth = mb_strtolower(dt::mysql2verbal($now, 'F'));
-            $tpl->append("{$cDayWithSuffix} {$cMonth}", 'currentDate');
+            $cMonth = mb_strtolower(dt::mysql2verbal($date, 'm'));
+            $tpl->append("{$cDay}/{$cMonth}", 'currentDate');
 
             $counter = 0;
             foreach ($data->rows as $row){
@@ -812,6 +832,10 @@ class price_reports_PriceList extends frame2_driver_TableData
                     $tpl->append($block, 'GRID');
                 }
             }
+        }
+
+        if(!empty($rec->templateCssClass)){
+            $tpl->append($rec->templateCssClass, 'templateCssClass');
         }
 
         return $tpl;

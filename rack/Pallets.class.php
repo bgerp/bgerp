@@ -79,7 +79,7 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'label,position,productId,batch=Партида,quantity,uom=Мярка,closedOn';
+    public $listFields = 'label,position,productId,batch=Партида,quantity,uom=Мярка,closedOn,createdOn';
     
     
     /**
@@ -144,6 +144,7 @@ class rack_Pallets extends core_Manager
         $this->setDbIndex('state');
         $this->setDbIndex('storeId');
         $this->setDbIndex('position');
+		$this->setDbIndex('storeId,productId,batch');  // за getAvailablePallets()
     }
 
 

@@ -97,6 +97,24 @@ abstract class store_DocumentMaster extends core_Master
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
+     * Работен кеш
+     */
+    protected static $logisticDataCache = array('cData' => array(), 'locationId' => array(), 'countryId' => array());
+
+
+    /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
@@ -118,7 +136,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
-        $mvc->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
+        $mvc->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Артикули->Подреждане по,notNull,value=auto');
 		$mvc->FLD('note', 'richtext(bucket=Notes,passage,rows=6)', 'caption=Допълнително->Бележки');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
@@ -187,7 +205,6 @@ abstract class store_DocumentMaster extends core_Master
         $form->setDefault('currencyRate', $dealInfo->get('rate'));
         if(empty($rec->id)){
             $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
-            $form->setDefault('deliveryOn', $dealInfo->get('deliveryTime'));
         }
         $form->setDefault('chargeVat', $dealInfo->get('vatType'));
         $form->setDefault('storeId', $dealInfo->get('storeId'));
@@ -220,8 +237,6 @@ abstract class store_DocumentMaster extends core_Master
         } else {
             $data->form->setField('prevShipment', 'input=none');
         }
-
-        $form->setDefault('detailOrderBy', $dealInfo->get('detailOrderBy'));
     }
     
     
@@ -239,7 +254,39 @@ abstract class store_DocumentMaster extends core_Master
 
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
+            $valiorError = null;
+            if(!deals_Helper::isValiorAllowed($rec->valior, $rec->threadId, $valiorError)) {
+                $form->setError('valior', $valiorError);
+            }
+
+            // Ако валутата на документа не е разрешена ще се подмени след запис
+            if($form->dealInfo->get('currency') == 'BGN'){
+                $valiorBaseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
+
+                if($rec->currencyId != $valiorBaseCurrencyId){
+                    if(isset($rec->id)){
+                        $oldRec = $mvc->fetch($rec->id, 'valior,currencyRate', false);
+                        $rec->_oldValior = $oldRec->valior ?? dt::verbal2mysql($rec->createdOn, false);
+                        $rec->_oldRate = $oldRec->currencyRate;
+                    }
+                    $rec->currencyId = $valiorBaseCurrencyId;
+                }
+            } elseif($form->dealInfo->get('currency') == "EUR"){
+                if(isset($rec->id)) {
+                    $oldRec = $mvc->fetch($rec->id, 'valior,currencyRate', false);
+                    if(acc_Periods::getBaseCurrencyCode($oldRec->valior) != acc_Periods::getBaseCurrencyCode($rec->valior)){
+                        $rec->_oldValior = $oldRec->valior ?? dt::verbal2mysql($rec->createdOn, false);
+                        $rec->_oldRate = $oldRec->currencyRate;
+                    }
+                }
+            }
+
+            $rec->_dealCurrencyId = $form->dealInfo->get('currency');
+            if((acc_Periods::getBaseCurrencyCode($rec->valior) != acc_Periods::getBaseCurrencyCode($form->dealInfo->get('agreedValior')))) {
+                $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            }
+
             // Ако има локация и тя е различна от договорената, слагаме предупреждение
             if (!empty($rec->locationId) && $form->dealInfo->get('deliveryLocation') && $rec->locationId != $form->dealInfo->get('deliveryLocation')) {
                 $agreedLocation = crm_Locations::getTitleById($form->dealInfo->get('deliveryLocation'));
@@ -475,13 +522,17 @@ abstract class store_DocumentMaster extends core_Master
 
                     // Пропускат се експедираните продукти
                     if ($toShip <= 0) continue;
-
                     $shipProduct = new stdClass();
                     $shipProduct->{$mvc->{$Detail}->masterKey} = $rec->id;
                     $shipProduct->productId = $product->productId;
                     $shipProduct->packagingId = $product->packagingId;
                     $shipProduct->quantity = $toShip;
                     $shipProduct->price = $price;
+                    if($aggregatedDealInfo->get('currency') == 'BGN') {
+                        $shipProduct->price = deals_Helper::getSmartBaseCurrency($shipProduct->price, $aggregatedDealInfo->get('agreedValior'), $rec->valior);
+                    } else {
+                        $shipProduct->price = $shipProduct->price / $aggregatedDealInfo->get('rate') * $rec->currencyRate;
+                    }
                     $shipProduct->discount = $discount;
                     $shipProduct->notes = $product->notes;
                     $shipProduct->quantityInPack = $product->quantityInPack;
@@ -782,7 +833,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
+     * @return void
      *
      * @see bgerp_DealIntf::getDealInfo()
      */
@@ -909,11 +960,17 @@ abstract class store_DocumentMaster extends core_Master
         $ownCountryId = $ownCompany->country;
 
         if ($locationId = store_Stores::fetchField($rec->storeId, 'locationId')) {
-            $storeLocation = crm_Locations::fetch($locationId);
+            if(!array_key_exists($locationId, static::$logisticDataCache['locationId'])){
+                static::$logisticDataCache['locationId'][$locationId] = crm_Locations::fetch($locationId);
+            }
+            $storeLocation = static::$logisticDataCache['locationId'][$locationId];
             $ownCountryId = $storeLocation->countryId;
         }
-        
-        $contragentData = doc_Folders::getContragentData($rec->folderId);
+
+        if(!array_key_exists($rec->folderId, static::$logisticDataCache['cData'])){
+            static::$logisticDataCache['cData'][$rec->folderId] = doc_Folders::getContragentData($rec->folderId);
+        }
+        $contragentData = static::$logisticDataCache['cData'][$rec->folderId];
         $contragentCountryId = $contragentData->countryId;
         
         if (isset($rec->locationId)) {
@@ -926,7 +983,11 @@ abstract class store_DocumentMaster extends core_Master
         
         // Подготвяне на данните за разтоварване
         $res = array();
-        $res["{$ownPart}Country"] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+        if(!array_key_exists($ownCountryId, static::$logisticDataCache['countryId'])){
+            static::$logisticDataCache['countryId'][$ownCountryId] = drdata_Countries::fetchField($ownCountryId, 'commonName');
+        }
+
+        $res["{$ownPart}Country"] = static::$logisticDataCache['countryId'][$ownCountryId];
         
         if (isset($storeLocation)) {
             $res["{$ownPart}PCode"] = !empty($storeLocation->pCode) ? $storeLocation->pCode : null;
@@ -941,17 +1002,19 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$ownPart}Place"] = !empty($ownCompany->place) ? $ownCompany->place : null;
             $res["{$ownPart}Address"] = !empty($ownCompany->address) ? $ownCompany->address : null;
         }
-        
-        $res["{$ownPart}Company"] = $ownCompany->name;
-        $toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-        $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
 
-        if($res["{$ownPart}Person"]){
-            $personId = crm_Profiles::getPersonByUser($toPersonId);
-            if(isset($personId)){
-                $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
-                if(!empty($buzPhones)){
-                    $res["{$ownPart}PersonPhones"] = $buzPhones;
+        if(!Mode::is('calcOnlyDeliveryPart')){
+            $res["{$ownPart}Company"] = $ownCompany->name;
+            $toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
+            $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
+
+            if($res["{$ownPart}Person"]){
+                $personId = crm_Profiles::getPersonByUser($toPersonId);
+                if(isset($personId)){
+                    $buzPhones = crm_Persons::fetchField($personId, 'buzTel');
+                    if(!empty($buzPhones)){
+                        $res["{$ownPart}PersonPhones"] = $buzPhones;
+                    }
                 }
             }
         }
@@ -1008,11 +1071,13 @@ abstract class store_DocumentMaster extends core_Master
         }
         
         $res['deliveryTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : ($rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY'));
-        $res['ourReff'] = '#' . $this->getHandle($rec);
 
-        $totalInfo = $this->getTotalTransportInfo($rec);
-        $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $totalInfo->weight;
-        $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $totalInfo->volume;
+        if(!Mode::is('calcOnlyDeliveryPart')){
+            $res['ourReff'] = '#' . $this->getHandle($rec);
+            $totalInfo = $this->getTotalTransportInfo($rec);
+            $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $totalInfo->weight;
+            $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $totalInfo->volume;
+        }
 
         if(!empty($rec->addressInfo)){
             $res["{$contrPart}AddressInfo"] = $rec->addressInfo;
@@ -1037,6 +1102,7 @@ abstract class store_DocumentMaster extends core_Master
      *               o quantityInPack - количество в опаковката
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
+     *               o rate           - курса на документа
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
@@ -1059,6 +1125,7 @@ abstract class store_DocumentMaster extends core_Master
             unset($dRec->shipmentId);
             unset($dRec->createdOn);
             unset($dRec->createdBy);
+            $dRec->rate = $rec->currencyRate;
             $details[] = $dRec;
         }
         
@@ -1093,11 +1160,13 @@ abstract class store_DocumentMaster extends core_Master
      *               ['countryId']      string|NULL - ид на държава
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
+     *               ['deliveryOn']     date        - Доставка на
+     *               ['valior']         date        - Вальор
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
-        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
+        $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes, 'deliveryOn' => $rec->deliveryOn);
         $res['stores'] = array($rec->storeId);
         $res['storeMovement'] = ($this instanceof store_Receipts) ? (($rec->isReverse == 'yes') ? 'out' : 'in') : (($rec->isReverse == 'yes') ? 'in' : 'out');
         $res['cases'] = array();
@@ -1158,12 +1227,15 @@ abstract class store_DocumentMaster extends core_Master
             $amount = $sign * $res['amount'];
             $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($amount);
             $amountVerbal = ht::styleNumber($amountVerbal, $res['amount']);
+            Mode::push('text', 'plain');
             $res['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
+            Mode::pop('text');
         }
 
         if(!empty($logisticData["{$part}AddressInfo"])){
             $res['addressInfo'] = $logisticData["{$part}AddressInfo"];
         }
+        $res['valior'] = $rec->valior ?? dt::today();
 
         return $res;
     }
@@ -1365,6 +1437,7 @@ abstract class store_DocumentMaster extends core_Master
             $id = $Source->that;
         }
 
+        $masterRec = $Detail->Master->fetch($id, 'currencyRate,currencyId,valior');
         $res = array();
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
@@ -1372,6 +1445,15 @@ abstract class store_DocumentMaster extends core_Master
             if($genericProductId = planning_GenericProductPerDocuments::getRec($Detail, $dRec->id)){
                 $dRec->_genericProductId = $genericProductId;
             }
+
+            // Какъв е курса на документа от който е извлечен детайла
+            if(isset($masterRec->currencyRate)){
+                $dRec->_rate = $masterRec->currencyRate;
+            }
+            if(isset($masterRec->valior)){
+                $dRec->_valior = $masterRec->valior;
+            }
+
             $res[$dRec->id] = $dRec;
         }
         $res = array('recs' => $res, 'detailMvc' => $Detail);
@@ -1397,5 +1479,22 @@ abstract class store_DocumentMaster extends core_Master
         $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
 
         return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if(isset($rec->_oldValior)){
+
+            // Ако вальора е сменен и основната валута към стария вальор е различна от тази към новия
+            if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyCode($rec->valior)){
+                deals_Helper::recalcDetailPriceInBaseCurrency($mvc, $rec, $rec->_oldValior, $rec->valior, $rec->_oldRate);
+                $valiorVerbal = dt::mysql2verbal($rec->valior, 'd.m.Y');
+                core_Statuses::newStatus("Цените на артикулите са преизчислени към основната валута за|*: <b>{$valiorVerbal}</b>");
+            }
+        }
     }
 }

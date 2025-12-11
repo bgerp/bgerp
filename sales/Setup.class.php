@@ -270,6 +270,12 @@ defIfNot('SALES_RECALC_PRICES_ON_CLONE', 'yes');
 
 
 /**
+ * Показване на двойни цени Евро/Лева в изходящите оферти за фирми->Избор
+ */
+defIfNot('SALES_SHOW_COMPANY_QUOTES_DUAL_PRICES', 'no');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -448,6 +454,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_AUTO_SELECT_BANK_ACCOUNT_IF_ONLY_ONE_IS_AVAILABLE' => array('enum(no=Да не се избира,yes=Автоматичен избор)', 'caption=Автоматичен избор на наша сметка в продажбите ако е само една достъпна->Избор'),
         'SALES_SHOW_CODE_IN_SEPARATE_COLUMN' => array('enum(no=Не,yes=Да)', 'caption=Показване на кода на артикула в продажбите в отделна колонка->Избор'),
         'SALES_RECALC_PRICES_ON_CLONE' => array('enum(no=Не,yes=Да)', 'caption=Преизчисление на цените в продажбата при клониране->Избор'),
+        'SALES_SHOW_COMPANY_QUOTES_DUAL_PRICES' => array('enum(no=Не,yes=Да)', 'caption=Показване на двойни цени Евро/Лева в изходящите оферти за фирми->Избор'),
     );
     
     
@@ -472,9 +479,12 @@ class sales_Setup extends core_ProtoSetup
         'sales_ProductRelations',
         'sales_ProductRatings',
         'sales_LastSaleByContragents',
+        'sales_DeliveryData',
         'migrate::updateProformasWithoutDate2624',
         'migrate::migrateDeltas3024v2',
         'migrate::forceIsSaleOverdue2451',
+        'migrate::forceCalcDeliveryData2524',
+
     );
     
     
@@ -541,11 +551,21 @@ class sales_Setup extends core_ProtoSetup
             'action' => 'CalcRating',
             'offset' => 190,
             'period' => 1440,
+            'timeLimit' => 1000
+        ),
+        array(
+            'systemId' => 'CacheSalesDeliveryData',
+            'description' => 'Кеширане на данните за доставка на Продажба и ЕН',
+            'controller' => 'sales_DeliveryData',
+            'action' => 'CacheDeliveryData',
+            'offset' => 10,
+            'period' => 30,
             'timeLimit' => 500
         ),
+
     );
-    
-    
+
+
     /**
      * Роли за достъп до модула
      */
@@ -694,5 +714,15 @@ class sales_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'IsSaleOverdue', $callOn);
+    }
+
+
+    /**
+     * Рекалкулиране на просроченото плащане
+     */
+    public static function forceCalcDeliveryData2524()
+    {
+        $callOn = dt::addSecs(200);
+        core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'CacheSalesDeliveryData', $callOn);
     }
 }

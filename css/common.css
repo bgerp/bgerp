@@ -1055,6 +1055,9 @@ a.more-btn {
 .narrow .more-btn {
   float: none; }
 
+.narrow input.more-btn {
+  min-width: 26px; }
+
 .more-btn.show-btn {
   background-image: url(../img/16/toggle2.png) !important; }
 
@@ -1302,6 +1305,16 @@ a.profile {
 .state-waiting {
   background-color: #cef763;
   background-color: rgba(210, 255, 120, 0.6); }
+
+.state-debit {
+  background-color: #d4edda; }
+  .state-debit:hover {
+    background-color: #c3e6cb !important; }
+
+.state-credit {
+  background-color: #f8d7da; }
+  .state-credit:hover {
+    background-color: #f5c6cb !important; }
 
 .state-removed {
   background-color: #dddddd;
@@ -1561,8 +1574,7 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
 .formError,
 .formNotice,
 .formWarning,
-.formCustomInfo,
-.formMiddleCaption {
+.formCustomInfo {
   font-size: 0.9em;
   padding: 10px;
   margin-bottom: 10px;
@@ -1571,14 +1583,16 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   -ms-border-radius: 5px;
   border-radius: 5px; }
 
-.formCustomInfo,
-.formMiddleCaption {
+.formCustomInfo {
   background-color: #fdfdc0;
   border: solid 1px #cccccc;
   color: #666666; }
 
 .formMiddleCaption {
-  margin: 0 !important; }
+  margin: 0 15px !important;
+  border: solid 1px #cccccc;
+  background: #eeeeee;
+  padding: 3px 5px !important; }
 
 .formNotice {
   background-color: #ffff66;
@@ -3427,6 +3441,10 @@ td.leftCol,
 th.leftCol {
   white-space: nowrap;
   text-align: left !important; }
+
+td.centerCell {
+  text-align: center !important;
+  vertical-align: middle !important; }
 
 td.centerCol {
   white-space: nowrap;

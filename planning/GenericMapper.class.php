@@ -263,10 +263,14 @@ class planning_GenericMapper extends core_Manager
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
 
         if ($data->notConvertableAnymore === true) {
-            $title = tr('Артикулът вече не е вложим');
-            $title = "<small class='red'>{$title}</small>";
-            $tpl->append($title, 'title');
-            $tpl->replace('state-rejected', 'TAB_STATE');
+            if(countR($data->rows)){
+                $title = tr('Артикулът вече не е вложим');
+                $title = "<small class='red'>{$title}</small>";
+                $tpl->append($title, 'title');
+                $tpl->replace('state-rejected', 'TAB_STATE');
+            } else {
+                return new core_ET("");
+            }
         } else {
             $tpl->append(tr('Влагане'), 'title');
         }
@@ -298,7 +302,8 @@ class planning_GenericMapper extends core_Manager
         $data->fromConvertable = true;
 
         // Намираме Рецептите където се използва
-        $query = cat_BomDetails::getQuery();
+        $Details = cls::get('cat_BomDetails');
+        $query = $Details->getQuery();
         $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
         $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
         $query->where("#resourceId = {$data->masterId}");
@@ -319,6 +324,10 @@ class planning_GenericMapper extends core_Manager
             if (!$data->Pager->isOnPage()) continue;
             $bomRec = cat_Boms::fetch($rec->bomId);
             $data->rows[$rec->id] = cat_Boms::recToVerbal($bomRec);
+            $data->rows[$rec->id]->action = $Details->getFieldType('type')->toVerbal($rec->type);
+
+            $actionClass = ($rec->type == 'input') ? '#e6ffe0' : ($rec->type == 'pop' ? '#cce3fe' : '#ece2ff');
+            $data->rows[$rec->id]->action = "<div class='document-handler' style='background-color:{$actionClass};'>{$data->rows[$rec->id]->action}</div>";
 
             // Изчисляване за какво количество е вложено, ако се показват рецептите, в които е вложена
             if($Param == 'Resources'){

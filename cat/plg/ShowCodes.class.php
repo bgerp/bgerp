@@ -26,8 +26,8 @@ class cat_plg_ShowCodes extends core_Plugin
         setIfNot($mvc->productFld, 'productId');
         setIfNot($mvc->showReffCode, false);
     }
-    
-    
+
+
     /**
      * Извиква се преди подготовката на колоните
      */
@@ -36,8 +36,21 @@ class cat_plg_ShowCodes extends core_Plugin
         $data->showReffCode = $mvc->showReffCode;
         $data->showCodeColumn = $mvc->showCodeColumn;
     }
-    
-    
+
+
+    public static function getReffListId($mvc, $contragentClassId, $contragentId, $threadId)
+    {
+        $firstDocument = doc_Threads::getFirstDocument($threadId);
+        if ($firstDocument) {
+            $listSysId = ($firstDocument->isInstanceOf('sales_Sales')) ? 'salesList' : 'purchaseList';
+        } else {
+            $listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
+        }
+
+        return cond_Parameters::getParameter($contragentClassId, $contragentId, $listSysId);
+    }
+
+
     /**
      * Преди подготовка на полетата за показване в списъчния изглед
      */
@@ -47,14 +60,7 @@ class cat_plg_ShowCodes extends core_Plugin
 
         $masterRec = $data->masterData->rec;
         if ($data->showReffCode === true) {
-            $firstDocument = doc_Threads::getFirstDocument($masterRec->threadId);
-            if ($firstDocument) {
-                $listSysId = ($firstDocument->isInstanceOf('sales_Sales')) ? 'salesList' : 'purchaseList';
-            } else {
-                $listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
-            }
-            
-            $listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
+            $listId = self::getReffListId($mvc, $masterRec->contragentClassId, $masterRec->contragentId, $masterRec->threadId);
         }
         
         foreach ($data->rows as $id => &$row) {
@@ -75,6 +81,11 @@ class cat_plg_ShowCodes extends core_Plugin
             if(!empty($sortRequest) && in_array($sortRequest, array("{$mvc->productFld}|up", "{$mvc->productFld}|down"))) return;
 
             $detailOrderBy = $data->masterData->rec->{$mvc->Master->detailOrderByField};
+            if($detailOrderBy == 'auto'){
+                $const = ($mvc instanceof deals_InvoiceDetail) ? 'ORDER_BY_DEFAULT_INVOICE_DOCS' : (($mvc instanceof deals_DealDetail) ? 'ORDER_BY_DEFAULT_DEAL_DOCS' : 'ORDER_BY_DEFAULT_STORE_DOCS');
+                $detailOrderBy = doc_Setup::get($const);
+            }
+
             if($detailOrderBy == 'code'){
                 arr::sortObjects($data->rows, 'code', 'ASC', 'natural');
             } elseif($detailOrderBy == 'reff' && isset($listId)){

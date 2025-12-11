@@ -220,7 +220,7 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '25.18-Dzhangal');
+define('CORE_CODE_VERSION', '25.50-Kamenitsa');
 
 
 /**
@@ -437,6 +437,7 @@ class core_Setup extends core_ProtoSetup
         'core_Updates',
         'core_Permanent',
         'core_UserReg',
+        'core_DbSess',
         'migrate::clearCallOnTimeBadData2212',
         'migrate::repairSearchKeywords2438',
         'migrate::setBGERPUNIQId3020'
@@ -554,6 +555,20 @@ class core_Setup extends core_ProtoSetup
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
+
+        
+        if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
+            // Нагласяване на Крон да почиства кеша
+            $rec = new stdClass();
+            $rec->systemId = 'ClearSess';
+            $rec->description = 'Почистване на MySQL сесиите';
+            $rec->controller = 'core_DbSess';
+            $rec->action = 'ClearSess';
+            $rec->period = 5;
+            $rec->delay = 0;
+            $rec->timeLimit = 20;
+            $html .= core_Cron::addOnce($rec);
+        }
         
         if (core_Setup::get('BACKUP_ENABLED') == 'yes') {
             

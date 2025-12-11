@@ -253,7 +253,10 @@ class frame2_Reports extends embed_Manager
         $this->FLD('changeFields', 'set', 'caption=Други настройки->Промяна,autohide,input=none');
         $this->FLD('maxKeepHistory', 'int(Min=0,max=40)', 'caption=Други настройки->Предишни състояния,autohide,placeholder=Неограничено');
         $this->FLD('data', 'blob(serialize, compress,size=20000000)', 'input=none');
+        $this->FLD('log', 'blob(serialize, compress,size=20000000)', 'input=none');
+
         $this->FLD('lastRefreshed', 'datetime(format=smartTime)', 'caption=Последно актуализиране,input=none');
+        $this->FLD('lastRefreshDuration', 'double', 'caption=Продължителност на актуализиране,input=none');
         $this->FLD('visibleForPartners', 'enum(no=Не,yes=Да)', 'caption=Други настройки->Видими от партньори,input=none,after=maxKeepHistory');
     }
     
@@ -532,10 +535,8 @@ class frame2_Reports extends embed_Manager
 
             // Ако името на драйвера не се съдържа в името на справката - да се показва
             $subTitle = core_Classes::fetchField("#id = {$Driver->getClassId()}", 'title');
-            $subTitle = explode(' » ', $subTitle);
-            $subTitle = (countR($subTitle) == 2) ? $subTitle[1] : $subTitle[0];
             if(strpos($row->title, $subTitle) === false){
-                $row->subTitle = $subTitle;
+                $row->subTitle = "Справка \"{$subTitle}\"";
             }
         }
         
@@ -543,7 +544,6 @@ class frame2_Reports extends embed_Manager
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
 
-        
         return $row;
     }
     
@@ -571,9 +571,20 @@ class frame2_Reports extends embed_Manager
                 $icon = 'img/16/checkbox_no.png';
             }
 
+            // Бутон за показване на версиите
             $vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
             if ($vCount > 1) {
                 $data->toolbar->addBtn("Версии|* ({$vCount})", $url, null, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+            }
+
+            if(is_array($rec->log) && countR($rec->log)){
+                $url = array($mvc, 'single', $rec->id);
+                $icon = 'img/16/checked.png';
+                if (!Request::get('logId', 'int')) {
+                    $url['logId'] = $rec->id;
+                    $icon = 'img/16/checkbox_no.png';
+                }
+                $data->toolbar->addBtn("Съобщения", $url, null, "ef_icon={$icon}, title=Показване на записаните логове при подготовката на отчета,row=2");
             }
         }
     }
@@ -642,11 +653,28 @@ class frame2_Reports extends embed_Manager
                 }
                 
             } catch(core_exception_Expect $e){
+                // Ако потребителя е дебъг да вижда грешката
+                if(haveRole('debug')){
+                    throw $e;
+                }
                 reportException($e);
                 $tpl->replace("<span class='red'><b>" . tr('Проблем при показването на справката') . '</b></span>', 'DRIVER_DATA');
             }
         } else {
              $tpl->replace("<span class='red'><b>" . tr('Проблем при зареждането на справката') . '</b></span>', 'DRIVER_DATA');
+        }
+
+        // Рендиране на таблицата в лога
+        if(isset($data->logRows)){
+            $fieldset = new core_FieldSet();
+            $fieldset->FLD('time', 'datetime','tdClass=small-field');
+            $fieldset->FLD('msg', 'varchar','tdClass=leftCol');
+            $table = cls::get('core_TableView', array('mvc' => $fieldset));
+            $details = $table->get($data->logRows, 'time=Време,msg=Съобщение');
+            $tpl->append($details, 'LOGS');
+            if(isset($data->logPager)){
+                $tpl->append($data->logPager->getHtml(), 'LOGS');
+            }
         }
     }
     
@@ -697,9 +725,14 @@ class frame2_Reports extends embed_Manager
 
                 try {
                     // Опресняват се данните му
+                    core_Debug::startTimer("PREPARE_DATA_TIMER_{$rec->id}");
                     $rec->data = $Driver->prepareData($rec);
-
+                    core_Debug::stopTimer("PREPARE_DATA_TIMER_{$rec->id}");
                 } catch (core_exception_Expect $e) {
+                    // Ако потребителя е дебъг няма да се замаскирва грешката
+                    if(haveRole('debug')){
+                        throw $e;
+                    }
 
                     // Ако е имало грешка, се записва че данните са грешни
                     $rec->data = static::DATA_ERROR_STATE;
@@ -713,7 +746,23 @@ class frame2_Reports extends embed_Manager
                 }
 
                 $rec->lastRefreshed = dt::now();
-                $me->save_($rec, 'data,lastRefreshed');
+                $rec->lastRefreshDuration = round(core_Debug::$timers["PREPARE_DATA_TIMER_{$rec->id}"]->workingTime, 6);
+
+                // Ако има логове по време на изчислението да се записват
+                $log = is_array($rec->log) ? $rec->log : array();
+                $currentLog = $Driver->getLog($rec);
+
+                if(countR($currentLog)) {
+                    $log = array_merge($log, $currentLog);
+                }
+
+                $rec->log = null;
+                if(countR($currentLog)){
+                    $logSliced = array_slice($log, -20);
+                    $rec->log = $logSliced;
+                }
+
+                $me->save_($rec, 'data,lastRefreshed,lastRefreshDuration,log');
 
                 // Ако е оказано ще се проверява за изпращане на нотификация след всяко обновяване, дори и да няма промяна
                 if(!$sendNotificationOnlyAfterDataIsChanged){
@@ -985,6 +1034,12 @@ class frame2_Reports extends embed_Manager
         }
         
         if (isset($rec->lastRefreshed)) {
+            if(!Mode::is('text', 'xhtml') && !empty($rec->lastRefreshDuration)){
+                if(haveRole('debug')){
+                    $row->lastRefreshed = ht::createHint($row->lastRefreshed, "Време за изпълнение|*: {$row->lastRefreshDuration} |сек|*", 'img/16/bug.png', false);
+                }
+            }
+
             $resArr['lastRefreshed'] = array('name' => $lastRefreshedHeaderName, 'val' => $row->lastRefreshed);
         }
         
@@ -1391,5 +1446,46 @@ class frame2_Reports extends embed_Manager
         }
         
         return 'img/16/error-red.png';
+    }
+
+
+    /**
+     * Връща урл-то към всички записи
+     */
+    protected static function on_AfterGetAllBtnUrl($mvc, &$res, $rec)
+    {
+        if(is_array($res) && countR($res)){
+            $res['driverClass'] = $rec->driverClass;
+        }
+    }
+
+
+    /**
+     * След подготовка на сингъла
+     */
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        $logId = Request::get('logId', 'int');
+        $rec = $data->rec;
+
+        // Ако ще се показва в лога да се подготвят данните
+        if ($logId == $data->rec->id) {
+            if(is_array($rec->log) && count($rec->log)){
+                arr::sortObjects($rec->log, 'time', 'DESC');
+
+                $data->logPager = cls::get('core_Pager', array('itemsPerPage' => 10));
+                $data->logPager->setPageVar("{$mvc->className}L" , $rec->id);
+                $data->logPager->itemsCount = countR($rec->log);
+
+                // Пропускане на записите, които не трябва да са на тази страница
+                $data->logRows = array();
+                foreach ($rec->log as $logArr) {
+                    if (!$data->logPager->isOnPage()) continue;
+                    $data->logRows[] = (object)array('time' => core_Type::getByName('date(format=smartTime)')->toVerbal($logArr['time']),
+                                                     'msg' => core_Type::getByName('varchar')->toVerbal($logArr['msg']),
+                                                     'ROW_ATTR' => array('style' => 'background-color:#fefec2;'));
+                }
+            }
+        }
     }
 }

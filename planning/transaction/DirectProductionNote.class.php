@@ -349,17 +349,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         }
 
         $costAmount = 0;
-        if(isset($debitAmount)){
-            $debitAmount = ($debitAmount) ? round($debitAmount, 2) : 0;
-            $amount = $debitAmount;
-            $costAmount = $debitAmount;
-            $array['quantity'] = $quantity;
-
-            $entry = array('amount' => $amount,
-                'debit' => $array,
-                'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
-            $entries[] = $entry;
-        }
 
         if (countR($details)) {
             arr::sortObjects($details, 'type');
@@ -486,7 +475,18 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     
                 $index++;
             }
+        } elseif(isset($debitAmount)){
+            $debitAmount = ($debitAmount) ? round($debitAmount, 2) : 0;
+            $amount = $debitAmount;
+            $costAmount = $debitAmount;
+            $array['quantity'] = $quantity;
+
+            $entry = array('amount' => $amount,
+                'debit' => $array,
+                'credit' => array('61102'), 'reason' => 'Бездетайлно произвеждане');
+            $entries[] = $entry;
         }
+
         $selfAmount = $costAmount + $consignmentAmount;
 
         // Ако има режийни разходи, разпределяме ги

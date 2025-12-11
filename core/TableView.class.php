@@ -189,7 +189,11 @@ class core_TableView extends core_BaseClass
                     } else {
                         $attr = '';
                     }
-                    
+
+                    if ($vr = $this->mvc->fields[$place]->type->viewrows) {
+                        $attr .= " data-viewrows= '{$vr}'";
+                    }
+
                     foreach ($colHeaders as $i => $name) {
                         $name = tr($name);
                         

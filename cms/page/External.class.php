@@ -140,7 +140,7 @@ class cms_page_External extends core_page_Active
         $user = ht::createLink($nick, array('cms_Profiles', 'single'), false, "ef_icon=img/16/user-black.png,title=Към профила,{$selectedProfileClass}");
         $logout = ht::createLink(tr('Изход'), array('core_Users', 'logout'), false, 'ef_icon=img/16/logout.png,title=Изход от системата');
 
-        $barcodeLink = ht::createLink('Баркод', array('barcode_Search', 'list'), false, "ef_icon=img/16/barcode-icon.png,title=Търсене по баркод,{$selectedBarcodeSearchClass}");
+        $barcodeLink = ht::createLink(tr('Баркод'), array('barcode_Search', 'list'), false, "ef_icon=img/16/barcode-icon.png,title=Търсене по баркод,{$selectedBarcodeSearchClass}");
         $this->replace($barcodeLink, 'BARCODE_LINK');
         $this->replace($user, 'USERLINK');
         $this->replace($logout, 'LOGOUT');

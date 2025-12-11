@@ -73,7 +73,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
             
             // Записваме кеша на съдържанието към името
             // за да не се използва след обновяване
-            Mode::setPermanent($nameHash, $contentHash);
+            core_Cache::set(get_called_class(), $nameHash, $contentHash, 60);
         }
     }
     
@@ -136,7 +136,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         $nameHash = static::getNameHash($currUrl, $hitTime);
         
         // Вземаме съдържанието от предишния запис
-        $savedHash = Mode::get($nameHash);
+        $savedHash = core_Cache::get(get_called_class(), $nameHash);
         
         if (empty($savedHash)) {
             $savedHash = md5($savedHash);
@@ -146,7 +146,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
         if ($statusHash != $savedHash) {
             
             // Записваме новата стойност, за да не се извлича следващия път за този таб
-            Mode::setPermanent($nameHash, $statusHash);
+            core_Cache::set(get_called_class(), $nameHash, $statusHash, 60);
             
             $divId = $mvc->getDivId();
             
@@ -241,7 +241,7 @@ class bgerp_RefreshRowsPlg extends core_Plugin
     public static function getNameHash($refreshUrl, $hitTime)
     {
         // От URL-то и hitTime генерираме хеша за името
-        $nameHash = md5(toUrl($refreshUrl) . $hitTime);
+        $nameHash = md5(toUrl($refreshUrl) . '|' . $hitTime . '|' . core_Users::getCurrent());
         
         // Името на хеша, с който е записан в сесията
         $nameHash = 'BGERP_REFRESH_ROWS_' . $nameHash;

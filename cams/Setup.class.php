@@ -36,6 +36,10 @@ defIfNot('CAMS_CLIPS_PER_NARROW_ROW', 1);
  */
 defIfNot('CAMS_MIN_DISK_SPACE', 100 * 1024 * 1024 * 1024);
 
+/**
+ * Колко дена назад се пазят записи - ако е 0 константата се игнорира
+ */
+defIfNot('CAMS_KEEP_DAYS', 0);
 
 /**
  * class acc_Setup
@@ -89,6 +93,9 @@ class cams_Setup extends core_ProtoSetup
         
         // Колко да е минималното дисково пространство
         'CAMS_MIN_DISK_SPACE' => array('fileman_FileSize', 'mandatory, caption=Колко да е минималното дисково пространство?->Размер'),
+        
+        // Колко дена назад да се пазят записи
+        'CAMS_KEEP_DAYS' => array('int', 'mandatory, caption=Колко дена назад да се пазят записи?->Брой'),
         
         // Колко клипа да показва на ред при широк екран
         'CAMS_CLIPS_PER_WIDE_ROW' => array('int', 'mandatory, caption=Колко записа да се показват при широк екран?->Колони в един ред'),

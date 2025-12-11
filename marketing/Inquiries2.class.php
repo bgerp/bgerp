@@ -849,7 +849,7 @@ class marketing_Inquiries2 extends embed_Manager
             // Ако може да се създава лица от запитването се слага бутон
             if ($mvc->haveRightFor('makeperson', $rec)) {
                 $companyId = doc_Folders::fetchCoverId($rec->folderId);
-                $data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->personNames, 'buzCompanyId' => $companyId, 'country' => $rec->country), 'ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя');
+                $data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'name' => $rec->personNames, 'buzCompanyId' => $companyId, 'country' => $rec->country), 'ef_icon=img/16/vcard-add.png,title=Създаване на визитка с адресните данни на подателя');
             }
             
             // Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
@@ -1036,20 +1036,20 @@ class marketing_Inquiries2 extends embed_Manager
         Mode::set('showBulletin', false);
         Mode::set('wrapper', 'cms_page_External');
 
-        Request::setProtected('classId, objectId,customizeProtoOpt');
-        expect404($classId = Request::get('classId', 'int'));
-        expect404($objectId = Request::get('objectId', 'int'));
+        Request::setProtected('classId,objectId,customizeProtoOpt');
+        expect410($classId = Request::get('classId', 'int'));
+        expect410($objectId = Request::get('objectId', 'int'));
         $customizeProto = Request::get('customizeProtoOpt', 'enum(yes,no)');
         $customizeProto = !empty($customizeProto) ? $customizeProto : 'yes';
         $Source = cls::getInterface('marketing_InquirySourceIntf', $classId);
         $sourceData = $Source->getInquiryData($objectId);
 
         $this->requireRightFor('new');
-        expect404($drvId = $sourceData['drvId']);
+        expect410($drvId = $sourceData['drvId']);
         $proto = $sourceData['protos'];
         $proto = keylist::toArray($proto);
         $title = $sourceData['title'];
-        
+
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
@@ -1094,7 +1094,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $form->input(null, 'silent');
-        
+
         if (countR($proto)) {
             $form->setOptions('proto', $proto);
             if (countR($proto) === 1) {
@@ -1143,7 +1143,7 @@ class marketing_Inquiries2 extends embed_Manager
         // След събмит на формата
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
             // Ако има регистриран потребител с този имейл. Изисква се да се логне
             if ($error = cms_Helper::getEmailError($rec->email)) {
                 $form->setError('email', $error);
@@ -1182,25 +1182,31 @@ class marketing_Inquiries2 extends embed_Manager
                         }
                         log_Browsers::setVars($userData);
                     }
-                    
-                    $id = $this->save($rec);
-                    doc_Threads::doUpdateThread($rec->threadId);
-                    $this->logWrite('Създаване от е-артикул', $id);
-                    if(!empty($routerExplanation)){
-                        $this->logWrite($routerExplanation, $id, 360, core_Users::SYSTEM_USER);
-                    }
-                    
-                    $singleUrl = self::getSingleUrlArray($id);
-                    if (countR($singleUrl)) {
-                        
-                        return redirect($singleUrl, false, '|Благодарим Ви за запитването|*!', 'success');
+
+                    if(!$sourceData['possibleSpam']){
+                        $id = $this->save($rec);
+                        doc_Threads::doUpdateThread($rec->threadId);
+                        $this->logWrite('Създаване от е-артикул', $id);
+                        if(!empty($routerExplanation)){
+                            $this->logWrite($routerExplanation, $id, 360, core_Users::SYSTEM_USER);
+                        }
+
+                        $singleUrl = self::getSingleUrlArray($id);
+                        if (countR($singleUrl)) {
+
+                            return redirect($singleUrl, false, '|Благодарим Ви за запитването|*!', 'success');
+                        }
+                    } else {
+                        usleep(500000);
+                        wp('Запитване СПАМ ',$rec, $sourceData);
+                        log_System::add(cls::getClassName($classId), "Спряно създаване на запитване (евентуален спам)", $objectId, 'warning');
                     }
                     
                     return followRetUrl(null, '|Благодарим Ви за запитването|*!', 'success');
                 }
             }
         }
-        
+
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');
         $tpl = $form->renderHtml();
@@ -1424,14 +1430,14 @@ class marketing_Inquiries2 extends embed_Manager
      */
     private function setFormDefaultFromCookie(&$form)
     {
-        $contactFields = $this->selectFields("#class == 'contactData'");
-        $fieldNamesArr = array_keys($contactFields);
-        
-        $vars = log_Browsers::getVars($fieldNamesArr);
-        
-        foreach ((array) $vars as $name => $val) {
-            $form->setDefault($name, $val);
-        }
+//        $contactFields = $this->selectFields("#class == 'contactData'");
+//        $fieldNamesArr = array_keys($contactFields);
+//
+//        $vars = log_Browsers::getVars($fieldNamesArr);
+//
+//        foreach ((array) $vars as $name => $val) {
+//            $form->setDefault($name, $val);
+//        }
     }
     
     

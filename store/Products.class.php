@@ -266,6 +266,8 @@ class store_Products extends core_Detail
         // Подготвяме в заявката да може да се търси по полета от друга таблица
         $data->query->EXT('keywords', 'cat_Products', 'externalName=searchKeywords,externalKey=productId');
         $data->query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $data->query->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+
         $data->query->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
         $data->query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $data->query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
@@ -288,7 +290,7 @@ class store_Products extends core_Detail
                 unset($showFieldsArr['inventory']);
             }
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-            $data->listFilter->setDefault('filters', 'active');
+            $data->listFilter->setDefault('filters', 'withStock');
             $data->listFilter->showFields = implode(',', $showFieldsArr);
             unset($data->listFilter->view);
 
@@ -458,7 +460,7 @@ class store_Products extends core_Detail
         
         $arrRes = arr::syncArrays($all, $oldRecs, 'productId,storeId', 'quantity');
         
-        if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
+        if (!core_Locks::obtain(self::SYNC_LOCK_KEY, 60, 3, 1)) {
             self::logWarning('Синхронизирането на складовите наличности е заключено от друг процес');
             
             return;
@@ -752,7 +754,7 @@ class store_Products extends core_Detail
         $res = arr::syncArrays($result, $oldRecs, 'storeId,productId', 'reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
 
         // Заклюване на процеса
-        if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
+        if (!core_Locks::obtain(self::SYNC_LOCK_KEY, 60, 3, 1)) {
             $this->logWarning('Синхронизирането на складовите наличности е заключено от друг процес');
             
             return;
@@ -1033,9 +1035,10 @@ class store_Products extends core_Detail
      * @param int $productId  - ид на артикул
      * @param date|null $date - към коя дата
      * @param mixed $stores   - от кои складове
+     * @param bool $checkFreeQuantity
      * @return array $res     - наличните к-ва по склад
      */
-    public static function getQuantitiesByStore($productId, $date = null, $stores = null)
+    public static function getQuantitiesByStore($productId, $date = null, $stores = null, $checkFreeQuantity = false)
     {
         $res = array();
         if(isset($stores)){
@@ -1048,7 +1051,8 @@ class store_Products extends core_Detail
         }
 
         foreach ($storeArr as $storeId){
-            $quantity = store_Products::getQuantities($productId, $storeId, $date)->quantity;
+            $fld = $checkFreeQuantity ? 'free' : 'quantity';
+            $quantity = store_Products::getQuantities($productId, $storeId, $date)->{$fld};
             $res[$storeId] = $quantity;
         }
 

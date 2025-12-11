@@ -155,7 +155,7 @@ class rack_Setup extends core_ProtoSetup
      * Роли за достъп до модула
      */
     public $roles = array('rackZoneSelect', 'rackSee',
-                    array('rack', 'rackSee,rackZoneSelect'),
+                    array('rack', 'rackSee,rackZoneSelect,storeWorker'),
                     array('rackMaster', 'rack'));
     
     
@@ -223,6 +223,11 @@ class rack_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Връзка между Протокола за влагане и и входящия палетен склад', 'rack_plg_IncomingShipmentDetails', 'planning_ReturnNoteDetails', 'private');
         $html .= $Plugins->installPlugin('Детайл на позициите на артикулите', 'rack_plg_ProductDetail', 'cat_Products', 'private');
 
+        if(core_Packs::isInstalled('store', true)){
+            $sMvc = cls::get('store_Stores');
+            $html .= $sMvc->setupMVC();
+        }
+
         return $html;
     }
 
@@ -236,7 +241,7 @@ class rack_Setup extends core_ProtoSetup
         'RACK_DIFF_PALLETS_IN_SAME_POS' => array('enum(no=Не,yes=Да (с предупреждение),yesWithoutWarning=Да (без предупреждение))', 'caption=Различни палети на една позиция->Разрешаване'),
         'RACK_DEFAULT_ZONE_COLORS' => array('color_Type','caption=Козметични настройки на зоните->Цвят'),
         'RACK_CLOSE_COMBINED_MOVEMENTS_AT_ONCE' => array('enum(yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване'),
-        'RACK_PICKUP_STRATEGY' => array('enum(ver1,ver2)', 'caption=Стратегия за генериране на движенията->Избор'),
+        'RACK_PICKUP_STRATEGY' => array('enum(ver1,ver2,ver3)', 'caption=Стратегия за генериране на движенията->Избор'),
         'RACK_TIME_GET' => array('int', 'caption=Средни времена по операции->Вземане'),
         'RACK_TIME_GET_A' => array('int', 'caption=Средни времена по операции->Вземане ot A'),
         'RACK_TIME_ZONE' => array('int', 'caption=Средни времена по операции->Оставяне'),
@@ -245,14 +250,4 @@ class rack_Setup extends core_ProtoSetup
         'RACK_ENABLE_PRIORITY_RACKS' => array('enum(yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване'),
         'RACK_POSITION_TO_STRATEGY' => array('enum(bestPos=Най-добра позиция,lastUp=Последно качено палет място,empty=Без предложение)', 'caption=Стратегия за предлагане на позиция за палетиране->Стратегия'),
     );
-
-
-    /**
-     * Изпълнява се след setup-а
-     */
-    public function checkConfig()
-    {
-        $sMvc = cls::get('store_Stores');
-        $sMvc->setupMVC();
-    }
 }

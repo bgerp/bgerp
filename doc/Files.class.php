@@ -175,28 +175,31 @@ class doc_Files extends core_Manager
             
             return ;
         }
-        
-        $query = self::getQuery();
-        $query->where(array("#containerId = '[#1#]'", $cId));
-        
+
+        static $rArr = array();
+
         $updateArr = array('hide' => array(), 'show' => array());
-        
-        $rArr = array();
-        
-        // Всички файлове от контейнера
-        while ($rec = $query->fetch()) {
-            $dataId = $rec->dataId;
-            if (!$dataId) {
-                $rec->show = 'no';
-                self::save($rec, 'show');
-                
-                continue;
+
+        if (!isset($rArr[$cId])) {
+            $rArr[$cId] = array();
+            $query = self::getQuery();
+            $query->where(array("#containerId = '[#1#]'", $cId));
+
+            // Всички файлове от контейнера
+            while ($rec = $query->fetch()) {
+                $dataId = $rec->dataId;
+                if (!$dataId) {
+                    $rec->show = 'no';
+                    self::save($rec, 'show');
+
+                    continue;
+                }
+
+                $rArr[$cId][] = array('dataId' => $dataId, 'folderId' => $rec->folderId);
             }
-            
-            $rArr[] = array('dataId' => $dataId, 'folderId' => $rec->folderId);
         }
-        
-        foreach ($rArr as $dArr) {
+
+        foreach ($rArr[$cId] as $dArr) {
             $dQuery = self::getQuery();
             $dQuery->where(array("#dataId = '[#1#]'", $dArr['dataId']));
             
@@ -223,13 +226,13 @@ class doc_Files extends core_Manager
                     continue;
                 }
                 
-                if (!isset($bestRec) || ($bestRec->CreatedOn > $cRec->createdOn)) {
+                if (!isset($bestRec) || ($bestRec->createdOn > $cRec->createdOn)) {
                     if (isset($bestRec)) {
                         $hideArr[$bestRec->id] = $bestRec;
                     }
                     
                     $bestRec = $dRec;
-                    $bestRec->CreatedOn = $cRec->createdOn;
+                    $bestRec->createdOn = $cRec->createdOn;
                 } else {
                     $hideArr[$dRec->id] = $dRec;
                 }
@@ -240,23 +243,25 @@ class doc_Files extends core_Manager
         }
 
         // Скриваме файлове, които не трябва да се показват
-        foreach ($updateArr['hide'] as $hideArr) {
+        foreach ((array) $updateArr['hide'] as $hideArr) {
             foreach ($hideArr as $hRec) {
                 if (!$hRec->show || $hRec->show != 'no') {
                     $hRec->show = 'no';
                     self::save($hRec, 'show');
+                    $rArr[$cId] = null;
                 }
             }
         }
         
         // Показваме файла
-        foreach ($updateArr['show'] as $bestRec) {
+        foreach ((array) $updateArr['show'] as $bestRec) {
             self::fixShow($bestRec);
             if (isset($bestRec) && (!$bestRec->show || $bestRec->show != 'yes')) {
                 if ($bestRec->show != 'isSearch') {
                     $bestRec->show = 'yes';
                 }
                 self::save($bestRec, 'show');
+                $rArr[$cId] = null;
             }
         }
     }
@@ -609,6 +614,14 @@ class doc_Files extends core_Manager
 
             if (isset($usersArr)) {
                 $data->query = fileman_Files::getQuery();
+
+                if (preg_match('/\.\w+/ui', $filter->search, $m)) {
+                    $data->query->where(array("#name LIKE '%[#1#]'", $m[0]));
+                } else {
+                    $data->query->where("#name NOT LIKE '%.html'");
+                    $data->query->where("#name NOT LIKE '%.eml'");
+                }
+
                 if ($usersArr[-1]) {
                     $data->query->isSlowQuery = true;
                     $data->query->useCacheForPager = true;

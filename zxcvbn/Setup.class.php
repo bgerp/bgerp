@@ -55,10 +55,11 @@ class zxcvbn_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'ZXCVBN_MIN_SCORE' => array('int(min=0,max=4)', 'caption=Сложност на паролата->Точки'),
+        'ZXCVBN_MIN_SCORE' => array('enum(0=Изключена, 1=Слаба, 2=Средна, 3=Силна, 4=Много силна)', 'caption=Сложност на паролата->Сложност'),
         'ZXCVBN_CHECK_ON_LOGIN' => array('enum(no=Не,yes=Да,stop=Спиране на логване)', 'caption=Дали да се проверява паролата при логване->Избор'),
     );
-    
+
+
     /**
      * Инсталиране на пакета
      */

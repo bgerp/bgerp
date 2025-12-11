@@ -95,7 +95,7 @@ class acc_CostAllocations extends core_Manager
         $this->FLD('allocationBy', 'enum(auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none,silent,removeAndRefreshForm=productsData|chosenProducts|allocationFilter');
         $this->FLD('allocationFilter', 'enum(all=Всички артикули,storable=Само складируеми)', 'input=none,caption=Артикули,silent,removeAndRefreshForm=chosenProducts|productsData');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
-        $this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
+        $this->FLD('productsData', 'blob(serialize, compress)', 'input=none,tdClass=td-clamp');
         
         $this->setDbIndex('detailClassId,detailRecId');
     }
@@ -547,7 +547,7 @@ class acc_CostAllocations extends core_Manager
             $url['ret_url'] = true;
             
             core_Request::setProtected('detailClassId,detailRecId,containerId,productId');
-            $data->addBtn = ht::createLink('Отнасяне на разходи', toUrl($url), false, 'title=Отнасяне към разходен обект');
+            $data->addBtn = ht::createLink(tr('Отнасяне на разходи'), toUrl($url), false, 'title=Отнасяне към разходен обект');
             core_Request::removeProtected('detailClassId,detailRecId,containerId,productId');
         }
     }

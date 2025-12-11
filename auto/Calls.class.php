@@ -67,7 +67,7 @@ class auto_Calls extends core_Manager
     {
         $this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
         $this->FLD('event', 'varchar(128)', 'caption=Събитие');
-        $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни');
+        $this->FLD('data', 'blob(compress, serialize)', 'caption=Данни,tdClass=td-clamp');
         $this->FLD('state', 'enum(waiting=Чакащо,locked=Заключено,closed=Затворено)', 'caption=Състояние, input=none');
     }
     
@@ -169,7 +169,7 @@ class auto_Calls extends core_Manager
         
         // Ако процеса е заключен не се изпълнява
         $lockKey = 'DoAutomations';
-        if (!core_Locks::get($lockKey, 60, 2)) {
+        if (!core_Locks::obtain($lockKey, 60, 10, 2)) {
 
             return;
         }

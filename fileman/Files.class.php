@@ -1032,7 +1032,7 @@ class fileman_Files extends core_Master
         // Вземаме URL' то
         $url = static::getUrlToSingle($fh, $absolute);
         
-        $attr['rel'] = 'nofollow';
+//        $attr['rel'] = 'nofollow';
         
         $isAbsolute = (boolean) (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf'));
         if (!$isAbsolute && fileman_Files::isDanger($rec)) {
@@ -1224,13 +1224,15 @@ class fileman_Files extends core_Master
     /**
      * @todo Чака за документация...
      */
-    public static function getUrLForAddFile($bucketId, $callback)
+    public static function getUrLForAddFile($bucketId, $callback, $validUntil = null)
     {
         // Защитаваме променливите
-        Request::setProtected('bucketId,callback');
-        
+        Request::setProtected('bucketId,callback,validUntil');
+
+        setIfNot($validUntil, dt::addSecs(3600));
+
         // Задаваме линка
-        $url = array('fileman_Files', 'AddFile', 'bucketId' => $bucketId, 'callback' => $callback);
+        $url = array('fileman_Files', 'AddFile', 'bucketId' => $bucketId, 'callback' => $callback, 'validUntil' => $validUntil);
         
         return toUrl($url);
     }
@@ -1545,7 +1547,7 @@ class fileman_Files extends core_Master
                     }
                 }
                 
-                $attr['rel'] = 'nofollow';
+//                $attr['rel'] = 'nofollow';
                 
                 if (!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')) {
                     if (static::haveRightFor('single', $fRec)) {
@@ -1876,22 +1878,23 @@ class fileman_Files extends core_Master
     public function act_AddFile()
     {
         // Защитаваме променливите
-        Request::setProtected('bucketId,callback');
+        Request::setProtected('bucketId,callback,validUntil');
         
         // Името на класа
         $class = fileman_DialogWrapper::getLastUploadTab();
-        
+
         // Инстанция на класа
         $class = cls::get($class);
-        
+
         // Вземаме екшъна
         $act = $class->getActionForAddFile();
         
         // Други допълнителни данни
         $bucketId = Request::get('bucketId', 'int');
         $callback = Request::get('callback');
-        
-        $url = array($class, $act, 'bucketId' => $bucketId, 'callback' => $callback);
+        $validUntil = Request::get('validUntil');
+
+        $url = array($class, $act, 'bucketId' => $bucketId, 'callback' => $callback, 'validUntil' => $validUntil);
         
         return new Redirect($url);
     }
@@ -2240,7 +2243,7 @@ class fileman_Files extends core_Master
             $dangerFileClass .= ' dangerFile';
         }
 
-        $fileNavArr = Mode::get('fileNavArr');
+        $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
 
         // Вербалното име на файла
         $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">';

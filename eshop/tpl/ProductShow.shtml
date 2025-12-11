@@ -1,6 +1,7 @@
 <div class='eshop-product'>
+	<div class='path' style="margin-bottom: 20px">[#productPath#]</div>
 	<h1 style='font-size:1.5em'>[#name#] &nbsp;<!--ET_BEGIN singleLink-->[#singleLink#]<!--ET_END singleLink--><!--ET_BEGIN editLink-->[#editLink#]<!--ET_END editLink--></h1>
-	<div class='eshop-product-navigation'>[#productPath#]</div>
+
 
 	<div class='eshop-product-images vtop' style='min-width:120px;float:left;width:22%'>
 		[#image#]

@@ -102,21 +102,22 @@ class bank_IncomeDocuments extends bank_Document
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = &$data->form;
+        $rec = &$form->rec;
         $today = dt::verbal2mysql();
         
-        $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
-        $contragentClassId = doc_Folders::fetchField($form->rec->folderId, 'coverClass');
+        $contragentId = doc_Folders::fetchCoverId($rec->folderId);
+        $contragentClassId = doc_Folders::fetchField($rec->folderId, 'coverClass');
         $form->setDefault('contragentId', $contragentId);
         $form->setDefault('contragentClassId', $contragentClassId);
         
-        expect($origin = $mvc->getOrigin($form->rec), $form->rec);
+        expect($origin = $mvc->getOrigin($rec), $rec);
 
-        $accountOptions = $mvc->getOwnAccountOptions($form->rec->ownAccount);
+        $accountOptions = $mvc->getOwnAccountOptions($rec->ownAccount);
         $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$accountOptions));
         $form->setOptions('ownAccount', $accountOptions);
         $options = array();
         $mvc->setDefaultsFromOrigin($origin, $form, $options);
-        $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
+        $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($rec->contragentId, $form->rec->contragentClassId));
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
         
         $form->setOptions('operationSysId', $options);

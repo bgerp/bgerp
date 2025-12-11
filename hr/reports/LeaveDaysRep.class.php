@@ -96,27 +96,37 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      * @return array
      */
     protected function prepareRecs($rec, &$data = null)
-    {
+    {    
         $recs = array();
         $persons = array();
         $date = acc_Periods::fetch($rec->periods);
-        
-        
+
+        // Включително краищата: leaveFrom <= $date <= leaveTo
+        //$q->where(array("#startDate <= '[#1#]' AND #toDate >= '[#1#]'", $date));
         $querySick = hr_Sickdays::getQuery();
-        $querySick->where("((#startDate >= '{$date->start}' AND #toDate <= '{$date->end}')) AND #state = 'active'");
+        $querySick->where(array("#startDate <= '[#2#]' AND #toDate >= '[#1#]' AND #state = 'active'", $date->start,$date->end));
         
         $queryTrip = hr_Trips::getQuery();
-        $queryTrip->where("((#startDate >= '{$date->start}' AND #toDate <= '{$date->end}')) AND #state = 'active'");
+        $queryTrip->where(array("#startDate <= '[#2#]' AND #toDate >= '[#1#]' AND #state = 'active'", $date->start,$date->end));
         
         $queryLeave = hr_Leaves::getQuery();
-        $queryLeave->where("((#leaveFrom >= '{$date->start}' AND #leaveTo <= '{$date->end}')) AND #state = 'active'");
+        $queryLeave->where(array("#leaveFrom <= '[#2#]' AND #leaveTo >= '[#1#]' AND #state = 'active'", $date->start,$date->end));
         
         $num = 1;
-        
+      
         // добавяме болничните
         while ($recSick = $querySick->fetch()) {
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recSick->personId;
+
+            // коригираме датите според границите на месеца
+            $realFrom = max($recSick->startDate, $date->start);
+            $realTo   = min($recSick->toDate,   $date->end);
+         
+            // ако няма припокриване — пропускаме
+            if ($realFrom > $realTo) {
+                continue;
+            }
             
             // добавяме в масива събитието
             $recs[$recSick->id.'|'.$id] =
@@ -126,17 +136,26 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
                     'person' => $recSick->personId,
                     'dateFrom' => $recSick->startDate,
                     'dateTo' => $recSick->toDate,
-                    'count' => self::getLeaveDays($recSick->startDate, $recSick->toDate, $id)->workDays,
+                    'count' => self::getLeaveDays($realFrom, $realTo, $id)->workDays,
                     'type' => 'sickDay',
                 );
             
             $num++;
         }
-        
+
         // добавяме командировките
         while ($recTrip = $queryTrip->fetch()) {
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recTrip->personId;
+            
+            // коригираме датите според границите на месеца
+            $realFrom = max($recTrip->startDate, $date->start);
+            $realTo   = min($recTrip->toDate,   $date->end);
+            
+            // ако няма припокриване — пропускаме
+            if ($realFrom > $realTo) {
+                continue;
+            }
             
             // добавяме в масива събитието
             $recs[$recTrip->id.'|'.$id] =
@@ -146,7 +165,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
                     'person' => $recTrip->personId,
                     'dateFrom' => $recTrip->startDate,
                     'dateTo' => $recTrip->toDate,
-                    'count' => self::getLeaveDays($recTrip->startDate, $recTrip->toDate, $id)->workDays,
+                    'count' => self::getLeaveDays($realFrom, $realTo, $id)->workDays,
                     'type' => 'tripDay',
                 );
             
@@ -158,6 +177,15 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
             // ключ за масива ще е ид-то на всеки потребител в системата
             $id = $recLeave->personId;
             
+            // коригираме датите според границите на месеца
+            $realFrom = max($recLeave->leaveFrom, $date->start);
+            $realTo   = min($recLeave->leaveTo,   $date->end);
+            
+            // ако няма припокриване — пропускаме
+            if ($realFrom > $realTo) {
+                continue;
+            }
+            
             $recs[$recLeave->id.'|'.$id] =
                (object) array(
                    'num' => $num,
@@ -165,7 +193,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
                    'person' => $recLeave->personId,
                    'dateFrom' => $recLeave->leaveFrom,
                    'dateTo' => $recLeave->leaveTo,
-                   'count' => self::getLeaveDays($recLeave->leaveFrom, $recLeave->leaveTo, $id)->workDays,
+                   'count' => self::getLeaveDays($realFrom, $realTo, $id)->workDays,
                    'type' => 'leaveDay',
                );
             
@@ -254,9 +282,19 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-							            <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
-							        </div>
+                                        <!--ET_BEGIN periods--><div>|Период|*: [#periods#]</div><!--ET_END periods-->
+                                        <!--ET_BEGIN employee--><div>|Служители|*: [#employee#]</div><!--ET_END employee-->
+                                    </div>
 							    </fieldset><!--ET_END BLOCK-->"));
+        
+        
+        if (isset($data->rec->periods)) { 
+            $date = acc_Periods::fetch($data->rec->periods);
+            $fieldTpl->append('<b>' . $date->title . '</b>', 'periods');
+        }
+
+        $fieldTpl->append('<b>' . 'Всички' . '</b>', 'employee');
+
         
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
@@ -271,6 +309,7 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      */
     public static function getLeaveDays($from, $to, $personId)
     {
+
         $scheduleId = planning_Hr::getSchedule($personId);
         $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId, $from, $to);
         

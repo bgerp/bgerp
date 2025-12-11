@@ -924,10 +924,11 @@ class cal_Calendar extends core_Master
      * @param int $userId Потребителят за когото се проверява. Ако не е посочен се отчитат само общите почивни дни
      * @param string $direction Посока на търсене : +1 - следващ ден, -1 - предишен ден
      * @param string $country Двубуквен код на дъжавата в контекста на която се търси
+     * @param array $typeArr
      *
      * @return string датата, която се явява първата възможна и е работна
      */
-    public static function nextWorkingDay($date = NULL, $userId = null, $direction = 1, $country = 'bg')
+    public static function nextWorkingDay($date = NULL, $userId = null, $direction = 1, $country = 'bg', $typeArr = array('leaves', 'sick'))
     {
         if ($userId === null) {
             $userId = core_Users::getCurrent();
@@ -944,7 +945,7 @@ class cal_Calendar extends core_Master
         do {
             $date = dt::addDays($dPos, $date);
             
-            if (!self::isHoliday($date, $country) && !self::isAbsent($date, $userId)) {
+            if (!self::isHoliday($date, $country) && !self::isAbsent($date, $userId, $typeArr)) {
                 if (!--$dAbs) break;
             }
             
@@ -960,7 +961,7 @@ class cal_Calendar extends core_Master
     /**
      * Връща дали дадения служител ще отсъства на уречената дата
      */
-    public static function isAbsent($date, $userId, $typeArr = array('leaves', 'sick') , &$rec = null)
+    public static function isAbsent($date, $userId, $typeArr = array('leaves', 'sick'), &$rec = null)
     {
         // Системните и анонимните потребители не отсъстват
         if ($userId <= 0) {
@@ -971,29 +972,27 @@ class cal_Calendar extends core_Master
         if (!isset($date)) {
             $date = dt::now(false);
         }
-        
+
         list($date) = explode(' ', $date);
 
-        $fromTime = $date . ' 00:00:00';
-        $toTime   = $date   . ' 23:59:59';
+        $query = self::getQuery();
+        $query->where(array("#time >= '[#1#]'", $date . ' 00:00:00'));
+        $query->where(array("#time <= '[#1#]'", $date . ' 23:59:59'));
+        $query->likeKeylist('users', $userId);
+        $query->in('type', $typeArr);
+        $query->limit(1);
+        $query->show('id');
+        $rec = $query->fetch();
 
-        $typeStr = '';
-        foreach ($typeArr as $type) {
-            $typeStr .= $typeStr ? " OR " : '';
-            $typeStr .= "#type = '{$type}'";
-        }
-
-        $rec = self::fetch("#time >= '{$fromTime}' AND #time <= '{$toTime}' AND LOCATE('|{$userId}|', #users) AND ({$typeStr})");
-        
         if ($rec) {
-            
+
             return true;
         }
-        
+
         return false;
     }
-    
-    
+
+
     /**
      * Функция показваща събитията за даден ден
      */
@@ -1317,12 +1316,12 @@ class cal_Calendar extends core_Master
         
         // Изчисляваме първото напасване
         if($ajust1) {
-            $res1 = self::ajustDay($res, $ajust1);
+            $res1 = self::adjustDay($res, $ajust1);
         }
         
         // Изчисляваме второто напасване
         if($ajust2) {
-            $res2 = self::ajustDay($res, $ajust2);
+            $res2 = self::adjustDay($res, $ajust2);
         }
         
         // Определяме, кое напасване е по-близко
@@ -1346,7 +1345,7 @@ class cal_Calendar extends core_Master
     /**
      * Настройва деня, според модификатора
      */
-    public static function ajustDay($day, $ajust)
+    public static function adjustDay($day, $ajust)
     {
         list($direction, $type) = explode('-', $ajust);
         

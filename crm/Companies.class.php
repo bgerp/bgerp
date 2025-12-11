@@ -228,7 +228,7 @@ class crm_Companies extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '1511,1512,1513,1514,1521,1522,1523,1524,153,159,221,323,3231,3232,401,402,403,404,405,406,409,411,412,413,414,415,419,492';
+    public $balanceRefAccounts = '1511,1512,1513,1514,1521,1522,1523,1524,153,159,221,323,3230,3231,3232,401,402,403,404,405,406,409,411,412,413,414,415,419,492';
     
     
     /**
@@ -310,6 +310,15 @@ class crm_Companies extends core_Master
      * @var string
      */
     public $loggableFields = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax,info';
+
+
+    /**
+     * Кои полета ако са променяни да бият предупреждение, че ще се записва нова версия
+     *
+     * @see change_plg_History
+     * @var string
+     */
+    public $loggableField4Warning = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax';
 
 
     /**
@@ -418,7 +427,7 @@ class crm_Companies extends core_Master
         // Филтриране по група
         $data->listFilter->FNC(
             'groupId',
-            'key(mvc=crm_Groups,select=name,allowEmpty)',
+            'key(mvc=crm_Groups,select=name,allowEmpty,where=#state !\\= \\\'rejected\\\')',
             'placeholder=Всички групи,caption=Група,input,silent,autoFilter'
         );
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
@@ -625,7 +634,7 @@ class crm_Companies extends core_Master
      */
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
-        if ($country = Request::get('country')) {
+        if (!Request::get('id') && $country = Request::get('country')) {
             if (($tel = Request::get('tel')) || ($fax = Request::get('fax'))) {
                 $code = drdata_Countries::fetchField($country, 'telCode');
                 if ($tel) {
@@ -1401,7 +1410,7 @@ class crm_Companies extends core_Master
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         if ($mvc->updateGroupsCnt) {
             crm_Groups::updateGroupsCnt($mvc->className, 'companiesCnt');
@@ -1623,31 +1632,20 @@ class crm_Companies extends core_Master
      *
      * @param int $id - ид на записа
      *
-     * @return string(3) - BGN|EUR|USD за дефолт валутата
+     * @return string(3) - EUR|USD за дефолт валутата
      */
     public static function getDefaultCurrencyId($id)
     {
         $rec = self::fetch($id);
         
         // Ако контрагента няма държава, то дефолт валутата е BGN
-        if (empty($rec->country)) {
+        if (empty($rec->country) || $rec->country == drdata_Countries::getIdByName('Bulgaria')) {
             
-            return 'BGN';
+            return acc_Periods::getBaseCurrencyCode();
         }
-        
-        // Ако държавата му е България, дефолт валутата е 'BGN'
-        if (drdata_Countries::fetchField($rec->country, 'letterCode2') == 'BG') {
-            
-            return 'BGN';
-        }
-        
-        // Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
-        if (drdata_Countries::isEur($rec->country)) {
-            
-            return 'EUR';
-        }
-        
-        
+
+        if(drdata_Countries::isEur($rec->country)) return 'EUR';
+
         // За всички останали е 'USD'
         return 'USD';
     }

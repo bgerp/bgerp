@@ -2,6 +2,12 @@
 
 
 /**
+ * Неинкасираните плащания до колко време назад да се обират от ВКТ->Време
+ */
+defIfNot('CASH_COLLECT_NOT_TRANSFERRED_IN_LAST', 5);
+
+
+/**
  * class cash_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -59,6 +65,8 @@ class cash_Setup extends core_ProtoSetup
         'cash_InternalMoneyTransfer',
         'cash_ExchangeDocument',
         'cash_NonCashPaymentDetails',
+        'cash_InternalMoneyTransferDetails',
+        'migrate::updateNonCashDetails2521'
     );
     
     
@@ -83,4 +91,27 @@ class cash_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.3, 'Финанси', 'Каси', 'cash_Cases', 'default', 'cash, ceo, cashAll'),
     );
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'CASH_COLLECT_NOT_TRANSFERRED_IN_LAST' => array('int(Min=0)', 'caption=Неинкасираните плащания до колко време назад да се обират от ВКТ->Време'),
+    );
+
+
+    /**
+     * Миграция на модела за безкасовите плащания към ПКО
+     */
+    public function updateNonCashDetails2521()
+    {
+        $NonCash = cls::get('cash_NonCashPaymentDetails');
+        $NonCash->setupMvc();
+
+        $pkoClassId = cls::get('cash_Pko')->getClassId();
+        $classIdColName = str::phpToMysqlName('classId');
+        $query = "UPDATE {$NonCash->dbTableName} SET {$classIdColName} = $pkoClassId  WHERE {$classIdColName} IS NULL";
+        $NonCash->db->query($query);
+    }
 }

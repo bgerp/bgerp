@@ -50,10 +50,14 @@ class planning_interface_ImportFromConsignmentProtocol extends planning_interfac
         $ratio = $rec->forQuantity / $jobRec->quantity;
         $parsedArr = $receivedProducts;
 
-        // Приспадане на вече вкараните за влагане в протокол за влагане чужди артикули
         $classId = planning_ConsumptionNoteDetails::getClassId();
+
+        // Приспадане на вече вкараните за влагане в протокол за влагане чужди артикули (в този протокол или в други активни)
         $dQuery = planning_ConsumptionNoteDetails::getQuery();
-        $dQuery->where("#noteId = {$masterRec->id}");
+        $dQuery->EXT('threadId', 'planning_ConsumptionNotes', 'externalName=threadId,externalKey=noteId');
+        $dQuery->EXT('state', 'planning_ConsumptionNotes', 'externalName=state,externalKey=noteId');
+        $dQuery->where("#threadId = {$masterRec->threadId} AND (#state = 'active' OR #noteId = {$masterRec->id})");
+
         while($dRec = $dQuery->fetch()){
             if(isset($parsedArr[$dRec->productId][$dRec->packagingId])){
                 $parsedArr[$dRec->productId][$dRec->packagingId]['totalQuantity'] -= $dRec->quantity;
@@ -72,7 +76,6 @@ class planning_interface_ImportFromConsignmentProtocol extends planning_interfac
         // Намерените артикули се предлагат
         foreach ($parsedArr as $packData) {
             foreach ($packData as $pData) {
-
                 $shortUom = cat_UoM::getShortName($pData['packagingId']);
                 $caption = cat_Products::getTitleById($pData['productId']) . " {$shortUom}";
                 $caption = str_replace(',', ' ', $caption);
@@ -88,11 +91,18 @@ class planning_interface_ImportFromConsignmentProtocol extends planning_interfac
                         if($batchDef = batch_Defs::getBatchDef($pData['productId'])){
                             $key = "{$pData['productId']}+{$pData['packagingId']}+" . md5($bArr['batch']);
                             $subCaption = $batchDef->toVerbal($bArr['batch']);
-                            $form->FLD($key, 'double(min=0)', "caption={$caption}->{$subCaption},unit={$shortUom}");
+
+                            if($batchDef instanceof batch_definitions_Serial && $bArr['quantity'] <= 0) continue;
+
+                            $form->FLD($key, 'double(min=0)', "caption={$caption}->{$subCaption},maxRadio=0,unit={$shortUom}");
                             if($bArr['quantity'] > 0){
                                 $newQuantity = round($bArr['quantity'] * $ratio / $pData['quantityInPack'], $round);
                                 $form->setDefault($key, $newQuantity);
+                                if($batchDef instanceof batch_definitions_Serial){
+                                    $form->setOptions($key, array($newQuantity => $newQuantity, '0' => '0'));
+                                }
                             }
+
                             $pData['batch'] = $bArr['batch'];
                             $rec->_details[$key] = $pData;
                             $totalQuantity -= $bArr['quantity'];

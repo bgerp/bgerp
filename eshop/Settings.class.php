@@ -127,7 +127,7 @@ class eshop_Settings extends core_Master
     /**
      * Колко секунди преди изтриване да се изпраща нотифициращ имейл
      */
-    const DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION = 86400;
+    const DEFAULT_SEND_NOTIFICATION_BEFORE_DELETION = 86400;
     
     /**
      * Колко секунди да е живота на забравените празни колички
@@ -150,13 +150,13 @@ class eshop_Settings extends core_Master
     /**
      * Дефолтен текст за информация за артикули с очаквана доставка
      */
-    const DEFAULT_EXPECTED_DELIVERY_TEXT_BG = 'Във вашата [#cartName#] има артикули, които в момента не са налични. Очаква се да бъдат доставени скоро.';
+    const DEFAULT_EXPECTED_DELIVERY_TEXT_BG = 'Поръчката Ви съдържа продукти, които в момента не са налични на склад. Очакваме доставката им скоро, но това може да доведе до забавяне в изпълнението на цялата поръчка. Моля, свържете се с нас, за да уточним очакваната дата на доставка и възможностите за частично или пълно изпълнение на заявката Ви.';
     
     
     /**
      * Дефолтен текст за информация за артикули с очаквана доставка
      */
-    const DEFAULT_EXPECTED_DELIVERY_TEXT_EN = 'In your [#cartName#] there are items, which are currently not in stock, but delivery is expected soon';
+    const DEFAULT_EXPECTED_DELIVERY_TEXT_EN = 'Your order contains products that are currently out of stock. We are expecting their delivery soon, but this may cause a delay in the fulfillment of the entire order. Please contact us to confirm the expected delivery date and discuss the options for partial or complete fulfillment of your request.';
     
     
     /**
@@ -245,7 +245,7 @@ class eshop_Settings extends core_Master
         
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Наличности от');
         $this->FLD('otherStores', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Други складове');
-        if(core_Packs::isInstalled('sync')){
+        if(core_Packs::isInstalled('sync', true)){
             $this->FLD('remoteStores', 'keylist(mvc=sync_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Външни складове', 'input=none');
         }
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Получаване от,optionsFunc=crm_Locations::getOwnLocations');
@@ -401,6 +401,7 @@ class eshop_Settings extends core_Master
                 }
                 $form->setDefault('objectId', key($options));
             } else {
+                $form->info = "<div class='formError'>" . tr("Всички налични домейни имат вече настройки|*!") . "</info>";
                 $form->setReadOnly('objectId');
             }
         }
@@ -492,7 +493,7 @@ class eshop_Settings extends core_Master
         $form->setField('lifetimeForUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_USER_CARTS));
         $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
         $form->setField('lifetimeForEmptyDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS));
-        $form->setField('timeBeforeDelete', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION));
+        $form->setField('timeBeforeDelete', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_SEND_NOTIFICATION_BEFORE_DELETION));
 
         $form->setDefault('mandatoryEcartContactFields', 'auto');
         $form->setDefault('mandatoryInquiryContactFields', 'auto');
@@ -581,7 +582,7 @@ class eshop_Settings extends core_Master
             }
             
             if (empty($settingRec->timeBeforeDelete)) {
-                $settingRec->timeBeforeDelete = self::DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION;
+                $settingRec->timeBeforeDelete = self::DEFAULT_SEND_NOTIFICATION_BEFORE_DELETION;
             }
             
             if (empty($settingRec->addToCartBtn)) {

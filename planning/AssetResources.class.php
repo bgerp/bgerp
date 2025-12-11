@@ -795,18 +795,27 @@ class planning_AssetResources extends core_Master
     /**
      * Кои са използваните в операции ресурси
      *
-     * @param int|null $folderId
+     * @param mixed $folders - една папка или няколко
      * @return array $options
      */
-    public static function getUsedAssetsInTasks($folderId = null)
+    public static function getUsedAssetsInTasks($folders = null)
     {
         $options = array();
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#assetId IS NOT NULL");
         $tQuery->show('assetId');
-        if(isset($folderId)){
-            $assetsInFolderId = array_keys(static::getByFolderId($folderId));
-            $tQuery->in('assetId', $assetsInFolderId);
+        if(isset($folders)){
+            $folderArr = arr::make($folders, true);
+            $assetsInFolderId = array();
+            foreach ($folderArr as $folderId) {
+                $assetsInFolderId += static::getByFolderId($folderId);
+            }
+
+            if(countR($assetsInFolderId)){
+                $tQuery->in('assetId', array_keys($assetsInFolderId));
+            } else {
+                $tQuery->where("1=2");
+            }
         }
         $assets = arr::extractValuesFromArray($tQuery->fetchAll(), 'assetId');
         foreach ($assets as $assetId){
@@ -936,7 +945,7 @@ class planning_AssetResources extends core_Master
     public function cron_RecalcTaskTimes()
     {
         // Ако процеса е заключен да не се изпълнява отново
-         if (!core_Locks::get('CALC_TASK_TIMES', 120, 1)) {
+         if (!core_Locks::obtain('CALC_TASK_TIMES', 120, 3, 1)) {
             //$this->logNotice('Преизчисляването на времената е заключено от друг процес');
            // return;
         }
@@ -944,7 +953,7 @@ class planning_AssetResources extends core_Master
         $now = dt::now();
         // Извличане на всички ПО годни за планиране
         core_Debug::startTimer('SCHEDULE_PREPARE');
-        $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate,state');
+        $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate,state,modifiedOn');
 
         // Еднократно извличане на всички ограничения
         $query = planning_TaskConstraints::getQuery();

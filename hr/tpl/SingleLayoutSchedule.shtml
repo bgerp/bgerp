@@ -1,0 +1,19 @@
+<div class='singleView'  style="max-width: 100%; display: block">
+    [#SingleToolbar#]
+    <div class="no-cover" style="max-width: none;">
+        <h2 style='line-height:26px' class='[#STATE_CLASS#]'>|График|* <b style="color:green;">[#name#]</b></h2>
+        <fieldset class="detail-info" style='margin-bottom:20px; line-height: 1.3em'>
+            <legend class="groupTitle">|Информация|*</legend>
+            <div><span class='quiet'>|Изключване на|*</span>: [#nonWorking#]</div>
+            <!--ET_BEGIN parentId-->
+            <div><span class='quiet'>|Наследява|*</span>: [#parentId#]</div>
+            <!--ET_END parentId-->
+            <div><span class='quiet'>|Служебно ид|*</span>: [#sysId#]</div>
+            <div><span class='quiet'>|Създаване|*</span> [#createdOn#] |от|* [#createdBy#]</div>
+        </fieldset>
+
+        <div class="scrolling-container">
+            [#DETAILS#]
+        </div>
+    </div>
+</div>

@@ -20,6 +20,11 @@ if (version_compare(phpversion(), '5.5.0') < 0) {
     die;
 }
 
+// Спираме изпълнението при заявка с метод CONNECT
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'CONNECT') {
+    header('HTTP/1.1 405 Method Not Allowed'); exit;
+}
+
 // Зареждаме класовете за обработка на грешки
 require_once(EF_APP_PATH . '/core/exception/Break.class.php');
 
@@ -707,6 +712,23 @@ function expect404($cond)
 
 
 /**
+ * Генерира грешка, ако аргумента не е TRUE
+ *
+ * @var mixed   $inspect Обект, масив или скалар, който се подава за инспекция
+ * @var boolean $condition
+ */
+function expect410($cond)
+{
+    if (!(boolean) $cond) {
+        $dump = func_get_args();
+        array_shift($dump);
+
+        throw new core_exception_Expect('410 Gone', 'Несъответствие', $dump);
+    }
+}
+
+
+/**
  * Задава стойността(ите) от втория параметър на първия,
  * ако те не са установени
  * @todo: използва ли се тази функция за масиви?
@@ -882,7 +904,7 @@ function countR($arr)
         
         if(defined('BGERP_GIT_BRANCH') && BGERP_GIT_BRANCH == 'dev') {
             print_r($arr);
-            die(' - countR - this is not an array');
+            error(' - countR - this is not an array');
         } else {
 
             return 1;

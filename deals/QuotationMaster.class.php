@@ -122,17 +122,24 @@ abstract class deals_QuotationMaster extends core_Master
 
 
     /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
+    /**
      * Задължителни полета на модела
      */
     protected static function setQuotationFields($mvc)
     {
         $mvc->FLD('date', 'date', 'caption=Дата');
         $mvc->FLD('reff', 'varchar(255,nullIfEmpty)', 'caption=Ваш реф.,class=contactData');
+        $mvc->FLD('qPlace', 'varchar(255,nullIfEmpty)', 'caption=Място');
 
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод');
-        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
+        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,silent,removeAndRefreshForm=currencyRate');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $mvc->FLD('chargeVat', 'enum(separate=Отделен ред за ДДС, yes=Включено ДДС в цените, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС');
         $mvc->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Плащане->ДДС изключение');
@@ -216,8 +223,9 @@ abstract class deals_QuotationMaster extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
+        $Cover = doc_Folders::getCover($rec->folderId);
 
-        if(!$mvc->isOwnCompanyVatRegistered($rec)) {
+        if(!$mvc->isOwnCompanyVatRegistered($rec) || $Cover->isInstanceOf('crm_Persons')) {
             $form->setReadOnly('chargeVat');
         }
 
@@ -244,13 +252,6 @@ abstract class deals_QuotationMaster extends core_Master
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
 
-            if (empty($rec->currencyRate)) {
-                $rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
-                if (!$rec->currencyRate) {
-                    $form->setError('currencyRate', 'Не може да се изчисли курс');
-                }
-            }
-
             if (isset($rec->date, $rec->validFor)) {
                 $expireOn = dt::verbal2mysql(dt::addSecs($rec->validFor, $rec->date), false);
                 if ($expireOn < dt::today()) {
@@ -271,6 +272,11 @@ abstract class deals_QuotationMaster extends core_Master
                 $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
             }
 
+            $currencyError = null;
+            if(!currency_Currencies::checkCurrency($rec->currencyId, $rec->date, $currencyError)){
+                $form->setError('currencyId', $currencyError);
+            }
+
             if (isset($rec->deliveryTermTime, $rec->deliveryTime)) {
                 $form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
             }
@@ -287,6 +293,18 @@ abstract class deals_QuotationMaster extends core_Master
             if(isset($rec->deliveryTermId)){
                 cond_DeliveryTerms::inputDocumentForm($rec->deliveryTermId, $form, $mvc);
             }
+
+            if(!$form->gotErrors()){
+                $oldDate = isset($rec->id) ? $mvc->fetchField($rec->id, 'date', false) : null;
+                $calcRate = empty($rec->id) || (isset($oldDate) && acc_Periods::getBaseCurrencyCode($rec->date) != acc_Periods::getBaseCurrencyCode($oldDate));
+
+                if (empty($rec->currencyRate) || $calcRate) {
+                    $rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
+                    if (!$rec->currencyRate) {
+                        $form->setError('currencyRate', 'Не може да се изчисли курс');
+                    }
+                }
+            }
         }
     }
 
@@ -298,6 +316,16 @@ abstract class deals_QuotationMaster extends core_Master
     {
         // Ako "Моята фирма" е без ДДС номер - без начисляване
         if(!$this->isOwnCompanyVatRegistered($rec)) return 'no';
+
+        $Cover = doc_Folders::getCover($rec->folderId);
+
+        if($this instanceof sales_Quotations){
+            if($Cover->isInstanceOf('crm_Persons')){
+                if($Cover->getInstance()->shouldChargeVat($Cover->that, $this)){
+                    return 'yes';
+                }
+            }
+        }
 
         // После се търси по приоритет
         foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
@@ -568,14 +596,10 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
-            if (!empty($profRec)) {
-                $createdRec = crm_Persons::fetch($profRec->id);
-            }
-
-            $buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
-            if ($buzAddress) {
-                $row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
-                $row->buzPlace = core_Lg::transliterate($row->buzPlace);
+            // Ако няма място - това е мястото на "Моята фирма"
+            if (empty($rec->qPlace)) {
+                $qPlaceVerbal = cls::get('type_Varchar')->toVerbal($ownCompanyData->place);
+                $row->qPlace = core_Lg::transliterate($qPlaceVerbal);
             }
 
             if(!empty($row->deliveryPlaceId)){
@@ -805,8 +829,10 @@ abstract class deals_QuotationMaster extends core_Master
         expect($rec = static::fetch($id), 'Няма такава оферта');
         expect($rec->state == 'draft', 'Офертата трябва да е чернова');
         expect($productId, 'Трябва да е подаден артикул');
-        expect($productRec = cat_Products::fetch($productId, 'id,canSell,measureId'), 'Няма такъв артикул');
-        expect($productRec->canSell == 'yes', 'Артикулът не е продаваем');
+
+        $metaFld = ($Detail instanceof purchase_QuotationDetails) ? 'canBuy' : 'canSell';
+        expect($productRec = cat_Products::fetch($productId, "id,{$metaFld},measureId"), 'Няма такъв артикул');
+        expect($productRec->{$metaFld} == 'yes', 'Артикулът не е продаваем');
         expect($packQuantity = cls::get('type_Double')->fromVerbal($packQuantity), 'Невалидно количество');
 
         // Подготовка на записа
@@ -925,6 +951,17 @@ abstract class deals_QuotationMaster extends core_Master
             if(!empty($rec->bankAccountId)){
                 $fields['bankAccountId'] = $rec->bankAccountId;
             }
+        }
+
+        // Ако офертата е в лева, но сме след еврозоната - ще е в евро вече продажбата
+        if(dt::today() >= acc_Setup::getEurozoneDate()){
+            if($fields['currencyId'] == 'BGN'){
+                $fields['currencyId'] = "EUR";
+            }
+        }
+
+        if(acc_Periods::getBaseCurrencyCode($rec->date) != acc_Periods::getBaseCurrencyCode()){
+            $fields['currencyRate'] = currency_CurrencyRates::getRate(dt::today(), $fields['currencyId'], null);
         }
 
         // Създаваме нова продажба от офертата
@@ -1079,7 +1116,18 @@ abstract class deals_QuotationMaster extends core_Master
                         $this->logErr($errorMsg, $rec->id);
                     }
 
+                    $saleRec = sales_Sales::fetchRec($sId);
                     foreach ($saveRecs as $dRec){
+
+                        // Ако основната валута е сменена - прави се преизчисляване
+                        if(dt::today() >= acc_Setup::getEurozoneDate()){
+                            if($rec->currencyId == 'BGN'){
+                                $dRec->price = deals_Helper::getSmartBaseCurrency($dRec->price, $rec->date, $saleRec->valior);
+                            } else {
+                                $dRec->price = ($dRec->price / $rec->currencyRate) * $saleRec->currencyRate;
+                            }
+                        }
+
                         // Копира се и транспорта, ако има
                         $addedRecId = $DealClassName::addRow($sId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
                         if($DealClassName == 'sales_Sales'){
@@ -1319,7 +1367,7 @@ abstract class deals_QuotationMaster extends core_Master
             // Опит да се намери съществуваща чернова сделка
             if (!Request::get('dealId', "key(mvc={$DealClass->className})") && !Request::get('stop')) {
 
-                return new Redirect(array($DealClass, 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => true, 'quotationId' => $rec->id));
+                return new Redirect(array($DealClass, 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'currencyId' => $rec->currencyId, 'ret_url' => true, 'quotationId' => $rec->id));
             }
         }
 
@@ -1336,7 +1384,17 @@ abstract class deals_QuotationMaster extends core_Master
         }
 
         // За всеки детайл на офертата подаваме го като детайл на сделката
+        $saleRec = sales_Sales::fetchRec($sId);
         foreach ($items as $item) {
+            // Ако основната валута е сменена - прави се преизчисляване
+            if(dt::today() >= acc_Setup::getEurozoneDate()){
+                if($rec->currencyId == 'BGN'){
+                    $item->price = deals_Helper::getSmartBaseCurrency($item->price, $rec->date, $saleRec->valior);
+                } else {
+                    $item->price = ($item->price / $rec->currencyRate) * $saleRec->currencyRate;
+                }
+            }
+
             $addedRecId = $DealClass::addRow($sId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
 
             if($DealClass instanceof sales_Sales){
@@ -1454,5 +1512,17 @@ abstract class deals_QuotationMaster extends core_Master
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'others', 'notes');
 
         return $files;
+    }
+
+
+    /**
+     * Да се показват ли двойни цени в офертите
+     *
+     * @param int $folderId
+     * @return bool
+     */
+    public function showDualPrices($folderId)
+    {
+        return false;
     }
 }

@@ -199,6 +199,16 @@ class sens2_script_Actions extends core_Detail
      */
     public static function runScript($scriptId)
     {
+        // Вземаме лок, ако е IP
+        $lockKey = 'RUN_SCRIPT_' . $scriptId;
+
+        if (!core_Locks::obtain($lockKey, 5, 15, 5)) {
+
+            return null;
+        }
+
+        sens2_script_Logs::add('run', $scriptId, null, null, null);
+
         $query = self::getQuery();
         $query->orderBy('#order', 'ASC');
         if($startId = Request::get('startId', 'int')) {
@@ -246,7 +256,10 @@ class sens2_script_Actions extends core_Detail
                 self::save($rec, 'state');
             }
         }
+
+        core_Locks::release($lockKey);
     }
+
 
     /**
      * Ако в стринга е дефиниран бутон, ограден с [] - връщаме го

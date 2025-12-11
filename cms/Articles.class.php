@@ -360,7 +360,7 @@ class cms_Articles extends core_Master
         $navData->cnt = 0;
         $navData->showCnt = 0;
 
-        if (($q = Request::get('q')) && $menuId > 0 && !$rec) {
+        if (($q = Request::get('q', 'varchar')) && $menuId > 0 && !$rec) {
             $rec = new stdClass();
             $navData->q = $q;
             $rec->menuId = $menuId;
@@ -524,7 +524,7 @@ class cms_Articles extends core_Master
         
         if ($data->menuId > 0 && ($data->searchCtr)) {
             if (!$data->q) {
-                $data->q = Request::get('q');
+                $data->q = Request::get('q', 'varchar');
             }
             $searchForm = cls::get('core_Form', array('method' => 'GET'));
             $searchForm->layout = new ET(tr(getFileContent('cms/tpl/SearchForm.shtml')));
@@ -841,7 +841,7 @@ class cms_Articles extends core_Master
                 $res->append($this->getVerbal($rec, 'body'), 'CONTENT');
             }
         } else {
-            $form->title = 'Конкатиниране на статии';
+            $form->title = 'Конкатениране на статии';
             $form->toolbar->addSbBtn('Покажи');
             $res = $form->renderHtml('menuId,articles,divider');
         }
@@ -945,8 +945,8 @@ class cms_Articles extends core_Master
         $query->EXT('domainId', 'cms_Content', 'externalName=domainId,externalKey=menuId');
         $query->where("#domainId = '{$domainId}' AND #state = 'active'");
         $query->where("#footerTitleLink IS NOT NULL AND #footerTitleLink != ''");
-        $query->orderBy('id', 'ASC');
-        
+        $query->orderBy('level', 'ASC');
+
         $links = array();
         while ($rec = $query->fetch()) {
             $link = ht::createLink($rec->footerTitleLink, self::getUrl($rec));

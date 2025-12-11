@@ -191,6 +191,7 @@ class doc_Threads extends core_Manager
         $this->setDbIndex('last, id');
         $this->setDbIndex('firstContainerId');
         $this->setDbIndex('firstDocClass');
+        $this->setDbIndex('folderId, visibleForPartners,state,firstDocClass');
     }
     
     
@@ -1895,7 +1896,9 @@ class doc_Threads extends core_Manager
             
             return;
         }
-        
+
+        core_Locks::obtain('doc_Threads_Update_' . $id, 20, 0, 0, false);
+
         // Запазваме общия брой документи
         $exAllDocCnt = $rec->allDocCnt;
         
@@ -1982,6 +1985,8 @@ class doc_Threads extends core_Manager
         }
         
         doc_Folders::updateFolderByContent($rec->folderId);
+
+        core_Locks::release('doc_Threads_Update_' . $id);
     }
     
     
@@ -2048,7 +2053,19 @@ class doc_Threads extends core_Manager
      */
     public static function setModification($id)
     {
+        if (!$id) {
+            wp('Липсва id', $id);
+
+            return ;
+        }
+
         $rec = self::fetch($id);
+        if (!$rec) {
+            wp('Липсва запис', $rec, $id);
+
+            return ;
+        }
+
         $rec->modifiedOn = dt::now();
         $rec->modifiedBy = core_Users::getCurrent();
         self::save($rec, 'modifiedOn,modifiedBy');
@@ -2149,6 +2166,13 @@ class doc_Threads extends core_Manager
 
             $Class->logWrite("Спиране на документа", $docRec);
             $Class->save($docRec, 'state,brState');
+
+            $users = array();
+            if(isset($docRec->activatedBy)){
+                $users[$docRec->activatedBy] = $docRec->activatedBy;
+            }
+            $users[$docRec->createdBy] = $docRec->createdBy;
+            acc_plg_Contable::sendActionNotifications($users, $Class, $docRec, 'stop');
         }
     }
     
@@ -3179,6 +3203,8 @@ class doc_Threads extends core_Manager
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+        core_Locks::obtain('doc_Threads_Update_' . $rec->id, 90, 0, 0, false);
+
         self::invalidateDocumentCache($rec->id);
     }
     

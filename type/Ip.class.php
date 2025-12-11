@@ -196,4 +196,81 @@ class type_Ip extends type_Varchar
 
         return $ip;
     }
+
+
+    /**
+     * Извлича ип-та от стринг
+     *
+     * @param string $input - стринг с ип-та
+     * @return array
+     *           - 'ips'     => списък от ip2long() на чистите IP-та
+     *           - 'ipsRaw'  => списък от оригиналните IP-та (string)
+     *           - 'nets'    => списък от [net => ip2long(мрежа), mask => bitmask]
+     *           - 'netsRaw' => списък от [net => '1.2.3.0', prefix => 24]
+     */
+    public static function extractIps($input): array
+    {
+        $lines = preg_split('/[\r\n,;]+/', trim($input));
+        $ips = $ipsRaw = $nets = $netsRaw = array();
+
+        foreach ($lines as $line) {
+            $entry = trim($line);
+            if (empty($entry)) continue;
+
+            // Мрежа в CIDR нотация?
+            if (strpos($entry, '/') !== false) {
+                list($net, $prefix) = explode('/', $entry, 2);
+                $prefix = (int)$prefix;
+
+                // Валидация
+                if (filter_var($net, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && $prefix >= 0 && $prefix <= 32) {
+                    $netLong  = ip2long($net);
+                    $maskLong = (~0) << (32 - $prefix);
+
+                    $nets[]    = ['net' => $netLong, 'mask' => $maskLong];
+                    $netsRaw[] = ['net' => $net, 'prefix' => $prefix];
+                }
+            }
+            // Чист IP
+            elseif (filter_var($entry, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                $ips[]    = ip2long($entry);
+                $ipsRaw[] = $entry;
+            }
+            // иначе прескачаме негодни записи
+        }
+
+        return array(
+            'ips'     => $ips,
+            'ipsRaw'  => $ipsRaw,
+            'nets'    => $nets,
+            'netsRaw' => $netsRaw,
+        );
+    }
+
+
+
+    /**
+     * Проверява дали даден IP (string) е в списъка на фирмените IP-та/мрежи.
+     *
+     * @param string $ip - IP
+     * @param array $parsed - масив с парсирани ип-та от extractIps
+     * @return bool
+     */
+    public static function isInIps($ip, $parsed)
+    {
+        $ipLong = ip2long($ip);
+        if ($ipLong === false) return false;
+
+        // 1) директно съвпадение с чист IP
+        if (in_array($ipLong, $parsed['ips'], true)) return true;
+
+        // 2) попада ли в някоя от мрежите?
+        foreach ($parsed['nets'] as $net) {
+            if (($ipLong & $net['mask']) === ($net['net'] & $net['mask'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

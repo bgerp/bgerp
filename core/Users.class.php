@@ -857,6 +857,14 @@ class core_Users extends core_Manager
             $rec->rolesInput = keylist::addKey($rec->rolesInput, $mvc->core_Roles->fetchByName('admin'));
             $rec->state = 'active';
         }
+
+        if ($rec->id) {
+            // При редакция, ако има промяна в състоянието, записваме предишното състояние
+            $oldRec = $mvc->fetch($rec->id);
+            if ($rec->state != $oldRec->state) {
+                $rec->exState = $oldRec->state;
+            }
+        }
     }
     
     
@@ -906,7 +914,7 @@ class core_Users extends core_Manager
         $currentUserRec = Mode::get('currentUserRec');
         $retUrl = getRetUrl();
         $form = $this->getForm(array(
-            'title' => '|*<img src=' . sbf('img/signin.png') . ">&nbsp;|Вход в|* " . $conf->EF_APP_TITLE,
+            'title' => '|*<img alt="sign in" src=' . sbf('img/signin.png') . ">&nbsp;|Вход в|* " . $conf->EF_APP_TITLE,
             'name' => 'login'
         ));
         
@@ -1063,9 +1071,9 @@ class core_Users extends core_Manager
                 }
                 
                 $layout->append($form->renderHtml($form->InputFields, $inputs), 'FORM');
-                
-                $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
+
                 if (!Mode::is('modalLogin')) {
+                    $layout->prepend(tr('Вход') . ' « ', 'PAGE_TITLE');
                     $layout->prepend("\n<meta name=\"robots\" content=\"noindex\">", 'HEAD');
                 }
 
@@ -1766,7 +1774,15 @@ class core_Users extends core_Manager
     public function act_Logout()
     {
         $cu = core_Users::getCurrent();
-        
+
+        $Users = cls::get('core_Users');
+        $tpl = null;
+        $Users->invoke('beforeLogout', array(&$tpl, $cu));
+        if (isset($tpl)) {
+
+            return new ET($tpl);
+        }
+
         core_LoginLog::add('logout', $cu);
         
         $this->logout();

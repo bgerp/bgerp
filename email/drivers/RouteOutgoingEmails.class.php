@@ -57,8 +57,13 @@ class email_drivers_RouteOutgoingEmails extends email_drivers_OutgoingEmails
                     }
 
                     // Вземаме имейлите от текстовата част
-                    $emailsFromText = email_Mime::getAllEmailsFromStr($eRec->textPart, true);
-                    $emailsFromTextArr = type_Emails::toArray($emailsFromText);
+                    preg_match_all('/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i', $eRec->textPart, $matches);
+                    if ($matches[0]) {
+                        $emailsFromTextArr = $matches[0];
+                    } else {
+                        $emailsFromTextArr = array();
+                    }
+
                     $emailsFromTextArr = arr::make($emailsFromTextArr, true);
                     $emailArr = array_merge($emailArr, $emailsFromTextArr);
 
@@ -69,11 +74,17 @@ class email_drivers_RouteOutgoingEmails extends email_drivers_OutgoingEmails
                     }
 
                     if (!empty($emailArr)) {
-                        $data->form->setDefault('redirection', key($emailArr));
-                        array_unshift($emailArr , '');
+                        $emailArr = array('' => '') + $emailArr;
                         $emailArr = arr::make($emailArr, true);
                         $data->form->setSuggestions('redirection', $emailArr);
                     }
+
+                    unset($emailArr['']);
+                    $e = Request::get('email');
+                    $emailArr[$e] = $e;
+                    $data->form->setSuggestions('email', $emailArr);
+
+                    $data->form->fields['email']->mandatory = 'mandatory';
                 }
             }
         }

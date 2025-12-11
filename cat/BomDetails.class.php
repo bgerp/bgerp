@@ -37,7 +37,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, bgerp_plg_Import, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cat_plg_LogPackUsage, cat_Wrapper, plg_SaveAndNew, planning_plg_ReplaceProducts, bgerp_plg_Import, plg_PrevAndNext';
     
     
     /**
@@ -193,7 +193,7 @@ class cat_BomDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
-        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->modifiedOn);
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         if(cat_BomDetails::count("#bomId = {$data->masterId} AND #type = 'stage'")){
             $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=' plus-icon more-btn' id='bomResourceColName{$data->masterData->rec->id}'> </a>";
         }
@@ -597,6 +597,13 @@ class cat_BomDetails extends doc_Detail
         $scope = cat_Boms::getScope($params);
         $scope['$T'] = 1;
         $scope['$Начално='] = '$Начално=';
+        $scope['$тираж_задание'] = '$тираж_задание';
+        $threadId = cat_Boms::fetchField($rec->bomId, 'threadId');
+        if($firstDoc = doc_Threads::getFirstDocument($threadId)){
+            if($firstDoc->isInstanceOf('planning_Jobs')) {
+                $scope['$тираж_задание'] = $firstDoc->fetchField('quantity');
+            }
+        }
 
         return $scope;
     }
@@ -622,7 +629,7 @@ class cat_BomDetails extends doc_Detail
             unset($context['$T']);
             $form->setSuggestions('propQuantity', $context);
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
-            
+
             if($form->_replaceProduct !== true){
                 $packs = cat_Products::getPacks($rec->resourceId, $rec->packagingId);
                 $form->setOptions('packagingId', $packs);

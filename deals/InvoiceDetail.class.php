@@ -74,7 +74,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FLD('quantity', 'double', 'caption=Количество', 'tdClass=small-field,smartCenter');
         $mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $mvc->FLD('price', 'double', 'caption=Цена, input=none');
-        $mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
+        $mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
@@ -192,17 +192,21 @@ abstract class deals_InvoiceDetail extends doc_Detail
         // За всеки артикул от договора, копира се 1:1
         $autoDiscountPercent = null;
         $iAmount = 0;
+
         if (is_array($dealInfo->dealProducts)) {
             foreach ($dealInfo->dealProducts as $det) {
-                if(!empty($det->discount) && empty($rec->autoDiscount) && empty($rec->inputDiscount)){
-                    $det->inputDiscount = $det->discount;
-                }
-
                 $autoDiscountPercent = $det->autoDiscount;
                 $det->discount = $det->inputDiscount;
                 $det->autoDiscount = null;
+                $det->inputDiscount = null;
                 $det->{$this->masterKey} = $id;
-                $det->amount = $det->price * $det->quantity;
+
+                if($dealInfo->get('currency') == 'BGN'){
+                    $det->price = deals_Helper::getSmartBaseCurrency($det->price,$dealInfo->get('agreedValior'), $invoiceRec->date);
+                } else {
+                    $det->price = ($det->price / $dealInfo->get('rate')) * $invoiceRec->rate;
+                }
+
                 $det->quantity /= $det->quantityInPack;
                 if(is_array($det->batches) && countR($det->batches)){
                     $det->_batches = array_keys($det->batches);
@@ -239,10 +243,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
             }
         }
 
-        $this->Master->logWrite("Зареждане на артикулите от договора", $invoiceRec->id);
+        $this->Master->logWrite("Зареждане на артикули от договора", $invoiceRec->id);
 
         // Редирект обратно към фактурата
-        return followRetUrl(null, '|Артикулите от сделката са копирани успешно');
+        followRetUrl(null, 'Артикулите от сделката са прехвърлени успешно|*!');
     }
     
     
@@ -254,15 +258,27 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
     {
-        if (!isset($rec->price) || empty($rec->quantityInPack)) {
-            
-            return;
-        }
+        if (!isset($rec->price) || empty($rec->quantityInPack)) return;
+
         
         $rec->packPrice = $rec->price * $rec->quantityInPack;
     }
-    
-    
+
+
+    /**
+     * Изчисляване на сумата на реда
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public static function on_CalcAmount(core_Mvc $mvc, $rec)
+    {
+        if (empty($rec->price) || empty($rec->quantityInPack) || empty($rec->quantity)) return;
+
+        $rec->amount = $rec->price * $rec->quantityInPack * $rec->quantity;
+    }
+
+
     /**
      * След калкулиране на общата сума
      */
@@ -301,8 +317,15 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds)){
                     $quantityArr = $cached->recWithIds[$dRec->clonedFromDetailId];
                     $originPrice = deals_Helper::getDisplayPrice($quantityArr['price'], 0, 1, 'no', 5);
-                    $diffPrice = $dRec->packPrice - $originPrice;
 
+                    if(in_array($rec->currencyId, array('BGN', "EUR"))){
+                        $originPrice = deals_Helper::getSmartBaseCurrency($originPrice, $cached->date, $rec->date);
+                    } else {
+                        $originPrice /= $cached->rate;
+                        $originPrice *= $rec->rate;
+                    }
+
+                    $diffPrice = $dRec->packPrice - $originPrice;
                     $priceIsChanged = false;
                     $diffPrice = round($diffPrice, 5);
                     if(abs($diffPrice) > 0.0001){
@@ -432,7 +455,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public static function on_AfterPrepareListRows($mvc, &$data)
     {
         $masterRec = $data->masterData->rec;
-        
+
         if (isset($masterRec->type)) {
             if ($masterRec->type == 'debit_note' || $masterRec->type == 'credit_note' || ($masterRec->type == 'dc_note' && isset($masterRec->changeAmount) && !countR($data->rows))) {
                 // При дебитни и кредитни известия показваме основанието
@@ -441,7 +464,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $data->listFields['reason'] = 'Основание';
                 $data->listFields['amount'] = 'Сума';
                 $data->rows = array();
-                
+
                 // Показване на сумата за промяна на известието
                 $Type = core_Type::getByName('double(decimals=2)');
                 $rate = !empty($masterRec->displayRate) ? $masterRec->displayRate : $masterRec->rate;
@@ -492,7 +515,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
         
         $mvc = cls::get(get_called_class());
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        
+
+        //bp($rec, $masterRec, deals_Helper::getSmartBaseCurrency($rec->price, null, null));
+
         $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
         $modeLg = Mode::get('tplManagerLg');
         $lang = isset($modeLg) ? $modeLg : doc_TplManager::fetchField($masterRec->template, 'lang');
@@ -548,6 +573,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 // На ДИ и КИ не можем да изтриваме и добавяме
                 if (in_array($action, array('add', 'delete'))) {
                     $res = 'no_one';
+                }
+                if($action == 'edit'){
+                    if($masterRec->state == 'rejected'){
+                        $res = 'no_one';
+                    }
                 }
             }
         }
@@ -655,7 +685,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                         }
                     }
                 }
-                
+
                 if (!$policyInfo) {
                     $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                     $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
@@ -699,8 +729,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
 
             if(!$form->gotErrors()){
-                // Записваме основната мярка на продукта
-                $rec->amount = $rec->packPrice * $rec->quantity;
 
                 // При редакция, ако е променена опаковката слагаме преудпреждение
                 if ($rec->id) {
@@ -715,6 +743,14 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     // Проверка дали са променени и цената и количеството
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
                     $originRec = $cache->recWithIds[$rec->clonedFromDetailId];
+
+                    if(in_array($masterRec->currencyId, array('BGN', "EUR"))){
+                        $originRec['price'] = deals_Helper::getSmartBaseCurrency($originRec['price'], $cache->date, $masterRec->date);
+                    } else {
+                        $originRec['price'] /= $cache->rate;
+                        $originRec['price'] *= $masterRec->rate;
+                    }
+
                     $diffPrice = round($rec->packPrice - $originRec['price'], 5);
                     if(round($rec->quantity, 5) != round($originRec['quantity'], 5) && abs($diffPrice) > 0.0001){
                         $form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
@@ -756,5 +792,70 @@ abstract class deals_InvoiceDetail extends doc_Detail
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
         $rec->discount = $oldRec->inputDiscount;
+    }
+
+
+    /**
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int   $masterId - ид на мастъра на детайла
+     * @param array $row      - Обект представляващ артикула за импортиране
+     *                        ->code - код/баркод на артикула
+     *                        ->quantity - К-во на опаковката или в основна мярка
+     *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     *                        ->pack - Опаковката
+     *
+     * @return mixed - резултата от експорта
+     */
+    public function import($masterId, $row)
+    {
+        $Master = $this->Master;
+        $masterRec = $Master->fetch($masterId);
+
+        $pRec = cat_Products::getByCode($row->code);
+        $packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $dRec = (object)array($this->masterKey => $masterId, 'productId' => $pRec->productId, 'packagingId' => $packagingId);
+        $packRec = cat_products_Packagings::getPack($pRec->productId, $dRec->packagingId);
+
+        $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+        $rate = $masterRec->displayRate ?? $masterRec->rate;
+        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
+        if(isset($row->price)){
+            $dRec->price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($dRec->productId, null, $vatExceptionId), $rate, $masterRec->chargeVat);
+            $dRec->price /= $quantityInPack;
+        } else {
+            if(!isset($row->_dealInfo)){
+                $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+                $row->_dealInfo = $firstDoc->getAggregateDealInfo();
+            }
+
+            $products = $row->_dealInfo->get('products');
+            if (countR($products)) {
+                foreach ($products as $p) {
+                    if ($dRec->productId == $p->productId && $dRec->packagingId == $p->packagingId) {
+                        $policyInfo = new stdClass();
+                        $policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->rate, 'no');
+                        $policyInfo->discount = $p->discount;
+                        break;
+                    }
+                }
+            }
+
+            if (!$policyInfo) {
+                $Policy = (isset($this->Policy)) ? $this->Policy : cls::get('price_ListToCustomers');
+                $listId = ($row->_dealInfo->get('priceListId')) ? $row->_dealInfo->get('priceListId') : null;
+                $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
+            }
+
+            $dRec->price = $policyInfo->price;
+            $dRec->discount = $policyInfo->discount;
+        }
+
+        $dRec->quantity = $row->quantity;
+        $dRec->quantityInPack = $quantityInPack;
+        $dRec->amount = $dRec->price * $dRec->quantity;
+
+        return self::save($dRec);
     }
 }

@@ -1354,6 +1354,9 @@ div.acc-detail {
   top: 4px;
   margin-top: -6px; }
 
+.planning.small .listTable td {
+  vertical-align: middle !important; }
+
 .narrow .portal .legend .addTask {
   top: 2px; }
 
@@ -1705,6 +1708,9 @@ a.tUnsighted {
   display: none; }
 
 .doc_drivers_LatestDocPortal .tagsHolder {
+  display: block; }
+
+.ibex_drivers_IbexPrices .tagsHolder {
   display: block; }
 
 .narrow .tagsHolder {
@@ -2429,6 +2435,12 @@ pre.document {
   margin-bottom: -2px;
   margin-top: 3px; }
 
+.shortTime {
+  white-space: wrap !important; }
+
+.planning_Tasks .shortTime {
+  width: 70px !important; }
+
 .boldText {
   font-weight: bold; }
 
@@ -2440,6 +2452,9 @@ pre.document {
 
 .normalText {
   font-weight: normal !important; }
+
+.transUnitQuantity {
+  font-weight: bold; }
 
 .cell {
   border: 1px solid #999999;
@@ -3850,7 +3865,7 @@ span.sharing-history-title {
   color: #222222;
   min-width: 320px;
   width: 100%;
-  font-size: 0.95em; }
+  font-size: 0.9em; }
   .optionsTable th {
     text-align: center;
     padding: 7px 5px;
@@ -3916,6 +3931,9 @@ span.sharing-history-title {
     color: black !important; }
   .option-not-in-stock.saleDebug {
     background-color: #a8f3b4 !important;
+    color: black !important; }
+  .option-not-in-stock.requirerReferer {
+    background-color: rgba(243, 255, 142, 0.8) !important;
     color: black !important; }
 
 .eshop-product-list-param {
@@ -4058,9 +4076,13 @@ span.sharing-history-title {
   .narrow .optionsTable td {
     padding: 4px 10px; }
 
-.eshop-product-navigation {
-  margin-bottom: 20px;
+.path {
   font-size: 0.9em; }
+  .path a:hover {
+    text-decoration: underline;
+    color: #004488 !important; }
+  .path span {
+    color: #888888; }
 
 table .eshop-btn {
   margin-right: 0 !important; }
@@ -4481,6 +4503,9 @@ table .eshop-btn {
   .productBox:hover {
     -webkit-transform: scale(1.15);
     transform: scale(1.15); }
+    .productBox:hover a {
+      background-size: 4px 50px;
+      color: white !important; }
   .productBox .productImage {
     width: 100%;
     height: 180px;
@@ -4501,9 +4526,6 @@ table .eshop-btn {
     -webkit-transition: all 0.2s;
     transition: all 0.2s;
     padding: 0 2px; }
-    .productBox .productName:hover {
-      background-size: 4px 50px;
-      color: white !important; }
 
   .smallThumbs .productImage {
     height: 120px;
@@ -4512,7 +4534,7 @@ table .eshop-btn {
       max-width: 110px;
       height: auto; }
   .smallThumbs .productName {
-    font-size: 0.9em !important; }
+    font-size: 0.9rem !important; }
 
 .narrow .results ul {
   padding-left: 0; }
@@ -5982,6 +6004,9 @@ div.location.public {
 .favouritesBtn.linkWithIcon:hover {
   cursor: pointer; }
 
+.narrow .toolbar .toggleListFilterBtn {
+  padding-left: 25px !important; }
+
 #all .hasLogoutBlock .cms-row,
 .hasLogoutBlock .centerContent {
   padding-top: 30px; }
@@ -6073,6 +6098,9 @@ div.location.public {
 
 .eshop-product-labels > a {
   font-weight: bold; }
+
+#addToFavouritesBtn a {
+  background-color: rgba(0, 0, 0, 0) !important; }
 
 .narrow .eshop-group-button-title {
   margin-top: 2px; }
@@ -8131,4 +8159,97 @@ tr.workInProgressBatchRow .workInProgressProductColName {
 
 tr.workInProgressBatchRow {
   font-size: 0.9em; }
+
+.currencySignNextToAmount {
+  display: inline-block;
+  min-width: 1.5em;
+  text-align: left; }
+
+.priceListHolder .currencySignNextToAmount {
+  min-width: auto; }
+
+/*
+ * 
+ * скриване на част от клетки от листовия, които има дълъг текст
+ */
+td.td-clamp {
+  --fade-color: white;
+    /*
+   * сменя се от JS с реалния фон
+   */
+  position: relative;
+  vertical-align: top; }
+
+.narrow td.td-clamp[data-overflow="true"] .clamp-ellipsis {
+  bottom: 7px; }
+
+td.td-clamp .clamp-body {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-height: 1.4em;
+  overflow: hidden;
+  position: relative;
+  max-height: var(--max-height); }
+
+/*
+ * Маска и fade САМО когато е свито и има скрит текст
+ */
+td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-body {
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, rgba(0, 0, 0, 0));
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-image: linear-gradient(to bottom, black 50%, rgba(0, 0, 0, 0));
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%; }
+
+td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-body::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 1.5em;
+  height: 1.4em;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--fade-color));
+  pointer-events: none; }
+
+td.td-clamp[data-expanded="true"] .clamp-body {
+  display: block;
+    /*
+   * ключово: махаме -webkit-box
+   */
+  -webkit-line-clamp: initial;
+    /*
+   * безопасно зануляване
+   */
+  -webkit-box-orient: initial;
+  max-height: var(--max-scroll);
+  overflow-y: auto;
+    /*
+   * само вертикален скрол
+   */
+  overflow-x: hidden;
+  -webkit-mask-image: none;
+  mask-image: none;
+  scrollbar-gutter: stable;
+    /*
+   * по избор: запазва място за скролбара
+   */ }
+
+/*
+ * бутонче
+ */
+td.td-clamp[data-overflow="true"] .clamp-ellipsis {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #666666;
+  user-select: none; }
+
+td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-ellipsis::after {
+  content: "…"; }
+
+td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after {
+  content: "↥"; }
 

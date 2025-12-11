@@ -55,22 +55,22 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
         
         return $FeeZones->getVolumicWeight($weight, $volume, $deliveryTermId, $params);
     }
-    
-    
+
+
     /**
      * Определяне цената за транспорт при посочените параметри
      *
-     * @param int   $deliveryTermId     - условие на доставка
-     * @param float $volumicWeight      - единичното обемно тегло
-     * @param int   $totalVolumicWeight - Общото обемно тегло
-     * @param array $params             - други параметри
-     *
+     * @param int   $deliveryTermId           - условие на доставка
+     * @param float $volumicWeight            - единичното обемно тегло
+     * @param int   $totalVolumicWeight       - общото обемно тегло
+     * @param array $params                   - други параметри
+     * @param null|string $toBaseCurrencyDate - към основната валута за коя дата
      * @return array
      *               ['fee']          - цена, която ще бъде платена за теглото на артикул, ако не може да се изчисли се връща < 0
      *               ['deliveryTime'] - срока на доставка в секунди ако го има
      *               ['explain']      - текстово обяснение на изчислението
      */
-    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params)
+    public function getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params, $toBaseCurrencyDate = null)
     {
         $routeRec = null;
         if($params['routeId']){
@@ -81,7 +81,7 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
         $res = array('fee' => cond_TransportCalc::OTHER_FEE_ERROR, 'explain' => ' NO ROUTE FOUND');
         if(is_object($routeRec)){
             $FeeZones = cls::getInterface('cond_TransportCalc', 'tcost_FeeZones');
-            $res = $FeeZones->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params);
+            $res = $FeeZones->getTransportFee($deliveryTermId, $volumicWeight, $totalVolumicWeight, $params, $toBaseCurrencyDate);
             $diff = strtotime($routeRec->nextVisit) - strtotime(dt::today());
             $res['deliveryTime'] = $diff;
         } 
@@ -102,11 +102,11 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
     public function addFields(core_FieldSet &$form, $document, $userId = null)
     {
         $Document = cls::get($document);
-        $inDays = ($Document instanceof eshop_Carts) ? 7 : null;
+        $inDays = ($Document instanceof eshop_Carts) ? eshop_Setup::get('SHOW_ROUTES_IN_NEXT_DAYS') : null;
         $locationId = ($Document instanceof eshop_Carts) ? $form->rec->locationId : $form->rec->deliveryLocationId;
       
         if(isset($locationId)){
-            $routeOptions = sales_Routes::getRouteOptions($locationId, $inDays);
+            $routeOptions = sales_Routes::getRouteOptions($locationId, $inDays, 'delivery');
             $countRoutes = countR($routeOptions);
             $form->FLD('routeId', "key(mvc=sales_Routes,select=nextVisit)", 'silent,mandatory,caption=Доставка->Доставка на');
             
@@ -124,9 +124,14 @@ class sales_interface_FreeRegularDelivery extends core_BaseClass
             $form->setField('deliveryPCode', 'input=hidden');
             $form->setField('deliveryPlace', 'input=hidden');
             $form->setField('deliveryAddress', 'input=hidden');
-            
-            if(!$countRoutes){
-                $infoText = tr('За съжаление, няма планирани маршрути до вашата локация. Ако имате въпроси, моля да се свържете с нас|*!');
+
+            if(isset($locationId)){
+                if(!$countRoutes){
+                    $infoText = tr('За съжаление, няма планирани маршрути до вашата локация. Ако имате въпроси, моля да се свържете с нас|*!');
+                    $form->info = new core_ET("<div id='editStatus'><div class='warningMsg'>{$infoText}</div></div>");
+                }
+            } else {
+                $infoText = tr('Моля изберете локация|*!');
                 $form->info = new core_ET("<div id='editStatus'><div class='warningMsg'>{$infoText}</div></div>");
             }
         } elseif($Document instanceof sales_Sales){

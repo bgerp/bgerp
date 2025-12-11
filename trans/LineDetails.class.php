@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логист. информация,documentHtml=@,address=@,notes=@,classId=Клас';
+    public $listFields = 'num=№,containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логист. информация,documentHtml=@,address=@,notes=@,classId=Клас';
     
     
     /**
@@ -100,8 +100,8 @@ class trans_LineDetails extends doc_Detail
      * Кои полета да се извличат при изтриване
      */
     public $fetchFieldsBeforeDelete = 'id,lineId,containerId';
-    
-    
+
+
     /**
      * Вербалните имена на класовете
      */
@@ -209,6 +209,7 @@ class trans_LineDetails extends doc_Detail
         // Линк към документа
         $handle = $Document->getHandle();
         $row->containerId = "#{$handle}";
+        $row->num = core_Type::getByName('int')->toVerbal($rec->num);
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
             $createdBy = core_Users::getNick($Document->fetchField('createdBy'));
@@ -300,6 +301,9 @@ class trans_LineDetails extends doc_Detail
 
         // Ако е складов документ
         if($Document->haveInterface('store_iface_DocumentIntf')){
+            if(!empty($transportInfo['deliveryOn'])){
+                $row->notes = "Доставка до: " . dt::mysql2verbal($transportInfo['deliveryOn']) . (!empty($row->notes) ? "<br/>" : "") . $row->notes;
+            }
 
             // Ако документа в момента е в зона
             if(isset($transportInfo['zoneId']) && $rec->status != 'removed'){
@@ -313,7 +317,7 @@ class trans_LineDetails extends doc_Detail
             // Подготовка на логистичната информация за документа
             $logisticArr = array();
             if(!empty($transportInfo['transportUnits'])){
-                $transUnits = trans_helper::displayTransUnits($transportInfo['transportUnits'], false, ', ');
+                $transUnits = trans_Helper::displayTransUnits($transportInfo['transportUnits'], false, ', ');
                 $logisticArr[] = $transUnits;
             } elseif(isset($transportInfo['volume'])){
                 $logisticArr[] = "<i>" . core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']) . "<i>";
@@ -475,6 +479,7 @@ class trans_LineDetails extends doc_Detail
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');
+        $data->listTableMvc->FNC('num', 'int', 'tdClass=small-field centerCell');
 
         if($data->masterData->rec->state == 'rejected'){
             unset($data->listFields['_rowTools']);
@@ -630,7 +635,7 @@ class trans_LineDetails extends doc_Detail
         $rkoClassId = cash_Rko::getClassId();
         
         $data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$transferClassId} THEN 3 WHEN {$consClassId} THEN 4 WHEN {$pkoClassId} THEN 5 WHEN {$rkoClassId} THEN 6 ELSE 7 END)");
-        $data->query->orderBy('#orderByClassId=ASC,#containerId=ASC');
+        $data->query->orderBy('#orderByClassId=ASC,#createdOn=ASC');
 
         if(Mode::is('printing')){
             $data->query->where("#status != 'removed'");
@@ -651,8 +656,11 @@ class trans_LineDetails extends doc_Detail
         $documentsWithPayments = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId());
         $paymentDocuments = array_filter($recs, function ($a) use ($paymentDocsClassIds) {return in_array($a->classId, $paymentDocsClassIds) && ($a->status != 'removed');});
 
+        $i = 0;
         $removedRecs = array();
         foreach ($data->recs as $rec){
+            $i++;
+            $rec->num = $i;
             if($rec->status == 'removed'){
                 $rec->classId = 'removed';
                 $removedRecs[$rec->id] = $rec;
@@ -705,6 +713,25 @@ class trans_LineDetails extends doc_Detail
 
         if(countR($removedRecs)){
             $data->recs += $removedRecs;
+        }
+
+        // Подреждане в рамките на документа спрямо избраната настройка
+        $orderBy = trans_Setup::get('ORDER_BY_LINE_DETAILS');
+        if($orderBy != 'createdOn'){
+            $orderedRecs = array();
+            $classIds = arr::extractValuesFromArray($data->recs, 'classId');
+            foreach($classIds as $classId){
+                $recsByClass = array_filter($recs, function($a) use ($classId){return $a->classId == $classId;});
+                if($orderBy == 'containerId'){
+                    arr::sortObjects($recsByClass, 'containerId', 'ASC');
+                } else {
+                    arr::sortObjects($recsByClass, 'createdOn', 'DESC');
+
+                }
+                $orderedRecs += $recsByClass;
+            }
+
+            $data->recs = $orderedRecs;
         }
     }
     

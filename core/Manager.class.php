@@ -136,9 +136,13 @@ class core_Manager extends core_Mvc
      *
      * @return void
      */
-    public function forceProxy($clsName)
+    public function forceProxy($clsName = null)
     {
-        $DC = cls::get($clsName);
+        if (!$clsName) {
+            $DC = $this;
+        } else {
+            $DC = cls::get($clsName);
+        }
 
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
@@ -147,11 +151,22 @@ class core_Manager extends core_Mvc
             $error = core_App::isReplicationOK();
             if (!empty($error)) {
                 if (false === core_Cache::get($this->title, 'Report_Replica')) {
-                    $this->logNotice("Replica: " . $error);
+                    // Ако започва с 4151 да е logNotice
+                    if (strpos($error, '4151') === 0) {
+                        $this->logNotice("Replica: " . $error);
+                    } else {
+                        $this->logWarning("Replica: " . $error);
+                    }
+
                     core_Cache::set($this->title, 'Report_Replica', $error, 10);
                     // todo: да праща signal msg на админа
                 }
             } else {
+                $this->db->__origDbName = $this->db->dbName;
+                $this->db->__origDbPass = $this->db->dbPass;
+                $this->db->__origDbUser = $this->db->dbUser;
+                $this->db->__origDbHost = $this->db->dbHost;
+
                 $this->db->dbName = SEARCH_DB_NAME;
                 $this->db->dbPass = SEARCH_DB_PASS;
                 $this->db->dbUser = SEARCH_DB_USER;
@@ -159,6 +174,38 @@ class core_Manager extends core_Mvc
             }
         }
     }
+
+
+    /**
+     * Помощна функция, която спира форсираното използване на друга БД
+     *
+     * @param string $clsName
+     *
+     * @return void
+     */
+    public function unforceProxy($clsName = null)
+    {
+        if (!$clsName) {
+            $DC = $this;
+        } else {
+            $DC = cls::get($clsName);
+        }
+
+        if (defined('SEARCH_DB_HOST')) {
+            if (isset($this->db->__origDbName) && isset($this->db->__origDbPass) && isset($this->db->__origDbUser) && isset($this->db->__origDbHost)) {
+                $this->db->dbName = $this->db->__origDbName;
+                $this->db->dbPass = $this->db->__origDbPass;
+                $this->db->dbUser = $this->db->__origDbUser;
+                $this->db->dbHost = $this->db->__origDbHost;
+                unset($this->db->__origDbHost);
+                unset($this->db->__origDbName);
+                unset($this->db->__origDbPass);
+                unset($this->db->__origDbUser);
+            }
+        }
+    }
+
+
 
     
     /**
@@ -273,7 +320,7 @@ class core_Manager extends core_Mvc
      */
     public function act_Default()
     {
-        if (!isset($this->dbTableName)) {
+        if (!isset($this->dbTableName) || !strlen(trim($this->dbTableName)) || !trim($this->dbTableName)) {
             $res = $this->renderWrapping('<h2>Този модел няма таблица</h2>');
         } else {
             $res = $this->act_List();
@@ -546,6 +593,25 @@ class core_Manager extends core_Mvc
         
         return $data;
     }
+
+
+    /**
+     * Подготвя формата за филтриране
+     */
+    public function prepareListFilter($data)
+    {
+        $data = parent::prepareListFilter($data);
+
+        if ($data && $data->listFields) {
+            $data->listFields = arr::make($data->listFields);
+
+            if ($data->query && $data->listFields && $data->listFields['id']) {
+                $data->query->orderBy('id', 'ASC');
+            }
+        }
+
+        return $data;
+    }
     
     
     /**
@@ -602,7 +668,8 @@ class core_Manager extends core_Mvc
                         } else {
                             $options = $Type->type->options;
                         }
-                        $skip = false;
+
+                        $skip = isset($Type->type->params['allowEmpty']) && isset($options['']);
                     } elseif ($Type->type instanceof type_Keylist) {
                         $options = $Type->type->getSuggestions();
                         $skip = false;
@@ -1280,7 +1347,7 @@ class core_Manager extends core_Mvc
         }
         
         // Приключваме, ако няма заявка за търсене
-        $q = Request::get('q');
+        $q = Request::get('q', 'varchar');
         
         if (!$q) {
             return array(

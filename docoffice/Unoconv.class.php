@@ -166,7 +166,7 @@ class docoffice_Unoconv extends core_Manager
      */
     public static function lockUnoconv($maxDuration = 50, $maxTray = 30)
     {
-        core_Locks::get('unoconv', $maxDuration, $maxTray, false);
+        core_Locks::obtain('unoconv', $maxDuration, 3 * $maxTray, $maxTray, false);
     }
     
     

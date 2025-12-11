@@ -26,7 +26,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'върнат артикул';
+    public $singleTitle = 'артикул (който получаваме)';
     
     
     /**
@@ -41,31 +41,31 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, 
-                        plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument,deals_plg_ImportDealDetailProduct,plg_PrevAndNext,store_plg_TransportDataDetail';
+                        plg_AlignDecimals2, cat_plg_LogPackUsage, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument, doc_plg_HidePrices,deals_plg_ImportDealDetailProduct,plg_PrevAndNext,store_plg_TransportDataDetail';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, store, distributor';
+    public $canEdit = 'ceo, store, distributor,sales,purchase';
 
 
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, store, distributor';
+    public $canAdd = 'ceo, store, distributor,sales,purchase';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, store, distributor';
+    public $canDelete = 'ceo, store, distributor,sales,purchase';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Получено от Клиент/Доставчик, packagingId, packQuantity=К-во, weight=Тегло,volume=Обем, packPrice, amount,transUnitId=ЛЕ';
+    public $listFields = 'productId=Получаваме от Клиент/Доставчик, packagingId, packQuantity=К-во, weight=Тегло,volume=Обем, packPrice, amount,transUnitId=ЛЕ';
     
     
     /**
@@ -75,17 +75,11 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     
     
     /**
-     * Кой може да го импортира артикули?
+     * Кой може да импортира артикули?
      *
      * @var string|array
      */
-    public $canImport = 'ceo, store, distributor';
-    
-    
-    /**
-     * Да се забрани ли създаването на нова партида
-     */
-    public $cantCreateNewBatch = true;
+    public $canImport = 'ceo, store, distributor,sales,purchase';
 
 
     /**
@@ -107,7 +101,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
      *
      * @var string|array
      */
-    public $canCreateproduct = 'ceo, store';
+    public $canCreateproduct = 'ceo, store,sales,purchase';
 
 
     /**
@@ -200,10 +194,11 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
                         while($bRec = $bQuery->fetch()){
                             if($batchDef = batch_Defs::getBatchDef($bRec->productId)){
                                 $bArr = array_keys($batchDef->makeArray($bRec->batch));
+                                $perBatch = $bRec->quantity / countR($bArr);
                                 foreach ($bArr as $b){
                                     $bKey = md5($b);
-                                    $res[$rec->productId][$rec->packagingId]['batches'][$bKey]['batch'] = $bRec->batch;
-                                    $res[$rec->productId][$rec->packagingId]['batches'][$bKey]['quantity'] += $bRec->quantity;
+                                    $res[$rec->productId][$rec->packagingId]['batches'][$bKey]['batch'] = $b;
+                                    $res[$rec->productId][$rec->packagingId]['batches'][$bKey]['quantity'] += $perBatch;
                                 }
                             }
                         }
@@ -229,5 +224,16 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
                 $requiredRoles = 'no_one';
             }
         }
+    }
+
+
+    /**
+     * Може ли да се създават нови партиди при засклаждане с този документ
+     */
+    public function  canReceiveNewBatch($rec)
+    {
+        $protocolType = store_ConsignmentProtocols::fetchField($rec->protocolId, 'productType');
+
+        return  $protocolType == 'other';
     }
 }

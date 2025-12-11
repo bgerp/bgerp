@@ -36,7 +36,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, change_Plugin, doc_SharablePlg, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+                    doc_DocumentPlg, plg_Printing, cat_plg_LogPackUsage, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
 
 
 
@@ -231,7 +231,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->setField('storeId', 'caption=Произвеждане (заприхождаване на произведеното)->В склад,silent,removeAndRefreshForm');
         $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->ОТ склад'),'input,silent,removeAndRefreshForm=inputServicesFrom,placeholder=Незавършено производство,after=storeId');
         $this->FLD('inputServicesFrom', 'enum(unfinished=Незавършено производство,all=Разходи за услуги (без влагане))', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->Услуги от'),'maxRadio=2');
-        $this->FLD('detailOrderBy', 'enum(auto=Ред на създаване,code=Код,reff=Ваш №)', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->Подреждане по'), 'notNull,value=auto');
+        $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', array('caption' => 'Влагане (на суровини, материали, заготовки и услуги)->Подреждане по'), 'notNull,value=auto');
 		
         $this->setField('deadline', 'caption=Информация->Срок до');
         $this->FLD('debitAmount', 'double(decimals=2)', 'input=none');
@@ -264,7 +264,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         parent::prepareEditForm_($data);
         $form = &$data->form;
         $rec = $form->rec;
-        $form->setDefault('valior', dt::today());
+
+        if(empty($rec->id)){
+            $form->setDefault('valior', dt::today());
+        }
 
         $originDoc = doc_Containers::getDocument($form->rec->originId);
         $originRec = $originDoc->rec();
@@ -817,6 +820,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         // Ако протокола е за крайния артикул
         if(static::isForJobProductId($rec)) {
             $detailsFromBom = $this->getDefaultDetailsFromBom($rec);
+            $orderedKeys = arr::extractValuesFromArray($detailsFromBom, 'productId');
 
             // Какво е вложено до момента в заданието
             $jobRec =  static::getJobRec($rec);
@@ -865,6 +869,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $details[$key] = $obj1;
                         $details[$key]->quantityFromBom += $d3->quantityFromBom;
                     }
+
+                    // Ако има субпродукти се проверява и имат партидност се зарежда тази с която биха влезли в склада
+                    if(core_Packs::isInstalled('batch')){
+                        if($details[$key]->type == 'subProduct'){
+                            if($batchDef = batch_Defs::getBatchDef($details[$key]->productId)){
+                                $defValue = $batchDef->getAutoValue($this, $rec->id, $rec->storeId, $rec->valior);
+                                if(isset($defValue)){
+                                    $details[$key]->batches[$defValue] += $details[$key]->quantity;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -875,6 +891,21 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $d3->quantity = $d3->quantityExpected;
                     }
                 }
+            }
+
+            // Сортиране по приоритет от рецепта
+            if(countR($orderedKeys)){
+                $ordered = array();
+                foreach ($orderedKeys as $pid) {
+                    foreach ($details as $k => $obj) {
+                        if ($obj->productId == $pid) {
+                            $ordered[$k] = $obj;
+                            unset($details[$k]);
+                        }
+                    }
+                }
+
+                $details = array_merge($ordered, $details);
             }
         } elseif($origin->isInstanceOf('planning_Tasks')){
             $details = array();
@@ -898,7 +929,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     protected function getDefaultDetailsFromBom($rec)
     {
         $details = array();
+        $Document = doc_Containers::getDocument($rec->originId);
         $originRec = doc_Containers::getDocument($rec->originId)->rec();
+        $jobRec = $originRec;
+        if($Document->isInstanceOf('planning_Tasks')) {
+            $jobRec = doc_Containers::getDocument($Document->fetchField('originId'))->fetch();
+        }
 
         // Ако артикула има активна рецепта
         $bomId = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')->id;
@@ -914,9 +950,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $now = dt::now();
         $bomInfo1 = array();
         if($quantityProduced){
-            $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, $now);
+            $bomInfo1 = cat_Boms::getResourceInfo($bomId, $quantityProduced, $now, $jobRec->quantity);
         }
-        $bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, $now);
+        $bomInfo2 = cat_Boms::getResourceInfo($bomId, $quantityToProduce, $now, $jobRec->quantity);
 
         // За всеки ресурс
         foreach ($bomInfo2['resources'] as $index => $resource) {
@@ -964,6 +1000,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec->_isCreated = true;
 
         $details = $mvc->getDefaultDetails($rec);
+
         if(countR($details)) {
             $consignmentProducts = store_ConsignmentProtocolDetailsReceived::getReceivedOtherProductsFromSale($rec->threadId, false);
 
@@ -995,8 +1032,26 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 planning_DirectProductNoteDetails::save($dRec);
-                if(is_array($dRec->batches)){
-                    batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $dRec->id, $dRec->batches, true);
+
+                // От вложените партиди остават само толкова колкото са нужни за крайното к-во
+                if(core_Packs::isInstalled('batch')){
+                    if(is_array($dRec->batches)){
+                        $neededQty = $dRec->quantity;
+                        $neededBatches = array();
+                        foreach ($dRec->batches as $batch => $qty) {
+                            if ($neededQty <= 0) break;
+
+                            if ($qty <= $neededQty) {
+                                $neededBatches[$batch] = $qty;
+                                $neededQty -= $qty;
+                            } else {
+                                $neededBatches[$batch] = $neededQty;
+                                break;
+                            }
+                        }
+
+                        batch_BatchesInDocuments::saveBatches('planning_DirectProductNoteDetails', $dRec->id, $neededBatches, true);
+                    }
                 }
             }
         }
@@ -1463,9 +1518,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         // Проверки на параметрите
         expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
         expect($noteRec->state == 'draft', 'Протокола трябва да е чернова');
-        expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore'), "Няма артикул с ид {$productId}");
+        expect($productRec = cat_Products::fetch($productId, 'canConvert,canStore,canManifacture'), "Няма артикул с ид {$productId}");
         if ($isWaste) {
             expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
+            expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
+        } elseif($isSubProduct) {
+            expect($productRec->canManifacture == 'yes', 'Артикулът трябва да е производим');
             expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
         } else {
             expect($productRec->canConvert == 'yes', 'Артикулът трябва да е вложим');
@@ -1504,6 +1562,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } elseif($noteRec->inputServicesFrom == 'all') {
                 $rec->fromAccId = '61102';
             }
+        } elseif($rec->type == 'subProduct'){
+            $rec->storeId = $noteRec->storeId;
         }
 
         setIfNot($rec->storeId, $storeId);
@@ -1601,13 +1661,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : null);
+        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
+        $dateIn = $date;
+        if(empty($date) || $date < dt::today()){
+            $dateIn = dt::addSecs($horizonAdd, dt::now());
+        }
+        $dateOut = empty($date) ? $rec->createdOn : $date;
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if($canStore == 'yes'){
             $res[] = (object)array('storeId'          => $rec->storeId,
                 'productId'        => $rec->productId,
-                'date'             => $date,
+                'date'             => $dateIn,
                 'quantityIn'       => $rec->quantity,
                 'quantityOut'      => null,
                 'genericProductId' => null);
@@ -1631,14 +1697,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $quantityIn = $quantityOut = null;
             if($dRec->type == 'input'){
+                $detailDate = $dateOut;
                 $quantityOut = $dRec->totalQuantity;
             } else {
+                $detailDate = $dateIn;
                 $quantityIn = $dRec->totalQuantity;
             }
 
             $res[] = (object)array('storeId'          => $dRec->storeId,
                                    'productId'        => $dRec->productId,
-                                   'date'             => $date,
+                                   'date'             => $detailDate,
                                    'quantityIn'       => $quantityIn,
                                    'quantityOut'      => $quantityOut,
                                    'genericProductId' => $genericProductId);
@@ -1763,6 +1831,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             core_Statuses::newStatus($errorMsg, 'error');
 
             return false;
+        }
+    }
+
+
+    /**
+     * Преди редирект след грешка при контиране
+     */
+    protected static function on_BeforeContoRedirectError($mvc, $rec)
+    {
+        if(!empty($rec->debitAmount)) {
+            $rec->debitAmount = null;
+            $mvc->save_($rec, 'debitAmount');
         }
     }
 }

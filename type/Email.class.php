@@ -50,10 +50,13 @@ class type_Email extends type_Varchar
             
             return;
         }
-        
+
         if (!$this->isValidEmail($value)) {
             $this->error = 'Некоректен имейл';
             
+            // Проверка за опити за хакване
+            core_HackDetector::check($value, $this->params['hackTolerance'] ?? null);
+
             return false;
         }
 
@@ -274,6 +277,96 @@ class type_Email extends type_Varchar
             }
         }
         
-        return $matches[0];
+        return array_unique($matches[0]);
+    }
+
+    /**
+     * de-obfuscation на имейли в HTML текст
+     */
+    public static function deobfuscateEmails($html) 
+    {
+        // 1. Декодиране на HTML entities
+        $text = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        // 2. Премахване на HTML коментари
+        $text = preg_replace('/<!--.*?-->/s', '', $text);
+        
+        // 3. Заменяне на най-често използваните obfuscation техники за @ символа
+        $atReplacements = [
+            // В квадратни скоби
+            '/\s*\[at\]\s*/i' => '@',
+            '/\s*\[a\]\s*/i' => '@',
+            '/\s*\[@\]\s*/i' => '@',
+            // В къдрави скоби
+            '/\s*\{at\}\s*/i' => '@',
+            '/\s*\{a\}\s*/i' => '@',
+            '/\s*\{@\}\s*/i' => '@',
+            // В кръгли скоби
+            '/\s*\(at\)\s*/i' => '@',
+            '/\s*\(a\)\s*/i' => '@',
+            '/\s*\(@\)\s*/i' => '@',
+             // В остри скоби
+            '/\s*\<at\>\s*/i' => '@',
+            '/\s*\<a\>\s*/i' => '@',
+            '/\s*\<@\>\s*/i' => '@',
+            // Със специални символи
+            '/\s*\|at\|\s*/i' => '@',
+            '/\s*\*at\*\s*/i' => '@',
+            '/\s*#at#\s*/i' => '@',
+            '/\s*&at&\s*/i' => '@',
+        ];
+        
+        // Заменяне на обфускации за точката
+        $dotReplacements = [
+            // В квадратни скоби
+            '/\s*\[dot\]\s*/i' => '.',
+            '/\s*\[d\]\s*/i' => '.',
+            '/\s*\[\.\]\s*/i' => '.',
+            // В къдрави скоби  
+            '/\s*\{dot\}\s*/i' => '.',
+            '/\s*\{d\}\s*/i' => '.',
+            '/\s*\{\.\}\s*/i' => '.',
+            // В кръгли скоби
+            '/\s*\(dot\)\s*/i' => '.',
+            '/\s*\(d\)\s*/i' => '.',
+            '/\s*\(\.\)\s*/i' => '.',
+            // В остри скоби
+            '/\s*\<dot\>\s*/i' => '.',
+            '/\s*\<d\>\s*/i' => '.',
+            '/\s*\<\.\>\s*/i' => '.',
+            // Със специални символи
+            '/\s*\|dot\|\s*/i' => '.',
+            '/\s*\*dot\*\s*/i' => '.',
+            '/\s*#dot#\s*/i' => '.',
+            '/\s*&dot&\s*/i' => '.',
+        ];
+        
+        // Прилагане на замените за @
+        foreach ($atReplacements as $pattern => $replacement) {
+            $text = preg_replace($pattern, $replacement, $text);
+        }
+        
+        // Прилагане на замените за .
+        foreach ($dotReplacements as $pattern => $replacement) {
+            $text = preg_replace($pattern, $replacement, $text);
+        }
+        
+        // 4. Премахване на HTML тагове около @ и . символи
+        // Премахва <span>, <b>, <i>, <em>, <strong> и други inline елементи около @ и .
+        $text = preg_replace('/\s*<[^>]*>\s*(@|at|\[at\]|\<at\>|\{at\})\s*<\/[^>]*>\s*/', '@', $text);
+        $text = preg_replace('/\s*<[^>]*>\s*(\.|dot|\[dot\]|\{dot\}|\<dot\>)\s*<\/[^>]*>\s*/', '.', $text);
+        
+        // 5. Други техники за de-obfuscation
+        
+        // Премахване на нулева ширина символи (zero-width characters)
+        $text = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}]/u', '', $text);
+        
+        // Премахване на CSS hidden елементи които могат да съдържат spam символи
+        $text = preg_replace('/<[^>]*style[^>]*display\s*:\s*none[^>]*>.*?<\/[^>]*>/si', '', $text);
+        
+        // Премахване на <noscript> тагове, които може да съдържат obfuscated emails
+        $text = preg_replace('/<noscript[^>]*>.*?<\/noscript>/si', '', $text);
+        
+        return $text;
     }
 }

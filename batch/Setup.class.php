@@ -85,7 +85,6 @@ class batch_Setup extends core_ProtoSetup
         'batch_Templates',
         'batch_BatchesInDocuments',
         'batch_ManufacturersPerProducts',
-        'migrate::updateCategoryDefinitions2502',
     );
     
     
@@ -114,6 +113,7 @@ class batch_Setup extends core_ProtoSetup
                           batch_definitions_Digits,
                           batch_definitions_Job,
                           batch_definitions_StringManufacturerDate,
+                          batch_definitions_StringAndParamAndManifactureDate,
                           batch_definitions_DealReff';
     
     
@@ -189,36 +189,12 @@ class batch_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Партидни движения към прогреса на производствените операции', 'batch_plg_TaskDetails', 'planning_ProductionTaskDetails', 'private');
 
         // Обновяване на моделите към, които са закачени партиди
-        $classesToSetup = array('planning_ProductionTaskDetails', 'store_InventoryNoteDetails', 'planning_DirectProductionNote', 'sales_SalesDetails', 'planning_DirectProductNoteDetails', 'purchase_PurchasesDetails', 'store_ConsignmentProtocols', 'store_TransfersDetails', 'store_ReceiptDetails', 'store_ShipmentOrderDetails', 'pos_Reports');
+        $classesToSetup = array('planning_Tasks', 'planning_ProductionTaskDetails', 'store_InventoryNoteDetails', 'planning_DirectProductionNote', 'sales_SalesDetails', 'planning_DirectProductNoteDetails', 'purchase_PurchasesDetails', 'store_ConsignmentProtocols', 'store_TransfersDetails', 'store_ReceiptDetails', 'store_ShipmentOrderDetails', 'pos_Reports');
         foreach ($classesToSetup as $clsToSetup){
             $SetupCls = cls::get($clsToSetup);
             $html .= $SetupCls->setupMvc();
         }
         
         return $html;
-    }
-
-
-    /**
-     * Мигриране на партидните дефиниции
-     */
-    public function updateCategoryDefinitions2502()
-    {
-        $CategoryDef = cls::get('batch_CategoryDefinitions');
-        $query = $CategoryDef->getQuery();
-        $query->FLD('driverClass', 'int');
-        $query->FLD('driverRec', 'blob(1000000, serialize, compress)');
-        $query->where("#templateId IS NULL");
-
-        while($rec = $query->fetch()){
-            $o = array('driverClass' => $rec->driverClass) + (array) $rec->driverRec;
-            $templateId = batch_Templates::force($o);
-            if($templateId){
-                $rec->templateId = $templateId;
-                $CategoryDef->save($rec, 'templateId');
-            } else {
-                $CategoryDef->delete($rec->id);
-            }
-        }
     }
 }

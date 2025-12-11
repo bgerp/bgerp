@@ -7,7 +7,19 @@
 		    </div>
 	    </div>
 	</fieldset>
-	
+
+	<!--ET_BEGIN WTIME_TABLE-->
+	<fieldset class='top-tab-content' style='margin-top:10px'>
+		<legend class='groupTitle'>|Работно време|* [#wTimeFilter#]</legend>
+		<div class='detail-info portal [#TAB_STATE#]'>
+			<div class='groupList clearfix21'>
+				[#WTIME_TABLE#]
+			</div>
+		</div>
+	</fieldset>
+	<!--ET_END WTIME_TABLE-->
+
+
 	<!--ET_BEGIN INDICATORS_TABLE-->
 	<fieldset class='top-tab-content' style='margin-top:10px'>
 	<legend class='groupTitle'>|Показатели|*</legend>

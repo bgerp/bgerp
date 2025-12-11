@@ -293,15 +293,7 @@ class cal_Tasks extends embed_Manager
         'noStartEnd' => array('Без начало и край', 'noStartEnd=Без начало и край'),
         'firstActive' => array('Първо активни (после останалите)'),
     );
-    
-    
-    /**
-     * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
-     */
-    public $fieldsNotToClone = 'timeStart,timeDuration,timeEnd,expectationTimeEnd, expectationTimeStart, expectationTimeDuration,timeClosed,progress';
-    
+
     
     public $canPending = 'powerUser';
     
@@ -335,7 +327,7 @@ class cal_Tasks extends embed_Manager
      */
     public function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent,tdClass=leftCol wrapText');
         $this->FLD('parentId', 'key2(mvc=cal_Tasks,select=title,allowEmpty)', 'caption=Подзадача на,width=100%,changable,silent,remember');
         $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=shortName,allowEmpty, minimumResultsForSearch=5)', 'caption=Ресурс, removeAndRefreshForm=assign,notChangeableIfHidden, silent, after=typeId, changable');
         $this->FLD('stepId', 'key(mvc=doc_UnsortedFolderSteps,select=name,input=none,allowEmpty)', 'caption=Относно, removeAndRefreshForm=assign, silent,input=none,notChangeableIfHidden,changable');
@@ -4249,5 +4241,29 @@ class cal_Tasks extends embed_Manager
         Mode::pop('supportList');
 
         return $tpl;
+    }
+
+    /**
+     * След взимане на полетата, които да не се клонират
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     *
+     * @see plg_Clone
+     */
+    public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
+    {
+        if (Mode::get('replicateThread') != 'reminder') {
+            $res['timeStart'] = 'timeStart';
+            $res['timeEnd'] = 'timeEnd';
+            $res['timeDuration'] = 'timeDuration';
+        }
+
+        $res['expectationTimeStart'] = 'expectationTimeStart';
+        $res['expectationTimeEnd'] = 'expectationTimeEnd';
+        $res['expectationTimeDuration'] = 'expectationTimeDuration';
+        $res['timeClosed'] = 'timeClosed';
+        $res['progress'] = 'progress';
     }
 }

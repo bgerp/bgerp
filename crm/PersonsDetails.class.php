@@ -39,6 +39,20 @@ class crm_PersonsDetails extends core_Manager
             $ScheduleData->masterId = $data->masterId;
             hr_Schedules::prepareCalendar($ScheduleData);
             $data->Schedule = $ScheduleData;
+
+            // Ако е инсталиран пакета wtime, ще се подготвят данните за работното време
+            if(core_Packs::isInstalled('wtime')){
+                $cu = core_Users::getCurrent();
+                $cuPersonId = crm_Profiles::getPersonByUser($cu);
+                if(haveRole('hr,hrMaster,ceo,wtime') || $data->masterData->rec->inCharge == $cu || $cuPersonId == $data->masterId) {
+                    $data->Wtimes = cls::get('wtime_Summary');
+                    $WtimeData = new stdClass();
+                    $WtimeData->masterMvc = $data->masterMvc;
+                    $WtimeData->masterId = $data->masterId;
+                    $data->Wtimes->prepareSummary($WtimeData);
+                    $data->Summary = $WtimeData;
+                }
+            }
         }
 
         // Подготовка на индикаторите
@@ -49,7 +63,6 @@ class crm_PersonsDetails extends core_Manager
 
         $data->Cards = cls::get('crm_ext_IdCards');
         $data->Cards->prepareIdCard($data);
-        
         if (isset($data->Codes)) {
             $data->Codes->prepareData($data);
             if (planning_Hr::haveRightFor('add', (object) array('personId' => $data->masterId))) {
@@ -65,6 +78,13 @@ class crm_PersonsDetails extends core_Manager
     public function renderPersonsDetails_($data)
     {
         $tpl = getTplFromFile('crm/tpl/PersonsData.shtml');
+
+        // Показване на индикаторите
+        if (isset($data->Summary)) {
+            $resTpl = $data->Wtimes->renderSummary($data->Summary);
+            $resTpl->removeBlocks();
+            $tpl->append($resTpl, 'WTIME_TABLE');
+        }
 
         // Показване на индикаторите
         if (isset($data->IData)) {

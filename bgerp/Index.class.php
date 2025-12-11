@@ -111,7 +111,32 @@ class bgerp_Index extends core_Manager
             $reposLastDate .= "<div>" . $baseName . ":   <b>" . $lastCommitDate . ' </b>(' . gitCurrentBranch($repoPath, $log) . ' - ' . $hash . ") <span class='fright'>{$lName}</span></div>";
         }
         $resData->REPOS = $reposLastDate;
-        
+
+        $resData->LICENSES = '';
+
+        $lQuery = bgerp_Licences::getQuery();
+        $lQuery->orderBy('id', 'ASC');
+        while ($lRec = $lQuery->fetch()) {
+            $lCode = bgerp_Licences::checkLicense($lRec->feature, true);
+            $until = '';
+            $class = '';
+            if ($lCode) {
+                if (isset($lRec->validUntil)) {
+                    $t = 'изтича';
+                    if ($lRec->validUntil < dt::now()) {
+                        $t = 'изтекло';
+                        $class = 'state-rejected';
+                    }
+
+                    $until = ' - ' . tr($t) . ': ' . bgerp_Licences::getVerbal($lRec, 'validUntil');
+                }
+            } else {
+                $lCode = tr('Лицензът не е валиден');
+                $class = 'state-rejected';
+            }
+            $resData->LICENSES .= "<div class='{$class}'><b>{$lRec->feature}{$until}</b><span class='fright'>" . $lCode . "</span></div>";
+        }
+
         $tpl = getTplFromFile('/bgerp/tpl/About.shtml');
         
         jquery_Jquery::run($tpl, '$(".scrollable").css("height", $(window).height() - $(".inner-framecontentTop").height() - 88)');

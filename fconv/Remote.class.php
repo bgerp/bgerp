@@ -354,7 +354,7 @@ class fconv_Remote extends core_Manager
         
         expect($script);
         
-        expect(core_Locks::get($script, self::$lockTime));
+        expect(core_Locks::obtain($script, self::$lockTime));
         
         $scriptObj = core_Crypt::decodeVar($script, fconv_Setup::get('SALT'));
         
@@ -390,7 +390,7 @@ class fconv_Remote extends core_Manager
         
         expect($pid && $files);
         
-        expect(core_Locks::get($files, self::$lockTime));
+        expect(core_Locks::obtain($files, self::$lockTime));
         
         $rRec = fconv_Processes::fetch(array("#processId = '[#1#]'", $pid));
         

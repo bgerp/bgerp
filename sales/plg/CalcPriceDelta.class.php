@@ -77,8 +77,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
     public static function on_AfterGetDeltaRecs($mvc, &$res, $rec)
     {
         if(is_array($res)) return $res;
-        
-        $res = array();
+
         $onlySelfValue = false;
         $dPercent = sales_Setup::get('DELTA_MIN_PERCENT_PRIME_COST');
         
@@ -94,12 +93,13 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             // Ако не е продажба но документа НЕ е в нишка на продажба, не се записва нищо
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if (!$firstDoc->isInstanceOf('sales_Sales')) {
-                
+
                 return;
             }
         }
         
         // По коя политика ще се изчислява делтата
+        $res = array();
         $Cover = doc_Folders::getCover($rec->folderId);
         $deltaListId = cond_Parameters::getParameter($Cover->getClassId(), $Cover->that, 'deltaList');
         
@@ -142,7 +142,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $autoDiscountAmount = null;
         $valior = $mvc->getValiorValue($rec);
         while ($dRec = $query->fetch()) {
-            $sellCostWithOriginalDiscount = $dRec->{$mvc->detailSellPriceFld};
+            $sellCostWithOriginalDiscount = deals_Helper::getSmartBaseCurrency($dRec->{$mvc->detailSellPriceFld}, $valior);
             $autoDiscountAmount = null;
             $applyDiscount = true;
 
@@ -198,12 +198,16 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                         $primeCost = cat_Products::getPrimeCost($dRec->{$mvc->detailProductFld}, $dRec->{$mvc->detailPackagingFld}, $dRec->{$mvc->detailQuantityFld}, $valior, price_ListRules::PRICE_LIST_COST);
                     }
                 }
-                
+
+                if(isset($primeCost)){
+                    $primeCost = deals_Helper::getSmartBaseCurrency($primeCost, $valior);
+                }
+
                 // Ако ще се изчислява лайв себестойноста на ен смята се какъв би бил транспорта и се добавя към себестойността
                 if(isset($primeCost) && $calcLiveSoDelta == 'yes' && isset($TransportShipmentArr) && $dRec->canStore == 'yes' && isset($Calculator)){
 
                     $volumicWeight = $Calculator->getVolumicWeight($dRec->weight, $dRec->volume, $TransportShipmentArr['deliveryTermId'], $TransportShipmentArr['deliveryData']);
-                    $fee = $TransportShipmentArr['Calculator']->getTransportFee($TransportShipmentArr['deliveryTermId'], $volumicWeight, $TransportShipmentArr['totalVolumicWeight'], $TransportShipmentArr['deliveryData']);
+                    $fee = $TransportShipmentArr['Calculator']->getTransportFee($TransportShipmentArr['deliveryTermId'], $volumicWeight, $TransportShipmentArr['totalVolumicWeight'], $TransportShipmentArr['deliveryData'], $valior);
                     
                     if(isset($fee['fee']) && $fee['fee'] > 0){
                         $singleFee = $fee['fee'] / $dRec->quantity;
@@ -213,6 +217,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
             }
 
             $sellCost = $dRec->{$mvc->detailSellPriceFld};
+            $sellCost = deals_Helper::getSmartBaseCurrency($sellCost, $valior);
             $discountCalced = $dRec->{$mvc->detailDiscountPriceFld};
             if (isset($dRec->{$mvc->detailDiscountPriceFld}) && $applyDiscount) {
                 $sellCostWithOriginalDiscount = $sellCost * (1 - $dRec->{$mvc->detailDiscountPriceFld});

@@ -29,7 +29,7 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public function on_AfterDescription(&$mvc)
     {
-        $mvc->FNC('saoPosition', 'enum(next=След,prev=Преди,subLevel=Под ниво)', 'caption=Структура и подредба->Положение,input=none,column=none,order=100000,maxRadio=3,columns=3');
+        $mvc->FNC('saoPosition', 'enum(next=След,prev=Преди,subLevel=Подниво)', 'caption=Структура и подредба->Положение,input=none,column=none,order=100000,maxRadio=3,columns=3');
         $mvc->FNC('saoRelative', 'int(allowEmpty)', 'caption=Структура и подредба->Спрямо,input=none,column=none,order=100000,class=w100');
         $mvc->FLD('saoParentId', 'int(allowEmpty)', 'caption=Структура и подредба->Родител,input=none,column=none,order=100000');
         $mvc->FLD('saoOrder', 'double(smartRound)', 'caption=Структура и подредба->Подредба,input=none,column=none,order=100000');
@@ -556,5 +556,57 @@ class plg_StructureAndOrder extends core_Plugin
                 $parent = $pRec->id;
             }
         }
+    }
+
+
+    /**
+     * Връща многомерен масив с цялото дърво на подадените ид-та на обекта
+     *
+     * @param $mvc
+     * @param $res
+     * @param $arr
+     * @return void
+     */
+    public static function on_AfterGetNestedTree($mvc, &$res, $arr)
+    {
+        if(isset($res)) return $res;
+
+        $items = $tree = array();
+        $arr = arr::make($arr, true);
+
+        // Събират се всички необходими записи нагоре по веригата
+        foreach ($arr as $id) {
+            $currentId = $id;
+            while ($currentId && !isset($items[$currentId])) {
+                $rec = $mvc->fetchRec($currentId);
+                $items[$currentId] = [
+                    'id' => $currentId,
+                    'parent_id' => $rec->saoParentId,
+                    'children' => []
+                ];
+                $currentId = $rec->saoParentId;
+            }
+        }
+
+        // Свързване на децата с родителите чрез референции
+        foreach ($items as $id => &$item) {
+            $parentId = $item['parent_id'];
+            if ($parentId && isset($items[$parentId])) {
+                $items[$parentId]['children'][$id] = &$item;
+            } else {
+                $tree[$id] = &$item; // коренен елемент
+            }
+        }
+
+        // Рекурсивно почистване: остават само вложени ID-та
+        $cleanTree = function ($node) use (&$cleanTree) {
+            $res = array();
+            foreach ($node as $id => $entry) {
+                $res[$id] = $cleanTree($entry['children']);
+            }
+            return $res;
+        };
+
+        $res = $cleanTree($tree);
     }
 }

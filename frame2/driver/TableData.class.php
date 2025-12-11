@@ -334,7 +334,17 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         if(!isset($sortFld) || !isset($sortDirection) || $sortDirection == 'none') return;
 
         $direction = $sortDirection == 'up' ? 'asc' : 'desc';
-        arr::sortObjects($recs, $sortFld, $direction);
+
+        try {
+            arr::sortObjects($recs, $sortFld, $direction);
+        } catch(core_exception_Expect $e){
+            if(haveRole('debug')){
+                core_Statuses::newStatus("Липсва поле за сортиране: {$sortFld}", 'warning');
+            } else {
+                reportException($e);
+                core_Statuses::newStatus("Проблем при сортиране", 'warning');
+            }
+        }
     }
     
     
@@ -624,21 +634,31 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      * @param string $sortUrlParam
      * @param string $fieldName
      * @param string $fieldCaption
-     * 
+     * @param core_Type $type
      * @return string $fieldCaption
      */
-    private function addSortingBtnsToField($sortUrlParam, $fieldName, $fieldCaption)
+    private function addSortingBtnsToField($sortUrlParam, $fieldName, $fieldCaption, $type)
     {
         $direction = Request::get($sortUrlParam);
         $directionArr = (!empty($direction)) ? explode('|', $direction) : null;
-        
+
         // Подготовка на бутоните за сортиране
-        $sort = "{$fieldName}|up";
+        $isNumeric = ($type instanceof type_Int) || ($type instanceof type_Double) || ($type instanceof type_Date);
+        if ($isNumeric) {
+            $sort = "{$fieldName}|down";
+        } else {
+            $sort = "{$fieldName}|up";
+        }
+
         $img = 'img/icon_sort.gif';
         if(is_array($directionArr)){
             if($directionArr[0] == $fieldName){
                 $img = ($directionArr[1] == 'up') ? 'img/icon_sort_up.gif' : (($directionArr[1] == 'down') ? 'img/icon_sort_down.gif' : $img);
-                $sort = ($directionArr[1] == 'up') ? "{$fieldName}|down" : (($directionArr[1] == 'down') ? "{$fieldName}|none" : "{$fieldName}|up");
+                if($isNumeric){
+                    $sort = ($directionArr[1] == 'up') ? "{$fieldName}|none" : (($directionArr[1] == 'down') ? "{$fieldName}|up" : "{$fieldName}|down");
+                } else {
+                    $sort = ($directionArr[1] == 'up') ? "{$fieldName}|down" : (($directionArr[1] == 'down') ? "{$fieldName}|none" : "{$fieldName}|up");
+                }
             }
         }
         
@@ -678,7 +698,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         foreach ($fields as $name => $fld) {
             // Ако полето ще се сортира, добавя се функционалност за сортиране
             if(array_key_exists($name, $listFieldsToSort)) {
-                $fld->caption = $this->addSortingBtnsToField($sortUrlParam, $name, $fld->caption);
+                $fld->caption = $this->addSortingBtnsToField($sortUrlParam, $name, $fld->caption, $fld->type);
             }
             $listFields[$name] = $fld->caption;
         }
@@ -840,7 +860,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     protected static function on_AfterAddFields(frame2_driver_Proto $Driver, embed_Manager $Embedder, core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('listItemsPerPage', "int(min=10,Max={$Driver->maxListItemsPerPage})", "caption=Други настройки->Елементи на страница,after=changeFields,autohide,placeholder={$Driver->listItemsPerPage}");
+        $fieldset->FLD('listItemsPerPage', "int(min=10,max={$Driver->maxListItemsPerPage})", "caption=Други настройки->Елементи на страница,after=changeFields,autohide,placeholder={$Driver->listItemsPerPage}");
     }
     
     

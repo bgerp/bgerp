@@ -105,6 +105,12 @@ class sens2_Controllers extends core_Master
      * Детайл за входно-изходните портове
      */
     public $details = 'sens2_IOPorts,sens2_Indicators';
+
+
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id, name, driver, config, persistentState';
     
     
     /**
@@ -340,6 +346,35 @@ class sens2_Controllers extends core_Master
             }
         }
     }
+
+
+    /**
+     * Изпълнява се след запис на перо
+     * Предизвиква обновяване на обобщената информация за перата
+     */
+    protected static function on_AfterSave($mvc, $id, $rec)
+    {
+        if ($rec->driver) {
+            $drv = cls::get($rec->driver);
+            $drv->afterUpdateController($rec, false);
+        }
+    }
+
+
+    /**
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
+     */
+    public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        // След изтриване, форсираме преизчисляването на консумациите
+        foreach ($query->getDeletedRecs() as $rec) {
+            if ($rec->driver) {
+                $drv = cls::get($rec->driver);
+                $drv->afterUpdateController($rec, true);
+            }
+        }
+    }
+
     
 
     /**
@@ -419,9 +454,11 @@ class sens2_Controllers extends core_Master
         
         $ports = $Driver->getInputPorts($rec->config);
         
-        $nowMinutes = round(time() / 60);
+        $nowMinutes = round(time() / 60) + $id;
         
         $inputs = $force;
+
+        $log = array();
         
         $updatedCnt = 0;
         
@@ -447,13 +484,25 @@ class sens2_Controllers extends core_Master
                 $hash = md5(serialize($rec->persistentState));
             }
             
-            // Извличане на входовете
-            $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
+ 
+            // Вземаме лок, ако е IP
+            $lockKey = self::getLockKey($rec);
+            if($lockKey) {
+                    if(core_Locks::obtain($lockKey, 3, 15, 5)) {
+                        $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
+                        core_Locks::release($lockKey);
+                    } else {
+                        $values = self::setLockError($inputs);
+                    }
+            } else {
+               $values = $Driver->readInputs($inputs, $rec->config, $rec->persistentState);
+            }
             
+ 
+            // Ако перманентното състояние е променено - записва го
             if ($rec->persistentState && ($hash != md5(serialize($rec->persistentState)))) {
                 self::save($rec, 'persistentState');
             }
-            
             
             foreach ($inputs as $port) {
                 
@@ -495,6 +544,20 @@ class sens2_Controllers extends core_Master
         return $updatedCnt;
     }
     
+    /**
+     * Връща масив с грешки, поради невъзможност за заключване
+     */
+    public static function setErrorLock($inputs)
+    {
+        $values = array();
+        foreach($inputs as $port => $dummy)
+        {
+            $values[$port] = "#Unable to obtine a lock for $lockKey";
+        }
+
+        return $values;
+    }
+    
     
     /**
      * Задава стойност на физически изход. Те се записва и в модела.
@@ -530,15 +593,35 @@ class sens2_Controllers extends core_Master
                 if ($rec->persistentState) {
                     $hash = md5(serialize($rec->persistentState));
                 }
-                $res = $drv->writeOutputs($sets, $rec->config, $rec->persistentState);
+
+                // Вземаме лок, ако е IP
+                $lockKey = self::getLockKey($rec);
+                
+                if($lockKey) {
+                    if(core_Locks::obtain($lockKey, 3, 15, 5)) {
+                        $res = $drv->writeOutputs($sets, $rec->config, $rec->persistentState);
+                        core_Locks::release($lockKey);
+                    } else {
+
+                        return "Unable to get lock for {$lockKey}";
+                    }
+                } else {
+                    $res = $drv->writeOutputs($sets, $rec->config, $rec->persistentState);
+                }
+
                 if ($rec->persistentState && $hash != md5(serialize($rec->persistentState))) {
                     self::save($rec, 'persistentState');
                 }
             }
         }
 
+        $value = true;
+        
+        // Връщаме грешка, ако има
         if (!isset($res[$portName])) {
-            $value = 'Грешка при запис';
+            $value = "Output setting error";
+        } elseif (($res[$portName] !== true && $res[$portName] !== 1)) {
+            $value = $res[$portName];
         }
         
         // Записване стойността в индикаторите
@@ -546,7 +629,26 @@ class sens2_Controllers extends core_Master
             sens2_Indicators::setValue($rec->id, $portName, $value, dt::verbal2mysql());
         }
         
-        return $res;
+        // За да връщаме true при числени стойности
+        if(is_numeric($value)) {
+            $value = true;
+        }
+        
+        return $value;
+    }
+
+    /**
+     * Взема клуча за заключване, ако е дефинирано ИП
+     */
+    public static function getLockKey($rec)
+    {
+        $lockKey = null;
+
+        if(isset($rec->config->ip)) {
+            $lockKey = 'IP:' . $rec->config->ip;
+        }
+
+        return $lockKey;
     }
     
     
@@ -583,13 +685,14 @@ class sens2_Controllers extends core_Master
         $query = self::getQuery();
         $query->where("#state = 'active'");
         $cnt = $query->count();
-        
+        $mustSleep = false;
+
         if (!$cnt) {
             
             return ;
         }
         
-        $sleepNanoSec = round(min(0.5, 25 / $cnt) * 1000000000);
+        $sleepNanoSec = round(min(0.5, 35 / $cnt) * 1000000000); // 1000_000_000
         
         
         while ($rec = $query->fetch("#state = 'active'")) {
@@ -629,7 +732,7 @@ class sens2_Controllers extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($action == 'delete') {
-            if ($rec->state != 'closed') {
+            if ($rec && $rec->state != 'closed') {
                 $res = 'no_one';
             }
         }
@@ -698,9 +801,11 @@ class sens2_Controllers extends core_Master
             core_App::flushAndClose();
         }
         
-        // Освобождава манипулатора на сесията. Ако трябва да се правят
-        // записи в сесията, то те трябва да се направят преди shutdown()
-        core_Session::pause();
+        if (!defined('BGERP_MYSQL_SESSION') || BGERP_MYSQL_SESSION !== true) {
+            // Освобождава манипулатора на сесията. Ако трябва да се правят
+            // записи в сесията, то те трябва да се направят преди shutdown()
+            core_Session::pause();
+        }
         
         
         if ($id) {

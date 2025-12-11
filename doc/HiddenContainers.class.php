@@ -132,7 +132,8 @@ class doc_HiddenContainers extends core_Manager
             }
             
             $mName = self::getModeName($cId, $userId);
-            $modeStatus = Mode::get($mName);
+            $modeStatus = core_Cache::get(get_called_class(), $mName);
+
             $rec = false;
             
             if (!$modeStatus) {
@@ -279,7 +280,7 @@ class doc_HiddenContainers extends core_Manager
         $delFlag = true;
         if ($state) {
             $delFlag = false;
-            $modeStatus = Mode::get($name);
+            $modeStatus = core_Cache::get(get_called_class(), $name);
             
             if ($modeStatus == 'opened') {
                 $delFlag = true;
@@ -287,7 +288,7 @@ class doc_HiddenContainers extends core_Manager
         }
         
         if ($delFlag) {
-            Mode::setPermanent($name, null);
+            core_Cache::remove(get_called_class(), $name);
         }
         
         if ($forced) {
@@ -342,18 +343,18 @@ class doc_HiddenContainers extends core_Manager
         
         if ($temp) {
             if ($hide) {
-                Mode::setPermanent($name, 'closed');
+                core_Cache::set(get_called_class(), $name, 'closed', 180);
                 self::$hiddenDocsArr[$cId] = true;
             } elseif ($hide === false) {
-                Mode::setPermanent($name, 'opened');
+                core_Cache::set(get_called_class(), $name, 'opened', 180);
                 self::$hiddenDocsArr[$cId] = false;
             } else {
-                Mode::setPermanent($name, null);
+                core_Cache::remove(get_called_class(), $name);
             }
         } else {
             
             // Изтрваме временните настройки за показване на документа
-            Mode::setPermanent($name, null);
+            core_Cache::remove(get_called_class(), $name);
             
             $rec = self::fetch(("#containerId = '{$cId}' AND #userId = '{$userId}'"));
             

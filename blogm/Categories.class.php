@@ -82,8 +82,7 @@ class blogm_Categories extends core_Manager
         $this->FLD('sharedMenus', 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,refreshForm');
         $this->FLD('description', 'richtext(bucket=' . blogm_Articles::FILE_BUCKET . ')', 'caption=Описание');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
-        
-        $this->setDbUnique('title');
+
         $this->setDbUnique('title,menuId');
     }
     
@@ -201,8 +200,12 @@ class blogm_Categories extends core_Manager
             $toggleLink = ht::createLink('', null, null, array('ef_icon' => 'img/menu.png', 'class' => 'toggleLink'));
             $tpl->replace($toggleLink, 'TOGGLE_BTN');
         }
-        
-        
+
+        $showRoot = blogm_Setup::get('SHOW_CATEGORIES_ROOT');
+        if($showRoot == 'yes'){
+            $tpl->append(tr('Категории'), 'CATEGORY_CAPTION');
+        }
+
         // Връщаме вече рендираният шаблон
         return $tpl;
     }

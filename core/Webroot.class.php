@@ -97,6 +97,10 @@ class core_Webroot
      */
     public static function serve($filename, $domain = null)
     {
+        if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
+            core_Session::$mute = true;
+        }
+
         $path = self::getPath($filename, $domain);
         
         if (file_exists($path)) {

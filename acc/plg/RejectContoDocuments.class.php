@@ -69,16 +69,30 @@ class acc_plg_RejectContoDocuments extends core_Plugin
             
             // Ако има затворени пера, показваме съобщение и връщаме FALSE
             if (countR($closedItems)) {
+                $itemByClass = array();
+                $iQuery = acc_Items::getQuery();
+                $iQuery->in('id', $closedItems);
+                while($iRec = $iQuery->fetch()) {
+                    $itemByClass[$iRec->classId][$iRec->id] = acc_Items::getVerbal($iRec->id, 'title');
+                }
+                $msg = tr("|*#{$mvc->getHandle($id)} |не може да бъде оттеглен/възстановен докато|* ");
+                $subStr = '';
 
-                $msg = tr("|*#{$mvc->getHandle($id)} |не може да бъде оттеглен/възстановен докато перата|*:");
-                
-                foreach ($closedItems as $itemId) {
-                    $msg .= "'" . acc_Items::getVerbal($itemId, 'title') . "', ";
+                $c = 0;
+                foreach ($itemByClass as $classId => $items) {
+                    $sArr = array();
+                    $sTitle = mb_strtolower(tr(cls::get($classId)->singleTitle));
+                    foreach ($items as $itemName){
+                        $itemName = str_replace('"', '', $itemName);
+                        $sArr[] = "{$sTitle} \"{$itemName}\"";
+                        $c++;
+                    }
+                    $subStr .= (!empty($subStr) ?  tr('|* |и|* ') : '') . implode(", ", $sArr);
                 }
                 
-                $msg .= ' ' . tr('са затворени');
-                core_Statuses::newStatus($msg, 'error');
+                $msg .= "{$subStr} " . ($c == 1 ? tr('е затворен') : tr('е/са затворен/и'));
 
+                core_Statuses::newStatus($msg, 'error');
                 if(core_Users::isSystemUser()){
                     $mvc->logWrite("Неуспешно контиране от системата, поради затворени пера", $id);
                 }
@@ -116,7 +130,13 @@ class acc_plg_RejectContoDocuments extends core_Plugin
     public static function on_BeforeConto($mvc, &$res, $id)
     {
         // Ако не може да се оттегля, връща FALSE за да се стопира оттеглянето
-        return $mvc->canRejectOrRestore($id, 'conto');
+        $result = $mvc->canRejectOrRestore($id, 'conto');
+        if(!$result){
+            $rec = $mvc->fetchRec($id);
+            $mvc->invoke('beforeContoRedirectError', array($rec));
+        }
+
+        return $result;
     }
     
     

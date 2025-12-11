@@ -1,57 +1,93 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div class='scrolling-holder' style='margin-top:10px'>
-        <div class='fleft'>
-            <table class='default-table'>
-                <!--ET_BEGIN createdBy-->
-                <tr>
-                    <td class="quiet aright">|Създаден|*:</td>
-                    <td>|на|* <b>[#createdDate#] </b>|от|* <b>[#createdBy#]</b></td>
-                </tr>
-                <!--ET_END createdBy-->	
-                <tr>
-                    <td class="quiet aright">|Вальор|*:</td>
-                    <td><b>[#valior#]</b></td>
-                </tr>
-                <tr>
-                    <td class="quiet aright">|От|*:</td>
-                    <td>[#peroFrom#]</td>
-                </tr>
-                <tr>
-                    <td class="quiet aright">|Към|*:</td>
-                    <td>[#peroTo#]</td>
-                </tr>
-                <tr>
-                    <td class="quiet aright">|Основание|*:</td>
-                    <td>[#reason#]</td>
-                </tr>
-            </table>
-            <br>
-        </div>
-        <div class='fleft internal-amount'>
-            <div class="amounts">
-                <table class='default-table'>
-                    <tr>
-                        <td>|Обменени |*:</td>
-                    </tr>
-                    <!--ET_BEGIN creditQuantity-->
-                    <tr>
-                        <td>
-                            <span class='cCode'>[#creditCurrency#]</span> &nbsp;
-                            <b><span style='color:darkgreen'>[#creditQuantity#]</span></b>&nbsp; в &nbsp;<span class='cCode'>[#debitCurrency#]</span> &nbsp;
-                            <b><span style='color:darkgreen'>[#debitQuantity#]</span></b><br>
-                        </td>
-                    </tr>
-                    <!--ET_END creditQuantity-->
+<div class='scrolling-holder'>
+    <div class='display-table'>
+
+        <!-- Горна част – "От / Документ / Към" -->
+        <table class='innerTable border-table paddingCells'>
+            <tr>
+                <td class='custom-header-bg' style="width: 35%">
+                    <b>|От|* [#type#]</b>
+                </td>
+                <td rowspan='2' class='centered'>
+                    <div class="document-title">
+                        |банкова обмяна на валута|*
+                    </div>
+
+                    <div style="padding-top:5px;">
+                        № <span class="bigData">[#id#]</span> /
+                        <span class="bigData">[#valior#]</span>
+                    </div>
+
+                    <!--ET_BEGIN state-->
+                    <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
+                    <!--ET_END state-->
+                </td>
+                <td class='custom-header-bg' style="width: 35%">
+                    <b>|Към|* [#type#]</b>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class='address-block'>
+                        [#peroFrom#]
+                    </div>
+                </td>
+                <td class='align-top-td'>
+                    <div class='address-block'>
+                        [#peroTo#]
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <div class='lines'></div>
+
+        <!-- Долна част – основание и суми -->
+        <table class='border-table'>
+            <tr>
+                <td class='aleft'
+                    style='padding-top:10px; min-width:300px; max-width:50% !important;'>
+                    <div class='richtext-holder' style="padding:0 3px;">
+                        <span class='quiet'>|Основание|*:</span>&nbsp;[#reason#]
+                    </div>
+                </td>
+
+                <td style='padding-left:10px; padding-top:10px; max-width:50%; min-width:220px'
+                    class="nowrap">
+
+                    <!-- Обменени количества -->
+                    <table class="no-border fright">
+                        <tr>
+                            <td class='quiet' style="padding-right:5px;">|Обменени|*:</td>
+                            <td class='amount' style="margin-right:0">
+
+                                <!--ET_BEGIN creditQuantity-->
+                                <span class='cCode'>[#creditCurrency#]</span>&nbsp;
+                                <b>[#creditQuantity#]</b>
+                                &nbsp;<span class='quiet'>|в|*</span>&nbsp;
+                                <span class='cCode'>[#debitCurrency#]</span>&nbsp;
+                                <b>[#debitQuantity#]</b>
+                                <!--ET_END creditQuantity-->
+
+                            </td>
+                        </tr>
+                    </table>
+
                     <!--ET_BEGIN rate-->
-                    <tr>
-                        <td>
-                            |При курс|*: &nbsp;<b><span style='color:darkgreen'>[#rate#]</span></b> [#rateUnit#]
-                        </td>
-                    </tr>
+                    <div class="clearfix21"></div>
+                    <hr style="margin-left:-7px; clear:both;"/>
+
+                    <div class='richtext-holder' style="padding:0 3px; text-align:right;">
+                        <span class='quiet'>|При курс|*:</span>
+                        &nbsp;<b>[#rate#]</b>
+                        <span class='quiet'>[#rateUnit#]</span>
+                    </div>
                     <!--ET_END rate-->
-                </table>
-            </div>
-        </div>
-        <div class="clearfix21"></div>
+
+                </td>
+            </tr>
+        </table>
+
     </div>
+</div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

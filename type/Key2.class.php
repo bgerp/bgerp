@@ -146,6 +146,7 @@ class type_Key2 extends type_Int
             }
         }
 
+        $haveSelectSourceArr = $this->params['selectSourceArr'];
         if (!$this->params['selectSourceArr']) {
             if ($this->params['selectSource']) {
                 $this->params['selectSourceArr'] = explode('::', $this->params['selectSource']);
@@ -172,9 +173,11 @@ class type_Key2 extends type_Int
                 $this->params['titleFld'] = 'title';
             }
         }
-        
-        expect($this->params['titleFld']);
-        
+
+        if(!$haveSelectSourceArr){
+            expect($this->params['titleFld'], $this);
+        }
+
         $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit, $search, $ids, $includeHiddens);
 
         // При търсене, записваме резултата в кеша
@@ -375,7 +378,7 @@ class type_Key2 extends type_Int
             
             $this->params = $hnd;
             
-            $q = trim(Request::get('q'));
+            $q = trim(Request::get('q', 'varchar'));
             
             $select = new ET('<option value="">&nbsp;</option>');
             
@@ -384,25 +387,45 @@ class type_Key2 extends type_Int
             if (is_array($options)) {
                 foreach ($options as $key => $title) {
                     $isGroup = false;
-                    
+
+                    $titleClass = null;
+                    $class = null;
                     if (is_object($title)) {
                         $isGroup = $title->group ? true : false;
+
+                        if (isset($title->attr['class'])) {
+                            $titleClass = $title->attr['class'];
+                            $class = $title->attr['class'];
+                        }
+
                         $title = $title->title;
                     }
                     if ($this->params['inputType'] == 'combo') {
                         $key = $title . ' (' . $key . ')';
                         $attr = array('value' => $key);
-                        
+                        if (isset($class)) {
+                            $attr['class'] = $class;
+                        }
+
                         $select->append(ht::createElement('option', $attr, $key));
                     } else {
                         $obj = (object) array('id' => $key, 'text' => $title);
-                        
+
                         if ($isGroup) {
                             $obj->group = true;
                             $obj->gElement = new stdClass();
                             $obj->gElement->className = 'group';
                             $obj->gElement->group = true;
                             $obj->id = null;
+                        }
+
+                        if (isset($titleClass)) {
+                            if (!$obj->gElement) {
+                                $obj->gElement = new stdClass();
+                                $obj->gElement->className = $titleClass;
+                            } else {
+                                $obj->gElement->className .= ' ' . $titleClass;
+                            }
                         }
                         $res[] = $obj;
                     }
@@ -412,8 +435,7 @@ class type_Key2 extends type_Int
                 $res = array('content' => $select->getContent());
             }
         }
-        
-        
+
         core_App::outputJson($res);
     }
     

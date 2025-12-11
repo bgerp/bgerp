@@ -115,6 +115,7 @@ defIfNot(
 Заявка,Request = Z
 Активиране,Activation,Контиране = K
 Conto,Реконтиране = K
+Приключване,Complete = C
 Отказ,Cancel = C
 Връзка,Link = L
 Редакция,Edit = O
@@ -257,7 +258,7 @@ class bgerp_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'bgerp_drivers_Recently, bgerp_drivers_Notifications, bgerp_drivers_Calendar, bgerp_drivers_Tasks';
+    public $defClasses = 'bgerp_drivers_Recently, bgerp_drivers_Notifications, bgerp_drivers_Calendar, bgerp_drivers_Tasks, bgerp_drivers_UpdateToEur';
     
     
     /**
@@ -288,6 +289,7 @@ class bgerp_Setup extends core_ProtoSetup
             'bgerp_F',
             'bgerp_Filters',
             'bgerp_LastSeenDocumentByUser',
+            'bgerp_Licences',
         );
         
         $instances = array();
@@ -610,6 +612,8 @@ class bgerp_Setup extends core_ProtoSetup
         $res .= $this->callMigrate('setNewPortal46194', 'bgerp');
         $res .= $this->callMigrate('removeTestFilters2824', 'bgerp');
 
+        $res .= $this->callMigrate('setNewPortal2550', 'bgerp');
+
         core_ProtoSetup::$dbInit = $dbUpdate;
 
         return $res;
@@ -670,6 +674,52 @@ class bgerp_Setup extends core_ProtoSetup
             $rec->state = 'yes';
 
             $Portal->save($rec);
+        }
+    }
+
+
+    /**
+     * Миграция за изтриване на старите данни в портала и за добавяне на новите интерфейси
+     * Тази миграция се пуска и при нова инсталация. Не трябва да се трие.
+     * Трябва да се вика в loadSetupData
+     */
+    public function setNewPortal2550()
+    {
+        $Portal = cls::get('bgerp_Portal');
+
+        $iArr = array('bgerp_drivers_UpdateToEur' => array('perPage' => 15, 'column' => 'center', 'order' => 800, 'color' => 'orange'));
+
+        foreach ($iArr as $iName => $iData) {
+            // Ако драйверите не са добавени
+            core_Classes::add($iName);
+
+            $allArr = array();
+            foreach (array('admin', 'ceo', 'acc', 'sales', 'purchase', 'findeals') as $role) {
+                $rArr = core_Users::getByRole($role);
+                $allArr = array_unique(array_merge($rArr, $allArr));
+            }
+
+            foreach ($allArr as $uId) {
+                $rec = new stdClass();
+                $rec->{$Portal->driverClassField} = $iName::getClassId();
+
+                foreach ($iData as $cName => $cVal) {
+                    $rec->{$cName} = $cVal;
+                }
+
+                setIfNot($rec->color, 'pink');
+                $rec->state = 'yes';
+
+                $rec->userOrRole = $uId;
+
+                // Да не се дублират записите
+                if ($Portal->fetch(array("#{$Portal->driverClassField} = '[#1#]' AND #userOrRole = '[#2#]'", $rec->{$Portal->driverClassField}, $rec->userOrRole))) {
+
+                    continue;
+                }
+
+                $Portal->save($rec);
+            }
         }
     }
 

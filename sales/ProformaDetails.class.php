@@ -41,8 +41,8 @@ class sales_ProformaDetails extends deals_InvoiceDetail
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
-                        plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices,deals_plg_DpInvoice,Policy=price_ListToCustomers, 
-                        LastPricePolicy=sales_SalesLastPricePolicy,plg_PrevAndNext,cat_plg_ShowCodes';
+                        plg_AlignDecimals2, deals_plg_ImportDealDetailProduct, plg_Sorting, doc_plg_HidePrices,deals_plg_DpInvoice,Policy=price_ListToCustomers, 
+                        LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_LogPackUsage,plg_PrevAndNext,cat_plg_ShowCodes';
     
     
     /**
@@ -55,8 +55,14 @@ class sales_ProformaDetails extends deals_InvoiceDetail
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, sales';
-    
-    
+
+
+    /**
+     * Кой има право да импортира?
+     */
+    public $canImport = 'ceo,sales';
+
+
     /**
      * Кой има право да добавя?
      */

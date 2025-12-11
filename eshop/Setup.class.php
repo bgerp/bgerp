@@ -152,6 +152,30 @@ defIfNot('ESHOP_PRODUCT_IMG_LOGIC', 'rotation');
 
 
 /**
+ * Маршрутите за доставка до следващите колко дни да се показвам в количката
+ */
+defIfNot('ESHOP_SHOW_ROUTES_IN_NEXT_DAYS', '7');
+
+
+/**
+ * До кога да се приемат заявки за доставка по маршрути за следващия работен ден->Час
+ */
+defIfNot('ESHOP_TOMORROW_DELIVERY_DEADLINE', '15:00');
+
+
+/**
+ * Показване винаги разпънати групи в навигацията->Избор
+ */
+defIfNot('ESHOP_SHOW_EXPANDED_GROUPS_IN_NAV', 'no');
+
+
+/**
+ * "Очаква се доставка" в онлайн магазина се показва само ако очакваната доставка е със срок до->Избор
+ */
+defIfNot('ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME', 60 * 60 * 24 * 3);
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -254,6 +278,10 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_REMOVE_PRODUCTS_WITH_ENDED_SALES_DELAY' => array('time', 'caption=Премахване на артикули от Е-маг след изтичане на онлайн продажбата->Премахване след'),
         'ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES' => array('enum(yes=Да,no=Не)', 'caption=Показване на колоната за опаковката в Е-маг ако са само услуги->Избор'),
         'ESHOP_PRODUCT_IMG_LOGIC' => array('enum(rotation=Ротация на илюстрациите,first=Първата илюстрация)', 'caption=Как се определя основната илюстрация на артикула при показване в Е-маг->Избор'),
+        'ESHOP_SHOW_ROUTES_IN_NEXT_DAYS' => array('int(min=0)', 'caption=Показване на маршрутите за доставка за следващите->Дни'),
+        'ESHOP_TOMORROW_DELIVERY_DEADLINE' => array('hour', 'caption=До кога да се приемат заявки за доставка по маршрути за следващия работен ден->Час'),
+        'ESHOP_SHOW_EXPANDED_GROUPS_IN_NAV' => array('enum(yes=Да,no=Не)', 'caption=Показване винаги разпънати групи в навигацията->Избор'),
+        'ESHOP_SHOW_EXPECTED_DELIVERY_MIN_TIME' => array('time', 'caption="Очаква се доставка" в онлайн магазина се показва само ако очакваната доставка е със срок до->Избор'),
     );
     
     
@@ -326,8 +354,8 @@ class eshop_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
+
+
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */

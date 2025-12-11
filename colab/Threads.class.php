@@ -243,6 +243,8 @@ class colab_Threads extends core_Manager
     public function act_List()
     {
         $this->forceProxy($this->className);
+        $this->Threads->forceProxy();
+        $this->Containers->forceProxy();
 
         $folderId = Request::get('folderId', 'int');
         

@@ -101,7 +101,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
         }
 
-        if ($actions['ship'] || $actions['pay']) {
+        if ($rec->doTransaction != 'no' && ($actions['ship'] || $actions['pay'])) {
             
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
             
@@ -316,25 +316,63 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         }
         
         $quantityAmount += $amountBase;
-        
-        $entries[] = array(
-            'amount' => $amountBase * $rec->currencyRate, // В основна валута
-            
-            'debit' => array(
-                '501', // Сметка "501. Каси"
-                array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
-                array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
-            ),
-            
-            'credit' => array(
-                '411', // Сметка "411. Вземания от клиенти"
-                array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
-                array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
-                array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-                'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
-            ),
-        );
+
+        // Ако има ръчно въведен курс
+        if(!empty($rec->currencyManualRate) && round($rec->currencyManualRate, 4) != round($rec->rate, 4)){
+            $entries[] = array(
+                'amount' => $amountBase * $rec->currencyManualRate, // В основна валута към ръчно въведения курс
+                'debit' => array(
+                    '481', // Сметка "501. Каси"
+                    array('currency_Currencies', $currencyId), // Перо 2 - Валута
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
+                ),
+
+                'credit' => array(
+                    '411', // Сметка "411. Вземания от клиенти"
+                    array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                    array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
+                    array('currency_Currencies', $currencyId),          // Перо 3 - Валута
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
+                ),
+            );
+
+            // Плащането ще постъпи към курса за деня
+            $actualRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            $entries[] = array(
+                'amount' => $amountBase * $actualRate, // В основна валута
+                'debit' => array(
+                    '501', // Сметка "501. Каси"
+                    array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
+                    array('currency_Currencies', $currencyId), // Перо 2 - Валута
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
+                ),
+                'credit' => array(
+                    '481',
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,
+                ),
+            );
+
+        } else {
+            $entries[] = array(
+                'amount' => $amountBase * $rec->currencyRate, // В основна валута
+
+                'debit' => array(
+                    '501', // Сметка "501. Каси"
+                    array('cash_Cases', $rec->caseId),         // Перо 1 - Каса
+                    array('currency_Currencies', $currencyId), // Перо 2 - Валута
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
+                ),
+
+                'credit' => array(
+                    '411', // Сметка "411. Вземания от клиенти"
+                    array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
+                    array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
+                    array('currency_Currencies', $currencyId),          // Перо 3 - Валута
+                    'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
+                ),
+            );
+        }
         
         return $entries;
     }
@@ -394,7 +432,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($jRecs, $accs = '703,706,701')
+    public static function getShippedProducts($jRecs, $rec, $accs = '703,706,701')
     {
         $res = array();
         
@@ -407,7 +445,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         }
         
         foreach ($dInfo->recs as $p) {
-             
+
              // Обикаляме всяко перо
             foreach (range(1, 3) as $i) {
                 if (isset($p->{"creditItem{$i}"})) {
@@ -422,8 +460,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                         if (empty($res[$index])) {
                             $res[$index] = $obj;
                         }
-                        
-                        $res[$index]->amount += $p->amount;
+
+                        $res[$index]->amount += deals_Helper::getSmartBaseCurrency($p->amount, $p->valior, $rec->valior);
                         $res[$index]->quantity += $p->creditQuantity;
                     }
                 }
@@ -490,11 +528,14 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      */
     public static function getBlAmount($jRecs, $id)
     {
-        $itemRec = acc_Items::fetchItem('sales_Sales', $id);
-        $paid = acc_Balances::getBlAmounts($jRecs, '411', null, null, array(null, $itemRec->id, null))->amount;
-        
-        $paid += acc_Balances::getBlAmounts($jRecs, '412', null, null, array(null, $itemRec->id, null))->amount;
-        
+        $rec = sales_Sales::fetchRec($id);
+        $itemRec = acc_Items::fetchItem('sales_Sales', $rec->id);
+
+        $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
+        $paid = acc_Balances::getBlAmounts($jRecs, '411', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
+        $paid += acc_Balances::getBlAmounts($jRecs, '412', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
+        $paid = $useCurrencyField ? $paid * $rec->currencyRate : $paid;
+
         return $paid;
     }
     
@@ -504,10 +545,14 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      */
     public static function getDeliveryAmount($jRecs, $id)
     {
-        $itemId = acc_Items::fetchItem('sales_Sales', $id)->id;
-        $delivered = acc_Balances::getBlAmounts($jRecs, '411', 'debit', null, array(null, $itemId, null))->amount;
-        $delivered -= acc_Balances::getBlAmounts($jRecs, '411', 'debit', '7911')->amount;
-        
+        $rec = sales_Sales::fetchRec($id);
+        $itemRec = acc_Items::fetchItem('sales_Sales', $rec->id);
+
+        $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
+        $delivered = acc_Balances::getBlAmounts($jRecs, '411', 'debit', null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
+        $delivered -= acc_Balances::getBlAmounts($jRecs, '411', 'debit', '7911', array(), array(), $rec->valior, $useCurrencyField)->amount;
+        $delivered = $useCurrencyField ? $delivered * $rec->currencyRate : $delivered;
+
         return $delivered;
     }
     

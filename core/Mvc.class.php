@@ -441,13 +441,14 @@ class core_Mvc extends core_FieldSet
                     $query = "INSERT DELAYED `{$table}` SET {$query}";
                     $timer = "{$table} INSERT";
                     break;
-                
                 case '':
-                case 'update':
                     $query = "INSERT INTO `{$table}` SET {$query}";
                     $timer = "{$table} INSERT";
                     break;
-                
+                case 'update':
+                    $query = "INSERT INTO `{$table}` SET {$query} ON DUPLICATE KEY UPDATE {$query}";
+                    $timer = "{$table} UPDATE";
+                    break;
                 default:
                     error('Неподдържан режим на запис', $mode, $rec);
             }
@@ -847,7 +848,7 @@ class core_Mvc extends core_FieldSet
         } else {
             $res = $me->fields[$fieldName]->type->toVerbal($value);
         }
-        
+
         return $res;
     }
     
@@ -898,6 +899,7 @@ class core_Mvc extends core_FieldSet
                 
                 foreach ($places as $place) {
                     $cRec->{$place} = type_Varchar::escape($rec->{$place});
+                    $cRec->{$place} = str_replace('|', '&#124;', $cRec->{$place});
                 }
             }
             
@@ -1691,5 +1693,25 @@ class core_Mvc extends core_FieldSet
         $db->freeResult($dbRes);
         
         return $html;
+    }
+
+
+    /**
+     * Създава копие (backup) на таблицата на модела (ако вече няма създадено такова)
+     *
+     * @param string $copyTableNamePrefix - префикс към името на таблицата за бекъп
+     * @return void
+     */
+    public function copyTable($copyTableNamePrefix = '_backup')
+    {
+        $tableName = $this->dbTableName;
+        $backup    = "{$tableName}{$copyTableNamePrefix}";
+
+        // Прави копие на таблицата ако няма
+        $createQuery = "CREATE TABLE IF NOT EXISTS `$backup` LIKE `$tableName`;";
+        $this->db->query($createQuery);
+
+        $query = "INSERT INTO `$backup` SELECT * FROM `$tableName` WHERE NOT EXISTS (SELECT 1 FROM `$backup` LIMIT 1);";
+        $this->db->query($query);
     }
 }

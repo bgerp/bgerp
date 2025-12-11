@@ -62,7 +62,7 @@ class planning_type_ProductionRate extends type_Varchar
         if(!empty($valueArr['cL'])){
             $Type = core_Type::getByName('double(decimals=1)');
             if(in_array($valueArr['cR'], array('secsPer1', 'secsPer10', 'secsPer100', 'secsPer1000'))){
-                $Type = core_Type::getByName('int');
+                $Type = core_Type::getByName('double');
             }
             $valueArr['cL'] = $Type->fromVerbal($valueArr['cL']);
 
@@ -224,7 +224,7 @@ class planning_type_ProductionRate extends type_Varchar
 
         switch($parseValue['right']){
             case 'secsPer1':
-                $secs = $parseValue['left'] * $quantity;
+                $secs = round($parseValue['left'] * $quantity);
                 break;
             case 'secsPer10':
                 $secs = round(($parseValue['left'] / 10) * $quantity);

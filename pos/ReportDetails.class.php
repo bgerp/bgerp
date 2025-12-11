@@ -74,7 +74,7 @@ class pos_ReportDetails extends core_Manager
             $detail->listFields = "value=Артикул, pack=Мярка, quantity=К-во, amount=|*{$data->masterData->row->baseCurrency}, storeId=Склад,contragentId=Клиент,userId=Оператор";
         } else {
             $actionVal = 'payment';
-            $detail->listFields = "value=Плащане, pack=Валута, amount=|*{$data->masterData->row->baseCurrency},contragentId=Клиент,userId=Оператор";
+            $detail->listFields = "value=Плащане, amount=|*{$data->masterData->row->baseCurrency},contragentId=Клиент,userId=Оператор";
         }
 
         $detail->rows = array_filter($detail->receiptDetails, function($a) use ($actionVal){ return $a->action == $actionVal;});
@@ -148,7 +148,6 @@ class pos_ReportDetails extends core_Manager
         $row = new stdClass();
 
         $Double = core_Type::getByName('double(decimals=2)');
-        $currencyCode = acc_Periods::getBaseCurrencyCode($obj->date);
         $quantityVerbal = $Double->toVerbal($obj->quantity);
         $row->quantity = ht::styleNumber($quantityVerbal, $obj->amount);
         if ($obj->action == 'sale') {
@@ -177,12 +176,12 @@ class pos_ReportDetails extends core_Manager
                 }
             }
 
-            deals_Helper::getQuantityHint($row->quantity, $this, $obj->value, $obj->storeId, $obj->quantity, $rec->state, $rec->valior);
+            $quantity = $obj->quantity * $obj->quantityInPack;
+            deals_Helper::getQuantityHint($row->quantity, $this, $obj->value, $obj->storeId, $quantity, $rec->state, $rec->valior);
 
         } else {
 
             // Ако детайла е плащане
-            $row->pack = $currencyCode;
             $value = ($obj->value != -1) ? cond_Payments::getTitleById($obj->value) : tr('В брой');
             $row->value = "<i>{$value}</i>";
             $row->ROW_ATTR['class'] = 'report-payment';
@@ -315,7 +314,7 @@ class pos_ReportDetails extends core_Manager
         $fieldset->FLD('created', 'varchar', 'smartCenter');
         $fieldset->FLD('waiting', 'varchar', 'smartCenter');
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
-        $fields = arr::make("receiptId=Бележка,total=|*{$data->masterData->row->baseCurrency},created=Създаване,waiting=Чакащо", true);
+        $fields = arr::make("receiptId=Бележка,total=Сума,created=Създаване,waiting=Чакащо", true);
 
         // Рендиране на таблицата с резултатите
         $dTpl = $table->get($data->receiptRows, $fields);

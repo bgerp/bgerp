@@ -36,7 +36,7 @@ class email_UserInboxPlg extends core_Plugin
             }
             
             //Проверяваме дали имаме папка със същото име и дали някой е собственик
-            expect(core_Users::isContractor($rec) || !$this->checkFolderCharge($rec), 'Моля въведете друг Ник. Папката е заета от друг потребител.');
+            expect(core_Users::isContractor($rec) || !$this->checkFolderCharge($rec), 'Моля въведете друг Ник. Тази имейл кутия към този потребител вече се използва от друг потребител.');
         }
         
         // При добавяне или при редакция на ник да се създава корпоративен имейл, ако има такъв акаунт
@@ -161,7 +161,7 @@ class email_UserInboxPlg extends core_Plugin
             if ($inCharge !== false) {
                 //Ако потребителя не е собственик на новата папка показваме грешка
                 if (core_Users::isPowerUser($form->rec) && ($form->rec->id != $inCharge)) {
-                    $form->setError('nick', "Моля въведете друг|* '{$form->fields['nick']->caption}'. |Папката е заета от друг потребител.");
+                    $form->setError('nick', "Моля въведете друг|* '{$form->fields['nick']->caption}'. |Тази имейл кутия към този потребител вече се използва от друг потребител.");
                 }
             }
         }
@@ -263,10 +263,15 @@ class email_UserInboxPlg extends core_Plugin
 
             return false;
         }
-        
-        
+
+        $inCharge = doc_Folders::fetchField(array("#title = '[#1#]'", $folderTitle), 'inCharge');
+        if (isset($inCharge)) {
+
+            return $inCharge;
+        }
+
         //Вземаме id' то на потребителя, който е inCharge
-        return $inCharge = doc_Folders::fetchField(array("#title = '[#1#]'", $folderTitle), 'inCharge');
+        return false;
     }
     
     

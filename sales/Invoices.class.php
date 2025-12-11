@@ -289,7 +289,8 @@ class sales_Invoices extends deals_InvoiceMaster
             return;
         }
 
-        $unsetFields = array('id', 'date', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template', 'activatedOn', 'activatedBy', 'username', 'issuerId');
+        $unsetFields = array('id', 'date', 'number', 'state', 'searchKeywords', 'containerId', 'brState', 'lastUsedOn', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'dealValue', 'vatAmount', 'discountAmount', 'sourceContainerId', 'additionalInfo', 'dueDate', 'dueTime', 'template', 'activatedOn', 'activatedBy', 'username', 'issuerId', 'currencyId', 'currencyRate', 'displayRate');
+        $proformaDate = $proformaRec->date;
         foreach ($unsetFields as $fld) {
             unset($proformaRec->{$fld});
         }
@@ -297,8 +298,10 @@ class sales_Invoices extends deals_InvoiceMaster
         foreach (($proformaRec) as $k => $v) {
             $form->rec->{$k} = $v;
         }
+
         if ($form->rec->dpAmount) {
-            $form->rec->dpAmount = abs($form->rec->dpAmount);
+            $dpAmount = deals_Helper::getSmartBaseCurrency($form->rec->dpAmount, $proformaDate);
+            $form->rec->dpAmount = abs($dpAmount);
         }
     }
 
@@ -310,6 +313,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $form = &$data->form;
         $rec = &$form->rec;
+
         $defInfo = '';
 
         if(isset($rec->id)){
@@ -494,7 +498,7 @@ class sales_Invoices extends deals_InvoiceMaster
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");
             if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
                 if(!drdata_Vats::isBulstat($rec->contragentVatNo)){
-                    $form->setError('contragentVatNo', 'Невалиден български данъчен номер');
+                   $form->setError('contragentVatNo', 'Невалиден български данъчен номер');
                 }
             }
         }
@@ -554,10 +558,15 @@ class sales_Invoices extends deals_InvoiceMaster
         }
 
         if ($rec->state == 'active') {
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            $firstRec = $firstDoc->fetch('containerId,currencyId');
             $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
             $amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+            if($firstRec->currencyId != $rec->currencyId){
+                $amount = currency_CurrencyRates::convertAmount($amount, null, $rec->currencyId, $firstRec->currencyId);
+            }
             $amount = round($amount, 2);
-            $originId = $rec->originId ?? doc_Threads::getFirstContainerId($rec->threadId);
+            $originId = $rec->originId ?? $firstRec->containerId;
 
             if ($amount < 0) {
                 if (cash_Rko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
@@ -795,7 +804,7 @@ class sales_Invoices extends deals_InvoiceMaster
             
             return false;
         }
-        
+
         $queryBefore = clone $query;
         $query->orderBy('number', 'DESC');
         $queryBefore->where("#date < '{$date}' AND #state = 'active' AND #number > {$number} AND #id != '{$rec->id}'");

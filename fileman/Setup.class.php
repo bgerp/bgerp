@@ -47,7 +47,7 @@ defIfNot('FILEMAN_PREVIEW_HEIGHT_NARROW', 700);
 /**
  * Максималната разрешена памет за използване
  */
-defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '1024M');
+defIfNot('FILEMAN_DRIVER_MAX_ALLOWED_MEMORY_CONTENT', '2048M');
 
 
 /**
@@ -130,6 +130,26 @@ defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
  */
 defIfNot('FILEMAN_INDEXES_KEEP_DAYS', 63113904);
 
+
+/**
+ * Изтриване на неизползвани файлове след
+ * 2 години
+ */
+defIfNot('FILEMAN_DELETE_UNUSED_AFTER', 63113904);
+
+
+/**
+ * Максимален размер на част от файл при качване
+ * 2MB
+ */
+defIfNot('FILEMAN_CHUNK_SIZE', 2097152); // 2MB
+
+
+/**
+ * Максимален размер на част от файл при качване
+ * 2MB
+ */
+defIfNot('FILEMAN_USE_CHUNK_UPLOAD', 'yes');
 
 
 /**
@@ -215,6 +235,12 @@ class fileman_Setup extends core_ProtoSetup
         'FILEMAN_OCR' => array('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за OCR обработка->Програма'),
 
         'FILEMAN_INDEXES_KEEP_DAYS' => array('time(suggestions=1 година|2 години|3 години,unit=days)', 'caption=Време за съхранение на индексите на файловете->Време'),
+
+        'FILEMAN_DELETE_UNUSED_AFTER' => array('time(suggestions=1 година|2 години|5 години,unit=year)', 'canView=debug, caption=Изтриване на неизползваните файлове->Време'),
+
+        'FILEMAN_CHUNK_SIZE' => array('fileman_FileSize', 'caption=Максимален размер на част от файл при качване->Размер'),
+
+        'FILEMAN_USE_CHUNK_UPLOAD' => array('enum(no=Не,yes=Да)', 'caption=Използване на качване на части->Избор')
     );
     
     
@@ -249,7 +275,8 @@ class fileman_Setup extends core_ProtoSetup
         
         // Установяваме модела за последни файлове
         'fileman_Log',
-        
+        'fileman_Deletes',
+
         'fileman_import_Base64',
 
         'migrate::fixLastUse2338',
@@ -316,6 +343,17 @@ class fileman_Setup extends core_ProtoSetup
         $rec->action = 'DeleteOldIndexes';
         $rec->period = 24 * 60;
         $rec->timeLimit = 50;
+        $rec->offset = mt_rand(0, 300);
+        $rec->isRandOffset = true;
+        $html .= core_Cron::addOnce($rec);
+
+        $rec = new stdClass();
+        $rec->systemId = 'DeleteOldFiles';
+        $rec->description = 'Изтриване на старите файлове';
+        $rec->controller = 'fileman_Deletes';
+        $rec->action = 'deleteOldFiles';
+        $rec->period = 24 * 60;
+        $rec->timeLimit = 500;
         $rec->offset = mt_rand(0, 300);
         $rec->isRandOffset = true;
         $html .= core_Cron::addOnce($rec);

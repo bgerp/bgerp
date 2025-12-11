@@ -62,7 +62,7 @@ class hr_Indicators extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'date, docId=Документ, personId, indicatorId, value';
+    public $listFields = 'date, docId=Източник, personId, indicatorId, value';
 
 
     /**
@@ -100,13 +100,22 @@ class hr_Indicators extends core_Manager
             $row->personId = ht::createLink($name, array('crm_Persons', 'single', 'id' => $rec->personId), null, 'ef_icon = img/16/vcard.png');
         }
  
-        if (cls::load($rec->docClass, true)) {      
+        if (cls::load($rec->docClass, true)) {
             $Class = cls::get($rec->docClass);
-            if (cls::existsMethod($Class, 'getLink')) {
-                $row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
+            if(!empty($rec->docId)){
+                if (cls::existsMethod($Class, 'getLink')) {
+                    $row->docId = cls::get($rec->docClass)->getLink($rec->docId, 0);
+                } else {
+                    $row->docId = cls::get($rec->docClass)->getTitleById($rec->docId, 0);
+                }
             } else {
-                $row->docId = cls::get($rec->docClass)->getTitleById($rec->docId, 0);
+                $row->docId = cls::getTitle($Class);
+                if($Class->haveRightFor('list')){
+                    $row->docId = ht::createLink($row->docId, array($Class, 'list'));
+                }
             }
+
+
         } else {
             $row->docId = "<span class='red'>" . tr('Проблем при зареждането') . '</span>';
         }
@@ -142,9 +151,10 @@ class hr_Indicators extends core_Manager
             $this->logWrite("Преизчисляване на индикаторите");
             $sources = !empty($rec->sources) ? keylist::toArray($rec->sources) : null;
             core_App::setTimeLimit(900);
+            $timeline = (empty($rec->timeline)) ? '0000-00-00' : $rec->timeline;
 
             Mode::push('manualRecalc', true);
-            self::recalc($rec->timeline, $sources);
+            self::recalc($timeline, $sources);
             Mode::pop('manualRecalc');
 
             followRetUrl(null, '|Индикаторите са преизчислени');
@@ -188,10 +198,13 @@ class hr_Indicators extends core_Manager
                 crm_Persons::forceGroup($personId, 'employees');
             }
         }
-        
+
+        $positionQuery = hr_Positions::getQuery();
+        $positions = $positionQuery->fetchAll();
+
         if (is_array($persons)) {
             foreach ($periods as $rec) {
-                self::calcPeriod($rec);
+                self::calcPeriod($rec, $positions);
             }
         }
     }
@@ -238,7 +251,9 @@ class hr_Indicators extends core_Manager
 
             try{
                 // Взимаме връщания масив от интерфейсния метод
+                core_Debug::startTimer("{$sMvc->className}_CALC_INDICATORS");
                 $data = $sMvc->getIndicatorValues($timeline);
+                core_Debug::stopTimer("{$sMvc->className}_CALC_INDICATORS");
                 
             } catch(core_exception_Expect $e){
                 // Ако грешката е сетната при ръчно обновяване от дебъг потребител - да се визуализира
@@ -325,20 +340,19 @@ class hr_Indicators extends core_Manager
     /**
      * Калкулира заплащането на всички, които имат трудов договор за посочения период
      */
-    private static function calcPeriod($pRec)
+    private static function calcPeriod($pRec, $positions)
     {
         // Намираме последните, активни договори за назначения, които се засичат с периода
         $start = (empty($pRec->start)) ? '0000-00-00' : $pRec->start;
         $end = (empty($pRec->end)) ? '0000-00-00' : $pRec->end;
 
         $ecQuery = hr_EmployeeContracts::getQuery();
-        $ecQuery->where("#state = 'active' OR #state = 'closed'");
+        $ecQuery->where("#state IN ('active', 'closed')");
         $ecQuery->where("#startFrom <= '{$end}'");
         $ecQuery->where("(#endOn IS NULL) OR (#endOn >= '{$start}')");
         $ecQuery->orderBy('#dateId', 'DESC');
         
         $ecArr = array();
-        
         while ($ecRec = $ecQuery->fetch()) {
             if (!isset($ecArr[$ecRec->personId])) {
                 $ecArr[$ecRec->personId] = $ecRec;
@@ -365,16 +379,23 @@ class hr_Indicators extends core_Manager
                 $zeroInd[$n] = 0;
             }
         }
-        
+
         // За всеки един договор, се опитваме да намерим формулата за заплащането от позицията.
+        $baseCurrencyCode = currency_Currencies::getCodeById($pRec->baseCurrencyId);
         foreach ($ecArr as $personId => $ecRec) {
             $sum = array();
             
             if (isset($ecRec->positionId)) {
-                $posRec = hr_Positions::fetch($ecRec->positionId);
-                $salaryBase = (!empty($ecRec->salaryBase)) ? $ecRec->salaryBase : $posRec->salaryBase;
+                $posRec = $positions[$ecRec->positionId];
+                $salaryBase = 0;
+                if (!empty($ecRec->salaryBase)) {
+                    $salaryBase = currency_CurrencyRates::convertAmount($ecRec->salaryBase, null, $ecRec->currencyId, $baseCurrencyCode);
+                } elseif(!empty($posRec->salaryBase)){
+                    $salaryBase = currency_CurrencyRates::convertAmount($posRec->salaryBase, null, null, $baseCurrencyCode);
+                }
+
                 if (!empty($salaryBase)) {
-                    $sum['BaseSalary'] = $salaryBase;
+                    $sum['BaseSalary'] = round($salaryBase, 2);
                 }
             }
             
@@ -395,7 +416,7 @@ class hr_Indicators extends core_Manager
             }
             
             if ($replaceFormula && $ecRec->positionId) {
-                $prlRec->formula = hr_Positions::fetchField($ecRec->positionId, 'formula');
+                $prlRec->formula = $positions[$ecRec->positionId]->formula;
             }
             
             // Ако няма формула. Няма смисъл да се изчислява ведомост
@@ -409,27 +430,25 @@ class hr_Indicators extends core_Manager
             
             // Изчисляване на заплатата
             $prlRec->salary = null;
-            if ($prlRec->formula) {
-                $contex = array();
-                foreach ($zeroInd as $name => $zero) {
-                    if (strpos($prlRec->formula, $name) !== false) {
-                        $contex['$' . $name] = $sum[$name] + $zero;
-                    }
+            $context = array();
+            foreach ($zeroInd as $name => $zero) {
+                if (strpos($prlRec->formula, $name) !== false) {
+                    $context['$' . $name] = $sum[$name] + $zero;
                 }
-                
-                uksort($contex, 'str::sortByLengthReverse');
-                
-                // Заместваме променливите и индикаторите
-                $expr = strtr($prlRec->formula, $contex);
-                
-                if (str::prepareMathExpr($expr) === false) {
-                    $prlRec->error = 'Невъзможно изчисление';
-                } else {
-                    $success = null;
-                    $prlRec->salary = str::calcMathExpr($expr, $success);
-                    if ($success === false) {
-                        $prlRec->error = 'Грешка в калкулацията';
-                    }
+            }
+
+            uksort($context, 'str::sortByLengthReverse');
+
+            // Заместваме променливите и индикаторите
+            $expr = strtr($prlRec->formula, $context);
+
+            if (str::prepareMathExpr($expr) === false) {
+                $prlRec->error = 'Невъзможно изчисление';
+            } else {
+                $success = null;
+                $prlRec->salary = str::calcMathExpr($expr, $success);
+                if ($success === false) {
+                    $prlRec->error = 'Грешка в калкулацията';
                 }
             }
             

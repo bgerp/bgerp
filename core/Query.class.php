@@ -459,8 +459,6 @@ class core_Query extends core_FieldSet
         $values = arr::make($values);
         if (!$values) {
 
-            wp('Подадена празна стойност за заявка', $field, $values, $not, $or);
-
             return ;
         }
         
@@ -766,7 +764,7 @@ class core_Query extends core_FieldSet
         $db->freeResult($dbRes);
         
         // Връщаме брояча на редовете
-        return $r->_count;
+        return (integer) $r->_count;
     }
     
     
@@ -842,7 +840,7 @@ class core_Query extends core_FieldSet
     /**
      * Връща поредния запис от заявката
      */
-    public function fetch($cond = null)
+    public function fetch($cond = null, $preventEvent = false)
     {
         if (!$this->executed) {
             $this->where($cond);
@@ -884,8 +882,10 @@ class core_Query extends core_FieldSet
                 return false;
             }
             
-            // Изпълняваме външни действия, указани за след четене
-            $this->mvc->invoke('AfterRead', array(&$rec));
+            if(!$preventEvent) {
+                // Изпълняваме външни действия, указани за след четене
+                $this->mvc->invoke('AfterRead', array(&$rec));
+            }
             
             $this->mvc->lastFetchedRec = $rec;
             
@@ -1157,11 +1157,19 @@ class core_Query extends core_FieldSet
     public function getTables()
     {
         $tables = '';
-        
+
         foreach ($this->tables as $name => $true) {
-            $tables .= "\n   `{$name}`,";
+            $indexes = $this->getIndexes($name);
+
+            // Ако има индекси за съответната таблица се слагат директно след нея
+            if(!empty($indexes)){
+                $tables .= "\n   `{$name}` {$indexes},";
+            } else {
+                $tables .= "\n   `{$name}`,";
+            }
         }
-        
+
+        $indexes = $this->getIndexes($this->mvc->dbTableName);
         if (isset($this->onCond)) {
             $tables = rtrim($tables, ',') . "\n  ";
             if ($this->join) {
@@ -1169,13 +1177,22 @@ class core_Query extends core_FieldSet
                 expect(in_array($join, array("RIGHT", "LEFT", "OUTER", "INNER")), $join);
                 $tables .= $join;
             }
-            $tables .= ' JOIN `' . $this->mvc->dbTableName . '` ON';
+
+            // Ако има индекси за таблицата добавят се след нея
+            if(!empty($indexes)){
+                $tables .= ' JOIN `' . $this->mvc->dbTableName . '` ' . $indexes . ' ON';
+            } else {
+                $tables .= ' JOIN `' . $this->mvc->dbTableName . '` ON';
+            }
             $tables .= "\n    " . $this->expr2mysql($this->onCond);
         } else {
             $tables .= "\n   `" . $this->mvc->dbTableName . '`';
+
+            // Ако има индекси за таблицата от заявката добавят се след нея
+            if(!empty($indexes)){
+                $tables .= " {$indexes}";
+            }
         }
-        
-        $tables .= ' ' . $this->getIndexes() . ' ';
         
         return $tables . ' ';
     }
@@ -1275,19 +1292,19 @@ class core_Query extends core_FieldSet
      */
     public function substituteArray($arr)
     {
-        $key = Mode::getProcessKey();
+        //$key = Mode::getProcessKey();
         
         $exp = $arr[0];
         
         $cntArr = countR($arr);
         for ($i = 1; $i < $cntArr; $i++) {
             $a[] = "[#{$i}#]";
-            $b[] = "[#{$i}{$key}#]";
+           // $b[] = "[#{$i}{$key}#]";
             $c[] = $this->mvc->db->escape($arr[$i]);
         }
         
-        $exp = str_replace($a, $b, $exp);
-        $exp = str_replace($b, $c, $exp);
+        $exp = str_replace($a, $c, $exp);
+        //$exp = str_replace($b, $c, $exp);
         
         return $exp;
     }
@@ -1413,27 +1430,40 @@ class core_Query extends core_FieldSet
     
     /**
      * Добавя индекс, който се форсира за използване
+     *
+     * @param string $index - име на индекса
+     * @param mixed $onMvc - на коя таблица да се приложи (null за текущата)
      */
-    public function useIndex($index)
+    public function useIndex($index, $onMvc = null)
     {
-        $this->indexes[$index] = true;
+        if($onMvc) {
+            // Ако искаме индекса да се приложи на конкретна таблица
+            $mvcTableName = cls::get($onMvc)->dbTableName;
+        } else {
+            // Иначе е от таблицата на заявката
+            $mvcTableName = $this->mvc->dbTableName;
+        }
+
+        $this->indexes[$mvcTableName][$index] = true;
     }
     
     
     /**
      * Добавя индекс, който се форсира за използване
      */
-    public function getIndexes()
+    public function getIndexes($tableName)
     {
         $res = '';
 
-        if (countR($this->indexes) && defined('CORE_QUERY_USE_INDEXES') && (CORE_QUERY_USE_INDEXES === 'no')) {
+        // Има ли зададени индекси за конкретната таблица
+        $haveIndexes = array_key_exists($tableName, $this->indexes) ? countR($this->indexes[$tableName]) : 0;
+        if ($haveIndexes && defined('CORE_QUERY_USE_INDEXES') && (CORE_QUERY_USE_INDEXES === 'no')) {
 
             return $res;
         }
 
-        if (countR($this->indexes)) {
-            $res = "\nUSE INDEX(" . implode(',', array_keys($this->indexes)) . ')';
+        if ($haveIndexes) {
+            $res = "\nUSE INDEX(" . implode(',', array_keys($this->indexes[$tableName])) . ')';
         }
 
         return  $res;

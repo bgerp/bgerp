@@ -72,7 +72,7 @@ class core_Forwards extends core_Manager
         $this->FLD('sysId', 'varchar(' . CORE_FORWARD_SYSID_LEN . ')', 'caption=Системен ID,notNull');
         $this->FLD('className', 'varchar(128)', 'caption=Клас');
         $this->FLD('methodName', 'varchar(64)', 'caption=Метод');
-        $this->FLD('data', 'blob(serialize)', 'caption=Данни');
+        $this->FLD('data', 'blob(serialize)', 'caption=Данни,tdClass=td-clamp');
         $this->FLD('expiry', 'datetime', 'caption=Валидност');
         
         $this->setDbUnique('sysId');

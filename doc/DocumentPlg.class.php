@@ -337,7 +337,7 @@ class doc_DocumentPlg extends core_Plugin
                 if (doc_Threads::haveRightFor('startthread', $tRec)) {
                     $info = tr('Счетоводното отразяване на стопанските операции в тази нишка е спряно');
                     $info .= '. ' .tr('За да го включите, натиснете') . ' ';
-                    $data->row->STOPPED_INFO = $info . ht::createLink('Пускане', array('doc_Threads', 'startthread', 'id' => $data->rec->threadId, 'retUrl' => true), 'Наистина ли искате да включите счетоводното отразяване на всички спрени документи в нишката|*?', 'class=small-padding-icon, ef_icon=img/16/stock_data_next.png, title=Пускане на счетоводното отразяване на всички спрени документи в нишката');
+                    $data->row->STOPPED_INFO = $info . ht::createLink(tr('Пускане'), array('doc_Threads', 'startthread', 'id' => $data->rec->threadId, 'retUrl' => true), 'Наистина ли искате да включите счетоводното отразяване на всички спрени документи в нишката|*?', 'class=small-padding-icon, ef_icon=img/16/stock_data_next.png, title=Пускане на счетоводното отразяване на всички спрени документи в нишката');
                 }
             }
             
@@ -799,6 +799,10 @@ class doc_DocumentPlg extends core_Plugin
                 $rec->state = $mvc->firstState ? $mvc->firstState : 'draft';
             }
 
+            if (($rec->state == 'rejected') && ($mvc->firstState != 'rejected') && (!$rec->brState)) {
+                $rec->brState = $mvc->firstState ? $mvc->firstState : 'draft';
+            }
+
             // Задаваме стойностите на created полетата
             if (!isset($rec->createdBy)) {
                 $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
@@ -826,29 +830,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
-    
 
-    /**
-     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
-     */
-    public static function on_AfterSessionClose($mvc)
-    {
-        core_Debug::startTimer('DOCUMENT_SAVE_FILES');
-        foreach ((array)$mvc->saveFileArr as $rec) {
-            try {
-                // Опитваме се да запишем файловете от документа в модела
-                doc_Files::saveFile($mvc, $rec);
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-                
-                // Ако възникне грешка при записването
-                $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
-            }
-        }
-
-        core_Debug::stopTimer('DOCUMENT_SAVE_FILES');
-    }
-    
     
     /**
      * Изпълнява се след запис на документ.
@@ -937,6 +919,8 @@ class doc_DocumentPlg extends core_Plugin
             
             doc_ThreadUsers::syncContainerRelations($rec->containerId, $sharedArr, $rec->threadId);
         }
+
+        core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 4, 0, 0, true);
     }
     
     
@@ -1072,6 +1056,21 @@ class doc_DocumentPlg extends core_Plugin
 
             $mvc->pendingUpdateModifiedArr = array();
         }
+
+        core_Debug::startTimer('DOCUMENT_SAVE_FILES');
+        foreach ((array)$mvc->saveFileArr as $rec) {
+            try {
+                // Опитваме се да запишем файловете от документа в модела
+                doc_Files::saveFile($mvc, $rec);
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+
+                // Ако възникне грешка при записването
+                $mvc->logWarning('Грешка при добавяне на връзка между файла и документа', $rec->id);
+            }
+        }
+
+        core_Debug::stopTimer('DOCUMENT_SAVE_FILES');
     }
     
     
@@ -1200,9 +1199,10 @@ class doc_DocumentPlg extends core_Plugin
     public function on_BeforeAction($mvc, &$res, $action)
     {
         $notAccessStatusMsg = '|Предишната страница не може да бъде показана, поради липса на права за достъп';
+
         if ($action == 'single' && !(Request::get('Printing')) && !Mode::is('dataType', 'php')) {
             expect($id = Request::get('id', 'int'));
-            
+            core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 0, 30, 10);
             expect($rec = $mvc->fetch($id), $id);
 
             // След оттегляне, да редиректва към папката, ако е настроено и има такава възможност
@@ -1580,8 +1580,8 @@ class doc_DocumentPlg extends core_Plugin
                 if (!empty($linkedFilesArr)) {
                     $ourImgArr = core_Permanent::get('ourImgEmailArr');
                     
-                    $fileNavArr = Mode::get('fileNavArr');
-                    
+                    $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());;
+
                     foreach ($linkedFilesArr as $linkedFh => $name) {
                         $fRec = fileman::fetchByFh($linkedFh);
                         
@@ -1624,7 +1624,7 @@ class doc_DocumentPlg extends core_Plugin
             $fileNavArr[$fh]['next'] = $next;
             $fileNavArr[$fh]['allFilesArr'] = $allFileArr;
             $fileNavArr[$fh]['current'] = $cUrlStr;
-            Mode::setPermanent('fileNavArr', $fileNavArr);
+            core_Cache::set('doc_Files', 'fileNavArr|' . core_Users::getCurrent(), $fileNavArr, 100);
 
             $rUrl = array('fileman_Files', 'single', $fh);
 
@@ -2746,17 +2746,16 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 }
             } elseif ($action == 'single') {
-                
                 // Ако нямаме достъп до нишката
                 if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && (($rec->createdBy != $userId) || core_Users::haveRole('partner', $rec->createdBy))) {
                     
                     // Ако е инсталиран пакета 'colab'
                     if (core_Packs::isInstalled('colab') && $oRec->threadId) {
-                        
+
                         // И нишката е споделена към контрактора (т.е първия документ в нея е видим и папката на нишката
                         // е споделена с партньора)
                         $isVisibleToContractors = colab_Threads::haveRightFor('single', doc_Threads::fetch($oRec->threadId));
-                        
+
                         if ($isVisibleToContractors && doc_Containers::fetch($rec->containerId)->visibleForPartners == 'yes') {
                             
                             // Тогава позволяваме на контрактора да има достъп до сингъла на този документ
@@ -4199,7 +4198,7 @@ class doc_DocumentPlg extends core_Plugin
             return false;
         }
     }
-    
+
     
     /**
      * Създава нов документ със съответните стойности
@@ -4387,6 +4386,8 @@ class doc_DocumentPlg extends core_Plugin
             if (!$rec->_notModified) {
                 $dKey = $mvc->className . '|' . $rec->id;
                 $mvc->pendingUpdateModifiedArr[$dKey] = array('id' => $rec->id, 'mvc' => $mvc, 'modifiedOn' => dt::now(), 'modifiedBy' => core_Users::getCurrent());
+
+                core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $rec->id, 4, 0, 0, true);
             }
         }
     }

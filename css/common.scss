@@ -1093,6 +1093,11 @@ a.more-btn {
 .narrow .more-btn {
 	float: none;
 }
+
+.narrow input.more-btn {
+	min-width: 26px;
+}
+
 .more-btn.show-btn {
 	background-image: url(../img/16/toggle2.png) !important;
 }
@@ -1384,7 +1389,18 @@ a.profile {
 	background-color: #cef763;
 	background-color: rgba(210, 255, 120, 0.6);
 }
-
+.state-debit {
+	background-color: #d4edda;
+	&:hover {
+		background-color: #c3e6cb !important;
+	}
+}
+.state-credit {
+	background-color: #f8d7da;
+	&:hover {
+		background-color: #f5c6cb !important;
+	}
+}
 .state-removed {
 	background-color: #ddd;
 	color: #888;
@@ -1647,20 +1663,23 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHo
 
 /* Стилове за показване на формите */
 /*грешки и предупреждения*/
-.formError, .formNotice, .formWarning, .formCustomInfo, .formMiddleCaption  {
+.formError, .formNotice, .formWarning, .formCustomInfo  {
     font-size: 0.9em;
     padding: 10px; 
     margin-bottom: 10px;
   	@include border-radius(5px);
 }
-.formCustomInfo, .formMiddleCaption  {
+.formCustomInfo  {
 	background-color: #fdfdc0;
 	border: solid 1px #ccc;
 	color:#666;
 }
 
 .formMiddleCaption {
-	margin: 0 !important;
+	margin: 0 15px !important;
+    border: solid 1px #ccc;
+    background: #eee;
+    padding: 3px 5px  !important;
 }
 
 .formNotice {
@@ -3789,6 +3808,11 @@ td.rightCol, th.rightCol {
 td.leftCol, th.leftCol {
 	white-space:nowrap;
 	text-align:left !important;
+}
+
+td.centerCell {
+  text-align:center !important;
+  vertical-align: middle !important;
 }
 
 td.centerCol {

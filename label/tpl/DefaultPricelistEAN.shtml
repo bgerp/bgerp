@@ -5,9 +5,6 @@
         width: 60.5mm;
         font-size: 1em;
     }
-    .code {
-        font-size: 1.3em;
-    }
     .label-holder table {
         height: 27.5mm;
         width: 59mm;
@@ -18,8 +15,7 @@
         border-left: 1px solid #aaa;
         border-top: 1px solid #aaa;
         padding: 0 0.5mm;
-        font-size: 10px;
-        font-weight: bold;
+        font-size: 16px;
     }
 
     .label-holder table tr > td.no-border-left {
@@ -27,7 +23,7 @@
     }
 
     .label-holder table tr > td.no-border-top {
-        border-top: none;
+        border-top: none !important;
     }
 
     .details-label {
@@ -36,7 +32,6 @@
     }
 
     .small {
-        font-size: 0.8em;
         font-weight: normal;
         display:block;
     }
@@ -64,6 +59,15 @@
     .clearfix21 {
         clear: both;
     }
+    .right {
+        text-align: right !important;
+    }
+    .left {
+        text-align: left !important;
+    }
+    .bold {
+        font-weight: bold;
+    }
     .pics img {
         float: left;
         width: 14mm;
@@ -71,30 +75,27 @@
     }
 </style>
 <div class="label-holder">
-    <table cellpadding="0">
+    <table>
         <tr>
-            <td class="top-descr no-border-left no-border-top" >
-                <b> <div class='left'>код: <span class="code">[#CODE#]</span></div></b>
+            <td class="top-descr no-border-left no-border-top left">
+                <span class="code bold">[#CODE#]</span>
             </td>
-            <td   class="top-descr no-border-left no-border-top" >
-                <div class='right'>мярка: <span class="code"><b>[#MEASURE_ID#]</b></span> [#QUANTITY#]</div>
+            <td class="top-descr no-border-left no-border-top nowrap right">
+                <span class="code bold">[#MEASURE_ID#]</span> [#QUANTITY#]
             </td>
-            <td colspan=3  class="barcode-holder img  no-border-left no-border-top" rowspan=4>
+            <td rowspan="3" class="barcode-holder img no-border-left no-border-top" style="width: 40px; padding-left:5px !important;">
                 [#EAN_ROTATED#]
             </td>
         </tr>
         <tr>
-            <td colspan=2  valign="middle" align="center" class="top-descr no-border-left bold" style='font-size: 15px;'>
+            <td class="top-descr no-border-left bold centered" style="height: 60px">
                 [#NAME#]
             </td>
         </tr>
         <tr>
-            <td   class="top-descr no-border-left  >
-                <div class='left'><span class="date"><b>[#DATE#]</b></span></div>
+            <td class="top-descr no-border-left centered">
+                <span class="code bold">[#CATALOG_PRICE#]<!--ET_BEGIN CATALOG_PRICE_EURO--> / [#CATALOG_PRICE_EURO#]<!--ET_END CATALOG_PRICE_EURO--></span>
             </td>
-<td valign="middle" align="center" class="top-descr  no-border-left " >
-    [#PRICE_CAPTION#]: <span class="code"><b>[#CATALOG_PRICE#]</b></span> [#CATALOG_CURRENCY#]
-</td>
-</tr>
+        </tr>
     </table>
 </div>

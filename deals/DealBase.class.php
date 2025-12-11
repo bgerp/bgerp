@@ -127,12 +127,13 @@ abstract class deals_DealBase extends core_Master
     {
         $dealRec = $this->fetchRec($id);
 
-        $dealDocuments = $this->getDescendants($dealRec->id);
-        $aggregateInfo = new bgerp_iface_DealAggregator;
-
         // Извличаме dealInfo от самата сделка
+        $aggregateInfo = new bgerp_iface_DealAggregator;
         $this->pushDealInfo($dealRec->id, $aggregateInfo);
 
+        if(Mode::is('onlySimpleDealInfo')) return $aggregateInfo;
+
+        $dealDocuments = $this->getDescendants($dealRec->id);
         if (!empty($dealRec->closedDocuments)) {
             $combinedThreads = deals_Helper::getCombinedThreads($dealRec->threadId);
             unset($combinedThreads[$dealRec->threadId]);
@@ -266,7 +267,12 @@ abstract class deals_DealBase extends core_Master
         $dealQuery = $this->getQuery();
         $dealQuery->where("#id != {$rec->id}");
         $dealQuery->where("#folderId = {$rec->folderId}");
-        $dealQuery->where("#currencyId = '{$rec->currencyId}'");
+        if($rec->currencyId == 'EUR'){
+            $dealQuery->in("currencyId", array('BGN', 'EUR'));
+        } else {
+            $dealQuery->where("#currencyId = '{$rec->currencyId}'");
+        }
+
         if($this->getField('deliveryTermId', false)){
             if(isset($rec->deliveryTermId)){
                 $dealQuery->where("#deliveryTermId = '{$rec->deliveryTermId}'");
@@ -379,13 +385,17 @@ abstract class deals_DealBase extends core_Master
                 }
             }
 
-            $err = $threads = $warning = array();
+            $err = $closedDeals = $threads = $warning = array();
             $warning[$rec->currencyRate] = $rec->currencyRate;
             $deals1 = keylist::toArray($form->rec->closeWith);
+            $CloseDoc = cls::get($this->closeDealDoc);
 
             $dealCountries = array();
             foreach ($deals1 as $d1) {
                 $dealRec = $this->fetch($d1, 'threadId,currencyRate');
+                $dealItemRec = acc_Items::fetchItem($this, $dealRec->id);
+                $exClosedDoc = $CloseDoc->fetch("#threadId = {$dealRec->threadId} AND #state = 'active'");
+
                 $logisticData = $this->getLogisticData($d1);
                 if(isset($logisticData['toCountry'])){
                     $toCountryId = drdata_Countries::getIdByName($logisticData['toCountry']);
@@ -394,12 +404,21 @@ abstract class deals_DealBase extends core_Master
                 if (acc_plg_Contable::haveDocumentInThreadWithStates($dealRec->threadId, 'pending,draft')) {
                     $err[] = $this->getLink($d1, 0);
                 }
+
+                if($dealItemRec->state == 'closed' || $exClosedDoc){
+                    $closedDeals[] = $this->getLink($dealRec->id, 0);
+                }
                 $warning[$dealRec->currencyRate] = $dealRec->currencyRate;
                 $threads[$dealRec->threadId] = $dealRec->threadId;
             }
 
             if (countR($err)) {
                 $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
+                $form->setError('closeWith', $msg);
+            }
+
+            if (countR($closedDeals)) {
+                $msg = '|Следните ' . mb_strtolower($this->title) . ' са вече затворени|*: ' . implode(',', $closedDeals);
                 $form->setError('closeWith', $msg);
             }
 
@@ -530,7 +549,6 @@ abstract class deals_DealBase extends core_Master
                 }
 
                 core_App::setTimeLimit(2000);
-                $CloseDoc = cls::get($this->closeDealDoc);
                 foreach ($deals as $dealId) {
 
                     // Ако има разпределени разходи към сделката, запомнят се и се изтриват
@@ -553,6 +571,7 @@ abstract class deals_DealBase extends core_Master
                     // Създаване на приключващ документ-чернова
                     $dRec = $this->fetch($dealId);
                     $clId = $CloseDoc->create($this->className, $dRec, $id);
+                    $exClosedDoc = null;
 
                     try {
 
@@ -574,7 +593,9 @@ abstract class deals_DealBase extends core_Master
                         $errorArr[] = "Не може да се контира|*: #{$CloseDoc->getHandle($clId)}";
                     }
 
-                    $this->logWrite('Приключено с друга сделка', $dealId);
+                    if(!$exClosedDoc){
+                        $this->logWrite('Приключено с друга сделка', $dealId);
+                    }
                 }
 
                 $this->invoke('AfterActivation', array($dealRec));
@@ -943,9 +964,16 @@ abstract class deals_DealBase extends core_Master
                             $obj->creditAcc .= "<div style='font-size:0.8em;margin-top:1px'>{$i}. " . acc_Items::getVerbal($ent->{"creditItem{$i}"}, 'titleLink') . '</div>';
                         }
                     }
-                    
+
                     foreach (array('debitQuantity', 'debitPrice', 'creditQuantity', 'creditPrice', 'amount') as $fld) {
-                        $obj->{$fld} = "<span style='float:right'>" . $Double->toVerbal($ent->{$fld}) . '</span>';
+                        $entVerbal = $Double->toVerbal($ent->{$fld});
+                        if(in_array($fld, array('amount', 'debitPrice', 'creditPrice'))){
+                            if(!empty($ent->{$fld})){
+                                $entVerbal = currency_Currencies::decorate($entVerbal, acc_Periods::getBaseCurrencyCode($ent->valior), true);
+                            }
+                        }
+
+                        $obj->{$fld} = "<span style='float:right'>{$entVerbal}</span>";
                     }
                     
                     $history[] = $obj;

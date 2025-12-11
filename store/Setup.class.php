@@ -38,6 +38,12 @@ defIfNot('STORE_SO_TYPE_OF_PACKING_DEFAULT', '');
 
 
 /**
+ * Ако хоризонта на наличностите е в миналото - какъв интервал да се добави към СЕГА->Време
+ */
+defIfNot('STORE_PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST', 24 * 60 * 60 * 3);
+
+
+/**
  * class store_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -148,6 +154,7 @@ class store_Setup extends core_ProtoSetup
         'STORE_EARLIEST_SHIPMENT_READY_IN' => array('int(min=0)', 'caption=Изчисляване на най-ранната наличност на артикулите в ЕН-та за следващите->Дни'),
         'STORE_ALLOW_NEGATIVE_SHIPMENT_ROLES' => array('keylist(mvc=core_Roles,select=role)', 'caption=Изписване на минус->Да се използва с повишено внимание и на собствен риск! Формираните отрицателни количества ТРЯБВА да бъдат коригирани в рамките на счетоводния период (месец) в който са възникнали! Основни причини: невъведени/грешновъведени доставки/изписване от грешен склад/детайлно изписване от незавършено производство без такова влагане и т.н... Отрицателни наличности в края на периода водят до нереални счетоводни себестойности!->Роли'),
         'STORE_SO_TYPE_OF_PACKING_DEFAULT' => array('varchar', 'caption=Обобщен ред на "Packing list за митница"->Вид на опаковката'),
+        'STORE_PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST' => array('time(uom=days)', 'caption=Ако очакваното кол-во е към минала дата/без дата - към СЕГА да се добави->Време'),
     );
     
     
@@ -159,7 +166,7 @@ class store_Setup extends core_ProtoSetup
                           store_reports_ArticlesDepended,store_reports_ProductsInStock,store_reports_UnrealisticPricesAndWeights,
                           store_reports_ProductAvailableQuantity1,store_reports_JobsHorizons,store_tpl_SingleLayoutPackagingListGrouped,
                           store_tpl_SingleLayoutShipmentOrderEuro,store_iface_ShipmentWithBomPriceTplHandler,store_iface_OpeningBalanceImportImpl,
-                          store_reports_NonPublicItems,store_reports_ReportConsignmentProtocols';
+                          store_reports_NonPublicItems,store_reports_ReportConsignmentProtocols,store_tpl_SingleLayoutShipmentOrderSaft';
     
     
     /**
@@ -192,6 +199,15 @@ class store_Setup extends core_ProtoSetup
             'period' => 60,
             'offset' => 10,
             'timeLimit' => 300,
+        ),
+        array(
+            'systemId' => 'Recalc All Planned Quantities',
+            'description' => 'Преизчисляване на планираните количества',
+            'controller' => 'store_StockPlanning',
+            'action' => 'RecalcAllPlannedQuantities',
+            'period' => 1440,
+            'offset' => 30,
+            'timeLimit' => 600,
         ),
 
     );

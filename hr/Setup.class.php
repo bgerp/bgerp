@@ -30,6 +30,18 @@ defIfNot('HR_DAYS_IN_HOMEOFFICE', '2');
 
 
 /**
+ * Начало на нощна смяна на текущия ден
+ */
+defIfNot('HR_NIGHT_SHIFT_CUR_DAY_START', '22:00');
+
+
+/**
+ * Край на нощна смяна на следващия ден
+ */
+defIfNot('HR_NIGHT_SHIFT_NEXT_DAY_END', '06:00');
+
+
+/**
  * class hr_Setup
  *
  * Инсталиране/Деинсталиране на човешки ресурси
@@ -73,7 +85,7 @@ class hr_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Човешки ресурси';
+    public $info = 'Управление на човешките ресурси';
     
     
     /**
@@ -83,9 +95,11 @@ class hr_Setup extends core_ProtoSetup
         'HR_EC_MIN' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Долна граница'),
         'HR_EC_MAX' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
         'HR_EMAIL_TO_PERSON' => array('key(mvc=crm_Persons,select=name, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Изпращане на имейл към->Лице'),
-        'HR_COMPANIES_IP' => array('varchar', 'caption=Ip-та на фирмата->IP'),
+        'HR_COMPANIES_IP' => array('text(rows=4)', 'caption=Ip-та на фирмата->IP'),
         'HR_DAYS_IN_HOMEOFFICE' => array('int(min=0)', 'caption=Разрешените дни за работа от вкъщи->Дни,unit=&nbsp;|(за един месец)|*,customizeBy=hrMaster|ceo'),
-        );
+        'HR_NIGHT_SHIFT_CUR_DAY_START' => array('hour', 'caption=Часове за нощна смяна->Начало: Днес'),
+        'HR_NIGHT_SHIFT_NEXT_DAY_END' => array('hour', 'caption=Часове за нощна смяна->Край: Утре'),
+    );
     
     
     /**
@@ -111,7 +125,11 @@ class hr_Setup extends core_ProtoSetup
         'hr_ScheduleDetails',
         'hr_Schedules',
         'hr_IndicatorFormulas',
+        'hr_Shifts',
         'migrate::changeAlternatePersonField',
+        'migrate::updateContracts2548',
+        'migrate::updateBonusesAndDeductions2548',
+        'migrate::updateTrips2548',
     );
     
     
@@ -202,5 +220,63 @@ class hr_Setup extends core_ProtoSetup
                 $cls->save_($cRec, 'alternatePersons');
             }
         }
+    }
+
+
+    /**
+     * Обновяване на трудовите договори
+     */
+    public static function updateContracts2548()
+    {
+        $Contracts = cls::get('hr_EmployeeContracts');
+        $Contracts->setupMvc();
+
+        $save = array();
+        $query = $Contracts->getQuery();
+        $query->where("#currencyId IS NULL");
+        while($rec = $query->fetch()) {
+            $rec->currencyId = 'BGN';
+            $save[$rec->id] = $rec;
+        }
+
+        if(countR($save)) {
+            $Contracts->saveArray($save, 'id,currencyId');
+        }
+    }
+
+    /**
+     * Обновяване на бонусите и удръжките
+     */
+    public function updateBonusesAndDeductions2548()
+    {
+        foreach (array('hr_Deductions', 'hr_Bonuses') as $cls){
+            $Class = cls::get($cls);
+            $Class->setupMvc();
+
+            $currencyIdCol = str::phpToMysqlName('currencyId');
+            $tbl = $Class->dbTableName;
+
+            $query = "UPDATE `{$tbl}` SET `{$currencyIdCol}` = 'BGN' WHERE `{$currencyIdCol}` IS NULL";
+            $Class->db->query($query);
+        }
+    }
+
+
+    /**
+     * Обновяване на командировките
+     */
+    public function updateTrips2548()
+    {
+        $Trips = cls::get('hr_Trips');
+        $Trips->setupMvc();
+
+        $currencyIdCol = str::phpToMysqlName('currencyId');
+        $amountRoadCol = str::phpToMysqlName('amountRoad');
+        $amountDailyCol = str::phpToMysqlName('amountDaily');
+        $amountHouseCol = str::phpToMysqlName('amountHouse');
+        $tbl = $Trips->dbTableName;
+
+        $query = "UPDATE `{$tbl}` SET `{$currencyIdCol}` = 'BGN' WHERE (`{$amountRoadCol}` IS NOT NULL OR `{$amountDailyCol}` IS NOT NULL OR `{$amountHouseCol}` IS NOT NULL)";
+        $Trips->db->query($query);
     }
 }

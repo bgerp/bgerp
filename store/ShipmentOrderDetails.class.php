@@ -52,7 +52,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public $loadList = 'plg_RowTools2, plg_Created, store_Wrapper, plg_RowNumbering,store_plg_RequestDetail, plg_SaveAndNew, doc_plg_HidePrices,
                         plg_AlignDecimals2,deals_plg_ImportDealDetailProduct, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy,
-                        ReversePolicy=purchase_PurchaseLastPricePolicy, plg_PrevAndNext,acc_plg_ExpenseAllocation,cat_plg_CreateProductFromDocument,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
+                        ReversePolicy=purchase_PurchaseLastPricePolicy, cat_plg_LogPackUsage, plg_PrevAndNext,acc_plg_ExpenseAllocation,cat_plg_CreateProductFromDocument,cat_plg_ShowCodes,store_plg_TransportDataDetail,import2_Plugin';
     
     
     /**
@@ -172,6 +172,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         $this->FLD('baseQuantity', 'double(minDecimals=2)', 'after=showMode,caption=Допълнително->Изписване,input=hidden');
         $this->FLD('showMode', 'enum(auto=По подразбиране,detailed=Разширен,short=Съкратен)', 'caption=Допълнително->Изглед,notNull,default=short,value=short,after=notes');
         $this->FLD('tariffCode', 'varchar', 'caption=Логистична информация->Митнически код,input=none');
+        $this->FLD('countryOfOrigin', 'key(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'caption=Логистична информация->Държава на произход,input=none');
+
         $this->setFieldTypeParams('packQuantity', 'min=0');
     }
     
@@ -201,8 +203,20 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         $form->setFieldTypeParams('productId', $productTypeParams);
 
         if (isset($rec->productId)) {
-            $tariffCode = cat_Products::getParams($rec->productId, 'customsTariffNumber');
-            $form->setField('tariffCode', "input,placeholder={$tariffCode}");
+
+            // За складируемите артикули
+            $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+            if($canStore == 'yes'){
+
+                // Поле за въвеждане на МТК на артикула
+                $tariffCode = cat_Products::getParams($rec->productId, 'customsTariffNumber');
+                $form->setField('tariffCode', "input,placeholder={$tariffCode}");
+
+                // Показване на държавата на произход
+                $originCountryId = cat_Products::getParams($rec->productId, 'originCountry');
+                $countryName = $originCountryId ? drdata_Countries::getCountryName($originCountryId) : drdata_Countries::getCountryName(drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id'));
+                $form->setField('countryOfOrigin', "input,placeholder={$countryName}");
+            }
         }
     }
     

@@ -123,6 +123,41 @@ class sync_Companies extends sync_Helper
                     // Полето ЕАН да е уникално
                     $class->dbIndexes['uicId'] = (object) array('fields' => 'uicId', 'type' => 'UNIQUE');
                 }
+
+                // Ако има списък в приемника, не го импортираме
+                $haveListing = false;
+                if  ($class == 'cat_ListingDetails') {
+                    foreach ((array) $resArr['cat_Listings'] as $cDetKey => $cDetArr) {
+                        if (($cDetKey == $rec->listId) && $cDetArr->_companyId) {
+                            $cId = sync_Map::importRec('crm_Companies', $cDetArr->_companyId, $resArr, $me, $update);
+                            $haveListing = cond_Parameters::getParameter('crm_Companies', $cId, 'salesList');
+                            if ($haveListing) {
+                                unset($resArr['cat_Listings'][$cDetKey]);
+                                unset($resArr['cat_ListingDetails'][$id]);
+                            }
+                        }
+                    }
+                }
+                if ($class == 'cat_Listings') {
+                    if ($rec->_companyId) {
+                        $cId = sync_Map::importRec('crm_Companies', $rec->_companyId, $resArr, $me, $update);
+                        $haveListing = cond_Parameters::getParameter('crm_Companies', $cId, 'salesList');
+                        if ($haveListing) {
+                            foreach ((array) $resArr['cat_ListingDetails'] as $cDetKey => $cDetArr) {
+                                if ($cDetArr->listId == $id) {
+                                    unset($resArr['cat_ListingDetails'][$cDetKey]);
+                                }
+                            }
+
+                            unset($resArr['cat_Listings'][$id]);
+                        }
+                    }
+                }
+
+                if ($haveListing) {
+
+                    continue;
+                }
                 
                 sync_Map::importRec($class, $id, $resArr, $me, $update);
             }

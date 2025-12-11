@@ -5,6 +5,7 @@ var timeoutRemoveDisabled;
 var timeoutPageNavigation;
 var searchTimeout;
 var addedProduct;
+let pressedCardPayment;
 
 function posActions() {
 	setOpenedReceiptQueue();
@@ -38,17 +39,18 @@ function posActions() {
 
 	$(document.body).on('click', ".closePaymentModal", function(e){
 		$(".fullScreenCardPayment").css("display", "none");
-		var element = $("#card-payment");
-		var msg = element.attr("data-oncancel");
+		let msg = pressedCardPayment.attr("data-oncancel");
+		$("#modalTitleSpan").text('');
+        $("#modalTitleSubSpan").text('');
 		render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
 	});
 
 	$(document.body).on('click', ".confirmPayment", function(e){
-		var element = $("#card-payment");
-		var url = element.attr("data-url");
+		let url = pressedCardPayment.attr("data-url");
+		let type = pressedCardPayment.attr("data-type");
+		let deviceId = pressedCardPayment.attr("data-deviceId");
 
-		var type = element.attr("data-type");
-		doPayment(url, type, 'manual');
+		doPayment(url, type, 'manual', deviceId);
 		$(".fullScreenCardPayment").css("display", "none");
 	});
 
@@ -180,7 +182,36 @@ function posActions() {
 		}
 	});
 
-	
+	document.querySelectorAll('.scrollingGrid').forEach(grid => {
+		let isDown = false;
+		let startX;
+		let scrollLeft;
+
+		grid.addEventListener('mousedown', (e) => {
+			isDown = true;
+			grid.classList.add('dragging');   // за стил по желание
+			startX = e.pageX - grid.offsetLeft;
+			scrollLeft = grid.scrollLeft;
+		});
+
+		grid.addEventListener('mouseleave', () => {
+			isDown = false;
+			grid.classList.remove('dragging');
+		});
+
+		grid.addEventListener('mouseup', () => {
+			isDown = false;
+			grid.classList.remove('dragging');
+		});
+
+		grid.addEventListener('mousemove', (e) => {
+			if (!isDown) return;
+			e.preventDefault(); // за да не маркира текст
+			const x = e.pageX - grid.offsetLeft;
+			const walk = (x - startX); // разстояние на влачене
+			grid.scrollLeft = scrollLeft - walk;
+		});
+	});
 	/**
 	 * При клик на таба
 	 */
@@ -417,6 +448,16 @@ function posActions() {
 	$(document.body).on('click',  function(e){
 		hideHints();
 	})
+
+	$(document.body).on('dblclick', 'input[name="ean"]', function () {
+		var operation = getSelectedOperation();
+		if(operation != 'add') return;
+
+		var ph = $.trim($(this).attr('placeholder'));   // placeholder-ът като текст
+		if (!ph || !$.isNumeric(ph.replace(',', '.'))) return;
+
+		$(this).val(ph + '*');           // записваме стойност + звездичка
+	});
 }
 
 
@@ -649,7 +690,7 @@ function calculateWidth(){
 }
 
 // Направа на плащане
-function doPayment(url, type, value){
+function doPayment(url, type, value, deviceId){
 
 	if(!url || !type) return;
 
@@ -662,7 +703,11 @@ function doPayment(url, type, value){
 	if(value){
 		data.param = value;
 	}
+	if(deviceId){
+		data.deviceId = deviceId;
+	}
 
+	console.log(data);
 	processUrl(url, data);
 }
 
@@ -928,20 +973,32 @@ function pressNavigable(element)
 			}
 
 			amount = parseFloat(amount).toFixed(2);
-			if(amount > maxamount){
+
+			if(parseFloat(amount) > parseFloat(maxamount)){
+				console.log("AM " + amount + ' MAX ' + maxamount);
 				var msg = element.attr("data-amountoverallowed");
 				render_showToast({timeOut: 800, text: msg, isSticky: true, stayTime: 8000, type: "error"});
 				return;
 			}
 
-			console.log('SEND:' + amount);
+			pressedCardPayment = element;
+
+			let deviceUrl = element.attr("data-deviceUrl");
+			let comPort = element.attr("data-deviceComPort");
+			let deviceName = element.attr("data-deviceName");
+            let subTitle = element.attr('data-modal-subTitle')
+
+			console.log('SEND:' + amount + " TO " + deviceUrl + "/ cPort " + comPort);
 			$(".fullScreenCardPayment").css("display", "block");
 			$('.select-input-pos').prop("disabled", true);
-			getAmount(amount);
+			$("#modalTitleSpan").text(" " + deviceName);
+            $("#modalTitleSubSpan").text(" " + subTitle);
+			let fncName = element.attr("data-sendfunction");
+			window[fncName](amount, deviceUrl, comPort);
 			return;
 		} else {
 			type = (!type) ? '-1' : type;
-			doPayment(url, type, null);
+			doPayment(url, type, null, null);
 			return;
 		}
 	} else if(element.hasClass('contragentRedirectBtn')){
@@ -997,7 +1054,7 @@ function pressNavigable(element)
 
 function showPaymentErrorStatus()
 {
-	var error = $("#card-payment").attr("data-onerror");
+	var error = pressedCardPayment.attr("data-onerror");
 	render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
 }
 
@@ -1006,20 +1063,42 @@ function showPaymentErrorStatus()
  *
  * @param res
  */
-function getAmountRes(res)
+function getAmountRes(res, sendAmount)
 {
-	var element = $("#card-payment");
-	var url = element.attr("data-url");
+	let element = pressedCardPayment;
+	let url = element.attr("data-url");
 	console.log("ANSWER FROM: " + url);
 	$('.select-input-pos').prop("disabled", false);
 
-	if(res == 'OK'){
-		var type = element.attr("data-type");
-		console.log("RES IS OK");
-		doPayment(url, type, 'card');
+	console.log("RES: " + res + " S " + sendAmount);
+	let resString = String(res);
+	if (resString.startsWith("OK") || res == 'OK') {
+
+		let parts = resString.split("|");
+		let rightPart = parts.slice(1).join("|"); // всичко след първото "|"
+		console.log("RIGHT PART: " + rightPart);
+
+		// Вземаме само първия елемент от rightPart, ако има няколко
+		let firstNumberStr = rightPart.split("|")[0];
+
+		// Парсираме като число и форматираме до 2 дес. знака
+		let resAmount = parseFloat(firstNumberStr).toFixed(2);
+		let sendAmountFormatted = parseFloat(sendAmount).toFixed(2);
+
+		if(!rightPart || resAmount === sendAmountFormatted){
+			let deviceId = pressedCardPayment.attr("data-deviceId");
+			let type = element.attr("data-type");
+			console.log("RES IS OK");
+			doPayment(url, type, 'card', deviceId);
+		} else {
+			console.log("DIFF AMOUNT");
+			let error = pressedCardPayment.attr("data-diffamount");
+			error += " " + resAmount;
+			render_showToast({timeOut: 800, text: error, isSticky: true, stayTime: 8000, type: "error"});
+		}
 	} else {
 		showPaymentErrorStatus();
-		console.log("RES ERROR/" + res + "/");
+		console.log("RES ERROR /" + res + "/");
 	}
 
 	$(".fullScreenCardPayment").css("display", "none");
@@ -1035,9 +1114,13 @@ function getAmountError(err)
 {
 	$(".fullScreenCardPayment").css("display", "none");
 	$('.select-input-pos').prop("disabled", false);
+	$("#modalTitleSpan").text('');
+    $("#modalTitleSubSpan").text('');
 
 	showPaymentErrorStatus();
 	console.log("ERR:" + err);
+
+	pressedCardPayment = null;
 }
 
 
@@ -1076,19 +1159,22 @@ function submitInputString(){
 // Дали подадения стринг е операция за задаване на количество
 function isMicroformat(string) {
 	var string = $.trim(string);
-	
+
 	// Ако има въведен непразен стринг
 	if(string){
 		// и той завършва с *
-		if(string.endsWith("*") || string.startsWith("*")){
-			
+		if(string.endsWith("*") || string.startsWith("*") || string.startsWith("+") || string.startsWith("-")){
+
 			// Премахваме * да остане чист стринг
-			var quantity = string.replace("*", "");
+			let quantity = string.replace("*", "");
+			quantity = quantity.replace("+", "");
+			quantity = quantity.replace("-", "");
 			quantity = quantity.replace(",", ".");
-			
+			console.log("NUM: '" + string + "' Q:" + quantity);
 			// Ако останалата част от стринга е положително число
 			if($.isNumeric(quantity) && quantity > 0){
 				if(string.startsWith("*")){
+
 					var split = quantity.split(".");
 					var cnt = (split[1]) ? split[1].length : 0;
 					if(cnt == 2){
@@ -1107,8 +1193,8 @@ function isMicroformat(string) {
 			if($.isNumeric(quantity)){
 				if(string.startsWith("%")){
 					
-					var split = quantity.split(".");
-					var cnt = (split[1]) ? split[1].length : 0;
+					let split = quantity.split(".");
+					let cnt = (split[1]) ? split[1].length : 0;
 					if(cnt == 2){
 						return true;
 					}
@@ -1134,7 +1220,7 @@ function openModal(title, heightModal) {
 	
 	// Изчистване на предишното съдържание на модала, да не се визуализира, докато се зареди новото
 	$("#modalContent").html("");
-	var height = (heightModal == "smallHeight" ) ?  500 : 700;
+	var height = (heightModal == "smallHeight" ) ?  500 : 740;
 	var width = ($(window).width() > 1200) ?  1000 : parseInt($(window).width()) - 40;
 
 	dialog = $("#modalContent").dialog({
@@ -1277,7 +1363,8 @@ function setInputPlaceholder() {
 	if(scroll) {
 		$('#result-holder.fixedPosition .withTabs').scrollTop(scroll)
 	}
-	$("input[name=ean]").attr("placeholder", placeholder);	
+	$("input[name=ean]").attr("placeholder", placeholder);
+	$("input[name=ean]").attr("data-original-placeholder", placeholder);
 }
 
 
@@ -1288,6 +1375,10 @@ function afterload() {
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
 	disableOrEnableCurrencyBtn();
+
+	if (typeof readWeightScale === 'function') {
+		readWeightScale();
+	}
 }
 
 
@@ -1354,15 +1445,18 @@ function disableOrEnableEnlargeBtn()
  */
 function addProduct(el) {
 
+	$('.scrollingGrid .fadedElement').removeClass('fadedElement');
 	$(el).addClass('fadedElement');
 	sessionStorage.setItem('changedOpacityElementId', $(el).attr("id"));
 	clearTimeout(timeout);
 
-	var elemRow = $(el).closest('.receiptRow');
+	let elemRow = $(el).closest('.receiptRow');
 	$(elemRow).addClass('highlighted');
-	var url = $(el).attr("data-url");
-	var productId = $(el).attr("data-productId");
-	var data = {productId:productId};
+	let url = $(el).attr("data-url");
+	let productId = $(el).attr("data-productId");
+	let data = {productId:productId};
+
+	let weightSysId = $(el).attr("data-weight-measure-sys-id");
 
 	// При добавяне на артикул ако в инпута има написано число или число и * да го третира като число
 	var quantity = $("input[name=ean]").val();
@@ -1374,6 +1468,16 @@ function addProduct(el) {
 				data.string = quantity;
 			}
 		}
+	} else {
+		if (typeof readWeightScale === 'function' && weightSysId) {
+			let scaleVal =  document.querySelector("input[name=ean]").getAttribute("placeholder")
+			if($.isNumeric(scaleVal)){
+				if(weightSysId == 'g'){
+					scaleVal = parseFloat(scaleVal) * 1000;
+				}
+				data.string = scaleVal;
+			}
+		}
 	}
 
 	data.recId = getSelectedRowId();
@@ -1381,7 +1485,6 @@ function addProduct(el) {
 
 	activeInput = false;
 }
-
 
 /**
  * Извиква подаденото урл с параметри
@@ -1457,9 +1560,11 @@ function doOperation(operation, selectedRecId, forceSubmit) {
 
 	$("input[name=ean]").val("");
 
+
 	sessionStorage.setItem('operationClicked', true);
 	var data = {operation:operation,recId:selectedRecId};
 	processUrl(url, data);
+
 
 	activeInput = false;
 	scrollToHighlight();
@@ -1571,7 +1676,28 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 			if(activeTab.parent().hasClass('receipts')){
 				params.selectedReceiptFilter = id;
 			} else {
-				params.selectedProductGroupId = id;
+                if(id){
+                    params.selectedProductGroupId = id;
+                } else {
+					let gridClass = activeTab.attr("data-grid");
+					let element = $('.' + gridClass)[0];
+					if (element) {
+
+						if (!$(element).find('.navigable:visible').first().hasClass('selected') && !$(element).find('.navigable.selected').length) {
+							selectFirstInRow($(element));
+						} else {
+							// дори да е селектиран, не скролирай ако вече е видим
+							const $first = $(element).find('.navigable:visible').first();
+							const container = $(element).closest('.scrollingGrid')[0];
+							if (container && !isVisibleInContainer($first[0], container, 4)) {
+								const prev = container.style.scrollBehavior;
+								container.style.scrollBehavior = 'auto';
+								$first[0].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+								container.style.scrollBehavior = prev || '';
+							}
+						}
+					}
+                }
 			}
 		}
 		
@@ -1582,6 +1708,38 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 		processUrl(url, params);
 
 	}, timeoutTime);
+}
+
+function isVisibleInContainer(el, container, margin = 0) {
+	const r = el.getBoundingClientRect();
+	const c = container.getBoundingClientRect();
+	return (
+		r.left   >= c.left + margin &&
+		r.right  <= c.right - margin &&
+		r.top    >= c.top + margin &&
+		r.bottom <= c.bottom - margin
+	);
+}
+
+function selectFirstInRow($row) {
+	const $first = $row.find('.navigable:visible').first();
+	if (!$first.length) return;
+
+	// 1) селекция без click
+	$('.navigable.selected').removeClass('selected');
+	$first.addClass('selected');
+
+	const id = $first.attr('id');
+	if (id) sessionStorage.setItem('focused', id);
+
+	// 2) скрол само при нужда И спрямо контейнера
+	const container = $row.closest('.scrollingGrid')[0] || document.scrollingElement;
+	if (!isVisibleInContainer($first[0], container, 4)) {
+		const prev = container.style.scrollBehavior;
+		container.style.scrollBehavior = 'auto';        // без плавност => без подскачане
+		$first[0].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+		container.style.scrollBehavior = prev || '';
+	}
 }
 
 

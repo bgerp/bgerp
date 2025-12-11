@@ -799,6 +799,22 @@ class doc_Containers extends core_Manager
         
         return new Redirect($retUrl);
     }
+
+
+    /**
+     * Листване
+     */
+    public function act_List()
+    {
+        $tId = Request::get('threadId', 'int');
+
+        // Изчакваме нишката да се отключи
+        core_Locks::obtain('doc_Threads_Update_' . $tId, 0, 60, 25);
+        $lockKey = "doc_Threads_Update_Item_{$tId}_" . core_Users::getCurrent();
+        core_Locks::obtain($lockKey, 0, 30, 20, false);
+
+        return parent::act_List();
+    }
     
     
     /**
@@ -3100,7 +3116,7 @@ class doc_Containers extends core_Manager
         $repRec->action = 'repair';
         $repRec->period = 5;
         $repRec->offset = 0;
-        $repRec->delay = 0;
+        $repRec->delay = 20;
         $repRec->timeLimit = 200;
         $res .= core_Cron::addOnce($repRec);
     }
@@ -3605,7 +3621,7 @@ class doc_Containers extends core_Manager
         // Обхождаме параметрите от масива и търсим само нужните ни
         if (is_array($url)) {
             foreach ($url as $key => $val) {
-                if (strpos($key, 'Tab') !== false || $key == 'P_doclog_Documents' || $key == 'Q' || $key == 'Cid' || $key == 'P' || strpos($key, 'P_') !== false || $key == 'Nid' || $key == 'Sid' || $key == 'OnlyMeet' || $key == 'vId') {
+                if (strpos($key, 'Tab') !== false || $key == 'P_doclog_Documents' || $key == 'Q' || $key == 'Cid' || $key == 'P' || strpos($key, 'P_') !== false || $key == 'Nid' || $key == 'Sid' || $key == 'OnlyMeet' || $key == 'vId' || $key == 'logId') {
                     $arr[$key] = $val;
                 }
             }

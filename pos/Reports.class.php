@@ -223,14 +223,22 @@ class pos_Reports extends core_Master
         }
         
         if ($fields['-single']) {
+            $valiorToBe = $mvc->getFieldType('valior')->toVerbal(dt::today());
+            $row->valior = (isset($rec->valior)) ? $row->valior : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
+
             $pointRec = pos_Points::fetch($rec->pointId);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
-            $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+            $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
             setIfNot($row->dealerId, $row->createdBy);
 
             if(empty($rec->operators)){
                 $row->operators = "<i>" . tr("Всички") . "</i>";
             }
+        }
+
+        if ($fields['-list']) {
+            $row->paid = ht::styleNumber($row->paid, $rec->paid);
+            $row->total = ht::styleNumber($row->total, $rec->total);
         }
     }
     
@@ -249,13 +257,38 @@ class pos_Reports extends core_Master
                 $form->setError('pointId', $errorMsg);
             }
 
-            if(!empty($rec->valior) && $rec->valior < dt::today()){
-                $form->setError('valior', 'Вальорът не може да е в миналото');
-            }
-
             // Ако няма грешки, форсираме отчета да се създаде в папката на точката
             if (!$form->gotErrors()) {
                 $rec->folderId = pos_Points::forceCoverAndFolder($rec->pointId);
+            }
+
+            $query = $mvc->getReceiptQuery($rec);
+            $query->show('waitingOn');
+            if(!$query->count()){
+                $form->setError('valior','Няма чакащи (неприключени) бележки с избрания или по-малък вальор|*!');
+            } else {
+                $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+                $valiorBaseCurrency = acc_Periods::getBaseCurrencyCode($valior);
+
+                // Проверка на бележките, които ще се приключят
+                $haveReceiptsWithDiffCurrency = false;
+                $receiptWithLowerValior =array();
+                $receipts = $query->fetchAll();
+                foreach ($receipts as $receiptRec){
+                    $recCurrencyCode = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
+                    if($valiorBaseCurrency != $recCurrencyCode){
+                        $haveReceiptsWithDiffCurrency = true;
+                    }
+                    if($receiptRec->waitingOn < "{$valior} 00:00:00"){
+                        $receiptWithLowerValior[$receiptRec->id] = $receiptRec->id;
+                    }
+                }
+
+                if($haveReceiptsWithDiffCurrency){
+                    $form->setWarning('valior',"Има бележки във валута различно от основната валута за периода|*: <b>{$valiorBaseCurrency}</b>!");
+                } elseif(countR($receiptWithLowerValior)){
+                    $form->setWarning('valior','В отчета ще влязат бележки с по-стара дата от избрания вальор|*!');
+                }
             }
         }
     }
@@ -306,20 +339,31 @@ class pos_Reports extends core_Master
                 if(isset($statRow->receiptTotal)){
                     $statRow->receiptTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($statRow->receiptTotal);
                     $statRow->receiptTotalVerbal = ht::styleNumber($statRow->receiptTotalVerbal, $statRow->receiptTotal);
-                    $statRow->receiptTotalVerbal = currency_Currencies::decorate($statRow->receiptTotalVerbal, $data->row->baseCurrency);
+                    $statRow->receiptTotalVerbal = currency_Currencies::decorate($statRow->receiptTotalVerbal, $data->row->baseCurrency, true);
                     $operatorBlock->append($statRow->receiptTotalVerbal, 'operatorTotal');
                 }
 
                 ksort($statRow->payments);
 
+                $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
                 foreach ($statRow->payments as $paymentRec){
                     $paymentBlocks = clone $operatorBlock->getBlock('PAYMENT_ROW');
 
                     $paymentName = ($paymentRec->value == '-1') ? 'В брой' : cond_Payments::getTitleById($paymentRec->value);
-                    $paymentBlocks->append(tr($paymentName), 'paymentId');
+                    $paymentName = tr($paymentName);
+                    if($paymentRec->value == $cardPaymentId){
+                        if(isset($paymentRec->deviceId)){
+                            $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($paymentRec->deviceId);
+                            $paymentName = "<div style='text-indent:30px'>- {$deviceName}</div>";
+                        } else {
+                            $paymentName .= " (" . tr('Всички') . ")";
+                        }
+                    }
+
+                    $paymentBlocks->append($paymentName, 'paymentId');
                     $paymentAmountRow = core_Type::getByName('double(decimals=2)')->toVerbal($paymentRec->amount);
                     $paymentAmountRow = ht::styleNumber($paymentAmountRow, $paymentRec->amount);
-                    $paymentAmountRow = currency_Currencies::decorate($paymentAmountRow, $data->row->baseCurrency);
+                    $paymentAmountRow = currency_Currencies::decorate($paymentAmountRow, $data->row->baseCurrency, true);
                     $paymentBlocks->append($paymentAmountRow, 'paymentAmount');
                     if($k == -1){
                         $paymentBlocks->append('reportTotal', 'PAYMENT_CLASS');
@@ -354,18 +398,47 @@ class pos_Reports extends core_Master
         $rQuery->EXT('change', 'pos_Receipts', 'externalName=change,externalKey=receiptId');
         $rQuery->XPR('calcedUser', 'int', "COALESCE(#waitingReceiptBy, #createdReceiptBy)");
         $rQuery->where("#action LIKE '%payment%'");
+        $rQuery->orderBy("#receiptId=ASC,#action=ASC");
         if(countR($receiptIds)){
             $rQuery->in('receiptId', $receiptIds);
         } else {
             $rQuery->where("1=2");
         }
 
+        $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
         $totalArr = (object)array('receiptBy' => tr('Общо'), 'payments' => array());
-        while($rRec = $rQuery->fetch()){
-            $action = explode('|', $rRec->action);
-            if($action[1] == -1){
-                $rRec->amount -= $rRec->change;
+
+        $bgnPaymentId = eurozone_Setup::getBgnPaymentId();
+
+        $summedPayments = $change = array();
+        $rDetails = $rQuery->fetchAll();
+        foreach ($rDetails as $rRec1){
+            $key = "{$rRec1->receiptId}|{$rRec1->deviceId}|{$rRec1->action}";
+            if(!array_key_exists($key, $summedPayments)){
+                $summedPayments[$key] = $rRec1;
+            } else {
+                $summedPayments[$key]->amount += $rRec1->amount;
             }
+            $change[$rRec1->receiptId] = $rRec1->change;
+        }
+
+        foreach ($summedPayments as &$rRec){
+            $action = explode('|', $rRec->action);
+            if($action[1] == -1 || $action[1] == $bgnPaymentId){
+                if($change[$rRec->receiptId]){
+                    $changeAmount = $change[$rRec->receiptId];
+                    if($action[1] == $bgnPaymentId){
+                        $changeAmount =currency_CurrencyRates::convertAmount($changeAmount, $rRec->createdOn, null, 'BGN');
+                    }
+                    $rRec->amount -= $changeAmount;
+                    unset($change[$rRec->receiptId]);
+                }
+            }
+
+            if($action[1] != -1){
+                $rRec->amount = cond_Payments::toBaseCurrency($action[1], $rRec->amount);
+            }
+
             if (!array_key_exists($rRec->calcedUser, $data->statisticArr)) {
                 $data->statisticArr[$rRec->calcedUser] = (object) array('receiptBy' => crm_Profiles::createLink($rRec->calcedUser), 'receiptTotal' => 0, 'payments' => array());
             }
@@ -375,9 +448,17 @@ class pos_Reports extends core_Master
             }
 
             if (!array_key_exists($action[1], $totalArr->payments)) {
-                $totalArr->payments[$action[1]] = (object)array('value' => $action[1], 'amount' => 0);
+                $totalArr->payments[$action[1]] = (object)array('value' => $action[1], 'amount' => 0, 'deviceId' => null);
             }
 
+            if($action[1] == $cardPaymentId){
+                if($rRec->deviceId){
+                    if (!array_key_exists("{$action[1]}|{$rRec->deviceId}", $data->statisticArr[$rRec->calcedUser]->payments)) {
+                        $data->statisticArr[$rRec->calcedUser]->payments["{$action[1]}|{$rRec->deviceId}"] = (object)array('value' => $action[1], 'amount' => 0, 'deviceId' => $rRec->deviceId);
+                    }
+                    $data->statisticArr[$rRec->calcedUser]->payments["{$action[1]}|{$rRec->deviceId}"]->amount += $rRec->amount;
+                }
+            }
             $data->statisticArr[$rRec->calcedUser]->receiptTotal += $rRec->amount;
             $data->statisticArr[$rRec->calcedUser]->payments[$action[1]]->amount += $rRec->amount;
             $totalArr->payments[$action[1]]->amount += $rRec->amount;
@@ -395,8 +476,10 @@ class pos_Reports extends core_Master
     protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         if (!empty($data->form->toolbar->buttons['save'])) {
-            $data->form->toolbar->removeBtn('save');
-            $data->form->toolbar->addSbBtn('Контиране', 'save', 'warning=Наистина ли желаете да контирате отчета|*?,ef_icon = img/16/disk.png,order=9.99985, title = Контиране на документа');
+            if(empty($data->form->rec->id)){
+                $data->form->toolbar->removeBtn('save');
+                $data->form->toolbar->addSbBtn('Контиране', 'save', 'warning=Наистина ли желаете да контирате отчета|*?,ef_icon = img/16/disk.png,order=9.99985, title = Контиране на документа');
+            }
         }
     }
     
@@ -429,8 +512,30 @@ class pos_Reports extends core_Master
         
         return $self->abbr . $rec->id;
     }
-    
-    
+
+
+    /**
+     * Кои бележки трябва да влязат в отчета
+     *
+     * @param stdClass $rec
+     * @return core_Query $query
+     */
+    private function getReceiptQuery($rec)
+    {
+        $query = pos_Receipts::getQuery();
+        $query->where("#pointId = {$rec->pointId}");
+        $valior = !empty($rec->valior) ? $rec->valior : dt::today();
+        $query->where("#state = 'waiting' AND #waitingOn <= '{$valior} 23:59:59'");
+
+        if(!empty($rec->operators)){
+            $operatorStr = implode(',', keylist::toArray($rec->operators));
+            $query->where("#waitingBy IN ($operatorStr) OR (#waitingBy IS NULL AND #createdBy IN ($operatorStr))");
+        }
+
+        return $query;
+    }
+
+
     /**
      * Подготвя информацията за направените продажби и плащания
      * от всички бележки за даден период от време на даден потребител
@@ -443,13 +548,7 @@ class pos_Reports extends core_Master
     private function fetchData($rec)
     {
         $details = $receipts = array();
-        $query = pos_Receipts::getQuery();
-        $query->where("#pointId = {$rec->pointId}");
-        $query->where("#state = 'waiting'");
-        if(!empty($rec->operators)){
-            $operatorStr = implode(',', keylist::toArray($rec->operators));
-            $query->where("#waitingBy IN ($operatorStr) OR (#waitingBy IS NULL AND #createdBy IN ($operatorStr))");
-        }
+        $query = $this->getReceiptQuery($rec);
 
         // Извличане на нужната информация за продажбите и плащанията
         $this->fetchReceiptData($query, $details, $receipts);
@@ -942,5 +1041,14 @@ class pos_Reports extends core_Master
 
             if ($found) return $rRec->id;
         }
+    }
+
+
+    /**
+     * Документа не може да се активира ако има детайл с количество 0
+     */
+    public function canActivate($rec)
+    {
+        return true;
     }
 }

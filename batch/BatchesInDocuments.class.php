@@ -74,7 +74,7 @@ class batch_BatchesInDocuments extends core_Manager
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', 'caption=Артикул,mandatory,silent,input=hidden,remember');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double(decimals=4)', 'caption=Количество,input=none');
-        $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
+        $this->FLD('quantityInPack', 'double(decimals=3)', 'input=none,column=none');
         $this->FLD('date', 'date', 'mandatory,caption=Дата,silent,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
         $this->FLD('batch', 'varchar(128)', 'input=none,caption=Партида,after=productId,forceField');
@@ -102,6 +102,23 @@ class batch_BatchesInDocuments extends core_Manager
 
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->storeId = $rec->storeId == batch_Items::WORK_IN_PROGRESS_ID ? planning_WorkInProgress::getHyperlink() : store_Stores::getHyperlink($rec->storeId, true);
+
+
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $rows = &$data->rows;
+        foreach ($rows as $id => $row) {
+            $rec = $data->recs[$id];
+
+            $measureName = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
+            $row->quantity .= " " . $measureName;
+        }
     }
 
 
@@ -417,17 +434,18 @@ class batch_BatchesInDocuments extends core_Manager
     {
         expect($detailClassId = Request::get('detailClassId', 'class'));
         expect($detailRecId = Request::get('detailRecId', 'int'));
-        expect($storeId = Request::get('storeId', 'key(mvc=store_Stores)'));
         $retUrl = getRetUrl();
 
         // Проверка на права
         $this->requireRightFor('modify', (object)array('detailClassId' => $detailClassId, 'detailRecId' => $detailRecId));
         $Detail = cls::get($detailClassId);
+
         $recInfo = $Detail->getRowInfo($detailRecId);
         $recInfo->detailClassId = $detailClassId;
         $recInfo->detailRecId = $detailRecId;
         $storeId = $recInfo->operation[key($recInfo->operation)];
         $Def = batch_Defs::getBatchDef($recInfo->productId);
+        $detailRec = $Detail->fetch($detailRecId);
 
         // Кои са наличните партиди към момента
         $batches = batch_Items::getBatchQuantitiesInStore($recInfo->productId, $storeId, $recInfo->date, null, array(), true);
@@ -603,7 +621,7 @@ class batch_BatchesInDocuments extends core_Manager
         }
 
         // Добавяне на поле за нова партида
-        $btnoff = ($Detail->cantCreateNewBatch === true && !$haveMoreThenDisplayedBatches) ? 'btnOff' : '';
+        $btnoff = (!$Detail->canReceiveNewBatch($detailRec) && !$haveMoreThenDisplayedBatches) ? 'btnOff' : '';
 
         $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
         $columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
@@ -626,7 +644,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestions;
             }
 
-            if($haveMoreThenDisplayedBatches && $Detail->cantCreateNewBatch){
+            if($haveMoreThenDisplayedBatches && !$Detail->canReceiveNewBatch($detailRec)){
                 $suggestions = array_combine(array_values($suggestions), array_values($suggestions));
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $suggestions));
             } else {
@@ -733,7 +751,9 @@ class batch_BatchesInDocuments extends core_Manager
 
                 if ($form->cmd == 'auto') {
                     $old = (countR($foundBatches)) ? $foundBatches : array();
+                    Mode::push('autoAllocateIn', array('detailRecId' => $detailRecId, 'detailClassId' => $detailClassId));
                     $saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $Detail, $detailRecId, $recInfo->date);
+                    Mode::pop('autoAllocateIn');
                     $intersect = array_diff_key($old, $saveBatches);
                     $delete = (countR($intersect)) ? array_keys($intersect) : array();
                     $logMsg = 'Ръчно преразпределяне на партидите';
@@ -981,10 +1001,7 @@ class batch_BatchesInDocuments extends core_Manager
      */
     public static function saveBatches($detailClassId, $detailRecId, $batchesArr, $sync = false, $increment = false)
     {
-        if (!is_array($batchesArr)) {
-            
-            return;
-        }
+        if (!is_array($batchesArr)) return;
 
         $Detail = cls::get($detailClassId);
         $recInfo = $Detail->getRowInfo($detailRecId);

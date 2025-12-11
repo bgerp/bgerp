@@ -1,0 +1,47 @@
+<style>
+    .tableStat td {
+        padding: 4px;
+    }
+    .bold {
+        text-align: right;
+        font-weight: bold;
+        vertical-align: top;
+    }
+</style>
+<div class="document">
+   <table class="tableStat">
+       <tr>
+           <td class="bold">|Документ|*:</td>
+           <td>[#containerId#]</td>
+       </tr>
+       <!--ET_BEGIN lineId-->
+       <tr>
+           <td class="bold">|Транспорт|*:</td>
+           <td>[#lineId#]</td>
+       </tr>
+       <!--ET_END lineId-->
+       <!--ET_BEGIN vehicle-->
+       <tr>
+           <td class="bold">|МПС|*:</td>
+           <td>[#vehicle#]</td>
+       </tr>
+       <!--ET_END vehicle-->
+       <!--ET_BEGIN deliveryTo-->
+       <tr>
+           <td class="bold">|Доставка|*:</td>
+           <td>[#deliveryTo#]</td>
+       </tr>
+       <!--ET_END deliveryTo-->
+       <!--ET_BEGIN logisticInfo-->
+       <tr>
+           <td class="bold">|Логистика|*:</td>
+           <td>[#logisticInfo#]</td>
+       </tr>
+       <!--ET_END logisticInfo-->
+   </table>
+    <table class="listTable" style="margin-top: 20px;">
+        <tr>
+            [#DETAILS#]
+        </tr>
+    </table>
+</div>

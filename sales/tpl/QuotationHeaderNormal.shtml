@@ -13,7 +13,7 @@
                         <!--ET_END clonedFromId-->
                         <!--ET_BEGIN buzPlace-->
                         <div class='quiet-small'>|Място|*</div>
-                        <div><b>[#buzPlace#]</b></div>
+                        <div><b>[#qPlace#]</b></div>
                         <!--ET_END buzPlace-->
                         <!--ET_BEGIN reff-->
                         <div class='quiet-small'>|Ваш реф. №|*</div>
@@ -61,7 +61,7 @@
 	    <table  class = 'products-table' style='width:100%;'>
 	        <tr>
 	            <th>|Условия на офертата|*</th>
-	            <th>|Съставил|*</th>
+	            <th>|Съставил|*  [#USERNAME_SIGN_PAD#]</th>
 	        </tr>
 	        <tr>
 	            <td> 
@@ -103,8 +103,9 @@
 				        <!--ET_END commonConditionQuote-->
 			        </ol>
 	            </td>
-	            <td class="centered" style='vertical-align: bottom !important;'>
-	              <div class='sign_names' style='margin-top: 50px;'>/ [#username#] /</div>
+	            <td class="centered" style='vertical-align: top !important;'>
+                        [#USERNAME_SIGN#]
+                    <div class='sign_names' style='margin-top: 25px;'>/ [#username#] /</div>
 	            </td>
 	        </tr>
 	    </table>

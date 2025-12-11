@@ -40,7 +40,7 @@ class purchase_Quotations extends deals_QuotationMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_Sorting, purchase_Wrapper, doc_plg_Close, doc_EmailCreatePlg, acc_plg_DocumentSummary, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys,cat_plg_AddSearchKeywords, plg_Search';
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, deals_plg_SaveValiorOnActivation, plg_Clone, bgerp_plg_Blank, cond_plg_DefaultValues,doc_plg_SelectFolder,plg_LastUsedKeys,cat_plg_AddSearchKeywords, plg_Search';
 
 
     /**
@@ -217,11 +217,6 @@ class purchase_Quotations extends deals_QuotationMaster
 
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
 
-        if(empty($rec->date)){
-            $rec->date = dt::now();
-            $mvc->save_($rec, 'date');
-        }
-
         if(!empty($rec->bankAccountId)){
             if(bank_Accounts::add($rec->bankAccountId, currency_Currencies::getIdByCode($rec->currencyId), $rec->contragentClassId, $rec->contragentId)){
                 core_Statuses::newStatus('Добавена е нова сметка на контрагента|*!');
@@ -273,11 +268,19 @@ class purchase_Quotations extends deals_QuotationMaster
         $rec = $mvc->fetch($res->id);
         $dQuery = purchase_QuotationDetails::getQuery();
         $dQuery->where("#quotationId = {$rec->id}");
-        $dQuery->show('productId');
-        $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
-
+        $dQuery->show('productId,price');
+        $dRecs = $dQuery->fetchAll();
+        $productIds = arr::extractValuesFromArray($dRecs, 'productId');
         if($redirectError = deals_Helper::getContoRedirectError($productIds, 'canBuy', 'generic', 'вече не са купуваеми или са генерични')){
             core_Statuses::newStatus($redirectError, 'error');
+
+            return false;
+        }
+
+        $haveWithoutPrice = false;
+        array_walk($dRecs, function($a) use (&$haveWithoutPrice) { if(!isset($a->price)) { $haveWithoutPrice = true;}});
+        if($haveWithoutPrice){
+            core_Statuses::newStatus('Офертата не може да се активира, докато има ред без цена!', 'error');
 
             return false;
         }

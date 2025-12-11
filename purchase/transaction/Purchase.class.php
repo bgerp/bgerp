@@ -300,19 +300,44 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         }
         
         $quantityAmount += $amountBase;
-        
-        $entries[] = array('amount' => $amountBase * $rec->currencyRate,
-            'debit' => array('401',
-                array($rec->contragentClassId, $rec->contragentId),
-                array('purchase_Purchases', $rec->id),
-                array('currency_Currencies', $currencyId),
-                'quantity' => $quantityAmount,),
-            'credit' => array('501',
-                array('cash_Cases', $rec->caseId),
-                array('currency_Currencies', $currencyId),
-                'quantity' => $quantityAmount,),
-            'reason' => 'Плащане към доставчик');
-        
+
+        // Ако има ръчно въведен курс
+        if(!empty($rec->currencyManualRate) && round($rec->currencyManualRate, 4) != round($rec->rate, 4)){
+            $entries[] = array('amount' => $amountBase * $rec->currencyRate,
+                'debit' => array('401',
+                    array($rec->contragentClassId, $rec->contragentId),
+                    array('purchase_Purchases', $rec->id),
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'credit' => array('481',
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'reason' => 'Плащане към доставчик');
+
+            $actualRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+            $entries[] = array('amount' => $amountBase * $actualRate,
+                'debit' => array('481',
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'credit' => array('501',
+                    array('cash_Cases', $rec->caseId),
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'reason' => 'Плащане към доставчик');
+        } else {
+            $entries[] = array('amount' => $amountBase * $rec->currencyRate,
+                'debit' => array('401',
+                    array($rec->contragentClassId, $rec->contragentId),
+                    array('purchase_Purchases', $rec->id),
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'credit' => array('501',
+                    array('cash_Cases', $rec->caseId),
+                    array('currency_Currencies', $currencyId),
+                    'quantity' => $quantityAmount,),
+                'reason' => 'Плащане към доставчик');
+        }
+
         return $entries;
     }
     
@@ -444,10 +469,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function getBlAmount($jRecs, $id)
     {
-        $itemId = acc_items::fetchItem('purchase_Purchases', $id)->id;
-        $paid = acc_Balances::getBlAmounts($jRecs, '401', null, null, array(null, $itemId, null))->amount;
-        $paid += acc_Balances::getBlAmounts($jRecs, '402', null, null, array(null, $itemId, null))->amount;
-        
+        $rec = purchase_Purchases::fetchRec($id);
+        $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
+
+        $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
+        $paid = acc_Balances::getBlAmounts($jRecs, '401', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
+        $paid += acc_Balances::getBlAmounts($jRecs, '402', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
+        $paid = $useCurrencyField ? $paid * $rec->currencyRate : $paid;
+
         return $paid;
     }
     
@@ -457,11 +486,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      */
     public static function getDeliveryAmount($jRecs, $id)
     {
-        $itemId = acc_items::fetchItem('purchase_Purchases', $id)->id;
-        
-        $delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit', null, array(null, $itemId, null))->amount;
-        $delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912', array(), array(store_ShipmentOrders::getClassId()))->amount;
-        
+        $rec = purchase_Purchases::fetchRec($id);
+        $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
+
+        $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
+        $delivered = acc_Balances::getBlAmounts($jRecs, '401', 'credit', null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
+        $delivered -= acc_Balances::getBlAmounts($jRecs, '401', 'credit', '6912', array(), array(store_ShipmentOrders::getClassId()), $rec->valior, $useCurrencyField)->amount;
+        $delivered = $useCurrencyField ? $delivered * $rec->currencyRate : $delivered;
+
         return $delivered;
     }
     
@@ -478,12 +510,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($jRecs, $id, $accs = '321,302,601,602,60010,60020,60201', $groupByStore = false, $onlySupplier = true, $groupByExpense = false)
+    public static function getShippedProducts($jRecs, $rec, $accs = '321,302,601,602,60010,60020,60201', $groupByStore = false, $onlySupplier = true, $groupByExpense = false)
     {
         $res = array();
-        
+        $rec = purchase_Purchases::fetchRec($rec);
+
         // Извличаме тези, отнасящи се за експедиране
-        $itemId = acc_items::fetchItem('purchase_Purchases', $id)->id;
+        $itemId = acc_items::fetchItem('purchase_Purchases', $rec->id)->id;
+
         $from = ($onlySupplier === true) ? '401' : null;
         $dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'debit', $from);
         
@@ -510,8 +544,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     if (empty($res[$index])) {
                         $res[$index] = $obj;
                     }
-                    
-                    $res[$index]->amount += $p->amount;
+
+                    $amount = deals_Helper::getSmartBaseCurrency($p->amount, $p->valior, $rec->valior);
+                    $res[$index]->amount += $amount;
                     $res[$index]->quantity += $p->debitQuantity;
                     
                     if ($groupByStore === true) {
@@ -520,7 +555,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                         if ($p->{"debitItem{$storePositionId}"}) {
                             $storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
                             
-                            $res[$index]->inStores[$storeItem->objectId]['amount'] += $p->amount;
+                            $res[$index]->inStores[$storeItem->objectId]['amount'] += $amount;
                             $res[$index]->inStores[$storeItem->objectId]['quantity'] += $p->debitQuantity;
                         }
                     }
@@ -531,7 +566,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                         if ($p->{"debitItem{$expensePositionId}"}) {
                             $expenseItem = acc_Items::fetch($p->{"debitItem{$expensePositionId}"})->id;
                             
-                            $res[$index]->expenseItems[$expenseItem]['amount'] += $p->amount;
+                            $res[$index]->expenseItems[$expenseItem]['amount'] += $amount;
                             $res[$index]->expenseItems[$expenseItem]['quantity'] += $p->debitQuantity;
                         }
                     }

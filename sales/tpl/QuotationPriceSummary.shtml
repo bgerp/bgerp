@@ -8,38 +8,35 @@
    <th style='width: 20%;'>|Общо|*</th>
 </tr>
 <tr style='font-weight: bold;'>
-   <td class='centered dark-gray'>[#value#]</td>
-   <td class='centered'><span class='discount'>[#discountValue#]</span></td>
-   <td class='centered dark-gray'>[#neto#]</td>
+   <td class='centered dark-gray'><div style="display: inline-block;text-align: right">[#value#]</div></td>
+   <td class='centered'><span class='discount' style="display: inline-block; margin-top: 0;text-align: right">[#discountValue#]</span></td>
+   <td class='centered dark-gray'><div style="display: inline-block;text-align: right">[#neto#]</div></td>
    <td class='centered dark-gray'>
    	 [#chargeVat#]
       <table class="no-border" style="margin: 0 auto" >
          <!--ET_BEGIN vat02Amount-->
          <tr>
-            <td class="aright" style="padding-right: 5px;"><b>[#vat02#]</b> </td>
-            <td><span class='cCode'>[#vat02AmountCurrencyId#]</span></td>
-            <td class="aright">[#vat02Amount#]</td>
+            <td class="aright" style="padding: 0 10px 0 0;"><!--ET_BEGIN vat02--><b>[#vat02#]:</b><!--ET_END vat02--></td>
+            <td class="aright" style="padding: 0">[#vat02Amount#]</td>
          </tr>
          <!--ET_END vat02Amount-->
 
          <!--ET_BEGIN vat009Amount-->
          <tr>
-            <td class="aright" style="padding-right: 5px;"><b>[#vat009#]</b> </td>
-            <td><span class='cCode'>[#vat009AmountCurrencyId#]</span></td>
-            <td class="aright">[#vat009Amount#]</td>
+            <td class="aright"  style="padding: 0 10px 0 0;"><!--ET_BEGIN vat009--><b>[#vat009#]:</b><!--ET_END vat009--></td>
+            <td class="aright" style="padding: 0">[#vat009Amount#]</td>
          </tr>
          <!--ET_END vat009Amount-->
 
          <!--ET_BEGIN vat0Amount-->
          <tr>
-            <td class="aright" style="padding-right: 5px;"><b>[#vat0#]</b> </td>
-            <td><span class='cCode'>[#vat0AmountCurrencyId#]</span></td>
-            <td class="aright">[#vat0Amount#]</td>
+            <td class="aright" style="padding: 0 10px 0 0;"><!--ET_BEGIN vat0--><b>[#vat0#]:</b><!--ET_END vat0--></td>
+            <td class="aright" style="padding: 0">[#vat0Amount#]</td>
          </tr>
          <!--ET_END vat0Amount-->
       </table>
    </td>
-   <td class='centered'>[#total#]</td>
+   <td class='centered'><div style="display: inline-block;text-align: right">[#total#]</div></td>
 </tr>
 <!--ET_BEGIN sayWords-->
 <tr>

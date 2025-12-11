@@ -156,12 +156,25 @@ class acc_BalanceDetails extends core_Detail
      */
     public static function on_AfterPrepareListFields($mvc, $data)
     {
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->toDate);
         if ($mvc->isDetailed()) {
             // Детайлизиран баланс на конкретна аналитична сметка
             $mvc->prepareDetailedBalance($data);
         } else {
             // Обобщен баланс на синтетичните сметки
             $mvc->prepareOverviewBalance($data);
+        }
+
+        foreach (array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount') as $fld){
+            if(array_key_exists($fld, $data->listFields)){
+                if ($mvc->isDetailed()) {
+                    list($part1, $part2, $part3) = explode('->', $data->listFields[$fld]);
+                    $data->listFields[$fld] = "{$part1}->{$part2}->{$part3}|* <small>({$baseCurrencyCode})</small>";
+                } else {
+                    list($part1, $part2) = explode('->', $data->listFields[$fld]);
+                    $data->listFields[$fld] = "{$part1}->{$part2}|* <small>({$baseCurrencyCode})";
+                }
+            }
         }
     }
     
@@ -191,6 +204,11 @@ class acc_BalanceDetails extends core_Detail
                 if(strpos($sortBy, 'NotNull') !== false){
                     $sortBy = str_replace('NotNull', '', $sortBy);
                     $data->recs = array_filter($data->recs, function($a) use($sortBy) {return abs(round($a->{$sortBy}, 2)) > 0;});
+                } elseif($sortBy == 'closeToZero'){
+                    $sortBy = 'blAmount';
+                    $data->recs = array_filter($data->recs, function($a) {
+                        return !(abs($a->blQuantity) > 0.001 or abs($a->blAmount) > 0.05);
+                    });
                 }
                 arr::sortObjects($data->recs, $sortBy, 'desc');
             }
@@ -220,6 +238,21 @@ class acc_BalanceDetails extends core_Detail
                     unset($data->recs[$id]);
                 }
                 $count++;
+            }
+
+            // Ако к-та и сумите са еднакви - да не се показва едната колонка
+            foreach (array('base', 'debit', 'credit', 'bl') as $fieldPart) {
+                $haveSame = true;
+                foreach ($data->recs as $id => $r) {
+                    if(round($r->{"{$fieldPart}Quantity"}, 2) != round($r->{"{$fieldPart}Amount"}, 2)){
+                        $haveSame = false;
+                        break;
+                    }
+                }
+
+                if($haveSame) {
+                    unset($data->listFields["{$fieldPart}Quantity"]);
+                }
             }
         }
     }
@@ -302,19 +335,18 @@ class acc_BalanceDetails extends core_Detail
      */
     public static function on_AfterPrepareListRows($mvc, $data)
     {
+        $recs = &$data->recs;
+        $rows = &$data->rows;
+
+        if (empty($rows)) return;
+
+        $currencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->toDate);
+
         // При детайлна справка, и потребителя няма роли acc, ceo скриваме
         // записите до които няма достъп
-        if ($mvc->isDetailed() && !haveRole('ceo,acc')) {
-            $recs = &$data->recs;
-            $rows = &$data->rows;
-            
-            if (empty($rows)) {
-                
-                return;
-            }
-            
-            foreach ($rows as $id => $row) {
-                
+        foreach ($rows as $id => $row) {
+            if ($mvc->isDetailed() && !haveRole('ceo,acc')) {
+
                 // Ако потребителя не може да вижда записа него показваме
                 if (!$mvc->canReadRecord($recs[$id])) {
                     unset($rows[$id]);
@@ -353,13 +385,11 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $data->summary = new stdClass();
-        
+        $currencyCode = acc_Periods::getBaseCurrencyCode($data->masterData->rec->toDate);
         foreach ($arr as $param) {
             $data->summary->{$param} = $this->getFieldType($param)->toVerbal(${$param});
-            
-            if (${$param} < 0) {
-                $data->summary->{$param} = "<span style='color:red'>{$data->summary->{$param}}</span>";
-            }
+            $data->summary->{$param} = currency_Currencies::decorate($data->summary->{$param}, $currencyCode, true);
+            $data->summary->{$param} = ht::styleIfNegative($data->summary->{$param}, ${$param});
         }
     }
     
@@ -663,7 +693,7 @@ class acc_BalanceDetails extends core_Detail
             $bShowQuantities = $bShowQuantities || ($listRec->isDimensional == 'yes');
             $data->listFields["ent{$i}Id"] = '|*' . acc_Lists::getVerbal($listRec, 'name');
         }
-        
+
         if ($bShowQuantities) {
             $data->listFields += array(
                 'baseQuantity' => 'Начално салдо->ДК->К-во',
@@ -789,7 +819,7 @@ class acc_BalanceDetails extends core_Detail
         foreach ($listRecs as $i => $listRec) {
             $this->setGroupingForField($i, $listRec, $form, $items[$i]);
         }
-        $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо,baseAmountNotNull=Начално салдо (Различно от 0),debitAmountNotNull=Дебитен оборот (Различно от 0),creditAmountNotNull=Кредитен оборот (Различно от 0),blAmountNotNull=Крайно салдо (Различно от 0))', 'caption=Подредба,input');
+        $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо,baseAmountNotNull=Начално салдо (Различно от 0),debitAmountNotNull=Дебитен оборот (Различно от 0),creditAmountNotNull=Кредитен оборот (Различно от 0),blAmountNotNull=Крайно салдо (Различно от 0),closeToZero=Крайни салда (Близки до 0))', 'caption=Подредба,input');
         $form->showFields .= 'sortBy,';
         $form->showFields = trim($form->showFields, ',');
         
@@ -864,7 +894,7 @@ class acc_BalanceDetails extends core_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $masterRec = $mvc->Master->fetch($rec->balanceId);
-        
+
         if ($mvc->isDetailed()) {
             $histImg = ht::createElement('img', array('src' => sbf('img/16/clock_history.png', '')));
             $url = array('acc_BalanceHistory', 'History', 'fromDate' => $masterRec->fromDate, 'toDate' => $masterRec->toDate, 'accNum' => $rec->accountNum, 'ent1Id' => $rec->ent1Id, 'ent2Id' => $rec->ent2Id, 'ent3Id' => $rec->ent3Id);
@@ -939,7 +969,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         // Заключваме показването на информацията от баланса в кориците и документи
-        core_Locks::get(acc_Balances::saveLockKey);
+        core_Locks::obtain(acc_Balances::saveLockKey);
         
         //Прочитаме всички текущи записи за този баланс
         $query = self::getQuery();
@@ -1008,7 +1038,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Зарежда в сингълтона баланса с посоченото id
      */
-    public function loadBalance($balanceId, $isMiddleBalance = false, $accs = null, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null)
+    public function loadBalance($balanceId, $isMiddleBalance = false, $accs = null, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null, $convertToDate = null)
     {
         $query = $this->getQuery();
         
@@ -1018,10 +1048,11 @@ class acc_BalanceDetails extends core_Detail
         
         // Да се пропускат записите с нулево крайно салдо, при зареждането на не-междинен баланс
         if (!$isMiddleBalance) {
-            $query->where('#blQuantity != 0 OR #blAmount != 0');
+            $query->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.01');
         }
 
         $feedWithNegativeBlQuantity = acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY');
+        $balanceRec = acc_Balances::fetch($balanceId);
 
         while ($rec = $query->fetch()) {
             $accId = $rec->accountId;
@@ -1035,7 +1066,7 @@ class acc_BalanceDetails extends core_Detail
                     $strategy->feed($rec->blQuantity, $rec->blAmount);
                 }
             }
-            
+
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
             
             $b['accountId'] = $accId;
@@ -1044,24 +1075,43 @@ class acc_BalanceDetails extends core_Detail
             $b['ent3Id'] = $ent3Id;
             
             if ($isMiddleBalance) {
-                
+
+                // Ако ще се конвертират салдата към основната валута за дата
+                $debitAmount = $rec->debitAmount;
+                $creditAmount = $rec->creditAmount;
+                $baseAmount = $rec->baseAmount;
+                if(isset($convertToDate)){
+                    $debitAmount = deals_Helper::getSmartBaseCurrency($debitAmount, $balanceRec->toDate, $convertToDate);
+                    $creditAmount = deals_Helper::getSmartBaseCurrency($creditAmount, $balanceRec->toDate, $convertToDate);
+                    $baseAmount = deals_Helper::getSmartBaseCurrency($baseAmount, $balanceRec->toDate, $convertToDate);
+                }
+
                 // Ако зареждаме междинен баланс взимаме и неговия дебитен/кредитен оборот
                 $this->inc($b['debitQuantity'], $rec->debitQuantity);
-                $this->inc($b['debitAmount'], $rec->debitAmount);
+                $this->inc($b['debitAmount'], $debitAmount);
                 $this->inc($b['creditQuantity'], $rec->creditQuantity);
-                $this->inc($b['creditAmount'], $rec->creditAmount);
+                $this->inc($b['creditAmount'], $creditAmount);
                 
                 $b['baseQuantity'] += $rec->baseQuantity;
-                $b['baseAmount'] += $rec->baseAmount;
+                $b['baseAmount'] += $baseAmount;
             } else {
-                
+                $blAmount = $rec->blAmount;
+                if(isset($convertToDate)){
+                    $blAmount = deals_Helper::getSmartBaseCurrency($blAmount, $balanceRec->toDate, $convertToDate);
+                }
+
                 // Ако не зареждаме междинен баланс взимаме само  крайното му салдо като начално
                 $b['baseQuantity'] += $rec->blQuantity;
-                $b['baseAmount'] += $rec->blAmount;
+                $b['baseAmount'] += $blAmount;
             }
-            
+
+            $blAmount = $rec->blAmount;
+            if(isset($convertToDate)){
+                $blAmount = deals_Helper::getSmartBaseCurrency($blAmount, $balanceRec->toDate, $convertToDate);
+            }
+
             $b['blQuantity'] += $rec->blQuantity;
-            $b['blAmount'] += $rec->blAmount;
+            $b['blAmount'] += $blAmount;
         }
     }
     

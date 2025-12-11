@@ -95,6 +95,16 @@ class sens2_ProtoDriver extends core_BaseClass
     public function checkConfigForm($form)
     {
     }
+
+
+    /**
+     * След запис на контролера, тук може да се извършат допълнителни действия в драйвера
+     *
+     * @param $rec - запис на контролера, след save
+     */
+    public function afterUpdateController($rec, $isDeleted = false)
+    {
+    }
     
     
     /**
@@ -204,14 +214,16 @@ class sens2_ProtoDriver extends core_BaseClass
         if ($this->driverRec) {
             while ($pRec = $pQuery->fetch("#controllerId = {$this->driverRec->id}")) {
                 $pDriver = sens2_IOPorts::getDriver($pRec);
-                $dPorts = $pDriver->discovery($pRec);
-                foreach ($dPorts as $p) {
-                    $p->lName = $p->name;
-                    $p->name = $pRec->name . ($p->name ? '.' . $p->name : '');
-                    $p->slot = $pRec->slot;
-                    $pDriver->addTimeValues($p, $pRec);
-                    $ports[] = $p;
-                }
+                if ($pDriver) {
+                    $dPorts = $pDriver->discovery($pRec);
+                    foreach ($dPorts as $p) {
+                        $p->lName = $p->name;
+                        $p->name = $pRec->name . ($p->name ? '.' . $p->name : '');
+                        $p->slot = $pRec->slot;
+                        $pDriver->addTimeValues($p, $pRec);
+                        $ports[] = $p;
+                    }
+                } else { continue; }
             }
         }
         
@@ -270,5 +282,19 @@ class sens2_ProtoDriver extends core_BaseClass
     public function getMaxPortsPerSlot($slotType)
     {
         return 1;
+    }
+
+
+    /**
+     * Връща масив, като на всеки порт записва съобщението за грешка
+     */
+    public static function setErrors($ports, $errMsg)
+    {
+        $res = array();
+        foreach($ports as $port => $dummy) {
+            $res[$port] = $errMsg;
+        }
+
+        return $res;
     }
 }

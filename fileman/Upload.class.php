@@ -39,8 +39,10 @@ class fileman_Upload extends core_Manager
         // Дали ще качаваме много файлове едновременно
         $allowMultiUpload = false;
         
-        Request::setProtected('callback, bucketId');
-        
+        Request::setProtected('callback, bucketId, validUntil');
+
+        $validUntil = Request::get('validUntil', 'datetime');
+
         // Вземаме callBack'а
         if ($callback = Request::get('callback', 'identifier')) {
             
@@ -65,7 +67,7 @@ class fileman_Upload extends core_Manager
         if (Request::get('Upload')) {
             $resEt = new ET();
             
-            $this->makeUpload($_FILES, $bucketId, $resEt, $callback);
+            $this->makeUpload($_FILES, $bucketId, $resEt, $callback, $success);
             
             if (Request::get('ajax_mode')) {
                 core_App::outputJson(array('success' => $success, 'res' => $resEt->getContent()));
@@ -84,7 +86,9 @@ class fileman_Upload extends core_Manager
         $tpl = $this->getProgressTpl($allowMultiUpload, $maxAllowedFileSize);
         
         $tpl->prepend($add);
-        
+
+        fileman_Upload2::checkLinkValidity($validUntil, $tpl);
+
         return $this->renderDialog($tpl);
     }
     
@@ -99,7 +103,7 @@ class fileman_Upload extends core_Manager
      * 
      * @return array
      */
-    public static function makeUpload($files, $bucketId, &$resEt = null, $callback = null)
+    public static function makeUpload($files, $bucketId, &$resEt = null, $callback = null, &$success = null)
     {
         $resArr = array();
         
@@ -156,12 +160,12 @@ class fileman_Upload extends core_Manager
                 if ($files[$inputName]['error'][$id]) {
                     // Ако са възникнали грешки при качването - записваме ги в променливата $err
                     switch ($files[$inputName]['error'][$id]) {
-                        case 1: $err[] = tr('Достигнато е ограничението за размер на файла в "php.ini"'); break;
-                        case 2: $err[] = tr('Размерът на файла е над "MAX_FILE_SIZE"'); break;
-                        case 3: $err[] = tr('Не е качен целия файл'); break;
+                        case 1: $err[] = tr('Размерът на файла надвишава ограничението, зададено в "php.ini"'); break;
+                        case 2: $err[] = tr('Размерът на файла надвишава стойността на "MAX_FILE_SIZE" от формуляра'); break;
+                        case 3: $err[] = tr('Файлът беше качен само частично'); break;
                         case 4: $err[] = tr('Не е качен файл'); break;
-                        case 6: $err[] = tr('Не може да се намери временната директория'); break;
-                        case 7: $err[] = tr('Грешка при записване на файла'); break;
+                        case 6: $err[] = tr('Временната директория не може да бъде намерена'); break;
+                        case 7: $err[] = tr('Грешка при записване на файла на диска'); break;
                     }
                 }
                 

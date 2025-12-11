@@ -146,14 +146,14 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('customUrlId', 'bigint', 'caption=URL номера от обект, input=none,column=none,single=none');
         
         $this->setDbUnique('url, userId');
-        $this->setDbIndex('userId,activatedOn,modifiedOn,id');
-        
-        $this->setDbIndex('customUrlId');
-        $this->setDbIndex('urlId');
-
-        $this->setDbIndex('activatedOn,state,userId');
+        $this->setDbIndex('userId,activatedOn,modifiedOn');
+        $this->setDbIndex('userId,state,hidden');
+        $this->setDbIndex('activatedOn');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('lastTime');
+
+//        $this->setDbIndex('customUrlId');
+//        $this->setDbIndex('urlId');
     }
     
     
@@ -432,7 +432,7 @@ class bgerp_Notifications extends core_Manager
      *
      * @return void
      */
-    public static function on_AfterSessionClose($mvc)
+    public static function on_Shutdown($mvc)
     {
         if (!empty($mvc->alternateMessages)) {
             Mode::set('isNotifyAlternateUsers', true);
@@ -474,11 +474,11 @@ class bgerp_Notifications extends core_Manager
         $url = toUrl($urlArr, 'local', false);
         
         $query = bgerp_Notifications::getQuery();
-
-        $urlId = self::prepareUrlId($url);
-        if ($urlId) {
-            $query->where(array("#urlId = '[#1#]'", $urlId));
-        }
+////
+//        $urlId = self::prepareUrlId($url);
+//        if ($urlId) {
+//            $query->where(array("#urlId = '[#1#]'", $urlId));
+//        }
         
         if ($userId == '*') {
             $query->where(array("#url = '[#1#]' AND #state = 'active'", $url));
@@ -486,7 +486,7 @@ class bgerp_Notifications extends core_Manager
             $query->where(array("#userId = {$userId} AND #url = '[#1#]' AND #state = 'active'", $url));
         }
         $query->show('id, state, userId, url');
-        
+
         while ($rec = $query->fetch()) {
             $rec->state = 'closed';
             $rec->closedOn = dt::now();
@@ -508,10 +508,10 @@ class bgerp_Notifications extends core_Manager
             $userId = core_Users::getCurrent();
         }
         
-        $urlId = self::prepareUrlId($url);
-        if ($urlId) {
-            $query->where(array("#urlId = '[#1#]'", $urlId));
-        }
+//        $urlId = self::prepareUrlId($url);
+//        if ($urlId) {
+//            $query->where(array("#urlId = '[#1#]'", $urlId));
+//        }
         
         $query->where(array("#url = '[#1#]' AND #userId = '[#2#]'", $url, $userId));
         
@@ -533,10 +533,10 @@ class bgerp_Notifications extends core_Manager
         
         $query = self::getQuery();
         
-        $urlId = self::prepareUrlId($url);
-        if ($urlId) {
-            $query->where(array("#urlId = '[#1#]'", $urlId));
-        }
+//        $urlId = self::prepareUrlId($url);
+//        if ($urlId) {
+//            $query->where(array("#urlId = '[#1#]'", $urlId));
+//        }
         
         $query->where("#state = 'active'");
         $query->where("#hidden = 'no'");
@@ -569,10 +569,10 @@ class bgerp_Notifications extends core_Manager
         
         $query = self::getQuery();
         
-        $urlId = self::prepareUrlId($url);
-        if ($urlId) {
-            $query->where(array("#urlId = '[#1#]'", $urlId));
-        }
+//        $urlId = self::prepareUrlId($url);
+//        if ($urlId) {
+//            $query->where(array("#urlId = '[#1#]'", $urlId));
+//        }
         
         $query->where("#url = '{$url}'");
         
@@ -595,10 +595,10 @@ class bgerp_Notifications extends core_Manager
         
         $query = self::getQuery();
         
-        $urlId = self::prepareUrlId($url);
-        if ($urlId) {
-            $query->where(array("#urlId = '[#1#]'", $urlId));
-        }
+//        $urlId = self::prepareUrlId($url);
+//        if ($urlId) {
+//            $query->where(array("#urlId = '[#1#]'", $urlId));
+//        }
         
         $query->where("#url = '{$url}'");
         
@@ -834,7 +834,7 @@ class bgerp_Notifications extends core_Manager
             $unsubscribeUrl = array(get_called_class(), 'unsubscribe', $rec->id);
             $attr = array('ef_icon' => 'img/16/no-bell.png', 'title' => 'Автоматично отписване от нотификациите', 'class' => 'button', 'data-url' => toUrl($unsubscribeUrl, 'local'));
             $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
-            $unsubscribeBtn = ht::createLink('Отписване', $unsubscribeUrl, null, $attr);
+            $unsubscribeBtn = ht::createLink(tr('Отписване'), $unsubscribeUrl, null, $attr);
             $tpl->append($unsubscribeBtn);
         }
         
@@ -845,7 +845,7 @@ class bgerp_Notifications extends core_Manager
                 $ctrInst = cls::get($ctr);
                 $settingsUrl = array(get_called_class(), 'settings', $rec->id, 'ret_url' => true);
                 if (($ctrInst instanceof doc_Folders) || ($ctrInst instanceof doc_Threads) || ($ctrInst instanceof doc_Containers) || (cls::haveInterface('doc_DocumentIntf', $ctrInst))) {
-                    $settingsBtn = ht::createLink('Настройки', $settingsUrl, null, array('ef_icon' => 'img/16/cog.png', 'title' => 'Настройки за получаване на нотификация', 'class' => 'button'));
+                    $settingsBtn = ht::createLink(tr('Настройки'), $settingsUrl, null, array('ef_icon' => 'img/16/cog.png', 'title' => 'Настройки за получаване на нотификация', 'class' => 'button'));
                     $tpl->append($settingsBtn);
                 }
             }
@@ -1559,8 +1559,12 @@ class bgerp_Notifications extends core_Manager
         }
         
         if ($userId > 0) {
-            $query = self::getQuery();
-            $cnt = $query->count("#userId = ${userId} AND #state = 'active' AND #hidden = 'no'");
+            $cnt = core_Cache::get('OpenNtfCnt', $userId);
+            if($cnt === false) {
+                $query = self::getQuery();
+                $cnt = $query->count("#userId = {$userId} AND #state = 'active' AND #hidden = 'no'");
+                core_Cache::set('OpenNtfCnt', $userId, $cnt, 600);
+            }
         } else {
             $cnt = 0;
         }
@@ -1758,8 +1762,11 @@ class bgerp_Notifications extends core_Manager
             // Ако е събскрайбнато от външния изглед на партньор да се подава и кой е избрания таб
             $url['externalTab'] = Mode::get('currentExternalTab');
         }
-        core_Ajax::subscribe($tpl, $url, 'notificationsCnt', 5000);
-        
+
+        if (core_Users::getCurrent()) {
+            core_Ajax::subscribe($tpl, $url, 'notificationsCnt', 5000);
+        }
+
         return $tpl;
     }
     
@@ -1773,7 +1780,7 @@ class bgerp_Notifications extends core_Manager
         if (Request::get('ajax_mode')) {
             
             // Броя на нотификациите
-            $notifCnt = static::getOpenCnt();
+            $notifCnt = (int) static::getOpenCnt();
             
             $res = array();
             
@@ -1785,7 +1792,7 @@ class bgerp_Notifications extends core_Manager
             $res[] = $obj;
 
             // Ако има увеличаване - пускаме звук
-            $lastCnt = Mode::get('NotificationsCnt');
+            $lastCnt = (int) Mode::get('NotificationsCnt');
 
             // Ако е партньор да се рефрешне и броя на нотификациите в блока на
             if(core_Users::isContractor()){
@@ -1798,8 +1805,8 @@ class bgerp_Notifications extends core_Manager
                     $res[] = $obj1;
                 }
             }
-            
-            if (isset($lastCnt) && ($notifCnt > $lastCnt)) {
+
+            if ($notifCnt > $lastCnt) {
                 $newNotifCnt = $notifCnt - $lastCnt;
                 
                 if ($newNotifCnt == 1) {
@@ -1807,20 +1814,22 @@ class bgerp_Notifications extends core_Manager
                 } else {
                     $notifStr = $newNotifCnt . ' ' . tr('нови известия');
                 }
-                
-                $notifyArr = array('title' => $notifStr, 'blinkTimes' => 2);
-                
-                // Добавяме и звук, ако е зададено
-                $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
-                if ($notifSound != 'none') {
-                    $notifyArr['soundOgg'] = sbf("sounds/{$notifSound}.ogg", '');
-                    $notifyArr['soundMp3'] = sbf("sounds/{$notifSound}.mp3", '');
+
+                if ($newNotifCnt > 0) {
+                    $notifyArr = array('title' => $notifStr, 'blinkTimes' => 2);
+
+                    // Добавяме и звук, ако е зададено
+                    $notifSound = bgerp_Setup::get('SOUND_ON_NOTIFICATION');
+                    if ($notifSound != 'none') {
+                        $notifyArr['soundOgg'] = sbf("sounds/{$notifSound}.ogg", '');
+                        $notifyArr['soundMp3'] = sbf("sounds/{$notifSound}.mp3", '');
+                    }
+
+                    $obj = new stdClass();
+                    $obj->func = 'Notify';
+                    $obj->arg = $notifyArr;
+                    $res[] = $obj;
                 }
-                
-                $obj = new stdClass();
-                $obj->func = 'Notify';
-                $obj->arg = $notifyArr;
-                $res[] = $obj;
             }
             
             // Записваме в сесията последно изпратените нотификации, ако има промяна
@@ -2029,6 +2038,9 @@ class bgerp_Notifications extends core_Manager
      */
     public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = null)
     {
+        // Премахва кеша за броя на нотификациите на този потребител
+        core_Cache::remove('OpenNtfCnt', $rec->userId);
+
         if ($rec->id) {
             if ($fields !== null) {
                 $fields = arr::make($fields, true);

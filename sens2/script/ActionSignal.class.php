@@ -134,17 +134,19 @@ class sens2_script_ActionSignal
         // Проверяваме дали семафора позволява да се зададе изхода
         if(!sens2_Semaphores::check($rec->id, $value, $rec->onlyDifferent, $rec->minInterval, $rec->minAttempts)) {
 
-            return 'active';
+            return 'closed';
         }
 
         // Задаваме го на изхода
         $res = sens2_Controllers::setOutput($rec->output, $value);
         
-        if (is_array($res)) {
+        if ($res === true) {
             
             sens2_script_Logs::add('setOut', $rec->scriptId, $rec->id, $rec->output, $value);
 
             return 'active';
+        } else {
+            sens2_script_Logs::add('setOut', $rec->scriptId, $rec->id, $rec->output, $value, $res);
         }
         
         return 'stopped';

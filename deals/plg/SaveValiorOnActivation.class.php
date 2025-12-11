@@ -45,23 +45,20 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $hint = $mvc->hasPlugin('acc_plg_Contable') ? 'Вальорът ще бъде записан при контиране|*!' : 'Вальорът ще бъде записан при активиране|*!';
         $valiorToBe = $mvc->getFieldType($mvc->valiorFld)->toVerbal(dt::today());
-        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? $row->{$mvc->valiorFld} : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
+        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? $row->{$mvc->valiorFld} : ((Mode::is('printing') || Mode::is('text', 'xhtml')) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", $hint));
     }
-    
-    
+
+
     /**
-     * Извиква се преди запис в модела
-     *
-     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
-     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
-     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
-     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
-     * @param string       $mode    Режим на записа: replace, ignore
+     * Изпълнява се преди запис
      */
     public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if($rec->state == 'active' && empty($rec->{$mvc->valiorFld})){
+        $valior = !empty($rec->{$mvc->valiorFld}) ? $rec->{$mvc->valiorFld} : (isset($rec->id) ? $mvc->fetchField($rec->id, $mvc->valiorFld, '*') : null);
+
+        if($rec->state == 'active' && empty($valior)){
             $rec->{$mvc->valiorFld} = dt::today();
         }
     }

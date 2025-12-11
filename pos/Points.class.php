@@ -111,7 +111,7 @@ class pos_Points extends core_Master
      *
      * @see plg_Settings
      */
-    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,payments,chargeVat,setDiscounts,productBtnTpl,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups,showProductCode,discountPolicyId,vatExceptionId';
+    public $settingFields = 'policyId,payments,theme,cashiers,setPrices,payments,chargeVat,setDiscounts,productBtnTpl,maxSearchProductRelations,usedDiscounts,maxSearchContragentStart,maxSearchContragent,otherStores,maxSearchProducts,maxSearchReceipts,maxSearchProductInLastSales,searchDelayTerminal,productGroups,showProductCode,discountPolicyId,vatExceptionId,bankPeripherals';
 
 
     /**
@@ -132,7 +132,7 @@ class pos_Points extends core_Master
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(16)', 'caption=Наименование, mandatory');
+        $this->FLD('name', 'varchar(32)', 'caption=Наименование, mandatory');
         $this->FLD('caseId', 'key(mvc=cash_Cases, select=name)', 'caption=Каса, mandatory');
         $this->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Настройки->Политика, mandatory');
         $this->FLD('discountPolicyId', 'key(mvc=price_Lists, select=title, allowEmpty)', 'caption=Настройки->Политика за отстъпки');
@@ -143,11 +143,12 @@ class pos_Points extends core_Master
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=default,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
         $this->FLD('productGroups', 'table(columns=groupId,captions=Група,validate=pos_Points::validateGroups,groupId_class=leftCell)', 'caption=Настройки->Групи');
-        $this->FLD('productBtnTpl', 'enum(wide=Широк,short=Кратък,picture=Снимка,pictureAndText=Снимка и текст)', 'caption=Настройки->Артикули (Шаблон), notNull, value=wide');
+        $this->FLD('productBtnTpl', 'enum(wide=Широк,short=Кратък,picture=Снимка,pictureAndText=Снимка и текст,rows=Редове)', 'caption=Настройки->Артикули (Шаблон), notNull, value=wide');
         $this->FLD('showProductCode', 'enum(yes=Показване,no=Скриване)', 'caption=Настройки->Артикули (Код), notNull, value=yes');
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts,discount_class=leftCell)', 'caption=Ръчно задаване->Използвани отстъпки');
+        $this->FLD('bankPeripherals', 'keylist(mvc=peripheral_Devices, select=name, allowEmpty)', 'caption=Настройки->Банкови устр.');
 
         $this->FLD('maxSearchProducts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Артикули');
         $this->FLD('maxSearchProductRelations', 'int(min=0)', 'caption=Максимален брой резултати в "Избор"->Свързани артикули');
@@ -261,6 +262,10 @@ class pos_Points extends core_Master
             if(!empty($rec->otherStores) && keylist::isIn($rec->storeId, $rec->otherStores)){
                 $form->setError('otherStores', 'Основният склад не може да е избран');
             }
+
+            if(empty($rec->productGroups) && $rec->productBtnTpl == 'rows'){
+                $form->setError('productGroups,productBtnTpl', 'Не може да се избере редове, ако няма посочени групи');
+            }
         }
     }
 
@@ -272,10 +277,19 @@ class pos_Points extends core_Master
      *
      * @return array $payments
      */
-    public static function fetchSelected($pointId)
+    public static function fetchSelectedPayments($pointId)
     {
         // Ако са посочени конкретни, само те се разрешават
         $payments = keylist::toArray(static::getSettings($pointId, 'payments'));
+
+        // Ако сме в еврозоната и сме преди датата на депрекейтване на лева - да може да се плаща и безналично с Лева
+        $today = dt::today();
+        if($today > acc_Setup::getEurozoneDate() && $today <= acc_Setup::getBgnDeprecationDate()){
+            if($bgnPaymentId = eurozone_Setup::getBgnPaymentId()){
+                $payments[$bgnPaymentId] = $bgnPaymentId;
+            }
+        }
+
         if(!countR($payments)) return array();
 
         $paymentQuery = cond_Payments::getQuery();
@@ -337,6 +351,18 @@ class pos_Points extends core_Master
 
         $productGroupOptions = array('' => '') + cls::get('cat_Groups')->makeArray4Select('name');
         $form->setFieldTypeParams('productGroups', array('groupId_opt' => $productGroupOptions));
+
+        // Добавяне на опции за избор на банков терминал
+        $bankPeripheralOptions = array();
+        $bankPeripherals = peripheral_Devices::getDevices('bank_interface_POS', false);
+        foreach ($bankPeripherals as $id => $dRec) {
+            $bankPeripheralOptions[$id] = $dRec->name;
+        }
+        if(countR($bankPeripheralOptions)){
+            $form->setSuggestions('bankPeripherals', array('' => '') + $bankPeripheralOptions);
+        } else {
+            $form->setField('bankPeripherals', 'input=none');
+        }
     }
 
 
@@ -374,11 +400,11 @@ class pos_Points extends core_Master
         }
 
         $reportUrl = array();
-        if (pos_Reports::haveRightFor('add', (object) array('pointId' => $rec->id)) && pos_Reports::canMakeReport($rec->id)) {
-            $reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'ret_url' => true);
+        if (pos_Reports::haveRightFor('add', (object) array('pointId' => $rec->id, 'folderId' => $rec->folderId)) && pos_Reports::canMakeReport($rec->id)) {
+            $reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'folderId' => $rec->folderId, 'ret_url' => true);
         }
 
-        $title = (countR($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
+        $title = (countR($reportUrl)) ? 'Създаване на отчет за POS продажби' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
 
         $data->toolbar->addBtn('Отчет', $reportUrl, null, "title={$title},ef_icon=img/16/report.png");
     }

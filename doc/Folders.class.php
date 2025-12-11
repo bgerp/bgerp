@@ -150,7 +150,6 @@ class doc_Folders extends core_Master
         $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
         
         $this->setDbUnique('coverId,coverClass');
-
         $this->setDbIndex('last');
         $this->setDbIndex('createdOn');
     }
@@ -816,7 +815,7 @@ class doc_Folders extends core_Master
         $tQuery->where(array("#folderId = '[#1#]'", $folderId));
         $tQuery->groupBy('visibleForPartners,state,firstDocClass');
         
-        $tQuery->XPR('cnt', 'int', 'COUNT(#id)');
+        $tQuery->XPR('cnt', 'int', 'COUNT(*)');
         
         $tQuery->show('visibleForPartners,state,firstDocClass,cnt');
         
@@ -2235,11 +2234,16 @@ class doc_Folders extends core_Master
                 $cacheKey = "containing|" . implode('|', $documentIds);
                 $folderIds = core_Cache::get('doc_Folders', $cacheKey);
                 if (!is_array($folderIds)) {
-                    $cQuery = doc_Containers::getQuery();
+                    $Containers = cls::get('doc_Containers');
+                    $Containers->forceProxy();
+                    $cQuery = $Containers->getQuery();
                     $cQuery->in('docClass', $documentIds);
                     $cQuery->show('folderId');
                     $cQuery->groupBy('folderId');
+                    $cQuery->limit(20);
+                    $cQuery->orderBy('createdOn', 'DESC');
                     $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
+                    $Containers->unforceProxy();
                     if(countR($folderIds)) {
                         core_Cache::set('doc_Folders', $cacheKey, $folderIds, 10);
                     }

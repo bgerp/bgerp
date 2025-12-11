@@ -1070,6 +1070,7 @@ if ($step == 'setup') {
                     </li>
                 ");
     $cnt = 0;
+    $percentsLog = 0;
     do {
         clearstatcache(EF_SETUP_LOG_PATH);
         $fTime = filemtime(EF_SETUP_LOG_PATH);
@@ -1295,7 +1296,7 @@ function logToHtml($log, &$stat)
  */
 function linksToHtml($links)
 {
-    $html .= "\n<ul class='msg stats'>";
+    $html = "\n<ul class='msg stats'>";
 
     foreach ($links as $l) {
         list($class, $url, $text, $target, $info) = array_pad(explode('|', $l, 5), 5, '');

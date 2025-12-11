@@ -32,7 +32,49 @@ class cms_Includes extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_Created, plg_Modified, plg_State2, plg_RowTools2, plg_Printing, cms_Wrapper';
-    
+
+
+    /**
+     * Права за писане
+     */
+    public $canWrite = 'ceo, admin, cms';
+
+
+    /**
+     * Права за писане
+     */
+    public $canEdit = 'ceo, admin, cms';
+
+
+    /**
+     * Кой може да редактира системните данни
+     */
+    public $canEditsysdata = 'ceo,admin,cms';
+
+
+    /**
+     * Кой може да изтрива системните данни
+     */
+    public $canDeletesysdata = 'ceo,admin,cms';
+
+
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'ceo, cms, admin';
+
+
+    /**
+     * Кой може да избира текущ домейн
+     */
+    public $canSelect = 'ceo, admin, cms';
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo, cms, admin';
+
     
     /**
      * Описание на модела (таблицата)
@@ -42,7 +84,7 @@ class cms_Includes extends core_Master
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt,allowEmpty)', 'caption=Домейн,mandatory,autoFilter');
         $this->FLD('place', 'varchar(32)', 'caption=Място,mandatory,suggestions=HTTP_HEADER|HEAD|JS|CSS|META_DESCRIPTION|META_KEYWORDS|STYLES|PAGE_CONTENT|SCRIPTS');
         $this->FLD('mode', 'enum(append, prepend, replace, push)', 'caption=Метод');
-        $this->FLD('code', 'text', 'caption=Код,mandatory,width=100%');
+        $this->FLD('code', 'text(viewrows=3)', 'caption=Код,mandatory,width=100%');
     }
     
     

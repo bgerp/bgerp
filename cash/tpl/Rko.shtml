@@ -37,18 +37,14 @@
                 </tr>
             </table>
             <div class='lines'></div>
-            <table border='1px' cellpadding='5px'  class='border-table'>
+            <table class='border-table'>
                 <tr>
-                    <td class='aleft' style='padding-top: 10px;width:67%;'>
+                    <td class='aleft' style='padding-top: 10px; min-width:300px; max-width: 50% !important;'>
                         <!--ET_BEGIN Invoices-->
                         <table>
                             [#InvoicesToDocuments#]
                         </table>
                         <!--ET_END Invoices-->
-                        <!--ET_BEGIN reason-->
-                        <div class='richtext-holder' style="padding: 0 3px;"><span class='quiet'>|Основание|*: </span>[#reason#]</div>
-                        <!--ET_END reason-->
-
                         <!--ET_BEGIN termDate-->
                         <div class='richtext-holder' style="padding: 0 3px;"><span class='quiet'>|Срок|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
                         <!--ET_END termDate-->
@@ -66,9 +62,13 @@
                         <!--ET_BEGIN lineVehicleId-->
                         <div><span class='quiet' style="padding: 0 3px;">|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
                         <!--ET_END lineVehicleId-->
+                        <!--ET_BEGIN amountGiven-->
+                        <hr>
+                        <div><span class='quiet' style="padding: 0 3px;">|В брой|*:</span>  [#amountGiven#] »  <span class='quiet' style="padding: 0 3px 0 10px;">|Ресто|*:</span> [#change#] </div>
+                        <!--ET_END amountGiven-->
                     </td>
-                    <td style='padding-left:10px; padding-top: 10px;'>
-                        <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
+                    <td style='padding-left:10px; padding-top: 10px;max-width:50%; min-width: 300px'>
+                        <table class="no-border fright"><tr><td style='font-size:20px'>|Сума|*:</td><td class='amount' style="margin-right: 0"><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></td></tr></table>
                     </td>
                 </tr>
                 <tr>
@@ -76,29 +76,24 @@
                         |Словом|*: [#amountVerbal#]<br>
                     </td>
                 </tr>
-            </table>
-            <table class="pko-notes border-table">
-                <!--ET_BEGIN rkoRow-->
-                [#rkoRow#]
+                <!--ET_BEGIN reason-->
                 <tr>
-                    <td colspan='2'>
-                        <table style='width:100%' class="no-border">
-                            <tr>
-                                <!--ET_BEGIN amountDeal-->
-                                <td style='vertical-align:middle !important'>
-                                    <div class ='misc' style='float:right'>
-                                        <div style='margin-top:7px;'>
-                                            <span class='labels'>|Платени по сделката|*:</span>
-                                            <span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b>
-                                        </div>
-                                         <span class='labels'>|Курс|*: <b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></span>
-                                    </div>
-                                </td>
-                                <!--ET_END amountDeal-->
-                            </tr>
-                        </table>
+                    <td colspan="3">
+                        <div class='richtext-holder fleft' style="padding: 0 3px;"><span class='quiet'>|Основание|*: </span>[#reason#]</div>
+                        <!--ET_BEGIN amountDeal-->
+                        <div class ='misc fright' style="display: inline-block">
+                            <div class="nowrap">
+                                <span class='labels'>|Платени по сделката|*:</span> <span class='cCode'>[#dealCurrencyId#]</span>&nbsp;&nbsp;<b>[#amountDeal#]</b>
+                            </div>
+                            <div class="nowrap"><span class='labels'>|Курс|*: <b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></span></div>
+                        </div>
+                        <!--ET_END amountDeal-->
+                    </td>
                 </tr>
-                <!--ET_END rkoRow-->
+                <!--ET_END reason-->
+            </table>
+            <div class="lines"></div>
+            <table class="pko-notes border-table">
                 <tr>
                     <td style='padding-left:1%;padding-bottom:1%;text-align:center;width:50%;'>
                         <table class='signature-table'  style="width: 100px; margin: 20px auto 0">
