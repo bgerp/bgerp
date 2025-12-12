@@ -533,7 +533,8 @@ class store_ShipmentOrders extends store_DocumentMaster
         $res = parent::getLogisticData($rec);
 
         unset($res['deliveryTime']);
-        $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : ($rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY'));
+        $valior = !empty($rec->valior) ? ($rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY')) : null;
+        $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $valior;
 
         return $res;
     }
