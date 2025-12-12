@@ -544,6 +544,7 @@ select.tabHolder {
      * ограничение до 2 реда
      */
     text-align: center;
+    line-height: 1.1em;
     overflow: hidden;
     font-size: 0.95em;
     box-sizing: border-box;
