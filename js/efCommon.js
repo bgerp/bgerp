@@ -6463,6 +6463,161 @@ function checkVatAndTriger(name) {
     }
 }
 
+function contoPkoPrompt(ev, buttonEl, callUrl) {
+    var warningText        = buttonEl.dataset.warning;
+    var expectedAmount     = buttonEl.dataset.expectedAmount;
+    var currenciesRaw      = buttonEl.dataset.expectedCurrency || '';
+    var errorFormatMsg     = buttonEl.dataset.errorFormat;
+    var errorCurrencyMsg   = buttonEl.dataset.errorCurrency;
+    var defaultCurrencyRaw = buttonEl.dataset.defaultCurrency || '';
+    var documentUrl        = buttonEl.dataset.url;     // базовият URL от бекенда
+
+    // позволени валути – в uppercase
+    var allowedCurrencies = currenciesRaw
+        .split(',')
+        .map(function (s) { return s.trim().toUpperCase(); })
+        .filter(function (s) { return s.length > 0; });
+
+    var userText = window.prompt(warningText, expectedAmount);
+
+    function stopEvent(e) {
+        if (!e) return;
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+        if (typeof e.stopPropagation === 'function')          e.stopPropagation();
+        if (typeof e.preventDefault === 'function')           e.preventDefault();
+    }
+
+    function blurButton(btn) {
+        if (window.jQuery) {
+            jQuery(btn).blur();
+        } else if (btn && typeof btn.blur === 'function') {
+            btn.blur();
+        }
+    }
+
+    // URL, който евентуално ще викаме през Efae
+    var urlToCall = null;
+
+    // 1) Cancel -> спира абсолютно всичко (няма контиране)
+    if (userText === null) {
+        stopEvent(ev);
+        blurButton(buttonEl);
+        return false;
+    }
+
+    // 2) Ако текстът не е променян
+    if (userText === expectedAmount) {
+        // не пипаме URL, не валидираме нищо
+        urlToCall = documentUrl;
+
+        // ако не искаме директно callUrl -> оставяме другия handler да си работи
+        if (!callUrl) {
+            return true;
+        }
+
+        // ако callUrl === true, ще стигнем до Efae call по-долу
+    } else {
+        // 3) Текстът е променен -> парсваме и валидираме
+
+        userText = userText.trim();
+
+        // число + интервали за хилядни + интервал + валута (латиница или кирилица), евентуално с точка:
+        // "10 000,50 BGN" / "10 лв." / "10 лева"
+        var matchNumAndCur = userText.match(
+            /^([0-9]{1,3}(?:[ ]?[0-9]{3})*(?:[.,][0-9]+)?)\s+([A-Za-zА-Яа-яЁё\.]+)$/u
+        );
+
+        // само число (с евентуални интервали за хилядни): "10 000,50"
+        var matchNumOnly   = userText.match(
+            /^([0-9]{1,3}(?:[ ]?[0-9]{3})*(?:[.,][0-9]+)?)$/
+        );
+
+        var amountStr, currency = '';
+
+        if (matchNumAndCur) {
+            amountStr = matchNumAndCur[1];
+            currency  = matchNumAndCur[2].trim();      // може да е "BGN", "bgn", "лв", "ЛВ.", "лева" и т.н.
+        } else if (matchNumOnly) {
+            amountStr = matchNumOnly[1];
+            // ако е само число – ползваме винаги data-default-currency
+            currency  = defaultCurrencyRaw.trim();
+        } else {
+            // невалиден формат -> показваме грешка и спираме всичко
+            alert(errorFormatMsg);
+            stopEvent(ev);
+            blurButton(buttonEl);
+            return false;
+        }
+
+        // === НОРМАЛИЗАЦИЯ НА ВАЛУТАТА ===
+        // ако allowedCurrencies съдържа BGN – приемаме "лева", "лв", "лв." (case-insensitive) за BGN
+        if (currency) {
+            var hasBGNAllowed = allowedCurrencies.indexOf('BGN') !== -1;
+
+            var curLower = currency.toLowerCase().replace(/\.$/, '').trim(); // махаме финална точка
+
+            if (hasBGNAllowed && (curLower === 'лева' || curLower === 'лв')) {
+                currency = 'BGN';
+            } else {
+                // за всички други – нормален uppercase (EUR, usd и т.н.)
+                currency = currency.toUpperCase();
+            }
+        }
+
+        // проверка дали валутата е сред позволените
+        if (allowedCurrencies.length > 0 && allowedCurrencies.indexOf(currency) === -1) {
+            alert(errorCurrencyMsg);
+            stopEvent(ev);
+            blurButton(buttonEl);
+            return false;
+        }
+
+        // 4) Валидни amount + currency -> променяме URL
+        if (documentUrl) {
+            // нормализираме amountStr за path:
+            // махаме интервали за хилядни, заменяме ',' с '.'
+            var normalizedAmount = amountStr.replace(/\s+/g, '').replace(',', '.');
+
+            var newUrl = documentUrl;
+            if (newUrl.charAt(newUrl.length - 1) !== '/') {
+                newUrl += '/';
+            }
+
+            newUrl += 'amount/'   + encodeURIComponent(normalizedAmount)
+                + '/currency/' + encodeURIComponent(currency);
+
+            // обновяваме data-url
+            buttonEl.dataset.url = newUrl;
+            urlToCall = newUrl;
+        } else {
+            // няма базов URL – няма какво да извикаме
+            urlToCall = null;
+        }
+    }
+
+    // 5) Ако трябва директно да извикаме URL-а през Efae
+    if (callUrl && urlToCall) {
+        if (typeof getEfae === 'function') {
+            var efae = getEfae();
+            if (efae && typeof efae.process === 'function') {
+                // точно както поиска:
+                resObj = new Object();
+                resObj['url'] = urlToCall;
+
+                // ако глобално има data – ползваме го, иначе undefined
+                var dataArg = (typeof data !== 'undefined') ? data : undefined;
+                efae.process(resObj, dataArg);
+            }
+        }
+    }
+
+    // НЕ пипаме ev тук -> при callUrl=false другият handler ще се изпълни
+    // при callUrl=true: ако все още имаш друг handler, ще се извика и той
+    return true;
+}
+
+
+
 
 /**
  * smartresize - намалява събитията на on resize
