@@ -542,7 +542,6 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $row->title = $mvc->getLink($rec->id, 0);
 
-
         if ($fields['-single']) {
             $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 
@@ -609,30 +608,45 @@ abstract class cash_Document extends deals_PaymentDocument
             // Ако има посочено колко е платено - показва се и рестото
             if(isset($rec->amountGiven)){
                 $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
-
-                $change = $rec->amountGiven - $rec->amount;
-                if(in_array($currencyCode, array('BGN', 'EUR'))){
-                    $changeBgn = $currencyCode == 'BGN' ? $change : round($change * 1.95583, 2);
-                    $changeEur = $currencyCode == 'EUR' ? $change : round($change / 1.95583, 2);
-
-                    $changeBgnRow = core_Type::getByName("double(decimals=2)")->toVerbal($changeBgn);
-                    $changeBgnRow = currency_Currencies::decorate($changeBgnRow, 'BGN', true);
-
-                    $changeEuroRow = core_Type::getByName("double(decimals=2)")->toVerbal($changeEur);
-                    $changeEuroRow = currency_Currencies::decorate($changeEuroRow, 'EUR', true);
-                    if($currencyCode == 'BGN'){
-                        $row->change = "{$changeBgnRow} / {$changeEuroRow}";
-                    } else {
-                        $row->change = "{$changeEuroRow} / {$changeBgnRow}";
-                    }
-                } else {
-                    $row->change = core_Type::getByName("double(decimals=2)")->toVerbal($change);
-                }
+                $row->change = self::renderChange($rec);
             }
         }
     }
-    
-    
+
+
+    /**
+     * Рендира очакваното ресто
+     *
+     * @param stdClass $rec
+     * @return string
+     */
+    public static function renderChange($rec)
+    {
+        $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+        $change = $rec->amountGiven - $rec->amount;
+        if($change <= 0) return;
+
+        setIfNot($date, $rec->activatedOn, $rec->modifiedOn);
+        if(in_array($currencyCode, array('BGN', 'EUR')) && $date <= acc_Setup::getBgnDeprecationDate()){
+            $changeBgn = $currencyCode == 'BGN' ? $change : round($change * 1.95583, 2);
+            $changeEur = $currencyCode == 'EUR' ? $change : round($change / 1.95583, 2);
+
+            $changeBgnRow = core_Type::getByName("double(decimals=2)")->toVerbal($changeBgn);
+            $changeBgnRow = currency_Currencies::decorate($changeBgnRow, 'BGN', true);
+
+            $changeEuroRow = core_Type::getByName("double(decimals=2)")->toVerbal($changeEur);
+            $changeEuroRow = currency_Currencies::decorate($changeEuroRow, 'EUR', true);
+            if($currencyCode == 'BGN'){
+                return "{$changeBgnRow}/ {$changeEuroRow}";
+            }
+
+            return "{$changeEuroRow}/ {$changeBgnRow}";
+        }
+
+        return core_Type::getByName("double(decimals=2)")->toVerbal($change);
+    }
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
@@ -689,23 +703,59 @@ abstract class cash_Document extends deals_PaymentDocument
         $info['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
 
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
+
         Mode::push('text', 'plain');
         $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId, true);
         Mode::pop('text');
+
         $info['cases'] = array($rec->peroCase);
         $info['stores'] = array();
         if($this->haveRightFor('conto', $rec) && $lineState != 'rejected'){
-            $contoUrl = $this->getContoUrl($rec->id);
-            $warning = $this->getContoWarning($rec->id, $rec->isContable);
-            
-            // Сумата да е бутон за контиране
-            if(!Mode::is('printing')){
+            if(!Mode::is('printing') && !Mode::is('xhtml')){
+                $warning = $this->getContoWarning($rec->id, $rec->isContable);
+
                 $info['amountVerbal'] = str_replace('&nbsp;', ' ', $info['amountVerbal']);
-                $btn = ht::createBtn($info['amountVerbal'], $contoUrl, $warning, false, "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа,id={$this->getHandle($rec->id)}");
+
+                $today = dt::today();
+                $attr['class'] = 'document-conto-btn';
+                $attr['ef_icon'] = 'img/16/tick-circle-frame.png';
+                $attr['title'] = 'Контиране на документ';
+                $attr['data-url'] = core_Packs::isInstalled('bgfisc') ? toUrl(array($this, 'contocash', $rec->id, 'lineId' => $lineId), 'local') : toUrl(array($this, 'savegivenamount', $rec->id), 'local');
+                $attr['id'] = $this->getHandle($rec->id);
+                $attr['data-warning'] = tr($warning);
+                $attr['data-expected-amount'] = $info['amount'] . " " . currency_Currencies::getCodeById($rec->currencyId);
+                $attr['data-error-format'] = tr('Невалиден формат. Не са разпознати сума и трибуквен код на валута');
+                $attr['data-default-currency'] =  currency_Currencies::getCodeById($rec->currencyId);
+
+                $expectedCurrencies = array();
+                if($today < acc_Setup::getEurozoneDate()){
+                    $expectedCurrencies[] = 'BGN';
+                } elseif($today <= acc_Setup::getBgnDeprecationDate()){
+                    $expectedCurrencies[] = 'BGN';
+                    $expectedCurrencies[] = 'EUR';
+                } else {
+                    $expectedCurrencies[] = 'EUR';
+                }
+
+                $btnFunction = core_Packs::isInstalled('bgfisc') ? "return contoPkoPrompt(event, this, false);" : "return contoPkoPrompt(event, this, true);";
+                $attr['data-expected-currency'] = implode(',', $expectedCurrencies);
+                $attr['data-error-currency'] = tr('Невалидна валута. Допустими|*: ') . $attr['data-expected-currency'];
+                $btn = ht::createFnBtn($info['amountVerbal'], $btnFunction, null, $attr);
+
+                if(core_Packs::isInstalled('bgfisc')){
+                    $btn->push('bgfisc/js/Receipt.js', 'JS');
+                    jquery_Jquery::run($btn, 'fiscActions();', true);
+                }
+
                 $info['amountVerbal'] = $btn;
             }
         } else {
-            $info['amountVerbal'] = "<span id={$this->getHandle($rec->id)}>{$info['amountVerbal']}</span>";
+            if(!empty($rec->amountGiven)){
+                $change = $this->renderChange($rec);
+                $info['amountVerbal'] .= tr("|*<div class='small'><span class='quiet'>|Ресто|*</span>: {$change}</div>");
+            }
+
+            $info['amountVerbal'] = "<div id={$this->getHandle($rec->id)}>{$info['amountVerbal']}</div>";
             $info['amountVerbal'] = ht::styleNumber($info['amountVerbal'], $info['amount']);
         }
 
@@ -881,5 +931,94 @@ abstract class cash_Document extends deals_PaymentDocument
                 $data->toolbar->addBtn('Контиране', array(), array('id' => 'btnConto', 'error' => 'Документът не може да бъде контиран, докато няма посочена каса|*!'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
             }
         }
+    }
+
+
+    /**
+     * Екшън който записва платената сума и контира документа
+     *
+     * @return array
+     * @throws core_exception_Expect
+     */
+    public function act_savegivenamount()
+    {
+        $this->requireRightFor('conto');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('conto', $rec);
+
+        $amount = Request::get('amount', 'double');
+        $newCurrencyCode = Request::get('currency', 'varchar(3)');
+
+        $resArr = $errors = array();
+        if(!empty($amount) && !empty($newCurrencyCode)){
+            if(static::saveAmountGiven($rec, $amount, $newCurrencyCode, $errors)) {
+                $change = static::renderChange($rec);
+                core_Statuses::newStatus("Платено|*: {$amount} {$newCurrencyCode}. |Ресто|*: {$change}");
+            }
+        }
+
+        $this->conto($rec->id);
+        core_Statuses::newStatus("Документът е контиран успешно|*!");
+        $resObj = new stdClass();
+        $resObj->func = 'reload';
+        $resArr[] = $resObj;
+
+        // Показваме веднага и чакащите статуси
+        $hitTime = Request::get('hitTime', 'int');
+        $idleTime = Request::get('idleTime', 'int');
+        $statusData = status_Messages::getStatusesData($hitTime, $idleTime);
+        $res = array_merge($resArr, (array) $statusData);
+
+        return $res;
+    }
+
+
+    /**
+     * Обновява платеното на документа
+     *
+     * @param stdClass $rec - запис
+     * @param $amount       - платена сума
+     * @param $currencyCode - в каква валута
+     * @param $errors       - грешки при записването
+     *
+     * @return bool
+     */
+    public static function saveAmountGiven($rec, $amount, $currencyCode, &$errors = null)
+    {
+        $errors = array();
+        try{
+            $newCurrencyId = currency_Currencies::getIdByCode($currencyCode);
+        } catch (core_exception_Expect $ex) {
+            $errors[] = "Неразпозната валута|*: {$currencyCode}";
+        }
+
+        $amount = core_Type::getByName('double')->fromVerbal($amount);
+        if(empty($amount)){
+            $errors[] = "Невалидна сума";
+        }
+
+        // Записване в каква валута е станало плащането
+        $docCurrencyCode = currency_Currencies::getCodeById($rec->currencyId);
+        if($docCurrencyCode != $currencyCode){
+            $convertedAmount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $docCurrencyCode, $currencyCode);
+            $rec->currencyId = $newCurrencyId;
+            $rec->amount = round($convertedAmount, 2);
+        }
+
+        $rec->amountGiven = $amount;
+        if($rec->amountGiven <= $rec->amount){
+            $errors[] = "Платеното трябва да е повече от очакваното|*! {$rec->amountGiven} -> {$rec->amount}";
+        }
+
+        $haveErrors = countR($errors);
+        if(!$haveErrors){
+            static::save($rec, 'amountGiven,currencyId,amount');
+            static::logWrite("Задаване на платено", $rec->id);
+            $change = static::renderChange($rec);
+            core_Statuses::newStatus("Платено|*: {$amount} {$currencyCode}. |Ресто|*: {$change}");
+        }
+
+        return !$haveErrors;
     }
 }

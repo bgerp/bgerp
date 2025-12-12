@@ -3,6 +3,7 @@ function fiscActions() {
 
 	// Опит за отпечатване на фискален бон при натискане на бутона
 	$(document.body).on('click', ".printReceiptBtn, .document-conto-btn", function(e){
+
 		var url = $(this).attr("data-url");
 		
 		if(!url) return;
@@ -34,6 +35,19 @@ function render_fiscresult(data)
 	}
 }
 
+
+/**
+ * Рендиране на резултата от отпечатването на фискалната бележка
+ */
+function render_removeDisabledContoBtn(data)
+{
+	// Евалюирани на скрипта за печат на касовата бележка
+	if(data.id){
+		$(".document-conto-btn").removeClass( "disabledBtn");
+		$(".document-conto-btn").prop("disabled", false);
+	}
+}
+
 function removeDisabledBtn() {
 	$(".printReceiptBtn").removeClass( "disabledBtn");
 	$(".printReceiptBtn").prop("disabled", false);
@@ -42,4 +56,9 @@ function removeDisabledBtn() {
 function render_removeDisabledBtn() {
 	removeDisabledBtn();
 }
+function render_removeBlackScreen() {
+	$(".fullScreenBg").css("display", "none");
+}
+
+
 
