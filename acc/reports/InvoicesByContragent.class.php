@@ -439,7 +439,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($invoicePayments as $inv => $paydocs) {
-
+                            $salesInvoiceNotPaid = 0;
                             $salesInvoiceOverPaid = 0;
                             $salesInvoiceOverDue = 0;
 
@@ -904,7 +904,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
 
-
         //Подрежда се по дата на фактура
         if (countR($sRecs)) {
             arr::sortObjects($sRecs, 'invoiceDate', 'asc', 'stri');
@@ -1269,7 +1268,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $allCurrency = ($dRec->totalInvoiceValue) ? $dRec->currencyId : '';
             //След превалутирането
             $div = 1;
-
             if ($rec->checkDate > $euroZoneDate) {
                 if ($allCurrency == 'BGN') {
                     $allCurrency = 'EUR';
@@ -1292,6 +1290,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
 
         if ($rec->unpaid == 'unpaid') {
+
             $row->contragent = $dRec->contragent . '</br>' . "<span class= 'quiet'>" . ' Общо фактури: ' . '</span>' . $Double->toVerbal($dRec->totalInvoiceValue)
                 . ' »  ' . "<span class= 'quiet'>" . ' Платено: ' . '</span>' . $Double->toVerbal($dRec->totalInvoicePayout)
                 . ' »  ' . "<span class= 'quiet'>" . 'Недоплатено:' . '</span>' . $Double->toVerbal($dRec->totalInvoiceNotPayd);
@@ -1597,14 +1596,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                                 array_push($obj->documents, $pDocRec->id);
 
-
                             }
-
                         }
-
                     }
                 }
-
             }
         }
 
