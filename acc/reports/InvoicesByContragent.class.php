@@ -755,6 +755,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($pInvoicePayments as $pInv => $paydocs) {
 
+                            $purchaseInvoiceNotPaid = 0;
                             $purchaseInvoiceOverDue = 0;
                             $purchaseInvoiceOverPaid = 0;
 
