@@ -969,7 +969,7 @@ class rack_Movements extends rack_MovementAbstract
             if(!$this->haveRightFor($action)){
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
 
-                wp("RACK|*: Няма права: {$cu}|{$url}|{$action}");
+                wp("RACK: Няма права: {$cu}|{$url}|{$action}");
                 log_System::logDebug("RACK: Няма права: {$cu}|{$url}|{$action}");
 
                 return status_Messages::returnStatusesArray();
@@ -985,7 +985,7 @@ class rack_Movements extends rack_MovementAbstract
         if (!core_Locks::obtain("movement{$rec->id}", 120, 0, 0)) {
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
 
-            wp("RACK|*: друг работи: {$cu}|{$url}|{$action}");
+            wp("RACK: друг работи: {$cu}|{$url}|{$action}");
             log_System::logDebug("RACK: друг работи: {$cu}|{$url}|{$action}");
 
             if($ajaxMode){
@@ -1000,7 +1000,7 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
 
                 $serialize = serialize($rec);
-                wp("RACK|*: изтрит запис: {$cu}|{$url}|{$action}|{$serialize}");
+                wp("RACK: изтрит запис: {$cu}|{$url}|{$action}|{$serialize}");
                 log_System::logDebug("RACK: изтрит запис: {$cu}|{$url}|{$action}|{$serialize}");
 
                 return status_Messages::returnStatusesArray();
@@ -1008,7 +1008,7 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Невалидна операция|*!', 'error');
 
-                wp("RACK|*: невалидна операция: {$cu}|{$url}|{$action}");
+                wp("RACK: невалидна операция: {$cu}|{$url}|{$action}");
                 log_System::logDebug("RACK: изтрит запис: {$cu}|{$url}|{$action}");
 
                 return status_Messages::returnStatusesArray();
@@ -1017,7 +1017,7 @@ class rack_Movements extends rack_MovementAbstract
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
 
                 $serialize = serialize($rec);
-                wp("RACK|*: Нямате права (2): {$cu}|{$url}|{$action}|{$serialize}");
+                wp("RACK: Нямате права (2): {$cu}|{$url}|{$action}|{$serialize}");
                 log_System::logDebug("RACK: Нямате права (2): {$cu}|{$url}|{$action}|{$serialize}");
 
                 return status_Messages::returnStatusesArray();
@@ -1027,7 +1027,6 @@ class rack_Movements extends rack_MovementAbstract
             core_Locks::release("movement{$rec->id}");
             $this->requireRightFor($action, $rec);
         }
-
 
         $reverse = false;
         if($action == 'start'){
