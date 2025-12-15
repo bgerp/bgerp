@@ -824,7 +824,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             // Какво е вложено до момента в заданието
             $jobRec =  static::getJobRec($rec);
-            $details2 = planning_Jobs::getDefaultProductionDetailsFromConvertedByNow($jobRec);
+            $details2 = planning_Jobs::getDefaultProductionDetailsFromConvertedByNow($jobRec, $rec->valior);
             $details = array();
 
             // Сумират се очакваните детайли по рецепта и реално вложеното
