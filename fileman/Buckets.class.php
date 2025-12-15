@@ -190,7 +190,13 @@ class fileman_Buckets extends core_Manager
                 } else {
                     $extMimeArr = fileman_Mimes::getMimeByExt($ext);
                     $extMimeArr = arr::make($extMimeArr, true);
-                    
+                    if ($ext == 'csv') {
+                        $extMimeArr['text/csv'] = 'text/csv';
+                        $extMimeArr['application/csv'] = 'application/csv';
+                        $extMimeArr['application/vnd.ms-excel'] = 'application/vnd.ms-excel';
+                        $extMimeArr['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                    }
+
                     $acceptArr = arr::make($info->accept, true);
                     $acceptArr = arr::combine($acceptArr, $extMimeArr);
                     $acceptArr['.' . $ext] = '.' . $ext;
@@ -200,7 +206,7 @@ class fileman_Buckets extends core_Manager
                 }
             }
         }
-        
+
         // Попълване на информацията
         $info->title = tr('Добавяне на файл(ове)');
         
