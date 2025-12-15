@@ -965,6 +965,12 @@ class rack_Movements extends rack_MovementAbstract
 
         $cu = core_Users::getCurrent();
         $url = toUrl(getCurrentUrl(), 'local');
+
+        $resArr = array();
+        $resObj = new stdClass();
+        $resObj->func = 'enableBtn';
+        $resArr[] = $resObj;
+
         if($ajaxMode){
             if(!$this->haveRightFor($action)){
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
@@ -972,7 +978,7 @@ class rack_Movements extends rack_MovementAbstract
                 wp("RACK: Няма права: {$cu}|{$url}|{$action}");
                 log_System::logDebug("RACK: Няма права: {$cu}|{$url}|{$action}");
 
-                return status_Messages::returnStatusesArray();
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             }
         } else {
             $this->requireRightFor($action);
@@ -980,6 +986,8 @@ class rack_Movements extends rack_MovementAbstract
        
         $id = Request::get('id', 'int');
         $rec = $this->fetch($id);
+
+        rack_Movements::logDebug("RACK TOGGLE MOVEMENT {$rec->id} -> '{$action}'", $rec->id);
 
         // Заключване на екшъна
         if (!core_Locks::obtain("movement{$rec->id}", 120, 0, 0)) {
@@ -989,7 +997,7 @@ class rack_Movements extends rack_MovementAbstract
             rack_Movements::logDebug("RACK: друг работи: {$cu}|{$url}|{$action}", $rec->id);
 
             if($ajaxMode){
-                return status_Messages::returnStatusesArray();
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             }
             followretUrl(array($this));
         }
@@ -1003,7 +1011,7 @@ class rack_Movements extends rack_MovementAbstract
                 wp("RACK: изтрит запис", $cu, $url, $action, $rec);
                 rack_Movements::logDebug("RACK: изтрит запис: {$cu}|{$url}|{$action}|{$serialize}", $rec->id);
 
-                return status_Messages::returnStatusesArray();
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             } elseif(!in_array($action, array('start', 'reject', 'load', 'unload'))){
                 core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Невалидна операция|*!', 'error');
@@ -1011,7 +1019,7 @@ class rack_Movements extends rack_MovementAbstract
                 wp("RACK: невалидна операция", $cu, $url, $action, $rec);
                 rack_Movements::logDebug("RACK: изтрит запис: {$cu}|{$url}|{$action}", $rec->id);
 
-                return status_Messages::returnStatusesArray();
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             } elseif(!$this->haveRightFor($action, $rec)){
                 core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
@@ -1020,7 +1028,7 @@ class rack_Movements extends rack_MovementAbstract
                 wp("RACK: Нямате права (2)", $cu, $url, $action, $rec);
                 rack_Movements::logDebug("RACK: Нямате права (2): {$cu}|{$url}|{$action}|{$serialize}", $rec->id);
 
-                return status_Messages::returnStatusesArray();
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             }
         } else {
             expect($rec);
@@ -1062,7 +1070,7 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
                 if($ajaxMode){
                     core_Statuses::newStatus('Движението вече е изтрито', 'error');
-                    return status_Messages::returnStatusesArray();
+                    return array_merge($resArr, status_Messages::returnStatusesArray());
                 } else {
                 followretUrl(null, 'Движението вече е изтрито', 'error');
             }
@@ -1086,7 +1094,7 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
                 if($ajaxMode){
                     core_Statuses::newStatus($errorMsg, 'error');
-                    return status_Messages::returnStatusesArray();
+                    return array_merge($resArr, status_Messages::returnStatusesArray());
                 } else {
                     followretUrl(null, $errorMsg, 'error');
                 }
