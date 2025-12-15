@@ -76,7 +76,7 @@ class store_iface_ShipmentOrderToXmlImpl
         $dQuery->where("#shipmentId = {$rec->id}");
         $dRecs = $dQuery->fetchAll();
 
-        deals_Helper::fillRecs($this, $dRecs, $rec);
+        deals_Helper::fillRecs($this->class, $dRecs, $rec);
 
         while($dRec = $dQuery->fetch()){
             $dRow = store_ShipmentOrderDetails::recToVerbal($dRec);
