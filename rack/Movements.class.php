@@ -987,6 +987,8 @@ class rack_Movements extends rack_MovementAbstract
         $id = Request::get('id', 'int');
         $rec = $this->fetch($id);
 
+        rack_Movements::logDebug("RACK TOGGLE MOVEMENT {$rec->id} -> '{$action}'", $rec->id);
+
         // Заключване на екшъна
         if (!core_Locks::obtain("movement{$rec->id}", 120, 0, 0)) {
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
