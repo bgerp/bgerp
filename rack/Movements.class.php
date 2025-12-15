@@ -1070,6 +1070,8 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
                 if($ajaxMode){
                     core_Statuses::newStatus('Движението вече е изтрито', 'error');
+                    rack_Movements::logDebug("RACK TOGGLE MOVEMENT ERROR {$rec->id} -> '{$action}'", $rec->id);
+
                     return array_merge($resArr, status_Messages::returnStatusesArray());
                 } else {
                 followretUrl(null, 'Движението вече е изтрито', 'error');
@@ -1111,7 +1113,9 @@ class rack_Movements extends rack_MovementAbstract
         
         // Ако се обновява по Ajax
         if($ajaxMode){
-            
+
+            rack_Movements::logDebug("RACK TOGGLE MOVEMENT SUCCESS {$rec->id} -> '{$action}'", $rec->id);
+
             return self::forwardRefreshUrl();
         }
         
