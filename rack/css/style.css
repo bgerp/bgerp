@@ -193,3 +193,10 @@
     margin-left:2px !important;
 }
 
+.toggle-movement.is-busy,
+.toggle-movement:disabled{
+    opacity: .55;
+    cursor: wait !important;
+    filter: grayscale(40%);
+}
+
