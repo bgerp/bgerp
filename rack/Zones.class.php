@@ -1614,10 +1614,12 @@ class rack_Zones extends core_Master
         // Хеша е датата на последна модификация на движенията
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#storeId = {$storeId}");
-        $mQuery->orderBy('modifiedOn', 'DESC');
-        $mQuery->show('modifiedOn');
+        $mQuery->orderBy('modifiedOn=DESC,id=DESC');
+        $mQuery->show('modifiedOn,storeId');
         $mQuery->limit(1);
-        $res = md5(trim($mQuery->fetch()->modifiedOn));
+        $rec = $mQuery->fetch();
+
+        $res = md5("{$rec->storeId}|{$rec->modifiedOn}|{$rec->id}");
 
     }
 
