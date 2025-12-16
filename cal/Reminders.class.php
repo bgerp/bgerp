@@ -997,6 +997,10 @@ class cal_Reminders extends core_Master
         $fcMvc->logNotice("Създаване от напомняне", $newRec->id);
         cal_Reminders::logNotice("Създаване от напомняне", $rec->id);
 
+        if ($rec->containerId && $newRec->containerId) {
+            doc_Linked::add($rec->containerId, $newRec->containerId);
+        }
+
         if ($havePlgClone) {
             // Инвокваме фунцкцията, ако някой иска да променя нещо
             $fcMvc->invoke('AfterSaveCloneRec', array($fdRec, &$newRec));

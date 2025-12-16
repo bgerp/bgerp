@@ -713,7 +713,7 @@ class sales_PrimeCostByDocument extends core_Manager
             if (!$rec->dealerId) continue;
             
             // Намира се в колко от търсените групи участва
-            $groups = $productGroups[$rec->productId];
+            $groups = is_array($productGroups[$rec->productId]) ? $productGroups[$rec->productId] : array();
             $diff = array_intersect_key($selectedGroups, $groups);
             $delimiter = countR($diff);
             
