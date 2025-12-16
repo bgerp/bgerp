@@ -724,7 +724,7 @@ abstract class cash_Document extends deals_PaymentDocument
                 $attr['id'] = $this->getHandle($rec->id);
                 $attr['data-warning'] = tr($warning);
                 $attr['data-expected-amount'] = $info['amount'] . " " . currency_Currencies::getCodeById($rec->currencyId);
-                $attr['data-error-format'] = tr('Невалиден формат. Не са разпознати сума и трибуквен код на валута');
+                $attr['data-error-format'] = tr('Невалиден формат. Трябва да е въведена положителна сума, опционално последвана от валута|*!');
                 $attr['data-default-currency'] =  currency_Currencies::getCodeById($rec->currencyId);
 
                 $expectedCurrencies = array();
