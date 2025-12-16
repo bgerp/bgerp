@@ -367,11 +367,12 @@ class email_Setup extends core_ProtoSetup
         ),
         array(
             'systemId' => 'importEmails',
-            'description' => 'Импортиране на имейли',
+            'description' => 'Импортиране на имейли от eml файлове',
             'controller' => 'email_Incomings',
             'action' => 'importEmails',
             'period' => 1,
-            'timeLimit' => 100
+            'timeLimit' => 100,
+            'state' => 'stopped',
         ),
     );
     
