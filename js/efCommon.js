@@ -6463,6 +6463,10 @@ function checkVatAndTriger(name) {
     }
 }
 
+
+/**
+ * ф-я за контиране на ПКО
+ */
 function contoPkoPrompt(ev, buttonEl, callUrl) {
     var warningText        = buttonEl.dataset.warning;
     var expectedAmount     = buttonEl.dataset.expectedAmount;
@@ -6507,23 +6511,20 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
 
     // 2) Ако текстът не е променян
     if (userText === expectedAmount) {
-        // не пипаме URL, не валидираме нищо
         urlToCall = documentUrl;
 
-        // ако не искаме директно callUrl -> оставяме другия handler да си работи
         if (!callUrl) {
             return true;
         }
-
         // ако callUrl === true, ще стигнем до Efae call по-долу
     } else {
         // 3) Текстът е променен -> парсваме и валидираме
         userText = userText.trim();
 
         // сума, а валутата е optional и може да е със/без интервал:
-        // "10" / "10 EUR" / "10EUR" / "10 лв." / "10лв." / "10лева"
+        // "10" / "10 EUR" / "10EUR" / "10 €" / "10€" / "10 евро" / "10euro" / "10 лв." / "10лв." / "10лева"
         var m = userText.match(
-            /^([0-9]{1,3}(?:[ \u00A0\u202F]?[0-9]{3})*(?:[.,][0-9]+)?)(?:\s*([A-Za-zА-Яа-яЁё]+\.?))?$/u
+            /^([0-9]{1,3}(?:[ \u00A0\u202F]?[0-9]{3})*(?:[.,][0-9]+)?)(?:\s*([A-Za-zА-Яа-яЁё€]+\.?))?$/u
         );
 
         var amountStr, currency = '';
@@ -6537,23 +6538,31 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
 
         amountStr = m[1];
         if (m[2]) {
-            currency = m[2].trim();              // може да е "BGN", "bgn", "лв", "ЛВ.", "лева" и т.н.
+            currency = m[2].trim();
         } else {
-            // ако е само число – ползваме винаги data-default-currency
             currency = defaultCurrencyRaw.trim();
         }
 
         // === НОРМАЛИЗАЦИЯ НА ВАЛУТАТА ===
-        // ако allowedCurrencies съдържа BGN – приемаме "лева", "лв", "лв." (case-insensitive) за BGN
         if (currency) {
             var hasBGNAllowed = allowedCurrencies.indexOf('BGN') !== -1;
+            var hasEURAllowed = allowedCurrencies.indexOf('EUR') !== -1;
 
-            var curLower = currency.toLowerCase().replace(/\.$/, '').trim(); // махаме финална точка
+            // lower + махаме финална точка
+            var curLower = currency.toLowerCase().replace(/\.$/, '').trim();
 
+            // BGN aliases
             if (hasBGNAllowed && (curLower === 'лева' || curLower === 'лв')) {
                 currency = 'BGN';
+
+                // EUR aliases
+            } else if (hasEURAllowed && (
+                curLower === 'евро' || curLower === 'ев' || curLower === 'евр' ||
+                curLower === 'euro' || curLower === 'eur' || curLower === '€'
+            )) {
+                currency = 'EUR';
+
             } else {
-                // за всички други – нормален uppercase (EUR, usd и т.н.)
                 currency = currency.toUpperCase();
             }
         }
@@ -6574,7 +6583,7 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
                 .replace(/[ \t\u00A0\u202F]+/g, '')
                 .replace(',', '.');
 
-            // === забраняваме <= 0 ===
+            // забраняваме <= 0
             var amountNum = parseFloat(normalizedAmount);
             if (!isFinite(amountNum) || amountNum <= 0) {
                 alert(errorFormatMsg);
@@ -6591,13 +6600,11 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
             newUrl += 'amount/'   + encodeURIComponent(normalizedAmount)
                 + '/currency/' + encodeURIComponent(currency);
 
-            // обновяваме data-url
             buttonEl.dataset.url = newUrl;
             urlToCall = newUrl;
 
             console.log("Will Call: " + newUrl);
         } else {
-            // няма базов URL – няма какво да извикаме
             urlToCall = null;
         }
     }
@@ -6607,19 +6614,15 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
         if (typeof getEfae === 'function') {
             var efae = getEfae();
             if (efae && typeof efae.process === 'function') {
-                // точно както поиска:
                 var resObj = new Object();
                 resObj['url'] = urlToCall;
 
-                // ако глобално има data – ползваме го, иначе undefined
                 var dataArg = (typeof data !== 'undefined') ? data : undefined;
                 efae.process(resObj, dataArg);
             }
         }
     }
 
-    // НЕ пипаме ev тук -> при callUrl=false другият handler ще се изпълни
-    // при callUrl=true: ако все още имаш друг handler, ще се извика и той
     return true;
 }
 
