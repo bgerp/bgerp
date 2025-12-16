@@ -6518,35 +6518,29 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
         // ако callUrl === true, ще стигнем до Efae call по-долу
     } else {
         // 3) Текстът е променен -> парсваме и валидираме
-
         userText = userText.trim();
 
-        // число + интервали за хилядни + интервал + валута (латиница или кирилица), евентуално с точка:
-        // "10 000,50 BGN" / "10 лв." / "10 лева"
-        var matchNumAndCur = userText.match(
-            /^([0-9]{1,3}(?:[ ]?[0-9]{3})*(?:[.,][0-9]+)?)\s+([A-Za-zА-Яа-яЁё\.]+)$/u
-        );
-
-        // само число (с евентуални интервали за хилядни): "10 000,50"
-        var matchNumOnly   = userText.match(
-            /^([0-9]{1,3}(?:[ ]?[0-9]{3})*(?:[.,][0-9]+)?)$/
+        // сума, а валутата е optional и може да е със/без интервал:
+        // "10" / "10 EUR" / "10EUR" / "10 лв." / "10лв." / "10лева"
+        var m = userText.match(
+            /^([0-9]{1,3}(?:[ \u00A0\u202F]?[0-9]{3})*(?:[.,][0-9]+)?)(?:\s*([A-Za-zА-Яа-яЁё]+\.?))?$/u
         );
 
         var amountStr, currency = '';
 
-        if (matchNumAndCur) {
-            amountStr = matchNumAndCur[1];
-            currency  = matchNumAndCur[2].trim();      // може да е "BGN", "bgn", "лв", "ЛВ.", "лева" и т.н.
-        } else if (matchNumOnly) {
-            amountStr = matchNumOnly[1];
-            // ако е само число – ползваме винаги data-default-currency
-            currency  = defaultCurrencyRaw.trim();
-        } else {
-            // невалиден формат -> показваме грешка и спираме всичко
+        if (!m) {
             alert(errorFormatMsg);
             stopEvent(ev);
             blurButton(buttonEl);
             return false;
+        }
+
+        amountStr = m[1];
+        if (m[2]) {
+            currency = m[2].trim();              // може да е "BGN", "bgn", "лв", "ЛВ.", "лева" и т.н.
+        } else {
+            // ако е само число – ползваме винаги data-default-currency
+            currency = defaultCurrencyRaw.trim();
         }
 
         // === НОРМАЛИЗАЦИЯ НА ВАЛУТАТА ===
@@ -6575,8 +6569,19 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
         // 4) Валидни amount + currency -> променяме URL
         if (documentUrl) {
             // нормализираме amountStr за path:
-            // махаме интервали за хилядни, заменяме ',' с '.'
-            var normalizedAmount = amountStr.replace(/\s+/g, '').replace(',', '.');
+            // махаме интервали (вкл. NBSP/NNBSP), заменяме ',' с '.'
+            var normalizedAmount = amountStr
+                .replace(/[ \t\u00A0\u202F]+/g, '')
+                .replace(',', '.');
+
+            // === забраняваме <= 0 ===
+            var amountNum = parseFloat(normalizedAmount);
+            if (!isFinite(amountNum) || amountNum <= 0) {
+                alert(errorFormatMsg);
+                stopEvent(ev);
+                blurButton(buttonEl);
+                return false;
+            }
 
             var newUrl = documentUrl;
             if (newUrl.charAt(newUrl.length - 1) !== '/') {
@@ -6589,6 +6594,8 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
             // обновяваме data-url
             buttonEl.dataset.url = newUrl;
             urlToCall = newUrl;
+
+            console.log("Will Call: " + newUrl);
         } else {
             // няма базов URL – няма какво да извикаме
             urlToCall = null;
@@ -6601,7 +6608,7 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
             var efae = getEfae();
             if (efae && typeof efae.process === 'function') {
                 // точно както поиска:
-                resObj = new Object();
+                var resObj = new Object();
                 resObj['url'] = urlToCall;
 
                 // ако глобално има data – ползваме го, иначе undefined
