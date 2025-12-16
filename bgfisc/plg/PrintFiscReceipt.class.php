@@ -271,13 +271,13 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
 
         if ($Origin->isInstanceOf('store_ShipmentOrders')) {
             $dQuery = store_ShipmentOrderDetails::getQuery();
-            $dQuery->where("#shipmentId = {$originRec->id}");
+            $dQuery->where("#shipmentId = {$originRec->id} AND #quantity != 0");
         } elseif ($Origin->isInstanceOf('store_Receipts')) {
             $dQuery = store_ReceiptDetails::getQuery();
-            $dQuery->where("#receiptId = {$originRec->id}");
+            $dQuery->where("#receiptId = {$originRec->id} AND #quantity != 0");
         } elseif ($Origin->isInstanceOf('sales_Services')) {
             $dQuery = sales_ServicesDetails::getQuery();
-            $dQuery->where("#shipmentId = {$originRec->id}");
+            $dQuery->where("#shipmentId = {$originRec->id} AND #quantity != 0");
         } else {
             $dQuery = sales_SalesDetails::getQuery();
             $dQuery->where("#saleId = {$originRec->id}");

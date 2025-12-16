@@ -523,8 +523,8 @@ class bgfisc_plg_CashDocument extends core_Plugin
             $bynow = 0;
             
             foreach ($vats as $vatLetterId => $vatAmount) {
-                $percent = round($vatAmount / ($originRec->dealValue - $originRec->discountAmount), 2);
-                
+                $divisor = ($originRec->dealValue - $originRec->discountAmount);
+                $percent = $divisor ? round($vatAmount / $divisor, 2) : 0;
                 $vatClass = $Driver->getVatGroupCode($vatLetterId, $registerRec);
                 
                 $am = abs(round($rec->amount * $rec->rate * $percent, 2));
