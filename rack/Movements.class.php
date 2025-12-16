@@ -1023,11 +1023,8 @@ class rack_Movements extends rack_MovementAbstract
             } elseif(!$this->haveRightFor($action, $rec)){
                 core_Locks::release("movement{$rec->id}");
 
-                $serialize = serialize($rec);
-                wp("RACK: Нямате права (2)", $cu, $url, $action, $rec);
-                rack_Movements::logDebug("RACK: Нямате права (2): {$cu}|{$url}|{$action}|{$serialize}", $rec->id);
-
                 // Ако отново се прави опит за стартиране на стартирано движение от същия потребител в рамките на минута да не дава грешка
+                $serialize = serialize($rec);
                 $checkDate = dt::addSecs(60, $rec->modifiedOn);
                 if($action == 'start' && $rec->modifiedBy == $cu && $rec->state == 'active' && dt::now() <= $checkDate){
                     $rec->modifiedOn = dt::now();
