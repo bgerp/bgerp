@@ -1194,12 +1194,28 @@ class rack_Movements extends rack_MovementAbstract
             followretUrl(array($this));
         }
 
+        $cu = core_Users::getCurrent();
+        $url = toUrl(getCurrentUrl(), 'local');
         if($ajaxMode){
             if(!$this->haveRightFor('done', $rec)){
                 core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
 
-                return array_merge($resArr, status_Messages::returnStatusesArray());
+                $checkDate = dt::addSecs(60, $rec->modifiedOn);
+                if($rec->modifiedBy == $cu && $rec->state == 'closed' && dt::now() <= $checkDate){
+                    $rec->modifiedOn = dt::now();
+                    $this->save_($rec, 'modifiedOn');
+                    wp("RACK: Нямате права (2) Мутнато DONE", $cu, $url, $rec);
+                    rack_Movements::logDebug("RACK: Нямате права (2) Мутнато DONE: {$cu}|{$url}", $rec->id);
+
+                    return array_merge($resArr, self::forwardRefreshUrl());
+                } else {
+                    wp("RACK: Нямате права (2)", $cu, $url, $rec);
+                    rack_Movements::logDebug("RACK: Нямате права (2) DONE: {$cu}|{$url}", $rec->id);
+                    core_Statuses::newStatus('|Нямате права|*!', 'error');
+
+                    return array_merge($resArr, status_Messages::returnStatusesArray());
+                }
             }
         } else {
             $this->requireRightFor('done', $rec);
