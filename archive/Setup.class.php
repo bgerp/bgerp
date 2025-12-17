@@ -82,7 +82,7 @@ class archive_Setup extends core_ProtoSetup
                 $cli = '7z';
             }
         }
-        
+ 
         return $cli;
     }
 }
