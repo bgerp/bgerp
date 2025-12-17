@@ -80,8 +80,22 @@ class price_ProductCosts extends core_Manager
         
         $this->setDbUnique('productId,classId');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+
+        $form->setField('price', "unit=" . acc_Periods::getBaseCurrencyCode());
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -153,6 +167,7 @@ class price_ProductCosts extends core_Manager
 
         // Изчисляване на всяка от засегнатите политики, себестойностите на засегнатите пера
         $totalProducts = $update = array();
+
         foreach ($PolicyOptions as $policyId) {
             if (cls::load($policyId, true)) {
                 
@@ -167,7 +182,6 @@ class price_ProductCosts extends core_Manager
                 // Ако има такива, ще се прави опит за изчисляване на себестойносттите
                 $count = countR($affectedProducts);
                 if($count){
-                    
                     core_App::setTimeLimit($count * 0.5, false,60);
                     $calced = $Interface->calcCosts($affectedProducts);
                     $update = array_merge($update, $calced);
@@ -246,5 +260,7 @@ class price_ProductCosts extends core_Manager
         }
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        $data->listFields['price'] .= "|* <small>(" . acc_Periods::getBaseCurrencyCode() . ")</small>";
     }
 }

@@ -78,8 +78,12 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
         // Ако е обратна транзакцията, сумите и к-та са с минус
         $sign = ($reverse) ? -1 : 1;
 
-        $dealCurrencyRate = $origin->fetchField('currencyRate');
+        $dealRec = $origin->fetch();
+        $dealCurrencyRate = $dealRec->currencyRate;
+        $dealCodeId = currency_Currencies::getIdByCode($dealRec->currencyId);
 
+        $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+        $euroCurrencyId = currency_Currencies::getIdByCode('EUR');
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
         if ($rec->currencyId == $baseCurrencyId) {
             $amount = $rec->amount;
@@ -95,14 +99,16 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
         if ($reverse === true && in_array($rec->operationSysId, array('supplier2caseRet', 'supplierAdvance2caseRet'))) {
 
             $transAccArr = array('481', array('currency_Currencies', $currencyId481), 'quantity' => $sign * round($amount481, 2));
-            if($rec->currencyId == $baseCurrencyId && $rec->dealCurrencyId == $baseCurrencyId){
+            $amount = $dealCurrencyRate * $rec->amountDeal;
+            if($rec->currencyId == $baseCurrencyId || ($rec->currencyId == $bgnCurrencyId && $baseCurrencyId == $euroCurrencyId)) {
                 $transAccArr = array('482', array($rec->contragentClassId, $rec->contragentId),
                     array($origin->className, $origin->that),
                     array('currency_Currencies', $rec->currencyId),
                     'quantity' => $sign * round($rec->amount, 2));
+                $amount = $rec->amount;
             }
 
-            $entry[] = array('amount' => $sign * round($dealCurrencyRate * $rec->amountDeal, 2),
+            $entry[] = array('amount' => $sign * round($amount, 2),
                 'debit' => array($rec->debitAccount,
                     array($rec->contragentClassId, $rec->contragentId),
                     array($origin->className, $origin->that),
@@ -119,8 +125,26 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
                 'credit' => $transAccArr
             );
         } else {
-            if($rec->currencyId != $baseCurrencyId || $rec->dealCurrencyId != $baseCurrencyId){
-                $entry[] = array('amount' => $sign * round($dealCurrencyRate * $rec->amountDeal, 2),
+            if((($rec->currencyId == $rec->dealCurrencyId && in_array($rec->dealCurrencyId, array($bgnCurrencyId, $euroCurrencyId)))) || ($baseCurrencyId == $euroCurrencyId && $rec->currencyId == $euroCurrencyId && $rec->dealCurrencyId != $bgnCurrencyId)) {
+                $entry[] = array('amount' => $sign * round($amount, 2),
+                    'debit' => array($rec->debitAccount,
+                        array($rec->contragentClassId, $rec->contragentId),
+                        array($origin->className, $origin->that),
+                        array('currency_Currencies', $rec->dealCurrencyId),
+                        'quantity' => $sign * round($rec->amountDeal, 2)),
+                    'credit' => array($rec->creditAccount,
+                        array('cash_Cases', $rec->peroCase),
+                        array('currency_Currencies', $rec->currencyId),
+                        'quantity' => $sign * round($rec->amount, 2)));
+            } else {
+                $amountE = $dealCurrencyRate * $rec->amountDeal;
+                $dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
+                if($dealCurrencyCode != $dealRec->currencyId){
+                    $amountE = $amount;
+                }
+                $amountE = deals_Helper::getSmartBaseCurrency($amountE, $dealRec->valior, $rec->valior);
+
+                $entry[] = array('amount' => $sign * round($amountE, 2),
                     'debit' => array($rec->debitAccount,
                         array($rec->contragentClassId, $rec->contragentId),
                         array($origin->className, $origin->that),
@@ -139,17 +163,6 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
                         array('currency_Currencies', $rec->currencyId),
                         'quantity' => $sign * round($rec->amount, 2))
                 );
-            } else {
-                $entry[] = array('amount' => $sign * round($amount, 2),
-                    'debit' => array($rec->debitAccount,
-                        array($rec->contragentClassId, $rec->contragentId),
-                        array($origin->className, $origin->that),
-                        array('currency_Currencies', $rec->dealCurrencyId),
-                        'quantity' => $sign * round($rec->amountDeal, 2)),
-                    'credit' => array($rec->creditAccount,
-                        array('cash_Cases', $rec->peroCase),
-                        array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $sign * round($rec->amount, 2)));
             }
         }
 

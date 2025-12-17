@@ -14,6 +14,10 @@
 				<td class='quiet'>|Подреждане|*:</td>
 				<td>[#detailOrderBy#]</td>
 			</tr>
+            <tr>
+                <td class='quiet'>|Валута|*:</td>
+                <td><span class="cCode">[#currencyId#]</span></td>
+            </tr>
 		</table>
 	</fieldset>
     [#cat_ListingDetails#]

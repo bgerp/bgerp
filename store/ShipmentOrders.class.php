@@ -464,6 +464,10 @@ class store_ShipmentOrders extends store_DocumentMaster
             'content' => 'store/tpl/SingleLayoutPackagingListGrouped.shtml', 'lang' => 'en',
             'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight'));
 
+        $tplArr[] = array('name' => 'Експедиционно нареждане за SAF-T',
+            'content' => 'store/tpl/SingleLayoutShipmentOrderSaft.shtml', 'lang' => 'bg',
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
 
@@ -529,7 +533,8 @@ class store_ShipmentOrders extends store_DocumentMaster
         $res = parent::getLogisticData($rec);
 
         unset($res['deliveryTime']);
-        $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : ($rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY'));
+        $valior = !empty($rec->valior) ? ($rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY')) : null;
+        $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $valior;
 
         return $res;
     }
@@ -802,19 +807,25 @@ class store_ShipmentOrders extends store_DocumentMaster
             $mvc->save_($rec, $saveFields);
         }
 
-        // Кеширане на тарифния код
+        // Кеширане на тарифния код и държава на произход
         $saveRecs = array();
         $Details = cls::get('store_ShipmentOrderDetails');
         $dQuery = store_ShipmentOrderDetails::getQuery();
-        $dQuery->where("#shipmentId = {$rec->id}");
+        $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $dQuery->where("#shipmentId = {$rec->id} AND #canStore = 'yes'");
         while($dRec = $dQuery->fetch()){
             if(empty($dRec->tariffCode)){
                 $dRec->tariffCode = cat_Products::getParams($dRec->productId, 'customsTariffNumber');
-                $saveRecs[] = $dRec;
             }
+
+            $originCountryId = cat_Products::getParams($dRec->productId, 'originCountry');
+            $countryId = $originCountryId ?? drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+            $dRec->countryOfOrigin = $countryId;
+
+            $saveRecs[] = $dRec;
         }
 
-        $Details->saveArray($saveRecs, 'id,tariffCode');
+        $Details->saveArray($saveRecs, 'id,tariffCode,countryOfOrigin');
     }
 
 

@@ -330,7 +330,7 @@ class acc_Periods extends core_Manager
         if ($end == $firstRec->end) {
             if (!$firstRec->id) {
                 $firstRec->vatRate = $conf->ACC_DEFAULT_VAT_RATE;
-                $firstRec->baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
+                $firstRec->baseCurrencyId = currency_Currencies::getIdByCode(acc_Setup::getDefaultCurrencyCode($firstRec->end));
                 self::save($firstRec);
                 $firstRec = self::fetch($firstRec->id);  // За титлата
                 $me->actLog .= "<li style='color:green;'>Създаден е начален период {$firstRec->title}</li>";
@@ -364,7 +364,7 @@ class acc_Periods extends core_Manager
         if ($prevRec->baseCurrencyId) {
             $rec->baseCurrencyId = $prevRec->baseCurrencyId;
         } else {
-            $rec->baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
+            $rec->baseCurrencyId = currency_Currencies::getIdByCode($curPerEnd);
         }
         
         self::save($rec);
@@ -679,16 +679,12 @@ class acc_Periods extends core_Manager
     public static function getBaseCurrencyId($date = null)
     {
         // Ако има кеширано в хита за датата връща се то
-        if(array_key_exists($date, static::$baseCurrCodeIdToDate)) return static::$baseCurrCodeIdToDate[$date];
-
-        $periodRec = static::fetchByDate($date);
-        
-        if (!($baseCurrencyId = $periodRec->baseCurrencyId)) {
-            $conf = core_Packs::getConfig('acc');
-            $baseCurrencyId = currency_Currencies::getIdByCode($conf->BASE_CURRENCY_CODE);
+        $dateKey = $date ?? dt::today();
+        if(!array_key_exists($dateKey, static::$baseCurrCodeIdToDate)) {
+            static::$baseCurrCodeIdToDate[$dateKey] = currency_Currencies::getIdByCode(acc_Setup::getDefaultCurrencyCode($dateKey));
         }
-        
-        return $baseCurrencyId;
+
+        return static::$baseCurrCodeIdToDate[$dateKey];
     }
     
     
@@ -702,9 +698,12 @@ class acc_Periods extends core_Manager
     public static function getBaseCurrencyCode($date = null)
     {
         // Ако има кеширано в хита за датата връща се то
-        if(array_key_exists($date, static::$baseCurrCodeToDate)) return static::$baseCurrCodeToDate[$date];
+        $dateKey = $date ?? dt::today();
+        if(!array_key_exists($dateKey, static::$baseCurrCodeToDate)) {
+            static::$baseCurrCodeToDate[$dateKey] = currency_Currencies::getCodeById(static::getBaseCurrencyId($dateKey));
+        }
 
-        return currency_Currencies::getCodeById(static::getBaseCurrencyId($date));
+        return static::$baseCurrCodeToDate[$dateKey];
     }
     
     
@@ -874,5 +873,15 @@ class acc_Periods extends core_Manager
         }
 
         return $date;
+    }
+
+
+    /**
+     * Чистене на кеш
+     */
+    public static function clearCache()
+    {
+        self::$baseCurrCodeToDate = array();
+        self::$baseCurrCodeIdToDate = array();
     }
 }

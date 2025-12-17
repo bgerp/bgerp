@@ -826,14 +826,14 @@ class email_Incomings extends core_Master
         if ($imapConn->accRec->protocol == 'imap') {
             $maxUid = core_Permanent::get('IMAP_MAX_UID_' . $imapConn->accRec->id);
             if (!$maxUid) {
-
                 $query = email_Fingerprints::getQuery();
-                $query->XPR('maxUid', 'int', 'max(#uid)');
-                $query->show('maxUid');
+                $query->show('uid');
+                $query->where(array("#accountId = '[#1#]'", $imapConn->accRec->id));
+                $query->orderBy('#uid', 'DESC');
                 $query->limit(1);
-                $maxRec = $query->fetch("#accountId = {$imapConn->accRec->id}");
+                $maxRec = $query->fetch();
 
-                $maxUid = $maxRec->maxUid;
+                $maxUid = $maxRec->uid;
             }
         }
 
@@ -967,6 +967,8 @@ class email_Incomings extends core_Master
         if ($form->rec->accId) {
             $data->query->where(array("#accId= '[#1#]'", $form->rec->accId));
         }
+
+        $data->query->orderBy('id', 'DESC');
     }
     
     

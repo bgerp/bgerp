@@ -207,7 +207,7 @@ class crm_ext_ContragentInfo extends core_manager
                 if (isset($cInfo->{$amountFld})) {
                     $row->{$amountFld} = core_Type::getByName('double(decimals=2)')->toVerbal($cInfo->{$amountFld});
                     if ($fields['-single']) {
-                        $row->{$amountFld} = currency_Currencies::decorate($row->{$amountFld}, $baseCurrencyCode);
+                        $row->{$amountFld} = currency_Currencies::decorate($row->{$amountFld}, $baseCurrencyCode, true);
                     }
 
                     if(!haveRole('ceo,seePriceSale') || haveRole('noPrice')){
@@ -287,7 +287,7 @@ class crm_ext_ContragentInfo extends core_manager
         foreach (array('sales' => 'sales_Sales', 'purchases' => 'purchase_Purchases') as $key => $Class){
             $dQuery = $Class::getQuery();
             $dQuery->XPR('since', 'date', 'MIN(DATE(COALESCE(#activatedOn, #valior)))');
-            $dQuery->where("#state = 'active' || #state = 'closed'");
+            $dQuery->where("#state IN ('active', 'closed')");
             $dQuery->where("#contragentClassId = {$contragentClassId}");
             $dQuery->show('contragentId,since');
             $dQuery->groupBy('contragentId');
@@ -463,19 +463,20 @@ class crm_ext_ContragentInfo extends core_manager
     private static function getDealData($contragentClassId)
     {
         $res = array();
-        $baseCurrencyId = acc_Periods::getBaseCurrencyCode();
+        $today = dt::today();
+        acc_Periods::clearCache();
+        $baseCurrencyId = acc_Periods::getBaseCurrencyCode($today);
         foreach (array('sales' => 'sales_Sales', 'purchases' => 'purchase_Purchases') as $key => $Cls){
             
             // Сумиране и преброяване на всички сделки на контрагента
             $dQuery = $Cls::getQuery();
             $dQuery->where("#contragentClassId = {$contragentClassId}");
             $dQuery->where("#state IN ('active', 'closed')");
-            $dQuery->show('amountDeal,overdueAmountPerDays,contragentId,paymentState,contragentClassId,currencyId,state,overdueAmount');
+            $dQuery->show('amountDeal,overdueAmountPerDays,contragentId,paymentState,contragentClassId,currencyId,state,overdueAmount,valior');
 
             $paramCache = array();
             while ($sRec = $dQuery->fetch()) {
-                $periodCurrencyId = acc_Periods::getBaseCurrencyCode($sRec->valior);
-                $amountInCurrentBaseCurrency = currency_CurrencyRates::convertAmount($sRec->amountDeal, null, $periodCurrencyId, $baseCurrencyId);
+                $amountInCurrentBaseCurrency = deals_Helper::getSmartBaseCurrency($sRec->amountDeal, $sRec->valior, $today);
 
                 $res[$key][$sRec->contragentId]['total']['count'] += 1;
                 $res[$key][$sRec->contragentId]['total']['amount'] += $amountInCurrentBaseCurrency;
@@ -487,12 +488,12 @@ class crm_ext_ContragentInfo extends core_manager
 
                         // Ако са продажби ще се смятат отделно активните и просрочените
                         if($sRec->paymentState == 'overdue'){
-                            $amountInCurrentBaseCurrency = currency_CurrencyRates::convertAmount($sRec->overdueAmount, null, $periodCurrencyId, $baseCurrencyId);
+                            $amountInCurrentBaseCurrency = deals_Helper::getSmartBaseCurrency($sRec->overdueAmount, $sRec->valior, $today);
                             $res[$key][$sRec->contragentId]['overdue']['count'] += 1;
                             $res[$key][$sRec->contragentId]['overdue']['amount'] += $amountInCurrentBaseCurrency;
 
                             // Колко леводни е просрочието
-                            $amountInCurrentBaseCurrency = currency_CurrencyRates::convertAmount($sRec->overdueAmountPerDays, null, $periodCurrencyId, $baseCurrencyId);
+                            $amountInCurrentBaseCurrency = deals_Helper::getSmartBaseCurrency($sRec->overdueAmountPerDays, $sRec->valior, $today);
                             $res[$key][$sRec->contragentId]['overdue']['threshold'] += $amountInCurrentBaseCurrency;
                             if(!array_key_exists($sRec->contragentId, $paramCache)){
                                 $paramCache[$sRec->contragentId] = cond_Parameters::getParameter($sRec->contragentClassId, $sRec->contragentId, 'saleOverdueAmount');

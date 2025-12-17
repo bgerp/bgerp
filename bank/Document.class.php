@@ -161,6 +161,12 @@ abstract class bank_Document extends deals_PaymentDocument
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
      * Добавяне на дефолтни полета
      *
      * @param core_Mvc $mvc
@@ -174,12 +180,13 @@ abstract class bank_Document extends deals_PaymentDocument
         $mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
         $mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
 
-        $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,input=hidden');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
         $mvc->FLD('reason', 'richtext(bucket=Notes,rows=6)', 'caption=Основание');
         $mvc->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
         $mvc->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка');
         $mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=В->Сметка,silent,removeAndRefreshForm=currencyId|amount');
+        $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code,maxRadio=0)', 'caption=В->Валута,input=hidden,silent,removeAndRefreshForm=amount');
+
         $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
 
@@ -338,12 +345,7 @@ abstract class bank_Document extends deals_PaymentDocument
 
         if ($rec->currencyId != $rec->dealCurrencyId) {
             if (isset($rec->ownAccount)) {
-                $ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->ownAccount);
-                if (isset($ownAcc->currencyId)) {
-                    $code = currency_Currencies::getCodeById($ownAcc->currencyId);
-                    $form->setField('amount', "unit={$code}");
-                }
-
+                $code = currency_Currencies::getCodeById($rec->currencyId);
                 $caption = ($mvc instanceof bank_SpendingDocuments) ? 'От' : 'В';
                 $form->setField('amount', "input,caption={$caption}->Заверени");
             }
@@ -353,8 +355,15 @@ abstract class bank_Document extends deals_PaymentDocument
             if (!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId) {
                 $form->setField('amount', 'input');
                 $form->setError('amount', 'Когато сметката е във валута - различна от тази на сделката, сумата трябва да е попълнена');
-
                 return;
+            }
+
+            $currencyError = null;
+            if(isset($rec->ownAccount)){
+                if(!bank_OwnAccounts::canAcceptCurrency($rec->ownAccount, $rec->valior, $rec->currencyId, $currencyError)){
+                    $form->setError('valior,currencyId', $currencyError);
+                    return;
+                }
             }
 
             $origin = $mvc->getOrigin($form->rec);
@@ -458,11 +467,7 @@ abstract class bank_Document extends deals_PaymentDocument
     /**
      * Имплементация на @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @link bgerp_DealIntf::getDealInfo()
-     *
-     * @see  bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$aggregator)
     {
@@ -644,8 +649,8 @@ abstract class bank_Document extends deals_PaymentDocument
         }
 
         if (isset($form->rec->ownAccount)) {
-            $ownAcc = bank_OwnAccounts::getOwnAccountInfo($form->rec->ownAccount);
-            $form->setDefault('currencyId', $ownAcc->currencyId);
+            $form->setDefault('currencyId', bank_OwnAccounts::getDefaultCurrency($form->rec->ownAccount));
+            $form->setField('currencyId', 'input');
         } else {
             $form->setDefault('currencyId', $form->rec->dealCurrencyId);
         }

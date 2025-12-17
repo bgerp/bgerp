@@ -684,6 +684,7 @@ class store_ConsignmentProtocols extends core_Master
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
      *               ['deliveryOn']     date        - Доставка на
+     *               ['valior']         date        - Вальор
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -713,6 +714,7 @@ class store_ConsignmentProtocols extends core_Master
         }
 
         $res['cases'] = array();
+        $res['valior'] = $rec->valior ?? dt::today();
 
         return $res;
     }

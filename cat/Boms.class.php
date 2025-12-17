@@ -763,7 +763,7 @@ class cat_Boms extends core_Master
                     $row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantityForPrice);
                     $rec->primeCost = ($price) ? $price : 0;
 
-                    $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->modifiedOn);
+                    $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
                     $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
                     $row->primeCost = $Double->toVerbal($rec->primeCost);
 
@@ -780,11 +780,11 @@ class cat_Boms extends core_Master
                         }
                     }
 
-                    $row->primeCost = currency_Currencies::decorate($row->primeCost, $baseCurrencyCode);
+                    $row->primeCost = currency_Currencies::decorate($row->primeCost, $baseCurrencyCode, true);
                     $row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
                     $row->primeCost .= tr("|*, <i>|при тираж|* {$row->quantityForPrice} {$shortUom}</i>");
                     if(!empty($row->primeCostWithOverheadCost)){
-                        $row->primeCostWithOverheadCost = currency_Currencies::decorate($row->primeCostWithOverheadCost, $baseCurrencyCode);
+                        $row->primeCostWithOverheadCost = currency_Currencies::decorate($row->primeCostWithOverheadCost, $baseCurrencyCode, true);
                     }
                 }
 
@@ -1159,7 +1159,7 @@ class cat_Boms extends core_Master
             $tpl->append($title, 'title');
         }
         
-        $data->listFields = arr::make('title=Рецепта,type=Вид,quantity=Количество,createdBy=От||By,createdOn=На');
+        $data->listFields = arr::make('title=Рецепта,type=Вид,action=Като,quantity=Количество,createdBy=От||By,createdOn=На');
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $details = $table->get($data->rows, $data->listFields);
@@ -1171,10 +1171,8 @@ class cat_Boms extends core_Master
         if ($data->notManifacturable === true) {
             $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
-        } elseif($data->fromConvertable && $data->masterData->rec->canConvert != 'yes'){
-            $tpl->replace(" <span class='red small'>(" . tr('Артикулът не е вложим') . ')</span>', 'title');
-            $tpl->append('state-rejected', 'TAB_STATE');
         }
+
         $tpl->append($details, 'content');
         
         if(!Mode::isReadOnly()){

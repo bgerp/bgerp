@@ -96,7 +96,7 @@ class tcost_Fees extends core_Detail
         $this->FLD('feeId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
         $this->FLD('weight', 'double(Min=0,smartRound)', 'caption=Правила за изчисление->Тегло, mandatory,unit=кг');
         $this->FLD('price', 'double(min=0)', 'caption=Стойност->Сума, mandatory,unit=без ДДС');
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Стойност->Валута, mandatory');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,maxRadio=1)', 'caption=Стойност->Валута, mandatory');
         $this->FLD('secondPrice', 'double(min=0)', 'caption=Втора стойност->Стойност,silent,removeAndRefreshForm=secondCurrencyId,unit=без ДДС');
         $this->FLD('secondCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'caption=Втора стойност->Валута');
         $this->FLD('thirdPrice', 'double(min=0)', 'caption=Трета стойност->Стойност 2,silent,removeAndRefreshForm=thirdCurrencyId,unit=без ДДС');
@@ -151,6 +151,17 @@ class tcost_Fees extends core_Detail
             
             if ((!empty($rec->thirdPrice) && empty($rec->thirdCurrencyId)) || (!empty($rec->thirdCurrencyId) && empty($rec->thirdPrice))) {
                 $form->setError('thirdPrice,thirdCurrencyId', 'Двете полета трябва или да са попълнени или да не са');
+            }
+
+            // Проверка на избраната валута
+            $oldRec = isset($rec->id) ? $mvc->fetch($rec->id, '', false) : null;
+            foreach (array('currencyId', 'secondCurrencyId', 'thirdCurrencyId') as $fld){
+                if(!empty($rec->{$fld}) && $rec->{$fld} != $oldRec->{$fld}){
+                    $currencyError = null;
+                    if(!currency_Currencies::checkCurrency($rec->{$fld}, null, $currencyError)){
+                        $form->setError($fld, $currencyError);
+                    }
+                }
             }
         }
     }
@@ -246,7 +257,7 @@ class tcost_Fees extends core_Detail
 
         $totalWeight /= 1000;
 
-        // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
+        // Резултата се получава, като получената цена разделяме на $totalWeight и умножаваме по $singleWeight.
         $finalPrice = round($finalPrice, 2);
         if ($totalWeight) {
             $result = round($finalPrice / $totalWeight * $singleWeight, 2);

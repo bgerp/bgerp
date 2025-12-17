@@ -154,14 +154,13 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $recs = array();
 
         $pQuery = store_Products::getQuery();
-        $pQuery->where("#isPublic = 'yes'");
 
         $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $pQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
 
-        $pQuery->where("#state != 'closed'");
+        //$pQuery->where("#state != 'closed'");
         $pQuery->where("#isPublic = 'yes'");
 
         //Филтър по групи артикули

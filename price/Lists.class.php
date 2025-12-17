@@ -62,7 +62,7 @@ class price_Lists extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, parent, folderId, createdOn, createdBy';
+    public $listFields = 'title, parent, currency, folderId, createdOn, createdBy';
     
     
     /**

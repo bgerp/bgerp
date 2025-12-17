@@ -146,14 +146,14 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('customUrlId', 'bigint', 'caption=URL номера от обект, input=none,column=none,single=none');
         
         $this->setDbUnique('url, userId');
-        $this->setDbIndex('userId,activatedOn,modifiedOn,id');
-        
-        $this->setDbIndex('customUrlId');
-        $this->setDbIndex('urlId');
-
-        $this->setDbIndex('activatedOn,state,userId');
+        $this->setDbIndex('userId,activatedOn,modifiedOn');
+        $this->setDbIndex('userId,state,hidden');
+        $this->setDbIndex('activatedOn');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('lastTime');
+
+//        $this->setDbIndex('customUrlId');
+//        $this->setDbIndex('urlId');
     }
     
     
@@ -474,11 +474,11 @@ class bgerp_Notifications extends core_Manager
         $url = toUrl($urlArr, 'local', false);
         
         $query = bgerp_Notifications::getQuery();
-
-        $urlId = self::prepareUrlId($url);
-        if ($urlId) {
-            $query->where(array("#urlId = '[#1#]'", $urlId));
-        }
+////
+//        $urlId = self::prepareUrlId($url);
+//        if ($urlId) {
+//            $query->where(array("#urlId = '[#1#]'", $urlId));
+//        }
         
         if ($userId == '*') {
             $query->where(array("#url = '[#1#]' AND #state = 'active'", $url));
@@ -486,7 +486,7 @@ class bgerp_Notifications extends core_Manager
             $query->where(array("#userId = {$userId} AND #url = '[#1#]' AND #state = 'active'", $url));
         }
         $query->show('id, state, userId, url');
-        
+
         while ($rec = $query->fetch()) {
             $rec->state = 'closed';
             $rec->closedOn = dt::now();
@@ -508,10 +508,10 @@ class bgerp_Notifications extends core_Manager
             $userId = core_Users::getCurrent();
         }
         
-        $urlId = self::prepareUrlId($url);
-        if ($urlId) {
-            $query->where(array("#urlId = '[#1#]'", $urlId));
-        }
+//        $urlId = self::prepareUrlId($url);
+//        if ($urlId) {
+//            $query->where(array("#urlId = '[#1#]'", $urlId));
+//        }
         
         $query->where(array("#url = '[#1#]' AND #userId = '[#2#]'", $url, $userId));
         
@@ -533,10 +533,10 @@ class bgerp_Notifications extends core_Manager
         
         $query = self::getQuery();
         
-        $urlId = self::prepareUrlId($url);
-        if ($urlId) {
-            $query->where(array("#urlId = '[#1#]'", $urlId));
-        }
+//        $urlId = self::prepareUrlId($url);
+//        if ($urlId) {
+//            $query->where(array("#urlId = '[#1#]'", $urlId));
+//        }
         
         $query->where("#state = 'active'");
         $query->where("#hidden = 'no'");
@@ -569,10 +569,10 @@ class bgerp_Notifications extends core_Manager
         
         $query = self::getQuery();
         
-        $urlId = self::prepareUrlId($url);
-        if ($urlId) {
-            $query->where(array("#urlId = '[#1#]'", $urlId));
-        }
+//        $urlId = self::prepareUrlId($url);
+//        if ($urlId) {
+//            $query->where(array("#urlId = '[#1#]'", $urlId));
+//        }
         
         $query->where("#url = '{$url}'");
         
@@ -595,10 +595,10 @@ class bgerp_Notifications extends core_Manager
         
         $query = self::getQuery();
         
-        $urlId = self::prepareUrlId($url);
-        if ($urlId) {
-            $query->where(array("#urlId = '[#1#]'", $urlId));
-        }
+//        $urlId = self::prepareUrlId($url);
+//        if ($urlId) {
+//            $query->where(array("#urlId = '[#1#]'", $urlId));
+//        }
         
         $query->where("#url = '{$url}'");
         
@@ -1560,9 +1560,9 @@ class bgerp_Notifications extends core_Manager
         
         if ($userId > 0) {
             $cnt = core_Cache::get('OpenNtfCnt', $userId);
-            if(!is_int($cnt)) {
+            if($cnt === false) {
                 $query = self::getQuery();
-                $cnt = $query->count("#userId = ${userId} AND #state = 'active' AND #hidden = 'no'");
+                $cnt = $query->count("#userId = {$userId} AND #state = 'active' AND #hidden = 'no'");
                 core_Cache::set('OpenNtfCnt', $userId, $cnt, 600);
             }
         } else {
@@ -1762,8 +1762,11 @@ class bgerp_Notifications extends core_Manager
             // Ако е събскрайбнато от външния изглед на партньор да се подава и кой е избрания таб
             $url['externalTab'] = Mode::get('currentExternalTab');
         }
-        core_Ajax::subscribe($tpl, $url, 'notificationsCnt', 5000);
-        
+
+        if (core_Users::getCurrent()) {
+            core_Ajax::subscribe($tpl, $url, 'notificationsCnt', 5000);
+        }
+
         return $tpl;
     }
     

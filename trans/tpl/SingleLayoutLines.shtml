@@ -92,8 +92,8 @@
 			<table class="listTable lineSummary" style="margin-top:10px;margin-bottom:10px">
 				<thead>
 				<tr>
-					<td class="sum-th">|Инкасирано|*, [#baseCurrencyCode#]</td>
-					<td class="sum-th">|Изплатено|*, [#baseCurrencyCode#]</td>
+					<td class="sum-th">|Инкасирано|*</td>
+					<td class="sum-th">|Изплатено|*</td>
 					<td class="sum-th">|Общо бруто тегло|*</td>
 					<td class="sum-th">|Общ обем|*</td>
 					<td class="sum-th">|Общо ЛЕ|*</td>

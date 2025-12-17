@@ -120,6 +120,7 @@ class price_interface_LastManifacturePrice extends price_interface_BaseCostPolic
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId');
         $jQuery->EXT('docId', 'acc_Journal', 'externalKey=journalId');
+        $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
         $jQuery->where("#docType = '{$productionClassId}'");
         if(count($productionIds)){
             $jQuery->in('docId', $productionIds);
@@ -133,6 +134,7 @@ class price_interface_LastManifacturePrice extends price_interface_BaseCostPolic
 
         $debitAccArr = array(acc_Accounts::getRecBySystemId(321)->id, acc_Accounts::getRecBySystemId(60201)->id);
 
+        $today = dt::today();
         foreach ($lastProduction as $lastData){
             if(!countR($lastData['journal'])) continue;
             $productItemId = $productMap[$lastData['productId']];
@@ -147,14 +149,14 @@ class price_interface_LastManifacturePrice extends price_interface_BaseCostPolic
             }
 
             $producedPrice = !empty($producedQuantity) ? $producedAmount / $producedQuantity : 0;
-
+            $producedPriceInBaseCurrency = deals_Helper::getSmartBaseCurrency($producedPrice, $jRec->valior, $today);
             $res[$lastData['productId']] = (object)array('productId'     => $lastData['productId'],
                                                          'classId'       => $this->getClassId(),
                                                          'sourceClassId' => $productionClassId,
                                                          'sourceId'      => $lastData['id'],
                                                          'valior'        => null,
                                                          'quantity'      => $producedQuantity,
-                                                         'price'         => round($producedPrice, 5));
+                                                         'price'         => round($producedPriceInBaseCurrency, 5));
         }
 
         core_Debug::stopTimer('CALC_LAST_MANIFACTURE_PRICE');

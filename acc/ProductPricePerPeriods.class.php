@@ -141,6 +141,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         }
         ksort($groupedDetails);
 
+        $today = dt::today();
         $now = dt::now();
         foreach ($groupedDetails as $toDate => $details){
             $saveArr = array();
@@ -183,11 +184,16 @@ class acc_ProductPricePerPeriods extends core_Manager
                 if(empty($toDate)){
                     wp("PRICE_CACHE_NO_DATE", $dRec, $toDate, $balanceIds);
                 }
+
+                // Сумата се обръща от основната валута за периода към тази сега
+                $price = round($dRec->price, 5);
+                $priceInBaseCurrency = deals_Helper::getSmartBaseCurrency($price, $toDate, $today);
+
                 $rec = (object)array('date' => $toDate,
                                      'otherItemId' => $item1Id,
                                      'productItemId' => $item2Id,
                                      'updatedOn' => $now,
-                                     'price' => round($dRec->price, 5),
+                                     'price' => $priceInBaseCurrency,
                                      'type' => $type);
                 $saveArr[] = $rec;
                 $prevArr[$key] = $dRec->price;
@@ -299,6 +305,9 @@ class acc_ProductPricePerPeriods extends core_Manager
                 redirect(array($mvc, 'filter', 'toDate' => $rec->toDate, 'productItemId' => $rec->productItemId, 'otherItemId' => $rec->otherItemId, 'type' => $rec->type));
             }
         }
+
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+        $data->listFields['price'] .= "|* <small>({$baseCurrencyCode})</small>";
     }
 
 
@@ -315,7 +324,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         $otherItemId = Request::get('otherItemId', 'int');
 
         $toDate = empty($toDate) ? dt::today() : $toDate;
-        $recs = static::getPricesToDate($toDate, $productItemId, $otherItemId, $type);
+        $recs = static::getPricesToDate($toDate, $productItemId, $otherItemId, $type, false);
         $countRecs = countR($recs);
         core_App::setTimeLimit($countRecs * 0.3, false, 300);
 
@@ -351,9 +360,10 @@ class acc_ProductPricePerPeriods extends core_Manager
      * @param mixed $productItems
      * @param mixed $otherItems
      * @param string $types
+     * @param bool $convertToDateBaseCurrency
      * @return array $res
      */
-    public static function getPricesToDate($toDate, $productItems = null, $otherItems = null, $types = 'stores')
+    public static function getPricesToDate($toDate, $productItems = null, $otherItems = null, $types = 'stores', $convertToDateBaseCurrency = true)
     {
         $dateColName = str::phpToMysqlName('date');
         $storeColName = str::phpToMysqlName('otherItemId');
@@ -385,8 +395,13 @@ class acc_ProductPricePerPeriods extends core_Manager
         $dbTableRes = $me->db->query($query1);
 
         $res = array();
+        $today = dt::today();
         while ($arr = $me->db->fetchArray($dbTableRes)) {
-            $res["{$arr['otherItemId']}|{$arr['productItemId']}"] = (object)$arr;
+            $obj = (object)$arr;
+            if($convertToDateBaseCurrency){
+                $obj->price = deals_Helper::getSmartBaseCurrency($obj->price, $today, $toDate);
+            }
+            $res["{$arr['otherItemId']}|{$arr['productItemId']}"] = $obj;
         }
 
         return $res;
@@ -410,7 +425,7 @@ class acc_ProductPricePerPeriods extends core_Manager
         foreach (array('stores' => 'type,otherItemId,productItemId,date', 'production' => 'type,productItemId,date', 'costs' => 'type,otherItemId,productItemId,date') as $type => $keyFields){
 
             core_Debug::startTimer("CALC_{$type}");
-            $pricesToDate = static::getPricesToDate($toDate, null, null, $type);
+            $pricesToDate = static::getPricesToDate($toDate, null, null, $type, false);
 
             $prevArr = array();
             array_walk($pricesToDate, function($arr, $key) use (&$prevArr) {$prevArr[$key] = $arr->price;});

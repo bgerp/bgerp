@@ -62,6 +62,10 @@
                         <!--ET_BEGIN lineVehicleId-->
                         <div><span class='quiet' style="padding: 0 3px;">|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
                         <!--ET_END lineVehicleId-->
+                        <!--ET_BEGIN amountGiven-->
+                        <hr>
+                        <div><span class='quiet' style="padding: 0 3px;">|В брой|*:</span>  [#amountGiven#] »  <span class='quiet' style="padding: 0 3px 0 10px;">|Ресто|*:</span> [#change#] </div>
+                        <!--ET_END amountGiven-->
                     </td>
                     <td style='padding-left:10px; padding-top: 10px;max-width:50%; min-width: 300px'>
                         <table class="no-border fright"><tr><td style='font-size:20px'>|Сума|*:</td><td class='amount' style="margin-right: 0"><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></td></tr></table>

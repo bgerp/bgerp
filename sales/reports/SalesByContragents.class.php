@@ -79,6 +79,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=group,single=none');
         $fieldset->FLD('seeDelta', 'set(yes = )', 'caption=Делти,after=articleType,single=none');
         $fieldset->FLD('see', 'set(sales=Сделки, articles=Артикули)', 'caption=Покажи,maxRadio=2,after=articleType,single=none,silent');
+
+        $fieldset->FNC('currency', 'key(mvc=currency_Currencies,select=code,allowEmpty)', 'caption=Валута,single=none');
     }
 
 
@@ -293,6 +295,15 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         $unicartLast = $salesArrLast = array();
 
         while ($recPrime = $query->fetch()) {
+
+            //Превалутиране на сумите
+            $recPrime->sellCost = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, null, $rec->to);
+
+            $recPrime->autoDiscountAmount = deals_Helper::getSmartBaseCurrency($recPrime->autoDiscountAmount, null, $rec->to);
+            $recPrime->sellCostWithOriginalDiscount = deals_Helper::getSmartBaseCurrency($recPrime->sellCostWithOriginalDiscount, null, $rec->to);
+            $recPrime->primeCost = deals_Helper::getSmartBaseCurrency($recPrime->primeCost, null, $rec->to);
+            $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, null, $rec->to);
+
             $sellValuePrevious = $sellValueLastYear = $sellValue = $delta = $deltaPrevious = $deltaLastYear = 0;
             $contragentId = $contragentClassId = $contragentClassName = 0;
             $detClassName = $masterClassName = $masterKey = $contragentGroups = 0;
@@ -356,8 +367,10 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $id = $recPrime->folderId;
 
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
+
                 if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+
                         $sellValuePrevious = (-1) * $recPrime->sellCost * $recPrime->quantity;
                         $deltaPrevious = (-1) * $recPrime->delta;
                     } else {
@@ -395,6 +408,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             if ($rec->compare == 'year') {
                 if ($recPrime->valior >= $fromLastYear && $recPrime->valior <= $toLastYear) {
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
+
                         $sellValueLastYear = (-1) * $recPrime->sellCost * $recPrime->quantity;
                         $deltaLastYear = (-1) * $recPrime->delta;
                     } else {
@@ -577,8 +591,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $v->salesArrPrevious = countR($salesArrPrev[$v->folderId]);
             $v->salesArrLast = countR($salesArrLast[$v->folderId]);
 
-            $unicartTotal +=$v->unicart;
-            $salesArrTotal +=$v->salesArr;
+            $unicartTotal += $v->unicart;
+            $salesArrTotal += $v->salesArr;
 
         }
 
@@ -747,7 +761,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
                 $contragentClassName = $dRec->contragentClassName;
 
-                $contragent = $contragentClassName::getTitleById($dRec->contragentId,false);
+                $contragent = $contragentClassName::getTitleById($dRec->contragentId, false);
 
             }
         }
@@ -992,6 +1006,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                                         <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
                                         <!--ET_BEGIN group--><div>|Групи продукти|*: [#group#]</div><!--ET_END group-->
                                         <!--ET_BEGIN compare--><div>|Сравнение|*: [#compare#]</div><!--ET_END compare-->
+                                        <!--ET_BEGIN currency--><div>|Валута|*: [#currency#]</div><!--ET_END currency-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -1043,22 +1058,27 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
                 $fieldTpl->append('<b>' . $groupVerb . '</b>', 'crmGroup');
             }
+        }
 
-            $marker = 0;
+        //Валута
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->to);
 
-            if (isset($data->rec->contragent)) {
-                foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
-                    $marker++;
+        $fieldTpl->append('<b>' . $baseCurrency . '</b>', 'currency');
 
-                    $contragentVerb .= (doc_Folders::getTitleById($contragent));
+        $marker = 0;
 
-                    if ((countR(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
-                        $contragentVerb .= ', ';
-                    }
+        if (isset($data->rec->contragent)) {
+            foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
+                $marker++;
+
+                $contragentVerb .= (doc_Folders::getTitleById($contragent));
+
+                if ((countR(type_Keylist::toArray($data->rec->contragent))) - $marker != 0) {
+                    $contragentVerb .= ', ';
                 }
-
-                $fieldTpl->append('<b>' . $contragentVerb . '</b>', 'contragent');
             }
+
+            $fieldTpl->append('<b>' . $contragentVerb . '</b>', 'contragent');
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'contragent');
         }
@@ -1123,7 +1143,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
             $saleValue = $dRec->totalValue;
             $delta = $dRec->totalDelta;
 
-            $res->saleValue =$saleValue;
+            $res->saleValue = $saleValue;
             $res->delta = $delta;
 
             $res->articles = $dRec->totalUnicart;

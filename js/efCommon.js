@@ -2694,14 +2694,24 @@ function refreshForm(form, removeFields) {
 
     var frm = $(form);
 
-    frm.css('cursor', 'wait');
+    // Визуален ефект
+    frm.css('opacity', '0.6');
+
+    // Блокираме формата
     form.inert = true;
-    frm.find('input, select, textarea').css('cursor', 'wait');
+    $('body').css('cursor', 'wait');
     frm.find('#save, #saveAndNew').prop("disabled", true);
+
+    //  Блокираме и select2 елементите (те не са вътре във формата)
+    $('.select2-container').css({
+        'pointer-events': 'none',
+        'opacity': '0.6',
+        'cursor': 'wait'
+    });
 
     // Запазваме всички пароли преди ajax
     var savedPwd = [];
-    $('input[type=password]').each(function () {
+    frm.find('input[type=password]').each(function () {
         savedPwd[$(this).attr('name')] = $(this).val();
     });
 
@@ -2749,12 +2759,25 @@ function refreshForm(form, removeFields) {
                     $('[name=' + k + ']').val(savedPwd[k]);
             }
         }, 600);
-        form.inert = false;
 
-    }).fail(function (res) {
-        form.inert = false;
-        getEO().log('Грешка при извличане на данни по AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
-    });
+   }).fail(function (res) {
+       getEO().log('Грешка при AJAX - ReadyStatus: ' + res.readyState + ' - Status: ' + res.status);
+   }).always(function () {
+       // Отключваме формата
+       form.inert = false;
+
+       frm.css({
+           'opacity': '1'
+       });
+
+       $('body').css('cursor', 'auto');
+       // Отключваме select2
+       $('.select2-container').css({
+           'pointer-events': 'auto',
+           'opacity': '1',
+           'cursor': 'auto'
+       });
+   });
 }
 
 
@@ -6229,7 +6252,7 @@ $.fn.isInViewport = function () {
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
 function focusOnce(id) {
-    if($('body').hasClass('narrow')) return;
+    if($('body').hasClass('narrow') && (window.innerWidth < 600 || window.innerHeight < 600)) return;
     var state = getHitState();
 
     if (state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
@@ -6439,6 +6462,171 @@ function checkVatAndTriger(name) {
         }
     }
 }
+
+
+/**
+ * ф-я за контиране на ПКО
+ */
+function contoPkoPrompt(ev, buttonEl, callUrl) {
+    var warningText        = buttonEl.dataset.warning;
+    var expectedAmount     = buttonEl.dataset.expectedAmount;
+    var currenciesRaw      = buttonEl.dataset.expectedCurrency || '';
+    var errorFormatMsg     = buttonEl.dataset.errorFormat;
+    var errorCurrencyMsg   = buttonEl.dataset.errorCurrency;
+    var defaultCurrencyRaw = buttonEl.dataset.defaultCurrency || '';
+    var documentUrl        = buttonEl.dataset.url;     // базовият URL от бекенда
+
+    // позволени валути – в uppercase
+    var allowedCurrencies = currenciesRaw
+        .split(',')
+        .map(function (s) { return s.trim().toUpperCase(); })
+        .filter(function (s) { return s.length > 0; });
+
+    var userText = window.prompt(warningText, expectedAmount);
+
+    function stopEvent(e) {
+        if (!e) return;
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+        if (typeof e.stopPropagation === 'function')          e.stopPropagation();
+        if (typeof e.preventDefault === 'function')           e.preventDefault();
+    }
+
+    function blurButton(btn) {
+        if (window.jQuery) {
+            jQuery(btn).blur();
+        } else if (btn && typeof btn.blur === 'function') {
+            btn.blur();
+        }
+    }
+
+    // URL, който евентуално ще викаме през Efae
+    var urlToCall = null;
+
+    // 1) Cancel -> спира абсолютно всичко (няма контиране)
+    if (userText === null) {
+        stopEvent(ev);
+        blurButton(buttonEl);
+        return false;
+    }
+
+    // 2) Ако текстът не е променян
+    if (userText === expectedAmount) {
+        urlToCall = documentUrl;
+
+        if (!callUrl) {
+            return true;
+        }
+        // ако callUrl === true, ще стигнем до Efae call по-долу
+    } else {
+        // 3) Текстът е променен -> парсваме и валидираме
+        userText = userText.trim();
+
+        // сума, а валутата е optional и може да е със/без интервал:
+        // "10" / "10 EUR" / "10EUR" / "10 €" / "10€" / "10 евро" / "10euro" / "10 лв." / "10лв." / "10лева"
+        var m = userText.match(
+            /^([0-9]{1,3}(?:[ \u00A0\u202F]?[0-9]{3})*(?:[.,][0-9]+)?)(?:\s*([A-Za-zА-Яа-яЁё€]+\.?))?$/u
+        );
+
+        var amountStr, currency = '';
+
+        if (!m) {
+            alert(errorFormatMsg);
+            stopEvent(ev);
+            blurButton(buttonEl);
+            return false;
+        }
+
+        amountStr = m[1];
+        if (m[2]) {
+            currency = m[2].trim();
+        } else {
+            currency = defaultCurrencyRaw.trim();
+        }
+
+        // === НОРМАЛИЗАЦИЯ НА ВАЛУТАТА ===
+        if (currency) {
+            var hasBGNAllowed = allowedCurrencies.indexOf('BGN') !== -1;
+            var hasEURAllowed = allowedCurrencies.indexOf('EUR') !== -1;
+
+            // lower + махаме финална точка
+            var curLower = currency.toLowerCase().replace(/\.$/, '').trim();
+
+            // BGN aliases
+            if (hasBGNAllowed && (curLower === 'лева' || curLower === 'лв')) {
+                currency = 'BGN';
+
+                // EUR aliases
+            } else if (hasEURAllowed && (
+                curLower === 'евро' || curLower === 'ев' || curLower === 'евр' ||
+                curLower === 'euro' || curLower === 'eur' || curLower === '€'
+            )) {
+                currency = 'EUR';
+
+            } else {
+                currency = currency.toUpperCase();
+            }
+        }
+
+        // проверка дали валутата е сред позволените
+        if (allowedCurrencies.length > 0 && allowedCurrencies.indexOf(currency) === -1) {
+            alert(errorCurrencyMsg);
+            stopEvent(ev);
+            blurButton(buttonEl);
+            return false;
+        }
+
+        // 4) Валидни amount + currency -> променяме URL
+        if (documentUrl) {
+            // нормализираме amountStr за path:
+            // махаме интервали (вкл. NBSP/NNBSP), заменяме ',' с '.'
+            var normalizedAmount = amountStr
+                .replace(/[ \t\u00A0\u202F]+/g, '')
+                .replace(',', '.');
+
+            // забраняваме <= 0
+            var amountNum = parseFloat(normalizedAmount);
+            if (!isFinite(amountNum) || amountNum <= 0) {
+                alert(errorFormatMsg);
+                stopEvent(ev);
+                blurButton(buttonEl);
+                return false;
+            }
+
+            var newUrl = documentUrl;
+            if (newUrl.charAt(newUrl.length - 1) !== '/') {
+                newUrl += '/';
+            }
+
+            newUrl += 'amount/'   + encodeURIComponent(normalizedAmount)
+                + '/currency/' + encodeURIComponent(currency);
+
+            buttonEl.dataset.url = newUrl;
+            urlToCall = newUrl;
+
+            console.log("Will Call: " + newUrl);
+        } else {
+            urlToCall = null;
+        }
+    }
+
+    // 5) Ако трябва директно да извикаме URL-а през Efae
+    if (callUrl && urlToCall) {
+        if (typeof getEfae === 'function') {
+            var efae = getEfae();
+            if (efae && typeof efae.process === 'function') {
+                var resObj = new Object();
+                resObj['url'] = urlToCall;
+
+                var dataArg = (typeof data !== 'undefined') ? data : undefined;
+                efae.process(resObj, dataArg);
+            }
+        }
+    }
+
+    return true;
+}
+
+
 
 
 /**
@@ -6719,12 +6907,20 @@ function selectAllCheckboxes() {
 Възможност за скрива на част от редовете в дълги листови таблици
  */
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("td.td-clamp").forEach(td => {
-        const collapsedLines = parseInt(td.dataset.lines || 3, 10);     // по подразбиране 3
-        const expandedMax    = parseInt(td.dataset.maxLines || 10, 10); // по подразбиране 10
 
+    document.querySelectorAll("td[data-viewrows]").forEach(td => {
+
+        if(td.offsetHeight > 60) $(td).addClass('td-clamp');
+
+        const collapsedLines = parseInt(td.dataset.viewrows || 3, 10);     // по подразбиране 3
+        const expandedMax    = parseInt(td.dataset.maxLines || 16, 10); // по подразбиране 10
+
+        let mh = collapsedLines * 1.4;
+        let ms = expandedMax * 1.4;
         td.style.setProperty("--lines-collapsed", collapsedLines);
         td.style.setProperty("--lines-expanded-max", expandedMax);
+        td.style.setProperty("--max-height", mh.toFixed(1) + "em");
+        td.style.setProperty("--max-scroll", ms.toFixed(1) + "em");
 
         // вземи реалния фон и го сложи във --fade-color
         const bg = getComputedStyle(td).backgroundColor;

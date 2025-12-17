@@ -203,8 +203,14 @@ class findeals_Deals extends deals_DealBase
      * Полета, които при клониране да не са попълнени
      */
     public $fieldsNotToClone = 'valior, amountDeal, currencyRate, baseAmount';
-    
-    
+
+
+    /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -235,6 +241,7 @@ class findeals_Deals extends deals_DealBase
         $this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=vatExceptionId');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен,stopped=Спряно,template=Шаблон)', 'caption=Състояние, input=none');
         $this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
+        $this->FLD('oldCurrencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'input=none,caption=Стара валута');
 
         // Индекс
         $this->setDbIndex('dealManId');
@@ -396,6 +403,14 @@ class findeals_Deals extends deals_DealBase
         $contragentListNum = acc_Lists::fetchBySystemId('contractors')->num;
         $form->setFieldTypeParams('contragentItemId', array('lists' => $contragentListNum));
         $form->setField('baseAmount', "unit={$rec->currencyId}");
+
+        // След еврозоната няма да може да се създават ФД в лева
+        if(dt::today() >= acc_Setup::getEurozoneDate()){
+            $currencyOptions = cls::get('currency_Currencies')->makeArray4Select('code', "#state = 'active' AND #code != 'BGN'", 'code');
+            if(!haveRole('debug')){
+                $form->setOptions('currencyId', $currencyOptions);
+            }
+        }
     }
     
     
@@ -458,6 +473,11 @@ class findeals_Deals extends deals_DealBase
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
+            $currencyError = null;
+            if(!currency_Currencies::checkCurrency($rec->currencyId, $rec->valior, $currencyError)){
+                $form->setError('currencyId', $currencyError);
+            }
+
             if (isset($rec->contragentItemId)) {
                 $item = acc_Items::fetch($rec->contragentItemId);
                 $rec->secondContragentClassId = $item->classId;
@@ -640,7 +660,8 @@ class findeals_Deals extends deals_DealBase
                     $recs[$index] = $jRec;
                 }
                 $r = &$recs[$index];
-                
+                $jRec->amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $jRec->valior, $rec->valior);
+
                 $jRec->amount /= $rate;
                 if ($jRec->debitItem2 == $item->id && $jRec->debitAccId == $rec->accountId) {
                     $r->debitA += $jRec->amount;
@@ -650,7 +671,6 @@ class findeals_Deals extends deals_DealBase
                     $r->creditA += $jRec->amount;
                 }
             }
-
 
             // За всеки резултат, ако е в границите на пейджъра, го показваме
             if (countR($recs)) {
@@ -673,17 +693,14 @@ class findeals_Deals extends deals_DealBase
                 }
             }
         }
-        
+
         foreach (array('amountDeal', 'debitAmount', 'creditAmount', 'curDebitAmount', 'curCreditAmount') as $fld) {
             if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
                 @$data->rec->{$fld} /= $rate;
             }
-            $data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($data->rec->{$fld});
-            if ($data->rec->{$fld} == 0) {
-                $data->row->{$fld} = "<span class='quiet'>{$data->row->{$fld}}</span>";
-            } elseif ($data->rec->{$fld} < 0) {
-                $data->row->{$fld} = "<span class='red'>{$data->row->{$fld}}</span>";
-            }
+            $roundedVal = round($data->rec->{$fld}, 2);
+            $data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($roundedVal);
+            $data->row->{$fld} =  ht::styleNumber($data->row->{$fld}, $roundedVal);
         }
 
         if(round($data->rec->debitAmount, 4) == round($data->rec->curDebitAmount, 4)){
@@ -789,7 +806,7 @@ class findeals_Deals extends deals_DealBase
         if ($this->haveRightFor('single', $rec) && isset($rec->amountDeal)) {
             $rate = (!empty($rec->currencyRate)) ? $rec->currencyRate : 1;
             $amount = $rec->amountDeal / $rate;
-            $amount = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($amount);
+            $amount = core_Type::getByName("double(decimals=2)")->toVerbal($amount);
             if ($rec->amountDeal < 0) {
                 $amount = "<span class='red'>{$amount}</span>";
             }
@@ -805,9 +822,7 @@ class findeals_Deals extends deals_DealBase
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @see bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$result)
     {
@@ -830,19 +845,20 @@ class findeals_Deals extends deals_DealBase
         $cItemId = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId)->id;
         $curItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
         
-        $blAmount = acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $curItemId))->amount;
-        
-        $paid = acc_Balances::getBlAmounts($entries, '501,503')->amount;
+        $blAmount = acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $curItemId), array(), $rec->valior)->amount;
+        if(isset($rec->oldCurrencyId)){
+            $oItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->oldCurrencyId))->id;
+            $blAmount += acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $oItemId), array(), $rec->valior)->amount;
+        }
+        $paid = acc_Balances::getBlAmounts($entries, '501,503', null, null, array(), array(), $rec->valior)->amount;
         
         $result->set('amount', 0);
         $result->set('amountPaid', $paid);
-        $result->set('blAmount', $blAmount);
+        $result->set('blAmount', round($blAmount, 4));
         $result->set('agreedValior', $rec->createdOn);
         $result->set('currency', $rec->currencyId);
         $result->set('rate', $rec->currencyRate);
         $result->set('contoActions', false);
-        
-        //@TODO Временно, докато се премахне от фактурите
         $result->setIfNot('vatType', 'yes');
     }
     
@@ -1128,6 +1144,22 @@ class findeals_Deals extends deals_DealBase
     {
         if ($clsId = $mvc->getClassId()) {
             $query->where("#dealManId = '{$clsId}'");
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        if(dt::today() >= acc_Setup::getEurozoneDate()){
+            $rec = $mvc->fetchRec($id);
+            if($rec->currencyId == 'BGN'){
+                core_Statuses::newStatus('Не може да взъстановите финансова сделка в лева след влизането ни в еврозоната|*!', 'error');
+
+                return false;
+            }
         }
     }
 }

@@ -24,6 +24,7 @@ class bgerp_DealIntf
      *
      * @param int                        $id         ид на документ
      * @param bgerp_iface_DealAggregator $aggregator - в него се натрупват обобщените данни
+     * @return void
      */
     public function pushDealInfo($id, &$aggregator)
     {

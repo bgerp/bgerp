@@ -24,7 +24,14 @@ defIfNot('ACC_DEFAULT_VAT_RATE', 0.20);
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
  * Използва се по време на инициализацията на системата, при създаването на първия период
  */
-defIfNot('BASE_CURRENCY_CODE', 'BGN');
+defIfNot('BASE_CURRENCY_CODE', 'EUR');
+
+
+/**
+ * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
+ * Използва се по време на инициализацията на системата, при създаването на първия период
+ */
+defIfNot('BASE_CURRENCY_CODE_OLD', 'BGN');
 
 
 /**
@@ -115,6 +122,24 @@ defIfNot('ACC_ALTERNATE_WINDOW', '');
  * Захранване на стратегия с отрицателни крайни салда
  */
 defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'yes');
+
+
+/**
+ * Колко назад във времето ще се инвалидират балансите
+ */
+defIfNot('ACC_EUROZONE_DATE', '2026-01-01');
+
+
+/**
+ * Колко назад във времето ще се инвалидират балансите
+ */
+defIfNot('ACC_EUROZONE_DATE', '2026-01-01');
+
+
+/**
+ * До кога ще може да се приемат плащания в лева
+ */
+defIfNot('ACC_BGN_PAYMENT_UNTIL', '2026-02-01');
 
 
 /**
@@ -552,8 +577,8 @@ class acc_Setup extends core_ProtoSetup
         $repairAccountsDefault = core_Packs::getConfigValue('acc', 'ACC_BALANCE_REPAIR_ACCOUNTS');
         if (strlen($repairAccountsDefault) === 0) {
             $accArray = array();
-            $accAcounts = arr::make(static::$accAccount, true);
-            foreach ($accAcounts as $accSysId) {
+            $accAccounts = arr::make(static::$accAccount, true);
+            foreach ($accAccounts as $accSysId) {
                 $accId = acc_Accounts::getRecBySystemId($accSysId)->id;
                 $accArray[$accId] = $accSysId;
             }
@@ -627,5 +652,43 @@ class acc_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('acc_ProductPricePerPeriods', 'SyncStockPrices', null, $callOn);
+    }
+
+
+    /**
+     * Коя е основната валута за системата
+     *
+     * @param string|null $date - към коя дата
+     * @return mixed - кода на основната валута
+     */
+    public static function getDefaultCurrencyCode($date = null)
+    {
+        $date = $date ?? dt::today();
+        $conf = core_Packs::getConfig('acc');
+        $eurozoneDate = self::getEurozoneDate();
+
+        return $date < $eurozoneDate ? $conf->BASE_CURRENCY_CODE_OLD : $conf->BASE_CURRENCY_CODE;
+    }
+
+
+    /**
+     * Помощна ф-я връщаща датата от която сме в еврозоната
+     */
+    public static function getEurozoneDate()
+    {
+        $conf = core_Packs::getConfig('acc');
+
+        return defined('BGERP_EUROZONE_DATE') ? BGERP_EUROZONE_DATE : $conf->ACC_EUROZONE_DATE;
+    }
+
+
+    /**
+     * Помощна ф-я връщаща до коя дата може да се правят плащания в лева
+     */
+    public static function getBgnDeprecationDate()
+    {
+        $conf = core_Packs::getConfig('acc');
+
+        return defined('BGERP_BGN_PAYMENT_UNTIL') ? BGERP_BGN_PAYMENT_UNTIL : $conf->ACC_BGN_PAYMENT_UNTIL;
     }
 }

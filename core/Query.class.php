@@ -764,7 +764,7 @@ class core_Query extends core_FieldSet
         $db->freeResult($dbRes);
         
         // Връщаме брояча на редовете
-        return $r->_count;
+        return (integer) $r->_count;
     }
     
     

@@ -228,7 +228,7 @@ class pos_Reports extends core_Master
 
             $pointRec = pos_Points::fetch($rec->pointId);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
-            $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+            $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
             setIfNot($row->dealerId, $row->createdBy);
 
             if(empty($rec->operators)){
@@ -268,9 +268,25 @@ class pos_Reports extends core_Master
                 $form->setError('valior','Няма чакащи (неприключени) бележки с избрания или по-малък вальор|*!');
             } else {
                 $valior = !empty($rec->valior) ? $rec->valior : dt::today();
-                $receiptArr = arr::extractValuesFromArray($query->fetchAll(), 'waitingOn');
-                $found = array_filter($receiptArr, function ($a) use ($valior) { return $a < "{$valior} 00:00:00";});
-                if(countR($found)){
+                $valiorBaseCurrency = acc_Periods::getBaseCurrencyCode($valior);
+
+                // Проверка на бележките, които ще се приключят
+                $haveReceiptsWithDiffCurrency = false;
+                $receiptWithLowerValior =array();
+                $receipts = $query->fetchAll();
+                foreach ($receipts as $receiptRec){
+                    $recCurrencyCode = acc_Periods::getBaseCurrencyCode($receiptRec->createdOn);
+                    if($valiorBaseCurrency != $recCurrencyCode){
+                        $haveReceiptsWithDiffCurrency = true;
+                    }
+                    if($receiptRec->waitingOn < "{$valior} 00:00:00"){
+                        $receiptWithLowerValior[$receiptRec->id] = $receiptRec->id;
+                    }
+                }
+
+                if($haveReceiptsWithDiffCurrency){
+                    $form->setWarning('valior',"Има бележки във валута различно от основната валута за периода|*: <b>{$valiorBaseCurrency}</b>!");
+                } elseif(countR($receiptWithLowerValior)){
                     $form->setWarning('valior','В отчета ще влязат бележки с по-стара дата от избрания вальор|*!');
                 }
             }
@@ -323,7 +339,7 @@ class pos_Reports extends core_Master
                 if(isset($statRow->receiptTotal)){
                     $statRow->receiptTotalVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($statRow->receiptTotal);
                     $statRow->receiptTotalVerbal = ht::styleNumber($statRow->receiptTotalVerbal, $statRow->receiptTotal);
-                    $statRow->receiptTotalVerbal = currency_Currencies::decorate($statRow->receiptTotalVerbal, $data->row->baseCurrency);
+                    $statRow->receiptTotalVerbal = currency_Currencies::decorate($statRow->receiptTotalVerbal, $data->row->baseCurrency, true);
                     $operatorBlock->append($statRow->receiptTotalVerbal, 'operatorTotal');
                 }
 
@@ -347,7 +363,7 @@ class pos_Reports extends core_Master
                     $paymentBlocks->append($paymentName, 'paymentId');
                     $paymentAmountRow = core_Type::getByName('double(decimals=2)')->toVerbal($paymentRec->amount);
                     $paymentAmountRow = ht::styleNumber($paymentAmountRow, $paymentRec->amount);
-                    $paymentAmountRow = currency_Currencies::decorate($paymentAmountRow, $data->row->baseCurrency);
+                    $paymentAmountRow = currency_Currencies::decorate($paymentAmountRow, $data->row->baseCurrency, true);
                     $paymentBlocks->append($paymentAmountRow, 'paymentAmount');
                     if($k == -1){
                         $paymentBlocks->append('reportTotal', 'PAYMENT_CLASS');
@@ -382,6 +398,7 @@ class pos_Reports extends core_Master
         $rQuery->EXT('change', 'pos_Receipts', 'externalName=change,externalKey=receiptId');
         $rQuery->XPR('calcedUser', 'int', "COALESCE(#waitingReceiptBy, #createdReceiptBy)");
         $rQuery->where("#action LIKE '%payment%'");
+        $rQuery->orderBy("#receiptId=ASC,#action=ASC");
         if(countR($receiptIds)){
             $rQuery->in('receiptId', $receiptIds);
         } else {
@@ -390,11 +407,38 @@ class pos_Reports extends core_Master
 
         $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
         $totalArr = (object)array('receiptBy' => tr('Общо'), 'payments' => array());
-        while($rRec = $rQuery->fetch()){
-            $action = explode('|', $rRec->action);
-            if($action[1] == -1){
-                $rRec->amount -= $rRec->change;
+
+        $bgnPaymentId = eurozone_Setup::getBgnPaymentId();
+
+        $summedPayments = $change = array();
+        $rDetails = $rQuery->fetchAll();
+        foreach ($rDetails as $rRec1){
+            $key = "{$rRec1->receiptId}|{$rRec1->deviceId}|{$rRec1->action}";
+            if(!array_key_exists($key, $summedPayments)){
+                $summedPayments[$key] = $rRec1;
+            } else {
+                $summedPayments[$key]->amount += $rRec1->amount;
             }
+            $change[$rRec1->receiptId] = $rRec1->change;
+        }
+
+        foreach ($summedPayments as &$rRec){
+            $action = explode('|', $rRec->action);
+            if($action[1] == -1 || $action[1] == $bgnPaymentId){
+                if($change[$rRec->receiptId]){
+                    $changeAmount = $change[$rRec->receiptId];
+                    if($action[1] == $bgnPaymentId){
+                        $changeAmount =currency_CurrencyRates::convertAmount($changeAmount, $rRec->createdOn, null, 'BGN');
+                    }
+                    $rRec->amount -= $changeAmount;
+                    unset($change[$rRec->receiptId]);
+                }
+            }
+
+            if($action[1] != -1){
+                $rRec->amount = cond_Payments::toBaseCurrency($action[1], $rRec->amount);
+            }
+
             if (!array_key_exists($rRec->calcedUser, $data->statisticArr)) {
                 $data->statisticArr[$rRec->calcedUser] = (object) array('receiptBy' => crm_Profiles::createLink($rRec->calcedUser), 'receiptTotal' => 0, 'payments' => array());
             }

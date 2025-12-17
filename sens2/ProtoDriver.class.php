@@ -214,14 +214,16 @@ class sens2_ProtoDriver extends core_BaseClass
         if ($this->driverRec) {
             while ($pRec = $pQuery->fetch("#controllerId = {$this->driverRec->id}")) {
                 $pDriver = sens2_IOPorts::getDriver($pRec);
-                $dPorts = $pDriver->discovery($pRec);
-                foreach ($dPorts as $p) {
-                    $p->lName = $p->name;
-                    $p->name = $pRec->name . ($p->name ? '.' . $p->name : '');
-                    $p->slot = $pRec->slot;
-                    $pDriver->addTimeValues($p, $pRec);
-                    $ports[] = $p;
-                }
+                if ($pDriver) {
+                    $dPorts = $pDriver->discovery($pRec);
+                    foreach ($dPorts as $p) {
+                        $p->lName = $p->name;
+                        $p->name = $pRec->name . ($p->name ? '.' . $p->name : '');
+                        $p->slot = $pRec->slot;
+                        $pDriver->addTimeValues($p, $pRec);
+                        $ports[] = $p;
+                    }
+                } else { continue; }
             }
         }
         

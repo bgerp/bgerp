@@ -427,7 +427,7 @@ class crm_Companies extends core_Master
         // Филтриране по група
         $data->listFilter->FNC(
             'groupId',
-            'key(mvc=crm_Groups,select=name,allowEmpty)',
+            'key(mvc=crm_Groups,select=name,allowEmpty,where=#state !\\= \\\'rejected\\\')',
             'placeholder=Всички групи,caption=Група,input,silent,autoFilter'
         );
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
@@ -1632,31 +1632,20 @@ class crm_Companies extends core_Master
      *
      * @param int $id - ид на записа
      *
-     * @return string(3) - BGN|EUR|USD за дефолт валутата
+     * @return string(3) - EUR|USD за дефолт валутата
      */
     public static function getDefaultCurrencyId($id)
     {
         $rec = self::fetch($id);
         
         // Ако контрагента няма държава, то дефолт валутата е BGN
-        if (empty($rec->country)) {
+        if (empty($rec->country) || $rec->country == drdata_Countries::getIdByName('Bulgaria')) {
             
-            return 'BGN';
+            return acc_Periods::getBaseCurrencyCode();
         }
-        
-        // Ако държавата му е България, дефолт валутата е 'BGN'
-        if (drdata_Countries::fetchField($rec->country, 'letterCode2') == 'BG') {
-            
-            return 'BGN';
-        }
-        
-        // Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
-        if (drdata_Countries::isEur($rec->country)) {
-            
-            return 'EUR';
-        }
-        
-        
+
+        if(drdata_Countries::isEur($rec->country)) return 'EUR';
+
         // За всички останали е 'USD'
         return 'USD';
     }

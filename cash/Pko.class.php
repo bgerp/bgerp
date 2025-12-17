@@ -97,7 +97,7 @@ class cash_Pko extends cash_Document
     {
         // Зареждаме полетата от бащата
         parent::getFields($this);
-        $this->FLD('depositor', 'varchar(255)', 'caption=Контрагент->Броил,mandatory');
+        $this->FLD('depositor', 'varchar(255)', 'caption=Плащане->Броил,mandatory,after=contragentName');
         $this->FLD('bankPeripheralDeviceId', "key(mvc=peripheral_Devices,select=name)", "input=hidden,caption=Безналично плащане->БПТ,before=contragentName,hint=Банков паричен терминал");
     }
     
@@ -109,7 +109,9 @@ class cash_Pko extends cash_Document
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $paymentSuggestions = cls::get('cond_Payments')->makeArray4Select('title', '(#currencyCode IS NULL OR #currencyCode = "") AND #state != "closed"');
+
+        $nonCashBgnId = eurozone_Setup::getBgnPaymentId();
+        $paymentSuggestions = cls::get('cond_Payments')->makeArray4Select('title', "#state != 'closed' AND #id != '{$nonCashBgnId}'");
         if(!countR($paymentSuggestions)) return;
 
         // Добавяне на таблица за избор на безналични плащания
@@ -142,15 +144,30 @@ class cash_Pko extends cash_Document
         $rec = &$form->rec;
         $rec->nonCashPayments = array();
         
-        $nonCashSum = 0;
+        $nonCashSumInBaseCurrency = 0;
         $payments = type_Table::toArray($rec->payments);
-        array_walk($payments, function($a) use (&$nonCashSum){
+        if(empty($payments)) return;
+
+        // Колко е общата сума на безналичните плащания
+        array_walk($payments, function($a) use (&$nonCashSumInBaseCurrency, $rec){
             $amount = core_Type::getByName('double')->fromVerbal($a->amount);
-            $nonCashSum += $amount;
+            $amount = cond_Payments::toBaseCurrency($a->paymentId, $amount, $rec->valior);
+            $nonCashSumInBaseCurrency += $amount;
         });
-        
-        if ($nonCashSum > $rec->amount) {
-            $form->setError('payments', 'Общата сума на безналичните методи за плащане е над тази от ордера');
+
+        $nonCashSumInCurrency = currency_CurrencyRates::convertAmount($nonCashSumInBaseCurrency, $rec->valior, null, currency_Currencies::getCodeById($rec->currencyId));
+
+        $difference = 0;
+        $minAmount = min($nonCashSumInCurrency, $rec->amount);
+        if (isset($minAmount)) {
+            if(empty($minAmount)){
+                $difference = 100;
+            } else {
+                $difference = round(abs($rec->amount - $nonCashSumInBaseCurrency) / $minAmount * 100);
+            }
+        }
+        if ($difference > 1) {
+            $form->setError('payments', 'Общата сума на безналичните методи за плащане във валутата е различно от посочената сума|*!');
         }
     }
     

@@ -1362,7 +1362,7 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             }
         }
 
-        $res->amount = $Double->toVerbal($dRec->amount);
+        $res->amount = ($dRec->amount);
 
         if ($rec->compare != 'no') {
             if ($rec->compare == 'previous') {

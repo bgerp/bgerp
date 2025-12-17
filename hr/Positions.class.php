@@ -29,7 +29,7 @@ class hr_Positions extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'hr_Wrapper, plg_Printing, plg_Created, plg_RowTools2';
+    public $loadList = 'hr_Wrapper, plg_Printing, plg_Created, plg_RowTools2, plg_State2';
     
     
     /**
@@ -60,8 +60,14 @@ class hr_Positions extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'name,nkpd,createdOn,createdBy';
-    
-    
+
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    public $singleLayoutFile = 'hr/tpl/SingleLayoutPositions.shtml';
+
+
     /**
      * Описание на модела
      */
@@ -170,6 +176,14 @@ class hr_Positions extends core_Master
     {
         if ($mvc->haveRightFor('single', $rec)) {
             $row->id = ht::createLink($row->id, array($mvc, 'list', $rec->id));
+        }
+
+        if(isset($rec->salaryBase)){
+            $row->salaryBase = currency_Currencies::decorate($rec->salaryBase, null, true);
+        }
+
+        if(isset($rec->compensations)){
+            $row->compensations = currency_Currencies::decorate($rec->compensations, null, true);
         }
     }
 }

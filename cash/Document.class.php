@@ -57,6 +57,12 @@ abstract class cash_Document extends deals_PaymentDocument
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
      * Дали към документа може да се отнася повече от една ф-ра
      * @see deals_InvoicesToDocuments
      */
@@ -191,8 +197,8 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
         $mvc->FLD('reason', 'richtext(rows=2, bucket=Notes)', 'caption=Основание');
         $mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
-        $mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса,removeAndRefreshForm=currencyId|amount,silent');
-        $mvc->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Вносител,mandatory');
+        $mvc->FLD('peroCase', 'key(mvc=cash_Cases, select=name,allowEmpty)', 'caption=Каса');
+        $mvc->FLD('contragentName', 'varchar(255)', 'caption=Плащане->Вносител,mandatory');
         $mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
         $mvc->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
         $mvc->FLD('contragentAdress', 'varchar(255)', 'input=hidden');
@@ -201,8 +207,9 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('contragentCountry', 'varchar(255)', 'input=hidden');
         $mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
         $mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
-        $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent,removeAndRefreshForm=rate|amount');
-        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min77=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
+        $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Плащане->Валута,silent,removeAndRefreshForm=rate|amount');
+        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Плащане->Сума,summary=amount,input=hidden');
+        $mvc->FLD('amountGiven', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Плащане->В брой');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Курс,input=none');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
         $mvc->FLD('issuer', 'varchar', 'caption=Допълнително->Съставил');
@@ -224,17 +231,25 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $Document = doc_Containers::getDocument($fromContainerId);
         $documentRec = $Document->fetch();
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $firstRec = $firstDoc->fetch('currencyRate,currencyId');
+        $willConvert = ($firstRec->currencyId != $documentRec->currencyId);
+
         if($Document->isInstanceOf('deals_InvoiceMaster')){ 
-            $minus = ($documentRec->type == 'dc_note') ? 0 : 0.005;
+            $minus = ($documentRec->type == 'dc_note' || $willConvert) ? 0 : 0.005;
             $amount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount - $minus;
             $amount /= ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
-            $amount = round($amount, 2);
         } elseif($Document->isInstanceOf('store_DocumentMaster')){
             $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
-            $amount = round($amount, 2);
+        }
+
+        $documentCurrencyId = is_numeric($documentRec->currencyId) ? currency_Currencies::getCodeById($documentRec->currencyId) : $documentRec->currencyId;
+        if($firstRec->currencyId != $documentCurrencyId){
+            $amount = currency_CurrencyRates::convertAmount($amount, null, $documentCurrencyId, $firstRec->currencyId);
         }
 
         if(isset($amount)){
+            $amount = round($amount, 2);
             $amount = abs($amount);
         }
 
@@ -265,11 +280,34 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
-        $form->setDefault('currencyId', $cId);
-        
+
+        $eurId = currency_Currencies::getIdByCode('EUR');
+        $bgnId = currency_Currencies::getIdByCode('BGN');
+        $today = dt::today();
+        $baseCurrencyId = acc_Periods::getBaseCurrencyId($today);
+
+        if($today >= acc_Setup::getEurozoneDate()){
+            if($cId == $bgnId){
+                $form->setDefault('currencyId', $eurId);
+            }
+        }
+
+        // Ако е инсталиран бгфиск има ограничение по допустимите валути
+        if(core_Packs::isInstalled('bgfisc')){
+            $form->setDefault('currencyId', $baseCurrencyId);
+            $currencyOptions = array($bgnId => 'BGN', $eurId => 'EUR');
+            if($today >= acc_Setup::getEurozoneDate() && $today <= acc_Setup::getBgnDeprecationDate()) {
+                $form->setOptions('currencyId', $currencyOptions);
+            } else {
+                $form->setReadOnly('currencyId');
+            }
+        } else {
+            $form->setDefault('currencyId', $cId);
+        }
+
         $expectedPayment = null;
-        $realOriginId = isset($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
-        $realOriginId = isset($realOriginId) ? $realOriginId : doc_Threads::getFirstContainerId($form->rec->threadId);
+        $realOriginId = $form->rec->fromContainerId ?? $form->rec->originId;
+        $realOriginId = $realOriginId ?? doc_Threads::getFirstContainerId($form->rec->threadId);
         if($expectedPayment1 = $mvc->getExpectedAmount($realOriginId, $form->rec)){
             $expectedPayment = $expectedPayment1 * $dealInfo->get('rate');
         }
@@ -296,10 +334,16 @@ abstract class cash_Document extends deals_PaymentDocument
         
         if ($mvc instanceof cash_Rko || (isset($defaultOperation) && array_key_exists($defaultOperation, $options))) {
             $form->setDefault('operationSysId', $defaultOperation);
-           
+
             $dAmount = round($amount, 2);
             if ($dAmount != 0) {
                 $form->setDefault('amountDeal', $dAmount);
+
+                if(dt::today() >= acc_Setup::getEurozoneDate()) {
+                    if($rec->dealCurrencyId == currency_Currencies::getIdByCode('BGN') && $rec->currencyId == currency_Currencies::getIdByCode('EUR')){
+                        $form->setDefault('amount', round($dAmount / 1.95583, 2));
+                    }
+                }
             }
         }
         
@@ -325,10 +369,6 @@ abstract class cash_Document extends deals_PaymentDocument
             $form->setField('amount', 'input');
         }
         
-        if (!isset($form->rec->peroCase)) {
-            $form->setField('currencyId', 'input=hidden');
-        }
-        
         if ($form->isSubmitted()) {
             if (!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId) {
                 $form->setField('amount', 'input');
@@ -336,7 +376,13 @@ abstract class cash_Document extends deals_PaymentDocument
                 
                 return;
             }
-            
+
+            $currencyError = null;
+            if(!currency_Currencies::checkCurrency($rec->currencyId, $rec->valior, $currencyError, true)){
+                $form->setError('currencyId', $currencyError);
+                return;
+            }
+
             $origin = $mvc->getOrigin($form->rec);
             $dealInfo = $origin->getAggregateDealInfo();
 
@@ -378,6 +424,9 @@ abstract class cash_Document extends deals_PaymentDocument
             }
             
             $mvc->invoke('AfterSubmitInputEditForm', array($form));
+            if (isset($rec->amountGiven) && $rec->amountGiven <= $rec->amount) {
+                $form->setError('amountGiven', 'Сумата трябва да е над сумата по документа');
+            }
         }
     }
     
@@ -477,9 +526,7 @@ abstract class cash_Document extends deals_PaymentDocument
      *
      * @param int|object $id
      *
-     * @return bgerp_iface_DealAggregator
-     *
-     * @see bgerp_DealIntf::getDealInfo()
+     * @return void
      */
     public function pushDealInfo($id, &$aggregator)
     {
@@ -494,8 +541,11 @@ abstract class cash_Document extends deals_PaymentDocument
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->title = $mvc->getLink($rec->id, 0);
-        
+
+
         if ($fields['-single']) {
+            $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
+
             if ($rec->dealCurrencyId != $rec->currencyId) {
                 $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
 
@@ -527,8 +577,7 @@ abstract class cash_Document extends deals_PaymentDocument
             }
             
             $SpellNumber = cls::get('core_SpellNumber');
-            $currecyCode = currency_Currencies::getCodeById($rec->currencyId);
-            $amountVerbal = $SpellNumber->asCurrency($rec->amount, 'bg', false, $currecyCode);
+            $amountVerbal = $SpellNumber->asCurrency($rec->amount, 'bg', false, $currencyCode);
             $row->amountVerbal = str::mbUcfirst($amountVerbal);
             
             // Вземаме данните за нашата фирма
@@ -555,6 +604,30 @@ abstract class cash_Document extends deals_PaymentDocument
             if ($origin = $mvc->getOrigin($rec)) {
                 $options = $origin->allowedPaymentOperations;
                 $row->operationSysId = $options[$rec->operationSysId]['title'];
+            }
+
+            // Ако има посочено колко е платено - показва се и рестото
+            if(isset($rec->amountGiven)){
+                $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
+
+                $change = $rec->amountGiven - $rec->amount;
+                if(in_array($currencyCode, array('BGN', 'EUR'))){
+                    $changeBgn = $currencyCode == 'BGN' ? $change : round($change * 1.95583, 2);
+                    $changeEur = $currencyCode == 'EUR' ? $change : round($change / 1.95583, 2);
+
+                    $changeBgnRow = core_Type::getByName("double(decimals=2)")->toVerbal($changeBgn);
+                    $changeBgnRow = currency_Currencies::decorate($changeBgnRow, 'BGN', true);
+
+                    $changeEuroRow = core_Type::getByName("double(decimals=2)")->toVerbal($changeEur);
+                    $changeEuroRow = currency_Currencies::decorate($changeEuroRow, 'EUR', true);
+                    if($currencyCode == 'BGN'){
+                        $row->change = "{$changeBgnRow} / {$changeEuroRow}";
+                    } else {
+                        $row->change = "{$changeEuroRow} / {$changeBgnRow}";
+                    }
+                } else {
+                    $row->change = core_Type::getByName("double(decimals=2)")->toVerbal($change);
+                }
             }
         }
     }
@@ -604,6 +677,7 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['place']          string|NULL - населено място
      *               ['features']       array       - свойства на адреса
      *               ['deliveryOn']     date        - Доставка на
+     *               ['valior']         date        - Вальор
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -616,7 +690,7 @@ abstract class cash_Document extends deals_PaymentDocument
 
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
         Mode::push('text', 'plain');
-        $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
+        $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId, true);
         Mode::pop('text');
         $info['cases'] = array($rec->peroCase);
         $info['stores'] = array();
@@ -634,7 +708,9 @@ abstract class cash_Document extends deals_PaymentDocument
             $info['amountVerbal'] = "<span id={$this->getHandle($rec->id)}>{$info['amountVerbal']}</span>";
             $info['amountVerbal'] = ht::styleNumber($info['amountVerbal'], $info['amount']);
         }
-        
+
+        $info['valior'] = $rec->valior ?? dt::today();
+
         return $info;
     }
     

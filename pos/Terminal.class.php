@@ -305,7 +305,7 @@ class pos_Terminal extends peripheral_Terminal
                 $Double = core_Type::getByName('double(decimals=2)');
                 
                 $row = new stdClass();
-                $row->price = currency_Currencies::decorate($Double->toVerbal($calcedPrice));
+                $row->price = currency_Currencies::decorate($Double->toVerbal($calcedPrice), null, true);
                 $row->measureId = cat_UoM::getVerbal($productRec->measureId, 'name');
                 $row->info = cat_Products::getVerbal($productRec, 'info');
                 
@@ -1426,7 +1426,7 @@ class pos_Terminal extends peripheral_Terminal
         $disClass = ($payUrl && !$rec->_disableAllPayments) ? 'navigable' : 'disabledBtn';
         $paymentArr = array();
         $paymentArr["payment-1"] = (object)array('body' => ht::createElement("div", array('id' => "payment-1", 'class' => "{$disClass} posBtns payment", 'data-type' => '-1', 'data-url' => $payUrl), tr('В брой'), true), 'placeholder' => 'PAYMENTS');
-        $payments = pos_Points::fetchSelected($rec->pointId);
+        $payments = pos_Points::fetchSelectedPayments($rec->pointId);
 
         $pointRec = pos_Points::fetch($rec->pointId);
         $peripheralIds = keylist::toArray($pointRec->bankPeripherals);
@@ -1490,7 +1490,7 @@ class pos_Terminal extends peripheral_Terminal
         $warning =  ($contoUrl) ? 'Наистина ли желаете да приключите продажбата|*?' : false;
         $closeBtn = ht::createLink('Приключено', $contoUrl, $warning, array('class' => "{$disClass} posBtns closeBtn"));
         $paymentArr["close"] = (object)array('body' => $closeBtn, 'placeholder' => 'CLOSE_BTNS');
-        
+
         // Добавяне на бутон за приключване на бележката
         cls::get('pos_Receipts')->invoke('BeforeGetPaymentTabBtns', array(&$paymentArr, $rec));
 
@@ -1691,7 +1691,7 @@ class pos_Terminal extends peripheral_Terminal
             Mode::pop('text', 'plain');
 
             Mode::push('text', 'plain');
-            $priceVerbal = currency_Currencies::decorate($price);
+            $priceVerbal = currency_Currencies::decorate($price, null, true);
             Mode::pop('text');
             $btnName = "|*{$priceVerbal}&nbsp;/&nbsp;|" . tr($packName);
             $dataUrl = toUrl(array('pos_ReceiptDetails', 'updaterec', 'receiptId' => $rec->id, 'action' => 'setprice', 'string' => $price), 'local');
@@ -2337,7 +2337,7 @@ class pos_Terminal extends peripheral_Terminal
                 }
 
                 $obj->price = $price;
-                $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price));
+                $res[$id]->price = currency_Currencies::decorate($Double->toVerbal($obj->price), null, true);
             }
             
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);

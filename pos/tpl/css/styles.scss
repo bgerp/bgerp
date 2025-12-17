@@ -626,6 +626,7 @@ select.tabHolder {
 		max-height: calc(1.3em * 2);   /* максимум 2 реда */
 		-webkit-line-clamp: 2;         /* ограничение до 2 реда */
 		text-align: center;
+		line-height: 1.1em;
 		overflow: hidden;
 		font-size: 0.95em;
 		box-sizing: border-box;
@@ -1364,14 +1365,15 @@ table.total {
 
 table.total th{
 	font-weight:normal;
-	text-align: right;
-	padding: 0px 15px;
+	text-align: right !important;
+	padding: 0 5px 0 15px;
 }
 
 table.total td{
 	text-align:right;
 	font-weight:bold;
-	padding: 0px 15px;
+	padding: 0 5px 0 20px;
+	white-space: nowrap;
 }
 .largeCell {
 	min-width: 350px !important;
@@ -1381,7 +1383,7 @@ hr {
 }
 
 td.totalLabel {
-	font-size:1.9em;
+	font-size:1.65em;
 	font-weight:bold;
 }
 
@@ -1390,9 +1392,12 @@ th.paidCaption, td.paidCaption {
 }
 
 td.paidCaption, td.changePositive, td.changeNegative {
-	font-size:1.4em;
+	font-size:1.2em;
 }
-
+.currencySignNextToAmount {
+	font-size: 0.9em;
+	min-width: auto;
+}
 th.changePositive, td.changePositive {
 	color:green;
 	white-space: nowrap;

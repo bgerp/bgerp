@@ -155,6 +155,7 @@ class drdata_Address extends core_MVC
         cls::get(get_called_class())->invoke('ParseAddress', array($cData, $text, $assumed));
 
         if (!empty((array) $cData)) {
+            self::logDebug('Извличане на контактни данни от AI 1');
 
             return $cData;
         }
@@ -416,6 +417,8 @@ class drdata_Address extends core_MVC
         cls::get(get_called_class())->invoke('ParseAddress', array($cData, $text, $assumed));
 
         if (!empty((array) $cData)) {
+
+            $this->logDebug('Извличане на контактни данни от AI');
 
             return $cData;
         }

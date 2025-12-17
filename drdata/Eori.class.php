@@ -275,7 +275,7 @@ class drdata_Eori extends core_Manager
                 if (!$response) {
                     $res = self::statusInvalid;
                 } else {
-                    if ($response[0]->valid) {
+                    if (is_array($response) && $response[0]->valid) {
                         $res = self::statusValid;
                         if ($response[0]->companyDetails) {
                             $info = $response[0]->companyDetails->address->postcode . ', ' . $response[0]->companyDetails->address->cityName . "\n" .

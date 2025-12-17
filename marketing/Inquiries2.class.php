@@ -1430,14 +1430,14 @@ class marketing_Inquiries2 extends embed_Manager
      */
     private function setFormDefaultFromCookie(&$form)
     {
-        $contactFields = $this->selectFields("#class == 'contactData'");
-        $fieldNamesArr = array_keys($contactFields);
-        
-        $vars = log_Browsers::getVars($fieldNamesArr);
-        
-        foreach ((array) $vars as $name => $val) {
-            $form->setDefault($name, $val);
-        }
+//        $contactFields = $this->selectFields("#class == 'contactData'");
+//        $fieldNamesArr = array_keys($contactFields);
+//
+//        $vars = log_Browsers::getVars($fieldNamesArr);
+//
+//        foreach ((array) $vars as $name => $val) {
+//            $form->setDefault($name, $val);
+//        }
     }
     
     

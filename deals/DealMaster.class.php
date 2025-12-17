@@ -115,6 +115,18 @@ abstract class deals_DealMaster extends deals_DealBase
 
 
     /**
+     * Да се проверява ли избраната валута преди активиране
+     */
+    public $checkCurrencyWhenConto = true;
+
+
+    /**
+     * Поле за валутен курс
+     */
+    public $rateFldName = 'currencyRate';
+
+
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -164,8 +176,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 // Ако крайния им срок е в миналото и има НЕПЛАТЕНО
                 if(strtotime($dueDate) < $todayTimestamp){
                     $explained .= " e по-малко от сега<br />";
-                    $diff = ($invRec->amount - $invRec->payout) * $invRec->rate;
-                    $explained .= " Неплатено({$invRec->containerId}) :{$diff} (сметнато от " .$invRec->amount * $invRec->rate . " минус " . $invRec->payout * $invRec->rate .")<br />";
+                    $diff = round(($invRec->amount - $invRec->payout) * $invRec->rate, 2);
+                    
+                    $explained .= " Неплатено({$invRec->containerId}) :{$diff} (сметнато от " . round($invRec->amount * $invRec->rate, 2) . " минус " . round($invRec->payout * $invRec->rate, 2) .")<br />";
                     if(round($diff, 2) > 0){
                         $explained .= " е над нула<br />";
 
@@ -537,6 +550,10 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
+        if(!empty($rec->currencyManualRate) && acc_Periods::getBaseCurrencyCode($rec->valior) == $rec->currencyId && $rec->currencyManualRate != 1){
+            $form->setError('currencyManualRate', "Валутата е основна за периода и курсът ѝ не може да е различен от 1|*!");
+        }
+
         // Какъв е новия курс
         $rec->_newCurrencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
         if(!empty($rec->currencyManualRate)){
@@ -577,7 +594,12 @@ abstract class deals_DealMaster extends deals_DealBase
         if ($defCurrency != $rec->currencyId && $currencyState == 'active' && !$isCurrencyReadOnly && !haveRole('debug')) {
             $form->setWarning('currencyId', "Избрана e различна валута от очакваната|* <b>{$defCurrency}</b>");
         }
-        
+
+        $currencyError = null;
+        if(!currency_Currencies::checkCurrency($rec->currencyId, $rec->valior, $currencyError)){
+            $form->setError('currencyId', $currencyError);
+        }
+
         if ($rec->reff === '') {
             $rec->reff = null;
         }
@@ -879,7 +901,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $fields = arr::make('amountDelivered,amountToDeliver,amountPaid,amountToPay,amountInvoiced,amountToInvoice', true);
         $fields['-subTitle'] = true;
         $row = $this->recToVerbal($rec, $fields);
-        
+
         $subTitle = tr('Дост:') . " {$row->amountDelivered} ({$row->amountToDeliver})";
         if (!empty($rec->amountPaid)) {
             $subTitle .= ', ' . tr('Плат:') . " {$row->amountPaid} ({$row->amountToPay})";
@@ -1280,34 +1302,34 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->amountToPay = round($rec->amountDelivered - $rec->amountPaid, 2);
             $rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
         }
-        
+
         $actions = type_Set::toArray($rec->contoActions);
         
         foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct') as $amnt) {
             if (round($rec->{"amount{$amnt}"}, 2) == 0) {
-                $coreConf = core_Packs::getConfig('core');
-                $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
-                $row->{"amount{$amnt}"} = '<span class="quiet">0' . $pointSign . '00</span>';
+                $row->{"amount{$amnt}"} = ht::styleNumber($amountType->toVerbal(0), 0);
             } else {
                 if (!empty($rec->currencyRate)) {
                     $value = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
                 } else {
                     $value = round($rec->{"amount{$amnt}"}, 2);
                 }
-                
                 $row->{"amount{$amnt}"} = $amountType->toVerbal($value);
             }
         }
-        
-        foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct') as $amnt) {
-            if (round($rec->{"amount{$amnt}"}, 2) == 0) {
-                continue;
+
+        if(isset($fields['-subTitle'])){
+            if($rec->currencyId != acc_Periods::getBaseCurrencyCode()) {
+                foreach (array('amountDelivered', 'amountToDeliver', 'amountInvoiced', 'amountToInvoice', 'amountPaid', 'amountToPay', 'Deal') as $fld){
+                    $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $rec->currencyId, true);
+                }
             }
-            
-            $color = (round($rec->{"amount{$amnt}"}, 2) < 0) ? 'red' : 'green';
-            $row->{"amount{$amnt}"} = "<span style='color:{$color}'>{$row->{"amount{$amnt}"}}</span>";
         }
-        
+
+        foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct', "Delivered") as $amnt) {
+            $row->{"amount{$amnt}"} = ht::styleNumber($row->{"amount{$amnt}"}, round($rec->{"amount{$amnt}"}, 2), 'green');
+        }
+
         // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
         $row->paymentState = $mvc->getVerbal($rec, 'paymentState');
         $row->paymentStateCaption = tr('Чакащо плащане');
@@ -1657,9 +1679,13 @@ abstract class deals_DealMaster extends deals_DealBase
                 $id = $firstDoc->fetchField('id');
                 $closedIds[$id] = $id;
                 $products = (array) $dealInfo->get('dealProducts');
-
                 if (countR($products)) {
-                    $details[] = $products;
+                    $convertedProducts = array();
+                    foreach ($products as $p1){
+                        $p1->price = deals_Helper::getSmartBaseCurrency($p1->price, $dealInfo->get('agreedValior'), $rec->valior);
+                        $convertedProducts[] = $p1;
+                    }
+                    $details[] = $convertedProducts;
                 }
             }
         }
@@ -2454,11 +2480,15 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $this->requireRightFor('edit');
         expect(core_Users::isPowerUser());
-        $contragentClassId = Request::get('contragentClassId', 'int');
-        $contragentId = Request::get('contragentId', 'int');
-        
+        expect($contragentClassId = Request::get('contragentClassId', 'int'));
+        expect($contragentId = Request::get('contragentId', 'int'));
+        expect($currencyId = Request::get('currencyId', 'varchar'));
+
+        if($currencyId == 'BGN' && dt::today() >= acc_Setup::getEurozoneDate()) {
+            $currencyId = "EUR";
+        }
         $query = $this->getQuery();
-        $query->where("#state = 'draft' AND #contragentId = {$contragentId} AND #contragentClassId = {$contragentClassId}");
+        $query->where("#state = 'draft' AND #currencyId = '{$currencyId}' AND #contragentId = {$contragentId} AND #contragentClassId = {$contragentClassId}");
         
         $options = array();
         while ($rec = $query->fetch()) {
@@ -2521,13 +2551,14 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
      * @param string $strategy - стратегия за намиране
      *
-     * @return array $details - масив с артикули готови за запис
+     * @return array $details         - масив с артикули готови за запис
      *               o productId      - ид на артикул
      *               o packagingId    - ид на опаковка/основна мярка
      *               o quantity       - количество опаковка
      *               o quantityInPack - количество в опаковката
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
+     *               o rate           - курса на документа
      */
     public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
@@ -2591,6 +2622,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $dRec->discount = $product->discount;
             $dRec->price = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
             $dRec->quantity = $quantity / $product->quantityInPack;
+            $dRec->rate = $rec->currencyRate;
             $details[] = $dRec;
         }
         
@@ -2864,6 +2896,7 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         // Ако има избрано условие на доставка, пзоволява ли да бъде контиран документа
         $rec = $mvc->fetchRec($id);
+
         if(isset($rec->deliveryTermId)){
             $error = null;
             if(!cond_DeliveryTerms::checkDeliveryDataOnActivation($rec->deliveryTermId, $rec, $rec->deliveryData, $mvc, $error)){
@@ -2980,7 +3013,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $TransactionClassName =  ($mvc instanceof sales_Sales) ? 'sales_transaction_Sale' : 'purchase_transaction_Purchase';
             $field =  ($mvc instanceof sales_Sales) ? 'quantityOut' : 'quantityIn';
             $entries = $TransactionClassName::getEntries($rec->id);
-            $shipped = ($mvc instanceof sales_Sales) ? $TransactionClassName::getShippedProducts($entries, '321') : $TransactionClassName::getShippedProducts($entries, $rec->id, '321');
+            $shipped = ($mvc instanceof sales_Sales) ? $TransactionClassName::getShippedProducts($entries, $rec, '321') : $TransactionClassName::getShippedProducts($entries, $rec->id, '321');
 
             $shippedProducts = arr::extractValuesFromArray($shipped, 'productId');
             $plannedProducts = arr::extractValuesFromArray($res, 'productId');
@@ -3298,16 +3331,18 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         requireRole('debug');
         $threadId = Request::get('threadId', 'int');
-        $payments = deals_Helper::getInvoicePayments($threadId);
 
-        $payments1 = deals_Helper::getInvoicePayments($threadId, null, false, false);
+        $payment1 = deals_Helper::getInvoicePayments($threadId, null, false);
+        $payments2 = deals_Helper::getInvoicePayments($threadId, null, false, false);
+        $payment3 = deals_Helper::getInvoicePayments($threadId);
+
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $pRec = $firstDoc->fetch();
 
         $debug = '';
         $paymentState = $firstDoc->getInstance()->getPaymentState($pRec, null, $debug);
         echo $debug;
-        bp($payments, $payments1, $paymentState, $pRec);
+        bp($payment1, $payments2, $payment3);
     }
 
 

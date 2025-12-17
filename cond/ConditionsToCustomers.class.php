@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2025 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -32,7 +32,7 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, cond_Wrapper, plg_SaveAndNew';
+    public $loadList = 'plg_RowTools2, cond_Wrapper, plg_SaveAndNew, plg_Sorting';
     
     
     /**
@@ -62,13 +62,13 @@ class cond_ConditionsToCustomers extends core_Manager
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    public $fetchFieldsBeforeDelete = 'id, cClass, cId, conditionId';
+    public $fetchFieldsBeforeDelete = 'id,cClass,cId,conditionId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'cId=Контрагент, conditionId, value';
+    public $listFields = 'id,cId=Контрагент,conditionId,value';
     
     
     /**
@@ -134,13 +134,14 @@ class cond_ConditionsToCustomers extends core_Manager
             $data->form->toolbar->removeBtn('saveAndNew');
         }
     }
-    
-    
+
+
     /**
      * Връща не-използваните параметри за конкретния продукт, като опции
      *
-     * @param $productId int ид на продукта
-     * @param $id int ид от текущия модел, което не трябва да бъде изключено
+     * @param int $cClass
+     * @param int $cId
+     * @return mixed
      */
     protected static function getRemainingOptions($cClass, $cId)
     {
@@ -282,7 +283,7 @@ class cond_ConditionsToCustomers extends core_Manager
         }
         
         if (countR($data->rows)) {
-            foreach ($data->rows as $id => &$row) {
+            foreach ($data->rows as &$row) {
                 if (is_object($row->_rowTools)) {
                     $row->tools = $row->_rowTools->renderHtml();
                 }
@@ -343,8 +344,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $Class = cls::get($cClass);
         
         $query = static::getQuery();
-        $query->where("#cClass = {$Class->getClassId()}");
-        $query->where("#cId = {$cId}");
+        $query->where("#cClass = {$Class->getClassId()} AND #cId = {$cId}");
         if ($conditionId) {
             $query->where("#conditionId = {$conditionId}");
             $query->show('value');
@@ -549,5 +549,23 @@ class cond_ConditionsToCustomers extends core_Manager
         $tpl = $this->renderWrapping($form->renderHtml());
         
         return $tpl;
+    }
+
+
+    /**
+     * Подредба на записите
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'conditionId';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input('conditionId');
+
+        if($filterRec = $data->listFilter->rec){
+            if(!empty($filterRec->conditionId)){
+                $data->query->where("#conditionId = {$filterRec->conditionId}");
+            }
+        }
     }
 }

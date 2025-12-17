@@ -157,8 +157,14 @@ class bank_OwnAccounts extends core_Master
      * Кой  може да вижда счетоводните справки?
      */
     public $canReports = 'ceo,bank,acc,bankAll';
-    
-    
+
+
+    /**
+     * Кой  може да занулява останалите левови салда?
+     */
+    public $canConvertbgnquantitytoeuro = 'ceo,accMaster,bankMaster';
+
+
     /**
      * По кои сметки ще се правят справки
      */
@@ -258,8 +264,8 @@ class bank_OwnAccounts extends core_Master
         }
         
         if ($rec->bankAccountId) {
-            $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
-            $row->currency = currency_Currencies::getCodeById($currencyId);
+            $accountRec = bank_Accounts::fetch($rec->bankAccountId);
+            $row->currency = bank_Accounts::getDisplayCurrency($accountRec->currencyId);
             $ownAccounts = bank_OwnAccounts::getOwnAccountInfo($rec->id);
 
             $row->bank = bank_Accounts::getVerbal($ownAccounts, 'bank');
@@ -461,6 +467,19 @@ class bank_OwnAccounts extends core_Master
         if ($form->isSubmitted()) {
             $form->rec->_isSubmitted = true;
 
+            // При редакция се проверява може ли да се смени валутата
+            if(isset($rec->id)){
+                $exRec = bank_OwnAccounts::fetch($rec->id, '*', false);
+                $bankAccountRec = bank_Accounts::fetch($exRec->bankAccountId);
+
+                if($rec->currencyId != $bankAccountRec->currencyId){
+                    $cBalance = self::getBalanceTo($form->rec->id, $bankAccountRec->currencyId);
+                    if(isset($cBalance->quantity)){
+                        $form->setError('currencyId', 'Не може да бъде сменена валутата след като е имало вече салдо по нея|*!');
+                    }
+                }
+            }
+
             if (empty($rec->bankAccountId)) {
                 $accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
                 
@@ -564,9 +583,9 @@ class bank_OwnAccounts extends core_Master
         $result = null;
         
         if ($rec = static::fetch($objectId)) {
-            $account = bank_Accounts::fetch($rec->bankAccountId);
-            
-            $cCode = currency_Currencies::getCodeById($account->currencyId);
+            $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+            $cCode = bank_Accounts::getDisplayCurrency($currencyId);
+
             $result = (object) array(
                 'num' => $rec->id  . ' b',
                 'title' => $cCode . ' - ' . $rec->title,
@@ -617,13 +636,11 @@ class bank_OwnAccounts extends core_Master
             }
             
             if (isset($rec->bankAccountId)) {
-                $account = bank_Accounts::fetch($rec->bankAccountId);
-                $cCode = currency_Currencies::getCodeById($account->currencyId);
-                if (isset($currencyCode) && strtoupper($currencyCode) != $cCode) {
-                    continue;
-                }
-                
-                $verbal = ($selectIban === true) ? $Varchar->toVerbal($account->iban) : $rec->title;
+                $accountRec = bank_Accounts::fetch($rec->bankAccountId);
+                $cCode = bank_Accounts::getDisplayCurrency($accountRec->currencyId);
+                if (isset($currencyCode) && strtoupper($currencyCode) != $cCode) continue;
+
+                $verbal = ($selectIban === true) ? $Varchar->toVerbal($accountRec->iban) : $rec->title;
                 
                 $accounts[$rec->id] = "{$cCode} - {$verbal}";
             }
@@ -673,5 +690,170 @@ class bank_OwnAccounts extends core_Master
             $bRec->exState = 'closed';
         }
         bank_Accounts::save($bRec, 'state,exState');
+    }
+
+
+    /**
+     * Коя е дефолтната валута на сметката към датата
+     *
+     * @param int|stdClass $id  - ид или запис на наша банкова сметка
+     * @param string|null $date - към коя дата, null за сега
+     * @param bool $returnCode  - дали да се върне кода или ид-то на валутата
+     * @return string|int       - коя е валутата (ид или трибуквен код)
+     */
+    public static function getDefaultCurrency($id, $date = null, $returnCode = false)
+    {
+        $date = $date ?? dt::today();
+        $rec = self::fetchRec($id);
+        $accCurrencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+
+        if($date >= acc_Setup::getEurozoneDate()){
+            $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+            if($accCurrencyId == $bgnCurrencyId) return ($returnCode) ? 'EUR' : currency_Currencies::getIdByCode('EUR');
+        }
+
+        return ($returnCode) ? currency_Currencies::getCodeById($accCurrencyId) : $accCurrencyId;
+    }
+
+
+    /**
+     * Разрешена ли е подадената валута към вальора, за тази наша банкова сметка
+     *
+     * @param stdClass|int $id       - ид или запис
+     * @param string|null $date      - към коя дата, null за сега
+     * @param string|int $currencyId - коя валута (ид или трибуквен код)
+     * @param string|null $error     - ако не се допуска каква е грешката
+     * @return bool                  - позволена ли е валутата или не
+     */
+    public static function canAcceptCurrency($id, $date, $currencyId, &$error = null)
+    {
+        $rec = self::fetchRec($id);
+        $defaultCurrencyCode = self::getDefaultCurrency($rec, $date, true);
+        $currencyCode = is_numeric($currencyId) ? currency_Currencies::getCodeById($currencyId) : $currencyId;
+
+        // Ако дефолтната валута на сметката към датата е различна от подадената - бие се ерор
+        if($defaultCurrencyCode != $currencyCode) {
+            $dateVerbal = dt::mysql2verbal($date, 'd.m.Y');
+            $error = "Сметката не поддържа избраната валута към вальор|* <b>{$dateVerbal}</b>. |Очаквана валута|* <b>{$defaultCurrencyCode}</b>";
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Добавя бутони за контиране или сторниране към единичния изглед на документа
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        $rec = &$data->rec;
+        if ($mvc->haveRightFor('convertbgnquantitytoeuro', $rec)) {
+            $data->toolbar->addBtn('Обмени BGN', array($mvc, 'convertbgnquantitytoeuro', $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Обмяна на останали количества в BGN');
+        }
+    }
+
+
+    /**
+     * Извиква се след изчисляването на необходимите роли за това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $user = null)
+    {
+        // Може ли да се зануляват левовите наличности
+        if($action == 'convertbgnquantitytoeuro' && isset($rec)) {
+
+            // Само ако сме в ЕЗ
+            if(dt::today() < acc_Setup::getEurozoneDate()){
+                $requiredRoles = 'no_one';
+            } else {
+                // И валутата на б.сметка е в лева и има остатъчно салдо на к-во в лева
+                $ownAccountCurrencyId = bank_Accounts::fetchField("#id = {$rec->bankAccountId}", 'currencyId');
+                if($ownAccountCurrencyId != currency_Currencies::getIdByCode('BGN')){
+                    $requiredRoles = 'no_one';
+                } else {
+                    if(!bank_ExchangeDocument::haveRightFor('add')){
+                        $requiredRoles = 'no_one';
+                    } else {
+                        $balanceRec = self::getBalanceTo($rec->id, $ownAccountCurrencyId);
+                        if(empty($balanceRec->quantity)){
+                            $requiredRoles = 'no_one';
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Какви са салдата за сметката+валутата към посочената дата
+     *
+     * @param int $id           - ид на наща б.сметка
+     * @param int $currencyId   - ид на валута
+     * @param string|null $date - към коя дата, null за ДНЕС
+     * @return object
+     *          ->quantity      - салдото за количеството
+     *          ->amount        - салдото за сумата
+     */
+    public static function getBalanceTo($id, $currencyId, $date = null)
+    {
+        // Изчислява се баланса за наредената тройка към посочената дата
+        $accId = acc_Accounts::getRecBySystemId(503)->id;
+        $bankItem = acc_Items::fetchItem('bank_OwnAccounts', $id);
+        $currencyItem = acc_Items::fetchItem('currency_Currencies', $currencyId);
+
+        $to = $date ?? dt::today();
+        $Balance = new acc_ActiveShortBalance(array('from' => $to, 'to' => $to, 'accs' => '503', 'cacheBalance' => true, 'item1' => $bankItem->id, 'item2' => $currencyItem->id));
+        $balanceRec = $Balance->getBalance('503', array($accId, $bankItem->id, $currencyItem->id, null));
+
+        return (object)array('quantity' => $balanceRec->blQuantity, 'amount' => $balanceRec->blAmount);
+    }
+
+
+    /**
+     * Екшън обменящ левовите наличности в еврови
+     */
+    public function act_convertbgnquantitytoeuro()
+    {
+        $this->requireRightFor('convertbgnquantitytoeuro');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = self::fetch($id));
+        $this->requireRightFor('convertbgnquantitytoeuro', $rec);
+        if($exchangeRec = self::createBgnExchangeDocument($id)){
+            redirect(array('bank_ExchangeDocument', 'single', $exchangeRec->id), false, 'Банковата обмяна на валути е успешно създадена|*!');
+        }
+
+        followRetUrl(null, 'Проблем при създаването на БОВ', 'warning');
+    }
+
+
+    /**
+     * Създава документ за БОВ, който прехвърля левовото салдо в еврово
+     *
+     * @param int $id
+     * @return stdClass|null $exchangeRec
+     */
+    public static function createBgnExchangeDocument($id)
+    {
+        $rec = self::fetchRec($id);
+
+        // Ако нашата сметка има салдо в BGN ще се създаде БОВ, който ще го конвертира в евро
+        $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
+        $eurCurrencyId = currency_Currencies::getIdByCode('EUR');
+        $bgnBalance = self::getBalanceTo($id, $bgnCurrencyId);
+        $bgnBalanceQuantity = $bgnBalance->quantity;
+        if(round($bgnBalanceQuantity, 4) == 0) return null;
+
+        $euroQuantity = round(abs($bgnBalanceQuantity) / 1.95583, 2);
+
+        $today = dt::today();
+        if($bgnBalanceQuantity > 0){
+            $exchangeRec = bank_ExchangeDocument::create($rec->id, $rec->id, $today, $bgnCurrencyId, abs($bgnBalanceQuantity), $eurCurrencyId, $euroQuantity, 'Изчистване на левово салдо за преминаването в еврозоната');
+        } else {
+            $exchangeRec = bank_ExchangeDocument::create($rec->id, $rec->id, $today, $eurCurrencyId, $euroQuantity, $bgnCurrencyId, abs($bgnBalanceQuantity), 'Изчистване на левово салдо за преминаването в еврозоната');
+        }
+
+        return $exchangeRec;
     }
 }

@@ -693,7 +693,7 @@ class blogm_Articles extends core_Master
         // Архив
         $data->archive = Request::get('archive', 'varchar');
 
-        if ($data->archive) {
+        if (!empty($data->archive)) {
             list($data->archiveY, $data->archiveM) = explode('|', $data->archive);
             expect(is_numeric($data->archiveY) && is_numeric($data->archiveM));
             $data->archiveM = str_pad($data->archiveM, 2, '0', STR_PAD_LEFT);
@@ -805,7 +805,7 @@ class blogm_Articles extends core_Master
         // Определяне на титлата
         // Ако е посочено заглавие по-което се търси
         $showRoot = blogm_Setup::get('SHOW_ALL_ARTICLE_CAPTION');
-        if (isset($data->q)) {
+        if (!empty($data->q)) {
             $domainId = cms_Domains::getPublicDomain('id');
             $clsId = core_Classes::getId('blogm_Articles');
             
@@ -816,7 +816,7 @@ class blogm_Articles extends core_Master
             
             $data->title = null;
             $data->rows = array();
-        } elseif (isset($data->archive)) {
+        } elseif (!empty($data->archive)) {
             $data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
         } elseif (isset($data->category)) {
             $catRec = blogm_Categories::fetch($data->category);
