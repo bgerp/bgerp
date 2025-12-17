@@ -1034,7 +1034,6 @@ class rack_Movements extends rack_MovementAbstract
                     wp("RACK: Нямате права (2) Мутнато", $cu, $url, $action, $rec);
                     rack_Movements::logDebug("RACK: Нямате права (2) Мутнато: {$cu}|{$url}|{$action}|{$serialize}", $rec->id);
 
-                    return self::forwardRefreshUrl();
                 } else {
 
                     wp("RACK: Нямате права (2)", $cu, $url, $action, $rec);
@@ -1042,7 +1041,7 @@ class rack_Movements extends rack_MovementAbstract
                     core_Statuses::newStatus('|Нямате права|*!', 'error');
                 }
 
-                return array_merge($resArr, status_Messages::returnStatusesArray());
+                return array_merge($resArr, self::forwardRefreshUrl());
             }
         } else {
             expect($rec);
@@ -1086,7 +1085,7 @@ class rack_Movements extends rack_MovementAbstract
                     core_Statuses::newStatus('Движението вече е изтрито', 'error');
                     rack_Movements::logDebug("RACK TOGGLE MOVEMENT ERROR {$rec->id} -> '{$action}'", $rec->id);
 
-                    return array_merge($resArr, status_Messages::returnStatusesArray());
+                    return array_merge($resArr, self::forwardRefreshUrl());
                 } else {
                 followretUrl(null, 'Движението вече е изтрито', 'error');
             }
