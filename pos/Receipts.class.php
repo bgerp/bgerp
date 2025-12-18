@@ -385,22 +385,48 @@ class pos_Receipts extends core_Master
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         $rec->total = abs($rec->total);
         $row->total = $mvc->getFieldType('change')->toVerbal($rec->total);
+        $row->total = currency_Currencies::decorate($row->total, $row->currency, true);
+
+        $today = dt::today();
+        $showDualCurrency = $row->currency == 'EUR' && $today >= acc_Setup::getEurozoneDate() && $today <= acc_Setup::getBgnDeprecationDate();
+        if($showDualCurrency){
+            $row->DUAL_CURRENCY = 'dual-currency';
+        }
+
+        if($showDualCurrency && $rec->total > 0){
+            Mode::push('text', 'plain');
+            $bgnTotal = deals_Helper::getSmartBaseCurrency($rec->total, $rec->createdOn, '2024-01-01', true);
+            $bgnTotalVal = $mvc->getFieldType('change')->toVerbal($bgnTotal);
+            $row->total .=  "<br>". currency_Currencies::decorate($bgnTotalVal, 'BGN', true) . "</small>";
+            Mode::pop('text');
+        }
+
         if (!empty($rec->paid)) {
             $row->PAID_CAPTION = (isset($rec->revertId)) ? tr('Върнато') : tr('Платено');
             $rec->paid = abs($rec->paid);
             $row->paid = $mvc->getFieldType('paid')->toVerbal($rec->paid);
+            $row->paid = $mvc->getFieldType('paid')->toVerbal($rec->paid);
+            $row->paid = currency_Currencies::decorate($row->paid, $row->currency, true);
+
+            if($showDualCurrency){
+                Mode::push('text', 'plain');
+                $bgnPaid = deals_Helper::getSmartBaseCurrency(abs($rec->paid), $rec->createdOn, '2024-01-01', true);
+                $bgnVal = $mvc->getFieldType('change')->toVerbal($bgnPaid);
+                $row->paid .= "<br>". currency_Currencies::decorate($bgnVal, 'BGN', true) . "</small>";
+                Mode::pop('text');
+            }
+
             if (!empty($rec->change)) {
                 $row->CHANGE_CLASS = ($rec->change < 0 || isset($rec->revertId)) ? 'changeNegative' : 'changePositive';
                 $row->CHANGE_CAPTION = ($rec->change < 0 || isset($rec->revertId)) ? tr("За плащане") : tr("Ресто");
                 $row->change = $mvc->getFieldType('change')->toVerbal(abs($rec->change));
-
                 $row->change = currency_Currencies::decorate($row->change, $row->currency, true);
 
-                if($row->currency == 'EUR' && $rec->change > 0){
+                if($showDualCurrency && $rec->change > 0){
                     Mode::push('text', 'plain');
                     $bgnChange = deals_Helper::getSmartBaseCurrency(abs($rec->change), $rec->createdOn, '2024-01-01', true);
                     $bgnVal = $mvc->getFieldType('change')->toVerbal($bgnChange);
-                    $row->change .= "&nbsp;/&nbsp;" . currency_Currencies::decorate($bgnVal, 'BGN', true) . "</small>";
+                    $row->change .= "<br>". currency_Currencies::decorate($bgnVal, 'BGN', true) . "</small>";
                     Mode::pop('text');
                 }
             } else {
@@ -443,11 +469,8 @@ class pos_Receipts extends core_Master
             $row->contragentLocationId = crm_Locations::getHyperlink($rec->contragentLocationId);
         }
 
-        $currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-        foreach (array('total', 'paid', 'returnedTotal') as $fld){
-            if(!empty($rec->{$fld}) && $rec->{$fld} > 0) {
-                $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $currencyCode, true);
-            }
+        if(!empty($rec->returnedTotal) && $rec->returnedTotal > 0) {
+            $row->returnedTotal = currency_Currencies::decorate($row->returnedTotal, $row->currency, true);
         }
     }
 

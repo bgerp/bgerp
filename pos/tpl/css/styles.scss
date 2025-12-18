@@ -929,6 +929,20 @@ select.tabHolder {
 	background: #499BC0;
 
 }
+
+.dual-currency {
+	.totalLabel {
+		text-align: left !important;
+		line-height: 100%;
+	}
+	.change, .paidCaption{
+		text-align: left !important;
+	}
+	.caption {
+		text-align: center !important;
+	}
+}
+
 .contragentLinkBtns, .newContragentBtn {
 	background: #a162ca;
 }
