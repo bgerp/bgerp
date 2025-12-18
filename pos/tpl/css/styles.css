@@ -829,10 +829,11 @@ select.tabHolder {
   .dual-currency .totalLabel {
     text-align: left !important;
     line-height: 100%; }
+  .dual-currency .change,
+  .dual-currency .paidCaption {
+    text-align: left !important; }
   .dual-currency .caption {
     text-align: center !important; }
-  .dual-currency .change {
-    text-align: left !important; }
 
 .contragentLinkBtns,
 .newContragentBtn {
