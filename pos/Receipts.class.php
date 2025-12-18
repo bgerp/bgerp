@@ -405,11 +405,21 @@ class pos_Receipts extends core_Master
             $row->PAID_CAPTION = (isset($rec->revertId)) ? tr('Върнато') : tr('Платено');
             $rec->paid = abs($rec->paid);
             $row->paid = $mvc->getFieldType('paid')->toVerbal($rec->paid);
+            $row->paid = $mvc->getFieldType('paid')->toVerbal($rec->paid);
+            $row->paid = currency_Currencies::decorate($row->paid, $row->currency, true);
+
+            if($showDualCurrency){
+                Mode::push('text', 'plain');
+                $bgnPaid = deals_Helper::getSmartBaseCurrency(abs($rec->paid), $rec->createdOn, '2024-01-01', true);
+                $bgnVal = $mvc->getFieldType('change')->toVerbal($bgnPaid);
+                $row->paid .= "<br>". currency_Currencies::decorate($bgnVal, 'BGN', true) . "</small>";
+                Mode::pop('text');
+            }
+
             if (!empty($rec->change)) {
                 $row->CHANGE_CLASS = ($rec->change < 0 || isset($rec->revertId)) ? 'changeNegative' : 'changePositive';
                 $row->CHANGE_CAPTION = ($rec->change < 0 || isset($rec->revertId)) ? tr("За плащане") : tr("Ресто");
                 $row->change = $mvc->getFieldType('change')->toVerbal(abs($rec->change));
-
                 $row->change = currency_Currencies::decorate($row->change, $row->currency, true);
 
                 if($showDualCurrency && $rec->change > 0){
@@ -459,11 +469,8 @@ class pos_Receipts extends core_Master
             $row->contragentLocationId = crm_Locations::getHyperlink($rec->contragentLocationId);
         }
 
-        $currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-        foreach (array('paid', 'returnedTotal') as $fld){
-            if(!empty($rec->{$fld}) && $rec->{$fld} > 0) {
-                $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $currencyCode, true);
-            }
+        if(!empty($rec->returnedTotal) && $rec->returnedTotal > 0) {
+            $row->returnedTotal = currency_Currencies::decorate($row->returnedTotal, $row->currency, true);
         }
     }
 
