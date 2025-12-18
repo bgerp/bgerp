@@ -134,6 +134,8 @@ class core_Backup extends core_Mvc
 
         core_App::setTimeLimit(120);
         
+        ignore_user_abort();
+
         // Мета-данни за бекъпа
         $description = array();
         $description['times']['start'] = dt::now();
