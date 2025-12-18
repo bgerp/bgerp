@@ -3,7 +3,7 @@
 /**
  * Максимален брой паралелни нишки при бекъп
  */
-defIfNot('BACKUP_MAX_THREAD', 20);
+defIfNot('BACKUP_MAX_THREAD', 40);
 
 /**
  * Максимален брой паралелни нишки при възстановяване
@@ -20,6 +20,12 @@ defIfNot('BACKUP_MAX_CHUNK_SIZE', 30000000);
  * Максимална дължина на БЛОБ-овете, които могат да бъдат записани инлайн в базата
  */
 defIfNot('BACKUP_MAX_INLINE_BLOB', 64000);
+
+
+/**
+ * Път до директорията с бекъпите
+ */
+defIfNot('BACKUP_PATH', '/var/www/backup');
 
 
 /**
@@ -86,7 +92,7 @@ class core_Backup extends core_Mvc
 
         $file = self::getTempPath('log.txt');
         if(file_exists($file)) {
-            unlink($file);
+            @unlink($file);
         }
 
         //file_put_contents($file, 'fwefwe');
@@ -98,7 +104,7 @@ class core_Backup extends core_Mvc
         // Изчистваме останали процесни индикатори
         if(is_array($processes)) {
             foreach($processes as $file) {
-                unlink($file);
+                @unlink($file);
             }
         }
 
@@ -107,7 +113,7 @@ class core_Backup extends core_Mvc
         // Изчистваме останали процесни индикатори
         if(is_array($tplFiles)) {
             foreach($tplFiles as $file) {
-                unlink($file);
+                @unlink($file);
             }
         }
 
@@ -116,8 +122,14 @@ class core_Backup extends core_Mvc
         // Изчистваме останали процесни индикатори
         if(is_array($csvFiles)) {
             foreach($csvFiles as $file) {
-                unlink($file);
+                @unlink($file);
             }
+        }
+        
+        // Изтрива всички стари файлове в темп директорията
+        $delCnt = self::deleteOldFiles(self::getTempPath(), 24*60*60);
+        if($delCnt > 0) {
+            self::fLog("$delCnt изтрити стари файлове в " . self::getTempPath());
         }
 
         core_App::setTimeLimit(120);
@@ -272,10 +284,10 @@ class core_Backup extends core_Mvc
             expect(is_readable($indCfg));
             $hash = base_convert(md5_file($indCfg), 16, 36);
             $file = "index.{$hash}.cfg.php";
-            $tmpFile = $workDir . $file;
-            copy($indCfg, $tmpFile);
             $indZip = $backDir . $file . '.7z';
             if (!file_exists($indZip)) {
+                $tmpFile = $workDir . $file;
+                copy($indCfg, $tmpFile);
                 self::compressFile($tmpFile, $indZip, $pass);
             }
             $description['indexConfig'] = $file . '.7z';
@@ -285,10 +297,10 @@ class core_Backup extends core_Mvc
         expect(file_exists($appCfg) && is_readable($appCfg));
         $hash = base_convert(md5_file($appCfg), 16, 36);
         $file = "app.{$hash}.cfg.php";
-        $tmpFile = $workDir . $file;
-        copy($appCfg, $tmpFile);
         $appZip = $backDir . $file . '.7z';
         if (!file_exists($appZip)) {
+            $tmpFile = $workDir . $file;
+            copy($appCfg, $tmpFile);
             self::compressFile($tmpFile, $appZip, $pass);
         }
         $description['appConfig'] = $file . '.7z';
@@ -308,11 +320,10 @@ class core_Backup extends core_Mvc
         if ($descriptionStr = json_encode($description)) {
             $hash = base_convert($md5 = md5($descriptionStr), 16, 36);
             $file = "description.{$hash}.json";
-            $path = $workDir . $file;
             $dest = $backDir . $file . '.7z';
             if (!file_exists($dest)) {
+                $path = $workDir . $file;
                 file_put_contents($path, $descriptionStr);
-                debug::log($msg = ('Компресиране на ' . basename($dest)));
                 self::fLog($msg);
                 self::compressFile($path, $dest, $pass);
             }
@@ -397,7 +408,7 @@ class core_Backup extends core_Mvc
         self::fLog("Начало на експортирането на таблиците общо " . count($instArr) . ' бр');
 
         $pass = core_Setup::get('BACKUP_PASS');
-        $addCrc32 = crc32(EF_SALT . $pass);
+        $addCrc32 = abs(crc32(EF_SALT . $pass));
   
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
@@ -443,11 +454,11 @@ class core_Backup extends core_Mvc
                 foreach ($diffFields as $fld) {
                     $expr .= ', `' . str::phpToMysqlName($fld) . '`';
                 }
-                $expr = "crc32(${expr}))";
+                $expr = "abs(crc32(${expr})))";
                 $maxId = 0;
 
                 for ($i = 0; $i * $backupMaxRows < $cnt; $i++) {
-                    core_App::setTimeLimit(120);
+                    core_App::setTimeLimit(360);
                     $limit = "{$backupMaxRows}/{$maxId}";
                     $key = "{$table}-{$lmt}-" . ($i + 1);
                     if (!isset(self::$crcArr[$key])) {
@@ -522,7 +533,7 @@ class core_Backup extends core_Mvc
            
         $url = toUrl(array('Index', 'default', 'SetupKey' => setupKey(), 'step' => "backup-{$params}"), 'absolute-force');
         $processFile = self::getTempPath("{$table}.{$suffix}.bpr");
-        file_put_contents($processFile, $params, FILE_APPEND);
+        file_put_contents($processFile, $params);
         
         $cmd = escapeshellarg(EF_INDEX_PATH . '/index.php');
         $app = EF_APP_NAME;
@@ -562,24 +573,17 @@ class core_Backup extends core_Mvc
             $dest = self::getBackupPath($fileName . '.csv.7z');
             $tmpCsv = "{$path}.tmp";
 
-            // Вземаме паролата
-            $pass = core_Setup::get('BACKUP_PASS');
-
-
             if (file_exists($dest)) {
                 self::fLog("Таблица `{$dest}` вече съществува като 7z файл");
                 exit(0);
             }
             
-            if (file_exists($tmpCsv)) {
+            if (file_exists($tmpCsv) && filesize($tmpCsv) > 0) {
                 self::fLog("Таблица `{$fileName}` вече съществува като tmp файл");
                 exit(0);
             }
 
             self::fLog("Експорт в CSV на таблица `{$fileName}`"); 
-            
-            // Отваряме файла за писане
-            $out = fopen($tmpCsv, 'w');
 
             // Извличаме информация за колоните
             $types = $headers = array();
@@ -597,16 +601,19 @@ class core_Backup extends core_Mvc
                 $headers[$i] = $fRec->Field . ':' . $types[$i];
                 $i++;
             }
+        
+            self::fLog("Празвим SQL заявка за данните на `{$fileName}`"); 
 
+            // Правим заявка за данните
             $link = $inst->db->connect();
-
+   
             if(strlen($limit)) {
                 list($backupMaxRows, $maxId) = explode('/', $limit);
                 $q = "SELECT * FROM `{$table}` WHERE `id` > {$maxId} ORDER BY `id` LIMIT {$backupMaxRows}";
             } else {
                 $q = "SELECT * FROM `{$table}`";
             }
-            $dbRes = $link->query($q);
+            $dbRes = $link->query($q, MYSQLI_USE_RESULT);
             
             if(!$dbRes) {
                 self::fLog('DB Error: ' . $q . ' => ' . $link->error . ' [' .$params . ']');
@@ -616,6 +623,10 @@ class core_Backup extends core_Mvc
                 @unlink($path);
                 die;
             }
+            
+            self::fLog("Експорт в CSV на таблица `{$fileName}`"); 
+            // Отваряме файла за писане
+            $out = fopen($tmpCsv, 'w');
 
             fputcsv($out, $headers);
             while ($row = $inst->db->fetchArray($dbRes, MYSQLI_NUM)) {
@@ -635,9 +646,13 @@ class core_Backup extends core_Mvc
                 fputcsv($out,  $row);
             }
 
-            fclose($out);
-            rename("{$path}.tmp", $path);
+            $dbRes->free();
 
+            fclose($out);
+            rename($tmpCsv, $path);
+            
+            // Вземаме паролата
+            $pass = core_Setup::get('BACKUP_PASS');
             self::fLog('Компресиране на ' . basename($dest));
             self::compressFile($path, $dest, $pass);
             self::fLog('Край на компресиране на ' . basename($dest));
@@ -645,11 +660,14 @@ class core_Backup extends core_Mvc
             unlink($processFile);
         }  catch (Throwable $e) {
             self::fLog('Exception: ' . $e->getMessage());
-            unlink($processFile);
+            if(isset($dbRes)) {
+                $dbRes->free();
+            }
+            @unlink($processFile);
             @fclose($out);
             @unlink($tmpCsv);
             @unlink($path);
-            die('error');
+            error_log("Error in cli_doBackupTable: $className, $table, $suffix, $limit ");
         }
     }
     
@@ -776,7 +794,7 @@ class core_Backup extends core_Mvc
             
             $path = self::unzipToTemp($dir . $description->dbStruct, $pass, $log);
             $sql = file_get_contents($path);
-            unlink($path);
+            @unlink($path);
             
             $log[] = $msg = 'msg: Създаване на структурата на таблиците';
             self::fLog($msg);
@@ -880,10 +898,10 @@ class core_Backup extends core_Mvc
         
         file_put_contents($logFile, "Import: {$res}" . PHP_EOL, FILE_APPEND);
         
-        unlink($dest);
+        @unlink($dest);
         
         // rename($logFile, $tempRestoreDir . $file . '.OK');
-        unlink($logFile);
+        @unlink($logFile);
 
         self::fLog("Importing {$file} has finished.");
         die;
@@ -1169,13 +1187,46 @@ class core_Backup extends core_Mvc
     public static function getBackupPath($filename = '')
     {
         if(!isset(self::$backupDir)) {
-            self::$backupDir = core_Os::normalizeDir(EF_UPLOADS_PATH) . '/backup/';
+            self::$backupDir = rtrim(BACKUP_PATH, '/') . '/' . EF_APP_NAME;
             if (!file_exists(rtrim(self::$backupDir, '/'))) {
-                mkdir(self::$backupDir, 0744, true);
+                mkdir(rtrim(self::$backupDir, '/'), 0744, true);
             }
         }
         
-        return self::$backupDir . $filename;
+        return self::$backupDir . '/' . $filename;
+    }
+
+
+    /**
+     * Изтрива файлове в директория, които са по-стари от определен брой секунди.
+     *
+     * @param string $dir Път до директорията.
+     * @param int $seconds Максимална възраст на файловете в секунди.
+     * @return int Брой на изтритите файлове.
+     */
+    static function deleteOldFiles(string $dir, int $seconds): int {
+        if (!is_dir($dir)) {
+            return 0;
+        }
+
+        $count = 0;
+        $threshold = time() - $seconds;
+
+        // Използваме DirectoryIterator за преглед на файловете в папката
+        $files = new DirectoryIterator($dir);
+
+        foreach ($files as $file) {
+            // Проверяваме дали е файл (не папка) и дали не е системен файл (. или ..)
+            if ($file->isFile() && !$file->isDot()) {
+                // Проверяваме времето на последна промяна
+                if ($file->getMTime() < $threshold) {
+                    unlink($file->getRealPath());
+                    $count++;
+                }
+            }
+        }
+
+        return $count;
     }
 
     
@@ -1301,7 +1352,7 @@ class core_Backup extends core_Mvc
             $descPath = self::unzipToTemp($path, $pass, $log);
             if ($descPath && filesize($descPath)) {
                 $description = json_decode(file_get_contents($descPath),  JSON_OBJECT_AS_ARRAY);
-                unlink($descPath);
+                @unlink($descPath);
                 if ($description) {
                     $res[$path] = $description;
                 }
@@ -1332,7 +1383,7 @@ class core_Backup extends core_Mvc
      */
     static function compressFile($path, $dest, $pass = '')
     {
-        return archive_Adapter::compressFileNew($path, $dest, $pass, '-t7z -mx=1 -ms=off -mhe=on -y');
+        return archive_Adapter::compressFileNew($path, $dest, $pass, '-t7z -mx=1 -ms=off -mhe=on -y -sdel');
     }
 
     /**
