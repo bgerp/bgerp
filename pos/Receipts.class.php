@@ -397,7 +397,7 @@ class pos_Receipts extends core_Master
             Mode::push('text', 'plain');
             $bgnTotal = deals_Helper::getSmartBaseCurrency($rec->total, $rec->createdOn, '2024-01-01', true);
             $bgnTotalVal = $mvc->getFieldType('change')->toVerbal($bgnTotal);
-            $row->total .=  "<div class=''>". currency_Currencies::decorate($bgnTotalVal, 'BGN', true) . "</div></small>";
+            $row->total .=  "<br>". currency_Currencies::decorate($bgnTotalVal, 'BGN', true) . "</small>";
             Mode::pop('text');
         }
 
@@ -416,7 +416,7 @@ class pos_Receipts extends core_Master
                     Mode::push('text', 'plain');
                     $bgnChange = deals_Helper::getSmartBaseCurrency(abs($rec->change), $rec->createdOn, '2024-01-01', true);
                     $bgnVal = $mvc->getFieldType('change')->toVerbal($bgnChange);
-                    $row->change .= "<div class=''>". currency_Currencies::decorate($bgnVal, 'BGN', true) . "</div></small>";
+                    $row->change .= "<br>". currency_Currencies::decorate($bgnVal, 'BGN', true) . "</small>";
                     Mode::pop('text');
                 }
             } else {
