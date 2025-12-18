@@ -15,7 +15,7 @@
 <div class='paymentBlock' >
 <hr>
 	<span class='paymentNotRequiredLabel'>[#PAYMENT_NOT_REQUIRED#]</span>
-	<table class='total'>
+	<table class='total [#DUAL_CURRENCY#]'>
 		<tr>
 			<!--ET_BEGIN voucherCaption-->
 			<th style="text-align: left" class = 'caption'>[#voucherCaption#]</th>

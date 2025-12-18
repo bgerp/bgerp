@@ -385,6 +385,22 @@ class pos_Receipts extends core_Master
         $row->currency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         $rec->total = abs($rec->total);
         $row->total = $mvc->getFieldType('change')->toVerbal($rec->total);
+        $row->total = currency_Currencies::decorate($row->total, $row->currency, true);
+
+        $today = dt::today();
+        $showDualCurrency = $row->currency == 'EUR' && $today >= acc_Setup::getEurozoneDate() && $today <= acc_Setup::getBgnDeprecationDate();
+        if($showDualCurrency){
+            $row->DUAL_CURRENCY = 'dual-currency';
+        }
+
+        if($showDualCurrency && $rec->total > 0){
+            Mode::push('text', 'plain');
+            $bgnTotal = deals_Helper::getSmartBaseCurrency($rec->total, $rec->createdOn, '2024-01-01', true);
+            $bgnTotalVal = $mvc->getFieldType('change')->toVerbal($bgnTotal);
+            $row->total .= "&nbsp;/&nbsp;" . currency_Currencies::decorate($bgnTotalVal, 'BGN', true) . "</small>";
+            Mode::pop('text');
+        }
+
         if (!empty($rec->paid)) {
             $row->PAID_CAPTION = (isset($rec->revertId)) ? tr('Върнато') : tr('Платено');
             $rec->paid = abs($rec->paid);
@@ -396,7 +412,7 @@ class pos_Receipts extends core_Master
 
                 $row->change = currency_Currencies::decorate($row->change, $row->currency, true);
 
-                if($row->currency == 'EUR' && $rec->change > 0){
+                if($showDualCurrency && $rec->change > 0){
                     Mode::push('text', 'plain');
                     $bgnChange = deals_Helper::getSmartBaseCurrency(abs($rec->change), $rec->createdOn, '2024-01-01', true);
                     $bgnVal = $mvc->getFieldType('change')->toVerbal($bgnChange);
@@ -444,7 +460,7 @@ class pos_Receipts extends core_Master
         }
 
         $currencyCode = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-        foreach (array('total', 'paid', 'returnedTotal') as $fld){
+        foreach (array('paid', 'returnedTotal') as $fld){
             if(!empty($rec->{$fld}) && $rec->{$fld} > 0) {
                 $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $currencyCode, true);
             }
