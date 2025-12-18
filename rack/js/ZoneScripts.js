@@ -66,6 +66,21 @@ function unlock(moveId) {
 }
 
 
+// ===== Добавяне на _rid/_ts/_tab към URL (работи и за ../toggle/...) =====
+function tmRandId() {
+	return Date.now().toString(36) + '_' + Math.random().toString(16).slice(2);
+}
+
+function tmGetTabId() {
+	var tabId = sessionStorage.getItem('tm_tab_id');
+	if (!tabId) {
+		tabId = 'tab_' + tmRandId();
+		sessionStorage.setItem('tm_tab_id', tabId);
+	}
+	return tabId;
+}
+
+
 // ===== bind-ове =====
 function zoneActions() {
 
@@ -113,6 +128,11 @@ function zoneActions() {
 				return false;
 			}
 
+			// добавяме идентификатори за диагностика (важи и за ../toggle/..)
+			var rid  = tmRandId();
+			var ts   = String(Date.now());     // ms timestamp
+			var tab  = tmGetTabId();
+
 			$btn.prop('disabled', true).addClass('is-busy');
 
 			getEO().isReloading = true;
@@ -121,7 +141,7 @@ function zoneActions() {
 
 			console.log('Call: ' + url, 'moveId=' + moveId);
 
-			getEfae().process({ url: url }, { divId: divId }, false);
+			getEfae().process({ url: url }, { _rid: rid, _ts: ts, _tab: tab, divId: divId }, false);
 			return false;
 		});
 }
