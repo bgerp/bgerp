@@ -1078,7 +1078,7 @@ class core_Backup extends core_Mvc
     static function writeFileSafe(
         string $content,
         string $path,
-        ?string $filename = null,
+        $filename = null,
         string $mode = 'force',
         int $dirPerm = 0775,
         int $filePerm = 0664

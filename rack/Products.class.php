@@ -403,17 +403,18 @@ class rack_Products extends store_Products
             $rQuery = rack_Pallets::getQuery();
             $rQuery->where("#storeId = {$storeId} AND #productId = {$data->masterId} AND #state = 'active'");
             while($rRec = $rQuery->fetch()){
-                $data->recs[] = (object)array('storeId' => $rRec->storeId,
+                $data->recs[] = (object)array('rec' => $rRec,
+                                              'storeId' => $rRec->storeId,
                                               'batch' => $rRec->batch,
                                               'position' => $rRec->position,
                                               'quantity' => $rRec->quantity,);
             }
 
-
             $data->recs[] = (object)array('storeId' => $storeId,
                                           'batch' => null,
                                           'position' => rack_PositionType::FLOOR,
                                           'quantity' => $pRec->quantityNotOnPallets,);
+
             $data->recs[] = (object)array('storeId' => $storeId,
                                           'batch' => null,
                                           'position' => null,
@@ -427,12 +428,22 @@ class rack_Products extends store_Products
         $data->pager = $pager;
 
         $batchDef = batch_Defs::getBatchDef($data->masterId);
+        $fields = $this->selectFields();
+        $fields['-list'] = true;
 
         // Всяка позиция се вербализира
         foreach ($data->recs as $id => $rec){
             if (!$data->pager->isOnPage()) continue;
 
             $row = (object)array('storeId' => store_Stores::getHyperlink($rec->storeId, true), 'measureId' => $measureId);
+            if(isset($rec->rec)){
+                $pRow = rack_Pallets::recToVerbal($rec->rec, $fields);
+                if(!Mode::isReadOnly()){
+                    core_RowToolbar::createIfNotExists($pRow->_rowTools);
+                    $row->tools = $pRow->_rowTools->renderHtml();
+                }
+            }
+
             $rec->quantity = empty($rec->quantity) ? 0 : $rec->quantity;
             $row->quantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->quantity);
             $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
@@ -464,7 +475,8 @@ class rack_Products extends store_Products
             $data->rows[$id] = $row;
         }
 
-        $data->listFields = arr::make('storeId=Склад,position=Позиция,batch=Партида,measureId=Мярка,quantity=Количество', true);
+        $img = ht::createElement('img', array('src' => sbf('img/16/tools.png', '')));
+        $data->listFields = arr::combine(array('tools' => '|*' . $img->getContent()), arr::make('tools=a,storeId=Склад,position=Позиция,batch=Партида,measureId=Мярка,quantity=Количество', true));
     }
 
 
@@ -487,19 +499,18 @@ class rack_Products extends store_Products
         $fieldSet = new core_FieldSet();
         $fieldSet->FLD('position', 'varchar', 'smartCenter');
         $fieldSet->FLD('storeId', 'varchar', 'tdClass=leftCol');
+        $fieldSet->FLD('tools', 'varchar', 'tdClass=small-field');
         $fieldSet->FLD('measureId', 'varchar', 'smartCenter');
         $fieldSet->FLD('batch', 'varchar', 'smartCenter');
         $fieldSet->FLD('quantity', 'double');
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
 
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'batch');
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'batch,tools');
 
         // Ако е филтрирано по склад, скриваме колонката на склада
         if (isset($data->storeId)) {
             unset($data->listFields['storeId']);
         }
-
-        // Рендиране на таблицата с резултатите
         $dTpl = $table->get($data->rows, $data->listFields);
         $tpl->append($dTpl, 'content');
 
