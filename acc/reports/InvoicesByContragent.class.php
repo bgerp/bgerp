@@ -405,7 +405,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                             if (!array_key_exists($salesInvoice->contragentName, $totalInvoiceContragentAll)) {
 
-
                                 $totalInvoiceContragentAll[$salesInvoice->contragentName] = (object)array(
                                     'totalInvoiceValue' => $invoiceValue,                                        //общо стойност на фактурите за контрагента
                                     'totalInvoiceVAT' => $salesInvoice->vatAmount,                               //общо стойност на ДДС по фактурите за контрагента
@@ -417,8 +416,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $obj->totalInvoiceValue += $invoiceValue;
                                 $obj->totalInvoiceVAT += $salesInvoice->vatAmount;
                             }
-                        } //Да не влизат сумите на проформите в общата стойност по контрагент
-                        continue;
+                        }
                     }
                 }
             }
@@ -504,6 +502,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             }
 
                             // Масив с данни за сумите от фактурите  обединени по контрагенти
+
+                            ///Върнах го Премахнатия * $iRec->rate
+
                             if (!array_key_exists($iRec->id, $sRecs)) {
                                 if (!array_key_exists($iRec->contragentName, $totalInvoiceContragent)) {
                                     $totalInvoiceContragent[$iRec->contragentName] = (object)array(
@@ -543,7 +544,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'invoiceContainerId' => $iRec->containerId,
                                     'currencyId' => $iRec->currencyId,
                                     'rate' => $iRec->rate,
-                                    'invoiceValue' => $paydocs->amount,
+                                    'invoiceValue' => $paydocs->amount * $iRec->rate,
                                     'invoiceVAT' => deals_Helper::getSmartBaseCurrency($iRec->vatAmount, $iRec->date, $rec->checkDate),
                                     'invoicePayout' => $paydocs->payout,
                                     'type' => $iRec->type,
@@ -993,7 +994,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             foreach ($recs as $key => $val) {
 
                 if (!in_array($val->contragent, $cArr)) {
-                    $rec->totalInvoiceValueAll += $val->totalInvoiceValue * $val->rate;
+                    $rec->totalInvoiceValueAll += $val->totalInvoiceValue;
                     array_push($cArr, $val->contragent);
 
                 }
@@ -1009,7 +1010,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if (countR($recs)) {
             arr::sortObjects($recs, 'invoiceDate', 'asc', 'stri');
         }
-
+//bp($recs);
         return $recs;
     }
 
@@ -1050,15 +1051,16 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
 
             if ($rec->unpaid == 'unpaid') {
+                $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
                 //if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
                 $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
                 // }
-                $fld->FLD('invoiceValueBaseCurr', 'double(decimals=2)', 'caption=Стойност-> Сума-> лв.,smartCenter');
-                $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', 'caption=Платено->Сума->лв.,smartCenter');
+                $fld->FLD('invoiceValueBaseCurr', 'double(decimals=2)', "caption=Стойност-> Сума-> $baseCurrency,smartCenter");
+                $fld->FLD('paidAmount', 'double(smartRound,decimals=2)', "caption=Платено->Сума->$baseCurrency,smartCenter");
                 $fld->FLD('paidDates', 'varchar', 'caption=Платено->Плащания->дата,smartCenter');
-                $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Неплатено->лв.,smartCenter');
-                $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', 'caption=Състояние->Надплатено-> лв.,smartCenter');
+                $fld->FLD('invoiceCurrentSumm', 'double(smartRound,decimals=2)', "caption=Състояние->Неплатено->$baseCurrency,smartCenter");
+                $fld->FLD('invoiceOverSumm', 'double(smartRound,decimals=2)', "caption=Състояние->Надплатено-> $baseCurrency,smartCenter");
             }
         } else {
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,smartCenter');
@@ -1091,7 +1093,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
-
         if ($dRec->fastMarker == 1) {
 
             $paidAmount = $dRec->invoicePayout * $dRec->rate;
@@ -1222,7 +1223,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         $Double = core_Type::getByName('double(decimals=2)');
+
         $euroZoneDate = acc_Setup::getEurozoneDate();
+
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
 
         $row = new stdClass();
 
@@ -1257,53 +1261,146 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $dcMark = $dRec->invoiceValue < 0 ? -1 : 1;
 
-            //  $row->invoiceNo .= "<span class='quiet'>" . '<br>' . $type . '</span>';
-
             $row->documentType = $type;
             $row->ROW_ATTR['class'] = "state-{$statecolor}";
 
         }
 
-        if ($rec->unpaid == 'all') {
+        ////////////////////////////////////////////////////////////////////////
+        // Ако справката се издава за период преди еврозоната с основна валута BGN
+        if ($rec->checkDate < $euroZoneDate) {
 
-            $allCurrency = ($dRec->totalInvoiceValue) ? $dRec->currencyId : '';
-            //След превалутирането
-            $div = 1;
-            if ($rec->checkDate > $euroZoneDate) {
-                if ($allCurrency == 'BGN') {
-                    $allCurrency = 'EUR';
-                }
+            //режим ВСИЧКИ  дата на справката преди ЕВРОЗОНАТА
+            if ($rec->unpaid == 'all') {
 
-            } else {
+                $allCurrency = ($dRec->totalInvoiceValue) ? $baseCurrency : '';
 
                 $div = $dRec->rate;
+
+                $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue * $div) . ' ' . $allCurrency;
+                if ($dRec->totalInvoiceOverPaid > 0.01) {
+                    $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
+                }
+
+                $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+
+                $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
+
             }
 
-            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue / $div) . ' ' . $allCurrency;
-            if ($dRec->totalInvoiceOverPaid > 0.01) {
-                $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
+            //режим НЕПЛАТЕНИ  дата на справката преди ЕВРОЗОНАТА
+            if ($rec->unpaid == 'unpaid') {
+
+                $row->contragent = $dRec->contragent . '</br>' . "<span class= 'quiet'>" . ' Общо фактури: ' . '</span>' . $Double->toVerbal($dRec->totalInvoiceValue)
+                    . ' »  ' . "<span class= 'quiet'>" . ' Платено: ' . '</span>' . $Double->toVerbal($dRec->totalInvoicePayout)
+                    . ' »  ' . "<span class= 'quiet'>" . 'Недоплатено:' . '</span>' . $Double->toVerbal($dRec->totalInvoiceNotPayd);
+
+                if ($dRec->totalInvoiceOverPaid > 0.01) {
+                    $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
+                }
+
+                $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+
+                $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
             }
 
-            $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+            //СПОРЕД ДАТАТА НА ИЗДАВАНЕ НА ФАКТУРАТА
+            //ФАКТУРА ИЗДАДЕНА ПРЕДИ ЕВРОЗОНАТА
+            if ($dRec->invoiceDate < $euroZoneDate) {
+                if ($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue);
+                } elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue);
+                }
+            }
 
-            $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
+            //Стойност на фактурата в основна валута
+            $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceValue * $dRec->rate);
+
+            //Остатък за плащане в основна валута
+            if ($dRec->invoiceCurrentSumm > 0) {
+
+                $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm * $dRec->rate);
+            }
+
+            if ($dRec->invoiceCurrentSumm < 0) {
+                $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
+                $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm * $dRec->rate);
+            }
+
 
         }
 
-        if ($rec->unpaid == 'unpaid') {
+        ///////////////////////////////////////////////////////////////////////
+        // Ако справката се издава за период ОТ ЕВРОЗОНАТА с основна валута EUR
+        if ($rec->checkDate > $euroZoneDate) {
 
-            $row->contragent = $dRec->contragent . '</br>' . "<span class= 'quiet'>" . ' Общо фактури: ' . '</span>' . $Double->toVerbal($dRec->totalInvoiceValue)
-                . ' »  ' . "<span class= 'quiet'>" . ' Платено: ' . '</span>' . $Double->toVerbal($dRec->totalInvoicePayout)
-                . ' »  ' . "<span class= 'quiet'>" . 'Недоплатено:' . '</span>' . $Double->toVerbal($dRec->totalInvoiceNotPayd);
+            //режим ВСИЧКИ ВЪВ ЕВРОЗОНАТА
+            if ($rec->unpaid == 'all') {
 
+                $allCurrency = ($dRec->totalInvoiceValue) ? $baseCurrency : '';
 
-            if ($dRec->totalInvoiceOverPaid > 0.01) {
-                $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
+                $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' ' . $allCurrency;
+                if ($dRec->totalInvoiceOverPaid > 0.01) {
+                    $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
+                }
+
+                $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+
+                $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
+
             }
 
-            $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+            //режим НЕПЛАТЕНИ  дата на справката ВЪВ ЕВРОЗОНАТА
+            if ($rec->unpaid == 'unpaid') {
 
-            $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
+                $row->contragent = $dRec->contragent . '</br>' . "<span class= 'quiet'>" . ' Общо фактури: ' . '</span>' . $Double->toVerbal($dRec->totalInvoiceValue)
+                    . ' »  ' . "<span class= 'quiet'>" . ' Платено: ' . '</span>' . $Double->toVerbal($dRec->totalInvoicePayout)
+                    . ' »  ' . "<span class= 'quiet'>" . 'Недоплатено:' . '</span>' . $Double->toVerbal($dRec->totalInvoiceNotPayd);
+
+
+                if ($dRec->totalInvoiceOverPaid > 0.01) {
+                    $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
+                }
+
+                $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
+
+                $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
+            }
+
+            //Стойност на фактурата в основна валута
+            $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceValue);
+
+            //Остатък за плащане в основна валута
+            if ($dRec->invoiceCurrentSumm > 0) {
+
+                $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
+            }
+
+            if ($dRec->invoiceCurrentSumm < 0) {
+                $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
+                $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm);
+            }
+
+            //Стойност на фактурата във валутата на издаване
+            if ($dRec->invoiceDate > $euroZoneDate) {
+                if ($dRec->currencyId == 'EUR' && $baseCurrency == 'EUR') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue);
+                } elseif ($dRec->currencyId != 'EUR' && $baseCurrency == 'EUR') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue / $dRec->rate);
+                }
+            }
+
+            //Стойност на фактурата във валутата на издаване
+            if ($dRec->invoiceDate < $euroZoneDate) {
+                if ($dRec->currencyId == 'BGN' && $baseCurrency == 'EUR') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue * 1.95583);
+                } elseif ($dRec->currencyId != 'EUR' && $dRec->currencyId != 'BGN' && $baseCurrency == 'EUR') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue / ($dRec->rate / 1.95583));
+                } elseif ($dRec->currencyId == 'EUR' && $baseCurrency == 'EUR') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue);
+                }
+            }
         }
 
         $row->invoiceDate = $Date->toVerbal($dRec->invoiceDate);
@@ -1315,39 +1412,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $invoiceValue = $rec->unpaid == 'all' ? $dRec->invoiceValue : $dRec->invoiceValue;
 
         $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
-
-
-        $type = core_Type::getByName('double(decimals=2)');
-
-        if ($dRec->invoiceDate < $euroZoneDate) {
-            if ($dRec->currencyId == 'BGN' && $baseCurrency == 'EUR') {
-                $row->invoiceValue = $type->toVerbal($invoiceValue * 1.95583);
-            } elseif ($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
-                $row->invoiceValue = $type->toVerbal($invoiceValue);
-            } elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
-                $row->invoiceValue = $type->toVerbal($invoiceValue / $dRec->rate);
-            } elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'EUR') {
-                $row->invoiceValue = $type->toVerbal($invoiceValue * 1.95583 / $dRec->rate);
-            }
-        }
-        if ($dRec->invoiceDate > $euroZoneDate) {
-            if ($dRec->currencyId == 'EUR' && $baseCurrency == 'EUR') {
-                $row->invoiceValue = $type->toVerbal($invoiceValue);
-            } elseif ($dRec->currencyId != 'EUR' && $baseCurrency == 'EUR') {
-                $row->invoiceValue = $type->toVerbal($invoiceValue / $dRec->rate);
-            }
-        }
-
-        $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceValue);
-
-        if ($dRec->invoiceCurrentSumm > 0) {
-            $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm * $dRec->rate);
-        }
-
-        if ($dRec->invoiceCurrentSumm < 0) {
-            $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
-            $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm * $dRec->rate);
-        }
 
         $cond = $rec->unpaid == 'unpaid' ? $dRec->dueDate && $dRec->invoiceCurrentSumm > 0 : $dRec->invoiceCurrentSumm > 0;
 
