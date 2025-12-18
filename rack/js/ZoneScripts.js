@@ -2,8 +2,8 @@
 var TM_LOCK_PREFIX = 'tm_lock_move_';
 var TM_COOL_PREFIX = 'tm_cool_move_';
 
-var TM_LOCK_TTL_MS      = 15000; // аварийно auto-clean на lock
-var TM_COOLDOWN_MS      = 700;   // <- това спира "втория клик" върху новия бутон
+var TM_LOCK_TTL_MS      = 15000;
+var TM_COOLDOWN_MS      = 700;
 
 function lockKey(moveId) { return TM_LOCK_PREFIX + String(moveId); }
 function coolKey(moveId) { return TM_COOL_PREFIX + String(moveId); }
@@ -42,8 +42,6 @@ function isInCooldown(moveId) {
 	return true;
 }
 
-// true => вече е блокирано (lock или cooldown)
-// false => заключва и продължава
 function lock(moveId) {
 	if (!moveId) return false;
 
@@ -57,7 +55,6 @@ function lock(moveId) {
 	return false;
 }
 
-// unlock + старт на cooldown (за да не мине 2-рия клик върху новия бутон)
 function unlock(moveId) {
 	if (!moveId) return;
 	sessionStorage.removeItem(lockKey(moveId));
@@ -66,7 +63,7 @@ function unlock(moveId) {
 }
 
 
-// ===== Добавяне на _rid/_ts/_tab към URL (работи и за ../toggle/...) =====
+// ===== _rid/_ts/_tab генерация + добавяне към URL =====
 function tmRandId() {
 	return Date.now().toString(36) + '_' + Math.random().toString(16).slice(2);
 }
@@ -85,13 +82,11 @@ function tmGetTabId() {
 function zoneActions() {
 
 	function getMoveId($btn) {
-		// attr() е по-надеждно при динамичен HTML (jQuery .data() кешира)
 		var mid = $btn.attr('data-moveid') || $btn.data('moveid');
 		if (mid == null || mid === '') return null;
 		return String(mid);
 	}
 
-	// 1) Ранна визуална индикация + STOP ако е блокирано
 	$(document.body)
 		.off('pointerdown.toggleMovement', '.toggle-movement')
 		.on('pointerdown.toggleMovement', '.toggle-movement', function (e) {
@@ -107,7 +102,6 @@ function zoneActions() {
 			$btn.addClass('is-busy');
 		});
 
-	// 2) Реалното пращане – lock по moveId
 	$(document.body)
 		.off('click.toggleMovement', '.toggle-movement')
 		.on('click.toggleMovement', '.toggle-movement', function (e) {
@@ -118,7 +112,7 @@ function zoneActions() {
 			var moveId = getMoveId($btn);
 
 			if (moveId) {
-				if (lock(moveId)) return false; // lock/cooldown -> стоп
+				if (lock(moveId)) return false;
 			}
 
 			var divId = $btn.closest('div.rowsContainerClass').attr('id');
@@ -128,10 +122,10 @@ function zoneActions() {
 				return false;
 			}
 
-			// добавяме идентификатори за диагностика (важи и за ../toggle/..)
-			var rid  = tmRandId();
-			var ts   = String(Date.now());     // ms timestamp
-			var tab  = tmGetTabId();
+			// <-- ТУК е ключът: добавяме ги в URL, за да ги виждаш в сървърните логове
+			var rid = tmRandId();
+			var ts  = String(Date.now());
+			var tab = tmGetTabId();
 
 			$btn.prop('disabled', true).addClass('is-busy');
 
@@ -139,15 +133,16 @@ function zoneActions() {
 			getEO().isWaitingResponse = true;
 			getEfae().waitPeriodicAjaxCall = 7;
 
-			console.log('Call: ' + url, 'moveId=' + moveId);
+			console.log('Call: ' + url, 'moveId=' + moveId, '_rid=' + rid, '_ts=' + ts, '_tab=' + tab);
 
+			// data контекстът може да си остане само divId (не ти трябва за логовете)
 			getEfae().process({ url: url }, { _rid: rid, _ts: ts, _tab: tab, divId: divId }, false);
 			return false;
 		});
 }
 
 
-// ===== AJAX callback (вика се от резултата) =====
+// ===== AJAX callback =====
 function render_enableBtn(data){
 	var moveId = (data && data.moveId != null) ? String(data.moveId) : null;
 
