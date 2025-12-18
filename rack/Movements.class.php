@@ -1027,7 +1027,7 @@ class rack_Movements extends rack_MovementAbstract
 
                 // Ако отново се прави опит за стартиране на стартирано движение от същия потребител в рамките на минута да не дава грешка
                 $serialize = serialize($rec);
-                $checkDate = dt::addSecs(60, $rec->modifiedOn);
+                $checkDate = dt::addSecs(120, $rec->modifiedOn);
                 if($action == 'start' && $rec->modifiedBy == $cu && $rec->state == 'active' && dt::now() <= $checkDate){
                     $rec->modifiedOn = dt::now();
                     $this->save_($rec, 'modifiedOn');
@@ -1201,7 +1201,7 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
 
-                $checkDate = dt::addSecs(60, $rec->modifiedOn);
+                $checkDate = dt::addSecs(120, $rec->modifiedOn);
                 if($rec->modifiedBy == $cu && $rec->state == 'closed' && dt::now() <= $checkDate){
                     $rec->modifiedOn = dt::now();
                     $this->save_($rec, 'modifiedOn');
