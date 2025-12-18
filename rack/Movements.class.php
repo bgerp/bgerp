@@ -989,7 +989,11 @@ class rack_Movements extends rack_MovementAbstract
         $resObj->arg = array('moveId' => $rec->id);
         $resArr[] = $resObj;
 
-        rack_Movements::logDebug("RACK TOGGLE MOVEMENT '{$rec->id}' -> '{$action}'", $rec->id);
+        $rId = Request::get('_rid', 'varchar');
+        $ts = Request::get('_ts', 'varchar');
+        $tab = Request::get('_ts', 'varchar');
+
+        rack_Movements::logDebug("RACK TOGGLE '{$rec->id}' -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $rec->id);
 
         // Заключване на екшъна
         if (!core_Locks::obtain("movement{$rec->id}", 120, 0, 0)) {
@@ -1026,19 +1030,18 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
 
                 // Ако отново се прави опит за стартиране на стартирано движение от същия потребител в рамките на минута да не дава грешка
-                $serialize = serialize($rec);
                 $checkDate = dt::addSecs(120, $rec->modifiedOn);
                 if($action == 'start' && $rec->modifiedBy == $cu && $rec->state == 'active' && dt::now() <= $checkDate){
                     $rec->modifiedOn = dt::now();
                     $this->save_($rec, 'modifiedOn');
-                    wp("RACK: Нямате права (2) Мутнато", $cu, $url, $action, $rec);
-                    rack_Movements::logDebug("RACK: Нямате права (2) Мутнато: {$cu}|{$url}|{$action}|{$serialize}", $rec->id);
+                    wp("RACK: Нямате права (2) Мутнато", $cu, $url, $action, $rec, $rId, $ts, $tab);
+                    rack_Movements::logDebug("RACK TOGGLE ERROR: Нямате права (2) Мутнато: {$cu}|{$action}|Rid:{$rId}|ts:{$ts}|tab:{$tab}|{$url}", $rec->id);
 
                     return self::forwardRefreshUrl();
                 } else {
 
-                    wp("RACK: Нямате права (2)", $cu, $url, $action, $rec);
-                    rack_Movements::logDebug("RACK: Нямате права (2): {$cu}|{$url}|{$action}|{$serialize}", $rec->id);
+                    wp("RACK: Нямате права (2)", $cu, $url, $action, $rec, $rId, $ts, $tab);
+                    rack_Movements::logDebug("RACK TOGGLE ERROR: Нямате права (2): {$cu}|{$action}|Rid:{$rId}|ts:{$ts}|tab:{$tab}|{$url}", $rec->id);
                     core_Statuses::newStatus('|Нямате права|*!', 'error');
                 }
 
@@ -1084,7 +1087,7 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
                 if($ajaxMode){
                     core_Statuses::newStatus('Движението вече е изтрито', 'error');
-                    rack_Movements::logDebug("RACK TOGGLE MOVEMENT ERROR {$rec->id} -> '{$action}'", $rec->id);
+                    rack_Movements::logDebug("RACK TOGGLE ERROR {$rec->id} -> '{$action}'", $rec->id);
 
                     return array_merge($resArr, status_Messages::returnStatusesArray());
                 } else {
@@ -1127,7 +1130,7 @@ class rack_Movements extends rack_MovementAbstract
         
         // Ако се обновява по Ajax
         if($ajaxMode){
-            rack_Movements::logDebug("RACK TOGGLE MOVEMENT SUCCESS {$rec->id} -> '{$action}'", $rec->id);
+            rack_Movements::logDebug("RACK TOGGLE SUCCESS {$rec->id} -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $rec->id);
 
             return array_merge($resArr, self::forwardRefreshUrl());
         }
