@@ -1430,12 +1430,18 @@ class pos_Terminal extends peripheral_Terminal
 
         $pointRec = pos_Points::fetch($rec->pointId);
         $peripheralIds = keylist::toArray($pointRec->bankPeripherals);
+
+        $bgnPaymentId = eurozone_Setup::getBgnPaymentId();
         if(!isset($rec->revertId)){
             $cardPaymentId = cond_Setup::get('CARD_PAYMENT_METHOD_ID');
 
             foreach ($payments as $paymentId => $paymentTitle){
                 $attr = array('id' => "payment{$paymentId}", 'class' => "{$disClass} posBtns payment", 'data-type' => $paymentId, 'data-url' => $payUrl, 'title' => 'Избор на вид плащане');
                 $attr['data-sendamount'] = null;
+                if($paymentId == $bgnPaymentId){
+                    $attr['data-rate'] = '1.95583';
+                }
+
                 $originalAttr = $attr;
 
                 // Ако е плащане с карта и има периферия подменя се с връзка с касовия апарат

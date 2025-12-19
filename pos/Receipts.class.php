@@ -422,7 +422,7 @@ class pos_Receipts extends core_Master
                 $row->change = $mvc->getFieldType('change')->toVerbal(abs($rec->change));
                 $row->change = currency_Currencies::decorate($row->change, $row->currency, true);
 
-                if($showDualCurrency && $rec->change > 0){
+                if($showDualCurrency){
                     Mode::push('text', 'plain');
                     $bgnChange = deals_Helper::getSmartBaseCurrency(abs($rec->change), $rec->createdOn, '2024-01-01', true);
                     $bgnVal = $mvc->getFieldType('change')->toVerbal($bgnChange);
