@@ -1276,9 +1276,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 $allCurrency = ($dRec->totalInvoiceValue) ? $baseCurrency : '';
 
-                $div = $dRec->rate;
+               //$div = $dRec->rate;
 
-                $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue * $div) . ' ' . $allCurrency;
+                $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' ' . $allCurrency;
                 if ($dRec->totalInvoiceOverPaid > 0.01) {
                     $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
                 }
@@ -1310,13 +1310,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($dRec->invoiceDate < $euroZoneDate) {
                 if ($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
                     $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue);
-                } elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
-                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue);
+                } elseif ($dRec->currencyId == 'EUR' && $baseCurrency == 'BGN') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue/1.95583);
+                }elseif ($dRec->currencyId != 'EUR' && $dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue/$dRec->rate);
                 }
             }
 
             //Стойност на фактурата в основна валута
-            $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceValue * $dRec->rate);
+            $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceValue );
 
             //Остатък за плащане в основна валута
             if ($dRec->invoiceCurrentSumm > 0) {
