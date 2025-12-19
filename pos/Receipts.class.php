@@ -592,6 +592,10 @@ class pos_Receipts extends core_Master
         }
 
         $diff = round($rec->paid - $rec->total, 2);
+        if (abs($diff) < 1e-9) {
+            $diff = 0.0;
+        }
+
         $rec->change = $diff;
         $rec->total = $rec->total;
         $this->save($rec);
