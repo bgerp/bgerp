@@ -1176,6 +1176,13 @@ class sales_Sales extends deals_DealMaster
     
     /**
      *  Намира последната продажна цена на артикулите
+     *
+     * @param mixed $contragentClass - клас на контрагента
+     * @param int $contragentId      - ид на контрагента
+     *
+     * @return array                 - последните цени за артикула
+     *              ['price']        - цена на последната продажба
+     *              ['date']         - дата на последната продажба
      */
     public static function getLastProductPrices($contragentClass, $contragentId)
     {
@@ -1186,7 +1193,7 @@ class sales_Sales extends deals_DealMaster
         foreach (array('sales_Sales', 'store_ShipmentOrders', 'sales_Services') as $Cls) {
             $query = $Cls::getQuery();
             $query->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
-            $query->where("#state = 'active' OR #state = 'closed'");
+            $query->where("#state IN ('active', 'closed')");
             $query->show('id');
             $query->orderBy('valior', 'DESC');
             while ($rec = $query->fetch()) {
@@ -1212,9 +1219,9 @@ class sales_Sales extends deals_DealMaster
             foreach (array('sales_SalesDetails', 'store_ShipmentOrderDetails', 'sales_ServicesDetails') as $Detail) {
                 $Detail = cls::get($Detail);
                 $dQuery = $Detail->getQuery();
-                $dQuery->where("#state = 'active' OR #state = 'closed'");
-                $dQuery->show("productId,price,{$Detail->masterKey}");
-                
+                $dQuery->where("#state IN ('active', 'closed')");
+                $dQuery->show("productId,price,{$Detail->masterKey},valior");
+                $dQuery->EXT('valior', $Detail->Master->className, "externalName=valior,externalKey={$Detail->masterKey}");
                 $dQuery->EXT('state', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");
                 $dQuery->EXT('contragentClassId', $Detail->Master->className, "externalName=contragentClassId,externalKey={$Detail->masterKey}");
                 $dQuery->EXT('contragentId', $Detail->Master->className, "externalName=contragentId,externalKey={$Detail->masterKey}");
@@ -1222,7 +1229,7 @@ class sales_Sales extends deals_DealMaster
                 
                 // Кешираме артикулите с цените
                 while ($dRec = $dQuery->fetch()) {
-                    $cacheArr[$dRec->productId] = $dRec->price;
+                    $cacheArr[$dRec->productId] = (object)array('date' => $dRec->valior, 'price' => $dRec->price);
                 }
             }
             

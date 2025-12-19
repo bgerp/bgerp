@@ -826,6 +826,15 @@ select.tabHolder {
 .resultPrice {
   background: #499bc0; }
 
+  .dual-currency .totalLabel {
+    text-align: left !important;
+    line-height: 100%; }
+  .dual-currency .change,
+  .dual-currency .paidCaption {
+    text-align: left !important; }
+  .dual-currency .caption {
+    text-align: center !important; }
+
 .contragentLinkBtns,
 .newContragentBtn {
   background: #a162ca; }

@@ -285,6 +285,7 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
         $all = $dQuery->fetchAll();
         
         $res = array();
+        $currencyId = dt::today() >= acc_Setup::getEurozoneDate() ? 'EUR' : 'BGN';
         foreach ($all as $dRec) {
             $amountWithVatNotRound = $dRec->amount;
             $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId, null, $vatExceptionId)->sysId;
@@ -306,7 +307,8 @@ class bgfisc_plg_PrintFiscReceipt extends core_Plugin
 
             $arr = array('PLU_NAME' => $name, 'QTY' => 1, 'PRICE' => $amount, 'VAT_CLASS' => $vatClass);
             $price = round($amount / $dRec->packQuantity, bgfisc_Setup::get('PRICE_FU_ROUND'));
-            $arr['BEFORE_PLU_TEXT'] = "{$dRec->packQuantity} x {$price}лв";
+            $price .= $currencyId == 'BGN' ? 'лв' : ' евро';
+            $arr['BEFORE_PLU_TEXT'] = "{$dRec->packQuantity} x {$price}";
             if (!empty($dRec->discount)) {
                 $arr['PERCENT'] = $dRec->discount * 100;
                 $arr['DISC_ADD_V'] = -1 * round($dRec->discount * $amountWithVatNotRound, 2);

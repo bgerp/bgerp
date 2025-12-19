@@ -254,7 +254,7 @@ class core_Db
      *
      * @return resource
      */
-    public function query($sqlQuery, $silent = false, $replication = false)
+    public function query($sqlQuery, $silent = false, $replication = false, $resultMode = MYSQLI_STORE_RESULT)
     {
         if (isDebug() && ($fnd = Request::get('_bp')) && stripos(preg_replace('!\\s+!', ' ', $sqlQuery), $fnd) !== false) {
             bp($sqlQuery);
@@ -267,7 +267,7 @@ class core_Db
         $this->query = $sqlQuery;
 
         $eTimeBefore = DEBUG::getExecutionTime();
-        $dbRes = $link->query($sqlQuery);
+        $dbRes = $link->query($sqlQuery, $resultMode);
         $eTimeAfter = DEBUG::getExecutionTime();
 
         $eTime = $eTimeAfter - $eTimeBefore;
