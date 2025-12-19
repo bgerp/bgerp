@@ -136,6 +136,8 @@ class core_Backup extends core_Mvc
         
         ignore_user_abort();
 
+        self::fLog("Начало на главния процес: " . self::getMemoryInfo());
+
         // Мета-данни за бекъпа
         $description = array();
         $description['times']['start'] = dt::now();
@@ -414,6 +416,8 @@ class core_Backup extends core_Mvc
   
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
+
+            self::fLog("Начало на експорта на {$table}. " .  self::getMemoryInfo());
             
             if ($inst === null) {
                 self::fLog("Таблицата {$table} има null за инстанция");
@@ -544,7 +548,7 @@ class core_Backup extends core_Mvc
         
         $phpCmd = core_Os::getPHPCmd();
 
-        $msg = "$phpCmd {$cmd} {$app} {$ctr} {$act} " . escapeshellarg($processFile);
+        $msg = "$phpCmd -d memory_limit=4096M {$cmd} {$app} {$ctr} {$act} " . escapeshellarg($processFile);
 
         core_Os::startCmd($msg);
         self::fLog($msg);
@@ -558,7 +562,8 @@ class core_Backup extends core_Mvc
     {  
         // Спираме логването в core_Debug
         core_Debug::$isLogging = false;
- 
+        core_App::setTimeLimit(3600);
+
         global $argv;
         
         try {
@@ -576,17 +581,17 @@ class core_Backup extends core_Mvc
             $tmpCsv = "{$path}.tmp";
 
             if (file_exists($dest)) {
-                self::fLog("Таблица `{$dest}` вече съществува като 7z файл");
+                self::fLog("*Таблица `{$dest}` вече съществува като 7z файл");
                 exit(0);
             }
             
             if (file_exists($tmpCsv) && filesize($tmpCsv) > 0) {
-                self::fLog("Таблица `{$fileName}` вече съществува като tmp файл");
+                self::fLog("*Таблица `{$fileName}` вече съществува като tmp файл");
                 exit(0);
             }
 
-            self::fLog("Експорт в CSV на таблица `{$fileName}`"); 
-
+            self::fLog("*Експорт в CSV на таблица `{$fileName}`. " . self::getMemoryInfo());
+ 
             // Извличаме информация за колоните
             $types = $headers = array();
             $i = 0;
@@ -604,7 +609,7 @@ class core_Backup extends core_Mvc
                 $i++;
             }
         
-            self::fLog("Празвим SQL заявка за данните на `{$fileName}`"); 
+            self::fLog("*Празвим SQL заявка за данните на `{$fileName}`"); 
 
             // Правим заявка за данните
             $link = $inst->db->connect();
@@ -626,7 +631,7 @@ class core_Backup extends core_Mvc
                 die;
             }
             
-            self::fLog("Експорт в CSV на таблица `{$fileName}`"); 
+            self::fLog("*Експорт в CSV на таблица `{$fileName}`"); 
             // Отваряме файла за писане
             $out = fopen($tmpCsv, 'w');
 
@@ -655,13 +660,13 @@ class core_Backup extends core_Mvc
             
             // Вземаме паролата
             $pass = core_Setup::get('BACKUP_PASS');
-            self::fLog('Компресиране на ' . basename($dest));
+            self::fLog('*Компресиране на ' . basename($dest));
             self::compressFile($path, $dest, $pass);
-            self::fLog('Край на компресиране на ' . basename($dest));
+            self::fLog('*Край на компресиране на ' . basename($dest));
 
             unlink($processFile);
         }  catch (Throwable $e) {
-            self::fLog('Exception: ' . $e->getMessage());
+            self::fLog('*Exception: ' . $e->getMessage());
             if(isset($dbRes)) {
                 $dbRes->free();
             }
@@ -1230,7 +1235,73 @@ class core_Backup extends core_Mvc
 
         return $count;
     }
+    
+    /**
+     * Създава изречение за свободните памети
+     */
+    public static function getMemoryInfo()
+    {
+        $limit = self::getPhpMemoryLimitBytes();
+        $used  = memory_get_usage(true);
+        $ram = round(($limit - $used) / 1024 / 1024 / 1024, 2);
+        $temp = self::getDiskFreeGB(self::getTempPath());
+        $backup = self::getDiskFreeGB(self::getBackupPath());
 
+        $res = "Свободна памет: РАМ:{$ram} GB, temp:{$temp} GB, backup:{$backup} GB";
+
+        return $res;
+    }
+
+    /**
+     * Връща свободното място в дадена директория
+     */
+    static function getDiskFreeGB(string $path): float
+    {
+        return round(disk_free_space($path) / 1024 / 1024 / 1024, 2);
+    }
+    
+    /**
+     * Колко е лимита на процеса
+     */
+    static function getPhpMemoryLimitBytes(): int
+    {
+        $val = ini_get('memory_limit');
+        if ($val == -1) return PHP_INT_MAX;
+
+        $unit = strtolower(substr($val, -1));
+        $num  = (int)$val;
+
+        switch ($unit) {
+            case 'g': $res = $num * 1024 ** 3; break;
+            case 'm': $res = $num * 1024 ** 2; break;
+            case 'k': $res = $num * 1024; break;
+            default: $res = (int)$val;
+        };
+
+        return $res;
+    }
+
+
+    static function getRamInfoGB(): array
+    {
+        $data = file('/proc/meminfo', FILE_IGNORE_NEW_LINES);
+        $info = [];
+
+        foreach ($data as $line) {
+            if (preg_match('/^(\w+):\s+(\d+)/', $line, $m)) {
+                $info[$m[1]] = (int)$m[2]; // kB
+            }
+        }
+
+        return [
+            'total_gb' => round($info['MemTotal'] / 1024 / 1024, 2),
+            'free_gb'  => round(
+                ($info['MemAvailable'] ?? ($info['MemFree'] + $info['Buffers'] + $info['Cached']))
+                / 1024 / 1024,
+                2
+            ),
+        ];
+    }
     
     /**
      * Поверява дали конфига е добре настроен
@@ -1249,6 +1320,16 @@ class core_Backup extends core_Mvc
 
         $tempDir = core_Backup::getTempPath();
         $res .= core_Os::hasDirErrors($tempDir, 'Временната директория за backup ' . $tempDir);
+
+        return $res;
+    }
+
+
+    public function act_ShowLog()
+    {
+        $file = self::getTempPath('log.txt');
+        $res = file_get_contents($file);
+        $res = "<pre>{$res}</pre>";
 
         return $res;
     }
