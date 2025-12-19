@@ -207,18 +207,17 @@ class core_Backup extends core_Mvc
         }
 
         uksort($instArr, array($this, 'compLmt'));
-       
+        $cntTables = count($instArr);
+        self::fLog("==== Започваме пробно експортиране на {$cntTables} таблици ====");
+
         // Правим пробно експортиране на всички таблици, без заключване
         $tables = array();
         $time = time();
         $this->exportTables($instArr, $tables);
-        // Добавяме експортираните файлове в описанието
-        foreach ($tables as $table => $file) {
-            $description['files'][$table] = "{$file}.csv.7z";
-        }
        
         // Пускаме завесата
-        
+        self::fLog("==== Пускаме завесата и експортираме последно променото ====");
+
         core_SystemLock::block('Процес на архивиране на данните', 600); // 10 мин.
         $description['times']['lock'] = dt::now();
         
@@ -248,6 +247,12 @@ class core_Backup extends core_Mvc
         
         // Освобождаваме системата
         core_SystemLock::remove();
+
+        // Добавяме експортираните файлове в описанието
+        foreach ($tables as $table => $file) {
+            $description['files'][$table] = "{$file}.csv.7z";
+        }
+
         $description['times']['unlock'] = dt::now();
         
         // SQL структура на базата данни
@@ -270,17 +275,13 @@ class core_Backup extends core_Mvc
             $dest = $backDir . $file . '.7z';
             if (!file_exists($dest)) {
                 file_put_contents($path, $dbStructure);
-                debug::log($msg = ('Компресиране на ' . basename($dest)));
-                self::fLog($msg);
+                self::fLog('Компресиране на ' . basename($dest));
                 self::compressFile($path, $dest, $pass);
             }
             $description['dbStruct'] = $file . '.7z';
         }
         
-        // Добавяме променените файлове в описанието на експортираните файлове
-        foreach ($tables as $table => $file) {
-            $description['files'][$table] = "{$file}.csv.7z";
-        }
+
         
         // Бекъп на двата конфиг файла
         $indCfg = rtrim(EF_INDEX_PATH, '/\\') . '/index.cfg.php';
@@ -292,6 +293,7 @@ class core_Backup extends core_Mvc
             if (!file_exists($indZip)) {
                 $tmpFile = $workDir . $file;
                 copy($indCfg, $tmpFile);
+                self::fLog('Компресиране на ' . basename($tmpFile));
                 self::compressFile($tmpFile, $indZip, $pass);
             }
             $description['indexConfig'] = $file . '.7z';
@@ -305,6 +307,7 @@ class core_Backup extends core_Mvc
         if (!file_exists($appZip)) {
             $tmpFile = $workDir . $file;
             copy($appCfg, $tmpFile);
+            self::fLog('Компресиране на ' . basename($tmpFile));
             self::compressFile($tmpFile, $appZip, $pass);
         }
         $description['appConfig'] = $file . '.7z';
@@ -328,7 +331,7 @@ class core_Backup extends core_Mvc
             if (!file_exists($dest)) {
                 $path = $workDir . $file;
                 file_put_contents($path, $descriptionStr);
-                self::fLog($msg);
+                self::fLog('Компресиране на ' . basename($dest));
                 self::compressFile($path, $dest, $pass);
             }
         }
@@ -385,6 +388,8 @@ class core_Backup extends core_Mvc
             }
             
             @unlink($path);
+
+            self::fLog("==== Приключваме бекъпа успешно ====");
         }
     }
     
@@ -413,11 +418,14 @@ class core_Backup extends core_Mvc
 
         $pass = core_Setup::get('BACKUP_PASS');
         $addCrc32 = abs(crc32(EF_SALT . $pass));
-  
+        
+        $ind = 0;
         foreach ($instArr as $table => $inst) {
             core_App::setTimeLimit(120);
+            
+            $ind++;
 
-            self::fLog("Начало на експорта на {$table}. " .  self::getMemoryInfo());
+            self::fLog("Начало на експорта на #{$ind} {$table}. " .  self::getMemoryInfo());
             
             if ($inst === null) {
                 self::fLog("Таблицата {$table} има null за инстанция");
@@ -426,12 +434,6 @@ class core_Backup extends core_Mvc
             
             list($exists, $cnt, $lmt, $size) = $this->getTableInfo($inst);
             self::fLog("Таблицата {$table} съдържа {$cnt} записа, последно модифицирани в " . date('m/d/Y H:i:s', $lmt));
-
-
-            if(isset($maxLmt) && ($lmt < $maxLmt)) {
-                self::fLog("Пропускаме `{$table}` защото е последно модифицирана след " .  date('m/d/Y H:i:s', $lmt) . " > " . date('m/d/Y H:i:s', $maxLmt));
-                continue;
-            }
 
             $backupMaxRows = $this->chunks[$table];
             
@@ -482,14 +484,18 @@ class core_Backup extends core_Mvc
                     
                     if (self::$crcArr[$key] > 0) {
                         $suffix = ($i + 1) . '-' . base_convert(abs(self::$crcArr[$key]), 10, 36);
-                        $this->runBackupTable($inst, $table, $suffix, $limit);
                         $tables["{$table}-" . ($i + 1)] = "{$table}.{$suffix}";
+                        $this->runBackupTable($inst, $table, $suffix, $limit);
                     }
                 }
             } else {
                 $suffix = base_convert($lmt + $addCrc32, 10, 36);
-                $this->runBackupTable($inst, $table, $suffix);
                 $tables[$table] = "{$table}.{$suffix}";
+                if((isset($maxLmt) && ($lmt < $maxLmt))) {
+                    self::fLog("Пропускаме `{$table}` защото е последно модифицирана на " .  date('m/d/Y H:i:s', $lmt) . " преди (" . date('m/d/Y H:i:s' . ')', $maxLmt));
+                    continue;
+                }
+                $this->runBackupTable($inst, $table, $suffix);
             }
         }
     }
@@ -1327,6 +1333,7 @@ class core_Backup extends core_Mvc
 
     public function act_ShowLog()
     {
+        RequireRole('debug');
         $file = self::getTempPath('log.txt');
         $res = file_get_contents($file);
         $res = "<pre>{$res}</pre>";
@@ -1458,7 +1465,20 @@ class core_Backup extends core_Mvc
     {
         $file = self::getTempPath('log.txt');
         $msg = date('Y-m-d H:i:s') . ' ' . $msg .  ' ;' . PHP_EOL;
-        file_put_contents($file, $msg, FILE_APPEND | LOCK_EX);
+        $res = @file_put_contents($file, $msg, FILE_APPEND | LOCK_EX);
+
+        if($res === false) {
+            usleep(1000);
+            $res = @file_put_contents($file, $msg, FILE_APPEND | LOCK_EX);
+        }
+        if($res === false) {
+            usleep(1000);
+            $res = @file_put_contents($file, $msg, FILE_APPEND | LOCK_EX);
+        }
+        if($res === false) {
+            usleep(1000);
+            $res = @file_put_contents($file, $msg, FILE_APPEND | LOCK_EX);
+        }
     }
 
     /**
