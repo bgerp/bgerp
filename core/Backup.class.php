@@ -223,17 +223,19 @@ class core_Backup extends core_Mvc
         
         // Флъшваме всички таблици, които ни трябват
         $flushTables = trim($flushTables, ',');
+        self::fLog("==== Flush-ваме таблиците ====");
         $this->db->query("FLUSH TABLES {$flushTables}");
         
         // Локваме ги
-        $lockTables = trim($lockTables, ',');        
+        $lockTables = trim($lockTables, ',');  
+        self::fLog("==== Lock-ваме таблиците ====");
         $this->db->query("LOCK TABLES {$lockTables}");
         
         // Изтриваме статистическата информация за таблиците, за да се генерира на ново
         self::$info = array();
         
         // Флъшваме всичко, каквото има от SQL лога
-        $this->cron_FlushSqlLog();
+        //$this->cron_FlushSqlLog();
         
         // Записваме времето на бекъпа
         $description['time'] = dt::now();
@@ -243,6 +245,7 @@ class core_Backup extends core_Mvc
         $this->exportTables($instArr, $tables, $time);
         
         // Освеобождаваме LOCK-а на таблиците
+        self::fLog("==== Unlock-ваме таблиците ====");
         $this->db->query('UNLOCK TABLES');
         
         // Освобождаваме системата
@@ -259,8 +262,7 @@ class core_Backup extends core_Mvc
         $dbStructure = '';
         
         // Запазваме структурата на базата със всички таблици
-        debug::log($msg = 'Генериране SQL за структурата на базата');
-        self::fLog($msg);
+        self::fLog('Генериране SQL за структурата на базата');
         foreach ($instArr as $table => $inst) {
             $query = "SHOW CREATE TABLE `{$table}`";
             $dbRes = $this->db->query($query);
@@ -280,9 +282,7 @@ class core_Backup extends core_Mvc
             }
             $description['dbStruct'] = $file . '.7z';
         }
-        
-
-        
+            
         // Бекъп на двата конфиг файла
         $indCfg = rtrim(EF_INDEX_PATH, '/\\') . '/index.cfg.php';
         if (file_exists($indCfg)) {
