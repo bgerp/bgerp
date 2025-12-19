@@ -1010,7 +1010,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if (countR($recs)) {
             arr::sortObjects($recs, 'invoiceDate', 'asc', 'stri');
         }
-//bp($recs);
+
         return $recs;
     }
 
@@ -1052,6 +1052,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             if ($rec->unpaid == 'unpaid') {
                 $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
+
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
                 //if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
                 $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
@@ -1442,6 +1443,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $Enum = cls::get('type_Enum', array('options' => array('cash' => 'В брой', 'bank' => 'По банков път', 'intercept' => 'С прихващане', 'card' => 'С карта', 'factoring' => 'Факторинг', 'postal' => 'Пощенски паричен превод')));
 
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
+
         $fieldTpl = new core_ET(
             tr(
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -1452,7 +1455,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                         <!--ET_BEGIN typeOfInvoice--> <div>|Фактури|*: <b>[#typeOfInvoice#]</b></div><!--ET_END typeOfInvoice-->
                                         <!--ET_BEGIN unpaid--><div>|Плащане|*: <b>[#unpaid#]</b></div><!--ET_END unpaid-->
                                         <!--ET_BEGIN paymentType--><div>|Начин на плащане|*: <b>[#paymentType#]</b></div><!--ET_END paymentType-->
-                                        <!--ET_BEGIN totalInvoiceValueAll--><div>|Стойност|*: <b>[#totalInvoiceValueAll#] лв.</b></div><!--ET_END totalInvoiceValueAll-->
+                                        <!--ET_BEGIN totalInvoiceValueAll--><div>|Стойност|*: <b>[#totalInvoiceValueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceValueAll-->
                                         <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] лв.</b></div><!--ET_END totalInvoicePayoutAll-->
                                         <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] лв.</b></div><!--ET_END totalInvoiceNotPaydAll-->
                                         <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] лв.</b></div><!--ET_END totalInvoiceOverPaidAll-->
