@@ -1377,12 +1377,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             //Остатък за плащане в основна валута
             if ($dRec->invoiceCurrentSumm > 0) {
 
-                $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
+                $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm * $dRec->rate);
             }
 
             if ($dRec->invoiceCurrentSumm < 0) {
                 $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
-                $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm);
+                $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm * $dRec->rate);
             }
 
             //Стойност на фактурата във валутата на издаване
@@ -1458,10 +1458,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                         <!--ET_BEGIN unpaid--><div>|Плащане|*: <b>[#unpaid#]</b></div><!--ET_END unpaid-->
                                         <!--ET_BEGIN paymentType--><div>|Начин на плащане|*: <b>[#paymentType#]</b></div><!--ET_END paymentType-->
                                         <!--ET_BEGIN totalInvoiceValueAll--><div>|Стойност|*: <b>[#totalInvoiceValueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceValueAll-->
-                                        <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] лв.</b></div><!--ET_END totalInvoicePayoutAll-->
-                                        <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] лв.</b></div><!--ET_END totalInvoiceNotPaydAll-->
-                                        <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] лв.</b></div><!--ET_END totalInvoiceOverPaidAll-->
-                                        <!--ET_BEGIN totalInvoiceOverDueAll--><div>|Общо ПРОСРОЧЕНА СУМА|*: <b>[#totalInvoiceOverDueAll#] лв.</b></div><!--ET_END totalInvoiceOverDueAll-->
+                                        <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] $baseCurrency</b></div><!--ET_END totalInvoicePayoutAll-->
+                                        <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] $baseCurrency</b></div><!--ET_END totalInvoiceNotPaydAll-->
+                                        <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverPaidAll-->
+                                        <!--ET_BEGIN totalInvoiceOverDueAll--><div>|Общо ПРОСРОЧЕНА СУМА|*: <b>[#totalInvoiceOverDueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverDueAll-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"
             )
