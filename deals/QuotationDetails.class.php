@@ -501,7 +501,7 @@ class deals_QuotationDetails extends doc_Detail
     {
         $me = cls::get(get_called_class());
         $Master = $me->Master->className;
-        $date = empty($date) ? '0000-00-00' : $date;
+        $dateFilter = empty($date) ? '0000-00-00' : $date;
 
         $query = $me->getQuery();
         $query->EXT('contragentClassId', $Master, 'externalName=contragentClassId,externalKey=quotationId');
@@ -514,7 +514,7 @@ class deals_QuotationDetails extends doc_Detail
         // Филтрираме офертите за да намерим на каква цена последно сме оферирали артикула за посоченото количество
         $query->where("#contragentClassId = {$customerClass} AND #contragentId = {$customerId}");
         $query->where("#state = 'active'");
-        $query->where("(#expireOn IS NULL AND #date >= '{$date}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$date}')");
+        $query->where("(#expireOn IS NULL AND #date >= '{$dateFilter}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$dateFilter}')");
         $query->limit(1);
 
         $cloneQuery = clone $query;
@@ -541,6 +541,8 @@ class deals_QuotationDetails extends doc_Detail
             if ($rec->discount) {
                 $res->discount = $rec->discount;
             }
+
+            $res->price = deals_Helper::getSmartBaseCurrency($res->price, $rec->date, $date);
         }
 
         return $res;
