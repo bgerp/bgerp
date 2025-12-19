@@ -752,6 +752,7 @@ abstract class cash_Document extends deals_PaymentDocument
         } else {
             if(!empty($rec->amountGiven)){
                 $change = $this->renderChange($rec);
+                $info['amountVerbal'] = "<b>{$info['amountVerbal']}</b>";
                 $info['amountVerbal'] .= tr("|*<div class='small'><span class='quiet'>|Ресто|*</span>: {$change}</div>");
             }
 
