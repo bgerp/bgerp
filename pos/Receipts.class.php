@@ -388,7 +388,7 @@ class pos_Receipts extends core_Master
         $row->total = currency_Currencies::decorate($row->total, $row->currency, true);
 
         $today = dt::today();
-        $showDualCurrency = $row->currency == 'EUR' && $today >= acc_Setup::getEurozoneDate() && $today <= acc_Setup::getBgnDeprecationDate();
+        $showDualCurrency = isset($fields['-terminal']) && $row->currency == 'EUR' && $today >= acc_Setup::getEurozoneDate() && $today <= acc_Setup::getBgnDeprecationDate();
         if($showDualCurrency){
             $row->DUAL_CURRENCY = 'dual-currency';
         }
