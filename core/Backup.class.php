@@ -89,326 +89,356 @@ class core_Backup extends core_Mvc
             
             return;
         }
-
-        $file = self::getTempPath('log.txt');
-        if(file_exists($file)) {
-            @unlink($file);
-        }
-
-        //file_put_contents($file, 'fwefwe');
-        //self::compressFile($file, $file . '.7z');
-        //die;
-
-        // Изчистваме стари процесорни индикатори
-        $processes = glob(self::getTempPath() . '*.bpr');
-        // Изчистваме останали процесни индикатори
-        if(is_array($processes)) {
-            foreach($processes as $file) {
+        
+        try {
+            $file = self::getTempPath('log.txt');
+            if(file_exists($file)) {
                 @unlink($file);
             }
-        }
 
-        // Изчистваме стари темплейт индикатори
-        $tplFiles = glob(self::getTempPath() . '*.tmp');
-        // Изчистваме останали процесни индикатори
-        if(is_array($tplFiles)) {
-            foreach($tplFiles as $file) {
-                @unlink($file);
-            }
-        }
+            self::fLog("Начало на бекъп: " . self::getMemoryInfo());
 
-        // Изчистваме стари csv файлове
-        $csvFiles = glob(self::getTempPath() . '*.csv');
-        // Изчистваме останали процесни индикатори
-        if(is_array($csvFiles)) {
-            foreach($csvFiles as $file) {
-                @unlink($file);
-            }
-        }
-        
-        // Изтрива всички стари файлове в темп директорията
-        $delCnt = self::deleteOldFiles(self::getTempPath(), 24*60*60);
-        if($delCnt > 0) {
-            self::fLog("$delCnt изтрити стари файлове в " . self::getTempPath());
-        }
-
-        core_App::setTimeLimit(120);
-        
-        ignore_user_abort();
-
-        self::fLog("Начало на главния процес: " . self::getMemoryInfo());
-
-        // Мета-данни за бекъпа
-        $description = array();
-        $description['times']['start'] = dt::now();
-        
-        // Парола за създаване на архивните файлове
-        $pass = core_Setup::get('BACKUP_PASS');
-        
-        // Форсираме директориите
-        $backDir = self::getBackupPath();
-        $workDir = self::getTempPath();
-        
-        // Определяме всички mvc класове, на които ще правим бекъп
-        $mvcArr = core_Classes::getOptionsByInterface('core_ManagerIntf');
-        $instArr = array();
-        $lockTables = $flushTables = '';
- 
-        foreach ($mvcArr as $className) {
-            if (!cls::load($className, true)) {
-                self::fLog("Липсва клас `{$className}`");
-                continue;
-            }
-            
-            // Инстанцираме класа
-            $mvc = cls::get($className);
-            
-            // Пропускаме класовете, които имат модели в други бази данни
-            if (!self::hasEqualDb($this, $mvc)) {
-                self::fLog("DB е различна за `{$className}`");
-                continue;
-            }
-            
-            if ($mvc->dbTableName) {
-                list($exists, $cnt, $lmt, $size) = $this->getTableInfo($mvc);
+            // Изчистваме стари процесорни индикатори
+            $processes = glob(self::getTempPath() . '*.bpr');
+            // Изчистваме останали процесни индикатори
+            if(is_array($processes)) {
+                foreach($processes as $file) {
+                    self::fLog("Изтриване на старт процесен файл: " . $file);
+                    @unlink($file);
+                }
             }
 
-            if (!$mvc->dbTableName) {
-                self::fLog("Липсва dbTabeName за `{$className}`");
-                continue;
+            // Изчистваме стари темплейт индикатори
+            $tplFiles = glob(self::getTempPath() . '*.tmp');
+            // Изчистваме останали процесни индикатори
+            if(is_array($tplFiles)) {
+                foreach($tplFiles as $file) {
+                    self::fLog("Изтриване на старт tpl файл: " . $file);
+                    @unlink($file);
+                }
             }
 
-            if (isset($mvc->doReplication) && !$mvc->doReplication) {
-                self::fLog("Изключен бекъп за `{$className}`");
-                continue;
-            }
-
-            if (!$exists) {
-                self::fLog("Липсва таблица в DB за `{$className}`");
-                continue;
-            }
-            
-            if (!$cnt) {
-                self::fLog("Липват записи за `{$className}`");
-                continue;
-            }
-
-            if (isset($instArr[$mvc->dbTableName])) {
-                self::fLog("Повтарящ се клас клас `{$className}`");
-                continue;
-            }
-
-            $instArr[$mvc->dbTableName] = $mvc;
-            $this->lmt[$mvc->dbTableName] = $lmt;
-            $maxChunk = $mvc->backupMaxRows ?? (($mvc->dbTableName == 'cat_product_tpl_cache') ? 5000000 : BACKUP_MAX_CHUNK_SIZE);
-            $this->chunks[$mvc->dbTableName] = pow(4, floor(log($maxChunk, 4)));
-            $lockTables .= ",`{$mvc->dbTableName}` READ";
-            $flushTables .= ",`{$mvc->dbTableName}` ";
-        }
-
-        uksort($instArr, array($this, 'compLmt'));
-        $cntTables = count($instArr);
-        self::fLog("==== Започваме пробно експортиране на {$cntTables} таблици ====");
-
-        // Правим пробно експортиране на всички таблици, без заключване
-        $tables = array();
-        $time = time();
-        $this->exportTables($instArr, $tables);
-       
-        // Пускаме завесата
-        self::fLog("==== Пускаме завесата и експортираме последно променото ====");
-
-        core_SystemLock::block('Процес на архивиране на данните', 600); // 10 мин.
-        $description['times']['lock'] = dt::now();
-        
-        // Флъшваме всички таблици, които ни трябват
-        $flushTables = trim($flushTables, ',');
-        self::fLog("==== Flush-ваме таблиците ====");
-        $this->db->query("FLUSH TABLES {$flushTables}");
-        
-        // Локваме ги
-        $lockTables = trim($lockTables, ',');  
-        self::fLog("==== Lock-ваме таблиците ====");
-        $this->db->query("LOCK TABLES {$lockTables}");
-        
-        // Изтриваме статистическата информация за таблиците, за да се генерира на ново
-        self::$info = array();
-        
-        // Флъшваме всичко, каквото има от SQL лога
-        //$this->cron_FlushSqlLog();
-        
-        // Записваме времето на бекъпа
-        $description['time'] = dt::now();
-        
-        // Експортираме всички таблици, като зачистваме масива
-        $tables = array();
-        $this->exportTables($instArr, $tables, $time);
-        
-        // Освеобождаваме LOCK-а на таблиците
-        self::fLog("==== Unlock-ваме таблиците ====");
-        $this->db->query('UNLOCK TABLES');
-        
-        // Освобождаваме системата
-        core_SystemLock::remove();
-
-        // Добавяме експортираните файлове в описанието
-        foreach ($tables as $table => $file) {
-            $description['files'][$table] = "{$file}.csv.7z";
-        }
-
-        $description['times']['unlock'] = dt::now();
-        
-        // SQL структура на базата данни
-        $dbStructure = '';
-        
-        // Запазваме структурата на базата със всички таблици
-        self::fLog('Генериране SQL за структурата на базата');
-        foreach ($instArr as $table => $inst) {
-            $query = "SHOW CREATE TABLE `{$table}`";
-            $dbRes = $this->db->query($query);
-            $res = $this->db->fetchArray($dbRes);
-            $dbStructure .= "\n" . array_values($res)[1] . ';';
-        }
-        
-        if ($dbStructure = trim($dbStructure)) {
-            $hash = base_convert(abs(crc32($dbStructure)), 10, 36);
-            $file = "dbstruct.{$hash}.sql";
-            $path = $workDir . $file;
-            $dest = $backDir . $file . '.7z';
-            if (!file_exists($dest)) {
-                file_put_contents($path, $dbStructure);
-                self::fLog('Компресиране на ' . basename($dest));
-                self::compressFile($path, $dest, $pass);
-            }
-            $description['dbStruct'] = $file . '.7z';
-        }
-            
-        // Бекъп на двата конфиг файла
-        $indCfg = rtrim(EF_INDEX_PATH, '/\\') . '/index.cfg.php';
-        if (file_exists($indCfg)) {
-            expect(is_readable($indCfg));
-            $hash = base_convert(md5_file($indCfg), 16, 36);
-            $file = "index.{$hash}.cfg.php";
-            $indZip = $backDir . $file . '.7z';
-            if (!file_exists($indZip)) {
-                $tmpFile = $workDir . $file;
-                copy($indCfg, $tmpFile);
-                self::fLog('Компресиране на ' . basename($tmpFile));
-                self::compressFile($tmpFile, $indZip, $pass);
-            }
-            $description['indexConfig'] = $file . '.7z';
-        }
-        
-        $appCfg = rtrim(EF_CONF_PATH, '/\\') . '/' . EF_APP_NAME . '.cfg.php';
-        expect(file_exists($appCfg) && is_readable($appCfg));
-        $hash = base_convert(md5_file($appCfg), 16, 36);
-        $file = "app.{$hash}.cfg.php";
-        $appZip = $backDir . $file . '.7z';
-        if (!file_exists($appZip)) {
-            $tmpFile = $workDir . $file;
-            copy($appCfg, $tmpFile);
-            self::fLog('Компресиране на ' . basename($tmpFile));
-            self::compressFile($tmpFile, $appZip, $pass);
-        }
-        $description['appConfig'] = $file . '.7z';
-        
-        // Взема стойностите на някои константи
-        $constArr = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
-        foreach ($constArr as $const) {
-            if (defined($const)) {
-                $description['const'][$const] = constant($const);
-            }
-        }
-        
-        // Записваме времето за финиширане на бекъпа
-        $description['times']['finish'] = dt::now();
-        
-        // Записване на файла с описанието на бекъпа
-        if ($descriptionStr = json_encode($description)) {
-            $hash = base_convert($md5 = md5($descriptionStr), 16, 36);
-            $file = "description.{$hash}.json";
-            $dest = $backDir . $file . '.7z';
-            if (!file_exists($dest)) {
-                $path = $workDir . $file;
-                file_put_contents($path, $descriptionStr);
-                self::fLog('Компресиране на ' . basename($dest));
-                self::compressFile($path, $dest, $pass);
-            }
-        }
-        
-        // Почистваме всички ненужни файлове от бекъпите, които са в повече
-        $backupMaxCnt = core_Setup::get('BACKUP_MAX_CNT');
-        
-        $log = array();
-        $used = array();
-        
-        // Файлове, които ще пазим
-        foreach($description['files'] as $file) {
-            $used[$file] = true;
-        }
- 
-        $descrArr = self::discover($backDir, $pass, $log);
-        
-        
-        $minTime = time();
-        foreach ($descrArr as $path => $descr) {
-            
-            $descr = (object) $descr;
-
-            foreach ($descr->files as $file) {
-                $used[$file] = true;
-            }
-            $used[basename($path)] = true;
-            $used[$descr->appConfig] = true;
-            $used[$descr->indexConfig] = true;
-            $used[$descr->dbStruct] = true;
-            $minTime = min($minTime, $descr->time);
-            $backupMaxCnt--;
-            if (!$backupMaxCnt) {
-                break;
-            }
-        }
-        
-        // Вземаме всички файлове, кито са от вида на използваните в архива
-        $files = glob("{$backDir}*.{csv.7z,cfg.php.7z,json.7z,sql.7z}", GLOB_BRACE);
-
-        foreach ($files as $path) {
-            $name = basename($path);
-            if ($used[$name]) {
-                continue;
-            }
-
-            // Оставяме SQL-логовете, които са с време на създаване по-голямо от текущото?
-            if (substr($name, 0, 4) == 'log.') {
-                $time = self::getTimeFromFilename($name);
-                
-                if ($time > $minTime) {
-                    continue;
+            // Изчистваме стари csv файлове
+            $csvFiles = glob(self::getTempPath() . '*.csv');
+            // Изчистваме останали процесни индикатори
+            if(is_array($csvFiles)) {
+                foreach($csvFiles as $file) {
+                    self::fLog("Изтриване на старт csv файл: " . $file);
+                    @unlink($file);
                 }
             }
             
-            @unlink($path);
-
-        }
-
-        $logPath = self::getTempPath('log.txt');
-        $i = 0;
-        $notFinished = array();
-        do {
-            sleep(1);
-            $log = @file_get_contents($logPath);
-            
-            if($log) {
-                $notFinished = self::getUnfinishedCompressedFiles($log);
+            // Изтрива всички стари файлове в темп директорията
+            $delCnt = self::deleteOldFiles(self::getTempPath(), 24*60*60);
+            if($delCnt > 0) {
+                self::fLog("Бяха изтрити {$delCnt} стари файлове в " . self::getTempPath());
             }
-        } while(($i++ < 60) && (empty($log) || count($notFinished)));
 
-        if(count($notFinished)) {
-            $nf = implode(', ', $notFinished);
-            self::fLog("==== Приключваме бекъпа с не-копресирани файлове: {$nf} ====");
-        } else {
-            self::fLog("==== Приключваме бекъпа успешно ====");
+            core_App::setTimeLimit(120);
+            
+            ignore_user_abort();
+
+
+            // Мета-данни за бекъпа
+            $description = array();
+            $description['times']['start'] = dt::now();
+            
+            // Парола за създаване на архивните файлове
+            $pass = core_Setup::get('BACKUP_PASS');
+            
+            // Форсираме директориите
+            $backDir = self::getBackupPath();
+            $workDir = self::getTempPath();
+            
+            // Определяме всички mvc класове, на които ще правим бекъп
+            $mvcArr = core_Classes::getOptionsByInterface('core_ManagerIntf');
+            $instArr = array();
+            $lockTables = $flushTables = '';
+     
+            foreach ($mvcArr as $className) {
+                if (!cls::load($className, true)) {
+                    self::fLog("Грешка: Пропуснат `{$className}`, защото не може да бъде зареден");
+                    continue;
+                }
+                
+                // Инстанцираме класа
+                $mvc = cls::get($className);
+                
+                // Пропускаме класовете, които имат модели в други бази данни
+                if (!self::hasEqualDb($this, $mvc)) {
+                    self::fLog("Пропуснат `{$className}`, защото DB е различна");
+                    continue;
+                }
+                
+                if ($mvc->dbTableName) {
+                    list($exists, $cnt, $lmt, $size) = $this->getTableInfo($mvc);
+                }
+
+                if (!$mvc->dbTableName) {
+                    self::fLog("Пропуснат `{$className}`, защото липсва dbTableName");
+                    continue;
+                }
+
+                if (isset($mvc->doReplication) && !$mvc->doReplication) {
+                    self::fLog("Пропуснат `{$className}`, защото бекъпът е изключен за него");
+                    continue;
+                }
+
+                if (!$exists) {
+                    self::fLog("Грешка: Пропуснат `{$className}`, защото таблицата в DB липсва");
+                    continue;
+                }
+                
+                if (!$cnt) {
+                    self::fLog("Пропуснат `{$className}`, защото в него няма записи");
+                    continue;
+                }
+
+                if (isset($instArr[$mvc->dbTableName])) {
+                    self::fLog("Пропуснат `{$className}`, защото се повтаря");
+                    continue;
+                }
+
+                $instArr[$mvc->dbTableName] = $mvc;
+                $this->lmt[$mvc->dbTableName] = $lmt;
+                $maxChunk = $mvc->backupMaxRows ?? (($mvc->dbTableName == 'cat_product_tpl_cache') ? 5000000 : BACKUP_MAX_CHUNK_SIZE);
+                $this->chunks[$mvc->dbTableName] = pow(4, floor(log($maxChunk, 4)));
+                $lockTables .= ",`{$mvc->dbTableName}` READ";
+                $flushTables .= ",`{$mvc->dbTableName}` ";
+            }
+
+            uksort($instArr, array($this, 'compLmt'));
+            $cntTables = count($instArr);
+            self::fLog("==== Започваме пробно експортиране на {$cntTables} таблици ====");
+
+            // Правим пробно експортиране на всички таблици, без заключване
+            $tables = array();
+            $time = time();
+            $this->exportTables($instArr, $tables);
+           
+            // Пускаме завесата
+            self::fLog("==== Пускаме завесата и експортираме последно променото ====");
+
+            core_SystemLock::block('Процес на архивиране на данните', 600); // 10 мин.
+            $description['times']['lock'] = dt::now();
+            
+            // Флъшваме всички таблици, които ни трябват
+            $flushTables = trim($flushTables, ',');
+            self::fLog("==== Flush-ваме таблиците ====");
+            $this->db->query("FLUSH TABLES {$flushTables}");
+            
+            // Локваме ги
+            $lockTables = trim($lockTables, ',');  
+            self::fLog("==== Lock-ваме таблиците ====");
+            $this->db->query("LOCK TABLES {$lockTables}");
+            
+            // Изтриваме статистическата информация за таблиците, за да се генерира на ново
+            self::$info = array();
+            
+            // Флъшваме всичко, каквото има от SQL лога
+            $this->cron_FlushSqlLog();
+            
+            // Записваме времето на бекъпа
+            $description['time'] = dt::now();
+            
+            // Експортираме всички таблици, като зачистваме масива
+            $tables = array();
+            $this->exportTables($instArr, $tables, $time);
+            
+            // Освеобождаваме LOCK-а на таблиците
+            self::fLog("==== Unlock-ваме таблиците ====");
+            $this->db->query('UNLOCK TABLES');
+            
+            // Освобождаваме системата
+            core_SystemLock::remove();
+
+            // Добавяме експортираните файлове в описанието
+            foreach ($tables as $table => $file) {
+                $description['files'][$table] = "{$file}.csv.7z";
+            }
+
+            $description['times']['unlock'] = dt::now();
+            
+            // SQL структура на базата данни
+            $dbStructure = '';
+            
+            // Запазваме структурата на базата със всички таблици
+            self::fLog('Генериране SQL за структурата на базата');
+            foreach ($instArr as $table => $inst) {
+                $query = "SHOW CREATE TABLE `{$table}`";
+                $dbRes = $this->db->query($query);
+                $res = $this->db->fetchArray($dbRes);
+                $dbStructure .= "\n" . array_values($res)[1] . ';';
+            }
+            
+            if ($dbStructure = trim($dbStructure)) {
+                $hash = base_convert(abs(crc32($dbStructure)), 10, 36);
+                $file = "dbstruct.{$hash}.sql";
+                $path = $workDir . $file;
+                $dest = $backDir . $file . '.7z';
+                if (!file_exists($dest)) {
+                    file_put_contents($path, $dbStructure);
+                    self::fLog('Компресиране на ' . basename($dest));
+                    self::compressFile($path, $dest, $pass);
+                }
+                $description['dbStruct'] = $file . '.7z';
+            }
+                
+            // Бекъп на двата конфиг файла
+            $indCfg = rtrim(EF_INDEX_PATH, '/\\') . '/index.cfg.php';
+            if (file_exists($indCfg)) {
+                expect(is_readable($indCfg));
+                $hash = base_convert(md5_file($indCfg), 16, 36);
+                $file = "index.{$hash}.cfg.php";
+                $indZip = $backDir . $file . '.7z';
+                if (!file_exists($indZip)) {
+                    $tmpFile = $workDir . $file;
+                    copy($indCfg, $tmpFile);
+                    self::fLog('Компресиране на ' . basename($tmpFile));
+                    self::compressFile($tmpFile, $indZip, $pass);
+                }
+                $description['indexConfig'] = $file . '.7z';
+            }
+            
+            $appCfg = rtrim(EF_CONF_PATH, '/\\') . '/' . EF_APP_NAME . '.cfg.php';
+            expect(file_exists($appCfg) && is_readable($appCfg));
+            $hash = base_convert(md5_file($appCfg), 16, 36);
+            $file = "app.{$hash}.cfg.php";
+            $appZip = $backDir . $file . '.7z';
+            if (!file_exists($appZip)) {
+                $tmpFile = $workDir . $file;
+                copy($appCfg, $tmpFile);
+                self::fLog('Компресиране на ' . basename($tmpFile));
+                self::compressFile($tmpFile, $appZip, $pass);
+            }
+            $description['appConfig'] = $file . '.7z';
+            
+            // Взема стойностите на някои константи
+            $constArr = array('EF_SALT', 'EF_USERS_PASS_SALT', 'EF_USERS_HASH_FACTOR');
+            foreach ($constArr as $const) {
+                if (defined($const)) {
+                    $description['const'][$const] = constant($const);
+                }
+            }
+            
+            // Записваме времето за финиширане на бекъпа
+            $description['times']['finish'] = dt::now();
+            
+            // Записване на файла с описанието на бекъпа
+            if ($descriptionStr = json_encode($description)) {
+                $hash = base_convert($md5 = md5($descriptionStr), 16, 36);
+                $file = "description.{$hash}.json";
+                $dest = $backDir . $file . '.7z';
+                if (!file_exists($dest)) {
+                    $path = $workDir . $file;
+                    file_put_contents($path, $descriptionStr);
+                    self::fLog('Компресиране на ' . basename($dest));
+                    self::compressFile($path, $dest, $pass);
+                }
+            }
+            
+            // Почистваме всички ненужни файлове от бекъпите, които са в повече
+            $backupMaxCnt = core_Setup::get('BACKUP_MAX_CNT');
+            
+            $log = array();
+            $used = array();
+            
+            // Файлове, които ще пазим
+            foreach($description['files'] as $file) {
+                $used[$file] = true;
+            }
+     
+            $descrArr = self::discover($backDir, $pass, $log);
+            
+            
+            $minTime = time();
+            foreach ($descrArr as $path => $descr) {
+                
+                $descr = (object) $descr;
+
+                foreach ($descr->files as $file) {
+                    $used[$file] = true;
+                }
+                $used[basename($path)] = true;
+                $used[$descr->appConfig] = true;
+                $used[$descr->indexConfig] = true;
+                $used[$descr->dbStruct] = true;
+                $minTime = min($minTime, $descr->time);
+                $backupMaxCnt--;
+                if (!$backupMaxCnt) {
+                    break;
+                }
+            }
+            
+            // Вземаме всички файлове, кито са от вида на използваните в архива
+            $files = glob("{$backDir}*.{csv.7z,cfg.php.7z,json.7z,sql.7z}", GLOB_BRACE);
+
+            foreach ($files as $path) {
+                $name = basename($path);
+                if ($used[$name]) {
+                    continue;
+                }
+
+                // Оставяме SQL-логовете, които са с време на създаване по-голямо от текущото?
+                if (substr($name, 0, 4) == 'log.') {
+                    $time = self::getTimeFromFilename($name);
+                    
+                    if ($time > $minTime) {
+                        continue;
+                    }
+                }
+                
+                @unlink($path);
+
+            }
+
+            $logPath = self::getTempPath('log.txt');
+            $i = 0;
+            $notFinished = array();
+            do {
+                sleep(1);
+                $log = @file_get_contents($logPath);
+                
+                if($log) {
+                    $notFinished = self::getUnfinishedCompressedFiles($log);
+                }
+            } while(($i++ < 60) && (empty($log) || count($notFinished)));
+
+            if(count($notFinished)) {
+                $nf = implode(', ', $notFinished);
+                self::fLog("==== Грешка: Приключваме бекъпа с не-копресирани файлове: {$nf} ====");
+                self::adminNotification(true);
+            } else {
+                self::fLog("==== Приключваме бекъпа успешно ====");
+                self::adminNotification();
+            }
+        } catch (Throwable $e) {
+            self::fLog('Грешка: ' . $e->getMessage());
+            if(isset($dbRes)) {
+                $dbRes->free();
+            }
+            error_log("Error: "  . $e->getMessage());
+            self::adminNotification(true);
         }
+    }
+
+    /**
+     * Известяваме администраторите за резултата от лога
+     */
+    static function adminNotification($error = false)
+    {   
+        
+        $roleId = core_Roles::fetchByName('admin');
+        $adminsArr = core_Users::getByRole($roleId);
+            
+        $msg = $error ? "Въникнаха грешки по време на бекъп" : "Бекъпът завърши успешно";
+        $urlArr = array('core_Backup', 'showLog');
+        
+        $sudoUser = core_Users::sudo(-1);
+        foreach ($adminsArr as $userId) {
+            bgerp_Notifications::add($msg, $urlArr, $userId, $error ? 'warning' : 'normal');
+        }
+        core_Users::exitSudo($sudoUser);
     }
 
 
@@ -1444,6 +1474,9 @@ class core_Backup extends core_Mvc
             while ($row = $mvc->db->fetchArray($dbRes)) {
                 $lmt = isset($row['UPDATE_TIME']) ? strtotime($row['UPDATE_TIME']) : null;
                 self::$info[$hash][$row['TABLE_NAME']] = array(true, $row['TABLE_ROWS'], $lmt, $row['DATA_LENGTH']);
+
+                // @TEMP
+                self::fLog($row['TABLE_NAME'] . ', '. $row['TABLE_ROWS'] . ', ' . $lmt . ', ' . $row['DATA_LENGTH']);
             }
         }
         
