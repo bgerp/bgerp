@@ -1010,7 +1010,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if (countR($recs)) {
             arr::sortObjects($recs, 'invoiceDate', 'asc', 'stri');
         }
-//bp($recs);
+
         return $recs;
     }
 
@@ -1052,6 +1052,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             if ($rec->unpaid == 'unpaid') {
                 $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
+
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
                 //if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
                 $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
@@ -1275,9 +1276,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 $allCurrency = ($dRec->totalInvoiceValue) ? $baseCurrency : '';
 
-                $div = $dRec->rate;
+               //$div = $dRec->rate;
 
-                $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue * $div) . ' ' . $allCurrency;
+                $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' ' . $allCurrency;
                 if ($dRec->totalInvoiceOverPaid > 0.01) {
                     $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
                 }
@@ -1309,13 +1310,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($dRec->invoiceDate < $euroZoneDate) {
                 if ($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
                     $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue);
-                } elseif ($dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
-                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue);
+                } elseif ($dRec->currencyId == 'EUR' && $baseCurrency == 'BGN') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue/1.95583);
+                }elseif ($dRec->currencyId != 'EUR' && $dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue/$dRec->rate);
                 }
             }
 
             //Стойност на фактурата в основна валута
-            $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceValue * $dRec->rate);
+            $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceValue );
 
             //Остатък за плащане в основна валута
             if ($dRec->invoiceCurrentSumm > 0) {
@@ -1374,12 +1377,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             //Остатък за плащане в основна валута
             if ($dRec->invoiceCurrentSumm > 0) {
 
-                $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm);
+                $row->invoiceCurrentSumm = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSumm * $dRec->rate);
             }
 
             if ($dRec->invoiceCurrentSumm < 0) {
                 $invoiceOverSumm = -1 * $dRec->invoiceCurrentSumm;
-                $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm);
+                $row->invoiceOverSumm = core_Type::getByName('double(decimals=2)')->toVerbal($invoiceOverSumm * $dRec->rate);
             }
 
             //Стойност на фактурата във валутата на издаване
@@ -1442,6 +1445,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $Enum = cls::get('type_Enum', array('options' => array('cash' => 'В брой', 'bank' => 'По банков път', 'intercept' => 'С прихващане', 'card' => 'С карта', 'factoring' => 'Факторинг', 'postal' => 'Пощенски паричен превод')));
 
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
+
         $fieldTpl = new core_ET(
             tr(
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -1452,11 +1457,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                         <!--ET_BEGIN typeOfInvoice--> <div>|Фактури|*: <b>[#typeOfInvoice#]</b></div><!--ET_END typeOfInvoice-->
                                         <!--ET_BEGIN unpaid--><div>|Плащане|*: <b>[#unpaid#]</b></div><!--ET_END unpaid-->
                                         <!--ET_BEGIN paymentType--><div>|Начин на плащане|*: <b>[#paymentType#]</b></div><!--ET_END paymentType-->
-                                        <!--ET_BEGIN totalInvoiceValueAll--><div>|Стойност|*: <b>[#totalInvoiceValueAll#] лв.</b></div><!--ET_END totalInvoiceValueAll-->
-                                        <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] лв.</b></div><!--ET_END totalInvoicePayoutAll-->
-                                        <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] лв.</b></div><!--ET_END totalInvoiceNotPaydAll-->
-                                        <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] лв.</b></div><!--ET_END totalInvoiceOverPaidAll-->
-                                        <!--ET_BEGIN totalInvoiceOverDueAll--><div>|Общо ПРОСРОЧЕНА СУМА|*: <b>[#totalInvoiceOverDueAll#] лв.</b></div><!--ET_END totalInvoiceOverDueAll-->
+                                        <!--ET_BEGIN totalInvoiceValueAll--><div>|Стойност|*: <b>[#totalInvoiceValueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceValueAll-->
+                                        <!--ET_BEGIN totalInvoicePayoutAll--><div>|Общо ПЛАТЕНА СУМА|*: <b>[#totalInvoicePayoutAll#] $baseCurrency</b></div><!--ET_END totalInvoicePayoutAll-->
+                                        <!--ET_BEGIN totalInvoiceNotPaydAll--><div>|Общо НЕПЛАТЕНА СУМА|*: <b>[#totalInvoiceNotPaydAll#] $baseCurrency</b></div><!--ET_END totalInvoiceNotPaydAll-->
+                                        <!--ET_BEGIN totalInvoiceOverPaidAll--><div>|Общо НАДПЛАТЕНА СУМА|*: <b>[#totalInvoiceOverPaidAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverPaidAll-->
+                                        <!--ET_BEGIN totalInvoiceOverDueAll--><div>|Общо ПРОСРОЧЕНА СУМА|*: <b>[#totalInvoiceOverDueAll#] $baseCurrency</b></div><!--ET_END totalInvoiceOverDueAll-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"
             )
