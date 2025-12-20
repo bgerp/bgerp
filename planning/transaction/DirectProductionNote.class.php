@@ -350,6 +350,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
         $costAmount = 0;
 
+        $allocatedCostObjects = array();
         if (countR($details)) {
             arr::sortObjects($details, 'type');
             foreach ($details as $dRec) {
@@ -361,15 +362,16 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         
                     if ($canStore == 'yes') {
                         if (empty($dRec->storeId)) continue;
-                            $entry = array('debit' => array('61103',
-                                                      array($classId, $documentId),
-                                                      array('cat_Products', $dRec->productId),
-                                                     'quantity' => $dRec->quantity),
-                                           'credit' => array('321',
-                                                       array('store_Stores', $dRec->storeId),
-                                                       array('cat_Products', $dRec->productId),
-                                                     'quantity' => $dRec->quantity),
-                                           'reason' => 'Влагане на материал в производството');
+
+                        $entry = array('debit' => array('61103',
+                            array($classId, $documentId),
+                            array('cat_Products', $dRec->productId),
+                                  'quantity' => $dRec->quantity),
+                                  'credit' => array('321',
+                            array('store_Stores', $dRec->storeId),
+                                      array('cat_Products', $dRec->productId),
+                                      'quantity' => $dRec->quantity),
+                            'reason' => 'Влагане на материал в производството');
 
                             $amountCheck = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $valior, $dRec->storeId);
                             if(!empty($amountCheck)){
@@ -378,6 +380,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                         } else {
                             if(empty($dRec->fromAccId)) continue;
                             $item = $dRec->expenseItemId ?? acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+
+                            // Вложените разпределени разходи се сумират
+                            if(!array_key_exists("{$dRec->fromAccId}|{$dRec->productId}", $allocatedCostObjects)){
+                                $allocatedCostObjects["{$dRec->fromAccId}|{$dRec->productId}"] = 0;
+                            }
+                            $allocatedCostObjects["{$dRec->fromAccId}|{$dRec->productId}"] += $dRec->quantity;
+
                             $entry = array('debit' => array('61103',
                                                       array($classId, $documentId),
                                                       array('cat_Products', $dRec->productId),
@@ -396,17 +405,29 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $index = 0;
             foreach ($details as $dRec1) {
                 $canStore = cat_Products::fetchField($dRec1->productId, 'canStore');
+                $cQuantity = $dRec1->quantity;
+
+                // Ако е разпределен разход ще се изпише сумарното количество, целта е да не се правят излишни записи
+                if($dRec1->type == 'allocated' && !empty($dRec1->fromAccId)){
+                    if(array_key_exists("{$dRec1->fromAccId}|{$dRec1->productId}", $allocatedCostObjects)){
+                        $cQuantity = $allocatedCostObjects["{$dRec1->fromAccId}|{$dRec1->productId}"];
+                        unset($allocatedCostObjects["{$dRec1->fromAccId}|{$dRec1->productId}"]);
+                    } else {
+                        continue;
+                    }
+                }
+
                 $primeCost = null;
                 if ($dRec1->type == 'input' || $dRec1->type == 'allocated') {
                     // Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
                     if ($canStore == 'yes') {
-                        $primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $valior, $dRec1->storeId);
+                        $primeCost = cat_Products::getWacAmountInStore($cQuantity, $dRec1->productId, $valior, $dRec1->storeId);
                     } else {
                         if(empty($dRec1->fromAccId)){
-                            $primeCost = planning_GenericMapper::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
+                            $primeCost = planning_GenericMapper::getWacAmountInProduction($cQuantity, $dRec1->productId, $valior);
                         }
                         if(empty($primeCost)){
-                            $primeCost = planning_GenericMapper::getWacAmountInAllCostsAcc($dRec1->quantity, $dRec1->productId, $valior, $dRec1->expenseItemId);
+                            $primeCost = planning_GenericMapper::getWacAmountInAllCostsAcc($cQuantity, $dRec1->productId, $valior, $dRec1->expenseItemId);
                         }
                     }
 
@@ -434,7 +455,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
                     if(isset($dRec1->storeId) || !empty($dRec1->fromAccId)){
                         $entry['credit'] = array('61103', array($classId, $documentId), array('cat_Products', $dRec1->productId),
-                            'quantity' => $dRec1->quantity);
+                            'quantity' => $cQuantity);
                     } else {
                         $entry['credit'] = array('61101', array('cat_Products', $dRec1->productId),
                             'quantity' => $dRec1->quantity);
