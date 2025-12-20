@@ -76,7 +76,19 @@ class core_Backup extends core_Mvc
      * Директория за бекъпи и sql логове
      */
     public static $backupDir;
-    
+
+
+    /**
+     * Масив с бекъпнати файлове
+     */
+    private $backupFiles = array();
+
+
+    /**
+     * Масив с нови бекъпнати файлове
+     */
+    private $newBackupFiles = array();
+
 
     /**
      * Създаване на пълен бекъп
@@ -157,7 +169,7 @@ class core_Backup extends core_Mvc
      
             foreach ($mvcArr as $className) {
                 if (!cls::load($className, true)) {
-                    self::fLog("Грешка: Пропуснат `{$className}`, защото не може да бъде зареден");
+                    self::fLog("Предупреждение: Пропуснат `{$className}`, защото не може да бъде зареден");
                     continue;
                 }
                 
@@ -185,7 +197,7 @@ class core_Backup extends core_Mvc
                 }
 
                 if (!$exists) {
-                    self::fLog("Грешка: Пропуснат `{$className}`, защото таблицата в DB липсва");
+                    self::fLog("Предупреждение: Пропуснат `{$className}`, защото таблицата в DB липсва");
                     continue;
                 }
                 
@@ -206,7 +218,7 @@ class core_Backup extends core_Mvc
                 $lockTables .= ",`{$mvc->dbTableName}` READ";
                 $flushTables .= ",`{$mvc->dbTableName}` ";
             }
-
+ 
             uksort($instArr, array($this, 'compLmt'));
             $cntTables = count($instArr);
             self::fLog("==== Започваме пробно експортиране на {$cntTables} таблици ====");
@@ -276,7 +288,9 @@ class core_Backup extends core_Mvc
                 $file = "dbstruct.{$hash}.sql";
                 $path = $workDir . $file;
                 $dest = $backDir . $file . '.7z';
+                $this->backupFiles[$dest] = $dest;
                 if (!file_exists($dest)) {
+                    $this->newBackupFiles[$dest] = $dest;
                     file_put_contents($path, $dbStructure);
                     self::fLog('Компресиране на ' . basename($dest));
                     self::compressFile($path, $dest, $pass);
@@ -291,7 +305,9 @@ class core_Backup extends core_Mvc
                 $hash = base_convert(md5_file($indCfg), 16, 36);
                 $file = "index.{$hash}.cfg.php";
                 $indZip = $backDir . $file . '.7z';
+                $this->backupFiles[$indZip] = $indZip;
                 if (!file_exists($indZip)) {
+                    $this->newBackupFiles[$indZip] = $indZip;
                     $tmpFile = $workDir . $file;
                     copy($indCfg, $tmpFile);
                     self::fLog('Компресиране на ' . basename($tmpFile));
@@ -305,7 +321,9 @@ class core_Backup extends core_Mvc
             $hash = base_convert(md5_file($appCfg), 16, 36);
             $file = "app.{$hash}.cfg.php";
             $appZip = $backDir . $file . '.7z';
+            $this->backupFiles[$appZip] = $appZip;
             if (!file_exists($appZip)) {
+                $this->newBackupFiles[$appZip] = $appZip;
                 $tmpFile = $workDir . $file;
                 copy($appCfg, $tmpFile);
                 self::fLog('Компресиране на ' . basename($tmpFile));
@@ -329,7 +347,9 @@ class core_Backup extends core_Mvc
                 $hash = base_convert($md5 = md5($descriptionStr), 16, 36);
                 $file = "description.{$hash}.json";
                 $dest = $backDir . $file . '.7z';
+                $this->backupFiles[$dest] = $dest;
                 if (!file_exists($dest)) {
+                    $this->newBackupFiles[$dest] = $dest;
                     $path = $workDir . $file;
                     file_put_contents($path, $descriptionStr);
                     self::fLog('Компресиране на ' . basename($dest));
@@ -349,7 +369,6 @@ class core_Backup extends core_Mvc
             }
      
             $descrArr = self::discover($backDir, $pass, $log);
-            
             
             $minTime = time();
             foreach ($descrArr as $path => $descr) {
@@ -403,6 +422,34 @@ class core_Backup extends core_Mvc
                     $notFinished = self::getUnfinishedCompressedFiles($log);
                 }
             } while(($i++ < 60) && (empty($log) || count($notFinished)));
+            
+            $filesCnt = 0;
+            $newFilesCnt = 0;
+            $filesSize = 0;
+            $newFilesSize = 0;
+            foreach($this->backupFiles as $fPath) {
+                if(@file_exists($fPath)) {
+                    $fSize = @filesize($fPath);
+                    if($fSize == 0) {
+                        self::fLog("Предупреждение: Файл с нулева дължина - `{$fPath}`");
+                        continue;
+                    }
+                    $filesCnt++;
+                    $filesSize += $fSize;
+                    if($this->newBackupFiles[$fPath]) {
+                        $newFilesCnt++;
+                        $newFilesSize += $fSize;
+                    }
+                } else {
+                    self::fLog("Предупреждение: Липсващ файл в архива - `{$fPath}`");
+                }
+            }
+
+            $filesSize = self::formatBytes($filesSize);
+            $newFilesSize = self::formatBytes($newFilesSize);
+
+            self::fLog("Бекъп съдържа {$filesCnt} файла с обща дължина {$filesSize}. Новите файлове са {$newFilesCnt} / {$newFilesSize}");
+
 
             if(count($notFinished)) {
                 $nf = implode(', ', $notFinished);
@@ -420,6 +467,36 @@ class core_Backup extends core_Mvc
             error_log("Error: "  . $e->getMessage());
             self::adminNotification(true);
         }
+    }
+
+
+    /**
+     * Format bytes to human-readable string.
+     *
+     * @param int|float $bytes
+     * @param int $precision Number of decimal digits
+     * @param bool $binary true = KiB/MiB (1024), false = kB/MB (1000)
+     * @return string
+     */
+    function formatBytes($bytes, int $precision = 2, bool $binary = true): string
+    {
+        if ($bytes < 0) {
+            return '0 B';
+        }
+
+        $base  = $binary ? 1024 : 1000;
+        $units = $binary
+            ? ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']
+            : ['B', 'kB',  'MB',  'GB',  'TB',  'PB'];
+
+        if ($bytes < $base) {
+            return $bytes . ' B';
+        }
+
+        $pow = min((int)floor(log($bytes, $base)), count($units) - 1);
+        $value = $bytes / pow($base, $pow);
+
+        return round($value, $precision) . ' ' . $units[$pow];
     }
 
     /**
@@ -505,7 +582,7 @@ class core_Backup extends core_Mvc
             
             $ind++;
 
-            self::fLog("Начало на експорта на #{$ind} {$table}. " .  self::getMemoryInfo());
+            self::fLog("Начало на експорта на #{$ind} {$table}. ");
             
             if ($inst === null) {
                 self::fLog("Таблицата {$table} има null за инстанция");
@@ -513,12 +590,15 @@ class core_Backup extends core_Mvc
             }
             
             list($exists, $cnt, $lmt, $size) = $this->getTableInfo($inst);
-            self::fLog("Таблицата {$table} съдържа {$cnt} записа, последно модифицирани в " . date('m/d/Y H:i:s', $lmt));
-
             $backupMaxRows = $this->chunks[$table];
+            self::fLog("Таблицата {$table} съдържа {$cnt} записа, последно модифицирани в " . date('m/d/Y H:i:s', $lmt));
+           
             
             // Дали да бекъпваме на партишъни
             if ($backupMaxRows < $cnt) {
+                $chunks = (int) (1 + $cnt / $backupMaxRows);
+                self::fLog("Таблицата {$table} ще бъде разбира на {$chunks} части, с максимално {$backupMaxRows} записа в част");
+
                 $diffFields = array();
                 // Ако няма $inst->backupDiffFields правим ги от всички полета, които не са текстови или блоб
                 if(!isset($inst->backupDiffFields)) { 
@@ -590,14 +670,16 @@ class core_Backup extends core_Mvc
         $path = self::getTempPath($fileName . '.csv');
         $dest = self::getBackupPath($fileName . '.csv.7z');
         $tmpCsv = "{$path}.tmp";
-
+        $this->backupFiles[$dest] = $dest;
         if (file_exists($dest)) {
+            
             debug::log($msg = "Таблица `{$fileName}` вече съществува като 7z файл");
             self::fLog($msg);
 
             return;
         }
-        
+
+        $this->newBackupFiles[$dest] = $dest;
         if (file_exists($path)) {
             debug::log($msg = "Таблица `{$fileName}` вече съществува като csv файл");
             self::fLog($msg);
@@ -1413,10 +1495,11 @@ class core_Backup extends core_Mvc
 
     public function act_ShowLog()
     {
-        RequireRole('debug');
+        RequireRole('admin');
         $file = self::getTempPath('log.txt');
         $res = file_get_contents($file);
-        $res = "<pre>{$res}</pre>";
+        $res = str_replace('Предупреждение:', "<font style='color:red;'>Предупреждение:</font>", $res);
+        $res = "<h1>Лог от последен бекъп</h1><pre style='padding:1em;'>{$res}</pre>";
 
         return $res;
     }
@@ -1472,11 +1555,12 @@ class core_Backup extends core_Mvc
             self::$info[$hash] = array();
             $dbRes = $mvc->db->query("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA LIKE '{$mvc->db->dbName}'");
             while ($row = $mvc->db->fetchArray($dbRes)) {
-                $lmt = isset($row['UPDATE_TIME']) ? strtotime($row['UPDATE_TIME']) : null;
+                $lmt = (int) isset($row['UPDATE_TIME']) ? strtotime($row['UPDATE_TIME']) : null;
+                if($lmt == 0) {
+                    $lmt = time();
+                    self::fLog("Предупреждение: таблицата `" . $row['TABLE_NAME'] . "` няма последно време за модифициране");
+                }
                 self::$info[$hash][$row['TABLE_NAME']] = array(true, $row['TABLE_ROWS'], $lmt, $row['DATA_LENGTH']);
-
-                // @TEMP
-                self::fLog($row['TABLE_NAME'] . ', '. $row['TABLE_ROWS'] . ', ' . $lmt . ', ' . $row['DATA_LENGTH']);
             }
         }
         
@@ -1547,7 +1631,7 @@ class core_Backup extends core_Mvc
     static function fLog($msg)
     {
         $file = self::getTempPath('log.txt');
-        $msg = date('Y-m-d H:i:s') . ' ' . $msg .  ' ;' . PHP_EOL;
+        $msg = date('Y-m-d H:i:s') . ' ' . $msg . PHP_EOL;
         $res = @file_put_contents($file, $msg, FILE_APPEND | LOCK_EX);
 
         if($res === false) {
