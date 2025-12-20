@@ -389,8 +389,58 @@ class core_Backup extends core_Mvc
             
             @unlink($path);
 
+        }
+
+        $logPath = self::getTempPath('log.txt');
+        $i = 0;
+        $notFinished = array();
+        do {
+            sleep(1);
+            $log = @file_get_contents($logPath);
+            
+            if($log) {
+                $notFinished = self::getUnfinishedCompressedFiles($log);
+            }
+        } while(($i++ < 60) && (empty($log) || count($notFinished)));
+
+        if(count($notFinished)) {
+            $nf = implode(', ', $notFinished);
+            self::fLog("==== Приключваме бекъпа с не-копресирани файлове: {$nf} ====");
+        } else {
             self::fLog("==== Приключваме бекъпа успешно ====");
         }
+    }
+
+
+    /**
+     * Returns list of files whose compression has started but not finished.
+     *
+     * @param string $log Full log text, lines separated by "\n"
+     * @return string[] Array of filenames still being compressed
+     */
+    static function getUnfinishedCompressedFiles(string $log): array
+    {
+        $started = [];
+        $finished = [];
+
+        $lines = preg_split('/\R/', $log);
+
+        foreach ($lines as $line) {
+            // Start
+            if (preg_match('/\*Компресиране на\s+(.+)$/u', $line, $m)) {
+                $started[rtrim($m[1], '; ')] = true;
+                continue;
+            }
+
+            // End
+            if (preg_match('/\*Край на компресиране на\s+(.+)$/u', $line, $m)) {
+                $finished[rtrim($m[1], '; ')] = true;
+                continue;
+            }
+        }
+
+        // started - finished
+        return array_keys(array_diff_key($started, $finished));
     }
     
     
