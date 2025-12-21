@@ -411,17 +411,19 @@ class core_Backup extends core_Mvc
 
             }
 
-            $logPath = self::getTempPath('log.txt');
             $i = 0;
             $notFinished = array();
             do {
                 sleep(1);
-                $log = @file_get_contents($logPath);
-                
-                if($log) {
-                    $notFinished = self::getUnfinishedCompressedFiles($log);
+                $i++;
+                $flag = false;
+                foreach($this->backupFiles as $fPath) {
+                    if(!file_exists($fPath)) {
+                        $flag = true;
+                        break;
+                    }
                 }
-            } while(($i++ < 60) && (empty($log) || count($notFinished)));
+            } while(($i++ < 60) && ($flag === false));
             
             $filesCnt = 0;
             $newFilesCnt = 0;
@@ -436,7 +438,7 @@ class core_Backup extends core_Mvc
                     }
                     $filesCnt++;
                     $filesSize += $fSize;
-                    if($this->newBackupFiles[$fPath]) {
+                    if(in_array($fPath, $this->newBackupFiles)) {
                         $newFilesCnt++;
                         $newFilesSize += $fSize;
                     }
@@ -453,7 +455,7 @@ class core_Backup extends core_Mvc
 
             if(count($notFinished)) {
                 $nf = implode(', ', $notFinished);
-                self::fLog("==== Грешка: Приключваме бекъпа с не-копресирани файлове: {$nf} ====");
+                self::fLog("==== Грешка: Приключваме бекъпа с липсващи файлове ====");
                 self::adminNotification(true);
             } else {
                 self::fLog("==== Приключваме бекъпа успешно ====");
@@ -589,10 +591,30 @@ class core_Backup extends core_Mvc
                 continue;
             }
             
+            $haveCompressed = false;
+            foreach($inst->fields as $fName => $fRec) {
+                if($fRec->kind == 'FLD' &&  is_a($fRec->type, 'type_Blob')) {
+                    if(isset($fRec->type->params['compress']) &&  
+                         ($fRec->type->params['size'] ?? $fRec->type->params[0] ?? 0) >= 1000000
+                      ) {
+                        $haveCompressed =  true;
+                        break;
+                    }
+                }
+            }
+
+            $maxSize = $haveCompressed ? 20000000 : 400000000;
+            
             list($exists, $cnt, $lmt, $size) = $this->getTableInfo($inst);
-            $backupMaxRows = $this->chunks[$table];
-            self::fLog("Таблицата {$table} съдържа {$cnt} записа, последно модифицирани в " . date('m/d/Y H:i:s', $lmt));
-           
+            if($size > $maxSize) {
+                $rowSize =  max(1, round($size / (50 * $cnt))) * 50;
+                $ratio = $maxSize / $rowSize;
+                $backupMaxRows = max(10, round($ratio / 10) * 10);
+                self::fLog("Таблицата {$table} (Row Size: $rowSize, MaxRows: {$backupMaxRows}, MaxSize: {$maxSize}, Round: {$ratio}) съдържа {$cnt} записа, последно модифицирани в " . date('m/d/Y H:i:s', $lmt));
+            } else {
+                $backupMaxRows = $this->chunks[$table];
+                self::fLog("Таблицата {$table} ( MaxRows: {$backupMaxRows}, Size: {$size}) съдържа {$cnt} записа, последно модифицирани в " . date('m/d/Y H:i:s', $lmt));
+            }
             
             // Дали да бекъпваме на партишъни
             if ($backupMaxRows < $cnt) {
@@ -643,9 +665,10 @@ class core_Backup extends core_Mvc
                     }
                     
                     if (self::$crcArr[$key] > 0) {
-                        $suffix = ($i + 1) . '-' . base_convert(abs(self::$crcArr[$key]), 10, 36);
+                        $chunk = $i + 1;
+                        $suffix = $chunk . '-' . base_convert(abs(self::$crcArr[$key]), 10, 36);
                         $tables["{$table}-" . ($i + 1)] = "{$table}.{$suffix}";
-                        $this->runBackupTable($inst, $table, $suffix, $limit);
+                        $this->runBackupTable($inst, $table, $suffix, $limit, $chunk);
                     }
                 }
             } else {
@@ -664,13 +687,13 @@ class core_Backup extends core_Mvc
     /**
      * извиква по cli процес, който бекъпва съдържанието на една таблица
      */
-    public function runBackupTable($inst, $table, $suffix, $limit = '')
+    public function runBackupTable($inst, $table, $suffix, $limit = '', $chunk = '')
     {
         $fileName = "{$table}.{$suffix}";
         $path = self::getTempPath($fileName . '.csv');
         $dest = self::getBackupPath($fileName . '.csv.7z');
         $tmpCsv = "{$path}.tmp";
-        $this->backupFiles[$dest] = $dest;
+        $this->backupFiles[$table . '-' . $chunk] = $dest;
         if (file_exists($dest)) {
             
             debug::log($msg = "Таблица `{$fileName}` вече съществува като 7z файл");
@@ -679,7 +702,7 @@ class core_Backup extends core_Mvc
             return;
         }
 
-        $this->newBackupFiles[$dest] = $dest;
+        $this->newBackupFiles[$table . '-' . $chunk] = $dest;
         if (file_exists($path)) {
             debug::log($msg = "Таблица `{$fileName}` вече съществува като csv файл");
             self::fLog($msg);
