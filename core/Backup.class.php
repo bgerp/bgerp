@@ -603,7 +603,7 @@ class core_Backup extends core_Mvc
                 }
             }
 
-            $maxSize = $haveCompressed ? 20000000 : 400000000;
+            $maxSize = $haveCompressed ? 50000000 : 1000000000;
             
             list($exists, $cnt, $lmt, $size) = $this->getTableInfo($inst);
             if($size > $maxSize) {
