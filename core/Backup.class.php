@@ -603,7 +603,7 @@ class core_Backup extends core_Mvc
                 }
             }
 
-            $maxSize = $haveCompressed ? 50000000 : 1000000000;
+            $maxSize = $haveCompressed ? 200000000 : 1000000000;
             
             list($exists, $cnt, $lmt, $size) = $this->getTableInfo($inst);
             if($size > $maxSize) {
@@ -1523,6 +1523,7 @@ class core_Backup extends core_Mvc
         $res = file_get_contents($file);
         $res = str_replace('Предупреждение:', "<font style='color:red;'>Предупреждение:</font>", $res);
         $res = "<h1>Лог от последен бекъп</h1><pre style='padding:1em;'>{$res}</pre>";
+        bgerp_Notifications::clear(array('core_Backup', 'showLog'));
 
         return $res;
     }
