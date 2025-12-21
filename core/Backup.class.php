@@ -612,7 +612,7 @@ class core_Backup extends core_Mvc
                 $backupMaxRows = max(10000, round($ratio / 10) * 10);
                 self::fLog("Таблицата {$table} (Row Size: $rowSize, MaxRows: {$backupMaxRows}, MaxSize: {$maxSize}, Round: {$ratio}) съдържа {$cnt} записа, последно модифицирани в " . date('m/d/Y H:i:s', $lmt));
             } else {
-                $backupMaxRows = $this->chunks[$table];
+                $backupMaxRows = $cnt;
                 self::fLog("Таблицата {$table} ( MaxRows: {$backupMaxRows}, Size: {$size}) съдържа {$cnt} записа, последно модифицирани в " . date('m/d/Y H:i:s', $lmt));
             }
             
