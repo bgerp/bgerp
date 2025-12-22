@@ -19,13 +19,13 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Заглавие
      */
-    public $title = 'Движения';
+    public $title = 'Движения на палети в склад';
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Движение';
+    public $singleTitle = 'Движение на палет в склад';
     
     
     /**
@@ -942,16 +942,6 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         $data->form->title = $title;
-    }
-    
-    
-    /**
-     * След обработка на лист филтъра
-     */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $storeId = store_Stores::getCurrent();
-        $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
     }
     
     
