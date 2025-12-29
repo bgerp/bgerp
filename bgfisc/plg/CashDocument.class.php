@@ -523,8 +523,8 @@ class bgfisc_plg_CashDocument extends core_Plugin
             $bynow = 0;
             
             foreach ($vats as $vatLetterId => $vatAmount) {
-                $percent = round($vatAmount / ($originRec->dealValue - $originRec->discountAmount), 2);
-                
+                $divisor = ($originRec->dealValue - $originRec->discountAmount);
+                $percent = $divisor ? round($vatAmount / $divisor, 2) : 0;
                 $vatClass = $Driver->getVatGroupCode($vatLetterId, $registerRec);
                 
                 $am = abs(round($rec->amount * $rec->rate * $percent, 2));
@@ -647,60 +647,86 @@ class bgfisc_plg_CashDocument extends core_Plugin
             
             $resArr = array();
             $mvc->requireRightFor('conto', $rec);
-            
-            core_Locks::obtain("lock_{$mvc->className}_{$rec->id}", 90, 15, 5, false);
-            
-            try {
-                $mvc->conto($rec->id);
-                $rec = $mvc->fetch($rec->id, '*', false);
-                $rec->_lineId = $lineId;
-                bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id);
-                
-                // Ако има контировка, печата се фискален бон
-                if (acc_Journal::fetchByDoc($mvc, $id)) {
-                    $obj = bgfisc_plg_PrintFiscReceipt::getFiscReceiptTpl($mvc, $rec);
-                    
-                    $rec->cashRegNum = $obj->arr['SERIAL_NUMBER'];
-                    $mvc->save_($rec, 'cashRegNum');
-                    
-                    $resObj = new stdClass();
-                    if (isset($obj->js)) {
-                        $resObj->func = 'js';
-                        $resObj->arg = array('js' => $obj->js);
-                    } else {
-                        $resObj->func = 'redirect';
-                        $resObj->arg = array('url' => $obj->redirect);
+
+            $amount = Request::get('amount', 'double');
+            $newCurrencyCode = Request::get('currency', 'varchar(3)');
+
+            // Ако има сума и валута ще се запише колко е платено
+            $continueConto = true;
+            if(!empty($amount) && !empty($newCurrencyCode)){
+                $errors = array();
+                $continueConto = $mvc::saveAmountGiven($rec, $amount, $newCurrencyCode, $errors);
+                if(countR($errors)){
+                    foreach ($errors as $msg) {
+                        core_Statuses::newStatus($msg, 'error');
                     }
-                    
-                    $resArr[] = $resObj;
                 }
-            } catch (core_exception_Expect $e) {
-                reportException($e);
-                $errorMsg = $e->getMessage();
-                if($mvc->rollbackConto($rec)){
-                    $mvc->logWrite('Ревъртване на контировката (2)', $rec);
-                }
-
-                $mvc->logErr($errorMsg, $id);
-                $cu = core_Users::getCurrent();
-                if($cu == core_Users::ANONYMOUS_USER){
-                    wp("АНОНИМНО РЕВЪРТВАНЕ", $rec, $obj);
-                }
-
-                core_Statuses::newStatus($errorMsg, 'error');
-                bgfisc_PrintedReceipts::removeWaitingLog($mvc, $rec->id);
-                
-                $rec->cashRegNum = null;
-                $mvc->save_($rec, 'cashRegNum');
-                
-                $resObj = new stdClass();
-                $resObj->func = 'redirect';
-                $resObj->arg = array('url' => toUrl($mvc->getSingleUrlArray($rec->id)));
-                $resArr[] = $resObj;
-                
-                core_Locks::release("lock_{$mvc->className}_{$rec->id}");
             }
-            
+
+            if($continueConto){
+                core_Locks::obtain("lock_{$mvc->className}_{$rec->id}", 90, 15, 5, false);
+
+                try {
+                    $mvc->conto($rec->id);
+                    $rec = $mvc->fetch($rec->id, '*', false);
+                    $rec->_lineId = $lineId;
+                    bgfisc_PrintedReceipts::logPrinted($mvc, $rec->id);
+
+                    // Ако има контировка, печата се фискален бон
+                    if (acc_Journal::fetchByDoc($mvc, $id)) {
+                        $obj = bgfisc_plg_PrintFiscReceipt::getFiscReceiptTpl($mvc, $rec);
+
+                        $rec->cashRegNum = $obj->arr['SERIAL_NUMBER'];
+                        $mvc->save_($rec, 'cashRegNum');
+
+                        $resObj = new stdClass();
+                        if (isset($obj->js)) {
+                            $resObj->func = 'js';
+                            $resObj->arg = array('js' => $obj->js);
+                        } else {
+                            $resObj->func = 'redirect';
+                            $resObj->arg = array('url' => $obj->redirect);
+                        }
+
+                        $resArr[] = $resObj;
+                    }
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                    $errorMsg = $e->getMessage();
+                    if($mvc->rollbackConto($rec)){
+                        $mvc->logWrite('Ревъртване на контировката (2)', $rec);
+                    }
+
+                    $mvc->logErr($errorMsg, $id);
+                    $cu = core_Users::getCurrent();
+                    if($cu == core_Users::ANONYMOUS_USER){
+                        wp("АНОНИМНО РЕВЪРТВАНЕ", $rec, $obj);
+                    }
+
+                    core_Statuses::newStatus($errorMsg, 'error');
+                    bgfisc_PrintedReceipts::removeWaitingLog($mvc, $rec->id);
+
+                    $rec->cashRegNum = null;
+                    $mvc->save_($rec, 'cashRegNum');
+
+                    $resObj = new stdClass();
+                    $resObj->func = 'redirect';
+                    $resObj->arg = array('url' => toUrl($mvc->getSingleUrlArray($rec->id)));
+                    $resArr[] = $resObj;
+
+                    core_Locks::release("lock_{$mvc->className}_{$rec->id}");
+                }
+            } else {
+                $resObj = new stdClass();
+                $resObj->func = 'removeBlackScreen';
+                $resArr[] = $resObj;
+
+                $resObj = new stdClass();
+                $resObj->func = 'removeDisabledContoBtn';
+                $resObj->arg = array('id' => $mvc->getHandle($rec->id));
+                $resArr[] = $resObj;
+            }
+
             // Показваме веднага и чакащите статуси
             $hitTime = Request::get('hitTime', 'int');
             $idleTime = Request::get('idleTime', 'int');
@@ -922,55 +948,6 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 $row->paymentId = "<b class='red'>{$row->paymentId}</b>";
                 $row->paymentId = ht::createHint($row->paymentId, 'Безналичният метод на плащане не е зададен във ФУ', 'error', false);
             }
-        }
-    }
-
-
-    /**
-     * Информацията на документа, за показване в транспортната линия
-     *
-     * @param core_Mvc $mvc
-     *
-     * @return array
-     *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
-     *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
-     *               ['amountVerbal']   double|NULL - сумата за инкасиране във валутата на документа
-     *               ['currencyId']     string|NULL - валутата на документа
-     *               ['notes']          string|NULL - забележки за транспортната линия
-     *               ['stores']         array       - склад(ове) в документа
-     *               ['weight']         double|NULL - общо тегло на стоките в документа
-     *               ['volume']         double|NULL - общ обем на стоките в документа
-     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
-     *               ['contragentName'] double|NULL - име на контрагента
-     *               ['address']        double|NULL - адрес ба диставка
-     *               ['storeMovement']  string|NULL - посока на движението на склада
-     *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
-     *               ['addressInfo']    string|NULL - информация за адреса
-     *               ['countryId']      string|NULL - ид на държава
-     *
-     * @param mixed $id
-     * @param int $lineId
-     * @return void
-     */
-    public static function on_AfterGetTransportLineInfo($mvc, &$res, $id, $lineId)
-    {
-        $rec = $mvc->fetchRec($id);
-       
-        if($mvc->haveRightFor('conto', $rec) && (!Mode::is('printing') && !Mode::is('xhtml'))){
-            
-            $contoUrl = toUrl(array($mvc, 'contocash', $rec->id, 'lineId' => $lineId), 'local');
-            $warning = $mvc->getContoWarning($rec, $rec->isContable);
-            
-            $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($res['amount']);
-            Mode::push('text', 'plain');
-            $res['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
-            Mode::pop('text');
-            $res['amountVerbal'] = str_replace('&nbsp;', ' ', $res['amountVerbal']);
-            
-            $btn = ht::createFnBtn($res['amountVerbal'], '', $warning, "class=document-conto-btn,ef_icon = img/16/tick-circle-frame.png,title=Контиране на документ,data-url={$contoUrl},id={$mvc->getHandle($rec->id)}");
-            $btn->push('bgfisc/js/Receipt.js', 'JS');
-            jquery_Jquery::run($btn, 'fiscActions();', true);
-            $res['amountVerbal'] = $btn;
         }
     }
     
