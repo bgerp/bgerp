@@ -150,7 +150,7 @@ SET
   `{$sellCost}`  = CASE WHEN `{$sellCost}`  IS NOT NULL THEN `{$sellCost}`  / 1.95583 ELSE NULL END,
   `{$primeCost}` = CASE WHEN `{$primeCost}` IS NOT NULL THEN `{$primeCost}` / 1.95583 ELSE NULL END,
   `{$autoDisc}`  = CASE WHEN `{$autoDisc}`  IS NOT NULL THEN `{$autoDisc}`  / 1.95583 ELSE NULL END,
-  `{$scwod}`     = CASE WHEN `{$scwod}`     IS NOT NULL THEN `{$scwod}`     / 1.95583 ELSE NULL END WHERE";
+  `{$scwod}`     = CASE WHEN `{$scwod}`     IS NOT NULL THEN `{$scwod}`     / 1.95583 ELSE NULL END";
 
         $SaveClass->db->query($query);
     }
