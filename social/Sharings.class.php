@@ -81,97 +81,85 @@ class social_Sharings extends core_Master
      */
     public static function getButtons()
     {
+        
         // Правим заявка към базата
         $query = static::getQuery();
         $query->orderBy('#order');
         $socialNetworks = $query->fetchAll("#state = 'active'");
         
         if (!countR($socialNetworks)) {
-            
             return;
         }
         
         $cUrl = cms_Content::getShortUrl();
         $cntUrl = toUrl($cUrl, 'absolute');
-        $selfUrl = substr(rawurlencode($cntUrl), 4);
         
-        $selfTitle = rawurlencode(html_entity_decode(Mode::get('SOC_TITLE')));
+        // Подготвяме кодирани параметри
+        $selfUrl     = substr(rawurlencode($cntUrl), 4);
+        $selfTitle   = rawurlencode(html_entity_decode(Mode::get('SOC_TITLE')));
         $selfSummary = rawurlencode(str::truncate(html_entity_decode(Mode::get('SOC_SUMMARY')), 200));
         
-        // Взимаме всяко tpl, в което сме
-        // сложили прейсхолдер [#social_Sharings::getButtons#]
         $tpl = new ET('');
         
-        // За всеки един запис от базата
         foreach ($socialNetworks as $socialNetwork) {
             
-            // Вземаме качената икона
+            // Икона
             if ($socialNetwork->icon) {
-                $imgInst = new thumb_Img(array($socialNetwork->icon, 16, 16, 'fileman', 'isAbsolute' => true, 'mode' => 'small-no-change', 'verbalName' => $socialNetwork->title));
+                $imgInst = new thumb_Img(array(
+                    $socialNetwork->icon,
+                    16, 16,
+                    'fileman',
+                    'isAbsolute' => true,
+                    'mode' => 'small-no-change',
+                    'verbalName' => $socialNetwork->title
+                ));
                 $icon = $imgInst->getUrl('forced');
-            
-            // Ако тя липсва
             } else {
-                
-                // Вземаме URL от базата
-                $socUrl = $socialNetwork->url;
-                
-                // Намираме името на функцията
-                $name = self::getServiceNameByUrl($socUrl);
-                
-                // Намираме иконата в sbf папката
+                $name = self::getServiceNameByUrl($socialNetwork->url);
                 $icon = sbf("cms/img/16/{$name}.png", '');
             }
             
-            // Създаваме иконата за бутона
-            $img = ht::createElement('img', array('src' => $icon, 'alt' => "{$name}"));
+            $img = ht::createElement('img', [
+                'src' => $icon,
+                'alt' => $socialNetwork->name
+            ]);
             
-            // Генерираме URL-то на бутона
-            $url = substr(toUrl(
-                array('social_Sharings',
-                    'Redirect',
-                    $socialNetwork->id,
-                    'socUrl' => $selfUrl,
-                    'socTitle' => $selfTitle,
-                    'socSummary' => $selfSummary
-                ),
-                'absolute'
-                ), 4) ;
+            // Генерираме истинския абсолютен URL (ВАЖНО!)
+            $url = toUrl([
+                'social_Sharings',
+                'Redirect',
+                $socialNetwork->id,
+                'socUrl'     => $selfUrl,
+                'socTitle'   => $selfTitle,
+                'socSummary' => $selfSummary
+            ], 'absolute');
             
-            // Търсим, дали има запис в модела, който отброява споделянията
-            $socCnt = social_SharingCnts::fetch(array("#networkId = '{$socialNetwork->id}' AND LOWER(#url) LIKE '%[#1#]'", self::getCanonicUrlPart($cntUrl)));
+            // Брояч?
+            $socCnt = social_SharingCnts::fetch([
+                "#networkId = '{$socialNetwork->id}'
+             AND LOWER(#url) LIKE '%[#1#]%'",
+             self::getCanonicUrlPart($cntUrl)
+             ]);
             
-            if ($socCnt) {
-                // Ако е намерен такъв запис,
-                // взимаме броя на споделянията
-                $socCntP = $socCnt->cnt;
-            } else {
-                // за сега нямаме споделяне
-                $socCntP = 0;
-            }
+            $socCntP = $socCnt ? $socCnt->cnt : 0;
             
-            // Създаваме линка на бутона
+            // ✔ ЛИНК БЕЗ onclick и javascript:void(0)
             $link = ht::createLink(
-                "{$img}  <sup>+</sup>" . $socCntP,
-                                    '#',
-                                    null,
-                                    array(
-                                        'class' => 'soc-sharing',
-                                        'title' => 'Споделете в|* ' . $socialNetwork->name,
-                                        'rel' => 'nofollow',
-                                        'onclick' => "window.open('http' + '{$url}')")
-            );
+                "{$img} <sup>+</sup>{$socCntP}",
+                $url,
+                null,
+                [
+                    'class'  => 'soc-sharing',
+                    'title'  => 'Споделете в|* ' . $socialNetwork->name,
+                    'rel'    => 'external nofollow noopener noreferrer',
+                    'target' => '_blank'
+                ]
+                );
             
-            $link = (string) $link;
-            
-            // Добавяме го към шаблона
             $tpl->append($link);
         }
         
-        $str = $tpl->getContent();
-        
-        // Връщаме тулбар за споделяне в социалните мреци
-        return "<div class='soc-sharing-holder noSelect'>" . $str . '</div>';
+        return "<div class='soc-sharing-holder noSelect'>" . $tpl->getContent() . "</div>";
     }
     
     

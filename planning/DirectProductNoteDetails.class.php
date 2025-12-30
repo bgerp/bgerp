@@ -147,7 +147,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
         $productOptions = $expenseItemIdOptions = array();
         if($rec->type == 'allocated'){
-            $allocatedArr = planning_Jobs::getAllocatedServices($jobRec);
+            $allocatedArr = planning_Jobs::getAllocatedServices($jobRec, $data->masterRec->valior);
             if(!countR($allocatedArr)){
                 $form->setError('productId', 'Няма все още отнесени разходи към производствени операции по заданието');
                 $form->setReadOnly('productId');

@@ -188,7 +188,8 @@ class bgfisc_plg_Receipts extends core_Plugin
         $query = pos_ReceiptDetails::getQuery();
         $query->where("#receiptId = '{$rec->id}'");
         $query->where("#action LIKE '%sale%'");
-        
+
+        $currencyId = dt::today() >= acc_Setup::getEurozoneDate() ? 'EUR' : 'BGN';
         while ($dRec = $query->fetch()) {
             $name = cat_Products::getVerbal($dRec->productId, 'name');
             $name = str_replace(array('&lt;', '&amp;'), array('<', '&'), $name);
@@ -223,7 +224,9 @@ class bgfisc_plg_Receipts extends core_Plugin
             $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
             $price = round($amount / $dRec->quantity, $fiscFuRound);
             $price = number_format($price, $fiscFuRound, '.', '');
-            $arr['BEFORE_PLU_TEXT'] = "{$dRec->quantity} x {$price}лв";
+            $price .= $currencyId == 'BGN' ? 'лв' : ' евро';
+
+            $arr['BEFORE_PLU_TEXT'] = "{$dRec->quantity} x {$price}";
             
             $res[] = $arr;
         }
