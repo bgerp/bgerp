@@ -178,7 +178,7 @@ class rack_Setup extends core_ProtoSetup
             'action' => 'DeleteOldMovementsAndPallets',
             'period' => 1440,
             'offset' => 90,
-            'timeLimit' => 100
+            'timeLimit' => 300
         ),
         
         array(

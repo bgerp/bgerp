@@ -1681,6 +1681,22 @@ class rack_Movements extends rack_MovementAbstract
             rack_OldMovements::delete("#createdOn <= '{$createdBefore}'");
             rack_Logs::delete("#createdOn <= '{$createdBefore}'");
         }
+
+        // За всяка зона се гледа дали има останало поне едно движение към нея
+        $Zones = cls::get('rack_Zones');
+        $saveZones = array();
+        $zQuery = $Zones->getQuery();
+        while($zRec = $zQuery->fetch()){
+            $zRec->isUsed = 'no';
+            if(rack_OldMovements::fetchField("LOCATE('|{$zRec->id}|', #zoneList)")){
+                $zRec->isUsed = 'yes';
+            }
+            $saveZones[$zRec->id] = $zRec;
+        }
+
+        if(countR($saveZones)){
+            $Zones->saveArray($saveZones, 'id,isUsed');
+        }
     }
     
     

@@ -79,7 +79,7 @@ class rack_Zones extends core_Master
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'num=Зона,containerId,defaultUserId,readiness,folderId=Папка,lineId=Линия,pendingHtml=@';
+    public $listFields = 'num=Зона,containerId,defaultUserId,readiness,folderId=Папка,lineId=Линия,isUsed=Използвана,pendingHtml=@';
 
 
     /**
@@ -175,6 +175,7 @@ class rack_Zones extends core_Master
         $this->FLD('defaultUserId', 'key(mvc=core_Users,select=nick)', 'caption=Изпълнител,input=none');
         $this->FLD('readiness', 'percent', 'caption=Готовност,input=none');
         $this->FLD('groupId', 'key(mvc=rack_ZoneGroups,select=name,allowEmpty)', 'caption=Група,placeholder=Без групиране,remember');
+        $this->FLD('isUsed', 'enum(no=Не,yes=Да)', 'caption=Използваба,input=none,notNull,value=yes');
 
         $this->setDbUnique('num,storeId');
         $this->setDbIndex('storeId');
@@ -785,7 +786,7 @@ class rack_Zones extends core_Master
         if ($action == 'delete' && isset($rec)) {
             if (rack_ZoneDetails::fetch("#zoneId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
-            } elseif(rack_Movements::fetchField("LOCATE('|{$rec->id}|', #zoneList)") || rack_OldMovements::fetchField("LOCATE('|{$rec->id}|', #zoneList)")){
+            } elseif($rec->isUsed == 'yes'){
                 $requiredRoles = 'no_one';
             }
         }
