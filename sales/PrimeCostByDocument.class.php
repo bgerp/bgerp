@@ -1185,7 +1185,7 @@ class sales_PrimeCostByDocument extends core_Manager
      * @param datetime $valior
      * @param datetime $Mvc
      * @param datetime $recId
-     * @return bool
+     * @return stdClass
      */
     public static function comparePriceWithPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior, $Mvc, $recId)
     {
@@ -1204,6 +1204,9 @@ class sales_PrimeCostByDocument extends core_Manager
         $calcLiveSoDelta = sales_Setup::get('LIVE_CALC_SO_DELTAS');
         if($calcLiveSoDelta != 'yes') {
             $primeCost = self::getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId);
+            if(isset($primeCost)) {
+                $primeCost = deals_Helper::getSmartBaseCurrency($primeCost, dt::now(), $valior);
+            }
         }
 
         if(empty($primeCost)){
