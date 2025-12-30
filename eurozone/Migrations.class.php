@@ -150,7 +150,7 @@ SET
   `{$sellCost}`  = CASE WHEN `{$sellCost}`  IS NOT NULL THEN `{$sellCost}`  / 1.95583 ELSE NULL END,
   `{$primeCost}` = CASE WHEN `{$primeCost}` IS NOT NULL THEN `{$primeCost}` / 1.95583 ELSE NULL END,
   `{$autoDisc}`  = CASE WHEN `{$autoDisc}`  IS NOT NULL THEN `{$autoDisc}`  / 1.95583 ELSE NULL END,
-  `{$scwod}`     = CASE WHEN `{$scwod}`     IS NOT NULL THEN `{$scwod}`     / 1.95583 ELSE NULL END WHERE `{$valiorCol}` < '{$eurozoneDate}'";
+  `{$scwod}`     = CASE WHEN `{$scwod}`     IS NOT NULL THEN `{$scwod}`     / 1.95583 ELSE NULL END";
 
         $SaveClass->db->query($query);
     }
@@ -181,7 +181,7 @@ UPDATE `{$tbl}`
 SET
   `{$priceCol}`  = CASE WHEN `{$priceCol}`  IS NOT NULL THEN `{$priceCol}`  / 1.95583 ELSE NULL END,
   `{$amount}` = CASE WHEN `{$amount}` IS NOT NULL THEN `{$amount}` / 1.95583 ELSE NULL END,
-  `{$expensesCol}`  = CASE WHEN `{$expensesCol}`  IS NOT NULL THEN `{$expensesCol}`  / 1.95583 ELSE NULL END WHERE `{$valiorCol}` < '{$eurozoneDate}'";
+  `{$expensesCol}`  = CASE WHEN `{$expensesCol}`  IS NOT NULL THEN `{$expensesCol}`  / 1.95583 ELSE NULL END";
 
         $SaveClass->db->query($query);
     }
@@ -205,9 +205,7 @@ SET
         $tbl = $SaveClass->dbTableName;
 
         $query = "UPDATE `{$tbl}` SET
-        `{$priceCol}`  = CASE WHEN `{$priceCol}`  != 0 THEN `{$priceCol}`  / 1.95583 ELSE NULL END
-        WHERE `{$updatedOnCol}` <= '{$euroZoneDate}'
-        ";
+        `{$priceCol}`  = CASE WHEN `{$priceCol}`  != 0 THEN `{$priceCol}`  / 1.95583 ELSE NULL END";
 
         $SaveClass->db->query($query);
     }
@@ -230,7 +228,7 @@ SET
 
         $eurozoneDate = acc_Setup::getEuroZoneDate();
         $tbl = $SaveClass->dbTableName;
-        $query = "UPDATE `{$tbl}` SET `{$priceCol}`  = (`{$priceCol}`  / 1.95583) WHERE `{$dateCol}` < '{$eurozoneDate}'";
+        $query = "UPDATE `{$tbl}` SET `{$priceCol}`  = (`{$priceCol}`  / 1.95583)";
         $SaveClass->db->query($query);
     }
 
