@@ -3890,6 +3890,9 @@ function efae() {
 
     // Флаг, който указва колко време да не може да се прави AJAX заявки по часовник
     efae.prototype.waitPeriodicAjaxCall = 0;
+
+    // Заключване на изпълнението на AJAX заявките - нулираме
+    localStorage.setItem('lockEfaeAjaxCalls', 0);
 }
 
 
@@ -3918,6 +3921,15 @@ efae.prototype.run = function () {
     try {
         // Увеличаваме брояча
         this.increaseTimeout();
+
+        // Ако е заключено изпълнението на AJAX заявките, излизаме
+        var lockEfaeAjaxCalls = localStorage.getItem('lockEfaeAjaxCalls');
+        if (lockEfaeAjaxCalls > 0) {
+            lockEfaeAjaxCalls--;
+            localStorage.setItem('lockEfaeAjaxCalls', lockEfaeAjaxCalls);
+
+            return ;
+        }
 
         if (this.waitPeriodicAjaxCall <= 0) {
             // Вземаме всички URL-та, които трябва да се извикат в този цикъл
@@ -3986,6 +3998,9 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
         this.preventRequest--;
         return;
     }
+
+    // Заключваме изпълнението на AJAX заявките за определено време
+    localStorage.setItem('lockEfaeAjaxCalls', 30);
 
     // Ако не е подададена стойност
     if (typeof async == 'undefined') {
@@ -4185,6 +4200,8 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
                 }
             }, timeOut);
         }).always(function (res) {
+            // Отключваме изпълнението на AJAX заявките
+            localStorage.setItem('lockEfaeAjaxCalls', 0);
 
             // След приключване на процеса сваляме флага
             getEfae().isWaitingResponse = false;

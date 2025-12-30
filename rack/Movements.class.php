@@ -19,13 +19,13 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Заглавие
      */
-    public $title = 'Движения';
+    public $title = 'Движения на палети в склад';
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Движение';
+    public $singleTitle = 'Движение на палет в склад';
     
     
     /**
@@ -946,16 +946,6 @@ class rack_Movements extends rack_MovementAbstract
     
     
     /**
-     * След обработка на лист филтъра
-     */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $storeId = store_Stores::getCurrent();
-        $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
-    }
-    
-    
-    /**
      * Екшън за започване на движението
      */
     public function act_Toggle()
@@ -1690,6 +1680,22 @@ class rack_Movements extends rack_MovementAbstract
             $createdBefore = dt::addSecs(-1 * $olderThan);
             rack_OldMovements::delete("#createdOn <= '{$createdBefore}'");
             rack_Logs::delete("#createdOn <= '{$createdBefore}'");
+        }
+
+        // За всяка зона се гледа дали има останало поне едно движение към нея
+        $Zones = cls::get('rack_Zones');
+        $saveZones = array();
+        $zQuery = $Zones->getQuery();
+        while($zRec = $zQuery->fetch()){
+            $zRec->isUsed = 'no';
+            if(rack_OldMovements::fetchField("LOCATE('|{$zRec->id}|', #zoneList)")){
+                $zRec->isUsed = 'yes';
+            }
+            $saveZones[$zRec->id] = $zRec;
+        }
+
+        if(countR($saveZones)){
+            $Zones->saveArray($saveZones, 'id,isUsed');
         }
     }
     

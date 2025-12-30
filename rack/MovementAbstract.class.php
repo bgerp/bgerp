@@ -295,19 +295,15 @@ abstract class rack_MovementAbstract extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $storeId = store_Stores::getCurrent();
-        $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
-
-        $data->query->where("#storeId = {$storeId}");
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'waiting' THEN 2 WHEN 'active' THEN 3 ELSE 4 END)");
-
+        $data->listFilter->setDefault('storeId', store_Stores::getCurrent('id', false));
         if ($palletId = Request::get('palletId', 'int')) {
             $data->query->where("#palletId = {$palletId}");
         }
 
-
         $data->listFilter->setField('fromIncomingDocument', 'input=none');
-
+        $data->listFilter->setFieldTypeParams('storeId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->setField('storeId', 'autoFilter');
         $data->listFilter->FLD('from', 'date', 'caption=От');
         $data->listFilter->FLD('to', 'date', 'caption=До');
         $data->listFilter->FNC('filterUser', 'enum(workerId=Товарач,createdBy=Създадено от)', 'caption=Филтър по,after=to,input');
@@ -316,7 +312,7 @@ abstract class rack_MovementAbstract extends core_Manager
         $data->listFilter->FNC('documentHnd', 'varchar', 'placeholder=Документ,caption=Документ,input,silent,recently');
         $data->listFilter->FLD('state1', 'enum(all=Всички,pending=Чакащи,waiting=Запазени,active=Активни,closed=Приключени)', 'caption=Състояние');
         $data->listFilter->input('documentHnd', 'silent');
-        $data->listFilter->showFields = 'selectPeriod, from, to, filterUser, userId, search, documentHnd, state1';
+        $data->listFilter->showFields = 'storeId,selectPeriod, from, to, filterUser, userId, search, documentHnd, state1';
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->setDefault('filterUser', 'workerId');
 
@@ -324,6 +320,11 @@ abstract class rack_MovementAbstract extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         if ($filterRec = $data->listFilter->rec) {
+            if(!empty($filterRec->storeId)){
+                $data->query->where("#storeId = {$filterRec->storeId}");
+                $data->title = "{$mvc->title} |*<b style='color:green'>" . store_Stores::getHyperlink($filterRec->storeId, true) . "</b>";
+            }
+
             if (in_array($filterRec->state1, array('active', 'closed', 'pending', 'waiting'))) {
                 $data->query->where("#state = '{$filterRec->state1}'");
             }
