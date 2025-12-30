@@ -28,7 +28,7 @@ class plg_RowTools2 extends core_Plugin
         }
         
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) {
+        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('noToolbar')) {
             return;
         }
         

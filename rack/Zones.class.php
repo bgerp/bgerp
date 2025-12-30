@@ -199,11 +199,26 @@ class rack_Zones extends core_Master
 
 
     /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    protected static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+        $isTerminal = Request::get('terminal', 'int');
+        if($isTerminal){
+            Mode::push('noToolbar', true);
+        }
+    }
+
+
+    /**
      * След преобразуване на записа в четим за хора вид
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $isTerminal = Request::get('terminal', 'int');
+        if($isTerminal && Mode::is('noToolbar')){
+            Mode::pop('noToolbar');
+        }
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         if (isset($rec->containerId)) {
             $Document = doc_Containers::getDocument($rec->containerId);
