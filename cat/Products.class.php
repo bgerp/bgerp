@@ -1811,7 +1811,7 @@ class cat_Products extends embed_Manager
         $query->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id, ' ', #id))");
         $query->XPR('codeExp', 'varchar', "LOWER(COALESCE(#code, CONCAT('Art', #id)))");
 
-        if($limit != 14444){
+        if($limit != 1){
             if(isset($params['orderBy'])){
                 list($orderByField, $orderByDir) = explode('=', $params['orderBy']);
                 if($orderByField == 'code'){
