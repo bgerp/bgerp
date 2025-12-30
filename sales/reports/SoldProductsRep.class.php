@@ -20,7 +20,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, sales';
+    public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, sales, debug';
 
 
     /**
@@ -35,7 +35,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields= 'primeCost,changeSales,invAmount';
+    protected $summaryListFields= 'primeCost,changeSales,invAmount,delta';
 
 
     /**
@@ -516,6 +516,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $invQuantity = $discount = $invAmount = 0;
                 $originQuantity = $changeQuatity = 0;
 
+                //Превалутиране на сумите
+                $invDetRec->price = deals_Helper::getSmartBaseCurrency($invDetRec->price, $invDetRec->date, $rec->to);
+                $invDetRec->discount = deals_Helper::getSmartBaseCurrency($invDetRec->discount, $invDetRec->date, $rec->to);
+
                 //Ключ на масива
                 $id = $invDetRec->productId . ' | ' . $invDetRec->folderId . ' | ' . $invDetRec->folderId;
 
@@ -526,14 +530,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 //Ако фактурата е дебитно или кредитно известие с промяна в артикулите
                 if ($invDetRec->type == 'dc_note') {
 
-                    $correctionArray = self::dcNoteCorrection($invDetRec);
+                    $correctionArray = self::dcNoteCorrection($invDetRec, $rec);
 
                     if (empty($correctionArray)) {
                         continue;
                     }
 
                     $invQuantity = $correctionArray['quanttity'];
-                    $invAmount = $correctionArray['amount'];
+                    $invAmount = $correctionArray['amount'];   //превалутирано в метода
 
                 }
 
@@ -568,6 +572,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query->EXT('containerId', 'sales_Sales', 'externalName=containerId,externalKey=saleId');
 
             $query->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
+
+            $query->EXT('date', 'sales_Sales', 'externalName=date,externalKey=saleId');
 
             $query->EXT('dealerId', 'sales_Sales', 'externalName=dealerId,externalKey=saleId');
 
@@ -850,22 +856,37 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
 
+                        //Превалутиране
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+
                         $quantityPrevious = (-1) * $recPrime->quantity;
-                        $primeCostPrevious = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
+                        $primeCostPrevious = (-1) * $pricePr * $recPrime->quantity;
 
                         //@todo: на складовите разписки делтата е отрцателна по дефиниция. Как да се реагира?
                         $deltaPrevious = (-1) * $recPrime->delta;
 
                     } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
                         $quantityPrevious = $recPrime->quantity;
-                        $primeCostPrevious = $recPrime->{"${price}"} * $recPrime->quantity;
+
+                        //Превалутиране
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $primeCostPrevious = $pricePr * $recPrime->quantity;
 
 
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                         // приемаме че, себестойността е 95% от продажната цена
                         if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
+
+                            //Превалутиране
+                            $recPrime->sellCost = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, $recPrime->valior, $rec->to);
+
                             $deltaPrevious = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity;
                         } else {
+
+                            //Превалутиране
+                            $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+
                             $deltaPrevious = $recPrime->delta;
                         }
 
@@ -875,19 +896,25 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         if ($recPrime->type == 'invoice') {
 
                             $quantityPrevious = $recPrime->quantity * $recPrime->quantityInPack;
+
+                            //Превалутиране
+                            $recPrime->price = deals_Helper::getSmartBaseCurrency($recPrime->price, $recPrime->valior, $rec->to);
+                            $recPrime->discount = deals_Helper::getSmartBaseCurrency($recPrime->discount, $recPrime->valior, $rec->to);
+
                             $discount = $recPrime->price * $quantityPrevious * $recPrime->discount;
+
                             $primeCostPrevious = ($recPrime->price * $quantityPrevious) - $discount;
 
                         } elseif ($recPrime->type == 'dc_note') {
 
-                            $correctionArray = self::dcNoteCorrection($recPrime);
+                            $correctionArray = self::dcNoteCorrection($recPrime, $rec);
 
                             if (empty($correctionArray)) {
                                 continue;
                             }
 
                             $quantityPrevious = $correctionArray['quantity'];
-                            $primeCostPrevious = $correctionArray['amount'];
+                            $primeCostPrevious = $correctionArray['amount']; //превалутирано в метода
 
                         }
                     }
@@ -900,21 +927,35 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails ) {
 
+                        //Превалутиране
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+
                         $quantityLastYear = (-1) * $recPrime->quantity;
-                        $primeCostLastYear = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
+                        $primeCostLastYear = (-1) * $pricePr * $recPrime->quantity;
                         $deltaLastYear = (-1) * $recPrime->delta;
 
                     } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
 
+                        //Превалутиране
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+
                         $quantityLastYear = $recPrime->quantity;
-                        $primeCostLastYear = $recPrime->{"${price}"} * $recPrime->quantity;
+                        $primeCostLastYear = $pricePr * $recPrime->quantity;
 
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                         // приемаме че, себестойността е 95% от продажната цена
                         if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
+
+                            //Превалутиране
+                            $recPrime->sellCost = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, $recPrime->valior, $rec->to);
+
                             $deltaLastYear = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity;
                         } else {
-                            $deltaLastYear = $recPrime->delta;
+
+                            //Превалутиране
+                            $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+                           $deltaLastYear = $recPrime->delta;
                         }
 
                     } elseif ($DetClass instanceof sales_InvoiceDetails) {
@@ -922,17 +963,22 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         if ($recPrime->type == 'invoice') {
 
                             $quantityLastYear = $recPrime->quantity * $recPrime->quantityInPack;
+
+                            //Превалутиране
+                            $recPrime->price = deals_Helper::getSmartBaseCurrency($recPrime->price, $recPrime->valior, $rec->to);
+                            $recPrime->discount = deals_Helper::getSmartBaseCurrency($recPrime->discount, $recPrime->valior, $rec->to);
+
                             $discount = $recPrime->price * $quantityLastYear * $recPrime->discount;
                             $primeCostLastYear = ($recPrime->price * $quantityLastYear) - $discount;
 
                         } elseif ($recPrime->type == 'dc_note') {
-                            $correctionArray = self::dcNoteCorrection($recPrime);
+                            $correctionArray = self::dcNoteCorrection($recPrime, $rec);
 
                             if (empty($correctionArray)) {
                                 continue;
                             }
                             $quantityLastYear = $correctionArray['quantity'];
-                            $primeCostLastYear = $correctionArray['amount'];
+                            $primeCostLastYear = $correctionArray['amount'];  //Превалутирано в метода
 
                         }
 
@@ -945,20 +991,35 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
                     $quantity = (-1) * $recPrime->quantity;
 
-                    $primeCost = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
+                    //Превалутиране
+                    $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                    $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+
+                    $primeCost = (-1) * $pricePr * $recPrime->quantity;
 
                     $delta = (-1) * $recPrime->delta;
 
                 } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports || $DetClass instanceof sales_ServicesDetails) {
                     $quantity = $recPrime->quantity;
 
-                    $primeCost = $recPrime->{"${price}"} * $recPrime->quantity;
+                    //Превалутиране
+                    $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+
+                    $primeCost = $pricePr * $recPrime->quantity;
 
                     //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                     // приемаме че, себестойността е 95% от продажната цена
                     if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
+
+                        //Превалутиране
+                        $recPrime->sellCost = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, $recPrime->valior, $rec->to);
+
                         $delta = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity;
                     } else {
+
+                        //Превалутиране
+                        $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+
                         $delta = $recPrime->delta;
                     }
 
@@ -967,19 +1028,24 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     if ($recPrime->type == 'invoice') {
 
                         $quantity = $recPrime->quantity * $recPrime->quantityInPack;
+
+                        //Превалутиране
+                        $recPrime->price = deals_Helper::getSmartBaseCurrency($recPrime->price, $recPrime->valior, $rec->to);
+                        $recPrime->discount = deals_Helper::getSmartBaseCurrency($recPrime->discount, $recPrime->valior, $rec->to);
+
                         $discount = $recPrime->price * $quantity * $recPrime->discount;
                         $primeCost = ($recPrime->price * $quantity) - $discount;
 
                     } elseif ($recPrime->type == 'dc_note') {
 
-                        $correctionArray = self::dcNoteCorrection($recPrime);
+                        $correctionArray = self::dcNoteCorrection($recPrime, $rec);
 
                         if (empty($correctionArray)) {
                             continue;
                         }
 
                         $quantity = $correctionArray['quantity'];
-                        $primeCost = $correctionArray['amount'];
+                        $primeCost = $correctionArray['amount'];  // Превалутирано в метода
 
                     }
                 }
@@ -1084,17 +1150,27 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     //сумира стойностите на всички детайли във origin фактурата
                     $amountsArr = arr::extractValuesFromArray($dcAllInvQuery->fetchAll(), 'amount');
+
                     $sumAmounts = array_sum($amountsArr);
+
+                    //Превалутиране на сумата
+                    $sumAmounts = deals_Helper::getSmartBaseCurrency($sumAmounts, $originRec->date, $rec->to);
 
                     while ($originDetRec = $dcAllInvQuery->fetch()) {
 
                         //Каква част от общата стойност е стойността на този ред
                         if ($sumAmounts) {
+
+                            //Превалутиране
+                            $originDetRec->amount = deals_Helper::getSmartBaseCurrency($originDetRec->amount, $originRec->date, $rec->to);
+
                             $partOfAmount = $originDetRec->amount / $sumAmounts;
                         } else {
                             $partOfAmount = 1;
                         }
 
+                        //Превалутиране
+                        $iRec->changeAmount = deals_Helper::getSmartBaseCurrency($iRec->changeAmount, $iRec->date, $rec->to);
 
                         //Масив с ключ productId и стойностите с които трябва да се коригира стойността на артикула в recs-a
                         $correctionArr[$originDetRec->productId] = round($iRec->changeAmount * $partOfAmount, 2);
@@ -1440,7 +1516,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @return array $res
      */
-    public static function dcNoteCorrection($dcRec)
+    public static function dcNoteCorrection($dcRec, $rec)
     {
         $originQuantity = $changeQuatity = $changePrice = $invQuantity = $invAmount = 0;
 
@@ -1451,6 +1527,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = $originId AND #productId = '$dcRec->productId' AND
                                                            #packagingId = '$dcRec->packagingId'
                                                            AND (#quantity != '$dcRec->quantity' OR #price != '$dcRec->price')");
+
 
         $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
         $changeQuatity = $dcRec->quantity * $dcRec->quantityInPack - $originQuantity;
@@ -1466,6 +1543,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if ($dcRec->discount) {
             $invAmount = $invAmount * (1 - $dcRec->discount);
         }
+
+        //Превалутиране
+        $invAmount = deals_Helper::getSmartBaseCurrency($invAmount, $dcRec->date, $rec->to);
 
         $res['quantity'] = $invQuantity;
         $res['amount'] = $invAmount;
