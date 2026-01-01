@@ -25,7 +25,7 @@ class eurozone_Migrations extends core_BaseClass
     /**
      * Класове, които да се бекъпнат
      */
-    private static $backupClasses = array('eshop_Settings', 'sales_PrimeCostByDocument', 'purchase_PurchasesData', 'price_ProductCosts', 'acc_ProductPricePerPeriods', 'price_Updates', 'hr_Positions');
+    private static $backupClasses = array('sales_PrimeCostByDocument', 'purchase_PurchasesData', 'price_ProductCosts', 'acc_ProductPricePerPeriods', 'price_Updates', 'hr_Positions');
 
 
     /**
