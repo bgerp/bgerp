@@ -70,7 +70,8 @@ class bank_Setup extends core_ProtoSetup
         'bank_DepositSlips',
         'bank_Register',
         'migrate::recontoDocs2511',
-        'migrate::addCurrenciesToExchangeDocs2547'
+        'migrate::addCurrenciesToExchangeDocs2547',
+        'migrate::recontoExchangeDocuments2601'
     );
 
 
@@ -136,6 +137,20 @@ class bank_Setup extends core_ProtoSetup
 
         if(countR($save)){
             $Exchange->saveArray($save, 'id,creditCurrency,debitCurrency');
+        }
+    }
+
+
+    /**
+     * Реконтиране на банковите документи
+     */
+    public function recontoExchangeDocuments2601()
+    {
+        $eurozoneDate = acc_Setup::getEurozoneDate();
+        $bQuery = bank_ExchangeDocument::getQuery();
+        $bQuery->where("#state = 'active' AND #createdOn >= '{$eurozoneDate}' AND #createdBy = -1");
+        while($bRec = $bQuery->fetch()) {
+            acc_Journal::reconto($bRec->containerId);
         }
     }
 }
