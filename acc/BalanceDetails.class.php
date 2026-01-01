@@ -1063,7 +1063,12 @@ class acc_BalanceDetails extends core_Detail
             // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
             if ($rec->blQuantity >= 0 || $feedWithNegativeBlQuantity == 'yes') {
                 if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
-                    $strategy->feed($rec->blQuantity, $rec->blAmount);
+                    $feedAmount = $rec->blAmount;
+                    if(isset($convertToDate)){
+                        $feedAmount = deals_Helper::getSmartBaseCurrency($feedAmount, $balanceRec->toDate, $convertToDate);
+                    }
+
+                    $strategy->feed($rec->blQuantity, $feedAmount);
                 }
             }
 

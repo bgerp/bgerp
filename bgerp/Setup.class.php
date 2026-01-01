@@ -604,6 +604,7 @@ class bgerp_Setup extends core_ProtoSetup
         $res = parent::loadSetupData($itr);
 
         $res .= $this->callMigrate('oldPortalToNewPortalView2131', 'bgerp');
+        $res .= $this->callMigrate('markEuroNotifications2601', 'bgerp');
 
         // За да може да мине миграцията при нова инсталация
         $dbUpdate = core_ProtoSetup::$dbInit;
@@ -867,5 +868,20 @@ class bgerp_Setup extends core_ProtoSetup
     public function removeTestFilters2824()
     {
         bgerp_Filters::delete("#name IN ('vat0pur', 'vat9pur', 'vat20pur')");
+    }
+
+
+    /**
+     * Миграция на нотификациите за успешна миграция
+     */
+    public function markEuroNotifications2601()
+    {
+        $nQuery = bgerp_Notifications::getQuery();
+        $nQuery->where("#msg = 'Системата е мигрирана към евро успешно'");
+        while($nRec = $nQuery->fetch()){
+            $nRec->state = 'closed';
+            $nRec->lastTime = dt::now();
+            bgerp_Notifications::save($nRec, 'state,lastTime');
+        }
     }
 }
