@@ -744,7 +744,7 @@ SET
         core_SystemLock::block('Finishing migration...', 10);
         $admins = core_Users::getByRole('admin');
         foreach ($admins as $adminId) {
-            bgerp_Notifications::add('Системата е мигрирана към евро успешно', array('Portal', 'show'), $adminId, 'critical');
+            bgerp_Notifications::add('Системата е мигрирана към евро успешно', array('Portal', 'show', 'status' => 'ok'), $adminId, 'critical');
         }
 
         // Записва се, че системата е вече мигрирана
