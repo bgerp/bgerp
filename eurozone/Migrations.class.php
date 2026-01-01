@@ -83,8 +83,9 @@ class eurozone_Migrations extends core_BaseClass
      */
     public static function updateEshopSettings()
     {
-        $Settings = cls::get('eshop_Settings');
+        if(!core_Packs::isInstalled('eshop')) return;
 
+        $Settings = cls::get('eshop_Settings');
         $Carts = cls::get('eshop_Carts');
         $Carts->setupMvc();
 
