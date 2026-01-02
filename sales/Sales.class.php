@@ -2308,6 +2308,13 @@ class sales_Sales extends deals_DealMaster
     {
         // При репликиране от напомняне
         if(isset($nRec->__isReplicate)){
+            if($nRec->currencyId == 'BGN' && dt::today() > acc_Setup::getEurozoneDate()){
+                $nRec->currencyId = 'EUR';
+                $nRec->currencyRate = 1;
+                $nRec->_oldValior = $rec->valior;
+                $nRec->_oldRate = $rec->currencyRate;
+            }
+
             if(isset($rec->bankAccountId)){
 
                 // Ако банковата сметка е затворена се сменя с дефолтната такава
@@ -2429,6 +2436,26 @@ class sales_Sales extends deals_DealMaster
     {
         if(in_array($rec->state, array('active', 'pending'))){
             sales_DeliveryData::sync($rec->containerId);
+        }
+    }
+
+
+    /**
+     * След клониране на записа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec  - клонирания запис
+     * @param stdClass $nRec - новия запис
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        // Ако се клонира с репликиране и е сменена валутата да се преизчислят сумите
+        if(isset($nRec->__isReplicate) && isset($nRec->_oldValior)){
+            $recalcPricesOnClone = sales_Setup::get('RECALC_PRICES_ON_CLONE');
+            if($recalcPricesOnClone == 'no'){
+                $nRec->_dealCurrencyId = 'BGN';
+                deals_Helper::recalcDetailPriceInBaseCurrency($mvc, $nRec, $nRec->_oldValior, $nRec->valior, $nRec->_oldRate);
+            }
         }
     }
 
