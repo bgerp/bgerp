@@ -626,6 +626,7 @@ select.tabHolder {
 		max-height: calc(1.3em * 2);   /* максимум 2 реда */
 		-webkit-line-clamp: 2;         /* ограничение до 2 реда */
 		text-align: center;
+		line-height: 1.1em;
 		overflow: hidden;
 		font-size: 0.95em;
 		box-sizing: border-box;
@@ -928,6 +929,20 @@ select.tabHolder {
 	background: #499BC0;
 
 }
+
+.dual-currency {
+	.totalLabel {
+		text-align: left !important;
+		line-height: 100%;
+	}
+	.change, .paidCaption{
+		text-align: left !important;
+	}
+	.caption {
+		text-align: center !important;
+	}
+}
+
 .contragentLinkBtns, .newContragentBtn {
 	background: #a162ca;
 }

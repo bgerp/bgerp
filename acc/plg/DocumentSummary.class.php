@@ -330,7 +330,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         if($mvc->getField($mvc->currencyFld, false)){
             $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ", {$mvc->currencyFld}";
             $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
-            $data->listFilter->setField($mvc->currencyFld, "caption=Валута,input");
+            $data->listFilter->setField($mvc->currencyFld, "caption=Валута,input,formOrder=1000");
             $data->listFilter->showFields .= ",{$mvc->currencyFld}";
         }
 
@@ -340,7 +340,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if(countR($templateOptions)){
                 $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ",template";
                 $data->listFilter->setOptions('template', array('' => '') + $templateOptions);
-                $data->listFilter->setField('template', "caption=Шаблон");
+                $data->listFilter->setField('template', "caption=Шаблон,formOrder=1002");
                 $data->listFilter->showFields .= ",template";
             }
         }

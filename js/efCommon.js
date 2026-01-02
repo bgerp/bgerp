@@ -3890,6 +3890,9 @@ function efae() {
 
     // Флаг, който указва колко време да не може да се прави AJAX заявки по часовник
     efae.prototype.waitPeriodicAjaxCall = 0;
+
+    // Заключване на изпълнението на AJAX заявките - нулираме
+    localStorage.setItem('lockEfaeAjaxCalls', 0);
 }
 
 
@@ -3918,6 +3921,15 @@ efae.prototype.run = function () {
     try {
         // Увеличаваме брояча
         this.increaseTimeout();
+
+        // Ако е заключено изпълнението на AJAX заявките, излизаме
+        var lockEfaeAjaxCalls = localStorage.getItem('lockEfaeAjaxCalls');
+        if (lockEfaeAjaxCalls > 0) {
+            lockEfaeAjaxCalls--;
+            localStorage.setItem('lockEfaeAjaxCalls', lockEfaeAjaxCalls);
+
+            return ;
+        }
 
         if (this.waitPeriodicAjaxCall <= 0) {
             // Вземаме всички URL-та, които трябва да се извикат в този цикъл
@@ -3986,6 +3998,9 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
         this.preventRequest--;
         return;
     }
+
+    // Заключваме изпълнението на AJAX заявките за определено време
+    localStorage.setItem('lockEfaeAjaxCalls', 30);
 
     // Ако не е подададена стойност
     if (typeof async == 'undefined') {
@@ -4185,6 +4200,8 @@ efae.prototype.process = function (subscribedObj, otherData, async) {
                 }
             }, timeOut);
         }).always(function (res) {
+            // Отключваме изпълнението на AJAX заявките
+            localStorage.setItem('lockEfaeAjaxCalls', 0);
 
             // След приключване на процеса сваляме флага
             getEfae().isWaitingResponse = false;
@@ -6461,6 +6478,171 @@ function checkVatAndTriger(name) {
         }
     }
 }
+
+
+/**
+ * ф-я за контиране на ПКО
+ */
+function contoPkoPrompt(ev, buttonEl, callUrl) {
+    var warningText        = buttonEl.dataset.warning;
+    var expectedAmount     = buttonEl.dataset.expectedAmount;
+    var currenciesRaw      = buttonEl.dataset.expectedCurrency || '';
+    var errorFormatMsg     = buttonEl.dataset.errorFormat;
+    var errorCurrencyMsg   = buttonEl.dataset.errorCurrency;
+    var defaultCurrencyRaw = buttonEl.dataset.defaultCurrency || '';
+    var documentUrl        = buttonEl.dataset.url;     // базовият URL от бекенда
+
+    // позволени валути – в uppercase
+    var allowedCurrencies = currenciesRaw
+        .split(',')
+        .map(function (s) { return s.trim().toUpperCase(); })
+        .filter(function (s) { return s.length > 0; });
+
+    var userText = window.prompt(warningText, expectedAmount);
+
+    function stopEvent(e) {
+        if (!e) return;
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+        if (typeof e.stopPropagation === 'function')          e.stopPropagation();
+        if (typeof e.preventDefault === 'function')           e.preventDefault();
+    }
+
+    function blurButton(btn) {
+        if (window.jQuery) {
+            jQuery(btn).blur();
+        } else if (btn && typeof btn.blur === 'function') {
+            btn.blur();
+        }
+    }
+
+    // URL, който евентуално ще викаме през Efae
+    var urlToCall = null;
+
+    // 1) Cancel -> спира абсолютно всичко (няма контиране)
+    if (userText === null) {
+        stopEvent(ev);
+        blurButton(buttonEl);
+        return false;
+    }
+
+    // 2) Ако текстът не е променян
+    if (userText === expectedAmount) {
+        urlToCall = documentUrl;
+
+        if (!callUrl) {
+            return true;
+        }
+        // ако callUrl === true, ще стигнем до Efae call по-долу
+    } else {
+        // 3) Текстът е променен -> парсваме и валидираме
+        userText = userText.trim();
+
+        // сума, а валутата е optional и може да е със/без интервал:
+        // "10" / "10 EUR" / "10EUR" / "10 €" / "10€" / "10 евро" / "10euro" / "10 лв." / "10лв." / "10лева"
+        var m = userText.match(
+            /^([0-9]{1,3}(?:[ \u00A0\u202F]?[0-9]{3})*(?:[.,][0-9]+)?)(?:\s*([A-Za-zА-Яа-яЁё€]+\.?))?$/u
+        );
+
+        var amountStr, currency = '';
+
+        if (!m) {
+            alert(errorFormatMsg);
+            stopEvent(ev);
+            blurButton(buttonEl);
+            return false;
+        }
+
+        amountStr = m[1];
+        if (m[2]) {
+            currency = m[2].trim();
+        } else {
+            currency = defaultCurrencyRaw.trim();
+        }
+
+        // === НОРМАЛИЗАЦИЯ НА ВАЛУТАТА ===
+        if (currency) {
+            var hasBGNAllowed = allowedCurrencies.indexOf('BGN') !== -1;
+            var hasEURAllowed = allowedCurrencies.indexOf('EUR') !== -1;
+
+            // lower + махаме финална точка
+            var curLower = currency.toLowerCase().replace(/\.$/, '').trim();
+
+            // BGN aliases
+            if (hasBGNAllowed && (curLower === 'лева' || curLower === 'лв')) {
+                currency = 'BGN';
+
+                // EUR aliases
+            } else if (hasEURAllowed && (
+                curLower === 'евро' || curLower === 'ев' || curLower === 'евр' ||
+                curLower === 'euro' || curLower === 'eur' || curLower === '€'
+            )) {
+                currency = 'EUR';
+
+            } else {
+                currency = currency.toUpperCase();
+            }
+        }
+
+        // проверка дали валутата е сред позволените
+        if (allowedCurrencies.length > 0 && allowedCurrencies.indexOf(currency) === -1) {
+            alert(errorCurrencyMsg);
+            stopEvent(ev);
+            blurButton(buttonEl);
+            return false;
+        }
+
+        // 4) Валидни amount + currency -> променяме URL
+        if (documentUrl) {
+            // нормализираме amountStr за path:
+            // махаме интервали (вкл. NBSP/NNBSP), заменяме ',' с '.'
+            var normalizedAmount = amountStr
+                .replace(/[ \t\u00A0\u202F]+/g, '')
+                .replace(',', '.');
+
+            // забраняваме <= 0
+            var amountNum = parseFloat(normalizedAmount);
+            if (!isFinite(amountNum) || amountNum <= 0) {
+                alert(errorFormatMsg);
+                stopEvent(ev);
+                blurButton(buttonEl);
+                return false;
+            }
+
+            var newUrl = documentUrl;
+            if (newUrl.charAt(newUrl.length - 1) !== '/') {
+                newUrl += '/';
+            }
+
+            newUrl += 'amount/'   + encodeURIComponent(normalizedAmount)
+                + '/currency/' + encodeURIComponent(currency);
+
+            buttonEl.dataset.url = newUrl;
+            urlToCall = newUrl;
+
+            console.log("Will Call: " + newUrl);
+        } else {
+            urlToCall = null;
+        }
+    }
+
+    // 5) Ако трябва директно да извикаме URL-а през Efae
+    if (callUrl && urlToCall) {
+        if (typeof getEfae === 'function') {
+            var efae = getEfae();
+            if (efae && typeof efae.process === 'function') {
+                var resObj = new Object();
+                resObj['url'] = urlToCall;
+
+                var dataArg = (typeof data !== 'undefined') ? data : undefined;
+                efae.process(resObj, dataArg);
+            }
+        }
+    }
+
+    return true;
+}
+
+
 
 
 /**

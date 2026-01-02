@@ -19,13 +19,13 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Заглавие
      */
-    public $title = 'Движения';
+    public $title = 'Движения на палети в склад';
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Движение';
+    public $singleTitle = 'Движение на палет в склад';
     
     
     /**
@@ -946,16 +946,6 @@ class rack_Movements extends rack_MovementAbstract
     
     
     /**
-     * След обработка на лист филтъра
-     */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $storeId = store_Stores::getCurrent();
-        $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
-    }
-    
-    
-    /**
      * Екшън за започване на движението
      */
     public function act_Toggle()
@@ -963,10 +953,19 @@ class rack_Movements extends rack_MovementAbstract
         $ajaxMode = Request::get('ajax_mode');
         $action = Request::get('type', 'varchar');
 
+        $cu = core_Users::getCurrent();
+        $url = toUrl(getCurrentUrl(), 'local');
+
+        $resArr = array();
+
         if($ajaxMode){
             if(!$this->haveRightFor($action)){
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
-                return status_Messages::returnStatusesArray();
+
+                wp("RACK: Няма права: {$cu}|{$url}|{$action}");
+                log_System::logDebug("RACK: Няма права: {$cu}|{$url}|{$action}");
+
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             }
         } else {
             $this->requireRightFor($action);
@@ -975,11 +974,26 @@ class rack_Movements extends rack_MovementAbstract
         $id = Request::get('id', 'int');
         $rec = $this->fetch($id);
 
+        $resObj = new stdClass();
+        $resObj->func = 'enableBtn';
+        $resObj->arg = array('moveId' => $rec->id);
+        $resArr[] = $resObj;
+
+        $rId = Request::get('_rid', 'varchar');
+        $ts = Request::get('_ts', 'varchar');
+        $tab = Request::get('_ts', 'varchar');
+
+        rack_Movements::logDebug("RACK TOGGLE '{$rec->id}' -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $rec->id);
+
         // Заключване на екшъна
         if (!core_Locks::obtain("movement{$rec->id}", 120, 0, 0)) {
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
+
+            wp("RACK: друг работи", $cu, $url, $action, $rec);
+            rack_Movements::logDebug("RACK: друг работи: {$cu}|{$url}|{$action}", $rec->id);
+
             if($ajaxMode){
-                return status_Messages::returnStatusesArray();
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             }
             followretUrl(array($this));
         }
@@ -988,25 +1002,46 @@ class rack_Movements extends rack_MovementAbstract
             if(empty($rec)){
                 core_Statuses::newStatus('|Записът вече е изтрит|*!', 'error');
                 core_Locks::release("movement{$rec->id}");
-                
-                return status_Messages::returnStatusesArray();
+
+                $serialize = serialize($rec);
+                wp("RACK: изтрит запис", $cu, $url, $action, $rec);
+                rack_Movements::logDebug("RACK: изтрит запис: {$cu}|{$url}|{$action}|{$serialize}");
+
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             } elseif(!in_array($action, array('start', 'reject', 'load', 'unload'))){
                 core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Невалидна операция|*!', 'error');
-                
-                return status_Messages::returnStatusesArray();
+
+                wp("RACK: невалидна операция", $cu, $url, $action, $rec);
+                rack_Movements::logDebug("RACK: изтрит запис: {$cu}|{$url}|{$action}", $rec->id);
+
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             } elseif(!$this->haveRightFor($action, $rec)){
                 core_Locks::release("movement{$rec->id}");
-                core_Statuses::newStatus('|Нямате права|*!', 'error');
-                
-                return status_Messages::returnStatusesArray();
+
+                // Ако отново се прави опит за стартиране на стартирано движение от същия потребител в рамките на минута да не дава грешка
+                $checkDate = dt::addSecs(180, $rec->modifiedOn);
+                if($action == 'start' && $rec->modifiedBy == $cu && $rec->state == 'active' && dt::now() <= $checkDate){
+                    $rec->modifiedOn = dt::now();
+                    $this->save_($rec, 'modifiedOn');
+                    wp("RACK: Нямате права (2) Мутнато", $cu, $url, $action, $rec, $rId, $ts, $tab);
+                    rack_Movements::logDebug("RACK TOGGLE ERROR: Нямате права (2) Мутнато: {$cu}|{$action}|Rid:{$rId}|ts:{$ts}|tab:{$tab}|{$url}", $rec->id);
+
+                    return self::forwardRefreshUrl();
+                } else {
+
+                    wp("RACK: Нямате права (2)", $cu, $url, $action, $rec, $rId, $ts, $tab);
+                    rack_Movements::logDebug("RACK TOGGLE ERROR: Нямате права (2): {$cu}|{$action}|Rid:{$rId}|ts:{$ts}|tab:{$tab}|{$url}", $rec->id);
+                    core_Statuses::newStatus('|Нямате права|*!', 'error');
+                }
+
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             }
         } else {
             expect($rec);
             core_Locks::release("movement{$rec->id}");
             $this->requireRightFor($action, $rec);
         }
-
 
         $reverse = false;
         if($action == 'start'){
@@ -1042,7 +1077,9 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
                 if($ajaxMode){
                     core_Statuses::newStatus('Движението вече е изтрито', 'error');
-                    return status_Messages::returnStatusesArray();
+                    rack_Movements::logDebug("RACK TOGGLE ERROR {$rec->id} -> '{$action}'", $rec->id);
+
+                    return array_merge($resArr, status_Messages::returnStatusesArray());
                 } else {
                 followretUrl(null, 'Движението вече е изтрито', 'error');
             }
@@ -1066,7 +1103,7 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
                 if($ajaxMode){
                     core_Statuses::newStatus($errorMsg, 'error');
-                    return status_Messages::returnStatusesArray();
+                    return array_merge($resArr, status_Messages::returnStatusesArray());
                 } else {
                     followretUrl(null, $errorMsg, 'error');
                 }
@@ -1083,8 +1120,9 @@ class rack_Movements extends rack_MovementAbstract
         
         // Ако се обновява по Ajax
         if($ajaxMode){
-            
-            return self::forwardRefreshUrl();
+            rack_Movements::logDebug("RACK TOGGLE SUCCESS {$rec->id} -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $rec->id);
+
+            return array_merge($resArr, self::forwardRefreshUrl());
         }
         
         followretUrl(null, $msg, $type);
@@ -1131,23 +1169,46 @@ class rack_Movements extends rack_MovementAbstract
         
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
-        
+
+        $resObj = new stdClass();
+        $resObj->func = 'enableBtn';
+        $resObj->arg = array('moveId' => $rec->id);
+        $resArr[] = $resObj;
+
         // Заключване на екшъна
         if (!core_Locks::obtain("movement{$rec->id}", 120, 0, 0)) {
 
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
             if($ajaxMode){
-                return status_Messages::returnStatusesArray();
+
+                return array_merge($resArr, status_Messages::returnStatusesArray());
             }
 
             followretUrl(array($this));
         }
-        
+
+        $cu = core_Users::getCurrent();
+        $url = toUrl(getCurrentUrl(), 'local');
         if($ajaxMode){
             if(!$this->haveRightFor('done', $rec)){
                 core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
-                return status_Messages::returnStatusesArray();
+
+                $checkDate = dt::addSecs(180, $rec->modifiedOn);
+                if($rec->modifiedBy == $cu && $rec->state == 'closed' && dt::now() <= $checkDate){
+                    $rec->modifiedOn = dt::now();
+                    $this->save_($rec, 'modifiedOn');
+                    wp("RACK: Нямате права (2) Мутнато DONE", $cu, $url, $rec);
+                    rack_Movements::logDebug("RACK: Нямате права (2) Мутнато DONE: {$cu}|{$url}", $rec->id);
+
+                    return array_merge($resArr, self::forwardRefreshUrl());
+                } else {
+                    wp("RACK: Нямате права (2)", $cu, $url, $rec);
+                    rack_Movements::logDebug("RACK: Нямате права (2) DONE: {$cu}|{$url}", $rec->id);
+                    core_Statuses::newStatus('|Нямате права|*!', 'error');
+
+                    return array_merge($resArr, status_Messages::returnStatusesArray());
+                }
             }
         } else {
             $this->requireRightFor('done', $rec);
@@ -1227,8 +1288,8 @@ class rack_Movements extends rack_MovementAbstract
         
         // Ако се обновява по Ajax
         if($ajaxMode){
-            
-            return self::forwardRefreshUrl();
+
+            return array_merge($resArr, self::forwardRefreshUrl());
         }
         
         followretUrl(array($this));
@@ -1620,6 +1681,22 @@ class rack_Movements extends rack_MovementAbstract
             rack_OldMovements::delete("#createdOn <= '{$createdBefore}'");
             rack_Logs::delete("#createdOn <= '{$createdBefore}'");
         }
+
+        // За всяка зона се гледа дали има останало поне едно движение към нея
+        $Zones = cls::get('rack_Zones');
+        $saveZones = array();
+        $zQuery = $Zones->getQuery();
+        while($zRec = $zQuery->fetch()){
+            $zRec->isUsed = 'no';
+            if(rack_OldMovements::fetchField("LOCATE('|{$zRec->id}|', #zoneList)")){
+                $zRec->isUsed = 'yes';
+            }
+            $saveZones[$zRec->id] = $zRec;
+        }
+
+        if(countR($saveZones)){
+            $Zones->saveArray($saveZones, 'id,isUsed');
+        }
     }
     
     
@@ -1696,7 +1773,7 @@ class rack_Movements extends rack_MovementAbstract
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $loadUrl = toUrl($loadUrl, 'local');
-                $row->leftColBtns = ht::createFnBtn('Запазване', '', null, array('class' => 'toggle-movement', 'data-url' => $loadUrl, 'title' => 'Запазване на движението', 'ef_icon' => 'img/16/checkbox_no.png'));
+                $row->leftColBtns = ht::createFnBtn('Запазване', '', null, array('id' => "ajLoad{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $loadUrl, 'title' => 'Запазване на движението', 'ef_icon' => 'img/16/checkbox_no.png', 'data-moveid' => $rec->id));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/checkbox_no.png', '')));
                 $row->leftColBtns = ht::createLink($img, $loadUrl, false, 'title=Запазване на движението');
@@ -1719,7 +1796,7 @@ class rack_Movements extends rack_MovementAbstract
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl($startUrl, 'local');
-                $row->rightColBtns = ht::createFnBtn('Започване', '', $startWarning, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
+                $row->rightColBtns = ht::createFnBtn('Започване', '', $startWarning, array('id' => "ajStart{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png', 'data-moveid' => $rec->id));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
                 $row->rightColBtns = ht::createLink($img, $startUrl, $startWarning, 'title=Започване на движението');
@@ -1732,10 +1809,10 @@ class rack_Movements extends rack_MovementAbstract
                 $doneUrl['currentZoneId'] = $rec->_currentZoneId;
             }
 
-            $row->_rowTools->addLink('Приключване', $doneUrl, array('warning' => $doneWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
+            $row->_rowTools->addLink('Приключване', $doneUrl, array('id' => "done{$rec->id}", 'warning' => $doneWarning, 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $doneUrl = toUrl($doneUrl, 'local');
-                $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('class' => 'toggle-movement', 'data-url' => $doneUrl, 'title' => 'Приключване на движението', 'ef_icon' => 'img/16/gray-close.png'));
+                $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('id' => "ajDone{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $doneUrl, 'title' => 'Приключване на движението', 'ef_icon' => 'img/16/gray-close.png', 'data-moveid' => $rec->id));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
                 $row->rightColBtns .= ht::createLink($img, $doneUrl, $doneWarning, 'title=Приключване на движението');

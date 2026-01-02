@@ -824,7 +824,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             // Какво е вложено до момента в заданието
             $jobRec =  static::getJobRec($rec);
-            $details2 = planning_Jobs::getDefaultProductionDetailsFromConvertedByNow($jobRec);
+            $details2 = planning_Jobs::getDefaultProductionDetailsFromConvertedByNow($jobRec, $rec->valior);
             $details = array();
 
             // Сумират се очакваните детайли по рецепта и реално вложеното
@@ -840,7 +840,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $d2->quantity = 0;
                     }
 
-                    $key = "{$d2->productId}|{$d2->packagingId}|{$d2->type}|{$d2->storeId}";
+                    $key = "{$d2->productId}|{$d2->packagingId}|{$d2->type}|{$d2->storeId}|{$d2->expenseItemId}";
                     $obj = clone $d2;
                     if(!array_key_exists($key, $details)){
                         $obj->quantityExpected = 0;

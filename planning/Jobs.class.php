@@ -2031,10 +2031,11 @@ class planning_Jobs extends core_Master
     /**
      * Кои са разпределените разходи към заданието
      *
-     * @param $id
+     * @param int $id
+     * @param null|string $valior - вальор
      * @return array
      */
-    public static function getAllocatedServices($id)
+    public static function getAllocatedServices($id, $valior = null)
     {
         $jobRec = planning_Jobs::fetchRec($id);
 
@@ -2045,9 +2046,12 @@ class planning_Jobs extends core_Master
         }
         if(!countR($taskExpenseItemIds)) return $res;
 
-        $createdOn = dt::verbal2mysql($jobRec->createdOn, false);
-        $Balance = new acc_ActiveShortBalance(array('from' => $createdOn, 'to' => dt::today(), 'accs' => '60201', 'item1' => $taskExpenseItemIds, 'keepUnique' => true));
+        $to = $valior ?? dt::verbal2mysql($jobRec->createdOn, false);
+        $from = $to;
+
+        $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '60201', 'item1' => $taskExpenseItemIds, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('60201');
+
         if(is_array($bRecs)) {
             foreach ($bRecs as $bRec) {
                     $itemRec = acc_Items::fetch($bRec->ent2Id, 'classId,objectId');
@@ -2069,9 +2073,10 @@ class planning_Jobs extends core_Master
      * Връща детайли отговарящи на вложеното до сега по заданието на протокола за крайния артикул
      *
      * @param mixed $rec
+     * @param null|string $valior
      * @return array $convertedArr
      */
-    public static function getDefaultProductionDetailsFromConvertedByNow($rec)
+    public static function getDefaultProductionDetailsFromConvertedByNow($rec, $valior = null)
     {
         $rec = planning_Jobs::fetchRec($rec);
 
@@ -2122,7 +2127,7 @@ class planning_Jobs extends core_Master
         }
 
         // Кои са всички разпределни услуги по ПО, които са разходни обекти
-        $allocatedProducts = planning_Jobs::getAllocatedServices($rec);
+        $allocatedProducts = planning_Jobs::getAllocatedServices($rec, $valior);
         if(countR($allocatedProducts)){
             foreach ($allocatedProducts as $aRec){
                 $key = "{$aRec->productId}|{$aRec->measureId}|{$aRec->expenseItemId}|61102|";

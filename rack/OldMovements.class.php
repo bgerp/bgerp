@@ -19,13 +19,13 @@ class rack_OldMovements extends rack_MovementAbstract
     /**
      * Заглавие
      */
-    public $title = 'История на движенията';
+    public $title = 'История на движения на палети в склад';
 
 
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'История на движение';
+    public $singleTitle = 'История на движения на палет в склад';
 
 
     /**
@@ -78,16 +78,6 @@ class rack_OldMovements extends rack_MovementAbstract
         $this->FLD('movementId', 'key(mvc=rack_Movements,select=id)', 'caption=Ид');
         parent::setFields($this);
         $this->setDbUnique('movementId');
-    }
-
-
-    /**
-     * След обработка на лист филтъра
-     */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $storeId = store_Stores::getCurrent();
-        $data->title = 'История на движенията на палетите в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
     }
 
 

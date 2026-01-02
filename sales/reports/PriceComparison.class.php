@@ -175,7 +175,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
             //Намиране на ниската цена
             //Ако е избрана някаква себестойност
             if ($rec->policyClassId) {
-                $lowPrice1 = price_ProductCosts::getPrice($pRec->productId, core_Classes::fetch($rec->policyClassId)->name);
+                $lowPrice = price_ProductCosts::getPrice($pRec->productId, core_Classes::fetch($rec->policyClassId)->name);
             }
             if ($rec->priceListLow) {
                 $lowPrice = price_ListRules::getPrice($rec->priceListLow, $pRec->productId, null, dt::today());

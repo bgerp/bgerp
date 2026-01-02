@@ -50,7 +50,7 @@ function posActions() {
 		let type = pressedCardPayment.attr("data-type");
 		let deviceId = pressedCardPayment.attr("data-deviceId");
 
-		doPayment(url, type, 'manual', deviceId);
+		doPayment(url, type, 'manual', deviceId, null);
 		$(".fullScreenCardPayment").css("display", "none");
 	});
 
@@ -690,15 +690,23 @@ function calculateWidth(){
 }
 
 // Направа на плащане
-function doPayment(url, type, value, deviceId){
+function doPayment(url, type, value, deviceId, rate){
 
 	if(!url || !type) return;
 
 	var amount = $("input[name=ean]").val();
 	if(!amount){
 		amount = $("input[name=ean]").attr('data-defaultpayment');
+
+		// превръщаме amount и rate в числа
+		amount = parseFloat(amount);
+		let rateNum = rate !== null ? parseFloat(rate) : null;
+		if (rateNum !== null && !Number.isNaN(rateNum) && !Number.isInteger(rateNum)) {
+			amount = Math.round(amount * rateNum * 100) / 100; // закръгляне до 2 знака
+		}
 	}
-	
+
+	console.log(amount + " - " + rate);
 	var data = {amount:amount, type:type};
 	if(value){
 		data.param = value;
@@ -988,6 +996,7 @@ function pressNavigable(element)
 			let deviceName = element.attr("data-deviceName");
             let subTitle = element.attr('data-modal-subTitle')
 
+
 			console.log('SEND:' + amount + " TO " + deviceUrl + "/ cPort " + comPort);
 			$(".fullScreenCardPayment").css("display", "block");
 			$('.select-input-pos').prop("disabled", true);
@@ -997,8 +1006,11 @@ function pressNavigable(element)
 			window[fncName](amount, deviceUrl, comPort);
 			return;
 		} else {
+			let rate = element.attr("data-rate");
+			rate = (rate === undefined) ? null : rate;
+
 			type = (!type) ? '-1' : type;
-			doPayment(url, type, null, null);
+			doPayment(url, type, null, null, rate);
 			return;
 		}
 	} else if(element.hasClass('contragentRedirectBtn')){
@@ -1089,7 +1101,7 @@ function getAmountRes(res, sendAmount)
 			let deviceId = pressedCardPayment.attr("data-deviceId");
 			let type = element.attr("data-type");
 			console.log("RES IS OK");
-			doPayment(url, type, 'card', deviceId);
+			doPayment(url, type, 'card', deviceId, null);
 		} else {
 			console.log("DIFF AMOUNT");
 			let error = pressedCardPayment.attr("data-diffamount");
