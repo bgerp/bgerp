@@ -895,14 +895,14 @@ class bgerp_Notifications extends core_Manager
         
         if (cls::load($ctr, true)) {
             $clsInst = cls::get($ctr);
-            
-            if (($clsInst instanceof core_Manager) && ($ctr::haveRightFor($act, $dId))) {
+
+            if (($clsInst instanceof core_Manager) && ($clsInst->haveRightFor($act, $dId))) {
                 $folderId = $url['folderId'];
                 $threadId = $url['threadId'];
                 $containerId = $url['containerId'];
                 
                 if ($dId) {
-                    if (is_numeric($dId) && $dRec = $ctr::fetch($dId)) {
+                    if (is_numeric($dId) && $dRec = $clsInst->fetch($dId)) {
                         $folderId = $dRec->folderId;
                         $threadId = $dRec->threadId;
                         $containerId = $dRec->containerId;
