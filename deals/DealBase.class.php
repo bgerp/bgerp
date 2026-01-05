@@ -447,7 +447,7 @@ abstract class deals_DealBase extends core_Master
                 $form->setWarning('closeWith', $countryWarningMsg);
             }
 
-            if (countR($warning) != 1) {
+            if (countR($warning) != 1 && !in_array($rec->currencyId, array('BGN', 'EUR'))) {
                 $form->rec->_recalRate = true;
                 $form->setWarning('closeWith,rate', 'Всички избрани договори ще бъдат преизчислени по курса на новия договор (при необходимост - въведете ръчно друг курс)');
                 $form->setField('rate', 'input');
