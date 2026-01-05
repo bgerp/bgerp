@@ -604,9 +604,9 @@ class bgfisc_plg_Receipts extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
         if (empty($rec->revertId)){
-            $regRec = bgfisc_Register::createUrn($mvc, $rec->id, true);
+            bgfisc_Register::createUrn($mvc, $rec->id, true);
         } elseif($rec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT){
-            $regRec = bgfisc_Register::createUrn($mvc, $rec->id, false);
+            bgfisc_Register::createUrn($mvc, $rec->id);
         }
     }
     
