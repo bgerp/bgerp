@@ -1078,7 +1078,8 @@ class rack_Zones extends core_Master
     {
         if($data->isTerminal){
             $data->listTableMvc->commonRowClass = 'zonesCommonRow zoneLighter';
-            unset($data->listFields['_rowTools']);
+            unset($data->listFields['isUsed']);
+
         }
         $data->listTableMvc->setFieldType('num', 'varchar');
     }
