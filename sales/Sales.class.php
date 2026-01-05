@@ -1586,7 +1586,8 @@ class sales_Sales extends deals_DealMaster
             }
 
             $accountRec = bank_Accounts::fetch($rec->bankAccountId);
-            if(currency_Currencies::getIdByCode($rec->currencyId) != $accountRec->currencyId){
+            $accountCurrencyId = $accountRec->currencyId == currency_Currencies::getIdByCode('BGN') ? ($rec->valior <= acc_Setup::getEurozoneDate() ? 'BGN' : 'EUR') : currency_Currencies::getCodeById($accountRec->currencyId);
+            if($rec->currencyId != $accountCurrencyId){
                 $errorStr = (!empty($errorStr) ? "{$errorStr} " : "") . '|Банковата сметка е в различна валута от тази на сделката|*!';
             }
             if(!empty($errorStr) && $rec->paymentType != 'cash'){
