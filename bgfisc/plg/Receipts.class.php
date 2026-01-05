@@ -438,7 +438,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
                     $discountVal = round($discountVal, $fiscFuRound);
                     $discountVal = number_format($discountVal, $fiscFuRound, '.', '');
-                    $fiscalArr['END_TEXT'][] = "Обща отстъпка: {$discountVal}лв";
+                    $fiscalArr['END_TEXT'][] = "Обща отстъпка: {$discountVal} евро";
                 }
 
                 if($rec->voucherId){
