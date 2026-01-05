@@ -748,12 +748,13 @@ class store_ShipmentOrders extends store_DocumentMaster
         $tQuery->where("#docClassId = {$firstDoc->getClassId()} AND #docId = {$firstDoc->that}");
         $tQuery->EXT('productId', 'sales_SalesDetails', 'externalKey=recId');
         $tQuery->EXT('quantity', 'sales_SalesDetails', 'externalKey=recId');
-
         while ($tRec = $tQuery->fetch()) {
             if (!array_key_exists($tRec->productId, $tRecs)) {
                 $tRecs[$tRec->productId] = (object)array('productId' => $tRec->productId);
             }
-            $tRecs[$tRec->productId]->fee += $tRec->fee;
+            $Doc = cls::get($tRec->docClassId);
+            $valior = $Doc->fetchField($tRec->docId, $Doc->valiorFld);
+            $tRecs[$tRec->productId]->fee += deals_Helper::getSmartBaseCurrency($tRec->fee, $valior, $rec->valior);
             $tRecs[$tRec->productId]->quantity += $tRec->quantity;
         }
 
@@ -769,7 +770,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
         }
 
-        $hiddenTransport = round($hiddenTransport, 2);
+        $hiddenTransport = round($hiddenTransport / $rec->currencyRate, 2);
         if (!empty($hiddenTransport)) {
             $res['hiddenTransport'] = $hiddenTransport;
         }
