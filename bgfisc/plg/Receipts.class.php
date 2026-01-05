@@ -438,7 +438,7 @@ class bgfisc_plg_Receipts extends core_Plugin
                     $fiscFuRound = bgfisc_Setup::get('PRICE_FU_ROUND');
                     $discountVal = round($discountVal, $fiscFuRound);
                     $discountVal = number_format($discountVal, $fiscFuRound, '.', '');
-                    $fiscalArr['END_TEXT'][] = "Обща отстъпка: {$discountVal}лв";
+                    $fiscalArr['END_TEXT'][] = "Обща отстъпка: {$discountVal} евро";
                 }
 
                 if($rec->voucherId){
@@ -604,9 +604,9 @@ class bgfisc_plg_Receipts extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
         if (empty($rec->revertId)){
-            $regRec = bgfisc_Register::createUrn($mvc, $rec->id, true);
+            bgfisc_Register::createUrn($mvc, $rec->id, true);
         } elseif($rec->revertId == pos_Receipts::DEFAULT_REVERT_RECEIPT){
-            $regRec = bgfisc_Register::createUrn($mvc, $rec->id, false);
+            bgfisc_Register::createUrn($mvc, $rec->id);
         }
     }
     
