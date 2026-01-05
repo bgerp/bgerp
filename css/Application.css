@@ -8160,13 +8160,10 @@ tr.workInProgressBatchRow .workInProgressProductColName {
 tr.workInProgressBatchRow {
   font-size: 0.9em; }
 
-.currencySignNextToAmount {
-  1display: inline-block;
+.products-table .currencySignNextToAmount {
+  display: inline-block;
   min-width: 1.5em;
   text-align: left; }
-
-.priceListHolder .currencySignNextToAmount {
-  min-width: auto; }
 
 /*
  * 
