@@ -446,18 +446,13 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
      */
     public function isCurrencySupported($rec, $currencyCode)
     {
-        if ($currencyCode == 'BGN') {
-            
-            return true;
-        }
-        
+        if ($currencyCode == 'EUR') return true;
+        if ($currencyCode == 'BGN' && dt::today() <= acc_Setup::getBgnDeprecationDate()) return true;
+
         $normalizedPaymentNames = $this->getNormalizedPaymentNames($rec);
-        $currencyCode = plg_Search::normalizeText($currencyCode);
+        $currencyName = plg_Search::normalizeText($currencyCode);
         
-        if ($normalizedPaymentNames[$currencyCode] == 11) {
-            
-            return true;
-        }
+        if (array_key_exists($currencyName, $normalizedPaymentNames)) return true;
         
         return false;
     }
@@ -662,7 +657,7 @@ abstract class tremol_FiscPrinterDriverParent extends peripheral_DeviceDriver
         
         $len -= $this->mLen;
         
-        $form->FLD('amount', 'double(min=0)', 'caption=Сума, mandatory, unit=лв.');
+        $form->FLD('amount', 'double(min=0)', 'caption=Сума, mandatory, unit=€');
         $form->FLD('text', "varchar({$len})", 'caption=Текст');
         $form->FLD('printAvailability', 'enum(yes=Да,no=Не)', 'caption=Отпечатване на->Наличност');
         
