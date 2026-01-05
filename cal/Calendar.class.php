@@ -981,7 +981,6 @@ class cal_Calendar extends core_Master
         $query->likeKeylist('users', $userId);
         $query->in('type', $typeArr);
         $query->limit(1);
-        $query->show('id');
         $rec = $query->fetch();
 
         if ($rec) {
