@@ -172,9 +172,11 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
                 $dQuery = cash_NonCashPaymentDetails::getQuery();
                 $dQuery->where("#classId = {$this->class->getClassId()} AND #objectId = '{$rec->id}'");
 
+                $cCode = currency_Currencies::getCodeById($rec->currencyId);
                 while ($dRec = $dQuery->fetch()) {
                     $baseAmount = $dRec->amount;
-                    $dRec->amount = cond_Payments::toBaseCurrency($dRec->paymentId, $baseAmount, $rec->valior);
+                    $dRec->amount = currency_CurrencyRates::convertAmount($baseAmount, $rec->valior, $cCode);
+
                     $dRec->amount /= $rec->rate;
                     $amount = round($dRec->amount * $rec->rate, 2);
 
@@ -184,7 +186,7 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
                         'debit' => array('502',
                             array('cash_Cases', $rec->peroCase),
                             array('cond_Payments', $dRec->paymentId),
-                            'quantity' => $sign * round($baseAmount, 2)),
+                            'quantity' => $sign * $amount),
                         'credit' => array($rec->debitAccount,
                             array('cash_Cases', $rec->peroCase),
                             array('currency_Currencies', $rec->currencyId),
