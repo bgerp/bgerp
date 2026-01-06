@@ -169,7 +169,6 @@ class bulmar_InvoiceExport extends core_Manager
             $csvRecs = self::getRecsFromCsv($filter);
             if(countR($csvRecs)){
                 $recs += $csvRecs;
-
             }
         }
 
@@ -475,7 +474,7 @@ class bulmar_InvoiceExport extends core_Manager
         $i = 0;
         foreach ($csvRows as $row) {
             if($row[$filter->stateCol] == 'active' || $row[$filter->stateCol] == 'active & rejected'){
-                $nRec = (object) array('type' => $row[$filter->typeCol], 'date' => $row[$filter->dateCol], 'currencyId' => $row[$filter->currencyCol], 'contragentName' => $row[$filter->contragentNameCol], 'place' => $row[$filter->placeCol], 'contragentVatNo' => $row[$filter->vatIdCol], 'uiNo' => $row[$filter->uicCol], 'paymentType' => $row[$filter->paymentCol]);
+                $nRec = (object) array('type' => $row[$filter->typeCol], 'date' => $row[$filter->dateCol], 'currencyId' => $row[$filter->currencyCol], 'contragentName' => $row[$filter->contragentNameCol], 'place' => $row[$filter->placeCol], 'contragentVatNo' => $row[$filter->vatIdCol], 'uicNo' => $row[$filter->uicCol], 'paymentType' => $row[$filter->paymentCol]);
                 $nRec->number = str_pad($row[$filter->numberCol], 10, '0', STR_PAD_LEFT);
                 $nRec->dealValue = $row[$filter->amountCol];
                 $nRec->vatAmount = $row[$filter->vatCol];
