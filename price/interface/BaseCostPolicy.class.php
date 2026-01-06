@@ -76,10 +76,10 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
         if ($withDelivery === true) {
             $pQuery->EXT('threadId', 'purchase_Purchases', 'externalName=threadId,externalKey=requestId');
             $pQuery->where('#amountDelivered IS NOT NULL AND #amountDelivered != 0');
-            $pQuery->show('price,productId,threadId,requestId,containerId,quantity');
+            $pQuery->show('price,productId,threadId,requestId,containerId,quantity,valior');
         } else {
             $pQuery->where('#amountDelivered IS NULL OR #amountDelivered = 0');
-            $pQuery->show('price,productId,requestId,quantity,containerId');
+            $pQuery->show('price,productId,requestId,quantity,containerId,valior');
         }
         
         if(countR($productKeys)){
