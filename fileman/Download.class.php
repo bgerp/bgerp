@@ -259,10 +259,12 @@ class fileman_Download extends core_Manager
 
                 archive_Adapter::compressFile($tFile, $downloadPath);
             } catch (Exception $e) {
+                reportException($e);
                 fileman::deleteTempPath($tFile);
                 @unlink($tFile);
                 expect(false);
             } catch (Throwable $t) {
+                reportException($t);
                 fileman::deleteTempPath($tFile);
                 @unlink($tFile);
                 expect(false);
