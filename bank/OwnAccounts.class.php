@@ -847,11 +847,10 @@ class bank_OwnAccounts extends core_Master
 
         $euroQuantity = round(abs($bgnBalanceQuantity) / 1.95583, 2);
 
-        $today = dt::today();
         if($bgnBalanceQuantity > 0){
-            $exchangeRec = bank_ExchangeDocument::create($rec->id, $rec->id, $today, $bgnCurrencyId, abs($bgnBalanceQuantity), $eurCurrencyId, $euroQuantity, 'Изчистване на левово салдо за преминаването в еврозоната');
+            $exchangeRec = bank_ExchangeDocument::create($rec->id, $rec->id, '2026-01-01', $bgnCurrencyId, abs($bgnBalanceQuantity), $eurCurrencyId, $euroQuantity, 'Изчистване на левово салдо за преминаването в еврозоната');
         } else {
-            $exchangeRec = bank_ExchangeDocument::create($rec->id, $rec->id, $today, $eurCurrencyId, $euroQuantity, $bgnCurrencyId, abs($bgnBalanceQuantity), 'Изчистване на левово салдо за преминаването в еврозоната');
+            $exchangeRec = bank_ExchangeDocument::create($rec->id, $rec->id, '2026-01-01', $eurCurrencyId, $euroQuantity, $bgnCurrencyId, abs($bgnBalanceQuantity), 'Изчистване на левово салдо за преминаването в еврозоната');
         }
 
         return $exchangeRec;
