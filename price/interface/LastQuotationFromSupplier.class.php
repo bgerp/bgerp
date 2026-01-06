@@ -47,7 +47,7 @@ class price_interface_LastQuotationFromSupplier extends price_interface_BaseCost
      * @return array
      */
     public function getAffectedProducts($datetime)
-    {$datetime = '2021-06-06';
+    {
         // Участват артикулите в активирани или оттеглени активни покупки, след посочената дата
         $pQuery = purchase_QuotationDetails::getQuery();
         $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
