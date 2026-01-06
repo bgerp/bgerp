@@ -385,16 +385,20 @@ abstract class deals_DealBase extends core_Master
                 }
             }
 
+            $beforeEu = $afterEu = 0;
             $err = $closedDeals = $threads = $warning = array();
             $warning[$rec->currencyRate] = $rec->currencyRate;
+            $rec->valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
+
             $deals1 = keylist::toArray($form->rec->closeWith);
             $CloseDoc = cls::get($this->closeDealDoc);
 
             $dealCountries = array();
             foreach ($deals1 as $d1) {
-                $dealRec = $this->fetch($d1, 'threadId,currencyRate');
+                $dealRec = $this->fetch($d1, 'threadId,currencyRate,valior');
                 $dealItemRec = acc_Items::fetchItem($this, $dealRec->id);
                 $exClosedDoc = $CloseDoc->fetch("#threadId = {$dealRec->threadId} AND #state = 'active'");
+                $dealRec->valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
 
                 $logisticData = $this->getLogisticData($d1);
                 if(isset($logisticData['toCountry'])){
@@ -420,6 +424,10 @@ abstract class deals_DealBase extends core_Master
             if (countR($closedDeals)) {
                 $msg = '|Следните ' . mb_strtolower($this->title) . ' са вече затворени|*: ' . implode(',', $closedDeals);
                 $form->setError('closeWith', $msg);
+            }
+
+            if($beforeEu && $afterEu) {
+                $form->setError('closeWith', "Не може да обядинявате документи с вальор преди влизането в еврозоната с такива след след нея|*!");
             }
 
             $countryWarningMsg = array();
