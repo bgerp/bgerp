@@ -390,7 +390,7 @@ class archive_Adapter
      *   -y / -y-           (yes / no)
      *   -bd -bso0 -bsp0    (extras)
      */
-    public static function compressFileNew(string $src, string $dest, ?string $pass = null, string $options = ''): int
+    public static function compressFileNew(string $src, string $dest, $pass = null, string $options = ''): int
     {
         $opt = self::parse7zOptions($options);
 
@@ -480,7 +480,7 @@ class archive_Adapter
      *   - yes: bool (default: true)
      *   - extra: string[] (default: []) allowlisted extra args
      */
-    public static function compressFileEx(string $src, string $dest, ?string $pass = null, array $opt = []): int
+    public static function compressFileEx(string $src, string $dest, $pass = null, array $opt = []): int
     {
         $tSrc = rtrim($src, '*');
         if (!(file_exists($tSrc) || is_dir($tSrc))) {
@@ -566,7 +566,7 @@ class archive_Adapter
     }
 
 
-    public static function uncompressNew(string $src, string $dir, ?string $pass = null, string $options = ''): int
+    public static function uncompressNew(string $src, string $dir, $pass = null, string $options = ''): int
     {
         $opt = self::parse7zUncompressOptions($options);
         return self::uncompressEx($src, $dir, $pass, $opt);
@@ -578,7 +578,7 @@ class archive_Adapter
      *
      * Default: flatten extract (NO directories) to reduce Zip Slip / path traversal risk.
      */
-    public static function uncompressEx(string $src, string $dir, ?string $pass = null, array $opt = []): int
+    public static function uncompressEx(string $src, string $dir, $pass = null, array $opt = []): int
     {
         if (!file_exists($src) || !is_readable($src)) {
             throw new RuntimeException("Missing or unreadable archive: {$src}");
