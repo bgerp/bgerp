@@ -58,7 +58,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         );
 
         //Праг за минимална просрочена сума за показване
-        $fieldset->FLD('minOverdueLevev', 'double', 'caption=Филтри->Без просрочените под,unit=лв,after=countryGroup,placeholder=0.00,silent,single=none');
+        $fieldset->FLD('minOverdueLevel', 'double', 'caption=Филтри->Без просрочените под,unit= евро,after=countryGroup,placeholder=0.00,silent,single=none');
 
 
         $fieldset->FLD('listForEmail', 'blob', 'caption=Списък за имейл,single=none,after=countryGroup,input=hidden');
@@ -192,6 +192,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                     // фактура от нишката и масив от платежни документи по тази фактура//
                     foreach ($invoicePayments as $inv => $paydocs) {
 
+                        //Превалутиране на сумите
+                        $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate);
+                        $paydocs->amount = deals_Helper::getSmartBaseCurrency($paydocs->amount, $paydocs->date, $rec->checkDate);
+
                         $invoiceCurrentSumm = 0;
 
                         if (($paydocs->payout >= $paydocs->amount - 0.01) &&
@@ -236,7 +240,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                         list($limit1) = $limits->limit1;
                         list($limit2) = $limits->limit2;
 
-                        if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > $rec->minOverdueLevev &&
+                        if ($iRec->dueDate && ($paydocs->amount - $paydocs->payout) > $rec->minOverdueLevel &&
                             $iRec->dueDate < $checkDate) {
                             $overdueDays = dt::daysBetween($checkDate, $iRec->dueDate);
 
@@ -284,7 +288,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 'currencyId' => $iRec->currencyId,
                                 'rate' => $iRec->rate,
                                 'invoiceValue' => $paydocs->amount,
-                                'invoiceVAT' => $iRec->vatAmount,
+                                'invoiceVAT' => deals_Helper::getSmartBaseCurrency($iRec->vatAmount, $iRec->date, $rec->checkDate),
                                 'invoicePayout' => $paydocs->payout,
                                 'invoiceCurrentSumm' => $paydocs->amount - $paydocs->payout,
                                 'invoiceCurrentSummArr' => $invoiceCurrentSummArr,
@@ -614,7 +618,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $fieldTpl->append($Date->toVerbal($checkDate), 'checkDate');
 
 
-        $baseCurrency = acc_Periods::getBaseCurrencyCode();
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
 
         if (isset($data->rec->salesTotalOverDue)) {
             $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalOverDue) . " $baseCurrency", 'salesTotalOverDue');

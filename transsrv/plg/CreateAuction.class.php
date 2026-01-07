@@ -24,7 +24,6 @@ class transsrv_plg_CreateAuction extends core_Plugin
     {
         $rec = $data->rec;
 
-       
         if ($systemId = remote_Authorizations::getSystemId(transsrv_Setup::get('BID_DOMAIN'))) {
             if ($mvc->haveRightFor('createauction', $rec)) {
 

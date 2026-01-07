@@ -200,18 +200,18 @@ class core_Cls
      * @return object
      */
     public static function &get($class, $initArr = null)
-    {
+    { 
         $class = cls::getClassName($class);
         
         cls::load($class);
         
-        if (cls::isSingleton($class)) {
+        if (cls::isSingleton($class)) { 
             if (!isset(core_Cls::$singletons[$class])) {
                 core_Cls::$singletons[$class] = new stdClass();
                 core_Cls::$singletons[$class] = cls::createObject($class, $initArr);
                 
                 // Ако класа е наследник на core_BaseClass предизвикваме събитие, че е бил инстанциран
-                if (core_Cls::$singletons[$class] instanceof core_BaseClass) {
+                if (core_Cls::$singletons[$class] instanceof core_BaseClass) { 
                     core_Cls::$singletons[$class]->invoke('AfterInstance');
                 }
             }
@@ -251,7 +251,7 @@ class core_Cls
             if (is_a($Plugins, 'core_Plugins')) {
                 try {
                     $Plugins->attach($obj);
-                } catch (core_exception_Expect $e) {
+                } catch (Throwable $e) {
                 }
             }
         }

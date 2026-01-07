@@ -103,6 +103,25 @@ class bulmar_InvoiceExport extends core_Manager
 
         $form->FLD('from', 'date', 'caption=От,mandatory');
         $form->FLD('to', 'date', 'caption=До,mandatory');
+
+        $form->FLD('csvFile', 'fileman_FileType(bucket=bnav_importCsv)', 'width=100%,caption=Импорт от CSV->CSV файл,autohide=any');
+        $form->FLD('delimiter', 'varchar(1,size=5)', 'width=100%,caption=Импорт от CSV->Разделител,maxRadio=5,placeholder=Автоматично,autohide=any');
+        $form->FLD('enclosure', 'varchar(1,size=3)', 'width=100%,caption=Импорт от CSV->Ограждане,placeholder=Автоматично,autohide=any');
+        $form->FLD('firstRow', 'enum(,data=Данни,columnNames=Имена на колони)', 'width=100%,caption=Импорт от CSV->Първи ред,placeholder=Автоматично,autohide=any');
+
+        $form->setSuggestions('delimiter', array('' => '', ',' => ',', ';' => ';', ':' => ':', '|' => '|', '\t' => 'Таб'));
+        $form->setSuggestions('enclosure', array('' => '', '"' => '"', '\'' => '\''));
+        $form->setDefault('delimiter', ',');
+        $form->setDefault('enclosure', '"');
+
+        $i = 1;
+        $csvFields = array('numberCol' => 'Номер', 'paymentCol' => 'Плащане', 'stateCol' => 'Статус', 'typeCol' => 'Вид', 'dateCol' => 'Дата', 'placeCol' => 'Място', 'contragentNameCol' => 'Контрагент', 'vatIdCol' => 'ДДС №', 'uicCol' => 'ЕИК', 'currencyCol' => 'Валута', 'amountCol' => 'Сума без ДДС', 'vatCol' => 'ДДС', 'totalCol' => 'Общо');
+        foreach ($csvFields as $colName => $colValue) {
+            $form->FLD($colName, 'int', "caption=Импорт от CSV->{$colValue},unit=колона,autohide=any");
+            $form->setSuggestions($colName, array(1 => 1,2 => 2,3 => 3,4 => 4,5 => 5,6 => 6,7 => 7, 8 => 8, 9 => 9, 10 => 10, 11 => 11, 12 => 12));
+            $form->setDefault($colName, $i);
+            $i++;
+        }
     }
     
     
@@ -146,8 +165,16 @@ class bulmar_InvoiceExport extends core_Manager
             }
         }
 
+        if(!empty($filter->csvFile)){
+            $csvRecs = self::getRecsFromCsv($filter);
+            if(countR($csvRecs)){
+                $recs += $csvRecs;
+            }
+        }
+
         if (!countR($recs)) return;
-        
+
+        core_App::setTimeLimit(0.4 * countR($recs), false, 300);
         $data = $this->prepareExportData($recs, $filter);
         $content = $this->prepareFileContent($data);
         $content = iconv('utf-8', 'CP1251', $content);
@@ -169,7 +196,6 @@ class bulmar_InvoiceExport extends core_Manager
 
         $data->static = $this->getStaticData($filter);
         $data->recs = array();
-        
         $count = 0;
         foreach ($recs as $rec) {
             $count++;
@@ -187,8 +213,8 @@ class bulmar_InvoiceExport extends core_Manager
     {
         $nRec = new stdClass();
         $nRec->contragent = $rec->contragentName;
-        $nRec->invNumber = $this->Invoices->getVerbal($rec, 'number');
-        
+        $nRec->invNumber = ($rec->_isVirtual) ? $rec->number : $this->Invoices->getVerbal($rec, 'number');
+
         $nRec->date = dt::mysql2verbal($rec->date, 'd.m.Y');
         $nRec->num = $count;
         if ($rec->type == 'dc_note') {
@@ -203,31 +229,35 @@ class bulmar_InvoiceExport extends core_Manager
         if ($rec->dpOperation == 'deducted') {
             $baseAmount += abs($rec->dpAmount);
         }
-        
+
         $byProducts = $byServices = 0;
-        $dQuery = sales_InvoiceDetails::getQuery();
-        $dQuery->where("#invoiceId = {$rec->id}");
-        $details = $dQuery->fetchAll();
-        
-        if($rec->type != 'invoice'){
-            sales_InvoiceDetails::modifyDcDetails($details, $rec, cls::get('sales_InvoiceDetails'));
-        }
-        
-        $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
-        
-        foreach ($details as $dRec) {
-            if (empty($this->cache[$dRec->productId])) {
-                $this->cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
+        if(!$rec->_isVirtual){
+            $dQuery = sales_InvoiceDetails::getQuery();
+            $dQuery->where("#invoiceId = {$rec->id}");
+            $details = $dQuery->fetchAll();
+
+            if($rec->type != 'invoice'){
+                sales_InvoiceDetails::modifyDcDetails($details, $rec, cls::get('sales_InvoiceDetails'));
             }
-            
-            $pInfo = $this->cache[$dRec->productId];
-            $dRec->amount = round($dRec->packPrice * $dRec->quantity, $vatDecimals);
-            
-            if (empty($pInfo->meta['canStore'])) {
-                $byServices += $dRec->amount * (1 - $dRec->discount);
-            } else {
-                $byProducts += $dRec->amount * (1 - $dRec->discount);
+
+            $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
+
+            foreach ($details as $dRec) {
+                if (empty($this->cache[$dRec->productId])) {
+                    $this->cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
+                }
+
+                $pInfo = $this->cache[$dRec->productId];
+                $dRec->amount = round($dRec->packPrice * $dRec->quantity, $vatDecimals);
+
+                if (empty($pInfo->meta['canStore'])) {
+                    $byServices += $dRec->amount * (1 - $dRec->discount);
+                } else {
+                    $byProducts += $dRec->amount * (1 - $dRec->discount);
+                }
             }
+        } else {
+            $byProducts += $rec->dealValue;
         }
 
         if ($byServices != 0 && $byProducts == 0) {
@@ -263,16 +293,18 @@ class bulmar_InvoiceExport extends core_Manager
             $nRec->amountPaid = $nRec->amount;
             
             // Ако към ф-та има ПКО и ВКТ за инкасиране на банково плащане да не се води като платена в брой
-            $pkoQuery = cash_Pko::getQuery();
-            $pkoQuery->where("#state = 'active' AND #fromContainerId = {$rec->containerId}");
-            $pkoQuery->show('containerId');
-            $pkos = arr::extractValuesFromArray($pkoQuery->fetchAll(), 'containerId');
-            if(countR($pkos)){
-                $cQuery = cash_InternalMoneyTransfer::getQuery();
-                $cQuery->where("#state = 'active' AND #operationSysId = 'nonecash2bank'");
-                $cQuery->in('sourceId', $pkos);
-                if($cQuery->count()){
-                    unset($nRec->amountPaid);
+            if(!$rec->_isVirtual){
+                $pkoQuery = cash_Pko::getQuery();
+                $pkoQuery->where("#state = 'active' AND #fromContainerId = {$rec->containerId}");
+                $pkoQuery->show('containerId');
+                $pkos = arr::extractValuesFromArray($pkoQuery->fetchAll(), 'containerId');
+                if(countR($pkos)){
+                    $cQuery = cash_InternalMoneyTransfer::getQuery();
+                    $cQuery->where("#state = 'active' AND #operationSysId = 'nonecash2bank'");
+                    $cQuery->in('sourceId', $pkos);
+                    if($cQuery->count()){
+                        unset($nRec->amountPaid);
+                    }
                 }
             }
         } elseif($rec->paymentType == 'card'){
@@ -291,7 +323,7 @@ class bulmar_InvoiceExport extends core_Manager
                 $nRec->productsAmount = $nRec->baseAmount - $nRec->servicesAmount;
             }
         }
-       
+
         return $nRec;
     }
     
@@ -423,5 +455,36 @@ class bulmar_InvoiceExport extends core_Manager
         $name = "invoices{$timestamp}.txt";
         
         return $name;
+    }
+
+
+    /**
+     * Филтрира данните от csv
+     *
+     * @param $filter
+     * @return array
+     */
+    public static function getRecsFromCsv($filter)
+    {
+        $res = array();
+
+        $csvRows = csv_Lib::getCsvRowsFromFile(fileman::extractStr($filter->csvFile), array('delimiter' => $filter->delimiter, 'enclosure' => $filter->enclosure, 'firstRow' => $filter->firstRow));
+        $csvRows = $csvRows['data'];
+
+        $i = 0;
+        foreach ($csvRows as $row) {
+            if($row[$filter->stateCol] == 'active' || $row[$filter->stateCol] == 'active & rejected'){
+                $nRec = (object) array('type' => $row[$filter->typeCol], 'date' => $row[$filter->dateCol], 'currencyId' => $row[$filter->currencyCol], 'contragentName' => $row[$filter->contragentNameCol], 'place' => $row[$filter->placeCol], 'contragentVatNo' => $row[$filter->vatIdCol], 'uicNo' => $row[$filter->uicCol], 'paymentType' => $row[$filter->paymentCol]);
+                $nRec->number = str_pad($row[$filter->numberCol], 10, '0', STR_PAD_LEFT);
+                $nRec->dealValue = $row[$filter->amountCol];
+                $nRec->vatAmount = $row[$filter->vatCol];
+                $nRec->_isVirtual = true;
+                $nRec->id = 100000 + $i;
+                $res[$nRec->number] = $nRec;
+                $i++;
+            }
+        }
+
+        return $res;
     }
 }
