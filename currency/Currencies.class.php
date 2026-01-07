@@ -245,23 +245,6 @@ class currency_Currencies extends core_Master
 
 
     /**
-     * След подготовка на записите
-     */
-    public static function on_AfterPrepareListRecs($mvc, &$res, $data)
-    {
-        $bgnRate = $mvc->fetchField(array("#code = '[#1#]'", acc_Setup::getDefaultCurrencyCode(), 'lastRate'));
-
-        if (!$bgnRate) return;
-
-        foreach ((array)$data->recs as $rec) {
-            if (!$rec->lastRate) continue;
-
-            $rec->lastRate = $bgnRate / $rec->lastRate;
-        }
-    }
-
-
-    /**
      * Преди рендиране на детайлите
      */
     public static function on_BeforeRenderDetails($mvc, $res, &$data)
