@@ -54,7 +54,7 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
             
                 if($rec->operationSysId == 'nonecash2case'){
                     $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
-                    $creditArr['quantity'] = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
+                    $creditArr['quantity'] = round(currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode), 2);
                 }
         }
         
