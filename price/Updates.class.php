@@ -548,7 +548,6 @@ class price_Updates extends core_Manager
         $now = dt::now();
         $query = $this->getQuery();
 
-
         // За всеки
         while ($rec = $query->fetch()) {
             try {
