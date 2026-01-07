@@ -1039,6 +1039,14 @@ class acc_plg_Contable extends core_Plugin
 
                 redirect(array($mvc, 'single', $rec->id), false, $currencyError, 'error');
             }
+
+            if($mvc->currencyFld && isset($rec->{$mvc->currencyFld})){
+                if(acc_Periods::getBaseCurrencyCode($rec->createdOn) != acc_Periods::getBaseCurrencyCode($rec->valior)){
+                    redirect(array($mvc, 'single', $rec->id), false, 'Не може да се контира документ създаден преди Еврозоната с вальор след нея|*!', 'error');
+                }
+            }
         }
+
+
     }
 }
