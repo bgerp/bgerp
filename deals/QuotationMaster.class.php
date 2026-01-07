@@ -1384,7 +1384,7 @@ abstract class deals_QuotationMaster extends core_Master
         }
 
         // За всеки детайл на офертата подаваме го като детайл на сделката
-        $saleRec = sales_Sales::fetchRec($sId);
+        $saleRec = $DealClass->fetch($sId);
         foreach ($items as $item) {
             // Ако основната валута е сменена - прави се преизчисляване
             if(dt::today() >= acc_Setup::getEurozoneDate()){
