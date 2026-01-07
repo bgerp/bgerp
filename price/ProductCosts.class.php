@@ -227,7 +227,10 @@ class price_ProductCosts extends core_Manager
                 if($count){
                     core_App::setTimeLimit($count * 0.5, false,60);
                     core_Debug::startTimer("CALC COSTS {$policyId}");
+                    Mode::push('primeDatetime', $datetime);
                     $calced = $Interface->calcCosts($affectedProducts);
+                    Mode::pop('primeDatetime');
+
                     core_Debug::stopTimer("CALC COSTS {$policyId}");
                     $update = array_merge($update, $calced);
                 }
