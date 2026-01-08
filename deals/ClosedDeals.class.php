@@ -859,7 +859,7 @@ abstract class deals_ClosedDeals extends core_Master
                 $firstDocRec = $firstDoc->fetch('currencyId,amountPaid');
                 $isInForeignCurrency = $biggestValior < acc_Setup::getEurozoneDate() ? ($firstDocRec->currencyId != 'BGN') : ($firstDocRec->currencyId != 'EUR');
 
-                if($isInForeignCurrency != 'BGN' && !empty($firstDocRec->amountPaid)){
+                if($isInForeignCurrency && !empty($firstDocRec->amountPaid)){
 
                     // Ако се приключва продажба проверката ще се прави САМО ако няма обратни платежни документи
                     if($firstDoc->isInstanceOf('sales_Sales')){
