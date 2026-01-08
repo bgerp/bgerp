@@ -1133,6 +1133,10 @@ abstract class deals_QuotationMaster extends core_Master
                         if($DealClassName == 'sales_Sales'){
                             $tRec = sales_TransportValues::get($this, $id, $dRec->id);
                             if (isset($tRec->fee)) {
+                                if($tRec->fee > 0){
+                                    $tRec->fee = deals_Helper::getSmartBaseCurrency($tRec->fee, $rec->date, $saleRec->valior);
+                                }
+
                                 sales_TransportValues::sync($DealClassName, $sId, $addedRecId, $tRec->fee, $tRec->deliveryTime, $tRec->explain);
                             }
                         }
@@ -1534,7 +1538,7 @@ abstract class deals_QuotationMaster extends core_Master
      * Функция, която се извиква преди активирането на документа
      *
      * @param core_Mvc $mvc
-     * @param stdClass $rec
+     * @param stdClass $res
      */
     protected static function on_BeforeActivation($mvc, $res)
     {
