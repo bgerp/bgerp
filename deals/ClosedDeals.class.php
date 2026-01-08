@@ -852,9 +852,14 @@ abstract class deals_ClosedDeals extends core_Master
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if($firstDoc->isInstanceOf('deals_DealMaster')){
 
+                $skipClasses = array(acc_RatesDifferences::getClassId());
+                $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
+
                 // Ако се приключва сделка с валута различна от BGN и EUR
                 $firstDocRec = $firstDoc->fetch('currencyId,amountPaid');
-                if($firstDocRec->currencyId != 'BGN' && !empty($firstDocRec->amountPaid)){
+                $isInForeignCurrency = $biggestValior < acc_Setup::getEurozoneDate() ? ($firstDocRec->currencyId != 'BGN') : ($firstDocRec->currencyId != 'EUR');
+
+                if($isInForeignCurrency != 'BGN' && !empty($firstDocRec->amountPaid)){
 
                     // Ако се приключва продажба проверката ще се прави САМО ако няма обратни платежни документи
                     if($firstDoc->isInstanceOf('sales_Sales')){
@@ -862,9 +867,6 @@ abstract class deals_ClosedDeals extends core_Master
                         $countSbds = bank_SpendingDocuments::count("#threadId = {$rec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
                         if(!$countRko && !$countSbds) return;
                     }
-
-                    $skipClasses = array(acc_RatesDifferences::getClassId());
-                    $biggestValior = $mvc->getBiggestValiorInDeal($rec, $skipClasses);
 
                     $setupClass = $firstDoc->isInstanceOf('sales_Sales') ? 'sales_Setup' : 'purchase_Setup';
                     $accDay = acc_Setup::get('DATE_FOR_INVOICE_DATE') + $setupClass::get('CURRENCY_CLOSE_AFTER_ACC_DATE');
