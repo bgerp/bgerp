@@ -88,10 +88,11 @@ class price_interface_LastQuotationFromSupplier extends price_interface_BaseCost
         $quoteQuery->EXT('state', 'purchase_Quotations', 'externalName=state,externalKey=quotationId');
         $quoteQuery->EXT('containerId', 'purchase_Quotations', 'externalName=containerId,externalKey=quotationId');
         $quoteQuery->EXT('date', 'purchase_Quotations', 'externalName=date,externalKey=quotationId');
+        $quoteQuery->EXT('brState', 'purchase_Quotations', 'externalName=brState,externalKey=quotationId');
         $quoteQuery->EXT('validFor', 'purchase_Quotations', 'externalName=validFor,externalKey=quotationId');
         $quoteQuery->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
         $quoteQuery->where("(#expireOn IS NULL AND #date >= '{$from}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$from}')");
-        $quoteQuery->where("#state = 'active'");
+        $quoteQuery->where("(#state = 'active' OR (#state = 'closed' AND #brState = 'active'))");
 
         if(countR($affectedTargetedProducts)){
             $quoteQuery->in('productId', $affectedTargetedProducts);
