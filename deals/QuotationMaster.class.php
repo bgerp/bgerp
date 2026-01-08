@@ -37,7 +37,7 @@ abstract class deals_QuotationMaster extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'date, title=Документ, folderId, state, createdOn, createdBy';
+    public $listFields = 'date, title=Документ, currencyId, folderId, state, createdOn, createdBy';
 
 
     /**
@@ -1527,5 +1527,25 @@ abstract class deals_QuotationMaster extends core_Master
     public function showDualPrices($folderId)
     {
         return false;
+    }
+
+
+    /**
+     * Функция, която се извиква преди активирането на документа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    protected static function on_BeforeActivation($mvc, $res)
+    {
+        // Ако има избрано условие на доставка, позволява ли да бъде контиран документа
+        $rec = $mvc->fetch($res->id);
+        $date = $date ?? dt::today();
+
+        if($rec->createdOn < acc_Setup::getEurozoneDate() && $date >= acc_Setup::getEurozoneDate()){
+            core_Statuses::newStatus('Не може да се активира оферта създадена преди Еврозоната с дата след нея|*!', 'error');
+
+            return false;
+        }
     }
 }
