@@ -1401,6 +1401,9 @@ abstract class deals_QuotationMaster extends core_Master
                 // Копира се и транспорта, ако има
                 $cRec = sales_TransportValues::get($this, $item->quotationId, $item->id);
                 if (isset($cRec)) {
+                    if($cRec->fee > 0){
+                        $cRec->fee = deals_Helper::getSmartBaseCurrency($cRec->fee, $rec->date, $saleRec->valior);
+                    }
                     sales_TransportValues::sync('sales_Sales', $sId, $addedRecId, $cRec->fee, $cRec->deliveryTime);
                 }
             }
