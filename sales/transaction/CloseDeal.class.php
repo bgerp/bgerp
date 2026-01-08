@@ -280,7 +280,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
         $accId = acc_Accounts::getRecBySystemId('412')->id;
         $thisDealItemId = acc_Items::fetchItem($firstDoc->className, $firstDoc->that)->id;
         $jRecs = array_filter($jRecs, function($a) use ($accId, $thisDealItemId){return (($a->debitAccId == $accId && $a->debitItem2 == $thisDealItemId) || ($a->creditAccId == $accId && $a->creditItem2 == $thisDealItemId));});
-        $downpaymentArrs = acc_Balances::getBlQuantities($jRecs, '412');
+        $downpaymentArrs = acc_Balances::getBlQuantities($jRecs, '412', null, null, array(), $result->valior);
 
         if (is_array($downpaymentArrs)) {
             foreach ($downpaymentArrs as $index => $obj) {
