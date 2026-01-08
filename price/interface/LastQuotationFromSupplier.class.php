@@ -81,7 +81,7 @@ class price_interface_LastQuotationFromSupplier extends price_interface_BaseCost
      */
     public function getCosts($affectedTargetedProducts, $params = array())
     {
-        $now = dt::now();
+        setIfNot($from, Mode::get('primeDatetime'), dt::now());
 
         // Коя е последната валидна активна оферта от доставчик за посочените артикули
         $quoteQuery = purchase_QuotationDetails::getQuery();
@@ -90,7 +90,7 @@ class price_interface_LastQuotationFromSupplier extends price_interface_BaseCost
         $quoteQuery->EXT('date', 'purchase_Quotations', 'externalName=date,externalKey=quotationId');
         $quoteQuery->EXT('validFor', 'purchase_Quotations', 'externalName=validFor,externalKey=quotationId');
         $quoteQuery->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
-        $quoteQuery->where("(#expireOn IS NULL AND #date >= '{$now}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$now}')");
+        $quoteQuery->where("(#expireOn IS NULL AND #date >= '{$from}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$from}')");
         $quoteQuery->where("#state = 'active'");
 
         if(countR($affectedTargetedProducts)){
