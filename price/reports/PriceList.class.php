@@ -72,7 +72,7 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         $fieldset->FLD('date', 'datetime(smartTime)', 'caption=Към дата,after=title');
         $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Цени->Политика, silent, mandatory,after=date,removeAndRefreshForm=listingId,single=none');
-        $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,input,after=policyId,single=none');
+        $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,input,after=policyId');
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=Цени->ДДС,after=currencyId,single=none');
         $fieldset->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=Цени->ДДС изключение,after=currencyId');
         $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
@@ -364,6 +364,7 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         $row = new stdClass();
         $display = ($rec->displayDetailed == 'yes') ? 'detailed' : 'short';
+        $date = $rec->date ?? dt::today();
 
         if($rec->templateType == 'foods'){
             $row->productId = cat_Products::getAutoProductDesc($dRec->productId, null, 'short', 'public', $rec->lang, null, false);
@@ -392,14 +393,26 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
 
         $decimals = $rec->round ?? self::DEFAULT_ROUND;
-        $tempPrice = core_Type::getByName("double(decimals={$decimals})")->toVerbal($dRec->price);
+        $Double = core_Type::getByName("double(decimals={$decimals})");
+        $row->price = $Double->toVerbal($dRec->price);
+        $row->price = currency_Currencies::decorate($row->price, $rec->currencyId, true);
+
         if($rec->templateType == 'foods'){
-            $tempPrice = currency_Currencies::decorate($tempPrice, $rec->currencyId);
-            if($rec->currencyId == 'BGN'){
-                $euroRate = currency_CurrencyRates::getRate($rec->date, 'EUR', 'BGN');
-                $priceEuro = round($dRec->price, $decimals) / $euroRate;
-                $priceEuroVerbal = core_Type::getByName("double(decimals={$decimals})")->toVerbal($priceEuro);
-                $row->price = currency_Currencies::decorate($priceEuroVerbal, 'EUR', true) . "&nbsp;/&nbsp;" . $tempPrice;
+            $showDualPrice = $date <= '2026-06-30' && in_array($rec->currencyId, array('BGN', 'EUR'));
+            if($showDualPrice){
+                if($rec->currencyId == 'BGN'){
+                    $priceInBg = $row->price;
+                    $priceInEuro = currency_CurrencyRates::convertAmount($dRec->price, $date, 'BGN', 'EUR');
+                    $priceInEuro = currency_Currencies::decorate($Double->toVerbal($priceInEuro), 'EUR', true);
+
+                    $row->price = "{$priceInEuro}&nbsp;/&nbsp;{$priceInBg}";
+                } else {
+                    $priceInEuro = $row->price;
+                    $priceInBg = currency_CurrencyRates::convertAmount($dRec->price, $date, 'EUR', 'BGN');
+                    $priceInBg = currency_Currencies::decorate($Double->toVerbal($priceInBg), 'BGN', true);
+
+                    $row->price = "{$priceInEuro}&nbsp;/&nbsp;{$priceInBg}";
+                }
             }
         }
 
@@ -654,11 +667,12 @@ class price_reports_PriceList extends frame2_driver_TableData
                                                 <div>|Групи|*: [#productGroups#]</div>
                                                 <!--ET_BEGIN notInGroups--><div>|С изключение на|*: [#notInGroups#]</div><!--ET_END notInGroups-->
                                                 <div>|Опаковки|*: [#packagings#]</div>
+                                                <div>|Валута|*: [#currencyId#]</div>
                                             </div>
                                         </fieldset>"));
         }
 
-        foreach (array('periodDate', 'date', 'period', 'productGroups', 'notInGroups', 'packagings', 'policyId', 'variationId') as $field) {
+        foreach (array('periodDate', 'date', 'period', 'productGroups', 'notInGroups', 'packagings', 'policyId', 'currencyId', 'variationId') as $field) {
             $fieldTpl->replace($data->row->{$field}, $field);
         }
 
