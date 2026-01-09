@@ -166,7 +166,7 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
                     if($currentCount == $cnt) break;
                 }
 
-                foreach ($pRec->packs as $packRec){  bp($res);
+                foreach ($pRec->packs as $packRec){
                     $ean = !empty($packRec->eanCode) ? $packRec->eanCode : null;
                     $packName = cat_UoM::getShortName($packRec->packagingId);
                     $measureId = $pRec->measureId;
@@ -174,12 +174,22 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
                     $measureName = cat_UoM::getShortName($measureId);
 
                     $catalogPrice = currency_Currencies::decorate($Double->toVerbal($packRec->price), $rec->currencyId, true);
-                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $catalogPrice, "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "{$quantity} {$measureName}", 'PRICE_CAPTION' => $priceCaption);
-                    if($showPriceInEuro){
-                        $rate = currency_CurrencyRates::getRate($date, 'EUR', 'BGN');
-                        $priceInEuro = round($packRec->price, 2) / $rate;
-                        $priceInEuro = currency_Currencies::decorate(core_Type::getByName('double(decimals=2)')->toVerbal($priceInEuro), 'EUR', true);
-                        $res['CATALOG_PRICE_EURO'] = $priceInEuro;
+                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "{$quantity} {$measureName}", 'PRICE_CAPTION' => $priceCaption);
+
+                    if($showDualPrice){
+                        if($rec->currencyId == 'BGN'){
+                            $priceInBg = $catalogPrice;
+                            $priceInEuro = currency_CurrencyRates::convertAmount($packRec->price, $date, 'BGN', 'EUR');
+                            $priceInEuro = currency_Currencies::decorate($Double->toVerbal($priceInEuro), 'EUR', true);
+
+                            $res['CATALOG_PRICE'] = "{$priceInEuro} / {$priceInBg}";
+                        } else {
+                            $priceInEuro = $catalogPrice;
+                            $priceInBg = currency_CurrencyRates::convertAmount($packRec->price, $date, 'EUR', 'BGN');
+                            $priceInBg = currency_Currencies::decorate($Double->toVerbal($priceInBg), 'BGN', true);
+
+                            $res['CATALOG_PRICE'] = "{$priceInEuro} / {$priceInBg}";
+                        }
                     }
 
                     if (countR($params)) {
