@@ -392,14 +392,14 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
 
         $decimals = $rec->round ?? self::DEFAULT_ROUND;
-        $row->price = core_Type::getByName("double(decimals={$decimals})")->toVerbal($dRec->price);
+        $tempPrice = core_Type::getByName("double(decimals={$decimals})")->toVerbal($dRec->price);
         if($rec->templateType == 'foods'){
-            $row->price = currency_Currencies::decorate($row->price, $rec->currencyId);
+            $tempPrice = currency_Currencies::decorate($tempPrice, $rec->currencyId);
             if($rec->currencyId == 'BGN'){
                 $euroRate = currency_CurrencyRates::getRate($rec->date, 'EUR', 'BGN');
                 $priceEuro = round($dRec->price, $decimals) / $euroRate;
                 $priceEuroVerbal = core_Type::getByName("double(decimals={$decimals})")->toVerbal($priceEuro);
-                $row->price .= "&nbsp;/&nbsp;" . currency_Currencies::decorate($priceEuroVerbal, 'EUR', true);
+                $row->price = currency_Currencies::decorate($priceEuroVerbal, 'EUR', true) . "&nbsp;/&nbsp;" . $tempPrice;
             }
         }
 
