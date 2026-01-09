@@ -500,9 +500,9 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     /**
      * Колко е направеното авансово плащане досега
      */
-    public static function getDownpayment($jRecs)
+    public static function getDownpayment($jRecs, $rec)
     {
-        return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'credit')->amount;
+        return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'credit', null, array(), array(), $rec->valior)->amount;
     }
     
     

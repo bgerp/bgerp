@@ -108,6 +108,7 @@ class price_Setup extends core_ProtoSetup
         'price_ListBasicDiscounts',
         'price_DiscountsPerDocuments',
         'migrate::updateCostList2524v2',
+        'migrate::recalcPrimeCosts2602',
     );
 
 
@@ -188,5 +189,17 @@ class price_Setup extends core_ProtoSetup
             $rec->parent = price_ListRules::PRICE_LIST_COST;
             price_Lists::save($rec, 'parent');
         }
+    }
+
+
+    /**
+     * Рекалкулиране на средна доставка + разходи
+     */
+    public function recalcPrimeCosts2602()
+    {
+        $deliveryPolicyClassId = price_interface_LastDeliveryCostPolicyImpl::getClassId();
+        $policies = array($deliveryPolicyClassId => $deliveryPolicyClassId);
+
+        price_ProductCosts::saveCalcedCosts('2025-11-01', $policies);
     }
 }

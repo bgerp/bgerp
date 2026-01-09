@@ -711,8 +711,11 @@ class thumb_Img
             // Склаираме, само ако имаме пропорция, различна от 1 или ротираме
             if ($this->ratio != 1 || $this->rotation || self::canUseWebP()) {
                 if ($this->rotation) {
-                    $newGdRes = self::scaleGdImg($gdRes, $this->scaledHeight, $this->scaledWidth, $this->getThumbFormat());
-
+                    if ($this->rotation == 180) {
+                        $newGdRes = self::scaleGdImg($gdRes, $this->scaledWidth, $this->scaledHeight, $this->getThumbFormat());
+                    } else {
+                        $newGdRes = self::scaleGdImg($gdRes, $this->scaledHeight, $this->scaledWidth, $this->getThumbFormat());
+                    }
                     $white = imagecolorallocatealpha($newGdRes, 255, 255, 255, 127);
 
                     if (is_numeric($this->rotation)) {
