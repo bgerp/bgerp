@@ -441,7 +441,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Колко е направеното авансово плащане досега
      */
-    public static function getDownpayment($jRecs)
+    public static function getDownpayment($jRecs, $rec)
     {
         return acc_Balances::getBlAmounts($jRecs, static::DOWNPAYMENT_ACCOUNT_ID, 'debit')->amount;
     }
