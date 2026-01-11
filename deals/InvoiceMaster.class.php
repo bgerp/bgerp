@@ -1057,7 +1057,7 @@ abstract class deals_InvoiceMaster extends core_Master
                         $rec->_oldRate = $oldRec->rate;
                     }
                 }
-            } elseif($form->aggregateInfo->get('currency') == 'EUR'){
+            } else {
                 if(isset($rec->id)){
                     $oldRec = $mvc->fetch($rec->id, 'date,rate', false);
                     $rec->_oldValior = $oldRec->date ?? dt::verbal2mysql($rec->createdOn, false);

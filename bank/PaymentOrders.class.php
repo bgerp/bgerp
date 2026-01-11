@@ -343,7 +343,7 @@ class bank_PaymentOrders extends bank_DocumentBlank
            $row->beneficiaryIban = $ownAccountInfo->iban;
            $row->contragentBankBic = (isset($fields->bic)) ? $fields->bic : $ownAccountInfo->bic;
            $row->contragentBank = (isset($fields->bank)) ? $fields->bank : $ownAccountInfo->bank;
-           $row->currencyId = isset($fields->currencyId) ? $fields->currencyId : currency_Currencies::getCodeById($ownAccountInfo->currencyId);
+           $row->currencyId = isset($fields->currencyCode) ? $fields->currencyCode : currency_Currencies::getCodeById($ownAccountInfo->currencyId);
        }
        
        // Сума 

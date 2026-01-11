@@ -630,9 +630,12 @@ class sales_Invoices extends deals_InvoiceMaster
                         if(countR($ownAccountLink)){
                             $row->accountId = ht::createLink($row->accountId, $ownAccountLink);
                         }
-                        if($ownAcc->currencyId != currency_Currencies::getIdByCode($rec->currencyId)){
+                        $date = $rec->date ?? dt::today();
+                        $accountCurrencyId = $ownAcc->currencyId == currency_Currencies::getIdByCode('BGN') ? ($date < acc_Setup::getEurozoneDate() ? 'BGN' : 'EUR') : currency_Currencies::getCodeById($ownAcc->currencyId);
+
+                        if($rec->currencyId != $accountCurrencyId){
                             $row->accountId = "<span class='warning-balloon' style ='background-color:#ff9494a8'>{$row->accountId}</span>";
-                            $row->accountId = ht::createHint($row->accountId, 'Банковата сметка е във валута различна от тази на сделката|*!', 'warning');
+                            $row->accountId = ht::createHint($row->accountId, 'Банковата сметка е в различна валута от тази на сделката|*!', 'warning');
                         }
                     }
                 }

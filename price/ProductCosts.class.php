@@ -135,11 +135,45 @@ class price_ProductCosts extends core_Manager
     /**
      * Рекалкулира себестойностите
      */
-    public function act_CachePrices()
+    public function act_Recalc()
     {
         expect(haveRole('debug'));
+
+
+        $form = cls::get('core_Form');
+        $form->title = 'Преизчисляване на кеширани себестойности';
+        $form->FLD('classes', 'classes(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Вид,mandatory');
+        $form->FLD('datetime', 'datetime', 'caption=Време,mandatory');
+
+        $form->setDefault('datetime', '2026-01-01 00:00:00');
+        $form->input();
+        if($form->isSubmitted()){
+            $rec = $form->rec;
+            self::saveCalcedCosts($rec->datetime, $rec->classes);
+
+            followRetUrl();
+        }
+
+
+        $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+        $res = $this->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($res, $form);
+
+        return $res;
+
+
+
+
+
+
+
         $datetime = dt::addSecs(-1 * 60);
-      
+
+
+
+
         self::saveCalcedCosts($datetime);
         
         return followRetUrl(null, '|Преизчислени са данните за последния час');
@@ -152,7 +186,7 @@ class price_ProductCosts extends core_Manager
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (haveRole('debug')) {
-            $data->toolbar->addBtn('Преизчисли', array($mvc, 'CachePrices', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на себестойностите,target=_blank');
+            $data->toolbar->addBtn('Преизчисли', array($mvc, 'Recalc', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на себестойностите,target=_blank');
         }
     }
     
@@ -160,7 +194,7 @@ class price_ProductCosts extends core_Manager
     /**
      * Обновяване на себестойностите по разписание
      */
-    public static function saveCalcedCosts($datetime)
+    public static function saveCalcedCosts($datetime, $classIds = array())
     {
         $self = cls::get(get_called_class());
         $PolicyOptions = core_Classes::getOptionsByInterface('price_CostPolicyIntf');
@@ -168,24 +202,40 @@ class price_ProductCosts extends core_Manager
         // Изчисляване на всяка от засегнатите политики, себестойностите на засегнатите пера
         $totalProducts = $update = array();
 
+        // Ако има филтър по класове - само те
+        $classIds = arr::make($classIds, true);
+        if(countR($classIds)){
+            $PolicyOptions = array_intersect_key($PolicyOptions, $classIds);
+        }
+
         foreach ($PolicyOptions as $policyId) {
             if (cls::load($policyId, true)) {
-                
+                core_Debug::startTimer("CALC {$policyId}");
+
                 // Ако няма отделен крон процес
                 $Interface = cls::getInterface('price_CostPolicyIntf', $policyId);
                 if($Interface->hasSeparateCalcProcess()) continue;
                 
                 // Кои са засегнатите артикули, касаещи политиката
+                core_Debug::startTimer("CALC GET AFFECTED {$policyId}");
                 $affectedProducts = $Interface->getAffectedProducts($datetime);
+                core_Debug::stopTimer("CALC GET AFFECTED {$policyId}");
                 $totalProducts += $affectedProducts;
 
                 // Ако има такива, ще се прави опит за изчисляване на себестойносттите
                 $count = countR($affectedProducts);
                 if($count){
                     core_App::setTimeLimit($count * 0.5, false,60);
+                    core_Debug::startTimer("CALC COSTS {$policyId}");
+                    Mode::push('primeDatetime', $datetime);
                     $calced = $Interface->calcCosts($affectedProducts);
+                    Mode::pop('primeDatetime');
+
+                    core_Debug::stopTimer("CALC COSTS {$policyId}");
                     $update = array_merge($update, $calced);
                 }
+
+                core_Debug::stopTimer("CALC {$policyId}");
             }
         }
 
@@ -205,7 +255,9 @@ class price_ProductCosts extends core_Manager
         $exRecs = $exQuery->fetchAll();
 
         $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
-        
+
+        core_Debug::startTimer("SAVE");
+
         // Добавяне на нови записи
         if (countR($res['insert'])) {
             $self->saveArray($res['insert']);
@@ -215,6 +267,8 @@ class price_ProductCosts extends core_Manager
         if (countR($res['update'])) {
             $self->saveArray($res['update'], 'id,price,quantity,sourceClassId,sourceId,updatedOn,valior');
         }
+
+        core_Debug::stopTimer("SAVE");
     }
     
     

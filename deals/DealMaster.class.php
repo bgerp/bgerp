@@ -545,7 +545,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec = &$form->rec;
 
         if(core_Users::isContractor()){
-            if(!empty($rec->valior) && $rec->valior <= dt::today()){
+            if(!empty($rec->valior) && $rec->valior < dt::today()){
                 $form->setError('valior', 'Вальорът не може да е в миналото|*!');
             }
         }
@@ -751,14 +751,17 @@ abstract class deals_DealMaster extends deals_DealBase
         if (!Request::get('Rejected', 'int')) {
             $fType = cls::get('type_Enum', array('options' => $mvc->getListFilterTypeOptions($data)));
             $data->listFilter->FNC('type', 'varchar', 'caption=Състояние,refreshForm,silent');
+            $data->listFilter->setField('paymentMethodId', 'caption=Плащане,formOrder=1003,input');
+
             $data->listFilter->input('type', 'silent');
             $data->listFilter->setFieldType('type', $fType);
             $data->listFilter->setDefault('type', 'notClosedWith');
             $data->listFilter->showFields .= ',type';
         }
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'caption=Група,refreshForm');
-        $data->listFilter->showFields .= ',groupId';
-        
+        $data->listFilter->showFields .= ',groupId,paymentMethodId';
+        $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ',paymentMethodId';
+
         $data->listFilter->input();
         if ($filter = $data->listFilter->rec) {
             $data->query->XPR('paidRound', 'double', 'ROUND(COALESCE(#amountPaid, 0), 2)');
@@ -766,7 +769,11 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
             $data->query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
             $data->query->XPR('invoicedDownpaymentToDeductRound', 'double', 'ROUND(COALESCE(#amountInvoicedDownpaymentToDeduct, 0), 2)');
-            
+
+            if(isset($filter->paymentMethodId)){
+                $data->query->where("#paymentMethodId = {$filter->paymentMethodId}");
+            }
+
             // Ако има филтър по клиентска група
             if (isset($filter->groupId)) {
                 $foldersArr = crm_Groups::getFolderByContragentGroupId($filter->groupId);

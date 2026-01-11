@@ -199,7 +199,7 @@ class acc_Articles extends core_Master
     public function canUseClosedItems($id)
     {
         $rec = $this->fetchRec($id);
-        if (!empty($rec->originId) || ($this->canUseClosedItems === true)) {
+        if (!empty($rec->originId) || ($this->canUseClosedItems === true) || $rec->useCloseItems == 'yes') {
             
             return true;
         }

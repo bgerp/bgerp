@@ -92,12 +92,25 @@ class tcost_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'TCOST_ADD_TAX' => array('double(smartRound=2)', 'caption=Надценки за транспорт->Твърда,unit=BGN'),
-        'TCOST_ADD_PER_KG' => array('double(smartRound=2)', 'caption=Надценки за транспорт->За 1 кг,unit=BGN'),
-    
+        'TCOST_ADD_TAX' => array('double(smartRound=2)', 'caption=Надценки за транспорт->Твърда'),
+        'TCOST_ADD_PER_KG' => array('double(smartRound=2)', 'caption=Надценки за транспорт->За 1 кг'),
     );
-    
-    
+
+
+    /**
+     * Менижиране на формата формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+        $configForm->setField('TCOST_ADD_TAX', "unit={$baseCurrencyCode}");
+        $configForm->setField('TCOST_ADD_PER_KG', "unit={$baseCurrencyCode}");
+    }
+
+
     /**
      * Добавяне на валута към навлата
      */

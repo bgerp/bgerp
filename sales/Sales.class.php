@@ -767,7 +767,7 @@ class sales_Sales extends deals_DealMaster
             $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries, $rec);
             $paidAmount = sales_transaction_Sale::getPaidAmount($entries, $rec);
             $result->set('agreedDownpayment', $downPayment);
-            $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
+            $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries, $rec));
             $result->set('amountPaid', $paidAmount);
             $result->set('deliveryAmount', $deliveredAmount);
             $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries, $rec->id));
@@ -1570,12 +1570,14 @@ class sales_Sales extends deals_DealMaster
 
             if(in_array($rec->state, array('draft', 'pending'))){
                 $cData = doc_Folders::getContragentData($rec->folderId);
+                $ownCompanyId = core_Packs::isInstalled('holding') ? ($rec->{$mvc->ownCompanyFieldName} ?? crm_Setup::BGERP_OWN_COMPANY_ID) : null;
+
                 $defBankId = null;
                 if (!isset($ownBankRec->countries)) {
-                    $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false);
+                    $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false, $ownCompanyId);
                 } else {
                     if (!type_Keylist::isIn($cData->countryId, $ownBankRec->countries)) {
-                        $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+                        $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false, $ownCompanyId);
                     }
                 }
 
@@ -1586,7 +1588,7 @@ class sales_Sales extends deals_DealMaster
             }
 
             $accountRec = bank_Accounts::fetch($rec->bankAccountId);
-            $accountCurrencyId = $accountRec->currencyId == currency_Currencies::getIdByCode('BGN') ? ($rec->valior <= acc_Setup::getEurozoneDate() ? 'BGN' : 'EUR') : currency_Currencies::getCodeById($accountRec->currencyId);
+            $accountCurrencyId = $accountRec->currencyId == currency_Currencies::getIdByCode('BGN') ? ($rec->valior < acc_Setup::getEurozoneDate() ? 'BGN' : 'EUR') : currency_Currencies::getCodeById($accountRec->currencyId);
             if($rec->currencyId != $accountCurrencyId){
                 $errorStr = (!empty($errorStr) ? "{$errorStr} " : "") . '|Банковата сметка е в различна валута от тази на сделката|*!';
             }

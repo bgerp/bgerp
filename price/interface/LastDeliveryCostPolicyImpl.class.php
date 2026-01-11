@@ -78,7 +78,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
                     
                     // Намираме всички записи от журнала по покупката
                     $entries = purchase_transaction_Purchase::getEntries($purRec->requestId);
-                    
+
                     // Към тях търсим всички документи от вида "Корекция на стойности", които са
                     // в нишката на покупката и са по друга сделка. Понеже в тяхната контировка не участва
                     // перото на текущата сделка, и 'purchase_transaction_Purchase::getEntries' не може
@@ -110,7 +110,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
                     // Добавяне и на разпределените разходи, ако има
                     foreach ($purchaseProducts[$purRec->requestId] as $o1) {
                         $itemId = acc_Items::fetchItem('cat_Products', $o1->productId)->id;
-                        $amount = acc_Balances::getBlAmounts($entries, '321', 'debit', '60201', array(null, $itemId, null))->amount;
+                        $amount = acc_Balances::getBlAmounts($entries, '321', 'debit', '60201', array(null, $itemId, null), array(), $purRec->valior)->amount;
                         $val = (empty($o1->quantity)) ? 0 : ($amount / $o1->quantity);
                         $o1->price += $val;
                     }
@@ -121,6 +121,8 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
                 
                 // Взимаме цената на продукта по тази сделка
                 $price = $shippedProducts[$purRec->productId]->price;
+                $price = deals_Helper::getSmartBaseCurrency($price, $purRec->valior);
+
                 if (isset($price)) {
                     $price = round($price, 5);
                     
@@ -134,7 +136,7 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
                 }
             }
         }
-        
+
         // Връщаме намерените последни цени
         return $res;
     }

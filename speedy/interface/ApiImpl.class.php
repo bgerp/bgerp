@@ -121,9 +121,9 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('exciseGoods', 'set(yes=Декларирам че не изпращам акцизна стока с неплатен акциз!)', 'caption=Описание на пратката->Акциз');
         $form->FLD('totalWeight', 'double(min=0)', 'caption=Описание на пратката->Общо тегло,unit=кг');
         $form->FLD('isPaletize', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Палетизиране,maxRadio=2');
-        $form->FLD('amountCODBase', 'double(min=0)', 'caption=Описание на пратката->Наложен платеж,unit=BGN,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
+        $form->FLD('amountCODBase', 'double(min=0)', 'caption=Описание на пратката->Наложен платеж,unit=€,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer');
         $form->FLD('codType', 'set(post=Като паричен превод,including=Вкл. цената на куриерска услуга в НП,cardPaymentAllowed=Разрешено плащане на НП с карта)', 'caption=Описание на пратката->Вид,after=amountCODBase,input=none');
-        $form->FLD('amountInsurance', 'double', 'caption=Описание на пратката->Обявена стойност,unit=BGN,silent,removeAndRefreshForm=insurancePayer|isFragile');
+        $form->FLD('amountInsurance', 'double', 'caption=Описание на пратката->Обявена стойност,unit=€,silent,removeAndRefreshForm=insurancePayer|isFragile');
         $form->FLD('insurancePayer', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец обявена ст.,input=none');
         $form->FLD('isFragile', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Чупливост,input=none,maxRadio=2');
         $form->FLD('options', 'enum(no=Няма,open=Отваряне,test=Тест)', 'caption=Описание на пратката->Преди получаване/плащане,silent,removeAndRefreshForm=returnServiceId|returnPayer,maxRadio=3');
@@ -134,7 +134,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('wrappingReturnQuantity', 'int(min=0)', 'caption=Заявка за обратен амбалаж->К-во,autohide,inlineTo=wrappingReturnServiceId');
         $form->FLD('returnShipmentWrappingServiceId', 'varchar', 'caption=Заявка за обратна пратка->Услуга,autohide');
         $form->FLD('returnShipmentParcelCount', 'int(min=0)', 'caption=Заявка за обратна пратка->Брой пакети,autohide');
-        $form->FLD('returnShipmentAmountInsurance', 'double(min=0)', 'caption=Заявка за обратна пратка->Обявена стойност,autohide,unit=BGN');
+        $form->FLD('returnShipmentAmountInsurance', 'double(min=0)', 'caption=Заявка за обратна пратка->Обявена стойност,autohide,unit=€');
         $form->FLD('returnShipmentIsFragile', 'enum(no=Не,yes=Да)', 'caption=Заявка за обратна пратка->Чупливост,autohide,maxRadio=2');
         $form->FLD('pdfPrinterType', 'enum(A4=A4, A6=A6, A4_4xA6=A4_4xA6)', 'mandatory,caption=Печат на PDF->Принтер,autohide');
 
@@ -449,7 +449,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
         $serviceArray['additionalServices'] = array();
         if(!empty($formRec->amountCODBase)){
-            $serviceArray['additionalServices']['cod'] = array('amount' => $formRec->amountCODBase, 'currencyCode' => 'BGN');
+            $serviceArray['additionalServices']['cod'] = array('amount' => $formRec->amountCODBase, 'currencyCode' => 'EUR');
             $codOptions = type_Set::toArray($formRec->codType);
 
             if(isset($codOptions['post'])){

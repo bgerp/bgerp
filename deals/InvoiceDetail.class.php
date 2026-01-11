@@ -792,6 +792,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
         $rec->discount = $oldRec->inputDiscount;
+
+        $oldMasterRec = $mvc->Master->fetch($oldRec->invoiceId, 'date,currencyId,rate');
+        $newMasterRec = $mvc->Master->fetch($rec->invoiceId, 'date,currencyId,rate');
+
+        if(acc_Periods::getBaseCurrencyCode($oldMasterRec->date) != acc_Periods::getBaseCurrencyCode($newMasterRec->date)){
+            $rec->price = ($rec->price / $oldMasterRec->rate) * $newMasterRec->rate;
+        }
     }
 
 

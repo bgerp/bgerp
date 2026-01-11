@@ -385,16 +385,23 @@ abstract class deals_DealBase extends core_Master
                 }
             }
 
+            $beforeEu = $afterEu = 0;
+            $valior = $rec->valior ?? dt::today();
+            $valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
+
             $err = $closedDeals = $threads = $warning = array();
             $warning[$rec->currencyRate] = $rec->currencyRate;
+            $rec->valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
+
             $deals1 = keylist::toArray($form->rec->closeWith);
             $CloseDoc = cls::get($this->closeDealDoc);
 
             $dealCountries = array();
             foreach ($deals1 as $d1) {
-                $dealRec = $this->fetch($d1, 'threadId,currencyRate');
+                $dealRec = $this->fetch($d1, 'threadId,currencyRate,valior');
                 $dealItemRec = acc_Items::fetchItem($this, $dealRec->id);
                 $exClosedDoc = $CloseDoc->fetch("#threadId = {$dealRec->threadId} AND #state = 'active'");
+                $dealRec->valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
 
                 $logisticData = $this->getLogisticData($d1);
                 if(isset($logisticData['toCountry'])){
@@ -422,6 +429,10 @@ abstract class deals_DealBase extends core_Master
                 $form->setError('closeWith', $msg);
             }
 
+            if($beforeEu && $afterEu) {
+                $form->setError('closeWith', "Не може да обядинявате документи с вальор преди влизането в еврозоната с такива след след нея|*!");
+            }
+
             $countryWarningMsg = array();
             $logisticData = $this->getLogisticData($rec->id);
             if(countR($dealCountries)){
@@ -447,7 +458,7 @@ abstract class deals_DealBase extends core_Master
                 $form->setWarning('closeWith', $countryWarningMsg);
             }
 
-            if (countR($warning) != 1) {
+            if (countR($warning) != 1 && !in_array($rec->currencyId, array('BGN', 'EUR'))) {
                 $form->rec->_recalRate = true;
                 $form->setWarning('closeWith,rate', 'Всички избрани договори ще бъдат преизчислени по курса на новия договор (при необходимост - въведете ръчно друг курс)');
                 $form->setField('rate', 'input');

@@ -47,7 +47,7 @@ class price_interface_LastQuotationFromSupplier extends price_interface_BaseCost
      * @return array
      */
     public function getAffectedProducts($datetime)
-    {$datetime = '2021-06-06';
+    {
         // Участват артикулите в активирани или оттеглени активни покупки, след посочената дата
         $pQuery = purchase_QuotationDetails::getQuery();
         $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
@@ -81,17 +81,18 @@ class price_interface_LastQuotationFromSupplier extends price_interface_BaseCost
      */
     public function getCosts($affectedTargetedProducts, $params = array())
     {
-        $now = dt::now();
+        setIfNot($from, Mode::get('primeDatetime'), dt::now());
 
         // Коя е последната валидна активна оферта от доставчик за посочените артикули
         $quoteQuery = purchase_QuotationDetails::getQuery();
         $quoteQuery->EXT('state', 'purchase_Quotations', 'externalName=state,externalKey=quotationId');
         $quoteQuery->EXT('containerId', 'purchase_Quotations', 'externalName=containerId,externalKey=quotationId');
         $quoteQuery->EXT('date', 'purchase_Quotations', 'externalName=date,externalKey=quotationId');
+        $quoteQuery->EXT('brState', 'purchase_Quotations', 'externalName=brState,externalKey=quotationId');
         $quoteQuery->EXT('validFor', 'purchase_Quotations', 'externalName=validFor,externalKey=quotationId');
         $quoteQuery->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
-        $quoteQuery->where("(#expireOn IS NULL AND #date >= '{$now}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$now}')");
-        $quoteQuery->where("#state = 'active'");
+        $quoteQuery->where("(#expireOn IS NULL AND #date >= '{$from}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$from}')");
+        $quoteQuery->where("(#state = 'active' OR (#state = 'closed' AND #brState = 'active'))");
 
         if(countR($affectedTargetedProducts)){
             $quoteQuery->in('productId', $affectedTargetedProducts);
