@@ -545,7 +545,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec = &$form->rec;
 
         if(core_Users::isContractor()){
-            if(!empty($rec->valior) && $rec->valior <= dt::today()){
+            if(!empty($rec->valior) && $rec->valior < dt::today()){
                 $form->setError('valior', 'Вальорът не може да е в миналото|*!');
             }
         }
