@@ -444,7 +444,7 @@ class acc_BalanceHistory extends core_Manager
 
         // Извличаме хронологията за перата
         $isGrouped = !(($data->isGrouped !== 'yes'));
-        $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, false);
+        $balHistory = acc_ActiveShortBalance::getBalanceHistory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, false);
         $data->recs = $balHistory['history'];
 
         $debitAmount = $creditAmount = $creditQuantity = $debitQuantity = null;

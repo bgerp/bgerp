@@ -200,7 +200,7 @@ class acc_ActiveShortBalance
         
         // Намираме последния изчислен баланс преди началната дата
         $balanceRec = $this->acc_Balances->getBalanceBefore($this->from);
-        
+
         // Обръщаме сис ид-та на сметките в техните ид-та
         $accArr = arr::make($accs);
         
@@ -220,8 +220,10 @@ class acc_ActiveShortBalance
             $bQuery->show('accountId,ent1Id,ent2Id,ent3Id,blAmount,blQuantity');
             acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3']);
             $bQuery->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.01');
-            
             while ($bRec = $bQuery->fetch()) {
+                $bRec->blAmount = deals_Helper::getSmartBaseCurrency($bRec->blAmount, $balanceRec->toDate, $this->to);
+
+
                 if (!isset($accInfos[$bRec->accountId])) {
                     $accInfos[$bRec->accountId] = acc_Accounts::getAccountInfo($bRec->accountId);
                 }
@@ -267,14 +269,14 @@ class acc_ActiveShortBalance
         }
         
         $newTo = dt::addDays(-1, $this->from, false);
-        
+
         // Извличаме всички записи които са между последния баланс и избраната дата за начало на търсенето
         $jQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($jQuery, $newFrom, $newTo, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3'], false);
-        
+
         // Натрупваме им сумите към началния баланс
         $this->calcBalance($jQuery->fetchAll(), $newBalance);
-        
+
         // Изчислените крайни салда стават начални салда на показвания баланс
         if (countR($newBalance)) {
             foreach ($newBalance as $index => &$r) {
@@ -368,7 +370,7 @@ class acc_ActiveShortBalance
      * 				[blQuantity]     - крайно к-во
      * 				[blAmount]       - крайна сума
      */
-    public static function getBalanceHystory($accSysId, $from = null, $to = null, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = true, $strict = true)
+    public static function getBalanceHistory($accSysId, $from = null, $to = null, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = true, $strict = true)
     {
         $accId = acc_Accounts::getRecBySystemId($accSysId)->id;
         
@@ -377,27 +379,11 @@ class acc_ActiveShortBalance
         $balanceBeforeRec = null;
         $accArr = array();
         $calcedBalance = $Balance->getBalanceBefore($accSysId, $accArr, $balanceBeforeRec);
-
-        $convertToDate = false;
-        $beforeCurrencyCode = acc_Periods::getBaseCurrencyCode($balanceBeforeRec->toDate);
-        $toCurrencyCode = acc_Periods::getBaseCurrencyCode($to);
-        $toEndDate = dt::getLastDayOfMonth($to);
-        if($beforeCurrencyCode != $toCurrencyCode){
-            $convertToDate = true;
-        }
-
         $indexArr = $accId . '|' . $item1 . '|' . $item2 . '|' . $item3;
         
         // Ако няма данни досега, започваме с нулеви крайни салда
         if (!isset($calcedBalance[$indexArr])) {
             $calcedBalance[$indexArr] = array('blAmount' => 0, 'blQuantity' => 0);
-        }
-
-        if($convertToDate){
-            foreach ($calcedBalance as &$b){
-                $b['blAmount'] = deals_Helper::getSmartBaseCurrency($b['blAmount'], $balanceBeforeRec->toDate, $to);
-                $b['baseAmount'] = deals_Helper::getSmartBaseCurrency($b['baseAmount'], $balanceBeforeRec->toDate, $to);
-            }
         }
 
         // Извличаме записите точно в периода на филтъра

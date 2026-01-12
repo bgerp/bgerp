@@ -98,7 +98,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
         if (countR($periods) == 1) {
             $data->isHistory = true;
             
-            $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->rec->fromDate, $data->rec->toDate, $data->rec->ent1Id, $data->rec->ent2Id, $data->rec->ent3Id);
+            $balHistory = acc_ActiveShortBalance::getBalanceHistory($accSysId, $data->rec->fromDate, $data->rec->toDate, $data->rec->ent1Id, $data->rec->ent2Id, $data->rec->ent3Id);
             
             $baseBalanceRec = array('docId' => 'Начален баланс',
                 'debitQuantity' => 0, 'creditQuantity' => 0, 'debitAmount' => 0, 'creditAmount' => 0,
