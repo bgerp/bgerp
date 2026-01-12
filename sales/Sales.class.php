@@ -766,7 +766,7 @@ class sales_Sales extends deals_DealMaster
             $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries, $rec);
             $paidAmount = sales_transaction_Sale::getPaidAmount($entries, $rec);
             $result->set('agreedDownpayment', $downPayment);
-            $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries));
+            $result->set('downpayment', sales_transaction_Sale::getDownpayment($entries, $rec));
             $result->set('amountPaid', $paidAmount);
             $result->set('deliveryAmount', $deliveredAmount);
             $result->set('blAmount', sales_transaction_Sale::getBlAmount($entries, $rec->id));

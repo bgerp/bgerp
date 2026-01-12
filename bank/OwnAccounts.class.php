@@ -768,17 +768,12 @@ class bank_OwnAccounts extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 // И валутата на б.сметка е в лева и има остатъчно салдо на к-во в лева
-                $ownAccountCurrencyId = bank_Accounts::fetchField("#id = {$rec->bankAccountId}", 'currencyId');
-                if($ownAccountCurrencyId != currency_Currencies::getIdByCode('BGN')){
+                if(!bank_ExchangeDocument::haveRightFor('add')){
                     $requiredRoles = 'no_one';
                 } else {
-                    if(!bank_ExchangeDocument::haveRightFor('add')){
+                    $balanceRec = self::getBalanceTo($rec->id, currency_Currencies::getIdByCode('BGN'));
+                    if(empty($balanceRec->quantity)){
                         $requiredRoles = 'no_one';
-                    } else {
-                        $balanceRec = self::getBalanceTo($rec->id, $ownAccountCurrencyId);
-                        if(empty($balanceRec->quantity)){
-                            $requiredRoles = 'no_one';
-                        }
                     }
                 }
             }

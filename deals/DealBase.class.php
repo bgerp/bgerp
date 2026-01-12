@@ -386,6 +386,9 @@ abstract class deals_DealBase extends core_Master
             }
 
             $beforeEu = $afterEu = 0;
+            $valior = $rec->valior ?? dt::today();
+            $valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
+
             $err = $closedDeals = $threads = $warning = array();
             $warning[$rec->currencyRate] = $rec->currencyRate;
             $rec->valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
