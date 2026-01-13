@@ -561,6 +561,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
         $showFields = arr::make(array_keys($fieldsArr), true);
         $showFields['state'] = 'state';
+        if($mvc->getField('createdOn', false)){
+            $showFields['createdOn'] = 'createdOn';
+        }
         if($mvc->getField('rate', false)){
             $showFields['rate'] = 'rate';
         }
@@ -642,6 +645,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             return;
         }
 
+        $today = dt::today();
         foreach ($fieldsArr as $fld) {
             if (!array_key_exists($fld->name, $res)) {
                 $captionValue = (isset($fld->summaryCaption)) ? $fld->summaryCaption : $fld->caption;
@@ -657,8 +661,10 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if ($mvc->amountIsInNotInBaseCurrency === true && isset($rec->rate)) {
                         $baseAmount *= $rec->rate;
                     }
-                    if(isset($rec->{$mvc->valiorFld})){
-                        $baseAmount = deals_Helper::getSmartBaseCurrency($baseAmount, $rec->{$mvc->valiorFld});
+
+                    if(isset($mvc->valiorFld)){
+                        $valior = $rec->{$mvc->valiorFld} ?? dt::verbal2mysql($rec->createdOn, false);
+                        $baseAmount = deals_Helper::getSmartBaseCurrency($baseAmount, $valior);
                     }
 
                     $res[$fld->name]->amount += $baseAmount;
