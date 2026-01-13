@@ -636,7 +636,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,overdAndAct=Просрочени и активни,unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,overdueAndAct=Просрочени и активни,unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени');
     
         return $options;
     }
@@ -674,19 +674,21 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'stopped'");
                 break;
             case 'expectedPayment':
-                $query->where("#paymentState = 'pending' AND (#state = 'active' OR #state = 'closed')");
+                $query->where("#paymentState = 'pending' AND #state IN ('active', 'closed')");
+                $query->XPR('amountToPay', 'double', 'COALESCE(#amountDelivered, 0) - COALESCE(#amountPaid, 0)');
+                $query->orderBy('amountToPay', 'DESC', 1);
                 break;
             case 'paid':
-                $query->where("#paymentState = 'paid' OR #paymentState = 'repaid'");
-                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#paymentState IN ('paid', 'repaid')");
+                $query->where("#state IN ('active', 'closed')");
                 break;
             case 'invoiced':
                 $query->where('#invRound >= #deliveredRound AND #invRound >= 0.05');
-                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#state IN ('active', 'closed')");
                 break;
             case 'notInvoiced':
                 $query->where("#makeInvoice = 'yes' AND (#deliveredRound - #invRound) > 0.05");
-                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#state IN ('active', 'closed')");
                 break;
             case 'notInvoicedActive':
                 $query->where("#makeInvoice = 'yes' AND (#deliveredRound - #invRound) > 0.05 AND #state = 'active'");
@@ -700,18 +702,18 @@ abstract class deals_DealMaster extends deals_DealBase
                 break;
             case 'invoiceDownpaymentToDeduct':
                 $query->where('#invoicedDownpaymentToDeductRound > 0.01');
-                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#state IN ('active', 'closed')");
                 break;
             case 'overdue':
                 $query->where("#paymentState = 'overdue'");
                 break;
-            case 'overdAndAct':
+            case 'overdueAndAct':
                 $query->where("#paymentState = 'overdue'");
                 $query->where("#state = 'active'");
                 break;
             case 'delivered':
                 $query->where('#deliveredRound >= #dealRound');
-                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#state IN ('active', 'closed')");
                 break;
             case 'undelivered':
                 $query->where('#deliveredRound < #dealRound OR #deliveredRound IS NULL');
@@ -729,14 +731,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'closed' AND #closeWith IS NOT NULL");
                 break;
             case 'notClosedWith':
-                $query->where("(#state = 'active' OR #state ='closed') AND #closeWith IS NULL");
+                $query->where("#state IN ('active', 'closed') AND #closeWith IS NULL");
                 break;
             case 'unionDeals':
-                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#state IN ('active', 'closed')");
                 $query->where("#closedDocuments != '' AND #closedDocuments IS NOT NULL");
                 break;
             case 'notUnionDeals':
-                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#state IN ('active', 'closed')");
                 $query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
                 break;
         }
