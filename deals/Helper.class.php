@@ -3252,7 +3252,7 @@ abstract class deals_Helper
             $amountInEuroRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInEuro);
 
             return $amountRes . "{$divider}" . currency_Currencies::decorate($amountInEuroRow, 'EUR', true);
-        } elseif($currencyId == 'EUR' && $date >= $eurozoneDate && $date <= '2026-12-31') {
+        } elseif($currencyId == 'EUR' && $date >= $eurozoneDate && $date <= '2026-08-08') {
 
             $amountInBgn = round($amount, $decimals) * $rate;
             $amountInBgnRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInBgn);

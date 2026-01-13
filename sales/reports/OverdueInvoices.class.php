@@ -266,8 +266,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                             continue;
                         }
 
-                        $salesTotalOverDue += $paydocs->amount * $iRec->rate;      // Обща стойност на просрочените фактури преизчислени в основна валута
-                        $salesTotalPayout += $paydocs->payout * $iRec->rate;       // Обща стойност на плащанията по просрочените фактури преизчислени в основна валута
+                        $salesTotalOverDue += $paydocs->amount ;      // Обща стойност на просрочените фактури преизчислени в основна валута
+                        $salesTotalPayout += $paydocs->payout ;       // Обща стойност на плащанията по просрочените фактури преизчислени в основна валута
 
                         // масива с фактурите за показване
                         if (!array_key_exists($iRec->id, $sRecs)) {
