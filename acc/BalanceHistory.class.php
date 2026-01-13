@@ -417,8 +417,7 @@ class acc_BalanceHistory extends core_Manager
         
         // Подготвяне на данните на записа
         $Date = cls::get('type_Date');
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
+        $Double = core_Type::getByName('double(smartRound)');
         
         // Подготовка на вербалното представяне
         $row = new stdClass();
@@ -530,9 +529,7 @@ class acc_BalanceHistory extends core_Manager
      */
     public function getVerbalHistoryRow($rec)
     {
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        
+        $Double = core_Type::getByName('double(smartRound)');
         $Date = cls::get('type_Date');
         
         $arr = array();
