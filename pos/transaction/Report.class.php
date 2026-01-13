@@ -21,8 +21,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
      * @var pos_Reports
      */
     public $class;
-    
-    
+
+
     /**
      * Обща сума
      */
@@ -79,7 +79,15 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                         $batchesByStores[$dRec->storeId][$dRec->value][$dRec->batch] += $dRec->quantity;
                     }
                 } elseif ($dRec->action == 'payment') {
-                    $paymentsArr[] = $dRec;
+                    $key = "{$dRec->contragentClassId}|{$dRec->contragentId}|{$dRec->paymentId}|{$dRec->caseId}";
+                    if(!array_key_exists($key, $paymentsArr)){
+                        $paymentsArr[$key] = (object)array('contragentClassId' => $dRec->contragentClassId,
+                            'contragentId' => $dRec->contragentId,
+                            'value' => $dRec->value,
+                            'date' => $dRec->date,
+                            'caseId' => $dRec->caseId);
+                    }
+                    $paymentsArr[$key]->amount += $dRec->amount;
                 }
             }
 
@@ -91,7 +99,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                 $this->cachedMetas = $mQuery->fetchAll();
             }
         }
-        
+
         if (isset($rec->id)) {
             core_Debug::startTimer('PRODUCTION_ENTRIES');
             pos_Reports::logDebug('START PRODUCTION_ENTRIES');
@@ -102,7 +110,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             if (countR($entriesProduction)) {
                 $entries = array_merge($entries, $entriesProduction);
             }
-            
+
             // Генериране на записите
             core_Debug::startTimer('TAKING_PART');
             pos_Reports::logDebug('START TAKING_PART');
@@ -131,11 +139,11 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             'totalAmount' => $this->totalAmount,
             'entries' => $entries,
         );
-        
+
         if (empty($rec->id)) {
             unset($rec->details);
         }
-        
+
         // Проверка на артикулите преди контиране
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
 
@@ -214,8 +222,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
         return $transaction;
     }
-    
-    
+
+
     /**
      * Генериране на записите от тип 1 (вземане от клиент)
      *
@@ -232,52 +240,63 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     protected function getTakingPart($rec, $products, &$totalVat, $posRec)
     {
         $entries = array();
-      
-        foreach ($products as $product) {
-            $product->totalQuantity = round($product->quantity * $product->quantityInPack, 2);
+
+        $combined = array();
+        foreach ($products as $product){
+            $key = "{$product->contragentClassId}|{$product->contragentId}|{$product->value}|{$product->storeId}";
+            if(!array_key_exists($key, $combined)){
+                $combined[$key] = (object)array('contragentClassId' => $product->contragentClassId,
+                    'contragentId' => $product->contragentId,
+                    'storeId' => $product->storeId,
+                    'value' => $product->value);
+            }
+
+            $combined[$key]->totalQuantity += round( $product->quantity, 2);
             if($rec->chargeVat == 'no'){
                 $product->amount *= (1 + $product->param);
             }
-            
-            $totalAmount = currency_Currencies::round($product->amount);
+
+            $combined[$key]->totalAmount += $product->amount;
             if ($product->param) {
                 $totalVat[$product->contragentClassId .'|'. $product->contragentId] += $product->param * $product->amount;
             }
+        }
+        $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
 
-            $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
-            $pRec = $this->cachedMetas[$product->value];
+        foreach ($combined as $combinedRec) {
+            $pRec = $this->cachedMetas[$combinedRec->value];
+
             $creditAccId = ($pRec->canStore == 'yes') ? '701' : '703';
             $credit = array(
                 $creditAccId,
-                array($product->contragentClassId, $product->contragentId),
+                array($combinedRec->contragentClassId, $combinedRec->contragentId),
                 array('pos_Reports', $rec->id),
-                array('cat_Products', $product->value),
-                'quantity' => $product->totalQuantity,
+                array('cat_Products', $combinedRec->value),
+                'quantity' => $combinedRec->totalQuantity,
             );
-            
+
             $entries[] = array(
-                'amount' => $totalAmount,
+                'amount' => round($combinedRec->totalAmount, 2),
                 'debit' => array(
                     '411',
-                    array($product->contragentClassId, $product->contragentId),
+                    array($combinedRec->contragentClassId, $combinedRec->contragentId),
                     array('pos_Reports', $rec->id),
                     array('currency_Currencies', $currencyId),
-                    'quantity' => $totalAmount),
-                
+                    'quantity' => round($combinedRec->totalAmount, 2)),
+
                 'credit' => $credit,
             );
-            
-            $this->totalAmount += $totalAmount;
-            
+
+            $this->totalAmount += round($combinedRec->totalAmount, 2);
             if ($pRec->canStore == 'yes') {
-                $entries = array_merge($entries, $this->getDeliveryPart($rec, $product, $posRec));
+                $entries = array_merge($entries, $this->getDeliveryPart($rec, $combinedRec, $posRec));
             }
         }
-        
+
         return $entries;
     }
-    
-    
+
+
     /**
      * Помощен метод - генерира доставната част от транзакцията за продажба (ако има)
      * Експедиране на стоката от склада (в някой случаи)
@@ -297,7 +316,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $entries = array();
         $creditAccId = '321';
         $debitAccId = '701';
-        
+
         // После се отчита експедиране от склада
         $entries[] = array(
             'debit' => array(
@@ -306,18 +325,18 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                 array('pos_Reports', $rec->id),
                 array('cat_Products', $product->value),
                 'quantity' => $product->totalQuantity),
-            
+
             'credit' => array(
                 $creditAccId,
                 array('store_Stores', $product->storeId),
                 array('cat_Products', $product->value),
                 'quantity' => $product->totalQuantity),
         );
-        
+
         return $entries;
     }
-    
-    
+
+
     /**
      * Връща часта контираща ддс-то
      *
@@ -334,10 +353,10 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $entries = array();
         foreach ($totalVat as $index => $value) {
             $contragentArr = explode('|', $index);
-            
+
             $entries[] = array(
                 'amount' => currency_Currencies::round($value),
-                
+
                 'debit' => array(
                     '411',
                     $contragentArr,
@@ -345,17 +364,17 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                     array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->createdOn)),
                     'quantity' => currency_Currencies::round($value),
                 ),
-                
+
                 'credit' => array('4532')
             );
-            
+
             $this->totalAmount += currency_Currencies::round($value);
         }
-        
+
         return $entries;
     }
-    
-    
+
+
     /**
      * Помощен метод - генерира платежната част от транзакцията за продажба (ако има)
      *
@@ -374,7 +393,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     protected function getPaymentPart($rec, $paymentsArr, $posRec)
     {
         $entries = array();
-        
+
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
         $nonCashPayments = array();
@@ -398,14 +417,14 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
             $entries[] = array(
                 'amount' => currency_Currencies::round($payment->amount),
-                
+
                 'debit' => array(
                     '501', // Сметка "501. Каси"
                     array('cash_Cases', $posRec->caseId),
                     array('currency_Currencies', $debitCurrencyId),
                     'quantity' => currency_Currencies::round($debitQuantity),
                 ),
-                
+
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
                     array($payment->contragentClassId, $payment->contragentId),
@@ -414,7 +433,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                     'quantity' => currency_Currencies::round($payment->amount),
                 ),
             );
-            
+
             $this->totalAmount += currency_Currencies::round($payment->amount);
 
             if ($payment->value != -1) {
@@ -423,32 +442,32 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                 }
             }
         }
-        
+
         if (countR($nonCashPayments)) {
             foreach ($nonCashPayments as $payment1) {
                 $entries[] = array(
                     'amount' => currency_Currencies::round($payment1->amount),
-                    
+
                     'debit' => array(
                         '502', // Сметка "502. Каси - безналични плащания"
                         array('cash_Cases', $posRec->caseId),
                         array('cond_Payments', $payment1->value),
                         'quantity' => currency_Currencies::round($payment1->originalAmount),
                     ),
-                    
+
                     'credit' => array(
                         '501', // Сметка "501. Каси"
                         array('cash_Cases', $posRec->caseId),
                         array('currency_Currencies', $currencyId),
                         'quantity' => currency_Currencies::round($payment1->amount),
                     ),
-                
+
                 );
-                
+
                 $this->totalAmount += currency_Currencies::round($payment1->amount);
             }
         }
-        
+
         return $entries;
     }
 
@@ -481,7 +500,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                 $entries = array_merge($entries, $entriesProduction);
             }
         }
-        
+
         return $entries;
     }
 }
