@@ -577,7 +577,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $eurozoneDate = acc_Setup::getEurozoneDate();
         $data->hasDocumentBeforeEu = false;
         while ($rec = $sQuery->fetch()) {
-            if($rec->{$mvc->valiorFld}) {
+            if(isset($mvc->valiorFld) && $rec->{$mvc->valiorFld}) {
                 if($rec->{$mvc->valiorFld} < $eurozoneDate){
                     $data->hasDocumentBeforeEu = true;
                 }
