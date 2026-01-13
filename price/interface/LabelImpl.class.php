@@ -97,7 +97,7 @@ class price_interface_LabelImpl extends label_ProtoSequencerImpl
         $allergenPramId = cat_Params::fetchIdBySysId('allergens');
 
         $date = !empty($rec->date) ? $rec->date : dt::now();
-        $showDualPrice = $date <= '2026-06-30' && in_array($rec->currencyId, array('BGN', 'EUR'));
+        $showDualPrice = $date <= '2026-08-08' && in_array($rec->currencyId, array('BGN', 'EUR'));
 
         if(is_array($recs)){
             // От редовете, ще останат САМО тези, които ще могат да се печатат на етикети

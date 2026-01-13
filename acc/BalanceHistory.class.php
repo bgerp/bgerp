@@ -417,8 +417,7 @@ class acc_BalanceHistory extends core_Manager
         
         // Подготвяне на данните на записа
         $Date = cls::get('type_Date');
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
+        $Double = core_Type::getByName('double(smartRound)');
         
         // Подготовка на вербалното представяне
         $row = new stdClass();
@@ -444,7 +443,7 @@ class acc_BalanceHistory extends core_Manager
 
         // Извличаме хронологията за перата
         $isGrouped = !(($data->isGrouped !== 'yes'));
-        $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, false);
+        $balHistory = acc_ActiveShortBalance::getBalanceHistory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped, false);
         $data->recs = $balHistory['history'];
 
         $debitAmount = $creditAmount = $creditQuantity = $debitQuantity = null;
@@ -530,9 +529,7 @@ class acc_BalanceHistory extends core_Manager
      */
     public function getVerbalHistoryRow($rec)
     {
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        
+        $Double = core_Type::getByName('double(smartRound)');
         $Date = cls::get('type_Date');
         
         $arr = array();

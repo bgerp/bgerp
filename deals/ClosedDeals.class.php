@@ -867,22 +867,6 @@ abstract class deals_ClosedDeals extends core_Master
                         $countSbds = bank_SpendingDocuments::count("#threadId = {$rec->threadId} AND #state = 'active' AND #isReverse = 'yes'");
                         if(!$countRko && !$countSbds) return;
                     }
-
-                    $setupClass = $firstDoc->isInstanceOf('sales_Sales') ? 'sales_Setup' : 'purchase_Setup';
-                    $accDay = acc_Setup::get('DATE_FOR_INVOICE_DATE') + $setupClass::get('CURRENCY_CLOSE_AFTER_ACC_DATE');
-                    $firstDayOfMonth = date('Y-m-01') . " 23:59:59";
-
-
-                    $today = dt::today();
-                    $accDayPadded = str_pad($accDay, 2, '0', STR_PAD_LEFT);
-                    $nextMonthAfterBiggestValior = dt::addMonths(1, $biggestValior, false);
-                    $nextAccDateValior = dt::mysql2verbal($nextMonthAfterBiggestValior, "Y-m-{$accDayPadded}");
-
-                    // Ако най-големия вальор не е в миналия месец или деня е преди нужния за осчетоводяване сетва се грешка
-                    if($biggestValior >= $firstDayOfMonth || $today < $nextAccDateValior){
-                        $biggestValior = dt::mysql2verbal($biggestValior, 'd.m.Y');
-                        $res = "Не може да се приключи валутна сделка (по която има плащане), преди|* {$accDay} |число на месеца следващ най-големия вальор на сделката|*: {$biggestValior}!";
-                    }
                 }
             }
         }

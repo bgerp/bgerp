@@ -574,7 +574,14 @@ class acc_plg_DocumentSummary extends core_Plugin
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
         $draftCount = $activeCount = $pendingCount = 0;
 
+        $eurozoneDate = acc_Setup::getEurozoneDate();
+        $data->hasDocumentBeforeEu = false;
         while ($rec = $sQuery->fetch()) {
+            if(isset($mvc->valiorFld) && $rec->{$mvc->valiorFld}) {
+                if($rec->{$mvc->valiorFld} < $eurozoneDate){
+                    $data->hasDocumentBeforeEu = true;
+                }
+            }
             $mvc->fillSummaryRec($rec, $fieldsArr);
             self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
             if($rec->state == 'draft'){
@@ -608,8 +615,9 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     public static function on_AfterRenderListSummary($mvc, &$tpl, $data)
     {
+
         if ($data->listSummary->summary) {
-            $tpl = self::renderSummary($data->listSummary->summary);
+            $tpl = self::renderSummary($data);
         }
         
         if(isset($tpl)){
@@ -633,7 +641,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             return;
         }
-        
+
         foreach ($fieldsArr as $fld) {
             if (!array_key_exists($fld->name, $res)) {
                 $captionValue = (isset($fld->summaryCaption)) ? $fld->summaryCaption : $fld->caption;
@@ -672,7 +680,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      *
      * @return core_ET $tpl - Шаблон на обобщението
      */
-    private static function renderSummary($res)
+    private static function renderSummary($data)
     {
         // Зареждаме и подготвяме шаблона
         $double = cls::get('type_Double');
@@ -680,20 +688,35 @@ class acc_plg_DocumentSummary extends core_Plugin
         $double->params['decimals'] = 2;
         $tpl = new ET(tr('|*' . getFileContent('acc/plg/tpl/Summary.shtml')));
         $rowTpl = $tpl->getBlock('ROW');
-        
-        if (countR($res)) {
-            foreach ($res as $rec) {
+
+        $summaryRecs = $data->listSummary->summary;
+
+        if (countR($summaryRecs)) {
+            foreach ($summaryRecs as $rec) {
                 $row = new stdClass();
                 $row->measure = $rec->measure;
-                
+                $row->colspan = 1;
+
                 if (isset($rec->amount)) {
                     $row->amount = $double->toVerbal($rec->amount);
-                    $row->amount = ($rec->amount < 0) ? "<span style='color:red'>{$row->amount}</span>" : $row->amount;
+                    $row->amount = ht::styleNumber($row->amount, $rec->amount);
+
+                    if($data->hasDocumentBeforeEu){
+                        $amountBgn = currency_CurrencyRates::convertAmount($rec->amount, null, 'EUR', 'BGN');
+                        $row->amountBgn = $double->toVerbal($amountBgn);
+                        $row->amountBgn = ht::styleNumber($row->amountBgn, $amountBgn);
+                    }
                 } elseif (isset($rec->quantity)) {
                     $row->quantity = $int->toVerbal($rec->quantity);
                     $row->quantity = ($rec->quantity < 0) ? "<span style='color:red'>{$row->quantity}</span>" : $row->quantity;
+                    if($data->hasDocumentBeforeEu){
+                        $row->colspan = 3;
+                    }
                 }
-                
+
+               // amountBgn
+
+
                 $row->caption = $rec->caption;
                 
                 $rowTpl->placeObject($row);

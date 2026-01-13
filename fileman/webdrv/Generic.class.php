@@ -91,7 +91,33 @@ class fileman_webdrv_Generic extends core_Manager
 					<iframe src='{$infoUrl}'  ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                 'order' => 1,
             );
-        
+
+        if (haveRole('debug')) {
+            $pos = Request::get('pos', 'int');
+            $nPos = $pos + 1;
+            $pPos = $pos - 1;
+            $pPos = max(0, $pPos);
+
+            $cUrl = getCurrentUrl();
+            $pUrl = array();
+            if ($pos > 0) {
+                $pUrl = array_merge($cUrl, array('pos' => $pPos));
+            }
+
+            $nextLink = ht::createLink('', array_merge($cUrl, array('pos' => $nPos)), false, 'ef_icon=img/next.png,class=nextLink');
+            $prevLink = ht::createLink('', $pUrl, false, 'ef_icon=img/prev.png,class=prevLink');
+
+            $hexUrl = toUrl(array('fileman_webdrv_Generic', 'Hex', $fRec->fileHnd, 'pos' => $pos));
+            // Таб за информация
+            $tabsArr['hex'] = (object)
+            array(
+                'title' => 'HEX',
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink}
+					<iframe src='{$hexUrl}'  ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'order' => 9999,
+            );
+        }
+
         $tabsArr['__defaultTab'] = (object) array('name' => static::$defaultTab, 'order' => 1000);
         
         return $tabsArr;
@@ -544,7 +570,47 @@ class fileman_webdrv_Generic extends core_Manager
         // Връщаме съдържанието
         return $pageInst->output($content);
     }
-    
+
+
+    /**
+     * Показване на HEX частта на файла
+     *
+     * @return string
+     */
+    function act_Hex()
+    {
+        requireRole('debug');
+
+        // Манипулатора на файла
+        $fileHnd = Request::get('id');
+
+        expect($fileHnd);
+
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+
+        expect($fRec);
+
+        $content = fileman::getContent($fileHnd);
+        $blockSize = 4096;
+        $pos = Request::get('pos', 'int');
+
+        $max = (int) (strlen($content)/$blockSize);
+        if ($pos > $max) {
+            status_Messages::newStatus('Достигнахте края на файла');
+        }
+
+        $pos = min($max, $pos);
+        $pos = max(0, $pos);
+
+        $content = substr($content, $blockSize * $pos, $blockSize);
+
+        // Сменяма wrapper'а да е празна страница
+        Mode::set('wrapper', 'page_PureHtml');
+
+        return fileman_HexRenderer::render($content);
+    }
+
     
     /**
      * Екшън за показване HTML частта на файла

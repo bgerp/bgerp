@@ -1095,22 +1095,26 @@ class core_Backup extends core_Mvc
             
             $pass = defined('BGERP_BACKUP_RESTORE_PASS') ? BGERP_BACKUP_RESTORE_PASS : null;
             $log = array();
-          
+           // print_r([$src, $pass, $log]);
+   
             $dest = self::unzipToTemp($src, $pass, $log);
- 
+       
             if(!$dest) {
                 $err = "Usuccesfull unzipToTemp {$src}";
                 file_put_contents($prcFile, $err . PHP_EOL , FILE_APPEND);
                 self::fLog($err);
+                @unlink($dest);
+                @unlink($prcFile);
+                die();
             }
 
-           // $class = str::mysqlToPhpName($table);
+            $class = str::mysqlToPhpName($table);
 
            // $inst = cls::get($class);
 
            // $db = $inst->db;
 
-             $db = cls::get('core_Db');
+            $db = cls::get('core_Db');
 
             $res = self::importTable($db, $table, $dest);
         
@@ -1206,13 +1210,20 @@ class core_Backup extends core_Mvc
 
                     continue;
                 }
+                
                 if ($line === false || ($totalLen > $maxMysqlQueryLength)) {
                     try {
                         if (!empty($line)) {
                             $linesArr[] = self::getValuesAsLine($line, $cols, $db);
                         }
-                        
-                        $link->query("INSERT INTO `{$table}` ({$headers}) VALUES \n (" . implode("),\n(", $linesArr) . ')');
+die('sss');
+                        $sql = "INSERT INTO `{$table}` ({$headers}) VALUES \n (" . implode("),\n(", $linesArr) . ')';
+                        echo $sql; die;
+
+                        $link->query($sql);
+                        if(rand(1,1000) == 5) {
+                            self::fLog($sql);
+                        }
 
                         $linesArr = array();
                         $totalLen = 0;
@@ -1227,6 +1238,7 @@ class core_Backup extends core_Mvc
                 }
                 
                 $linesArr[] = self::getValuesAsLine($line, $cols, $db);
+                $totalLen += strlen($line);
             } while ($line !== false);
             fclose($handle);
             $res = 'msg: Импортиране на ' . $table . ' с общо ' . $linesCnt . ' линии';
@@ -1247,8 +1259,11 @@ class core_Backup extends core_Mvc
      */
     static function getValuesAsLine(array $valuesArr, array $cols, $db)
     {
+        $i = 0;
         foreach($cols as $name => $type) {
-            $v = $valuesArr[$name];
+            $v = $valuesArr[$i];
+            print_r([ $cols ]); die;
+
             if($type === 'string') {
                 $valuesArr[$name] = '"' . $db->escape($v) . '"';
             } elseif($type === 'binary') {
@@ -1260,6 +1275,7 @@ class core_Backup extends core_Mvc
                     $valuesArr[$name] = '"' . $db->escape($bVal) . '"';
                 }
             }
+            $i++;
         }
 
         return implode(',', $valuesArr);
@@ -1371,11 +1387,11 @@ class core_Backup extends core_Mvc
         
         $file = basename($path);
         $tempPath = $temp . substr($file, 0, -3);
-         
+ 
         expect(file_exists($path), $path);
         if (file_exists($tempPath)) {
             unlink($tempPath);
-        }
+        }  
         $log[] = "msg: Разкомпресиране на `{$file}`";
         $res = self::uncompressFile($path, $temp, $pass);
 
