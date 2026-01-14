@@ -1497,4 +1497,19 @@ abstract class store_DocumentMaster extends core_Master
             }
         }
     }
+
+
+    /**
+     * Връща файла, който се използва в документа
+     *
+     * @param object $rec
+     * @return array
+     */
+    public function getLinkedFiles($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
+
+        return $files;
+    }
 }
