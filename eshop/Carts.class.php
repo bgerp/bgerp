@@ -1745,8 +1745,9 @@ class eshop_Carts extends core_Master
         $amountWithoutDelivery = (static::calcChargeVat($rec) == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
 
+
         $bgCountryId = drdata_Countries::getIdByName('Bulgaria');
-        $row->total = deals_Helper::displayDualAmount($row->total, $total, null, $rec->currencyId, $bgCountryId, " / ", true);
+        $row->total = ($settings->lg == 'bg') ? deals_Helper::displayDualAmount($row->total, $total, null, $rec->currencyId, $bgCountryId, " / ", true) : currency_Currencies::decorate($row->total, $settings->currencyId, true);
 
         // Ако има доставка се показва и нея
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
@@ -1770,19 +1771,19 @@ class eshop_Carts extends core_Master
                 
                 $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
                 $row->deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-                $row->deliveryAmount = deals_Helper::displayDualAmount($row->deliveryAmount, $deliveryAmount, null, $rec->currencyId, $bgCountryId, " / ", true);
+                $row->deliveryAmount =  ($settings->lg == 'bg') ? deals_Helper::displayDualAmount($row->deliveryAmount, $deliveryAmount, null, $rec->currencyId, $bgCountryId, " / ", true) : currency_Currencies::decorate($row->deliveryAmount, $settings->currencyId, true);
             }
         }
        
         if(round($rec->total, 4) != round($amountWithoutDelivery, 4) || $rec->freeDelivery == 'yes'){
             $row->amount = $Double->toVerbal($amountWithoutDelivery);
-            $row->amount = deals_Helper::displayDualAmount($row->amount, $amountWithoutDelivery, null, $rec->currencyId, $bgCountryId, " / ", true);
+            $row->amount = ($settings->lg == 'bg') ? deals_Helper::displayDualAmount($row->amount, $amountWithoutDelivery, null, $rec->currencyId, $bgCountryId, " / ", true) : $row->amount;
             $row->amountCurrencyId = $row->currencyId;
         }
         
         if (eshop_Carts::calcChargeVat($rec) == 'separate') {
             $row->totalVat = $Double->toVerbal($vatAmount);
-            $row->totalVat = deals_Helper::displayDualAmount($row->totalVat, $vatAmount, null, $rec->currencyId, $bgCountryId, " / ", true);
+            $row->totalVat = ($settings->lg == 'bg') ? deals_Helper::displayDualAmount($row->totalVat, $vatAmount, null, $rec->currencyId, $bgCountryId, " / ", true) : $row->totalVat;
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));

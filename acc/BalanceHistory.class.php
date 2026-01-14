@@ -417,8 +417,9 @@ class acc_BalanceHistory extends core_Manager
         
         // Подготвяне на данните на записа
         $Date = cls::get('type_Date');
-        $Double = core_Type::getByName('double(smartRound)');
-        
+        $DoubleQuantity = core_Type::getByName('double(smartRound)');
+        $DoubleAmount = core_Type::getByName('double(decimals=2)');
+
         // Подготовка на вербалното представяне
         $row = new stdClass();
         $row->accountId = acc_Accounts::getTitleById($rec->accountId);
@@ -466,22 +467,16 @@ class acc_BalanceHistory extends core_Manager
         if(is_null($rec->baseQuantity)){
             $row->baseQuantity = '<span class="quiet">n/a</span>';
         } else {
-            $row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
+            $row->baseQuantity = $DoubleQuantity->toVerbal($rec->baseQuantity);
         }
 
         if(is_null($rec->baseAmount)){
             $row->baseAmount = '<span class="quiet">n/a</span>';
         } else {
-            $row->baseAmount = $Double->toVerbal($rec->baseAmount);
+            $row->baseAmount = $DoubleAmount->toVerbal($rec->baseAmount);
         }
-
-        if (round($rec->baseAmount, 4) < 0) {
-            $row->baseAmount = "<span style='color:red'>{$row->baseAmount}</span>";
-        }
-
-        if (round($rec->baseQuantity, 4) < 0) {
-            $row->baseQuantity = "<span style='color:red'>{$row->baseQuantity}</span>";
-        }
+        $row->baseAmount = ht::styleIfNegative($row->baseAmount, $rec->baseAmount);
+        $row->baseQuantity = ht::styleIfNegative($row->baseQuantity, $rec->baseQuantity);
 
         // Нулевия ред е винаги началното салдо
         $zeroRec = array('docId' => 'Начален баланс',
@@ -503,8 +498,8 @@ class acc_BalanceHistory extends core_Manager
         // Крайното салдо е изчисленото крайно салдо на сметката
         $rec->blAmount = $blAmount ?? $balHistory['summary']['blAmount'];
         $rec->blQuantity = $blQuantity ?? $balHistory['summary']['blQuantity'];
-        $row->blAmount = $Double->toVerbal($rec->blAmount);
-        $row->blQuantity = $Double->toVerbal($rec->blQuantity);
+        $row->blAmount = $DoubleAmount->toVerbal($rec->blAmount);
+        $row->blQuantity = $DoubleQuantity->toVerbal($rec->blQuantity);
         
         // Последния ред е крайното салдо
         $lastRec = array('docId' => 'Краен баланс',
@@ -529,7 +524,8 @@ class acc_BalanceHistory extends core_Manager
      */
     public function getVerbalHistoryRow($rec)
     {
-        $Double = core_Type::getByName('double(smartRound)');
+        $DoubleQuantity = core_Type::getByName('double(smartRound)');
+        $DoubleAmount = core_Type::getByName('double(decimals=2)');
         $Date = cls::get('type_Date');
         
         $arr = array();
@@ -537,10 +533,9 @@ class acc_BalanceHistory extends core_Manager
         
         // Ако има отрицателна сума показва се в червено
         foreach (array('debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld) {
-            $arr[$fld] = $Double->toVerbal($rec[$fld]);
-            if (round($rec[$fld], 6) < 0) {
-                $arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
-            }
+            $Type = strpos($fld, 'Amount') !== false ? $DoubleAmount : $DoubleQuantity;
+            $arr[$fld] = $Type->toVerbal($rec[$fld]);
+            $arr[$fld] = ht::styleIfNegative($arr[$fld], $rec[$fld]);
         }
 
         try {
