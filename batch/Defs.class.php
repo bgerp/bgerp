@@ -206,18 +206,16 @@ class batch_Defs extends core_Manager
      */
     public static function getBatchDef($productId)
     {
+        $productRec = cat_Products::fetchRec($productId, 'canStore,code');
         // Имали кеширана стойност
-        if (array_key_exists($productId, self::$cache)) {
-            return self::$cache[$productId];
+        if (array_key_exists($productRec->id, self::$cache)) {
+            return self::$cache[$productRec->id];
         }
-        self::$cache[$productId] = false;
-        
+        self::$cache[$productRec->id] = false;
+
         // Намираме записа за артикула
-        $rec = self::fetch("#productId = '{$productId}'");
-        if(isset($productId)){
-            $canStore = cat_Products::fetchField($productId, 'canStore');
-            if($canStore != 'yes') return null;
-        }
+        $rec = self::fetch("#productId = '{$productRec->id}'");
+        if(isset($productId) && $productRec->canStore != 'yes') return null;
 
         if (isset($rec->templateId)) {
             $template = batch_Templates::fetch($rec->templateId);
@@ -225,8 +223,7 @@ class batch_Defs extends core_Manager
                 $BatchClass = cls::get($template->driverClass);
                 $template->productId = $productId;
                 $template->templateId = $rec->templateId;
-                $code = cat_Products::fetchField($productId, 'code');
-                $template->productCode = !empty($productId) ? $code : "Art{$productId}";
+                $template->productCode = !empty($productRec->code) ? $productRec->code : "Art{$productRec->id}";
 
                 $template->batchCaption = $rec->batchCaption;
                 if($rec->alwaysRequire != 'auto'){
@@ -238,11 +235,11 @@ class batch_Defs extends core_Manager
                 
                 $BatchClass->setRec($template);
                 
-                self::$cache[$productId] = $BatchClass;
+                self::$cache[$productRec->id] = $BatchClass;
             }
         }
         
-        return self::$cache[$productId];
+        return self::$cache[$productRec->id];
     }
 
 
