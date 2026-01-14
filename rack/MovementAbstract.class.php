@@ -188,9 +188,16 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $class = '';
         if ($palletId = cat_UoM::fetchBySinonim('pallet')->id) {
-            if ($palletRec = cat_products_Packagings::getPack($rec->productId, $palletId)) {
-                if ($rec->quantity == $palletRec->quantity) {
-                    $class = "class = 'quiet'";
+            if(is_array($rec->packagings)){
+                $palletRecs = array_filter($rec->packagings, function($a) use ($palletId){
+                    return $a['packagingId'] == $palletId;
+                });
+
+                if(countR($palletRecs)){
+                    $palletRec = $palletRecs[key($palletRecs)];
+                    if ($rec->quantity == $palletRec['quantity']) {
+                        $class = "class = 'quiet'";
+                    }
                 }
             }
         }
@@ -453,10 +460,10 @@ abstract class rack_MovementAbstract extends core_Manager
 
         // Кои опаковки са с по-малко количество от нужното
         $packs = array_filter($packagingArr, function($a) use ($quantity) {return $a['quantity'] <= $quantity;});
+        $baseMeasureId = cat_Products::fetchField($productId, 'measureId');
 
         if(!countR($packs)) {
             // Ако няма нито една опаковка с достатъчно к-во - ще се показва винаги в основната да не се получават дробни числа
-            $baseMeasureId = cat_Products::fetchField($productId, 'measureId');
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
             $quantityVerbal = ht::styleIfNegative($quantityVerbal, $quantity);
             $displayString = tr(cat_UoM::getSmartName($baseMeasureId, $quantity));
@@ -497,7 +504,7 @@ abstract class rack_MovementAbstract extends core_Manager
         // Ако има остатък се показва и тях в основна мярка
         if($remaining) {
             $remaining = round($remaining, 6);
-            $productMeasureId = cat_Products::fetchField($productId, 'measureId');
+            $productMeasureId = $baseMeasureId;
             $remaining = cat_Uom::round($productMeasureId, $remaining);
             $packsByNow[] = array('packagingId' => $productMeasureId, 'quantity' => $remaining, 'similarPacks' => array());
         }

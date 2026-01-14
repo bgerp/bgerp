@@ -103,6 +103,12 @@ class cat_UoM extends core_Manager
     /**
      * Работен кеш
      */
+    private static $unitsCache = array();
+
+
+    /**
+     * Работен кеш
+     */
     private static $cacheSimilarArr = array();
 
 
@@ -532,18 +538,22 @@ class cat_UoM extends core_Manager
      */
     public static function fetchBySinonim($unit)
     {
-        $unit = trim(mb_strtolower($unit));
-        $unitAscii = str::utf2ascii($unit);
-        
-        $arr = array();
-        $arr[] = "LOWER(#sysId) = LOWER('[#1#]')";
-        $arr[] = "LOWER(#name) = LOWER('[#1#]')";
-        $arr[] = "LOWER(#shortName) = LOWER('[#1#]')";
-        $arr[] = "LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'";
-        $arr[] = "LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#2#]|%'";
-        $rec = self::fetch(array(implode(' OR ', $arr), $unit, $unitAscii));
-        
-        return $rec;
+        if(!array_key_exists($unit, self::$unitsCache)){
+            $unit = trim(mb_strtolower($unit));
+            $unitAscii = str::utf2ascii($unit);
+
+            $arr = array();
+            $arr[] = "LOWER(#sysId) = LOWER('[#1#]')";
+            $arr[] = "LOWER(#name) = LOWER('[#1#]')";
+            $arr[] = "LOWER(#shortName) = LOWER('[#1#]')";
+            $arr[] = "LOWER(CONCAT('|', #name, '|', #shortName)) LIKE '%|[#1#]|%'";
+            $arr[] = "LOWER(CONCAT('|', #sysId, #sinonims)) LIKE '%|[#2#]|%'";
+            $rec = self::fetch(array(implode(' OR ', $arr), $unit, $unitAscii));
+
+            self::$unitsCache[$unit] = $rec;
+        }
+
+        return self::$unitsCache[$unit];
     }
     
     
