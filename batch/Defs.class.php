@@ -207,6 +207,7 @@ class batch_Defs extends core_Manager
     public static function getBatchDef($productId)
     {
         $productRec = cat_Products::fetchRec($productId, 'canStore,code');
+
         // Имали кеширана стойност
         if (array_key_exists($productRec->id, self::$cache)) {
             return self::$cache[$productRec->id];
@@ -221,7 +222,7 @@ class batch_Defs extends core_Manager
             $template = batch_Templates::fetch($rec->templateId);
             if (cls::load($template->driverClass, true)) {
                 $BatchClass = cls::get($template->driverClass);
-                $template->productId = $productId;
+                $template->productId = $productRec->id;
                 $template->templateId = $rec->templateId;
                 $template->productCode = !empty($productRec->code) ? $productRec->code : "Art{$productRec->id}";
 

@@ -988,8 +988,6 @@ abstract class deals_DealBase extends core_Master
                         $obj->{$fld} = "<span style='float:right'>{$entVerbal}</span>";
                     }
 
-
-                    
                     $history[] = $obj;
                 }
                 
