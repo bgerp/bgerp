@@ -158,6 +158,7 @@ class rack_ZoneDetails extends core_Detail
         $moveStatusColor = (round($rec->movementQuantity, 4) < round($rec->documentQuantity, 4)) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
 
+        core_Debug::startTimer("GET_MOVEMENT_BATCH_INFO_{$rec->zoneId}");
         if ($Definition = batch_Defs::getBatchDef($rec->_productRec)) {
             if(!empty($rec->batch)){
                 $row->batch = $Definition->toVerbal($rec->batch);
@@ -176,6 +177,7 @@ class rack_ZoneDetails extends core_Detail
         } else {
             $row->batch = null;
         }
+        core_Debug::stopTimer("GET_MOVEMENT_BATCH_INFO_{$rec->zoneId}");
     }
     
     
@@ -519,11 +521,15 @@ class rack_ZoneDetails extends core_Detail
         setIfNot($additional, 'pendingAndMine');
         $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true, 'filter' => $additional);
 
+        core_Debug::startTimer("GET_MOVEMENTS_PREPARE_{$masterRec->id}");
         $dData = $me->prepareDetail($dData);
+        core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_{$masterRec->id}");
         if(!countR($dData->recs)) return $tpl;
         unset($dData->listFields['id']);
-        
+
+        core_Debug::startTimer("GET_MOVEMENTS_RENDER_{$masterRec->id}");
         $tpl = $me->renderDetail($dData);
+        core_Debug::stopTimer("GET_MOVEMENTS_RENDER_{$masterRec->id}");
         $tpl->removePlaces();
         $tpl->removeBlocks();
         Mode::pop('inlineDetail');
