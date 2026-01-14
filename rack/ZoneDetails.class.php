@@ -204,6 +204,10 @@ class rack_ZoneDetails extends core_Detail
             }
         }
 
+        // >>> ПОДМЯНА НА СТАТУСА: лявото число = реално изпълненото (active+closed) за текущия документ
+        // Контейнерът (документът), вързан към текущата зона
+        $containerId = rack_Zones::fetchField($data->masterData->rec->id, 'containerId');
+
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
             $row->_code = !empty($rec->_productRec->code) ? $rec->_productRec->code : "Art{$rec->productId}";
@@ -231,10 +235,6 @@ class rack_ZoneDetails extends core_Detail
                 unset($data->rows[$id]);
                 continue;
             }
-
-            // >>> ПОДМЯНА НА СТАТУСА: лявото число = реално изпълненото (active+closed) за текущия документ
-            // Контейнерът (документът), вързан към текущата зона
-            $containerId = rack_Zones::fetchField($data->masterData->rec->id, 'containerId');
 
             // По подразбиране ползваме нагласеното/заявеното (ver1/ver2)
             $leftShown  = (float)$rec->movementQuantity;
