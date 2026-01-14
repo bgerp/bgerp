@@ -272,7 +272,10 @@ class rack_Zones extends core_Master
 
             if($isTerminal) {
                 $additional = Request::get('additional', 'varchar');
+
+                core_Debug::startTimer("GET_MOVEMENTS_{$rec->id}");
                 $pendingHtml = rack_ZoneDetails::renderInlineDetail($rec, $mvc, $additional);
+                core_Debug::stopTimer("GET_MOVEMENTS_{$rec->id}");
                 if (!empty($pendingHtml)) {
                     $row->pendingHtml = $pendingHtml;
                 }
