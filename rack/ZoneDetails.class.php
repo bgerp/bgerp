@@ -613,12 +613,15 @@ class rack_ZoneDetails extends core_Detail
 			if ($masterRec->_isSingle === true) {
 				$fields['-inline-single'] = true;
 			}
+            unset($fields['productId']);
+            unset($fields['storeId']);
+            unset($fields['batch']);
+            unset($fields['packagingId']);
 
 			$mRec->_currentZoneId = $masterRec->id;
 			$data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
 		}
-        
-        
+
         // Сигнализираме, ако се взема цялото налично количество от палетмястото (т.е. че няма нужда да се брои)
         foreach ($data->rows as $mId => &$rRow) {
             $mRec = $data->recs[$mId];
