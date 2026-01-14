@@ -984,9 +984,10 @@ abstract class deals_DealBase extends core_Master
                             }
                         }
 
+                        $entVerbal = ht::styleNumber($entVerbal, $ent->{$fld});
                         $obj->{$fld} = "<span style='float:right'>{$entVerbal}</span>";
                     }
-                    
+
                     $history[] = $obj;
                 }
                 
