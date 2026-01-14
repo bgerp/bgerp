@@ -100,6 +100,12 @@ class rack_ZoneDetails extends core_Detail
 
 
     /**
+     * Кеш на продуктови опаковки
+     */
+    public $cachePacks = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -123,7 +129,7 @@ class rack_ZoneDetails extends core_Detail
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (is_object($rec)) {
-            $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+            $packRec = $mvc->cachePacks["{$rec->productId}|{$rec->packagingId}"];
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->movementQuantity = $rec->movementQuantity / $rec->quantityInPack;
             $rec->documentQuantity = $rec->documentQuantity / $rec->quantityInPack;
@@ -142,10 +148,9 @@ class rack_ZoneDetails extends core_Detail
     {
         $isInline = Mode::get('inlineDetail');
         if(!Mode::is('printing')){
-            $row->productId = $isInline ?  ht::createLinkRef(cat_Products::getTitleById($rec->productId), array('cat_Products', 'single', $rec->productId)) : cat_Products::getShortHyperlink($rec->productId, true);
+            $row->productId = $isInline ?  cat_Products::getTitleById($rec->_productRec, 'name') : cat_Products::getShortHyperlink($rec->productId, true);
         }
 
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $movementQuantity = core_Math::roundNumber($rec->movementQuantity);
         $documentQuantity = core_Math::roundNumber($rec->documentQuantity);
         $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($movementQuantity);
@@ -153,8 +158,7 @@ class rack_ZoneDetails extends core_Detail
         $moveStatusColor = (round($rec->movementQuantity, 4) < round($rec->documentQuantity, 4)) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
         $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
 
-       
-        if ($Definition = batch_Defs::getBatchDef($rec->productId)) {
+        if ($Definition = batch_Defs::getBatchDef($rec->_productRec)) {
             if(!empty($rec->batch)){
                 $row->batch = $Definition->toVerbal($rec->batch);
                 if(rack_ProductsByBatches::haveRightFor('list')){
@@ -164,8 +168,10 @@ class rack_ZoneDetails extends core_Detail
                 $row->batch = "<span class='quiet'>" . tr('Без партида') . "</span>";
             }
 
-            if($mvc->haveRightFor('modifybatch', $rec)){
-                $row->batch .= ht::createLink('', array($mvc, 'modifybatch', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Промяна на партидата');
+            if(!$isInline){
+                if($mvc->haveRightFor('modifybatch', $rec)){
+                    $row->batch .= ht::createLink('', array($mvc, 'modifybatch', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,title=Промяна на партидата');
+                }
             }
         } else {
             $row->batch = null;
@@ -198,9 +204,7 @@ class rack_ZoneDetails extends core_Detail
 
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
-
-            $productCode = cat_Products::fetchField($rec->productId, 'code');
-            $row->_code = !empty($productCode) ? $productCode : "Art{$rec->id}";
+            $row->_code = !empty($rec->_productRec->code) ? $rec->_productRec->code : "Art{$rec->productId}";
 
             $row->ROW_ATTR['class'] = 'row-added';
             $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->filter);
@@ -217,7 +221,7 @@ class rack_ZoneDetails extends core_Detail
             // СКРИВАНЕ НА "ПАРАЗИТНИЯ" РЕД:
             // - в базова мярка, без заявено количество (NULL/0)
             // - има друг ред за същия продукт/партида със заявка
-            $measureId = (int) cat_Products::fetchField($rec->productId, 'measureId');
+            $measureId = $rec->_productRec->measureId;
             $hasReqKey = (int)$rec->productId . '|' . (string)$rec->batch;
             $docIsEmpty = (is_null($rec->documentQuantity) || (float)$rec->documentQuantity == 0.0);
 
@@ -1131,4 +1135,43 @@ class rack_ZoneDetails extends core_Detail
 
 		return $res;
 	}
+
+
+    /**
+     * Преди подготовка на записите
+     */
+    public function on_BeforePrepareListRows($mvc, &$res, $data)
+    {
+        if(!countR($data->recs)) return;
+
+        // Еднократно кеширане на записите на засегнатите артикули
+        $productIds = arr::extractValuesFromArray($data->recs, 'productId');
+        $pQuery = cat_Products::getQuery();
+        $pQuery->in('id', $productIds);
+        $pQuery->show('name,code,isPublic,nameEn,state,canStore,measureId');
+        $allProducts = $pQuery->fetchAll();
+        foreach ($data->recs as $rec){
+            $rec->_productRec = $allProducts[$rec->productId];
+        }
+
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->in('productId', $productIds);
+        while($pRec = $packQuery->fetch()) {
+            $mvc->cachePacks["{$pRec->productId}|{$pRec->packagingId}"] = $pRec;
+        }
+    }
+
+
+    /**
+     * Преди подготовка на записите
+     */
+    public function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+        if(!countR($data->rows)) return;
+        foreach ($data->rows as $id => $row){
+            $rec = $data->recs[$id];
+
+            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack, $mvc->cachePacks);
+        }
+    }
 }
