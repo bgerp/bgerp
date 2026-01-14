@@ -171,7 +171,7 @@ class plg_State2 extends core_Plugin
         $row->STATE_CLASS = "state-{$rec->state}";
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
 
-        if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('noToolbar')) return;
+        if (isset($fields['-list']) && (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('noToolbar'))) return;
 
         if ($mvc->haveRightFor('changeState', $rec)) {
             $this->getActiveAndClosedState($mvc);
