@@ -1377,7 +1377,7 @@ class rack_Zones extends core_Master
                 $requestedMap = rack_Ver3Base::requestedByZoneBaseMap($expected, $pRec->productId, $batch);
 
                 // 4.3) Описание на опаковките (packId => qtyInBase)
-                $packsDesc = rack_Ver3Base::getAllPacksDesc($pRec->productId);
+                $packsDesc = rack_Ver3Base::getPacksDescMap($pRec->productId);
 
                 // 4.4) Разцепване на базовата алокация по опаковки
                 $__byPack = rack_Ver3Base::splitAllocatedToPackaged(

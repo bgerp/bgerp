@@ -342,8 +342,14 @@ class rack_Movements extends rack_MovementAbstract
             $batch = empty($batch) ? '' : $batch;
             $zonesQuantityArr = static::getZoneArr($rec);
             foreach ($zonesQuantityArr as $zoneRec){
-                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0, $batch);
-            }
+
+				// Ако за тази зона има заявка (documentQuantity), лепим „празния“ ред към нейната опаковка,
+				// вместо към packagingId на движението (което при комбинирани може да е по-малка опаковка).
+				$reqPackId = rack_ZoneDetails::getRequestedPackagingId($zoneRec->zone, $rec->productId, $batch);
+				$packIdToUse = $reqPackId ? $reqPackId : $rec->packagingId;
+
+				rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $packIdToUse, 0, $batch);
+			}
         }
 
         // Синхронизиране на записа
@@ -427,11 +433,16 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         if (is_array($transaction->zonesQuantityArr)) {
-            foreach ($transaction->zonesQuantityArr as $obj) {
-                $batch = empty($transaction->batch) ? '' : $transaction->batch;
-                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $batch);
-            }
-        }
+			foreach ($transaction->zonesQuantityArr as $obj) {
+				$batch = empty($transaction->batch) ? '' : $transaction->batch;
+
+				// Ако за тази зона има заявка (documentQuantity), лепим movement-а към нейната опаковка
+				$reqPackId = rack_ZoneDetails::getRequestedPackagingId($obj->zone, $transaction->productId, $batch);
+				$packIdToUse = $reqPackId ? $reqPackId : $transaction->packagingId;
+
+				rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $packIdToUse, $obj->quantity, $batch);
+			}
+		}
        
         $cacheType = 'UsedRacksPositions' . $transaction->storeId;
         core_Cache::removeByType($cacheType);
