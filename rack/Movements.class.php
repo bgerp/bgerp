@@ -342,8 +342,14 @@ class rack_Movements extends rack_MovementAbstract
             $batch = empty($batch) ? '' : $batch;
             $zonesQuantityArr = static::getZoneArr($rec);
             foreach ($zonesQuantityArr as $zoneRec){
-                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0, $batch);
-            }
+
+				// Ако за тази зона има заявка (documentQuantity), лепим „празния“ ред към нейната опаковка,
+				// вместо към packagingId на движението (което при комбинирани може да е по-малка опаковка).
+				$reqPackId = rack_ZoneDetails::getRequestedPackagingId($zoneRec->zone, $rec->productId, $batch);
+				$packIdToUse = $reqPackId ? $reqPackId : $rec->packagingId;
+
+				rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $packIdToUse, 0, $batch);
+			}
         }
 
         // Синхронизиране на записа
@@ -427,11 +433,16 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         if (is_array($transaction->zonesQuantityArr)) {
-            foreach ($transaction->zonesQuantityArr as $obj) {
-                $batch = empty($transaction->batch) ? '' : $transaction->batch;
-                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $batch);
-            }
-        }
+			foreach ($transaction->zonesQuantityArr as $obj) {
+				$batch = empty($transaction->batch) ? '' : $transaction->batch;
+
+				// Ако за тази зона има заявка (documentQuantity), лепим movement-а към нейната опаковка
+				$reqPackId = rack_ZoneDetails::getRequestedPackagingId($obj->zone, $transaction->productId, $batch);
+				$packIdToUse = $reqPackId ? $reqPackId : $transaction->packagingId;
+
+				rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $packIdToUse, $obj->quantity, $batch);
+			}
+		}
        
         $cacheType = 'UsedRacksPositions' . $transaction->storeId;
         core_Cache::removeByType($cacheType);
@@ -952,6 +963,7 @@ class rack_Movements extends rack_MovementAbstract
     {
         $ajaxMode = Request::get('ajax_mode');
         $action = Request::get('type', 'varchar');
+        $additional = Request::get('additional', 'varchar');
 
         $cu = core_Users::getCurrent();
         $url = toUrl(getCurrentUrl(), 'local');
@@ -1121,8 +1133,22 @@ class rack_Movements extends rack_MovementAbstract
         // Ако се обновява по Ajax
         if($ajaxMode){
             rack_Movements::logDebug("RACK TOGGLE SUCCESS {$rec->id} -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $rec->id);
+            $Zones = cls::get('rack_Zones');
+            $zones = keylist::toArray($rec->zoneList);
 
-            return array_merge($resArr, self::forwardRefreshUrl());
+            foreach ($zones as $zoneId) {
+                $zRec = rack_Zones::fetch($zoneId);
+                $obj = new stdClass();
+                $obj->func = 'html';
+                $obj->arg = array('id' => "zone_movements_{$zoneId}", 'html' => rack_ZoneDetails::renderInlineDetail($zRec, $Zones, $additional)->getContent(), 'replace' => true);
+                $resArr[] = $obj;
+            }
+
+            $obj = new stdClass();
+            $obj->func = 'prepareContextMenu';
+            $resArr[] = $obj;
+
+            return array_merge($resArr, status_Messages::returnStatusesArray());
         }
         
         followretUrl(null, $msg, $type);
@@ -1289,7 +1315,21 @@ class rack_Movements extends rack_MovementAbstract
         // Ако се обновява по Ajax
         if($ajaxMode){
 
-            return array_merge($resArr, self::forwardRefreshUrl());
+            $Zones = cls::get('rack_Zones');
+            $zones = keylist::toArray($rec->zoneList);
+            foreach ($zones as $zoneId) {
+                $zRec = rack_Zones::fetch($zoneId);
+                $obj = new stdClass();
+                $obj->func = 'html';
+                $obj->arg = array('id' => "zone_movements_{$zoneId}", 'html' => rack_ZoneDetails::renderInlineDetail($zRec, $Zones, $additional)->getContent(), 'replace' => true);
+                $resArr[] = $obj;
+            }
+
+            $obj = new stdClass();
+            $obj->func = 'prepareContextMenu';
+            $resArr[] = $obj;
+
+            return array_merge($resArr, status_Messages::returnStatusesArray());
         }
         
         followretUrl(array($this));
@@ -1767,11 +1807,13 @@ class rack_Movements extends rack_MovementAbstract
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         core_RowToolbar::createIfNotExists($row->_rowTools);
+        $additional = Request::get('additional', 'varchar');
 
         if ($mvc->haveRightFor('load', $rec)) {
-            $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'load', 'ret_url' => true);
+            $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'load', 'additional' => $additional, 'ret_url' => true);
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
+                unset($loadUrl['ret_url']);
                 $loadUrl = toUrl($loadUrl, 'local');
                 $row->leftColBtns = ht::createFnBtn('Запазване', '', null, array('id' => "ajLoad{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $loadUrl, 'title' => 'Запазване на движението', 'ef_icon' => 'img/16/checkbox_no.png', 'data-moveid' => $rec->id));
             } else {
@@ -1781,7 +1823,7 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('unload', $rec)) {
-            $unloadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'unload', 'ret_url' => true);
+            $unloadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'unload', 'additional' => $additional, 'ret_url' => true);
             $row->_rowTools->addLink('Отказване', $unloadUrl, 'ef_icon=img/16/checked.png,title=Отказване на движението');
         }
 
@@ -1791,10 +1833,11 @@ class rack_Movements extends rack_MovementAbstract
         $doneWarning = $isDifferentWarning  ? 'Сигурни ли сте, че искате да приключите движение от друг потребител|*?' : null;
 
         if ($mvc->haveRightFor('start', $rec)) {
-            $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => true);
+            $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'additional' => $additional, 'ret_url' => true);
             $row->_rowTools->addLink('Започване', $startUrl, array('warning' => $startWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/control_play.png', 'title' => 'Започване на движението'));
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
+                unset($startUrl['ret_url']);
                 $startUrl = toUrl($startUrl, 'local');
                 $row->rightColBtns = ht::createFnBtn('Започване', '', $startWarning, array('id' => "ajStart{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png', 'data-moveid' => $rec->id));
             } else {
@@ -1804,13 +1847,14 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('done', $rec)) {
-            $doneUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
+            $doneUrl = array($mvc, 'done', $rec->id, 'additional' => $additional, 'ret_url' => true);
             if(isset($rec->_currentZoneId)){
                 $doneUrl['currentZoneId'] = $rec->_currentZoneId;
             }
 
             $row->_rowTools->addLink('Приключване', $doneUrl, array('id' => "done{$rec->id}", 'warning' => $doneWarning, 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
             if($fields['-inline'] && !isset($fields['-inline-single'])){
+                unset($doneUrl['ret_url']);
                 $doneUrl = toUrl($doneUrl, 'local');
                 $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('id' => "ajDone{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $doneUrl, 'title' => 'Приключване на движението', 'ef_icon' => 'img/16/gray-close.png', 'data-moveid' => $rec->id));
             } else {

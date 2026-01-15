@@ -223,7 +223,7 @@ class findeals_Deals extends deals_DealBase
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
         $this->FNC('contragentItemId', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Втори контрагент,input');
 
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,silent,removeAndRefreshForm=currencyRate');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,where=#code !\\= \\\'BGN\\\')', 'caption=Валута,silent,removeAndRefreshForm=currencyRate');
         $this->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=ДДС изключение');
 
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
