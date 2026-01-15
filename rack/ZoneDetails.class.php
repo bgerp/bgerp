@@ -379,7 +379,14 @@ class rack_ZoneDetails extends core_Detail
      */
     public static function recordMovement($zoneId, $productId, $packagingId, $quantity, $batch)
     {
-        $newRec = self::fetch(array("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId} AND #batch = '[#1#]'", $batch));
+        $batch = (string) (isset($batch) ? $batch : '');
+		$condBatch = ($batch === '') ? "(#batch IS NULL OR #batch = '')" : "#batch = '[#1#]'";
+
+		if ($batch === '') {
+			$newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId} AND {$condBatch}");
+		} else {
+			$newRec = self::fetch(array("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId} AND {$condBatch}", $batch));
+		}
         if (empty($newRec)) {
             $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null, 'batch' => $batch);
         }
@@ -388,6 +395,34 @@ class rack_ZoneDetails extends core_Detail
        
         self::save($newRec);
     }
+	
+	
+	/**
+	 * Връща packagingId от заявката (documentQuantity) за даден zoneId+productId+batch.
+	 * Ако няма – връща NULL.
+	 */
+	public static function getRequestedPackagingId($zoneId, $productId, $batch)
+	{
+		$batch = (string) (isset($batch) ? $batch : '');
+
+		$q = self::getQuery();
+		$q->where("#zoneId = {$zoneId} AND #productId = {$productId}");
+		if ($batch === '') {
+			$q->where("(#batch IS NULL OR #batch = '')");
+		} else {
+			$q->where(array("#batch = '[#1#]'", $batch));
+		}
+		$q->where("#documentQuantity IS NOT NULL AND #documentQuantity <> 0");
+		$q->show('packagingId,documentQuantity');
+		$q->orderBy('documentQuantity', 'DESC');
+		$q->limit(1);
+
+		if ($r = $q->fetch()) {
+			return (int)$r->packagingId;
+		}
+
+		return null;
+	}
     
     
     /**
@@ -405,9 +440,25 @@ class rack_ZoneDetails extends core_Detail
             
             if (countR($products)) {
                 foreach ($products as $obj) {
-                    $newRec = self::fetch(array("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId} AND #batch = '[#1#]'", $obj->batch));
-                    if (empty($newRec)) {
-                        $newRec = (object) array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'batch' => $obj->batch, 'movementQuantity' => null, 'documentQuantity' => 0);
+                    $batch = empty($obj->batch) ? '' : (string)$obj->batch;
+
+					if ($batch === '') {
+						$newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId} AND (#batch IS NULL OR #batch = '')");
+					} else {
+						$newRec = self::fetch(array("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId} AND #batch = '[#1#]'", $batch));
+					}
+
+					if (empty($newRec)) {
+						$newRec = (object) array(
+							'zoneId' => $zoneId,
+							'productId' => $obj->productId,
+							'packagingId' => $obj->packagingId,
+							'batch' => $batch,
+							'movementQuantity' => null,
+							'documentQuantity' => 0
+						);
+					} else {
+						$newRec->batch = $batch; // нормализация и при съществуващ
                     }
                     $newRec->documentQuantity = $obj->quantity;
                     if(!empty($newRec->documentQuantity)){
