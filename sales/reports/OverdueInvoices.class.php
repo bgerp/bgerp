@@ -182,26 +182,13 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                     $fDocRec = $FirstDoc->fetch();                       // Rec-a на договора
                 }else continue;
 
-
                 // масив от фактури в тази нишка към избраната дата
                 $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
 
                 if (is_array($invoicePayments) && !empty($invoicePayments)) {
 
-
                     // фактура от нишката и масив от платежни документи по тази фактура//
                     foreach ($invoicePayments as $inv => $paydocs) {
-
-                        //Превалутиране на сумите
-                        $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate);
-                        $paydocs->amount = deals_Helper::getSmartBaseCurrency($paydocs->amount, $paydocs->date, $rec->checkDate);
-
-                        $invoiceCurrentSumm = 0;
-
-                        if (($paydocs->payout >= $paydocs->amount - 0.01) &&
-                            ($paydocs->payout <= $paydocs->amount + 0.01)) {
-                            continue;
-                        }
 
                         $Invoice = doc_Containers::getDocument($inv);
 
@@ -235,6 +222,26 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                             }
                         }
 
+                        //Превалутиране на сумите
+
+                        $paydocsAmountBaseCurr = $paydocs->amount * $iRec->rate;
+                        $paydocspayOutBaseCurr = $paydocs->payout * $iRec->rate;
+
+                      //  $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate);
+                      //  $paydocs->amount = deals_Helper::getSmartBaseCurrency( $paydocs->amount, $paydocs->date, $rec->checkDate);
+
+                        $paydocspayOutBaseCurr = deals_Helper::getSmartBaseCurrency($paydocspayOutBaseCurr, $paydocs->date, $rec->checkDate);
+                        $paydocsAmountBaseCurr = deals_Helper::getSmartBaseCurrency( $paydocsAmountBaseCurr, $paydocs->date, $rec->checkDate);
+
+                        $invoiceCurrentSumm = 0;
+
+                        if (($paydocs->payout >= $paydocs->amount - 0.01) &&
+                            ($paydocs->payout <= $paydocs->amount + 0.01)) {
+                            continue;
+                        }
+
+
+
                         $overdueColor = '';
                         $limits = json_decode($rec->additional);
                         list($limit1) = $limits->limit1;
@@ -259,15 +266,14 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 $overColor = 'red';
                             }
 
-                            $invoiceCurrentSumm = $paydocs->amount - $paydocs->payout;
+                            $invoiceCurrentSummArr[$contragentFolderId] += $paydocsAmountBaseCurr - $paydocspayOutBaseCurr; //Обща сума за контрагента в основна валута
 
-                            $invoiceCurrentSummArr[$contragentFolderId] += $invoiceCurrentSumm;
                         } else {
                             continue;
                         }
 
-                        $salesTotalOverDue += $paydocs->amount ;      // Обща стойност на просрочените фактури преизчислени в основна валута
-                        $salesTotalPayout += $paydocs->payout ;       // Обща стойност на плащанията по просрочените фактури преизчислени в основна валута
+                        $salesTotalOverDue += $paydocsAmountBaseCurr ;      // Обща стойност на просрочените фактури преизчислени в основна валута
+                        $salesTotalPayout += $paydocspayOutBaseCurr ;       // Обща стойност на плащанията по просрочените фактури преизчислени в основна валута
 
                         // масива с фактурите за показване
                         if (!array_key_exists($iRec->id, $sRecs)) {
@@ -484,6 +490,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $row = new stdClass();
 
+        $euroZoneDate = acc_Setup::getEurozoneDate();
+
         $invoiceNo = str_pad($dRec->invoiceNo, 10, '0', STR_PAD_LEFT);
 
         $row->invoiceNo = ht::createLink(
@@ -508,10 +516,18 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
             if ($rec->data->groupByField == 'contragent') {
                 $row->overduePeriod = "<span style=\"color:{$dRec->overColor}\">" . $dRec->overduePeriod . '</span>';
+                if ($rec->checkDate < $euroZoneDate) {
+
+                    $invoiceCurrentSumm = $dRec->invoiceCurrentSummArr[$dRec->contragent] / 1.95583;
+
+                }else{
+                    $invoiceCurrentSumm = $dRec->invoiceCurrentSummArr[$dRec->contragent];
+                }
+
                 $row->contragent = doc_Folders::getTitleById($dRec->contragent) .
                     "<span class= 'fright'><span class= 'quiet'>" . 'Общо ПРОСРОЧЕНИ фактури: ' . '</span>' .
-                    core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceCurrentSummArr[$dRec->contragent]) .
-                    ' ' . "{$dRec->currencyId}" . '</span>';
+                    core_Type::getByName('double(decimals=2)')->toVerbal($invoiceCurrentSumm) .
+                    ' ' . " €" . '</span>';
             } else {
                 $row->overduePeriod = 'Просрочие ' . $dRec->overduePeriod . ' дни';
                 $row->contragent = doc_Folders::getTitleById($dRec->contragent);
@@ -590,6 +606,10 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
             )
         );
 
+        $euroZoneDate = acc_Setup::getEurozoneDate();
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
+
+
         //Показва контрагента
         if (isset($data->rec->contragent)) {
             foreach (keylist::toArray($data->rec->contragent) as $v) {
@@ -617,19 +637,32 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         $fieldTpl->append($Date->toVerbal($checkDate), 'checkDate');
 
+        if ($data->rec->checkDate < $euroZoneDate) {
 
-        $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
+            $salesTotalOverDue = $data->rec->salesTotalOverDue / 1.95583;
+            $salesTotalPayout = $data->rec->salesTotalPayout / 1.95583;
+            $salesCurrentSum = $data->rec->salesCurrentSum / 1.95583;
+
+        }else{
+            $salesTotalOverDue = $data->rec->salesTotalOverDue;
+            $salesTotalPayout = $data->rec->salesTotalPayout;
+            $salesCurrentSum = $data->rec->salesCurrentSum;
+        }
+
 
         if (isset($data->rec->salesTotalOverDue)) {
-            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalOverDue) . " $baseCurrency", 'salesTotalOverDue');
+
+
+
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($salesTotalOverDue) . " €", 'salesTotalOverDue');
         }
 
         if (isset($data->rec->salesTotalPayout)) {
-            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesTotalPayout) . " $baseCurrency", 'salesTotalPayout');
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($salesTotalPayout) . " €", 'salesTotalPayout');
         }
 
         if (isset($data->rec->salesCurrentSum)) {
-            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($data->rec->salesCurrentSum) . " $baseCurrency", 'salesCurrentSum');
+            $fieldTpl->append(core_Type::getByName('double(decimals=2)')->toVerbal($salesCurrentSum) . " €", 'salesCurrentSum');
         }
 
         $exportUrl = array('sales_reports_OverdueInvoices', 'excludCompanies', 'recId' => $data->rec->id, 'ret_url' => true);
