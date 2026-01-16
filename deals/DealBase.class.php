@@ -427,7 +427,7 @@ abstract class deals_DealBase extends core_Master
                 $msg = '|Следните ' . mb_strtolower($this->title) . ' са вече затворени|*: ' . implode(',', $closedDeals);
                 $form->setError('closeWith', $msg);
             }
-            bp($beforeEu, $afterEu);
+
             if($beforeEu && $afterEu) {
                 $form->setError('closeWith', "Не може да обединявате документи с вальор преди влизането в еврозоната с такива след нея|*!");
             }
