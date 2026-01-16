@@ -294,7 +294,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 'currencyId' => $iRec->currencyId,
                                 'rate' => $iRec->rate,
                                 'invoiceValue' => $paydocs->amount,
-                                'invoiceVAT' => deals_Helper::getSmartBaseCurrency($iRec->vatAmount, $iRec->date, $rec->checkDate),
+                                'invoiceVAT' => $iRec->vatAmount,
                                 'invoicePayout' => $paydocs->payout,
                                 'invoiceCurrentSumm' => $paydocs->amount - $paydocs->payout,
                                 'invoiceCurrentSummArr' => $invoiceCurrentSummArr,
