@@ -213,7 +213,9 @@ class rack_ZoneDetails extends core_Detail
             $row->_code = !empty($rec->_productRec->code) ? $rec->_productRec->code : "Art{$rec->productId}";
 
             $row->ROW_ATTR['class'] = 'row-added';
+            core_Debug::startTimer("GET_MOVEMENTS_PREPARE_INLINE_MOVEMENTS");
             $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->filter);
+            core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_INLINE_MOVEMENTS");
             if(!empty($movementsHtml)){
                 $row->movementsHtml = $movementsHtml;
             }
@@ -224,6 +226,7 @@ class rack_ZoneDetails extends core_Detail
                 continue;
             }
 
+            core_Debug::startTimer("GET_MOVEMENTS_PREPARE_HIDE_PARASITIC_ROW");
             // СКРИВАНЕ НА "ПАРАЗИТНИЯ" РЕД:
             // - в базова мярка, без заявено количество (NULL/0)
             // - има друг ред за същия продукт/партида със заявка
@@ -274,6 +277,7 @@ class rack_ZoneDetails extends core_Detail
                 $qip = ($qip != 0.0) ? $qip : 1.0; // пазим се от делене на 0, но НЕ затапваме стойности <1
                 $leftShown = $doneBase / $qip;
             }
+            core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_HIDE_PARASITIC_ROW");
 
             // Вербализация и оцветяване
             $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal(core_Math::roundNumber($leftShown));
@@ -613,7 +617,9 @@ class rack_ZoneDetails extends core_Detail
         }
 
         $Movements->setField('workerId', "tdClass=inline-workerId");
+        core_Debug::startTimer("GET_MOVEMENTS_PREPARE_GET_CURRENT_RECS");
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $filter);
+        core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_GET_CURRENT_RECS");
         $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
         $allocated = is_array($allocated) ? $allocated : array();
 
@@ -647,7 +653,9 @@ class rack_ZoneDetails extends core_Detail
 		}
 
 		// Общото "генерирано" количество в базова мярка
+        core_Debug::startTimer("GET_MOVEMENTS_PREPARE_GENERATE_BASE");
 		$rec->_generatedBase = static::getGeneratedBaseForDetail($masterRec, $rec);
+        core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_GENERATE_BASE");
 
 		$requestedProductId = Request::get('productId', 'int');
 
@@ -670,10 +678,13 @@ class rack_ZoneDetails extends core_Detail
             unset($fields['packagingId']);
 
 			$mRec->_currentZoneId = $masterRec->id;
+            core_Debug::startTimer("GET_MOVEMENTS_PREPARE_RECTOVERBAL");
 			$data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
+            core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_RECTOVERBAL");
 		}
 
         // Сигнализираме, ако се взема цялото налично количество от палетмястото (т.е. че няма нужда да се брои)
+        core_Debug::startTimer("GET_MOVEMENTS_PREPARE_PALLET_WARNING");
         foreach ($data->rows as $mId => &$rRow) {
             $mRec = $data->recs[$mId];
             if (!empty($mRec->palletId) && $mRec->quantity > 0) {
@@ -690,7 +701,7 @@ class rack_ZoneDetails extends core_Detail
                 }
             }
         }
-        
+        core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_PALLET_WARNING");
 
         // Рендиране на таблицата
         $tpl = new core_ET('');
@@ -698,8 +709,11 @@ class rack_ZoneDetails extends core_Detail
             $tableClass = ($masterRec->_isSingle === true && countR($data->rows)) ? 'listTable' : 'simpleTable';
             $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'tableClass' => $tableClass, 'thHide' => true));
             $Movements->invoke('BeforeRenderListTable', array($tpl, &$data));
-            
+
+            core_Debug::startTimer("GET_MOVEMENTS_RENDER_TABLE");
             $tpl->append($table->get($data->rows, $data->listFields));
+            core_Debug::stopTimer("GET_MOVEMENTS_RENDER_TABLE");
+
             $tpl->append("style='width:100%;'", 'TABLE_ATTR');
         }
         
