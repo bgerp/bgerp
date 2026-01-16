@@ -315,7 +315,11 @@ class findeals_Deals extends deals_DealBase
         
         expect(currency_Currencies::getIdByCode($newFields['currencyId']), 'Невалидна валута');
         expect($Double->fromVerbal($newFields['currencyRate']), 'Невалиден курс');
-        
+        if($newFields['currencyId'] == 'BGN'){
+            $newFields['currencyId'] = 'EUR';
+            $newFields['currencyRate'] = $newFields['valior'] < acc_Setup::getEurozoneDate() ? 1.95583 : 1;
+        }
+
         if (isset($fields['baseAccountSysId'])) {
             expect($accRec = acc_Accounts::getRecBySystemId($fields['baseAccountSysId']), 'Невалидна сметка');
             expect(is_null($accRec->groupId1) && is_null($accRec->groupId2) && is_null($accRec->groupId1), 'Сметката трябва да няма разбивки');
@@ -336,6 +340,7 @@ class findeals_Deals extends deals_DealBase
         }
 
         $newFields = (object) $newFields;
+
         // Опиваме се да запишем мастъра на сделката
         if ($id = $me->save($newFields)) {
             
