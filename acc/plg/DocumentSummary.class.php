@@ -663,7 +663,11 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
 
                     if(isset($mvc->valiorFld)){
-                        $valior = $rec->{$mvc->valiorFld} ?? dt::verbal2mysql($rec->createdOn, false);
+                        if($mvc->amountIsInNotInBaseCurrency){
+                            $valior = $rec->{$mvc->valiorFld} ?? dt::today();
+                        } else {
+                            $valior = $rec->{$mvc->valiorFld} ?? dt::verbal2mysql($rec->createdOn, false);
+                        }
                         $baseAmount = deals_Helper::getSmartBaseCurrency($baseAmount, $valior);
                     }
 
