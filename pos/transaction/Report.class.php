@@ -251,7 +251,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                     'value' => $product->value);
             }
 
-            $combined[$key]->totalQuantity += round( $product->quantity, 2);
+            $combined[$key]->totalQuantity += round($product->quantity * $product->quantityInPack, 2);
             if($rec->chargeVat == 'no'){
                 $product->amount *= (1 + $product->param);
             }
