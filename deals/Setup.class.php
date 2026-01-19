@@ -194,6 +194,15 @@ class deals_Setup extends core_ProtoSetup
             'period' => 10080,
             'offset' => 120
         ),
+
+        array(
+            'systemId' => 'Recalc Draft And Pending Currency Rate',
+            'description' => 'Преизчисляване на валутния курс на старите чернови документи и заявки',
+            'controller' => 'deals_plg_UpdateCurrencyRates',
+            'action' => 'RecalcCurrencyRate',
+            'period' => 1440,
+            'offset' => 30
+        ),
     );
 
 
