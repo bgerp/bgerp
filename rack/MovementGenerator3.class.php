@@ -270,39 +270,6 @@ class rack_MovementGenerator3 extends core_Manager
 					if ($pQ >= $qInPallet) $fullIdxNow[] = $pId; else $brokenIdx[] = $pId;
 					if ($pallets[$pId]->_isFirstRow) $firstRowIdx[] = $pId;
 				}
-				
-				
-				$watchPos = array('44-C-1', '41-A-1', '40-A-1');
-$watch = array();
-foreach ($pArr as $pid => $pq) {
-    $pos = $pallets[$pid]->position;
-    if (in_array($pos, $watchPos)) {
-        $watch[$pos] = array(
-            'pid' => $pid,
-            'q' => $pq,
-            'isFirstRow' => $pallets[$pid]->_isFirstRow,
-            'createdOn' => $pallets[$pid]->createdOn ?? null,
-        );
-    }
-}
-$near = array();
-foreach ($brokenIdx as $pid) {
-    $pos = $pallets[$pid]->position;
-    $diff = self::ffix(abs(self::ffix($pArr[$pid] - $remaining)));
-    if ($diff < 0.02) { // само близките
-        $near[$pos] = array('q' => $pArr[$pid], 'diff' => $diff, 'isFirstRow' => $pallets[$pid]->_isFirstRow);
-    }
-}
-bp('MG3 DEBUG', array(
-    'groupId' => $groupId,
-    'remaining' => $remaining,
-    'qInPallet' => $qInPallet,
-    'strategy' => $strategy,
-    'watch' => $watch,
-    'nearBroken' => $near,
-));
-				
-				
 
 
 				/* 3.2.1 – „Разбутан“ палет с точно търсеното количество (зануляване на позиция)
