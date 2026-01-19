@@ -272,40 +272,51 @@ class rack_MovementGenerator3 extends core_Manager
 				}
 
 
-				/* 3.2.1 – „Разбутан“ палет с точно търсеното количество (зануляване на позиция)
+				/* 3.2.1 – Зануляване на „разбутан“ палет (вкл. при „почти точно“ количество)
 				 *
-				 * При конвертиране през опаковки (напр. 44 * 0.1) може да има минимални
-				 * отклонения във float. Затова ползваме толеранс според най-малката опаковка.
+				 * Ако има „разбутан“ палет, който може да бъде занулен с вземане <= остатъка,
+				 * приоритетно зануляваме такъв (цел: освобождаване на позиция).
+				 * Ползваме толеранс (eps) заради натрупвания/закръгляния.
 				 */
 				$minStep = null;
 				foreach ($packaging as $pk) {
 					if (empty($pk->quantity)) continue;
 					$qStep = self::ffix($pk->quantity * $scale);
-					if ($qStep > 0 && ($minStep === null || $qStep < $minStep)) {
-						$minStep = $qStep;
+					if ($qStep > 0 && ($minStep === null || $qStep < $minStep)) $minStep = $qStep;
+				}
+				$eps = max(1e-6, $minStep ? ($minStep / 2) : 1e-6);
+
+				$bestClear = null; $bestScore = null;
+				foreach ($brokenIdx as $pid) {
+					$q = self::ffix($pArr[$pid]);
+					if ($q <= 0) continue;
+
+					// „може да се занули“ ако q <= remaining (с eps)
+					if ($q <= self::ffix($remaining + $eps)) {
+						$left = self::ffix($remaining - $q);
+						if ($left < 0) $left = 0.0;
+
+						// 1) минимален остатък след зануляване, 2) tie-break по стратегия
+						$score = $left * 1000 + self::strategyTieScore($pallets[$pid], $strategy);
+
+						if ($bestScore === null || $score < $bestScore) {
+							$bestScore = $score;
+							$bestClear = $pid;
+						}
 					}
 				}
-				$epsExact = max(1e-6, $minStep ? ($minStep / 2) : 1e-6);
 
-				$exactCands = array();
-				foreach ($brokenIdx as $pid) {
-					$diff = abs(self::ffix($pArr[$pid] - $remaining));
-					if ($diff <= $epsExact) $exactCands[] = $pid;
-				}
-
-				if (!empty($exactCands)) {
-					// Ако са повече от един – приоритет по стратегия (правило 5)
-					usort($exactCands, function($a, $b) use ($pallets, $strategy) {
-						return rack_MovementGenerator3::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, false);
-					});
-					$pid = $exactCands[0];
-					$take = min(self::ffix($pArr[$pid]), $remaining);
+				if ($bestClear !== null) {
+					$take = min(self::ffix($pArr[$bestClear]), $remaining);
 					$zonesSplit = $allocToZones($take);
-					self::appendMove($res, $pallets[$pid]->position, $take, $zonesSplit, $pArr, 'B.broken_exact');
-					$pArr[$pid] = self::ffix($pArr[$pid] - $take);
-					$remaining  = self::ffix($remaining - $take);
-					if ($remaining <= $epsExact) $remaining = 0.0;
+					self::appendMove($res, $pallets[$bestClear]->position, $take, $zonesSplit, $pArr, 'B.broken_clear');
+					$pArr[$bestClear] = self::ffix($pArr[$bestClear] - $take);
+					$remaining = self::ffix($remaining - $take);
+
+					// ако остатъкът е под eps → считаме го за 0 (за да не "до-взима" от друг палет)
+					if ($remaining <= $eps) $remaining = 0.0;
 				}
+
 				if ($remaining <= 0) continue;
 
 
