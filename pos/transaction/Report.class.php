@@ -79,7 +79,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
                         $batchesByStores[$dRec->storeId][$dRec->value][$dRec->batch] += $dRec->quantity;
                     }
                 } elseif ($dRec->action == 'payment') {
-                    $key = "{$dRec->contragentClassId}|{$dRec->contragentId}|{$dRec->paymentId}|{$dRec->caseId}";
+                    $key = "{$dRec->contragentClassId}|{$dRec->contragentId}|{$dRec->value}|{$dRec->caseId}";
                     if(!array_key_exists($key, $paymentsArr)){
                         $paymentsArr[$key] = (object)array('contragentClassId' => $dRec->contragentClassId,
                             'contragentId' => $dRec->contragentId,
@@ -401,22 +401,41 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $nonCashBgnPaymentId = eurozone_Setup::getBgnPaymentId();
         $isInBgnUsageDate = ($rec->valior > acc_Setup::getEurozoneDate() && $rec->valior <= acc_Setup::getBgnDeprecationDate());
 
+        $takingParts = array();
         foreach ($paymentsArr as $payment) {
+            $key = "{$payment->contragentClassId}|{$payment->contragentClassId}|{$payment->caseId}";
+            if(!array_key_exists($key, $takingParts)){
+                $clone = clone $payment;
+                unset($clone->amount);
+                $takingParts[$key] = $clone;
+            }
+            $takingParts[$key]->amount += $payment->amount;
 
-            $debitCurrencyId = $currencyId;
-            $debitQuantity = $payment->amount;
             if ($payment->value != -1) {
-                $payment->originalAmount = $payment->amount;
-                $payment->amount = cond_Payments::toBaseCurrency($payment->value, $payment->amount, $payment->date);
+                if(!($isInBgnUsageDate && $payment->value == $nonCashBgnPaymentId)) {
+                    $payment->originalAmount = $payment->amount;
+                    $payment->amount = cond_Payments::toBaseCurrency($payment->value, $payment->amount, $payment->date);
+
+                    $nonCashPayments[] = $payment;
+                }
+            }
+        }
+
+        foreach ($takingParts as $partPayment){
+            $debitCurrencyId = $currencyId;
+            $debitQuantity = $partPayment->amount;
+            if ($partPayment->value != -1) {
+                $partPayment->originalAmount = $partPayment->amount;
+                $partPayment->amount = cond_Payments::toBaseCurrency($partPayment->value, $partPayment->amount, $partPayment->date);
             }
 
-            if($isInBgnUsageDate && $payment->value == $nonCashBgnPaymentId){
+            if($isInBgnUsageDate && $partPayment->value == $nonCashBgnPaymentId){
                 $debitCurrencyId = currency_Currencies::getIdByCode('BGN');
-                $debitQuantity = $payment->originalAmount;
+                $debitQuantity = $partPayment->originalAmount;
             }
 
             $entries[] = array(
-                'amount' => currency_Currencies::round($payment->amount),
+                'amount' => currency_Currencies::round($partPayment->amount),
 
                 'debit' => array(
                     '501', // Сметка "501. Каси"
@@ -427,20 +446,14 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
-                    array($payment->contragentClassId, $payment->contragentId),
+                    array($partPayment->contragentClassId, $partPayment->contragentId),
                     array('pos_Reports', $rec->id),
                     array('currency_Currencies', $currencyId),
-                    'quantity' => currency_Currencies::round($payment->amount),
+                    'quantity' => currency_Currencies::round($partPayment->amount),
                 ),
             );
 
-            $this->totalAmount += currency_Currencies::round($payment->amount);
-
-            if ($payment->value != -1) {
-                if(!($isInBgnUsageDate && $payment->value == $nonCashBgnPaymentId)) {
-                    $nonCashPayments[] = $payment;
-                }
-            }
+            $this->totalAmount += currency_Currencies::round($partPayment->amount);
         }
 
         if (countR($nonCashPayments)) {
