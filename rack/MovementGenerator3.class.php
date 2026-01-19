@@ -47,7 +47,6 @@ class rack_MovementGenerator3 extends core_Manager
                 if ($pArr->quantity[$i]) {
                     $qVerbal = core_Type::getByName('double')->fromVerbal($pArr->quantity[$i]);
                     $po = (object) ['position' => $key, 'quantity' => $qVerbal, 'createdOn' => $pArr->createdOn[$i] ?? null];
-                    if (!empty($pArr->sysNo[$i])) $po->sysNo = (int)$pArr->sysNo[$i];
                     $p[] = $po;
                 }
             }
@@ -272,15 +271,40 @@ class rack_MovementGenerator3 extends core_Manager
 					if ($pallets[$pId]->_isFirstRow) $firstRowIdx[] = $pId;
 				}
 
-				/* 3.2.1 – „Разбутан“ палет с точно търсеното количество */
-				foreach ($brokenIdx as $pid) {
-					if (abs(self::ffix($pArr[$pid] - $remaining)) < 1e-6) {
-						$zonesSplit = $allocToZones($remaining);
-						self::appendMove($res, $pallets[$pid]->position, $remaining, $zonesSplit, $pArr, 'B.broken_exact');
-						$pArr[$pid] = 0.0;
-						$remaining = 0.0;
-						break;
+
+				/* 3.2.1 – „Разбутан“ палет с точно търсеното количество (зануляване на позиция)
+				 *
+				 * При конвертиране през опаковки (напр. 44 * 0.1) може да има минимални
+				 * отклонения във float. Затова ползваме толеранс според най-малката опаковка.
+				 */
+				$minStep = null;
+				foreach ($packaging as $pk) {
+					if (empty($pk->quantity)) continue;
+					$qStep = self::ffix($pk->quantity * $scale);
+					if ($qStep > 0 && ($minStep === null || $qStep < $minStep)) {
+						$minStep = $qStep;
 					}
+				}
+				$epsExact = max(1e-6, $minStep ? ($minStep / 2) : 1e-6);
+
+				$exactCands = array();
+				foreach ($brokenIdx as $pid) {
+					$diff = abs(self::ffix($pArr[$pid] - $remaining));
+					if ($diff <= $epsExact) $exactCands[] = $pid;
+				}
+
+				if (!empty($exactCands)) {
+					// Ако са повече от един – приоритет по стратегия (правило 5)
+					usort($exactCands, function($a, $b) use ($pallets, $strategy) {
+						return rack_MovementGenerator3::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, false);
+					});
+					$pid = $exactCands[0];
+					$take = min(self::ffix($pArr[$pid]), $remaining);
+					$zonesSplit = $allocToZones($take);
+					self::appendMove($res, $pallets[$pid]->position, $take, $zonesSplit, $pArr, 'B.broken_exact');
+					$pArr[$pid] = self::ffix($pArr[$pid] - $take);
+					$remaining  = self::ffix($remaining - $take);
+					if ($remaining <= $epsExact) $remaining = 0.0;
 				}
 				if ($remaining <= 0) continue;
 
