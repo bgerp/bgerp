@@ -413,6 +413,9 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
             if ($payment->value != -1) {
                 if(!($isInBgnUsageDate && $payment->value == $nonCashBgnPaymentId)) {
+                    $payment->originalAmount = $payment->amount;
+                    $payment->amount = cond_Payments::toBaseCurrency($payment->value, $payment->amount, $payment->date);
+
                     $nonCashPayments[] = $payment;
                 }
             }
