@@ -194,16 +194,7 @@ class rack_ZoneDetails extends core_Detail
         if(Mode::is('printing')){
             $data->filter = 'notClosed';
         }
-
-        // Индекс: има ли заявка (documentQuantity>0) за даден продукт/партида?
-        $hasRequest = array(); // key "productId|batch" => true
-        foreach ($data->recs as $_id => $_rec) {
-            $k = (int)$_rec->productId . '|' . (string)$_rec->batch;
-            if (!empty($_rec->documentQuantity)) {
-                $hasRequest[$k] = true;
-            }
-        }
-
+        
         // >>> ПОДМЯНА НА СТАТУСА: лявото число = реално изпълненото (active+closed) за текущия документ
         // Контейнерът (документът), вързан към текущата зона
         $containerId = rack_Zones::fetchField($data->masterData->rec->id, 'containerId');
@@ -226,18 +217,7 @@ class rack_ZoneDetails extends core_Detail
                 continue;
             }
 
-            core_Debug::startTimer("GET_MOVEMENTS_PREPARE_HIDE_PARASITIC_ROW");
-            // СКРИВАНЕ НА "ПАРАЗИТНИЯ" РЕД:
-            // - в базова мярка, без заявено количество (NULL/0)
-            // - има друг ред за същия продукт/партида със заявка
-            $measureId = $rec->_productRec->measureId;
-            $hasReqKey = (int)$rec->productId . '|' . (string)$rec->batch;
-            $docIsEmpty = (is_null($rec->documentQuantity) || (float)$rec->documentQuantity == 0.0);
-
-            if ($docIsEmpty && (int)$rec->packagingId === $measureId && !empty($hasRequest[$hasReqKey])) {
-                unset($data->rows[$id]);
-                continue;
-            }
+            core_Debug::startTimer("GET_MOVEMENTS_PREPARE_STATUS_FOR_DOC");
 
             // По подразбиране ползваме нагласеното/заявеното (ver1/ver2)
             $leftShown  = (float)$rec->movementQuantity;
@@ -277,7 +257,7 @@ class rack_ZoneDetails extends core_Detail
                 $qip = ($qip != 0.0) ? $qip : 1.0; // пазим се от делене на 0, но НЕ затапваме стойности <1
                 $leftShown = $doneBase / $qip;
             }
-            core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_HIDE_PARASITIC_ROW");
+            core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_STATUS_FOR_DOC");
 
             // Вербализация и оцветяване
             $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal(core_Math::roundNumber($leftShown));
