@@ -401,7 +401,7 @@ class acc_ActiveShortBalance
             foreach ($entriesInPeriod as $jRec) {
                 $valDate = dt::getLastDayOfMonth($jRec->valior);
                 foreach (array('amount', 'debitPrice', 'creditPrice') as $v){
-                    $jRec->{$v} = deals_Helper::getSmartBaseCurrency($jRec->{$v}, $valDate, $toEndDate);
+                    $jRec->{$v} = deals_Helper::getSmartBaseCurrency($jRec->{$v}, $valDate, $to);
                 }
 
                 $entry = array('id' => $jRec->id,
