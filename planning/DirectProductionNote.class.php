@@ -1889,6 +1889,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $productionAmount = self::getProductionAmount($rec);
 
         core_Permanent::set("{$this->className}_{$rec->id}_calcedPrimeCost", $productionAmount, 86400);
+        doc_DocumentCache::cacheInvalidation($rec->containerId);
 
         followRetUrl(null, "Сб-ст е изчислена успешно|*!");
     }
