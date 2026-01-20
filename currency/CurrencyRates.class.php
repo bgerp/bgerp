@@ -593,6 +593,10 @@ class currency_CurrencyRates extends core_Detail
         if(acc_Setup::getDefaultCurrencyCode($date) == 'EUR'){
             if(($currencyFromCode == 'BGN' && $currencyToCode == 'EUR') || ($currencyFromCode == 'EUR' && $currencyToCode == 'BGN')){
                 $exchangeDeviation = 0.01;
+
+                if ($expectedAmount < 0.26) {
+                    $exchangeDeviation = round(abs($amountTo - $expectedAmount) / $minAmount * 100) / 100
+                }
             }
         }
 
@@ -609,7 +613,7 @@ class currency_CurrencyRates extends core_Detail
 
         if ($difference > $percent) {
             
-            return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс";
+            return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс при допустимо отклонение от |* <b>{$percent}</b> % |*";
         }
         
         return false;
