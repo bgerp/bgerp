@@ -61,7 +61,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Кой може да преизчислява сб-ст от журнала?
      */
-    public $canCalcproductionamount = 'ceo,production,store';
+    public $canCalcproductionamount = 'ceo,accJournal';
 
 
     /**
