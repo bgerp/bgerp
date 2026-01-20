@@ -483,12 +483,8 @@ class acc_Articles extends core_Master
         
         return array('acc_Articles', $articleId);
     }
-    
 
-    function act_Test()
-    {
-        cls::get('acc_Journal')->updateMaster(71132);
-    }
+
     /**
      * Изпълнява се след обновяване на журнала
      */
