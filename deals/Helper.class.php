@@ -1992,7 +1992,7 @@ abstract class deals_Helper
                 $sign = ($pRec->isReverse == 'yes') ? -1 : 1;
                 $pData = $Pdoc->getPaymentData($pRec->id);
 
-                $baseCode = $getBaseCode($pRec->valior);
+                $baseCode = acc_Periods::getBaseCurrencyCode($pRec->valior);
 
                 // Валутата на платежния документ (pay currency)
                 $payCurrencyId =
