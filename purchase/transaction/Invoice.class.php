@@ -36,8 +36,9 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
         $cloneRec = clone $rec;
+
         setIfNot($rec->journalDate, $this->class->getDefaultAccDate($rec->date));
-       
+
         $result = (object) array(
             'reason' => "Входяща фактура №{$rec->number}", // основанието за ордера
             'valior' => !empty($rec->journalDate) ? $rec->journalDate : dt::today(),   // датата на ордера
@@ -103,8 +104,9 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         $entries = array();
         
         if (isset($cloneRec->vatAmount)) {
+            $vatAmount = deals_Helper::getSmartBaseCurrency($cloneRec->vatAmount, $cloneRec->date, $rec->journalDate);
             $entries[] = array(
-                'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
+                'amount' => round($vatAmount, 2) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
                 'debit' => array('4531'),
                 'credit' => array('4530', array($origin->className, $origin->that)),
             );
@@ -114,7 +116,7 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
                 $haveVatCredit = $firstDoc->fetchField('haveVatCreditProducts');
                 if($haveVatCredit == 'no'){
                     $entries[] = array(
-                        'amount' => $cloneRec->vatAmount * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
+                        'amount' => round($vatAmount, 2) * (($rec->type == 'credit_note') ? -1 : 1),  // равностойноста на сумата в основната валута
                         'debit' => array('4530', array($origin->className, $origin->that)),
                         'credit' => array('4531'),
                         'reason' => 'Сторно начислен ДДС при покупка - Артикул БЕЗ право на Данъчен кредит',
