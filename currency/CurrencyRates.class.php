@@ -634,12 +634,8 @@ class currency_CurrencyRates extends core_Detail
         }
 
         if ($difference > $allowedPercent) {
-
-        // Очаквана сума по централния курс (показваме повече знаци за яснота)
-        $expectedAmountVerbose = rtrim(rtrim(number_format($expectedAmount, 6, '.', ''), '0'), '.');
-
-        return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс при допустимо отклонение (за тази сума) от|* <b>{$allowedPercent}</b> %|*. "
-             . "|Очаквано по централния курс|*: <b>{$expectedAmountVerbose} {$currencyToCode}</b>";
+            
+            return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс при допустимо отклонение от |* <b>{$allowedPercent}</b> % |*";
         }
         
         return false;
