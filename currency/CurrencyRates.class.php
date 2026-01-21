@@ -599,6 +599,7 @@ class currency_CurrencyRates extends core_Detail
         $percent = $exchangeDeviation * 100;
         $difference = 0;
         $minAmount = min($amountTo, $expectedAmount);
+        $allowedPercent = $percent;
         if (isset($minAmount)) {
             if(empty($minAmount)){
                 $difference = 100;
@@ -607,9 +608,34 @@ class currency_CurrencyRates extends core_Detail
             }
         }
 
-        if ($difference > $percent) {
+        // При малки суми закръглянето до 2 знака може неизбежно да дава по-голям % отклонение.
+        // Позволяваме динамичен толеранс само когато е нужен, за конкретните суми.
+        if (!empty($minAmount)) {
+            // Текущата имплементация в currency_Currencies::round() е "мокъп" и закръгля до 2 знака,
+            // затова приемаме стъпка 0.01 за двете валути.
+            $stepFrom = 0.01;
+            $stepTo   = 0.01;
+            $halfFrom = $stepFrom / 2;   // 0.005
+            $halfTo   = $stepTo / 2;     // 0.005
+
+            // Абсолютна неизбежна толерантност в "to" валутата:
+            // - закръгляне на amountTo: ±0.005 (to)
+            // - закръгляне на amountFrom: ±0.005 (from) -> в to чрез фактора на конверсията
+            $absTolTo = $halfTo;
+            if (!empty($amountFrom)) {
+                $rateFactor = abs($expectedAmount / $amountFrom); // conversion factor from->to за конкретния курс
+                $absTolTo  += $halfFrom * $rateFactor;
+            }
+
+            $roundingPercent = (int)ceil(($absTolTo / $minAmount) * 100);
+            if ($roundingPercent > $allowedPercent) {
+                $allowedPercent = $roundingPercent;
+            }
+        }
+
+        if ($difference > $allowedPercent) {
             
-            return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс";
+            return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс при допустимо отклонение от |* <b>{$allowedPercent}</b> % |*";
         }
         
         return false;
