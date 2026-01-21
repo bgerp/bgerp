@@ -635,7 +635,7 @@ class currency_CurrencyRates extends core_Detail
 
         if ($difference > $allowedPercent) {
             
-            return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс при допустимо отклонение от |* <b>{$allowedPercent}</b> % |*";
+            return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс при допустимо отклонение (за тази сума) от |* <b>{$allowedPercent}</b> % |*";
         }
         
         return false;
