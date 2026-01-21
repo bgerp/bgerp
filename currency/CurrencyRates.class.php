@@ -565,16 +565,16 @@ class currency_CurrencyRates extends core_Detail
         
         return false;
     }
-    
-    
+
+
     /**
      * Сравнява две суми във валута и проверява дали са в допустими граници
      *
-     * @param float  $amountFrom
-     * @param float  $amountTo
-     * @param datetime   $date
-     * @param string $currencyFromCode
-     * @param string $currencyToCode
+     * @param float     $amountFrom
+     * @param float     $amountTo
+     * @param datetime  $date
+     * @param string    $currencyFromCode
+     * @param string    $currencyToCode
      *
      * @return string|FALSE
      */
@@ -582,62 +582,52 @@ class currency_CurrencyRates extends core_Detail
     {
         expect(isset($amountFrom));
         expect(isset($amountTo));
+
         if (!$currencyToCode) {
             $currencyToCode = acc_Periods::getBaseCurrencyCode($date);
         }
 
         $conf = core_Packs::getConfig('currency');
-        $exchangeDeviation = $conf->EXCHANGE_DEVIATION;
+        $exchangeDeviation = (float) $conf->EXCHANGE_DEVIATION; // напр. 0.01 = 1%
 
         $expectedAmount = self::convertAmount($amountFrom, $date, $currencyFromCode, $currencyToCode);
-        if(acc_Setup::getDefaultCurrencyCode($date) == 'EUR'){
-            if(($currencyFromCode == 'BGN' && $currencyToCode == 'EUR') || ($currencyFromCode == 'EUR' && $currencyToCode == 'BGN')){
-                $exchangeDeviation = 0.01;
+
+        // Специално правило BGN<->EUR след приемане на EUR като базова (по твоята логика)
+        if (acc_Setup::getDefaultCurrencyCode($date) == 'EUR') {
+            if (
+                ($currencyFromCode == 'BGN' && $currencyToCode == 'EUR') ||
+                ($currencyFromCode == 'EUR' && $currencyToCode == 'BGN')
+            ) {
+                $exchangeDeviation = 0.01; // 1%
             }
         }
 
-        $percent = $exchangeDeviation * 100;
-        $difference = 0;
-        $minAmount = min($amountTo, $expectedAmount);
-        $allowedPercent = $percent;
-        if (isset($minAmount)) {
-            if(empty($minAmount)){
-                $difference = 100;
-            } else {
-                $difference = round(abs($amountTo - $expectedAmount) / $minAmount * 100);
-            }
+        // Всичко е до 2 знака => работим в "центове" (int)
+        $toCents       = (int) round(((float)$amountTo)      * 100, 0, PHP_ROUND_HALF_UP);
+        $expectedCents = (int) round(((float)$expectedAmount)* 100, 0, PHP_ROUND_HALF_UP);
+
+        $diffCents = abs($toCents - $expectedCents);
+
+        // Минимален абсолютен толеранс = 1 цент (при 2 знака)
+        $minAbsCents = 1;
+
+        // Процентен толеранс върху очакваното (в центове)
+        // ceil, за да не стане 0 при малки суми
+        $allowedByPercentCents = (int) ceil(abs($expectedCents) * $exchangeDeviation);
+
+        $allowedCents = max($allowedByPercentCents, $minAbsCents);
+
+        if ($diffCents > $allowedCents) {
+            // Информативен процент (не участва в логиката)
+            $den = max(abs($expectedCents), 1); // да не делим на 0
+            $differencePct = ($diffCents / $den) * 100;
+
+            return "|Въведените суми предполагат отклонение от|* <b>" . round($differencePct, 2) .
+                "</b> % |*спрямо централния курс";
         }
 
-        // При малки суми закръглянето до 2 знака може неизбежно да дава по-голям % отклонение.
-        // Позволяваме динамичен толеранс само когато е нужен, за конкретните суми.
-        if (!empty($minAmount)) {
-            // Текущата имплементация в currency_Currencies::round() е "мокъп" и закръгля до 2 знака,
-            // затова приемаме стъпка 0.01 за двете валути.
-            $stepFrom = 0.01;
-            $stepTo   = 0.01;
-            $halfFrom = $stepFrom / 2;   // 0.005
-            $halfTo   = $stepTo / 2;     // 0.005
-
-            // Абсолютна неизбежна толерантност в "to" валутата:
-            // - закръгляне на amountTo: ±0.005 (to)
-            // - закръгляне на amountFrom: ±0.005 (from) -> в to чрез фактора на конверсията
-            $absTolTo = $halfTo;
-            if (!empty($amountFrom)) {
-                $rateFactor = abs($expectedAmount / $amountFrom); // conversion factor from->to за конкретния курс
-                $absTolTo  += $halfFrom * $rateFactor;
-            }
-
-            $roundingPercent = (int)ceil(($absTolTo / $minAmount) * 100);
-            if ($roundingPercent > $allowedPercent) {
-                $allowedPercent = $roundingPercent;
-            }
-        }
-
-        if ($difference > $allowedPercent) {
-            
-            return "|Въведените суми предполагат отклонение от|* <b>{$difference}</b> % |*спрямо централния курс при допустимо отклонение от |* <b>{$allowedPercent}</b> % |*";
-        }
-        
         return false;
     }
+
+
 }
