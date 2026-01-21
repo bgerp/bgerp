@@ -595,7 +595,6 @@ class currency_CurrencyRates extends core_Detail
                 $exchangeDeviation = 0.01;
 
                 if ($expectedAmount < 0.26) {
-                    $minAmount = min($amountTo, $expectedAmount);
                     $exchangeDeviation = round(abs($amountTo - $expectedAmount) / $minAmount * 100) / 100;
                 }
             }
