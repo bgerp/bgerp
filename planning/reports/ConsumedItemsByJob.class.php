@@ -329,7 +329,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             while ($pRec = $pQuery->fetch()) {
 
-                if ($master == 'planning_DirectProductionNote' && !$pRec->storeId && !$pRec->fromAccId) {
+                if (($master == ('planning_DirectProductionNote' || 'planning_ConsumptionNotes')) && !$pRec->storeId && !$pRec->fromAccId) {
 
                     continue;
                 }
@@ -418,6 +418,11 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
                 //Себестойност на артикула
                 $selfPrice = self::getProductPrice($pRec, $master, $rec->pricesType);
+                if (!is_null($selfPrice)) {
+
+                    //Превалутиране
+                 //   $selfPrice = deals_Helper::getSmartBaseCurrency($selfPrice, null, $rec->to);
+                }
 
                 // Запис в масива
                 if (!array_key_exists($id, $recs)) {
