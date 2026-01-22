@@ -1569,12 +1569,14 @@ class sales_Sales extends deals_DealMaster
 
             if(in_array($rec->state, array('draft', 'pending'))){
                 $cData = doc_Folders::getContragentData($rec->folderId);
+                $ownCompanyId = core_Packs::isInstalled('holding') ? ($rec->{$mvc->ownCompanyFieldName} ?? crm_Setup::BGERP_OWN_COMPANY_ID) : null;
+
                 $defBankId = null;
                 if (!isset($ownBankRec->countries)) {
-                    $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false);
+                    $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false, $ownCompanyId);
                 } else {
                     if (!type_Keylist::isIn($cData->countryId, $ownBankRec->countries)) {
-                        $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
+                        $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId, false, $ownCompanyId);
                     }
                 }
                 

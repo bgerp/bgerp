@@ -208,6 +208,60 @@ class barcode_Search extends core_Manager
             plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
         }
 
+        // Фокусира елемента, ако се напише нещо и предава текста, ако не е фоксиран друг
+//        $tpl->appendOnce("document.addEventListener('keydown', (event) => {
+//  // Проверяваме дали потребителят вече не пише в някое поле
+//  const activeElement = document.activeElement;
+//  const isInputActive = activeElement.tagName === 'INPUT' ||
+//                        activeElement.tagName === 'TEXTAREA' ||
+//                        activeElement.isContentEditable;
+//
+//  if (!isInputActive) {
+//    // Търсим първия textarea, а ако няма - първия input
+//    const targetElement = document.querySelector('textarea') || document.querySelector('input[type=\"text\"]');
+//
+//    if (targetElement) {
+//      targetElement.focus();
+//      // Опционално: добавяме символа, който е натиснат първоначално
+//      // (ако не искаме да се губи първата буква)
+//    }
+//  }
+//});", 'SCRIPTS');
+
+        // Пише в елемента, без да фокусира, ако се пише
+        $tpl->appendOnce("document.addEventListener('keydown', (event) => {
+                          const activeElement = document.activeElement;
+                          const isInputActive = activeElement.tagName === 'INPUT' || 
+                                                activeElement.tagName === 'TEXTAREA' || 
+                                                activeElement.isContentEditable;
+                        
+                          if (!isInputActive) {
+                            const target = document.querySelector('textarea') || document.querySelector('input[type=\"text\"]');
+                        
+                            if (target) {
+                              if (event.key === 'Enter') {
+                                if (target.tagName === 'TEXTAREA') {
+                                  // В textarea Enter добавя нов ред
+                                  target.value += '\\n';
+                                } else if (target.tagName === 'INPUT') {
+                                  // В input Enter прави submit на формата (ако има такава)
+                                  if (target.form) {
+                                    target.form.submit();
+                                  }
+                                }
+                              } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+                                // Добавяне на нормални символи
+                                target.value += event.key;
+                                
+                                // Предотвратяваме скролване при интервал
+                                if (event.key === ' ') {
+                                  event.preventDefault();
+                                }
+                              }
+                            }
+                          }
+                        });", 'SCRIPTS');
+
         return $this->renderWrapping($tpl);
     }
 

@@ -198,7 +198,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '3231', 'cacheBalance' => false, 'keepUnique' => true));
 
-        $balHistory = $Balance->getBalanceHystory('3231', $from = $rec->from, $to = $rec->to, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = false, $strict = true);
+        $balHistory = $Balance->getBalanceHistory('3231', $from = $rec->from, $to = $rec->to, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = false, $strict = true);
 
         $documentsDebitQuantity1 = $documentsCreditQuantity1 = array();
 

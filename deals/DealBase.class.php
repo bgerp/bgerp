@@ -391,7 +391,6 @@ abstract class deals_DealBase extends core_Master
 
             $err = $closedDeals = $threads = $warning = array();
             $warning[$rec->currencyRate] = $rec->currencyRate;
-            $rec->valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
 
             $deals1 = keylist::toArray($form->rec->closeWith);
             $CloseDoc = cls::get($this->closeDealDoc);
@@ -430,7 +429,7 @@ abstract class deals_DealBase extends core_Master
             }
 
             if($beforeEu && $afterEu) {
-                $form->setError('closeWith', "Не може да обядинявате документи с вальор преди влизането в еврозоната с такива след след нея|*!");
+                $form->setError('closeWith', "Не може да обединявате документи с вальор преди влизането в еврозоната с такива след нея|*!");
             }
 
             $countryWarningMsg = array();
@@ -984,9 +983,10 @@ abstract class deals_DealBase extends core_Master
                             }
                         }
 
+                        $entVerbal = ht::styleNumber($entVerbal, $ent->{$fld});
                         $obj->{$fld} = "<span style='float:right'>{$entVerbal}</span>";
                     }
-                    
+
                     $history[] = $obj;
                 }
                 

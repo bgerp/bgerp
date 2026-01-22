@@ -515,9 +515,11 @@ class rack_Pallets extends core_Manager
             $updateFields['state'] = 'state';
             $updateFields['closedOn'] = 'closedOn';
         } elseif($rec->state == 'closed'){
+            $rec->createdOn = dt::now();
             $rec->state = 'active';
             $rec->closedOn = null;
             $saveAgain = true;
+            $updateFields['createdOn'] = 'createdOn';
             $updateFields['state'] = 'state';
             $updateFields['closedOn'] = 'closedOn';
         }

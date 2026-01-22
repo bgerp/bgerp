@@ -135,7 +135,37 @@ class rack_Ver3Base
     }
 
 
+	public static function getPacksDescMap($productId)
+	{
+		$baseId = self::getBaseMeasureId($productId);
+		$map = array();
 
+		// базова мярка
+		$map[(int)$baseId] = 1.0;
+
+		// продуктови опаковки
+		$pQuery = cat_products_Packagings::getQuery();
+		$pQuery->where("#productId = {$productId} AND #state != 'closed'");
+		$pQuery->show('packagingId,quantity');
+		while ($pRec = $pQuery->fetch()) {
+			$map[(int)$pRec->packagingId] = (float)$pRec->quantity;
+		}
+
+		// UoM мерки от същия тип
+		$same = cat_UoM::getSameTypeMeasures($baseId);
+		if (is_array($same)) {
+			foreach ($same as $uId => $name) {
+				$uId = (int)$uId;
+				if (!$uId || $uId == $baseId) continue;
+				$q = cat_UoM::convertValue(1, $uId, $baseId);
+				if ($q !== false && $q > 0) {
+					$map[$uId] = (float)$q;
+				}
+			}
+		}
+
+		return $map; // <-- ВАЖНО: map, не list
+	}
 
     /**
      * Коя зона какви опаковки е заявила (в БАЗОВА мярка)
@@ -147,8 +177,9 @@ class rack_Ver3Base
         if (!is_object($expected) || !is_array($expected->products)) return $map;
         foreach ($expected->products as $key => $pr) {
             if ((int)$pr->productId !== (int)$productId) continue;
-            $prBatch = isset($pr->batch) ? $pr->batch : null;
-            if ($prBatch !== $batch) continue;
+            $prBatchNorm = isset($pr->batch) ? (string)$pr->batch : '';
+			$batchNorm   = ($batch === null) ? '' : (string)$batch;
+			if ($prBatchNorm !== $batchNorm) continue;
             $packId = isset($pr->packagingId) ? (int)$pr->packagingId : null;
             if (!$packId) continue;
             if (!is_array($pr->zones)) continue;
@@ -188,6 +219,38 @@ class rack_Ver3Base
         
         foreach ($allocatedPalletsBase as $obj) {
             if (!is_object($obj) || !is_array($obj->zones)) continue;
+			
+			// Ако е комбинирано (към повече от 1 зона) - НЕ разцепваме по packId,
+			// за да остане 1 движение с няколко зони (както беше преди).
+			if (count($obj->zones) > 1) {
+				$total = array_sum($obj->zones);
+
+				// Избираме "движеща" опаковка за движението:
+				// най-малката от заявените по зоните (за да избегнем дробни палети).
+				$bestPackId = (int)$measureId;
+				$bestQtyInBase = null;
+
+				foreach ($obj->zones as $zId => $_q) {
+					$zId = (int)$zId;
+					$pref = (isset($requestedMap[$zId]) && is_array($requestedMap[$zId])) ? $requestedMap[$zId] : array();
+
+					foreach ($pref as $pId => $reqBase) {
+						$pId = (int)$pId;
+						if (!isset($packsDesc[$pId]) && $pId !== (int)$measureId) continue;
+
+						$qib = isset($packsDesc[$pId]) ? (float)$packsDesc[$pId] : 1.0;
+						if ($bestQtyInBase === null || $qib < $bestQtyInBase) {
+							$bestQtyInBase = $qib;
+							$bestPackId = $pId;
+						}
+					}
+				}
+
+				$clone = clone $obj;
+				$clone->quantity = $total; // да няма "остатък към positionTo"
+				$byPack[$bestPackId][] = $clone;
+				continue;
+			}
             
             // Готови „под-обекти“ по (packId, position)
             $acc = array(); // key "{$packId}|{$obj->position}" => zones array
@@ -198,33 +261,40 @@ class rack_Ver3Base
                 if ($remain <= 0) continue;
                 
                 // Какви опаковки са заявени в тази зона
-                $pref = isset($requestedMap[$zoneId]) && is_array($requestedMap[$zoneId]) ? $requestedMap[$zoneId] : array();
-                $prefSum = 0.0;
-                foreach ($pref as $pid => $bq) { $prefSum += (float)$bq; }
-                
-                if ($prefSum > 0) {
-                    // Пропорционално на заявките по опаковка
-                    $firstKey = null;
-                    foreach ($pref as $pId => $reqBase) {
-                        $pId = (int)$pId;
-                        if (!isset($packsDesc[$pId]) && $pId !== (int)$measureId) continue; // игнориране на невалидна опаковка
-                        if ($firstKey === null) $firstKey = $pId;
-                        $portion = $remain * ((float)$reqBase / $prefSum);
-                        // Последната опаковка взема оставащото, за да не губим от закръгляния
-                        
-                        $key = "{$pId}|{$obj->position}";
-                        if (!isset($acc[$key])) $acc[$key] = array();
-                        if (!isset($acc[$key][$zoneId])) $acc[$key][$zoneId] = 0.0;
-                        $acc[$key][$zoneId] += $portion;
-                    }
-                } else {
-                    // Няма изрично заявена опаковка – слагаме към основната мярка
-                    $pId = (int)$measureId;
-                    $key = "{$pId}|{$obj->position}";
-                    if (!isset($acc[$key])) $acc[$key] = array();
-                    if (!isset($acc[$key][$zoneId])) $acc[$key][$zoneId] = 0.0;
-                    $acc[$key][$zoneId] += $remain;
-                }
+                $pref = (isset($requestedMap[$zoneId]) && is_array($requestedMap[$zoneId])) ? $requestedMap[$zoneId] : array();
+
+				// 1) филтър само валидни packId + сметни prefSum само от тях
+				$validPref = array();
+				$prefSum = 0.0;
+
+				foreach ($pref as $pId => $reqBase) {
+					$pId = (int)$pId;
+					$reqBase = (float)$reqBase;
+					if ($reqBase <= 0) continue;
+
+					if (isset($packsDesc[$pId]) || $pId === (int)$measureId) {
+						$validPref[$pId] = $reqBase;
+						$prefSum += $reqBase;
+					}
+				}
+
+				if ($prefSum > 0) {
+					foreach ($validPref as $pId => $reqBase) {
+						$portion = $remain * ($reqBase / $prefSum);
+
+						$key = "{$pId}|{$obj->position}";
+						if (!isset($acc[$key])) $acc[$key] = array();
+						if (!isset($acc[$key][$zoneId])) $acc[$key][$zoneId] = 0.0;
+						$acc[$key][$zoneId] += $portion;
+					}
+				} else {
+					// fallback към основната мярка
+					$pId = (int)$measureId;
+					$key = "{$pId}|{$obj->position}";
+					if (!isset($acc[$key])) $acc[$key] = array();
+					if (!isset($acc[$key][$zoneId])) $acc[$key][$zoneId] = 0.0;
+					$acc[$key][$zoneId] += $remain;
+				}
             }
             
             // Превръщаме акумулираните зони в обекти
@@ -234,6 +304,7 @@ class rack_Ver3Base
                 $clone = clone $obj;
                 $clone->zones = $zones;
                 $clone->position = $pos;
+				$clone->quantity = array_sum($zones);
                 $byPack[$packId][] = $clone;
             }
         }

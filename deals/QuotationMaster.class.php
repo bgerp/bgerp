@@ -1542,9 +1542,9 @@ abstract class deals_QuotationMaster extends core_Master
      */
     protected static function on_BeforeActivation($mvc, $res)
     {
-        // Ако има избрано условие на доставка, позволява ли да бъде контиран документа
+        // Оферти създадени преди ЕЗ да не могат да се активират
         $rec = $mvc->fetch($res->id);
-        $date = $date ?? dt::today();
+        $date = $rec->date ?? dt::today();
 
         if($rec->createdOn < acc_Setup::getEurozoneDate() && $date >= acc_Setup::getEurozoneDate()){
             core_Statuses::newStatus('Не може да се активира оферта създадена преди Еврозоната с дата след нея|*!', 'error');

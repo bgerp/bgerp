@@ -560,13 +560,20 @@ abstract class deals_Helper
      * @param string $packagingRow
      * @param int    $productId
      * @param int    $packagingId
-     * @param float  $quantityInPack
+     * @param double  $quantityInPack
+     * @param array|null  $cachePacks
      *
      * @return void
      */
-    public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack = null)
+    public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack = null, $cachePacks = null)
     {
-        if ($packRec = cat_products_Packagings::getPack($productId, $packagingId)) {
+        if(is_array($cachePacks)) {
+            $packRec = $cachePacks["{$productId}|{$packagingId}"];
+        } else {
+            $packRec = cat_products_Packagings::getPack($productId, $packagingId);
+        }
+
+        if (is_object($packRec)) {
             if (cat_UoM::fetchField($packagingId, 'showContents') == 'yes') {
                 $quantityInPack = isset($quantityInPack) ? $quantityInPack : $packRec->quantity;
                 $measureId = cat_Products::fetchField($productId, 'measureId');
@@ -3252,7 +3259,7 @@ abstract class deals_Helper
             $amountInEuroRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInEuro);
 
             return $amountRes . "{$divider}" . currency_Currencies::decorate($amountInEuroRow, 'EUR', true);
-        } elseif($currencyId == 'EUR' && $date >= $eurozoneDate && $date <= '2026-12-31') {
+        } elseif($currencyId == 'EUR' && $date >= $eurozoneDate && $date <= '2026-08-08') {
 
             $amountInBgn = round($amount, $decimals) * $rate;
             $amountInBgnRow = core_Type::getByName("double(decimals={$decimals})")->toVerbal($amountInBgn);
