@@ -1003,7 +1003,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     //Превалутиране
                     $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
 
-                    $primeCost = $pricePr * $recPrime->quantity * 1.95583;
+                    $primeCost = $pricePr * $recPrime->quantity ;
 
                     //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                     // приемаме че, себестойността е 95% от продажната цена
