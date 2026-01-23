@@ -617,17 +617,4 @@ class change_History extends core_Manager
 
         return $tpl;
     }
-
-
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
-    {
-        if($action == 'edithistory' && isset($rec)){
-            if(!cls::get($rec->classId)->haveRightFor('edit', $rec->objectId)){
-                $requiredRoles = 'no_one';
-            }
-        }
-    }
 }
