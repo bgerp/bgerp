@@ -675,7 +675,12 @@ abstract class deals_DealMaster extends deals_DealBase
                 break;
             case 'expectedPayment':
                 $query->where("#paymentState = 'pending' AND #state IN ('active', 'closed')");
-                $query->XPR('amountToPay', 'double', 'COALESCE(#amountDelivered, 0) - COALESCE(#amountPaid, 0)');
+                $query->XPR(
+                    'amountToPay',
+                    'double',
+                    'ROUND((COALESCE(#amountDelivered, 0) - COALESCE(#amountPaid, 0)) / ' .
+                    '(CASE WHEN COALESCE(#valior, CURDATE()) < "2026-01-01" THEN 1.95583 ELSE 1 END), 2)'
+                );
                 $query->orderBy('amountToPay', 'DESC', 1);
                 break;
             case 'paid':

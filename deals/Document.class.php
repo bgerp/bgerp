@@ -328,8 +328,18 @@ abstract class deals_Document extends deals_PaymentDocument
             }
             
             $origin = $mvc->getOrigin($rec->id);
+            if($origin->isInstanceOf('findeals_Deals')){
+                // Ако е към ФД, която е била в лева но вече е в евро - да помни оригиналната валута
+                $originRec = $origin->fetch('oldCurrencyId,currencyId');
+                $row->dealCurrencyId = $originRec->currencyId;
+                if($rec->valior < acc_Setup::getEurozoneDate() && isset($originRec->oldCurrencyId)){
+                    $row->dealCurrencyId = $originRec->oldCurrencyId;
+                }
+            } else {
+                $row->dealCurrencyId = $origin->fetchField('currencyId');
+            }
+
             $row->dealHandle = $origin->getLink();
-            $row->dealCurrencyId = $origin->fetchField('currencyId');
         }
     }
     

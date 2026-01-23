@@ -79,7 +79,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    public $listFields = 'id,name,shortName=Съкращение,baseUnitId,sysId=System Id,round,roundSignificant,showContents,defQuantity,state,createdOn,createdBy';
+    public $listFields = 'id,name,shortName=Съкращение,baseUnitId,sysId=System Id,safTCode,round,roundSignificant,showContents,defQuantity,state,createdOn,createdBy';
     
     
     /**
@@ -119,6 +119,7 @@ class cat_UoM extends core_Manager
     {
         $this->FLD('name', 'varchar(36)', 'caption=Мярка, export, translate=user|tr|transliterate, mandatory');
         $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export, translate=user|tr|transliterate, mandatory');
+        $this->FLD('safTCode', 'varchar(70)', 'caption=SAF-T код, export, translate=user|tr|transliterate, mandatory');
         $this->FLD('type', 'enum(uom=Мярка,packaging=Опаковка)', 'notNull,value=uom,caption=Тип,silent,input=hidden');
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export,removeAndRefreshForm=baseUnitRatio,silent');
         $this->FLD('baseUnitRatio', 'double(Min=0)', 'caption=Коефициент, export, input=hidden');
@@ -499,7 +500,8 @@ class cat_UoM extends core_Manager
             7 => 'round',
             8 => 'type',
             9 => 'defQuantity',
-            10 => 'roundSignificant'
+            10 => 'roundSignificant',
+            11 => 'safTCode'
         );
         
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);

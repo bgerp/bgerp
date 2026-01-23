@@ -710,12 +710,12 @@ class acc_Journal extends core_Master
         }
         
         $rec->totalAmount = 0;
-        
+
         $dQuery = acc_JournalDetails::getQuery();
         $dQuery->where("#journalId = {$rec->id}");
-        $dQuery->show('amount');
-        
-        while ($dRec = $dQuery->fetch()) {
+        $dQuery->orderBy('id', 'ASC');
+        $journalDetails = $dQuery->fetchAll();
+        foreach ($journalDetails as $dRec) {
             $rec->totalAmount += $dRec->amount;
         }
         
@@ -723,7 +723,7 @@ class acc_Journal extends core_Master
         
         // Нотифицираме документа породил записа в журнала, че журнала му е променен
         if (cls::load($rec->docType, true)) {
-            cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId, $rec->id));
+            cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId, $rec->id, $journalDetails));
         }
         
         return $id;

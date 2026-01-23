@@ -1129,26 +1129,17 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         core_Locks::release("movement{$rec->id}");
-        
+        $zones = keylist::toArray($rec->zoneList);
+
+        foreach ($zones as $zoneId) {
+            core_Cache::remove("rack_Zones", "{$zoneId}|{$cu}");
+        }
+
         // Ако се обновява по Ajax
         if($ajaxMode){
             rack_Movements::logDebug("RACK TOGGLE SUCCESS {$rec->id} -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $rec->id);
-            $Zones = cls::get('rack_Zones');
-            $zones = keylist::toArray($rec->zoneList);
 
-            foreach ($zones as $zoneId) {
-                $zRec = rack_Zones::fetch($zoneId);
-                $obj = new stdClass();
-                $obj->func = 'html';
-                $obj->arg = array('id' => "zone_movements_{$zoneId}", 'html' => rack_ZoneDetails::renderInlineDetail($zRec, $Zones, $additional)->getContent(), 'replace' => true);
-                $resArr[] = $obj;
-            }
-
-            $obj = new stdClass();
-            $obj->func = 'prepareContextMenu';
-            $resArr[] = $obj;
-
-            return array_merge($resArr, status_Messages::returnStatusesArray());
+            return array_merge($resArr, self::forwardRefreshUrl(), status_Messages::returnStatusesArray());
         }
         
         followretUrl(null, $msg, $type);
@@ -1311,26 +1302,14 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         core_Locks::release("movement{$rec->id}");
-        
-        // Ако се обновява по Ajax
-        if($ajaxMode){
 
-            $Zones = cls::get('rack_Zones');
-            $zones = keylist::toArray($rec->zoneList);
-            foreach ($zones as $zoneId) {
-                $zRec = rack_Zones::fetch($zoneId);
-                $obj = new stdClass();
-                $obj->func = 'html';
-                $obj->arg = array('id' => "zone_movements_{$zoneId}", 'html' => rack_ZoneDetails::renderInlineDetail($zRec, $Zones, $additional)->getContent(), 'replace' => true);
-                $resArr[] = $obj;
-            }
-
-            $obj = new stdClass();
-            $obj->func = 'prepareContextMenu';
-            $resArr[] = $obj;
-
-            return array_merge($resArr, status_Messages::returnStatusesArray());
+        $zones = keylist::toArray($rec->zoneList);
+        foreach ($zones as $zoneId) {
+            core_Cache::remove("rack_Zones", "{$zoneId}|{$cu}");
         }
+
+        // Ако се обновява по Ajax
+        if($ajaxMode) return array_merge($resArr, self::forwardRefreshUrl(), status_Messages::returnStatusesArray());
         
         followretUrl(array($this));
     }
