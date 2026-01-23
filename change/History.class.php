@@ -35,12 +35,6 @@ class change_History extends core_Manager
 
 
     /**
-     * Кой може да редактира версия?
-     */
-    public $canEdithistory = 'crm,ceo';
-
-
-    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'no_one';
@@ -274,10 +268,11 @@ class change_History extends core_Manager
     protected static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
     {
         $now = dt::now();
+
         try{
             $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
         } catch(core_exception_Expect $e){
-            $row->objectId = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+
         }
 
         if($rec->state == 'rejected') {
@@ -286,12 +281,6 @@ class change_History extends core_Manager
             $row->ROW_ATTR['class'] = "state-draft";
         } else {
             $row->ROW_ATTR['class'] = "state-active";
-        }
-
-        if($rec->id && $mvc->haveRightFor('edithistory', $rec)){
-            core_RowToolbar::createIfNotExists($row->_rowTools);
-            $url = array($mvc, 'edithistory', 'id' => $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Редакция', $url, array('ef_icon' => 'img/16/edit-icon.png', 'title' => 'Редактиране на версията на обекта'));
         }
     }
 
@@ -381,8 +370,6 @@ class change_History extends core_Manager
         foreach ($data->recs as $rec) {
             $rec->count = $count;
             $row = $this->recToVerbal($rec);
-            core_RowToolbar::createIfNotExists($row->_rowTools);
-            $row->_rowTools->removeBtn("del{$rec->id}");
 
             $data->recs[$rec->id] = $rec;
             $row->date = "{$row->validFrom}" . (!empty($row->validTo) ? " - {$row->validTo}" : '');
@@ -435,7 +422,6 @@ class change_History extends core_Manager
 
         $listTableMvc = clone $this;
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $listTableMvc->invoke('BeforeRenderListTable', array($tpl, &$data));
         $tpl->append($table->get($data->rows, $data->listFields));
 
         $resTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
@@ -538,83 +524,5 @@ class change_History extends core_Manager
         $arr = self::getSelectedVersionsArr($classId, $objectId);
 
         return array_key_exists($versionId, $arr);
-    }
-
-
-    /**
-     * Екшън за промяна на кешираните данни на версията
-     */
-    public function act_Edithistory()
-    {
-        $this->requireRightFor('edithistory');
-        expect($id = Request::get('id', 'int'));
-        expect($rec = $this->fetch($id));
-        $this->requireRightFor('edithistory', $rec);
-        $Class = cls::get($rec->classId);
-
-        $form = cls::get('core_Form');
-        $form->title = 'Редактиране на версия на|* ' . $Class->getFormTitleLink($rec->objectId);
-        $form->FLD('validFrom', 'datetime(format=d.m.y H:i:s)', 'caption=Валидно от');
-        $form->FLD('validTo', 'datetime(format=d.m.y H:i:s)', 'caption=Валидно до');
-
-        $form->setDefault('validFrom', $rec->validFrom);
-        $form->setDefault('validTo', $rec->validTo);
-
-        // Разпъват се кешираните полета в отделни такива
-        $fields = $Class->selectFields();
-        $cachedFields = array();
-        foreach ($rec->data as $fld => $value){
-            $cachedFields[$fld] = $fld;
-            $caption = $fields[$fld]->caption ?? $fld;
-            $form->FLD($fld, 'varchar', "caption=Записано във версията->{$caption},autohide=any");
-            $form->setDefault($fld, $value);
-        }
-
-        $form->input();
-
-        if ($form->isSubmitted()) {
-            $formRec = &$form->rec;
-
-            // Проверка има ли променени данни
-            $changedFields = array();
-            $updateRec = (object)array('id' => $rec->id, 'validFrom' => $formRec->validFrom, 'validTo' => $formRec->validTo, 'data' => new stdClass());
-            foreach ($cachedFields as $cacheField){
-                $updateRec->data->{$cacheField} = $formRec->{$cacheField};
-                if($formRec->{$cacheField} != $rec->data->{$cacheField}){
-                    $changedFields[] = $cacheField;
-                }
-            }
-
-            if($formRec->validFrom != $rec->validFrom){
-                $changedFields[] = 'validFrom';
-            }
-
-            if($formRec->validTo != $rec->validTo){
-                $changedFields[] = 'validTo';
-            }
-
-            if(countR($changedFields)){
-                $form->setWarning(implode(',', $changedFields), "Промяна на съществуваща версия ще доведе промяна в показваните данни в издадените документи към тази дата. Наистина ли желаете да го направите|*?");
-            }
-
-            if(!$form->gotErrors()){
-                if(countR($changedFields)){
-                    $this->save($updateRec, 'id,data,validFrom,validTo');
-                    $Class->logWrite("Ръчна промяна на минала версия", $rec->id);
-                    followRetUrl(null, "Успешно редактирахте стара версия|*!");
-                }
-
-                followRetUrl(null, "Няма промяна на версията|*!");
-            }
-        }
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/save.png, title = Промяна на версията');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-
-        $tpl = $this->renderWrapping($form->renderHtml());
-
-        // Записваме, че потребителя е разглеждал този списък
-        $this->logRead('Разглеждане на реконтиране на документ', $rec->id);
-
-        return $tpl;
     }
 }
