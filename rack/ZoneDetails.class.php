@@ -575,7 +575,6 @@ class rack_ZoneDetails extends core_Detail
 
             core_Cache::set("rack_Zones", "{$masterRec->id}|{$cu}", $tpl, 10);
         } else {
-            $tpl->prepend("cache");
             core_Debug::log("GET_MOVEMENTS_FROM_CACHE++ {$masterRec->id}");
         }
 
