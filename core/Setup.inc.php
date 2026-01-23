@@ -50,57 +50,12 @@ if (setupKeyValid() && !setupProcess()) {
     // halt("Процес на обновяване - опитайте по късно.");
 } 
 
-
-// Ако вече сме в setup режим – удължаваме cookie-то и подсигуряваме progress файла
-if (setupProcess()) {
-    $progressFile = EF_TEMP_PATH . '/setupProgress.json';
-
-    // Ако setupLock.tmp е останал от предишен опит, но progress файлът липсва – създаваме го
-    if (!@file_exists($progressFile)) {
-        // Ползваме setupLock(), за да запишем маркера коректно (mode install/update)
-        setupLock();
-    }
-
-    // Подновяваме setup cookie-то, за да може да се "продължи" и след повече време
-    if (setupKeyValid()) {
-        setcookie('setup', setupKey(), time() + SETUP_LOCK_PERIOD);
-    }
-}
-
 // header("Content-Encoding: none"); чупи behat/mink тестовете
 header('X-Accel-Buffering: no');
 
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
-
-// Записваме текущата стъпка в progress файла, за да можем да предложим "Продължаване на прекъснат setup"
-if (setupProcess()) {
-    $progressFile = EF_TEMP_PATH . '/setupProgress.json';
-    $data = array();
-    if (@file_exists($progressFile)) {
-        $tmp = @json_decode(@file_get_contents($progressFile), true);
-        if (is_array($tmp)) {
-            $data = $tmp;
-        }
-    }
-    if (!isset($data['startedOn'])) {
-        $data['startedOn'] = date('c');
-    }
-
-    $data['lastSeen'] = date('c');
-
-    // ВНИМАНИЕ: при повторно отваряне на стъпка 2 не искаме да "забравим" докъде е стигнал setup-а.
-    // Затова пазим maxStep като монотонно нарастваща стойност.
-    $data['lastStep'] = $step;
-    $prevMax = isset($data['maxStep']) && is_numeric($data['maxStep']) ? (int) $data['maxStep'] : 0;
-    $data['maxStep'] = max($prevMax, (int) $step);
-
-    $data['status'] = 'inprogress';
-
-    @file_put_contents($progressFile, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX);
-}
-
 
 $flagOK = MD5($_GET['SetupKey'] . 'flagOK');
 if ($step == 'testSelfUrl') {
@@ -580,7 +535,7 @@ if ($step == 1) {
 // Стъпка 2: Обновяване
 if ($step == 2) {
     $log = array();
-    $checkUpdate = isset($_GET['update']) || isset($_GET['revert']);
+    $checkUpdate = isset($_GET['update']) || isset($_GET['revert']) || isset($_GET['checkout']);
 
     $repos = core_App::getRepos();
 
@@ -592,88 +547,16 @@ if ($step == 2) {
                 $reposLastDate .= "<tr><td align='right'>" . basename($repoPath).": </td><td style='font-weight: bold;'>" . gitLastCommitDate($repoPath, $log) . ' (' . gitCurrentBranch($repoPath, $log) . ')</td></tr> ';
             }
             $reposLastDate .= '</table>';
+
             // Показваме бутони за ъпдейтване и информация за състоянието
-            $progressFile = EF_TEMP_PATH . '/setupProgress.json';
-            $setupMode = null;
-            $lastStep = null;
-            $maxStep = null;
-
-            if (@file_exists($progressFile)) {
-                $pData = @json_decode(@file_get_contents($progressFile), true);
-                if (is_array($pData)) {
-                    $setupMode = $pData['mode'] ?? null;
-                    $lastStep  = $pData['lastStep'] ?? null;
-                    $maxStep   = $pData['maxStep'] ?? null;
-                }
-            }
-
-            // Ако има прекъсната ПЪРВОНАЧАЛНА инсталация - НЕ предлагаме "връщане по тагове",
-            // а предлагаме "Продължаване на прекъснат setup".
-            //
-            // Важно: при ПЪРВО отваряне на стъпка 2 (чиста инсталация) НЕ трябва да показваме "Продължаване...",
-            // защото още няма прекъсване - трябва да покажем стандартната "Проверка за по-нова версия".
-            $resumeStep = null;
-            if (setupProcess() && $setupMode === 'install') {
-
-                // Има ли реални следи, че setup-а е започвал и е прекъснал (минал е отвъд стъпка 2)?
-                // Не използваме наличието на стари лог файлове като индикатор, защото може да са останали от предишни сетъпи.
-                $hasEvidence = false;
-
-                // За да считаме, че има "прекъснат setup", трябва:
-                // 1) да сме стигали поне до стъпка 3 (maxStep >= 3)
-                // 2) и базата вече да има поне основната setup таблица (core_Setup), т.е. да не е чисто празна база.
-                $dbHasSetup = false;
-                try {
-                    $DB = new core_Db();
-                    $DB->connect(true);
-                    $tRes = $DB->query("SHOW TABLES LIKE 'core_Setup'");
-                    $tRow = $DB->fetchArray($tRes);
-                    if (!empty($tRow)) {
-                        $dbHasSetup = true;
-                    }
-                } catch (Exception $e) {
-                    // игнорираме
-                } catch (Throwable $t) {
-                    // игнорираме
-                }
-
-                if ($dbHasSetup && is_numeric($maxStep) && (int) $maxStep >= 3) {
-                    $hasEvidence = true;
-                }
-
-                if ($hasEvidence) {
-                    // Къде е най-разумно да върнем потребителя?
-                    $mStep = is_numeric($maxStep) ? (int) $maxStep : null;
-
-                    if ($mStep !== null) {
-                        if ($mStep >= 5) {
-                            $resumeStep = 5;
-                        } elseif ($mStep >= 3) {
-                            $resumeStep = $mStep;
-                        } else {
-                            $resumeStep = 5;
-                        }
-                    } else {
-                        // fallback: ако не знаем докъде е стигнал, отваряме екрана с лог/прогрес
-                        $resumeStep = 5;
-                    }
-                }
-            }
-
-            if ($resumeStep) {
-                $resumeUrl = addParams($selfUri, array('step' => $resumeStep));
-                $links[] = "new|{$resumeUrl}|Продължаване на прекъснат setup »||";
-                $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »||";
+            $verTag = core_Updates::getNewVersionTag();
+            if ($verTag) {
+                $links[] = "inf|{$selfUrl}&amp;update&amp;checkoutMaxVersion|Превключване на следваща версия $verTag »||";
             } else {
-                $verTag = core_Updates::getNewVersionTag();
-                if ($verTag) {
-                    $links[] = "inf|{$selfUrl}&amp;update&amp;checkoutMaxVersion|Превключване на следваща версия $verTag »||";
-                } else {
-                    $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »||";
-                }
-                $links[] = "wrn|{$nextUrl}|Продължаване без обновяване »";
+                $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »||";
             }
-break;
+            $links[] = "wrn|{$nextUrl}|Продължаване без обновяване »";
+            break;
         case true:
             // Ако Git установи различие в бранчовете на локалното копие и зададената константа
             //  - превключва репозиторито в бранча зададен в константата
@@ -694,8 +577,8 @@ break;
             
             
             // Парамерти от Request, команди => репозиторита
-            $update = $_GET['update'];
-            $revert = $_GET['revert'];
+            $update = $_GET['update'] ?? null;
+            $revert = $_GET['revert'] ?? null;
             $checkoutMaxVersion = isset($_GET['checkoutMaxVersion']);
             
             if ($checkoutMaxVersion) {
@@ -1269,19 +1152,27 @@ if ($step == 'setup') {
     
     $links = array();
     
-    $haveNewVersion = false;
-    $haveNewVersion = core_Updates::getNewVersionTag();
-    if (!$haveNewVersion) {
-        $currBranch = gitCurrentBranch(EF_APP_PATH, $log);
-        if ($currBranch != BGERP_GIT_BRANCH) {
-            $haveNewVersion = true;
-        }
+        // Показване на линк за обновяване/превключване – само когато наистина има разлика в кода
+    // (а не заради LAST_DB_VERSION / тагове).
+    $needUpdate = false;
+    $needSwitchBranch = false;
+
+    $currBranch = gitCurrentBranch(EF_APP_PATH, $log);
+
+    // При detached HEAD или различен бранч от конфигурирания – предлагаме превключване
+    if ($currBranch && ($currBranch == 'HEAD' || $currBranch != BGERP_GIT_BRANCH)) {
+        $needSwitchBranch = true;
+    } else {
+        // Само ако сме на правилния бранч – проверяваме дали remote има нови комити
+        $needUpdate = gitHasNewVersion(EF_APP_PATH, $log, BGERP_GIT_BRANCH);
     }
 
-    if ($haveNewVersion) {
-        $links[] = "inf|{$selfUrl}&amp;step=2|Има по-нова версия. Обновете я »|_parent";
-    }    
-    $links[] = "new|{$appUri}|Стартиране на bgERP »|_parent";
+    if ($needSwitchBranch) {
+        $links[] = "inf|{$selfUrl}&amp;step=2&amp;checkout=1|Кодът е на <b>{$currBranch}</b>. Превключете към <b>" . BGERP_GIT_BRANCH . "</b> »|_parent";
+    } elseif ($needUpdate) {
+        $links[] = "inf|{$selfUrl}&amp;step=2&amp;update=all|Има по-нова версия. Обновете я »|_parent";
+    }
+$links[] = "new|{$appUri}|Стартиране на bgERP »|_parent";
   
     
     $l = linksToHtml($links);
@@ -1547,45 +1438,73 @@ function gitSetBranch($repoPath, &$log, $branch = null)
 function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
 {
     $repoName = basename($repoPath);
-    
-    // Команда за SHA1 на локалния бранч
-    $command = " --git-dir=\"{$repoPath}/.git\" rev-parse " . $branch;
 
-    if (!gitExec($command, $arrResLocal)) {
-        foreach ($arrResLocal as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при rev-parse : " . $val):'';
+    // 1) Обновяваме remote-tracking информацията за конкретния бранч
+    $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin {$branch} 2>&1";
+    if (!gitExec($commandFetch, $arrFetch)) {
+        foreach ($arrFetch as $val) {
+            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при fetch : " . $val) : '';
         }
-        
+
         return false;
     }
-  
-    // Команда за SHA1 на отдалечения бранч
-    $command = " --git-dir=\"{$repoPath}/.git\" ls-remote origin " . $branch;
 
-    if (!gitExec($command, $arrResRemote)) {
+    // 2) Локален SHA1 (бранч или HEAD)
+    $commandLocal = " --git-dir=\"{$repoPath}/.git\" rev-parse {$branch} 2>&1";
+    if (!gitExec($commandLocal, $arrResLocal)) {
+        $commandLocal = " --git-dir=\"{$repoPath}/.git\" rev-parse HEAD 2>&1";
+        if (!gitExec($commandLocal, $arrResLocal)) {
+            foreach ($arrResLocal as $val) {
+                $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-parse : " . $val) : '';
+            }
+
+            return false;
+        }
+    }
+    $localRef = ($branch && gitExec(" --git-dir=\"{$repoPath}/.git\" show-ref --verify --quiet refs/heads/{$branch} 2>&1", $tmp)) ? $branch : 'HEAD';
+    $localSha = trim($arrResLocal[0]);
+
+    // 3) Remote SHA1 (origin/<branch>)
+    $commandRemote = " --git-dir=\"{$repoPath}/.git\" rev-parse origin/{$branch} 2>&1";
+    if (!gitExec($commandRemote, $arrResRemote)) {
         foreach ($arrResRemote as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при ls-remote origin : " . $val):'';
+            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-parse origin/{$branch} : " . $val) : '';
         }
-        
+
         return false;
     }
-    foreach ($arrResRemote as $val) {
-        if (strpos($val, 'refs/heads') === true);
-        $refsHeads = $val;
+    $remoteSha = trim($arrResRemote[0]);
+
+    // 4) Задължително: „по-нова версия“ означава remote да е напред спрямо локалното (behind > 0)
+    $commandBehind = " --git-dir=\"{$repoPath}/.git\" rev-list --count {$localRef}..origin/{$branch} 2>&1";
+    if (!gitExec($commandBehind, $arrBehind)) {
+        foreach ($arrBehind as $val) {
+            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-list (behind) : " . $val) : '';
+        }
+
+        return false;
     }
-    $arrResRemote = preg_split('/\s+/', $refsHeads);
-    
-    //print_r($arrResRemote); die;
-    
-    if ($arrResRemote[0] !== $arrResLocal[0]) {
-        $log[] = "new:[<b>${repoName}</b>] Има нова версия.";
-        
+    $behind = (int) trim($arrBehind[0]);
+
+    if ($behind > 0) {
+        $log[] = "new:[<b>${repoName}</b>] Има нова версия ({$behind} commit(а) напред).";
         return true;
     }
-        
-    
+
+    // Ако локалното е напред – това НЕ е „нова версия“, а локални комити
+    $commandAhead = " --git-dir=\"{$repoPath}/.git\" rev-list --count origin/{$branch}..{$localRef} 2>&1";
+    if (gitExec($commandAhead, $arrAhead)) {
+        $ahead = (int) trim($arrAhead[0]);
+        if ($ahead > 0) {
+            $log[] = "wrn:[<b>${repoName}</b>] Локалното копие е {$ahead} commit(а) напред спрямо origin/{$branch}.";
+        }
+    }
+
+    // В останалите случаи – приемаме, че няма по-нова версия
     return false;
 }
+
+
 
 
 
@@ -1712,54 +1631,7 @@ function setupLock()
         mkdir(EF_TEMP_PATH, 0744, true);
     }
 
-    $ok = touch(EF_TEMP_PATH . '/setupLock.tmp');
-
-    // Маркер/състояние за "прекъснат setup" – използваме го за да не се връщаме по git tag-ове
-    // при първоначална инсталация и да можем да предложим "Продължаване на прекъснат setup".
-    if ($ok) {
-        $progressFile = EF_TEMP_PATH . '/setupProgress.json';
-        if (!@file_exists($progressFile)) {
-
-            // Опитваме да определим дали това е "инсталация" или "обновяване" (ъпдейт).
-            // Важно: това се изчислява само веднъж – в началото, и после остава като маркер.
-            $mode = 'install';
-            try {
-                $DB = new core_Db();
-                $DB->connect(true);
-                // Ако има поне един потребител, приемаме че това е вече инсталирана система => update
-                $uRes = $DB->query("SELECT 1 FROM core_Users LIMIT 1");
-                $uRow = $DB->fetchArray($uRes);
-                if (!empty($uRow)) {
-                    $mode = 'update';
-                }
-            } catch (Exception $e) {
-                // при празна/неинициализирана база оставаме в install
-            } catch (Throwable $t) {
-                // при празна/неинициализирана база оставаме в install
-            }
-
-            $data = array(
-                'startedOn' => date('c'),
-                'lastSeen'  => date('c'),
-                'lastStep'  => 1,
-                'maxStep'   => 1,
-                'status'    => 'inprogress',
-                'mode'      => $mode, // install | update
-            );
-
-            @file_put_contents($progressFile, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX);
-
-            // За обратно-совместимост (ако вече имате логика, която търси този файл)
-            if ($mode === 'install') {
-                $legacyMarker = EF_TEMP_PATH . '/bgerp-first-install.inprogress';
-                if (!@file_exists($legacyMarker)) {
-                    @file_put_contents($legacyMarker, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX);
-                }
-            }
-        }
-    }
-
-    return $ok;
+    return touch(EF_TEMP_PATH . '/setupLock.tmp');
 }
 
 /**
@@ -1771,10 +1643,6 @@ function setupUnlock()
 {
     core_SystemLock::remove();
     @unlink(EF_TEMP_PATH . '/setupLock.tmp');
-
-    // Чистим маркерите за "прекъснат setup"
-    @unlink(EF_TEMP_PATH . '/setupProgress.json');
-    @unlink(EF_TEMP_PATH . '/bgerp-first-install.inprogress');
 }
     
 /**
