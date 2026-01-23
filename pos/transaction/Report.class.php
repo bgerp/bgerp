@@ -398,12 +398,14 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
         $nonCashPayments = array();
 
+        $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
         $nonCashBgnPaymentId = eurozone_Setup::getBgnPaymentId();
         $isInBgnUsageDate = ($rec->valior > acc_Setup::getEurozoneDate() && $rec->valior <= acc_Setup::getBgnDeprecationDate());
 
         $takingParts = array();
         foreach ($paymentsArr as $payment) {
-            $key = "{$payment->contragentClassId}|{$payment->contragentClassId}|{$payment->caseId}";
+
+            $key = "{$payment->contragentClassId}|{$payment->contragentId}|{$payment->caseId}|{$payment->value}";
             if(!array_key_exists($key, $takingParts)){
                 $clone = clone $payment;
                 unset($clone->amount);
@@ -413,24 +415,25 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 
             if ($payment->value != -1) {
                 if(!($isInBgnUsageDate && $payment->value == $nonCashBgnPaymentId)) {
-                    $payment->originalAmount = $payment->amount;
-                    $payment->amount = cond_Payments::toBaseCurrency($payment->value, $payment->amount, $payment->date);
+                    if(!array_key_exists($payment->value, $nonCashPayments)){
+                        $nonCashPayments[$payment->value] = (object)array('amount' => 0, 'value' => $payment->value, 'originalAmount' => 0);
+                    }
 
-                    $nonCashPayments[] = $payment;
+                    $nonCashPayments[$payment->value]->originalAmount += $payment->amount;
+                    $nonCashPayments[$payment->value]->amount += cond_Payments::toBaseCurrency($payment->value, $payment->amount, $payment->date);
                 }
             }
         }
 
         foreach ($takingParts as $partPayment){
-            $debitCurrencyId = $currencyId;
             $debitQuantity = $partPayment->amount;
             if ($partPayment->value != -1) {
                 $partPayment->originalAmount = $partPayment->amount;
                 $partPayment->amount = cond_Payments::toBaseCurrency($partPayment->value, $partPayment->amount, $partPayment->date);
             }
-
+            $debitCurrencyId = $currencyId;
             if($isInBgnUsageDate && $partPayment->value == $nonCashBgnPaymentId){
-                $debitCurrencyId = currency_Currencies::getIdByCode('BGN');
+                $debitCurrencyId = $bgnCurrencyId;
                 $debitQuantity = $partPayment->originalAmount;
             }
 

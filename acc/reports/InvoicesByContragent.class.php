@@ -60,7 +60,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $fieldset->FLD('paymentType', 'enum( ,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Начин на плащане, placeholder=Всички,after=checkDate,input=none,single=none');
 
-        $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit=лв.,input=hidden,after=paymentType,placeholder=0.00,silent,single=none');
+        $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit= €.,input=hidden,after=paymentType,placeholder=0.00,silent,single=none');
 
         $fieldset->FLD('seeProformаs', 'set(yes = )', 'caption=Покажи проформа фактурите,after=sill,input,single=none');
 
@@ -370,7 +370,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
                         $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) + $salesInvoice->vatAmount;
-                        // bp($invoiceValue,$salesInvoice->dealValue,$salesInvoice->vatAmount,$salesInvoice->rate);
 
                         $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
 
@@ -448,6 +447,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             $paydocs->amount = deals_Helper::getSmartBaseCurrency($paydocs->amount, $paydocs->date, $rec->checkDate);
                             $paydocs->payout = deals_Helper::getSmartBaseCurrency($paydocs->payout, $paydocs->date, $rec->checkDate);
 
+
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
 
@@ -502,8 +502,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             }
 
                             // Масив с данни за сумите от фактурите  обединени по контрагенти
-
-                            ///Върнах го Премахнатия * $iRec->rate
 
                             if (!array_key_exists($iRec->id, $sRecs)) {
                                 if (!array_key_exists($iRec->contragentName, $totalInvoiceContragent)) {
@@ -855,7 +853,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'invoiceContainerId' => $iRec->containerId,
                                     'currencyId' => $iRec->currencyId,
                                     'rate' => $iRec->rate,
-                                    'invoiceValue' => $paydocs->amount,
+                                    'invoiceValue' => $paydocs->amount * $iRec->rate,
                                     'invoiceVAT' => deals_Helper::getSmartBaseCurrency($iRec->vatAmount, $iRec->date, $rec->checkDate),
                                     'invoicePayout' => $paydocs->payout,
                                     'fastMarker' => $fastMarker,
@@ -1097,6 +1095,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($dRec->fastMarker == 1) {
 
             $paidAmount = $dRec->invoicePayout * $dRec->rate;
+
         } else {
             $paidAmount = $dRec->invoicePayout;
         }
@@ -1276,7 +1275,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 $allCurrency = ($dRec->totalInvoiceValue) ? $baseCurrency : '';
 
-               //$div = $dRec->rate;
+                //$div = $dRec->rate;
 
                 $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' ' . $allCurrency;
                 if ($dRec->totalInvoiceOverPaid > 0.01) {
@@ -1302,6 +1301,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
 
+
                 $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
             }
 
@@ -1311,14 +1311,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if ($dRec->currencyId == 'BGN' && $baseCurrency == 'BGN') {
                     $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue);
                 } elseif ($dRec->currencyId == 'EUR' && $baseCurrency == 'BGN') {
-                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue/1.95583);
-                }elseif ($dRec->currencyId != 'EUR' && $dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
-                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue/$dRec->rate);
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue / 1.95583);
+                } elseif ($dRec->currencyId != 'EUR' && $dRec->currencyId != 'BGN' && $baseCurrency == 'BGN') {
+                    $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue / $dRec->rate);
                 }
             }
 
             //Стойност на фактурата в основна валута
-            $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceValue );
+            $row->invoiceValueBaseCurr = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->invoiceValue);
 
             //Остатък за плащане в основна валута
             if ($dRec->invoiceCurrentSumm > 0) {

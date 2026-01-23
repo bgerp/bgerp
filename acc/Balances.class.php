@@ -856,19 +856,20 @@ class acc_Balances extends core_Master
         // Връщане на резултата
         return $res;
     }
-    
-    
+
+
     /**
      * Връща крайното салдо на дадена сметка, според подадени записи
      *
      * @param array       $jRecs   - масив с данни от журнала
      * @param string      $accs    - Масив от сметки на които ще се изчислява крайното салдо
-     * @param string|null $type    - кредното, дебитното или крайното салдо
+     * @param string|null $type    - кредитното, дебитното или крайното салдо
      * @param string      $accFrom - сметки с които може да кореспондира
-     * @params array $items - масив с пера, които трябва да са на посочените позиции
-     * @params array $ignoreClassIds - записите от кои класове да се игнорират
+     * @params array      $items - масив с пера, които трябва да са на посочените позиции (0=>Item1, 1=>Item2, 2=>Item3)
+     * @params array      $ignoreClassIds - записите от кои класове да се игнорират
      * @param string|null $toBaseCurrencyDate - към основната валута за коя дата
-     * @param bool $useCurrencyField  - да се сумира по валута, а не по сума
+     * @param bool        $useCurrencyField  - да се сумира по валута, а не по сума
+     *
      * @return stdClass $res - обект със следната структура:
      *                  ->amount - крайното салдо на сметката, ако няма записи е 0
      *                  ->recs   - тази част от подадените записи, участвали в образуването на салдото
@@ -877,13 +878,12 @@ class acc_Balances extends core_Master
     {
         $res = new stdClass();
         $res->amount = 0;
-        
+
         // Ако няма записи, връщаме празен масив
         if (!countR($jRecs)) {
-            
             return $res;
         }
-        
+
         if ($type) {
             expect(in_array($type, array('debit', 'credit')));
         }
@@ -893,80 +893,76 @@ class acc_Balances extends core_Master
         $accArr = arr::make($accs);
         $fromArr = arr::make($accFrom);
         expect(countR($accArr));
-        
+
         // Намираме ид-та на сметките
         foreach ($accArr as $accSysId) {
             expect($accId = acc_Accounts::getRecBySystemId($accSysId)->id);
             $newAccArr[] = $accId;
         }
-        
+
         foreach ($fromArr as $accSysId1) {
             expect($accId = acc_Accounts::getRecBySystemId($accSysId1)->id);
             $corespondingAccArr[] = $accId;
         }
-        
-        
+
         // За всеки запис
         foreach ($jRecs as $rec) {
             $add = false;
 
-            if(countR($ignoreClassIds)){
-                if(in_array($rec->docType, $ignoreClassIds)) continue;
+            // ВАЖНО: инициализация за всеки запис (ползват се по-долу независимо дали има $items)
+            $skipDebit = $skipCredit = false;
+
+            if (countR($ignoreClassIds)) {
+                if (in_array($rec->docType, $ignoreClassIds)) continue;
             }
 
             // Ако има кореспондираща сметка и тя не участва в записа, пропускаме го
             if (countR($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) {
                 continue;
             }
-            
+
             // Ако има посочени задължителни пера
             if (countR($items) > 0) {
-                $skipDebit = $skipCredit = false;
-                
-                // За всяко
+
+                // Проверяваме позициите 1..3 (items[0]=>Item1, items[1]=>Item2, items[2]=>Item3)
                 foreach (range(0, 2) as $i) {
-                    
-                    // Ако е сетнато
-                    if (!empty($items[$i])) {
-                        $j = $i + 1;
-                        
-                        // И дебитната сметка е от търсените
-                        if (in_array($rec->debitAccId, $newAccArr)) {
-                            
-                            // И съответното перо не е като търсеното
-                            if ($rec->{"debitItem{$j}"} != $items[$i]) {
-                                
-                                // Ще се пропуска записа
-                                $skipDebit = true;
-                                break;
-                            }
-                        }
-                        
-                        // И кредитната сметка е от търсените
-                        if (in_array($rec->creditAccId, $newAccArr)) {
-                            
-                            // И съответното перо не е като търсеното
-                            if ($rec->{"creditItem{$j}"} != $items[$i]) {
-                                
-                                // Ще се пропуска записа
-                                $skipCredit = true;
-                                break;
-                            }
+
+                    // Ако няма филтър за тази позиция - пропускаме
+                    if (!isset($items[$i])) continue;
+
+                    $j = $i + 1;
+
+                    // Дебитна страна
+                    if (in_array($rec->debitAccId, $newAccArr) && $skipDebit !== true) {
+                        if ($rec->{"debitItem{$j}"} != $items[$i]) {
+                            $skipDebit = true;
                         }
                     }
+
+                    // Кредитна страна
+                    if (in_array($rec->creditAccId, $newAccArr) && $skipCredit !== true) {
+                        if ($rec->{"creditItem{$j}"} != $items[$i]) {
+                            $skipCredit = true;
+                        }
+                    }
+
+                    // Прекъсваме само ако и двете страни вече няма как да минат
+                    if ($skipDebit === true && $skipCredit === true) {
+                        break;
+                    }
                 }
-                
-                // Ако ще се пропуска, записа не участва в събирането
+
+                // Ако ще се пропуска и от двете страни, записът не участва в събирането
                 if ($skipDebit === true && $skipCredit === true) {
                     continue;
                 }
             }
-            
+
             // Изчисляваме крайното салдо
             if (in_array($rec->debitAccId, $newAccArr)) {
                 if ($skipDebit !== true) {
                     if ($type === null || $type == 'debit') {
-                        if($useCurrencyField){
+                        if ($useCurrencyField) {
                             $res->amount += $rec->debitQuantity;
                         } else {
                             $res->amount += deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
@@ -979,19 +975,19 @@ class acc_Balances extends core_Master
             if (in_array($rec->creditAccId, $newAccArr)) {
                 if ($skipCredit !== true) {
                     $sign = ($type === null) ? -1 : 1;
-                    
+
                     if ($type === null || $type == 'credit') {
-                        if($useCurrencyField){
+                        if ($useCurrencyField) {
                             $res->amount += $sign * $rec->creditQuantity;
                         } else {
                             $res->amount += $sign * deals_Helper::getSmartBaseCurrency($rec->amount, dt::getLastDayOfMonth($rec->valior), $toBaseCurrencyDate);
                         }
                     }
-                    
+
                     $add = true;
                 }
             }
-            
+
             // Добавяме записа, участвал в образуването на крайното салдо
             if ($add) {
                 $res->recs[$rec->id] = $rec;
@@ -1003,8 +999,8 @@ class acc_Balances extends core_Master
         // Връщане на резултата
         return $res;
     }
-    
-    
+
+
     /**
      * Ф-я връщаща името на сметка като линк към баланса
      *

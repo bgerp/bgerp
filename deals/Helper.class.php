@@ -1874,127 +1874,329 @@ abstract class deals_Helper
     /**
      * Помощен метод връщащ разпределението на плащанията по фактури
      *
-     * @param int            $threadId               - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
-     * @param datetime|NULL  $valior                 - към коя дата
-     * @param boolean        $onlyExactPayments      - дали да са всички плащания или само конкретните към всяка ф-ра
-     * @param boolean        $applyNotesToTheInvoice - дали да наслагва известията към фактурата
+     * Основни правила (важни за FX/евро):
+     *  - Към allocationOfPayments подаваме:
+     *      pay->available = сума във валутата на платежния документ (pay currency)
+     *      pay->currencyId = код на валутата на платежния документ
+     *      pay->rate = (payCurrency -> BASE) към датата на плащането
      *
-     * @return array         $paid - масив с разпределените плащания
+     *  - BASE валутата за датата се взима от: acc_Periods::getBaseCurrencyCode($date)
+     *
+     *  - При превалутиране (и изобщо когато има и amount и amountDeal):
+     *      Курсът за платежния документ се взима ПРИОРИТЕТНО от отношението на сумите в документа,
+     *      а не от таблицата с курсове (защото може да има договорен/закръглен курс, такси, и т.н.).
+     *
+     *  - ВАЖНО за currency_CurrencyRates::getRate():
+     *      При теб getRate($date, $from, $to) връща курс FROM -> TO.
+     *
+     * @param int            $threadId
+     * @param datetime|NULL  $valior
+     * @param boolean        $onlyExactPayments
+     * @param boolean        $applyNotesToTheInvoice
+     *
+     * @return array
      */
     public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = true, $applyNotesToTheInvoice = true)
     {
-        // Всички ф-ри в посочената нишка/нишки
         $threads = static::getCombinedThreads($threadId);
-        if(!countR($threads)) return array();
+        if (!countR($threads)) return array();
 
-        // Кои са фактурите в посочената нишка/нишки
         $invoicesArr = self::getInvoicesInThread($threads, $valior, true, true, true);
         if (!countR($invoicesArr)) return array();
 
         core_Debug::startTimer("CALC_INVOICE_PAYMENTS");
+
         $newInvoiceArr = $invMap = $payArr = array();
+
+        // --------
+        // Helpers
+        // --------
+        $getBaseCode = acc_Periods::getBaseCurrencyCode($date);
+
+        // Конвертира amount от fromCur към payCur (ако iRow->amount не е в payCur)
+        $convertToPayCur = function ($valiorDate, $amount, $fromCurCode, $payCurCode, $ratePayToBase) use ($getBaseCode) {
+            $a = (float)$amount;
+            if (!$fromCurCode || !$payCurCode || strcasecmp($fromCurCode, $payCurCode) === 0) return $a;
+
+            $baseCode = $getBaseCode($valiorDate);
+
+            // getRate(date, from, to) => FROM->TO
+            // fromCur -> BASE:
+            $fromToBase = currency_CurrencyRates::getRate($valiorDate, $fromCurCode, $baseCode);
+            if (!$fromToBase || (float)$fromToBase == 0) $fromToBase = 1;
+
+            $amountBase = $a * (float)$fromToBase;
+
+            // BASE -> payCur (делим на payCur->BASE)
+            $payToBase = (float)$ratePayToBase ?: 1;
+            return $amountBase / $payToBase;
+        };
+
+        // --------------------------------
+        // 1) Подготовка на фактурите
+        // --------------------------------
         foreach ($invoicesArr as $containerId => $handler) {
             $Document = doc_Containers::getDocument($containerId);
             $iRec = $Document->fetch();
+
             $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
 
+            // amount във валутата на фактурата
             $amount = round((($iRec->dealValue - $iRec->discountAmount) + $iRec->vatAmount) / $iRec->rate, 2);
 
             $key = $applyNotesToTheInvoice ? ($iRec->type != 'dc_note' ? $containerId : $iRec->originId) : $containerId;
             $invMap[$containerId] = $key;
-            
+
             if (!array_key_exists($key, $newInvoiceArr)) {
-                $newInvoiceArr[$key] = (object) array('containerId' => $key, 'amount' => $amount, 'payout' => 0, 'payments' => array(), 'dueDate' => $dueDate, 'rate' => $iRec->rate, 'date' => $iRec->date, 'currencyId' => $iRec->currencyId);
+                $newInvoiceArr[$key] = (object) array(
+                    'containerId' => $key,
+                    'amount'      => $amount,
+                    'payout'      => 0,
+                    'payments'    => array(),
+                    'dueDate'     => $dueDate,
+                    'rate'        => $iRec->rate,
+                    'date'        => $iRec->date,
+                    'currencyId'  => $iRec->currencyId
+                );
             } else {
                 $newInvoiceArr[$key]->amount += $amount;
             }
+
             $newInvoiceArr[$key]->dueDate = min($newInvoiceArr[$key]->dueDate, $dueDate);
         }
 
-        foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay) {
+        // --------------------------------
+        // 2) Подготовка на плащанията
+        // --------------------------------
+        foreach (array(
+                     'cash_Pko',
+                     'cash_Rko',
+                     'bank_IncomeDocuments',
+                     'bank_SpendingDocuments',
+                     'findeals_CreditDocuments',
+                     'findeals_DebitDocuments'
+                 ) as $Pay) {
+
             $Pdoc = cls::get($Pay);
             $pQuery = $Pdoc->getQuery();
             $pQuery->in('threadId', $threads);
             $pQuery->where("#state = 'active'");
-            $pQuery->show('containerId,amountDeal,amount,isReverse,activatedOn,valior');
+            $pQuery->show('id,containerId,amountDeal,amount,isReverse,activatedOn,valior');
+
             if (isset($valior)) {
                 $pQuery->where("#valior <= '{$valior}'");
             }
-            
+
             while ($pRec = $pQuery->fetch()) {
 
                 $sign = ($pRec->isReverse == 'yes') ? -1 : 1;
-                $invArr = deals_InvoicesToDocuments::getInvoiceArr($pRec->containerId);
-
                 $pData = $Pdoc->getPaymentData($pRec->id);
 
+                $baseCode = acc_Periods::getBaseCurrencyCode($pRec->valior);
+
+                // Валутата на платежния документ (pay currency)
+                $payCurrencyId =
+                    ($pData->currencyId ?? null) ? $pData->currencyId :
+                        (($pData->paymentCurrencyId ?? null) ? $pData->paymentCurrencyId :
+                            ($pData->dealCurrencyId ?? null));
+
+                $dealCurrencyId = $pData->dealCurrencyId ?? $payCurrencyId;
+
+                $payCurCode  = $payCurrencyId ? currency_Currencies::getCodeById($payCurrencyId) : $baseCode;
+                $dealCurCode = $dealCurrencyId ? currency_Currencies::getCodeById($dealCurrencyId) : $baseCode;
+
+                $type = null;
+                $payAmount = 0.0;     // сума в payCur
+                $ratePayToBase = 1.0; // payCur -> BASE
+
+                $amountDoc  = (float)$pRec->amount;      // при cash/bank: сума в payCur; при intercept: сума в BASE
+                $amountDeal = (float)$pRec->amountDeal;  // при cash/bank: сума в dealCur; при intercept: сума в payCur
+
                 if (in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))) {
+
+                    // -----------------------
+                    // INTERCEPT (специален)
+                    // pRec->amountDeal = payCur
+                    // pRec->amount     = BASE
+                    // -----------------------
                     $type = 'intercept';
-                    $amount = round($pRec->amount, 2);
+
+                    if (empty($payCurCode)) $payCurCode = $dealCurCode;
+                    if (empty($payCurCode)) $payCurCode = $baseCode;
+
+                    $payAmount = $sign * round($amountDeal, 2); // в payCur
+
+                    // ПРИОРИТЕТ: курс от отношението на сумите в документа
+                    // payCur -> BASE = BASEamount / payCurAmount
+                    if ($amountDeal != 0 && $amountDoc != 0) {
+                        $ratePayToBase = round($amountDoc / $amountDeal, 6);
+                    } else {
+                        // fallback: payCur -> BASE от таблица
+                        if (strcasecmp($payCurCode, $baseCode) === 0) {
+                            $ratePayToBase = 1;
+                        } else {
+                            // getRate(date, from, to) => FROM->TO  => payCur -> BASE
+                            $r = currency_CurrencyRates::getRate($pRec->valior, $payCurCode, $baseCode);
+                            $ratePayToBase = (!$r || (float)$r == 0) ? 1 : (float)$r;
+                        }
+                    }
+
                 } else {
-                    $amount = round($pRec->amountDeal, 2);
+
+                    // -----------------------
+                    // CASH / BANK
+                    // pRec->amount     = payCur
+                    // pRec->amountDeal = dealCur
+                    // -----------------------
                     $type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
+
+                    if (empty($payCurCode)) $payCurCode = $baseCode;
+
+                    $payAmount = $sign * round($amountDoc, 2); // в payCur
+
+                    // ПРИОРИТЕТ: курс от отношението на сумите (реален курс на документа)
+                    if ($amountDoc != 0 && $amountDeal != 0) {
+                        $ratePayToDeal = (float)$amountDeal / (float)$amountDoc; // payCur -> dealCur
+
+                        if (strcasecmp($dealCurCode, $baseCode) === 0) {
+                            // dealCur == BASE
+                            $ratePayToBase = round($ratePayToDeal, 6);
+                        } else {
+                            // dealCur != BASE: payCur->BASE = (payCur->dealCur) * (dealCur->BASE)
+                            // dealCur -> BASE (FROM->TO)
+                            $dealToBase = currency_CurrencyRates::getRate($pRec->valior, $dealCurCode, $baseCode);
+                            if (!$dealToBase || (float)$dealToBase == 0) $dealToBase = 1;
+
+                            $ratePayToBase = round($ratePayToDeal * (float)$dealToBase, 6);
+                        }
+                    } else {
+                        // fallback: payCur -> BASE от таблица
+                        if (strcasecmp($payCurCode, $baseCode) === 0) {
+                            $ratePayToBase = 1;
+                        } else {
+                            // getRate(date, from, to) => FROM->TO  => payCur -> BASE
+                            $r = currency_CurrencyRates::getRate($pRec->valior, $payCurCode, $baseCode);
+                            $ratePayToBase = (!$r || (float)$r == 0) ? 1 : (float)$r;
+                        }
+                    }
                 }
 
-                $pCurrencyCode = currency_Currencies::getCodeById($pData->dealCurrencyId);
-                $rate = !empty($pRec->amountDeal) ? round($pRec->amount / $pRec->amountDeal, 4) : 0;
-                $rate1 = $rate;
-                if($rate == 1) {
-                    $rate1 = currency_CurrencyRates::getRate($pRec->valior, $pCurrencyCode, null);
-                }
+                if (!$ratePayToBase || (float)$ratePayToBase == 0) $ratePayToBase = 1;
+                if (strcasecmp($payCurCode, $baseCode) === 0) $ratePayToBase = 1;
 
-                if(countR($invArr)){
-                    foreach ($invArr as $iRec){
-                        $pData->amount -= $iRec->amount;
-                        $iAmount = !empty($rate) ? $sign * round($iRec->amount / $rate, 2) : 0;
-                        $payArr["{$pRec->containerId}|{$iRec->containerId}"] = (object) array('containerId' => $pRec->containerId, 'amount' => $iAmount, 'available' => $iAmount, 'to' => $invMap[$iRec->containerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate1, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
+                // Насочвания към фактури?
+                $invArr = deals_InvoicesToDocuments::getInvoiceArr($pRec->containerId);
+
+                if (countR($invArr)) {
+
+                    $remainingPayCur = $payAmount;
+
+                    foreach ($invArr as $iRow) {
+                        $toInvKey = isset($invMap[$iRow->containerId]) ? $invMap[$iRow->containerId] : null;
+                        if (!$toInvKey) continue;
+
+                        $rowCurCode = null;
+                        if (isset($iRow->currencyId) && $iRow->currencyId) {
+                            $rowCurCode = is_numeric($iRow->currencyId)
+                                ? currency_Currencies::getCodeById($iRow->currencyId)
+                                : $iRow->currencyId;
+                        }
+
+                        $rowAmountPayCur = $convertToPayCur($pRec->valior, $iRow->amount, $rowCurCode, $payCurCode, $ratePayToBase);
+                        $rowAmountPayCur = $sign * round($rowAmountPayCur, 2);
+
+                        $payArr["{$pRec->containerId}|{$iRow->containerId}"] = (object) array(
+                            'containerId'  => $pRec->containerId,
+                            'amount'       => $rowAmountPayCur,
+                            'available'    => $rowAmountPayCur,
+                            'to'           => $toInvKey,
+                            'paymentType'  => $type,
+                            'isReverse'    => ($pRec->isReverse == 'yes'),
+                            'rate'         => $ratePayToBase,
+                            'currencyId'   => $payCurCode,
+                            'date'         => $pRec->valior
+                        );
+
+                        $remainingPayCur -= $rowAmountPayCur;
                     }
 
-                    $pData->amount = round($pData->amount, 2);
-                    if(!empty($pData->amount)){
-                        $rAmount = $sign * round($pData->amount / $rate1, 2);
-                        $payArr["{$pRec->containerId}|"] = (object) array('containerId' => $pRec->containerId, 'amount' => $rAmount, 'available' => $rAmount, 'to' => null, 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate1, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
+                    $remainingPayCur = round($remainingPayCur, 2);
+
+                    if (!empty($remainingPayCur)) {
+                        $payArr["{$pRec->containerId}|"] = (object) array(
+                            'containerId'  => $pRec->containerId,
+                            'amount'       => $remainingPayCur,
+                            'available'    => $remainingPayCur,
+                            'to'           => null,
+                            'paymentType'  => $type,
+                            'isReverse'    => ($pRec->isReverse == 'yes'),
+                            'rate'         => $ratePayToBase,
+                            'currencyId'   => $payCurCode,
+                            'date'         => $pRec->valior
+                        );
                     }
 
                 } else {
-                    $amount = $sign * $amount;
-                    $payArr[$pRec->containerId] = (object) array('containerId' => $pRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => $invMap[$pRec->fromContainerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'), 'rate' => $rate1, 'currencyId' => $pCurrencyCode, 'date' => $pRec->valior);
+
+                    $payArr[$pRec->containerId] = (object) array(
+                        'containerId'  => $pRec->containerId,
+                        'amount'       => $payAmount,
+                        'available'    => $payAmount,
+                        'to'           => null,
+                        'paymentType'  => $type,
+                        'isReverse'    => ($pRec->isReverse == 'yes'),
+                        'rate'         => $ratePayToBase,
+                        'currencyId'   => $payCurCode,
+                        'date'         => $pRec->valior
+                    );
                 }
             }
         }
 
-
-        // Ако в нишките има активни или приключени сделки с плащане да участват и те
-        foreach(array('sales_Sales', 'purchase_Purchases') as $dealDoc){
+        // --------------------------------
+        // 3) Сделки с плащане да участват и те
+        // --------------------------------
+        foreach (array('sales_Sales', 'purchase_Purchases') as $dealDoc) {
             $DealDoc = cls::get($dealDoc);
             $dQuery = $DealDoc->getQuery();
             $dQuery->in('threadId', $threads);
             $dQuery->where("#state IN ('active', 'closed')");
             $dQuery->where(array("#contoActions LIKE '%pay%'"));
+
             if (isset($valior)) {
                 $dQuery->where("#valior <= '{$valior}'");
             }
 
             while ($dRec = $dQuery->fetch()) {
                 $amount = round($dRec->amountDeal / $dRec->currencyRate, 6);
-                $payArr[$dRec->containerId] = (object) array('containerId' => $dRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => null, 'paymentType' => 'cash', 'isReverse' => false, 'rate' => $dRec->currencyRate, 'currencyId' => $dRec->currencyId, 'date' => $pRec->valior);
+                $payArr[$dRec->containerId] = (object) array(
+                    'containerId'  => $dRec->containerId,
+                    'amount'       => $amount,
+                    'available'    => $amount,
+                    'to'           => null,
+                    'paymentType'  => 'cash',
+                    'isReverse'    => false,
+                    'rate'         => $dRec->currencyRate,
+                    'currencyId'   => $dRec->currencyId,
+                    'date'         => $dRec->valior
+                );
             }
         }
 
-        if($onlyExactPayments){
-
-            // Ако се изискват само конкретните платежни документи към ф-те - оставят се само те
-            // плащанията, които не са към конкретна фактура не се показват
-            $payArr = array_filter($payArr, function ($a) {return isset($a->to);});
+        if ($onlyExactPayments) {
+            $payArr = array_filter($payArr, function ($a) { return isset($a->to); });
         }
 
         self::allocationOfPayments($newInvoiceArr, $payArr);
+
         core_Debug::stopTimer("CALC_INVOICE_PAYMENTS");
 
         return $newInvoiceArr;
     }
-    
-    
+
+
+
+
     /**
      * Ъпдейтва начина на плащане на фактурите в нишката
      *
@@ -2220,12 +2422,26 @@ abstract class deals_Helper
             }
         }
 
-        // 5) Остатъци по платежни документи (надплащане е позволено): лепим върху последните фактури
+        // 5) Остатъци по платежни документи ...
         foreach ($payArr as $pay) {
             if ($pay->availableBaseAtPayDate == 0) continue;
 
             foreach ($invBackward as $inv) {
                 if (!is_array($inv->used)) $inv->used = array();
+
+                // NEW: ако този платежен документ вече участва за тази фактура - не го добавяй втори път
+                $alreadyUsed = false;
+                foreach ($inv->used as $uPay) {
+                    if (is_object($uPay) && isset($uPay->containerId) && $uPay->containerId == $pay->containerId) {
+                        $alreadyUsed = true;
+                        break;
+                    }
+                }
+                if ($alreadyUsed) {
+                    // но пак зануляваме остатъка, за да не се лепи никъде другаде
+                    $pay->availableBaseAtPayDate = 0;
+                    break;
+                }
 
                 $restForThisInvBase = deals_Helper::getSmartBaseCurrency(
                     $pay->availableBaseAtPayDate, // BASE@payDate
