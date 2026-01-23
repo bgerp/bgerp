@@ -1439,7 +1439,16 @@ function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
 {
     $repoName = basename($repoPath);
 
-    // 1) Обновяваме remote-tracking информацията за конкретния бранч
+    // Нормализиране на името на бранча (понякога се подава origin/dev)
+    if (strpos($branch, 'origin/') === 0) {
+        $branch = substr($branch, 7);
+    }
+    if (strpos($branch, 'refs/heads/') === 0) {
+        $branch = substr($branch, strlen('refs/heads/'));
+    }
+
+    // 1) Fetch на конкретния бранч - НЕ разчитаме, че съществува refs/remotes/origin/<branch>
+    // (при някои fetch настройки remote-tracking ref може да липсва, но FETCH_HEAD винаги се обновява)
     $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin {$branch} 2>&1";
     if (!gitExec($commandFetch, $arrFetch)) {
         foreach ($arrFetch as $val) {
@@ -1464,19 +1473,19 @@ function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
     $localRef = ($branch && gitExec(" --git-dir=\"{$repoPath}/.git\" show-ref --verify --quiet refs/heads/{$branch} 2>&1", $tmp)) ? $branch : 'HEAD';
     $localSha = trim($arrResLocal[0]);
 
-    // 3) Remote SHA1 (origin/<branch>)
-    $commandRemote = " --git-dir=\"{$repoPath}/.git\" rev-parse origin/{$branch} 2>&1";
+    // 3) Remote SHA1 - взимаме от FETCH_HEAD (след fetch) вместо origin/<branch>
+    $commandRemote = " --git-dir=\"{$repoPath}/.git\" rev-parse FETCH_HEAD 2>&1";
     if (!gitExec($commandRemote, $arrResRemote)) {
         foreach ($arrResRemote as $val) {
-            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-parse origin/{$branch} : " . $val) : '';
+            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-parse FETCH_HEAD : " . $val) : '';
         }
 
         return false;
     }
     $remoteSha = trim($arrResRemote[0]);
 
-    // 4) Задължително: „по-нова версия“ означава remote да е напред спрямо локалното (behind > 0)
-    $commandBehind = " --git-dir=\"{$repoPath}/.git\" rev-list --count {$localRef}..origin/{$branch} 2>&1";
+    // 4) „По-нова версия“ означава remote да е напред спрямо локалното (behind > 0)
+    $commandBehind = " --git-dir=\"{$repoPath}/.git\" rev-list --count {$localRef}..{$remoteSha} 2>&1";
     if (!gitExec($commandBehind, $arrBehind)) {
         foreach ($arrBehind as $val) {
             $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-list (behind) : " . $val) : '';
@@ -1492,7 +1501,7 @@ function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
     }
 
     // Ако локалното е напред – това НЕ е „нова версия“, а локални комити
-    $commandAhead = " --git-dir=\"{$repoPath}/.git\" rev-list --count origin/{$branch}..{$localRef} 2>&1";
+    $commandAhead = " --git-dir=\"{$repoPath}/.git\" rev-list --count {$remoteSha}..{$localRef} 2>&1";
     if (gitExec($commandAhead, $arrAhead)) {
         $ahead = (int) trim($arrAhead[0]);
         if ($ahead > 0) {
@@ -1503,6 +1512,7 @@ function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
     // В останалите случаи – приемаме, че няма по-нова версия
     return false;
 }
+
 
 
 
