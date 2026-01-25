@@ -43,7 +43,7 @@ class type_Nick extends type_Varchar
         
         $value = self::normalize($value);
         if (!$this->isValidNick($value, $this->params['allowEmail'])) {
-            $this->error = 'Невалидно потребителско име. Трябва да започва с буква|*.</br>|Може да съдържа малки и големи букви, цифри, долна черта и точка|*.: ' . parent::escape($value);
+            $this->error = 'Невалидно потребителско име. Трябва да започва с буква|*.</br>|Може да съдържа малки и големи букви на латиница, цифри, долна черта и точка|*.: ' . parent::escape($value);
             
             return false;
         }
