@@ -1288,6 +1288,7 @@ class rack_Movements extends rack_MovementAbstract
 
                 // Отделя се само к-то за тази зона, като ново приключено движение
                 $this->save_($newRec);
+                core_Cache::removeByType("rack_Zones_{$currentZoneId}");
                 rack_OldMovements::sync($newRec);
                 rack_Logs::add($newRec->storeId, $newRec->productId, 'create', $newRec->positionTo, $newRec->id, "Отделяне на движение #{$newRec->id} от #{$rec->id}");
                 rack_Logs::add($newRec->storeId, $newRec->productId, 'close', $newRec->positionTo, $newRec->id, "Приключване на движение #{$newRec->id}");

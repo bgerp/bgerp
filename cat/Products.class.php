@@ -483,6 +483,8 @@ class cat_Products extends embed_Manager
                 if ($cover->isInstanceOf('cat_Categories')) {
                     if(empty($cover->fetchField('prefix')) && empty($clonedCode)){
                         $lastCode = Mode::get('cat_LastProductCode');
+                    } elseif(!empty($cover->fetchField('prefix'))) {
+                        $lastCode = null;
                     }
 
                     // Ако корицата е категория и няма въведен код, генерира се дефолтен, ако може
