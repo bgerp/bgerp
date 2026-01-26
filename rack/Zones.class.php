@@ -853,6 +853,8 @@ class rack_Zones extends core_Master
         $zoneRec->defaultUserId = null;
         $zoneRec->containerId = null;
         self::save($zoneRec);
+
+        core_Cache::removeByType("rack_Zones_{$zoneRec->id}");
     }
 
 
