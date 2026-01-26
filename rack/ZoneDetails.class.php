@@ -548,7 +548,7 @@ class rack_ZoneDetails extends core_Detail
     public static function renderInlineDetail($masterRec, $masterMvc, $additional = null)
     {
         $cu = core_Users::getCurrent();
-        $tpl = core_Cache::get("rack_Zones", "{$masterRec->id}|{$cu}");
+        $tpl = core_Cache::get("rack_Zones_{$masterRec->id}", $cu);
 
         if(!($tpl instanceof core_ET)) {
             $tpl = new core_ET("");
@@ -573,7 +573,7 @@ class rack_ZoneDetails extends core_Detail
             $tpl->removeBlocks();
             Mode::pop('inlineDetail');
 
-            core_Cache::set("rack_Zones", "{$masterRec->id}|{$cu}", $tpl, 10);
+            core_Cache::set("rack_Zones_{$masterRec->id}", $cu, $tpl, 10);
         } else {
             core_Debug::log("GET_MOVEMENTS_FROM_CACHE++ {$masterRec->id}");
         }
