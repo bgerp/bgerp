@@ -1130,6 +1130,9 @@ class rack_Zones extends core_Master
         $zQuery->where("#storeId = {$storeId}");
         $zQuery->show("id");
         $zoneIds = arr::extractValuesFromArray($zQuery->fetchAll(), 'id');
+        foreach ($zoneIds as $zoneId) {
+            core_Cache::removeByType("rack_Zones_{$zoneId}");
+        }
         static::deletePendingZoneMovements($zoneIds, core_Users::SYSTEM_USER, $productIds);
 
         // Групиране по групи на зоните

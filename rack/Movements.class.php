@@ -330,6 +330,7 @@ class rack_Movements extends rack_MovementAbstract
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Ако се създава запис в чернова със зони, в зоните се създава празен запис
+        $zonesQuantityArr = static::getZoneArr($rec);
         if($rec->state == 'pending' && $rec->_canceled !== true){
             $batch = $rec->batch;
             if(empty($batch) && isset($rec->palletId)){
@@ -340,7 +341,6 @@ class rack_Movements extends rack_MovementAbstract
             }
             
             $batch = empty($batch) ? '' : $batch;
-            $zonesQuantityArr = static::getZoneArr($rec);
             foreach ($zonesQuantityArr as $zoneRec){
 
 				// Ако за тази зона има заявка (documentQuantity), лепим „празния“ ред към нейната опаковка,
@@ -354,6 +354,10 @@ class rack_Movements extends rack_MovementAbstract
 
         // Синхронизиране на записа
         if(isset($rec->id)){
+            foreach ($zonesQuantityArr as $zoneRec){
+                core_Cache::removeByType("rack_Zones_{$zoneRec->zone}");
+            }
+
             rack_OldMovements::sync($rec);
             if($rec->_isCreated){
                 rack_Logs::add($rec->storeId, $rec->productId, 'create', $rec->position, $rec->id,"Създаване на движение #{$rec->id}");
