@@ -91,7 +91,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    public $fetchFieldsBeforeDelete = 'id';
+    public $fetchFieldsBeforeDelete = 'id,zoneList';
 
 
     /**
@@ -388,7 +388,15 @@ class rack_Movements extends rack_MovementAbstract
         // Ако записите се изтриват по крон, няма да се трият от архива
         if(Mode::is('movementDeleteByCron')) return;
         $deletedRecs = $query->getDeletedRecs();
-        $deletedIds = arr::extractValuesFromArray($deletedRecs, 'id');
+
+        $deletedIds = $zones = array();
+        foreach($deletedRecs as $rec){
+            $deletedIds[$rec->id] = $rec->id;
+            $zones += keylist::toArray($rec->zoneList);
+        }
+        foreach ($zones as $zoneId) {
+            core_Cache::removeByType("rack_Zones_{$zoneId}");
+        }
 
         if(countR($deletedIds)){
             $deletedIdInline = implode(',', $deletedIds);
