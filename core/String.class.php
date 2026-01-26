@@ -525,45 +525,65 @@ class core_String
         
         return $str;
     }
-    
-    
+
+
     /**
-     * Проверява даден стринг и ако има в името му '< prefix >< number >' инкрементираме
-     * < number >, ако не е намерено се добавя към края на стринга: '< prefix > < startNum >'
+     * Проверява даден стринг и ако има в името му '<prefix><number>' инкрементираме
+     * <number>, ако не е намерено се добавя към края на стринга: '<prefix><startNum>'
      *
-     * @param string $string   - стринга който ще се мъчим да инкрментираме
+     * @param string $string   - стринга който ще се мъчим да инкрементираме
      * @param string $prefix   - за каква наставка ще проверяваме
-     * @param string $startNum - от кой кое число да започваме
+     * @param string $startNum - от кое число да започваме
      *
      * @return string - увеличения стринг
      */
     public static function addIncrementSuffix($string, $prefix = '', $startNum = 1)
     {
-        preg_match("/{$prefix}(\d+)$/", $string, $matches);
-        if (countR($matches) == 2) {
-            $number = $matches[1];
-            $number = self::increment($number);
+        $string   = (string) $string;
+        $prefix   = (string) $prefix;
+        $startNum = (string) $startNum;
 
-            $offset = strlen($prefix);
-            $startTagPos = strrpos($string, "{$prefix}") + $offset;
-            
-            // Инкрементираме числото
-            $string = substr_replace($string, $number, $startTagPos);
-        } else {
+        // Ако префиксът е празен – инкрементираме само числова опашка
+        if ($prefix === '') {
+            if (preg_match('/(\d+)$/u', $string, $m, PREG_OFFSET_CAPTURE)) {
+                $num    = $m[1][0];
+                $numPos = $m[1][1];
 
-            // Ако не е открит стринга добавяме `{$prefix}{$startNum}` в края му
-            $string .= "{$prefix}{$startNum}";
+                $inc = self::increment($num);
+                if ($inc === false) $inc = $startNum;
+
+                // Заменяме САМО числото в края
+                return substr_replace($string, $inc, $numPos, strlen($num));
+            }
+
+            return $string . $startNum;
         }
 
-        return $string;
+        // Escape на prefix за regex (за да работи с + . ? и т.н.)
+        $prefixQ = preg_quote($prefix, '/');
+
+        // Търсим "<prefix><digits>" на края
+        if (preg_match("/{$prefixQ}(\d+)$/u", $string, $m, PREG_OFFSET_CAPTURE)) {
+            $num    = $m[1][0];
+            $numPos = $m[1][1];
+
+            $inc = self::increment($num);
+            if ($inc === false) $inc = $startNum;
+
+            // Заменяме САМО числото (точната позиция идва от regex-а)
+            return substr_replace($string, $inc, $numPos, strlen($num));
+        }
+
+        // Ако няма наставка, добавяме я
+        return $string . $prefix . $startNum;
     }
-    
-    
+
+
     /**
      *  Инкрементиране с единица на стринг, чиято последна част е число
      *  Ако стринга не завършва на числова част връща се FALSE
      *
-     *  @param string $string - стринга който се подава
+     *  @param string $str - стринга който се подава
      *
      *  @return mixed string/FALSE - инкрементирания стринг или FALSE
      */
