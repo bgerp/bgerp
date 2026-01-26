@@ -1130,9 +1130,8 @@ class rack_Movements extends rack_MovementAbstract
 
         core_Locks::release("movement{$rec->id}");
         $zones = keylist::toArray($rec->zoneList);
-
         foreach ($zones as $zoneId) {
-            core_Cache::remove("rack_Zones", "{$zoneId}|{$cu}");
+            core_Cache::removeByType("rack_Zones_{$zoneId}");
         }
 
         // Ако се обновява по Ajax
@@ -1305,7 +1304,7 @@ class rack_Movements extends rack_MovementAbstract
 
         $zones = keylist::toArray($rec->zoneList);
         foreach ($zones as $zoneId) {
-            core_Cache::remove("rack_Zones", "{$zoneId}|{$cu}");
+            core_Cache::removeByType("rack_Zones_{$zoneId}");
         }
 
         // Ако се обновява по Ajax
