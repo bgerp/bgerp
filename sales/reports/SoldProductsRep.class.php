@@ -43,7 +43,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryRowCaption = 'ОБЩО [EUR]';
+    protected $summaryRowCaption = 'ОБЩО';
 
 
     /**
