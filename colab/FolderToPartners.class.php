@@ -557,12 +557,14 @@ class colab_FolderToPartners extends core_Manager
         $form->input(null, 'silent');
         
         $emailsArr = type_Emails::toArray($objectRec->email);
-        if (!empty($emailsArr)) {
+        if (countR($emailsArr) > 1) {
             $emailsArr = array_combine($emailsArr, $emailsArr);
             $emailsArr = array('' => '') + $emailsArr;
+            $form->setSuggestions('to', $emailsArr);
+        } else {
+            $form->setDefault('to', $emailsArr[key($emailsArr)]);
         }
-        
-        $form->setSuggestions('to', $emailsArr);
+
         $form->setDefault('from', email_Outgoings::getDefaultInboxId());
         core_Lg::push(drdata_Countries::getLang($objectRec->country));
         
