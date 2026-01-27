@@ -1949,4 +1949,44 @@ class rack_Movements extends rack_MovementAbstract
         $data->listTableMvc->setField('modifiedOn', 'tdClass=small');
         $data->listTableMvc->setField('modifiedBy', 'tdClass=small');
     }
+
+
+    /**
+     * Реализация по подразбиране на метода getDeleteUrl()
+     *
+     * @param core_Mvc $mvc
+     * @param array    $deleteUrl
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetDeleteUrl($mvc, &$deleteUrl, $rec)
+    {
+        // Ако сме в терминала се добавя котвата до която да се скролне
+        if(is_array($deleteUrl) && countR($deleteUrl)){
+            if(Request::get('terminal') && isset($rec->_currentZoneId)) {
+                $retUrl = getCurrentUrl();
+                $retUrl["#"] = "zone{$rec->_currentZoneId}";
+                $deleteUrl['ret_url'] = $retUrl;
+            }
+        }
+    }
+
+
+    /**
+     * Реализация по подразбиране на метода getEditUrl()
+     *
+     * @param core_Mvc $mvc
+     * @param array    $editUrl
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetEditUrl($mvc, &$editUrl, $rec)
+    {
+        // Ако сме в терминала се добавя котвата до която да се скролне
+        if(is_array($editUrl) && countR($editUrl)){
+            if(Request::get('terminal') && isset($rec->_currentZoneId)) {
+                $retUrl = getCurrentUrl();
+                $retUrl["#"] = "zone{$rec->_currentZoneId}";
+                $editUrl['ret_url'] = $retUrl;
+            }
+        }
+    }
 }
