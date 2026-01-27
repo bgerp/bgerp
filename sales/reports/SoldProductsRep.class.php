@@ -43,9 +43,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryRowCaption = 'ОБЩО';
-    
-    
+    protected $summaryRowCaption = 'ОБЩО [EUR]';
+
+
     /**
      * Коя комбинация от полета от $data->recs да се следи, ако има промяна в последната версия
      *

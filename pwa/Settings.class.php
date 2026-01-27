@@ -244,7 +244,8 @@ class pwa_Settings extends core_Manager
                     'url' => $rec->{"sc{$i}Url"},
                     'icons' => array(
                         (object)array(
-                            'src' => fileman_Download::getDownloadUrl($rec->{"sc{$i}Icon"}, 10000, 'handler', false),
+//                            'src' => fileman_Download::getDownloadUrl($rec->{"sc{$i}Icon"}, 1000000, 'handler', false),
+                            'src' => toUrl(array('fileman_Download', 'Download', 'fh' => $rec->{"sc{$i}Icon"}, 'forceDownload' => true)),
                             'sizes' => '512x512',
                         ),
                     ),

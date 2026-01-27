@@ -116,8 +116,8 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
             }
             
             $item = acc_Items::fetchItem('purchase_Purchases', $firstDoc->that)->id;
-            $quantities = acc_Balances::getBlQuantities($jRecs, '401', null, null, array(null, $item, null));
-            
+            $quantities = acc_Balances::getBlQuantities($jRecs, '401', null, null, array(null, $item, null), $valior);
+
             if (is_array($downpaymentAmounts)) {
                 foreach ($downpaymentAmounts as $index => $obj) {
                     if (!array_key_exists($index, $quantities)) {
@@ -128,7 +128,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
                     $quantities[$index]->amount += $obj->amount;
                 }
             }
-            
+
             if (is_array($this->blQuantities)) {
                 foreach ($this->blQuantities as $index => $obj) {
                     if (!array_key_exists($index, $quantities)) {
@@ -140,7 +140,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
                 }
             }
         }
-        
+
         if (is_array($quantities)) {
             foreach ($quantities as $index => $obj1) {
                 $entry = $this->getCloseEntry($obj1->amount, $obj1->quantity, $index, $result->totalAmount, $docRec, $firstDoc);
