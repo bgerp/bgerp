@@ -66,6 +66,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
             acc_journal_RejectRedirect::expect(!acc_plg_Contable::haveDocumentInThreadWithStates($rec->threadId, 'pending,draft', $rec->containerId), tr("Към покупката има документ в състояние заявка и/или чернова"));
             $rec->valior = $valior;
         }
+        $this->valior = $valior;
 
         // Създаване на обекта за транзакция
         $result = (object) array(
@@ -241,17 +242,17 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     private function transferVatNotCharged($dealInfo, $docRec, &$total, $firstDoc)
     {
         $entries = array();
-        
         $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
-        $blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
-        
-        $total += abs($blAmount);
-        
-        if ($blAmount == 0) {
-            
+        $blAmount = acc_Balances::getBlAmounts($jRecs, '4530', null, null, array(), array(), $this->valior)->amount;
+
+        if (abs(round($blAmount, 5)) == 0) {
+
             return $entries;
         }
-        
+
+        $blAmount = round($blAmount, 5);
+        $total += abs($blAmount);
+
         // Сметка 4530 има Кредитно (Ct) салдо
         if ($blAmount < 0) {
             $quantity = round(abs($blAmount) / $docRec->currencyRate, 5);
