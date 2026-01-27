@@ -237,13 +237,6 @@ class pwa_Settings extends core_Manager
                     continue;
                 }
 
-                $src = '';
-                if (trim($rec->{"sc{$i}Icon"})) {
-                    $base64 = base64_encode(fileman::getContent($rec->{"sc{$i}Icon"}));
-                    $type = fileman::getType(fileman::fetchByFh($rec->{"sc{$i}Icon"}, 'name'));
-                    $src = "data:{$type};base64,{$base64}";
-                }
-
                 $shortcuts[] = (object)array(
                     'name' => tr($rec->{"sc{$i}Name"}),
                     'short_name' => tr($rec->{"sc{$i}ShortName"}),
@@ -251,7 +244,8 @@ class pwa_Settings extends core_Manager
                     'url' => $rec->{"sc{$i}Url"},
                     'icons' => array(
                         (object)array(
-                            'src' => $src,
+                            'src' => fileman_Download::getDownloadUrl($rec->{"sc{$i}Icon"}, 100000, 'handler', false),
+//                            'src' => toUrl(array('fileman_Download', 'Download', 'fh' => $rec->{"sc{$i}Icon"}, 'forceDownload' => true)),
                             'sizes' => '512x512',
                         ),
                     ),
