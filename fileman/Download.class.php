@@ -177,24 +177,25 @@ class fileman_Download extends core_Manager
         
         // Ако имаме линк към файла, тогава използваме същия линк
         if ($dRec) {
-            
-            // Ако времето, за което е активен линка е по малко от времето, което искаме да зададем
-            if ($dRec->expireOn < $time) {
-                
-                // Променяме времето
-                $dRec->expireOn = $time;
+            if (@file_exists(EF_DOWNLOAD_DIR . '/' . $dRec->prefix . '/' . $dRec->fileName)) {
+                // Ако времето, за което е активен линка е по малко от времето, което искаме да зададем
+                if ($dRec->expireOn < $time) {
+
+                    // Променяме времето
+                    $dRec->expireOn = $time;
+                }
+
+                // Вземаме URL
+                $link = static::getSbfDownloadUrl($dRec, $isAbsolute);
+
+                // Записваме
+                static::save($dRec);
+
+                // Връщаме URL' то
+                return $link;
             }
-            
-            // Вземаме URL
-            $link = static::getSbfDownloadUrl($dRec, $isAbsolute);
-            
-            // Записваме
-            static::save($dRec);
-            
-            // Връщаме URL' то
-            return $link;
         }
-        
+
         // Обект
         $rec = new stdClass();
         
@@ -405,7 +406,7 @@ class fileman_Download extends core_Manager
         $query = self::getQuery();
         $query->where("#expireOn < '{$now}'");
         
-        $htmlRes .= '<hr />';
+        $htmlRes = '<hr />';
         
         $count = $query->count();
         
