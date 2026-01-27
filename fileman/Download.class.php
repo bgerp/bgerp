@@ -395,8 +395,55 @@ class fileman_Download extends core_Manager
             return new Redirect($link);
         }
     }
-    
-    
+
+
+    /**
+     * @todo Чака за документация...
+     */
+    public function act_Serve()
+    {
+        // Ако файла се сваля от vt - за да не се подават вирусни файлове
+        if (log_Browsers::checkUserAgent('virustotalcloud')) {
+
+            return new Redirect(array('Index'));
+        }
+
+        // Манипулатора на файла
+        $fh = Request::get('fh');
+
+        // Очакваме да има подаден манипулатор
+        expect($fh, 'Липсва манупулатора на файла');
+
+        // Ескейпваме манупулатора
+        $fh = $this->db->escape($fh);
+
+        // Вземаме записа на манипулатора
+        $fRec = $this->Files->fetchByFh($fh);
+
+        // Очакваме да има такъв запис
+        expect($fRec, 'Няма такъв запис.');
+
+        fileman::updateLastUse($fRec);
+
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        $mimeType = fileman::getType($fRec->name);
+        header("Content-Type: " . $mimeType);
+        header("Content-Length: " . $fRec->fileLen);
+        header("Content-Disposition: inline; filename=\"" . addslashes($fRec->name) . "\"");
+        header("Cache-Control: public, max-age=3600");
+        header("Pragma: public");
+
+        readfile(fileman::extract($fRec->fileHnd));
+
+        fileman::logRead('Сваляне', $fRec->id);
+
+        shutdown();
+    }
+
+
     /**
      * Изтрива линковете, които не се използват и файловете им
      */
