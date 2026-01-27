@@ -266,7 +266,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_PRODUCTS_PER_PAGE' => array('int(Min=0)', 'caption=Брой артикули на страница в групата->Брой'),
         'ESHOP_RATINGS_OLDER_THEN' => array('time', 'caption=Изчисляване на рейтинги за продажба->Изчисляване от'),
         'ESHOP_MAX_NEAR_PRODUCTS' => array('int(min=0)', 'caption=Максимален брой свързани артикули->Брой,callOnChange=eshop_Setup::updateNearProducts'),
-        'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирми,both=Фирми и лица)', 'caption=Онлайн поръчки->Допускат се за'),
+        'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирми (задължително фактуриране),both=Фирми и лица (опционално фактуриране))', 'caption=Онлайн поръчки->Допускат се за'),
         'ESHOP_MANDATORY_INQUIRY_CONTACT_FIELDS' => array('enum(company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допускат се за'),
         'ESHOP_MANDATORY_EGN' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ЕГН'),
         'ESHOP_MANDATORY_UIC_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ЕИК'),

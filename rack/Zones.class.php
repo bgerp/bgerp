@@ -288,10 +288,9 @@ class rack_Zones extends core_Master
                 $row->_rowTools->addLink('Премахване', array($mvc, 'removeDocument', $rec->id, 'ret_url' => true), "id=remove{$rec->id},ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?");
             }
 
-            $id = self::getRecTitle($rec); 
             $terminalLink = ($isTerminal) ? 'single' : 'terminal';
             $num = rack_Zones::getDisplayZone($rec->id, true, $terminalLink);             
-            $row->num = ht::createElement("div", array('id' => $id), $num, true);
+            $row->num = ht::createElement("div", array('id' => "zone{$rec->id}"), $num, true);
         }
 
         if (isset($fields['-single'])) {
@@ -1639,7 +1638,7 @@ class rack_Zones extends core_Master
     {
         $zoneRec = self::fetchRec($zoneId);
         $grouping = ($zoneRec->groupId) ? $zoneRec->groupId : "s{$zoneRec->id}";
-        $url = array('rack_Zones', 'list', 'terminal' => 1, 'grouping' => $grouping, 'ret_url' => true);
+        $url = array('rack_Zones', 'list', 'terminal' => 1, 'grouping' => $grouping, "#" => "zone{$zoneRec->id}", 'ret_url' => true);
 
         if (isset($zoneRec->groupId)) {
             $url['grouping'] = $zoneRec->groupId;
