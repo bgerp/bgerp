@@ -71,7 +71,7 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         // Ако е обратна транзакцията, сумите и к-та са с минус
         $sign = ($reverse) ? -1 : 1;
 
-        $dealRec = $origin->fetch('currencyRate,valior,currencyId');
+        $dealRec = $origin->fetch();
         $dealCurrencyRate = $dealRec->currencyRate;
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
 
@@ -89,9 +89,15 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
         $currencyId481 = ($rec->currencyId != $baseCurrencyId) ? $rec->currencyId : $rec->dealCurrencyId;
         $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
 
+        $dealCompareCurrencyCode = $dealRec->currencyId;
+        if($dealRec->valior < acc_Setup::getEurozoneDate() && $dealRec->oldCurrencyId == 'BGN'){
+            $dealCompareCurrencyCode = $dealRec->oldCurrencyId;
+            $dealCurrencyRate = 1;
+        }
+
         $amountE = $dealCurrencyRate * $rec->amountDeal;
         $dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
-        if($dealCurrencyCode != $dealRec->currencyId){
+        if($dealCurrencyCode != $dealCompareCurrencyCode){
             $amountE = $amount;
         }
         $amountE = deals_Helper::getSmartBaseCurrency($amountE, $dealRec->valior, $rec->valior);
