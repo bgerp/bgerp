@@ -547,17 +547,18 @@ class rack_ZoneDetails extends core_Detail
      */
     public static function renderInlineDetail($masterRec, $masterMvc, $additional = null)
     {
+        $additional = !empty($additional) ? $additional : 'pendingAndMine';
+        setIfNot($additional, 'pendingAndMine');
+
         $cu = core_Users::getCurrent();
         $tpl = core_Cache::get("rack_Zones_{$masterRec->id}", "{$cu}|{$additional}");
 
         if(!($tpl instanceof core_ET)) {
             $tpl = new core_ET("");
 
-            // return $tpl->append('love');
             Mode::push('inlineDetail', true);
             $me = cls::get(get_called_class());
-            $additional = !empty($additional) ? $additional : 'pendingAndMine';
-            setIfNot($additional, 'pendingAndMine');
+
             $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true, 'filter' => $additional);
 
             core_Debug::startTimer("GET_MOVEMENTS_PREPARE_{$masterRec->id}");
@@ -574,6 +575,7 @@ class rack_ZoneDetails extends core_Detail
             Mode::pop('inlineDetail');
 
             core_Cache::set("rack_Zones_{$masterRec->id}", "{$cu}|{$additional}", $tpl, 10);
+            core_Debug::log("GET_MOVEMENTS_SET_CACHE {$masterRec->id}");
         } else {
             core_Debug::log("GET_MOVEMENTS_FROM_CACHE++ {$masterRec->id}");
         }
