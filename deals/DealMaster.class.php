@@ -165,6 +165,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $explained .= "Брой фактури: <b>{$countInvoices}</b>" . "<br />";
 
         if ($countInvoices) {
+            $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
             $overdueAmount = $overdueAmountPerDays = 0;
             $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
 
@@ -178,7 +179,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     $explained .= " e по-малко от сега<br />";
                     $diff = round(($invRec->amount - $invRec->payout) * $invRec->rate, 2);
                     $diff = deals_Helper::getSmartBaseCurrency($diff, $invRec->date, $rec->valior);
-                    $explained .= " Неплатено({$invRec->containerId}) :{$diff} (сметнато от " . round($invRec->amount * $invRec->rate, 2) . " минус " . round($invRec->payout * $invRec->rate, 2) .")<br />";
+                    $explained .= " Неплатено({$invRec->containerId}) :{$diff} {$baseCurrencyCode} (сметнато от " . round($invRec->amount * $invRec->rate, 2) . " минус " . round($invRec->payout * $invRec->rate, 2) ." {$invRec->currencyId})<br />";
                     if(round($diff, 2) > 0){
                         $explained .= " е над нула<br />";
 
