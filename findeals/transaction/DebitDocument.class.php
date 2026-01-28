@@ -67,7 +67,7 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
         
         $origin = findeals_DebitDocuments::getOrigin($rec);
-        $originRec = $origin->fetch('currencyId,valior,currencyRate');
+        $originRec = $origin->fetch();
         $originCodeId = currency_Currencies::getIdByCode($originRec->currencyId);
         
         $doc = doc_Containers::getDocument($rec->dealId);
@@ -87,7 +87,7 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
             $originRate = $origin->fetchField('currencyRate');
             $amount = $rec->amount * $originRate;
         }
-        $originRec = $origin->fetch();
+
         $originCurrencyCode = $originRec->currencyId;
         if($origin->isInstanceOf('findeals_Deals')){
             if($rec->valior < acc_Setup::getEurozoneDate() && isset($originRec->oldCurrencyId)){
