@@ -177,7 +177,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 if(strtotime($dueDate) < $todayTimestamp){
                     $explained .= " e по-малко от сега<br />";
                     $diff = round(($invRec->amount - $invRec->payout) * $invRec->rate, 2);
-                    
+                    $diff = deals_Helper::getSmartBaseCurrency($diff, $invRec->date, $rec->valior);
                     $explained .= " Неплатено({$invRec->containerId}) :{$diff} (сметнато от " . round($invRec->amount * $invRec->rate, 2) . " минус " . round($invRec->payout * $invRec->rate, 2) .")<br />";
                     if(round($diff, 2) > 0){
                         $explained .= " е над нула<br />";
