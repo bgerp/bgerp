@@ -344,7 +344,7 @@ class acc_RatesDifferences extends core_Master
             // Обикаляне на валутните сделки
             $Class = cls::get($class);
             $dQuery = $Class->getQuery();
-            $dQuery->where("#state = 'active' AND #currencyId != 'BGN'");
+            $dQuery->where("#state = 'active' AND #currencyId != 'BGN' AND #currencyId != 'EUR'");
             $dealRecs = $dQuery->fetchAll();
             $count = countR($dealRecs);
 
