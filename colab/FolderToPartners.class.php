@@ -557,6 +557,10 @@ class colab_FolderToPartners extends core_Manager
         $form->input(null, 'silent');
         
         $emailsArr = type_Emails::toArray($objectRec->email);
+        if(!empty($objectRec->buzEmail)){
+            $emailsArr = array_merge(type_Emails::toArray($objectRec->buzEmail), $emailsArr);
+        }
+
         if (countR($emailsArr) > 1) {
             $emailsArr = array_combine($emailsArr, $emailsArr);
             $emailsArr = array('' => '') + $emailsArr;
