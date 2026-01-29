@@ -937,8 +937,13 @@ abstract class deals_InvoiceMaster extends core_Master
             } else {
                 $form->setDefault('currencyId', $aggregateInfo->get('currency'));
             }
-            $form->setDefault('rate', $aggregateInfo->get('rate'));
-            $form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
+
+            if(acc_Periods::getBaseCurrencyCode($aggregateInfo->get('agreedValior')) != acc_Periods::getBaseCurrencyCode($rec->date)){
+                $form->setDefault('rate', currency_CurrencyRates::getRate($rec->data, $rec->currencyId, null));
+            } else {
+                $form->setDefault('rate', $aggregateInfo->get('rate'));
+                $form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
+            }
 
             if ($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)) {
                 $paymentMethodId = $aggregateInfo->get('paymentMethodId');
@@ -1185,6 +1190,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
                 
                 if ($originRec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
+
                     $changeAmount = $rec->changeAmount;
                     if(isset($rec->_recalcBaseCurrency)) {
                         if (!empty($rec->changeAmount)) {
@@ -1295,6 +1301,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $rec->changeAmount = deals_Helper::getSmartBaseCurrency($rec->changeAmount, $rec->_oldValior, $rec->date);
             }
 
+            if(isset($rec->dpAmount)){
+                $rec->dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->_oldValior, $rec->date);
+            }
             $rec->currencyId = acc_Periods::getBaseCurrencyCode($rec->date);
         }
 
