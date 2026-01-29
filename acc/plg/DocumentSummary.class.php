@@ -672,7 +672,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
 
                     $res[$fld->name]->amount += $baseAmount;
-                    $res[$fld->name]->measure = "<span class='cCode'>{$currencyCode}</span>";
+                    $res[$fld->name]->measure = $currencyCode;
                     break;
                 case 'quantity':
                     $res[$fld->name]->quantity += $rec->{$fld->name};
@@ -704,19 +704,21 @@ class acc_plg_DocumentSummary extends core_Plugin
         if (countR($summaryRecs)) {
             foreach ($summaryRecs as $rec) {
                 $row = new stdClass();
-                $row->measure = $rec->measure;
-                $row->colspan = 1;
 
+                $row->colspan = 1;
                 if (isset($rec->amount)) {
                     $row->amount = $double->toVerbal($rec->amount);
+                    $row->amount = currency_Currencies::decorate($row->amount,  $rec->measure, true);
                     $row->amount = ht::styleNumber($row->amount, $rec->amount);
 
                     if($data->hasDocumentBeforeEu){
                         $amountBgn = currency_CurrencyRates::convertAmount($rec->amount, null, 'EUR', 'BGN');
                         $row->amountBgn = $double->toVerbal($amountBgn);
+                        $row->amountBgn = currency_Currencies::decorate($row->amountBgn,  'BGN');
                         $row->amountBgn = ht::styleNumber($row->amountBgn, $amountBgn);
                     }
                 } elseif (isset($rec->quantity)) {
+                    $row->measure = $rec->measure;
                     $row->quantity = $int->toVerbal($rec->quantity);
                     $row->quantity = ($rec->quantity < 0) ? "<span style='color:red'>{$row->quantity}</span>" : $row->quantity;
                     if($data->hasDocumentBeforeEu){
@@ -724,11 +726,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
                 }
 
-               // amountBgn
-
-
                 $row->caption = $rec->caption;
-                
                 $rowTpl->placeObject($row);
                 $rowTpl->removeBlocks();
                 $rowTpl->append2master();
