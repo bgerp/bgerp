@@ -13,7 +13,7 @@
                 <!--ET_END quantity-->
             </td>
             <!--ET_BEGIN amountBgn-->
-            <td class='quiet'><span class="cCode">BGN</span></td>
+            <td> / </td>
             <td style='text-align:right'><b>[#amountBgn#]</b></td>
             <!--ET_END amountBgn-->
         </tr>
