@@ -482,7 +482,6 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
-
         if (isset($data->rec->from)) {
             $fieldTpl->append($Date->toVerbal($data->rec->from), 'from');
         }
@@ -504,7 +503,6 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
             $fieldTpl->append($Double->toVerbal(array_sum($data->rec->allCompanyDiscount)), 'allCompanyDiscount');
         }
-
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
