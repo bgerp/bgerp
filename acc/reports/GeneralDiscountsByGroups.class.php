@@ -469,6 +469,8 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
 
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->to);
+
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
@@ -476,7 +478,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN crmGroup--><div>|Група|*: [#crmGroup#]</div><!--ET_END crmGroup-->
                                         <!--ET_BEGIN catGroup--><div>|Група артикули|*: [#catGroup#]</div><!--ET_END catGroup-->
-                                        <!--ET_BEGIN allCompanyDiscount--><div>|Общо авт. отстъпки|*: [#allCompanyDiscount#] лв.</div><!--ET_END allCompanyDiscount-->     
+                                        <!--ET_BEGIN allCompanyDiscount--><div>|Общо авт. отстъпки|*: [#allCompanyDiscount#] $baseCurrency</div><!--ET_END allCompanyDiscount-->     
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
