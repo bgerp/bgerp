@@ -6220,7 +6220,7 @@ body.narrow {
   font-size: 18px; }
 
 .row-fluid {
-  width: 100%;
+  width: 99.98%;
   *zoom: 1; }
 
 .row-fluid:before,
@@ -6249,7 +6249,7 @@ body.narrow {
 
 .row-fluid .span12 {
   width: 100%;
-  *width: 99.947%; }
+  width: 99.947%; }
 
 .row-fluid .span11 {
   width: 91.489%;
@@ -6272,7 +6272,7 @@ body.narrow {
   *width: 57.394%; }
 
 .row-fluid .span6 {
-  width: 50%;
+  width: 49.97%;
   *width: 48.883%; }
 
 .row-fluid .span5 {
@@ -6280,11 +6280,10 @@ body.narrow {
   *width: 40.372%; }
 
 .row-fluid .span4 {
-  width: 33.33%;
+  width: 33.31%;
   *width: 31.862%; }
 
 .row-fluid .span3 {
-  width: 24.86%;
   width: 25%;
   *width: 23.351%; }
 
@@ -6311,10 +6310,10 @@ body.narrow {
     line-height: 1.3em; }
 
 .basicFontSize {
-  font-size: 0.9em; }
+  font-size: 0.87em; }
 
 .miniText {
-  font-size: 0.7em;
+  font-size: 0.64em;
   font-weight: bold; }
 
 .cmr-holder {
