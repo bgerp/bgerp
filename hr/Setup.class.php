@@ -126,7 +126,6 @@ class hr_Setup extends core_ProtoSetup
         'hr_Schedules',
         'hr_IndicatorFormulas',
         'hr_Shifts',
-        'hr_Test',
         'migrate::changeAlternatePersonField',
         'migrate::updateTrips2548',
         'migrate::changeReasonId2605',
