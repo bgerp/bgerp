@@ -197,6 +197,20 @@ class rack_Zones extends core_Master
             }
         }
     }
+	
+	
+	/**
+	 * Маха .00 / ,00 от вербализиран процент (100.00% -> 100%)
+	 */
+	public static function smartPercentVerbal($verbal)
+	{
+		if (!isset($verbal) || $verbal === '') return $verbal;
+
+		// 100.00% / 100,00% / 100.00 % / 100,00 %
+		$verbal = preg_replace('/(\d+)([.,]00)(\s*%)/u', '$1$3', $verbal);
+
+		return $verbal;
+	}
 
 
     /**
@@ -265,6 +279,10 @@ class rack_Zones extends core_Master
 
         $readiness = isset($rec->readiness) ? $row->readiness : 'none';
         $row->readiness = "<div class='block-readiness'>{$readiness}</div>";
+		
+		if (isset($row->readiness)) {
+			$row->readiness = self::smartPercentVerbal($row->readiness);
+		}
 
         $row->num = $mvc->getHyperlink($rec->id);
         if (isset($fields['-list'])) {

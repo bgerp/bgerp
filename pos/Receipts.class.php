@@ -190,7 +190,7 @@ class pos_Receipts extends core_Master
     public function description()
     {
         $this->FLD('valior', 'date', 'caption=Вальор,input=none');
-        $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба');
+        $this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка на продажба,input=none');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент,input=none');
         $this->FLD('contragentObjectId', 'int', 'input=none');
         $this->FLD('contragentLocationId', 'key(mvc=crm_Locations)', 'caption=Локация,input=none');
@@ -804,8 +804,13 @@ class pos_Receipts extends core_Master
                 $res = 'no_one';
             }
         }
-        if ($action == 'edit' && isset($rec) && $rec->state == 'waiting') {
-            $res = 'no_one';
+
+        if ($action == 'edit' && isset($rec)) {
+            if(in_array($rec->state, array('waiting', 'closed'))){
+                $res = 'no_one';
+            } elseif(!Request::get('terminal')){
+                $res = 'no_one';
+            }
         }
 
         if ($action == 'revert' && isset($rec) && ($rec != pos_Receipts::DEFAULT_REVERT_RECEIPT)) {
