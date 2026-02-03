@@ -193,7 +193,7 @@ class rack_ZoneDetails extends core_Detail
         if(Mode::is('printing')){
             $data->filter = 'notClosed';
         }
-        
+
         // >>> ПОДМЯНА НА СТАТУСА: лявото число = реално изпълненото (active+closed) за текущия документ
         // Контейнерът (документът), вързан към текущата зона
         $containerId = rack_Zones::fetchField($data->masterData->rec->id, 'containerId');
@@ -550,8 +550,9 @@ class rack_ZoneDetails extends core_Detail
         $additional = !empty($additional) ? $additional : 'pendingAndMine';
         setIfNot($additional, 'pendingAndMine');
 
+        $productId = Request::get('productId', 'int');
         $cu = core_Users::getCurrent();
-        $tpl = core_Cache::get("rack_Zones_{$masterRec->id}", "{$cu}|{$additional}");
+        $tpl = core_Cache::get("rack_Zones_{$masterRec->id}", "{$cu}|{$additional}|{$productId}");
 
         if(!($tpl instanceof core_ET)) {
             $tpl = new core_ET("");
@@ -574,7 +575,7 @@ class rack_ZoneDetails extends core_Detail
             $tpl->removeBlocks();
             Mode::pop('inlineDetail');
 
-            core_Cache::set("rack_Zones_{$masterRec->id}", "{$cu}|{$additional}", $tpl, 10);
+            core_Cache::set("rack_Zones_{$masterRec->id}", "{$cu}|{$additional}|{$productId}", $tpl, 10);
             core_Debug::log("GET_MOVEMENTS_SET_CACHE {$masterRec->id}");
         } else {
             core_Debug::log("GET_MOVEMENTS_FROM_CACHE++ {$masterRec->id}");

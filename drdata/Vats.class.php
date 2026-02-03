@@ -246,60 +246,84 @@ class drdata_Vats extends core_Manager
      * @return string 'valid', 'invalid', 'unknown'
      */
     public function checkStatus($vat)
-    {
-        // Ако номера не е VAT, тогава само проверяваме, дали не е валиден BULSTAT
-        if (!$this->isHaveVatPrefix($vat)) {
-            if (self::isBulstat($vat)) {
-                $res = self::statusBulstat;
-            } else {
-                $res = self::statusNotVat;
-            }
-        }
-        
-        // Ако синтаксиса не отговаря на VAT, статуса сигнализира за това
-        if (!$res && !$this->checkSyntax($vat)) {
-            $res = self::statusSyntax;
-        }
-      
-        if (!$res) {
-            // Конвериране на български 13-цифрени данъчни номера към 9-цифрени
-            if ((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
-                $vat = substr($vat, 0, 11);
-            }
-            
-            $countryCode = substr($vat, 0, 2);
-            $vatNumber = substr($vat, 2);
-            
-            try {
+	{
+		$res = null;
+		$info = null;
 
-//                 ini_set("default_socket_timeout", 5);
-                
-                $client = @new SoapClient('http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl', array('connection_timeout' => 4));
-                
-                $params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
-                $result = @$client->checkVat($params);
-            } catch (Exception $e) {
-                reportException($e);
-                $result = new stdClass();
-            } catch (Throwable $t) {
-                reportException($t);
-                $result = new stdClass();
-            }
-            
-            $res = self::statusUnknown;
-            
-            if (is_object($result)) {
-                if ($result->valid === true) {
-                    $res = self::statusValid;
-                    $info = $result->name . "\n" . $result->address;
-                } elseif ($result->valid === false) {
-                    $res = self::statusInvalid;
-                }
-            }
-        }
-        
-        return array($res, $info, $result->name, $result->address);
-    }
+		// Подготвяме дефолтен резултат, за да няма notice при ->name/->address
+		$result = (object) array('valid' => null, 'name' => null, 'address' => null);
+
+		// Ако номера не е VAT, тогава само проверяваме, дали не е валиден BULSTAT
+		if (!$this->isHaveVatPrefix($vat)) {
+			if (self::isBulstat($vat)) {
+				$res = self::statusBulstat;
+			} else {
+				$res = self::statusNotVat;
+			}
+
+			return array($res, $info, $result->name, $result->address);
+		}
+
+		/**
+		 * Локалната (regex) проверка е „помощна“ и може да остарее при промяна на национални формати.
+		 * Затова:
+		 *  - ако е явно невъзможен (неразумна дължина/символи) -> statusSyntax
+		 *  - иначе (плаузибилен) -> опитваме VIES и приемаме неговия отговор като водещ
+		 */
+		$syntaxOk = $this->checkSyntax($vat);
+		$plausible = $this->isPlausibleVat($vat);
+
+		if (!$syntaxOk && !$plausible) {
+			$res = self::statusSyntax;
+
+			return array($res, $info, $result->name, $result->address);
+		}
+
+		// Конвериране на български 13-цифрени данъчни номера към 9-цифрени
+		if ((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
+			$vat = substr($vat, 0, 11);
+		}
+
+		$countryCode = substr($vat, 0, 2);
+		$vatNumber = substr($vat, 2);
+
+		try {
+			$client = @new SoapClient(
+				'http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl',
+				array('connection_timeout' => 4)
+			);
+
+			$params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
+			$result = @$client->checkVat($params);
+		} catch (Exception $e) {
+			reportException($e);
+			$result = (object) array('valid' => null, 'name' => null, 'address' => null);
+		} catch (Throwable $t) {
+			reportException($t);
+			$result = (object) array('valid' => null, 'name' => null, 'address' => null);
+		}
+
+		if (is_object($result)) {
+			if ($result->valid === true) {
+				$res = self::statusValid;
+				$info = $result->name . "\n" . $result->address;
+			} elseif ($result->valid === false) {
+				$res = self::statusInvalid;
+			}
+		}
+
+		if (!$res) {
+			$res = self::statusUnknown;
+		}
+
+		// Ако локалният regex не е разпознал формата, но сме питали VIES – добавяме неутрална бележка
+		if (!$syntaxOk && $plausible) {
+			$note = "Забележка: форматът не съвпада с познатите локални модели, но е направена онлайн проверка (VIES).";
+			$info = trim($info) ? ($info . "\n" . $note) : $note;
+		}
+
+		return array($res, $info, $result->name, $result->address);
+	}
     
     
     /**
@@ -328,6 +352,29 @@ class drdata_Vats extends core_Manager
         
         return false;
     }
+	
+	
+	protected function isPlausibleVat($vat)
+	{
+		$vat = $this->canonize($vat);
+
+		if (!$this->isHaveVatPrefix($vat)) {
+			return false;
+		}
+
+		// dbFieldLen в VatType е 18, така че пазим разумен диапазон
+		$len = strlen($vat);
+		if ($len < 4 || $len > 18) {
+			return false;
+		}
+
+		// След канонизацията остават само букви/цифри
+		if (!preg_match('/^[A-Z]{2}[0-9A-Z]{2,16}$/', $vat)) {
+			return false;
+		}
+
+		return true;
+	}
     
     
     /**
@@ -346,8 +393,9 @@ class drdata_Vats extends core_Manager
                 $regex = '/^ATU[0-9]{8}$/i';
                 break;
             case 'BE':
-                $regex = '/^BE[0]{0,1}[0-9]{9}$/i';
-                break;
+				// Белгия: срещат се номера и с 9, и с 10 цифри след префикса (вкл. серии, започващи с 1)
+				$regex = '/^BE[0-9]{9,10}$/i';
+				break;
             case 'BG':
                 if (strlen($vat) == 15) {
                     $vat = substr($vat, 0, 11);
@@ -425,17 +473,24 @@ class drdata_Vats extends core_Manager
     
     
     /**
-     * Връща каноническото представяне на VAT номер - големи букви, без интервали.
-     *
-     * @param string $vat
-     */
-    public function canonize($vat)
-    {
-        $canonicalVat = preg_replace('/[^a-z\d]/i', '', $vat);
-        $canonicalVat = strtoupper($canonicalVat);
-        
-        return $canonicalVat;
-    }
+	 * Връща каноническото представяне на VAT номер - големи букви, без интервали.
+	 *
+	 * @param string $vat
+	 *
+	 * @return string
+	 */
+	public function canonize($vat)
+	{
+		$canonicalVat = preg_replace('/[^a-z\d]/i', '', $vat);
+		$canonicalVat = strtoupper($canonicalVat);
+
+		// BE legacy: ако е BE + 9 цифри, допълваме водеща 0 (често срещан стар формат)
+		if (preg_match('/^BE\d{9}$/', $canonicalVat)) {
+			$canonicalVat = 'BE0' . substr($canonicalVat, 2);
+		}
+
+		return $canonicalVat;
+	}
     
     
     /**
