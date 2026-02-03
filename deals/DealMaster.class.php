@@ -165,6 +165,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $explained .= "Брой фактури: <b>{$countInvoices}</b>" . "<br />";
 
         if ($countInvoices) {
+            $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
             $overdueAmount = $overdueAmountPerDays = 0;
             $overdueAddDays = deals_Setup::get('ADD_DAYS_TO_DUE_DATE_FOR_OVERDUE');
 
@@ -177,8 +178,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 if(strtotime($dueDate) < $todayTimestamp){
                     $explained .= " e по-малко от сега<br />";
                     $diff = round(($invRec->amount - $invRec->payout) * $invRec->rate, 2);
-                    
-                    $explained .= " Неплатено({$invRec->containerId}) :{$diff} (сметнато от " . round($invRec->amount * $invRec->rate, 2) . " минус " . round($invRec->payout * $invRec->rate, 2) .")<br />";
+                    $diff = deals_Helper::getSmartBaseCurrency($diff, $invRec->date, $rec->valior);
+                    $explained .= " Неплатено({$invRec->containerId}) :{$diff} {$baseCurrencyCode} (сметнато от " . round($invRec->amount * $invRec->rate, 2) . " минус " . round($invRec->payout * $invRec->rate, 2) ." {$invRec->currencyId})<br />";
                     if(round($diff, 2) > 0){
                         $explained .= " е над нула<br />";
 
@@ -675,7 +676,12 @@ abstract class deals_DealMaster extends deals_DealBase
                 break;
             case 'expectedPayment':
                 $query->where("#paymentState = 'pending' AND #state IN ('active', 'closed')");
-                $query->XPR('amountToPay', 'double', 'COALESCE(#amountDelivered, 0) - COALESCE(#amountPaid, 0)');
+                $query->XPR(
+                    'amountToPay',
+                    'double',
+                    'ROUND((COALESCE(#amountDelivered, 0) - COALESCE(#amountPaid, 0)) / ' .
+                    '(CASE WHEN COALESCE(#valior, CURDATE()) < "2026-01-01" THEN 1.95583 ELSE 1 END), 2)'
+                );
                 $query->orderBy('amountToPay', 'DESC', 1);
                 break;
             case 'paid':

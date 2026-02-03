@@ -66,6 +66,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
             acc_journal_RejectRedirect::expect(!acc_plg_Contable::haveDocumentInThreadWithStates($rec->threadId, 'pending,draft', $rec->containerId), tr("Към покупката има документ в състояние заявка и/или чернова"));
             $rec->valior = $valior;
         }
+        $this->valior = $valior;
 
         // Създаване на обекта за транзакция
         $result = (object) array(
@@ -116,8 +117,8 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
             }
             
             $item = acc_Items::fetchItem('purchase_Purchases', $firstDoc->that)->id;
-            $quantities = acc_Balances::getBlQuantities($jRecs, '401', null, null, array(null, $item, null));
-            
+            $quantities = acc_Balances::getBlQuantities($jRecs, '401', null, null, array(null, $item, null), $valior);
+
             if (is_array($downpaymentAmounts)) {
                 foreach ($downpaymentAmounts as $index => $obj) {
                     if (!array_key_exists($index, $quantities)) {
@@ -128,7 +129,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
                     $quantities[$index]->amount += $obj->amount;
                 }
             }
-            
+
             if (is_array($this->blQuantities)) {
                 foreach ($this->blQuantities as $index => $obj) {
                     if (!array_key_exists($index, $quantities)) {
@@ -140,7 +141,7 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
                 }
             }
         }
-        
+
         if (is_array($quantities)) {
             foreach ($quantities as $index => $obj1) {
                 $entry = $this->getCloseEntry($obj1->amount, $obj1->quantity, $index, $result->totalAmount, $docRec, $firstDoc);
@@ -241,17 +242,17 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
     private function transferVatNotCharged($dealInfo, $docRec, &$total, $firstDoc)
     {
         $entries = array();
-        
         $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
-        $blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
-        
-        $total += abs($blAmount);
-        
-        if ($blAmount == 0) {
-            
+        $blAmount = acc_Balances::getBlAmounts($jRecs, '4530', null, null, array(), array(), $this->valior)->amount;
+
+        if (abs(round($blAmount, 5)) == 0) {
+
             return $entries;
         }
-        
+
+        $blAmount = round($blAmount, 5);
+        $total += abs($blAmount);
+
         // Сметка 4530 има Кредитно (Ct) салдо
         if ($blAmount < 0) {
             $quantity = round(abs($blAmount) / $docRec->currencyRate, 5);

@@ -427,6 +427,7 @@ abstract class deals_ClosedDeals extends core_Master
                 if($journalRec = acc_Journal::fetchByDoc($mvc, $rec->id)){
                     $nQuery = acc_JournalDetails::getQuery();
                     $nQuery->where("#journalId = {$journalRec->id}");
+                    $nQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId,externalName=valior');
                     $jRecs = $nQuery->fetchAll();
                     $cost = acc_Balances::getBlAmounts($jRecs, $mvc->incomeAndCostAccounts['debit'], 'debit', null, array(), array(), $rec->valior)->amount;
                     $inc = acc_Balances::getBlAmounts($jRecs, $mvc->incomeAndCostAccounts['credit'], 'credit', null, array(), array(), $rec->valior)->amount;

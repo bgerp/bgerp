@@ -525,45 +525,65 @@ class core_String
         
         return $str;
     }
-    
-    
+
+
     /**
-     * Проверява даден стринг и ако има в името му '< prefix >< number >' инкрементираме
-     * < number >, ако не е намерено се добавя към края на стринга: '< prefix > < startNum >'
+     * Проверява даден стринг и ако има в името му '<prefix><number>' инкрементираме
+     * <number>, ако не е намерено се добавя към края на стринга: '<prefix><startNum>'
      *
-     * @param string $string   - стринга който ще се мъчим да инкрментираме
+     * @param string $string   - стринга който ще се мъчим да инкрементираме
      * @param string $prefix   - за каква наставка ще проверяваме
-     * @param string $startNum - от кой кое число да започваме
+     * @param string $startNum - от кое число да започваме
      *
      * @return string - увеличения стринг
      */
     public static function addIncrementSuffix($string, $prefix = '', $startNum = 1)
     {
-        preg_match("/{$prefix}(\d+)$/", $string, $matches);
-        if (countR($matches) == 2) {
-            $number = $matches[1];
-            $number = self::increment($number);
+        $string   = (string) $string;
+        $prefix   = (string) $prefix;
+        $startNum = (string) $startNum;
 
-            $offset = strlen($prefix);
-            $startTagPos = strrpos($string, "{$prefix}") + $offset;
-            
-            // Инкрементираме числото
-            $string = substr_replace($string, $number, $startTagPos);
-        } else {
+        // Ако префиксът е празен – инкрементираме само числова опашка
+        if ($prefix === '') {
+            if (preg_match('/(\d+)$/u', $string, $m, PREG_OFFSET_CAPTURE)) {
+                $num    = $m[1][0];
+                $numPos = $m[1][1];
 
-            // Ако не е открит стринга добавяме `{$prefix}{$startNum}` в края му
-            $string .= "{$prefix}{$startNum}";
+                $inc = self::increment($num);
+                if ($inc === false) $inc = $startNum;
+
+                // Заменяме САМО числото в края
+                return substr_replace($string, $inc, $numPos, strlen($num));
+            }
+
+            return $string . $startNum;
         }
 
-        return $string;
+        // Escape на prefix за regex (за да работи с + . ? и т.н.)
+        $prefixQ = preg_quote($prefix, '/');
+
+        // Търсим "<prefix><digits>" на края
+        if (preg_match("/{$prefixQ}(\d+)$/u", $string, $m, PREG_OFFSET_CAPTURE)) {
+            $num    = $m[1][0];
+            $numPos = $m[1][1];
+
+            $inc = self::increment($num);
+            if ($inc === false) $inc = $startNum;
+
+            // Заменяме САМО числото (точната позиция идва от regex-а)
+            return substr_replace($string, $inc, $numPos, strlen($num));
+        }
+
+        // Ако няма наставка, добавяме я
+        return $string . $prefix . $startNum;
     }
-    
-    
+
+
     /**
      *  Инкрементиране с единица на стринг, чиято последна част е число
      *  Ако стринга не завършва на числова част връща се FALSE
      *
-     *  @param string $string - стринга който се подава
+     *  @param string $str - стринга който се подава
      *
      *  @return mixed string/FALSE - инкрементирания стринг или FALSE
      */
@@ -1670,5 +1690,176 @@ class core_String
         // ---------- Step 2: Fallback black/white ----------
         $black=[0,0,0]; $white=[255,255,255];
         return $contrast($bgRGB,$black) >= $contrast($bgRGB,$white) ? '#000000' : '#FFFFFF';
+    }
+
+
+    /**
+     * Извлича първо и последно име от свободен (произволен) стринг.
+     *
+     * Опции (camelCase):
+     *   - dropTitles (bool) по подразбиране true: маха често срещани титли (Mr, Dr, Инж, Г-н и т.н.) от началото
+     *   - keepParticlesWithLast (bool) по подразбиране false:
+     *       ако е true, “залепя” частиците към фамилията и НЕ ги връща отделно като lastNamePrefix
+     *
+     * Връща:
+     *   - first: първо име (или null)
+     *   - last: фамилия (или null)
+     *   - rest: междинни имена/бащино (или null)
+     *   - titles: намерени водещи титли (масив; може да е празен)
+     *   - lastNamePrefix: текстов израз на префикс пред фамилията (напр. "van", "von", "de") или null
+     *   - normalized: нормализирано име (с единични интервали; с/без титли според dropTitles)
+     *   - parts: масив от частите (с/без титли според dropTitles)
+     *
+     * Забележка:
+     *   - Ако keepParticlesWithLast=false (по подразбиране), функцията ще върне lastNamePrefix, когато има такъв.
+     *     Пример: "John van Helsing" => lastNamePrefix="van", last="Helsing"
+     *   - Ако keepParticlesWithLast=true, тогава last="van Helsing", lastNamePrefix=null
+     *
+     * @return array{
+     *   first:?string,last:?string,rest:?string,titles:array,lastNamePrefix:?string,normalized:string,parts:array
+     * }
+     */
+    public static function parsePersonName($input, $options = []): array
+    {
+        $dropTitles = $options['dropTitles'] ?? true;
+        $keepParticlesWithLast = $options['keepParticlesWithLast'] ?? false;
+
+        // Нормализиране на интервалите (вкл. табове, нови редове, NBSP)
+        $s = trim(preg_replace('/[\s\p{Z}]+/u', ' ', $input) ?? '');
+        if ($s === '') {
+            return [
+                'first' => null,
+                'last' => null,
+                'rest' => null,
+                'titles' => [],
+                'lastNamePrefix' => null,
+                'normalized' => '',
+                'parts' => [],
+            ];
+        }
+
+        // Махане на пунктуация по краищата (често при импорти/копи-пейст)
+        $s = trim($s, " \t\n\r\0\x0B,.;:()[]{}\"'");
+
+        // Разбиване на думи (Unicode-safe)
+        $parts = preg_split('/\s+/u', $s, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        // Често срещани титли/обръщения (добавяй/махай според нуждите)
+        $knownTitles = [
+            'mr', 'mrs', 'ms', 'miss', 'dr', 'prof', 'sir', 'madam',
+            'инж', 'д-р', 'проф', 'г-н', 'г-жа', 'г-ца',
+        ];
+
+        // Частици/префикси пред фамилия
+        $particles = ['van', 'von', 'de', 'da', 'del', 'di', 'la', 'le', 'du', 'der', 'den', 'st', 'st.'];
+
+        // Извличаме водещите титли (ако има)
+        $titles = [];
+        while ($parts) {
+            $token = $parts[0];
+            $t = mb_strtolower(rtrim($token, '.'), 'UTF-8');
+
+            if (in_array($t, $knownTitles, true)) {
+                $titles[] = $token; // пазим оригинала (с точка ако е имало)
+                if ($dropTitles) {
+                    array_shift($parts);
+                    continue;
+                }
+                break;
+            }
+
+            break;
+        }
+
+        // Ако dropTitles=false: за парсване на first/last ползваме копие без титлите
+        $nameParts = $parts;
+        if (!$dropTitles && $titles) {
+            foreach ($titles as $_) {
+                array_shift($nameParts);
+            }
+        }
+
+        if (!$nameParts) {
+            return [
+                'first' => null,
+                'last' => null,
+                'rest' => null,
+                'titles' => $titles,
+                'lastNamePrefix' => null,
+                'normalized' => $dropTitles ? '' : implode(' ', $parts),
+                'parts' => $dropTitles ? [] : $parts,
+            ];
+        }
+
+        if (count($nameParts) === 1) {
+            $normalized = $dropTitles ? $nameParts[0] : implode(' ', $parts);
+            return [
+                'first' => $nameParts[0],
+                'last' => null,
+                'rest' => null,
+                'titles' => $titles,
+                'lastNamePrefix' => null,
+                'normalized' => $normalized,
+                'parts' => $dropTitles ? $nameParts : $parts,
+            ];
+        }
+
+        // Вадим фамилията като последен токен
+        $tmp = $nameParts;
+        $last = array_pop($tmp);
+
+        // Първото име е първият токен
+        $first = array_shift($tmp);
+
+        // Останалото са междинни имена (за момента)
+        $restTokens = $tmp;
+
+        // Проверяваме дали точно преди фамилията има частица (van/von/de/...)
+        $lastNamePrefix = null;
+        if (!empty($restTokens)) {
+            $prevOriginal = $restTokens[count($restTokens) - 1];
+            $prev = mb_strtolower(rtrim($prevOriginal, '.'), 'UTF-8');
+
+            if (in_array($prev, $particles, true)) {
+                if ($keepParticlesWithLast) {
+                    // "залепяме" частицата към фамилията
+                    $last = array_pop($restTokens) . ' ' . $last;
+                    $lastNamePrefix = null;
+                } else {
+                    // връщаме я отделно като префикс на фамилията
+                    $lastNamePrefix = array_pop($restTokens); // пазим оригинала (може да е с главна буква)
+                }
+            }
+        }
+
+        $rest = $restTokens ? implode(' ', $restTokens) : null;
+
+        // Нормализиран вариант на името
+        $nameOnlyNormalized = trim($first . ' ' . ($rest ? $rest . ' ' : '') . ($lastNamePrefix ? $lastNamePrefix . ' ' : '') . $last);
+        $normalized = $dropTitles
+            ? $nameOnlyNormalized
+            : trim(implode(' ', array_merge($titles, [$nameOnlyNormalized])));
+
+        // parts:
+        // - ако dropTitles=true: връщаме "смисловите" части (без титлите)
+        // - ако dropTitles=false: връщаме оригиналните части (с титлите)
+        $returnParts = $dropTitles
+            ? array_values(array_filter(array_merge(
+                [$first],
+                $rest ? (preg_split('/\s+/u', $rest) ?: []) : [],
+                $lastNamePrefix ? [$lastNamePrefix] : [],
+                [$last]
+            )))
+            : $parts;
+
+        return [
+            'first' => $first,
+            'last' => $last,
+            'rest' => $rest,
+            'titles' => $titles,
+            'lastNamePrefix' => $lastNamePrefix,
+            'normalized' => $normalized,
+            'parts' => $returnParts,
+        ];
     }
 }

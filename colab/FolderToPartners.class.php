@@ -555,14 +555,22 @@ class colab_FolderToPartners extends core_Manager
         $form->FNC('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory, input');
         $form->FNC('onlyPartner', 'enum(no,yes)', 'input=hidden,silent');
         $form->input(null, 'silent');
-        
-        $emailsArr = type_Emails::toArray($objectRec->email);
-        if (!empty($emailsArr)) {
-            $emailsArr = array_combine($emailsArr, $emailsArr);
-            $emailsArr = array('' => '') + $emailsArr;
+
+        $emailsArr = $allEmails = type_Emails::toArray($objectRec->email);
+        if(!empty($objectRec->buzEmail)){
+            $allEmails = array_merge(type_Emails::toArray($objectRec->buzEmail), $emailsArr);
         }
-        
-        $form->setSuggestions('to', $emailsArr);
+
+        if (countR($emailsArr) == 1) {
+            $form->setDefault('to', $emailsArr[key($emailsArr)]);
+        }
+
+        if (countR($allEmails) > 1) {
+            $allEmailsSuggestions = array_combine($allEmails, $allEmails);
+            $allEmailsSuggestions = array('' => '') + $allEmailsSuggestions;
+            $form->setSuggestions('to', $allEmailsSuggestions);
+        }
+
         $form->setDefault('from', email_Outgoings::getDefaultInboxId());
         core_Lg::push(drdata_Countries::getLang($objectRec->country));
         

@@ -93,6 +93,10 @@ class deals_plg_UpdateCurrencyRates extends core_Plugin
             if(countR($detailsToSave)){
                 $Detail->saveArray($detailsToSave, "id,price,{$Detail->priceInCurrencyFieldName}");
             }
+
+            foreach ($saveMasters as $masterRec){
+                $Detail->Master->updateMaster($masterRec->id);
+            }
         }
     }
 }

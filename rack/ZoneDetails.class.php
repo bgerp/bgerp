@@ -148,8 +148,7 @@ class rack_ZoneDetails extends core_Detail
     {
         $isInline = Mode::get('inlineDetail');
         if(!Mode::is('printing')){
-            $row->productId = $isInline ?  cat_Products::getTitleById($rec->_productRec, 'name') : cat_Products::getShortHyperlink($rec->productId, true);
-        }
+            $row->productId = $isInline ?  ht::createLinkRef(cat_Products::getTitleById($rec->_productRec, 'name'), array('cat_Products', 'single', $rec->productId)) : cat_Products::getShortHyperlink($rec->productId, true);        }
 
         $movementQuantity = core_Math::roundNumber($rec->movementQuantity);
         $documentQuantity = core_Math::roundNumber($rec->documentQuantity);
@@ -548,26 +547,38 @@ class rack_ZoneDetails extends core_Detail
      */
     public static function renderInlineDetail($masterRec, $masterMvc, $additional = null)
     {
-        $tpl = new core_ET("");
-
-        Mode::push('inlineDetail', true);
-        $me = cls::get(get_called_class());
         $additional = !empty($additional) ? $additional : 'pendingAndMine';
         setIfNot($additional, 'pendingAndMine');
-        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true, 'filter' => $additional);
 
-        core_Debug::startTimer("GET_MOVEMENTS_PREPARE_{$masterRec->id}");
-        $dData = $me->prepareDetail($dData);
-        core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_{$masterRec->id}");
-        if(!countR($dData->recs)) return $tpl;
-        unset($dData->listFields['id']);
+        $cu = core_Users::getCurrent();
+        $tpl = core_Cache::get("rack_Zones_{$masterRec->id}", "{$cu}|{$additional}");
 
-        core_Debug::startTimer("GET_MOVEMENTS_RENDER_{$masterRec->id}");
-        $tpl = $me->renderDetail($dData);
-        core_Debug::stopTimer("GET_MOVEMENTS_RENDER_{$masterRec->id}");
-        $tpl->removePlaces();
-        $tpl->removeBlocks();
-        Mode::pop('inlineDetail');
+        if(!($tpl instanceof core_ET)) {
+            $tpl = new core_ET("");
+
+            Mode::push('inlineDetail', true);
+            $me = cls::get(get_called_class());
+
+            $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true, 'filter' => $additional);
+
+            core_Debug::startTimer("GET_MOVEMENTS_PREPARE_{$masterRec->id}");
+            $dData = $me->prepareDetail($dData);
+            core_Debug::stopTimer("GET_MOVEMENTS_PREPARE_{$masterRec->id}");
+            if(!countR($dData->recs)) return $tpl;
+            unset($dData->listFields['id']);
+
+            core_Debug::startTimer("GET_MOVEMENTS_RENDER_{$masterRec->id}");
+            $tpl = $me->renderDetail($dData);
+            core_Debug::stopTimer("GET_MOVEMENTS_RENDER_{$masterRec->id}");
+            $tpl->removePlaces();
+            $tpl->removeBlocks();
+            Mode::pop('inlineDetail');
+
+            core_Cache::set("rack_Zones_{$masterRec->id}", "{$cu}|{$additional}", $tpl, 10);
+            core_Debug::log("GET_MOVEMENTS_SET_CACHE {$masterRec->id}");
+        } else {
+            core_Debug::log("GET_MOVEMENTS_FROM_CACHE++ {$masterRec->id}");
+        }
 
         return $tpl;
     }

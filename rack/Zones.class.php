@@ -288,10 +288,9 @@ class rack_Zones extends core_Master
                 $row->_rowTools->addLink('Премахване', array($mvc, 'removeDocument', $rec->id, 'ret_url' => true), "id=remove{$rec->id},ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?");
             }
 
-            $id = self::getRecTitle($rec); 
             $terminalLink = ($isTerminal) ? 'single' : 'terminal';
             $num = rack_Zones::getDisplayZone($rec->id, true, $terminalLink);             
-            $row->num = ht::createElement("div", array('id' => $id), $num, true);
+            $row->num = ht::createElement("div", array('id' => "zone{$rec->id}"), $num, true);
         }
 
         if (isset($fields['-single'])) {
@@ -853,7 +852,20 @@ class rack_Zones extends core_Master
         $zoneRec->defaultUserId = null;
         $zoneRec->containerId = null;
         self::save($zoneRec);
+
+        core_Cache::removeByType("rack_Zones_{$zoneRec->id}");
     }
+	
+	
+	/**
+	 * Дали готовността е практически 100% (защита от float закръгляния)
+	 */
+	public static function isReadinessFull($readiness, $eps = 0.00001)
+	{
+		if ($readiness === null || $readiness === '') return false;
+
+		return ((float)$readiness >= (1 - $eps));
+	}
 
 
     public function updateMaster_($id)
@@ -946,7 +958,15 @@ class rack_Zones extends core_Master
 		$oldReadiness = null;
 		if ($isStarted) {
 			$oldReadiness = $rec->readiness;
-			$rec->readiness = $readiness;
+
+			// нормализация и "заключване" към 1 при много близки стойности
+			$readiness = min(1, max(0, (float)$readiness));
+			if (self::isReadinessFull($readiness)) {
+				$readiness = 1.0;
+			}
+
+			// по желание: стабилизирай записваната стойност
+			$rec->readiness = round($readiness, 6);
 		} else {
 			// няма нито едно реално изпълнено движение – показваме "none"
 			$rec->readiness = null;
@@ -957,7 +977,10 @@ class rack_Zones extends core_Master
 		// Останалото (уведомяване на документа при преминаване през 100%) оставяме както е
 		if (isset($rec->containerId)) {
 			$Document = doc_Containers::getDocument($rec->containerId);
-			if (($oldReadiness == 1 && $rec->readiness != 1) || ($rec->readiness == 1 && $oldReadiness != 1)) {
+			$oldFull = self::isReadinessFull($oldReadiness);
+			$newFull = self::isReadinessFull($rec->readiness);
+
+			if ($oldFull != $newFull) {
 
 				// Ако документа в зоната е закачен към транспортна линия - тя се маркира да се обнови
 				if ($Document->getInstance()->hasPlugin('trans_plg_LinesPlugin')) {
@@ -1130,6 +1153,9 @@ class rack_Zones extends core_Master
         $zQuery->where("#storeId = {$storeId}");
         $zQuery->show("id");
         $zoneIds = arr::extractValuesFromArray($zQuery->fetchAll(), 'id');
+        foreach ($zoneIds as $zoneId) {
+            core_Cache::removeByType("rack_Zones_{$zoneId}");
+        }
         static::deletePendingZoneMovements($zoneIds, core_Users::SYSTEM_USER, $productIds);
 
         // Групиране по групи на зоните
@@ -1612,7 +1638,7 @@ class rack_Zones extends core_Master
     {
         $zoneRec = self::fetchRec($zoneId);
         $grouping = ($zoneRec->groupId) ? $zoneRec->groupId : "s{$zoneRec->id}";
-        $url = array('rack_Zones', 'list', 'terminal' => 1, 'grouping' => $grouping, 'ret_url' => true);
+        $url = array('rack_Zones', 'list', 'terminal' => 1, 'grouping' => $grouping, "#" => "zone{$zoneRec->id}", 'ret_url' => true);
 
         if (isset($zoneRec->groupId)) {
             $url['grouping'] = $zoneRec->groupId;

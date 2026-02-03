@@ -372,16 +372,11 @@ class cat_Categories extends core_Master
         $minCodeLen = !empty($rec->minCodePad) ? $rec->minCodePad : static::MIN_CODE_PADDING;
         $startCode = str_pad('1', $minCodeLen, '0', STR_PAD_LEFT);
 
-        // Опитваме се да намерим първия код започващ с представката
         $code = str::addIncrementSuffix('', $rec->prefix, $startCode);
         while (cat_Products::getByCode($code)) {
             $code = str::addIncrementSuffix($code, $rec->prefix, $startCode);
-            if (!cat_Products::getByCode($code)) {
-                break;
-            }
         }
-        
-        // Връщаме намерения код
+
         return $code;
     }
     

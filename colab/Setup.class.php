@@ -22,37 +22,37 @@ defIfNot('COLAB_DEFAULT_ROLES_FOR_NEW_PARTNER', '');
 /**
  * Email за регистрация на нов партньор към папка на фирма->BG
  */
-defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_REGISTRATION_BG', "Уважаеми потребителю. За да се регистрираш като служител на фирма \"[#company#]\", моля последвай този {{линк}} - изтича след [#lifetime#]");
+defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_REGISTRATION_BG', "Здравейте!\n\nЗа да се регистрирате като служител на фирма \"[#company#]\", моля последвайте този {{линк}}, който ще бъде активен само в следващите [#lifetime#]!");
 
 
 /**
  * Email за регистрация на нов партньор към папка на фирма->EN
  */
-defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_REGISTRATION_EN', "Dear User. To have registration as a member of company \"[#company#]\", please follow this {{link}} - it expires after [#lifetime#]");
+defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_REGISTRATION_EN', "Dear User. To have registration as a member of company \"[#company#]\", please follow this {{link}} - it expires after [#lifetime#]!");
 
 
 /**
  * Email за регистрация на нов партньор към папка на лице->BG
  */
-defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_PERSON_REGISTRATION_BG', "Уважаеми потребителю. За да се регистрираш моля последвай този {{линк}} - изтича след [#lifetime#]");
+defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_PERSON_REGISTRATION_BG', "Здравейте!\n\nЗа да се регистрирате, моля последвайте този {{линк}}, който ще бъде активен само в следващите [#lifetime#]!");
 
 
 /**
  * Email за регистрация на нов партньор към папка на лице->EN
  */
-defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_PERSON_REGISTRATION_EN', "Dear User. For registration please follow this {{link}} - it expires after [#lifetime#]");
+defIfNot('COLAB_DEFAULT_EMAIL_PARTNER_PERSON_REGISTRATION_EN', "Dear User. For registration please follow this {{link}} - it expires after [#lifetime#]!");
 
 
 /**
  * Email за регистрация за е-шоп->BG
  */
-defIfNot('COLAB_DEFAULT_EMAIL_ESHOP_REGISTRATION_BG', "Уважаеми потребителю. За да се регистрираш, като потребител в нашия онлайн магазин моля последвай този {{линк}} - изтича след [#lifetime#]");
+defIfNot('COLAB_DEFAULT_EMAIL_ESHOP_REGISTRATION_BG', "Здравейте!\n\nЗа да се регистрирате като потребител в нашия онлайн магазин, моля последвайте този {{линк}}, който ще бъде активен само в следващите [#lifetime#]!");
 
 
 /**
  * Email за регистрация за е-шоп->EN
  */
-defIfNot('COLAB_DEFAULT_EMAIL_ESHOP_REGISTRATION_EN', "Dear User. To have registration as a user in our e-shop please follow this {{link}} - it expires after [#lifetime#]");
+defIfNot('COLAB_DEFAULT_EMAIL_ESHOP_REGISTRATION_EN', "Dear User. To have registration as a user in our e-shop please follow this {{link}} - it expires after [#lifetime#]!");
 
 
 /**

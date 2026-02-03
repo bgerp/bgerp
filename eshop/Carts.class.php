@@ -219,7 +219,7 @@ class eshop_Carts extends core_Master
         }
         $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceUicNo|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
-        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
+        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Плащане->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
         $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактуриране->Наименование,invoiceData,hint=Име и фамилия||Name and surname,input=none,mandatory');
 
         $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактуриране->ДДС №||VAT ID,input=hidden,invoiceData');
@@ -2507,8 +2507,18 @@ class eshop_Carts extends core_Master
 
             // Задаване като опции
             if (countR($options)) {
-                $form->setDefault('makeInvoice', 'company');
-                $form->setField('makeInvoice', 'input=hidden');
+                if($settings->mandatoryEcartContactFields == 'both'){
+                    $defaultMakeInvoice = 'none';
+                    if($form->rec->saleFolderId){
+                        $Class = doc_Folders::getCover($form->rec->saleFolderId);
+                        $defaultMakeInvoice = $Class->isInstanceOf('crm_Persons') ? 'person' : 'company';
+                    }
+                    $form->setDefault('makeInvoice', $defaultMakeInvoice);
+                } else {
+                    $form->setDefault('makeInvoice', 'company');
+                    $form->setField('makeInvoice', 'input=hidden');
+                }
+
                 $form->setField('saleFolderId', 'input');
                 $form->setOptions('saleFolderId', $options);
                 
@@ -2517,7 +2527,7 @@ class eshop_Carts extends core_Master
                 $defaultFolder = ($companyFolderId) ? $companyFolderId : key($options);
                 $form->setDefault('saleFolderId', $defaultFolder);
             }
-            
+
             // Добавяне на партньорското условие на доставка
             $defaultTermId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'deliveryTermSale');
             

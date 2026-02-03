@@ -91,7 +91,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    public $fetchFieldsBeforeDelete = 'id';
+    public $fetchFieldsBeforeDelete = 'id,zoneList';
 
 
     /**
@@ -330,6 +330,7 @@ class rack_Movements extends rack_MovementAbstract
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Ако се създава запис в чернова със зони, в зоните се създава празен запис
+        $zonesQuantityArr = static::getZoneArr($rec);
         if($rec->state == 'pending' && $rec->_canceled !== true){
             $batch = $rec->batch;
             if(empty($batch) && isset($rec->palletId)){
@@ -340,7 +341,6 @@ class rack_Movements extends rack_MovementAbstract
             }
             
             $batch = empty($batch) ? '' : $batch;
-            $zonesQuantityArr = static::getZoneArr($rec);
             foreach ($zonesQuantityArr as $zoneRec){
 
 				// Ако за тази зона има заявка (documentQuantity), лепим „празния“ ред към нейната опаковка,
@@ -354,6 +354,10 @@ class rack_Movements extends rack_MovementAbstract
 
         // Синхронизиране на записа
         if(isset($rec->id)){
+            foreach ($zonesQuantityArr as $zoneRec){
+                core_Cache::removeByType("rack_Zones_{$zoneRec->zone}");
+            }
+
             rack_OldMovements::sync($rec);
             if($rec->_isCreated){
                 rack_Logs::add($rec->storeId, $rec->productId, 'create', $rec->position, $rec->id,"Създаване на движение #{$rec->id}");
@@ -384,7 +388,15 @@ class rack_Movements extends rack_MovementAbstract
         // Ако записите се изтриват по крон, няма да се трият от архива
         if(Mode::is('movementDeleteByCron')) return;
         $deletedRecs = $query->getDeletedRecs();
-        $deletedIds = arr::extractValuesFromArray($deletedRecs, 'id');
+
+        $deletedIds = $zones = array();
+        foreach($deletedRecs as $rec){
+            $deletedIds[$rec->id] = $rec->id;
+            $zones += keylist::toArray($rec->zoneList);
+        }
+        foreach ($zones as $zoneId) {
+            core_Cache::removeByType("rack_Zones_{$zoneId}");
+        }
 
         if(countR($deletedIds)){
             $deletedIdInline = implode(',', $deletedIds);
@@ -1129,26 +1141,16 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         core_Locks::release("movement{$rec->id}");
-        
+        $zones = keylist::toArray($rec->zoneList);
+        foreach ($zones as $zoneId) {
+            core_Cache::removeByType("rack_Zones_{$zoneId}");
+        }
+
         // Ако се обновява по Ajax
         if($ajaxMode){
             rack_Movements::logDebug("RACK TOGGLE SUCCESS {$rec->id} -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $rec->id);
-            $Zones = cls::get('rack_Zones');
-            $zones = keylist::toArray($rec->zoneList);
 
-            foreach ($zones as $zoneId) {
-                $zRec = rack_Zones::fetch($zoneId);
-                $obj = new stdClass();
-                $obj->func = 'html';
-                $obj->arg = array('id' => "zone_movements_{$zoneId}", 'html' => rack_ZoneDetails::renderInlineDetail($zRec, $Zones, $additional)->getContent(), 'replace' => true);
-                $resArr[] = $obj;
-            }
-
-            $obj = new stdClass();
-            $obj->func = 'prepareContextMenu';
-            $resArr[] = $obj;
-
-            return array_merge($resArr, status_Messages::returnStatusesArray());
+            return array_merge($resArr, self::forwardRefreshUrl(), status_Messages::returnStatusesArray());
         }
         
         followretUrl(null, $msg, $type);
@@ -1286,6 +1288,7 @@ class rack_Movements extends rack_MovementAbstract
 
                 // Отделя се само к-то за тази зона, като ново приключено движение
                 $this->save_($newRec);
+                core_Cache::removeByType("rack_Zones_{$currentZoneId}");
                 rack_OldMovements::sync($newRec);
                 rack_Logs::add($newRec->storeId, $newRec->productId, 'create', $newRec->positionTo, $newRec->id, "Отделяне на движение #{$newRec->id} от #{$rec->id}");
                 rack_Logs::add($newRec->storeId, $newRec->productId, 'close', $newRec->positionTo, $newRec->id, "Приключване на движение #{$newRec->id}");
@@ -1311,26 +1314,14 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         core_Locks::release("movement{$rec->id}");
-        
-        // Ако се обновява по Ajax
-        if($ajaxMode){
 
-            $Zones = cls::get('rack_Zones');
-            $zones = keylist::toArray($rec->zoneList);
-            foreach ($zones as $zoneId) {
-                $zRec = rack_Zones::fetch($zoneId);
-                $obj = new stdClass();
-                $obj->func = 'html';
-                $obj->arg = array('id' => "zone_movements_{$zoneId}", 'html' => rack_ZoneDetails::renderInlineDetail($zRec, $Zones, $additional)->getContent(), 'replace' => true);
-                $resArr[] = $obj;
-            }
-
-            $obj = new stdClass();
-            $obj->func = 'prepareContextMenu';
-            $resArr[] = $obj;
-
-            return array_merge($resArr, status_Messages::returnStatusesArray());
+        $zones = keylist::toArray($rec->zoneList);
+        foreach ($zones as $zoneId) {
+            core_Cache::removeByType("rack_Zones_{$zoneId}");
         }
+
+        // Ако се обновява по Ajax
+        if($ajaxMode) return array_merge($resArr, self::forwardRefreshUrl(), status_Messages::returnStatusesArray());
         
         followretUrl(array($this));
     }
@@ -1957,5 +1948,45 @@ class rack_Movements extends rack_MovementAbstract
         $data->listTableMvc->setField('createdBy', 'tdClass=small');
         $data->listTableMvc->setField('modifiedOn', 'tdClass=small');
         $data->listTableMvc->setField('modifiedBy', 'tdClass=small');
+    }
+
+
+    /**
+     * Реализация по подразбиране на метода getDeleteUrl()
+     *
+     * @param core_Mvc $mvc
+     * @param array    $deleteUrl
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetDeleteUrl($mvc, &$deleteUrl, $rec)
+    {
+        // Ако сме в терминала се добавя котвата до която да се скролне
+        if(is_array($deleteUrl) && countR($deleteUrl)){
+            if(Request::get('terminal') && isset($rec->_currentZoneId)) {
+                $retUrl = getCurrentUrl();
+                $retUrl["#"] = "zone{$rec->_currentZoneId}";
+                $deleteUrl['ret_url'] = $retUrl;
+            }
+        }
+    }
+
+
+    /**
+     * Реализация по подразбиране на метода getEditUrl()
+     *
+     * @param core_Mvc $mvc
+     * @param array    $editUrl
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetEditUrl($mvc, &$editUrl, $rec)
+    {
+        // Ако сме в терминала се добавя котвата до която да се скролне
+        if(is_array($editUrl) && countR($editUrl)){
+            if(Request::get('terminal') && isset($rec->_currentZoneId)) {
+                $retUrl = getCurrentUrl();
+                $retUrl["#"] = "zone{$rec->_currentZoneId}";
+                $editUrl['ret_url'] = $retUrl;
+            }
+        }
     }
 }

@@ -483,6 +483,8 @@ class cat_Products extends embed_Manager
                 if ($cover->isInstanceOf('cat_Categories')) {
                     if(empty($cover->fetchField('prefix')) && empty($clonedCode)){
                         $lastCode = Mode::get('cat_LastProductCode');
+                    } elseif(!empty($cover->fetchField('prefix'))) {
+                        $lastCode = null;
                     }
 
                     // Ако корицата е категория и няма въведен код, генерира се дефолтен, ако може
@@ -515,11 +517,7 @@ class cat_Products extends embed_Manager
                 $newCode = str::increment($lastCode);
                 if($newCode){
                     while (cat_Products::getByCode($newCode)) {
-                        if($newCode = str::increment($newCode)){
-                            if (!cat_Products::getByCode($newCode)) {
-                                break;
-                            }
-                        }
+                        $newCode = str::increment($newCode);
                     }
                 } elseif($data->_isSaveAndNew || $data->action == 'clone') {
                     // Ако все пак има предишен код, който не е инкремениран попълва се той
