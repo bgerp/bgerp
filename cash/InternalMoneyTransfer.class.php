@@ -200,7 +200,7 @@ class cash_InternalMoneyTransfer extends core_Master
 
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
-        $this->FLD('reason', 'richtext(rows=3)', 'caption=Основание,input,mandatory');
+        $this->FLD('reason', 'richtext(bucket=Notes,rows=3)', 'caption=Основание,input,mandatory');
         $this->FLD('creditAccId', 'acc_type_Account()', 'caption=Кредит,input=none');
         $this->FLD('creditCase', 'key(mvc=cash_Cases, select=name)', 'caption=От->Каса,silent');
         $this->FLD('paymentId', 'key(mvc=cond_Payments, select=title)', 'caption=От->Безналично плащане,input=none,silent');
