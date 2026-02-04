@@ -553,7 +553,7 @@ abstract class deals_ServiceMaster extends core_Master
             } elseif(acc_Periods::getBaseCurrencyCode($rec->valior) != acc_Periods::getBaseCurrencyCode($dealInfo->get('agreedValior'))){
                 $valior = $valior ?? dt::today();
                 if(!in_array($rec->currencyId, array('BGN', 'EUR')) && $valior >= acc_Setup::getEurozoneDate()){
-                    $rec->currencyRate = round($form->dealInfo->get('rate') / 1.95583, 5);
+                    $rec->currencyRate = round($dealInfo->get('rate') / 1.95583, 5);
                 } else {
                     $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
                 }
