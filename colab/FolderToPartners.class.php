@@ -100,7 +100,7 @@ class colab_FolderToPartners extends core_Manager
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
         
-        $this->setDbIndex('contractorId');
+        $this->setDbIndex('contractorId, folderId');
         $this->setDbIndex('folderId');
     }
     
