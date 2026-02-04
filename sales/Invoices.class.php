@@ -653,6 +653,10 @@ class sales_Invoices extends deals_InvoiceMaster
                     $row->number = ht::createElement("span", array('title' => "|*ID: {$rec->id} / D: {$displayRange} [{$rec->numlimit}]"), $row->number);
                 }
             }
+
+            if(haveRole('debug')){
+                $row->rate = ht::createHint($row->rate, "Rate: {$rec->rate} / DisplayRate: {$rec->displayRate}", 'img/16/bug.png');
+            }
         }
     }
 
