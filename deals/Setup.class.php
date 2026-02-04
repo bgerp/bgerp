@@ -392,4 +392,42 @@ class deals_Setup extends core_ProtoSetup
             }
         }
     }
+
+
+    /**
+     * Промяна на курса на документи в различни периоди
+     *
+     * @param mixed $classes - списък с класове
+     * @return void
+     */
+    public static function recontoDocumentRatesInDifferentPeriods($classes)
+    {
+        $threads = array();
+        $euDate = acc_Setup::getEurozoneDate();
+        $classes = arr::make($classes);
+        foreach ($classes as $class) {
+
+            // Взимат се всички от посочените класове във валута и с вальор след ЕЗ
+            $Cls = cls::get($class);
+            $query = $Cls->getQuery();
+            $query->XPR('dateCalc', 'date', "COALESCE(#{$Cls->valiorFld}, CURDATE())");
+            $query->where("#currencyId NOT IN ('EUR', 'BGN') AND  #state != 'rejected' AND #dateCalc >= '{$euDate}'");
+
+            // За всеки
+            while($rec = $query->fetch()){
+
+                // Ако документа към който е създаден след ЕЗ - пропускаме го
+                if(!array_key_exists($rec->threadId, $threads)){
+                    $threads[$rec->threadId] = doc_Threads::getFirstDocument($rec->threadId)->fetch();
+                }
+                if($threads[$rec->threadId]->valior >= $euDate) continue;
+
+                // Документа ще се реконтира така, че новия му курс да е спрямо оригиналния курс на договора
+                $newRate = round($threads[$rec->threadId]->currencyRate / 1.95583, 5);
+                if(round($rec->currencyRate, 5) != round($newRate, 5)) {
+                    deals_Helper::recalcRate($Cls, $rec->id, $newRate);
+                }
+            }
+        }
+    }
 }
