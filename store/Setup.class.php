@@ -345,6 +345,6 @@ class store_Setup extends core_ProtoSetup
     public function updateDocumentsInCurrencies2606()
     {
         $classes = 'store_Receipts,store_ShipmentOrders';
-        deals_Setup::recontoDocumentRates($classes);
+        deals_Setup::recontoDocumentRatesInDifferentPeriods($classes);
     }
 }
