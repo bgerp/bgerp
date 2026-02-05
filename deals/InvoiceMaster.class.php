@@ -1681,6 +1681,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
         }
+
+        if(haveRole('debug')){
+            $row->rate = ht::createHint($row->rate, "Rate: {$rec->rate} / DisplayRate: {$rec->displayRate}", 'img/16/bug.png');
+        }
     }
     
     
