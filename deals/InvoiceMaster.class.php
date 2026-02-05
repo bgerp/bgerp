@@ -1077,7 +1077,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
                 if($rec->currencyId != 'EUR'){
                     if(acc_Periods::getBaseCurrencyCode($form->aggregateInfo->get('agreedValior')) != acc_Periods::getBaseCurrencyCode($rec->date)){
-                        $rec->rate = round($form->aggregateInfo->get('rate') / 1.95583, 5);
+                        $rec->rate = round($form->aggregateInfo->get('rate') / 1.95583, 6);
                     }
                 }
             }
