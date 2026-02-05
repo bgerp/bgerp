@@ -1684,6 +1684,10 @@ abstract class deals_InvoiceMaster extends core_Master
 
         if(haveRole('debug')){
             $row->rate = ht::createHint($row->rate, "Rate: {$rec->rate} / DisplayRate: {$rec->displayRate}", 'img/16/bug.png');
+        } else {
+            if($rec->date >= '2026-01-01' && $rec->currencyId == 'EUR'){
+                unset($row->rate);
+            }
         }
     }
     
