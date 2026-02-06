@@ -84,7 +84,7 @@ class bglocal_HScode extends core_Master
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {
-        $file = 'bglocal/data/HScode1.csv';
+        $file = 'bglocal/data/HScode.csv';
         $fields = array(0 => 'sectionId', 1 => 'sectionName',2 => 'chapterId', 3 => 'chapterName',
                         4 => 'headingId', 5 => 'headingName',6 => 'level', 7 => 'cnCode',8 => 'title');
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
