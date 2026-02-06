@@ -2204,7 +2204,7 @@ abstract class deals_InvoiceMaster extends core_Master
         if(empty($rec->issuerId)){
             $issuerId = null;
             $mvc->pushTemplateLg($rec->template);
-            $rec->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId));
+            $rec->username = transliterate(tr(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId)));
             core_Lg::pop();
             $rec->issuerId = $issuerId;
             $saveFields[] = 'username';

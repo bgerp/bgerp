@@ -2653,11 +2653,11 @@ abstract class deals_Helper
         if(isset($issuerId)) {
             $fixedIssuerName = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($issuerId, 'names'));
 
-            return transliterate($fixedIssuerName);
+            return transliterate(tr($fixedIssuerName));
         }
 
         $issuerName = deals_Helper::getIssuer($createdBy, $activatedBy, $issuerId);
-        $issuerName = transliterate($issuerName);
+        $issuerName = transliterate(tr($issuerName));
 
         if(!Mode::isReadOnly() && in_array($state, array('pending', 'draft'))) {
             if(empty($issuerName)) {
