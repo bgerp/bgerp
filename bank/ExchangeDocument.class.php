@@ -319,6 +319,7 @@ class bank_ExchangeDocument extends core_Master
             $row->type = tr('банкова сметка');
             $row->peroTo = bank_OwnAccounts::getHyperLink($rec->peroTo);
             $row->peroFrom = bank_OwnAccounts::getHyperLink($rec->peroFrom);
+            $row->documentTitle = tr($mvc->singleTitle);
         }
     }
     

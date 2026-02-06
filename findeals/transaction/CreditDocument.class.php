@@ -84,6 +84,9 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
             $amount = $rec->amount;
         } else {
             $originRate = $origin->fetchField('currencyRate');
+            if(acc_Periods::getBaseCurrencyCode($originRec->{$origin->valiorFld}) == 'BGN' && acc_Periods::getBaseCurrencyCode($rec->valior) == "EUR"){
+                $originRate /= 1.95583;
+            }
             $amount = $rec->amount * $originRate;
         }
 
