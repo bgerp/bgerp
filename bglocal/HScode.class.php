@@ -58,8 +58,15 @@ class bglocal_HScode extends core_Master
      */
     public function description()
     {
-        $this->FLD('key', 'varchar', 'caption=Код');
-        $this->FLD('title', 'text', 'caption=Наименование');
+        $this->FLD('sectionId', 'varchar(4)', 'caption=Раздел->код');
+        $this->FLD('sectionName', 'text', 'caption=Раздел->име');
+        $this->FLD('chapterId', 'varchar(2)', 'caption=Глава->код');
+        $this->FLD('chapterName', 'text', 'caption=Глава->име');
+        $this->FLD('headingId', 'varchar(4)', 'caption=Подглава->код');
+        $this->FLD('headingName', 'text', 'caption=Подглава->име');
+        $this->FLD('level', 'int(4)', 'caption=Степен на подробност на съответния код на продукта');
+        $this->FLD('cnCode', 'varchar(8)', 'caption=Код по КН');
+        $this->FLD('title', 'text', 'caption=Описание на стоката');
     }
     
     
@@ -68,17 +75,18 @@ class bglocal_HScode extends core_Master
      */
     public static function on_BeforeImportRec($mvc, $rec)
     {
-
+        $rec->title = $rec->cnCode . ' ' . $rec->title;
     }
     
-    
+
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = 'bglocal/data/HScode.csv';
-        $fields = array(0 => 'key', 1 => 'title');
+        $fields = array(0 => 'sectionId', 1 => 'sectionName',2 => 'chapterId', 3 => 'chapterName',
+                        4 => 'headingId', 5 => 'headingName',6 => 'level', 7 => 'cnCode',8 => 'title');
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
@@ -87,7 +95,7 @@ class bglocal_HScode extends core_Master
     /**
      * Подготовка на опции за key2
      */
-    public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+   /* public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $mvc = cls::get(get_called_class());
         $res = [];
@@ -182,5 +190,5 @@ class bglocal_HScode extends core_Master
         }
         
         return $res;
-    }
+    }*/
 }

@@ -172,9 +172,12 @@ class bgerp_plg_Export extends core_Plugin
                     $name = $Driver->getExportedFileName();
                     $fh = fileman::absorbStr($content, 'exportCsv', $name);
                 }
-                
+
+                // Към кое урл да се редиректне след експорта
+                $url = $mvc->getUrlAfterExport($Driver, $form->rec, $fh);
+
                 // Редирект към лист изгледа,  ако не е зададено друго урл за редирект
-                $tpl = new Redirect(array('fileman_Files', 'single', $fh), '|Файлът е експортиран успешно|*!');
+                $tpl = new Redirect($url, '|Файлът е експортиран успешно|*!');
                 
                 return false;
             }
@@ -206,6 +209,23 @@ class bgerp_plg_Export extends core_Plugin
             if (!self::getExportDrivers($mvc) && !$mvc->hasPlugin('plg_ExportCsv')) {
                 $requiredRoles = 'no_one';
             }
+        }
+    }
+
+
+    /**
+     * Дефолтно урл след редирект за експорта
+     *
+     * @param $mvc
+     * @param $res
+     * @param $filter
+     * @param $fh
+     * @return void
+     */
+    public static function on_AfterGetUrlAfterExport($mvc, &$res, $Driver, $filter, $fh)
+    {
+        if(!$res){
+            $res = array('fileman_Files', 'single', $fh);
         }
     }
 }
