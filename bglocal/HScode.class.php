@@ -195,4 +195,77 @@ class bglocal_HScode extends core_Master
         
         return $res;
     }
+
+
+    /**
+     * Връща HS кода, който най-точно съвпада с подадения префикс:
+     * - кодът трябва да започва с $input
+     * - избира се този с най-малко допълнителни цифри
+     * - при равни дължини: най-близкият числово до $input, паднат с нули до дължината на кода
+     *
+     * @param string $input Подаден стринг/префикс (може да съдържа и други символи)
+     * @param array  $codes Масив от HS кодове (стрингове)
+     * @return string|null  Намереният код (почистен като оригиналния е trim-нат) или null ако няма съвпадение
+     */
+    public static function findBestHsCode(string $input, array $codes = array(), int $minLen = 8)
+    {
+        // Нормализираме входа до цифри
+        $needle = preg_replace('/\D+/', '', $input);
+        if ($needle === '') return null;
+
+        // Ако не са подадени - зареждаме всички кодове
+        if (empty($codes)) {
+            $hsQuery = bglocal_HScode::getQuery();
+            $hsQuery->show('id,cnCode');
+            while ($hsRec = $hsQuery->fetch()) {
+                $codes[$hsRec->id] = $hsRec->cnCode;
+            }
+        }
+
+        // Нормализираме кодовете и правим индекс: normCode => оригинален код
+        $map = array();
+        foreach ($codes as $code) {
+            $orig = trim((string)$code);
+            $norm = preg_replace('/\D+/', '', $orig);
+            if ($norm === '') continue;
+
+            // Ако има дубликати след нормализация - пазим първия
+            if (!isset($map[$norm])) {
+                $map[$norm] = $orig;
+            }
+        }
+
+        $len = strlen($needle);
+
+        // Ако входът е >= 8 цифри: режем отдясно и търсим ТОЧНО съвпадение
+        if ($len >= $minLen) {
+            for ($tryLen = $len; $tryLen >= $minLen; $tryLen--) {
+                $candidate = substr($needle, 0, $tryLen);
+                if (isset($map[$candidate])) {
+                    return $map[$candidate];
+                }
+            }
+
+            return null;
+        }
+
+        // Ако входът е < 8 цифри: няма как да "режем до 8".
+        // По избор: връщаме най-късия код, който започва с входа (практично за частично въведени кодове).
+        $bestOrig = null;
+        $bestExtra = null;
+        $bestNorm = null;
+
+        foreach ($map as $norm => $orig) {
+            if (strpos($norm, $needle) !== 0) continue;
+
+            $extra = strlen($norm) - $len; // колко цифри добавя кодът след входа
+            if ($bestOrig === null || $extra < $bestExtra || ($extra === $bestExtra && strcmp($norm, $bestNorm) < 0)) {
+                $bestOrig = $orig;
+                $bestExtra = $extra;
+                $bestNorm = $norm;
+            }
+        }
+
+        return $bestOrig;
+    }
 }
