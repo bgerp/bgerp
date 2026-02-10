@@ -34,3 +34,4 @@
 Отделни редове в POS,cond_type_YesOrNo,,separateInPos,,no,active,,no
 Технологичен брак,cond_type_Percent,,productionScrap,,no,active,,no
 Страна на произход,cond_type_Key,,originCountry,,no,active,"class=drdata_Countries,select=commonName,selectBg=commonNameBg,displayVerbal=letterCode2",no
+HS code,cond_type_Key,,hsCode,,no,active,"class=bglocal_HScode,select=cnCode",no
