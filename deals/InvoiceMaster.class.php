@@ -1074,6 +1074,12 @@ abstract class deals_InvoiceMaster extends core_Master
                     $rec->displayRate = $displayRate;
                     $rec->rate = $displayRate;
                 }
+
+                if($rec->currencyId != 'EUR'){
+                    if(acc_Periods::getBaseCurrencyCode($form->aggregateInfo->get('agreedValior')) != acc_Periods::getBaseCurrencyCode($rec->date)){
+                        $rec->rate = round($form->aggregateInfo->get('rate') / 1.95583, 6);
+                    }
+                }
             }
 
             $valiorError = null;
@@ -1675,6 +1681,14 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
         }
+
+        if(haveRole('debug')){
+            $row->rate = ht::createHint($row->rate, "Rate: {$rec->rate} / DisplayRate: {$rec->displayRate}", 'img/16/bug.png');
+        } else {
+            if($rec->date >= '2026-01-01' && $rec->currencyId == 'EUR'){
+                unset($row->rate);
+            }
+        }
     }
     
     
@@ -2190,7 +2204,7 @@ abstract class deals_InvoiceMaster extends core_Master
         if(empty($rec->issuerId)){
             $issuerId = null;
             $mvc->pushTemplateLg($rec->template);
-            $rec->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId));
+            $rec->username = transliterate(tr(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId)));
             core_Lg::pop();
             $rec->issuerId = $issuerId;
             $saveFields[] = 'username';

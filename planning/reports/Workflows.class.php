@@ -232,11 +232,16 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $createdOnWhere .= (!empty($createdOnWhere) ? " AND " : "") . "#createdOn >= '{$rec->start}'";
         }
 
-        if(!empty($rec->to)){
-            $dateWhere .= (!empty($dateWhere) ? " AND " : "") . "#date <= '{$rec->to}'";
-            $date = str_replace('00:00:00', '23:59:59', $rec->to);
-            $createdOnWhere .= (!empty($createdOnWhere) ? " AND " : "") . "#createdOn <= '{$date}'";
-        }
+        if (!empty($rec->to)) {
+			// Ако потребителят е избрал само дата (00:00:00), приемаме "до края на деня"
+			$to = $rec->to;
+			if (strpos($to, '00:00:00') !== false) {
+				$to = str_replace('00:00:00', '23:59:59', $to);
+			}
+
+			$dateWhere .= (!empty($dateWhere) ? " AND " : "") . "#date <= '{$to}'";
+			$createdOnWhere .= (!empty($createdOnWhere) ? " AND " : "") . "#createdOn <= '{$to}'";
+		}
 
         if(!empty($createdOnWhere) && !empty($dateWhere)){
             $query2 = clone $query;

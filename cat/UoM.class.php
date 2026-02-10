@@ -173,7 +173,7 @@ class cat_UoM extends core_Manager
         
         return $options;
     }
-    
+
     
     /**
      * Подготовка на филтър формата
@@ -680,6 +680,10 @@ class cat_UoM extends core_Manager
         
         if(isset($form->rec->baseUnitId)){
             $form->setField('baseUnitRatio', 'input,mandatory');
+        }
+        
+        if (!core_Packs::isInstalled('saft')){ 
+            $form->setField('safTCode', 'input=none');
         }
     }
     

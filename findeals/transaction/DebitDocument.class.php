@@ -33,7 +33,7 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
         expect($origin = $this->class->getOrigin($rec));
-        
+
         if ($rec->isReverse == 'yes') {
             // Ако документа е обратен, правим контировката на прехвърлянето на задължения но с отрицателен знак
             $entries = findeals_transaction_CreditDocument::getReverseEntries($rec, $origin);
@@ -85,6 +85,9 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
             $amount = $rec->amount;
         } else {
             $originRate = $origin->fetchField('currencyRate');
+            if(acc_Periods::getBaseCurrencyCode($originRec->{$origin->valiorFld}) == 'BGN' && acc_Periods::getBaseCurrencyCode($rec->valior) == "EUR"){
+                $originRate /= 1.95583;
+            }
             $amount = $rec->amount * $originRate;
         }
 

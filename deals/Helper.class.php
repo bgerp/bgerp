@@ -311,6 +311,12 @@ abstract class deals_Helper
         $countVats = countR($values['vats']);
 
         if ($invoice || $chargeVat == 'separate') {
+            $date = $date ?? dt::today();
+            $baseCurrencyIsBgnAfterEu = ($invoice && $date >= '2026-01-01' && $baseCurrency == 'BGN');
+            if($baseCurrencyIsBgnAfterEu){
+                $baseCurrency = 'EUR';
+            }
+
             if (is_array($values['vats'])) {
                 foreach ($values['vats'] as $percent => $vi) {
                     if (is_object($vi)) {
@@ -325,6 +331,12 @@ abstract class deals_Helper
                                 $arr["vat{$index}BaseAmount"] = $arr['neto'] * $currencyRate;
                             } else {
                                 $arr["vat{$index}BaseAmount"] = $vi->sum * $currencyRate;
+                            }
+
+                            // Ако случайно датата е след ЕЗ но сч. период е още в лева да се оправи визуално показването
+                            if($baseCurrencyIsBgnAfterEu) {
+                                $arr["vat{$index}Amount"] = currency_CurrencyRates::convertAmount($arr["vat{$index}Amount"], $date, 'BGN', 'EUR');
+                                $arr["vat{$index}BaseAmount"] = currency_CurrencyRates::convertAmount($arr["vat{$index}BaseAmount"], $date, 'BGN', 'EUR');
                             }
 
                             $arr["vat{$index}BaseCurrencyId"] = $baseCurrency;
@@ -2641,11 +2653,11 @@ abstract class deals_Helper
         if(isset($issuerId)) {
             $fixedIssuerName = core_Type::getByName('varchar')->toVerbal(core_Users::fetchField($issuerId, 'names'));
 
-            return transliterate($fixedIssuerName);
+            return transliterate(tr($fixedIssuerName));
         }
 
         $issuerName = deals_Helper::getIssuer($createdBy, $activatedBy, $issuerId);
-        $issuerName = transliterate($issuerName);
+        $issuerName = transliterate(tr($issuerName));
 
         if(!Mode::isReadOnly() && in_array($state, array('pending', 'draft'))) {
             if(empty($issuerName)) {

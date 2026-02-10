@@ -1278,7 +1278,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
         if(empty($rec->username)){
             $mvc->pushTemplateLg($rec->template);
-            $rec->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy));
+            $rec->username = transliterate(tr(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy)));
             core_Lg::pop();
             $update = true;
         }
