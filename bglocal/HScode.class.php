@@ -30,8 +30,14 @@ class bglocal_HScode extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, bglocal_Wrapper, plg_Printing,
+    public $loadList = 'plg_RowTools2, bglocal_Wrapper, plg_Printing,plg_Search,
                        plg_SaveAndNew';
+    
+    
+    /**
+     *  Полета по които ще се търси
+     */
+    public $searchFields = 'title,cnCode,headingName,chapterName,sectionName';
     
     
     /**
@@ -69,6 +75,21 @@ class bglocal_HScode extends core_Master
         $this->FLD('title', 'text', 'caption=Описание на стоката');
         
         $this->setDbIndex('cnCode');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        $form->view = 'horizontal';
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $form->showFields = 'search';
+        
+        $form->input();
+        
     }
     
     
