@@ -176,7 +176,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
                             
                             // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
                             $Balance = $Balance->getBalanceBefore($accId);
-                            $balHistory = acc_ActiveShortBalance::getBalanceHystory($accId, $cDate, $cDate, $contragentItem->id, $saleItem->id, $currencyItem->id);
+                            $balHistory = acc_ActiveShortBalance::getBalanceHistory($accId, $cDate, $cDate, $contragentItem->id, $saleItem->id, $currencyItem->id);
                             
                             if (is_array($balHistory['history'])) {
                                 foreach ($balHistory['history'] as $history) {

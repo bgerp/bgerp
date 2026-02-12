@@ -120,6 +120,7 @@ class store_Setup extends core_ProtoSetup
         'store_ShipmentOrderTariffCodeSummary',
         'migrate::repairSearchKeywords2505',
         'migrate::repairSearchKeywordsNotes2505',
+        'migrate::updateDocumentsInCurrencies2606',
     );
     
     
@@ -335,5 +336,15 @@ class store_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('plg_Search', 'repairSearchKeywords', 'store_InventoryNotes', $callOn);
+    }
+
+
+    /**
+     * Миграция на доларовите СР и ЕН
+     */
+    public function updateDocumentsInCurrencies2606()
+    {
+        $classes = 'store_Receipts,store_ShipmentOrders';
+        deals_Setup::recontoDocumentRatesInDifferentPeriods($classes);
     }
 }

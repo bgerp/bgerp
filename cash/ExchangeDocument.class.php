@@ -293,6 +293,7 @@ class cash_ExchangeDocument extends core_Master
             $row->type = tr('каса');
             $row->peroTo = cash_Cases::getHyperLink($rec->peroTo);
             $row->peroFrom = cash_Cases::getHyperLink($rec->peroFrom);
+            $row->documentTitle = tr($mvc->singleTitle);
         }
     }
     

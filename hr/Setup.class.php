@@ -127,9 +127,8 @@ class hr_Setup extends core_ProtoSetup
         'hr_IndicatorFormulas',
         'hr_Shifts',
         'migrate::changeAlternatePersonField',
-        'migrate::updateContracts2548',
-        'migrate::updateBonusesAndDeductions2548',
         'migrate::updateTrips2548',
+        'migrate::changeReasonId2605',
     );
     
     
@@ -224,45 +223,6 @@ class hr_Setup extends core_ProtoSetup
 
 
     /**
-     * Обновяване на трудовите договори
-     */
-    public static function updateContracts2548()
-    {
-        $Contracts = cls::get('hr_EmployeeContracts');
-        $Contracts->setupMvc();
-
-        $save = array();
-        $query = $Contracts->getQuery();
-        $query->where("#currencyId IS NULL");
-        while($rec = $query->fetch()) {
-            $rec->currencyId = 'BGN';
-            $save[$rec->id] = $rec;
-        }
-
-        if(countR($save)) {
-            $Contracts->saveArray($save, 'id,currencyId');
-        }
-    }
-
-    /**
-     * Обновяване на бонусите и удръжките
-     */
-    public function updateBonusesAndDeductions2548()
-    {
-        foreach (array('hr_Deductions', 'hr_Bonuses') as $cls){
-            $Class = cls::get($cls);
-            $Class->setupMvc();
-
-            $currencyIdCol = str::phpToMysqlName('currencyId');
-            $tbl = $Class->dbTableName;
-
-            $query = "UPDATE `{$tbl}` SET `{$currencyIdCol}` = 'BGN' WHERE `{$currencyIdCol}` IS NULL";
-            $Class->db->query($query);
-        }
-    }
-
-
-    /**
      * Обновяване на командировките
      */
     public function updateTrips2548()
@@ -278,5 +238,29 @@ class hr_Setup extends core_ProtoSetup
 
         $query = "UPDATE `{$tbl}` SET `{$currencyIdCol}` = 'BGN' WHERE (`{$amountRoadCol}` IS NOT NULL OR `{$amountDailyCol}` IS NOT NULL OR `{$amountHouseCol}` IS NOT NULL)";
         $Trips->db->query($query);
+    }
+    
+    
+    /**
+     * Миграция за промяна на кодовете за причина на болничен лист
+     */
+    public static function changeReasonId2605()
+    {
+        $Sickdays = cls::get('hr_Sickdays');
+        
+        $query = $Sickdays->getQuery();
+        $query->where("#createdOn <= '2025-12-31 23:59:59'");
+
+        while ($rec = $query->fetch()) {
+           
+            if($rec->reason === null) { 
+               
+                continue; 
+            }
+
+            $rec->reason = '';
+ 
+            $Sickdays->save_($rec, 'reason');
+        }
     }
 }

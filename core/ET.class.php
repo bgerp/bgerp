@@ -871,7 +871,7 @@ class core_ET extends core_BaseClass
      */
     public function __toString()
     {
-        return $this->getContent();
+        return (string) $this->getContent();
     }
     
     

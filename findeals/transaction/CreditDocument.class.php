@@ -66,7 +66,7 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
 
         $origin = findeals_CreditDocuments::getOrigin($rec);
-        $originRec = $origin->fetch('currencyId,valior,currencyRate');
+        $originRec = $origin->fetch();
         $originCodeId = currency_Currencies::getIdByCode($originRec->currencyId);
 
         $doc = doc_Containers::getDocument($rec->dealId);
@@ -84,13 +84,22 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
             $amount = $rec->amount;
         } else {
             $originRate = $origin->fetchField('currencyRate');
+            if(acc_Periods::getBaseCurrencyCode($originRec->{$origin->valiorFld}) == 'BGN' && acc_Periods::getBaseCurrencyCode($rec->valior) == "EUR"){
+                $originRate /= 1.95583;
+            }
             $amount = $rec->amount * $originRate;
         }
 
         $dealRec = $doc->fetch();
         $findeal2findeal = $doc->isInstanceOf('findeals_Deals') && $origin->isinstanceOf('findeals_Deals');
+        $originCurrencyCode = $originRec->currencyId;
+        if($origin->isInstanceOf('findeals_Deals')){
+            if($rec->valior < acc_Setup::getEurozoneDate() && isset($originRec->oldCurrencyId)){
+                $originCurrencyCode = $originRec->oldCurrencyId;
+            }
+        }
+        $originCurrencyId = currency_Currencies::getIdByCode($originCurrencyCode);
 
-        $originCurrencyId = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
         if($rec->currencyId == $originCurrencyId && $rec->currencyId == $baseCurrencyId) {
             // Кредитираме разчетната сметка на избраната финансова сделка
             $debitArr = array($rec->debitAccount,

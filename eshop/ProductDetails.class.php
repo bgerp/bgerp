@@ -454,8 +454,10 @@ class eshop_ProductDetails extends core_Detail
                 $row->catalogPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogPriceInfo->price);
                 if($catalogPriceInfo->price == 0){
                     $row->catalogPrice = "<span class='green'>" . tr('Безплатно') . "</span>";
-                } else {
+                } elseif($settings->lg == 'bg') {
                     $row->catalogPrice = deals_Helper::displayDualAmount($row->catalogPrice, $catalogPriceInfo->price, null, $settings->currencyId, drdata_Countries::getIdByName('Bulgaria'), ' / ', true);
+                } else {
+                    $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId, true);
                 }
 
                 $row->catalogPrice = "<b>{$row->catalogPrice}</b>";

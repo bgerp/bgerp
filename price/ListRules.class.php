@@ -614,7 +614,11 @@ class price_ListRules extends core_Detail
             if ($rec->validUntil && ($rec->validUntil <= $rec->validFrom)) {
                 $form->setError('validUntil', 'Правилото трябва да е в сила до по-късен момент от началото му');
             }
-            
+
+            if($rec->currency == 'BGN' && $rec->validFrom >= acc_Setup::getEurozoneDate()) {
+                $form->setError('currency,validUntil', 'Не може да се задава правило в BGN с период на валидност след влизането в еврозоната|*!');
+            }
+
             if ($rec->validFrom && !$form->gotErrors() && $rec->validFrom > $now) {
                 Mode::setPermanent('PRICE_VALID_FROM', $rec->validFrom);
             }

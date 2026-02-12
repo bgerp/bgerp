@@ -219,7 +219,7 @@ class eshop_Carts extends core_Master
         }
         $this->FLD('makeInvoice', 'enum(none=Без фактуриране,person=Фактура на лице, company=Фактура на фирма)', 'caption=Плащане->Фактуриране,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceUicNo|invoiceVatNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|invoiceNames');
         
-        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Данни за фактуриране->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
+        $this->FLD('saleFolderId', 'key(mvc=doc_Folders)', 'caption=Плащане->Папка,input=none,silent,removeAndRefreshForm=locationId|invoiceNames|invoiceVatNo|invoiceUicNo|invoiceAddress|invoicePCode|invoicePlace|invoiceCountry|deliveryData|deliveryCountry|deliveryPCode|deliveryPlace|deliveryAddress|makeInvoice');
         $this->FLD('invoiceNames', 'varchar(128)', 'caption=Данни за фактуриране->Наименование,invoiceData,hint=Име и фамилия||Name and surname,input=none,mandatory');
 
         $this->FLD('invoiceVatNo', 'drdata_VatType', 'caption=Данни за фактуриране->ДДС №||VAT ID,input=hidden,invoiceData');
@@ -1745,8 +1745,9 @@ class eshop_Carts extends core_Master
         $amountWithoutDelivery = (static::calcChargeVat($rec) == 'yes') ? $total : $totalNoVat;
         $row->total = $Double->toVerbal($total);
 
+
         $bgCountryId = drdata_Countries::getIdByName('Bulgaria');
-        $row->total = deals_Helper::displayDualAmount($row->total, $total, null, $rec->currencyId, $bgCountryId, " / ", true);
+        $row->total = ($settings->lg == 'bg') ? deals_Helper::displayDualAmount($row->total, $total, null, $rec->currencyId, $bgCountryId, " / ", true) : currency_Currencies::decorate($row->total, $settings->currencyId, true);
 
         // Ако има доставка се показва и нея
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
@@ -1770,19 +1771,19 @@ class eshop_Carts extends core_Master
                 
                 $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
                 $row->deliveryAmount = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-                $row->deliveryAmount = deals_Helper::displayDualAmount($row->deliveryAmount, $deliveryAmount, null, $rec->currencyId, $bgCountryId, " / ", true);
+                $row->deliveryAmount =  ($settings->lg == 'bg') ? deals_Helper::displayDualAmount($row->deliveryAmount, $deliveryAmount, null, $rec->currencyId, $bgCountryId, " / ", true) : currency_Currencies::decorate($row->deliveryAmount, $settings->currencyId, true);
             }
         }
        
         if(round($rec->total, 4) != round($amountWithoutDelivery, 4) || $rec->freeDelivery == 'yes'){
             $row->amount = $Double->toVerbal($amountWithoutDelivery);
-            $row->amount = deals_Helper::displayDualAmount($row->amount, $amountWithoutDelivery, null, $rec->currencyId, $bgCountryId, " / ", true);
+            $row->amount = ($settings->lg == 'bg') ? deals_Helper::displayDualAmount($row->amount, $amountWithoutDelivery, null, $rec->currencyId, $bgCountryId, " / ", true) : $row->amount;
             $row->amountCurrencyId = $row->currencyId;
         }
         
         if (eshop_Carts::calcChargeVat($rec) == 'separate') {
             $row->totalVat = $Double->toVerbal($vatAmount);
-            $row->totalVat = deals_Helper::displayDualAmount($row->totalVat, $vatAmount, null, $rec->currencyId, $bgCountryId, " / ", true);
+            $row->totalVat = ($settings->lg == 'bg') ? deals_Helper::displayDualAmount($row->totalVat, $vatAmount, null, $rec->currencyId, $bgCountryId, " / ", true) : $row->totalVat;
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
@@ -2506,8 +2507,18 @@ class eshop_Carts extends core_Master
 
             // Задаване като опции
             if (countR($options)) {
-                $form->setDefault('makeInvoice', 'company');
-                $form->setField('makeInvoice', 'input=hidden');
+                if($settings->mandatoryEcartContactFields == 'both'){
+                    $defaultMakeInvoice = 'none';
+                    if($form->rec->saleFolderId){
+                        $Class = doc_Folders::getCover($form->rec->saleFolderId);
+                        $defaultMakeInvoice = $Class->isInstanceOf('crm_Persons') ? 'person' : 'company';
+                    }
+                    $form->setDefault('makeInvoice', $defaultMakeInvoice);
+                } else {
+                    $form->setDefault('makeInvoice', 'company');
+                    $form->setField('makeInvoice', 'input=hidden');
+                }
+
                 $form->setField('saleFolderId', 'input');
                 $form->setOptions('saleFolderId', $options);
                 
@@ -2516,7 +2527,7 @@ class eshop_Carts extends core_Master
                 $defaultFolder = ($companyFolderId) ? $companyFolderId : key($options);
                 $form->setDefault('saleFolderId', $defaultFolder);
             }
-            
+
             // Добавяне на партньорското условие на доставка
             $defaultTermId = cond_Parameters::getParameter('crm_Persons', $profileRec->id, 'deliveryTermSale');
             

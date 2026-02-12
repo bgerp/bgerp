@@ -14,6 +14,8 @@
  *
  * @since     v 0.1
  * @title     Информация за преминване към Евро
+ *
+ * @deprecated
  */
 class bgerp_drivers_UpdateToEur extends core_BaseClass
 {
@@ -22,7 +24,7 @@ class bgerp_drivers_UpdateToEur extends core_BaseClass
     /**
      * Максимален брой блокове, които да могат да се поакзват в портала
      */
-    public $maxCnt = 1;
+    public $maxCnt = 0;
 
 
     /**
@@ -51,7 +53,7 @@ class bgerp_drivers_UpdateToEur extends core_BaseClass
     public function canSelectDriver($userId = null)
     {
 
-        return true;
+        return false;
     }
     
     

@@ -29,7 +29,7 @@ abstract class deals_DealDetail extends doc_Detail
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'tolerance,term,autoDiscount,inputDiscount';
-    
+
 
     /**
      * Изчисляване на сумата на реда
@@ -99,7 +99,7 @@ abstract class deals_DealDetail extends doc_Detail
         
         // Цена за единица продукт в основна мярка
         $mvc->FLD('price', 'double', 'caption=Цена,input=none');
-        
+
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
         $mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,smartCenter');
         $mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
@@ -361,11 +361,10 @@ abstract class deals_DealDetail extends doc_Detail
                 if ($rec->productId) {
                     $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
                     $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
-
                     if (!isset($policyInfo->price)) {
                         $form->setError('packPrice', $Policy->notFoundPriceErrorMsg);
                     } else {
-                        
+
                         // Ако се обновява запис се взима цената от него, ако не от политиката
                         $price = $policyInfo->price;
                         if ($policyInfo->discount && !isset($rec->discount)) {
@@ -398,6 +397,9 @@ abstract class deals_DealDetail extends doc_Detail
             }
 
             if(!$form->gotErrors()){
+                $priceInCurrencyPure = deals_Helper::getPurePrice($price, $vat, 1, $masterRec->chargeVat);
+                $rec->priceInCurrency = $priceInCurrencyPure;
+
                 $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
                 $rec->price = $price;
             }

@@ -2010,6 +2010,12 @@ class sales_Sales extends deals_DealMaster
                         $form->setError('action', $error1);
                     }
                 }
+
+                if(isset($action['pay']) && core_Packs::isInstalled('bgfisc')){
+                    if($rec->currencyId == 'BGN' && bgfisc_Register::doRequireFiscForConto($mvc, $rec)){
+                        $form->setError('currencyId', 'Не може да се издаде касов бон на договор в лева|*!');
+                    }
+                }
             }
         }
     }

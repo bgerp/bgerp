@@ -388,7 +388,7 @@ class eshop_CartDetails extends core_Detail
                 $finalPrice = price_Lists::roundPrice($settings->listId, $finalPrice);
 
                 $row->finalPrice = core_Type::getByName('double(smartRound)')->toVerbal($finalPrice);
-                $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId);
+                $row->finalPrice = currency_Currencies::decorate($row->finalPrice, $settings->currencyId, true);
                 
                 if ($rec->oldPrice) {
                     $difference = round($finalPrice, 2) - round($rec->oldPrice, 2);
@@ -403,7 +403,7 @@ class eshop_CartDetails extends core_Detail
                 $rec->amount = $finalPrice * ($rec->quantity / $rec->quantityInPack);
                 $amount = currency_CurrencyRates::convertAmount($rec->amount, null, $rec->currencyId, $settings->currencyId);
                 $row->amount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-                $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId);
+                $row->amount = currency_Currencies::decorate($row->amount, $settings->currencyId, true);
             } else {
                 $row->finalPrice = "<span class='red'>N/A</span>";
                 $row->amount = "<span class='red'>N/A</span>";

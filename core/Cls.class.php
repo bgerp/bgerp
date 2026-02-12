@@ -497,6 +497,13 @@ class core_Cls
     public static function existsMethod($class, $methodName)
     {
         if (is_scalar($class)) {
+            if (!cls::load($class, true)) {
+
+                wp('Подадено грешно име на клас', $class, $methodName);
+
+                return false;
+            }
+
             $classObj = cls::get($class);
         } else {
             $classObj = $class;

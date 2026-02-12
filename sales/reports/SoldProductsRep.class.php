@@ -43,7 +43,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryRowCaption = 'ОБЩО';
+    protected $summaryRowCaption = 'ОБЩО [EUR]';
 
 
     /**
@@ -939,7 +939,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
 
                         $quantityLastYear = $recPrime->quantity;
-                        $primeCostLastYear = $pricePr * $recPrime->quantity * 1.95583;
+                        $primeCostLastYear = $pricePr * $recPrime->quantity ;
 
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                         // приемаме че, себестойността е 95% от продажната цена
@@ -990,8 +990,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $quantity = (-1) * $recPrime->quantity;
 
                     //Превалутиране
-                    $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
-                    $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+                    if($rec->quantityType != 'shipped'){
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                    }else{
+                        $pricePr = $recPrime->{"${price}"};
+                    }
+                    if($rec->quantityType != 'shipped'){
+
+                        $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+                    }
 
                     $primeCost = (-1) * $pricePr * $recPrime->quantity;
 
@@ -1001,24 +1008,36 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $quantity = $recPrime->quantity;
 
                     //Превалутиране
-                    $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                    if($rec->quantityType != 'shipped'){
 
-                    $primeCost = $pricePr * $recPrime->quantity * 1.95583;
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                    }else{
+                        $pricePr = $recPrime->{"${price}"};
+                    }
+
+                    $primeCost = $pricePr * $recPrime->quantity;
 
                     //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
                     // приемаме че, себестойността е 95% от продажната цена
                     if ($rec->primeCostType == 'dealerPrimeCost' && $recPrime->delta <= 0 && $prodRec->isPublic == 'no') {
 
                         //Превалутиране
-                        $recPrime->sellCost = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, $recPrime->valior, $rec->to);
+                        if($rec->quantityType != 'shipped'){
+                            $recPrime->sellCost = deals_Helper::getSmartBaseCurrency($recPrime->sellCost, $recPrime->valior, $rec->to);
+                        }
 
-                        $delta = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity * 1.95583;
+                        $delta = $recPrime->sellCost * $deltaMinCoef * $recPrime->quantity ;
+
                     } else {
 
                         //Превалутиране
-                        $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
 
-                        $delta = $recPrime->delta * 1.95583;
+                        if($rec->quantityType != 'shipped'){
+
+                            $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
+                        }
+
+                        $delta = $recPrime->delta ;
                     }
 
                 } elseif ($DetClass instanceof sales_InvoiceDetails) {
@@ -1028,8 +1047,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $quantity = $recPrime->quantity * $recPrime->quantityInPack;
 
                         //Превалутиране
-                        $recPrime->price = deals_Helper::getSmartBaseCurrency($recPrime->price, $recPrime->valior, $rec->to);
-                        $recPrime->discount = deals_Helper::getSmartBaseCurrency($recPrime->discount, $recPrime->valior, $rec->to);
+                        if($rec->quantityType != 'shipped'){
+
+                             $recPrime->price = deals_Helper::getSmartBaseCurrency($recPrime->price, $recPrime->valior, $rec->to);
+                             $recPrime->discount = deals_Helper::getSmartBaseCurrency($recPrime->discount, $recPrime->valior, $rec->to);
+
+                        }
 
                         $discount = $recPrime->price * $quantity * $recPrime->discount;
                         $primeCost = ($recPrime->price * $quantity) - $discount;
@@ -1767,6 +1790,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $row = new stdClass();
 
+        $euroZoneDate = acc_Setup::getEurozoneDate();
+        $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->checkDate);
+
         //Извеждане на реда с ОБЩО
         if (isset($dRec->totalValue)) {
             $row->productId = '<b>' . 'ОБЩО ЗА ПЕРИОДА:' . '</b>';
@@ -1902,8 +1928,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             foreach (array(
                          'quantity',
-                         'primeCost',
-                         'delta',
                          'invQuantity',
                          'invAmount',
                          'weight'
@@ -1911,6 +1935,37 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 if (!isset($dRec->{$fld})) {
                     continue;
                 }
+
+                ////////////////////////////////////////////////////////////////////////
+                // Ако справката се издава за период преди еврозоната с основна валута BGN
+                if ($rec->to < $euroZoneDate) {
+                    if ($rec->quantityType != 'shipped') {
+                        $row->primeCost = $Double->toVerbal($dRec->primeCost);
+                        $row->delta = $Double->toVerbal($dRec->delta);
+                    } else {
+                        $row->primeCost = $Double->toVerbal($dRec->primeCost * 1.95583);
+                        $row->delta = $Double->toVerbal($dRec->delta * 1.95583);
+                    }
+                }
+
+                ///////////////////////////////////////////////////////////////////////
+                // Ако справката се издава за период ОТ ЕВРОЗОНАТА с основна валута EUR
+                if ($rec->to > $euroZoneDate) {
+
+
+                    if ($rec->quantityType != 'shipped') {
+                        $row->primeCost = $Double->toVerbal($dRec->primeCost);
+                        $row->delta = $Double->toVerbal($dRec->delta);
+                    } else {
+                        $row->primeCost = $Double->toVerbal($dRec->primeCost );
+                        $row->delta = $Double->toVerbal($dRec->delta );
+                    }
+
+
+
+
+                }
+
 
                 $row->{$fld} = $Double->toVerbal($dRec->{$fld});
                 $row->{$fld} = ht::styleNumber($row->{$fld}, $dRec->{$fld});
