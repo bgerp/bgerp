@@ -673,10 +673,10 @@ class rack_Zones extends core_Master
             $fRec = $form->rec;
             if(isset($zoneRec->id)){
                 if($fRec->zoneId != $zoneRec->id){
-                    if(!$this->haveRightFor('removedocument', $zoneRec->id)){
-                        $form->setError('zoneId', "Нямате права да премахнете документа от Зона:|*" . rack_Zones::getRecTitle($zoneRec->id, false));
-                    } elseif(rack_Movements::fetch("LOCATE('|{$zoneRec->id}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
+                    if(rack_Movements::fetch("LOCATE('|{$zoneRec->id}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
                         $form->setError('zoneId', "Не може да премахнете документа от зона|* <b>" . rack_Zones::getDisplayZone($zoneRec->id) . "</b>, |защото има вече запазени или започнати движения. Документът може да бъде премахнат след отказването им|*!");
+                    } elseif(!$this->haveRightFor('removedocument', $zoneRec->id)){
+                        $form->setError('zoneId', "Нямате права да премахнете документа от Зона:|*" . rack_Zones::getRecTitle($zoneRec->id, false));
                     }
                 } elseif($fRec->defaultUserId == $zoneRec->defaultUserId) {
                     $form->setError('zoneId,defaultUserId', "Зоната и изпълнителя са същите");
@@ -764,8 +764,8 @@ class rack_Zones extends core_Master
         if($remove){
 
             // Ако документа се премахва от зоната, изтриват се чакащите движения към тях
-            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending' AND #modifiedBy = -1");
-            rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}' NOT MODIFIED BY USER");
+            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending'");
+            rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}' (ALL - incl. MODIFIED BY USER)");
         }
 
         // Обновяване на информацията в зоната
