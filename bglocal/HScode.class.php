@@ -70,9 +70,10 @@ class bglocal_HScode extends core_Master
         $this->FLD('chapterName', 'text', 'caption=Глава->име');
         $this->FLD('headingId', 'varchar(4)', 'caption=Подглава->код');
         $this->FLD('headingName', 'text', 'caption=Подглава->име');
-        $this->FLD('level', 'int(4)', 'caption=Степен на подробност на съответния код на продукта');
-        $this->FLD('cnCode', 'varchar(8)', 'caption=Код по КН');
-        $this->FLD('title', 'text', 'caption=Описание на стоката');
+        $this->FLD('level', 'int(4)', 'caption=Степен->Степен на подробност на съответния код на продукта');
+        $this->FLD('cnCode', 'varchar(8)', 'caption=Стока->Код по КН');
+        $this->FLD('title', 'text', 'caption=Стока->Описание на стоката');
+        $this->FLD('name', 'text', 'input=none');
         
         $this->setDbIndex('cnCode');
     }
@@ -96,9 +97,9 @@ class bglocal_HScode extends core_Master
     /**
      * Изпълнява се преид импортирването на запис
      */
-    public static function on_BeforeImportRec($mvc, $rec)
+    public static function on_AfterImportRec($mvc, $rec)
     {
-        //$rec->title = $rec->cnCode . ' ' . $rec->title;
+        $rec->name = $rec->cnCode . ' ' . $rec->title;
     }
     
 
@@ -147,6 +148,7 @@ class bglocal_HScode extends core_Master
         
         $rows = [];
         while ($rec = $query->fetch()) {
+           
             $rows[] = $rec;
         }
         
@@ -191,7 +193,7 @@ class bglocal_HScode extends core_Master
                     if ($rec->sectionId == $sId && $rec->chapterId == $chId) {
                         
                         $code = $rec->cnCode ?? '';
-                        
+                       
                         $res[$rec->id] = $code
                         ? "{$code} {$rec->title}"
                         : $rec->title;
@@ -199,6 +201,8 @@ class bglocal_HScode extends core_Master
                 }
             }
         }
+        
+      
         
         return $res;
     }
