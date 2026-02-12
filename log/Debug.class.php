@@ -69,6 +69,9 @@ class log_Debug extends core_Manager
      * При дъмп - колко нива са отворени
      */
     protected $dumpViewLevels = 5;
+
+
+
     
     
     /**
@@ -162,7 +165,7 @@ class log_Debug extends core_Manager
         $defUser = PHP_INT_MAX;
         $debugFileName = null;
         if ($debugFile = Request::get('debugFile')) {
-            Mode::set('stopLoggingDebug', true);
+            core_Debug::$stopLoggingDebug = true;
             $debugFileName = $debugFile . '.debug';
             $defUser = core_Users::getCurrent();
         } else {
@@ -428,7 +431,7 @@ class log_Debug extends core_Manager
         
         expect($debugFile);
         
-        Mode::set('stopLoggingDebug', true);
+        core_Debug::$stopLoggingDebug = true;
         
         $fPath = $this->getDebugFilePath($debugFile);
         

@@ -330,7 +330,7 @@ class core_Embedder extends core_Master
      */
     public static function on_AfterRead($mvc, $rec)
     {
-        if (cls::load($rec->{$mvc->innerClassField}, true)) {
+        if (cls::load($rec->{$mvc->innerClassField} ?? null, true)) {
             $innerDrv = cls::get($rec->{$mvc->innerClassField});
             
             return $innerDrv->invoke('AfterRead', array(&$rec->{$mvc->innerStateField}, &$rec));

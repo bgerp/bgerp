@@ -45,14 +45,14 @@ class doc_RichTextPlg extends core_Plugin
     {
         $this->mvc = $mvc;
         
-        if ($mvc->params['hndToLink'] != 'no') {
+        if (($mvc->params['hndToLink'] ?? null) != 'no') {
  
             //Ако намери съвпадение на регулярния израз изпълнява функцията
             $html = preg_replace_callback(self::$patternWiki, array($this, '_catchWiki'), $html);
             $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
         }
         
-        if ($mvc->params['nickToLink'] != 'no') {
+        if (($mvc->params['nickToLink'] ?? null) != 'no') {
             // Прихваща всички никове в ричтекста
             $html = preg_replace_callback(rtac_Plugin::$pattern, array($this, '_catchNick'), $html);
         }
@@ -83,7 +83,7 @@ class doc_RichTextPlg extends core_Plugin
             return $html;
         }
         
-        $hideLen = $rt->params['hideTextAfterLength'];
+        $hideLen = $rt->params['hideTextAfterLength'] ?? null;
 
         if (!$hideLen) {
             $conf = core_Packs::getConfig('doc');

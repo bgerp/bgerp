@@ -263,6 +263,8 @@ function reportException($e, $update = null, $supressShowing = true)
     
     $state = core_Debug::prepareErrorState($errType, $errTitle, $errDetail, $dump, $stack, $contex, $breakFile, $breakLine, $update);
     
+    $type = null;
+
     if (method_exists($e, 'getType')) {
         $type = $e->getType();
     }
@@ -336,7 +338,7 @@ function getRandomString($length = 14)
  */
 function logHitState($debugCode = '200', $state = array())
 {
-    if (defined('DEBUG_FATAL_ERRORS_FILE') && @!Mode::is('stopLoggingDebug')) {
+    if (defined('DEBUG_FATAL_ERRORS_FILE') && core_Debug::$stopLoggingDebug) {
         
         // Максимална стойност за дебъг времената
         $maxDebugTimeCnt = 3000;
@@ -352,7 +354,10 @@ function logHitState($debugCode = '200', $state = array())
                 $dataArr = json_last_error();
                 $dataArr .= array('jsonData' => ' Unserialize: ' . $data);
             }
-        }
+        }  
+        
+        // PHP8.2
+        if(!isset($dataArr) || !$dataArr) return;
         
         $state += (array)$dataArr;
         
@@ -398,8 +403,8 @@ function logHitState($debugCode = '200', $state = array())
         
         $state['_executionTime'] = $execTime;
         
-        $state['_Ctr'] = $_GET['Ctr'] ? $_GET['Ctr'] : 'Index';
-        $state['_Act'] = $_GET['Act'] ? $_GET['Act'] : 'default';
+        $state['_Ctr'] = ($_GET['Ctr'] ?? null) ? $_GET['Ctr'] : 'Index';
+        $state['_Act'] = ($_GET['Act'] ?? null) ? $_GET['Act'] : 'default';
         $state['_dbName'] = EF_DB_NAME;
         $state['_info'] = 'DB: ' . EF_DB_NAME . ' » Ctr: ' . $state['_Ctr'] . ' » Act: ' . $state['_Act'];
         $state['_debugCode'] = $debugCode;
@@ -468,6 +473,53 @@ function getFullPath($shortPath, $usePrivate = true)
     return core_App::getFullPath($shortPath, $usePrivate);
 }
 
+/**
+ * Проверява дали се намираме в докер среда
+ */
+function isDocker(): bool
+{
+    return is_file('/.dockerenv') || is_file('/run/.containerenv');
+}
+
+/**
+ * Взема ключ от масив или пропърти от обект, ако е фефинирано.
+ * Иначе връща null
+ */
+function getPart($target, $key)
+{
+    if (is_array($target)) {
+        return $target[$key] ?? null;
+    }
+
+    if (is_object($target)) {
+        return $target->$key ?? null;
+    }
+
+    return null;
+}
+
+/**
+ * Задава, ако не е зададено пропърти на обект или ключ на масив
+ */
+function setPartIfNot(&$target, $key, ...$values)
+{
+    if (getPart($target, $key) !== null) {
+        return;
+    }
+            
+    foreach ($values as $value) {
+        if ($value !== null) {
+            if (is_array($target)) {
+                $target[$key] = $value;
+            } elseif (is_object($target)) {
+                $target->$key = $value;
+            }
+            return $value;
+        }
+    }
+
+    return null;
+}
 
 /**
  * Връща съдържанието на файла, като стринг

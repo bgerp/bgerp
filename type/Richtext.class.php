@@ -80,11 +80,11 @@ class type_Richtext extends type_Blob
     public function init($params = array())
     {
         // По подразбиране да се компресира
-        setIfNot($params['params']['compress'], 'compress');
-        
+        setPartIfNot($params['params'], 'compress', 'compress');
+
         // По подразбиране е средно голямо
-        setIfNot($params['params']['size'], 1000000);
-        
+        setPartIfNot($params['params'], 'size', '1000000');
+
         // Ако е зададено да не се компресира
         if ($params['params']['compress'] == 'no') {
             
@@ -92,10 +92,12 @@ class type_Richtext extends type_Blob
             unset($params['params']['compress']);
         }
 
-        setIfNot($params['rolesForTagCheck'], 'no_one');
+        // setIfNot($params['rolesForTagCheck'], 'no_one'); ?
+        setPartIfNot($params['params'], 'rolesForTagCheck', 'no_one');
 
-        setIfNot($this->viewrows, $params['params']['viewrows'], $params['viewrows'], 6);
-        
+        // setIfNot($this->viewrows, $params['params']['viewrows'], $params['viewrows'], 6);
+        setPartIfNot($this, 'viewrows', $params['params']['viewrows'] ?? null, $params['viewrows'] ?? null, 6);
+
         parent::init($params);
     }
 
@@ -320,7 +322,7 @@ class type_Richtext extends type_Blob
         $html = $this->replaceTables($html);
         
         //Ако няма параметър noTrim, тогава тримваме стойността
-        if (!$this->params['noTrim']) {
+        if (empty($this->params['noTrim'])) {
             
             //Тримвано стойността
             $html = trim($html);
@@ -374,6 +376,7 @@ class type_Richtext extends type_Blob
             // Заменяме обикновените интервали в началото на всеки ред, с непрекъсваеми такива
             $newLine = true;
             $sp = '';
+            $out = '';
             $htmlLen = strlen($html);
             for ($i = 0; $i < $htmlLen; $i++) {
                 $c = substr($html, $i, 1);
@@ -507,7 +510,7 @@ class type_Richtext extends type_Blob
         $lines[] = '';
         $textMode = Mode::get('text');
         $state = array();
-        
+        $res = '';
         $linesCnt = countR($lines);
         
         for ($i = 0; $i < $linesCnt; $i++) {
@@ -560,7 +563,7 @@ class type_Richtext extends type_Blob
             }
             
             if ($level == $oldLevel) {
-                if ($type != ($oldType = $state[$oldLevel - 1])) {
+                if ($type != ($oldType = ($state[$oldLevel - 1] ?? null))) {
                     if ($oldType) {
                         $res .= "</{$oldType}>" . '<br>';
                     }
@@ -707,6 +710,8 @@ class type_Richtext extends type_Blob
      */
     public static function getRichTextPatternForBold()
     {
+        $boldTextPattern = '';
+
         // Ако не е сетнат шаблона
         if (!isset(self::$boldPattern)) {
             
@@ -1336,6 +1341,8 @@ class type_Richtext extends type_Blob
         $lines = explode("\n", $html);
         
         $table = false;
+
+        $out = '';
         
         foreach ($lines as $l) {
             if ($l[0] == '|') {

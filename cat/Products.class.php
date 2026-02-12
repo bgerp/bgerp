@@ -792,15 +792,15 @@ class cat_Products extends embed_Manager
         $fields['_sharedFolders'] = array('caption' => 'Допълнителен избор->Достъпно в', 'notColumn' => true, 'type' => $sharedType, 'suggestions' => $sharedFolderSuggestions);
         $fields['Meta'] = array('caption' => 'Допълнителен избор->Свойства', 'notColumn' => true, 'type' => $metaType);
         
-        if (!$mvc->fields['Category']) {
+        if (empty($mvc->fields['Category'])) {
             $mvc->FNC('Category', $categoryType);
         }
         
-        if (!$mvc->fields['Groups']) {
+        if (empty($mvc->fields['Groups'])) {
             $mvc->FNC('Groups', $groupType);
         }
         
-        if (!$mvc->fields['Meta']) {
+        if (empty($mvc->fields['Meta'])) {
             $mvc->FNC('Meta', $metaType);
         }
     }

@@ -33,17 +33,17 @@ class acc_plg_Contable extends core_Plugin
             $mvc->FLD('isContable', 'enum(yes,no,activate)', 'input=none,notNull,value=no');
         }
         
-        setIfNot($mvc->canDebugreconto, 'debug');
-        setIfNot($mvc->canCorrection, 'ceo, accMaster');
-        setIfNot($mvc->currencyFld, 'currencyId');
-        setIfNot($mvc->valiorFld, 'valior');
-        setIfNot($mvc->lockBalances, false);
-        setIfNot($mvc->fieldsNotToClone, $mvc->valiorFld);
-        setIfNot($mvc->canViewpsingle, 'powerUser');
-        setIfNot($mvc->moveDocToFolder, false);
-        setIfNot($mvc->checkCurrencyWhenConto, false);
-        setIfNot($mvc->autoHideDoc, false); // @see doc_HiddenContainers - да не се скрива автоматично
-        setIfNot($mvc->ignoreListCheckOnNullWhenConto, null);
+        setPartIfNot($mvc, 'canDebugreconto', 'debug');
+        setPartIfNot($mvc, 'canCorrection', 'ceo, accMaster');
+        setPartIfNot($mvc, 'currencyFld', 'currencyId');
+        setPartIfNot($mvc, 'valiorFld', 'valior');
+        setPartIfNot($mvc, 'lockBalances', false);
+        setPartIfNot($mvc, 'fieldsNotToClone', $mvc->valiorFld ?? null);
+        setPartIfNot($mvc, 'canViewpsingle', 'powerUser');
+        setPartIfNot($mvc, 'moveDocToFolder', false);
+        setPartIfNot($mvc, 'checkCurrencyWhenConto', false);
+        setPartIfNot($mvc, 'autoHideDoc', false); // @see doc_HiddenContainers - да не се скрива автоматично
+        setPartIfNot($mvc, 'ignoreListCheckOnNullWhenConto', null);
 
         // Зареждаме плъгина, който проверява може ли да се оттегли/възстанови докумена
         $mvc->load('acc_plg_RejectContoDocuments');
@@ -58,7 +58,7 @@ class acc_plg_Contable extends core_Plugin
         if (!empty($mvc->fields[$mvc->valiorFld]) && !isset($mvc->dbIndexes[$mvc->valiorFld])) {
             $mvc->setDbIndex($mvc->valiorFld);
         }
-        setIfNot($mvc->createView, true);
+        setPartIfNot($mvc, 'createView', true);
     }
     
     

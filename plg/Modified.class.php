@@ -33,7 +33,7 @@ class plg_Modified extends core_Plugin
      */
     public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = null)
     {
-        if (!$rec->_notModified) {
+        if (empty($rec->_notModified)) {
             // Определяме кой е модифицирал записа
             $rec->modifiedBy = Users::getCurrent();
             

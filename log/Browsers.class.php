@@ -497,7 +497,7 @@ class log_Browsers extends core_Master
     public static function add($brid)
     {
         static $sBridArr = array();
-        if ($sBridArr[$brid]) {
+        if ($sBridArr[$brid] ?? null) {
 
             return ;
         }

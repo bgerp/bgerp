@@ -619,7 +619,7 @@ class core_Manager extends core_Mvc
      */
     public function prepareListFilter_($data)
     {
-        if (!$data->listFilter) {
+        if (empty($data->listFilter)) {
             $formParams = array(
                 'method' => 'GET',
                 'toolbar' => ht::createSbBtn('Филтър')
@@ -631,7 +631,7 @@ class core_Manager extends core_Mvc
             }
         }
         
-        if ($data->ListId) {
+        if (!empty($data->ListId)) {
             $data->query->where($data->ListId);
         }
         
@@ -739,9 +739,9 @@ class core_Manager extends core_Mvc
     {
         $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') <= 1000) ?
         Request::get('PerPage', 'int') : $this->listItemsPerPage;
-        setIfNot($data->useExactPaging, $this->useExactPaging, false);
+        setPartIfNot($data, 'useExactPaging', $this->useExactPaging ?? null, false);
         if ($perPage) {
-            $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar, 'exactPaging' => $data->useExactPaging));
+            $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar ?? null, 'exactPaging' => $data->useExactPaging ?? null));
             $data->pager->itemsPerPage = $perPage;
             if (isset($data->rec->id)) {
                 $data->pager->setPageVar($this->className, $data->rec->id);
@@ -798,7 +798,7 @@ class core_Manager extends core_Mvc
     public function prepareListRecs_(&$data)
     {
         // Добавяме лимит според страньора, ако има такъв
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $data->pager->setLimit($data->query);
         }
         

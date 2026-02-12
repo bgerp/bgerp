@@ -292,7 +292,7 @@ class core_ET extends core_BaseClass
             }
         }
         
-        if ($this->removablePlaces) {
+        if ($this->removablePlaces ?? null) {
             foreach ($this->removablePlaces as $p) {
                 $place = $this->toPlace($p);
                 $this->content = str_replace($place, '', $this->content);
@@ -470,7 +470,7 @@ class core_ET extends core_BaseClass
                     if ($sub->once) {
                         $md5 = md5($sub->str);
                         
-                        if ($this->once[$md5]) {
+                        if (!empty($this->once[$md5])) {
                             continue;
                         }
                         $this->once[$md5] = true;
@@ -516,7 +516,7 @@ class core_ET extends core_BaseClass
             }
             
             // Прехвърля в мастер шаблона всички плейсхолдери, които трябва да се заличават
-            if (countR($content->removablePlaces)) {
+            if (countR($content->removablePlaces ?? null)) {
                 foreach ($content->removablePlaces as $place) {
                     $this->removablePlaces[$place] = $place;
                 }
@@ -537,7 +537,7 @@ class core_ET extends core_BaseClass
         if (is_object($content) && (is_a($content, 'et') || is_a($content, 'core_Et'))) {
             if (countR($content->removableBlocks)) {
                 foreach ($content->removableBlocks as $name => $md5) {
-                    if (!$this->removableBlocks[$name]) {
+                    if (empty($this->removableBlocks[$name])) {
                         $this->removableBlocks[$name] = $md5;
                     }
                 }
@@ -565,7 +565,7 @@ class core_ET extends core_BaseClass
             
             $md5 = md5($str);
             
-            if ($this->once[$md5]) {
+            if (!empty($this->once[$md5])) {
                 
                 return $this;
             }
@@ -702,7 +702,7 @@ class core_ET extends core_BaseClass
         
         $redirectArr = $this->getArray('_REDIRECT_');
         
-        if (is_array($redirectArr) && $redirectArr[0]) {
+        if (is_array($redirectArr) && ($redirectArr[0] ?? null)) {
             $msgArr = Mode::get('redirectMsg');
             
             redirect($redirectArr[0], false, $msgArr['msg'], $msgArr['type']);
