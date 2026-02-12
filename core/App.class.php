@@ -209,7 +209,7 @@ class core_App
                 }
                 
                 if ((countR($vUrl) - $id) % 2 || floor($prm) > 0) {
-                    if (!isset($q['id']) && empty($name)) {
+                    if (!isset($q['id']) && !$name) {
                         $q['id'] = urldecode($prm);
                     } else {
                         if ($name) {
@@ -812,7 +812,7 @@ class core_App
             }
             
             // Премахваме защитата на id-то, ако има такава
-            if (!empty($get['id']) && $unprotect) {
+            if ($get['id'] && $unprotect) {
                 expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'), $get['id'], strlen($get['id']));
             }
             
@@ -881,7 +881,7 @@ class core_App
             $url .= '/' . $arr['Ctr'];
             $url .= '/' . $arr['Act'];
             
-            if (strlen($arr['id'] ?? '') > 0) {
+            if (strlen($arr['id']) > 0) {
                 $url .= '/' . $arr['id'];
             }
             unset($arr['App'], $arr['Ctr'], $arr['Act'], $arr['id']);
@@ -975,7 +975,7 @@ class core_App
             $params['App'] = $Request->get('App');
         }
         
-        if (isset($params['Ctr']) && is_string($params['Ctr']) && !$params['Ctr']) {
+        if (is_string($params['Ctr']) && !$params['Ctr']) {
             $params['Ctr'] = EF_DEFAULT_CTR_NAME;
         }
         
@@ -1034,7 +1034,7 @@ class core_App
         // Задължително слагаме контролера
         $pre = '/' . $params['Ctr'] . '/';
         
-        if (isset($params['Act']) && (strtolower($params['Act']) !== 'default' || ($params['id'] ?? null))) {
+        if (isset($params['Act']) && (strtolower($params['Act']) !== 'default' || $params['id'])) {
             $pre .= $params['Act'] . '/';
         }
         
@@ -1074,8 +1074,6 @@ class core_App
             unset($params['#']);
         }
         
-        $urlQuery = '';
-
         if (countR($params)) {
             $urlQuery = http_build_query($params);
         }
@@ -1123,7 +1121,7 @@ class core_App
     {
         $s = (empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on')) ? 's' : '';
 
-        if (!$s && ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null) == 'https') {
+        if (!$s && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
             $s = 's';
         }
 
@@ -1152,7 +1150,7 @@ class core_App
         if ($absolute) {
             $s = (empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on')) ? 's' : '';
 
-            if (!$s && ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null) == 'https') {
+            if (!$s && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
                 $s = 's';
             }
 
@@ -1166,8 +1164,8 @@ class core_App
             
             $dirName = str_replace(DIRECTORY_SEPARATOR, '/', $dirName);
             
-            if ($username = ($_SERVER['PHP_AUTH_USER'] ?? null)) {
-                $password = $_SERVER['PHP_AUTH_PW'] ?? '';
+            if ($username = $_SERVER['PHP_AUTH_USER']) {
+                $password = $_SERVER['PHP_AUTH_PW'];
                 $auth = $username . ':' . $password . '@';
             } else {
                 $auth = '';

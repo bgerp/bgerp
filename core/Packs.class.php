@@ -101,8 +101,7 @@ class core_Packs extends core_Manager
         
         // Дали в момента не се инсталира?
         if ($rightNow) {
-            if (
-                isset($me->alreadySetup) && isset($me->alreadySetup[$name . true]) && $me->alreadySetup[$name . true]) {
+            if ($me->alreadySetup[$name . true] || $me->alreadySetup[$name . true]) {
                 
                 return true;
             }

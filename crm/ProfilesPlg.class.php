@@ -41,7 +41,7 @@ class crm_ProfilesPlg extends core_Plugin
         $fieldsCnt = countR($fields);
         
         // Показваме никовете, като линкове, само при лист и сингъл изглед
-        if (!empty($fields['-list']) || !empty($fields['-single']) || empty($fieldsCnt)) {
+        if ($fields['-list'] || $fields['-single'] || !$fieldsCnt) {
             $fieldsArr = $mvc->selectFields();
             foreach ($fieldsArr as $name => $field) {
                 if ($fieldsCnt && !$fields[$name]) {

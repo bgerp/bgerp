@@ -83,7 +83,7 @@ class plg_ExpandInput extends core_Plugin
             $caption = 'caption=' . $expandField->caption;
             
             // Ако полето е мандатори
-            if ($expandField->mandatory ?? null) {
+            if ($expandField->mandatory) {
                 $caption .= ',mandatory';
             }
             

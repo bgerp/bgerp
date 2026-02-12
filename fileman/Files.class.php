@@ -683,10 +683,6 @@ class fileman_Files extends core_Master
         // Пътя до директория с временните файлове
         $tempDir = fileman_Setup::get('TEMP_PATH');
         
-        if(!is_dir($tempDir)) {
-            mkdir($tempDir, 0755, true);
-        }
-
         return $tempDir;
     }
     

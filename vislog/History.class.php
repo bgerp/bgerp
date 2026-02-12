@@ -126,7 +126,7 @@ class vislog_History extends core_Manager
             }
         } else {
             
-            return $rec->id ?? null;
+            return $rec->id;
         }
     }
     
@@ -180,11 +180,11 @@ class vislog_History extends core_Manager
     public static function on_BeforeSave($mvc, $id, &$rec)
     {
         // Поставяме IP ако липсва
-        if (empty($rec->ip)) {
+        if (!$rec->ip) {
             $rec->ip = type_Ip::getRealIp();
         }
         
-        if (!empty($rec->brid)) {
+        if (!$rec->brid) {
             $rec->brid = log_Browsers::getBrid();
         }
         

@@ -30,7 +30,7 @@ class plg_Current extends core_Plugin
             $modeKey = self::getModeKey($mvc->className);
 
             // Опитваме се да вземем от сесията текущия обект
-            $res = Mode::get($modeKey)->{$part} ?? null;
+            $res = Mode::get($modeKey)->{$part};
             
             // Ако в сесията го има обекта, връщаме го
             if ($res) {

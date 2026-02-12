@@ -34,14 +34,14 @@ class type_Password extends type_Varchar
         
         // Само за дебъг
         // !isDebug() || $attr['title'] = $value;
-        if (!empty($this->params['show'])) {
+        if ($this->params['show']) {
             $attr['type'] = 'text';
             $attr['style'] = ';color:#999; font-size:0.8em;padding:1em 0.3em;letter-spacing:0.05em; text-shadow: 3px 0px 5px #888, -3px 0px 5px #888, 0px 3px 5px #888, 0px -3px 5px #888, 2px 2px 5px #888, -2px 2px 5px #888, -2px 2px 5px #888, -2px -2px 5px #888, 0px 0px 5px #888';
-        } elseif ($value && empty($this->params['allowEmpty'])) {
+        } elseif ($value && !$this->params['allowEmpty']) {
             $value = self::EF_PASS_NO_CHANGE;
             $attr['onfocus'] = "this.type='password'; if(this.value == '" . self::EF_PASS_NO_CHANGE . "') this.select();";
         } else {
-            if (($attr['type'] ?? null) === 'text') {
+            if ($attr['type'] == 'text') {
                 $attr['onfocus'] = "this.type='password';";
             }
             if ($value) {
@@ -52,7 +52,7 @@ class type_Password extends type_Varchar
         
         $this->params['noTrim'] = 'noTrim';
         
-        if (($attr['size'] ?? null) < 32) {
+        if ($attr['size'] < 32) {
             $this->maxFieldSize = 10;
         }
         

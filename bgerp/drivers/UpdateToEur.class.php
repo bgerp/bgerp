@@ -111,7 +111,7 @@ class bgerp_drivers_UpdateToEur extends core_BaseClass
             }
         }
 
-        if (empty($data->tpl)) {
+        if (!$data->tpl) {
             $data->tpl = new ET('
                                 <div class="clearfix21 portal" style="margin-bottom:25px;">
                                 <div class="legend">' . tr('Подготовка за преминаване към EUR') . '</div>

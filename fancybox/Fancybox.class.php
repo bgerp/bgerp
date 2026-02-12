@@ -39,7 +39,7 @@ class fancybox_Fancybox extends core_Manager
         }
         
         // Ако е зададено да е абсолютен линк
-        $isAbsolute = $imgAttr['isAbsolute'] ?? null;
+        $isAbsolute = $imgAttr['isAbsolute'];
         
         // Премахваме от масива
         unset($imgAttr['isAbsolute']);
@@ -52,8 +52,8 @@ class fancybox_Fancybox extends core_Manager
         if (is_int($thumbSize)) {
             $thumbWidth = $thumbHeight = $thumbSize;
         } elseif (is_array($thumbSize)) {
-            $thumbWidth = $thumbSize['width'] ?? $thumbSize[0];
-            $thumbHeight = $thumbSize['height'] ?? $thumbSize[1];
+            setIfNot($thumbWidth, $thumbSize['width'], $thumbSize[0]);
+            setIfNot($thumbHeight, $thumbSize['height'], $thumbSize[1]);
         } else {
             expect(false, $thumbSize);
         }
@@ -74,8 +74,8 @@ class fancybox_Fancybox extends core_Manager
         if (is_int($maxSize)) {
             $bigWidth = $bigHeight = $maxSize;
         } elseif (is_array($thumbSize)) {
-            $bigWidth = $maxSize['width'] ?? $maxSize[0] ?? null;
-            $bigHeight = $maxSize['height'] ?? $maxSize[1] ?? null;
+            setIfNot($bigWidth, $maxSize['width'], $maxSize[0]);
+            setIfNot($bigHeight, $maxSize['height'], $maxSize[1]);
         } else {
             expect(false, $maxSize);
         }
@@ -94,7 +94,7 @@ class fancybox_Fancybox extends core_Manager
         }
         
         setIfNot($aAttr['rel'], $maxSize[0] . '_' . $maxSize[1]);
-        $aAttr['class'] = ($aAttr['class'] ?? '') . ' fancybox';
+        $aAttr['class'] .= ' fancybox';
         $tpl = ht::createElement('a', $aAttr, $imgTpl);
         
         // Когато отпечатваме да не сработва плъгина

@@ -61,9 +61,8 @@ class core_Request
         $prot = self::get('Protected');
         
         if ($prot) {
-            
             $prot = str::checkHash($prot, 16);
-             
+            
             if ($prot) {
                 $prot = base64_decode($prot);
                 
@@ -186,13 +185,13 @@ class core_Request
     {
         if (self::$protected) {
             foreach (arr::make(self::$protected) as $name) {
-                if (!empty($arr[$name])) {
+                if ($arr[$name]) {
                     $prot[$name] = $arr[$name];
                     unset($arr[$name]);
                 }
             }
 
-            if (isset($prot) && is_array($prot)) {
+            if (is_array($prot)) {
                 $prot = serialize($prot);
                 $prot = gzcompress($prot);
                 $prot = base64_encode($prot);
@@ -358,8 +357,7 @@ class core_Request
         static $count = 0;
         $count++;
         $varsName = 'forward' . $count;
-        $mustPop = null;
-
+        
         // Преобразуваме от поредни към именовани параметри
         if (isset($vars[0]) && !isset($vars['Ctr'])) {
             $vars['Ctr'] = $vars[0];

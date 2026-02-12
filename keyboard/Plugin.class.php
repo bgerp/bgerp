@@ -29,8 +29,7 @@ class keyboard_Plugin extends core_Plugin
             return;
         }
         
-        if (strpos(($attr['ondblclick'] ?? ''), 'showKeyboard') === false) {
-            $attr['ondblclick'] ??= '';
+        if (strpos($attr['ondblclick'], 'showKeyboard') === false) {
             $attr['ondblclick'] .= '; showKeyboard(this, event.clientX);';
         }
     }

@@ -375,11 +375,9 @@ class core_ProtoSetup
      */
     public static function get($name, $absolute = false, $userId = null)
     {
-        $prefix = '';
-
         if (!$absolute) {
             $prefix = strtoupper(self::getPackName()) . '_';
-        }  
+        }
         
         $name = $prefix . $name;
         

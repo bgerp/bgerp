@@ -315,7 +315,7 @@ class thumb_Img
      */
     public function getHash()
     {
-        if (empty($this->hash)) {
+        if (!$this->hash) {
             switch ($this->sourceType) {
                 case 'url':
                 case 'string':
@@ -444,16 +444,16 @@ class thumb_Img
 
             $rotation = null;
             // Опитваме се да определим ротацията от изображението
-            if (empty($this->rotation) && thumb_Setup::get('FIX_ORIENTATION') == 'yes') {
+            if (!$this->rotation && thumb_Setup::get('FIX_ORIENTATION') == 'yes') {
                 if ($this->sourceType == 'fileman') {
                     if ($this->source && ($exif = exif_Reader::get($this->source))) {
-                        if (($exif['Orientation'] ?? null) == '3') {
+                        if ($exif['Orientation'] == '3') {
                             $rotation = 180;
                         } else {
-                            if (($exif['Orientation'] ?? null) == '6') {
+                            if ($exif['Orientation'] == '6') {
                                 $rotation = 270;
                             }
-                            if (($exif['Orientation'] ?? null) == '8') {
+                            if ($exif['Orientation'] == '8') {
                                 $rotation = 90;
                             }
 
@@ -523,7 +523,7 @@ class thumb_Img
             }
 
             $lFormat = strtolower($this->format);
-            if (!empty($this->blockedExtArr[$lFormat])) {
+            if ($this->blockedExtArr[$lFormat]) {
                 $this->format = 'png';
             }
         }
@@ -547,9 +547,8 @@ class thumb_Img
      */
     public function getThumbName()
     {
-        if (empty($this->thumbName)) {
-            $this->thumbName = '';
-            if (!empty($this->verbalName)) {
+        if (!$this->thumbName) {
+            if ($this->verbalName) {
                 $this->thumbName = fileman_Files::normalizeFileName($this->verbalName) . '-';
             }
             $this->thumbName .= substr($this->getHash(), 0, 8);
@@ -566,7 +565,7 @@ class thumb_Img
      */
     public function getThumbPath()
     {
-        if (empty($this->thumbPath)) {
+        if (!$this->thumbPath) {
             $conf = core_Packs::getConfig('thumb');
             $this->thumbPath = $conf->THUMB_IMG_PATH . '/' . $this->getThumbName();
         }
@@ -590,7 +589,7 @@ class thumb_Img
         $fileLen = filesize($path);
 
         // Име на файла
-        $fileName = !empty($this->verbalName) ? $this->verbalName . '.' . $this->getThumbFormat() : basename($path);
+        $fileName = $this->verbalName ? $this->verbalName . '.' . $this->getThumbFormat() : basename($path);
 
         // Задаваме хедърите
         header('Content-Description: File Transfer');
@@ -615,7 +614,7 @@ class thumb_Img
      */
     protected function getThumbUrl()
     {
-        if (empty($this->thumbUrl)) {
+        if (!$this->thumbUrl) {
             $conf = core_Packs::getConfig('thumb');
             $this->thumbUrl = sbf($conf->THUMB_IMG_DIR . '/' . $this->getThumbName(), '', $this->isAbsolute);
         }
@@ -783,11 +782,11 @@ class thumb_Img
      */
     public function createImg($attr = array())
     {
-        setPartIfNot($attr, 'src', $this->getUrl());
+        setIfNot($attr['src'], $this->getUrl());
 
         $this->getSize();
-        setPartIfNot($attr, 'width', $attr['imgWidth'] ?? null, $this->scaledWidth ?? null);
-        setPartIfNot($attr, 'height', $attr['imgHeight'] ?? null, $this->scaledHeight ?? null);
+        setIfNot($attr['width'], $attr['imgWidth'], $this->scaledWidth);
+        setIfNot($attr['height'], $attr['imgHeight'], $this->scaledHeight);
 
         if ((log_Browsers::isRetina() && $this->size2x) || (Mode::get('screenWidth') > 1024)) {
             // За случаите, когато имаме дисплей с по-висока плътност
@@ -795,7 +794,7 @@ class thumb_Img
             $attr['srcset'] = "{$url2x} 1.2x";
         }
 
-        setPartIfNot($attr, 'alt', $this->verbalName);
+        setIfNot($attr['alt'], $this->verbalName);
 
         unset($attr['isAbsolute']);
 
@@ -862,7 +861,7 @@ class thumb_Img
         $newHeight = ceil($ratio * $height);
         $newWidth = ceil($ratio * $width);
 
-        return array($newWidth, $newHeight, $ratio ?? null, $rotate ?? null, $rK ?? null, $nK ?? null);
+        return array($newWidth, $newHeight, $ratio, $rotate, $rK, $nK);
     }
 
 

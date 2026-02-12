@@ -25,7 +25,7 @@ class bgerp_plg_Export extends core_Plugin
         /**
          * @todo Чака за документация...
          */
-        setPartIfNot($mvc, 'canExport', 'ceo, admin');
+        defIfNot($mvc->canExport, 'ceo, admin');
     }
     
     

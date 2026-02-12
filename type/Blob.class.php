@@ -29,7 +29,7 @@ class type_Blob extends core_Type
     public function init($params = array())
     {
         parent::init($params);
-        setPartIfNot($this, 'viewrows', $params['params']['viewrows'] ?? null, $params['viewrows'] ?? null, 6);
+        setIfNot($this->viewrows, $params['params']['viewrows'], $params['viewrows'], 6);
     }
 
 
@@ -39,11 +39,11 @@ class type_Blob extends core_Type
     public function renderInput_($name, $value = '', &$attr = array())
     {
         if (Mode::is('screenMode', 'narrow')) {
-            setPartIfNot($attr, 'rows', 5);
-            setPartIfNot($attr, 'cols', 20);
+            setIfNot($attr['rows'], 5);
+            setIfNot($attr['cols'], 20);
         } else {
-            setPartIfNot($attr, 'rows', 15);
-            setPartIfNot($attr, 'cols', 60);
+            setIfNot($attr['rows'], 15);
+            setIfNot($attr['cols'], 60);
         }
         
         $attr['cols'] = $name;
@@ -101,10 +101,9 @@ class type_Blob extends core_Type
             
             return $value;
         }
-
-        $rowLen = $maxRows = null;
-        setIfNot($rowLen, $this->params['rowLen'] ?? null, 16);
-        setIfNot($maxRows, $this->params['maxRows'] ?? null, 100);
+        
+        setIfNot($rowLen, $this->params['rowLen'], 16);
+        setIfNot($maxRows, $this->params['maxRows'], 100);
         $len = min(strlen($value), $rowLen * $maxRows);
         
         $dbAttr = $this->getMysqlAttr();
@@ -163,12 +162,12 @@ class type_Blob extends core_Type
     public function toMysql($value, $db, $notNull, $defValue)
     {
         // Ако е указано - сериализираме
-        if ($value !== null && $value !== '' && ($this->params['serialize'] ?? null)) {
+        if ($value !== null && $value !== '' && $this->params['serialize']) {
             $value = serialize($value);
         }
         
         // Ако е указано - компресираме
-        if ($value !== null && $value !== '' && ($this->params['compress'] ?? null)) {
+        if ($value !== null && $value !== '' && $this->params['compress']) {
             if (($level = (int) $this->params['compress']) > 0) {
                 $value = gzcompress($value, $level);
             } else {
@@ -205,7 +204,7 @@ class type_Blob extends core_Type
     {
         if (is_scalar($value)) {
             // Ако е указано - декомпресираме
-            if ($value !== null && $value !== '' && ($this->params['compress'] ?? null)) {
+            if ($value !== null && $value !== '' && $this->params['compress']) {
                 $valueUnCompr = @gzuncompress($value);
                 
                 // Ако компресирането е било успешно
@@ -217,7 +216,7 @@ class type_Blob extends core_Type
             }
             
             // Ако е указано - десериализираме
-            if ($value !== null && $value !== '' && ($this->params['serialize'] ?? null)) {
+            if ($value !== null && $value !== '' && $this->params['serialize']) {
                 $value = @unserialize($value);
             }
         }

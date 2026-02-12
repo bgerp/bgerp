@@ -398,7 +398,7 @@ class core_Pager extends core_BaseClass
      */
     public function getHtml($link = null)
     {
-        if (!empty($this->url)) {
+        if ($this->url) {
             $link = $this->url;
         } else {
             $link = toUrl(self::getUrl());
@@ -465,7 +465,7 @@ class core_Pager extends core_BaseClass
     public function getUrl()
     {
         $url = getCurrentUrl();
-        if (isset($this->addToUrl) && is_array($this->addToUrl)) {
+        if (is_array($this->addToUrl)) {
             $url = $url + $this->addToUrl;
         }
         
