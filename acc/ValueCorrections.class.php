@@ -441,7 +441,7 @@ class acc_ValueCorrections extends core_Master
             }
 
             $doc = doc_Threads::getFirstDocument($rec->threadId);
-            $firstDocRec = $doc->fetch('chargeVat,currencyId,currencyRate,containerId');
+            $firstDocRec = $doc->fetch('chargeVat,currencyId,currencyRate,containerId,valior');
             $currencyId = $rec->currencyId;
             $currencyRate = $rec->rate;
             $amount = $rec->amount;
@@ -455,11 +455,23 @@ class acc_ValueCorrections extends core_Master
                     if (!$rec->rate) {
                         $form->setError('rate', 'Не може да се изчисли курс');
                     }
+                } else {
+
+                    if(acc_Periods::getBaseCurrencyCode($defaultValior) != acc_Periods::getBaseCurrencyCode($firstDocRec->valior)){
+                        if($defaultValior >= acc_Setup::getEurozoneDate()){
+                            $currencyRate = $currencyRate / 1.95583;
+                            $rec->rate = $rec->rate / 1.95583;
+                            foreach ($form->allProducts as &$aP){
+                                $aP->amount /= 1.95583;
+                            }
+                        }
+                    }
                 }
             }
 
             if (!$form->gotErrors()) {
                 $rec->correspondingDealOriginId = $firstDocRec->containerId;
+
                 $amount *= $rec->rate;
                 $amount = round($amount, 2);
                 if ($form->chargeVat == 'yes' || $form->chargeVat == 'separate') {
@@ -471,6 +483,7 @@ class acc_ValueCorrections extends core_Master
 
                 // Кешираме от всички възможни продукти, тези които са били избрани във функционалното поле
                 $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+
                 $error = self::allocateAmount($rec->productsData, $amount, $rec->allocateBy);
                 if (!empty($error)) {
                     $form->setError('allocateBy', $error);
