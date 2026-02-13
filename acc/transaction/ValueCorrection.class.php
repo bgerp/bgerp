@@ -139,6 +139,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
                         $storeQuantity = (is_array($storeQuantity)) ? $storeQuantity['quantity'] : $storeQuantity;
                         $amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
                         $creditArr['quantity'] = $amount / $rec->rate;
+                        $creditArr['quantity'] = currency_CurrencyRates::convertAmount($creditArr['quantity'], $rec->valior, $rec->currencyId, $firstRec->currencyId);
                         $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
 
                         $entries[] = array('amount' => $sign * $amount,
@@ -191,6 +192,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
 
             if ($vatType == 'yes' || $vatType == 'separate') {
                 $creditArr['quantity'] = $vatAmount / $rec->rate;
+                $creditArr['quantity'] = currency_CurrencyRates::convertAmount($creditArr['quantity'], $rec->valior, $rec->currencyId, $firstRec->currencyId);
                 $creditArr['quantity'] = $sign * currency_Currencies::round($creditArr['quantity'], $correspondingDoc->fetchField('currencyId'));
                 
                 $entries[] = array('amount' => round($sign * $vatAmount, 2),
