@@ -456,11 +456,12 @@ class acc_ValueCorrections extends core_Master
                         $form->setError('rate', 'Не може да се изчисли курс');
                     }
                 } else {
-
                     if(acc_Periods::getBaseCurrencyCode($defaultValior) != acc_Periods::getBaseCurrencyCode($firstDocRec->valior)){
                         if($defaultValior >= acc_Setup::getEurozoneDate()){
-                            $currencyRate = $currencyRate / 1.95583;
-                            $rec->rate = $rec->rate / 1.95583;
+                            if(empty($rec->id)){
+                                $currencyRate = $currencyRate / 1.95583;
+                                $rec->rate = $rec->rate / 1.95583;
+                            }
                             foreach ($form->allProducts as &$aP){
                                 $aP->amount /= 1.95583;
                             }
