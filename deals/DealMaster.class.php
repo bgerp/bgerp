@@ -3384,4 +3384,53 @@ abstract class deals_DealMaster extends deals_DealBase
             $mvc->save_($rec, 'contoActions');
         }
     }
+
+
+    function act_TestFixEu()
+    {
+        $this->requireRole('debug');
+        foreach (array('sales_Invoices', 'purchase_Invoices') as $invoiceClass) {
+
+            $Invoice = cls::get($invoiceClass);
+            $query = $Invoice->getQuery();
+            $query->where("#currencyId = 'EUR' AND #state = 'active'");
+            if($invoiceClass == 'sales_Invoices') {
+                $DealClass = cls::get('sales_Sales');
+                $query->where("#date >= '2026-01-01' AND #date <= '2026-01-31'");
+                $ClosedDoc = cls::get('sales_ClosedDeals');
+            } else {
+                $DealClass = cls::get('purchase_Invoices');
+                $query->where("#createdOn >= '2026-01-01' AND #createdOn <= '2026-01-31' AND #journalDate >= '2026-01-01' AND #journalDate <= '2026-01-31'");
+                $ClosedDoc = cls::get('purchase_ClosedDeals');
+            }
+            $iThreads = arr::extractValuesFromArray($query->fetchAll(), 'threadId');
+
+            $sQuery = $DealClass->getQuery();
+            if(countR($iThreads)) {
+                $sQuery->in('threadId', $iThreads);
+            }
+            $sQuery->where("#currencyId = 'EUR' AND #currencyRate = '1'");
+            //$sQuery->where("#id = 18950");
+
+            while($rec = $sQuery->fetch()) {
+                if($rec->currencyId == 'EUR' && $rec->currencyRate == 1) {
+                    $closeRec = null;
+                    if($closeRec = $ClosedDoc->fetch("#threadId = {$rec->threadId} AND #state = 'active'")) {
+                        $ClosedDoc->reject($closeRec);
+                    }
+
+                    try{
+                        $DealClass->recalcDocumentsWithNewRate($rec, 1.95583);
+                        $DealClass->logWrite('Авт. оправяне на грешен курс', $rec->id);
+                    } catch(acc_journal_Exception $e){
+                        continue;
+                    }
+
+                    if(is_object($closeRec)) {
+                        $ClosedDoc->restore($closeRec);
+                    }
+                }
+            }
+        }
+    }
 }
