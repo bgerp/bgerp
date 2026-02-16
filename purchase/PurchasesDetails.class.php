@@ -158,6 +158,18 @@ class purchase_PurchasesDetails extends deals_DealDetail
 
 
     /**
+     * Кой има право да променя системните данни?
+     */
+    public $canEditsysdata = 'purchase,ceo';
+
+
+    /**
+     * Кой има право да изтрива системните данни?
+     */
+    public $canDeletesysdata = 'purchase,ceo';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

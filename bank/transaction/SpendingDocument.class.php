@@ -68,7 +68,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
         // Ако е обратна транзакцията, сумите и к-та са с минус
         $sign = ($reverse) ? -1 : 1;
 
-        $dealRec = $origin->fetch('currencyRate,valior,currencyId');
+        $dealRec = $origin->fetch();
         $dealCurrencyRate = $dealRec->currencyRate;
         $bgnCurrencyId = currency_Currencies::getIdByCode('BGN');
         $euroCurrencyId = currency_Currencies::getIdByCode('EUR');
@@ -85,9 +85,15 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
         $currencyId481 = ($rec->currencyId != $baseCurrencyId) ? $rec->currencyId : $rec->dealCurrencyId;
         $amount481 = ($rec->currencyId != $baseCurrencyId) ? $rec->amount : $rec->amountDeal;
 
+        $dealCompareCurrencyCode = $dealRec->currencyId;
+        if($dealRec->valior < acc_Setup::getEurozoneDate() && $dealRec->oldCurrencyId == 'BGN'){
+            $dealCompareCurrencyCode = $dealRec->oldCurrencyId;
+            $dealCurrencyRate = 1;
+        }
+
         $amountE = $dealCurrencyRate * $rec->amountDeal;
         $dealCurrencyCode = currency_Currencies::getCodeById($rec->dealCurrencyId);
-        if($dealCurrencyCode != $dealRec->currencyId){
+        if($dealCurrencyCode != $dealCompareCurrencyCode){
             $amountE = $amount;
         }
 
@@ -120,6 +126,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
             );
         } else {
             if((($rec->currencyId == $rec->dealCurrencyId && in_array($rec->dealCurrencyId, array($bgnCurrencyId, $euroCurrencyId)))) || ($baseCurrencyId == $euroCurrencyId && $rec->currencyId == $euroCurrencyId && $rec->dealCurrencyId != $bgnCurrencyId)) {
+
                 $entry[] = array('amount' => $sign * round($amount, 2),
                     'debit' => array($rec->debitAccId,
                         array($rec->contragentClassId, $rec->contragentId),
@@ -131,7 +138,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                         array('currency_Currencies', $rec->currencyId),
                         'quantity' => $sign * round($rec->amount, 2)));
             } else {
-                $entry[] = array('amount' => $sign * $amountE,
+                $entry[] = array('amount' => $sign * round($amountE, 2),
                     'debit' => array($rec->debitAccId,
                         array($rec->contragentClassId, $rec->contragentId),
                         array($origin->className, $origin->that),

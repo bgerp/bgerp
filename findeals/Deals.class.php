@@ -223,7 +223,7 @@ class findeals_Deals extends deals_DealBase
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
         $this->FNC('contragentItemId', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Втори контрагент,input');
 
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,silent,removeAndRefreshForm=currencyRate');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,where=#code !\\= \\\'BGN\\\')', 'caption=Валута,silent,removeAndRefreshForm=currencyRate');
         $this->FLD('vatExceptionId', 'key(mvc=cond_VatExceptions,select=title,allowEmpty)', 'caption=ДДС изключение');
 
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
@@ -315,7 +315,11 @@ class findeals_Deals extends deals_DealBase
         
         expect(currency_Currencies::getIdByCode($newFields['currencyId']), 'Невалидна валута');
         expect($Double->fromVerbal($newFields['currencyRate']), 'Невалиден курс');
-        
+        if($newFields['currencyId'] == 'BGN'){
+            $newFields['currencyId'] = 'EUR';
+            $newFields['currencyRate'] = $newFields['valior'] < acc_Setup::getEurozoneDate() ? 1.95583 : 1;
+        }
+
         if (isset($fields['baseAccountSysId'])) {
             expect($accRec = acc_Accounts::getRecBySystemId($fields['baseAccountSysId']), 'Невалидна сметка');
             expect(is_null($accRec->groupId1) && is_null($accRec->groupId2) && is_null($accRec->groupId1), 'Сметката трябва да няма разбивки');
@@ -336,6 +340,7 @@ class findeals_Deals extends deals_DealBase
         }
 
         $newFields = (object) $newFields;
+
         // Опиваме се да запишем мастъра на сделката
         if ($id = $me->save($newFields)) {
             

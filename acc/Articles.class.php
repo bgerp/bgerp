@@ -199,7 +199,7 @@ class acc_Articles extends core_Master
     public function canUseClosedItems($id)
     {
         $rec = $this->fetchRec($id);
-        if (!empty($rec->originId) || ($this->canUseClosedItems === true)) {
+        if (!empty($rec->originId) || ($this->canUseClosedItems === true) || $rec->useCloseItems == 'yes') {
             
             return true;
         }
@@ -483,32 +483,26 @@ class acc_Articles extends core_Master
         
         return array('acc_Articles', $articleId);
     }
-    
-    
+
+
     /**
      * Изпълнява се след обновяване на журнала
      */
-    public static function on_AfterJournalUpdated($mvc, $id, $journalId)
+    public static function on_AfterJournalUpdated($mvc, $id, $journalId, $journalDetails)
     {
         // Ако отнякъде е променена статията на документа, обновяваме го с новата информация
-        
+
         // Всички детайли на МО
         $dQuery = acc_ArticleDetails::getQuery();
         $dQuery->where("#articleId = {$id}");
         $dQuery->orderBy('id', 'ASC');
 
-        // Всички детайли на променения журнал
-        $jQuery = acc_JournalDetails::getQuery();
-        $jQuery->where("#journalId = {$journalId}");
-        $jQuery->orderBy('id', 'ASC');
-        $jRecs = $jQuery->fetchAll();
-        
         $count = 0;
         while ($dRec = $dQuery->fetch()) {
             $count++;
             $jCount = 0;
             
-            foreach ($jRecs as $jRec) {
+            foreach ($journalDetails as $jRec) {
                 $jCount++;
                 
                 if ($count === $jCount && $dRec->debitAccId == $jRec->debitAccId && $dRec->debitEnt1 == $jRec->debitItem1 && $dRec->debitEnt2 == $jRec->debitItem2 && $dRec->debitEnt3 == $jRec->debitItem3 &&

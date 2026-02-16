@@ -45,7 +45,7 @@ class sales_SalesDetails extends deals_DealDetail
      * var string|array
      */
     public $loadList = 'plg_RowTools2, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew, plg_PrevAndNext,
-                        plg_AlignDecimals2, plg_Sorting, cat_plg_LogPackUsage, deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument,doc_plg_HideMeasureAndQuantityColumns,cat_plg_ShowCodes';
+                        plg_AlignDecimals2, plg_Sorting, cat_plg_LogPackUsage, deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy,cat_plg_CreateProductFromDocument,doc_plg_HideMeasureAndQuantityColumns,deals_plg_UpdateCurrencyRates,cat_plg_ShowCodes';
     
     
     /**
@@ -212,13 +212,11 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $rows = &$data->rows;
-        
-        if (!countR($data->recs)) {
-            
-            return;
-        }
+
+        if (!countR($data->recs)) return;
         $masterRec = $data->masterData->rec;
 
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($masterRec->valior);
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
@@ -264,6 +262,13 @@ class sales_SalesDetails extends deals_DealDetail
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $masterRec->vatExceptionId);
             if(doc_plg_HidePrices::canSeePriceFields($mvc->Master, $masterRec)){
                 $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
+            }
+
+            if(haveRole('debug')){
+                $Double = core_Type::getByName('double(decimals=6)');
+                $packPriceInCurrency = $Double->toVerbal($rec->priceInCurrency * $rec->quantityInPack);
+                $price = $Double->toVerbal($rec->price * $rec->quantityInPack);
+                $row->packPrice = ht::createHint($row->packPrice, "|В|* {$masterRec->currencyId}: {$packPriceInCurrency}. |Записано|* {$baseCurrencyCode}: {$price}", 'img/16/bug.png', false);
             }
         }
     }

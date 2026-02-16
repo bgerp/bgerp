@@ -59,6 +59,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
+     * Кой може да преизчислява сб-ст от журнала?
+     */
+    public $canCalcproductionamount = 'ceo,accJournal';
+
+
+    /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,production,store, planningAll';
@@ -680,8 +686,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $row->quantity .= " {$shortUom}";
 
             if (isset($rec->debitAmount)) {
-                $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
-                $row->debitAmount .= " <span class='cCode'>{$baseCurrencyCode}</span>, " . tr('без ДДС');
+                $row->debitAmount = currency_Currencies::decorate($row->debitAmount, null, true);
             }
 
             $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
@@ -704,6 +709,23 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
             }
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
+
+            if($mvc->haveRightFor('calcproductionamount', $rec) && !Mode::isReadOnly()){
+                $row->calcPrimeCostBtn = ht::createBtn('Изчисли сб-ст', array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true));
+                $calcedPrice = core_Permanent::get("{$mvc->className}_{$rec->id}_calcedPrimeCost");
+                if(is_array($calcedPrice)){
+                    $row->calcedPrimeCost = core_Type::getByName('double(decimals=2)')->toVerbal($calcedPrice['primecost']);
+                    $row->calcedPrimeCost = currency_Currencies::decorate($row->calcedPrimeCost, null, true);
+                    $row->calcedPrimeCost = ht::styleNumber($row->calcedPrimeCost, $calcedPrice['primecost']);
+
+                    $withExpenses = $calcedPrice['primecost'] + $calcedPrice['expenses'];
+                    $row->calcedPrimeCostExpenses = core_Type::getByName('double(decimals=2)')->toVerbal($withExpenses);
+                    $row->calcedPrimeCostExpenses = currency_Currencies::decorate($row->calcedPrimeCostExpenses, null, true);
+                    $row->calcedPrimeCostExpenses = ht::styleNumber($row->calcedPrimeCostExpenses, $withExpenses);
+                    $row->calcedPrimeCostDate = core_Type::getByName('datetime(dormat=smartTime)')->toVerbal($calcedPrice['date']);
+                }
+            }
+
         } else {
             $row->productId = cat_Products::getShortHyperlink($rec->productId, null, 'short', 'internal');
         }
@@ -783,6 +805,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $requiredRoles = 'no_one';
                     }
                 }
+            }
+        }
+
+        if($action == 'calcproductionamount' && isset($rec)){
+            if($rec->state != 'active'){
+                $requiredRoles = 'no_one';
+            } elseif(!doc_plg_HidePrices::canSeePriceFields($mvc, $rec)) {
+                $requiredRoles = 'no_one';
             }
         }
 
@@ -1844,5 +1874,60 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $rec->debitAmount = null;
             $mvc->save_($rec, 'debitAmount');
         }
+    }
+
+
+    /**
+     * Екшън за преизчисляване на сб-ст на артикула
+     */
+    function act_CalcProductionAmount()
+    {
+        $this->requireRightFor('calcproductionamount');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('calcproductionamount', $rec);
+        $productionAmount = self::getProductionAmount($rec);
+
+        core_Permanent::set("{$this->className}_{$rec->id}_calcedPrimeCost", $productionAmount, 86400);
+        doc_DocumentCache::cacheInvalidation($rec->containerId);
+
+        followRetUrl(null, "Сб-ст е изчислена успешно|*!");
+    }
+
+
+    /**
+     * На каква сума е произведеното количество на артикула от ПП
+     *
+     * @param int $id
+     * @return array $res
+     *          ['primecost'] - чиста сб без режийни разходи
+     *          ['expenses']  - сума на режийните разходи
+     *          ['date']      - към коя дата
+     */
+    public static function getProductionAmount($id)
+    {
+        $rec = static::fetchRec($id);
+        $journalRec = acc_Journal::fetchByDoc(get_called_class(), $rec->id);
+        $jQuery = acc_JournalDetails::getQuery();
+        $jQuery->where("#journalId = {$journalRec->id}");
+
+        $productItemId = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
+        $debitAccArr = array(acc_Accounts::getRecBySystemId(321)->id, acc_Accounts::getRecBySystemId(60201)->id);
+        $reasonCode = acc_Operations::getIdByTitle('Разпределени режийни разходи');
+
+        // Смятане на сумата, която ще се натрупва към сб-ст на произведения артикул
+        $res = array('primecost' => 0, 'expenses' => 0, 'date' => dt::now());
+        while ($jRec = $jQuery->fetch()) {
+            if (in_array($jRec->debitAccId, $debitAccArr) && $jRec->debitItem2 == $productItemId) {
+                $amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $journalRec->valior);
+                if($jRec->reasonCode != $reasonCode) {
+                    $res['primecost'] += $amount;
+                } else {
+                    $res['expenses'] += $amount;
+                }
+            }
+        }
+
+        return $res;
     }
 }

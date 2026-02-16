@@ -177,24 +177,25 @@ class fileman_Download extends core_Manager
         
         // Ако имаме линк към файла, тогава използваме същия линк
         if ($dRec) {
-            
-            // Ако времето, за което е активен линка е по малко от времето, което искаме да зададем
-            if ($dRec->expireOn < $time) {
-                
-                // Променяме времето
-                $dRec->expireOn = $time;
+            if (@file_exists(EF_DOWNLOAD_DIR . '/' . $dRec->prefix . '/' . $dRec->fileName)) {
+                // Ако времето, за което е активен линка е по малко от времето, което искаме да зададем
+                if ($dRec->expireOn < $time) {
+
+                    // Променяме времето
+                    $dRec->expireOn = $time;
+                }
+
+                // Вземаме URL
+                $link = static::getSbfDownloadUrl($dRec, $isAbsolute);
+
+                // Записваме
+                static::save($dRec);
+
+                // Връщаме URL' то
+                return $link;
             }
-            
-            // Вземаме URL
-            $link = static::getSbfDownloadUrl($dRec, $isAbsolute);
-            
-            // Записваме
-            static::save($dRec);
-            
-            // Връщаме URL' то
-            return $link;
         }
-        
+
         // Обект
         $rec = new stdClass();
         
@@ -394,8 +395,55 @@ class fileman_Download extends core_Manager
             return new Redirect($link);
         }
     }
-    
-    
+
+
+    /**
+     * @todo Чака за документация...
+     */
+    public function act_Serve()
+    {
+        // Ако файла се сваля от vt - за да не се подават вирусни файлове
+        if (log_Browsers::checkUserAgent('virustotalcloud')) {
+
+            return new Redirect(array('Index'));
+        }
+
+        // Манипулатора на файла
+        $fh = Request::get('fh');
+
+        // Очакваме да има подаден манипулатор
+        expect($fh, 'Липсва манупулатора на файла');
+
+        // Ескейпваме манупулатора
+        $fh = $this->db->escape($fh);
+
+        // Вземаме записа на манипулатора
+        $fRec = $this->Files->fetchByFh($fh);
+
+        // Очакваме да има такъв запис
+        expect($fRec, 'Няма такъв запис.');
+
+        fileman::updateLastUse($fRec);
+
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        $mimeType = fileman::getType($fRec->name);
+        header("Content-Type: " . $mimeType);
+        header("Content-Length: " . $fRec->fileLen);
+        header("Content-Disposition: inline; filename=\"" . addslashes($fRec->name) . "\"");
+        header("Cache-Control: public, max-age=3600");
+        header("Pragma: public");
+
+        readfile(fileman::extract($fRec->fileHnd));
+
+        fileman::logRead('Сваляне', $fRec->id);
+
+        shutdown();
+    }
+
+
     /**
      * Изтрива линковете, които не се използват и файловете им
      */
@@ -405,7 +453,7 @@ class fileman_Download extends core_Manager
         $query = self::getQuery();
         $query->where("#expireOn < '{$now}'");
         
-        $htmlRes .= '<hr />';
+        $htmlRes = '<hr />';
         
         $count = $query->count();
         

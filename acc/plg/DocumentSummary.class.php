@@ -561,6 +561,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
         $showFields = arr::make(array_keys($fieldsArr), true);
         $showFields['state'] = 'state';
+        if($mvc->getField('createdOn', false)){
+            $showFields['createdOn'] = 'createdOn';
+        }
         if($mvc->getField('rate', false)){
             $showFields['rate'] = 'rate';
         }
@@ -574,7 +577,14 @@ class acc_plg_DocumentSummary extends core_Plugin
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
         $draftCount = $activeCount = $pendingCount = 0;
 
+        $eurozoneDate = acc_Setup::getEurozoneDate();
+        $data->hasDocumentBeforeEu = false;
         while ($rec = $sQuery->fetch()) {
+            if(isset($mvc->valiorFld) && $rec->{$mvc->valiorFld}) {
+                if($rec->{$mvc->valiorFld} < $eurozoneDate){
+                    $data->hasDocumentBeforeEu = true;
+                }
+            }
             $mvc->fillSummaryRec($rec, $fieldsArr);
             self::prepareSummary($mvc, $fieldsArr, $rec, $data->listSummary->summary, $baseCurrency);
             if($rec->state == 'draft'){
@@ -608,8 +618,9 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     public static function on_AfterRenderListSummary($mvc, &$tpl, $data)
     {
+
         if ($data->listSummary->summary) {
-            $tpl = self::renderSummary($data->listSummary->summary);
+            $tpl = self::renderSummary($data);
         }
         
         if(isset($tpl)){
@@ -633,7 +644,8 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             return;
         }
-        
+
+        $today = dt::today();
         foreach ($fieldsArr as $fld) {
             if (!array_key_exists($fld->name, $res)) {
                 $captionValue = (isset($fld->summaryCaption)) ? $fld->summaryCaption : $fld->caption;
@@ -649,12 +661,18 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if ($mvc->amountIsInNotInBaseCurrency === true && isset($rec->rate)) {
                         $baseAmount *= $rec->rate;
                     }
-                    if(isset($rec->{$mvc->valiorFld})){
-                        $baseAmount = deals_Helper::getSmartBaseCurrency($baseAmount, $rec->{$mvc->valiorFld});
+
+                    if(isset($mvc->valiorFld)){
+                        if($mvc->amountIsInNotInBaseCurrency){
+                            $valior = $rec->{$mvc->valiorFld} ?? dt::today();
+                        } else {
+                            $valior = $rec->{$mvc->valiorFld} ?? dt::verbal2mysql($rec->createdOn, false);
+                        }
+                        $baseAmount = deals_Helper::getSmartBaseCurrency($baseAmount, $valior);
                     }
 
                     $res[$fld->name]->amount += $baseAmount;
-                    $res[$fld->name]->measure = "<span class='cCode'>{$currencyCode}</span>";
+                    $res[$fld->name]->measure = $currencyCode;
                     break;
                 case 'quantity':
                     $res[$fld->name]->quantity += $rec->{$fld->name};
@@ -672,7 +690,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      *
      * @return core_ET $tpl - Шаблон на обобщението
      */
-    private static function renderSummary($res)
+    private static function renderSummary($data)
     {
         // Зареждаме и подготвяме шаблона
         $double = cls::get('type_Double');
@@ -680,22 +698,35 @@ class acc_plg_DocumentSummary extends core_Plugin
         $double->params['decimals'] = 2;
         $tpl = new ET(tr('|*' . getFileContent('acc/plg/tpl/Summary.shtml')));
         $rowTpl = $tpl->getBlock('ROW');
-        
-        if (countR($res)) {
-            foreach ($res as $rec) {
+
+        $summaryRecs = $data->listSummary->summary;
+
+        if (countR($summaryRecs)) {
+            foreach ($summaryRecs as $rec) {
                 $row = new stdClass();
-                $row->measure = $rec->measure;
-                
+
+                $row->colspan = 1;
                 if (isset($rec->amount)) {
                     $row->amount = $double->toVerbal($rec->amount);
-                    $row->amount = ($rec->amount < 0) ? "<span style='color:red'>{$row->amount}</span>" : $row->amount;
+                    $row->amount = currency_Currencies::decorate($row->amount,  $rec->measure, true);
+                    $row->amount = ht::styleNumber($row->amount, $rec->amount);
+
+                    if($data->hasDocumentBeforeEu){
+                        $amountBgn = currency_CurrencyRates::convertAmount($rec->amount, null, 'EUR', 'BGN');
+                        $row->amountBgn = $double->toVerbal($amountBgn);
+                        $row->amountBgn = currency_Currencies::decorate($row->amountBgn,  'BGN');
+                        $row->amountBgn = ht::styleNumber($row->amountBgn, $amountBgn);
+                    }
                 } elseif (isset($rec->quantity)) {
+                    $row->measure = $rec->measure;
                     $row->quantity = $int->toVerbal($rec->quantity);
                     $row->quantity = ($rec->quantity < 0) ? "<span style='color:red'>{$row->quantity}</span>" : $row->quantity;
+                    if($data->hasDocumentBeforeEu){
+                        $row->colspan = 3;
+                    }
                 }
-                
+
                 $row->caption = $rec->caption;
-                
                 $rowTpl->placeObject($row);
                 $rowTpl->removeBlocks();
                 $rowTpl->append2master();

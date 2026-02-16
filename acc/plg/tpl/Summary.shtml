@@ -4,7 +4,7 @@
         <tr>
             <td class='quiet'>|[#caption#]|*</td>
             <td class='quiet'>[#measure#]</td>
-            <td style='text-align:right'>
+            <td style='text-align:right' colspan="[#colspan#]">
                 <!--ET_BEGIN amount-->
                 <b>[#amount#]</b>
                 <!--ET_END amount-->
@@ -12,6 +12,10 @@
                 <b>[#quantity#]</b>
                 <!--ET_END quantity-->
             </td>
+            <!--ET_BEGIN amountBgn-->
+            <td> / </td>
+            <td style='text-align:right'><b>[#amountBgn#]</b></td>
+            <!--ET_END amountBgn-->
         </tr>
         <!--ET_END ROW-->
     </table>

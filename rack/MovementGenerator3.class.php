@@ -24,7 +24,7 @@ class rack_MovementGenerator3 extends core_Manager
         requireRole('debug');
 
         $form = cls::get('core_Form');
-        $form->FLD('pallets', 'table(columns=pallet|quantity|createdOn|sysNo,captions=Палет|Количество|Създаване|Системен №,widths=8em|8em|8em|7em)', 'caption=Палети,mandatory');
+        $form->FLD('pallets', 'table(columns=pallet|quantity|createdOn,captions=Палет|Количество|Създаване,widths=8em|8em|8em)', 'caption=Палети,mandatory');
         $form->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=8em|8em)', 'caption=Зони,mandatory');
         $form->FLD('packagings', 'table(columns=packagingId|quantity,captions=Опаковка|Количество,widths=8em|8em)', 'caption=Опаковки,mandatory');
         $packOptions = array('' => '') + cat_UoM::getPackagingOptions() + cat_UoM::getUomOptions();
@@ -47,7 +47,6 @@ class rack_MovementGenerator3 extends core_Manager
                 if ($pArr->quantity[$i]) {
                     $qVerbal = core_Type::getByName('double')->fromVerbal($pArr->quantity[$i]);
                     $po = (object) ['position' => $key, 'quantity' => $qVerbal, 'createdOn' => $pArr->createdOn[$i] ?? null];
-                    if (!empty($pArr->sysNo[$i])) $po->sysNo = (int)$pArr->sysNo[$i];
                     $p[] = $po;
                 }
             }
@@ -325,22 +324,61 @@ class rack_MovementGenerator3 extends core_Manager
 					if ($remaining < $minQ) break;
 				}
 
-				/* 3.2.4 – „Първи ред до“, ако могат да покрият остатъка */
-				$frSum = 0.0; foreach ($firstRowIdx as $frId) $frSum += self::ffix($pArr[$frId]);
-				if ($remaining > 0 && $frSum >= $remaining) {
-					usort($firstRowIdx, function ($a, $b) use ($pallets, $strategy) {
-						return rack_MovementGenerator3::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, false);
-					});
-					foreach ($firstRowIdx as $frId) {
-						if ($remaining <= 0) break;
-						$q = self::ffix($pArr[$frId]);
-						$take = min($q, $remaining);
-						$zonesSplit = $allocToZones($take);
-						self::appendMove($res, $pallets[$frId]->position, $take, $zonesSplit, $pArr, 'B.fr_cover');
-						$pArr[$frId] = self::ffix($pArr[$frId] - $take);
-						$remaining   = self::ffix($remaining - $take);
+
+				/* 3.2.4 – „Разбутан“ палет на „Първи ред до“, ако може да покрие остатъка */
+				$firstRowBroken = array();
+				foreach ($firstRowIdx as $frId) {
+					$q = self::ffix($pArr[$frId]);
+					if ($q > 0 && $q < $qInPallet) $firstRowBroken[] = $frId; // само „разбутани“ на first-row
+				}
+
+				$frBrokenSum = 0.0;
+				foreach ($firstRowBroken as $frId) $frBrokenSum += self::ffix($pArr[$frId]);
+
+				if ($remaining > 0 && !empty($firstRowBroken) && $frBrokenSum >= $remaining) {
+
+					// 1) Ако има един „разбутан“ first-row палет, който сам може да покрие остатъка – взимаме от него
+					$best = null; $bestScore = null;
+					foreach ($firstRowBroken as $pid) {
+						$q = self::ffix($pArr[$pid]);
+						if ($q <= 0) continue;
+						if ($q >= $remaining) {
+							$delta = self::ffix($q - $remaining); // колко ще остане (по-малко е по-добре)
+							$score = $delta * 1000 + self::strategyTieScore($pallets[$pid], $strategy);
+							if ($bestScore === null || $score < $bestScore) {
+								$bestScore = $score;
+								$best = $pid;
+							}
+						}
+					}
+
+					if ($best !== null) {
+						$zonesSplit = $allocToZones($remaining);
+						self::appendMove($res, $pallets[$best]->position, $remaining, $zonesSplit, $pArr, 'B.fr_broken_cover');
+						$pArr[$best] = self::ffix($pArr[$best] - $remaining);
+						$remaining   = 0.0;
+					} else {
+						// 2) Иначе – комбинираме само „разбутани“ first-row палети (по количество низходящо, при равенство – по стратегия)
+						usort($firstRowBroken, function ($a, $b) use ($pallets, $pArr, $strategy) {
+							$qa = self::ffix($pArr[$a]);
+							$qb = self::ffix($pArr[$b]);
+							if ($qa != $qb) return ($qa > $qb) ? -1 : 1;
+							return rack_MovementGenerator3::cmpByStrategy($pallets[$a], $pallets[$b], $strategy, false);
+						});
+
+						foreach ($firstRowBroken as $pid) {
+							if ($remaining <= 0) break;
+							$q = self::ffix($pArr[$pid]);
+							if ($q <= 0) continue;
+							$take = min($q, $remaining);
+							$zonesSplit = $allocToZones($take);
+							self::appendMove($res, $pallets[$pid]->position, $take, $zonesSplit, $pArr, 'B.fr_broken_combo');
+							$pArr[$pid] = self::ffix($pArr[$pid] - $take);
+							$remaining   = self::ffix($remaining - $take);
+						}
 					}
 				}
+
 
 				/* 3.2.5 – Един „разбутан“ по стратегия, ако остане малко количество */
 				if ($remaining > 0) {

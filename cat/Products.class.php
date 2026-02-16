@@ -483,6 +483,8 @@ class cat_Products extends embed_Manager
                 if ($cover->isInstanceOf('cat_Categories')) {
                     if(empty($cover->fetchField('prefix')) && empty($clonedCode)){
                         $lastCode = Mode::get('cat_LastProductCode');
+                    } elseif(!empty($cover->fetchField('prefix'))) {
+                        $lastCode = null;
                     }
 
                     // Ако корицата е категория и няма въведен код, генерира се дефолтен, ако може
@@ -515,11 +517,7 @@ class cat_Products extends embed_Manager
                 $newCode = str::increment($lastCode);
                 if($newCode){
                     while (cat_Products::getByCode($newCode)) {
-                        if($newCode = str::increment($newCode)){
-                            if (!cat_Products::getByCode($newCode)) {
-                                break;
-                            }
-                        }
+                        $newCode = str::increment($newCode);
                     }
                 } elseif($data->_isSaveAndNew || $data->action == 'clone') {
                     // Ако все пак има предишен код, който не е инкремениран попълва се той
@@ -608,18 +606,20 @@ class cat_Products extends embed_Manager
         // Проверяваме за недопустими символи
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
+            $haveName = true;
             if (empty($rec->name)) {
                 if ($Driver = $mvc->getDriver($rec)) {
-                    $rec->name = $Driver->getProductTitle($rec);
-                    if(strpos($rec->name, '||') !== false){
-                        list($rec->name, $rec->nameEn) = explode('||', $rec->name);
+                    $clone = clone $rec;
+                    $defaultName = $Driver->getProductTitle($clone);
+                    if(empty($defaultName)){
+                        $haveName = false;
                     }
                 }
             }
             
-            if (empty($rec->name)) {
-                $form->setError('name', 'Моля задайте наименование на артикула');
+            if (!$haveName) {
+                $form->setError('name', 'Моля задайте наименование на артикула|*!');
             }
             
             if (!empty($rec->code)) {
@@ -687,6 +687,17 @@ class cat_Products extends embed_Manager
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        if(empty($fields) || isset($fields['name'])){
+            if (empty($rec->name)) {
+                if ($Driver = $mvc->getDriver($rec)) {
+                    $rec->name = $Driver->getProductTitle($rec);
+                    if(strpos($rec->name, '||') !== false) {
+                        list($rec->name, $rec->nameEn) = explode('||', $rec->name);
+                    }
+                }
+            }
+        }
+
         // Обновяване на групите
         if ($rec->id) {
             $exRec = self::fetch($rec->id);
@@ -2684,8 +2695,8 @@ class cat_Products extends embed_Manager
     {
         // Предефиниране на метода, за да е подсигурено само фечването на нужните полета
         // За да се намали натоварването, при многократни извиквания
-        $rec = self::fetch($id, 'name,code,isPublic,nameEn,state');
-       
+        $rec = self::fetchRec($id, 'name,code,isPublic,nameEn,state');
+
         return parent::getTitleById($rec, $escaped);
     }
     

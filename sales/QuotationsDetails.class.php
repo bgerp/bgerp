@@ -101,11 +101,11 @@ class sales_QuotationsDetails extends deals_QuotationDetails
         }
         
         $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
-        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $rec->date, $masterRec->currencyRate, $masterRec->chargeVat, $listId, false);
+        $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->date, $masterRec->currencyRate, $masterRec->chargeVat, $listId, false);
         
         if (isset($policyInfo->price)) {
             $rec->price = $policyInfo->price;
-            $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $rec->date, $masterRec->vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
+            $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->date, $masterRec->vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
             
             // Добавяне на транспортните разходи, ако има
             $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id)->fee;

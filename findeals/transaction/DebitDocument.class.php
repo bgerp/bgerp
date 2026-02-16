@@ -33,7 +33,7 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
         expect($origin = $this->class->getOrigin($rec));
-        
+
         if ($rec->isReverse == 'yes') {
             // Ако документа е обратен, правим контировката на прехвърлянето на задължения но с отрицателен знак
             $entries = findeals_transaction_CreditDocument::getReverseEntries($rec, $origin);
@@ -67,7 +67,7 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
         
         $origin = findeals_DebitDocuments::getOrigin($rec);
-        $originRec = $origin->fetch('currencyId,valior,currencyRate');
+        $originRec = $origin->fetch();
         $originCodeId = currency_Currencies::getIdByCode($originRec->currencyId);
         
         $doc = doc_Containers::getDocument($rec->dealId);
@@ -85,10 +85,20 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
             $amount = $rec->amount;
         } else {
             $originRate = $origin->fetchField('currencyRate');
+            if(acc_Periods::getBaseCurrencyCode($originRec->{$origin->valiorFld}) == 'BGN' && acc_Periods::getBaseCurrencyCode($rec->valior) == "EUR"){
+                $originRate /= 1.95583;
+            }
             $amount = $rec->amount * $originRate;
         }
 
-        $originCurrencyId = currency_Currencies::getIdByCode($origin->fetchField('currencyId'));
+        $originCurrencyCode = $originRec->currencyId;
+        if($origin->isInstanceOf('findeals_Deals')){
+            if($rec->valior < acc_Setup::getEurozoneDate() && isset($originRec->oldCurrencyId)){
+                $originCurrencyCode = $originRec->oldCurrencyId;
+            }
+        }
+
+        $originCurrencyId = currency_Currencies::getIdByCode($originCurrencyCode);
         $findeal2findeal = $doc->isInstanceOf('findeals_Deals') && $origin->isinstanceOf('findeals_Deals');
         if($rec->currencyId == $originCurrencyId && $rec->currencyId == $baseCurrencyId) {
 

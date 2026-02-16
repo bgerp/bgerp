@@ -94,7 +94,7 @@
         </tr>
         <tr>
             <td class="top-descr no-border-left centered">
-                <span class="code bold">[#CATALOG_PRICE#]<!--ET_BEGIN CATALOG_PRICE_EURO--> / [#CATALOG_PRICE_EURO#]<!--ET_END CATALOG_PRICE_EURO--></span>
+                <span class="code bold">[#CATALOG_PRICE#]</span>
             </td>
         </tr>
     </table>

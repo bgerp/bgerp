@@ -10,6 +10,12 @@ defIfNot('TIFIG_PATH', 'tifig');
 
 
 /**
+ * Път до директорията на heif-convert
+ */
+//defIfNot('LIBHEIF_PATH', '/usr/local/bin/heif-convert');
+
+
+/**
  * Драйвер за работа с .heic файлове.
  *
  * @category  vendors
@@ -33,38 +39,43 @@ class fileman_webdrv_Heic extends fileman_webdrv_ImageT
      */
     public static function startConvertingToJpg($fRec, $params)
     {
-        if (!defined('TIFIG_PATH') || !TIFIG_PATH) {
-            fileman_webdrv_Heic::logAlert('Няма зададена стойност за "TIFIG_PATH"');
+        if ((!defined('TIFIG_PATH') || !TIFIG_PATH) && (!defined('LIBHEIF_PATH') || !LIBHEIF_PATH)) {
+            fileman_webdrv_Heic::logAlert('Няма зададена стойност за "TIFIG_PATH" и "LIBHEIF_PATH"');
             
             core_Locks::release($params['lockId']);
             
             fileman_Indexes::createError($params);
-            
+
             return ;
         }
-        
-        $tifigPath = rtrim(TIFIG_PATH, '/');
-        
+
         // Инстанция на класа
         $Script = cls::get('fconv_Script');
-        
-        $Script->setProgram('tifig', rtrim(TIFIG_PATH, '/'));
-        
+
         // Вземаме името на файла без разширението
         $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);
-        
+
         // Задаваме пътя до изходния файла
         $outFilePath = $Script->tempDir . $name . '-0.jpg';
-        
+
         // Задаваме placeHolder' ите за входния и изходния файл
         $Script->setFile('INPUTF', $fRec->fileHnd);
         $Script->setFile('OUTPUTF', $outFilePath);
-        
+
         $errFilePath = self::getErrLogFilePath($outFilePath);
-        
-        // Скрипта, който ще конвертира файла в SVG формат
-        $Script->lineExec('tifig -i [#INPUTF#] -o [#OUTPUTF#]', array('errFilePath' => $errFilePath));
-        
+
+        if (defined('LIBHEIF_PATH') && LIBHEIF_PATH) {
+            $Script->setProgram('heif-convert', rtrim(LIBHEIF_PATH, '/'));
+
+            // Скрипта, който ще конвертира файла в SVG формат
+            $Script->lineExec('heif-convert [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
+        } else {
+            $Script->setProgram('tifig', rtrim(TIFIG_PATH, '/'));
+
+            // Скрипта, който ще конвертира файла в SVG формат
+            $Script->lineExec('tifig -i [#INPUTF#] -o [#OUTPUTF#]', array('errFilePath' => $errFilePath));
+        }
+
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);
         

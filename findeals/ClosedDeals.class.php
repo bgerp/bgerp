@@ -197,7 +197,7 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     protected static function on_BeforeReject($mvc, &$res, $rec)
     {
         $rec = $mvc->fetchRec($rec);
-        if(dt::today() >= acc_Setup::getEurozoneDate()){
+        if(dt::today() >= acc_Setup::getEurozoneDate() && $rec->valior < acc_Setup::getEurozoneDate()){
             $dealCurrencyId = cls::get($rec->docClassId)->fetchField($rec->docId, 'currencyId');
             if($dealCurrencyId == 'BGN'){
                 core_Statuses::newStatus('|Не може да оттеглите приключване на финансова сделка в лева след приемането ни в еврозоната|*!', 'error');

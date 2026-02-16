@@ -66,7 +66,7 @@ class cash_Setup extends core_ProtoSetup
         'cash_ExchangeDocument',
         'cash_NonCashPaymentDetails',
         'cash_InternalMoneyTransferDetails',
-        'migrate::updateNonCashDetails2521'
+        'migrate::fixNonCashBlQuantities2602',
     );
     
     
@@ -102,16 +102,67 @@ class cash_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция на модела за безкасовите плащания към ПКО
+     * Миграция на к-та на безналичните плащания
      */
-    public function updateNonCashDetails2521()
+    function fixNonCashBlQuantities2602()
     {
-        $NonCash = cls::get('cash_NonCashPaymentDetails');
-        $NonCash->setupMvc();
+        $caseQuery = cash_Cases::getQuery();
+        $caseQuery->where("#state != 'rejected'");
 
-        $pkoClassId = cls::get('cash_Pko')->getClassId();
-        $classIdColName = str::phpToMysqlName('classId');
-        $query = "UPDATE {$NonCash->dbTableName} SET {$classIdColName} = $pkoClassId  WHERE {$classIdColName} IS NULL";
-        $NonCash->db->query($query);
+        $cases = $casePayments = $caseRecs = array();
+        while($caseRec = $caseQuery->fetch()){
+            $caseItemRec = acc_Items::fetchItem('cash_Cases', $caseRec->id);
+            if(is_object($caseItemRec)){
+                $caseRecs[$caseItemRec->id] = $caseRec;
+                $cases[$caseItemRec->id] = $caseItemRec->id;
+            }
+        }
+
+        $lastBalanceId = acc_Balances::getLastBalance()->id;
+        $bQuery = acc_BalanceDetails::getQuery();
+        acc_BalanceDetails::filterQuery($bQuery, $lastBalanceId, '502', $cases);
+        while($bRec = $bQuery->fetch()){
+            $casePayments[$bRec->ent1Id][$bRec->ent2Id] = (object) array('paymentItemId' => $bRec->ent2Id, 'diff' => round($bRec->baseQuantity - $bRec->baseAmount, 5));
+        }
+
+        $cancelSystemUser = false;
+        $isSystemUser = core_Users::isSystemUser();
+        $accountId = acc_Accounts::getRecBySystemId(502)->id;
+        foreach ($casePayments as $caseItemId => $paymentData){
+            if(!array_key_exists($caseItemId, $caseRecs)) continue;
+            if(!$isSystemUser){
+                core_Users::forceSystemUser();
+                $cancelSystemUser = true;
+            }
+
+            $mRec = (object)array('valior' => '2026-01-01',
+                'folderId' => $caseRecs[$caseItemId]->folderId,
+                'useCloseItems' => 'yes',
+                'state' => 'draft',
+                'reason' => "Конвертиране на салдо в основна валута (BGN->EUR) по безналични методи при влизане в Еврозоната");
+
+            acc_Articles::save($mRec);
+
+            foreach ($paymentData as $p){
+                $dRec = (object)array('debitAccId' => $accountId, 'creditAccId' => $accountId, 'articleId' => $mRec->id);
+                $dRec->debitEnt1 = $dRec->creditEnt1 = $caseItemId;
+                $dRec->debitEnt2 = $dRec->creditEnt2 = $p->paymentItemId;
+                $dRec->debitQuantity = $dRec->debitPrice = 0;
+                $dRec->creditQuantity = $p->diff;
+                $dRec->creditPrice = 0;
+                $dRec->amount = 0;
+                acc_ArticleDetails::save($dRec);
+            }
+
+            cls::get('acc_Articles')->updateMaster($mRec->id);
+
+            if($cancelSystemUser){
+                core_Users::cancelSystemUser();
+            }
+
+            $mRec->isContable = 'yes';
+            cls::get('acc_Articles')->save_($mRec, 'isContable');
+            acc_Articles::conto($mRec);
+        }
     }
 }

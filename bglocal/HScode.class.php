@@ -30,8 +30,14 @@ class bglocal_HScode extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, bglocal_Wrapper, plg_Printing,
+    public $loadList = 'plg_RowTools2, bglocal_Wrapper, plg_Printing,plg_Search,
                        plg_SaveAndNew';
+    
+    
+    /**
+     *  Полета по които ще се търси
+     */
+    public $searchFields = 'title,cnCode,headingName,chapterName,sectionName';
     
     
     /**
@@ -58,27 +64,53 @@ class bglocal_HScode extends core_Master
      */
     public function description()
     {
-        $this->FLD('key', 'varchar', 'caption=Код');
-        $this->FLD('title', 'text', 'caption=Наименование');
+        $this->FLD('sectionId', 'varchar(4)', 'caption=Раздел->код');
+        $this->FLD('sectionName', 'text', 'caption=Раздел->име');
+        $this->FLD('chapterId', 'varchar(2)', 'caption=Глава->код');
+        $this->FLD('chapterName', 'text', 'caption=Глава->име');
+        $this->FLD('headingId', 'varchar(4)', 'caption=Подглава->код');
+        $this->FLD('headingName', 'text', 'caption=Подглава->име');
+        $this->FLD('level', 'int(4)', 'caption=Степен->Степен на подробност на съответния код на продукта');
+        $this->FLD('cnCode', 'varchar(8)', 'caption=Стока->Код по КН');
+        $this->FLD('title', 'text', 'caption=Стока->Описание на стоката');
+        $this->FLD('name', 'text', 'input=none');
+        
+        $this->setDbIndex('cnCode');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        $form->view = 'horizontal';
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $form->showFields = 'search';
+        
+        $form->input();
+        
     }
     
     
     /**
      * Изпълнява се преид импортирването на запис
      */
-    public static function on_BeforeImportRec($mvc, $rec)
+    public static function on_AfterImportRec($mvc, $rec)
     {
-
+        $rec->name = $rec->cnCode . ' ' . $rec->title;
     }
     
-    
+
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = 'bglocal/data/HScode.csv';
-        $fields = array(0 => 'key', 1 => 'title');
+        $fields = array(0 => 'sectionId', 1 => 'sectionName',2 => 'chapterId', 3 => 'chapterName',
+                        4 => 'headingId', 5 => 'headingName',6 => 'level', 7 => 'cnCode',8 => 'title');
         $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
@@ -92,95 +124,160 @@ class bglocal_HScode extends core_Master
         $mvc = cls::get(get_called_class());
         $res = [];
         
-        // Вземаме всички записи в реда им (както са в CSV)
         $query = $mvc->getQuery();
         $query->orderBy('id');
-        $all = [];
-        while ($rec = $query->fetch()) {
-            $all[] = $rec;
-        }
         
-        if ($q !== '') {
-            $qLower = mb_strtolower($q);
-            $addedIds = [];
+        // ===============================
+        //  ТЪРСЕНЕ
+        // ===============================
+        if ($q) {
+            $qEsc = str_replace("'", "''", $q);
             
-            // Проверка дали търсенето е само цифри (код)
-            $searchKey = preg_replace('/\D/', '', $q);
-            $isCodeSearch = ctype_digit($searchKey) && $searchKey !== '';
-            
-            foreach ($all as $i => $rec) {
-                $match = false;
-                
-                // Търсене по текст
-                if (mb_stripos($rec->title, $qLower) !== false) {
-                    $match = true;
-                }
-                
-                // Търсене по код (точен или частичен)
-                if (!$match && $rec->key !== null) {
-                    $keyTrim = trim((string)$rec->key);
-                    
-                    if ($isCodeSearch) {
-                        // Ако е точен код, взимаме само редовете със съвпадение
-                        if ($keyTrim === $searchKey || strpos($keyTrim, $searchKey) === 0 || mb_stripos($rec->title, $searchKey) !== false) {
-                            $match = true;
-                        }
-                    }
-                }
-                
-                if ($match && !isset($addedIds[$rec->id])) {
-                    // Ако търсенето е текст → добавяме родител + деца
-                    if (!ctype_digit($q)) {
-                        $blockStart = $i;
-                        $startKey = $rec->key !== null ? trim($rec->key) : '';
-                        $startKeyLength = strlen($startKey);
-                        $blockEnd = count($all);
-                        
-                        for ($j = $i + 1; $j < count($all); $j++) {
-                            $next = $all[$j];
-                            $nextKey = $next->key !== null ? trim($next->key) : '';
-                            
-                            if ($startKeyLength == 2 && $nextKey !== '' && strlen($nextKey) == 2) {
-                                $blockEnd = $j;
-                                break;
-                            }
-                            
-                            if ($startKeyLength > 2 && $nextKey !== '' && strlen($nextKey) <= $startKeyLength) {
-                                $blockEnd = $j;
-                                break;
-                            }
-                        }
-                        
-                        $blockEnd = max($blockEnd, $blockStart + 1);
-                        
-                        for ($k = $blockStart; $k < $blockEnd; $k++) {
-                            $r = $all[$k];
-                            if (!isset($addedIds[$r->id])) {
-                                $code = ($r->key !== null) ? $r->key : '';
-                                $res[$r->id] = trim("{$code} {$r->title}");
-                                $addedIds[$r->id] = true;
-                            }
-                        }
-                    } else {
-                        // Ако търсенето е само код → взимаме само реда
-                        $code = ($rec->key !== null) ? $rec->key : '';
-                        $res[$rec->id] = trim("{$code} {$rec->title}");
-                        $addedIds[$rec->id] = true;
-                    }
-                }
-            }
-        } else {
-            // Ако няма търсене → показваме целия CSV
-            foreach ($all as $rec) {
-                $code = ($rec->key !== null) ? $rec->key : '';
-                $res[$rec->id] = trim("{$code} {$rec->title}");
+            if (ctype_digit($qEsc)) {
+                // търсене по код
+                $query->where("#cnCode LIKE '{$qEsc}%'");
+            } else {
+                // търсене по текст
+                $query->where("#title LIKE '%{$qEsc}%'");
             }
         }
         
         if ($limit) {
-            $res = array_slice($res, 0, $limit, true);
+            $query->limit($limit);
         }
         
+        $rows = [];
+        while ($rec = $query->fetch()) {
+           
+            $rows[] = $rec;
+        }
+        
+        if (!$rows) {
+            return $res;
+        }
+        
+        // ===============================
+        // Събиране на нужните Section / Chapter
+        // ===============================
+        $sections = [];
+        $chapters = [];
+        
+        foreach ($rows as $rec) {
+            $sections[$rec->sectionId] = $rec->sectionName;
+            $chapters[$rec->sectionId . '_' . $rec->chapterId] = $rec->chapterName;
+        }
+        
+        // ===============================
+        // Рендер на hierarchy
+        // ===============================
+        foreach ($sections as $sectionId => $sectionName) {
+            
+            $res['s' . $sectionId] = (object)[
+                'title' => $sectionName,
+                'noSelect' => true
+            ];
+            
+            foreach ($chapters as $ckey => $chapterName) {
+                
+                list($sId, $chId) = explode('_', $ckey);
+                
+                if ($sId != $sectionId) continue;
+                
+                $res['c' . $ckey] = (object)[
+                    'title' => $chapterName,
+                    'noSelect' => true
+                ];
+                
+                foreach ($rows as $rec) {
+                    
+                    if ($rec->sectionId == $sId && $rec->chapterId == $chId) {
+                        
+                        $code = $rec->cnCode ?? '';
+                       
+                        $res[$rec->id] = $code
+                        ? "{$code} {$rec->title}"
+                        : $rec->title;
+                    }
+                }
+            }
+        }
+        
+      
+        
         return $res;
+    }
+    
+
+
+    /**
+     * Връща HS кода, който най-точно съвпада с подадения префикс:
+     * - кодът трябва да започва с $input
+     * - избира се този с най-малко допълнителни цифри
+     * - при равни дължини: най-близкият числово до $input, паднат с нули до дължината на кода
+     *
+     * @param string $input Подаден стринг/префикс (може да съдържа и други символи)
+     * @param array  $codes Масив от HS кодове (стрингове)
+     * @return string|null  Намереният код (почистен като оригиналния е trim-нат) или null ако няма съвпадение
+     */
+    public static function findBestHsCode(string $input, array $codes = array(), int $minLen = 8)
+    {
+        // Нормализираме входа до цифри
+        $needle = preg_replace('/\D+/', '', $input);
+        if ($needle === '') return null;
+
+        // Ако не са подадени - зареждаме всички кодове
+        if (empty($codes)) {
+            $hsQuery = bglocal_HScode::getQuery();
+            $hsQuery->show('id,cnCode');
+            while ($hsRec = $hsQuery->fetch()) {
+                $codes[$hsRec->id] = $hsRec->cnCode;
+            }
+        }
+
+        // Нормализираме кодовете и правим индекс: normCode => оригинален код
+        $map = array();
+        foreach ($codes as $code) {
+            $orig = trim((string)$code);
+            $norm = preg_replace('/\D+/', '', $orig);
+            if ($norm === '') continue;
+
+            // Ако има дубликати след нормализация - пазим първия
+            if (!isset($map[$norm])) {
+                $map[$norm] = $orig;
+            }
+        }
+
+        $len = strlen($needle);
+
+        // Ако входът е >= 8 цифри: режем отдясно и търсим ТОЧНО съвпадение
+        if ($len >= $minLen) {
+            for ($tryLen = $len; $tryLen >= $minLen; $tryLen--) {
+                $candidate = substr($needle, 0, $tryLen);
+                if (isset($map[$candidate])) {
+                    return $map[$candidate];
+                }
+            }
+
+            return null;
+        }
+
+        // Ако входът е < 8 цифри: няма как да "режем до 8".
+        // По избор: връщаме най-късия код, който започва с входа (практично за частично въведени кодове).
+        $bestOrig = null;
+        $bestExtra = null;
+        $bestNorm = null;
+
+        foreach ($map as $norm => $orig) {
+            if (strpos($norm, $needle) !== 0) continue;
+
+            $extra = strlen($norm) - $len; // колко цифри добавя кодът след входа
+            if ($bestOrig === null || $extra < $bestExtra || ($extra === $bestExtra && strcmp($norm, $bestNorm) < 0)) {
+                $bestOrig = $orig;
+                $bestExtra = $extra;
+                $bestNorm = $norm;
+            }
+        }
+
+        return $bestOrig;
     }
 }

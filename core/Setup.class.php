@@ -220,7 +220,7 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '25.50-Kamenitsa');
+define('CORE_CODE_VERSION', '26.08-Kamenitsa');
 
 
 /**
@@ -482,6 +482,41 @@ class core_Setup extends core_ProtoSetup
      */
     public function install()
     {
+        // Маркер за първоначална инсталация: ако сетъпът спре инцидентно,
+        // при следващо пускане да НЕ се връща кодът назад по тагове.
+        global $setupFlag;
+        $firstInstallMarker = EF_TEMP_PATH . '/bgerp-first-install.inprogress';
+        
+        if (!empty($setupFlag) && !@file_exists($firstInstallMarker)) {
+            $uniqId = null;
+            
+            try {
+                // Ако вече има UNIQ ID => това не е “чиста” първа инсталация
+                $uniqId = self::get('BGERP_UNIQ_ID');
+            } catch (Exception $e) {
+                // Игнорираме – при първоначална инсталация може още да няма настройки
+            } catch (Throwable $t) {
+                // Игнорираме
+            }
+            
+            if (empty($uniqId)) {
+                $payload = array(
+                    'startedOn'   => date('c'),
+                    'codeVersion' => defined('CORE_CODE_VERSION') ? CORE_CODE_VERSION : null,
+                    'host'        => php_uname('n'),
+                    'pid'         => function_exists('getmypid') ? getmypid() : null,
+                );
+                
+                @file_put_contents(
+                    $firstInstallMarker,
+                    json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+                    LOCK_EX
+                    );
+            }
+        }
+        
+        // ... (останалият ти код)
+        
         // Спираме SQL лога, ако има такъв
         core_Db::$sqlLogEnebled = false;
         
@@ -625,6 +660,12 @@ class core_Setup extends core_ProtoSetup
         } catch (Throwable $t) {
             reportException($t);
         }
+        
+        // Ако сме стигнали до края – инсталацията е успешна -> чистим маркера
+        if (!empty($setupFlag) && @file_exists($firstInstallMarker)) {
+            @unlink($firstInstallMarker);
+        }
+        
         
         return $html;
     }

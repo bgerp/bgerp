@@ -937,8 +937,13 @@ abstract class deals_InvoiceMaster extends core_Master
             } else {
                 $form->setDefault('currencyId', $aggregateInfo->get('currency'));
             }
-            $form->setDefault('rate', $aggregateInfo->get('rate'));
-            $form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
+
+            if(acc_Periods::getBaseCurrencyCode($aggregateInfo->get('agreedValior')) != acc_Periods::getBaseCurrencyCode($rec->date)){
+                $form->setDefault('rate', currency_CurrencyRates::getRate($rec->data, $rec->currencyId, null));
+            } else {
+                $form->setDefault('rate', $aggregateInfo->get('rate'));
+                $form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
+            }
 
             if ($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)) {
                 $paymentMethodId = $aggregateInfo->get('paymentMethodId');
@@ -1069,6 +1074,12 @@ abstract class deals_InvoiceMaster extends core_Master
                     $rec->displayRate = $displayRate;
                     $rec->rate = $displayRate;
                 }
+
+                if($rec->currencyId != 'EUR'){
+                    if(acc_Periods::getBaseCurrencyCode($form->aggregateInfo->get('agreedValior')) != acc_Periods::getBaseCurrencyCode($rec->date)){
+                        $rec->rate = round($form->aggregateInfo->get('rate') / 1.95583, 6);
+                    }
+                }
             }
 
             $valiorError = null;
@@ -1084,8 +1095,6 @@ abstract class deals_InvoiceMaster extends core_Master
                 $rec->displayRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if (!$rec->displayRate) {
                     $form->setError('rate', 'Не може да се изчисли курс');
-                } else {
-                    $rec->rate = $rec->displayRate;
                 }
             } elseif(!$rec->_recalcBaseCurrency) {
                 if ($msg = currency_CurrencyRates::hasDeviation($rec->displayRate, $rec->date, $rec->currencyId, null)) {
@@ -1187,6 +1196,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
                 
                 if ($originRec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
+
                     $changeAmount = $rec->changeAmount;
                     if(isset($rec->_recalcBaseCurrency)) {
                         if (!empty($rec->changeAmount)) {
@@ -1297,6 +1307,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $rec->changeAmount = deals_Helper::getSmartBaseCurrency($rec->changeAmount, $rec->_oldValior, $rec->date);
             }
 
+            if(isset($rec->dpAmount)){
+                $rec->dpAmount = deals_Helper::getSmartBaseCurrency($rec->dpAmount, $rec->_oldValior, $rec->date);
+            }
             $rec->currencyId = acc_Periods::getBaseCurrencyCode($rec->date);
         }
 
@@ -1666,6 +1679,14 @@ abstract class deals_InvoiceMaster extends core_Master
                     }
                     $row->additionalInfo .= "\n" . $cond;
                 }
+            }
+        }
+
+        if(haveRole('debug')){
+            $row->rate = ht::createHint($row->rate, "Rate: {$rec->rate} / DisplayRate: {$rec->displayRate}", 'img/16/bug.png');
+        } else {
+            if($rec->date >= '2026-01-01' && $rec->currencyId == 'EUR'){
+                unset($row->rate);
             }
         }
     }
@@ -2183,7 +2204,7 @@ abstract class deals_InvoiceMaster extends core_Master
         if(empty($rec->issuerId)){
             $issuerId = null;
             $mvc->pushTemplateLg($rec->template);
-            $rec->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId));
+            $rec->username = transliterate(tr(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy, $issuerId)));
             core_Lg::pop();
             $rec->issuerId = $issuerId;
             $saveFields[] = 'username';

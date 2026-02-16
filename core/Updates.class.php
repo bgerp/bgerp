@@ -228,6 +228,19 @@ class core_Updates extends core_Manager
      */
     public static function getNewVersionTag()
     {
+        // Ако има маркер за първоначална инсталация (прекъсната или активна) - не предлагаме следващ таг
+        if (@file_exists(EF_TEMP_PATH . '/bgerp-first-install.inprogress')) {
+            return null;
+        }
+
+        $progressFile = EF_TEMP_PATH . '/setupProgress.json';
+        if (@file_exists($progressFile)) {
+            $pData = @json_decode(@file_get_contents($progressFile), true);
+            if (is_array($pData) && isset($pData['mode']) && $pData['mode'] === 'install') {
+                return null;
+            }
+        }
+
         try {
             $lastDbVersion = core_Setup::get('LAST_DB_VERSION');
         } catch (core_exception_Db $e) {

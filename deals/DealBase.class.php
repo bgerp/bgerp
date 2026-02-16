@@ -386,9 +386,11 @@ abstract class deals_DealBase extends core_Master
             }
 
             $beforeEu = $afterEu = 0;
+            $valior = $rec->valior ?? dt::today();
+            $valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
+
             $err = $closedDeals = $threads = $warning = array();
             $warning[$rec->currencyRate] = $rec->currencyRate;
-            $rec->valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
 
             $deals1 = keylist::toArray($form->rec->closeWith);
             $CloseDoc = cls::get($this->closeDealDoc);
@@ -427,7 +429,7 @@ abstract class deals_DealBase extends core_Master
             }
 
             if($beforeEu && $afterEu) {
-                $form->setError('closeWith', "Не може да обядинявате документи с вальор преди влизането в еврозоната с такива след след нея|*!");
+                $form->setError('closeWith', "Не може да обединявате документи с вальор преди влизането в еврозоната с такива след нея|*!");
             }
 
             $countryWarningMsg = array();
@@ -919,7 +921,8 @@ abstract class deals_DealBase extends core_Master
         
         $history = array();
         $Date = cls::get('type_Date');
-        $Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
+        $DoubleAmount = core_Type::getByName('double(decimals=2)');
+        $Double = core_Type::getByName('double(smartRound)');
         
         $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->historyItemsPerPage));
         $Pager->setPageVar($this->className, $rec->id);
@@ -974,16 +977,18 @@ abstract class deals_DealBase extends core_Master
                     }
 
                     foreach (array('debitQuantity', 'debitPrice', 'creditQuantity', 'creditPrice', 'amount') as $fld) {
-                        $entVerbal = $Double->toVerbal($ent->{$fld});
+                        $Type = strpos($fld, 'amount') === false ? $Double : $DoubleAmount;
+                        $entVerbal = $Type->toVerbal($ent->{$fld});
                         if(in_array($fld, array('amount', 'debitPrice', 'creditPrice'))){
                             if(!empty($ent->{$fld})){
                                 $entVerbal = currency_Currencies::decorate($entVerbal, acc_Periods::getBaseCurrencyCode($ent->valior), true);
                             }
                         }
 
+                        $entVerbal = ht::styleNumber($entVerbal, $ent->{$fld});
                         $obj->{$fld} = "<span style='float:right'>{$entVerbal}</span>";
                     }
-                    
+
                     $history[] = $obj;
                 }
                 

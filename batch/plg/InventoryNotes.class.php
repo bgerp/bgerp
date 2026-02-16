@@ -208,19 +208,10 @@ class batch_plg_InventoryNotes extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if (empty($rec->batch)) {
-            
-            return;
-        }
-        
         $Def = batch_Defs::getBatchDef($rec->productId);
-        if (!$Def) {
-            
-            return;
-        }
-        
+        if (!$Def) return;
+
         $batches = $Def->makeArray($rec->batch);
-        
         foreach ($batches as $key => $b) {
             if (!Mode::isReadOnly() && haveRole('powerUser')) {
                 if (!haveRole('batch,ceo')) {
@@ -237,7 +228,9 @@ class batch_plg_InventoryNotes extends core_Plugin
             $row->batch = $batches[key($batches)];
         }
 
-
+        if(empty($rec->batch)){
+            $row->batch = "<i class=quiet>" . tr('Без партида'). "</i>";
+        }
     }
     
     
@@ -264,7 +257,7 @@ class batch_plg_InventoryNotes extends core_Plugin
         $query = store_InventoryNoteDetails::getQuery();
         $query->where("#noteId = {$noteId} AND #productId = {$productId}");
         $count = $query->count();
-        
+
         // Сумиране на партидите
         while ($rec = $query->fetch()) {
             if (!empty($rec->batch)) {
@@ -273,10 +266,6 @@ class batch_plg_InventoryNotes extends core_Plugin
                 Mode::pop();
                 $quantity = $rec->quantity / countR($batches);
             } else {
-                if ($count == 1 && $alwaysShowBatches !== true) {
-                    
-                    return false;
-                }
                 $batches = array('' => '');
                 $quantity = $rec->quantity;
             }
@@ -349,7 +338,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $valior = dt::addDays(-1, $masterRec->valior);
             $valior = dt::verbal2mysql($valior, false);
         }
-        
+
         $alwaysShowBatches = (Mode::is('blank') && Request::get('showBatches')) || $masterRec->expandByBatches == 'yes';
 
         $r = array();

@@ -535,7 +535,11 @@ if ($step == 1) {
 // Стъпка 2: Обновяване
 if ($step == 2) {
     $log = array();
-    $checkUpdate = isset($_GET['update']) || isset($_GET['revert']);
+
+    // Минимална версия на PHP, при която е позволено обновяване на кода
+    $minPhpForUpdate = '7.4.33';
+    $phpVersionOkForUpdate = version_compare(PHP_VERSION, $minPhpForUpdate, '>=');
+    $checkUpdate = isset($_GET['update']) || isset($_GET['revert']) || isset($_GET['checkout']);
 
     $repos = core_App::getRepos();
 
@@ -577,9 +581,21 @@ if ($step == 2) {
             
             
             // Парамерти от Request, команди => репозиторита
-            $update = $_GET['update'];
-            $revert = $_GET['revert'];
+            $update = $_GET['update'] ?? null;
+            $revert = $_GET['revert'] ?? null;
             $checkoutMaxVersion = isset($_GET['checkoutMaxVersion']);
+            $checkout = $_GET['checkout'] ?? null;
+
+            // Ако PHP е по-старо от минималната версия, забраняваме обновяване на кода
+            $wantsCodeUpdate = (!empty($update) && $update !== '0') || !empty($checkout) || $checkoutMaxVersion;
+            if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
+                $log[] = "err:Текущата PHP версия (" . PHP_VERSION . ") е много стара. Обновяването на кода е забранено.";
+                $log[] = "wrn:Прехвърлете системата на PHP версия поне " . $minPhpForUpdate . " и стартирайте обновяването отново.";
+
+                // Показваме само линк за продължаване (без обновяване)
+                $links[] = "inf|{$nextUrl}|Продължете, без да обновявате кода »";
+                break;
+            }
             
             if ($checkoutMaxVersion) {
                 checkoutMaxVersion($log);
@@ -619,11 +635,15 @@ if ($step == 2) {
                     $links[] = "wrn|{$selfUrl}&amp;revert={$repoName}|В <b>[{$repoName}]</b> има променени файлове. Възстановете ги »";
                     $changed++;
                 } elseif (gitHasNewVersion($repoPath, $log, $branch)) {
-                    $links[] = "new|{$selfUrl}&amp;update={$repoName}|Има по-нова версия на <b>[{$repoName}]</b>. Обновете я »";
+                    if ($phpVersionOkForUpdate) {
+                        $links[] = "new|{$selfUrl}&amp;update={$repoName}|Има по-нова версия на <b>[{$repoName}]</b>. Обновете я »";
+                    } else {
+                        $links[] = "err|{$selfUrl}|Има по-нова версия на <b>[{$repoName}]</b>, но обновяването е забранено (PHP " . PHP_VERSION . " &lt; {$minPhpForUpdate}).";
+                    }
                     $newVer++;
                 }
             }
-            if ($newVer > 1 && !$changed) {
+            if ($newVer > 1 && !$changed && $phpVersionOkForUpdate) {
                 $links[] = "new|${selfUrl}&amp;update=all|Обновете едновременно цялата система »";
             }
             
@@ -1152,19 +1172,27 @@ if ($step == 'setup') {
     
     $links = array();
     
-    $haveNewVersion = false;
-    $haveNewVersion = core_Updates::getNewVersionTag();
-    if (!$haveNewVersion) {
-        $currBranch = gitCurrentBranch(EF_APP_PATH, $log);
-        if ($currBranch != BGERP_GIT_BRANCH) {
-            $haveNewVersion = true;
-        }
+        // Показване на линк за обновяване/превключване – само когато наистина има разлика в кода
+    // (а не заради LAST_DB_VERSION / тагове).
+    $needUpdate = false;
+    $needSwitchBranch = false;
+
+    $currBranch = gitCurrentBranch(EF_APP_PATH, $log);
+
+    // При detached HEAD или различен бранч от конфигурирания – предлагаме превключване
+    if ($currBranch && ($currBranch == 'HEAD' || $currBranch != BGERP_GIT_BRANCH)) {
+        $needSwitchBranch = true;
+    } else {
+        // Само ако сме на правилния бранч – проверяваме дали remote има нови комити
+        $needUpdate = gitHasNewVersion(EF_APP_PATH, $log, BGERP_GIT_BRANCH);
     }
 
-    if ($haveNewVersion) {
-        $links[] = "inf|{$selfUrl}&amp;step=2|Има по-нова версия. Обновете я »|_parent";
-    }    
-    $links[] = "new|{$appUri}|Стартиране на bgERP »|_parent";
+    if ($needSwitchBranch) {
+        $links[] = "inf|{$selfUrl}&amp;step=2&amp;checkout=1|Кодът е на <b>{$currBranch}</b>. Превключете към <b>" . BGERP_GIT_BRANCH . "</b> »|_parent";
+    } elseif ($needUpdate) {
+        $links[] = "inf|{$selfUrl}&amp;step=2&amp;update=all|Има по-нова версия. Обновете я »|_parent";
+    }
+$links[] = "new|{$appUri}|Стартиране на bgERP »|_parent";
   
     
     $l = linksToHtml($links);
@@ -1431,45 +1459,83 @@ function gitSetBranch($repoPath, &$log, $branch = null)
 function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
 {
     $repoName = basename($repoPath);
-    
-    // Команда за SHA1 на локалния бранч
-    $command = " --git-dir=\"{$repoPath}/.git\" rev-parse " . $branch;
 
-    if (!gitExec($command, $arrResLocal)) {
-        foreach ($arrResLocal as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при rev-parse : " . $val):'';
+    // Нормализиране на името на бранча (понякога се подава origin/dev)
+    if (strpos($branch, 'origin/') === 0) {
+        $branch = substr($branch, 7);
+    }
+    if (strpos($branch, 'refs/heads/') === 0) {
+        $branch = substr($branch, strlen('refs/heads/'));
+    }
+
+    // 1) Fetch на конкретния бранч - НЕ разчитаме, че съществува refs/remotes/origin/<branch>
+    // (при някои fetch настройки remote-tracking ref може да липсва, но FETCH_HEAD винаги се обновява)
+    $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin {$branch} 2>&1";
+    if (!gitExec($commandFetch, $arrFetch)) {
+        foreach ($arrFetch as $val) {
+            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при fetch : " . $val) : '';
         }
-        
+
         return false;
     }
-  
-    // Команда за SHA1 на отдалечения бранч
-    $command = " --git-dir=\"{$repoPath}/.git\" ls-remote origin " . $branch;
 
-    if (!gitExec($command, $arrResRemote)) {
+    // 2) Локален SHA1 (бранч или HEAD)
+    $commandLocal = " --git-dir=\"{$repoPath}/.git\" rev-parse {$branch} 2>&1";
+    if (!gitExec($commandLocal, $arrResLocal)) {
+        $commandLocal = " --git-dir=\"{$repoPath}/.git\" rev-parse HEAD 2>&1";
+        if (!gitExec($commandLocal, $arrResLocal)) {
+            foreach ($arrResLocal as $val) {
+                $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-parse : " . $val) : '';
+            }
+
+            return false;
+        }
+    }
+    $localRef = ($branch && gitExec(" --git-dir=\"{$repoPath}/.git\" show-ref --verify --quiet refs/heads/{$branch} 2>&1", $tmp)) ? $branch : 'HEAD';
+    $localSha = trim($arrResLocal[0]);
+
+    // 3) Remote SHA1 - взимаме от FETCH_HEAD (след fetch) вместо origin/<branch>
+    $commandRemote = " --git-dir=\"{$repoPath}/.git\" rev-parse FETCH_HEAD 2>&1";
+    if (!gitExec($commandRemote, $arrResRemote)) {
         foreach ($arrResRemote as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при ls-remote origin : " . $val):'';
+            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-parse FETCH_HEAD : " . $val) : '';
         }
-        
+
         return false;
     }
-    foreach ($arrResRemote as $val) {
-        if (strpos($val, 'refs/heads') === true);
-        $refsHeads = $val;
+    $remoteSha = trim($arrResRemote[0]);
+
+    // 4) „По-нова версия“ означава remote да е напред спрямо локалното (behind > 0)
+    $commandBehind = " --git-dir=\"{$repoPath}/.git\" rev-list --count {$localRef}..{$remoteSha} 2>&1";
+    if (!gitExec($commandBehind, $arrBehind)) {
+        foreach ($arrBehind as $val) {
+            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-list (behind) : " . $val) : '';
+        }
+
+        return false;
     }
-    $arrResRemote = preg_split('/\s+/', $refsHeads);
-    
-    //print_r($arrResRemote); die;
-    
-    if ($arrResRemote[0] !== $arrResLocal[0]) {
-        $log[] = "new:[<b>${repoName}</b>] Има нова версия.";
-        
+    $behind = (int) trim($arrBehind[0]);
+
+    if ($behind > 0) {
+        $log[] = "new:[<b>${repoName}</b>] Има нова версия ({$behind} commit(а) напред).";
         return true;
     }
-        
-    
+
+    // Ако локалното е напред – това НЕ е „нова версия“, а локални комити
+    $commandAhead = " --git-dir=\"{$repoPath}/.git\" rev-list --count {$remoteSha}..{$localRef} 2>&1";
+    if (gitExec($commandAhead, $arrAhead)) {
+        $ahead = (int) trim($arrAhead[0]);
+        if ($ahead > 0) {
+            $log[] = "wrn:[<b>${repoName}</b>] Локалното копие е {$ahead} commit(а) напред спрямо origin/{$branch}.";
+        }
+    }
+
+    // В останалите случаи – приемаме, че няма по-нова версия
     return false;
 }
+
+
+
 
 
 

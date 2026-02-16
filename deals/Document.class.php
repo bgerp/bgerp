@@ -93,7 +93,7 @@ abstract class deals_Document extends deals_PaymentDocument
         $folderId = $data->form->rec->folderId;
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
         $contragentId = doc_Folders::fetchCoverId($folderId);
         $contragentClassId = doc_Folders::fetchField($folderId, 'coverClass');
         $form->setDefault('contragentId', $contragentId);
@@ -236,6 +236,13 @@ abstract class deals_Document extends deals_PaymentDocument
                 $origin = $mvc->getOrigin($rec);
                 $dealInfo = $origin->getAggregateDealInfo();
                 $params = array('valior' => $rec->valior, 'currencyCode' => $dealInfo->get('currency'));
+
+                if($dealInfo->get('currency') == 'BGN'){
+                    $rec->currencyId = currency_Currencies::getIdByCode('EUR');
+                    $rec->rate = null;
+                    $rec->amountDeal = round($rec->amount / 1.95583, 2);
+                }
+
                 if ($dealId = findeals_Deals::createDraft($Cover->getClassId(), $Cover->that, $accountSysId, $params)) {
                     findeals_Deals::conto($dealId);
                     $rec->dealId = findeals_Deals::fetchField($dealId, 'containerId');
@@ -321,8 +328,18 @@ abstract class deals_Document extends deals_PaymentDocument
             }
             
             $origin = $mvc->getOrigin($rec->id);
+            if($origin->isInstanceOf('findeals_Deals')){
+                // Ако е към ФД, която е била в лева но вече е в евро - да помни оригиналната валута
+                $originRec = $origin->fetch('oldCurrencyId,currencyId');
+                $row->dealCurrencyId = $originRec->currencyId;
+                if($rec->valior < acc_Setup::getEurozoneDate() && isset($originRec->oldCurrencyId)){
+                    $row->dealCurrencyId = $originRec->oldCurrencyId;
+                }
+            } else {
+                $row->dealCurrencyId = $origin->fetchField('currencyId');
+            }
+
             $row->dealHandle = $origin->getLink();
-            $row->dealCurrencyId = $origin->fetchField('currencyId');
         }
     }
     

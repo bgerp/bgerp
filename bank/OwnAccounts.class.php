@@ -196,21 +196,40 @@ class bank_OwnAccounts extends core_Master
         
         $this->setDbUnique('title');
     }
-    
-    
+
+
     /**
      * Връща дефолтната bankAccountId за съответна фирма
-     * 
-     * @param integer $countryId
-     * 
-     * @return integer|boolean
+     *
+     * @param $countryId
+     * @param $checkNull
+     * @param $ownCompanyId
+     * @return false
      */
-    public static function getDefaultIdForCountry($countryId, $checkNull = true)
+    public static function getDefaultIdForCountry($countryId, $checkNull = true, $ownCompanyId = null)
     {
         $query = self::getQuery();
         $query->limit(1);
         $query->likeKeylist('countries', $countryId);
         $query->where("#state != 'rejected' AND #state != 'closed'");
+
+        // Ако има многофирменост да се ограничава само до сметката на избраната фирма
+        if (core_Packs::isInstalled('holding') && isset($ownCompanyId)) {
+            $ownCompanyRec = holding_Companies::getRec($ownCompanyId);
+            if(is_object($ownCompanyRec)){
+                $ownAccounts = keylist::toArray($ownCompanyRec->ownAccounts);
+                if(countR($ownAccounts)){
+                    $query->in("id", $ownAccounts);
+                } else {
+                    $query->where("1=2");
+                }
+            } else {
+                $otherCompanyAccountIds = holding_Companies::getSelectedOptions('ownAccounts');
+                if(countR($otherCompanyAccountIds)){
+                    $query->notIn('id', $otherCompanyAccountIds);
+                }
+            }
+        }
 
         if ($checkNull) {
             $query->orWhere('#countries IS NULL');
@@ -768,17 +787,12 @@ class bank_OwnAccounts extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 // И валутата на б.сметка е в лева и има остатъчно салдо на к-во в лева
-                $ownAccountCurrencyId = bank_Accounts::fetchField("#id = {$rec->bankAccountId}", 'currencyId');
-                if($ownAccountCurrencyId != currency_Currencies::getIdByCode('BGN')){
+                if(!bank_ExchangeDocument::haveRightFor('add')){
                     $requiredRoles = 'no_one';
                 } else {
-                    if(!bank_ExchangeDocument::haveRightFor('add')){
+                    $balanceRec = self::getBalanceTo($rec->id, currency_Currencies::getIdByCode('BGN'));
+                    if(empty($balanceRec->quantity)){
                         $requiredRoles = 'no_one';
-                    } else {
-                        $balanceRec = self::getBalanceTo($rec->id, $ownAccountCurrencyId);
-                        if(empty($balanceRec->quantity)){
-                            $requiredRoles = 'no_one';
-                        }
                     }
                 }
             }

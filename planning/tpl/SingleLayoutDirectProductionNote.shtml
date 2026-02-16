@@ -104,10 +104,16 @@
                                             <!--ET_END deadline-->
                                             <!--ET_BEGIN debitAmount-->
                                             <tr>
-                                                <td class='quiet aright'>|Стойност|*:</td>
+                                                <td class='quiet aright'>|Ръчна сб-ст|*:</td>
                                                 <td>[#debitAmount#]</td>
                                             </tr>
                                             <!--ET_END debitAmount-->
+                                            <!--ET_BEGIN calcPrimeCostBtn-->
+                                            <tr>
+                                                <td class='quiet aright'>[#calcPrimeCostBtn#]</td>
+                                                <td><!--ET_BEGIN calcedPrimeCost--><b>[#calcedPrimeCost#]</b> |без реж.|*<br /> <b>[#calcedPrimeCostExpenses#]</b> |с реж.|*<br />|към|* [#calcedPrimeCostDate#]<!--ET_END calcedPrimeCost--></td>
+                                            </tr>
+                                            <!--ET_END calcPrimeCostBtn-->
                                             <tr>
                                                 <td class='quiet aright'>|Изравн. сб-ст|*:</td>
                                                 <td>[#equalizePrimeCost#]</td>

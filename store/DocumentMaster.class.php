@@ -282,9 +282,14 @@ abstract class store_DocumentMaster extends core_Master
                 }
             }
 
+            $valior = $rec->valior ?? dt::today();
             $rec->_dealCurrencyId = $form->dealInfo->get('currency');
             if((acc_Periods::getBaseCurrencyCode($rec->valior) != acc_Periods::getBaseCurrencyCode($form->dealInfo->get('agreedValior')))) {
-                $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+                if(!in_array($rec->currencyId, array('BGN', 'EUR')) && $valior >= acc_Setup::getEurozoneDate()){
+                    $rec->currencyRate = round($form->dealInfo->get('rate') / 1.95583, 6);
+                } else {
+                    $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+                }
             }
 
             // Ако има локация и тя е различна от договорената, слагаме предупреждение
@@ -1496,5 +1501,20 @@ abstract class store_DocumentMaster extends core_Master
                 core_Statuses::newStatus("Цените на артикулите са преизчислени към основната валута за|*: <b>{$valiorVerbal}</b>");
             }
         }
+    }
+
+
+    /**
+     * Връща файла, който се използва в документа
+     *
+     * @param object $rec
+     * @return array
+     */
+    public function getLinkedFiles($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
+
+        return $files;
     }
 }

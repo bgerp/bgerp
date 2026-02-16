@@ -1039,6 +1039,14 @@ class acc_plg_Contable extends core_Plugin
 
                 redirect(array($mvc, 'single', $rec->id), false, $currencyError, 'error');
             }
+
+            // Забрана да не може да се контират определени документи ако са създадени преди ЕЗ, но вальора им е след нея
+            if($mvc->currencyFld && isset($rec->{$mvc->currencyFld}) && !($mvc instanceof deals_PaymentDocument)){
+                $valior = $rec->{$mvc->valiorFld} ?? dt::today();
+                if($rec->createdOn < acc_Setup::getEurozoneDate() && $valior >= acc_Setup::getEurozoneDate()){
+                    redirect(array($mvc, 'single', $rec->id), false, 'Не може да се контира документ създаден преди Еврозоната с вальор след нея|*!', 'error');
+                }
+            }
         }
     }
 }
