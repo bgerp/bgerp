@@ -74,7 +74,7 @@ class email_Salutations extends core_Manager
     public function description()
     {
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер,input=none');
-        $this->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,input=none');
+        $this->FLD('folderId', 'key2(mvc=doc_Folders,allowEmpty,restrictViewAccess=yes)', 'caption=Папка,input=none');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка,input=none');
         $this->FLD('userId', 'user', 'caption=Потребител,input=none');
         $this->FLD('salutation', 'varchar', 'caption=Обръщение');
@@ -363,7 +363,7 @@ class email_Salutations extends core_Manager
     protected static function getSalutations($text)
     {
         // Шаблона за намиране на обръщение в текст
-        $pattern = self::getSalutaionsPattern();
+        $pattern = self::getSalutationsPattern();
         
         // Намираме обръщенито
         preg_match($pattern, $text, $matche);
@@ -376,7 +376,7 @@ class email_Salutations extends core_Manager
     /**
      * Връща шаблона за обръщенията
      */
-    protected static function getSalutaionsPattern()
+    protected static function getSalutationsPattern()
     {
         // Ако не е сетнат шаблона
         if (!isset(self::$salutationsPattern)) {
@@ -456,9 +456,15 @@ class email_Salutations extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'folderId,search';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-        
         $data->query->orderBy('createdOn', 'DESC');
+        $data->listFilter->input();
+
+        if($filter = $data->listFilter->rec){
+            if(isset($filter->folderId)){
+                $data->query->where("#folderId = '{$filter->folderId}'");
+            }
+        }
     }
 }

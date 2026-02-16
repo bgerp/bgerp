@@ -169,7 +169,7 @@ class plg_State2 extends core_Plugin
     public function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->STATE_CLASS = "state-{$rec->state}";
-        $row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-{$rec->state}";
 
         if (isset($fields['-list']) && (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('noToolbar'))) return;
 

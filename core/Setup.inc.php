@@ -535,6 +535,10 @@ if ($step == 1) {
 // Стъпка 2: Обновяване
 if ($step == 2) {
     $log = array();
+
+    // Минимална версия на PHP, при която е позволено обновяване на кода
+    $minPhpForUpdate = '7.4.33';
+    $phpVersionOkForUpdate = version_compare(PHP_VERSION, $minPhpForUpdate, '>=');
     $checkUpdate = isset($_GET['update']) || isset($_GET['revert']) || isset($_GET['checkout']);
 
     $repos = core_App::getRepos();
@@ -580,6 +584,18 @@ if ($step == 2) {
             $update = $_GET['update'] ?? null;
             $revert = $_GET['revert'] ?? null;
             $checkoutMaxVersion = isset($_GET['checkoutMaxVersion']);
+            $checkout = $_GET['checkout'] ?? null;
+
+            // Ако PHP е по-старо от минималната версия, забраняваме обновяване на кода
+            $wantsCodeUpdate = (!empty($update) && $update !== '0') || !empty($checkout) || $checkoutMaxVersion;
+            if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
+                $log[] = "err:Текущата PHP версия (" . PHP_VERSION . ") е много стара. Обновяването на кода е забранено.";
+                $log[] = "wrn:Прехвърлете системата на PHP версия поне " . $minPhpForUpdate . " и стартирайте обновяването отново.";
+
+                // Показваме само линк за продължаване (без обновяване)
+                $links[] = "inf|{$nextUrl}|Продължете, без да обновявате кода »";
+                break;
+            }
             
             if ($checkoutMaxVersion) {
                 checkoutMaxVersion($log);
@@ -619,11 +635,15 @@ if ($step == 2) {
                     $links[] = "wrn|{$selfUrl}&amp;revert={$repoName}|В <b>[{$repoName}]</b> има променени файлове. Възстановете ги »";
                     $changed++;
                 } elseif (gitHasNewVersion($repoPath, $log, $branch)) {
-                    $links[] = "new|{$selfUrl}&amp;update={$repoName}|Има по-нова версия на <b>[{$repoName}]</b>. Обновете я »";
+                    if ($phpVersionOkForUpdate) {
+                        $links[] = "new|{$selfUrl}&amp;update={$repoName}|Има по-нова версия на <b>[{$repoName}]</b>. Обновете я »";
+                    } else {
+                        $links[] = "err|{$selfUrl}|Има по-нова версия на <b>[{$repoName}]</b>, но обновяването е забранено (PHP " . PHP_VERSION . " &lt; {$minPhpForUpdate}).";
+                    }
                     $newVer++;
                 }
             }
-            if ($newVer > 1 && !$changed) {
+            if ($newVer > 1 && !$changed && $phpVersionOkForUpdate) {
                 $links[] = "new|${selfUrl}&amp;update=all|Обновете едновременно цялата система »";
             }
             

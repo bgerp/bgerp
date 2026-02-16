@@ -637,7 +637,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,overdueAndAct=Просрочени и активни,unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,overdueAndAct=Просрочени и активни,unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени,fastPayment=Платено веднага,fastDelivery=Доставено веднага,fastBoth=Платено и доставено веднага');
     
         return $options;
     }
@@ -746,6 +746,15 @@ abstract class deals_DealMaster extends deals_DealBase
             case 'notUnionDeals':
                 $query->where("#state IN ('active', 'closed')");
                 $query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
+                break;
+            case 'fastPayment':
+                $query->where(array("#contoActions LIKE '%pay%'"));
+                break;
+            case 'fastDelivery':
+                $query->where(array("#contoActions LIKE '%ship%'"));
+                break;
+            case 'fastBoth':
+                $query->where(array("#contoActions LIKE '%pay%' AND #contoActions LIKE '%ship%'"));
                 break;
         }
 
@@ -1278,7 +1287,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
         if(empty($rec->username)){
             $mvc->pushTemplateLg($rec->template);
-            $rec->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy));
+            $rec->username = transliterate(tr(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy)));
             core_Lg::pop();
             $update = true;
         }

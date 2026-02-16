@@ -197,6 +197,20 @@ class rack_Zones extends core_Master
             }
         }
     }
+	
+	
+	/**
+	 * Маха .00 / ,00 от вербализиран процент (100.00% -> 100%)
+	 */
+	public static function smartPercentVerbal($verbal)
+	{
+		if (!isset($verbal) || $verbal === '') return $verbal;
+
+		// 100.00% / 100,00% / 100.00 % / 100,00 %
+		$verbal = preg_replace('/(\d+)([.,]00)(\s*%)/u', '$1$3', $verbal);
+
+		return $verbal;
+	}
 
 
     /**
@@ -265,6 +279,10 @@ class rack_Zones extends core_Master
 
         $readiness = isset($rec->readiness) ? $row->readiness : 'none';
         $row->readiness = "<div class='block-readiness'>{$readiness}</div>";
+		
+		if (isset($row->readiness)) {
+			$row->readiness = self::smartPercentVerbal($row->readiness);
+		}
 
         $row->num = $mvc->getHyperlink($rec->id);
         if (isset($fields['-list'])) {
@@ -655,10 +673,10 @@ class rack_Zones extends core_Master
             $fRec = $form->rec;
             if(isset($zoneRec->id)){
                 if($fRec->zoneId != $zoneRec->id){
-                    if(!$this->haveRightFor('removedocument', $zoneRec->id)){
-                        $form->setError('zoneId', "Нямате права да премахнете документа от Зона:|*" . rack_Zones::getRecTitle($zoneRec->id, false));
-                    } elseif(rack_Movements::fetch("LOCATE('|{$zoneRec->id}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
+                    if(rack_Movements::fetch("LOCATE('|{$zoneRec->id}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
                         $form->setError('zoneId', "Не може да премахнете документа от зона|* <b>" . rack_Zones::getDisplayZone($zoneRec->id) . "</b>, |защото има вече запазени или започнати движения. Документът може да бъде премахнат след отказването им|*!");
+                    } elseif(!$this->haveRightFor('removedocument', $zoneRec->id)){
+                        $form->setError('zoneId', "Нямате права да премахнете документа от Зона:|*" . rack_Zones::getRecTitle($zoneRec->id, false));
                     }
                 } elseif($fRec->defaultUserId == $zoneRec->defaultUserId) {
                     $form->setError('zoneId,defaultUserId', "Зоната и изпълнителя са същите");
@@ -746,8 +764,8 @@ class rack_Zones extends core_Master
         if($remove){
 
             // Ако документа се премахва от зоната, изтриват се чакащите движения към тях
-            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending' AND #modifiedBy = -1");
-            rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}' NOT MODIFIED BY USER");
+            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending'");
+            rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}' (ALL - incl. MODIFIED BY USER)");
         }
 
         // Обновяване на информацията в зоната

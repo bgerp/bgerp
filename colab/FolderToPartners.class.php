@@ -100,7 +100,7 @@ class colab_FolderToPartners extends core_Manager
         // Поставяне на уникални индекси
         $this->setDbUnique('folderId,contractorId');
         
-        $this->setDbIndex('contractorId');
+        $this->setDbIndex('contractorId, folderId');
         $this->setDbIndex('folderId');
     }
     
@@ -556,16 +556,14 @@ class colab_FolderToPartners extends core_Manager
         $form->FNC('onlyPartner', 'enum(no,yes)', 'input=hidden,silent');
         $form->input(null, 'silent');
 
-        $emailsArr = $allEmails = type_Emails::toArray($objectRec->email);
+        $allEmails = type_Emails::toArray($objectRec->email);
         if(!empty($objectRec->buzEmail)){
-            $allEmails = array_merge(type_Emails::toArray($objectRec->buzEmail), $emailsArr);
+            $allEmails = array_merge(type_Emails::toArray($objectRec->buzEmail), $allEmails);
         }
 
-        if (countR($emailsArr) == 1) {
-            $form->setDefault('to', $emailsArr[key($emailsArr)]);
-        }
-
-        if (countR($allEmails) > 1) {
+        if (countR($allEmails) == 1) {
+            $form->setDefault('to', $allEmails[key($allEmails)]);
+        } elseif (countR($allEmails) > 1) {
             $allEmailsSuggestions = array_combine($allEmails, $allEmails);
             $allEmailsSuggestions = array('' => '') + $allEmailsSuggestions;
             $form->setSuggestions('to', $allEmailsSuggestions);

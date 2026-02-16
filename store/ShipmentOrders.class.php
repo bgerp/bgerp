@@ -799,7 +799,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         // Кеширане на съставителя
         if(empty($rec->username)){
             $mvc->pushTemplateLg($rec->template);
-            $rec->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy));
+            $rec->username = transliterate(tr(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy)));
             core_Lg::pop();
             $saveFields['username'] = 'username';
         }

@@ -1700,32 +1700,38 @@ class core_String
      *   - dropTitles (bool) по подразбиране true: маха често срещани титли (Mr, Dr, Инж, Г-н и т.н.) от началото
      *   - keepParticlesWithLast (bool) по подразбиране false:
      *       ако е true, “залепя” частиците към фамилията и НЕ ги връща отделно като lastNamePrefix
+     *   - salutationList (array) по подразбиране []:
+     *       списък с обръщения (възможно и като фрази), които да се махнат от НАЧАЛОТО на стринга
+     *       напр. ["Уважаеми", "Уважаема", "Dear", "Hello", "Здравейте", "Hi", "To:"]
+     *
+     * Прочиства входа от:
+     *   - HTML тагове
+     *   - BBCode тагове [b], [url=...], [/b] и др.
+     *   - HTML entities (&nbsp; и т.н.)
+     *   - запетаи и други паразитни символи (пази букви/цифри/интервали, тире и апостроф)
      *
      * Връща:
-     *   - first: първо име (или null)
-     *   - last: фамилия (или null)
-     *   - rest: междинни имена/бащино (или null)
-     *   - titles: намерени водещи титли (масив; може да е празен)
-     *   - lastNamePrefix: текстов израз на префикс пред фамилията (напр. "van", "von", "de") или null
-     *   - normalized: нормализирано име (с единични интервали; с/без титли според dropTitles)
-     *   - parts: масив от частите (с/без титли според dropTitles)
-     *
-     * Забележка:
-     *   - Ако keepParticlesWithLast=false (по подразбиране), функцията ще върне lastNamePrefix, когато има такъв.
-     *     Пример: "John van Helsing" => lastNamePrefix="van", last="Helsing"
-     *   - Ако keepParticlesWithLast=true, тогава last="van Helsing", lastNamePrefix=null
+     *   - first, last, rest, titles, lastNamePrefix, normalized, parts
      *
      * @return array{
      *   first:?string,last:?string,rest:?string,titles:array,lastNamePrefix:?string,normalized:string,parts:array
      * }
      */
-    public static function parsePersonName($input, $options = []): array
+    public static function parsePersonName(string $input, array $options = []): array
     {
         $dropTitles = $options['dropTitles'] ?? true;
         $keepParticlesWithLast = $options['keepParticlesWithLast'] ?? false;
+        $salutationList = $options['salutationList'] ?? [];
 
-        // Нормализиране на интервалите (вкл. табове, нови редове, NBSP)
-        $s = trim(preg_replace('/[\s\p{Z}]+/u', ' ', $input) ?? '');
+        // 1) Грубо прочистване на входа
+        $s = self::sanitizePersonNameString($input);
+
+        // 2) Махане на обръщения от началото (ако има)
+        $s = self::removeLeadingSalutations($s, $salutationList);
+
+        // 3) Нормализиране на интервалите (Unicode-safe)
+        $s = trim(preg_replace('/[\s\p{Z}]+/u', ' ', $s) ?? '');
+
         if ($s === '') {
             return [
                 'first' => null,
@@ -1737,9 +1743,6 @@ class core_String
                 'parts' => [],
             ];
         }
-
-        // Махане на пунктуация по краищата (често при импорти/копи-пейст)
-        $s = trim($s, " \t\n\r\0\x0B,.;:()[]{}\"'");
 
         // Разбиване на думи (Unicode-safe)
         $parts = preg_split('/\s+/u', $s, -1, PREG_SPLIT_NO_EMPTY) ?: [];
@@ -1760,7 +1763,7 @@ class core_String
             $t = mb_strtolower(rtrim($token, '.'), 'UTF-8');
 
             if (in_array($t, $knownTitles, true)) {
-                $titles[] = $token; // пазим оригинала (с точка ако е имало)
+                $titles[] = $token; // пазим оригинала
                 if ($dropTitles) {
                     array_shift($parts);
                     continue;
@@ -1791,6 +1794,7 @@ class core_String
             ];
         }
 
+        // Ако има само една дума – приемаме я за "първо име", фамилия няма
         if (count($nameParts) === 1) {
             $normalized = $dropTitles ? $nameParts[0] : implode(' ', $parts);
             return [
@@ -1827,7 +1831,7 @@ class core_String
                     $lastNamePrefix = null;
                 } else {
                     // връщаме я отделно като префикс на фамилията
-                    $lastNamePrefix = array_pop($restTokens); // пазим оригинала (може да е с главна буква)
+                    $lastNamePrefix = array_pop($restTokens); // пазим оригинала
                 }
             }
         }
@@ -1835,7 +1839,13 @@ class core_String
         $rest = $restTokens ? implode(' ', $restTokens) : null;
 
         // Нормализиран вариант на името
-        $nameOnlyNormalized = trim($first . ' ' . ($rest ? $rest . ' ' : '') . ($lastNamePrefix ? $lastNamePrefix . ' ' : '') . $last);
+        $nameOnlyNormalized = trim(
+            $first . ' ' .
+            ($rest ? $rest . ' ' : '') .
+            ($lastNamePrefix ? $lastNamePrefix . ' ' : '') .
+            $last
+        );
+
         $normalized = $dropTitles
             ? $nameOnlyNormalized
             : trim(implode(' ', array_merge($titles, [$nameOnlyNormalized])));
@@ -1862,4 +1872,101 @@ class core_String
             'parts' => $returnParts,
         ];
     }
+
+
+    /**
+     * Прочиства стринга:
+     *  - маха HTML тагове + декодира entities
+     *  - маха BBCode тагове
+     *  - маха запетаи и паразитни символи (пази букви/цифри/интервали, тире и апостроф)
+     */
+    public static function sanitizePersonNameString(string $s): string
+    {
+        // Декодира &nbsp; и други entities
+        $s = html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // Махаме HTML тагове
+        $s = strip_tags($s);
+
+        // Махаме BBCode тагове: [b], [/b], [url=...], [img], [*] и др.
+        $s = preg_replace('/\[(\/?)([a-z0-9_*]+)(?:=[^\]]*)?\]/iu', ' ', $s) ?? $s;
+
+        // Замяна на разделители/пунктуация с интервал (вкл. запетая)
+        $s = preg_replace('/[,\.;:\(\)\[\]\{\}"“”„”‘’`~!@#\$%\^&\*\+=\|\\\\\/<>?]+/u', ' ', $s) ?? $s;
+
+        // Оставяме само: букви, цифри, интервали, тире, апостроф
+        // (ако искаш да пазиш и точка за инициали, добави \. вътре)
+        $s = preg_replace("/[^\p{L}\p{N}\s\-'’]+/u", ' ', $s) ?? $s;
+
+        // Нормализиране на интервали
+        $s = trim(preg_replace('/[\s\p{Z}]+/u', ' ', $s) ?? '');
+
+        return $s;
+    }
+
+
+    /**
+     * Маха обръщения от НАЧАЛОТО на стринга.
+     * Поддържа и фрази (напр. "Уважаеми г-н", "Dear Mr").
+     * Маха обръщения от НАЧАЛОТО на стринга.
+     * Поддържа и “основа” за думи: напр. salutation "здравей" хваща "здравейте,".
+     * Поддържа и фрази: напр. "Dear Mr", "Уважаеми г-н".
+     */
+    public static function removeLeadingSalutations(string $s, array $salutationList): string
+    {
+        $s = trim($s);
+        if ($s === '' || !$salutationList) return $s;
+
+        // По-дългите фрази първо, за да не “захапем” частично
+        usort($salutationList, function ($a, $b) {
+            return mb_strlen((string)$b, 'UTF-8') <=> mb_strlen((string)$a, 'UTF-8');
+        });
+
+        // Махаме повтарящи се обръщения (ако има)
+        $changed = true;
+        while ($changed) {
+            $changed = false;
+
+            foreach ($salutationList as $sal) {
+                $sal = trim((string)$sal);
+                if ($sal === '') continue;
+
+                // Разбиваме обръщението на думи (ако е фраза)
+                $words = preg_split('/\s+/u', $sal, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+                if (!$words) continue;
+
+                // Строим регекс:
+                // - първите N-1 думи: точен мач като цели думи
+                // - последната дума: мачваме "основата" + позволяваме наставка от букви (\p{L}*)
+                // - след последната дума: трябва да има НЕ-буква или край
+                $pattern = '^\\s*';
+                $count = count($words);
+
+                for ($i = 0; $i < $count; $i++) {
+                    $w = preg_quote($words[$i], '/');
+
+                    if ($i < $count - 1) {
+                        // Точна дума + поне 1 интервал след нея
+                        $pattern .= $w . '(?:\\s+)';
+                    } else {
+                        // Последна дума: основа + (възможни букви) и след това НЕ-буква или край
+                        $pattern .= $w . '\\p{L}*(?=[^\\p{L}]|$)';
+                    }
+                }
+
+                // Махаме и следваща пунктуация/разделители (запетаи, двоеточия, тирета) + интервали
+                $pattern .= '[\\s,;:\\-–—]*';
+
+                if (preg_match('/' . $pattern . '/iu', $s)) {
+                    $s = preg_replace('/' . $pattern . '/iu', '', $s, 1) ?? $s;
+                    $s = trim($s);
+                    $changed = true;
+                    break; // започваме отначало (в случай на поредица от обръщения)
+                }
+            }
+        }
+
+        return $s;
+    }
+
 }
