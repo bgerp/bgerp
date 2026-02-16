@@ -196,7 +196,7 @@ class type_Double extends core_Type
         }
        
         // Ако закръгляме умно
-        if ($this->params['smartRound']) {
+        if ($this->params['smartRound'] ?? null) {
 
             // За да знаем броя знаци след десетичния знак обръща се във удобен вид
             $value = rtrim(sprintf('%.9F', $value), '0');
@@ -221,7 +221,7 @@ class type_Double extends core_Type
         $value = round($value, $decimals);
         
         // ако е умно показване и стойноста е 0, да не се закръгля до 0.000
-        if ($this->params['smartRound'] && $value == 0) {
+        if (($this->params['smartRound'] ?? null) && $value == 0) {
             $decimals = 0;
         }
         

@@ -23,22 +23,22 @@ class change_Plugin extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         // Ако няма добавено поле за версия
-        if (!$mvc->fields['version']) {
+        if (empty($mvc->fields['version'])) {
             $mvc->FLD('version', 'varchar', 'caption=Версия->Номер,input=none,autohide,width=100%, spellcheck=no');
         }
         
         // Ако няма добавено поле за подверсия
-        if (!$mvc->fields['subVersion']) {
+        if (empty($mvc->fields['subVersion'])) {
             $mvc->FLD('subVersion', 'int', 'caption=Подверсия,input=none');
         }
         
         // Ако няма добавено поле за промяна на датата
-        if (!$mvc->fields['changeModifiedOn']) {
+        if (empty($mvc->fields['changeModifiedOn'])) {
             $mvc->FLD('changeModifiedOn', 'datetime(format=smartTime)', 'caption=Промяна->На,input=none,column=none,single=none');
         }
         
         // Ако няма добавено поле за промяна от
-        if (!$mvc->fields['changeModifiedBy']) {
+        if (empty($mvc->fields['changeModifiedBy'])) {
             $mvc->FLD('changeModifiedBy', 'key(mvc=core_Users)', 'caption=Промяна->От,input=none,column=none,single=none');
         }
     }

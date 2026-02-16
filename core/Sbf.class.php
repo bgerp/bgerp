@@ -1,5 +1,9 @@
 <?php
 
+/**
+* Пътя до директорията за статичните браузърни файлове към приложението
+*/
+defIfNot('EF_SBF_PATH', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME);
 
 /**
  * Клас 'core_Sbf'
@@ -65,7 +69,7 @@ class core_Sbf extends core_Mvc
         
         // debug::log("getSbfFilePath {$path}");
         
-        if (!$cache[$path]) {
+        if (!($cache[$path] ?? null)) {
             $time = 0;
             if ($file = getFullPath($path)) {
                 $time = filemtime($file);

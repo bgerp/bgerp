@@ -35,7 +35,7 @@ class type_Text extends core_Type
     public function init($params = array())
     {
         parent::init($params);
-        setIfNot($this->viewrows, $params['params']['viewrows'], $params['viewrows'], 6);
+        setPartIfNot($this, 'viewrows', $params['params']['viewrows'] ?? null, $params['viewrows'] ?? null, 6);
     }
 
 
@@ -45,17 +45,18 @@ class type_Text extends core_Type
     public function renderInput_($name, $value = '', &$attr = array())
     {
         if (Mode::is('screenMode', 'narrow')) {
-            setIfnot($attr['rows'], $this->params['rows'], 5);
+            // setIfnot($attr['rows'], $this->params['rows'], 5);
+            setPartIfNot($attr, 'rows', $this->params['rows'] ?? null, 5);
         } else {
-            setIfnot($attr['rows'], $this->params['rows'], 10);
+            setPartIfNot($attr, 'rows', $this->params['rows'] ?? null, 10);
         }
         
         $attr['class'] .= ' w100';
         
         // Сигнализиране на потребителя, ако въведе по-дълъг текст от допустимото
-        setIfNot($size, $this->params['size'], $this->params[0], $this->dbFieldLen);
+        $size = $this->params['size'] ??  $this->params[0] ?? $this->dbFieldLen;
         
-        if (!$this->params['noTrim']) {
+        if (isset($this->params['noTrim'])) {
             $attr['onblur'] .= 'this.value = this.value.trim();';
         }
         

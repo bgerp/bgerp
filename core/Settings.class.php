@@ -141,7 +141,7 @@ class core_Settings extends core_Manager
         // Подготвяме ключа и потребителя/групата
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
-        list(, $objectId) = explode('::', $key);
+        list(, $objectId) = explode('::', $key) + ['', ''];
         
         $key = self::prepareKey($key);
         

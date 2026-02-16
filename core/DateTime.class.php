@@ -338,7 +338,9 @@ class core_DateTime
         
         $year = date('y', $time);
         $yearNow = date('y', time());
-        
+        $smartMode = null;
+        $addColor = null;
+
         if ($mask == 'smartTime') {
             $addColor = true;
             
@@ -700,7 +702,7 @@ class core_DateTime
             $date = dt::verbal2mysql();
         }
         
-        list($d, $t) = explode(' ', $date);
+        list($d, $t) = explode(' ', $date) + ['', ''];
         
         if (!$t) {
             $t = '00:00:00';
