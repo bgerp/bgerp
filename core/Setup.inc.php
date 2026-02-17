@@ -536,10 +536,17 @@ if ($step == 1) {
 if ($step == 2) {
     $log = array();
 
-    // Минимална версия на PHP, при която е позволено обновяване на кода
+    // Минимална версия на PHP, при която е позволено обновяване / превключване към бранч (dev)
+    // Заб.: При по-стар PHP НЕ позволяваме превключване от release tag (detached HEAD) към бранч,
+    // защото така може да се изтегли по-нов код с несъвместим синтаксис.
     $minPhpForUpdate = '7.4.33';
     $phpVersionOkForUpdate = version_compare(PHP_VERSION, $minPhpForUpdate, '>=');
-    $checkUpdate = isset($_GET['update']) || isset($_GET['revert']) || isset($_GET['checkout']);
+
+    $doUpdate = isset($_GET['update']);
+    $doRevert = isset($_GET['revert']);
+    $doCheckout = isset($_GET['checkout']);
+
+    $checkUpdate = $doUpdate || $doRevert || $doCheckout;
 
     $repos = core_App::getRepos();
 
@@ -587,8 +594,17 @@ if ($step == 2) {
             $checkout = $_GET['checkout'] ?? null;
 
             // Ако PHP е по-старо от минималната версия, забраняваме обновяване на кода
-            $wantsCodeUpdate = (!empty($update) && $update !== '0') || !empty($checkout) || $checkoutMaxVersion;
-            if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
+            $wantsCodeUpdate = (!empty($update) && $update !== '0') || !empty($checkout);
+            
+            // Ако се иска превключване към бранч (checkout), но PHP е под минимума – забраняваме.
+            if (!empty($checkout) && !$phpVersionOkForUpdate) {
+                $log[] = "err:Превключването към бранч е забранено при PHP " . PHP_VERSION . " (< {$minPhpForUpdate}). Кодът остава на release tag.";
+                $log[] = "wrn:Препоръка: прехвърлете системата на PHP >= {$minPhpForUpdate}.";
+                $links[] = "inf|{$nextUrl}|Продължете »";
+                break;
+            }
+
+if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
                 $log[] = "err:Текущата PHP версия (" . PHP_VERSION . ") е много стара. Обновяването на кода е забранено.";
                 $log[] = "wrn:Прехвърлете системата на PHP версия поне " . $minPhpForUpdate . " и стартирайте обновяването отново.";
 
@@ -610,13 +626,25 @@ if ($step == 2) {
             
             foreach ($repos as $repoPath => $branch) {
                 $repoName = basename($repoPath);
+
+                // Текущият бранч (при tag checkout е 'HEAD' = detached HEAD)
+                $currBranch = gitCurrentBranch($repoPath, $log);
+
                 if (!isset($branch)) {
-                    $branch = gitCurrentBranch($repoPath, $log);
+                    $branch = $currBranch;
                 }
 
-                // Превключваме репозиторито в зададения в конфигурацията бранч
-                if ($branch && !gitSetBranch($repoPath, $log, $branch)) { 
-                    continue;
+                // Ако сме на release tag (detached HEAD) и PHP е под минимума,
+                // НЕ позволяваме автоматично превключване към бранч (dev), за да не се дръпне по-нов код.
+                if (!$phpVersionOkForUpdate && $currBranch === 'HEAD') {
+                    if (!empty($branch) && $branch !== 'HEAD') {
+                        $log[] = "wrn:[{$repoName}] PHP (" . PHP_VERSION . ") < {$minPhpForUpdate}. Репозиторито е на release tag (detached HEAD) – пропускаме превключване към бранч '{$branch}'.";
+                    }
+                } else {
+                    // Превключваме репозиторито в зададения в конфигурацията бранч
+                    if ($branch && !gitSetBranch($repoPath, $log, $branch)) {
+                        continue;
+                    }
                 }
                      
                 // Ако имаме команда за revert на репозиторито - изпълняваме я
@@ -1185,6 +1213,22 @@ if ($step == 'setup') {
     } else {
         // Само ако сме на правилния бранч – проверяваме дали remote има нови комити
         $needUpdate = gitHasNewVersion(EF_APP_PATH, $log, BGERP_GIT_BRANCH);
+    }
+
+
+    // При стар PHP не позволяваме превключване от release tag (detached HEAD) към бранч,
+    // защото така може да се изтегли по-нов код с несъвместим синтаксис.
+    $minPhpForBranchSwitch = '7.4.33';
+    $phpOkForBranchSwitch = version_compare(PHP_VERSION, $minPhpForBranchSwitch, '>=');
+
+    if ($needSwitchBranch && !$phpOkForBranchSwitch) {
+        $log[] = "wrn:Кодът е на release tag (detached HEAD), а PHP версията (" . PHP_VERSION . ") е под {$minPhpForBranchSwitch}. Превключването към '" . BGERP_GIT_BRANCH . "' е забранено. Останете на release tag или мигрирайте към PHP >= {$minPhpForBranchSwitch}.";
+        $needSwitchBranch = false;
+    }
+
+    if ($needUpdate && !$phpOkForBranchSwitch) {
+        $log[] = "wrn:Има нови комити в remote, но обновяването е забранено (PHP " . PHP_VERSION . " < {$minPhpForBranchSwitch}).";
+        $needUpdate = false;
     }
 
     if ($needSwitchBranch) {
