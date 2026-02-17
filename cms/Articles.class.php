@@ -485,8 +485,8 @@ class cms_Articles extends core_Master
 
         if(is_array($data->links)){
             foreach ($data->links as $l) {
-                $selected = ($l->selected) ? 'sel_page' : '';
-                if ($l->closed) {
+                $selected = ($l->selected ?? null) ? 'sel_page' : '';
+                if (!empty($l->closed)) {
                     $aAttr = array('style' => 'color:#aaa !important;');
                 } else {
                     $aAttr = array();
@@ -503,9 +503,9 @@ class cms_Articles extends core_Master
                     $navTpl->append('<span>' . $l->title .'</span>');
                 }
                 if ($selected) {
-                    $currentPage = $l->title;
+                    $currentPage = $l->title ?? null;
                 }
-                if ($l->editLink) {
+                if (!empty($l->editLink)) {
                     // Добавяме интервал
                     $navTpl->append('&nbsp;');
 
@@ -516,14 +516,14 @@ class cms_Articles extends core_Master
             }
         }
 
-        if ($data->addLink) {
+        if (!empty($data->addLink)) {
             $navTpl->append("<div class='addPage'>");
             $navTpl->append($data->addLink);
             $navTpl->append('</div>');
         }
         
-        if ($data->menuId > 0 && ($data->searchCtr)) {
-            if (!$data->q) {
+        if (($data->menuId ?? null) > 0 && !empty($data->searchCtr)) {
+            if (empty($data->q)) {
                 $data->q = Request::get('q', 'varchar');
             }
             $searchForm = cls::get('core_Form', array('method' => 'GET'));

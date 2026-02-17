@@ -860,14 +860,15 @@ class cal_Calendar extends core_Master
         $rec = $query->fetch();
         $res = new stdClass();
         
-        if($rec->type == "holiday"){
-    	    
+        if(empty($rec)) {
+            $rec = new stdClass();
+        }
+        $rec->type ??= '';
+        if(($rec->type) == "holiday"){
     	    $res->isHoliday = TRUE;
             $res->specialDay = 'holiday';
             $res->title = $rec->title;
-    	
     	} elseif ($rec->type == "{$type}") {
-    	    
     	    $res->isHoliday = TRUE;
     	    $res->specialDay = $country;
     	    $res->stitle = $rec->title;
@@ -2122,6 +2123,7 @@ class cal_Calendar extends core_Master
         
         $options = array();
         $attr['value'] = $today;
+        $attr['style'] ??= '';
         $attr['style'] .= 'color:#00F;';
         $options[$today] = (object) array('title' => $thisMonth, 'attr' => $attr);
 

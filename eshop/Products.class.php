@@ -872,7 +872,7 @@ class eshop_Products extends core_Master
         $url = self::getUrl($rec);
 
         $row->name = ht::createLink($row->name, $url, false, array('title' => $rec->seoTitle ? $rec->seoTitle : null));
-        if($url['groupId'] < 0){
+        if(($url['groupId'] ?? null) < 0){
             unset($url['groupId']);
         }
 
@@ -928,7 +928,7 @@ class eshop_Products extends core_Master
             $layout->append($data->Pager->getHtml());
         }
 
-        if ($data->addUrl && $data->groupId > 0) {
+        if (!empty($data->addUrl) && $data->groupId > 0) {
             $layout->append(ht::createBtn('Нов продукт', $data->addUrl, null, null, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
         
@@ -1199,14 +1199,14 @@ class eshop_Products extends core_Master
             return array();
         }
         
-        $mRec = cms_Content::fetch($gRec->menuId);
-        $lg = $mRec->lang;
+        //$mRec = cms_Content::fetch($gRec->menuId);
+        //$lg = $mRec->lang ?? null;
         
-        $lg[0] = strtoupper($lg[0]);
+        //$lg[0] = strtoupper($lg[0]);
         
         $url = array('A', 'p', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
         
-        if ($rec->altGroupId) {
+        if (!empty($rec->altGroupId)) {
             $url['groupId'] = $rec->altGroupId;
         }
         

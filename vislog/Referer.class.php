@@ -90,7 +90,7 @@ class vislog_Referer extends core_Manager
         $rec = new stdClass();
         
         $tUrl = cls::get('type_Url');
-        $rec->referer = $tUrl->fromVerbal($_SERVER['HTTP_REFERER']);
+        $rec->referer = $tUrl->fromVerbal($_SERVER['HTTP_REFERER'] ?? null);
         
         if ($rec->referer) {
             $parts = @parse_url($rec->referer);

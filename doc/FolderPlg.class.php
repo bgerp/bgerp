@@ -24,7 +24,7 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterDescription(&$mvc)
     {
-        if (!$mvc->fields['folderId']) {
+        if (!isset($mvc->fields['folderId'])) {
             if ($mvc->className != 'doc_Folders') {
                 
                 // Поле за id на папката. Ако не е зададено - обекта няма папка
@@ -33,7 +33,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Определя достъпа по подразбиране за новите папки
-            setIfNot($defaultAccess, $mvc->defaultAccess, 'team');
+            $defaultAccess = $mvc->defaultAccess ?? 'team';
             
             $mvc->FLD('inCharge', 'user(roles=powerUser, rolesForAll=executive, showClosedGroups, showClosedUsers=no)', 'caption=Права->Отговорник,formOrder=10000,smartCenter');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);

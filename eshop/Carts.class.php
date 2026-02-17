@@ -479,7 +479,7 @@ class eshop_Carts extends core_Master
             vislog_History::add('Създаване на количка');
         }
         
-        return $rec->id;
+        return $rec->id ?? null;
     }
     
     

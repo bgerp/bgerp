@@ -25,7 +25,7 @@ class core_Html
         $attrStr = '';
 
         $isTitleTranslated = false;
-        if ($attributes['title'] && $translate && ($attributes['translate'] != 'no')) {
+        if (($attributes['title'] ?? null) && $translate && (($attributes['translate'] ?? null) != 'no')) {
             $attributes['title'] = tr($attributes['title']);
             $isTitleTranslated = true;
             $attributes['title'] = str_replace(array("\""), array("&quot;"), $attributes['title']);
@@ -630,7 +630,7 @@ class core_Html
         }
         
         
-        if ($c = $accessKeys[mb_strtolower($title)]) {
+        if ($c = ($accessKeys[mb_strtolower($title)] ?? null)) {
             $attr['accesskey'] = $c;
             
             if (substr(log_Browsers::getUserAgentOsName(), 0, 3) == 'Mac') {
@@ -772,8 +772,10 @@ class core_Html
         
         self::addAccessKey($attr, $title);
         
+        $attr['name'] ??= '';
         $attr['name'] .= "Cmd[{$cmd}]";
         
+        $attr['onclick'] ??= '';
         if (is_string($newWindow) && ($newWindow != '_blank')) {
             $attr['onclick'] .= "  this.form.target = '{$newWindow}';";
         } elseif ($newWindow) {
@@ -784,13 +786,17 @@ class core_Html
         
         $attr['value'] = $title;
         
+ 
+       
         // Оцветяваме бутона в зависимост от особеностите му
+        $attr['style'] ??= '';
         if (isset($warning)) {
             $attr['style'] .= 'color:#772200;';
         } elseif ($newWindow) {
             $attr['style'] .= 'color:#008800;';
         }
-        
+
+        $attr['class'] ??= '';
         if ($attr['class']) {
             $attr['class'] .= ' button';
         } else {
@@ -884,7 +890,7 @@ class core_Html
         }
         
         if ($url) {
-            if (($warning || $attr['rel'] == 'nofollow') && ((!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'plain')))) {
+            if (($warning || ($attr['rel'] ?? null) == 'nofollow') && ((!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'plain')))) {
                 $attr['onclick'] .= " document.location='{$url}'";
                 $attr['href'] = 'javascript:void(0)';
             } else {
@@ -892,7 +898,7 @@ class core_Html
             }
         }
         
-        if ($icon = $attr['ef_icon']) {
+        if ($icon = ($attr['ef_icon'] ?? null)) {
             if ((Mode::is('text', 'xhtml') || Mode::is('printing'))) {
                 $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
                 $srcset = '';
@@ -915,17 +921,18 @@ class core_Html
             
             unset($attr['ef_icon']);
         }
-        
+        $attr['class'] ??= '';
+        $attr['style'] ??= '';
         if ((!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf'))) {
             // Оцветяваме линка в зависимост от особеностите му
-            if (!$attr['disabled']) {
+            if (!isset($attr['disabled'])) {
                 if ($warning) {
                     $attr['style'] .= ' color:#772200';
                 } elseif (strpos($url, '://')) {
-                    if (!strpos($attr['class'], 'out')) {
+                    if (!strpos($attr['class'] ?? '', 'out')) {
                         $attr['class'] .= ' out';
                     }
-                } elseif ($attr['target'] == '_blank') {
+                } elseif (($attr['target'] ?? 'null') == '_blank') {
                     $attr['style'] .= ' color:#008800';
                 }
             } else {
@@ -1016,7 +1023,7 @@ class core_Html
      */
     public static function createImg($attr)
     {
-        if ($path = $attr['path']) {
+        if ($path = $attr['path'] ?? null) {
             $src = sbf($path, '');
             unset($attr['path']);
             if ((log_Browsers::isRetina())) {
@@ -1379,8 +1386,8 @@ class core_Html
      */
     public static function setUniqId(&$attr)
     {
-        if (!$attr['id']) {
-            $name = $attr['name'] ? $attr['name'] : 'autoElement';
+        if (empty($attr['id'])) {
+            $name = !empty($attr['name']) ? $attr['name'] : 'autoElement';
             $name = str_replace(array('[', ']'), array('_', '_'), $name);
             $attr['id'] = self::getUniqId($name);
         }
@@ -1410,14 +1417,14 @@ class core_Html
     public static function addBackgroundIcon($attr, $icon = null)
     {
         if (!$icon) {
-            $icon = $attr['ef_icon'];
+            $icon = $attr['ef_icon'] ?? null;
             unset($attr['ef_icon']);
         }
         
         if (!empty($icon) && getFullPath($icon)) {
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
+            $attr['class'] = ($attr['class'] ?? '') . ' linkWithIcon';
             
-            $attr['style'] = self::getIconStyle($icon, $attr['style']);
+            $attr['style'] = self::getIconStyle($icon, $attr['style'] ?? null);
         }
         
         return $attr;
@@ -1456,7 +1463,7 @@ class core_Html
     {
         $attr = arr::make($attr);
         
-        if ($attr['title'] && $trTitle) {
+        if (($attr['title'] ?? null) && $trTitle) {
             $attr['title'] = tr($attr['title']);
         }
         

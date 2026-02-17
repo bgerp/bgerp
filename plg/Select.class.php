@@ -21,7 +21,7 @@ class plg_Select extends core_Plugin
      */
     public function on_AfterDescription($mvc)
     {
-        $actArr = arr::make($mvc->doWithSelected, true);
+        $actArr = arr::make($mvc->doWithSelected ?? null, true);
         $actArr['delete'] = '*Изтриване';
         $mvc->doWithSelected = $actArr;
         

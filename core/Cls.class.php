@@ -451,7 +451,7 @@ class core_Cls
         
         $obj = cls::get($class);
         
-        if ($obj->title) {
+        if (!empty($obj->title)) {
             
             return $obj->title;
         }
