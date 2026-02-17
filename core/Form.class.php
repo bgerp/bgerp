@@ -194,8 +194,11 @@ class core_Form extends core_FieldSet
         }
         
         foreach ($fields as $name => $field) {
+
             expect($this->fields[$name], "Липсващо поле във формата '{$name}'");
-            
+
+            $this->rec->{$name} = null;
+
             $value = Request::get($name, false);
             
             $captions = str_replace('->', '|* » |', $field->caption);
@@ -304,7 +307,7 @@ class core_Form extends core_FieldSet
                 
                 $this->setErrorFromResult($result, $field, $name);
             }
-            
+
             if ($this->cmd != 'refresh' || is_array($value) || strlen($value)) {
                 $this->rec->{$name} = $value;
             }
