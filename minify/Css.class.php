@@ -829,19 +829,16 @@ class minify_Css
     private function normalize_int($size)
     {
         if (is_string($size)) {
-            $s = substr($size, 0, strlen($size) - 1);
             switch (substr($size, -1)) {
                 case 'M': case 'm':
  
-                    return $s * 1048576;
-
+ return $size * 1048576;
                 case 'K': case 'k':
  
-                    return $s * 1024;
-
+ return $size * 1024;
                 case 'G': case 'g':
-
-                    return $s * 1073741824;
+ 
+ return $size * 1073741824;
             }
         }
         

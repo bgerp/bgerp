@@ -60,12 +60,12 @@ class doc_DocumentPlg extends core_Plugin
         );
         
         // Ако липсва, добавяме поле за състояние
-        if (empty($mvc->fields['state'])) {
+        if (!$mvc->fields['state']) {
             plg_State::setStateField($mvc);
         }
         
         // Ако липсва, добавяме поле за съхранение на състоянието преди reject
-        if (empty($mvc->fields['brState'])) {
+        if (!$mvc->fields['brState']) {
             $mvc->FLD(
                 'brState',
                 cls::get('type_Enum', array('options' => self::$stateArr)),
@@ -75,12 +75,12 @@ class doc_DocumentPlg extends core_Plugin
         
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
-        setPartIfNot($mvc->interfaces, 'doc_DocumentIntf', 'doc_DocumentIntf');
-        setPartIfNot($mvc->interfaces, 'acc_RegisterIntf', 'acc_RegisterIntf');
+        setIfNot($mvc->interfaces['doc_DocumentIntf'], 'doc_DocumentIntf');
+        setIfNot($mvc->interfaces['acc_RegisterIntf'], 'acc_RegisterIntf');
 
-        setPartIfNot($mvc, 'addDocumentLinks', array());
-        setPartIfNot($mvc, 'addLinkedDocumentToOriginId', false);
-        setPartIfNot($mvc, 'addLinkedOriginFieldName', 'originId');
+        setIfNot($mvc->addDocumentLinks, array());
+        setIfNot($mvc->addLinkedDocumentToOriginId, false);
+        setIfNot($mvc->addLinkedOriginFieldName, 'originId');
 
         // Добавя поле за последно използване
         if (!isset($mvc->fields['lastUsedOn'])) {
@@ -88,11 +88,11 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Добавяне на полета за created
-        if (empty($mvc->fields['createdOn'])) {
+        if (!$mvc->fields['createdOn']) {
             $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created, notNull, input=none');
         }
 
-        if (empty($mvc->fields['createdBy'])) {
+        if (!$mvc->fields['createdBy']) {
             $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създал||Creator, notNull, input=none');
         }
 
@@ -100,11 +100,11 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Промяна||Modified,input=none');
         $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Променил||Modified By,input=none');
         
-        if (empty($mvc->fields['activatedOn'])) {
+        if (!$mvc->fields['activatedOn']) {
             $mvc->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated,input=none');
         }
         
-        if (empty($mvc->fields['activatedBy'])) {
+        if (!$mvc->fields['activatedBy']) {
             $mvc->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирал||Activated By,input=none');
         }
         
@@ -2699,7 +2699,7 @@ class doc_DocumentPlg extends core_Plugin
             return;
         }
         
-        if (!empty($rec->id)) {
+        if ($rec->id) {
             $oRec = $mvc->fetch($rec->id);
             
             if ($action == 'delete') {

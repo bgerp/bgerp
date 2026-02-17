@@ -27,7 +27,6 @@ class core_Array
     public static function union($a1, $a2)
     {
         foreach ($a2 as $key => $value) {
-            $a1[$key] ??= '';
             $a1[$key] .= $value;
         }
         

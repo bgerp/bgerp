@@ -247,7 +247,7 @@ class core_Users extends core_Manager
             bgerp_Menu::clearCache($rec->id);
         }
         
-        if (!empty($rec->__updateRoleLogs)) {
+        if ($rec->__updateRoleLogs) {
             core_RoleLogs::add($rec->roles, $rec->state, $rec->id);
         }
     }
@@ -969,11 +969,11 @@ class core_Users extends core_Manager
         
         $this->invoke('PrepareLoginForm', array(&$form));
         
-        if (getPart($currentUserRec, 'state') != 'active') {
+        if (!$currentUserRec->state == 'active') {
             $inputs = $form->input($form->InputFields . ',time,hash');
             
             // Ако логин формата е субмитната
-            if ((!empty($inputs->nick) || !empty($inputs->email)) && $form->isSubmitted()) {
+            if (($inputs->nick || $inputs->email) && $form->isSubmitted()) {
                 
                 // Изчислява хешовете
                 $inputs->nick = type_Nick::normalize($inputs->nick);
@@ -1018,7 +1018,7 @@ class core_Users extends core_Manager
                     $form->setError('nick', 'Този потребител все още не е активиран|*.<br>|На имейла от регистрацията е изпратена информация и инструкция за активация|*.');
                     $this->logLoginMsg($inputs, 'draft_user');
                     core_LoginLog::add('draft', $userRec->id, $inputs->time);
-                } elseif (empty($inputs->hash) || !empty($inputs->isEmptyPass)) {
+                } elseif (!$inputs->hash || $inputs->isEmptyPass) {
                     $form->setError('pass', 'Липсва парола!');
                     $this->logLoginMsg($inputs, 'missing_password');
                     core_LoginLog::add('missing_password', $userRec->id, $inputs->time);
@@ -1035,7 +1035,7 @@ class core_Users extends core_Manager
                     $this->logLoginMsg($inputs, $wrongLoginLog);
 
 //                    core_LoginLog::add('wrong_username', NULL, $inputs->time);
-                } elseif (self::applyChallenge($userRec->ps5Enc, $inputs->time) != ($inputs->hash ?? null)) {
+                } elseif (self::applyChallenge($userRec->ps5Enc, $inputs->time) != $inputs->hash) {
                     $form->setError('pass', $wrongLoginErr);
                     $this->logLoginMsg($inputs, 'wrong_password');
                     core_LoginLog::add('wrong_password', $userRec->id, $inputs->time);
@@ -1055,7 +1055,7 @@ class core_Users extends core_Manager
             
             // Ако няма грешки, логваме потребителя
             // Ако има грешки, или липсва потребител изкарваме формата
-            if (($userRec->id ?? null) && !$form->gotErrors()) {
+            if ($userRec->id && !$form->gotErrors()) {
                 $this->loginUser($userRec->id, $inputs);
                 $this->logLoginMsg($inputs, 'successful_login');
 
@@ -1239,16 +1239,16 @@ class core_Users extends core_Manager
         
         if ($rec->id) {
             // Ако е сменен ника
-            if (!empty($mvc->changeNick)) {
+            if ($mvc->changeNick) {
                 core_LoginLog::add('change_nick', $rec->id);
             }
             
             // Ако е сменена паролата
-            if (!empty($mvc->changePass)) {
+            if ($mvc->changePass) {
                 core_LoginLog::add('pass_change', $rec->id);
             }
         } else {
-            if (!empty($mvc->addNewUser)) {
+            if ($mvc->addNewUser) {
                 core_LoginLog::add('new_user', core_Users::getCurrent());
             }
         }
@@ -1333,10 +1333,10 @@ class core_Users extends core_Manager
         if ($escaped) {
             $res = core_Users::getVerbal($cRec, $part);
         } elseif (is_object($cRec)) {
-            $res = $cRec->$part ?? null;
+            $res = $cRec->$part;
         }
         
-        return $res ?? null;
+        return $res;
     }
     
     
@@ -1805,7 +1805,7 @@ class core_Users extends core_Manager
             // Опитваме да получим адрес за връщане от заявката
             $retUrl = $retUrl ? $retUrl :  getCurrentUrl();
             
-            if (is_array($retUrl) && is_array($retUrl['Cmd'] ?? null)) {
+            if (is_array($retUrl) && is_array($retUrl['Cmd'])) {
                 unset($retUrl['Cmd']['save']);
                 $retUrl['Cmd']['refresh'] = 1;
             }
@@ -1829,17 +1829,17 @@ class core_Users extends core_Manager
     {
         $currentUserRec = Mode::get('currentUserRec');
         
-        if (empty($currentUserRec->id)) {
+        if (!$currentUserRec->id) {
             
             return;
         }
         
-        if (!empty($currentUserRec->_isSudo)) {
+        if ($currentUserRec->_isSudo) {
             
             return ;
         }
         
-        $refreshTime = dt::mysql2timestamp($currentUserRec->refreshTime ?? null);
+        $refreshTime = dt::mysql2timestamp($currentUserRec->refreshTime);
         
         if (abs(time() - $refreshTime) > EF_USER_REC_REFRESH_TIME || (time() - $currentUserRec->lastHitUT > 3 * EF_USER_REC_REFRESH_TIME)) {
             Users::loginUser($currentUserRec->id, false, true);

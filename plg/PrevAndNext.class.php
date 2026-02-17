@@ -23,7 +23,7 @@ class plg_PrevAndNext extends core_Plugin
      */
     public static function on_AfterDescription($mvc)
     {
-        $mvc->doWithSelected = arr::make($mvc->doWithSelected ?? null, true);
+        $mvc->doWithSelected = arr::make($mvc->doWithSelected, true);
         $mvc->doWithSelected['edit'] = 'Редактиране';
         if (cls::isSubclass($mvc, 'core_Master')) {
             $mvc->doWithSelected['browse'] = 'Преглед';

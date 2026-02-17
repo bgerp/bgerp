@@ -20,8 +20,8 @@ class core_UserTranslatePlg extends core_Plugin
      */
     public function on_AfterDescription(&$mvc)
     {
-        $mvc->doWithSelected = arr::make($mvc->doWithSelected ?? []) + array('userTranslate' => 'Превод');
-        setPartIfNot($mvc, 'canUsertranslate', 'admin, translate');
+        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('userTranslate' => 'Превод');
+        setIfNot($mvc->canUsertranslate, 'admin, translate');
     }
     
     
@@ -112,7 +112,7 @@ class core_UserTranslatePlg extends core_Plugin
      */
     public static function on_BeforeGetVerbal($mvc, &$res, $rec, $part)
     {
-        $uTranslateFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), '*', $rec->id ?? null);
+        $uTranslateFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), '*', $rec->id);
         
         if ($rec) {
             $rec = $mvc->fetchRec($rec);

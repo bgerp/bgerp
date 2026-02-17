@@ -164,14 +164,12 @@ class core_Mode
 
             if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
                 $sess = cls::get('core_DbSess');
-                if(is_a($sess, 'core_DbSess')) {
-                    self::$mode[$sessPrefix] = $sess->getAll(); 
-                }
+                self::$mode[$sessPrefix] = $sess->getAll(); 
             } else {
                 self::$mode[$sessPrefix] = core_Session::get(EF_MODE_SESSION_VAR);
             }
             
-            if (!is_array(self::$mode[$sessPrefix] ?? null)) {
+            if (!is_array(self::$mode[$sessPrefix])) {
                 self::$mode[$sessPrefix] = array();
             }
         }

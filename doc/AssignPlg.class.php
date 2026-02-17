@@ -36,26 +36,26 @@ class doc_AssignPlg extends core_Plugin
     public function on_AfterDescription(&$mvc)
     {
         // Ако няма такова поле
-        if (empty($mvc->fields['assign'])) {
+        if (!$mvc->fields['assign']) {
             // Добавяме в модела
             $mvc->FLD('assign', 'keylist(mvc=core_Users, select=nick)', 'caption=Възлагане на, changable, before=sharedUsers, optionsFunc=doc_AssignPlg::getUsersForAssign');
         }
         
         // Ако няма такова поле
-        if (empty($mvc->fields['assignedOn'])) {
+        if (!$mvc->fields['assignedOn']) {
             
             // Добавяме в модела
             $mvc->FLD('assignedOn', 'datetime(format=smartTime)', 'caption=Възложено->На,input=none');
         }
         
         // Ако няма такова поле
-        if (empty($mvc->fields['assignedBy'])) {
+        if (!$mvc->fields['assignedBy']) {
             
             // Добавяме в модела
             $mvc->FLD('assignedBy', 'user', 'caption=Възложено->От,input=none');
         }
         
-        $mvc->autoShareFields = arr::make($mvc->autoShareFields ?? null, true);
+        $mvc->autoShareFields = arr::make($mvc->autoShareFields, true);
         $mvc->autoShareFields['assign'] = 'assign';
     }
     
@@ -73,7 +73,7 @@ class doc_AssignPlg extends core_Plugin
             
             foreach ((array) $mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
-                    if (($field->type->params['nickToLink'] ?? null) == 'no') {
+                    if ($field->type->params['nickToLink'] == 'no') {
                         continue;
                     }
                     
@@ -113,7 +113,7 @@ class doc_AssignPlg extends core_Plugin
     public function on_AfterInputChanges($mvc, $oldRec, $newRec)
     {
         // Вземаме всички записи
-        $rec = $mvc->fetch($oldRec->id ?? null, '*', false);
+        $rec = $mvc->fetch($oldRec->id, '*', false);
         
         // Ако няма промяне, връщаме
         if (($oldRec->assign == $newRec->assign)) {

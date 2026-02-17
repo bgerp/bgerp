@@ -97,29 +97,27 @@ class acc_plg_DocumentSummary extends core_Plugin
         // Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
         
-        setPartIfNot($mvc, 'canViewpsingle', 'powerUser');
-        setPartIfNot($mvc, 'hidePeriodFilter', false);
-        setPartIfNot($mvc, 'filterDateField', 'valior');
-        setPartIfNot($mvc, 'orderByDateField', true);
-        setPartIfNot($mvc, 'filterCurrencyField', 'currencyId');
-        setPartIfNot($mvc, 'rememberListFilterFolderId', false);
-        setPartIfNot($mvc, 'filterFieldUsers', 'createdBy');
-        setPartIfNot($mvc, 'filterAllowState', true);
-        setPartIfNot($mvc, 'defaultListFilterState', 'all');
+        setIfNot($mvc->canViewpsingle, 'powerUser');
+        setIfNot($mvc->hidePeriodFilter, false);
+        setIfNot($mvc->filterDateField, 'valior');
+        setIfNot($mvc->orderByDateField, true);
+        setIfNot($mvc->filterCurrencyField, 'currencyId');
+        setIfNot($mvc->rememberListFilterFolderId, false);
+        setIfNot($mvc->filterFieldUsers, 'createdBy');
+        setIfNot($mvc->filterAllowState, true);
+        setIfNot($mvc->defaultListFilterState, 'all');
 
-        setPartIfNot($mvc, 'termDateFld', null);
-        setPartIfNot($mvc, 'showNullDateFields', false);
+        setIfNot($mvc->termDateFld, null);
+        setIfNot($mvc->showNullDateFields, false);
 
-        $mvc->filterRolesForTeam ??= '';
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
         $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
         
-        $mvc->filterRolesForAll ??= '';
         $mvc->filterRolesForAll .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_ALL');
         $mvc->filterRolesForAll = trim($mvc->filterRolesForAll, ',');
         
         // Добавяме глобалните роли за съответния клас да може да филтрират всички
-        $rolesAll = self::$rolesAllMap[$mvc->className] ?? null;
+        $rolesAll = self::$rolesAllMap[$mvc->className];
         if ($rolesAll) {
             $rolesAllArr = explode(',', $rolesAll);
             foreach ($rolesAllArr as $roleStr) {
@@ -136,21 +134,21 @@ class acc_plg_DocumentSummary extends core_Plugin
         $rolesForAllArr = arr::make($mvc->filterRolesForAll, true);
         $mvc->filterRolesForAll = implode('|', $rolesForAllArr);
 
-        setPartIfNot($mvc, 'filterAutoDate', true);
-        if(empty($mvc->hidePeriodFilter)){
+        setIfNot($mvc->filterAutoDate, true);
+        if(!$mvc->hidePeriodFilter){
             $mvc->_plugins = arr::combine(array('Избор на период' => cls::get('plg_SelectPeriod')), $mvc->_plugins);
         }
 
-        if (empty($mvc->fields['createdOn'])) {
+        if (!$mvc->fields['createdOn']) {
             $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created, notNull, input=none');
         }
 
-        if (empty($mvc->fields['createdBy'])) {
+        if (!$mvc->fields['createdBy']) {
             $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създал||Creator, notNull, input=none');
         }
 
         $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('createdOn'))));
-        if (empty($mvc->dbIndexes[$indexName])) {
+        if (!$mvc->dbIndexes[$indexName]) {
             $mvc->setDbIndex('createdOn');
         }
     }

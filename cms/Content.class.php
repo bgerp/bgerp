@@ -695,7 +695,7 @@ class cms_Content extends core_Manager
         
         // seoKeywords
         if (!$rec->seoKeywords) {
-            $rec->seoKeywords = $suggestions['seoKeywords'] ?? null;
+            $rec->seoKeywords = $suggestions['seoKeywords'];
         }
         if (!$rec->seoKeywords) {
             $rec->seoKeywords = cms_Domains::getPublicDomain('seoKeywords');
@@ -706,14 +706,14 @@ class cms_Content extends core_Manager
         
         // seoThumb
         if (!$rec->seoThumb) {
-            $rec->seoThumb = $suggestions['seoThumb'] ?? null;
+            $rec->seoThumb = $suggestions['seoThumb'];
         }
         if (!$rec->seoThumb && $suggestions['seoDescription']) {
             $rec->seoThumb = cms_Content::getSeoThumb($suggestions['seoDescription']);
         }
         
-        Mode::set('SOC_TITLE', $rec->seoTitle ?? null);
-        Mode::set('SOC_SUMMARY', $rec->seoDescription ?? null);
+        Mode::set('SOC_TITLE', $rec->seoTitle);
+        Mode::set('SOC_SUMMARY', $rec->seoDescription);
     }
     
     

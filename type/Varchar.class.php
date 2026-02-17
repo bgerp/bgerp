@@ -35,28 +35,27 @@ class type_Varchar extends core_Type
     public function renderInput_($name, $value = '', &$attr = array())
     {
         // Сигнализиране на потребителя, ако въведе по-дълъг текст от допустимото
-        $size = $this->params['size'] ?? $this->params[0] ?? $this->dbFieldLen ?? null;
-        $attr['onblur'] ??= '';
-        if (empty($this->params['noTrim'])) {
+        setIfNot($size, $this->params['size'], $this->params[0], $this->dbFieldLen);
+        
+        if (!$this->params['noTrim']) {
             $attr['onblur'] .= 'this.value = this.value.trim();';
         }
         
         if ($size > 0) {
-            $attr['onkeyup'] ??= '';
             $attr['onblur'] .= "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" .
                  tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " ${size} " . tr('символа') . "');";
             $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
         
-        if (!empty($this->inputType)) {
+        if ($this->inputType) {
             $attr['type'] = $this->inputType;
         }
         
-        if (!empty($this->params['autocomplete'])) {
+        if ($this->params['autocomplete']) {
             $attr['autocomplete'] = $this->params['autocomplete'];
         }
 
-        if (!empty($this->params['readonly'])) {
+        if ($this->params['readonly']) {
             $attr['readonly'] = 'readonly';
         }
         
@@ -75,20 +74,20 @@ class type_Varchar extends core_Type
     public function fromVerbal_($value)
     {
         //Ако няма параметър noTrim, тогава тримваме стойността
-        if (empty($this->params['noTrim'])) {
+        if (!$this->params['noTrim']) {
             
             //Тримвано стойността
             $value = trim($value);
         }
         
-        if (($this->params['utf8mb4'] ?? null) == 'utf8') {
+        if ($this->params['utf8mb4'] == 'utf8') {
             $value = i18n_Charset::utf8mb4ToUtf8($value);
         }
         
         $value = parent::fromVerbal_($value);
         
         // За някои случаи вместо празен стринг е по-добре да получаваме NULL
-        if (!empty($this->params['nullIfEmpty']) || !empty($this->nullIfEmpty)) {
+        if ($this->params['nullIfEmpty'] || $this->nullIfEmpty) {
            
             if (!strlen($value)) {
                 $value = null; 

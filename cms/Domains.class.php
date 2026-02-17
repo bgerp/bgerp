@@ -266,7 +266,7 @@ class cms_Domains extends core_Embedder
             $domainId = cms_Domains::getCurrent('id', false);
         }
 
-        if (isset($domainId) && (!isset($domainRec) || ($domainRec->id != $domainId))) {
+        if ($domainId && (!isset($domainRec) || ($domainRec->id != $domainId))) {
             self::setPublicDomain($domainId);
             $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
         }

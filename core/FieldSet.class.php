@@ -515,7 +515,7 @@ class core_FieldSet extends core_BaseClass
             $name = substr($name, 1);
         }
         
-        if (isset($this->fields[$name])) {
+        if ($this->fields[$name]) {
             
             return $this->fields[$name];
         }
@@ -600,7 +600,7 @@ class core_FieldSet extends core_BaseClass
      */
     public function makePhpFieldName($name)
     {
-        return '($this->fields[$name]->' . $name . ' ?? null)';
+        return '$this->fields[$name]->' . $name;
     }
     
     

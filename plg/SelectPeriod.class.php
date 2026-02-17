@@ -132,15 +132,15 @@ class plg_SelectPeriod extends core_Plugin
      */
     public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
-        if (($mvc->useFilterDateOnFilter ?? null) === false) {
+        if ($mvc->useFilterDateOnFilter === false) {
             
             return ;
         }
         
-        $fF = !empty($mvc->filterDateFrom) ? $mvc->filterDateFrom : 'from';
-        $fT = !empty($mvc->filterDateTo) ? $mvc->filterDateFrom : 'to';
+        $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
+        $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
         
-        $form = $data->listFilter ?? null;
+        $form = $data->listFilter;
         
         $selectPeriod = Request::get('selectPeriod');
         

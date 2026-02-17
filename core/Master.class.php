@@ -714,7 +714,7 @@ class core_Master extends core_Manager
             
             foreach ($details as $var => $class) {
                 $this->details[$var] = $class;
-                if (empty($this->{$var}->Master) || !($this->{$var}->Master instanceof core_Master)) {
+                if (!($this->{$var}->Master instanceof core_Master)) {
                     if ($this->{$var} instanceof core_Manager) {
                         $this->{$var}->Master = &$this;
                         $this->{$var}->masterClass = $this->className;

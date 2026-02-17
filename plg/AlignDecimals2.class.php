@@ -30,7 +30,7 @@ class plg_AlignDecimals2 extends core_Plugin
         // Намираме всички полета, които се показват от типа Double
         $decFields = array();
         foreach ($mvc->fields as $name => $field) {
-            if ($field->type instanceof type_Double && ($field->input ?? null) != 'none' && !($field->type instanceof type_Percent)) {
+            if ($field->type instanceof type_Double && $field->input != 'none' && !($field->type instanceof type_Percent)) {
                 $decFields[] = $name;
             }
         }
@@ -56,10 +56,10 @@ class plg_AlignDecimals2 extends core_Plugin
                 if (isset($rec->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName}) && preg_match("/<[^<]+>/",$rows[$id]->{$fName}) == 0) {
                     $Type = clone $mvc->fields[$fName]->type;
                     
-                    if(empty($Type->params['decimals'])) {
-                        $max = $Type->params['maxDecimals'] ?? 5;
-                        $min = $Type->params['minDecimals'] ?? 0;
-                        $Type->params['decimals'] = min($max, max($min, ${"{$fName}FracLen"} ?? 0));
+                    if(!$Type->params['decimals']) {
+                        $max = $Type->params['maxDecimals'] ? $Type->params['maxDecimals'] : 5;
+                        $min = $Type->params['minDecimals'] ? $Type->params['minDecimals'] : 0;
+                        $Type->params['decimals'] = min($max, max($min, ${"{$fName}FracLen"}));
                     }
                     
                     $rows[$id]->{$fName} = $Type->toVerbal($rec->{$fName});

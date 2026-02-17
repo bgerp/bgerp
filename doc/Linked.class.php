@@ -520,9 +520,7 @@ class doc_Linked extends core_Manager
      * @return Redirect|core_Et
      */
     public function act_Link()
-    { 
-        $R = cls::get('core_Request');
-
+    {
         $this->requireRightFor('addlink');
         
         $pArr = array('inType', 'foreignId');
@@ -534,7 +532,7 @@ class doc_Linked extends core_Manager
         
         Request::removeProtected($pArr);
         
-        expect($type && $fId, $type, $fId, Request::getParams());
+        expect($type && $fId);
         
         $form = cls::get('core_Form');
         

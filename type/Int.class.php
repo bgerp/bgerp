@@ -46,8 +46,8 @@ class type_Int extends core_Type
      */
     public function init($params = array())
     {
-        setPartIfNot($params['params'], 'allowHex', 'allowHex');
-        setPartIfNot($params['params'], 'inputmode', 'numeric');
+        setIfNot($params['params']['allowHex'], 'allowHex');
+        setIfNot($params['params']['inputmode'], 'numeric');
         parent::init($params);
     }
     
@@ -65,8 +65,8 @@ class type_Int extends core_Type
         
         $val = str_replace($from, $to, trim($val));
         
-        $allowOct = (boolean) (($this->params['allowOct'] ?? null) == 'allowOct');
-        $allowHex = (boolean) (($this->params['allowHex'] ?? null) == 'allowHex');
+        $allowOct = (boolean) ($this->params['allowOct'] == 'allowOct');
+        $allowHex = (boolean) ($this->params['allowHex'] == 'allowHex');
         
         $val = $this->prepareVal($val, $allowOct, $allowHex);
         

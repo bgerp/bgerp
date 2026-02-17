@@ -212,7 +212,7 @@ class core_Form extends core_FieldSet
                 }
             }
             
-            if ($value === '' && ($field->mandatory ?? null) && $this->cmd != 'refresh') {
+            if ($value === '' && $field->mandatory && $this->cmd != 'refresh') {
                 $captions = str_replace('» |@', '', $captions);
                 $this->setError($name, 'Непопълнено задължително поле' .
                     "|* <b>'|{$captions}|*'</b>!");
@@ -228,7 +228,7 @@ class core_Form extends core_FieldSet
             }
             
             // Предаваме някои свойства на полето на типа
-            $options = $field->options ?? null;
+            $options = $field->options;
             
             // Ако във формата има опции, те отиват в типа
             if (countR($options)) {
@@ -283,7 +283,7 @@ class core_Form extends core_FieldSet
                     continue;
                 }
                 
-                if (($value === null || $value === '') && ($field->mandatory ?? null) && $this->cmd != 'refresh') {
+                if (($value === null || $value === '') && $field->mandatory && $this->cmd != 'refresh') {
                     $captions = str_replace('» |@', '', $captions);
                     $this->setError($name, 'Непопълнено задължително поле' .
                         "|* <b>'|{$captions}|*'</b>!");
@@ -298,7 +298,7 @@ class core_Form extends core_FieldSet
                 
                 // Ако имаме нова стойност след валидацията - присвояваме я.
                 // По този начин стойността се 'нормализира'
-                if (!empty($result['value'])) {
+                if ($result['value']) {
                     $value = $result['value'];
                 }
                 
@@ -492,9 +492,8 @@ class core_Form extends core_FieldSet
     public function setErrorFromResult($result, $field, $name)
     {
         $captions = str_replace('->', '|* » |', $field->caption);
-        $haveErr = false;
-
-        if (!empty($result['warning']) && empty($result['error'])) {
+        
+        if ($result['warning'] && !$result['error']) {
             $haveErr = true;
             $this->setWarning($name, 'Възможен проблем с полето|' .
                 "* <b>'|" . $captions .
@@ -502,7 +501,7 @@ class core_Form extends core_FieldSet
                 $result['warning'] . '|*</small>');
         }
         
-        if (!empty($result['error'])) {
+        if ($result['error']) {
             $captions = ($field->noCaption) ? ' ' : "<b>'|" . $captions . "|*'</b>";
             $captions = str_replace('» |@', '', $captions);
             
@@ -514,7 +513,7 @@ class core_Form extends core_FieldSet
                         $result['warning']) : '') . '|*</small>');
         }
         
-        if ($haveErr && (($field->input ?? null) == 'hidden')) {
+        if ($haveErr && $field->input == 'hidden') {
             $field->input = 'input';
         }
     }
@@ -527,7 +526,7 @@ class core_Form extends core_FieldSet
     {
         ht::setUniqId($this->formAttr);
         
-        if (empty($this->layout)) {
+        if (!$this->layout) {
             if ($this->view == 'horizontal') {
                 $this->layout = new ET(
                     "<form <!--ET_BEGIN CLASS-->class = '[#CLASS#]'<!--ET_END CLASS--> [#FORM_ATTR#] " .
@@ -578,7 +577,7 @@ class core_Form extends core_FieldSet
             }
         }
         
-        if (countR($this->styles ?? null)) {
+        if (countR($this->styles)) {
             foreach ($this->styles as $selector => $style) {
                 $this->layout->appendOnce("\n#" . $this->formAttr['id'] . " {$selector} {{$style}}", 'STYLES');
             }
@@ -593,7 +592,7 @@ class core_Form extends core_FieldSet
      */
     public function renderTitle_()
     {
-        if (empty($this->title)) {
+        if (!$this->title) {
             return;
         }
         
@@ -606,7 +605,7 @@ class core_Form extends core_FieldSet
      */
     public function renderError_()
     {
-        if (countR($this->errors ?? null)) {
+        if (countR($this->errors)) {
             $tpl = new ET("
                 <!--ET_BEGIN ERRORS_TITLE--><div class=\"formError\">\n" .
                 "<b>[#ERRORS_TITLE#]:</b><ul>[#ERROR_ROWS#]</ul>\n" .
@@ -629,7 +628,7 @@ class core_Form extends core_FieldSet
                     $errRec->msg = "Има проблем с полето|* <b>{$fieldCaption}</b>";
                 }
                 
-                if (empty($errRec->ignorable)) {
+                if (!$errRec->ignorable) {
                     $tpl->append('<li>' . tr($errRec->msg) . '</li>', 'ERROR_ROWS');
                     $cntErr++;
                 } else {
@@ -669,7 +668,7 @@ class core_Form extends core_FieldSet
      */
     public function renderInfo_()
     {
-        if (empty($this->info)) {
+        if (!$this->info) {
             return;
         }
         
@@ -697,9 +696,8 @@ class core_Form extends core_FieldSet
      */
     public function renderFields_()
     {
-        $fieldsLayout = null;
         // Полетата
-        if (!empty($this->showFields)) {
+        if ($this->showFields) {
             $fields = $this->selectFields("#input != 'hidden'", $this->showFields);
         } else {
             $fields = $this->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none' && #input != 'hidden')");
@@ -707,7 +705,7 @@ class core_Form extends core_FieldSet
 
         $isHorizontal = ($this->view == 'horizontal');
         if (countR($fields)) {
-            if (!empty($this->defOrder)) {
+            if ($this->defOrder) {
                 $this->orderField();
                 $newFields = array();
                 foreach ($this->fields as $name => $field) {
@@ -722,7 +720,7 @@ class core_Form extends core_FieldSet
             
             foreach ($fields as $name => $field) {
                 expect(is_object($fields[$name]), $fields, $name);
-                $fields[$name]->formOrder = (float) !empty($field->formOrder) ? $field->formOrder : $i++;
+                $fields[$name]->formOrder = (float) $field->formOrder ? $field->formOrder : $i++;
             }
             
             uasort($fields, array($this, 'cmpFormOrder'));
@@ -744,7 +742,7 @@ class core_Form extends core_FieldSet
             
             // Скрива полетата, които имат само една опция и атрибут `hideIfOne`
             foreach ($fields as $name => $field) {
-                if (!empty($field->hideIfOne)) {
+                if ($field->hideIfOne) {
                     if ($field->type instanceof type_Key) {
                         $field->type->prepareOptions();
                     }
@@ -778,48 +776,45 @@ class core_Form extends core_FieldSet
                     $fieldsLayout->replace($value, $name);
                 }
                 
-                if (strtolower($field->autocomplete ?? '') == 'off') {
+                if (strtolower($field->autocomplete) == 'off') {
                     $this->formAttr['autocomplete'] = 'off';
                 }
                 
-                $options = $field->options ?? null;
+                $options = $field->options;
                 
-                $attr = !empty($field->attr) ? $field->attr : array();
+                $attr = $field->attr ? $field->attr : array();
                 if (isset($field->elementId)) {
                     $attr['id'] = $field->elementId;
                 }
                 
-                if (!empty($field->hint)) {
+                if ($field->hint) {
                     $attr['title'] = $field->hint;
                 }
                 
-                if (!empty($field->class)) {
-                    $attr['class'] ??= '';
+                if ($field->class) {
                     $attr['class'] = trim($attr['class']) . " {$field->class}";
                 }
                 
-                if (!empty($field->height)) {
-                    $attr['style'] ??= '';
+                if ($field->height) {
                     $attr['style'] .= "height:{$field->height};";
                 }
                 
                 if (strtolower($this->getMethod()) == 'get') {
-                    if (!empty($field->autoFilter) || !empty($field->refreshForm)) {
+                    if ($field->autoFilter || $field->refreshForm) {
                         $attr['onchange'] = 'this.form.submit();';
                     }
                 } else {
-                    $attr['onchange'] ??= '';
-                    if (!empty($field->removeAndRefreshForm)) {
+                    if ($field->removeAndRefreshForm) {
                         $rFields = str_replace('|', "', '", trim($field->removeAndRefreshForm, '|'));
                         $attr['onchange'] .= "refreshForm($(this).closest('form').get(0), ['{$rFields}']);";
-                    } elseif (!empty($field->refreshForm)) {
+                    } elseif ($field->refreshForm) {
                         $attr['onchange'] .= "refreshForm($(this).closest('form').get(0));";
                     }
                 }
                 
-                if (!empty($field->placeholder)) {
+                if ($field->placeholder) {
                     $attr['placeholder'] = tr($field->placeholder);
-                } elseif (($this->view ?? null) == 'horizontal') {
+                } elseif ($this->view == 'horizontal') {
                     $captions = str_replace('->', '|* » |', $field->caption);
                     $attr['placeholder'] = tr($captions);
                 }
@@ -829,10 +824,8 @@ class core_Form extends core_FieldSet
                     $type->formWithErrors = true;
                 }
 
-                $attr['class'] ??= '';
-                $attr['errorClass'] ??= '';
                 if ($this->gotErrors($name)) {
-                    if (!empty($this->errors[$name]->ignorable)) {
+                    if ($this->errors[$name]->ignorable) {
                         $attr['class'] .= ' inputWarning';
                         $attr['errorClass'] .= ' inputWarning';
                         
@@ -848,7 +841,7 @@ class core_Form extends core_FieldSet
                         }
                     }
                     
-                    if (empty($firstError)) {
+                    if (!$firstError) {
                         ht::setUniqId($attr);
                         $idForFocus = $attr['id'];
                         $firstError = true;
@@ -867,17 +860,17 @@ class core_Form extends core_FieldSet
                     $value = $attr['value'] = Request::get($field->name);
                 }
                 
-                if (!isset($value) && !empty($field->value) && !empty($field->notNull)) {
+                if (!isset($value) && $field->value && $field->notNull) {
                     $value = $attr['value'] = $field->value;
                 }
                 
                 // Ако полето има свойството да поема фокуса
                 // фокусираме на него
-                if (empty($firstError)) {
-                    if (!empty($field->focus)) {
+                if (!$firstError) {
+                    if ($field->focus) {
                         ht::setUniqId($attr);
                         $idForFocus = $attr['id'];
-                    } elseif (empty($field->type->params['isReadOnly']) && (countR($field->type->options ?? null) != 1) && empty($idFirstFocus) &&
+                    } elseif ((!$field->type->params['isReadOnly']) && (countR($field->type->options) != 1) && !$idFirstFocus &&
                             (empty($value) || ($field->type instanceof type_Richtext) || ($field->type instanceof type_Key) || ($field->type instanceof type_Enum)) &&
                             !($field->type instanceof type_Date) &&
                             !($field->type instanceof type_DateTime)) {
@@ -887,7 +880,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Задължителните полета, които имат една опция - тя да е избрана по подразбиране
-                if (countR($options) == 2 && !empty($type->params['mandatory']) && empty($value) && ($options[key($options)] ?? null) === '') {
+                if (countR($options) == 2 && $type->params['mandatory'] && empty($value) && $options[key($options)] === '') {
                     list($o1, $o2) = array_keys($options);
                     if (!empty($o2)) {
                         $value = $o2;
@@ -896,14 +889,14 @@ class core_Form extends core_FieldSet
                     }
                 }
                 
-                if (!empty($field->inputmode)) {
+                if ($field->inputmode) {
                     $attr['inputmode'] = $field->inputmode;
                 }
                 
                 // Рендиране на select или input полето
                 $optionsCount = countR($options);
                 $type->params['isHorizontal'] = $isHorizontal;
-                if(!empty($type->params['allowEmpty'])){
+                if($type->params['allowEmpty']){
                     $attr['_isAllowEmpty'] = true;
                 }
 
@@ -911,25 +904,25 @@ class core_Form extends core_FieldSet
                     $attr['_isRefresh'] = true;
                 }
 
-                if (($optionsCount > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || !empty($type->params['isReadOnly'])) {
+                if (($optionsCount > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Key2') && !is_a($type, 'type_Enum')) || $type->params['isReadOnly']) {
                     unset($attr['value']);
                     $input = new ET();
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     
                     // Групиране по частта преди посочения разделител
-                    if ($div = ($field->groupByDiv ?? null)) {
+                    if ($div = $field->groupByDiv) {
                         $options = ht::groupOptions($options, $div);
                     }
                     
-                    if (is_a($type, 'type_Enum') && !empty($type->params['isReadOnly'])) {
+                    if (is_a($type, 'type_Enum') && $type->params['isReadOnly']) {
                         foreach ($options as &$title) {
                             $title = tr($title);
                         }
                     }
 
                     $maxRadio = $type->params['maxRadio'];
-                    if (empty($attr['_isRefresh'])) {
-                        if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && empty($type->params['isHorizontal'])){
+                    if (!$attr['_isRefresh']) {
+                        if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && !$type->params['isHorizontal']){
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
                                 $maxRadio = 4;
                                 $type->params['select2MinItems'] = 10000;
@@ -967,9 +960,9 @@ class core_Form extends core_FieldSet
                 $fieldsLayout->prepend("<div class='staticFormView'>");
                 $fieldsLayout->append('</div>');
             } else {
-                if (!empty($idForFocus)) {
+                if ($idForFocus) {
                     jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idForFocus}');", true);
-                } elseif (!empty($idFirstFocus)) {
+                } elseif ($idFirstFocus) {
                     jquery_Jquery::run($fieldsLayout, "focusOnce('#{$idFirstFocus}');", true);
                 }
             }
@@ -986,14 +979,13 @@ class core_Form extends core_FieldSet
     {
         // Подреждане на полетата на формата
         $fields = $res = array();
-        $i = 0;
-
+        
         foreach ($fields1 as $name => $field) {
             if (!empty($field->displayInToolbar)) {
                 continue;
             }
             
-            list($group, $caption) = explode('->', $field->caption) + ['', ''];
+            list($group, $caption) = explode('->', $field->caption);
             if (!$caption) {
                 $group = 'autoGroup' . $i++;
             } else {
@@ -1047,7 +1039,7 @@ class core_Form extends core_FieldSet
             $plusUrl = sbf('img/16/toggle1.png', '');
             $plusImg = ht::createElement('img', array('src' => $plusUrl, 'class' => 'btns-icon plus'));
             foreach ($fields as $name => $field) {
-                if (!empty($field->rowStyle)) {
+                if ($field->rowStyle) {
                     $rowStyle = ' style="' . $field->rowStyle . '"';
                 } else {
                     $rowStyle = '';
@@ -1096,12 +1088,12 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Обработка на кепшъна
-                if (!empty($field->mandatory) && $caption != '@') {
+                if ($field->mandatory && $caption != '@') {
                     $caption = "<b>{$caption}</b>";
                 }
                 
                 $caption = core_ET::escape($caption);
-                $fUnit = tr($field->unit ?? null);
+                $fUnit = tr($field->unit);
                 $fUnit = core_ET::escape($fUnit);
                 
                 $originalCaption = $caption;
@@ -1114,7 +1106,7 @@ class core_Form extends core_FieldSet
 
                 // Ако полето може да се скрива и няма стойност ()
                 $toggable = ' ';
-                if(!empty($field->toggable)){
+                if($field->toggable){
                     $toggable .= "toggable ";
                 }
 
@@ -1166,12 +1158,12 @@ class core_Form extends core_FieldSet
                     }
                 }
                 
-                if (!empty($field->inlineTo)) {
+                if ($field->inlineTo) {
                     $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
                     $tpl->prepend($fld, $field->inlineTo);
                     $tpl->prepend(' inlineTo', $field->inlineTo . '_INLINETO_CLASS');
-                } elseif (!empty($field->displayInBottom)) {
-                    if (!empty($field->noCaption)) {
+                } elseif ($field->displayInBottom) {
+                    if ($field->noCaption) {
                         $fld = new ET("[#{$field->name}#]{$unit}");
                     } else {
                         $fld = new ET(" {$caption} [#{$field->name}#]{$unit}");
@@ -1217,7 +1209,7 @@ class core_Form extends core_FieldSet
         }
         
         // Защита на id - параметъра
-        if (!empty($vars['id'])) {
+        if ($vars['id']) {
             $mvc = $this->getMvc();
             $vars['id'] = $mvc->protectId($vars['id']);
         }
@@ -1249,19 +1241,19 @@ class core_Form extends core_FieldSet
      */
     public function renderHidden_()
     {
-        $vars = $this->prepareVars($this->renderVars ?? null);
+        $vars = $this->prepareVars($this->renderVars);
         
         // Определяме скритите полета
         
-        if (countR($this->fields ?? null)) {
+        if (countR($this->fields)) {
             foreach ($this->fields as $field) {
-                if (($field->input ?? null) === 'hidden') {
+                if ($field->input == 'hidden') {
                     $hiddens[$field->name] = $field->type->toHidden($vars[$field->name]);
                 }
             }
             core_Request::addUrlHash($hiddens);
         }
-
+        
         // Вкарваме скритите полета
         $tpl = ht::createHidden($hiddens);
         
@@ -1274,7 +1266,7 @@ class core_Form extends core_FieldSet
      */
     public function getMethod()
     {
-        return !empty($this->method) ? strtoupper($this->method) : 'POST';
+        return $this->method ? strtoupper($this->method) : 'POST';
     }
     
     
@@ -1284,16 +1276,13 @@ class core_Form extends core_FieldSet
     public function renderAttr_()
     {
         $this->formAttr['method'] = $this->getMethod();
-        $this->formAttr['action'] = $this->action ?? null;
-        
-        $attrStr = '';
+        $this->formAttr['action'] = $this->action ? toUrl($this->action) : '';
 
         foreach ($this->formAttr as $attr => $content) {
             if ($content === true) {
                 $content = $attr;
             }
-             
-            if (is_scalar($content) && trim($content)) {
+            if (trim($content)) {
                 $content = ht::escapeAttr($content);
                 $attrStr .= ' ' . $attr . '="' . $content . '"';
             }
@@ -1443,7 +1432,7 @@ class core_Form extends core_FieldSet
             $name = arr::make($name, true);
             
             foreach ($name as $n) {
-                $this->fields[$n]->attr = arr::union($this->fields[$n]->attr ?? [], $attr);
+                $this->fields[$n]->attr = arr::union($this->fields[$n]->attr, $attr);
             }
         }
     }
@@ -1465,7 +1454,7 @@ class core_Form extends core_FieldSet
                 $value = $v;
             }
             
-            if (!empty($this->fields[$name])) {
+            if ($this->fields[$name]) {
                 // Ако имаме такова поле, само му задаваме дефолт стойност
                 $this->fields[$name]->input = 'hidden';
             } else {
@@ -1519,7 +1508,7 @@ class core_Form extends core_FieldSet
         }
         
         // Премахваме дублиращи се съобщения
-        if (is_array($this->errors ?? null) && $oncePerField) {
+        if (is_array($this->errors) && $oncePerField) {
             foreach ($this->errors as $errRec) {
                 if (($errRec->msg == $msg) && ($ignorable == $errRec->ignorable)) {
                     $msg = false;
@@ -1534,7 +1523,7 @@ class core_Form extends core_FieldSet
             $errRec->msg = $msg;
             $errRec->ignorable = $ignorable;
             
-            if (!(!empty($this->errors[$f]) && $oncePerField) || (!empty($this->errors[$f]->ignorable) && !$ignorable)) {
+            if (!($this->errors[$f] && $oncePerField) || ($this->errors[$f]->ignorable && !$ignorable)) {
                 $this->errors[$f] = $errRec;
                 $msg = false;
             }
@@ -1560,7 +1549,7 @@ class core_Form extends core_FieldSet
      */
     public function isSubmitted()
     {
-        $status = !empty($this->cmd) && $this->cmd != 'refresh' && !$this->gotErrors();
+        $status = $this->cmd && $this->cmd != 'refresh' && !$this->gotErrors();
         
         if ($status) {
             expect($this->getMethod() != 'POST' || $_SERVER['REQUEST_METHOD'] != 'GET', $this->getMethod(), $_SERVER['REQUEST_METHOD']);
@@ -1576,20 +1565,20 @@ class core_Form extends core_FieldSet
      */
     public function gotErrors($field = null)
     {
-        if (countR($this->errors ?? null)) {
+        if (countR($this->errors)) {
             if ($field) {
                 $fieldArr = arr::make($field);
                 
                 foreach ($fieldArr as $f) {
-                    if (!empty($this->errors[$f])) {
-                        if (empty($this->errors[$f]->ignorable) || empty($this->ignore)) {
+                    if ($this->errors[$f]) {
+                        if (!$this->errors[$f]->ignorable || !$this->ignore) {
                             return true;
                         }
                     }
                 }
             } else {
                 foreach ($this->errors as $field => $errRec) {
-                    if (empty($errRec->ignorable) || empty($this->ignore)) {
+                    if (!$errRec->ignorable || !$this->ignore) {
                         return true;
                     }
                 }
@@ -1662,7 +1651,7 @@ class core_Form extends core_FieldSet
                 if (!isset($fieldset->fields[$name])) {
                     continue;
                 }
-                if (($fieldset->fields[$name]->{$mode} ?? null) == 'none') {
+                if ($fieldset->fields[$name]->{$mode} == 'none') {
                     continue;
                 }
                 if ($mode == 'single' && !isset($row->{$name})) {
@@ -1671,15 +1660,15 @@ class core_Form extends core_FieldSet
 
                 // Затваряме секцията, само, ако в нея няма грешки или предупреждения
                 if (!isset($fieldset->errors[$name])) {
-                    if (($fieldset->fields[$name]->autohide ?? null) == 'any') {
+                    if ($fieldset->fields[$name]->autohide == 'any') {
                         continue;
                     }
-                    if (($fieldset->fields[$name]->autohide ?? null) == 'autohide' || ($fieldset->fields[$name]->autohide ?? null) == $mode) {
-                        if (empty($rec->{$name}) || (($rec->{$name} ?? null) == 'no') || (($rec->{$name} ?? null) == 'none')) {
+                    if ($fieldset->fields[$name]->autohide == 'autohide' || $fieldset->fields[$name]->autohide == $mode) {
+                        if (!$rec->{$name} || ($rec->{$name} == 'no') || ($rec->{$name} == 'none')) {
                             continue;
                         }
                         $type = $fieldset->fields[$name]->type;
-                        if (isset($type->options) && is_array($type->options) && key($type->options) == ($rec->{$name} ?? null)) {
+                        if (isset($type->options) && is_array($type->options) && key($type->options) == $rec->{$name}) {
                             continue;
                         }
                     }
