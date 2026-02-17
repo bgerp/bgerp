@@ -26,7 +26,7 @@ class doc_plg_CanSelectSteps extends core_Plugin
         $mvc->FLD('steps', 'keylist(mvc=doc_UnsortedFolderSteps,select=name,makeLink)', 'caption=Настройки на задачите в проекта->Етапи');
         $mvc->FNC('addSubSteps', 'enum(no=Не,yes=Да)', 'caption=Настройки на задачите в проекта->Добави подетапи,input=hidden,after=stepId,maxRadio=2');
 
-        $mvc->lastUsedKeys .= (!empty($mvc->lastUsedKeys) ? ',' : '') . 'steps';
+        $mvc->lastUsedKeys = ($mvc->lastUsedKeys ?? '') . (!empty($mvc->lastUsedKeys) ? ',' : '') . 'steps';
     }
 
 

@@ -990,7 +990,7 @@ class core_Query extends core_FieldSet
         // Добавка за връзване по външен ключ
         if (countR($external = $this->selectFields("#kind == 'EXT'"))) {
             foreach ($external as $name => $fieldRec) {
-                $externalFieldName = $fieldRec->externalFieldName ? $fieldRec->externalFieldName : 'id';
+                $externalFieldName = $fieldRec->externalFieldName ?? 'id';
                 $externalFieldName = str::phpToMysqlName($externalFieldName);
                 
                 if ($fieldRec->externalKey && !$isDelete) {
@@ -1093,7 +1093,7 @@ class core_Query extends core_FieldSet
             $f = $this->getField($name);
             
             if ($f->kind == 'FNC') {
-                $depends = $f->dependFromFields ? $f->dependFromFields : null;
+                $depends = $f->dependFromFields ?? null;
                 
                 if (is_string($depends)) {
                     $depends = str_replace('|', ',', $depends);
@@ -1127,8 +1127,8 @@ class core_Query extends core_FieldSet
                     $mvc = cls::get($f->externalClass);
                     $tableName = $mvc->dbTableName;
                     $this->tables[$tableName] = true;
-                    $this->onCond = $f->onCond;
-                    $this->join = $f->join;
+                    $this->onCond = $f->onCond ?? null;
+                    $this->join = $f->join ?? null;
                     $mysqlName = str::phpToMysqlName($f->externalName);
                     $fields .= "`{$tableName}`.`{$mysqlName}`";
                     break;

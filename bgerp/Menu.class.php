@@ -515,7 +515,7 @@ class bgerp_Menu extends core_Manager
                 $query = self::getQuery();
                 
                 while ($rec = $query->fetch('#createdBy = -1')) {
-                    if (!$mvc->savedItems[$rec->id]) {
+                    if (empty($mvc->savedItems[$rec->id])) {
                         $mvc->delete($rec->id);
                     }
                 }

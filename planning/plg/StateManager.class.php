@@ -59,11 +59,11 @@ class planning_plg_StateManager extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         // Ако липсва, добавяме поле за състояние
-        if (!$mvc->fields['state']) {
+        if (empty($mvc->fields['state'])) {
             $mvc->FLD('state', 'enum(draft=Чернова, pending=Заявка,waiting=Чакащо,active=Активирано, rejected=Оттеглено, closed=Приключено, stopped=Спряно, wakeup=Събудено,template=Шаблон)', 'caption=Състояние, input=none');
         }
         
-        if (!$mvc->fields['timeClosed']) {
+        if (empty($mvc->fields['timeClosed'])) {
             $mvc->FLD('timeClosed', 'datetime(format=smartTime)', 'caption=Времена->Затворено на,input=none');
         }
         
@@ -71,11 +71,11 @@ class planning_plg_StateManager extends core_Plugin
             $mvc->demandReasonChangeState = arr::make($mvc->demandReasonChangeState, true);
         }
 
-        if (!$mvc->fields['lastChangeStateOn']) {
+        if (empty($mvc->fields['lastChangeStateOn'])) {
             $mvc->FLD('lastChangeStateOn', 'datetime(format=smartTime)', 'caption=Промяна състояние->На,input=none');
         }
 
-        if (!$mvc->fields['lastChangeStateBy']) {
+        if (empty($mvc->fields['lastChangeStateBy'])) {
             $mvc->FLD('lastChangeStateBy', 'key(mvc=core_Users,select=nick)', 'caption=Промяна състояние->От на,input=none');
         }
 

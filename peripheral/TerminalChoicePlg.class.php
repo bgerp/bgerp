@@ -49,14 +49,14 @@ class peripheral_TerminalChoicePlg extends core_Plugin
      */
     public static function on_AfterLogin($mvc, $userRec, $inputs, $refresh)
     {
-        if ($refresh || !$inputs->terminal) {
+        if ($refresh || empty($inputs->terminal)) {
             
             return;
         }
         
         $dRec = peripheral_Devices::fetch($inputs->terminal);
         
-        if ($dRec->driverClass) {
+        if (!empty($dRec->driverClass)) {
             $inst = cls::getInterface('peripheral_TerminalIntf', $dRec->driverClass);
             
             $rUrl = $inst->getTerminalUrl($dRec->data['objVal']);

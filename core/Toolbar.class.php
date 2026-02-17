@@ -118,11 +118,11 @@ class core_Toolbar extends core_BaseClass
         if (isset($params['order'])) {
             $btn->order = $params['order'];
             unset($params['order']);
-        } elseif ($btn->error) {
+        } elseif ($btn->error ?? null) {
             $btn->order = 40;
-        } elseif ($btn->warning) {
+        } elseif ($btn->warning ?? null) {
             $btn->order = 30;
-        } elseif ($btn->newWindow) {
+        } elseif ($btn->newWindow ?? null) {
             $btn->order = 20;
         } else {
             $btn->order = 10;
@@ -132,7 +132,7 @@ class core_Toolbar extends core_BaseClass
         
         $btn->attr = $params;
         
-        $id = $params['id'] ? $params['id'] : $btn->title;
+        $id = !empty($params['id']) ? $params['id'] : $btn->title;
         
         $this->buttons[$id] = $btn;
     }
@@ -308,7 +308,7 @@ class core_Toolbar extends core_BaseClass
         // Сортираме бутоните
         arr::sortObjects($this->buttons);
         
-        $attr = array('id' => $this->id);
+        $attr = array('id' => $this->id ?? null);
         
         ht::setUniqId($attr);
         
@@ -319,26 +319,29 @@ class core_Toolbar extends core_BaseClass
         
         $layout = $this->getToolbarLayout($rowId);
         foreach ($this->buttons as $id => $btn) {
-            if ($btn->attr['row'] == 2) {
+            if (($btn->attr['row'] ?? null) == 2) {
                 $onRow2++;
             }
-            if ($btn->attr['row'] == 3) {
+            if (($btn->attr['row'] ?? null) == 3) {
                 $hiddenBtns++;
             }
         }
 
+        $flagRow2 = null;
+
         foreach ($this->buttons as $id => $btn) {
-            $place = ($btn->attr['row'] == 2 && $onRow2 > 0) ? 'ROW2' : (($hiddenBtns > 1 && $btn->attr['row'] == 3) ? 'HIDDEN' : 'ROW1') ;
+            $place = (($btn->attr['row'] ?? null) == 2 && $onRow2 > 0) ? 'ROW2' : (($hiddenBtns > 1 && ($btn->attr['row'] ?? null) == 3) ? 'HIDDEN' : 'ROW1') ;
 
             // Ако няма да се показва текста в заглавието
             if ($place == 'ROW1') {
-                if ($btn->attr['emptyInFirstRow']) {
+                if (!empty($btn->attr['emptyInFirstRow'])) {
                     $t = str::utf2ascii($btn->title);
                     $t = ucfirst($t);
 
-                    setIfNot($btn->attr['title'], $btn->title);
-                    setIfNot($btn->attr['id'], "btn{$t}_" . str::getRand('#####'));
-
+                    setPartIfNot($btn->attr, 'title', $btn->title ?? null);
+                    setPartIfNot($btn->attr, 'id', "btn{$t}_" . str::getRand('#####'));
+                    
+                    $btn->attr['class'] ??= '';
                     $btn->attr['class'] .= $btn->attr['class'] ? ' ' : '';
 
                     $btn->attr['class'] .= 'onlyIcon';
@@ -353,16 +356,16 @@ class core_Toolbar extends core_BaseClass
             }
             unset($btn->attr['row']);
             $attr = $btn->attr;
-            if ($btn->error) {
-                $layout->append(ht::createErrBtn($btn->title, $btn->error, $attr), $place);
-            } elseif ($btn->type == 'submit') {
-                $layout->append(ht::createSbBtn($btn->title, $btn->cmd, $btn->warning, $btn->newWindow, $attr), $place);
-            } elseif ($btn->type == 'function') {
-                $layout->append(ht::createFnBtn($btn->title, $btn->fn, $btn->warning, $attr), $place);
-            } elseif ($btn->type == 'select') {
-                $layout->append(ht::createSelectMenu($btn->options, $btn->selected, $btn->maxRadio, $attr), $place);
+            if (!empty($btn->error)) {
+                $layout->append(ht::createErrBtn($btn->title, $btn->error ?? null, $attr), $place);
+            } elseif (($btn->type ?? null) == 'submit') {
+                $layout->append(ht::createSbBtn($btn->title, $btn->cmd ?? null, $btn->warning ?? null, $btn->newWindow ?? null, $attr), $place);
+            } elseif (($btn->type ?? null) == 'function') {
+                $layout->append(ht::createFnBtn($btn->title, $btn->fn ?? null, $btn->warning ?? null, $attr), $place);
+            } elseif (($btn->type ?? null) == 'select') {
+                $layout->append(ht::createSelectMenu($btn->options, $btn->selected, $btn->maxRadio ?? null, $attr), $place);
             } else {
-                $layout->append(ht::createBtn($btn->title, $btn->url, $btn->warning, $btn->newWindow, $attr), $place);
+                $layout->append(ht::createBtn($btn->title ?? null, $btn->url ?? null, $btn->warning ?? null, $btn->newWindow ?? null, $attr), $place);
             }
             
             $btnCnt++;
@@ -372,7 +375,7 @@ class core_Toolbar extends core_BaseClass
             $this->appendSecondRow($layout, $rowId);
         }
         
-        $layout->prepend(ht::createHidden($this->hidden));
+        $layout->prepend(ht::createHidden($this->hidden ?? null));
         
         return $layout;
     }

@@ -273,7 +273,7 @@ class core_Os
         static $lastModificationDir = array();
         
         // Ако вече сме гледали в директория
-        if (!$lastModificationDir[$dir]) {
+        if (empty($lastModificationDir[$dir])) {
             
             // Обхождаме файловете
             foreach ($files as $file) {
@@ -287,7 +287,7 @@ class core_Os
                 $time = filemtime($dir . DIRECTORY_SEPARATOR . $file);
                 
                 // Ако времето е по - голямо от записаното в директорията
-                if ($time > $lastModificationDir[$dir]) {
+                if ($time > ($lastModificationDir[$dir] ?? null)) {
                     
                     // Записваме времето на последната промяна
                     $lastModificationDir[$dir] = $time;
@@ -531,7 +531,7 @@ class core_Os
             }
             $status = self::STATUS_OK_CREATED;
         } else {
-            if((fileperms($path) & 0777) != $permissions) {
+            if((fileperms($path) & 0777) != $permissions && !isDocker()) {
                 if(!@chmod($path, $permissions)) {
                     $status = self::STATUS_ERROR_CHMOD;
 

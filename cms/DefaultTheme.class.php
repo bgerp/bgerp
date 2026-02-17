@@ -73,6 +73,8 @@ class cms_DefaultTheme extends core_ProtoInner
     
     public function prepareWrapper($tpl)
     {
+        $css = '';
+
         // Добавяме заглавната картика
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
         
