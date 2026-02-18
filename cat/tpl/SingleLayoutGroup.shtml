@@ -32,6 +32,7 @@
             <!--ET_BEGIN sysId-->
             <div style="margin-bottom:2px"><span class="quiet">System Id: </span> [#sysId#]</div>
             <!--ET_END sysId-->
+            [#PARAMS#]
         </fieldset>
         <!--ET_BEGIN notes-->
         <fieldset class="detail-info">
