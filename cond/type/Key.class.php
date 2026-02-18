@@ -90,7 +90,7 @@ class cond_type_Key extends cond_type_abstract_Proto
         $select = !empty($rec->select) ? $rec->select : 'id';
 
         // Ако е посочен модел с големи записи, се показва с key2
-        if(in_array($rec->class, array('crm_Companies', 'crm_Persons', 'cat_Products', 'doc_Folders'))){
+        if(in_array($rec->class, array('crm_Companies', 'crm_Persons', 'cat_Products', 'doc_Folders', 'bglocal_HScode'))){
             $Type = core_Type::getByName("key2(mvc={$rec->class},select={$select})");
         } else {
             $typeParams = "mvc={$rec->class}";
