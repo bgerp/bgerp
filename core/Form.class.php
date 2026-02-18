@@ -197,8 +197,6 @@ class core_Form extends core_FieldSet
 
             expect($this->fields[$name], "Липсващо поле във формата '{$name}'");
 
-            $this->rec->{$name} = null;
-
             $value = Request::get($name, false);
             
             $captions = str_replace('->', '|* » |', $field->caption);

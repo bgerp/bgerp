@@ -242,7 +242,8 @@ class eshop_Settings extends core_Master
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държави');
         $this->FLD('freeDelivery', 'double(min=0)', 'caption=Безплатна доставка->Сума');
         $this->FLD('freeDeliveryByBus', 'double(min=0)', 'caption=Безплатна доставка->За маршрут');
-        
+        $this->FLD('takingFromOffice', 'keylist(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Безплатна доставка->До наш офис');
+
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Наличности от');
         $this->FLD('otherStores', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад за наличности и Адрес при избран метод на доставка до "Локация на доставчика"->Други складове');
         if(core_Packs::isInstalled('sync', true)){
@@ -413,7 +414,12 @@ class eshop_Settings extends core_Master
         $shouldChargeVat = crm_Companies::shouldChargeVat($ownCompany->id, 'sales_Sales');
         $defaultChargeVat = ($shouldChargeVat === true) ? 'yes' : 'no';
         $form->setDefault('chargeVat', $defaultChargeVat);
-        
+
+        $ourLocations = crm_Locations::getOwnLocations();
+        if(countR($ourLocations)){
+            $form->setSuggestions('takingFromOffice', array('' => '') + $ourLocations);
+        }
+
         $namePlaceholder = eshop_Setup::get('CART_EXTERNAL_NAME');
         $form->setField('cartName', "placeholder={$namePlaceholder}");
         $notInStockPlaceholder = eshop_Setup::get('NOT_IN_STOCK_TEXT');
