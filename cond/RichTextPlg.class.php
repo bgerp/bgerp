@@ -100,6 +100,7 @@ class cond_RichTextPlg extends core_Plugin
         }
 
         $place = $this->mvc->getPlace();
+        $pText = $this->mvc->toVerbal($pText);
 
         $this->mvc->_htmlBoard[$place] = cond_Texts::replaceView($pText, $recId);
 
