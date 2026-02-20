@@ -626,7 +626,9 @@ class cal_Calendar extends core_Master
             }
             
             for($wd = 1; $wd <= 7; $wd++) {
-                if($d = $weekArr[$wd]) {
+                $d = $weekArr[$wd] ?? null;
+                if(!empty($d)) {
+                    $data[$d]->type = $data[$d]->type ?? '';
                     if($data[$d]->type == 'holiday') {
                         $class = 'mc-holiday';
                     } elseif(($wd == 6 || ($data[$d]->type == 'non-working' && $wd >= 4) ) && ($data[$d]->type != 'workday')) {
@@ -660,10 +662,10 @@ class cal_Calendar extends core_Master
                     
                     
                     // URL към което сочи деня
-                    $url = $data[$d]->url;
+                    $url = $data[$d]->url ?? '';
                     
                     // Съдържание на клетката, освен датата
-                    $content = $data[$d]->html;
+                    $content = $data[$d]->html ?? '';
                     
                     $html .= "<td class='{$class} mc-day' onclick='document.location=\"{$url}\"'>{$content}$d</td>";
                 
@@ -1246,7 +1248,9 @@ class cal_Calendar extends core_Master
         $weekDayNo = date('N', mktime(0, 0, 0, $month, $day, $year));
         
         $dateType = self::getDayStatus($date, 'bg');
-        
+
+        $class = '';
+
         // Ако е събота или неделя, пресвояваме цвят
     	if($weekDayNo == "6" && $dateType->specialDay !== 'workday'){
     		
@@ -1255,6 +1259,8 @@ class cal_Calendar extends core_Master
     		
     		$class = 'sunday'; // 'green';
     	}
+
+        $dateType->specialDay = $dateType->specialDay ?? '';
     	
     	if ($dateType->specialDay == 'holiday'){
     		
@@ -2064,7 +2070,7 @@ class cal_Calendar extends core_Master
     public static function prepareMonthOptions()
     {
         $month = Request::get('cal_month', 'int');
-        $month = str_pad($month, 2, '0', STR_PAD_LEFT);
+        $month = str_pad($month ?? '', 2, '0', STR_PAD_LEFT);
         $year  = Request::get('cal_year', 'int');
         
         if(!$month || $month < 1 || $month > 12 || !$year || $year < 1970 || $year > 2038) {

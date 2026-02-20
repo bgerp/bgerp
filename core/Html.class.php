@@ -144,11 +144,11 @@ class core_Html
             $id = $attr['id'];
             
             $suffix = '_cs';
-            list($l, $r) = explode('[', $id);
-            $r = rtrim($r, ']');
+            list($l, $r) = array_pad(explode('[', $id), 2, null);
+            $r = rtrim($r ?? '', ']');
             $selectId = $l . $suffix . $r;
             
-            if ($attr['ajaxAutoRefreshOptions']) {
+            if (!empty($attr['ajaxAutoRefreshOptions'])) {
                 $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
                 $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
                 if ($attr['onchange']) {
@@ -172,8 +172,8 @@ class core_Html
             $attr['id'] = $selectId;
             
             $name = $attr['name'];
-            list($l, $r) = explode('[', $name);
-            $r = rtrim($r, ']');
+            list($l, $r) = array_pad(explode('[', $name), 2, null);
+            $r = rtrim($r ?? '', ']');
             $name = $l . $suffix . $r;
             $attr['name'] = $name;
             
@@ -184,8 +184,11 @@ class core_Html
             }
             
             unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
-            
+
             if (!Mode::is('javascript', 'no')) {
+                if (!isset($attr['style'])) {
+                    $attr['style'] = '';
+                }
                 $attr['style'] .= ';visibility: hidden;';
             }
             
@@ -263,7 +266,9 @@ class core_Html
     public static function createSelect($name, $options, $selected = null, $selAttr = array())
     {
         $selAttr['name'] = $name;
-        
+
+        $attrStr = '';
+
         foreach ($selAttr as $atr => $content) {
             // Смятаме, че всички атрибути с имена, започващи със '#'
             // са вътрешни и поради това не ги показваме в елемента
@@ -284,6 +289,7 @@ class core_Html
         $select->append('', 'OPTIONS');
         
         if (is_array($options)) {
+            $openGroup = false;
             foreach ($options as $id => $title) {
                 $attr = array();
                 $element = 'option';
@@ -320,7 +326,7 @@ class core_Html
                 }
                 
                 // Хак за добавяне на плейс-холдер
-                if ($selAttr['placeholder'] &&
+                if (!empty($selAttr['placeholder']) &&
                     strlen($attr['value']) == 0 && !trim($title)) {
                     $title = $selAttr['placeholder'];
                     $attr['style'] .= 'color:#777;';
@@ -1472,6 +1478,9 @@ class core_Html
         
         // Вкарваме предупреждението
         if ($warning) {
+            if (!isset($attr['onclick'])) {
+                $attr['onclick'] = '';
+            }
             $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) { $(event.target).blur(); event.stopPropagation(); return false; }";
         }
         

@@ -42,11 +42,12 @@ class type_Enum extends core_Type
         }
         
         $options = $this->options;
-        if (($div = $this->params['groupByDiv'])) {
+        $div = $this->params['groupByDiv'] ?? '';
+        if (!empty($div)) {
             $options = ht::groupOptions($this->options, $div);
         }
 
-        $translate = $this->params['translate'] != 'no';
+        $translate = (($this->params['translate'] ?? '') !== 'no');
         if (is_object($options[$value])) {
             $res = $options[$value]->title;
         } else {
@@ -98,19 +99,19 @@ class type_Enum extends core_Type
         // TODO: да се махне хака със <style>
         if (countR($this->options)) {
             if (countR($this->options) == 2) {
-                if ($this->options['off'] == 'off' && $this->options['off'] == 'off') {
+                if (($this->options['off'] ?? '') === 'off') {
                     $tpl = "<input type='checkbox' name='{$name}'  class='checkbox'" . ($value == 'on'? ' checked ' : '') . '>';
                     
                     return $tpl;
                 }
             }
             $options = $this->options;
-            if ($div = $this->params['groupByDiv']) {
+            if ($div = ($this->params['groupByDiv'] ?? null)) {
                 $options = ht::groupOptions($this->options, $div);
             }
             
             $arr = array();
-            $translate = $this->params['translate'] != 'no';
+            $translate = (($this->params['translate'] ?? '') !== 'no');
 
             foreach ($options as $id => $title) {
                 if (is_object($title)) {
@@ -141,9 +142,9 @@ class type_Enum extends core_Type
             }
         }
         $countOptions = countR($arr);
-        $maxRadio = $this->params['maxRadio'];
-        if (!$attr['_isRefresh']){
-            if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
+        $maxRadio = $this->params['maxRadio'] ?? null;
+        if (empty($attr['_isRefresh'])){
+            if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
                 if (arr::isOptionsTotalLenBellowAllowed($arr)) {
                     $maxRadio = 4;
                     $this->params['select2MinItems'] = 10000;
@@ -160,7 +161,7 @@ class type_Enum extends core_Type
                 }
             }
         }
-        $tpl = ht::createSmartSelect($arr, $name, $value, $attr, $maxRadio, $this->params['maxColumns'], $this->params['columns']);
+        $tpl = ht::createSmartSelect($arr, $name, $value, $attr, $maxRadio, $this->params['maxColumns'] ?? null, $this->params['columns'] ?? null);
         
         return $tpl;
     }

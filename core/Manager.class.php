@@ -647,7 +647,7 @@ class core_Manager extends core_Mvc
         if ($data && $data->listFields) {
             $data->listFields = arr::make($data->listFields);
 
-            if ($data->query && $data->listFields && $data->listFields['id']) {
+            if ($data->query && $data->listFields && isset($data->listFields['id'])) {
                 $data->query->orderBy('id', 'ASC');
             }
         }
@@ -1145,9 +1145,9 @@ class core_Manager extends core_Mvc
     {
         setIfNot($data->listTableMvc, $this);
         setIfNot($data->listTableHideHeaders, $this->listTableHideHeaders);
-        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders, 'tableId' => $data->listTableId));
+        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders, 'tableId' => ($data->listTableId ?? null)));
         
-        if ($data->action == 'list') {
+        if (($data->action ?? null) == 'list') {
             $table->tableClass = 'listTable listAction';
         }
         
@@ -1155,7 +1155,7 @@ class core_Manager extends core_Mvc
         $data->listFields = arr::make($data->listFields, true);
         
         // Ако има колони за филтриране, филтрираме ги
-        if (countR($data->hideListFieldsIfEmpty)) {
+        if (!empty($data->hideListFieldsIfEmpty) && countR($data->hideListFieldsIfEmpty)) {
             $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->hideListFieldsIfEmpty);
         }
         
@@ -1164,12 +1164,11 @@ class core_Manager extends core_Mvc
 
         // Рендираме таблицата
         $tpl = $table->get($data->rows, $data->listFields);
-        
-        if (!$class = $data->listClass) {
-            $class = 'listRows';
-        }
-        
-        return new ET("<div class='{$class} {$data->listTableClass}'>[#1#]</div>", $tpl);
+
+        $class = $data->listClass ?? 'listRows';
+        $listTable = $data->listTableClass ?? '';
+
+        return new ET("<div class='{$class} {$listTable}'>[#1#]</div>", $tpl);
     }
     
     

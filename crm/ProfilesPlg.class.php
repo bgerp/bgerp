@@ -44,7 +44,7 @@ class crm_ProfilesPlg extends core_Plugin
         if (!empty($fields['-list']) || !empty($fields['-single']) || empty($fieldsCnt)) {
             $fieldsArr = $mvc->selectFields();
             foreach ($fieldsArr as $name => $field) {
-                if ($fieldsCnt && !$fields[$name]) {
+                if ($fieldsCnt && empty($fields[$name])) {
                     continue;
                 }
                 
@@ -53,7 +53,8 @@ class crm_ProfilesPlg extends core_Plugin
                 // Ако е от type_Key
                 if (cls::isSubclass($type, 'type_Key')) {
                     if (cls::isSubclass($type->params['mvc'], 'core_Users')) {
-                        if ($type->params['select'] == 'nick' || !$type->params['select']) {
+                        $select = isset($type->params['select']) ? $type->params['select'] : null;
+                        if ($select == 'nick' || !$select) {
                             if (($rec->{$name} > 0) && !strpos($row->{$name}, '<')) {
                                 $row->{$name} = crm_Profiles::createLink($rec->{$name});
                             }

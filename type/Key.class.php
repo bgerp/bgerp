@@ -98,7 +98,7 @@ class type_Key extends type_Int
                 
                 return $v;
             }
-            if ($this->params['title']) {
+            if (!empty($this->params['title'])) {
                 $field = $this->params['title'];
                 $value = $mvc->fetch($value)->{$field};
                 
@@ -224,7 +224,7 @@ class type_Key extends type_Int
             return $this->params['selectBg'];
         }
         
-        return $this->params['select'];
+        return $this->params['select'] ?? null;
     }
     
     

@@ -759,6 +759,9 @@ class bgerp_Notifications extends core_Manager
         
         
         if (!Mode::isReadOnly() && ($rec->userId == core_Users::getCurrent())) {
+            if (!isset($attr['class'])) {
+                $attr['class'] = '';
+            }
             $attr['class'] .= ' ajaxContext';
             $attr['name'] = 'context-holder';
             ht::setUniqId($attr);

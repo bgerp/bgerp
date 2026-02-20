@@ -36,7 +36,6 @@ defIfNot('CORE_MAX_SQL_QUERY', 16000000);
  * @method static int   save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
  * @method static bool  haveRightFor(string $action, NULL|int|object $id = NULL, int|NULL $userId = NULL)
  */
-#[\AllowDynamicProperties]
 class core_Mvc extends core_FieldSet
 {
     /**
@@ -847,7 +846,7 @@ class core_Mvc extends core_FieldSet
         
         expect($me->fields[$fieldName], 'Не съществуващо поле: ' . $fieldName);
         
-        $value = $rec->{$fieldName};
+        $value = $rec->{$fieldName} ?? null;
         
         if (isset($me->fields[$fieldName]->options) && is_array($me->fields[$fieldName]->options)) {
             $res = $me->fields[$fieldName]->options[$value];

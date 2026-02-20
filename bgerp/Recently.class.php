@@ -213,6 +213,9 @@ class bgerp_Recently extends core_Manager
                 $state = $threadRec->state;
                 
                 $attr = array();
+                if (!isset($attr['class'])) {
+                    $attr['class'] = '';
+                }
                 $attr['class'] .= "state-{$state}";
                 
                 $modOn = $docRec->modifiedOn;

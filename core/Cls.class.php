@@ -170,7 +170,7 @@ class core_Cls
             
             return false;
         }
-        
+
         // Включваме файла
         if (!include_once($filePath)) {
             error('@Не може да бъде парсиран файла', "'{$className}'", "'{$fileName}'");
@@ -383,7 +383,7 @@ class core_Cls
             if (property_exists($class, 'interfaces')) {
                 $reflectionClass = new ReflectionClass($class);
                 $properties = $reflectionClass->getDefaultProperties();
-                if (trim($properties['interfaces'])) {
+                if (trim($properties['interfaces'] ?? '')) {
                     $classObj->interfaces += arr::make($properties['interfaces'], true);
                 }
             }

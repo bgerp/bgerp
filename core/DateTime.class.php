@@ -493,7 +493,9 @@ class core_DateTime
         }
         
         $dist = strtotime($baseDatetime) - strtotime($datetime);
-        
+
+        $color = '';
+
         if ($dist < 0) {
             $dist = 1 - $dist / (24 * 60 * 60);
             $g = round(max(4, 9 - $dist * $dist));
@@ -528,10 +530,10 @@ class core_DateTime
             $r = $g1;
             
             if (!$color) {
-                $r = dechex($r < 0 ? 0 : ($r > 255 ? 255 : $r));
-                $g = dechex($g < 0 ? 0 : ($g > 255 ? 255 : $g));
-                $b = dechex($b < 0 ? 0 : ($b > 255 ? 255 : $b));
-                
+                $r = dechex((int) round($r < 0 ? 0 : ($r > 255 ? 255 : $r)));
+                $g = dechex((int) round($g < 0 ? 0 : ($g > 255 ? 255 : $g)));
+                $b = dechex((int) round($b < 0 ? 0 : ($b > 255 ? 255 : $b)));
+
                 $color = (strlen($r) < 2 ? '0' : '') . $r;
                 $color .= (strlen($g) < 2 ? '0' : '') . $g;
                 $color .= (strlen($b) < 2 ? '0' : '') . $b;
@@ -597,7 +599,7 @@ class core_DateTime
                     $hours = $out[5];
                     $minutes = $out[6];
                     $seconds = $out[7];
-                    $mode = $out[8];
+                    $mode = $out[8] ?? '';
                     $found = true;
                 }
             }

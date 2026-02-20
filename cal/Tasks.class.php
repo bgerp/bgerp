@@ -1516,17 +1516,17 @@ class cal_Tasks extends embed_Manager
         $filterRec = $data->listFilter->rec;
 
         // по подразбиране е текущия потребител
-        if (!$filterRec->selectedUsers) {
+        if (empty($filterRec->selectedUsers)) {
             $filterRec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), true));
         }
         
         // задачи с всякакъв статус
-        if (!$filterRec->stateTask) {
+        if (empty($filterRec->stateTask)) {
             $filterRec->stateTask = 'all';
         }
         
         // по критерий "Всички"
-        if (!$filterRec->order) {
+        if (empty($filterRec->order)) {
             $filterRec->order = '';
         }
         
@@ -1538,7 +1538,7 @@ class cal_Tasks extends embed_Manager
 
         // Показваме само това поле. Иначе и другите полета на модела ще се появят
         $inputSilent = arr::make('selectedUsers,Chart,View,stateTask,order, ' . $mvc->driverClassField, true);
-        if ($data->action === 'list') {
+        if (($data->action ?? '') === 'list') {
             $showFields = $data->listFilter->showFields . ' ,search, from, to, selectedUsers, order, stateTask,assetResourceId,stepId,folder,progress, ' . $mvc->driverClassField;
             $showFields = arr::make($showFields, true);
             if(Mode::is('supportList')) {
@@ -1557,23 +1557,23 @@ class cal_Tasks extends embed_Manager
         $dateRange = array();
         $useDateRange = true;
 
-        if ($filterRec->stepId) {
+        if (!empty($filterRec->stepId)) {
             $data->query->where("#stepId = {$filterRec->stepId}");
         }
 
-        if ($filterRec->assetResourceId) {
+        if (!empty($filterRec->assetResourceId)) {
             $data->query->where("#assetResourceId = {$filterRec->assetResourceId}");
         }
 
-        if ($filterRec->folder) {
+        if (!empty($filterRec->folder)) {
             $data->query->where("#folderId = {$filterRec->folder}");
         }
 
-        if ($filterRec->from) {
+        if (!empty($filterRec->from)) {
             $dateRange[0] = $filterRec->from;
         }
         
-        if ($filterRec->to) {
+        if (!empty($filterRec->to)) {
             $dateRange[1] = $filterRec->to;
         }
         
@@ -1603,7 +1603,7 @@ class cal_Tasks extends embed_Manager
             $data->query->where("#progress >= '{$filterRec->progress}'");
         }
 
-        if ($data->action === 'list') {
+        if (($data->action ?? '') === 'list') {
             $chart = Request::get('Chart');
             
             // ако ще подреждаме по "начало" или "край" на задачата ще показваме и филтъра за дата
@@ -3763,7 +3763,7 @@ class cal_Tasks extends embed_Manager
         if ($isReportFromStream || $form->isSubmitted()) {
             if ($isReportFromStream) {
                 $form->rec->description = gzuncompress($form->rec->description);
-                $form->rec->description = type_Varchar::escape($form->rec->description);
+                    $form->rec->description = type_Varchar::escape($form->rec->description);
                 
                 if ($debugFileHnd) {
                     $form->rec->file = $debugFileHnd;

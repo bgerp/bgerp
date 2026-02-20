@@ -1921,7 +1921,7 @@ class core_Users extends core_Manager
         }
         
         while ($roleRec = $roleQuery->fetch($cond)) {
-            if ($rolesArr[$roleRec->id]) {
+            if (!empty($rolesArr[$roleRec->id])) {
                 $res[$roleRec->id] = $roleRec->id;
             }
         }
@@ -1941,7 +1941,7 @@ class core_Users extends core_Manager
     {
         static $teamMates;
         
-        if (!$teamMates[$userId]) {
+        if (empty($teamMates[$userId])) {
             $teams = core_Users::getUserRolesByType($userId, 'team');
             
             if (!$teams) {
@@ -2074,7 +2074,7 @@ class core_Users extends core_Manager
             $roleId = core_Roles::fetchByName($roleId);
         }
         
-        if (!$users[$roleId]) {
+        if (empty($users[$roleId])) {
             $users[$roleId] = array();
             
             $query = static::getQuery();
@@ -2628,7 +2628,7 @@ class core_Users extends core_Manager
             $rec = $uwr['r'][$id];
         }
         
-        if (!$rec) {
+        if (empty($rec)) {
             $rec = new stdClass();
             try {
                 $rec = $me->fetch($id);

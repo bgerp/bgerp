@@ -1041,11 +1041,19 @@ class core_Form extends core_FieldSet
             $tpl = new ET('[#FIELDS#]');
 
             $firstRowFields = $secondRowFields = array();
-            array_walk($fields, function($a) use (&$firstRowFields, &$secondRowFields) {if($a->row == 2) {$secondRowFields[] = $a;} else {$firstRowFields[] = $a;}});
+            array_walk($fields, function($a) use (&$firstRowFields, &$secondRowFields) {
+                $row = $a->row ?? 1;
+                if ($row == 2) {
+                    $secondRowFields[] = $a;
+                } else {
+                    $firstRowFields[] = $a;
+                }
+            });
+
 
             foreach ($firstRowFields as $field) {
                 $fld = new ET("<div class='hFormField' >[#{$field->name}#][#UNIT#]</div>");
-                $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
+                $fld->replace(($field->unit ?? null) ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
                 $tpl->append($fld, 'FIELDS');
             }
             if(countR($secondRowFields)){

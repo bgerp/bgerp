@@ -15,6 +15,7 @@
  * @since     v 0.1
  * @link
  */
+#[\AllowDynamicProperties]
 class core_BaseClass
 {
     /**

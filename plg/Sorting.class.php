@@ -112,9 +112,9 @@ class plg_Sorting extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if($data->sortableTable === false) return;
+        if(($data->sortableTable ?? null) === false) return;
 
-        if (countR($data->recs ?? null) && countR($data->plg_Sorting->fields)) {
+        if (countR($data->recs ?? null) && (isset($data->plg_Sorting) && countR($data->plg_Sorting->fields))) {
             
             // Ако сме в режим принтиране не правим нищо
             if (Mode::is('printing') || Mode::is('pdf') || Mode::is('text', 'xhtml')) {

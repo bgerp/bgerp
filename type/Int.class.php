@@ -153,10 +153,9 @@ class type_Int extends core_Type
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        setIfNot($this->params[0], $this->params['size'], 11);
-        
-        setIfNot($attr['maxlength'], max(16, $this->params[0]));
-        
+        $this->params[0] = $this->params[0] ?? $this->params['size'] ?? 11;
+        $attr['maxlength'] = $attr['maxlength'] ?? max(16, ($this->params[0] ?? 0)) ?? null;
+
         // В мобилен режим слагаме тип = number, за да форсираме цифрова клавиатура
         if (Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
             $attr['type'] = 'number';
