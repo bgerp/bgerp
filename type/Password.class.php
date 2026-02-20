@@ -26,7 +26,7 @@ class type_Password extends type_Varchar
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        if (!strlen($value) && core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
+        if (!strlen($value ?? '') && core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
             $attr['type'] = 'text';
         } else {
             $attr['type'] = 'password';

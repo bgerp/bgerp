@@ -74,7 +74,8 @@ class plg_Current extends core_Plugin
                     redirect(array($mvc, 'SelectCurrent', 'ret_url' => true), false, '|Моля, изберете текущ/а|* |' . mb_strtolower(tr($mvc->singleTitle)));
                 }
             }
-            
+
+            $currRes = false;
             // Избиране на  обект, ако е намерен подходящ
             if ($rec) {
                 $currRes = self::setCurrent($mvc, $res, $rec);

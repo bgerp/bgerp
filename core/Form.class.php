@@ -28,7 +28,25 @@ class core_Form extends core_FieldSet
      * ET шаблон за формата
      */
     public $tpl;
-    
+
+
+    /**
+     *
+     */
+    public $mvc;
+
+
+    /**
+     *
+     */
+    public $renderVars;
+
+
+    /**
+     *
+     */
+    public $InputFields;
+
     
     /**
      * Заглавие на формата
@@ -64,6 +82,12 @@ class core_Form extends core_FieldSet
      * Атрибути на елемента <FORM ... >
      */
     public $formAttr = array();
+
+
+    /**
+     *
+     */
+    public $method;
 
 
     /**

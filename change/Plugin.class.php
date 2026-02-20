@@ -153,6 +153,7 @@ class change_Plugin extends core_Plugin
         
         // Проверка дали входните данни са уникални
         if ($fRec) {
+            $fields = array();
             if ($form->isSubmitted() && !$mvc->isUnique($fRec, $fields)) {
                 $form->setError($fields, 'Вече съществува запис със същите данни');
             }

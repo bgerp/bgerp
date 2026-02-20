@@ -102,8 +102,50 @@ class core_Manager extends core_Mvc
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = true;
-    
-    
+
+
+    /**
+     *
+     */
+    public $canEditsysdata;
+
+
+    /**
+     *
+     */
+    public $canDeletesysdata;
+
+
+    /**
+     *
+     */
+    public $searchInputField;
+
+
+    /**
+     *
+     */
+    public $doWithSelected;
+
+
+    /**
+     *
+     */
+    public $lastFetchedRec;
+
+
+    /**
+     *
+     */
+    public $canUsertranslate;
+
+
+    /**
+     *
+     */
+    public $updateExistingStateOnImport;
+
+
     /**
      * Дали в листовия изглед да се показват заглавията на колоните на таблицата
      */

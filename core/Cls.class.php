@@ -55,8 +55,8 @@ class core_Cls
         
         static $classNames = array();
         
-        if (!stripos($className, '_')) {
-            $className = ucfirst($className);
+        if (!stripos($className ?? '', '_')) {
+            $className = ucfirst($className ?? '');
         }
         
         $cln = $className;

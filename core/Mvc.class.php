@@ -36,13 +36,19 @@ defIfNot('CORE_MAX_SQL_QUERY', 16000000);
  * @method static int   save(object &$rec, NULL|string|array $fields = NULL, NULL|string $mode = NULL)
  * @method static bool  haveRightFor(string $action, NULL|int|object $id = NULL, int|NULL $userId = NULL)
  */
+#[\AllowDynamicProperties]
 class core_Mvc extends core_FieldSet
 {
     /**
      * Дължината на защитната контролна сума за id-тата на този модел
      */
     public $idChecksumLen = EF_ID_CHECKSUM_LEN;
-    
+
+
+    /**
+     *
+     */
+    protected $lastUpdateTime;
     
     /**
      * По подразбиране типа на id полето е int
@@ -405,7 +411,7 @@ class core_Mvc extends core_FieldSet
             return $rec->id;
         }
         
-        $mode = str_replace(' ', '_', strtolower($mode));
+        $mode = str_replace(' ', '_', strtolower($mode ?? ''));
         
         if (($rec->id ?? null) > 0 && $mode != 'replace') {
             switch ($mode) {

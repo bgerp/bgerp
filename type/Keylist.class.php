@@ -652,7 +652,7 @@ class type_Keylist extends core_Type
             }
             
             foreach ($value as $id => $val) {
-                if (!strlen($id) && !strlen($val)) {
+                if (!strlen($id ?? '') && !strlen($val ?? '')) {
                     continue;
                 }
                 
@@ -715,7 +715,7 @@ class type_Keylist extends core_Type
             }
         } else {
             
-            return strpos($list, '|' . $key . '|') !== false;
+            return strpos($list ?? '', '|' . $key . '|') !== false;
         }
         
         return false;

@@ -21,8 +21,14 @@ class type_Enum extends core_Type
      * MySQL тип на полето в базата данни
      */
     public $dbFieldType = 'enum';
-    
-    
+
+
+    /**
+     *
+     */
+    public $options = array();
+
+
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */

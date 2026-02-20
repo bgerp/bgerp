@@ -21,7 +21,12 @@ class core_ET extends core_BaseClass
      * Съдържание на шаблона
      */
     public $content;
-    
+
+
+    /**
+     *
+     */
+    public $removablePlaces;
     
     /**
      * Копие на шаблона
@@ -413,14 +418,14 @@ class core_ET extends core_BaseClass
     {
         expect(!($str instanceof stdClass), $str);
         
-        return str_replace('[#', '&#91;#', $str);
+        return str_replace('[#', '&#91;#', $str ?? '');
     }
     
     public static function unEscape($str)
     {
         expect(!($str instanceof stdClass), $str);
         
-        return str_replace('&#91;#', '[#', $str);
+        return str_replace('&#91;#', '[#', $str ?? '');
     }
     
     

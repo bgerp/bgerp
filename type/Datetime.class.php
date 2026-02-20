@@ -21,8 +21,14 @@ class type_Datetime extends type_Date
      * MySQL тип на полето в базата данни
      */
     public $dbFieldType = 'datetime';
-    
-    
+
+
+    /**
+     *
+     */
+    public $dt;
+
+
     /**
      * Формат на времевата част
      */

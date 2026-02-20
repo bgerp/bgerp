@@ -372,10 +372,13 @@ class core_Html
         $name,
         $value = null,
         $attr = array(),
-        $maxRadio = 0,
-        $maxColumns = 4,
+        $maxRadio = null,
+        $maxColumns = null,
         $columns = null
     ) {
+        $maxRadio = $maxRadio ?? 0;
+        $maxColumns = $maxColumns ?? 4;
+
         $optionsCnt = self::countOptions($options);
         
         setIfNot($attr['data-hiddenName'], $name);
@@ -480,7 +483,7 @@ class core_Html
 
             foreach ($options as $id => $opt) {
                 $input = new ET();
-                
+
                 if (is_object($opt) && $opt->group) {
                     $input->append(self::createElement('div', $opt->attr, $opt->title));
                     
@@ -497,13 +500,13 @@ class core_Html
                     } else {
                         unset($radioAttr['checked']);
                     }
-                    
-                    $radioAttr['class'] .= ' radiobutton';
+
+                    $radioAttr['class'] = ($radioAttr['class'] ?? '') . ' radiobutton';
                     if(isset($attr['onchange'])){
                         $radioAttr['onclick'] = $attr['onchange'];
                     }
                     
-                    $input->append($indent);
+                    $input->append($indent ?? '');
                     
                     $input->append(self::createElement('input', $radioAttr));
                     
@@ -520,7 +523,7 @@ class core_Html
             }
             
             // Добавка (временна) за да не се свиват радио бутоните от w25 - w75
-            $attr['style'] .= 'width:100%';
+            $attr['style'] = ($attr['style'] ?? '') . ';width:100%;';
 
             if(isset($attr['_isAllowEmpty'])){
                 $attr['class'] .= ' allowEmptyRadioHolder';
@@ -928,7 +931,7 @@ class core_Html
             if (!isset($attr['disabled'])) {
                 if ($warning) {
                     $attr['style'] .= ' color:#772200';
-                } elseif (strpos($url, '://')) {
+                } elseif (strpos($url ?? '', '://')) {
                     if (!strpos($attr['class'] ?? '', 'out')) {
                         $attr['class'] .= ' out';
                     }
@@ -1447,7 +1450,7 @@ class core_Html
             
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
             
-            $style = rtrim($style, ' ;');
+            $style = rtrim($style ?? '', ' ;');
             
             $style .= ($style ? '; ' : '') . "background-image:url('{$iconSrc}');";
         }

@@ -63,7 +63,7 @@ class type_Int extends core_Type
         
         $to = array('.', '', '', '');
         
-        $val = str_replace($from, $to, trim($val));
+        $val = str_replace($from, $to, trim($val ?? ''));
         
         $allowOct = (boolean) (($this->params['allowOct'] ?? null) == 'allowOct');
         $allowHex = (boolean) (($this->params['allowHex'] ?? null) == 'allowHex');

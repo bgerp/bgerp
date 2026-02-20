@@ -17,6 +17,14 @@
  */
 class core_FieldSet extends core_BaseClass
 {
+
+
+    /**
+     *
+     */
+    protected $lastFroGroup = array();
+
+
     // Атрибути на полетата:
     //
     // kind - вид на полето
