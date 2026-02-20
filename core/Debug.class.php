@@ -1199,8 +1199,8 @@ class core_Debug
             $tpl = new core_NT(EF_DEBUG_EDIT_URL);
             $editUrl = $tpl->render($fromTo);
         }
-        
-        if ($editUrl) {
+
+        if (!empty($editUrl)) {
             $title = "<a href='{$editUrl}'>{$title}</a>";
         }
         
