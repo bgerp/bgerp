@@ -313,7 +313,7 @@ class cms_DefaultTheme extends core_ProtoInner
         }
         
         // Да покаже дефолт картинките, ако няма зададени
-        if (!$imageURL) {
+        if (empty($imageURL)) {
             $imageURL = sbf($this->getDefaultHeaderImagePath(), '');
         }
         

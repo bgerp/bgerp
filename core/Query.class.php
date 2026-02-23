@@ -21,8 +21,50 @@ class core_Query extends core_FieldSet
      * Място за MVC класа, към който се отнася заявката
      */
     public $mvc;
-    
-    
+
+
+    /**
+     *
+     */
+    protected $useExpr = false;
+
+
+    /**
+     *
+     */
+    protected $realFields = array();
+
+
+    /**
+     *
+     */
+    protected $dbRes;
+
+
+    /**
+     *
+     */
+    protected $onCond;
+
+
+    /**
+     *
+     */
+    protected $join;
+
+
+    /**
+     *
+     */
+    public $addId;
+
+
+    /**
+     *
+     */
+    protected $areBracketsPlaced;
+
+
     /**
      * Масив от изрази, именувани с полета
      */
@@ -1088,7 +1130,9 @@ class core_Query extends core_FieldSet
         if ($this->fields['id']) {
             $this->show['id'] = true;
         }
-        
+
+        $show = array();
+
         foreach ($this->show as $name => $dummy) {
             $f = $this->getField($name);
             
@@ -1295,7 +1339,8 @@ class core_Query extends core_FieldSet
         //$key = Mode::getProcessKey();
         
         $exp = $arr[0];
-        
+
+        $a = $c = array();
         $cntArr = countR($arr);
         for ($i = 1; $i < $cntArr; $i++) {
             $a[] = "[#{$i}#]";

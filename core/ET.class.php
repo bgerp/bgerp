@@ -21,7 +21,12 @@ class core_ET extends core_BaseClass
      * Съдържание на шаблона
      */
     public $content;
-    
+
+
+    /**
+     *
+     */
+    public $removablePlaces;
     
     /**
      * Копие на шаблона
@@ -180,8 +185,8 @@ class core_ET extends core_BaseClass
      */
     public function getBlock($blockName)
     {
-        if (is_object($this->blocks[$blockName])) {
-            
+        if (isset($this->blocks[$blockName]) && is_object($this->blocks[$blockName])) {
+
             return $this->blocks[$blockName];
         }
         
@@ -413,14 +418,14 @@ class core_ET extends core_BaseClass
     {
         expect(!($str instanceof stdClass), $str);
         
-        return str_replace('[#', '&#91;#', $str);
+        return str_replace('[#', '&#91;#', $str ?? '');
     }
     
     public static function unEscape($str)
     {
         expect(!($str instanceof stdClass), $str);
         
-        return str_replace('&#91;#', '[#', $str);
+        return str_replace('&#91;#', '[#', $str ?? '');
     }
     
     
@@ -849,7 +854,7 @@ class core_ET extends core_BaseClass
      */
     public function getPlaceholders()
     {
-        preg_match_all('/\[#([a-zA-Z0-9_:]{1,})#\]/', $this->content, $matches);
+        preg_match_all('/\[#([a-zA-Z0-9_:]{1,})#\]/', $this->content ?? '', $matches);
         
         return $matches[1];
     }
@@ -959,7 +964,7 @@ class core_ET extends core_BaseClass
     protected static function getTemplatePlaceholders($str)
     {
 
-        preg_match_all('/\[#((\w*(\/|\.)+\w*)*)#\]/', $str, $matches);
+        preg_match_all('/\[#((\w*(\/|\.)+\w*)*)#\]/', $str ?? '', $matches);
 
         $res = array();
 

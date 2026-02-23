@@ -118,7 +118,9 @@ class type_Time extends type_Varchar
                 return 0;
             }
         }
-        
+
+        $secundes = $minutes = $hours = $days = $weeks = $months = $years = 0;
+
         // Извличаме секундите от текста
         $matches = array();
         if (preg_match(str::utf2ascii('/(\d+[.|,\d]*)[ ]*(s|second|seconds|sec|секунда|сек|с|секунди)\b/'), $val, $matches)) {
@@ -197,7 +199,7 @@ class type_Time extends type_Varchar
             
             $this->suggestions[''] = '';
             
-            if ($this->params['suggestions']) {
+            if (!empty($this->params['suggestions'])) {
                 $suggestions = explode('|', $this->params['suggestions']);
                 
                 foreach ($suggestions as $opt) {
@@ -228,7 +230,7 @@ class type_Time extends type_Varchar
         
         $this->params['size'] = 13;
         
-        $uom = $this->params['uom'];
+        $uom = $this->params['uom'] ?? null;
         unset($this->params['uom']);
         $this->fromVerbalSuggestions($value);
         $this->params['uom'] = $uom;
@@ -251,7 +253,9 @@ class type_Time extends type_Varchar
 
         $v = abs($value);
         $restDays = ($v % core_DateTime::SECONDS_IN_MONTH);
-        
+
+        $days = $months = $years = $weeks = $hours = $minutes = $secundes = '';
+
         if (($restDays % (24 * 60 * 60)) == 0) {
             $days = $restDays / (24 * 60 * 60);
             $months = floor($v / core_DateTime::SECONDS_IN_MONTH);
@@ -320,17 +324,17 @@ class type_Time extends type_Varchar
             return round($v, $decimals) . ' ' . $suffix;
         }
         
-        if ($format = $this->params['format']) {
+        if ($format = ($this->params['format'] ?? null)) {
             $repl = array();
-            $repl['y'] = "${years}";
-            $repl['n'] = "${months}";
-            $repl['w'] = "${weeks}";
-            $repl['d'] = "${days}";
-            $repl['h'] = "${hours}";
+            $repl['y'] = "{$years}";
+            $repl['n'] = "{$months}";
+            $repl['w'] = "{$weeks}";
+            $repl['d'] = "{$days}";
+            $repl['h'] = "{$hours}";
             $repl['H'] = sprintf('%02d', $hours);
-            $repl['m'] = "${minutes}";
+            $repl['m'] = "{$minutes}";
             $repl['M'] = sprintf('%02d', $minutes);
-            $repl['s'] = "${secundes}";
+            $repl['s'] = "{$secundes}";
             $repl['S'] = sprintf('%02d', $secundes);
             
             $res = str_replace(array_keys($repl), $repl, $format);
@@ -342,7 +346,7 @@ class type_Time extends type_Varchar
         if ($v == 0) {
             // Ако времето е нула връщаме тази стойност от опциите
             // отговаряща на 0 време
-            $suggestions = explode('|', $this->params['suggestions']);
+            $suggestions = explode('|', $this->params['suggestions'] ?? '');
             foreach ($suggestions as $string) {
                 if (in_array(strtolower(str::utf2ascii($string)), $this->zeroArr)) {
                     

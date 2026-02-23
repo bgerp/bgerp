@@ -86,7 +86,7 @@ class type_Key extends type_Int
                 $v = $mvc->getVerbal($rec, $part);
                 
                 // Ако е указано - правим превод
-                if ($this->params['translate']) {
+                if (!empty($this->params['translate'])) {
                     $v = tr($v);
                 }
                 
@@ -98,7 +98,7 @@ class type_Key extends type_Int
                 
                 return $v;
             }
-            if ($this->params['title']) {
+            if (!empty($this->params['title'])) {
                 $field = $this->params['title'];
                 $value = $mvc->fetch($value)->{$field};
                 
@@ -121,7 +121,7 @@ class type_Key extends type_Int
         }
         
         // Ако е указано - правим превод
-        if ($this->params['translate']) {
+        if (!empty($this->params['translate'])) {
             $value = tr($value);
         }
         
@@ -219,12 +219,12 @@ class type_Key extends type_Int
      */
     protected function getSelectFld()
     {
-        if ($this->params['selectBg'] && core_Lg::getCurrent() == 'bg') {
+        if (($this->params['selectBg'] ?? null) && core_Lg::getCurrent() == 'bg') {
             
             return $this->params['selectBg'];
         }
         
-        return $this->params['select'];
+        return $this->params['select'] ?? null;
     }
     
     
@@ -395,7 +395,7 @@ class type_Key extends type_Int
         
         Mode::pop('text');
         
-        if ($this->params['translate']) {
+        if (!empty($this->params['translate'])) {
             $options = self::translateOptions($options);
         }
         
@@ -499,8 +499,8 @@ class type_Key extends type_Int
     public function getMaxSuggestions()
     {
         $conf = core_Packs::getConfig('core');
-        
-        $maxSuggestions = $this->params['maxSuggestions'] ? $this->params['maxSuggestions'] : $conf->TYPE_KEY_MAX_SUGGESTIONS;
+
+        $maxSuggestions = $this->params['maxSuggestions'] ?? $conf->TYPE_KEY_MAX_SUGGESTIONS;
         
         return $maxSuggestions;
     }
@@ -621,7 +621,7 @@ class type_Key extends type_Int
         $mvc = cls::get($this->params['mvc']);
         
         if (!$value) {
-            $value = $attr['value'];
+            $value = $attr['value'] ?? '';
         }
         
         $options = $this->options;
@@ -630,7 +630,7 @@ class type_Key extends type_Int
             $options = $this->prepareOptions($value);
         }
         
-        if (($div = $this->params['groupByDiv'])) {
+        if (($div = ($this->params['groupByDiv'] ?? ''))) {
             $options = ht::groupOptions($options, $div);
         }
 
@@ -638,7 +638,7 @@ class type_Key extends type_Int
             $optionsCnt = countR($options);
             
             if ($this->params['allowEmpty']) {
-                $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' =>
+                $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ?? ' ', 'attr' =>
                     array('style' => 'color:#777;')));
                 $options = arr::combine($placeHolder, $options);
             } elseif ($attr['placeholder'] && $optionsCnt != 1) {
@@ -651,9 +651,9 @@ class type_Key extends type_Int
             
             parent::setFieldWidth($attr);
 
-            $maxRadio = $this->params['maxRadio'];
-            if (!$attr['_isRefresh']) {
-                if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
+            $maxRadio = $this->params['maxRadio'] ?? null;
+            if (empty(($attr['_isRefresh']))) {
+                if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
                     if(arr::isOptionsTotalLenBellowAllowed($options)){
                         $maxRadio = 4;
                         $this->params['select2MinItems'] = 10000;
@@ -740,7 +740,7 @@ class type_Key extends type_Int
                     }
 
                     // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
-                    if ($this->params['mandatory'] && $optionsCnt == 2 && empty($value) && $options[key($options)] === '') {
+                    if ((!empty($this->params['mandatory'])) && $optionsCnt == 2 && empty($value) && $options[key($options)] === '') {
                         list($o1, $o2) = array_keys($options);
                         if (!empty($o2)) {
                             $value = $o2;
@@ -749,7 +749,7 @@ class type_Key extends type_Int
                         }
                     }
 
-                    $tpl = ht::createSmartSelect($options, $name, $value, $attr, $maxRadio, $this->params['maxColumns'], $this->params['columns']);
+                    $tpl = ht::createSmartSelect($options, $name, $value, $attr, $maxRadio, $this->params['maxColumns'] ?? null, $this->params['columns'] ?? null);
                 }
             }
         } else {

@@ -238,7 +238,7 @@ class log_Browsers extends core_Master
     public static function getBrid($generate = true)
     {
         // brid от кукитата
-        if ($bridC = $_COOKIE[self::BRID_NAME]) {
+        if ($bridC = ($_COOKIE[self::BRID_NAME] ?? null)) {
             
             // Допълнителна сол за brid
             $bridSalt = self::getBridSalt();

@@ -692,7 +692,7 @@ class doc_FolderPlg extends core_Plugin
             $row->inCharge = core_Setup::get('SYSTEM_NICK');
         }
         
-        if ($fields['-single']) {
+        if (!empty($fields['-single'])) {
             if (Mode::is('screenMode', 'narrow')) {
                 $imageUrl = sbf($mvc->getSingleIcon($rec->id), '');
                 $row->SingleIcon = ht::createElement('img', array('src' => $imageUrl, 'alt' => ''));
@@ -703,9 +703,10 @@ class doc_FolderPlg extends core_Plugin
             }
         }
         $currUrl = getCurrentUrl();
-        
+
+        $fField = $mvc->listFieldForFolderLink ?? null;
         // Подготовка на линк към папката (или създаване на нова) на корицата
-        if ($fField = $mvc->listFieldForFolderLink) {
+        if (!empty($fields)) {
             list($fField, $fName) = explode('=', $fField);
             $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
@@ -734,7 +735,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // В лист изгледа
-        if ($fields['-list']) {
+        if (empty($fields['-list'])) {
             
             // Имали бързи бутони
             if ($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected' && doc_Folders::haveRightToObject($rec)) {

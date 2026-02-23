@@ -78,7 +78,7 @@ class type_Varchar extends core_Type
         if (empty($this->params['noTrim'])) {
             
             //Тримвано стойността
-            $value = trim($value);
+            $value = trim($value ?? '');
         }
         
         if (($this->params['utf8mb4'] ?? null) == 'utf8') {
@@ -90,7 +90,7 @@ class type_Varchar extends core_Type
         // За някои случаи вместо празен стринг е по-добре да получаваме NULL
         if (!empty($this->params['nullIfEmpty']) || !empty($this->nullIfEmpty)) {
            
-            if (!strlen($value)) {
+            if (!strlen($value ?? '')) {
                 $value = null; 
             }
         }

@@ -29,6 +29,14 @@ defIfNot('EF_VID_LEN', 100);
  */
 class cms_VerbalIdPlg extends core_Plugin
 {
+
+
+    /**
+     *
+     */
+    protected $fieldName;
+
+
     /**
      * Извиква се след описанието на модела
      */

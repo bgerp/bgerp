@@ -121,10 +121,10 @@ class core_TableView extends core_BaseClass
                     unset($fields[$name]);
                     continue;
                 }
-                $fieldList[$name] = (float) $this->mvc->fields[$name]->column ? $this->mvc->fields[$name]->column : $i++;
-                
+                $fieldList[$name] = (float) ($this->mvc->fields[$name]->column ?? 0) ?: $i++;
+
                 // Индикатор за сортиране
-                if ($this->mvc->fields[$name]->sortable) {
+                if (!empty($this->mvc->fields[$name]->sortable)) {
                     $sortable[] = true;
                     $useSortingFlag = true;
                 } else {
@@ -162,17 +162,17 @@ class core_TableView extends core_BaseClass
                     
                     // Задаваме класа на колоната
                     $class = '';
-                    
-                    if (is_object($this->mvc->fields[$place]->type)) {
+
+                    if (is_object($this->mvc->fields[$place]->type ?? null)) {
                         $tdClass = $class = $this->mvc->fields[$place]->type->getTdClass();
-                        if ($this->mvc->fields[$place]->smartCenter) {
+                        if (!empty($this->mvc->fields[$place]->smartCenter)) {
                             $tdClass = '';
                         }
                     } else {
                         $tdClass = '';
                     }
                     
-                    if ($this->mvc->fields[$place]->tdClass) {
+                    if (!empty($this->mvc->fields[$place]->tdClass)) {
                         $class .= ' ' . $this->mvc->fields[$place]->tdClass;
                     }
                     
@@ -190,7 +190,8 @@ class core_TableView extends core_BaseClass
                         $attr = '';
                     }
 
-                    if ($vr = $this->mvc->fields[$place]->type->viewrows) {
+                    $vr = $this->mvc->fields[$place]->type->viewrows ?? null;
+                    if (!empty($vr)) {
                         $attr .= " data-viewrows= '{$vr}'";
                     }
 
@@ -203,9 +204,9 @@ class core_TableView extends core_BaseClass
                             $rowspan = $maxColHeaders - $i;
                         }
                         
-                        $last = countR($header[$i]) - 1;
+                        $last = countR($header[$i] ?? []) - 1;
                         
-                        if ($header[$i][$last]->name == $name && $header[$i][$last]->rowspan == $rowspan) {
+                        if (!empty($header[$i][$last]->name) && !empty($header[$i][$last]->rowspan) && $header[$i][$last]->name == $name && $header[$i][$last]->rowspan == $rowspan) {
                             if (!$header[$i][$last]->colspan) {
                                 if (!isset($header[$i][$last])) {
                                     $header[$i][$last] = new stdClass();
@@ -229,7 +230,7 @@ class core_TableView extends core_BaseClass
                     
                     // Шаблон за реда
                     
-                    if ($this->mvc->fields[$place]->smartCenter) {
+                    if (!empty($this->mvc->fields[$place]->smartCenter)) {
                         static $dataCol;
                         $dataCol++;
                         $row .= "<td{$attr}><span class='maxwidth' data-col='{$dataCol}'>[#{$place}#]</span></td>";
@@ -255,6 +256,7 @@ class core_TableView extends core_BaseClass
         $curTH = 0;
         $hr = array();
 
+        $tableHeader = '';
         if (countR($header)) {
             foreach ($header as $i => $headerRow) {
                 if ($i == countR($header) - 1) {
@@ -274,11 +276,11 @@ class core_TableView extends core_BaseClass
                         }
                     }
                     
-                    if ($h->rowspan > 1) {
+                    if (($h->rowspan ?? 0) > 1) {
                         $attr['rowspan'] = $h->rowspan;
                     }
                     
-                    if ($h->colspan > 1) {
+                    if (($h->colspan ?? 0) > 1) {
                         $attr['colspan'] = $h->colspan;
                     }
 
@@ -293,6 +295,9 @@ class core_TableView extends core_BaseClass
 
                     $th = ht::createElement('th', $attr, $h->name);
 
+                    if (!isset($hr[$i])) {
+                        $hr[$i] = '';
+                    }
                     $hr[$i] .= $th->getContent();
                     
                     $curTH++;
@@ -322,7 +327,7 @@ class core_TableView extends core_BaseClass
         $row = str_replace(array('[#ROW#]', '[#ADD_ROWS#]'), array($row, $addRows), $tableRowTpl);
         
         $row = "\n<!--ET_BEGIN ROW-->{$row}<!--ET_END ROW-->";
-        if (!$this->tableClass) {
+        if (empty($this->tableClass)) {
             $this->tableClass = 'listTable';
         }
         
@@ -347,7 +352,7 @@ class core_TableView extends core_BaseClass
                 }
                 
                 foreach ($fieldList as $name => $dummy) {
-                    $value = $r[$name];
+                    $value = $r[$name] ?? null;
                     
                     if (isset($addRowArr[$name]) && $value == '') {
                         $rowTpl->content = str_replace($addRowArr[$name], '', $rowTpl->content);
@@ -360,7 +365,7 @@ class core_TableView extends core_BaseClass
                     $rowTpl->replace($value, $name);
                 }
 
-                if (is_array($r['TBODY_ROW_ATTR'])) {
+                if (!empty($r['TBODY_ROW_ATTR']) && is_array($r['TBODY_ROW_ATTR'])) {
                     $tBodyAttr = '';
                     foreach ($r['TBODY_ROW_ATTR'] as $attrName => $attrValue) {
                         $tBodyAttr .= " ${attrName}=\"{$attrValue}\"";
@@ -369,7 +374,7 @@ class core_TableView extends core_BaseClass
                 }
 
                 // Добавяме атрибутите на реда от таблицата, ако има такива
-                if (countR($r['ROW_ATTR'])) {
+                if (countR($r['ROW_ATTR'] ?? [])) {
                     $attrs = $attrs1 = '';
                     
                     
@@ -377,7 +382,7 @@ class core_TableView extends core_BaseClass
                         $attrs .= " ${attrName}=\"{$attrValue}\"";
                     }
                     
-                    if ($this->mvc->commonRowClass) {
+                    if (!empty($this->mvc->commonRowClass)) {
                         $r['ROW_ATTR']['class'] .= ' ' . $this->mvc->commonRowClass;
                     }
                     
@@ -388,7 +393,9 @@ class core_TableView extends core_BaseClass
                     $rowTpl->replace($attrs, 'ROW_ATTR', false, false);
                     $rowTpl->replace($attrs1, 'COMMON_ROW_ATTR', false, false);
                 } else {
-                    $rowTpl->replace(" class='{$this->mvc->commonRowClass}'", 'COMMON_ROW_ATTR', false, false);
+                    if (!empty($this->mvc->commonRowClass)) {
+                        $rowTpl->replace(" class='{$this->mvc->commonRowClass}'", 'COMMON_ROW_ATTR', false, false);
+                    }
                 }
                 
                 $rowTpl->append2Master();
@@ -399,12 +406,12 @@ class core_TableView extends core_BaseClass
             $tpl->append('<tr><td colspan="' . $this->colspan . '"> ' . tr('Няма записи') . ' </td></tr>', 'NO_ROWS');
         }
         
-        if ($this->rowBefore) {
+        if ($this->rowBefore ?? 0) {
             $rowBefore = new ET('<tr><td style="border:0px; padding-top:5px; " colspan="' . $this->colspan . '">[#1#]</td></tr>', $this->rowBefore);
             $tpl->replace($rowBefore, 'ROW_BEFORE');
         }
         
-        if ($this->rowAfter) {
+        if ($this->rowAfter ?? 0) {
             $rowAfter = new ET('<tr><td style="border:0px; padding-top:5px; " colspan="' . $this->colspan . '">[#1#]</td></tr>', $this->rowAfter);
             $tpl->replace($rowAfter, 'ROW_AFTER');
         }

@@ -770,7 +770,7 @@ class eshop_Groups extends core_Master
         
         $lg = $mRec->lang ?? null;
         
-        $lg[0] = strtoupper($lg[0] ?? null);
+        $lg[0] = strtoupper($lg[0] ?? '');
         
         $url = array('A', 'g', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
         
@@ -787,8 +787,8 @@ class eshop_Groups extends core_Master
      */
     public static function getShortUrl($url)
     {
-        $vid = urldecode($url['id']);
-        $act = strtolower($url['Act']);
+        $vid = urldecode($url['id'] ?? '');
+        $act = strtolower($url['Act'] ?? '');
         
         if ($vid && $act == 'show') {
             $id = cms_VerbalId::fetchId($vid, 'eshop_Groups');

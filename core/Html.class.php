@@ -144,11 +144,11 @@ class core_Html
             $id = $attr['id'];
             
             $suffix = '_cs';
-            list($l, $r) = explode('[', $id);
-            $r = rtrim($r, ']');
+            list($l, $r) = array_pad(explode('[', $id), 2, null);
+            $r = rtrim($r ?? '', ']');
             $selectId = $l . $suffix . $r;
             
-            if ($attr['ajaxAutoRefreshOptions']) {
+            if (!empty($attr['ajaxAutoRefreshOptions'])) {
                 $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
                 $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
                 if ($attr['onchange']) {
@@ -172,8 +172,8 @@ class core_Html
             $attr['id'] = $selectId;
             
             $name = $attr['name'];
-            list($l, $r) = explode('[', $name);
-            $r = rtrim($r, ']');
+            list($l, $r) = array_pad(explode('[', $name), 2, null);
+            $r = rtrim($r ?? '', ']');
             $name = $l . $suffix . $r;
             $attr['name'] = $name;
             
@@ -184,8 +184,11 @@ class core_Html
             }
             
             unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
-            
+
             if (!Mode::is('javascript', 'no')) {
+                if (!isset($attr['style'])) {
+                    $attr['style'] = '';
+                }
                 $attr['style'] .= ';visibility: hidden;';
             }
             
@@ -263,7 +266,9 @@ class core_Html
     public static function createSelect($name, $options, $selected = null, $selAttr = array())
     {
         $selAttr['name'] = $name;
-        
+
+        $attrStr = '';
+
         foreach ($selAttr as $atr => $content) {
             // Смятаме, че всички атрибути с имена, започващи със '#'
             // са вътрешни и поради това не ги показваме в елемента
@@ -284,6 +289,7 @@ class core_Html
         $select->append('', 'OPTIONS');
         
         if (is_array($options)) {
+            $openGroup = false;
             foreach ($options as $id => $title) {
                 $attr = array();
                 $element = 'option';
@@ -320,7 +326,7 @@ class core_Html
                 }
                 
                 // Хак за добавяне на плейс-холдер
-                if ($selAttr['placeholder'] &&
+                if (!empty($selAttr['placeholder']) &&
                     strlen($attr['value']) == 0 && !trim($title)) {
                     $title = $selAttr['placeholder'];
                     $attr['style'] .= 'color:#777;';
@@ -372,10 +378,13 @@ class core_Html
         $name,
         $value = null,
         $attr = array(),
-        $maxRadio = 0,
-        $maxColumns = 4,
+        $maxRadio = null,
+        $maxColumns = null,
         $columns = null
     ) {
+        $maxRadio = $maxRadio ?? 0;
+        $maxColumns = $maxColumns ?? 4;
+
         $optionsCnt = self::countOptions($options);
         
         setIfNot($attr['data-hiddenName'], $name);
@@ -480,7 +489,7 @@ class core_Html
 
             foreach ($options as $id => $opt) {
                 $input = new ET();
-                
+
                 if (is_object($opt) && $opt->group) {
                     $input->append(self::createElement('div', $opt->attr, $opt->title));
                     
@@ -497,13 +506,13 @@ class core_Html
                     } else {
                         unset($radioAttr['checked']);
                     }
-                    
-                    $radioAttr['class'] .= ' radiobutton';
+
+                    $radioAttr['class'] = ($radioAttr['class'] ?? '') . ' radiobutton';
                     if(isset($attr['onchange'])){
                         $radioAttr['onclick'] = $attr['onchange'];
                     }
                     
-                    $input->append($indent);
+                    $input->append($indent ?? '');
                     
                     $input->append(self::createElement('input', $radioAttr));
                     
@@ -520,7 +529,7 @@ class core_Html
             }
             
             // Добавка (временна) за да не се свиват радио бутоните от w25 - w75
-            $attr['style'] .= 'width:100%';
+            $attr['style'] = ($attr['style'] ?? '') . ';width:100%;';
 
             if(isset($attr['_isAllowEmpty'])){
                 $attr['class'] .= ' allowEmptyRadioHolder';
@@ -928,7 +937,7 @@ class core_Html
             if (!isset($attr['disabled'])) {
                 if ($warning) {
                     $attr['style'] .= ' color:#772200';
-                } elseif (strpos($url, '://')) {
+                } elseif (strpos($url ?? '', '://')) {
                     if (!strpos($attr['class'] ?? '', 'out')) {
                         $attr['class'] .= ' out';
                     }
@@ -1447,7 +1456,7 @@ class core_Html
             
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
             
-            $style = rtrim($style, ' ;');
+            $style = rtrim($style ?? '', ' ;');
             
             $style .= ($style ? '; ' : '') . "background-image:url('{$iconSrc}');";
         }
@@ -1469,6 +1478,9 @@ class core_Html
         
         // Вкарваме предупреждението
         if ($warning) {
+            if (!isset($attr['onclick'])) {
+                $attr['onclick'] = '';
+            }
             $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) { $(event.target).blur(); event.stopPropagation(); return false; }";
         }
         

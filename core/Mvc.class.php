@@ -42,7 +42,12 @@ class core_Mvc extends core_FieldSet
      * Дължината на защитната контролна сума за id-тата на този модел
      */
     public $idChecksumLen = EF_ID_CHECKSUM_LEN;
-    
+
+
+    /**
+     *
+     */
+    protected $lastUpdateTime;
     
     /**
      * По подразбиране типа на id полето е int
@@ -405,7 +410,7 @@ class core_Mvc extends core_FieldSet
             return $rec->id;
         }
         
-        $mode = str_replace(' ', '_', strtolower($mode));
+        $mode = str_replace(' ', '_', strtolower($mode ?? ''));
         
         if (($rec->id ?? null) > 0 && $mode != 'replace') {
             switch ($mode) {
@@ -841,7 +846,7 @@ class core_Mvc extends core_FieldSet
         
         expect($me->fields[$fieldName], 'Не съществуващо поле: ' . $fieldName);
         
-        $value = $rec->{$fieldName};
+        $value = $rec->{$fieldName} ?? null;
         
         if (isset($me->fields[$fieldName]->options) && is_array($me->fields[$fieldName]->options)) {
             $res = $me->fields[$fieldName]->options[$value];

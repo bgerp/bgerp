@@ -387,12 +387,12 @@ class cms_Content extends core_Manager
         }
         
         // За да не влезе в безкраен цикъл, да не вика себе си
-        if (strtolower($cUrl['Ctr']) == 'cms_content') {
+        if (strtolower($cUrl['Ctr'] ?? '') == 'cms_content') {
             
             return $cUrl;
         }
         
-        if (!$cUrl['Ctr']) {
+        if (!($cUrl['Ctr'] ?? null)) {
             $query = self::getQuery();
             $domainId = cms_Domains::getPublicDomain('id');
             $query->where("#state = 'active' AND #domainId = {$domainId}");
@@ -673,17 +673,22 @@ class cms_Content extends core_Manager
     public static function prepareSeo_($rec, $suggestions = array())
     {
         expect(is_object($rec), $rec);
-        
+
+        $rec->seoDescription = $rec->seoDescription ?? null;
+        $rec->seoTitle = $rec->seoTitle ?? null;
+        $rec->seoKeywords = $rec->seoKeywords ?? null;
+        $rec->seoThumb = $rec->seoThumb ?? null;
+
         // seoTitle
         if (!$rec->seoTitle) {
-            $rec->seoTitle = $suggestions['seoTitle'];
+            $rec->seoTitle = $suggestions['seoTitle'] ?? null;
         }
         if ($rec->seoTitle) {
             $rec->seoTitle = type_Varchar::escape(trim(html_entity_decode(strip_tags($rec->seoTitle))));
         }
         
         // seoDescription
-        if (!$rec->seoDescription && $suggestions['seoDescription']) {
+        if (empty($rec->seoDescription) && !empty($suggestions['seoDescription'])) {
             $rec->seoDescription = self::getSeoDescription($suggestions['seoDescription']);
         }
         if (!$rec->seoDescription) {
@@ -708,7 +713,7 @@ class cms_Content extends core_Manager
         if (!$rec->seoThumb) {
             $rec->seoThumb = $suggestions['seoThumb'] ?? null;
         }
-        if (!$rec->seoThumb && $suggestions['seoDescription']) {
+        if (!$rec->seoThumb && !empty($suggestions['seoDescription'])) {
             $rec->seoThumb = cms_Content::getSeoThumb($suggestions['seoDescription']);
         }
         

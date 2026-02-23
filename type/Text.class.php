@@ -103,7 +103,7 @@ class type_Text extends core_Type
     public function toVerbal_($value)
     {
         if (!Mode::is('text', 'plain')) {
-            $value = str_replace(array('&', '<', "\n"), array('&amp;', '&lt;', '<br>'), $value) ;
+            $value = str_replace(array('&', '<', "\n"), array('&amp;', '&lt;', '<br>'), $value ?? '') ;
         }
         
         return $value;

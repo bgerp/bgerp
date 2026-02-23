@@ -182,7 +182,7 @@ abstract class embed_Manager extends core_Master
     public static function on_AfterRead($mvc, $rec)
     {
         try {
-            if (cls::load($rec->{$mvc->driverClassField}, true)) {
+            if (!empty($rec->{$mvc->driverClassField}) && cls::load($rec->{$mvc->driverClassField}, true)) {
                 $driverRec = $rec->driverRec;
                 
                 if (is_array($driverRec)) {

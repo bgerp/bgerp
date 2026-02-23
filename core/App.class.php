@@ -538,7 +538,7 @@ class core_App
                     header('Content-Encoding: gzip');
                 }
                 $len = strlen($content);
-                header("Content-Length: ${len}");
+                header("Content-Length: {$len}");
             } else {
                 if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
                     header('Content-Length: 2');
@@ -673,7 +673,7 @@ class core_App
         header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
         header('Expires: 0'); // Proxies.
         
-        header("Location: ${url}", true, $permanent ? 301 : 302);
+        header("Location: {$url}", true, $permanent ? 301 : 302);
         
         static::shutdown(false);
     }
@@ -1248,21 +1248,26 @@ class core_App
     /**
      * При зададени списъци с пътища и бранчове, връща масив в който ключове са пътищата, а стойности - бранчовета
      */
-    private static function getReposByPathAndBranch($paths, $branches)
+    private static function getReposByPathAndBranch($paths, $branches = null)
     {
         $pathArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $paths));
         $pathArr = array_filter($pathArr, function ($value) {
             
             return trim($value) !== '';
         });
-        $branchArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $branches));
-        
-        $branchArr = array_filter($branchArr, function ($value) {
-            
-            return trim($value) !== '';
-        });
+
+        $branchArr = array();
+        if (!is_null($branches)) {
+            $branchArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $branches));
+
+            $branchArr = array_filter($branchArr, function ($value) {
+
+                return trim($value) !== '';
+            });
+        }
+
         $cntBranches = countR($branchArr);
-        
+
         $res = array();
         foreach ($pathArr as $i => $line) {
             if (strpos($line, '=')) {

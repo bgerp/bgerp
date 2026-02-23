@@ -23,14 +23,26 @@ class core_Type extends core_BaseClass
      * @var array
      */
     public $params;
-    
-    
+
+
+    /**
+     *
+     */
+    public $viewrows;
+
+
+    /**
+     *
+     */
+    public $maxFieldSize;
+
+
     /**
      * Опциите на типа
      *
      * @var array
      */
-    // public $options;
+     public $options;
     
     
     /**
@@ -597,7 +609,7 @@ class core_Type extends core_BaseClass
                     break;
                 }
             }
-            $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder']));
+            $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder'] ?? ''));
         }
         
         // Определяме размера на най-дългия възможен стринг, като най-дългата опция

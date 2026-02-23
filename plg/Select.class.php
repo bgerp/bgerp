@@ -167,7 +167,7 @@ class plg_Select extends core_Plugin
             $res = $mvc->renderWrapping($res);
             
             return false;
-        } elseif ($actArr[$act][0] == '*') {
+        } elseif (!empty($actArr[$act]) && $actArr[$act][0] === '*') {
             if (Request::get('id')) {
                 
                 return;

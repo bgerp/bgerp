@@ -80,7 +80,7 @@ class visualcrossing_Forecasts extends core_Manager
         if (!$location) {
             $pSettings = core_Settings::fetchKey(crm_Profiles::getSettingsKey());
 
-            if ($pSettings['VISUALCROSSING_LOCATION']) {
+            if (!empty($pSettings['VISUALCROSSING_LOCATION'])) {
                 $location = $pSettings['VISUALCROSSING_LOCATION'];
             } else {
                 $location = visualcrossing_Setup::get('LOCATION', false, core_Users::getCurrent());
