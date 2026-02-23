@@ -4899,7 +4899,11 @@ iframe.autoHeight {
   overflow: hidden; }
 
 .wide .webdrvIframe,
-.wide .webdrvFieldset {
+.wide  .webdrvFieldset {
+  min-width: 840px; }
+
+.wide .tab-page .webdrvIframe,
+.wide .tab-page .webdrvFieldset {
   min-width: 885px; }
 
 .narrow .webdrvIframe {
