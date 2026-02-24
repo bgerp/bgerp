@@ -735,7 +735,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // В лист изгледа
-        if (empty($fields['-list'])) {
+        if (!empty($fields['-list'])) {
             
             // Имали бързи бутони
             if ($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected' && doc_Folders::haveRightToObject($rec)) {
