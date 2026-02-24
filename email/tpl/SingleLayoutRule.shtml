@@ -1,0 +1,35 @@
+<div class="singleView" >
+    [#SingleToolbar#]
+    <h3 style="line-height:30px" class="[#STATE_CLASS#]"> |Условия за получен имейл|*</h3>
+    <!--ET_BEGIN userId-->
+    <p><b>|Потребител|*:</b> [#userId#]</p>
+    <!--ET_END userId-->
+    <!--ET_BEGIN dateFrom-->
+    <p><b>|Дата от|*:</b> [#dateFrom#]</p>
+    <!--ET_END dateFrom-->
+    <!--ET_BEGIN dateTo-->
+    <p><b>|Дата до|*:</b> [#dateTo#]</p>
+    <!--ET_END dateTo-->
+    <!--ET_BEGIN sender-->
+    <p><b>|Изпращач|*:</b> [#sender#]</p>
+    <!--ET_END sender-->
+    <!--ET_BEGIN receiver-->
+    <p><b>|Получател|*:</b> [#receiver#]</p>
+    <!--ET_END receiver-->
+    <!--ET_BEGIN title-->
+    <p><b>|Заглавие|*:</b> [#title#]</p>
+    <!--ET_END title-->
+    <!--ET_BEGIN content-->
+    <p><b>|Съдържание|*:</b> [#content#]</p>
+    <!--ET_END content-->
+
+    <h3 style="line-height:30px" class="[#STATE_CLASS#]"> |Шаблон за имейл за изпращане|*</h3>
+    
+    <!--ET_BEGIN titleOfMessage-->
+    <p><b>|Заглавие|*:</b> [#titleOfMessage#]</p>
+    <!--ET_END titleOfMessage-->
+    <!--ET_BEGIN text-->
+    <p><b>|Съдържание|*:</b> [#text#]</p>
+    <!--ET_END text-->
+</div>
+
