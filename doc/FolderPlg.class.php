@@ -706,7 +706,7 @@ class doc_FolderPlg extends core_Plugin
 
         $fField = $mvc->listFieldForFolderLink ?? null;
         // Подготовка на линк към папката (или създаване на нова) на корицата
-        if (!empty($fields)) {
+        if (!empty($fField)) {
             list($fField, $fName) = explode('=', $fField);
             $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
