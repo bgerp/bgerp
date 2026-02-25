@@ -3833,7 +3833,7 @@ class email_Outgoings extends core_Master
 
         while ($r = $q->fetch()) {
             try {
-                $hash = $r->containerId . '|' . $r->data->to . '|' . $r->data->cc ?? '';
+                $hash = $r->containerId . '|' . $r->data->to . '|' . $r->data->cc;
                 $hash = md5($hash);
                 if ($allArr[$hash]) {
                     continue;
@@ -3857,10 +3857,10 @@ class email_Outgoings extends core_Master
 
                 $succ++;
             } catch (Exception $e) {
-                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id ?? null);
+                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id );
                 $err++;
             } catch (Error $e) {
-                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id ?? null);
+                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id );
                 $err++;
             }
         }
