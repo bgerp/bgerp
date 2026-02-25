@@ -237,6 +237,48 @@ class pos_Receipts extends core_Master
         pos_Points::requireRightFor('select', $pointId);
         $forced = Request::get('forced', 'int');
 
+        // Ако е избрано "Не" - да не се допуска натрупване на чернови.
+        // 1) Изтриват се всички празни чернови (без детайли)
+        // 2) Ако има непразни чернови - зарежда се най-новата
+        // 3) Ако няма - създава се нова чернова
+        $disallowWaitingDrafts = (pos_Setup::get('ALLOW_DRAFT_RECEIPTS') == 'no');
+        if ($disallowWaitingDrafts) {
+            // Изтриване на всички празни чернови
+            $dQuery = $this->getQuery();
+            $dQuery->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
+            $dQuery->show('id');
+            while ($dRec = $dQuery->fetch()) {
+                if (static::isDraftReceiptEmpty($dRec->id)) {
+                    if ($this->haveRightFor('delete', $dRec->id)) {
+                        $this->delete($dRec->id);
+                    }
+                }
+            }
+
+            // Намиране на най-новата непразна чернова (ако има)
+            $lastDraftQ = $this->getQuery();
+            $lastDraftQ->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
+            $lastDraftQ->orderBy('id', 'DESC');
+            $lastDraftQ->show('id');
+            $lastDraft = $lastDraftQ->fetch();
+
+            if (is_object($lastDraft)) {
+                $id = $lastDraft->id;
+            } else {
+                // Няма чернови -> създаваме нова
+                $id = $this->createNew();
+                $this->logWrite('Създаване на нова бележка', $id);
+            }
+
+            // Записваме, че потребителя е разглеждал този списък
+            $foundRec = self::fetch($id);
+            $operation = (empty($foundRec->paid)) ? 'add' : 'payment';
+            Mode::setPermanent("currentOperation{$id}", $operation);
+            Mode::setPermanent("currentSearchString{$id}", null);
+
+            return new Redirect(array('pos_Terminal', 'open', 'receiptId' => $id));
+        }
+
         // Ако форсираме, винаги създаваме нова бележка
         if ($forced) {
             $contragentClass = Request::get('contragentClass', 'int');
@@ -1775,6 +1817,41 @@ class pos_Receipts extends core_Master
         arsort($storeArr);
 
         return $storeArr[key($storeArr)];
+    }
+
+
+    /**
+     * Има ли бележката детайли
+     *
+     * @param int $receiptId
+     * @return bool
+     */
+    public static function hasReceiptDetails($receiptId)
+    {
+        $receiptId = (int) $receiptId;
+        if (!$receiptId) return false;
+
+        // По-бързо от count() при голям брой редове
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->where("#receiptId = {$receiptId}");
+        $dQuery->limit(1);
+
+        return (bool) $dQuery->fetch();
+    }
+
+
+    /**
+     * Дали бележката е "празна" чернова (само без детайли)
+     *
+     * @param mixed $rec
+     * @return bool
+     */
+    public static function isDraftReceiptEmpty($rec)
+    {
+        $rec = static::fetchRec($rec);
+        if (!$rec || $rec->state != 'draft') return false;
+
+        return !static::hasReceiptDetails($rec->id);
     }
 
 

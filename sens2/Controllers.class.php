@@ -131,12 +131,20 @@ class sens2_Controllers extends core_Master
     /**
      * Връща инстанция на драйвера за посочения контролер
      */
-    public static function getDriver($controllerId)
+    public static function getDriver($controllerId, $silent = false)
     {
         static $drivers = array();
         
         if (!isset($drivers[$controllerId])) {
             $rec = self::fetch($controllerId);
+
+            if ($silent === true) {
+                if (!cls::load($rec->driver, true)) {
+
+                    return false;
+                }
+            }
+
             $drivers[$controllerId] = cls::get($rec->driver);
             $drivers[$controllerId]->driverRec = $rec;
         }

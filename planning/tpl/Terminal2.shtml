@@ -202,7 +202,7 @@
       <div id="right">
         <div class="selectMenu menu panel" id="selectMenu"><h2 id="selectTitle"></h2><article id="selectBody"></article></div>
         <div class="keyboard panel">
-          <div class="prompt kb-row bg lt">
+          <div class="prompt kb-row bg lt bds">
             <div>1</div>
             <div>2</div>
             <div>3</div>
@@ -291,14 +291,52 @@
             <div>Н</div>
             <div>М</div>
             <div>Ю</div>
-            <div class='double' onClick='doCmd()'>
-              <span class="material-icons">keyboard_return</span>
-            </div>
+            <div class='double' onClick='doCmd()'>⏎</div>
           </div>
-          <div class="prompt kb-row bg lt">
-            <div style='font-size:1.3em;' onClick="displayByClass('kb-row', 'bg')">Bg</div>
+          <!-- BDS Keyboard -->
+          <div class="prompt kb-row bds" style="display:none;">
+            <div>,</div>
+            <div>У</div>
+            <div>Е</div>
+            <div>И</div>
+            <div>Ш</div>
+            <div>Щ</div>
+            <div>К</div>
+            <div>С</div>
+            <div>Д</div>
+            <div>З</div>
+            <div>Ц</div>
+          </div>
+
+          <div class="prompt kb-row bds" style="display:none;">
+            <div>Ь</div>
+            <div>Я</div>
+            <div>А</div>
+            <div>О</div>
+            <div>Ж</div>
+            <div>Г</div>
+            <div>Т</div>
+            <div>Н</div>
+            <div>В</div>
+            <div>М</div>
+            <div>Ч</div>
+          </div>
+          <div class="prompt kb-row bds" style="display:none;">
+            <div>Ю</div>
+            <div>Й</div>
+            <div>Ъ</div>
+            <div>Ф</div>
+            <div>Х</div>
+            <div>П</div>
+            <div>Р</div>
+            <div>Л</div>
+            <div>Б</div>
+            <div class='double' onClick='doCmd()'>⏎</div>
+          </div>
+          <div class="prompt kb-row bg lt bds">
+            <div style='font-size:1.3em;' onClick="displayByClass('kb-row', 'bg')">Ph</div>
+            <div style='font-size:1.3em;' onClick="displayByClass('kb-row', 'bds')">BDS</div>
             <div style='font-size:1.3em;' onClick="displayByClass('kb-row', 'lt')">En</div>
-            <div></div>
             <div></div>
             <div class="triple"></div>
             <div>,</div>
