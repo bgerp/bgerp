@@ -214,10 +214,11 @@ class sens2_Indicators extends core_Detail
         static $outputs;
         
         if (!$outputs[$rec->controllerId]) {
-            $drv = sens2_Controllers::getDriver($rec->controllerId);
-            
-            $outputs[$rec->controllerId] = $drv->getOutputPorts();
+            $drv = sens2_Controllers::getDriver($rec->controllerId, true);
 
+            if ($drv !== false) {
+                $outputs[$rec->controllerId] = $drv->getOutputPorts();
+            }
         }
         
         if ($outputs[$rec->controllerId][$rec->port]) {
@@ -241,6 +242,7 @@ class sens2_Indicators extends core_Detail
     {
         if (!self::$contex[$scriptId]) {
             $query = self::getQuery();
+            $query->where("#state != 'rejected'");
             self::$contex[$scriptId] = array();
             while ($iRec = $query->fetch()) {
                 self::$contex[$scriptId]['$' . $iRec->title] = (double) $iRec->value;
