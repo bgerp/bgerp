@@ -402,10 +402,6 @@ class rack_Products extends store_Products
             $pRec = rack_Products::fetch("#storeId = {$storeId} AND #productId = {$data->masterId}");
             if(empty($pRec->quantity)) continue;
 
-            $bQuery = batch_Items::getQuery();
-            $bQuery->where("#storeId = {$storeId}");
-            $bQuery->XPR('quantityNotOnPallets', 'double(maxDecimals=2)', '#quantity - IFNULL(#quantityOnPallets, 0)- IFNULL(#quantityOnZones, 0)', 'caption=Количество->На пода,input=hidden,smartCenter');
-
             $batchQuantities = array();
             $rQuery = rack_Pallets::getQuery();
             $rQuery->where("#storeId = {$storeId} AND #productId = {$data->masterId} AND #state = 'active'");
