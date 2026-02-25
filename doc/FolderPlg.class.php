@@ -706,7 +706,7 @@ class doc_FolderPlg extends core_Plugin
 
         $fField = $mvc->listFieldForFolderLink ?? null;
         // Подготовка на линк към папката (или създаване на нова) на корицата
-        if (!empty($fields)) {
+        if (!empty($fField)) {
             list($fField, $fName) = explode('=', $fField);
             $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
@@ -735,7 +735,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // В лист изгледа
-        if (empty($fields['-list'])) {
+        if (!empty($fields['-list'])) {
             
             // Имали бързи бутони
             if ($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected' && doc_Folders::haveRightToObject($rec)) {

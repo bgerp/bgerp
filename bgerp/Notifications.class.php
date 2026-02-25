@@ -151,7 +151,7 @@ class bgerp_Notifications extends core_Manager
         $this->setDbIndex('activatedOn');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('lastTime');
-
+        $this->setDbIndex('customUrl');
 //        $this->setDbIndex('customUrlId');
 //        $this->setDbIndex('urlId');
     }
@@ -302,7 +302,7 @@ class bgerp_Notifications extends core_Manager
             $rec->customUrl = null;
         }
         
-        bgerp_Notifications::save($rec);
+        bgerp_Notifications::save($rec, null, 'low_priority');
         
         // Инвалидиране на кеша
         bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Notifications');

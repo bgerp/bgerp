@@ -443,7 +443,8 @@ class core_Mvc extends core_FieldSet
                     break;
                 
                 case 'delayed':
-                    $query = "INSERT DELAYED `{$table}` SET {$query}";
+                case 'low_priority':
+                    $query = "INSERT LOW_PRIORITY INTO `{$table}` SET {$query}";
                     $timer = "{$table} INSERT";
                     break;
                 case '':

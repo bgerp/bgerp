@@ -222,7 +222,6 @@ class cat_Setup extends core_ProtoSetup
         'migrate::repairSearchKeywords2536',
         'migrate::calcExpand36Field2445v2',
         'migrate::updateFiltersCreatedBy2625',
-        'migrate::deleteHsCode2608',
     );
     
     
@@ -491,17 +490,5 @@ class cat_Setup extends core_ProtoSetup
         $systemUserId = core_Users::SYSTEM_USER;
         $query = "UPDATE {$Filters->dbTableName} SET {$createdByColName} = {$systemUserId} WHERE {$createdByColName} IS NULL OR {$createdByColName} = 0";
         $Filters->db->query($query);
-    }
-
-
-    /**
-     * Изтриване на премахнат продуктов параметър
-     */
-    public function deleteHsCode2608()
-    {
-        $hsCodeId = cat_Params::fetchIdBySysId('hsCode');
-        if(!empty($hsCodeId)){
-            cat_products_Params::delete("#paramId = {$hsCodeId}");
-        }
     }
 }

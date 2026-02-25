@@ -3763,7 +3763,7 @@ class cal_Tasks extends embed_Manager
         if ($isReportFromStream || $form->isSubmitted()) {
             if ($isReportFromStream) {
                 $form->rec->description = gzuncompress($form->rec->description);
-                    $form->rec->description = type_Varchar::escape($form->rec->description);
+                $form->rec->description = type_Varchar::escape($form->rec->description);
                 
                 if ($debugFileHnd) {
                     $form->rec->file = $debugFileHnd;
