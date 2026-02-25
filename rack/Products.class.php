@@ -395,14 +395,25 @@ class rack_Products extends store_Products
         $stores = arr::extractValuesFromArray($storeQuery->fetchAll(), 'id');
         $measureId = tr(cat_UoM::getShortName($data->masterData->rec->measureId));
 
+
+
         // Подготовка на позициите на складовете
         foreach ($stores as $storeId){
             $pRec = rack_Products::fetch("#storeId = {$storeId} AND #productId = {$data->masterId}");
             if(empty($pRec->quantity)) continue;
 
+            $bQuery = batch_Items::getQuery();
+            $bQuery->where("#storeId = {$storeId}");
+            $bQuery->XPR('quantityNotOnPallets', 'double(maxDecimals=2)', '#quantity - IFNULL(#quantityOnPallets, 0)- IFNULL(#quantityOnZones, 0)', 'caption=Количество->На пода,input=hidden,smartCenter');
+
+            $batchQuantities = array();
             $rQuery = rack_Pallets::getQuery();
             $rQuery->where("#storeId = {$storeId} AND #productId = {$data->masterId} AND #state = 'active'");
             while($rRec = $rQuery->fetch()){
+                if(!empty($rRec->batch)){
+                    $batchQuantities["{$rRec->storeId}|{$rRec->batch}"] = (object)array('batch' => $rRec->batch, 'quantity' => batch_Items::getQuantity($rRec->productId, $rRec->batch, $rRec->storeId));
+                }
+
                 $data->recs[] = (object)array('rec' => $rRec,
                                               'storeId' => $rRec->storeId,
                                               'batch' => $rRec->batch,
@@ -410,8 +421,28 @@ class rack_Products extends store_Products
                                               'quantity' => $rRec->quantity,);
             }
 
+            $floorBatch = null;
+            foreach ($batchQuantities as $bObj){
+                $onPallets = 0;
+                array_walk($data->recs, function($a) use (&$bObj, &$onPallets, $storeId){
+                    if($bObj->batch == $a->batch && $storeId == $a->storeId){
+                        $onPallets += $a->quantity;
+                    }
+                });
+
+                $diff = round($bObj->quantity - $onPallets, 4);
+                if(!empty($diff)){
+                    $data->recs[] = (object)array('storeId' => $storeId,
+                                                  'batch' => $bObj->batch,
+                                                  'position' => rack_PositionType::FLOOR,
+                                                  'quantity' => $diff,);
+                    $pRec->quantityNotOnPallets -= $diff;
+                    $floorBatch = 'NO_BATCH';
+                }
+            }
+
             $data->recs[] = (object)array('storeId' => $storeId,
-                                          'batch' => null,
+                                          'batch' => $floorBatch,
                                           'position' => rack_PositionType::FLOOR,
                                           'quantity' => $pRec->quantityNotOnPallets,);
 
@@ -431,6 +462,8 @@ class rack_Products extends store_Products
         $fields = $this->selectFields();
         $fields['-list'] = true;
 
+
+       // bp($data->recs);
         // Всяка позиция се вербализира
         foreach ($data->recs as $id => $rec){
             if (!$data->pager->isOnPage()) continue;
@@ -460,14 +493,19 @@ class rack_Products extends store_Products
 
             if(isset($batchDef)){
                 if(!empty($rec->batch)){
-                    $row->batch = $batchDef->toVerbal($rec->batch);
-                    if (batch_Movements::haveRightFor('list')) {
-                        $link = array('batch_Movements', 'list', 'batch' => $rec->batch);
-                        if (isset($fields['-list'])) {
-                            $link += array('productId' => $rec->productId, 'storeId' => $rec->storeId);
+                    if($rec->batch == 'NO_BATCH'){
+                        $row->batch = "<i>" . tr('Без партида') . "</i>";
+                    } else {
+                        $row->batch = $batchDef->toVerbal($rec->batch);
+                        if (batch_Movements::haveRightFor('list')) {
+                            $link = array('batch_Movements', 'list', 'batch' => $rec->batch);
+                            if (isset($fields['-list'])) {
+                                $link += array('productId' => $rec->productId, 'storeId' => $rec->storeId);
+                            }
+                            $row->batch = ht::createLink($row->batch, $link);
                         }
-                        $row->batch = ht::createLink($row->batch, $link);
                     }
+
                 }
             }
 
