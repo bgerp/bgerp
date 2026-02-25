@@ -3850,7 +3850,7 @@ class email_Outgoings extends core_Master
                 $options->encoding = 'utf-8';
 
                 core_Users::sudo($oRec->createdBy);
-//                email_Outgoings::send($oRec, $options, $lg);
+                email_Outgoings::send($oRec, $options, $lg);
                 core_Users::exitSudo($oRec->createdBy);
 
                 email_Outgoings::logDebug('Успешно изпратен имейл CID=' . $r->containerId, $oRec->id);
