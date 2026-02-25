@@ -34,7 +34,7 @@ defIfNot('POS_CLOSE_REPORTS_PER_TRY', 30);
 /**
  *  Автоматично приключване на отчети по стари от
  */
-defIfNot('POS_CLOSE_REPORTS_OLDER_THAN', 60 * 60 * 24 * 2);
+defIfNot('POS_CLOSE_REPORTS_OLDER_THAN', 60 * 60 * 2);
 
 
 /**
@@ -116,6 +116,12 @@ defIfNot('POS_TEMPORARILY_CLOSE_PRODUCT_TIME', '');
 
 
 /**
+ *  Допускат ли се изчакващи бележки на Чернова
+ */
+defIfNot('POS_ALLOW_DRAFT_RECEIPTS', 'yes');
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -168,6 +174,7 @@ class pos_Setup extends core_ProtoSetup
         'POS_SHOW_RECEIPT_DIGITS' => array('double', 'caption=Цифри показващи се цифри от кода на бележката->Брой'),
         'POS_CLOSE_REPORTS_PER_TRY' => array('int(min=0)', 'caption=По колко отчета да се приключват автоматично на опит->Брой,columns=2'),
         'POS_CLOSE_REPORTS_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Автоматично приключване на отчети по стари от->Дни'),
+        'POS_ALLOW_DRAFT_RECEIPTS' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Операции в POS терминала->"Изчакващи" бележки на Чернова'),
         'POS_TERMINAL_PRICE_CHANGE' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Операции в POS терминала->Промяна на цена'),
         'POS_TERMINAL_MAX_SEARCH_CONTRAGENTS' => array('int(min=0)', 'caption=Операции в POS терминала->Брой на намерени контрагенти'),
         'POS_TERMINAL_MAX_SEARCH_PRODUCTS' => array('int(min=0)', 'caption=Операции в POS терминала->Брой на намерени артикули'),
