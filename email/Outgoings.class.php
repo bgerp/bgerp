@@ -3809,4 +3809,65 @@ class email_Outgoings extends core_Master
             }
         }
     }
+
+
+    /**
+     * Изпращане на пропуснатите имейли
+     */
+    function act_SendAgain()
+    {
+        requireRole('admin, ceo');
+
+        core_App::setTimeLimit(2000);
+
+        $q = doclog_Documents::getQuery();
+        $q->where(array("#action = '[#1#]'", doclog_Documents::ACTION_SEND));
+        $q->where("#createdOn >= '2026-02-24 16:33:00'");
+        $q->where("#createdOn <= '2026-02-25 16:33:00'");
+        $q->orderBy('createdOn', 'ASC');
+        $q->limit(1000);
+
+        $succ = $err = 0;
+
+        $allArr = array();
+
+        while ($r = $q->fetch()) {
+            try {
+                $hash = $r->containerId . '|' . $r->data->to . '|' . $r->data->cc ?? '';
+                $hash = md5($hash);
+                if ($allArr[$hash]) {
+                    continue;
+                }
+                $allArr[$hash] = true;
+
+                $oRec = doc_Containers::getDocument($r->containerId)->fetch();
+                $lg = email_Outgoings::getLanguage($oRec->originId, $oRec->threadId, $oRec->folderId, $oRec->body);
+                $options = new stdClass();
+
+                $options->emailsTo = $r->data->to;
+                $options->emailCc = $r->data->cc;
+                $options->boxFrom = $r->data->from;
+                $options->encoding = 'utf-8';
+
+                core_Users::sudo($oRec->createdBy);
+//                email_Outgoings::send($oRec, $options, $lg);
+                core_Users::exitSudo($oRec->createdBy);
+
+                email_Outgoings::logDebug('Успешно изпратен имейл CID=' . $r->containerId, $oRec->id);
+
+                $succ++;
+            } catch (Exception $e) {
+                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id ?? null);
+                $err++;
+            } catch (Error $e) {
+                email_Outgoings::logDebug('Грешка при изпращане на имейл CID=' . $r->containerId, $oRec->id ?? null);
+                $err++;
+            }
+        }
+
+        echo "<li style='color: green;'>Успешни: {$succ}</li>";
+        echo "<li style='color: red;'>Грешки: {$err}</li>";
+
+        shutdown();
+    }
 }
