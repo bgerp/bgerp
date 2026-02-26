@@ -3810,7 +3810,6 @@ class email_Outgoings extends core_Master
         }
     }
 
-
     /**
      * Изпращане на пропуснатите имейли
      */
