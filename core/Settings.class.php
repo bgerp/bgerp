@@ -162,7 +162,7 @@ class core_Settings extends core_Manager
         
         $query = self::getQuery();
         
-        if (isset($objectId)) {
+        if (!empty($objectId)) {
             $query->where(array("#key = '[#1#]' AND #objectId = '[#2#]'", $key, $objectId));
         } else {
             $query->where(array("#key = '[#1#]'", $key));
