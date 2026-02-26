@@ -81,6 +81,7 @@ class core_NT extends core_BaseClass
         expect($this->ready);
         
         if (is_array($data) && empty($place) && $mode == 'replace') {
+            $fromTo = array();
             foreach ($data as $placeHolder => $value) {
                 if ($value !== null) {
                     if(!is_scalar($value)) continue;
