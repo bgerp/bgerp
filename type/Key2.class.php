@@ -145,6 +145,8 @@ class type_Key2 extends type_Int
                 }
             }
         }
+
+        $haveSelectSourceArr = $this->params['selectSourceArr'];
         if (!$this->params['selectSourceArr']) {
             if ($this->params['selectSource']) {
                 $this->params['selectSourceArr'] = explode('::', $this->params['selectSource']);
@@ -172,8 +174,9 @@ class type_Key2 extends type_Int
             }
         }
 
-        $haveSelectSourceArr = $this->params['selectSourceArr'];
-        if(!$haveSelectSourceArr){
+        $this->params['titleFld'] = $this->params['titleFld'] ?? $this->params['select'] ?? null;
+
+        if (!$haveSelectSourceArr) {
             expect($this->params['titleFld'], $this);
         }
 

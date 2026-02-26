@@ -92,7 +92,7 @@ class cond_type_Key extends cond_type_abstract_Proto
         // Ако е посочен модел с големи записи, се показва с key2
         $Mvc = cls::get($rec->class);
         if(in_array($rec->class, array('crm_Companies', 'crm_Persons', 'cat_Products', 'doc_Folders')) || cls::existsMethod($Mvc,'getSelectArr')){
-            $Type = core_Type::getByName("key2(mvc={$rec->class},select={$select},allowEmpty)");
+            $Type = core_Type::getByName("key2(mvc={$rec->class},select={$select},allowEmpty,titleFld={$select})");
         } else {
             $typeParams = "mvc={$rec->class}";
             $typeParams .= ",select={$select}";
