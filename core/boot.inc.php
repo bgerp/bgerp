@@ -338,8 +338,8 @@ function getRandomString($length = 14)
  */
 function logHitState($debugCode = '200', $state = array())
 {
-    if (defined('DEBUG_FATAL_ERRORS_FILE') && core_Debug::$stopLoggingDebug) {
-        
+    if (defined('DEBUG_FATAL_ERRORS_FILE') && !core_Debug::$stopLoggingDebug) {
+
         // Максимална стойност за дебъг времената
         $maxDebugTimeCnt = 3000;
         
