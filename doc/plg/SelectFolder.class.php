@@ -61,8 +61,9 @@ class doc_plg_SelectFolder extends core_Plugin
             // Има основание - не правим нищо
             
             $fId = Request::get('folderId', 'key(mvc=doc_Folders)');
+            $tId = Request::get('threadId', 'key(mvc=doc_Threads)');
             if (!empty($fId)) {
-                if (!$mvc->haveRightFor('add', (object) array('folderId' => $fId))) {
+                if (!$mvc->haveRightFor('add', (object) array('folderId' => $fId, 'threadId' => $tId))) {
                     $folderTitle = doc_Folders::getTitleById($fId);
                     followRetUrl(array($mvc, 'list'), "|Документът не може да бъде създаден в папката|*: {$folderTitle}", 'error');
                }
