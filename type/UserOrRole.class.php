@@ -320,7 +320,7 @@ class type_UserOrRole extends type_User
     {
         static $allSysTeamsArr = array();
         
-        if (!$allSysTeamsArr[$type]) {
+        if (empty($allSysTeamsArr[$type])) {
             $pow = pow(2, 31);
 
             if ($type == 'role') {

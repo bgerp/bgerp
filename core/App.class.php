@@ -209,7 +209,7 @@ class core_App
                 }
                 
                 if ((countR($vUrl) - $id) % 2 || floor($prm) > 0) {
-                    if (!isset($q['id']) && !$name) {
+                    if (!isset($q['id']) && empty($name)) {
                         $q['id'] = urldecode($prm);
                     } else {
                         if ($name) {
@@ -538,7 +538,7 @@ class core_App
                     header('Content-Encoding: gzip');
                 }
                 $len = strlen($content);
-                header("Content-Length: ${len}");
+                header("Content-Length: {$len}");
             } else {
                 if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
                     header('Content-Length: 2');
@@ -673,7 +673,7 @@ class core_App
         header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
         header('Expires: 0'); // Proxies.
         
-        header("Location: ${url}", true, $permanent ? 301 : 302);
+        header("Location: {$url}", true, $permanent ? 301 : 302);
         
         static::shutdown(false);
     }
@@ -812,7 +812,7 @@ class core_App
             }
             
             // Премахваме защитата на id-то, ако има такава
-            if ($get['id'] && $unprotect) {
+            if (!empty($get['id']) && $unprotect) {
                 expect($get['id'] = Request::unprotectId($get['id'], $get['Ctr']), $get, core_Request::get('ret_url'), $get['id'], strlen($get['id']));
             }
             
@@ -881,7 +881,7 @@ class core_App
             $url .= '/' . $arr['Ctr'];
             $url .= '/' . $arr['Act'];
             
-            if (strlen($arr['id']) > 0) {
+            if (strlen($arr['id'] ?? '') > 0) {
                 $url .= '/' . $arr['id'];
             }
             unset($arr['App'], $arr['Ctr'], $arr['Act'], $arr['id']);
@@ -975,7 +975,7 @@ class core_App
             $params['App'] = $Request->get('App');
         }
         
-        if (is_string($params['Ctr']) && !$params['Ctr']) {
+        if (isset($params['Ctr']) && is_string($params['Ctr']) && !$params['Ctr']) {
             $params['Ctr'] = EF_DEFAULT_CTR_NAME;
         }
         
@@ -1034,7 +1034,7 @@ class core_App
         // Задължително слагаме контролера
         $pre = '/' . $params['Ctr'] . '/';
         
-        if (isset($params['Act']) && (strtolower($params['Act']) !== 'default' || $params['id'])) {
+        if (isset($params['Act']) && (strtolower($params['Act']) !== 'default' || ($params['id'] ?? null))) {
             $pre .= $params['Act'] . '/';
         }
         
@@ -1074,6 +1074,8 @@ class core_App
             unset($params['#']);
         }
         
+        $urlQuery = '';
+
         if (countR($params)) {
             $urlQuery = http_build_query($params);
         }
@@ -1121,7 +1123,7 @@ class core_App
     {
         $s = (empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on')) ? 's' : '';
 
-        if (!$s && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+        if (!$s && ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null) == 'https') {
             $s = 's';
         }
 
@@ -1150,7 +1152,7 @@ class core_App
         if ($absolute) {
             $s = (empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on')) ? 's' : '';
 
-            if (!$s && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+            if (!$s && ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null) == 'https') {
                 $s = 's';
             }
 
@@ -1164,8 +1166,8 @@ class core_App
             
             $dirName = str_replace(DIRECTORY_SEPARATOR, '/', $dirName);
             
-            if ($username = $_SERVER['PHP_AUTH_USER']) {
-                $password = $_SERVER['PHP_AUTH_PW'];
+            if ($username = ($_SERVER['PHP_AUTH_USER'] ?? null)) {
+                $password = $_SERVER['PHP_AUTH_PW'] ?? '';
                 $auth = $username . ':' . $password . '@';
             } else {
                 $auth = '';
@@ -1246,21 +1248,26 @@ class core_App
     /**
      * При зададени списъци с пътища и бранчове, връща масив в който ключове са пътищата, а стойности - бранчовета
      */
-    private static function getReposByPathAndBranch($paths, $branches)
+    private static function getReposByPathAndBranch($paths, $branches = null)
     {
         $pathArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $paths));
         $pathArr = array_filter($pathArr, function ($value) {
             
             return trim($value) !== '';
         });
-        $branchArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $branches));
-        
-        $branchArr = array_filter($branchArr, function ($value) {
-            
-            return trim($value) !== '';
-        });
+
+        $branchArr = array();
+        if (!is_null($branches)) {
+            $branchArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $branches));
+
+            $branchArr = array_filter($branchArr, function ($value) {
+
+                return trim($value) !== '';
+            });
+        }
+
         $cntBranches = countR($branchArr);
-        
+
         $res = array();
         foreach ($pathArr as $i => $line) {
             if (strpos($line, '=')) {

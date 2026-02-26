@@ -47,7 +47,7 @@ abstract class embed_Manager extends core_Master
         
         // Добавяме задължителните полета само ако не е дефинирано, че вече съществуват
         if (!isset($mvc->fields[$mvc->driverClassField])) {
-            $caption = $mvc->driverClassCaption ? $mvc->driverClassCaption : 'Вид';
+            $caption = $mvc->driverClassCaption ?? 'Вид';
             $mvc->FLD($mvc->driverClassField, "class(interface={$mvc->driverInterface}, allowEmpty, select=title)", "caption={$caption},mandatory,silent,refreshForm,after=id");
         }
 
@@ -182,7 +182,7 @@ abstract class embed_Manager extends core_Master
     public static function on_AfterRead($mvc, $rec)
     {
         try {
-            if (cls::load($rec->{$mvc->driverClassField}, true)) {
+            if (!empty($rec->{$mvc->driverClassField}) && cls::load($rec->{$mvc->driverClassField}, true)) {
                 $driverRec = $rec->driverRec;
                 
                 if (is_array($driverRec)) {

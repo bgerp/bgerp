@@ -23,14 +23,26 @@ class core_Type extends core_BaseClass
      * @var array
      */
     public $params;
-    
-    
+
+
+    /**
+     *
+     */
+    public $viewrows;
+
+
+    /**
+     *
+     */
+    public $maxFieldSize;
+
+
     /**
      * Опциите на типа
      *
      * @var array
      */
-    // public $options;
+     public $options;
     
     
     /**
@@ -72,12 +84,12 @@ class core_Type extends core_BaseClass
         if (!Mode::is('text-export', 'csv')) {
             $value = self::escape($value);
 
-            if ($this->params['truncate'] && mb_strlen($value) > $this->params['truncate']) {
+            if (!empty($this->params['truncate']) && mb_strlen($value) > $this->params['truncate']) {
                 $value = mb_substr($value, 0, $this->params['truncate']);
                 $value .= '...';
             }
 
-            if ($this->params['wordwrap'] && strlen($value)) {
+            if (!empty($this->params['wordwrap']) && strlen($value)) {
                 $value = wordwrap($value, $this->params['wordwrap'], "<br />\n");
             }
         }
@@ -164,7 +176,7 @@ class core_Type extends core_BaseClass
      */
     public function getDbFieldSize()
     {
-        setIfNot($size, $this->params['size'], $this->params[0], $this->dbFieldLen);
+        $size = $this->params['size'] ?? $this->params[0] ?? $this->dbFieldLen ?? null;
         
         return $size;
     }
@@ -289,14 +301,14 @@ class core_Type extends core_BaseClass
             }
             
             // Проверяваме дали отговаря на регулярен израз, ако е зададен
-            if (!$res['error'] && isset($this->params['regexp'])) {
+            if (empty($res['error']) && isset($this->params['regexp'])) {
                 if (!preg_match($this->params['regexp'], $value)) {
                     $res['error'] = 'Неправилен формат на данните';
                 }
             }
             
             // Проверяваме дали не е под минималната стойност, ако е зададена
-            if (!$res['error'] && isset($this->params['min'])) {
+            if (empty($res['error']) && isset($this->params['min'])) {
                 if ($value < $this->params['min']) {
                     $res['error'] = 'Под допустимото' . "|* - '" .
                     $this->toVerbal($this->params['min']) . "'";
@@ -304,7 +316,7 @@ class core_Type extends core_BaseClass
             }
             
             // Проверяваме дали е над недостижимия минимум, ако е зададен
-            if (!$res['error'] && isset($this->params['Min'])) {
+            if (empty($res['error']) && isset($this->params['Min'])) {
                 if ($value <= $this->params['Min']) {
                     $res['error'] = 'Не е над' . "|* - '" .
                     $this->toVerbal($this->params['Min']) . "'";
@@ -312,7 +324,7 @@ class core_Type extends core_BaseClass
             }
             
             // Проверяваме дали не е над максималната стойност, ако е зададена
-            if (!$res['error'] && isset($this->params['max'])) {
+            if (empty($res['error']) && isset($this->params['max'])) {
                 if ($value > $this->params['max']) {
                     $res['error'] = 'Над допустимото' . "|* - '" .
                     $this->toVerbal($this->params['max']) . "'";
@@ -320,28 +332,28 @@ class core_Type extends core_BaseClass
             }
             
             // Проверяваме дали е под недостижимия максимум, ако е зададен
-            if (!$res['error'] && isset($this->params['Max'])) {
+            if (empty($res['error']) && isset($this->params['Max'])) {
                 if ($value >= $this->params['Max']) {
                     $res['error'] = 'Не е под' . "|* - '" .
                     $this->toVerbal($this->params['Max']) . "'";
                 }
             }
             
-            if (!$res['error'] && isset($this->params['warningMax'])) {
+            if (empty($res['error']) && isset($this->params['warningMax'])) {
                 if ($value > $this->params['warningMax']) {
                     $res['warning'] = 'Стойността е над' . "|* - '" .
                     $this->toVerbal($this->params['warningMax']) . "'";
                 }
             }
             
-            if (!$res['error'] && isset($this->params['warningMin'])) {
+            if (empty($res['error']) && isset($this->params['warningMin'])) {
                 if ($value < $this->params['warningMin']) {
                     $res['warning'] = 'Стойността е под' . "|* - '" .
                         $this->toVerbal($this->params['warningMin']) . "'";
                 }
             }
             
-            if ($res['error']) {
+            if (!empty($res['error'])) {
                 $this->error = $res['error'];
             }
             
@@ -578,10 +590,10 @@ class core_Type extends core_BaseClass
     public function setFieldWidth(&$attr, $size = null, $options = null)
     {
         if ($options === null) {
-            $options = $this->options;
+            $options = $this->options ?? null;
         }
         
-        if (!$size && !$this->maxFieldSize && is_array($options)) {
+        if (!$size && empty($this->maxFieldSize) && is_array($options)) {
             $this->maxFieldSize = 1;
             $i = 1;
             foreach ($options as $opt) {
@@ -597,27 +609,27 @@ class core_Type extends core_BaseClass
                     break;
                 }
             }
-            $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder']));
+            $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder'] ?? ''));
         }
         
         // Определяме размера на най-дългия възможен стринг, като най-дългата опция
-        if (!$size && $this->maxFieldSize > 0) {
+        if (!$size && ($this->maxFieldSize ?? null) > 0) {
             $size = $this->maxFieldSize;
         }
         
-        if (!$size && $this->params['size']) {
+        if (!$size && ($this->params['size'] ?? null)) {
             $size = $this->params['size'];
         }
         
-        if (!$size && $this->params[0]) {
+        if (!$size && ($this->params[0] ?? null)) {
             $size = $this->params[0];
         }
         
-        if (is_array($this->options)) {
+        if (is_array($this->options ?? null)) {
             $size *= 1.1;
         }
         
-        if (!preg_match('/(w25|w50|w75|w100)/', $attr['class'])) {
+        if (!preg_match('/(w25|w50|w75|w100)/', ($attr['class'] ?? ''))) {
             if ($size > 0 && $size <= 13) {
                 $wClass = 'w25';
             } elseif ($size > 0 && $size <= 35) {
@@ -627,8 +639,8 @@ class core_Type extends core_BaseClass
             } else {
                 $wClass = 'w100';
             }
-            
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . $wClass;
+            $attr['class'] ??= '';
+            $attr['class'] .= (!empty($attr['class']) ? ' ' : '') . $wClass;
         }
     }
 }

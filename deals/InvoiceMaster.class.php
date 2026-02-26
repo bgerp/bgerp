@@ -450,7 +450,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $form->setField('changeAmount', "unit={$displayCurrencyId} без ДДС");
                 $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
 
-                $invArr['dealValue'] = deals_Helper::getSmartBaseCurrency($invArr['dealValue'], $invArr['dealValue'], $form->rec->date);
+                $invArr['dealValue'] = deals_Helper::getSmartBaseCurrency($invArr['dealValue'], $invArr['date'], $form->rec->date);
                 $min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
                 $min = round($min, 2);
 

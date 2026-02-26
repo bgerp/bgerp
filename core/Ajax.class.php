@@ -187,7 +187,7 @@ class core_Ajax extends core_Mvc
         static $nameArr = array();
         
         // Ако няам име или не  е уникално
-        if (!$name || $nameArr[$name]) {
+        if (empty($name) || !empty($nameArr[$name])) {
             
             // Не би трябвало да се стига до тук
             

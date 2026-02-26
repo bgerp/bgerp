@@ -214,10 +214,13 @@ class type_Keylist extends core_Type
         }
         
         $attrCB['type'] = 'checkbox';
+        if (!isset($attrCB['class'])) {
+            $attrCB['class'] = '';
+        }
         $attrCB['class'] .= ' checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
-        $maxChars = $this->params['maxChars'];
+        $maxChars = $this->params['maxChars'] ?? null;
         $col = self::getCol((array) $this->suggestions, $maxChars);
        
         // Ако трърдо е указано брой колони, използват се те
@@ -231,13 +234,13 @@ class type_Keylist extends core_Type
         $keyListClass = 'keylist';
         
         $suggCnt = countR($this->suggestions);
+        $addKeylistWide = false;
         
         if ($suggCnt) {
             if ($suggCnt < 4) {
                 $keyListClass .= ' shrinked';
             }
             $groupOpen = 0;
-            $addKeylistWide = false;
             
             if (countR($this->suggestions) == 1 && $this->params['mandatory'] && $emptyValue) {
                 $key = key($this->suggestions);
@@ -377,7 +380,7 @@ class type_Keylist extends core_Type
                 $title = ht::createLink($title, $url, false, 'style=font-weight:bold;');
             }
             
-            $cssClass = $this->params['mandatory'] ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
+            $cssClass = ($this->params['mandatory'] ?? null) ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
             
             $html = "<span class='{$cssClass}'>{$msg} {$title}</div>";
         }
@@ -405,6 +408,7 @@ class type_Keylist extends core_Type
      */
     public static function getCol($options, &$maxChars)
     {
+        $max = array();
         $options = (array) $options;
         if (!$maxChars) {
             $maxChars = Mode::is('screenMode', 'wide') ? 100 : 50;
@@ -426,11 +430,11 @@ class type_Keylist extends core_Type
             }
             $i++;
         }
-        
-        $max2 = $max[2][0] + $max[2][1] + 4;
-        $max3 = $max[3][0] + $max[3][1] + $max[3][2] + 8;
-        $max4 = $max[4][0] + $max[4][1] + $max[4][2] + $max[4][3] + 12;
-        
+
+        $max2 = ($max[2][0] ?? 0) + ($max[2][1] ?? 0) + 4;
+        $max3 = ($max[3][0] ?? 0) + ($max[3][1] ?? 0) + ($max[3][2] ?? 0) + 8;
+        $max4 = ($max[4][0] ?? 0) + ($max[4][1] ?? 0) + ($max[4][2] ?? 0) + ($max[4][3] ?? 0) + 12;
+
         if ($max2 > $maxChars) {
             $col = 1;
         } elseif ($max3 > $maxChars) {
@@ -652,7 +656,7 @@ class type_Keylist extends core_Type
             }
             
             foreach ($value as $id => $val) {
-                if (!strlen($id) && !strlen($val)) {
+                if (!strlen($id ?? '') && !strlen($val ?? '')) {
                     continue;
                 }
                 
@@ -715,7 +719,7 @@ class type_Keylist extends core_Type
             }
         } else {
             
-            return strpos($list, '|' . $key . '|') !== false;
+            return strpos($list ?? '', '|' . $key . '|') !== false;
         }
         
         return false;
@@ -944,12 +948,12 @@ class type_Keylist extends core_Type
      */
     protected function getSelectFld()
     {
-        if ($this->params['selectBg'] && core_Lg::getCurrent() == 'bg') {
+        if (!empty($this->params['selectBg']) && core_Lg::getCurrent() == 'bg') {
             
             return $this->params['selectBg'];
         }
         
-        return $this->params['select'];
+        return $this->params['select'] ?? null;
     }
 
 

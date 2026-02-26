@@ -26,7 +26,7 @@ class type_Password extends type_Varchar
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        if (!strlen($value) && core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
+        if (!strlen($value ?? '') && core_Setup::get('ALLOW_PASS_SAVE') == 'no') {
             $attr['type'] = 'text';
         } else {
             $attr['type'] = 'password';
@@ -34,14 +34,14 @@ class type_Password extends type_Varchar
         
         // Само за дебъг
         // !isDebug() || $attr['title'] = $value;
-        if ($this->params['show']) {
+        if (!empty($this->params['show'])) {
             $attr['type'] = 'text';
             $attr['style'] = ';color:#999; font-size:0.8em;padding:1em 0.3em;letter-spacing:0.05em; text-shadow: 3px 0px 5px #888, -3px 0px 5px #888, 0px 3px 5px #888, 0px -3px 5px #888, 2px 2px 5px #888, -2px 2px 5px #888, -2px 2px 5px #888, -2px -2px 5px #888, 0px 0px 5px #888';
-        } elseif ($value && !$this->params['allowEmpty']) {
+        } elseif ($value && empty($this->params['allowEmpty'])) {
             $value = self::EF_PASS_NO_CHANGE;
             $attr['onfocus'] = "this.type='password'; if(this.value == '" . self::EF_PASS_NO_CHANGE . "') this.select();";
         } else {
-            if ($attr['type'] == 'text') {
+            if (($attr['type'] ?? null) === 'text') {
                 $attr['onfocus'] = "this.type='password';";
             }
             if ($value) {
@@ -52,7 +52,7 @@ class type_Password extends type_Varchar
         
         $this->params['noTrim'] = 'noTrim';
         
-        if ($attr['size'] < 32) {
+        if (($attr['size'] ?? null) < 32) {
             $this->maxFieldSize = 10;
         }
         

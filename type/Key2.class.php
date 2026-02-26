@@ -321,7 +321,7 @@ class type_Key2 extends type_Int
 
             // Добавяме необходимите файлове и стартирам select2
             select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl, false, $this->params['forceOpen'], $minimumResultsForSearch, $matchOnlyStartsWith);
-        } elseif ((!defined('TEST_MODE') && !TEST_MODE) && ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')))) {
+        } elseif ((defined('TEST_MODE') && TEST_MODE) === false && ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')))) {
             // Показваме Combobox
             
             $this->params['inputType'] = 'combo';

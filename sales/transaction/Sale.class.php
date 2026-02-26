@@ -372,6 +372,32 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                     'quantity' => $quantityAmount, // "брой пари" във валутата на продажбата
                 ),
             );
+
+            if($receiptId = pos_Receipts::fetchField("#transferredIn = {$rec->id} AND #state != 'draft'")){
+                $rQuery = pos_ReceiptDetails::getQuery();
+                $rQuery->where("#receiptId = {$receiptId} AND #action LIKE '%payment%'");
+                while($rRec = $rQuery->fetch()){
+                    list( ,$paymentId) = explode('|', $rRec->action);
+                    if($paymentId != -1){
+                        $entries[] = array(
+                            'amount' => $rRec->amount * $rec->currencyRate,
+                            'debit' => array(
+                                '502', // Сметка "502. Каси - безналични плащания"
+                                array('cash_Cases', $rec->caseId),
+                                array('cond_Payments', $paymentId),
+                                'quantity' => currency_Currencies::round($rRec->amount),
+                            ),
+
+                            'credit' => array(
+                                '501', // Сметка "501. Каси"
+                                array('cash_Cases', $rec->caseId),
+                                array('currency_Currencies', $currencyId),
+                                'quantity' => currency_Currencies::round($rRec->amount),
+                            ),
+                        );
+                    }
+                }
+            }
         }
         
         return $entries;

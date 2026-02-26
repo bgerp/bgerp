@@ -77,7 +77,10 @@ class plg_GroupByDate extends core_Plugin
                 
                 $mvc->invoke('AfterPrepareGroupDate', array(&$res, $d));
                 
-                $rowAttr = $data->rows[$id]->ROW_ATTR;
+                $rowAttr = $data->rows[$id]->ROW_ATTR ?? [];
+                if (!isset($rowAttr['class'])) {
+                    $rowAttr['class'] = '';
+                }
                 $rowAttr['class'] .= ' group-by-date-row';
                 $rows[$id . ' '] = ht::createElement(
                     'tr',

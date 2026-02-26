@@ -65,7 +65,7 @@ class plg_Created extends core_Plugin
     public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = null, &$mode = null)
     {
         // Записваме полетата, ако записът е нов и дали трябва да има createdOn и createdBy
-        if (!$rec->id || strtolower($mode) == 'replace') {
+        if (!($rec->id ?? null) || strtolower($mode ?? '') == 'replace') {
             if ($fields) {
                 $fieldsArr = arr::make($fields, true);
                 $mustHaveCreatedBy = isset($fieldsArr['createdBy']);

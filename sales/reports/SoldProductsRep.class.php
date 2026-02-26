@@ -108,7 +108,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('seeCategory', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи категория,after=seeByContragent,single=none,silent');
         
         $fieldset->FLD('engName', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Име EN,after=seeByContragent,single=none');
-        $fieldset->FLD('seeDelta', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи делти,after=engName,single=none');
+
+        //if(haveRole('sdf')){
+            $fieldset->FLD('seeDelta', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи делти,after=engName,single=none');
+       // }
+
         $fieldset->FLD('seeWeight', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи тегло,after=seeDelta,single=none');
         $fieldset->FLD('primeCostType', 'enum(standartPrimeCost=Стандартна, dealerPrimeCost=Дилърска)', 'caption=Показване->Себестойност,after=seeWeight,single=none');
         
@@ -1948,7 +1952,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                 ///////////////////////////////////////////////////////////////////////
                 // Ако справката се издава за период ОТ ЕВРОЗОНАТА с основна валута EUR
-                if ($rec->to > $euroZoneDate) {
+                if ($rec->to >= $euroZoneDate) {
 
 
                     if ($rec->quantityType != 'shipped') {

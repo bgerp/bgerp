@@ -11,3 +11,4 @@ syntax: regexp
 /composer.phar
 /myself/
 .vscode/launch.json
+**/.env

@@ -20,11 +20,23 @@ class core_Packs extends core_Manager
      * Заглавие на модела
      */
     public $title = 'Управление на пакети';
-    
-    
+
+
+    /**
+     *
+     */
+    public $searchInputField;
+
+
+    /**
+     *
+     */
     public $canAdd = 'no_one';
-    
-    
+
+
+    /**
+     *
+     */
     public $canEdit = 'no_one';
     
     
@@ -101,7 +113,8 @@ class core_Packs extends core_Manager
         
         // Дали в момента не се инсталира?
         if ($rightNow) {
-            if ($me->alreadySetup[$name . true] || $me->alreadySetup[$name . true]) {
+            if (
+                isset($me->alreadySetup) && isset($me->alreadySetup[$name . true]) && $me->alreadySetup[$name . true]) {
                 
                 return true;
             }
@@ -470,7 +483,7 @@ class core_Packs extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
-        $data->listFilter->showFields = "{$mvc->searchInputField}, state";
+        $data->listFilter->showFields = strlen(trim($mvc->searchInputField ?? '')) ? "{$mvc->searchInputField},state" : 'state';
         
         $data->listFilter->input(null, 'silent');
         

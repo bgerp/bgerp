@@ -83,6 +83,7 @@ class email_Salutations extends core_Manager
         $this->setDbUnique('containerId');
         $this->setDbIndex('folderId');
         $this->setDbIndex('createdBy');
+        $this->setDbIndex('toEmail');
     }
     
     

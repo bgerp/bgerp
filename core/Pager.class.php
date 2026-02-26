@@ -57,6 +57,12 @@ class core_Pager extends core_BaseClass
      * Номера на текущата страница
      */
     public $page;
+
+
+    /**
+     *
+     */
+    public $approx;
     
     
     /**
@@ -207,7 +213,7 @@ class core_Pager extends core_BaseClass
     public function setLimit(&$query)
     {
         // Дали да използва кеширане
-        $useCache = $query->useCacheForPager;
+        $useCache = $query->useCacheForPager ?? null;
         
         if ($useCache) {
             if ($limit = doc_Setup::get('SEARCH_LIMIT')) {
@@ -229,7 +235,7 @@ class core_Pager extends core_BaseClass
         // Опитваме се да извлечем резултатите от кеша
         $this->itemsCount = PHP_INT_MAX;
 
-        if (!$useCache && !$query->mvc->simplePaging) {
+        if (!$useCache && !($query->mvc->simplePaging ?? false)) {
             $query->addOption('SQL_CALC_FOUND_ROWS');
         } else {
             $resCntCache = core_QueryCnts::getFromChache($qCnt);
@@ -238,7 +244,7 @@ class core_Pager extends core_BaseClass
             }
         }
        // bp($this->itemsCount);
-        if(!$this->itemsCount && $query->mvc->simplePaging) {
+        if(!$this->itemsCount && ($query->mvc->simplePaging ?? false)) {
             $this->itemsCount = $qCnt->count();
         }
         
@@ -247,7 +253,7 @@ class core_Pager extends core_BaseClass
         // Подготовка на заявката за извличане на id
         $limit = $this->rangeEnd - $this->rangeStart + round(0.5 * $this->itemsPerPage);
         
-        if ($query->mvc->simplePaging) {
+        if (!empty($query->mvc->simplePaging)) {
             $query->limit($limit);
             $query->startFrom($this->rangeStart);
             
@@ -259,6 +265,7 @@ class core_Pager extends core_BaseClass
         $query->limit($limit);
         $query->startFrom($this->rangeStart);
 
+        $ids = array();
         if($query->addId && $query->start == 0) {
             $ids[] = $query->addId;
         }
@@ -398,7 +405,7 @@ class core_Pager extends core_BaseClass
      */
     public function getHtml($link = null)
     {
-        if ($this->url) {
+        if (!empty($this->url)) {
             $link = $this->url;
         } else {
             $link = toUrl(self::getUrl());
@@ -465,7 +472,7 @@ class core_Pager extends core_BaseClass
     public function getUrl()
     {
         $url = getCurrentUrl();
-        if (is_array($this->addToUrl)) {
+        if (isset($this->addToUrl) && is_array($this->addToUrl)) {
             $url = $url + $this->addToUrl;
         }
         

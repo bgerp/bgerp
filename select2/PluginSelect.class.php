@@ -104,7 +104,7 @@ class select2_PluginSelect extends core_Plugin
      */
     public static function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
-        if ($invoker->params['isReadOnly']) {
+        if (!empty($invoker->params['isReadOnly'])) {
             
             return ;
         }

@@ -28,29 +28,30 @@ class plg_Sorting extends core_Plugin
      */
     public static function on_AfterPrepareListFields($mvc, $data)
     {
+        $direction = null;
         if ($sort = Request::get('Sort')) {
             list($field, $direction) = explode('|', $sort, 2);
-        } elseif ($sort = $mvc->defaultSorting) {
+        } elseif ($sort = $mvc->defaultSorting ?? null) {
             list($field, $direction) = explode('=', $sort, 2);
         }
         
-        $data->listFields = arr::make($data->listFields, true);
-        if (!is_object($data->plg_Sorting)) {
+        $data->listFields = arr::make($data->listFields ?? null, true);
+        if (empty($data->plg_Sorting)) {
             $data->plg_Sorting = (object) array('fields' => array());
         }
         
-        if (countR($data->listFields)) {
+        if (countR($data->listFields ?? null)) {
             foreach ($data->listFields as $f => $caption) {
                 if (empty($caption)) {
                     continue;
                 }
                 
                 if ($mvc->fields[$f]) {
-                    if ($mvc->fields[$f]->sortingLike) {
+                    if (!empty($mvc->fields[$f]->sortingLike)) {
                         $dbField = $mvc->fields[$f]->sortingLike;
-                    } elseif ($mvc->fields[$f]->kind != 'FNC' && strtolower(get_class($mvc->fields[$f]->type)) == 'type_key') {
-                        $type = $mvc->fields[$f]->type;
-                        if (($kField = $type->params['select']) && ($kMvc = $type->params['mvc'])) {
+                    } elseif (($mvc->fields[$f]->kind ?? null) != 'FNC' && strtolower(get_class($mvc->fields[$f]->type ?? null)) == 'type_key') {
+                        $type = $mvc->fields[$f]->type ?? null;
+                        if (($kField = ($type->params['select'] ?? null)) && ($kMvc = ($type->params['mvc'] ?? null))) {
                            
                            // Ще се филтрира само по-полета, които не са XPR и FNC
                             $kFieldType = cls::get($type->params['mvc'])->getField($kField);
@@ -61,9 +62,9 @@ class plg_Sorting extends core_Plugin
                         } else {
                             continue;
                         }
-                    } elseif ($mvc->fields[$f]->kind != 'FNC' && strtolower(get_class($mvc->fields[$f]->type)) == 'type_key2') {
-                        $type = $mvc->fields[$f]->type;
-                        if (($kField = $type->params['select']) && ($kMvc = $type->params['mvc'])) {
+                    } elseif (($mvc->fields[$f]->kind ?? null) != 'FNC' && strtolower(get_class($mvc->fields[$f]->type ?? null)) == 'type_key2') {
+                        $type = $mvc->fields[$f]->type ?? null;
+                        if (($kField = ($type->params['select'] ?? null)) && ($kMvc = ($type->params['mvc'] ?? null))) {
                             // Ще се филтрира само по-полета, които не са XPR и FNC
                             $kFieldType = cls::get($type->params['mvc'])->getField($kField);
                             if (in_array($kFieldType->kind, array('FNC', 'XPR'))) {
@@ -81,7 +82,7 @@ class plg_Sorting extends core_Plugin
                         continue;
                     }
                     
-                    if (!$mvc->fields[$f]->notSorting) {
+                    if (empty($mvc->fields[$f]->notSorting)) {
                         if (!$direction || $direction == 'none' || ($f != $field)) {
                             $data->plg_Sorting->fields[$f] = 'none';
                         } elseif ($direction == 'up') {
@@ -111,9 +112,9 @@ class plg_Sorting extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if($data->sortableTable === false) return;
+        if(($data->sortableTable ?? null) === false) return;
 
-        if (countR($data->recs) && countR($data->plg_Sorting->fields)) {
+        if (countR($data->recs ?? null) && (isset($data->plg_Sorting) && countR($data->plg_Sorting->fields))) {
             
             // Ако сме в режим принтиране не правим нищо
             if (Mode::is('printing') || Mode::is('pdf') || Mode::is('text', 'xhtml')) {
@@ -123,7 +124,7 @@ class plg_Sorting extends core_Plugin
             foreach ($data->plg_Sorting->fields as $field => $direction) {
                 
                 // Ако няма такова поле, в тези, които трябва да показваме - преминаваме към следващото
-                if (!$data->listFields[$field]) {
+                if (empty($data->listFields[$field])) {
                     continue;
                 }
 

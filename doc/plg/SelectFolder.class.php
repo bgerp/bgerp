@@ -24,7 +24,8 @@ class doc_plg_SelectFolder extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->alwaysForceFolderIfEmpty, false);
+        setPartIfNot($mvc, 'alwaysForceFolderIfEmpty', false);
+        setPartIfNot($mvc, 'routeDocumentAfterCreation', false);
     }
     
     
@@ -49,7 +50,10 @@ class doc_plg_SelectFolder extends core_Plugin
             // Няма права за този екшън - не правим нищо - оставяме реакцията на мениджъра.
             return;
         }
-        
+
+        // Ако документа ще се рутира след създаване няма да се правят такива проверки
+        if($mvc->routeDocumentAfterCreation === true) return;
+
         if (Request::get('folderId', 'key(mvc=doc_Folders)') ||
             Request::get('threadId', 'key(mvc=doc_Threads)') ||
             Request::get('cloneId', 'key(mvc=doc_Containers)') ||
@@ -61,7 +65,7 @@ class doc_plg_SelectFolder extends core_Plugin
                 if (!$mvc->haveRightFor('add', (object) array('folderId' => $fId))) {
                     $folderTitle = doc_Folders::getTitleById($fId);
                     followRetUrl(array($mvc, 'list'), "|Документът не може да бъде създаден в папката|*: {$folderTitle}", 'error');
-                }
+               }
             }
             
             return;

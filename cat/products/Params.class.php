@@ -146,9 +146,13 @@ class cat_products_Params extends doc_Detail
             $paramRec->group = tr($paramRec->group);
             $row->group = cat_Params::getVerbal($paramRec, 'group');
         }
-        
-        $row->paramValue = cond_Parameters::toVerbal($paramRec, $rec->classId, $rec->productId, $rec->paramValue);
-        
+
+        try{
+            $row->paramValue = cond_Parameters::toVerbal($paramRec, $rec->classId, $rec->productId, $rec->paramValue);
+        } catch(core_exception_Expect $e){
+            $row->paramValue = "<span class='color'>" . tr("Проблем при показване") . "</span>";
+        }
+
         if (!empty($paramRec->suffix)) {
             $suffix = cat_Params::getVerbal($paramRec, 'suffix');
             $row->paramValue .= ' ' . tr($suffix);

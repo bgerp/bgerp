@@ -151,7 +151,7 @@ class bgerp_Notifications extends core_Manager
         $this->setDbIndex('activatedOn');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('lastTime');
-
+        $this->setDbIndex('customUrl');
 //        $this->setDbIndex('customUrlId');
 //        $this->setDbIndex('urlId');
     }
@@ -253,7 +253,7 @@ class bgerp_Notifications extends core_Manager
         $rec->activatedOn = dt::now();
         
         // Ако има такова съобщение - само му вдигаме флага, че е активно
-        $r = bgerp_Notifications::fetch(array("#userId = {$rec->userId} AND #url = '[#1#]'", $rec->url));
+        $r = bgerp_Notifications::fetch(array("#url = '[#1#]' AND #userId = {$rec->userId}", $rec->url));
         
         if (is_object($r)) {
             if ($addOnce && ($r->state == 'active') && ($r->hidden == 'no') && ($r->msg == $rec->msg) && ($r->priority == $rec->priority)) {
@@ -302,7 +302,7 @@ class bgerp_Notifications extends core_Manager
             $rec->customUrl = null;
         }
         
-        bgerp_Notifications::save($rec);
+        bgerp_Notifications::save($rec, null, 'low_priority');
         
         // Инвалидиране на кеша
         bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Notifications');
@@ -483,7 +483,7 @@ class bgerp_Notifications extends core_Manager
         if ($userId == '*') {
             $query->where(array("#url = '[#1#]' AND #state = 'active'", $url));
         } else {
-            $query->where(array("#userId = {$userId} AND #url = '[#1#]' AND #state = 'active'", $url));
+            $query->where(array("#url = '[#1#]' AND #userId = {$userId} AND #state = 'active'", $url));
         }
         $query->show('id, state, userId, url');
 
@@ -538,11 +538,12 @@ class bgerp_Notifications extends core_Manager
 //            $query->where(array("#urlId = '[#1#]'", $urlId));
 //        }
         
-        $query->where("#state = 'active'");
-        $query->where("#hidden = 'no'");
+        
         
         $query->where(array("#url = '[#1#]' AND #userId = '[#2#]'", $url, $userId));
-        
+        $query->where("#state = 'active'");
+        $query->where("#hidden = 'no'");
+
         $query->limit(1);
         
         if ($rec = $query->fetch()) {
@@ -758,6 +759,9 @@ class bgerp_Notifications extends core_Manager
         
         
         if (!Mode::isReadOnly() && ($rec->userId == core_Users::getCurrent())) {
+            if (!isset($attr['class'])) {
+                $attr['class'] = '';
+            }
             $attr['class'] .= ' ajaxContext';
             $attr['name'] = 'context-holder';
             ht::setUniqId($attr);

@@ -2740,7 +2740,7 @@ function refreshForm(form, removeFields) {
         return;
     }
 
-    // form.submit(); return;
+    //form.submit(); return;
 
     $.ajax({
         type: frm.attr('method'),
@@ -6268,7 +6268,9 @@ $.fn.isInViewport = function () {
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
 function focusOnce(id) {
-    if($('body').hasClass('narrow') && (window.innerWidth < 600 || window.innerHeight < 600)) return;
+
+    if($('body').hasClass('narrow') && isRealMobile() && $(id).data('focus') !== 'forceFocus') return;
+
     var state = getHitState();
 
     if (state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
@@ -6277,6 +6279,16 @@ function focusOnce(id) {
 }
 
 
+/**
+ * По-добра проверка за мобилни устройства
+ */
+function isRealMobile() {
+    return (
+        navigator.userAgentData?.mobile === true ||
+        (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+            navigator.maxTouchPoints > 0)
+    );
+}
 /**
  * Изчистване на статусите от посочен тип
  */

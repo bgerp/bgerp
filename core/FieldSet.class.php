@@ -17,6 +17,14 @@
  */
 class core_FieldSet extends core_BaseClass
 {
+
+
+    /**
+     *
+     */
+    protected $lastFroGroup = array();
+
+
     // Атрибути на полетата:
     //
     // kind - вид на полето
@@ -515,7 +523,7 @@ class core_FieldSet extends core_BaseClass
             $name = substr($name, 1);
         }
         
-        if ($this->fields[$name]) {
+        if (isset($this->fields[$name])) {
             
             return $this->fields[$name];
         }
@@ -600,7 +608,7 @@ class core_FieldSet extends core_BaseClass
      */
     public function makePhpFieldName($name)
     {
-        return '$this->fields[$name]->' . $name;
+        return '($this->fields[$name]->' . $name . ' ?? null)';
     }
     
     

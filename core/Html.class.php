@@ -25,7 +25,7 @@ class core_Html
         $attrStr = '';
 
         $isTitleTranslated = false;
-        if ($attributes['title'] && $translate && ($attributes['translate'] != 'no')) {
+        if (($attributes['title'] ?? null) && $translate && (($attributes['translate'] ?? null) != 'no')) {
             $attributes['title'] = tr($attributes['title']);
             $isTitleTranslated = true;
             $attributes['title'] = str_replace(array("\""), array("&quot;"), $attributes['title']);
@@ -144,11 +144,11 @@ class core_Html
             $id = $attr['id'];
             
             $suffix = '_cs';
-            list($l, $r) = explode('[', $id);
-            $r = rtrim($r, ']');
+            list($l, $r) = array_pad(explode('[', $id), 2, null);
+            $r = rtrim($r ?? '', ']');
             $selectId = $l . $suffix . $r;
             
-            if ($attr['ajaxAutoRefreshOptions']) {
+            if (!empty($attr['ajaxAutoRefreshOptions'])) {
                 $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
                 $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
                 if ($attr['onchange']) {
@@ -172,8 +172,8 @@ class core_Html
             $attr['id'] = $selectId;
             
             $name = $attr['name'];
-            list($l, $r) = explode('[', $name);
-            $r = rtrim($r, ']');
+            list($l, $r) = array_pad(explode('[', $name), 2, null);
+            $r = rtrim($r ?? '', ']');
             $name = $l . $suffix . $r;
             $attr['name'] = $name;
             
@@ -184,8 +184,11 @@ class core_Html
             }
             
             unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
-            
+
             if (!Mode::is('javascript', 'no')) {
+                if (!isset($attr['style'])) {
+                    $attr['style'] = '';
+                }
                 $attr['style'] .= ';visibility: hidden;';
             }
             
@@ -263,7 +266,9 @@ class core_Html
     public static function createSelect($name, $options, $selected = null, $selAttr = array())
     {
         $selAttr['name'] = $name;
-        
+
+        $attrStr = '';
+
         foreach ($selAttr as $atr => $content) {
             // Смятаме, че всички атрибути с имена, започващи със '#'
             // са вътрешни и поради това не ги показваме в елемента
@@ -284,6 +289,7 @@ class core_Html
         $select->append('', 'OPTIONS');
         
         if (is_array($options)) {
+            $openGroup = false;
             foreach ($options as $id => $title) {
                 $attr = array();
                 $element = 'option';
@@ -320,7 +326,7 @@ class core_Html
                 }
                 
                 // Хак за добавяне на плейс-холдер
-                if ($selAttr['placeholder'] &&
+                if (!empty($selAttr['placeholder']) &&
                     strlen($attr['value']) == 0 && !trim($title)) {
                     $title = $selAttr['placeholder'];
                     $attr['style'] .= 'color:#777;';
@@ -372,10 +378,13 @@ class core_Html
         $name,
         $value = null,
         $attr = array(),
-        $maxRadio = 0,
-        $maxColumns = 4,
+        $maxRadio = null,
+        $maxColumns = null,
         $columns = null
     ) {
+        $maxRadio = $maxRadio ?? 0;
+        $maxColumns = $maxColumns ?? 4;
+
         $optionsCnt = self::countOptions($options);
         
         setIfNot($attr['data-hiddenName'], $name);
@@ -480,7 +489,7 @@ class core_Html
 
             foreach ($options as $id => $opt) {
                 $input = new ET();
-                
+
                 if (is_object($opt) && $opt->group) {
                     $input->append(self::createElement('div', $opt->attr, $opt->title));
                     
@@ -497,13 +506,13 @@ class core_Html
                     } else {
                         unset($radioAttr['checked']);
                     }
-                    
-                    $radioAttr['class'] .= ' radiobutton';
+
+                    $radioAttr['class'] = ($radioAttr['class'] ?? '') . ' radiobutton';
                     if(isset($attr['onchange'])){
                         $radioAttr['onclick'] = $attr['onchange'];
                     }
                     
-                    $input->append($indent);
+                    $input->append($indent ?? '');
                     
                     $input->append(self::createElement('input', $radioAttr));
                     
@@ -520,7 +529,7 @@ class core_Html
             }
             
             // Добавка (временна) за да не се свиват радио бутоните от w25 - w75
-            $attr['style'] .= 'width:100%';
+            $attr['style'] = ($attr['style'] ?? '') . ';width:100%;';
 
             if(isset($attr['_isAllowEmpty'])){
                 $attr['class'] .= ' allowEmptyRadioHolder';
@@ -630,7 +639,7 @@ class core_Html
         }
         
         
-        if ($c = $accessKeys[mb_strtolower($title)]) {
+        if ($c = ($accessKeys[mb_strtolower($title)] ?? null)) {
             $attr['accesskey'] = $c;
             
             if (substr(log_Browsers::getUserAgentOsName(), 0, 3) == 'Mac') {
@@ -772,8 +781,10 @@ class core_Html
         
         self::addAccessKey($attr, $title);
         
+        $attr['name'] ??= '';
         $attr['name'] .= "Cmd[{$cmd}]";
         
+        $attr['onclick'] ??= '';
         if (is_string($newWindow) && ($newWindow != '_blank')) {
             $attr['onclick'] .= "  this.form.target = '{$newWindow}';";
         } elseif ($newWindow) {
@@ -784,13 +795,17 @@ class core_Html
         
         $attr['value'] = $title;
         
+ 
+       
         // Оцветяваме бутона в зависимост от особеностите му
+        $attr['style'] ??= '';
         if (isset($warning)) {
             $attr['style'] .= 'color:#772200;';
         } elseif ($newWindow) {
             $attr['style'] .= 'color:#008800;';
         }
-        
+
+        $attr['class'] ??= '';
         if ($attr['class']) {
             $attr['class'] .= ' button';
         } else {
@@ -884,7 +899,7 @@ class core_Html
         }
         
         if ($url) {
-            if (($warning || $attr['rel'] == 'nofollow') && ((!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'plain')))) {
+            if (($warning || ($attr['rel'] ?? null) == 'nofollow') && ((!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('text', 'plain')))) {
                 $attr['onclick'] .= " document.location='{$url}'";
                 $attr['href'] = 'javascript:void(0)';
             } else {
@@ -892,7 +907,7 @@ class core_Html
             }
         }
         
-        if ($icon = $attr['ef_icon']) {
+        if ($icon = ($attr['ef_icon'] ?? null)) {
             if ((Mode::is('text', 'xhtml') || Mode::is('printing'))) {
                 $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
                 $srcset = '';
@@ -915,17 +930,18 @@ class core_Html
             
             unset($attr['ef_icon']);
         }
-        
+        $attr['class'] ??= '';
+        $attr['style'] ??= '';
         if ((!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf'))) {
             // Оцветяваме линка в зависимост от особеностите му
-            if (!$attr['disabled']) {
+            if (!isset($attr['disabled'])) {
                 if ($warning) {
                     $attr['style'] .= ' color:#772200';
-                } elseif (strpos($url, '://')) {
-                    if (!strpos($attr['class'], 'out')) {
+                } elseif (strpos($url ?? '', '://')) {
+                    if (!strpos($attr['class'] ?? '', 'out')) {
                         $attr['class'] .= ' out';
                     }
-                } elseif ($attr['target'] == '_blank') {
+                } elseif (($attr['target'] ?? 'null') == '_blank') {
                     $attr['style'] .= ' color:#008800';
                 }
             } else {
@@ -1016,7 +1032,7 @@ class core_Html
      */
     public static function createImg($attr)
     {
-        if ($path = $attr['path']) {
+        if ($path = $attr['path'] ?? null) {
             $src = sbf($path, '');
             unset($attr['path']);
             if ((log_Browsers::isRetina())) {
@@ -1379,8 +1395,8 @@ class core_Html
      */
     public static function setUniqId(&$attr)
     {
-        if (!$attr['id']) {
-            $name = $attr['name'] ? $attr['name'] : 'autoElement';
+        if (empty($attr['id'])) {
+            $name = !empty($attr['name']) ? $attr['name'] : 'autoElement';
             $name = str_replace(array('[', ']'), array('_', '_'), $name);
             $attr['id'] = self::getUniqId($name);
         }
@@ -1410,14 +1426,14 @@ class core_Html
     public static function addBackgroundIcon($attr, $icon = null)
     {
         if (!$icon) {
-            $icon = $attr['ef_icon'];
+            $icon = $attr['ef_icon'] ?? null;
             unset($attr['ef_icon']);
         }
         
         if (!empty($icon) && getFullPath($icon)) {
-            $attr['class'] .= ($attr['class'] ? ' ' : '') . 'linkWithIcon';
+            $attr['class'] = ($attr['class'] ?? '') . ' linkWithIcon';
             
-            $attr['style'] = self::getIconStyle($icon, $attr['style']);
+            $attr['style'] = self::getIconStyle($icon, $attr['style'] ?? null);
         }
         
         return $attr;
@@ -1440,7 +1456,7 @@ class core_Html
             
             $iconSrc = sbf($icon, '', Mode::is('text', 'xhtml'));
             
-            $style = rtrim($style, ' ;');
+            $style = rtrim($style ?? '', ' ;');
             
             $style .= ($style ? '; ' : '') . "background-image:url('{$iconSrc}');";
         }
@@ -1456,12 +1472,15 @@ class core_Html
     {
         $attr = arr::make($attr);
         
-        if ($attr['title'] && $trTitle) {
+        if (($attr['title'] ?? null) && $trTitle) {
             $attr['title'] = tr($attr['title']);
         }
         
         // Вкарваме предупреждението
         if ($warning) {
+            if (!isset($attr['onclick'])) {
+                $attr['onclick'] = '';
+            }
             $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) { $(event.target).blur(); event.stopPropagation(); return false; }";
         }
         

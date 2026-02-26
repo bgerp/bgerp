@@ -394,32 +394,110 @@ class rack_Products extends store_Products
 
         $stores = arr::extractValuesFromArray($storeQuery->fetchAll(), 'id');
         $measureId = tr(cat_UoM::getShortName($data->masterData->rec->measureId));
+        $Def = batch_Defs::getBatchDef($data->masterId);
 
         // Подготовка на позициите на складовете
         foreach ($stores as $storeId){
+
+            // Ако има наличност в склада
             $pRec = rack_Products::fetch("#storeId = {$storeId} AND #productId = {$data->masterId}");
             if(empty($pRec->quantity)) continue;
 
-            $rQuery = rack_Pallets::getQuery();
-            $rQuery->where("#storeId = {$storeId} AND #productId = {$data->masterId} AND #state = 'active'");
-            while($rRec = $rQuery->fetch()){
-                $data->recs[] = (object)array('rec' => $rRec,
-                                              'storeId' => $rRec->storeId,
-                                              'batch' => $rRec->batch,
-                                              'position' => $rRec->position,
-                                              'quantity' => $rRec->quantity,);
-            }
+            // Ако артикулът има партида
+            if(is_object($Def)){
 
-            $data->recs[] = (object)array('storeId' => $storeId,
-                                          'batch' => null,
-                                          'position' => rack_PositionType::FLOOR,
-                                          'quantity' => $pRec->quantityNotOnPallets,);
+                // Каква е наличноста на артикула по партиди
+                $batchQuantities = batch_Items::getBatchQuantitiesInStore($data->masterId, $storeId);
+
+                // Добавяме без партида като псевдо партида в списъка
+                $batchQuantities[''] = $pRec->quantity - array_sum($batchQuantities);
+
+                // За всяка партида (включително и без партида)
+                foreach ($batchQuantities as $batch => $quantity){
+
+                    // Гледат се позициите на които са наличните партиди
+                    $rQuery = rack_Pallets::getQuery();
+                    $rQuery->where(array("#storeId = {$storeId} AND #productId = {$data->masterId} AND #batch = '[#1#]' AND #state = 'active'", $batch));
+                    $quantityNotOnPallets = $quantity;
+
+                    while($rRec = $rQuery->fetch()) {
+
+                        // За всяка ще се показва склад-позиция-партида
+                        $data->recs[] = (object)array('storeId' => $rRec->storeId,
+                                                      'batch' => $rRec->batch,
+                                                      'position' => $rRec->position,
+                                                      'quantity' => $rRec->quantity,);
+
+                        // От количеството не на палети ще се изчисли количеството от партидата на пода
+                        $quantityNotOnPallets -= $rRec->quantity;
+                    }
+
+                    // Ако има останало к-во, което не е на палети - значи е на пода
+                    $quantityNotOnPallets = round($quantityNotOnPallets, 4);
+                    if(!empty($quantityNotOnPallets)){
+                        $data->recs[] = (object)array('storeId' => $storeId,
+                                                      'batch' => $batch,
+                                                      'position' => rack_PositionType::FLOOR,
+                                                      'quantity' => $quantityNotOnPallets,);
+                    }
+                }
+            } else {
+
+                // Ако артикулът не поддържа партидност извличат се наличностите по позиции в стелажния склад
+                $rQuery = rack_Pallets::getQuery();
+                $rQuery->where("#storeId = {$storeId} AND #productId = {$data->masterId} AND #state = 'active'");
+                $quantityNotOnPallets = $pRec->quantity;
+
+                while($rRec = $rQuery->fetch()) {
+
+                    // За всяка ще се показва склад-позиция
+                    $data->recs[] = (object)array('storeId' => $rRec->storeId,
+                                                  'batch' => $rRec->batch,
+                                                  'position' => $rRec->position,
+                                                  'quantity' => $rRec->quantity,);
+
+                    // От количеството не на палети ще се изчисли количеството от партидата на пода
+                    $quantityNotOnPallets -= $rRec->quantity;
+                }
+
+                // Ако има останало не на палети от наличното к-во значи е на пода
+                $quantityNotOnPallets = round($quantityNotOnPallets, 4);
+                if(!empty($quantityNotOnPallets)){
+                    $data->recs[] = (object)array('storeId' => $storeId,
+                                                  'batch' => null,
+                                                  'position' => rack_PositionType::FLOOR,
+                                                  'quantity' => $quantityNotOnPallets,);
+                }
+            }
 
             $data->recs[] = (object)array('storeId' => $storeId,
                                           'batch' => null,
                                           'position' => null,
                                           'quantity' => $pRec->quantityOnZones,);
         }
+
+        usort($data->recs, function ($a, $b) {
+
+            // 1. storeId (числово)
+            $storeCmp = (int)$a->storeId <=> (int)$b->storeId;
+            if ($storeCmp !== 0) {
+                return $storeCmp;
+            }
+
+            $posA = $a->position;
+            $posB = $b->position;
+
+            // 2. NULL позициите – най-накрая (след floor)
+            if ($posA === null && $posB !== null) return 1;
+            if ($posA !== null && $posB === null) return -1;
+
+            // 3. floor – след всички нормални позиции
+            if ($posA === 'floor' && $posB !== 'floor') return 1;
+            if ($posA !== 'floor' && $posB === 'floor') return -1;
+
+            // 4. стандартно стрингово сравнение
+            return strcmp((string)$posA, (string)$posB);
+        });
 
         // Подготвяме страницирането
         $pager = cls::get('core_Pager', array('itemsPerPage' => 20));
@@ -458,7 +536,7 @@ class rack_Products extends store_Products
                 }
             }
 
-            if(isset($batchDef)){
+            if(is_object($batchDef)){
                 if(!empty($rec->batch)){
                     $row->batch = $batchDef->toVerbal($rec->batch);
                     if (batch_Movements::haveRightFor('list')) {
@@ -468,6 +546,8 @@ class rack_Products extends store_Products
                         }
                         $row->batch = ht::createLink($row->batch, $link);
                     }
+                } else {
+                    $row->batch = "<i>" . tr('Без партида') . "</i>";
                 }
             }
 

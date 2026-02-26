@@ -1336,7 +1336,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         ///////////////////////////////////////////////////////////////////////
         // Ако справката се издава за период ОТ ЕВРОЗОНАТА с основна валута EUR
-        if ($rec->checkDate > $euroZoneDate) {
+        if ($rec->checkDate >= $euroZoneDate) {
 
             //режим ВСИЧКИ ВЪВ ЕВРОЗОНАТА
             if ($rec->unpaid == 'all') {
@@ -1386,7 +1386,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
 
             //Стойност на фактурата във валутата на издаване
-            if ($dRec->invoiceDate > $euroZoneDate) {
+            if ($dRec->invoiceDate >= $euroZoneDate) {
                 if ($dRec->currencyId == 'EUR' && $baseCurrency == 'EUR') {
                     $row->invoiceValue = $Double->toVerbal($dRec->invoiceValue);
                 } elseif ($dRec->currencyId != 'EUR' && $baseCurrency == 'EUR') {

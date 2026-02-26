@@ -28,7 +28,7 @@ class plg_State extends core_Plugin
     
     public static function setStateField($mvc)
     {
-        if (!$mvc->fields['state']) {
+        if (empty($mvc->fields['state'])) {
             $mvc->FLD(
                 'state',
                  'enum(draft=Чернова,
@@ -66,7 +66,7 @@ class plg_State extends core_Plugin
      */
     public static function on_BeforeSave($mvc, &$id, &$rec, &$fields = null)
     {
-        if (!$rec->state && !$rec->id) {
+        if (empty($rec->state) && empty($rec->id)) {
             $rec->state = $mvc->defaultState ? $mvc->defaultState : 'draft';
         }
     }
@@ -77,8 +77,14 @@ class plg_State extends core_Plugin
      */
     public static function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
     {
-        if ($invoker->addRowClass !== false) {
+        if (($invoker->addRowClass ?? null) !== false) {
+            if (!isset($row->ROW_ATTR['class'])) {
+                $row->ROW_ATTR['class'] = '';
+            }
             $row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        }
+        if (!isset($row->STATE_CLASS)) {
+            $row->STATE_CLASS = '';
         }
         $row->STATE_CLASS .= " state-{$rec->state}";
     }

@@ -80,7 +80,7 @@ class type_Url extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        if (!trim($value)) {
+        if (!trim($value ?? '')) {
             
             return;
         }

@@ -21,8 +21,14 @@ class type_Datetime extends type_Date
      * MySQL тип на полето в базата данни
      */
     public $dbFieldType = 'datetime';
-    
-    
+
+
+    /**
+     *
+     */
+    public $dt;
+
+
     /**
      * Формат на времевата част
      */
@@ -48,8 +54,11 @@ class type_Datetime extends type_Date
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        setIfNot($value, $attr['value']);
-        
+        $value = $value ?? $attr['value'] ?? null;
+
+        $time = $time ?? '';
+        $date = $date ?? '';
+
         if ($value) {
             if (is_array($value)) {
                 $date = $value['d'];
@@ -84,7 +93,12 @@ class type_Datetime extends type_Date
         
         $attr['value'] = $time;
         $attr['autocomplete'] = 'off';
+
+        if (!isset($attr['style'])) {
+            $attr['style'] = '';
+        }
         $attr['style'] .= ';vertical-align:top;';
+
         unset($attr['id']);
         
         if (strlen($time) == 5 || strlen($time) == 0) {
@@ -92,9 +106,9 @@ class type_Datetime extends type_Date
             $sugArr[] = $time;
             sort($sugArr);
             $sugList = implode('|', $sugArr);
-            
-            setIfNot($ts, $this->params['timeSuggestions'], $sugList);
-            
+
+            $ts = $ts ?? $this->params['timeSuggestions'] ?? $sugList ?? null;
+
             if (!is_array($ts)) {
                 $ts = array('' => '') + arr::make(str_replace('|', ',', $ts), true);
             }
@@ -192,8 +206,8 @@ class type_Datetime extends type_Date
      */
     public function toVerbal($value, $useFormat = true)
     {
-        list($d, $t) = explode(' ', $value);
-        
+        list($d, $t) = array_pad(explode(' ', $value ?? ''), 2, null);
+
         $stp = $this->timePart;
         $sf = $this->params['format'];
         

@@ -24,7 +24,7 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterDescription(&$mvc)
     {
-        if (!$mvc->fields['folderId']) {
+        if (!isset($mvc->fields['folderId'])) {
             if ($mvc->className != 'doc_Folders') {
                 
                 // Поле за id на папката. Ако не е зададено - обекта няма папка
@@ -33,7 +33,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Определя достъпа по подразбиране за новите папки
-            setIfNot($defaultAccess, $mvc->defaultAccess, 'team');
+            $defaultAccess = $mvc->defaultAccess ?? 'team';
             
             $mvc->FLD('inCharge', 'user(roles=powerUser, rolesForAll=executive, showClosedGroups, showClosedUsers=no)', 'caption=Права->Отговорник,formOrder=10000,smartCenter');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);
@@ -692,7 +692,7 @@ class doc_FolderPlg extends core_Plugin
             $row->inCharge = core_Setup::get('SYSTEM_NICK');
         }
         
-        if ($fields['-single']) {
+        if (!empty($fields['-single'])) {
             if (Mode::is('screenMode', 'narrow')) {
                 $imageUrl = sbf($mvc->getSingleIcon($rec->id), '');
                 $row->SingleIcon = ht::createElement('img', array('src' => $imageUrl, 'alt' => ''));
@@ -703,9 +703,10 @@ class doc_FolderPlg extends core_Plugin
             }
         }
         $currUrl = getCurrentUrl();
-        
+
+        $fField = $mvc->listFieldForFolderLink ?? null;
         // Подготовка на линк към папката (или създаване на нова) на корицата
-        if ($fField = $mvc->listFieldForFolderLink) {
+        if (!empty($fField)) {
             list($fField, $fName) = explode('=', $fField);
             $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
@@ -734,7 +735,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // В лист изгледа
-        if ($fields['-list']) {
+        if (!empty($fields['-list'])) {
             
             // Имали бързи бутони
             if ($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected' && doc_Folders::haveRightToObject($rec)) {
