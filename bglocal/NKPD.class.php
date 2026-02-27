@@ -54,6 +54,8 @@ class bglocal_NKPD extends core_Master
         $this->FLD('key', 'varchar', 'caption=Код');
         $this->FLD('number', 'varchar', 'caption=Номер');
         $this->FLD('title', 'text', 'caption=Наименование');
+        
+        $this->setDbUnique('key,number');
     }
     
     
@@ -74,7 +76,7 @@ class bglocal_NKPD extends core_Master
     {
         $file = 'bglocal/data/nkpd.csv';
         $fields = array(0 => 'key', 1 => 'number', 2 => 'title');
-        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
+        $cntObj = csv_Lib::largeImportOnce($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
     
