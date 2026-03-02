@@ -4391,7 +4391,8 @@ class cat_Products extends embed_Manager
                     }
                 }
 
-                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld}, $vatExceptionId);
+                $valior = !empty($masterMvc->valiorFld) ? $mRec->{$masterMvc->valiorFld} : dt::today();
+                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $valior, $vatExceptionId);
                 $recs[$dRec->id]->notes = $dRec->notes;
 
                 // За добавяне на бачовете
