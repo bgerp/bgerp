@@ -111,22 +111,50 @@ class email_AutomaticResponse extends core_Master
      */
     public function description()
     {
-        $this->FLD('userId', 'user', 'caption=Потребител,silent,removeAndRefreshForm=folders');
-        $this->FLD('dateFrom', 'date', 'caption=Автоматични отговори->Дата от');
-        $this->FLD('dateTo', 'date', 'caption=Автоматични отговори->Дата до');
-        $this->FLD('sender', 'varchar(128)', 'caption=Автоматични отговори->Изпращач');
-        $this->FLD('receiver', 'varchar(128)', 'caption=Автоматични отговори->Получател');
-        $this->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Автоматични отговори->Папка');
-        $this->FLD('title', 'varchar(128)', 'caption=Автоматични отговори->Заглавие');
-        $this->FLD('content', 'richtext(rows=4)', 'caption=Автоматични отговори->Съдържание');
-        $this->FLD('titleOfMessage', 'varchar(128)', 'caption=Автоматични съобщения->Заглавие, mandatory');
-        $this->FLD('text', 'richtext(rows=4)', 'caption=Автоматични съобщения->Съдържание, mandatory');
-        $this->FLD('state', 'enum(active=Активна, rejected=Отхвърлена)', 'caption=Автоматични съобщения->Състояние');
-        $this->FLD('inboxEmail', 'key(mvc=email_inboxes)', 'caption=Автоматични съобщения->Имейл, mandatory');
+        $this->FLD('userId', 'user', 'caption=Шаблон за получени отговори->Потребител,silent,removeAndRefreshForm=folders');
+        $this->FLD('dateFrom', 'date', 'caption=Шаблон за получени отговори->Дата от');
+        $this->FLD('dateTo', 'date', 'caption=Шаблон за получени отговори->Дата до');
+        $this->FLD('sender', 'varchar(128)', 'caption=Шаблон за получени отговори->Изпращач');
+        $this->FLD('receiver', 'varchar(128)', 'caption=Шаблон за получени отговори->Получател');
+        $this->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Шаблон за получени отговори->Папка');
+        $this->FLD('title', 'varchar(128)', 'caption=Шаблон за получени отговори->Заглавие');
+        $this->FLD('content', 'richtext(rows=4)', 'caption=Шаблон за получени отговори->Съдържание');
+        $this->FLD('titleOfMessage', 'varchar(128)', 'caption=Автоматични отговори->Заглавие, mandatory');
+        $this->FLD('text', 'richtext(rows=4)', 'caption=Автоматични отговори->Съдържание, mandatory');
+        $this->FLD('state', 'enum(active=Активна, rejected=Отхвърлена)', 'caption=Автоматични отговори->Състояние');
+        $this->FLD('inboxEmail', 'key(mvc=email_inboxes)', 'caption=Автоматични отговори->Имейл, mandatory');
+        if(core_Packs::isInstalled('ai')){
+            $this->FLD('aiInstructions', 'text(rows=3)', 'caption=Интелигентен Асистент->Инструкции, input');
+        }
 
     }
 
 
+    /**
+    * 
+    * Извиква се след въвеждане на данните във формата
+    */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = &$form->rec;
+
+        // Проверяваме само ако формата е изпратена (Submit-ната)
+        if ($form->isSubmitted()) {
+        
+        // Проверка на датите
+            if (!empty($rec->dateFrom) && !empty($rec->dateTo)) {
+            
+                $from = dt::mysql2timestamp($rec->dateFrom);
+                $to   = dt::mysql2timestamp($rec->dateTo);
+
+                if ($from > $to) {
+                // Това ще спре записа и ще оцвети полето в червено
+                $form->setError('dateTo', 'Датата "До" не може да бъде преди "От"!');
+                }
+            }  
+        }
+    }
+    
     /**
      * След подготовка на формата:
      *  Ако потребителят не е admin, полето `userId` става read-only.
@@ -138,6 +166,9 @@ class email_AutomaticResponse extends core_Master
     { 
         $form = &$data->form;
         $rec = $form->rec;
+
+        $form->setField('aiInstructions', 'input');
+        $form->setField('aiInstructions', 'after=text');
 
         //само админ да може да избира потребител
         if (!haveRole('admin')) {
@@ -179,7 +210,7 @@ class email_AutomaticResponse extends core_Master
         $query = email_AutomaticResponse::getQuery();
         $query->where("#userId LIKE {$data->masterId}");
         $query->orderBy('createdOn', 'DESC');
-        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 2));
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 5));
         $data->Pager->setLimit($query);
 
         while ($rec = $query->fetch()) {
@@ -243,7 +274,7 @@ class email_AutomaticResponse extends core_Master
      *  Взема входящите имейли от последната минута (closed).
      *  При съвпадение изпраща автоматичен отговор.
      */    
-    public function cron_runAutoResponder()
+    public function act_runAutoResponder()
     {
         //Вземаме активните правила за текущия момент
         $now = dt::now();
@@ -254,7 +285,7 @@ class email_AutomaticResponse extends core_Master
         if (!countR($rules)) return;
         
         //Вземаме всички входящи имейли от последната минута със състояние 'closed'
-        $beforeOneMin = dt::addSecs(-60, $now);
+        $beforeOneMin = dt::addSecs(-3600, $now);
         $incomQuery = email_Incomings::getQuery();
         $incomQuery->where("#createdOn > '{$beforeOneMin}' AND #state = 'closed'");
         $incomings = $incomQuery->fetchAll();
@@ -317,24 +348,77 @@ class email_AutomaticResponse extends core_Master
     *
     */
     public function createEmail($mail, $rule){
-        // Подготовка на имейла
-        $emailRec = (object) array('subject' => "Re: {$mail->subject}" . "{$rule->titleOfMessage}",
-                                   'body' => $rule->text,
-                                   'folderId' => $mail->folderId,
-                                   'originId' => $mail->containerId,
-                                   'threadId' => $mail->threadId,
-                                   'state' => 'active',
-                                   'email' => $mail->fromEml, 
-                                   'recipient' => $mail->fromEml);
+
+        //Логика за интеграция с ИИ (Задейства се при изпращане на формата)
+        if (!empty($rule->aiInstructions)) {
+
+            $Email = cls::get('email_Outgoings');
+            
+            // Подготовка на имейла
+            $emailRec = (object) array('subject' => "Re: {$mail->subject}" . " {$rule->titleOfMessage}",
+                                    'body' => $rule->text,
+                                    'folderId' => $mail->folderId,
+                                    'originId' => $mail->containerId,
+                                    'threadId' => $mail->threadId,
+                                    'state' => 'active',
+                                    'email' => $mail->fromEml, 
+                                    'recipient' => $mail->fromEml,
+                                    'aiInstructions' => $rule->aiInstructions);
+
+            // Вземане на настройките на промпта от посочения път
+            $promptRec =$Email->getPrompt($emailRec);
+           // bp($promptRec);
+            if ($promptRec) {
+                
+                core_Lg::push($promptRec->_lg);
+                // Тук се извличат стойностите на полетата, дефинирани в промпта
+                $params = $Email->getPromptParams($emailRec, $promptRec->fields);
+                core_Lg::pop();
+                $params['lang'] = $mail->lg;
+              
+
+                // Определяне каква трудност да се използва
+                $otherParams = array('useBase64' => true, 'question' => $rule->aiInstructions);
+                foreach (ai_Dialogs::USE_DIFFICULTY_FOR_INSTRUCTION as $difficultyHint => $difficulty){
+                     if (strpos($params['userRequirements'], $difficultyHint) !== false) {
+                        $otherParams['difficulty'] = $otherParams['difficulty'] == 'high' ? $otherParams['difficulty'] : $difficulty;
+                        $params['userRequirements'] = str_replace($difficultyHint, '', $params['userRequirements']);
+                    }
+                }
+
+                // Извикване на услугата за ИИ
+                $res = ai_Dialogs::get($promptRec->id, $params, array(), $otherParams, $emailRec->_dialogId);
+                
+                //bp($params, $res, $promptRec);
+                if (is_object($res)) {
+
+                    //Замяна на съдържанието (ако ИИ го е върнал)
+                    if (isset($res->body)) {
+                        $emailRec->body = $res->body;
+                    }
+
+                    //Замяна на заглавието (ако ИИ го е върнал)
+                    if (isset($rule->subject)) {
+                        $emailRec->subject = $rule->subject;
+                    }
+                }
+            }
+        }
+
+        
+        
 
         // Активиране на изходящия имейл
         core_Users::forceSystemUser();
+        //bp($emailRec);
+        //$emailRec->_originRec = $originRec;
         email_Outgoings::save($emailRec);
-        email_Outgoings::logWrite('Автоматичен отговор', $emailRec->id);
+        //email_Outgoings::logWrite('Автоматичен отговор', $emailRec->id);
         core_Users::cancelSystemUser();
 
-        $options = (object) array('encoding' => 'utf-8', 'boxFrom' => $rule->inboxEmail, 'emailsTo' => $mail->fromEml);
+        $options = (object) array('encoding' => 'utf-8', 'boxFrom' => $rule->inboxEmail, 'emailsTo' => $mail  ->fromEml);
         $lang = 'bg';
         // Изпращане на имейла
-        email_Outgoings::send($emailRec, $options, $lang);}
+        email_Outgoings::send($emailRec, $options, $lang);
+    }
 }
