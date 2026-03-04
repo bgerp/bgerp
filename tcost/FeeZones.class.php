@@ -385,6 +385,7 @@ class tcost_FeeZones extends core_Master
     {
         $Document = cls::get($document);
         if($Document instanceof eshop_Carts){
+            unset($form->locationId);
             foreach (array('deliveryCountry', 'deliveryPCode', 'deliveryPlace', 'deliveryAddress') as $fld){
                 if(!$form->getFieldTypeParam($fld, 'isReadOnly') && $form->getFieldParam($fld, 'input') != 'hidden' && $form->getFieldParam($fld, 'input') != 'none'){
                     $form->setField($fld, 'mandatory');
@@ -499,6 +500,7 @@ class tcost_FeeZones extends core_Master
         if(!empty($settings->freeDelivery) && round($cartRec->total, 2) >= round($freeDelivery, 2)){
             $cartRec->freeDelivery = 'yes';
         }
+        $cartRec->locationId = null;
     }
     
     
