@@ -2655,14 +2655,12 @@ class eshop_Carts extends core_Master
                     $form->info = new core_ET("<div id='editStatus'><div class='warningMsg'>{$infoText}</div></div>");
                 }
             }
-            
-            if(countR($locations) > 1) {
-                if($settings->locationIsMandatory == 'yes'){
-                    $form->setDefault('locationId', key($locations));
-                } else {
-                    $locations = array('' => '') + $locations;
-                }
+            if($settings->locationIsMandatory == 'yes'){
+                $form->setDefault('locationId', key($locations));
+            } else {
+                $locations = array('' => '') + $locations;
             }
+
             $form->setOptions('locationId', $locations);
         }
         
