@@ -1240,7 +1240,6 @@ class planning_Tasks extends core_Master
 
         $res = $this->save_($rec, $updateFields);
         plg_Search::forceUpdateKeywords($this, $rec);
-
         planning_TaskConstraints::calcTaskDuration($rec->id);
 
         core_Debug::stopTimer('UPDATE_TASK_MASTER');
@@ -3777,7 +3776,11 @@ class planning_Tasks extends core_Master
         if(isset($rec->wasteProductId)){
 
             // Ако отпадъчният артикул е ръчно добавен - нищо не се прави
-            if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'waste' AND #productId = {$rec->wasteProductId}")) return;
+            if($exRec = planning_ProductionTaskProducts::fetch("#taskId = {$rec->id} AND #productId = {$rec->wasteProductId}")) {
+                wp("Дублирано добавяне на отпадък", $exRec, $rec);
+
+                return;
+            }
 
             // Добавяне на отпадъка при първоначално активиране
             $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
@@ -3795,7 +3798,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId, 'createdOn' => core_Users::getCurrent(), 'createdBy' => core_Users::getCurrent(), 'modifiedOn' => $now, 'createdOn' => $now);
+            $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId, 'createdBy' => core_Users::getCurrent(), 'modifiedOn' => $now, 'createdOn' => $now);
             planning_ProductionTaskProducts::save($wasteRec);
         }
     }
