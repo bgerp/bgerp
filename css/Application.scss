@@ -1218,6 +1218,7 @@ div.acc-detail {
         &.bottom{
             bottom: auto;
             top: 0;
+            top: 0;
 
         }
 	   .aright{
@@ -5819,6 +5820,10 @@ iframe.autoHeight {
 
 .narrow-scroll .main-container {
 	display: block;
+}
+
+.listBlock:has(.listTopContainer) {
+	display: table;
 }
 
 .listBlock .listRows {
