@@ -729,7 +729,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             // Да се показва изображението при печат ако е избрано в настройките
             $showImage = planning_Setup::get('PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING');
             if($showImage == 'yes' && Mode::is('printing')){
-                if ($preview = cat_Products::getPreview($rec->productId, array(200, 200))) {
+                if ($preview = cat_Products::getPreview($rec->productId, array(300, 300))) {
                     $row->productImage = $preview;
                 }
             }
