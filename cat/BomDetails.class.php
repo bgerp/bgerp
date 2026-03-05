@@ -194,9 +194,7 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
-        if(cat_BomDetails::count("#bomId = {$data->masterId} AND #type = 'stage'")){
-            $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=' plus-icon more-btn' id='bomResourceColName{$data->masterData->rec->id}'> </a>";
-        }
+        $data->listFields['resourceId'] .= "|* <a href=\"javascript:clickAllClasses('bomResourceColName{$data->masterData->rec->id}','bomDetailStepDescription{$data->masterData->rec->id}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ");\" class=' plus-icon more-btn' id='bomResourceColName{$data->masterData->rec->id}'> </a>";
 
         if(cat_BomDetails::count("#bomId = {$data->masterId} AND #parentId IS NOT NULL")) {
             if(!in_array($data->masterData->rec->state, array('draft', 'rejected'))){
