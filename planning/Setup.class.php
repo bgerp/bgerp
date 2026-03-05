@@ -254,6 +254,12 @@ defIfNot('PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK', 'no');
 
 
 /**
+ * При печат на ПП да се показва изображението на артикула->Избор
+ */
+defIfNot('PLANNING_PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING', 'no');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -343,6 +349,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_TASK_SUB_PRODUCT_MIN_BUTTONS' => array('int(Min=0)', array('caption' => 'Колко индивидуални бутони за субпродукти да се показват в ПО->Брой')),
         'PLANNING_ALLOW_STORE_DOCS_IN_JOB' => array('time', array('caption' => 'До кога след приключване на заданието да се контират протоколи за влагане и връщане->Време')),
         'PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Автоматично добавяне на артикули от протокол за влагане в ПО->Избор')),
+        'PLANNING_PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'При печат на ПП да се показва изображението на артикула->Избор')),
     );
 
 
