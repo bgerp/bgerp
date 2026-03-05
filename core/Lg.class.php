@@ -206,7 +206,7 @@ class core_Lg extends core_Manager
     public function translate($kstring, $key = false, $lg = null)
     {
         // Празните стрингове и обектите не се превеждат
-        if (is_object($kstring) || !trim($kstring)) {
+        if (is_object($kstring) || !trim($kstring ?? '')) {
             
             return $kstring;
         }
@@ -303,7 +303,7 @@ class core_Lg extends core_Manager
 
         // Ако имаме превода в речника, го връщаме
         if (isset($this->dict[$lg][$key])) {
-            $res = $this->dictTemp[$lg][$key] ? $this->dictTemp[$lg][$key] : $this->dict[$lg][$key];
+            $res = $this->dictTemp[$lg][$key] ?? $this->dict[$lg][$key] ?? null;
         } elseif (is_array($this->dict[$lg]) && in_array($kstring, $this->dict[$lg])) {
             $res = $kstring;
         } else {
@@ -328,7 +328,7 @@ class core_Lg extends core_Manager
             // Записваме в кеш-масива
             $this->dict[$lg][$key] = type_Varchar::escape($rec->translated);
 
-            $res = $this->dictTemp[$lg][$key] ? $this->dictTemp[$lg][$key] : $this->dict[$lg][$key];
+            $res = $this->dictTemp[$lg][$key] ?? $this->dict[$lg][$key] ?? null;
         }
 
         unset($this->dictTemp);
@@ -351,10 +351,11 @@ class core_Lg extends core_Manager
             $lg = core_Lg::getCurrent();
         }
         
-        if (!is_array($this->dict[$lg]) || empty($this->dict[$lg])) {
+        if (empty($this->dict[$lg]) || !is_array($this->dict[$lg])) {
             $this->dict[$lg] = core_Cache::get('translationLG', $lg, 2 * 60 * 24, array('core_Lg'));
             
             if (!$this->dict[$lg]) {
+                $this->dict[$lg] = [];
                 $query = self::getQuery();
                 
                 while ($rec = $query->fetch(array("#lg = '[#1#]'", $lg))) {

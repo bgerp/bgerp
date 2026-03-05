@@ -102,8 +102,50 @@ class core_Manager extends core_Mvc
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = true;
-    
-    
+
+
+    /**
+     *
+     */
+    public $canEditsysdata;
+
+
+    /**
+     *
+     */
+    public $canDeletesysdata;
+
+
+    /**
+     *
+     */
+    public $searchInputField;
+
+
+    /**
+     *
+     */
+    public $doWithSelected;
+
+
+    /**
+     *
+     */
+    public $lastFetchedRec;
+
+
+    /**
+     *
+     */
+    public $canUsertranslate;
+
+
+    /**
+     *
+     */
+    public $updateExistingStateOnImport;
+
+
     /**
      * Дали в листовия изглед да се показват заглавията на колоните на таблицата
      */
@@ -605,7 +647,7 @@ class core_Manager extends core_Mvc
         if ($data && $data->listFields) {
             $data->listFields = arr::make($data->listFields);
 
-            if ($data->query && $data->listFields && $data->listFields['id']) {
+            if ($data->query && $data->listFields && isset($data->listFields['id'])) {
                 $data->query->orderBy('id', 'ASC');
             }
         }
@@ -619,7 +661,7 @@ class core_Manager extends core_Mvc
      */
     public function prepareListFilter_($data)
     {
-        if (!$data->listFilter) {
+        if (empty($data->listFilter)) {
             $formParams = array(
                 'method' => 'GET',
                 'toolbar' => ht::createSbBtn('Филтър')
@@ -631,7 +673,7 @@ class core_Manager extends core_Mvc
             }
         }
         
-        if ($data->ListId) {
+        if (!empty($data->ListId)) {
             $data->query->where($data->ListId);
         }
         
@@ -739,9 +781,9 @@ class core_Manager extends core_Mvc
     {
         $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') <= 1000) ?
         Request::get('PerPage', 'int') : $this->listItemsPerPage;
-        setIfNot($data->useExactPaging, $this->useExactPaging, false);
+        setPartIfNot($data, 'useExactPaging', $this->useExactPaging ?? null, false);
         if ($perPage) {
-            $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar, 'exactPaging' => $data->useExactPaging));
+            $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar ?? null, 'exactPaging' => $data->useExactPaging ?? null));
             $data->pager->itemsPerPage = $perPage;
             if (isset($data->rec->id)) {
                 $data->pager->setPageVar($this->className, $data->rec->id);
@@ -798,7 +840,7 @@ class core_Manager extends core_Mvc
     public function prepareListRecs_(&$data)
     {
         // Добавяме лимит според страньора, ако има такъв
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             $data->pager->setLimit($data->query);
         }
         
@@ -1103,9 +1145,9 @@ class core_Manager extends core_Mvc
     {
         setIfNot($data->listTableMvc, $this);
         setIfNot($data->listTableHideHeaders, $this->listTableHideHeaders);
-        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders, 'tableId' => $data->listTableId));
+        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders, 'tableId' => ($data->listTableId ?? null)));
         
-        if ($data->action == 'list') {
+        if (($data->action ?? null) == 'list') {
             $table->tableClass = 'listTable listAction';
         }
         
@@ -1113,7 +1155,7 @@ class core_Manager extends core_Mvc
         $data->listFields = arr::make($data->listFields, true);
         
         // Ако има колони за филтриране, филтрираме ги
-        if (countR($data->hideListFieldsIfEmpty)) {
+        if (!empty($data->hideListFieldsIfEmpty) && countR($data->hideListFieldsIfEmpty)) {
             $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->hideListFieldsIfEmpty);
         }
         
@@ -1122,12 +1164,11 @@ class core_Manager extends core_Mvc
 
         // Рендираме таблицата
         $tpl = $table->get($data->rows, $data->listFields);
-        
-        if (!$class = $data->listClass) {
-            $class = 'listRows';
-        }
-        
-        return new ET("<div class='{$class} {$data->listTableClass}'>[#1#]</div>", $tpl);
+
+        $class = $data->listClass ?? 'listRows';
+        $listTable = $data->listTableClass ?? '';
+
+        return new ET("<div class='{$class} {$listTable}'>[#1#]</div>", $tpl);
     }
     
     

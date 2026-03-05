@@ -150,9 +150,13 @@ class tags_plg_Add extends core_Plugin
             $sTitleStr = "<span class='{$mvc->tagsClassHolderName}'>" . $sTitleStr . "</span>";
 
             $rowObj->_haveSubtitle = false;
-            if ($rowObj->subTitle) {
+            if (!empty($rowObj->subTitle)) {
                 $rowObj->subTitle = "<span class='otherSubtitleStr'>{$rowObj->subTitle}</span>";
                 $rowObj->_haveSubtitle = true;
+            }
+
+            if (!isset($rowObj->subTitle)) {
+                $rowObj->subTitle = '';
             }
 
             if ($mvc->addTagsToSubtitle == 'after') {

@@ -30,7 +30,7 @@ class plg_Current extends core_Plugin
             $modeKey = self::getModeKey($mvc->className);
 
             // Опитваме се да вземем от сесията текущия обект
-            $res = Mode::get($modeKey)->{$part};
+            $res = Mode::get($modeKey)->{$part} ?? null;
             
             // Ако в сесията го има обекта, връщаме го
             if ($res) {
@@ -74,7 +74,8 @@ class plg_Current extends core_Plugin
                     redirect(array($mvc, 'SelectCurrent', 'ret_url' => true), false, '|Моля, изберете текущ/а|* |' . mb_strtolower(tr($mvc->singleTitle)));
                 }
             }
-            
+
+            $currRes = false;
             // Избиране на  обект, ако е намерен подходящ
             if ($rec) {
                 $currRes = self::setCurrent($mvc, $res, $rec);

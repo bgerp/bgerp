@@ -1,0 +1,15 @@
+services:
+  php82:
+    build:
+      context: .
+      dockerfile: php82/Dockerfile
+    ports:
+      - "${PORT_PHP82:-8082}:80"
+    environment:
+      DB_HOST: "${DB_HOST:-host.docker.internal}"
+      DB_PORT: "${DB_PORT:-3306}"
+    volumes:
+      - "${EF_ROOT}:/var/www/ef_root:rw"
+      - "${WEB_ROOT}:/var/www/webroot:rw"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

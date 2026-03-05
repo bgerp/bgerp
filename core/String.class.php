@@ -802,7 +802,7 @@ class core_String
         $char = mb_strtolower($char);
         
         // Ако е съгласна
-        return (boolean) $consonentArr[$char];
+        return (boolean) ($consonentArr[$char] ?? false);
     }
     
     
@@ -839,7 +839,7 @@ class core_String
             $strArr = explode($delimiter, $str);
             
             // За всеки елемент в масива конвертираме към главна буква
-            $strArr = array_map('static::mbUcfirst', $strArr);
+            $strArr = array_map([static::class, 'mbUcfirst'], (array)$strArr);
             
             // Обединяваме масива в стринг
             $nStr = implode($delimiter, $strArr);

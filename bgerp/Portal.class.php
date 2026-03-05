@@ -505,10 +505,10 @@ class bgerp_Portal extends embed_Manager
         core_Debug::stopTimer($prepareDebugName);
         
         // Добавяме URL за страниране
-        if ($rec->__cUrl) {
+        if (!empty($rec->__cUrl)) {
             if ($data->data->pager) {
                 $data->data->pager->url = $rec->__cUrl;
-            } elseif ($data->pager) {
+            } elseif (!empty($data->pager)) {
                 $data->pager->url = $rec->__cUrl;
             }
         }
@@ -588,7 +588,7 @@ class bgerp_Portal extends embed_Manager
      */
     protected function getCacheVal($res, $rData)
     {
-        $cKey = $rData->cacheKey;
+        $cKey = $rData->cacheKey ?? null;
         
         // Добавяме и резултата към AJAX, за да може при промяна, да се обнови
         if (is_object($res)) {
@@ -695,7 +695,7 @@ class bgerp_Portal extends embed_Manager
                 $oIdCalc = $nRec->originIdCalc;
             }
             
-            if ($resArr[$oIdCalc]) {
+            if (!empty($resArr[$oIdCalc])) {
                 continue;
             }
             

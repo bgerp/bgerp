@@ -258,7 +258,7 @@ class page_Html extends core_ET
                     $attr['defer'] = 'defer';
                 }
                 $files->invoker->appendOnce("\n" . ht::createElement('script', $attr, ''), 'HEAD', true);
-                if ($fallback) {
+                if (!empty($fallback)) {
                     $files->invoker->appendOnce($fallbackScript, 'HEAD', true);
                 }
             }

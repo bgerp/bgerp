@@ -39,10 +39,10 @@ class acc_ReportDetails extends core_Manager
     public function prepareAccReports(&$data)
     {
         // Роли по подразбиране
-        setIfNot($data->masterMvc->canReports, 'ceo');
-        setIfNot($data->masterMvc->canAddacclimits, 'ceo,accLimits');
-        setIfNot($data->masterMvc->balanceRefShowZeroRows, true);
-        setIfNot($data->masterMvc->showAccReportsInTab, true);
+        setPartIfNot($data->masterMvc, 'canReports', 'ceo');
+        setPartIfNot($data->masterMvc, 'canAddacclimits', 'ceo,accLimits');
+        setPartIfNot($data->masterMvc, 'balanceRefShowZeroRows', true);
+        setPartIfNot($data->masterMvc, 'showAccReportsInTab', true);
 
         // Перото с което мастъра фигурира в счетоводството
         $data->itemRec = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);

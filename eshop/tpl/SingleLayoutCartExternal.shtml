@@ -106,17 +106,17 @@
                   <td class="aright">|Срок за доставка|*:</td><td class="cardValue"> <b>[#deliveryTime#]</b></td>
                </tr>
                <!--ET_END deliveryTime-->
-               <!--ET_BEGIN deliveryError-->
-               <tr>
-                  <td colspan="2"><span class='info-transport no-transform' style='font-size:1em;'>[#deliveryError#]</span></td>
-               </tr>
-               <!--ET_END deliveryError-->
                <!--ET_BEGIN DELIVERY_DATA_VALUE-->
                <tr>
                   <td class="aright">[#DELIVERY_DATA_CAPTION#]:</td><td class="cardValue"> <span class="richtext-holder"> [#DELIVERY_DATA_VALUE#]</span></td>
                </tr>
                <!--ET_END DELIVERY_DATA_VALUE-->
                [#DELIVERY_BLOCK#]
+               <!--ET_BEGIN deliveryError-->
+               <tr>
+                  <td colspan="2"><span class='info-transport no-transform' style='font-size:1em;'>[#deliveryError#]</span></td>
+               </tr>
+               <!--ET_END deliveryError-->
                <!--ET_BEGIN instruction-->
                <tr>
                   <td class="aright">|Инструкции|*:</td><td class="cardValue"> <span class="richtext-holder"> [#instruction#]</span></td>

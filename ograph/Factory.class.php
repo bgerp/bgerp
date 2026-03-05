@@ -319,11 +319,11 @@ class ograph_Factory extends core_Master
             'Type' => 'article',
             'Url' => toUrl(getCurrentUrl(), 'absolute'),
             'Determiner' => 'the',);
-        
+
         // Създаваме Open Graph Article  обект
         $rec->ogp->recInfo = array(
-            'published' => $rec->createdOn,
-            'modified' => $rec->modifiedOn,
+            'published' => $rec->createdOn ?? null,
+            'modified' => $rec->modifiedOn ?? null,
             'expiration' => '',);
     }
     
@@ -345,7 +345,7 @@ class ograph_Factory extends core_Master
         $ogp = static::get($data->siteInfo);
         
         // Изображението което ще се показва в OGP
-        if ($data->imageInfo) {
+        if (!empty($data->imageInfo)) {
             $image = static::getImage($data->imageInfo);
             $ogp->addImage($image);
         }

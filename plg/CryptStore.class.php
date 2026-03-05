@@ -25,7 +25,7 @@ class plg_CryptStore extends core_Plugin
         
         if (countR($fieldsCrypt)) {
             foreach ($fieldsCrypt as $name => $fld) {
-                if ($rec->{$name}) {
+                if (!empty($rec->{$name})) {
                     if (!static::decrypt($rec->{$name})) {
                         $rec->{$name} = static::encrypt($rec->{$name});
                     }
@@ -44,7 +44,7 @@ class plg_CryptStore extends core_Plugin
         
         if (countR($fields)) {
             foreach ($fields as $name => $fld) {
-                if ($rec->{$name}) {
+                if (!empty($rec->{$name})) {
                     if ($val = self::decrypt($rec->{$name})) {
                         $rec->{$name} = $val;
                     } elseif ($val = core_Crypt::decodeVar($rec->{$name})) {
@@ -95,8 +95,9 @@ class plg_CryptStore extends core_Plugin
         }
         
         $key = '';
+        $res = '';
         for ($i = 0; $i < $len; $i++) {
-            if ($key[$i] === '') {
+            if ((strlen($key) < ($i + 1)) || ($key === '')) {
                 $key .= md5($rnd . EF_SALT . 'code' . $key, true);
             }
             

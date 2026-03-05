@@ -486,7 +486,10 @@ class doc_Folders extends core_Master
         if ($rec->openThreadsCnt) {
             $row->threads = "<span style='float-right; color:#5a6;'>${openThreads}</span>";
         }
-        
+
+        if (!isset($row->threads)) {
+            $row->threads = '';
+        }
         $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . '</span>';
         
         $row->title = self::getFolderTitle($rec, $row->title);
@@ -508,7 +511,7 @@ class doc_Folders extends core_Master
                 $row->type = ht::createElement('span', $attr, $singleTitle);
             }
 
-            if($fields['-list']){
+            if (!empty($fields['-list'])){
                 if($rec->coverClass == doc_UnsortedFolders::getClassId()){
                     if ($rec->coverId) {
                         $unsortedFolderContragentId = doc_UnsortedFolders::fetchField($rec->coverId, 'contragentFolderId');
@@ -1124,15 +1127,15 @@ class doc_Folders extends core_Master
     {
         if (($query->mvc->className != 'doc_Folders') && ($query->mvc->className != 'doc_FoldersProxy')) {
             // Добавя необходимите полета от модела doc_Folders
-            if (!$query->fields['folderAccess']) {
+            if (!($query->fields['folderAccess'] ?? null)) {
                 $query->EXT('folderAccess', 'doc_Folders', 'externalName=access,externalKey=folderId');
             }
-            
-            if (!$query->fields['folderInCharge']) {
+
+            if (!($query->fields['folderInCharge'] ?? null)) {
                 $query->EXT('folderInCharge', 'doc_Folders', 'externalName=inCharge,externalKey=folderId');
             }
-            
-            if (!$query->fields['folderShared']) {
+
+            if (!($query->fields['folderShared'] ?? null)) {
                 $query->EXT('folderShared', 'doc_Folders', 'externalName=shared,externalKey=folderId');
             }
         }

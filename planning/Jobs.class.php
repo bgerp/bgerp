@@ -247,6 +247,12 @@ class planning_Jobs extends core_Master
 
 
     /**
+     * Какъв да е дефолтния избор за печат на фирмена бланка
+     */
+    public $routeDocumentAfterCreation = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function  description()

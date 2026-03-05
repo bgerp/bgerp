@@ -28,7 +28,7 @@ class doc_SharablePlg extends core_Plugin
         // Поле за потребителите, с които е споделен документа (ако няма)
         if (!$mvc->getField('sharedUsers', false)) {
             $mvc->FLD('sharedUsers', 'userList(showClosedUsers=no)', 'caption=Споделяне->Потребители,notChangeableIfHidden');
-            if($mvc->hideSharedUsersFld){
+            if (!empty($mvc->hideSharedUsersFld)) {
                 $mvc->setField('sharedUsers', 'input=hidden');
             }
         }
@@ -58,7 +58,7 @@ class doc_SharablePlg extends core_Plugin
         setIfNot($mvc->autoShareOriginCreator, false);
         setIfNot($mvc->autoShareCurrentUser, false);
 
-        $mvc->autoShareFields = arr::make($mvc->autoShareFields, true);
+        $mvc->autoShareFields = arr::make($mvc->autoShareFields ?? null, true);
         $mvc->autoShareFields['sharedUsers'] = 'sharedUsers';
     }
     
@@ -504,7 +504,7 @@ class doc_SharablePlg extends core_Plugin
         if ($rec->originId) {
             $document = doc_Containers::getDocument($rec->originId);
             
-            $shareFieldsArr = arr::make($document->autoShareFields, true);
+            $shareFieldsArr = arr::make($document->autoShareFields ?? true, true);
             
             $dRec = $document->fetch();
             

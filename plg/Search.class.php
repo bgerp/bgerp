@@ -186,11 +186,11 @@ class plg_Search extends core_Plugin
         $data->listFilter->input(null, 'silent');
         
         $filterRec = $data->listFilter->rec;
-        if ($filterRec->{$mvc->searchInputField}) {
+        if (!empty($filterRec->{$mvc->searchInputField})) {
             static::applySearch($filterRec->{$mvc->searchInputField}, $data->query);
             
             // Ако ключовата дума е число, търсим и по ид
-            if (type_Int::isInt($filterRec->{$mvc->searchInputField}) && ($mvc->searchInId !== false)) {
+            if (type_Int::isInt($filterRec->{$mvc->searchInputField} ?? null) && (($mvc->searchInId ?? null) !== false)) {
                 $data->query->addId = $filterRec->{$mvc->searchInputField};
             }
         }

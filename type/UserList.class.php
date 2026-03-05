@@ -323,7 +323,7 @@ class type_UserList extends type_Keylist
                 }
             }
             
-            $res .= ($res ? ', ' : '') . $nick;
+            $res .= ($res ? ', ' : '') . ($nick ?? '');
         }
         
         return $res;

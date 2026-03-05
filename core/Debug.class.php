@@ -52,6 +52,9 @@ defIfNot('DEBUG_COOKIE_LIFETIME', 3600 * 24 * 7); // Седмица
  */
 class core_Debug
 {
+
+    public static $stopLoggingDebug = false;
+
     public static $startMicroTime;
     
     
@@ -274,7 +277,11 @@ class core_Debug
         if (!isset($timers)) {
             $timers = self::$timers;
         }
-        $display = Mode::is('screenMode', 'wide') ? 'table' : 'block';
+        
+        // $display = Mode::is('screenMode', 'wide') ? 'table' : 'block';
+
+        $display =  'table';
+
         if (countR($timers)) {
             $html .= "\n<div style='padding:5px; margin:10px; border:solid 1px #777; background-color:#FFFF99; display:{$display};color:black;'>" .
             "\n<div style='background-color:#FFFF33; padding:5px;color:black;'>Timers info</div><ol>";
@@ -282,7 +289,7 @@ class core_Debug
             arsort($timers);
             
             foreach ($timers as $name => $t) {
-                $t = number_format($t->workingTime, 5);
+                $t = number_format($t->workingTime ?? 0, 5);
                 if ($t > '0.00000') {
                     $html .= "\n<li> '{$name}' => " . $t . ' sec.';
                 }
@@ -357,7 +364,8 @@ class core_Debug
         $trace = self::prepareTrace($trace);
         
         $result = '';
-        
+
+        $i = 0;
         foreach ($trace as $row) {
             if ($i++ % 2) {
                 $bgk = '#ffd';
@@ -366,7 +374,7 @@ class core_Debug
             }
             $result .= "\n<tr style='background-color:{$bgk}'>";
             foreach ($row as $cell) {
-                if (strlen(EF_DB_PASS)) {
+                if (defined('EF_DB_PASS') && strlen(EF_DB_PASS)) {
                     $cell = str_replace(array("'" . EF_DB_PASS . "'", '"' . EF_DB_PASS . '"'), array("'******'", '"******"'), $cell);
                 }
                 $result .= '<td>' . $cell . '</td>';
@@ -411,11 +419,6 @@ class core_Debug
                 if (is_array($args)) {
                     $args = join(', ', $args);
                 }
-            }
-            
-            // Предотвратяване показването на паролата за базата данни
-            if ($frame['class'] == 'mysqli' && $frame['function'] == '__construct') {
-                // print_r($args); die;
             }
             
             $rtn[] = array(
@@ -702,10 +705,10 @@ class core_Debug
         $lineHtml = self::getEditLink($breakFile, $breakLine, $breakLine);
         $fileHtml = self::getEditLink($breakFile);
         
-        if (!$state['headerCls']) {
+        if (!($state['headerCls'] ?? null)) {
             $data['headerCls'] = 'errorMsg';
         } else {
-            $data['headerCls'] = $state['headerCls'];
+            $data['headerCls'] = $state['headerCls'] ?? null;
         }
         
         if (isset($state['header'])) {
@@ -730,7 +733,7 @@ class core_Debug
         }
         
         // Показваме линковете за работа със сигнала
-        if ($state['_debugFileName']) {
+        if ($state['_debugFileName'] ?? null) {
             $bName = basename($state['_debugFileName'], '.debug');
             
             if ($bName) {
@@ -779,7 +782,7 @@ class core_Debug
      * Рендира страница за грешка
      */
     private static function getErrorPage(&$state)
-    {
+    { print_r($state); die;
         $tpl = new core_NT(getFileContent('core/tpl/Error.shtml'));
         if (isset($state['errTitle']) && $state['errTitle'][0] == '@') {
             $state['errTitle'] = $state['httpStatusMsgBg'];
@@ -796,7 +799,7 @@ class core_Debug
         $state['date'] = dt::now();
         $state['uri'] = str::limitLen($_SERVER['REQUEST_URI'], 255);
         
-        if (log_Debug::haveRightFor('report') && $state['_debugFileName']) {
+        if ((EF_DEBUG || log_Debug::haveRightFor('report')) && $state['_debugFileName']) {
             $bName = basename($state['_debugFileName'], '.debug');
             $state['signal'] = log_Debug::getReportLink($bName, 'Сигнал', 'img/16/headset.png', 'signalLink');
         }
@@ -853,7 +856,7 @@ class core_Debug
             
             if (class_exists('core_Db')) {
                 try {
-                    $contex['SQL_VERSION'] = cls::get('core_Db')->connect()->server_info;
+                  //  $contex['SQL_VERSION'] = cls::get('core_Db')->connect()->server_info;
                 } catch (ErrorException $e) {
                     // Не се прави нищо
                 }
@@ -931,10 +934,7 @@ class core_Debug
      */
     public static function renderErrorState($state, $supressShowing = false)
     {
-        $errCode = $state['errCode'];
-        if (!isset($errCode)) {
-            $errCode = '520';
-        }
+        $errCode = $state['errCode'] ?? 520;
         
         $debugFileName = logHitState($errCode, $state);
         
@@ -958,8 +958,8 @@ class core_Debug
         $debugPage = preg_replace('/\<span class = \'errTitleLink\'>.*\<\/span>/', '', $debugPage);
         
         // Определяме заглавието на грешката в лога
-        $ctr = $_GET['Ctr'] ? $_GET['Ctr'] : 'Index';
-        $act = $_GET['Act'] ? $_GET['Act'] : 'default';
+        $ctr = $_GET['Ctr'] ?? 'Index';
+        $act = $_GET['Act'] ?? 'default';
         $title = EF_DB_NAME . '_' . $ctr . '_' . $act . '_' . $state['httpStatusCode'];
         $title = preg_replace('/[^A-Za-z0-9_?!]/', '_', $title);
         
@@ -1018,7 +1018,7 @@ class core_Debug
     /**
      * Функция - обработвач на състоянията на грешки
      */
-    public static function errorHandler($errno, $errstr, $breakFile, $breakLine, $errcontext)
+    public static function errorHandler($errno, $errstr, $breakFile, $breakLine)
     {
         // Ако грешката нито ще я показваме нито ще я логваме - връщаме управлението
         if (!($errno & CORE_ERROR_REPORTING_LEVEL) && !($errno & CORE_ERROR_LOGGING_LEVEL)) {
@@ -1034,6 +1034,7 @@ class core_Debug
         
         // Подготвяме състоянието, отговарящо на грешката
         $errType = self::getErrorLevel($errno);
+        $errcontext ='';
         $state = self::prepareErrorState($errType, '500 @' . $errstr, $errstr, null, debug_backtrace(), $errcontext, $breakFile, $breakLine);
         
         // Ако грешката само ще я логваме, но няма да я показваме - поддтискаме показването
@@ -1183,15 +1184,23 @@ class core_Debug
         }
         
         if (defined('EF_DEBUG_EDIT_URL')) {
-            $fromTo = array('FILE' => urlencode($file));
+            
+            if(defined('EF_DEBUG_EDIT_REPLACE')) {
+                $r = EF_DEBUG_EDIT_REPLACE;
+                $file = str_replace($r[0], $r[1], $file);
+            }
+
+            $fromTo = array('FILE' => $file);
+
             if ($line) {
                 $fromTo['LINE'] = urlencode($line);
             }
+
             $tpl = new core_NT(EF_DEBUG_EDIT_URL);
             $editUrl = $tpl->render($fromTo);
         }
-        
-        if ($editUrl) {
+
+        if (!empty($editUrl)) {
             $title = "<a href='{$editUrl}'>{$title}</a>";
         }
         
@@ -1226,7 +1235,7 @@ class core_Debug
         
         $cookieName = self::getDebugCookie();
         
-        if ($_COOKIE[$cookieName]) {
+        if ($_COOKIE[$cookieName] ?? null) {
             self::$isDebug = true;
             
             return true;

@@ -42,7 +42,12 @@ class core_Mvc extends core_FieldSet
      * Дължината на защитната контролна сума за id-тата на този модел
      */
     public $idChecksumLen = EF_ID_CHECKSUM_LEN;
-    
+
+
+    /**
+     *
+     */
+    protected $lastUpdateTime;
     
     /**
      * По подразбиране типа на id полето е int
@@ -347,7 +352,7 @@ class core_Mvc extends core_FieldSet
             $rec = static::fetch($cond, $field, $cache);
         }
         
-        return $rec->{$field};
+        return $rec->{$field} ?? null;
     }
     
     
@@ -362,8 +367,8 @@ class core_Mvc extends core_FieldSet
         
         $exRec = null;
         
-        if ($rec->id) {
-            $exRec = $this->_cachedRecords[$rec->id .'|*'];
+        if ($rec->id ?? null) {
+            $exRec = $this->_cachedRecords[$rec->id .'|*'] ?? null;
             if ($exRec === null && $this->lastFetchedRec && $this->lastFetchedRec == $rec->id) {
                 $exRec = $this->lastFetchedRec;
             }
@@ -405,9 +410,9 @@ class core_Mvc extends core_FieldSet
             return $rec->id;
         }
         
-        $mode = str_replace(' ', '_', strtolower($mode));
+        $mode = str_replace(' ', '_', strtolower($mode ?? ''));
         
-        if ($rec->id > 0 && $mode != 'replace') {
+        if (($rec->id ?? null) > 0 && $mode != 'replace') {
             switch ($mode) {
                 case 'low_priority':
                     $query = "UPDATE LOW_PRIORITY `{$table}` SET {$query} WHERE id = {$rec->id}";
@@ -438,7 +443,8 @@ class core_Mvc extends core_FieldSet
                     break;
                 
                 case 'delayed':
-                    $query = "INSERT DELAYED `{$table}` SET {$query}";
+                case 'low_priority':
+                    $query = "INSERT LOW_PRIORITY INTO `{$table}` SET {$query}";
                     $timer = "{$table} INSERT";
                     break;
                 case '':
@@ -465,7 +471,7 @@ class core_Mvc extends core_FieldSet
         
         $this->dbTableUpdated();
         
-        if (!$rec->id) {
+        if (!isset($rec->id)) {
             $rec->id = $this->db->insertId();
             $this->invoke('afterCreate', array($rec, $fields, $mode));
         } else {
@@ -573,7 +579,7 @@ class core_Mvc extends core_FieldSet
             $recFields = get_object_vars($rec);
             
             foreach ($recFields as $name => $dummy) {
-                if ($this->fields[$name]->kind == 'FLD') {
+                if (isset($this->fields[$name]->kind) && $this->fields[$name]->kind == 'FLD') {
                     $fields[$name] = true;
                 }
             }
@@ -744,7 +750,7 @@ class core_Mvc extends core_FieldSet
         
         $handler = md5("{$fields} . {$where} . {$index} . {$orderBy} . {$this->className}");
         
-        $res = $this->makeArray4selectCache[$handler];
+        $res = $this->makeArray4selectCache[$handler] ?? null;
         
         if ($res === null) {
             // Колко записа биха влезли в масива?
@@ -808,7 +814,7 @@ class core_Mvc extends core_FieldSet
         if (countR($fields) > 0) {
             foreach ($fields as $name => $caption) {
                 expect($name);
-                if (!$row->{$name} && $modelFields[$name]) {
+                if (empty($row->{$name}) && !empty($modelFields[$name])) {
                     //DEBUG::startTimer("GetVerbal");
                     $row->{$name} = $me->getVerbal($rec, $name);
                     
@@ -841,7 +847,7 @@ class core_Mvc extends core_FieldSet
         
         expect($me->fields[$fieldName], 'Не съществуващо поле: ' . $fieldName);
         
-        $value = $rec->{$fieldName};
+        $value = $rec->{$fieldName} ?? null;
         
         if (isset($me->fields[$fieldName]->options) && is_array($me->fields[$fieldName]->options)) {
             $res = $me->fields[$fieldName]->options[$value];
@@ -861,7 +867,7 @@ class core_Mvc extends core_FieldSet
      */
     public function getRecTitleTpl($rec)
     {
-        return $this->recTitleTpl;
+        return $this->recTitleTpl ?? null;
     }
     
     

@@ -21,8 +21,50 @@ class core_Query extends core_FieldSet
      * Място за MVC класа, към който се отнася заявката
      */
     public $mvc;
-    
-    
+
+
+    /**
+     *
+     */
+    protected $useExpr = false;
+
+
+    /**
+     *
+     */
+    protected $realFields = array();
+
+
+    /**
+     *
+     */
+    protected $dbRes;
+
+
+    /**
+     *
+     */
+    protected $onCond;
+
+
+    /**
+     *
+     */
+    protected $join;
+
+
+    /**
+     *
+     */
+    public $addId;
+
+
+    /**
+     *
+     */
+    protected $areBracketsPlaced;
+
+
     /**
      * Масив от изрази, именувани с полета
      */
@@ -990,7 +1032,7 @@ class core_Query extends core_FieldSet
         // Добавка за връзване по външен ключ
         if (countR($external = $this->selectFields("#kind == 'EXT'"))) {
             foreach ($external as $name => $fieldRec) {
-                $externalFieldName = $fieldRec->externalFieldName ? $fieldRec->externalFieldName : 'id';
+                $externalFieldName = $fieldRec->externalFieldName ?? 'id';
                 $externalFieldName = str::phpToMysqlName($externalFieldName);
                 
                 if ($fieldRec->externalKey && !$isDelete) {
@@ -1088,12 +1130,14 @@ class core_Query extends core_FieldSet
         if ($this->fields['id']) {
             $this->show['id'] = true;
         }
-        
+
+        $show = array();
+
         foreach ($this->show as $name => $dummy) {
             $f = $this->getField($name);
             
             if ($f->kind == 'FNC') {
-                $depends = $f->dependFromFields ? $f->dependFromFields : null;
+                $depends = $f->dependFromFields ?? null;
                 
                 if (is_string($depends)) {
                     $depends = str_replace('|', ',', $depends);
@@ -1127,8 +1171,8 @@ class core_Query extends core_FieldSet
                     $mvc = cls::get($f->externalClass);
                     $tableName = $mvc->dbTableName;
                     $this->tables[$tableName] = true;
-                    $this->onCond = $f->onCond;
-                    $this->join = $f->join;
+                    $this->onCond = $f->onCond ?? null;
+                    $this->join = $f->join ?? null;
                     $mysqlName = str::phpToMysqlName($f->externalName);
                     $fields .= "`{$tableName}`.`{$mysqlName}`";
                     break;
@@ -1295,7 +1339,8 @@ class core_Query extends core_FieldSet
         //$key = Mode::getProcessKey();
         
         $exp = $arr[0];
-        
+
+        $a = $c = array();
         $cntArr = countR($arr);
         for ($i = 1; $i < $cntArr; $i++) {
             $a[] = "[#{$i}#]";

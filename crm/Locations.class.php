@@ -145,8 +145,9 @@ class crm_Locations extends core_Master
         $this->FLD('mol', 'varchar(64)', 'caption=Контактни данни->Отговорник');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Контактни данни->Имейли,class=contactData');
-
         $this->FLD('workingTime', "table(columns=day|start|end,captions=Ден|От|До,validate=crm_Locations::validateWorkingTime)", "caption=Контактни данни->Работно време");
+        $this->FLD('regularDelivery', 'set(monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя)', 'caption=Контактни данни->Регулярна доставка,class=contactData,input=none');
+        $this->FLD('eshopName', 'varchar', 'caption=Контактни данни->Име в Е-маг,class=contactData,input=none');
         $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=За вътрешно (служебно) ползване - не се показва в документи->@Информация');
 
         $this->setDbUnique('gln');
@@ -307,6 +308,13 @@ class crm_Locations extends core_Master
         }
         $data->form->setFieldTypeParams('workingTime', array('day_opt' => array('' => '') + $workingDayOptions, 'start_sgt' => $hourOptions, 'end_sgt' => $hourOptions));
 
+        $ownCompanyRec = crm_Companies::fetchOwnCompany();
+        if($Contragents instanceof crm_Companies && $rec->contragentId == $ownCompanyRec->companyId){
+            $data->form->setField('regularDelivery', 'input');
+            if(core_Packs::isInstalled('eshop')){
+                $data->form->setField('eshopName', 'input');
+            }
+        }
     }
     
     
@@ -405,6 +413,10 @@ class crm_Locations extends core_Master
 
         if ($rec->type) {
             $row->type = tr($rec->type);
+        }
+
+        if(!empty($rec->regularDelivery)){
+            $row->address .= tr("|*<br>|Посещения|*: ") . $row->regularDelivery;
         }
     }
     

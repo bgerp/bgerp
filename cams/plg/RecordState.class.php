@@ -22,7 +22,7 @@ class cams_plg_RecordState extends core_Plugin
      */
     public function on_AfterDescription(&$mvc)
     {
-        if (!$mvc->fields['state']) {
+        if (empty($mvc->fields['state'])) {
             $mvc->FLD(
                 'state',
                 'enum(active=Включен,hidden=Изключен)',

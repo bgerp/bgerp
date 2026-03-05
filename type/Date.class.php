@@ -105,7 +105,10 @@ class type_Date extends core_Type
         $attr['autocomplete'] = 'off';
         setIfNot($attr['type'], 'text');
         setIfNot($this->params['width'], 8);
-        
+
+        if (!isset($attr['style'])) {
+            $attr['style'] = '';
+        }
         $attr['style'] .= ';width:' . $this->params['width'] . 'em;';
 
         return $this->createInput($name, $value, $attr);

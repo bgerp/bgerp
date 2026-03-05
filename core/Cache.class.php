@@ -349,6 +349,7 @@ class core_Cache extends core_Manager
     {
         $depends = arr::make($depends);
         
+        $hash = '';
         if (countR($depends)) {
             foreach ($depends as $id => $cls) {
                 if (is_object($cls) || !strpos($cls, '::')) {
@@ -382,7 +383,7 @@ class core_Cache extends core_Manager
             }
         }
         
-        if ($res) {
+        if ($res ?? null) {
             
             return $res;
         }
@@ -394,7 +395,7 @@ class core_Cache extends core_Manager
             }
             
             $data = $rec->data;
-            if (!is_object($rec->data)) {
+            if (is_string($rec->data) && strlen($rec->data) > 2) {
                 if (ord($rec->data[0]) == 120 && ord($rec->data[1]) == 156) {
                     $data = gzuncompress($data);
                 }

@@ -100,7 +100,37 @@ class core_Db
      * @var string
      */
     public $dbHost;
-    
+
+
+    /**
+     *
+     */
+    public $dbCharset;
+
+
+    /**
+     *
+     */
+    public $dbCollation;
+
+
+    /**
+     *
+     */
+    public $dbCharsetClient;
+
+
+    /**
+     *
+     */
+    public $varcharIndexPrefix;
+
+
+    /**
+     *
+     */
+    public $query;
+
     
     /**
      * @var string

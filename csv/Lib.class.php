@@ -117,7 +117,7 @@ class csv_Lib
                 if ($fromZero && $isLarge) {
                     $recs[] = $rec;
                     $res->created++;
-                    if (countR($recs) > 2000) {
+                    if (countR($recs) > 100) {
                         $mvc->saveArray($recs, null, true);
                         $recs = array();
                     }

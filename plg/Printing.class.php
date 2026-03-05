@@ -35,7 +35,7 @@ class plg_Printing extends core_Plugin
     public function on_AfterDescription(&$mvc)
     {
         // Възможност за групов печат на документи
-        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('printsinglesfromlist' => 'Печат');
+        $mvc->doWithSelected = arr::make($mvc->doWithSelected ?? []) + array('printsinglesfromlist' => 'Печат');
     }
 
 

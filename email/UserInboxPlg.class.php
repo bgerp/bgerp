@@ -83,7 +83,7 @@ class email_UserInboxPlg extends core_Plugin
         }
         
         // Това се прави в doc_Setup -> 107 - 117
-        if ($rec->First && $rec->id) {
+        if (!empty($rec->First) && !empty($rec->id)) {
             // На първия потребител даваме и ceo роля. Необходимо ли е?
             core_Users::addRole($rec->id, 'ceo');
             
@@ -136,7 +136,7 @@ class email_UserInboxPlg extends core_Plugin
     {
         $fieldsArr = $mvc->prepareSaveFields($fields, $rec);
         
-        if ($fieldsArr['nick'] && $rec->nick) {
+        if (!empty($fieldsArr['nick']) && !empty($rec->nick)) {
             if (($personId = crm_Profiles::fetchField("#userId = {$rec->id}", 'personId'))) {
                 crm_Profiles::syncPerson($personId, $rec);
             } else {

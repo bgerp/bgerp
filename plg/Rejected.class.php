@@ -39,10 +39,10 @@ class plg_Rejected extends core_Plugin
         
         $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none,column=none,forceField');
         
-        $mvc->doWithSelected = arr::make($mvc->doWithSelected) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване');
+        $mvc->doWithSelected = arr::make($mvc->doWithSelected ?? []) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване');
         
-        setIfNot($mvc->showRejectedRows, false);
-        setIfNot($mvc->canRejectsysdata, 'no_one');
+        setIfNot($mvc, 'showRejectedRows', false);
+        setIfNot($mvc, 'canRejectsysdata', 'no_one');
     }
     
     
@@ -218,7 +218,7 @@ class plg_Rejected extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             if ($action == 'delete' && $rec->lastUsedOn) {
                 $requiredRoles = 'no_one';
             }

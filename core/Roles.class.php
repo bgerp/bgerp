@@ -205,7 +205,7 @@ class core_Roles extends core_Manager
     {
         self::loadRoles();
         
-        return self::$rolesArr[$role];
+        return self::$rolesArr[$role] ?? null;
     }
     
     

@@ -1168,8 +1168,8 @@ class crm_Profiles extends core_Master
         $isOut = (boolean) (Mode::is('text', 'xhtml') || Mode::is('pdf'));
         
         $key = "{$userId}|{$title}|{$warning}|{$isOut}|" . implode('|', $attr);
-        
-        if (!$cacheArr[$key]) {
+
+        if (empty($cacheArr[$key])) {
             $userRec = core_Users::fetch($userId);
             
             if (!$userRec) {
@@ -1185,7 +1185,10 @@ class crm_Profiles extends core_Master
             $url = array();
             
             $profRec = self::fetch("#userId = {$userId}");
-            
+
+            if (!isset($attr['class'])) {
+                $attr['class'] = '';
+            }
             $attr['class'] .= ' profile';
 
             $e = '';
@@ -1276,7 +1279,7 @@ class crm_Profiles extends core_Master
      */
     public static function getUserTitle($nick)
     {
-        list($l, $r) = explode('@', $nick);
+        list($l, $r) = array_pad(explode('@', $nick), 2, null);
         $title = type_Nick::normalize($l);
         if ($r) {
             $title .= '@' . $r;

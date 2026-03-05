@@ -533,7 +533,7 @@ class eshop_Groups extends core_Master
             }
 
             $row->description = $this->getVerbal($rec, 'info');
-            Mode::set('SOC_SUMMARY', $row->info);
+            Mode::set('SOC_SUMMARY', $row->info ?? null);
         }
 
         Mode::set('SOC_TITLE', $row->name);
@@ -609,7 +609,7 @@ class eshop_Groups extends core_Master
         $groupTpl->placeArray($data->row);
         
         // Добавяне на подгрупите
-        if (is_array($data->recs) && countR($data->recs)) {
+        if (isset($data->recs) && countR($data->recs)) {
             $groupTpl->append("<div class='subgroups clearfix21'>", 'PRODUCTS');
             $groupTpl->append(self::renderAllGroups($data), 'PRODUCTS');
             $groupTpl->append('</div>', 'PRODUCTS');
@@ -670,14 +670,14 @@ class eshop_Groups extends core_Master
         
         $query->where("#state = 'active'");
 
-        $productId = $data->productId;
-        $menuId = $data->menuId;
+        $productId = $data->productId ?? null;
+        $menuId = $data->menuId ?? null;
 
         if (empty($data->groupId) && $productId) {
             $pRec = eshop_Products::fetch("#id = {$productId} AND #state = 'active'");
-            $groupId = $pRec->groupId;
+            $groupId = $pRec->groupId ?? null;
         } else {
-            $groupId = $data->groupId;
+            $groupId = $data->groupId ?? null;
         }
 
 
@@ -768,13 +768,13 @@ class eshop_Groups extends core_Master
 
         $mRec = cms_Content::fetch($rec->menuId);
         
-        $lg = $mRec->lang;
+        $lg = $mRec->lang ?? null;
         
-        $lg[0] = strtoupper($lg[0]);
+        $lg[0] = strtoupper($lg[0] ?? '');
         
         $url = array('A', 'g', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
         
-        if ($rec->altMenuId) {
+        if (!empty($rec->altMenuId)) {
             $url['cMenuId'] = $rec->altMenuId;
         }
         
@@ -787,8 +787,8 @@ class eshop_Groups extends core_Master
      */
     public static function getShortUrl($url)
     {
-        $vid = urldecode($url['id']);
-        $act = strtolower($url['Act']);
+        $vid = urldecode($url['id'] ?? '');
+        $act = strtolower($url['Act'] ?? '');
         
         if ($vid && $act == 'show') {
             $id = cms_VerbalId::fetchId($vid, 'eshop_Groups');

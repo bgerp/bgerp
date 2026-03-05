@@ -22,14 +22,14 @@ class recently_Plugin extends core_Plugin
      */
     public function on_BeforeRenderFields(&$form)
     {
-        setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
+        $prefix = $form->mvc->dbTableName ?? $form->name ?? '_';
         
         $inputFields = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
         
         if (countR($inputFields)) {
             $mustReport = false;
             foreach ($inputFields as $name => $field) {
-                if ($field->recently) {  
+                if (!empty($field->recently)) {  
                     if ($prefix == '_') {
                         $mustReport = true;
                     }
@@ -67,7 +67,7 @@ class recently_Plugin extends core_Plugin
 
         if (countR($flds)) {
             foreach ($flds as $name => $field) { 
-                if ($field->recently && isset($rec->{$name}) && !$form->gotErrors($name)) {
+                if (($field->recently ?? null) && isset($rec->{$name}) && !$form->gotErrors($name)) {
                     $saveName = $prefix . '.' . $name;
                     
                     // Запомняме само стойности, които са над 2 символа

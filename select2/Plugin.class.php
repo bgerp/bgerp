@@ -87,7 +87,7 @@ class select2_Plugin extends core_Plugin
         $maxSuggestions = $invoker->getMaxSuggestions();
         
         // Ако няма да се показват всички възможност стойности, а ще се извличат по AJAX
-        if (!$invoker->params['parentId'] && (self::$suggCnt > $maxSuggestions)) {
+        if (empty($invoker->params['parentId']) && (self::$suggCnt > $maxSuggestions)) {
             
             // Подготвяме опциите за кеширане
             self::setHandler($invoker, $value);
@@ -138,7 +138,7 @@ class select2_Plugin extends core_Plugin
      */
     public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
-        if ($invoker->params['isReadOnly']) {
+        if (!empty($invoker->params['isReadOnly'])) {
             
             return ;
         }
@@ -419,7 +419,7 @@ class select2_Plugin extends core_Plugin
      */
     public function on_AfterGetMaxSuggestions($invoker, &$res)
     {
-        setIfNot($res, $invoker->params['maxSuggestions'], core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', true), 1000);
+        $res = $res ?? $invoker->params['maxSuggestions'] ?? core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', true) ?? 1000;
     }
     
     

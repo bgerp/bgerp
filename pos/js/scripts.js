@@ -7,6 +7,36 @@ var searchTimeout;
 var addedProduct;
 let pressedCardPayment;
 
+// Guard срещу напускане/затваряне при започната чернова (когато е забранено натрупването на чернови)
+var posDraftCloseGuardEnabled = false;
+var posDraftCloseGuardDisabled = false;
+
+function posInitDraftCloseGuard(enabled) {
+    posDraftCloseGuardEnabled = !!enabled;
+    posDraftCloseGuardDisabled = false;
+
+    if (!posDraftCloseGuardEnabled) return;
+
+    // Предупреждава само ако има детайли (редове) в бележката
+    window.addEventListener('beforeunload', function (e) {
+        if (!posDraftCloseGuardEnabled || posDraftCloseGuardDisabled) return;
+        if ($('.productRow').length > 0) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        }
+    });
+}
+
+function posSkipDraftCloseGuardOnce(reEnableMs) {
+    posDraftCloseGuardDisabled = true;
+    if (reEnableMs) {
+        setTimeout(function(){
+            posDraftCloseGuardDisabled = false;
+        }, reEnableMs);
+    }
+}
+
 function posActions() {
 	setOpenedReceiptQueue();
 	calculateWidth();
@@ -52,6 +82,11 @@ function posActions() {
 
 		doPayment(url, type, 'manual', deviceId, null);
 		$(".fullScreenCardPayment").css("display", "none");
+	});
+
+	// При изход/оттегляне/изтриване - да не се показва допълнително предупреждение от beforeunload
+	$(document.body).on('click', '.logout.operationHolder, .rejectBtn.operationHolder', function(e){
+		posSkipDraftCloseGuardOnce();
 	});
 
 	// Използване на числата за въвеждане в пулта
@@ -599,12 +634,14 @@ function openClient() {
 }
 
 function logout() {
+	posSkipDraftCloseGuardOnce();
 	var url = $('.logout.operationHolder').closest('a').attr("href");
 	location.href = url;
 }
 
 function openReject() {
 	if ($('.rejectBtn').length) {
+		posSkipDraftCloseGuardOnce();
 		$('.rejectBtn').parent().click();
 	}
 }
@@ -693,6 +730,9 @@ function calculateWidth(){
 function doPayment(url, type, value, deviceId, rate){
 
 	if(!url || !type) return;
+	// при успешна операция се очаква бележката да смени състояние/да се направи редирект
+	// ако няма редирект (напр. отказ/грешка), guard-ът се връща автоматично
+	posSkipDraftCloseGuardOnce(10000);
 
 	var amount = $("input[name=ean]").val();
 	if(!amount){

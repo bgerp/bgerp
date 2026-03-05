@@ -53,7 +53,7 @@ class select2_PluginEnum extends core_Plugin
      */
     public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
-        if ($invoker->params['isReadOnly']) {
+        if (!empty($invoker->params['isReadOnly'])) {
             
             return ;
         }

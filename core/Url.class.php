@@ -902,9 +902,9 @@ class core_Url
             $res .= $purl['pass'];
             $res .= '@';
         }
-        $res .= $purl['host'];
+        $res .= $purl['host'] ?? '';
         
-        if ($purl['port']) {
+        if (!empty($purl['port'])) {
             $res .= ':' . $purl['port'];
         }
         
