@@ -453,7 +453,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     public static function getPaidAmount($jRecs, $rec)
     {
         // Взимаме количествата по валути
-        $quantities = acc_Balances::getBlQuantities($jRecs, '401,402', 'debit', '501,503,482,481');
+        $ignoreClassIds = array(findeals_DebitDocuments::getClassId(), findeals_CreditDocuments::getClassId());
+        $quantities = acc_Balances::getBlQuantities($jRecs, '401,402', 'debit', '501,503,482,481', array(), null, $ignoreClassIds);
         $res = deals_Helper::convertJournalCurrencies($quantities, $rec->currencyId, $rec->valior);
         
         // К-то платено във валутата на сделката го обръщаме в основна валута за изравнявания
@@ -472,7 +473,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $rec = purchase_Purchases::fetchRec($id);
         $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
 
-        $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
+        $useCurrencyField = $rec->currencyId != 'BGN';
         $paid = acc_Balances::getBlAmounts($jRecs, '401', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
         $paid += acc_Balances::getBlAmounts($jRecs, '402', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
         $paid = $useCurrencyField ? $paid * $rec->currencyRate : $paid;
