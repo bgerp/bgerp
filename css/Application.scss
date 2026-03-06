@@ -8104,6 +8104,9 @@ body.narrow {
 		max-width: 1200px;
 		padding: 0px !important;
 	}
+	.printing .document {
+		max-width: 1200px !important;
+	}
 	.no-print {
 	   display: none;
 	}
@@ -8355,7 +8358,6 @@ body.narrow {
 	    padding: 2px;
 		float: none;
 		min-width: 0;
-		max-width: 840px;
 	}
 	.no-print {
        display: none;

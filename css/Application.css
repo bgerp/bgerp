@@ -7116,6 +7116,9 @@ only screen and (max-width: 320px) {
     max-width: 1200px;
     padding: 0px !important; }
 
+  .printing .document {
+    max-width: 1200px !important; }
+
   .no-print {
     display: none; }
 
@@ -7368,8 +7371,7 @@ only screen and (max-width: 320px) {
     margin: 10px 0 20px 0px;
     padding: 2px;
     float: none;
-    min-width: 0;
-    max-width: 840px; }
+    min-width: 0; }
   .printing .no-print {
     display: none; }
   .printing .printing-title {
