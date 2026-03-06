@@ -416,7 +416,7 @@ class crm_Locations extends core_Master
         }
 
         if(!empty($rec->regularDelivery)){
-            $row->address .= tr("|*<br>|Посещения|*: ") . $row->regularDelivery;
+            $row->address .= (!empty($row->address) ? ', ' : '') . tr("|*<br>|Посещения|*: ") . $row->regularDelivery;
         }
     }
     
