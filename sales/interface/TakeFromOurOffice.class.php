@@ -78,6 +78,10 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
             foreach ($ourLocations as $locationId => $locationName){
                 $locationRec = crm_Locations::fetch($locationId);
                 $ourLocations[$locationId] = !empty($locationRec->eshopName) ? $locationRec->eshopName : $locationRec->title;
+                Mode::push('text', 'plain');
+                $locationAddress = crm_Locations::getAddress($locationId, false, false);
+                Mode::pop('text');
+                $ourLocations[$locationId] .= " [{$locationAddress}]";
             }
         }
 
@@ -134,11 +138,11 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
     public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
         $res = array();
-
         $officeName = $deliveryFrom = null;
         if($deliveryData['ourLocationId']){
             $locationRec = crm_Locations::fetch($deliveryData['ourLocationId']);
             $officeName = !empty($locationRec->eshopName) ? $locationRec->eshopName : $locationRec->title;
+            $officeName .= ((Mode::is('text', 'plain')) ? ", " : "<br>") . crm_Locations::getAddress($locationRec, false, false);
 
             if(!empty($locationRec->regularDelivery)){
 
@@ -174,6 +178,7 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
         }
 
         $res['ourLocationId'] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
+
         if($deliveryFrom){
             $res['deliveryFrom'] = (object)array('caption' => tr('Получаване'), 'value' => $deliveryFrom);
         }
