@@ -316,12 +316,7 @@ class sales_Invoices extends deals_InvoiceMaster
 
         $defInfo = '';
 
-        if(isset($rec->id)){
-            $form->setDefault('selectInvoiceText', 'inputed');
-        } else {
-            $form->setDefault('selectInvoiceText', 'both');
-        }
-
+        $form->setDefault('selectInvoiceText', 'both');
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $firstRec = $firstDoc->rec();
 
@@ -473,7 +468,6 @@ class sales_Invoices extends deals_InvoiceMaster
 
             if(isset($rec->id)){
                 if($rec->dpOperation == 'accrued' && price_DiscountsPerDocuments::haveDiscount($mvc, $rec->id)){
-
                     $form->setError('amountAccrued', 'Не може да се начислява аванс, ако фактурата е със зададени общи отстъпки');
                 }
             }
