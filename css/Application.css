@@ -7371,7 +7371,8 @@ only screen and (max-width: 320px) {
     margin: 10px 0 20px 0px;
     padding: 2px;
     float: none;
-    min-width: 0; }
+    min-width: 0;
+    max-width: 840px; }
   .printing .no-print {
     display: none; }
   .printing .printing-title {
