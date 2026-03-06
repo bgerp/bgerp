@@ -3219,6 +3219,10 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
 
+        if (Mode::is('pdf')) {
+            $tpl->push('css/pdf.css', 'CSS');
+        }
+
         bgerp_LastSeenDocumentByUser::queueToLog($data->rec->containerId);
     }
     
