@@ -31,5 +31,8 @@
     <!--ET_BEGIN text-->
     <p><b>|Съдържание|*:</b> [#text#]</p>
     <!--ET_END text-->
+    <!--ET_BEGIN aiInstructions-->
+    <p><b>|Инструкции за ИИ|*:</b> [#aiInstructions#]</p>
+    <!--ET_END aiInstructions-->
 </div>
 

@@ -211,6 +211,14 @@ class email_AutomaticResponse extends core_Master
             // Променяма да сочи към single'a
             $data->retUrl =  array('crm_Profiles', 'single', $data->form->rec->userId);        
         }
+
+        //да може след изтриване да се връща в профила
+        if($data->cmd == 'delete'){
+            if($id = Request::get('id', 'int')){
+                $rec = $mvc->fetch($id);
+                $data->retUrl =  array('crm_Profiles', 'single', $rec->userId);
+            }
+        }   
     }
 
 
@@ -300,7 +308,7 @@ class email_AutomaticResponse extends core_Master
         $rulesQuery = self::getQuery();
         $rulesQuery->where("#state = 'active'");
         $rulesQuery->where("(#dateFrom IS NULL OR #dateFrom <= '{$fromDate}') AND (#dateTo IS NULL OR #dateTo >= '{$toDate}')");
-
+      
         //Вземаме активните правила за текущия момент
         $rules = $rulesQuery->fetchAll();
         if (!countR($rules)) return;
@@ -311,7 +319,7 @@ class email_AutomaticResponse extends core_Master
         $incomQuery->where("#createdOn > '{$beforeOneMin}' AND #state = 'closed'");
         $incomings = $incomQuery->fetchAll();
         if (!countR($incomings)) return;
-
+       
         foreach ($incomings as $mail) {
             foreach ($rules as $rule) {
                 //Проверяваме за съвападение 
@@ -379,13 +387,10 @@ class email_AutomaticResponse extends core_Master
     */
     public function createEmail($mail, $rule){
 
-        //Логика за интеграция с ИИ (Задейства се при изпращане на формата)
-        if (!empty($rule->aiInstructions)) {
-
-            $Email = cls::get('email_Outgoings');
+        $Email = cls::get('email_Outgoings');
             
-            // Подготовка на имейла
-            $emailRec = (object) array('subject' => "Re: {$mail->subject}" . " {$rule->titleOfMessage}",
+        // Подготовка на имейла
+        $emailRec = (object) array('subject' => "Re: {$mail->subject}" . " {$rule->titleOfMessage}",
                                     'body' => $rule->text,
                                     'folderId' => $mail->folderId,
                                     'originId' => $mail->containerId,
@@ -394,19 +399,22 @@ class email_AutomaticResponse extends core_Master
                                     'email' => $mail->fromEml, 
                                     'recipient' => $mail->fromEml,
                                     'aiInstructions' => $rule->aiInstructions);
-            // Записваме записа предварително, за да генерираме ID, което ще ползваме в нотификацията при грешка
-            email_Outgoings::save($emailRec);
-                  
+        
+        $aiNotValid = false;
+        
+        //Логика за интеграция с ИИ (Задейства се при изпращане на формата)
+        if (!empty($rule->aiInstructions) && core_Packs::isInstalled('ai')) {
+
             // Вземане на настройките на промпта от посочения път
             $promptRec =$Email->getPrompt($emailRec);
 
             if ($promptRec) {
                 core_Lg::push($promptRec->_lg);
+
                 // Тук се извличат стойностите на полетата, дефинирани в промпта
                 $params = $Email->getPromptParams($emailRec, $promptRec->fields);
                 core_Lg::pop();
                 $params['lang'] = $mail->lg;
-              
 
                 // Определяне каква трудност да се използва
                 $otherParams = array('useBase64' => true, 'question' => $rule->aiInstructions);
@@ -419,53 +427,51 @@ class email_AutomaticResponse extends core_Master
 
                 // Извикване на услугата за ИИ
                 $res = ai_Dialogs::get($promptRec->id, $params, array(), $otherParams, $emailRec->_dialogId);
-
+                
                 if (is_object($res)) {
 
                     //Замяна на съдържанието (ако ИИ го е върнал)
-                    if (isset($res->body)) {
+                    if (!empty($res->body)) {
                         $emailRec->body = $res->body;
                     }
 
                     //Замяна на заглавието (ако ИИ го е върнал)
-                    if (isset($rule->subject)) {
+                    if (!empty($rule->subject)) {
                         $emailRec->subject = $rule->subject;
-                    }
+                    } 
+                } 
+                else {
+                    $aiNotValid = true;
                 }
-                else{
-                    // В случай на празен или невалиден отговор от ИИ
-                    core_Users::forceSystemUser();
-                    $msg = 'Проблем при изпращане на автоматичен отговор';
-
-                    // Линкът сочи към конкретната чернова, която потребителят да прегледа
-                    $urlArr = array('email_Outgoings', 'single', $emailRec->id);
-                    $emailRec->state = 'draft';
-                    $userId = $rule->userId;
-                    bgerp_Notifications::add($msg, $urlArr, $userId, 'normal');
-                    core_Users::cancelSystemUser();
-
-                    // Спираме изпълнението, за да не се изпрати празен или грешен мейл
-                    return;
-                }
-            }else {
-                $emailRec->state = 'active';
-                email_Outgoings::save($emailRec);
-                }
+            }   
         }
 
-        //Изходящия имейл
-        if($emailRec->state == 'active'){
+        //Записваме записа предварително, за да генерираме ID, което ще ползваме в нотификацията при грешка
+        core_Users::forceSystemUser();
+        email_Outgoings::save($emailRec);
+        email_Outgoings::logWrite('Автоматичен отговор', $emailRec->id);
 
-            core_Users::forceSystemUser();
-            email_Outgoings::logWrite('Автоматичен отговор', $emailRec->id);
+        //Aко има инструкции и res не е обект - дава грешка
+        if($aiNotValid){
+
+            // В случай на празен или невалиден отговор от ИИ
+            $msg = 'Проблем при изпращане на автоматичен отговор';
+
+            // Линкът сочи към конкретната чернова, която потребителят да прегледа
+            $urlArr = array('email_Outgoings', 'single', $emailRec->id);
+            $emailRec->state = 'draft';
+            $userId = $rule->userId;
+            bgerp_Notifications::add($msg, $urlArr, $userId, 'normal');
             core_Users::cancelSystemUser();
-
-            $options = (object) array('encoding' => 'utf-8', 
-                                    'boxFrom' => $rule->inboxEmail, 
-                                    'emailsTo' => $mail  ->fromEml);
-
-            // Изпращане на имейла
-            email_Outgoings::send($emailRec, $options, 'bg');
+            return;
         }
+
+        core_Users::cancelSystemUser();
+        $options = (object) array('encoding' => 'utf-8', 
+                                        'boxFrom' => $rule->inboxEmail, 
+                                        'emailsTo' => $mail  ->fromEml);
+
+        // Изпращане на имейла
+        email_Outgoings::send($emailRec, $options, 'bg');
     }
 }
