@@ -473,7 +473,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         $rec = purchase_Purchases::fetchRec($id);
         $itemRec = acc_items::fetchItem('purchase_Purchases', $rec->id);
 
-        $useCurrencyField = $rec->currencyId != 'BGN';
+        $useCurrencyField = !in_array($rec->currencyId, array('EUR', 'BGN'));
         $paid = acc_Balances::getBlAmounts($jRecs, '401', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
         $paid += acc_Balances::getBlAmounts($jRecs, '402', null, null, array(null, $itemRec->id, null), array(), $rec->valior, $useCurrencyField)->amount;
         $paid = $useCurrencyField ? $paid * $rec->currencyRate : $paid;

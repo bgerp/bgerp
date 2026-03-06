@@ -727,11 +727,12 @@ class acc_Balances extends core_Master
      * @param string|NULL $type    - кредното, дебитното или крайното салдо
      * @param string      $accFrom - сметки с които може да кореспондира
      * @param string|null $toBaseCurrencyDate - към основната валута за коя дата
+     * @params array      $ignoreClassIds - записите от кои класове да се игнорират
      * @params array $items - масив с пера, които трябва да са на посочените позиции
      *
      * @return stdClass $res - К-та групирани по размерната номенклатура
      */
-    public static function getBlQuantities($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $toBaseCurrencyDate = null)
+    public static function getBlQuantities($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $toBaseCurrencyDate = null, $ignoreClassIds = array())
     {
         $res = array();
         
@@ -769,7 +770,11 @@ class acc_Balances extends core_Master
             if (countR($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) {
                 continue;
             }
-            
+
+            if (countR($ignoreClassIds)) {
+                if (in_array($rec->docType, $ignoreClassIds)) continue;
+            }
+
             // Ако има посочени задължителни пера
             if (countR($items) > 0) {
                 $skip = false;
