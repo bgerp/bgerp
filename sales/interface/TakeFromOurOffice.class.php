@@ -79,7 +79,7 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
                 $locationRec = crm_Locations::fetch($locationId);
                 $ourLocations[$locationId] = !empty($locationRec->eshopName) ? $locationRec->eshopName : $locationRec->title;
                 Mode::push('text', 'plain');
-                $locationAddress = strip_tags(crm_Locations::getAddress($locationId, false, false));
+                $locationAddress = strip_tags(crm_Locations::getAddress($locationId, false, false, false));
                 Mode::pop('text');
                 $ourLocations[$locationId] .= " [{$locationAddress}]";
             }
@@ -142,7 +142,7 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
         if($deliveryData['ourLocationId']){
             $locationRec = crm_Locations::fetch($deliveryData['ourLocationId']);
             $officeName = !empty($locationRec->eshopName) ? $locationRec->eshopName : $locationRec->title;
-            $officeName .= ((Mode::is('text', 'plain')) ? ", " : "<br>") . crm_Locations::getAddress($locationRec, false, false);
+            $officeName .= ((Mode::is('text', 'plain')) ? ", " : "<br>") . crm_Locations::getAddress($locationRec, false, false,false);
 
             if(!empty($locationRec->regularDelivery)){
 
