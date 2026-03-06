@@ -4172,7 +4172,9 @@ class cat_Products extends embed_Manager
 
         $showReffCol = false;
         $detArr = arr::make($masterMvc->details);
-        $csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
+        if(!($masterMvc instanceof store_InventoryNotes)){
+            $csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
+        }
         if($masterMvc instanceof cat_Listings){
             $csvFields->FLD('moq', 'double(smartRound)', 'caption=МКП');
         }
@@ -4191,6 +4193,11 @@ class cat_Products extends embed_Manager
 
             $exportFStr = $this->getExportMasterFieldName($dName);
             $dInst = cls::get($dName);
+
+            if($masterMvc instanceof store_InventoryNotes) {
+                $dInst->FNC('packagingId', 'key(mvc=cat_UoM,select=name)', "caption=Мярка,after={$dInst->productFld}");
+                $csvFields->FNC('packagingId', 'key(mvc=cat_UoM,select=name)', "caption=Мярка,after={$dInst->productFld}");
+            }
 
             $detClsId = $dInst->getClassId();
 
@@ -4242,8 +4249,10 @@ class cat_Products extends embed_Manager
                     continue;
                 }
 
+                $dRec->packagingId = !empty($dRec->packagingId) ? $dRec->packagingId : cat_Products::fetchField($dRec->{$dInst->productFld}, 'measureId');
                 if (!$recs[$dRec->id]) {
                     $recs[$dRec->id] = new stdClass();
+
                     $recs[$dRec->id]->_productId = $dRec->{$dInst->productFld};
                     $recs[$dRec->id]->id = $dRec->id;
                     $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId;
@@ -4262,7 +4271,12 @@ class cat_Products extends embed_Manager
 
                 setIfNot($dInst->productFld, 'productId');
 
-                foreach (array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка", 'notes' => 'Забележки') as $fName => $fCaption) {
+                $dFields = array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка", 'notes' => 'Забележки');
+                if($masterMvc instanceof store_InventoryNotes){
+                    arr::placeInAssocArray($dFields, array('packagingId' => 'Мярка'), null, $dInst->productFld);
+                }
+
+                foreach ($dFields as $fName => $fCaption) {
 
                     if (!isset($dInst->fields[$fName]) && !isset($dRec->{$fName}) && !array_key_exists($fName, (array) $dRec)) {
 
@@ -4275,6 +4289,7 @@ class cat_Products extends embed_Manager
                         $fCaption = $dInst->fields[$fName]->caption;
                     }
                     if (!$csvFields->fields[$fName]) {
+
                         $csvFields->FLD($fName, 'varchar', "caption={$fCaption}");
                     }
                 }
@@ -4294,7 +4309,7 @@ class cat_Products extends embed_Manager
 
                     $allFFieldsArr = array_merge($allFFieldsArr, $exportToMasterArr);
                 }
-
+                ;
                 foreach ($allFFieldsArr as $k => $vArr) {
                     if (!$dInst->fields[$k]) {
                         continue;
@@ -4520,6 +4535,7 @@ class cat_Products extends embed_Manager
         // Подреждане за запазване на предишна логика
         $orderMap = array('reff', 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch', 'notes');
         $fArr = $csvFields->fields;
+
         $newFArr = array();
         foreach ($fArr as $fName => $fRec) {
             foreach ($orderMap as $oFieldName) {

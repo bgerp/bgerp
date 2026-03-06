@@ -26,6 +26,7 @@
                                             </tr>
                                         </table>
                                         <!--ET_END zoneReadiness-->
+                                        [#productImage#]
                                     </td>
                                     <td class="cell custom-header-bg" style='padding-top:7px'><b>|Произведено|*</b><small> (|заприходено|*) </small><b>|в склад|*:</b>  <b style='font-size:18px;'>[#storeId#]</b></td>
                                 </tr>

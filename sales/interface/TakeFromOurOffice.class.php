@@ -85,7 +85,8 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
         $form->setOptions('ourLocationId', array('' => '') + $ourLocations);
 
         if ($Document instanceof eshop_Carts) {
-            unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
+            $form->setField('locationId', 'input=hidden');
+            unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress, $form->rec->locationId);
             $form->setField('deliveryCountry', 'input=hidden');
             $form->setField('deliveryPCode', 'input=hidden');
             $form->setField('deliveryPlace', 'input=hidden');
@@ -164,7 +165,7 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
                 }
 
                 $nextVisit = $nextDate->format('Y-m-d');
-                $deliveryFrom = dt::mysql2verbal($nextVisit, 'd M');
+                $deliveryFrom = dt::mysql2verbal($nextVisit, 'd.m.Y');
             }
         } else {
             if(!Mode::is('text', 'plain')){

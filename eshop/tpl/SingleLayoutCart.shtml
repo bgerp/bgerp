@@ -155,7 +155,12 @@
                <td style='width:150px'><span class="title-style nowrap">|Условие|*:</span></td>
                <td>[#termId#]</td>
             </tr>
-            
+            <!--ET_BEGIN locationId-->
+            <tr>
+               <td style='width:150px'><span class="title-style nowrap">|Локация|*:</span></td>
+               <td>[#locationId#]</td>
+            </tr>
+            <!--ET_END locationId-->
             <!--ET_BEGIN DELIVERY_ADDRESS-->
             [#DELIVERY_ADDRESS#]
             <tr>
