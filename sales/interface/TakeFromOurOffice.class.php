@@ -79,7 +79,7 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
                 $locationRec = crm_Locations::fetch($locationId);
                 $ourLocations[$locationId] = !empty($locationRec->eshopName) ? $locationRec->eshopName : $locationRec->title;
                 Mode::push('text', 'plain');
-                $locationAddress = crm_Locations::getAddress($locationId, false, false);
+                $locationAddress = strip_tags(crm_Locations::getAddress($locationId, false, false));
                 Mode::pop('text');
                 $ourLocations[$locationId] .= " [{$locationAddress}]";
             }
