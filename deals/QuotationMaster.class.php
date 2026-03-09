@@ -56,7 +56,6 @@ abstract class deals_QuotationMaster extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'validFor' => 'lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
         'chargeVat' => 'defMethod',
