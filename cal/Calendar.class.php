@@ -789,7 +789,8 @@ class cal_Calendar extends core_Master
             if(!isset($data[$i])) {
                 $data[$i] = new stdClass();
             }
-            $data[$i]->url = toUrl(array('cal_Calendar', 'day', 'selectPeriod' => "{$year}.{$month}.{$i}|{$year}.{$month}.{$i}"));;
+            $iDay = str_pad($i, 2, '0', STR_PAD_LEFT);
+            $data[$i]->url = toUrl(array('cal_Calendar', 'day', 'selectPeriod' => "{$year}.{$month}.{$iDay}|{$year}.{$month}.{$iDay}"));;
         }
         
         $tpl = new ET("[#MONTH_CALENDAR#] <br> [#AGENDA#]");
