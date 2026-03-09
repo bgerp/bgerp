@@ -297,7 +297,7 @@ class email_AutomaticResponse extends core_Master
      *  Взема входящите имейли от последната минута (closed).
      *  При съвпадение изпраща автоматичен отговор.
      */    
-    public function cron_runAutoResponder()
+    public function act_runAutoResponder()
     { 
         //валидиране на дата
         $now = dt::now();
@@ -314,7 +314,7 @@ class email_AutomaticResponse extends core_Master
         if (!countR($rules)) return;
         
         //Вземаме всички входящи имейли от последната минута със състояние 'closed'
-        $beforeOneMin = dt::addSecs(-60, $now);
+        $beforeOneMin = dt::addSecs(-3360, $now);
         $incomQuery = email_Incomings::getQuery();
         $incomQuery->where("#createdOn > '{$beforeOneMin}' AND #state = 'closed'");
         $incomings = $incomQuery->fetchAll();
@@ -406,7 +406,8 @@ class email_AutomaticResponse extends core_Master
         if (!empty($rule->aiInstructions) && core_Packs::isInstalled('ai')) {
 
             // Вземане на настройките на промпта от посочения път
-            $promptRec =$Email->getPrompt($emailRec);
+            $promptPath = 'ai/prompts/AutoReply.xml';
+            $promptRec =$Email->getPrompt($emailRec, $promptPath);
 
             if ($promptRec) {
                 core_Lg::push($promptRec->_lg);
