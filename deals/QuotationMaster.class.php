@@ -93,7 +93,7 @@ abstract class deals_QuotationMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'reff, date, expectedTransportCost';
+    public $fieldsNotToClone = 'reff, date, expectedTransportCost, validFor';
 
 
     /**
