@@ -293,10 +293,10 @@ class cal_Calendar extends core_Master
         $data->listFilter->FNC('to', 'date', 'caption=До,input,silent, width = 150px,autoFilter');
         $data->listFilter->FNC('selectedUsers', 'users(rolesForAll = ceo|hrMaster, rolesForTeams = manager|hrSickdays|hrLeaves|hrTrips, showClosedGroups)', 'caption=Потребител,input,silent,autoFilter');
         $data->listFilter->FNC('types', 'varchar(32)', 'caption=Тип,autoFilter,silent');
-        
-        $data->listFilter->setdefault('from', date('Y-m-d'));
-        $data->listFilter->setdefault('to', date('Y-m-d'));
-        $data->listFilter->setdefault('selectPeriod', 'today');
+
+        $data->listFilter->setDefault('from', dt::now(false));
+        $data->listFilter->setDefault('to', dt::now(false));
+        $data->listFilter->setDefault('selectPeriod', 'today');
 
         //Масив с типове събития за избор
         $eventTypes= array(
@@ -789,7 +789,7 @@ class cal_Calendar extends core_Master
             if(!isset($data[$i])) {
                 $data[$i] = new stdClass();
             }
-            $data[$i]->url = toUrl(array('cal_Calendar', 'day', 'from' => "{$i}.{$month}.{$year}"));;
+            $data[$i]->url = toUrl(array('cal_Calendar', 'day', 'selectPeriod' => "{$year}.{$month}.{$i}|{$year}.{$month}.{$i}"));;
         }
         
         $tpl = new ET("[#MONTH_CALENDAR#] <br> [#AGENDA#]");
