@@ -30,7 +30,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->FLD('cashRegNum', 'varchar(nullIfEmpty,maxRadio=1)', 'caption=Фискално устройство->Избор,after=name,input=none');
-        setIfNot($mvc->canHardconto, 'salesMaster,ceo');
+        setPartIfNot($mvc, 'canHardconto', 'salesMaster,ceo');
     }
     
     

@@ -120,8 +120,8 @@ abstract class deals_DealDetail extends doc_Detail
 
         // За по-бързо преброяване на Usage
         $mvc->setDbIndex('productId');
-        setIfNot($mvc->quantityFld, 'quantity');
-        setIfNot($mvc->allowInputPriceForQuantity, false);
+        setIfNot($mvc, 'quantityFld', 'quantity');
+        setIfNot($mvc, 'allowInputPriceForQuantity', false);
     }
     
     
