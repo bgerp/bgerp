@@ -24,12 +24,12 @@ class acc_plg_ExpenseAllocation extends core_Plugin
     public static function on_AfterDescription($mvc)
     {
         // Дефолтни имена на полетата от модела
-        setIfNot($mvc->packQuantityFld, 'packQuantity');
-        setIfNot($mvc->packagingFld, 'packagingId');
-        setIfNot($mvc->quantityInPackFld, 'quantityInPack');
-        setIfNot($mvc->productFld, 'productId');
-        setIfNot($mvc->quantityFld, 'quantity');
-        setIfNot($mvc->expenseItemAfterField, 'notes');
+        setPartIfNot($mvc, 'packQuantityFld', 'packQuantity');
+        setPartIfNot($mvc, 'packagingFld', 'packagingId');
+        setPartIfNot($mvc, 'quantityInPackFld', 'quantityInPack');
+        setPartIfNot($mvc, 'productFld', 'productId');
+        setPartIfNot($mvc, 'quantityFld', 'quantity');
+        setPartIfNot($mvc, 'expenseItemAfterField', 'notes');
     }
     
     
