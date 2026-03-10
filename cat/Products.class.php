@@ -1542,11 +1542,7 @@ class cat_Products extends embed_Manager
         
         return $res;
     }
-    
-    function act_love()
-    {
-        static::getVat(5);
-    }
+
 
     /**
      * Връща ДДС на даден продукт
