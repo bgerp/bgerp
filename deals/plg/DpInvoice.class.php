@@ -320,8 +320,7 @@ class deals_plg_DpInvoice extends core_Plugin
         }
         
         if ($form->isSubmitted()) {
-            $changeAct = (core_Request::get('Act') == 'changefields');
-            
+            $changeAct = (strtolower(core_Request::get('Act')) == 'changefields');
             $rec = &$form->rec;
 
             $agreedDp = deals_Helper::getSmartBaseCurrency($form->dealInfo->get('agreedDownpayment'), $form->dealInfo->get('agreedValior'), $rec->date);

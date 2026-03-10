@@ -1240,7 +1240,6 @@ class planning_Tasks extends core_Master
 
         $res = $this->save_($rec, $updateFields);
         plg_Search::forceUpdateKeywords($this, $rec);
-
         planning_TaskConstraints::calcTaskDuration($rec->id);
 
         core_Debug::stopTimer('UPDATE_TASK_MASTER');
@@ -3773,10 +3772,15 @@ class planning_Tasks extends core_Master
     protected static function on_AfterActivation($mvc, &$rec)
     {
         $now = dt::now();
+
         if(isset($rec->wasteProductId)){
 
             // Ако отпадъчният артикул е ръчно добавен - нищо не се прави
-            if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'waste' AND #productId = {$rec->wasteProductId}")) return;
+            if($exRec = planning_ProductionTaskProducts::fetch("#taskId = {$rec->id} AND #productId = {$rec->wasteProductId}")) {
+                wp("Дублирано добавяне на отпадък", $exRec, $rec);
+
+                return;
+            }
 
             // Добавяне на отпадъка при първоначално активиране
             $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
@@ -3794,8 +3798,33 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId, 'createdOn' => core_Users::getCurrent(), 'createdBy' => core_Users::getCurrent(), 'modifiedOn' => $now, 'createdOn' => $now);
+            $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId, 'createdBy' => core_Users::getCurrent(), 'modifiedOn' => $now, 'createdOn' => $now);
             planning_ProductionTaskProducts::save($wasteRec);
+        }
+
+        // Ако има параметри на ПО-то, които са от тип "Група артикули"
+        $convertable = array();
+        $pQuery = cat_products_Params::getQuery();
+        $pQuery->EXT('driverClass', 'cat_Params', 'externalName=driverClass,externalKey=paramId');
+        $pQuery->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=paramValue');
+        $pQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=paramValue');
+        $pQuery->where("#classId = {$mvc->getClassId()} AND #productId = {$rec->id} AND #canConvert = 'yes'");
+        $pQuery->where("#driverClass=" . cond_type_Product::getClassId());
+        while($pRec = $pQuery->fetch()){
+            if(!array_key_exists($pRec->paramValue, $convertable)){
+                $convertable[$pRec->paramValue] = (object)array('taskId' => $rec->id, 'productId' => $pRec->paramValue, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 0, 'packagingId' => $pRec->measureId);
+            }
+            $convertable[$pRec->paramValue]->plannedQuantity += 1;
+        }
+
+        // Ще се добавят в таба "Планиране" като такива за влагане
+        $Products = cls::get('planning_ProductionTaskProducts');
+        foreach ($convertable as $convRec){
+            $fields = array();
+            $exRec = null;
+            if ($Products->isUnique($convRec, $fields, $exRec)) {
+                $Products->save($convRec);
+            }
         }
     }
 

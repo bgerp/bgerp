@@ -722,10 +722,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $row->calcedPrimeCostExpenses = core_Type::getByName('double(decimals=2)')->toVerbal($withExpenses);
                     $row->calcedPrimeCostExpenses = currency_Currencies::decorate($row->calcedPrimeCostExpenses, null, true);
                     $row->calcedPrimeCostExpenses = ht::styleNumber($row->calcedPrimeCostExpenses, $withExpenses);
-                    $row->calcedPrimeCostDate = core_Type::getByName('datetime(dormat=smartTime)')->toVerbal($calcedPrice['date']);
+                    $row->calcedPrimeCostDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($calcedPrice['date']);
                 }
             }
 
+            // Да се показва изображението при печат ако е избрано в настройките
+            $showImage = planning_Setup::get('PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING');
+            if($showImage == 'yes' && Mode::is('printing')){
+                if ($preview = cat_Products::getPreview($rec->productId, array(300, 300))) {
+                    $row->productImage = $preview;
+                }
+            }
         } else {
             $row->productId = cat_Products::getShortHyperlink($rec->productId, null, 'short', 'internal');
         }

@@ -78,6 +78,10 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
             foreach ($ourLocations as $locationId => $locationName){
                 $locationRec = crm_Locations::fetch($locationId);
                 $ourLocations[$locationId] = !empty($locationRec->eshopName) ? $locationRec->eshopName : $locationRec->title;
+                Mode::push('text', 'plain');
+                $locationAddress = strip_tags(crm_Locations::getAddress($locationId, false, false, false));
+                Mode::pop('text');
+                $ourLocations[$locationId] .= " [{$locationAddress}]";
             }
         }
 
@@ -85,7 +89,8 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
         $form->setOptions('ourLocationId', array('' => '') + $ourLocations);
 
         if ($Document instanceof eshop_Carts) {
-            unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
+            $form->setField('locationId', 'input=hidden');
+            unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress, $form->rec->locationId);
             $form->setField('deliveryCountry', 'input=hidden');
             $form->setField('deliveryPCode', 'input=hidden');
             $form->setField('deliveryPlace', 'input=hidden');
@@ -133,11 +138,11 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
     public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
         $res = array();
-
         $officeName = $deliveryFrom = null;
         if($deliveryData['ourLocationId']){
             $locationRec = crm_Locations::fetch($deliveryData['ourLocationId']);
             $officeName = !empty($locationRec->eshopName) ? $locationRec->eshopName : $locationRec->title;
+            $officeName .= ((Mode::is('text', 'plain')) ? ", " : "<br>") . crm_Locations::getAddress($locationRec, false, false,false);
 
             if(!empty($locationRec->regularDelivery)){
 
@@ -164,7 +169,7 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
                 }
 
                 $nextVisit = $nextDate->format('Y-m-d');
-                $deliveryFrom = dt::mysql2verbal($nextVisit, 'd M');
+                $deliveryFrom = dt::mysql2verbal($nextVisit, 'd.m.Y');
             }
         } else {
             if(!Mode::is('text', 'plain')){
@@ -173,6 +178,7 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
         }
 
         $res['ourLocationId'] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
+
         if($deliveryFrom){
             $res['deliveryFrom'] = (object)array('caption' => tr('Получаване'), 'value' => $deliveryFrom);
         }

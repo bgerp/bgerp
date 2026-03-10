@@ -183,7 +183,16 @@ class sens2_Scripts extends core_Master
             $curMin = round(time() / 60);
           
             if((!$period) || ($curMin + $offset) % $period === 0) {
-                sens2_script_Actions::runScript($rec->id);
+                try {
+                    sens2_script_Actions::runScript($rec->id);
+                } catch (Throwable $t) {
+                    reportException($t);
+
+                    $this->logWarning("Грешка при изпълнение на скрипт #{$rec->id} - {$rec->name}: " . $t->getMessage(), $rec->id);
+
+                    continue;
+                }
+
                 $rec->lastRun = dt::verbal2mysql();
                 self::save($rec, 'lastRun');
             }

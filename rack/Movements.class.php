@@ -106,13 +106,13 @@ class rack_Movements extends rack_MovementAbstract
     public function description()
     {
         parent::setFields($this);
-		
-		$this->setDbIndex('storeId,state');        // филтрите по склад/статус
-		$this->setDbIndex('storeId,modifiedOn');   // за getContentHash (ORDER BY modifiedOn DESC LIMIT 1)
-		$this->setDbIndex('storeId,createdBy');    // за почистване на pending от system
-		$this->setDbIndex('storeId,modifiedBy');   // за префетча на user-modified
-		$this->setDbIndex('productId,packagingId,batch'); // за филтри по продукт/опаковка/партида
-		$this->setDbIndex('storeId,state,productId');
+        
+        $this->setDbIndex('storeId,state');        // филтрите по склад/статус
+        $this->setDbIndex('storeId,modifiedOn');   // за getContentHash (ORDER BY modifiedOn DESC LIMIT 1)
+        $this->setDbIndex('storeId,createdBy');    // за почистване на pending от system
+        $this->setDbIndex('storeId,modifiedBy');   // за префетча на user-modified
+        $this->setDbIndex('productId,packagingId,batch'); // за филтри по продукт/опаковка/партида
+        $this->setDbIndex('storeId,state,productId');
     }
     
     /**
@@ -343,13 +343,13 @@ class rack_Movements extends rack_MovementAbstract
             $batch = empty($batch) ? '' : $batch;
             foreach ($zonesQuantityArr as $zoneRec){
 
-				// Ако за тази зона има заявка (documentQuantity), лепим „празния“ ред към нейната опаковка,
-				// вместо към packagingId на движението (което при комбинирани може да е по-малка опаковка).
-				$reqPackId = rack_ZoneDetails::getRequestedPackagingId($zoneRec->zone, $rec->productId, $batch);
-				$packIdToUse = $reqPackId ? $reqPackId : $rec->packagingId;
+                // Ако за тази зона има заявка (documentQuantity), лепим „празния“ ред към нейната опаковка,
+                // вместо към packagingId на движението (което при комбинирани може да е по-малка опаковка).
+                $reqPackId = rack_ZoneDetails::getRequestedPackagingId($zoneRec->zone, $rec->productId, $batch);
+                $packIdToUse = $reqPackId ? $reqPackId : $rec->packagingId;
 
-				rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $packIdToUse, 0, $batch);
-			}
+                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $packIdToUse, 0, $batch);
+            }
         }
 
         // Синхронизиране на записа
@@ -445,16 +445,16 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         if (is_array($transaction->zonesQuantityArr)) {
-			foreach ($transaction->zonesQuantityArr as $obj) {
-				$batch = empty($transaction->batch) ? '' : $transaction->batch;
+            foreach ($transaction->zonesQuantityArr as $obj) {
+                $batch = empty($transaction->batch) ? '' : $transaction->batch;
 
-				// Ако за тази зона има заявка (documentQuantity), лепим movement-а към нейната опаковка
-				$reqPackId = rack_ZoneDetails::getRequestedPackagingId($obj->zone, $transaction->productId, $batch);
-				$packIdToUse = $reqPackId ? $reqPackId : $transaction->packagingId;
+                // Ако за тази зона има заявка (documentQuantity), лепим movement-а към нейната опаковка
+                $reqPackId = rack_ZoneDetails::getRequestedPackagingId($obj->zone, $transaction->productId, $batch);
+                $packIdToUse = $reqPackId ? $reqPackId : $transaction->packagingId;
 
-				rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $packIdToUse, $obj->quantity, $batch);
-			}
-		}
+                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $packIdToUse, $obj->quantity, $batch);
+            }
+        }
        
         $cacheType = 'UsedRacksPositions' . $transaction->storeId;
         core_Cache::removeByType($cacheType);
@@ -497,10 +497,10 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if (isset($rec->productId)) {
-			
-			// Оригиналната опаковка от URL / записа – преди да я сменим
+            
+            // Оригиналната опаковка от URL / записа – преди да я сменим
             $originalPackagingId = !empty($rec->packagingId) ? (int)$rec->packagingId : null;
-			
+            
             $form->setField('packagingId', 'input');
             
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
@@ -560,8 +560,8 @@ class rack_Movements extends rack_MovementAbstract
                 // За да е консистентно и за type params / зони
                 $rec->packagingId = $preferredPackId;
             }
-			
-			// Дали реално сме сменили опаковката спрямо тази от URL/записа?
+            
+            // Дали реално сме сменили опаковката спрямо тази от URL/записа?
             $changedPackaging = ($originalPackagingId && $preferredPackId && $originalPackagingId != $preferredPackId);
             
             // ---- Колко базови единици има в една опаковка? ----
@@ -1702,7 +1702,29 @@ class rack_Movements extends rack_MovementAbstract
             $createdBefore = dt::addSecs(-1 * $olderThan);
 
             Mode::push('movementDeleteByCron', true);
-            rack_Movements::delete("#createdOn <= '{$createdBefore}'");
+
+            $deleteWhere = "#createdOn <= '{$createdBefore}'";
+
+            // Зони, които в момента имат закачен документ
+            $zQuery = rack_Zones::getQuery();
+            $zQuery->where("#containerId IS NOT NULL");
+            $zQuery->show('id,containerId');
+
+            $protect = array();
+            while ($zRec = $zQuery->fetch()) {
+                $zoneId = (int)$zRec->id;
+                $containerId = (int)$zRec->containerId;
+
+                // Ако движението е към тази зона и е вързано към този документ – НЕ го трием от rack_Movements
+                $protect[] = "(LOCATE('|{$zoneId}|', #zoneList) AND LOCATE('|{$containerId}|', #documents))";
+            }
+
+            if (countR($protect)) {
+                $deleteWhere .= " AND NOT (" . implode(" OR ", $protect) . ")";
+            }
+
+            rack_Movements::delete($deleteWhere);
+
             Mode::pop('movementDeleteByCron');
         }
 

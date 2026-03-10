@@ -538,7 +538,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     public static function getPaidAmount($jRecs, $rec)
     {
         // Взимаме количествата по валути
-        $quantities = acc_Balances::getBlQuantities($jRecs, '411,412', 'credit', '501,503,481,482');
+        $ignoreClassIds = array(findeals_DebitDocuments::getClassId(), findeals_CreditDocuments::getClassId());
+        $quantities = acc_Balances::getBlQuantities($jRecs, '411,412', 'credit', '501,503,481,482', array(), null, $ignoreClassIds);
         $res = deals_Helper::convertJournalCurrencies($quantities, $rec->currencyId, $rec->valior);
         
         // К-то платено във валутата на сделката го обръщаме в основна валута за изравнявания

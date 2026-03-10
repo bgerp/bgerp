@@ -100,6 +100,7 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
 
         $originCurrencyId = currency_Currencies::getIdByCode($originCurrencyCode);
         $findeal2findeal = $doc->isInstanceOf('findeals_Deals') && $origin->isinstanceOf('findeals_Deals');
+
         if($rec->currencyId == $originCurrencyId && $rec->currencyId == $baseCurrencyId) {
 
             // Дебитираме разчетната сметка на избраната финансова сделка
@@ -135,6 +136,8 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
             if($findeal2findeal){
                 $amountCredit = $rec->amount * $originRec->currencyRate;
                 $debitQuantity = deals_Helper::getSmartBaseCurrency($amountCredit, $originRec->valior, $rec->valior);
+            } elseif($rec->currencyId == currency_Currencies::getIdByCode('EUR')){
+                $amountCredit = $amountDebit;
             }
 
             $entries[] = array('amount' => $sign * round($amountCredit, 2),

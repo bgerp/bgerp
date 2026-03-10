@@ -713,7 +713,10 @@ class sales_PrimeCostByDocument extends core_Manager
             if (!$rec->dealerId) continue;
             
             // Намира се в колко от търсените групи участва
-            $groups = is_array($productGroups[$rec->productId]) ? $productGroups[$rec->productId] : array();
+            $groups = (isset($productGroups[$rec->productId]) && is_array($productGroups[$rec->productId]))
+                ? $productGroups[$rec->productId]
+                : array();
+
             $diff = array_intersect_key($selectedGroups, $groups);
             $delimiter = countR($diff);
             
@@ -887,19 +890,38 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     private static function getAllProductGroups($indicatorRecs)
     {
-        if(!countR(static::$productGroupsCache)){
-            $groups = array();
+        if (!is_array(static::$productGroupsCache)) {
+            static::$productGroupsCache = array();
+        }
 
-            // Извличане на всички артикули от записите
-            $productArr = arr::extractValuesFromArray($indicatorRecs, 'productId');
+        $productArr = arr::extractValuesFromArray($indicatorRecs, 'productId');
+        $productArr = array_filter($productArr);
+        $productArr = array_unique($productArr);
+
+        // Търсим кои продукти още не са кеширани
+        $missingProductIds = array();
+        foreach ($productArr as $productId) {
+            if (!array_key_exists($productId, static::$productGroupsCache)) {
+                $missingProductIds[] = $productId;
+            }
+        }
+
+        if (countR($missingProductIds)) {
             $pQuery = cat_Products::getQuery();
-            $pQuery->show('groups');
-            $pQuery->in('id', $productArr);
+            $pQuery->show('id,groups');
+            $pQuery->in('id', $missingProductIds);
+
             while ($pRec = $pQuery->fetch()) {
-                $groups[$pRec->id] = keylist::toArray($pRec->groups);
+                static::$productGroupsCache[$pRec->id] = keylist::toArray($pRec->groups);
             }
 
-            static::$productGroupsCache = $groups;
+            // За всеки случай: ако някой productId не се върне от заявката,
+            // да се маркира с празен масив, за да не се търси пак
+            foreach ($missingProductIds as $productId) {
+                if (!array_key_exists($productId, static::$productGroupsCache)) {
+                    static::$productGroupsCache[$productId] = array();
+                }
+            }
         }
 
         return static::$productGroupsCache;

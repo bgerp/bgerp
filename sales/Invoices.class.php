@@ -316,9 +316,7 @@ class sales_Invoices extends deals_InvoiceMaster
 
         $defInfo = '';
 
-        if(isset($rec->id)){
-            $form->setDefault('selectInvoiceText', 'inputed');
-        } else {
+        if(!isset($rec->id)){
             $form->setDefault('selectInvoiceText', 'both');
         }
 

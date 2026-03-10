@@ -259,8 +259,11 @@ class planning_AssetResourceFolders extends core_Manager
         $rec = $form->rec;
         if ($form->isSubmitted()) {
             if($rec->classId == planning_AssetResources::getClassId()){
-                if(!planning_AssetResources::canAssetBeAddedToFolder($rec->objectId, $rec->folderId)) {
-                    $form->setError('folderId', 'Материалните ресурс не може да е в повече от един център на дейност|*!');
+                $Cover = doc_Folders::getCover($rec->folderId);
+                if($Cover->isInstanceOf('planning_Centers')){
+                    if(!planning_AssetResources::canAssetBeAddedToFolder($rec->objectId, $rec->folderId)) {
+                        $form->setError('folderId', 'Материалните ресурс не може да е в повече от един център на дейност|*!');
+                    }
                 }
             }
         }

@@ -795,7 +795,9 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function assignSerial($id, $serial, $sourceClassId = null, $sourceObjectId = null)
     {
-        return cat_Serials::assignSerial($serial, $sourceClassId, $sourceObjectId);
+        cat_Serials::assignSerial($serial, $sourceClassId, $sourceObjectId);
+
+        return $serial;
     }
     
     
@@ -812,10 +814,22 @@ abstract class cat_ProductDriver extends core_BaseClass
             if (cls::load($sRec->sourceClassId, true)) {
                 $Source = cls::get($sRec->sourceClassId);
                 if ($Source->getField('productId', false)) {
-                    if ($productId = $Source->fetchField($sRec->sourceObjectId, 'productId')) {
-                        
-                        return cat_Products::fetch($productId);
+                    $sourceRec = $Source->fetch($sRec->sourceObjectId);
+                    $productId = $sourceRec->productId;
+                    if($Source instanceof planning_Tasks){
+                        if($sourceRec->isFinal == 'yes'){
+                            $productId = planning_Jobs::fetchField("#containerId = {$sourceRec->originId}", 'productId');
+                        }
+
+                        // Ако серийния номер е от оттеглен прогрес - все едно го няма
+                        $dRec = planning_ProductionTaskDetails::getQuery();
+                        $dRec->where(array("#serial = '[#1#]' AND #taskId = {$sourceRec->id} AND #productId = {$productId} AND #state != 'rejected'", $serial));
+                        if(!$dRec->count()){
+                            $productId = null;
+                        }
                     }
+
+                    if ($productId) return cat_Products::fetch($productId);
                 }
             }
         }

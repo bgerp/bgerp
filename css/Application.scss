@@ -1218,6 +1218,7 @@ div.acc-detail {
         &.bottom{
             bottom: auto;
             top: 0;
+            top: 0;
 
         }
 	   .aright{
@@ -5821,8 +5822,12 @@ iframe.autoHeight {
 	display: block;
 }
 
-.listBlock {
+.listBlock:has(.listTopContainer) {
 	display: table;
+}
+
+.listBlock .listRows {
+	overflow-x: auto;
 }
 
 .narrow-scroll .listBlock {
@@ -8098,6 +8103,9 @@ body.narrow {
 		width: 100%;
 		max-width: 1200px;
 		padding: 0px !important;
+	}
+	.printing .document {
+		max-width: 1200px !important;
 	}
 	.no-print {
 	   display: none;
