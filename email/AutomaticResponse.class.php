@@ -180,7 +180,7 @@ class email_AutomaticResponse extends core_Master
 
             $emails = array();
             while($emailRec = $queryEmails->fetch()){
-                $emails[$emailRec->Id] = $emailRec->email;
+                $emails[$emailRec->id] = $emailRec->email;
             }
             $form->setOptions('inboxEmail', $emails);
         }
