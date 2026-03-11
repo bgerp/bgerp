@@ -1013,8 +1013,7 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterGetDocButtonsInFolder($mvc, &$res, $id)
     {
-        setIfNot($res, array());
-        
+        $res = $res ?? array();
         $rec = $mvc->fetch($id);
         
         $allSysTeamId = type_UserOrRole::getAllSysTeamId();

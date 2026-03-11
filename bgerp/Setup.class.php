@@ -670,8 +670,7 @@ class bgerp_Setup extends core_ProtoSetup
             }
 
             $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
-
-            setIfNot($rec->color, 'lightgray');
+            $rec->color = $rec->color ?? 'lightgray';
             $rec->state = 'yes';
 
             $Portal->save($rec);
@@ -826,8 +825,7 @@ class bgerp_Setup extends core_ProtoSetup
                 $rec->userOrRole = $uId;
                 $rec->createdBy = $uId;
                 $rec->createdOn = dt::now();
-
-                setIfNot($rec->color, 'lightgray');
+                $rec->color = $rec->color ?? 'lightgray';
                 $rec->state = 'yes';
 
                 $rec->clonedFromId = bgerp_Portal::fetchField(array("#{$Portal->driverClassField} = '[#1#]' AND #userOrRole = '[#2#]'", $rec->{$Portal->driverClassField}, type_UserOrRole::getAllSysTeamId()), 'id');
