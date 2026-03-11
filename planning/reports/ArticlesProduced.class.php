@@ -723,6 +723,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN groupsMat--><div>|Групи материали|*: [#groupsMat#]</div><!--ET_END groupsMat-->
+                                        <!--ET_BEGIN groups--><div>|Групи артикули|*: [#groups#]</div><!--ET_END groups-->
                                         <!--ET_BEGIN totalConsumed--><div>|Общо вложени|*: [#totalConsumed#] лв.</div><!--ET_END totalConsumed--> 
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
@@ -753,6 +754,24 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             } else {
                 $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groupsMat');
             }
+        }
+
+        if (isset($data->rec->groups)) {
+            $marker = 0;
+            $groupVerb = '';
+            foreach (type_Keylist::toArray($data->rec->groups) as $group) {
+                $marker++;
+
+                $groupVerb .= (cat_Groups::getTitleById($group));
+
+                if ((countR((type_Keylist::toArray($data->rec->groups))) - $marker) != 0) {
+                    $groupVerb .= ', ';
+                }
+            }
+
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
+        } else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groups');
         }
 
         if ($data->rec->consumed == 'yes') {
