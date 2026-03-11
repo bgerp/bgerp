@@ -302,13 +302,12 @@ class email_AutomaticResponse extends core_Master
         //валидиране на дата
         $now = dt::now();
         $today = dt::today();
-        $fromDate = $today . " 00:00:00";
-        $toDate = $today . " 23:59:59";
 
         $rulesQuery = self::getQuery();
         $rulesQuery->where("#state = 'active'");
-        $rulesQuery->where("(#dateFrom IS NULL OR #dateFrom <= '{$fromDate}') AND (#dateTo IS NULL OR #dateTo >= '{$toDate}')");
-      
+        $rulesQuery->where("(#dateFrom IS NULL OR DATE(#dateFrom) <= '{$today}')");
+        $rulesQuery->where("(#dateTo IS NULL OR DATE(#dateTo) >= '{$today}')");
+
         //Вземаме активните правила за текущия момент
         $rules = $rulesQuery->fetchAll();
         if (!countR($rules)) return;
