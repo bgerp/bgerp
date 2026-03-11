@@ -1165,11 +1165,11 @@ class label_Prints extends core_Master
             if (!$params[$currPageCntField]) {
                 $updatePageCnt = true;
                 $params[$currPageCntField] = $currPageCnt;
-                setIfNot($placesArr[$currPageCntField], $currPageCntField);
+                $placesArr[$currPageCntField] = $placesArr[$currPageCntField] ?? $currPageCntField;
             }
             
             // Ако не е зададена стойност за брой отпечатвания
-            setIfNot($params[$printCntField], $data->printCnt, $data->cnt, 1);
+            $params[$printCntField] = $params[$printCntField] ?? $data->printCnt ?? $data->cnt ?? 1;
             
             if ($updatePrintCnt) {
                 $params[$currPrintCntField] = $currPrintCnt++;
@@ -1241,7 +1241,7 @@ class label_Prints extends core_Master
         $allTpl = new core_ET();
         
         // Брой записи на страница
-        setIfNot($itemsPerPage, $data->pageLayout->itemsPerPage, 1);
+        $itemsPerPage = $data->pageLayout->itemsPerPage ?? 1;
         
         // Обхождаме резултатите
         foreach ((array) $data->rows as $rowId => $row) {

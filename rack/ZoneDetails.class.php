@@ -548,8 +548,6 @@ class rack_ZoneDetails extends core_Detail
     public static function renderInlineDetail($masterRec, $masterMvc, $additional = null)
     {
         $additional = !empty($additional) ? $additional : 'pendingAndMine';
-        setIfNot($additional, 'pendingAndMine');
-
         $productId = Request::get('productId', 'int');
         $cu = core_Users::getCurrent();
         $tpl = core_Cache::get("rack_Zones_{$masterRec->id}", "{$cu}|{$additional}|{$productId}");
