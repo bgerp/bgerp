@@ -1603,7 +1603,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $rec->storeId = $noteRec->storeId;
         }
 
-        setIfNot($rec->storeId, $storeId);
+        $rec->storeId = $rec->storeId ?? $storeId;
 
         if(!empty($batches) && core_Packs::isInstalled('batch')){
             $rec->autoAllocate = false;

@@ -494,7 +494,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
             foreach ($dRecs as $dRec) {
                 if (in_array($originRec->vatRate, array('yes', 'separate', 'no'))) {
                     $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
-                    setIfNot($vatSysId, 'B');
+                    $vatSysId = $vatSysId ?? 'B';
                 } else {
                     $vatSysId = 'A';
                 }

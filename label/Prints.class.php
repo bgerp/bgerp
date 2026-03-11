@@ -441,8 +441,7 @@ class label_Prints extends core_Master
                 $estCnt = label_Media::getCountInPage($rec->mediaId);
             }
         }
-        
-        setIfNot($estCnt, 1);
+        $estCnt = $estCnt ?? 1;
         
         $form->setDefault('labelsCnt', $estCnt);
         $form->setDefault('copiesCnt', 1);
@@ -1124,8 +1123,9 @@ class label_Prints extends core_Master
         }
         
         // Ако не е сетната бройката
-        setIfNot($data->cnt, 1);
-        setIfNot($data->copyCnt, 1);
+        $data->cnt = $data->cnt ?? 1;
+        $data->copyCnt = $data->copyCnt ?? 1;
+        setPartIfNot($data, 'cnt', 1);
         
         if (!$data->allCnt) {
             $data->allCnt = $data->cnt * $data->copyCnt;

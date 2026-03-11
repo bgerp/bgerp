@@ -124,8 +124,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        setIfNot($data->defaultMeta, $mvc->defaultMeta);
-        setIfNot($data->defaultNotHaveMeta, $mvc->defaultNotHaveMeta);
+        setPartIfNot($data, 'defaultMeta', $mvc->defaultMeta);
+        setPartIfNot($data, 'defaultNotHaveMeta', $mvc->defaultNotHaveMeta);
 
         if (!$data->defaultMeta && !$data->defaultNotHaveMeta) return;
 

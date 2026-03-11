@@ -187,7 +187,7 @@ class rack_ZoneDetails extends core_Detail
     protected static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
         if(!countR($data->rows)) return;
-        setIfNot($data->inlineDetail, false);
+        setPartIfNot($data, 'inlineDetail', false);
         setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
         $requestedProductId = Request::get('productId', 'int');
         if(Mode::is('printing')){

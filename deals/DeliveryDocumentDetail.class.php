@@ -40,7 +40,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 
         $mvc->setFieldTypeParams('discount', array('warningMax' => deals_Setup::get('MAX_WARNING_DISCOUNT')));
         $mvc->setDbIndex('productId,packagingId');
-        setIfNot($mvc->allowInputPriceForQuantity, false);
+        setPartIfNot($mvc, 'allowInputPriceForQuantity', false);
     }
 
     
