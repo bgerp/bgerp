@@ -17,6 +17,16 @@
 class plg_Select extends core_Plugin
 {
     /**
+     * Иконки за действията с избраните
+     */
+    protected static $doWithSelectedIconsMap = array('printsinglesfromlist' => 'img/16/printer.png',
+                                                     'browse' => 'img/16/view.png',
+                                                     'changemeta' => 'img/16/view.png',
+                                                     'grouping' => 'img/16/category-icon.png',
+                                                     'groupconto' => 'img/16/tick-circle-frame.png');
+
+
+    /**
      * Изпълнява се след инициализиране на мениджъра
      */
     public function on_AfterDescription($mvc)
@@ -105,7 +115,7 @@ class plg_Select extends core_Plugin
     public function on_BeforeAction($mvc, &$res, $act)
     {
         $actArr = arr::make($mvc->doWithSelected, true);
-        
+
         if ($act == 'dowithselected') {
             $mvc->requireRightFor('list');
             
@@ -119,6 +129,7 @@ class plg_Select extends core_Plugin
             
             
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
+            $cnt = $listArr = array();
             foreach ($row as $id => $on) {
                 foreach ($actArr as $action => $caption) {
                     if ($mvc->haveRightFor($action, $id)) {
@@ -134,7 +145,7 @@ class plg_Select extends core_Plugin
                     unset($actArr[$action]);
                 }
             }
-            
+
             if (!countR($actArr)) {
                 $res = new Redirect(getRetUrl(), '|За избраните редове не са достъпни никакви операции');
                 
@@ -147,6 +158,8 @@ class plg_Select extends core_Plugin
             $res->append("\n<table class='no-border-table'>");
             
             foreach ($actArr as $action => $caption) {
+                $icon = self::$doWithSelectedIconsMap[$action] ?? "img/16/{$action}.png";
+
                 $res->append("\n<tr><td>");
                 $res->append(ht::createBtn(
                     ltrim($caption, '*') . '|* (' . $cnt[$action] . ')',
@@ -157,7 +170,7 @@ class plg_Select extends core_Plugin
                         'ret_url' => Request::get('ret_url')),
                         null,
                         null,
-                        "ef_icon=img/16/{$action}.png"
+                        "ef_icon={$icon}"
                 ));
                 $res->append('</td></tr>');
             }
@@ -165,7 +178,7 @@ class plg_Select extends core_Plugin
             $res->append("\n</table>");
             
             $res = $mvc->renderWrapping($res);
-            
+
             return false;
         } elseif (!empty($actArr[$act]) && $actArr[$act][0] === '*') {
             if (Request::get('id')) {
