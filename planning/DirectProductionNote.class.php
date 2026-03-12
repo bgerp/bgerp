@@ -726,15 +726,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
             }
 
-            // По подразбиране: мета блокът си остава вляво
+            // По подразбиране: без разместване на колоните
             $row->leftMetaClass = '';
             $row->productImageRightMeta = '';
+            $row->productionNoteMainClass = '';
 
             // Да се показва изображението при печат ако е избрано в настройките
             $showImage = planning_Setup::get('PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING');
             if ($showImage == 'yes' && Mode::is('printing')) {
                 if ($preview = cat_Products::getPreview($rec->productId, array(420, 420))) {
                     $row->productImage = "<div class='production-note-image-holder'>{$preview}</div>";
+                    $row->productionNoteMainClass = 'production-note-swap-cols';
 
                     // Скриваме левия текстов блок и го показваме отделно вдясно
                     $row->leftMetaClass = 'production-note-hidden';

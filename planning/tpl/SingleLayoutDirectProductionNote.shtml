@@ -10,7 +10,6 @@
 
     .production-note-image-holder {
         text-align: center;
-        margin-top: 8px;
     }
 
     .production-note-image-holder img {
@@ -41,6 +40,24 @@
         word-wrap: break-word;
         word-break: normal;
     }
+    
+    .production-note-swap-cols {
+        direction: rtl;
+    }
+
+    .production-note-swap-cols td,
+    .production-note-swap-cols table,
+    .production-note-swap-cols div {
+        direction: ltr;
+    }
+    
+    .production-note-swap-cols .production-note-image-side-cell {
+        vertical-align: middle !important;
+    }
+
+    .production-note-swap-cols .production-note-image-holder {
+        margin-top: 0;
+    }
 </style>
 <table style='width:100%;'>
     <tbody>
@@ -48,10 +65,10 @@
             <td>
                 <div class='scrolling-holder'>
                     <div class='display-table'>
-                        <table class="innerTable border-table paddingCells production-note-main-table">
+                        <table class="innerTable border-table paddingCells production-note-main-table [#productionNoteMainClass#]">
                             <tbody>
                                 <tr>
-                                    <td class="cell centered" rowspan='3' style="vertical-align: top;">
+                                    <td class="cell centered production-note-image-side-cell" rowspan='3' style="vertical-align: top;">
                                         <div class="[#leftMetaClass#]">
                                             <div class="document-title">|протокол за производство|*</div>
                                             <div class='small'>( <i> [#subTitle#] </i> )</div>
