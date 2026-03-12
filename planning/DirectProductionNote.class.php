@@ -726,11 +726,47 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
             }
 
+            // По подразбиране: мета блокът си остава вляво
+            $row->leftMetaClass = '';
+            $row->productImageRightMeta = '';
+
             // Да се показва изображението при печат ако е избрано в настройките
             $showImage = planning_Setup::get('PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING');
-            if($showImage == 'yes' && Mode::is('printing')){
-                if ($preview = cat_Products::getPreview($rec->productId, array(300, 300))) {
-                    $row->productImage = $preview;
+            if ($showImage == 'yes' && Mode::is('printing')) {
+                if ($preview = cat_Products::getPreview($rec->productId, array(420, 420))) {
+                    $row->productImage = "<div class='production-note-image-holder'>{$preview}</div>";
+
+                    // Скриваме левия текстов блок и го показваме отделно вдясно
+                    $row->leftMetaClass = 'production-note-hidden';
+
+                    $stateClass = !empty($row->STATE_CLASS) ? $row->STATE_CLASS : '';
+                    $zoneCaption = tr('Зона');
+                    $docTitle = tr('протокол за производство');
+
+                    $rightMeta = "<div class='production-note-right-meta-wrap'>
+                                    <div class='document-title'>{$docTitle}</div>
+                                    <div class='small'>( <i> {$row->subTitle} </i> )</div>
+                                    <div style='padding-top:5px;'>
+                                        № <span class='bigData'>{$row->id}</span> /
+                                        <span class='bigData'>{$row->valior}</span>
+                                    </div>";
+
+                    if (!empty($row->state)) {
+                        $rightMeta .= "<div class='state {$stateClass}' style='margin: 5px 0;'>{$row->state}</div>";
+                    }
+
+                    if (!empty($row->zoneReadiness)) {
+                        $rightMeta .= "<table class='document-block no-border'>
+                                            <tr>
+                                                <td class='block-caption leftCol'>{$zoneCaption} {$row->zoneId}</td>
+                                                <td><div class='block-readiness'>{$row->zoneReadiness}</div></td>
+                                            </tr>
+                                       </table>";
+                    }
+
+                    $rightMeta .= "</div>";
+
+                    $row->productImageRightMeta = $rightMeta;
                 }
             }
         } else {

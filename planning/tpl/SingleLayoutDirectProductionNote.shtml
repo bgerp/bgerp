@@ -1,40 +1,99 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+<style>
+    .production-note-main-table {
+        width: 100%;
+    }
+
+    .production-note-hidden {
+        display: none;
+    }
+
+    .production-note-image-holder {
+        text-align: center;
+        margin-top: 8px;
+    }
+
+    .production-note-image-holder img {
+        max-width: 100%;
+        max-height: 340px;
+        width: auto;
+        height: auto;
+    }
+
+    .production-note-right-top-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .production-note-right-meta-cell {
+        background: transparent !important;
+        text-align: center;
+        vertical-align: top;
+        padding: 10px 8px 8px 8px;
+    }
+
+    .production-note-right-meta-cell .document-block {
+        margin: 6px auto 0 auto;
+    }
+
+    .production-note-product-cell {
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: normal;
+    }
+</style>
 <table style='width:100%;'>
     <tbody>
         <tr>
             <td>
                 <div class='scrolling-holder'>
                     <div class='display-table'>
-                        <table class="innerTable border-table paddingCells">
+                        <table class="innerTable border-table paddingCells production-note-main-table">
                             <tbody>
                                 <tr>
-                                    <td class="cell centered" rowspan='3'>
-                                        <div class="document-title">|протокол за производство|*</div>
-                                        <div class='small'>( <i> [#subTitle#] </i> )</div>
-                                        <div style="padding-top:5px;">
-                                            № <span class="bigData">[#id#]</span> /
-                                            <span class="bigData">[#valior#]</span>
+                                    <td class="cell centered" rowspan='3' style="vertical-align: top;">
+                                        <div class="[#leftMetaClass#]">
+                                            <div class="document-title">|протокол за производство|*</div>
+                                            <div class='small'>( <i> [#subTitle#] </i> )</div>
+                                            <div style="padding-top:5px;">
+                                                № <span class="bigData">[#id#]</span> /
+                                                <span class="bigData">[#valior#]</span>
+                                            </div>
+                                            <!--ET_BEGIN state-->
+                                            <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
+                                            <!--ET_END state-->
+                                            <!--ET_BEGIN zoneReadiness-->
+                                            <table class="document-block no-border">
+                                                <tr>
+                                                    <td class="block-caption leftCol">|Зона|* [#zoneId#]</td>
+                                                    <td><div class="block-readiness">[#zoneReadiness#]</div></td>
+                                                </tr>
+                                            </table>
+                                            <!--ET_END zoneReadiness-->
                                         </div>
-                                        <!--ET_BEGIN state-->
-                                        <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
-                                        <!--ET_END state-->
-                                        <!--ET_BEGIN zoneReadiness-->
-                                        <table class="document-block no-border">
-                                            <tr>
-                                                <td class="block-caption leftCol">|Зона|* [#zoneId#]</td>
-                                                <td><div class="block-readiness">[#zoneReadiness#]</div></td>
-                                            </tr>
-                                        </table>
-                                        <!--ET_END zoneReadiness-->
                                         [#productImage#]
                                     </td>
-                                    <td class="cell custom-header-bg" style='padding-top:7px'><b>|Произведено|*</b><small> (|заприходено|*) </small><b>|в склад|*:</b>  <b style='font-size:18px;'>[#storeId#]</b></td>
+                                    <td style="padding:0; vertical-align: top;">
+                                        <table class="no-border production-note-right-top-table">
+                                            <!--ET_BEGIN productImageRightMeta-->
+                                            <tr>
+                                                <td class="cell production-note-right-meta-cell">[#productImageRightMeta#]</td>
+                                            </tr>
+                                            <!--ET_END productImageRightMeta-->
+                                            <tr>
+                                                <td class="cell custom-header-bg" style='padding-top:7px'>
+                                                    <b>|Произведено|*</b><small> (|заприходено|*) </small><b>|в склад|*:</b>
+                                                    <b style='font-size:18px;'>[#storeId#]</b>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td class="cell">
+                                    <td class="cell production-note-product-cell">
                                         <table class='no-border'>
                                             <tr>
-                                                <td>[#addBatchBtn#] <b style="font-size: 1.1em">[#productId#]</b> [#batch#]</td>
+                                                <td class="production-note-product-cell">[#addBatchBtn#] <b style="font-size: 1.1em">[#productId#]</b> [#batch#]</td>
                                             </tr>
                                         </table>
                                     </td>
