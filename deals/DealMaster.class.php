@@ -227,7 +227,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
 
-            setIfNot($date, $invoiceDate, $shippedValior, $proformaValior, $agreedValior);
+            $date = $date ?? $invoiceDate ?? $shippedValior ?? $proformaValior ?? $agreedValior;
 
             // Ако няма дефолтен начин на плащане се търси такъв
             if(empty($methodId)){
@@ -294,8 +294,8 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected static function setDealFields($mvc)
     {
-        setIfNot($mvc->dealerRolesList, 'powerUser');
-        setIfNot($mvc->dealerRolesForAll, $mvc->dealerRolesList);
+        setPartIfNot($mvc, 'dealerRolesList', 'powerUser');
+        setPartIfNot($mvc, 'dealerRolesForAll', $mvc->dealerRolesList);
         $dealerRolesList = implode('|', arr::make($mvc->dealerRolesList, true));
         $dealerRolesForAll = implode('|', arr::make($mvc->dealerRolesForAll, true));
         
@@ -2280,7 +2280,7 @@ abstract class deals_DealMaster extends deals_DealBase
         // Ако не е подадено да се начислявали ддс, определяме от контрагента
         if (empty($fields['makeInvoice'])) {
             $rec->makeInvoice = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'makeInvoice', 'lastDocUser|lastDoc');
-            setIfNot($rec->makeInvoice, 'yes');
+            $rec->makeInvoice = $rec->makeInvoice ?? 'yes';
         }
         if(empty($fields['shipmentStoreId'])) {
             $rec->shipmentStoreId = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'shipmentStoreId', 'defMethod');
@@ -3104,7 +3104,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!empty($rec->deliveryTime)) {
             $dateArr['date'] = $rec->deliveryTime;
         } else {
-            setIfNot($date, $rec->valior, $rec->activatedOn);
+            $date = $date ?? ($rec->valior ?? $rec->activatedOn);
             $dateArr['date'] = $date;
 
             // Датата ще е вальора/датата на активиране/датата на създаване в този ред

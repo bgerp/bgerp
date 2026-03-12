@@ -1703,8 +1703,8 @@ class planning_Jobs extends core_Master
 
             $personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
             $classId = planning_Jobs::getClassId();
-            
-            setIfNot($rec->activatedOn, $rec->modifiedOn);
+
+            $rec->activatedOn = $rec->activatedOn ?? $rec->modifiedOn;
             $date = dt::verbal2mysql($rec->activatedOn, false);
             
             $isRejected = ($rec->state == 'rejected');

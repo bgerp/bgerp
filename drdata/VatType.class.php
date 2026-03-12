@@ -49,8 +49,8 @@ class drdata_VatType extends type_Varchar
     public function init($params = array())
     {
         parent::init($params);
-        setIfNot($this->params['size'], $this->dbFieldLen);
-        setIfNot($this->params[0], $this->dbFieldLen);
+        $this->params['size'] = $this->params['size'] ?? $this->dbFieldLen;
+        $this->params[0] = $this->params[0] ?? $this->dbFieldLen;
     }
     
     

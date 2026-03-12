@@ -22,10 +22,10 @@ class label_plg_Print extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->canPrintlabel, 'label, admin, ceo');
-        setIfNot($mvc->canPrintperipherallabel, 'label, admin, ceo');
-        setIfNot($mvc->printLabelCaptionPlural, 'Етикети');
-        setIfNot($mvc->printLabelCaptionSingle, 'Етикет');
+        setPartIfNot($mvc, 'canPrintlabel', 'label, admin, ceo');
+        setPartIfNot($mvc, 'canPrintperipherallabel', 'label, admin, ceo');
+        setPartIfNot($mvc, 'printLabelCaptionPlural', 'Етикети');
+        setPartIfNot($mvc, 'printLabelCaptionSingle', 'Етикет');
     }
     
     

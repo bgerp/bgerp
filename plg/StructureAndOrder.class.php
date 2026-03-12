@@ -36,9 +36,10 @@ class plg_StructureAndOrder extends core_Plugin
         $mvc->FLD('saoLevel', 'int', 'caption=Структура и подредба->Ниво,input=none,column=none,order=100000');
         
         $mvc->listItemsPerPage = max($mvc->listItemsPerPage, 1000);
-        setIfNot($mvc->saoOrderPrioriy, -100);
-        setIfNot($mvc->autoOrderBySaoOrder, true);
-        setIfNot($mvc->saoReorderAfterSave, true);
+
+        setPartIfNot($mvc, 'saoOrderPrioriy', -100);
+        setPartIfNot($mvc, 'autoOrderBySaoOrder', true);
+        setPartIfNot($mvc, 'saoReorderAfterSave', true);
     }
     
     
@@ -194,7 +195,7 @@ class plg_StructureAndOrder extends core_Plugin
             $items = $mvc->getSaoItems($rec);
             
             // По подразбиране - добавяме следващ елемент
-            setIfNot($rec->saoPosition, 'next');
+            setPartIfNot($rec, 'saoPosition', 'next');
             
             // Ако нямаме никакви елементи правим дефолти
             if (!countR($items) || (!$rec->saoRelative && $rec->saoPosition != 'subLevel')) {
