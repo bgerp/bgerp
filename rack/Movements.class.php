@@ -1698,12 +1698,12 @@ class rack_Movements extends rack_MovementAbstract
     {
         if($olderThan = rack_Setup::get('DELETE_OLD_MOVEMENTS')){
 
-            // Всички движения преди X време
+            // Всички движения модифицирани преди X време
             $createdBefore = dt::addSecs(-1 * $olderThan);
 
             Mode::push('movementDeleteByCron', true);
 
-            $deleteWhere = "#createdOn <= '{$createdBefore}'";
+            $deleteWhere = "#modifiedOn <= '{$createdBefore}' AND #state = 'closed'";
 
             // Зони, които в момента имат закачен документ
             $zQuery = rack_Zones::getQuery();
