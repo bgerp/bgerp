@@ -873,7 +873,11 @@ abstract class bank_Document extends deals_PaymentDocument
             }
         }
 
-        $form->toolbar->addSbBtn('Контиране (всички)', 'save', null, 'ef_icon=img/16/tick-circle-frame.png, title=Контиране на избраните документи');
+        $form->toolbar->addSbBtn('Контиране (всички)', 'save', null, 'id=btnSave,ef_icon=img/16/tick-circle-frame.png, title=Контиране на избраните документи');
+        if(!countR($contable)){
+            $form->toolbar->setError('btnSave', 'aaaa');
+        }
+
         $form->toolbar->addBtn('Отказ', $retUrl, null, 'ef_icon=img/16/close-red.png, title=Прекратяване на действията');
         $form->input();
 
