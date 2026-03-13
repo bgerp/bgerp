@@ -2582,7 +2582,16 @@ width:1%;
 }
 
 .medium-field{
-width: 200px;
+	width: 200px;
+}
+.custom-field {
+	width: 1%;
+	a, .linkWithIcon {
+		display: block;
+		img {
+			float: none !important;
+		}
+	}
 }
 
 .large-field{

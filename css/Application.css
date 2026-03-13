@@ -2242,6 +2242,15 @@ td.rowtools-column {
 .medium-field {
   width: 200px; }
 
+.custom-field {
+  width: 1%; }
+  .custom-field a,
+  .custom-field .linkWithIcon {
+    display: block; }
+    .custom-field a img,
+    .custom-field .linkWithIcon img {
+      float: none !important; }
+
 .large-field {
   width: 50%; }
 
