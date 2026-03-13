@@ -23,13 +23,13 @@ class plg_ExpandInput extends core_Plugin
     public static function on_AfterDescription(&$mvc)
     {  
         // Име на полето, в което ще се записват всички
-        setIfNot($mvc->expandFieldName, 'expand');
+        setPartIfNot($mvc, 'expandFieldName', 'expand');
         
         // Име на полето, което ще се инпутва
-        setIfNot($mvc->expandInputFieldName, $mvc->expandFieldName . 'Input');
+        setPartIfNot($mvc, 'expandInputFieldName', $mvc->expandFieldName . 'Input');
         
         // Име на полето, към предшественика на полето
-        setIfNot($mvc->expandParentFieldName, 'parentId');
+        setPartIfNot($mvc, 'expandParentFieldName', 'parentId');
         
         // Скриваме полето
         $expandField = $mvc->getField($mvc->expandFieldName);
@@ -37,8 +37,8 @@ class plg_ExpandInput extends core_Plugin
       
         $mvc->setExpandInputField($mvc, $mvc->expandInputFieldName, $mvc->expandFieldName);
 
-        setIfNot($mvc->forceExpandInputFieldOnExport, true);
-        setIfNot($mvc->useExpandInputTypeOnExport, false);
+        setPartIfNot($mvc, 'forceExpandInputFieldOnExport', true);
+        setPartIfNot($mvc, 'useExpandInputTypeOnExport', false);
 
         $expand36Name = $mvc->getExpandFieldName36();
 

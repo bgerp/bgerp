@@ -36,8 +36,8 @@ class doc_plg_TplManager extends core_Plugin
             $mvc->FLD('template', 'key(mvc=doc_TplManager,select=name)', 'caption=Допълнително->Изглед,notChangeableByContractor');
         }
         
-        setIfNot($mvc->canAsclient, 'no_one');
-        setIfNot($mvc->createView, true);
+        setPartIfNot($mvc, 'canAsclient', 'no_one');
+        setPartIfNot($mvc, 'createView', true);
     }
     
     

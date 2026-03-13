@@ -4265,7 +4265,7 @@ class cat_Products extends embed_Manager
                     }
                 }
 
-                setIfNot($dInst->productFld, 'productId');
+                setPartIfNot($dInst, 'productFld', 'productId');
 
                 $dFields = array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка", 'notes' => 'Забележки');
                 if($masterMvc instanceof store_InventoryNotes){

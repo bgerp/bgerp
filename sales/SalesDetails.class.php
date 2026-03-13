@@ -282,6 +282,11 @@ class sales_SalesDetails extends deals_DealDetail
         $recalcPricesOnClone = sales_Setup::get('RECALC_PRICES_ON_CLONE');
         if($recalcPricesOnClone == 'no'){
 
+            // Подсигуряване, че цената няма да се развали при промяна на курса (понеже е записано в основна валута)
+            $oldRate = sales_Sales::fetchField($oldRec->saleId, 'currencyRate');
+            $newRate = sales_Sales::fetchField($rec->saleId, 'currencyRate');
+            $rec->price = ($rec->price / $oldRate) * $newRate;
+
             // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
             $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
             if (isset($cRec->fee) && $cRec->fee > 0) {

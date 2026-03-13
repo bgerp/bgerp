@@ -2,13 +2,13 @@
 
 
 /**
- * След колко време да се изтриват старите движение
+ * След колко време да се изтриват старите движения
  */
-defIfNot('RACK_DELETE_OLD_MOVEMENTS', 5184000);
+defIfNot('RACK_DELETE_OLD_MOVEMENTS', 2592000);
 
 
 /**
- * След колко време да се изтриват архивораните движения
+ * След колко време да се изтриват архивираните движения
  */
 defIfNot('RACK_DELETE_ARCHIVED_MOVEMENTS', dt::SECONDS_IN_MONTH * 12);
 
@@ -28,7 +28,7 @@ defIfNot('RACK_DEFAULT_ZONE_COLORS', '#eeeeee');
 /**
  * Коя стратегия за движенията да се използва
  */
-defIfNot('RACK_PICKUP_STRATEGY', 'ver2');
+defIfNot('RACK_PICKUP_STRATEGY', 'ver3');
 
 
 /**

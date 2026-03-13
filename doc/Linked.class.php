@@ -1098,7 +1098,7 @@ class doc_Linked extends core_Manager
      */
     public static function prepareLinkDocId($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        setIfNot($limit, $params['maxSuggestions'], 100);
+        $limit = $limit ?? $params['maxSuggestions'] ?? 100;
         $sArr = array();
         
         $cInst = cls::get($params['mvc']);
@@ -1262,7 +1262,7 @@ class doc_Linked extends core_Manager
     public static function prepareFoldersForDoc($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $maxTrays = 500;
-        setIfNot($limit, $params['maxSuggestions'], 100);
+        $limit = $limit ?? $params['maxSuggestions'] ?? 100;
         $res = array();
         
         if ($params['docType']) {
@@ -1479,7 +1479,7 @@ class doc_Linked extends core_Manager
      */
     public static function prepareThreadsForDoc($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        setIfNot($limit, $params['maxSuggestions'], 100);
+        $limit = $limit ?? $params['maxSuggestions'] ?? 100;
         $res = array();
         
         if ($params['docType']) {

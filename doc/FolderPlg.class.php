@@ -53,8 +53,9 @@ class doc_FolderPlg extends core_Plugin
         $mvc->details['Rights'] = $mvc->className;
         $mvc->details['History'] = $mvc->className;
         $mvc->details['Resources'] = 'doc_FolderResources';
-        setIfNot($mvc->autoCreateFolder, 'instant');
-        setIfNot($mvc->cloneFolderSettings, false);
+
+        setPartIfNot($mvc, 'autoCreateFolder', 'instant');
+        setPartIfNot($mvc, 'cloneFolderSettings', false);
     }
     
     
@@ -1012,8 +1013,7 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterGetDocButtonsInFolder($mvc, &$res, $id)
     {
-        setIfNot($res, array());
-        
+        $res = $res ?? array();
         $rec = $mvc->fetch($id);
         
         $allSysTeamId = type_UserOrRole::getAllSysTeamId();

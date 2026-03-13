@@ -135,20 +135,23 @@ class doc_DocumentPlg extends core_Plugin
         
         
         // Дали могат да се принтират оттеглените документи
-        setIfNot($mvc->printRejected, false);
+        setPartIfNot($mvc, 'printRejected', false);
         
         // Дали може да се редактират активирани документи
-        setIfNot($mvc->canEditActivated, false);
-        
-        setIfNot($mvc->canExportdoc, 'user');
-        setIfNot($mvc->canForceexpenseitem, 'ceo,acc,purchase');
-        setIfNot($mvc->canPsingle, 'user');
-        setIfNot($mvc->pendingQueue, array());
-        setIfNot($mvc->canPending, 'no_one');
-        setIfNot($mvc->requireDetailForPending, true);
-        setIfNot($mvc->mustUpdateUsed, false);
-        setIfNot($mvc->canMovelast, 'powerUser');
-        setIfNot($mvc->pendingUpdateModifiedArr, array());
+        setPartIfNot($mvc, 'canEditActivated', false);
+
+        setPartIfNot($mvc, 'canExportdoc', 'user');
+        setPartIfNot($mvc, 'canForceexpenseitem', 'ceo,acc,purchase');
+
+        setPartIfNot($mvc, 'canPsingle', 'user');
+        setPartIfNot($mvc, 'pendingQueue', array());
+        setPartIfNot($mvc, 'canPending', 'no_one');
+
+        setPartIfNot($mvc, 'requireDetailForPending', true);
+
+        setPartIfNot($mvc, 'mustUpdateUsed', false);
+        setPartIfNot($mvc, 'canMovelast', 'powerUser');
+        setPartIfNot($mvc, 'pendingUpdateModifiedArr', array());
 
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
@@ -174,8 +177,8 @@ class doc_DocumentPlg extends core_Plugin
         }
         $mvc->fetchFieldsBeforeDelete .= 'containerId';
 
-        setIfNot($mvc->addSubTitleToList, false);
-        setIfNot($mvc->minRangForEditForeignDoc, 'officer');
+        setPartIfNot($mvc, 'addSubTitleToList', false);
+        setPartIfNot($mvc, 'minRangForEditForeignDoc', 'officer');
     }
     
     
@@ -462,7 +465,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($mvc->haveRightFor('list') && $data->rec->state != 'rejected') {
             
             // По подразбиране бутона всички се показва на втория ред на тулбара
-            setIfNot($mvc->allBtnToolbarRow, 3);
+            setPartIfNot($mvc, 'allBtnToolbarRow', 3);
             
             $title = $mvc->getTitle();
             $title = tr($title);
@@ -839,8 +842,8 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         $fields = arr::make($fields, true);
-        
-        setIfNot($mvc->saveFileArr, array());
+
+        setPartIfNot($mvc, 'saveFileArr', array());
         $mvc->saveFileArr[$rec->id] = $rec;
         
         // Изтрива от кеша html представянето на документа
@@ -2406,7 +2409,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($rec->threadId) {
             $thRec = doc_Threads::fetch($form->rec->threadId);
-            setIfNot($data->singleTitle, $mvc->singleTitle);
+            setPartIfNot($data, 'singleTitle', $mvc->singleTitle);
             
             if ($thRec->firstContainerId != $form->rec->containerId) {
                 $firstDoc = doc_Containers::getDocument($thRec->firstContainerId);
@@ -4146,12 +4149,12 @@ class doc_DocumentPlg extends core_Plugin
         if (!core_Users::haveRole('partner')) {
             unset($nRec->state);
         }
-        
-        setIfNot($thredId, $nRec->threadId, $rec->threadId);
+
+        $threadId = $nRec->threadId ?? $rec->threadId;
         setIfNot($containerId, $nRec->containerId, $rec->containerId);
         
-        if ($thredId && $containerId) {
-            $tRec = doc_Threads::fetch($thredId);
+        if ($threadId && $containerId) {
+            $tRec = doc_Threads::fetch($threadId);
             
             // Ако е първи документ, да се клонира в нова нишка
             if ($tRec->firstContainerId == $containerId) {

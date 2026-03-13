@@ -22,7 +22,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->filterProtoByMeta, 'canSell');
+        setPartIfNot($mvc, 'filterProtoByMeta', 'canSell');
         expect(in_array($mvc->filterProtoByMeta, array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture')));
         expect($mvc instanceof deals_DealDetail || $mvc instanceof deals_QuotationDetails || $mvc instanceof store_InternalDocumentDetail || $mvc instanceof deals_DeliveryDocumentDetail);
     }
