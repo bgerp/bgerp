@@ -823,12 +823,14 @@ abstract class bank_Document extends deals_PaymentDocument
             }
 
             // Рендират се в инфото на формата
+            $count = 0;
             foreach ($arr as $accountId => $recs) {
                 $bTpl = clone $infoTpl->getBlock('ACCOUNT_BLOCK');
                 $accountName = $accountId ? bank_OwnAccounts::getHyperlink($accountId) : "<i style='color:red;'>" . tr('Без избрана сметка') . "</i>";
                 $bTpl->append($accountName, 'accountName');
 
                 foreach ($recs as $dRec) {
+                    $count++;
                     $rTpl = clone $bTpl->getBlock('ROWS');
                     $dRow = $this->recToVerbal($dRec, $fields);
                     if($varName == 'contable'){
@@ -844,8 +846,14 @@ abstract class bank_Document extends deals_PaymentDocument
                     $rTpl->removeBlocksAndPlaces();
                     $bTpl->append($rTpl, 'ACCOUNT_ROWS');
                 }
+
                 $bTpl->removeBlocksAndPlaces();
                 $infoTpl->append($bTpl, $placeholder);
+            }
+
+            if($count){
+                $countPlaceholder = $varName == 'contable' ? 'countContable' : 'countNotContable';
+                $infoTpl->append($count, $countPlaceholder);
             }
         }
 
@@ -856,7 +864,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $form->info = $infoTpl;
 
         // Ако има такива без посочена б-сметка излиза поле за избор на сметка
-        $form->title = 'Контиране на|* ' . tr(mb_strtolower($this->title)) . " (<b>" . $selArrCnt . "</b>)";
+        $form->title = 'Контиране на|* ' . tr(mb_strtolower($this->title));
         if(array_key_exists('', $contable)){
             if(countR($contable[''])){
                 $form->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Сметка,mandatory');
@@ -875,7 +883,7 @@ abstract class bank_Document extends deals_PaymentDocument
 
         $form->toolbar->addSbBtn('Контиране (всички)', 'save', null, 'id=btnSave,ef_icon=img/16/tick-circle-frame.png, title=Контиране на избраните документи');
         if(!countR($contable)){
-            $form->toolbar->setError('btnSave', 'aaaa');
+            $form->toolbar->setError('btnSave', 'Няма документи, които да контирате групово');
         }
 
         $form->toolbar->addBtn('Отказ', $retUrl, null, 'ef_icon=img/16/close-red.png, title=Прекратяване на действията');
