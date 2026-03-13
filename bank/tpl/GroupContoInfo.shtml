@@ -1,0 +1,50 @@
+<div class="bank-selected-docs">
+    <!--ET_BEGIN SELECTED_BLOCK-->
+    [#SELECTED_BLOCK#]
+    <div class="docs-success-block">
+        <div class="docs-success-header">
+            <span class="docs-success-title">✔ |Избрани документи|*</span>
+            <span class="docs-success-total">[#total#]</span>
+        </div>
+
+        <div class="docs-success-content">
+            [#CONTABLE#]
+        </div>
+    </div>
+    <!--ET_END SELECTED_BLOCK-->
+    <!--ET_BEGIN NOT_CONTABLE-->
+    <div class="docs-warning-block">
+        <div class="docs-warning-header">⚠ |Не може да контирате|*</div>
+        <div class="docs-warning-content">
+            [#NOT_CONTABLE#]
+        </div>
+    </div>
+    <!--ET_END NOT_CONTABLE-->
+    <!--ET_BEGIN ACCOUNT_BLOCK-->
+    [#ACCOUNT_BLOCK#]
+    <div class="account-block">
+        <div class="account-header">
+            [#accountName#]
+        </div>
+        <table class="doc-table">
+            [#ACCOUNT_ROWS#]
+            <!--ET_BEGIN ROWS-->
+            [#ROWS#]
+            <tr>
+                <td class="doc-handle">[#handle#] /<span class="doc-valior">[#valior#]</span></td>
+                <td class="doc-amount">[#amount#]</td>
+                <td class="doc-folder">[#folderId#]</td>
+            </tr>
+            <!--ET_END ROWS-->
+        </table>
+    </div>
+    <!--ET_END ACCOUNT_BLOCK-->
+
+    <!--ET_BEGIN EMPTY_MSG-->
+    <div class="docs-empty-warning">
+        [#EMPTY_MSG#]
+        <span class="docs-empty-icon">⚠</span>
+        Не може да контирате, нито един от документите!
+    </div>
+    <!--ET_END EMPTY_MSG-->
+</div>
