@@ -1035,7 +1035,7 @@ class eshop_Carts extends core_Master
         } elseif (!empty($settings->dealerId)) {
             $fields['dealerId'] = $settings->dealerId;
         }
-        
+
         // Създаване на продажба по количката
         try{
             $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
@@ -1077,8 +1077,14 @@ class eshop_Carts extends core_Master
         
         // Добавяне на транспорта, ако има
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
-            $hasFreeDelivery =  (!empty($settings->freeDelivery) && $rec->freeDelivery == 'yes');
-            if(!$hasFreeDelivery){
+            $addTransport = true;
+            if($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)){
+                if($Driver->class instanceof sales_interface_TakeFromOurOffice){
+                    $addTransport = false;
+                }
+            }
+
+            if($addTransport){
                 $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
                 sales_Sales::addRow($saleId, $transportId, 1, $rec->deliveryNoVat);
             }

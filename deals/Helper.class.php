@@ -2360,14 +2360,13 @@ abstract class deals_Helper
         $invBackward = array_reverse($invForward, true);
 
         // 2) Насочени плащания ($pay->to)
+        // Тук pay->to е ТОЧНА алокация, не "подсказка"
         foreach ($payArr as $i => $pay) {
             if (!empty($pay->to) && isset($invArr[$pay->to])) {
                 $inv = $invArr[$pay->to];
 
                 // FIX: ако плащане и фактура са в една валута и на една дата,
-                // pay->rate=1, а inv->rate!=1 (напр. EUR преди еврозоната) —
-                // коригирай наличното в BASE за това плащане по inv->rate,
-                // за да няма второ делене по-късно.
+                // pay->rate=1, а inv->rate!=1
                 if (isset($pay->currencyId, $inv->currencyId, $pay->date, $inv->date)) {
                     if (strcasecmp($pay->currencyId, $inv->currencyId) === 0
                         && $pay->date == $inv->date
@@ -2377,18 +2376,15 @@ abstract class deals_Helper
                     }
                 }
 
-                $needBase = $inv->amountBaseAtInvDate - $inv->payoutBaseAtInvDate;
-                if ($needBase > 0) {
-                    $availForThisInv = $payBaseAtInvDate($pay, $inv);
-                    if ($availForThisInv > 0) {
-                        $take = ($needBase < $availForThisInv) ? $needBase : $availForThisInv;
+                // При насочено плащане използваме ЦЯЛАТА налична сума за тази фактура
+                $exactForThisInv = $payBaseAtInvDate($pay, $inv);
 
-                        $inv->payoutBaseAtInvDate += $take;
-                        $consumeFromPay($pay, $inv->date, $take);
+                if ($exactForThisInv != 0) {
+                    $inv->payoutBaseAtInvDate += $exactForThisInv;
+                    $consumeFromPay($pay, $inv->date, $exactForThisInv);
 
-                        $inv->used[$i] = $pay;
-                        self::pushPaymentType($inv->payments, $pay);
-                    }
+                    $inv->used[$i] = $pay;
+                    self::pushPaymentType($inv->payments, $pay);
                 }
             }
         }

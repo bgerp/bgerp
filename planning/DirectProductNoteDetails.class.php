@@ -118,7 +118,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->setField('quantity', 'caption=Количества');
         $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,smartCenter,tdClass=noteBomCol');
         $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,smartCenter,tdClass=noteExpectedCol');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство,silent,removeAndRefreshForm');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=custom-field nowrap,placeholder=Незавършено производство,silent,removeAndRefreshForm');
         $this->FLD('isOutsourced', 'enum(no=Не,yes=Да)', 'caption=Ишлеме|*?,input=hidden,maxRadio=2,notNull,value=no');
         $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,lists=600)', 'input=none,after=expenses,caption=Разходен обект');

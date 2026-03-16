@@ -3370,7 +3370,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $debug = '';
         $paymentState = $firstDoc->getInstance()->getPaymentState($pRec, null, $debug);
         echo $debug;
-        bp($payment1, $payments2, $payment3);
+        bp($paymentState, $payment1, $payments2, $payment3);
     }
 
 
