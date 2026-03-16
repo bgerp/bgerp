@@ -386,17 +386,18 @@ class currency_Currencies extends core_Master
      * Връща дефолтната единична цена отговаряща на количеството
      *
      * @param mixed $id - ид/запис на обекта
-     * @param float $quantity - За какво количество
+     * @param double $quantity - За какво количество
+     * @param string|null $valior - вальор
      *
-     * @return float|NULL - дефолтната единична цена
+     * @return double|NULL - дефолтната единична цена
      */
-    public function getDefaultCost($id, $quantity)
+    public function getDefaultCost($id, $quantity, $valior = null)
     {
-        $today = dt::now();
+        $valior = $valior ?? dt::now();
         $code = static::getCodeById($id);
-        $toCode = acc_Periods::getBaseCurrencyCode($today);
+        $toCode = acc_Periods::getBaseCurrencyCode($valior);
 
-        return currency_CurrencyRates::getRate($today, $code, $toCode);
+        return currency_CurrencyRates::getRate($valior, $code, $toCode);
     }
 
 

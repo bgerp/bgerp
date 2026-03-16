@@ -1253,8 +1253,8 @@ class acc_BalanceDetails extends core_Detail
                                     
                                     // Извличаме дефолт цената му според записа
                                     $Register = cls::get($itemRec->classId);
-                                    $defCost = $Register->getDefaultCost($itemRec->objectId, $rec->{$quantityField});
-                                    
+                                    $defCost = $Register->getDefaultCost($itemRec->objectId, $rec->{$quantityField}, $rec->valior);
+
                                     // Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
                                     $rec->amount = $defCost * $rec->{$quantityField};
                                     if (!empty(round($rec->{$quantityField}, 6))) {
