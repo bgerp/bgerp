@@ -500,6 +500,9 @@ class acc_ProductPricePerPeriods extends core_Manager
      */
     function act_Invalidate()
     {
-        acc_ProductPricePerPeriods::invalidateAfterDate(null);
+        requireRole('debug');
+        $date = Request::get('date', 'date');
+
+        acc_ProductPricePerPeriods::invalidateAfterDate($date);
     }
 }
