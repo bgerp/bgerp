@@ -157,7 +157,7 @@ class hr_Indicators extends core_Manager
             self::recalc($timeline, $sources);
             Mode::pop('manualRecalc');
 
-            followRetUrl(null, '|Индикаторите са преизчислени');
+            followRetUrl(null, '|Индикаторите са преизчислени|*!');
         }
         
         // Добавяне на бутони

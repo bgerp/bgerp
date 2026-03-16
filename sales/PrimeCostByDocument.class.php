@@ -235,8 +235,15 @@ class sales_PrimeCostByDocument extends core_Manager
             // Кой е първия документ в нишката
             $threadId = $Document->fetchField('threadId');
             $firstDoc = doc_Threads::getFirstDocument($threadId);
-            $fields = 'dealerId, folderId';
-            if($firstDoc->getInstance()->getField('initiatorId', false)){
+
+            $fields = 'folderId';
+            $Instance = $firstDoc->getInstance();
+            if($Instance->getField('dealerId', false)){
+                $fields .= ", dealerId";
+            } else {
+                wp("Няма дилър", $containerId, $threadId, $firstDoc);
+            }
+            if($Instance->getField('initiatorId', false)){
                 $fields .= ", initiatorId";
             }
             $firstDocRec = $firstDoc->fetch($fields);
