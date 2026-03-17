@@ -9,7 +9,7 @@
                  |План|*,&nbsp;[#measureId#]
              </td>
              <td class = 'sum-th'>
-                 |Прогрес|*,&nbsp;[#measureId#]
+                 [#progressScrollLink#],&nbsp;[#measureId#]
              </td>
              <td class = 'sum-th'>
                  |Брак|*,&nbsp;[#measureId#]
