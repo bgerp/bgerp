@@ -3475,6 +3475,10 @@ abstract class deals_Helper
         $amountRes = currency_Currencies::decorate($amountRow, $currencyId, true);
 
         $rate = currency_CurrencyRates::getRate($date, 'EUR', 'BGN');
+        if(empty($rate)){
+            $rate = 1.95583;
+        }
+        
         $decimals = str::countDecimals($amountRow, false);
 
         $eurozoneDate = acc_Setup::getEurozoneDate();
