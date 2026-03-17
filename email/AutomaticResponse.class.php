@@ -173,17 +173,15 @@ class email_AutomaticResponse extends core_Master
             $form->setField('aiInstructions', 'after=text');        
         }
         
-        //само админ може да избира имейл от който да се изпрати отговора
-        if (!haveRole('admin')) {
-            $queryEmails = email_Inboxes::getQuery();
-            $queryEmails->where("#inCharge = $rec->userId");
+        //избиране имейл от който да се изпрати отговора
+        $queryEmails = email_Inboxes::getQuery();
+        $queryEmails->where("#inCharge = $rec->userId");
 
-            $emails = array();
-            while($emailRec = $queryEmails->fetch()){
-                $emails[$emailRec->id] = $emailRec->email;
-            }
-            $form->setOptions('inboxEmail', $emails);
+        $emails = array();
+        while($emailRec = $queryEmails->fetch()){
+            $emails[$emailRec->id] = $emailRec->email;
         }
+        $form->setOptions('inboxEmail', $emails);
 
         //само админ да може да избира потребител
         if (!haveRole('admin')) {
