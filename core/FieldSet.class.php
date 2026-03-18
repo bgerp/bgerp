@@ -528,7 +528,7 @@ class core_FieldSet extends core_BaseClass
             return $this->fields[$name];
         }
         if ($strict) {
-            error('@Липсващо поле', "'{$name}'" . ($strict ? ' (strict)' : ''));
+            error('@Липсващо поле', "'{$name}'" . ($strict ? ' (strict)' : ''), $this);
         }
     }
     
@@ -567,7 +567,7 @@ class core_FieldSet extends core_BaseClass
         
         // Ако го няма и $strict е TRUE, предизвикваме грешка
         if ($strict) {
-            error('@Липсващо поле', "'{$name}'" . ($strict ? ' (strict)' : ''));
+            error('@Липсващо поле', "'{$name}'" . ($strict ? ' (strict)' : ''), $this);
         }
     }
     

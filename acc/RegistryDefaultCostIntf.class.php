@@ -28,11 +28,12 @@ class acc_RegistryDefaultCostIntf
      *
      * @param mixed $id - ид/запис на обекта
      * @param double $quantity - За какво количество
-     * 
+     * @param string|null $valior - вальор
+     *
      * @return double|NULL - дефолтната единична цена
      */
-    public function getDefaultCost($id, $quantity)
+    public function getDefaultCost($id, $quantity, $valior = null)
     {
-        return $this->class->getDefaultCost($id, $quantity);
+        return $this->class->getDefaultCost($id, $quantity, $valior);
     }
 }

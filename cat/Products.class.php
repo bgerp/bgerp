@@ -3243,26 +3243,36 @@ class cat_Products extends embed_Manager
 
         log_System::add('cat_Products', 'Products Private not used' . countR($saveArr), null, 'info', 17);
     }
-    
-    
+
+
     /**
-     * Връща дефолтната цена
+     * Връща дефолтната единична цена отговаряща на количеството
      *
      * @param mixed $id - ид/запис на обекта
+     * @param double $quantity - За какво количество
+     * @param string|null $valior - вальор
+     *
+     * @return double|NULL - дефолтната единична цена
      */
-    public function getDefaultCost($id, $quantity)
+    public function getDefaultCost($id, $quantity, $valior = null)
     {
+        $valior = $valior ?? dt::now();
+
         // Намира се цената на последния дебит в складовата сметка където участва артикула, с най-голямо количество
         if ($itemId = acc_Items::fetchField("#classId = '{$this->getClassId()}' AND #objectId = '{$id}'")) {
             $jQuery = acc_JournalDetails::getQuery();
+            $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
             $sysId = acc_Accounts::getRecBySystemId('321')->id;
             $jQuery->where("#debitAccId = {$sysId} AND #debitItem2 = {$itemId} AND #debitPrice > 0");
             $jQuery->orderBy('debitQuantity', 'DESC');
-            $jQuery->show('debitPrice');
+            $jQuery->show('debitPrice,valior');
             $jQuery->limit(1);
-            
+            $lastRec = $jQuery->fetch();
+
             // Ако има таква цена, то това ще е дефолтната цена
-            if ($biggestDebitPrice = $jQuery->fetch()->debitPrice) {
+            if (is_object($lastRec)) {
+                $biggestDebitPrice = deals_Helper::getSmartBaseCurrency($lastRec->debitPrice, $lastRec->valior, $valior);
+
                 return $biggestDebitPrice;
             }
         }
@@ -3273,7 +3283,7 @@ class cat_Products extends embed_Manager
         }
         
         // За артикула, това е цената по себестойност за исканото количество
-        return self::getPrimeCost($id, null, $quantity);
+        return self::getPrimeCost($id, null, $quantity, $valior);
     }
     
     
