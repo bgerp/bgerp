@@ -865,6 +865,13 @@ abstract class bank_Document extends deals_PaymentDocument
 
         // Ако има такива без посочена б-сметка излиза поле за избор на сметка
         $form->title = 'Контиране на|* ' . tr(mb_strtolower($this->title));
+
+        $hasWithoutValior = false;
+        array_walk($contable, function($a) use (&$hasWithoutValior){ if(empty($a->valior)) {$hasWithoutValior = true;}});
+        if($hasWithoutValior){
+            $form->FLD('valior', 'date', 'caption=Вальор,mandatory');
+        }
+
         if(array_key_exists('', $contable)){
             if(countR($contable[''])){
                 $form->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Сметка,mandatory');
@@ -892,65 +899,84 @@ abstract class bank_Document extends deals_PaymentDocument
         if ($form->isSubmitted()) {
             $rec = $form->rec;
 
-            $changed = $posted = 0;
-            $error = array();
-            $selected = type_Set::toArray($rec->Selected);
-            $query = $this->getQuery();
-            $query->in('id', $selected);
+            if(!empty($rec->valior) && $rec->valior < acc_Setup::getEurozoneDate()){
+                $form->setError('valior', 'Вальора трябва след приемането ни в еврозоната|*!');
+            }
 
-            // За всеки избран документ
-            while($dRec = $query->fetch()){
-                $handle = $this->getHandle($dRec->id);
+            if(!$form->gotErrors()){
+                $changed = $posted = 0;
+                $error = array();
+                $selected = type_Set::toArray($rec->Selected);
+                $query = $this->getQuery();
+                $query->in('id', $selected);
 
-                // Ако не е посочена б-сметка но е избрана нова - подменя се
-                if(empty($dRec->ownAccount) && !empty($rec->ownAccount)){
-                    $fields = 'ownAccount';
-                    $oldAccCurrencyId = $dRec->ownAccount ? bank_OwnAccounts::getDefaultCurrency($dRec->ownAccount, $dRec->valior) : null;
-                    $newAccCurrencyId = bank_OwnAccounts::getDefaultCurrency($rec->ownAccount, $dRec->valior);
-                    if($oldAccCurrencyId != $newAccCurrencyId){
-                        $oldCode = $oldAccCurrencyId ? currency_Currencies::getCodeById($oldAccCurrencyId) : currency_Currencies::getCodeById($dRec->currencyId);
-                        $newCode = currency_Currencies::getCodeById($newAccCurrencyId);
-                        $dRec->currencyId = $newAccCurrencyId;
-                        $dRec->amount = currency_CurrencyRates::convertAmount($dRec->amount, $dRec->valior, $oldCode, $newCode);
-                        $fields = 'ownAccount,currencyId,amount';
-                        $this->logWrite("Промяна на сметка при групово контиране", $dRec->id);
-                    }
+                // За всеки избран документ
+                while($dRec = $query->fetch()){
+                    $handle = $this->getHandle($dRec->id);
+                    $saveFields = array();
 
-                    // Записване на новата сметка
-                    $dRec->ownAccount = $rec->ownAccount;
-                    $changed++;
-                    $this->save($dRec, $fields);
-                }
-
-                // Опит за контиране на документа
-                if($this->haveRightFor('conto', $dRec)){
-                    try {
-                        $res = $this->conto($dRec);
-                        if($res !== false){
-                            $posted++;
-                            $this->logWrite("Групово контиране", $dRec->id);
+                    // Ако не е посочена б-сметка но е избрана нова - подменя се
+                    if(empty($dRec->ownAccount) && !empty($rec->ownAccount)){
+                        $saveFields['ownAccount'] = 'ownAccount';
+                        $oldAccCurrencyId = $dRec->ownAccount ? bank_OwnAccounts::getDefaultCurrency($dRec->ownAccount, $dRec->valior) : null;
+                        $newAccCurrencyId = bank_OwnAccounts::getDefaultCurrency($rec->ownAccount, $dRec->valior);
+                        if($oldAccCurrencyId != $newAccCurrencyId){
+                            $oldCode = $oldAccCurrencyId ? currency_Currencies::getCodeById($oldAccCurrencyId) : currency_Currencies::getCodeById($dRec->currencyId);
+                            $newCode = currency_Currencies::getCodeById($newAccCurrencyId);
+                            $dRec->currencyId = $newAccCurrencyId;
+                            $dRec->amount = currency_CurrencyRates::convertAmount($dRec->amount, $dRec->valior, $oldCode, $newCode);
+                            $saveFields['currencyId'] = 'currencyId';
+                            $saveFields['amount'] = 'amount';
+                            $this->logWrite("Промяна на сметка при групово контиране", $dRec->id);
                         }
-                    }  catch (core_exception_Expect $e) {
-                        reportException($e);
-                        $error[$dRec->id] = $handle;
+
+                        // Записване на новата сметка
+                        $dRec->ownAccount = $rec->ownAccount;
+                        $changed++;
+                    }
+
+                    // Ако няма вальор но има избран - задава се той
+                    if(!empty($rec->valior) && empty($dRec->valior)){
+                        $dRec->valior = $rec->valior;
+                        $saveFields['valior'] = 'valior';
+                    }
+
+                    if(countR($saveFields)){
+                        $this->save($dRec, $saveFields);
+                    }
+
+                    // Опит за контиране на документа
+                    if($this->haveRightFor('conto', $dRec)){
+                        try {
+                            $res = $this->conto($dRec);
+                            if($res !== false){
+                                $posted++;
+                                $this->logWrite("Групово контиране", $dRec->id);
+                            }
+                        }  catch (core_exception_Expect $e) {
+                            reportException($e);
+                            $error[$dRec->id] = $handle;
+                        }
                     }
                 }
+
+                $msg = "Контирани са|* {$posted}. |Зададени банкови сметки|* {$changed}";
+                core_Statuses::newStatus($msg);
+
+                if(countR($error)){
+                    $errorStr = implode(",", $error);
+                    $msg = "Проблем при контирането на|* {$errorStr}.";
+                    core_Statuses::newStatus($msg, 'error');
+                }
+
+                $res = new Redirect($retUrl, $msg);
+
+                return $res;
             }
-
-            $msg = "Контирани са|* {$posted}. |Зададени банкови сметки|* {$changed}";
-            core_Statuses::newStatus($msg);
-
-            if(countR($error)){
-                $errorStr = implode(",", $error);
-                $msg = "Проблем при контирането на|* {$errorStr}.";
-                core_Statuses::newStatus($msg, 'error');
-            }
-
-            $res = new Redirect($retUrl, $msg);
-        } else {
-            $res = $this->renderWrapping($form->renderHtml());
-            $res->push('bank/tpl/css/groupconto.scss', 'CSS');
         }
+
+        $res = $this->renderWrapping($form->renderHtml());
+        $res->push('bank/tpl/css/groupconto.scss', 'CSS');
 
         return $res;
     }
