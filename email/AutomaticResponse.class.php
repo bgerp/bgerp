@@ -206,8 +206,9 @@ class email_AutomaticResponse extends core_Master
     {
          // Ако е субмитната формата
         if ($data->form && $data->form->isSubmitted()) {
-            // Променяма да сочи към single'a
-            $profile = crm_Profiles::fetch($data->form->rec->userId);
+
+            // Променяма да сочи към single-a
+            $profile = crm_Profiles::fetch("#userId = {$data->form->rec->userId}");
             $data->retUrl = array('crm_Profiles', 'single', $profile->id);        
         }
 
@@ -215,7 +216,8 @@ class email_AutomaticResponse extends core_Master
         if($data->cmd == 'delete'){
             if($id = Request::get('id', 'int')){
                 $rec = $mvc->fetch($id);
-                $data->retUrl =  array('crm_Profiles', 'single', $rec->userId);
+                $profile = crm_Profiles::fetch("#userId = {$rec->userId}");
+                $data->retUrl =  array('crm_Profiles', 'single', $profile->id);
             }
         }   
     }
@@ -230,11 +232,11 @@ class email_AutomaticResponse extends core_Master
         
         // Взимаме всички шаблони
         $query = email_AutomaticResponse::getQuery();
-        $query->where("#userId LIKE {$data->masterId}");
+        $query->where("#userId LIKE {$data->masterData->rec->userId}");
         $query->orderBy('createdOn', 'DESC');
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 5));
         $data->Pager->setLimit($query);
-
+      
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec);
