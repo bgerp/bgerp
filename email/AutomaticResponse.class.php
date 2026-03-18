@@ -173,17 +173,15 @@ class email_AutomaticResponse extends core_Master
             $form->setField('aiInstructions', 'after=text');        
         }
         
-        //само админ може да избира имейл от който да се изпрати отговора
-        if (!haveRole('admin')) {
-            $queryEmails = email_Inboxes::getQuery();
-            $queryEmails->where("#inCharge = $rec->userId");
+        //избиране имейл от който да се изпрати отговора
+        $queryEmails = email_Inboxes::getQuery();
+        $queryEmails->where("#inCharge = $rec->userId");
 
-            $emails = array();
-            while($emailRec = $queryEmails->fetch()){
-                $emails[$emailRec->id] = $emailRec->email;
-            }
-            $form->setOptions('inboxEmail', $emails);
+        $emails = array();
+        while($emailRec = $queryEmails->fetch()){
+            $emails[$emailRec->id] = $emailRec->email;
         }
+        $form->setOptions('inboxEmail', $emails);
 
         //само админ да може да избира потребител
         if (!haveRole('admin')) {
@@ -209,7 +207,8 @@ class email_AutomaticResponse extends core_Master
          // Ако е субмитната формата
         if ($data->form && $data->form->isSubmitted()) {
             // Променяма да сочи към single'a
-            $data->retUrl =  array('crm_Profiles', 'single', $data->form->rec->userId);        
+            $profile = crm_Profiles::fetch($data->form->rec->userId);
+            $data->retUrl = array('crm_Profiles', 'single', $profile->id);        
         }
 
         //да може след изтриване да се връща в профила

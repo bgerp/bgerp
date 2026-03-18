@@ -461,6 +461,30 @@ class planning_Tasks extends core_Master
                 $tpl->append($cloneTpl, 'SUB_BLOCK_TABLE_ROW');
             }
         }
+        
+        if (!Mode::is('printing')) {
+            jquery_Jquery::enable($tpl);
+
+            $scrollJs = <<<JS
+        $('.task-progress-scroll').off('click.taskProgressScroll').on('click.taskProgressScroll', function(e) {
+            e.preventDefault();
+
+            var \$target = $('[title*="Добавяне на прогрес по операцията"]').filter(':visible').first();
+            if (!\$target.length) {
+                return false;
+            }
+
+            \$target.get(0).scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            return false;
+        });
+        JS;
+
+            jquery_Jquery::run($tpl, $scrollJs);
+        }
     }
 
 
@@ -592,6 +616,16 @@ class planning_Tasks extends core_Master
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
+            if (!Mode::is('printing')) {
+                $row->progressScrollLink = "<a href=\"javascript:void(0)\""
+                    . " class=\"task-progress-scroll\""
+                    . " title=\"Скролиране до бутона за добавяне на прогрес\""
+                    . " style=\"color:#1a5fb4;text-decoration:underline;cursor:pointer;\">"
+                    . tr('Прогрес')
+                    . "</a>";
+            } else {
+                $row->progressScrollLink = tr('Прогрес');
+            }
             foreach (array('firstProgress', 'actualStart', 'lastProgressProduction', 'lastChangeStateOn', 'lastProgress') as $progressFld){
                 if(empty($rec->{$progressFld})) {
                     $row->{$progressFld} = "<span class='quiet'>n/a</span>";

@@ -1077,6 +1077,7 @@ class eshop_Carts extends core_Master
         
         // Добавяне на транспорта, ако има
         if (isset($rec->deliveryNoVat) && $rec->deliveryNoVat >= 0) {
+            $hasFreeDelivery = (!empty($settings->freeDelivery) && $rec->freeDelivery == 'yes');
             $addTransport = true;
             if($Driver = cond_DeliveryTerms::getTransportCalculator($rec->termId)){
                 if($Driver->class instanceof sales_interface_TakeFromOurOffice){
@@ -1084,9 +1085,14 @@ class eshop_Carts extends core_Master
                 }
             }
 
+            $transportValue = $rec->deliveryNoVat;
+            if($hasFreeDelivery){
+                $transportValue = 0;
+            }
+
             if($addTransport){
                 $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
-                sales_Sales::addRow($saleId, $transportId, 1, $rec->deliveryNoVat);
+                sales_Sales::addRow($saleId, $transportId, 1, $transportValue);
             }
         }
         
