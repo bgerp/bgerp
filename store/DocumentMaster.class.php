@@ -369,7 +369,6 @@ abstract class store_DocumentMaster extends core_Master
                     $dQuery->where("#invoiceId = {$invRec->id}");
                     $details = $dQuery->fetchAll();
 
-                    $r = $details;
                     $invDetail::modifyDcDetails($details, $invRec, $invDetail);
                     $withChangedQuantityDetails = array_filter($details, function($a) {return $a->changedQuantity === true;});
 
