@@ -2899,6 +2899,7 @@ div.richEdit {
 
 .wide .richEdit textarea {
 	min-width: 310px;
+	overflow-y: auto !important;
 }
 
 .richedit-toolbar {
