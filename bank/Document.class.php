@@ -787,14 +787,17 @@ abstract class bank_Document extends deals_PaymentDocument
         }
 
         // Групиране на избраните банкови документи
-        $contable = $recs = $notContable = array();
+        $contable = $recs = $notContable = $contableIds = array();
         reset($selArr);
         $query = $this->getQuery();
         $query->in('id', $selArr);
         while($dRec = $query->fetch()) {
-            if($this->haveRightFor('conto', $dRec) || empty($dRec->ownAccount)){
+            $clone = clone $dRec;
+            unset($clone->ownAccount);
+            if($this->haveRightFor('conto', $clone) || empty($dRec->ownAccount)){
                 $contable[$dRec->ownAccount][$dRec->id] = $dRec;
                 $recs[$dRec->id] = $dRec;
+                $contableIds[$dRec->id] = $dRec->id;
             } else {
                 $notContable[$dRec->ownAccount][$dRec->id] = $dRec;
             }
@@ -811,6 +814,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $fields = $this->selectFields();
         $fields['-list'] = true;
         $totalSelected = 0;
+        $handles = array();
         foreach (array('contable' => 'CONTABLE', 'notContable' => 'NOT_CONTABLE') as $varName => $placeholder){
             $arr = ${$varName};
 
@@ -833,6 +837,8 @@ abstract class bank_Document extends deals_PaymentDocument
                     $count++;
                     $rTpl = clone $bTpl->getBlock('ROWS');
                     $dRow = $this->recToVerbal($dRec, $fields);
+                    $handles[$dRec->id] = $dRow->title->getContent();
+
                     if($varName == 'contable'){
                         $totalSelected += currency_CurrencyRates::convertAmount($dRec->amount, null, currency_Currencies::getCodeById($dRec->currencyId));
                     }
@@ -863,21 +869,12 @@ abstract class bank_Document extends deals_PaymentDocument
         $infoTpl->append($totalSelectedVerbal, 'total');
         $form->info = $infoTpl;
 
-        // Ако има такива без посочена б-сметка излиза поле за избор на сметка
         $form->title = 'Контиране на|* ' . tr(mb_strtolower($this->title));
+        $form->FLD('valior', 'date', 'caption=Вальор,mandatory');
+        $form->setDefault('valior', dt::today());
 
-        $hasWithoutValior = false;
-        array_walk($contable, function($a) use (&$hasWithoutValior){ if(empty($a->valior)) {$hasWithoutValior = true;}});
-        if($hasWithoutValior){
-            $form->FLD('valior', 'date', 'caption=Вальор,mandatory');
-        }
-
-        if(array_key_exists('', $contable)){
-            if(countR($contable[''])){
-                $form->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Сметка,mandatory');
-                $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', false));
-            }
-        }
+        $form->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Сметка,mandatory');
+        $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', false));
 
         $retUrl = getRetUrl();
         if (!countR($retUrl)) {
@@ -889,13 +886,14 @@ abstract class bank_Document extends deals_PaymentDocument
         }
 
         $form->toolbar->addSbBtn('Контиране (всички)', 'save', null, 'id=btnSave,ef_icon=img/16/tick-circle-frame.png, title=Контиране на избраните документи');
-        if(!countR($contable)){
-            $form->toolbar->setError('btnSave', 'Няма документи, които да контирате групово');
+        if(!countR($contableIds)){
+            $form->toolbar->setError('btnSave', 'Няма документи, които да контирате групово|*!');
         }
 
         $form->toolbar->addBtn('Отказ', $retUrl, null, 'ef_icon=img/16/close-red.png, title=Прекратяване на действията');
         $form->input();
 
+        $nick = core_Users::getCurrent('nick');
         if ($form->isSubmitted()) {
             $rec = $form->rec;
 
@@ -903,21 +901,54 @@ abstract class bank_Document extends deals_PaymentDocument
                 $form->setError('valior', 'Вальора трябва след приемането ни в еврозоната|*!');
             }
 
+            $query = $this->getQuery();
+            $query->in('id', $contableIds);
+            $documentRecs = $query->fetchAll();
+
+            $selectedDefaultCurrency = bank_OwnAccounts::getDefaultCurrency($rec->ownAccount, $rec->valior);
+            $withReplacedValior = $withDifferentBankAccount = $inDifferentCurrency = array();
+            foreach ($documentRecs as $documentRec) {
+                if(!empty($documentRec->valior) && $documentRec->valior != $rec->valior){
+                    $withReplacedValior[$documentRec->id] = $handles[$documentRec->id];
+                }
+
+                // Ако има документи с избрана б-сметка ще се показва предупреждение
+                if(!empty($documentRec->ownAccount) && $documentRec->ownAccount != $rec->ownAccount){
+                    $currentDefaultCurrency = bank_OwnAccounts::getDefaultCurrency($documentRec->ownAccount, $documentRec->valior);
+                    $withDifferentBankAccount[$documentRec->id] = $handles[$documentRec->id];
+
+                    if($currentDefaultCurrency != $selectedDefaultCurrency) {
+                        $inDifferentCurrency[$documentRec->id] = $handles[$documentRec->id];
+                    }
+                }
+            }
+
+            if(countR($withReplacedValior)){
+                $valiorWarningStr = implode(',', $withReplacedValior);
+                $form->setWarning('valior', "Следните документи са с ръчно избран вальор! Наистина ли искате да го смените с избрания|*?: {$valiorWarningStr}");
+            }
+
+            if(countR($withDifferentBankAccount)){
+                $differentBankAccountWarning = implode(',', $withDifferentBankAccount);
+                $form->setWarning('ownAccount', "Следните документи са с ръчно избрана друга сметка! Наистина ли искате да я смените с избраната|*?: {$differentBankAccountWarning}");
+            }
+
+            if(countR($inDifferentCurrency)){
+                $inDifferentCurrencyError = implode(',', $inDifferentCurrency);
+                $form->setError('ownAccount', "Следните документи са с банкова сметка в друга валута от тази на избраната|*: {$inDifferentCurrencyError}");
+            }
+
             if(!$form->gotErrors()){
                 $changed = $posted = 0;
                 $error = array();
-                $selected = type_Set::toArray($rec->Selected);
-                $query = $this->getQuery();
-                $query->in('id', $selected);
 
                 // За всеки избран документ
-                while($dRec = $query->fetch()){
-                    $handle = $this->getHandle($dRec->id);
+                foreach ($documentRecs as $dRec) {
                     $saveFields = array();
+                    $errorsForCreator = array();
 
                     // Ако не е посочена б-сметка но е избрана нова - подменя се
-                    if(empty($dRec->ownAccount) && !empty($rec->ownAccount)){
-                        $saveFields['ownAccount'] = 'ownAccount';
+                    if(empty($dRec->ownAccount)){
                         $oldAccCurrencyId = $dRec->ownAccount ? bank_OwnAccounts::getDefaultCurrency($dRec->ownAccount, $dRec->valior) : null;
                         $newAccCurrencyId = bank_OwnAccounts::getDefaultCurrency($rec->ownAccount, $dRec->valior);
                         if($oldAccCurrencyId != $newAccCurrencyId){
@@ -925,24 +956,32 @@ abstract class bank_Document extends deals_PaymentDocument
                             $newCode = currency_Currencies::getCodeById($newAccCurrencyId);
                             $dRec->currencyId = $newAccCurrencyId;
                             $dRec->amount = currency_CurrencyRates::convertAmount($dRec->amount, $dRec->valior, $oldCode, $newCode);
-                            $saveFields['currencyId'] = 'currencyId';
                             $saveFields['amount'] = 'amount';
-                            $this->logWrite("Промяна на сметка при групово контиране", $dRec->id);
+                            $saveFields['currencyId'] = 'currencyId';
                         }
-
-                        // Записване на новата сметка
-                        $dRec->ownAccount = $rec->ownAccount;
-                        $changed++;
                     }
 
-                    // Ако няма вальор но има избран - задава се той
-                    if(!empty($rec->valior) && empty($dRec->valior)){
-                        $dRec->valior = $rec->valior;
-                        $saveFields['valior'] = 'valior';
+                    if($dRec->ownAccount != $rec->ownAccount){
+                        // Записване на новата сметка
+                        $saveFields['ownAccount'] = 'ownAccount';
+                        $dRec->ownAccount = $rec->ownAccount;
+                        $changed++;
+                        $errorsForCreator[] = "промени сметка";
+                    }
+
+                    $docValior = $dRec->valior ?? dt::today();
+                    $dRec->valior = $rec->valior;
+                    $saveFields['valior'] = 'valior';
+                    if($docValior != $rec->valior){
+                        $errorsForCreator[] = "зададе вальор";
                     }
 
                     if(countR($saveFields)){
                         $this->save($dRec, $saveFields);
+
+                        if($errorsForCreator){
+                            bgerp_Notifications::add("|*{$nick} |контира, " . implode(',', $errorsForCreator) . " |на документ|* #{$this->getHandle($dRec->id)}", array($this, 'single', $dRec->id), $dRec->createdBy);
+                        }
                     }
 
                     // Опит за контиране на документа
@@ -955,7 +994,7 @@ abstract class bank_Document extends deals_PaymentDocument
                             }
                         }  catch (core_exception_Expect $e) {
                             reportException($e);
-                            $error[$dRec->id] = $handle;
+                            $error[$dRec->id] = $handles[$dRec->id];
                         }
                     }
                 }
