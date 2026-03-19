@@ -80,12 +80,35 @@ class change_History extends core_Manager
         $this->FLD('validFrom', 'datetime(format=d.m.y H:i:s)', 'caption=Дата->От');
         $this->FLD('validTo', 'datetime(format=d.m.y H:i:s)', 'caption=Дата->До');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Версия,tdClass=td-clamp');
+
+        // Истинска дата/автор на СЪЗДАВАНЕ на версията
+        $this->FLD('versionCreatedOn', 'datetime(format=d.m.y H:i:s)', 'caption=Версия->Създадена,silent');
+        $this->FLD('versionCreatedBy', 'user', 'caption=Версия->Създадена от,silent');
+
         $this->FLD('state', 'enum(active=Активен,rejected=Оттеглен)', 'caption=Състояние,notNull=active');
 
         $this->setDbIndex('classId,objectId');
         $this->setDbIndex('classId,objectId,validFrom');
         $this->setDbIndex('validFrom');
         $this->setDbIndex('validTo');
+    }
+    
+    
+    /**
+     * Backfill на metadata на версиите за стари history записи
+     */
+    public static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $createdOnColName = str::phpToMysqlName('createdOn');
+        $createdByColName = str::phpToMysqlName('createdBy');
+        $versionCreatedOnColName = str::phpToMysqlName('versionCreatedOn');
+        $versionCreatedByColName = str::phpToMysqlName('versionCreatedBy');
+
+        $query = "UPDATE {$mvc->dbTableName} SET {$versionCreatedOnColName} = {$createdOnColName} WHERE {$versionCreatedOnColName} IS NULL";
+        $mvc->db->query($query);
+
+        $query = "UPDATE {$mvc->dbTableName} SET {$versionCreatedByColName} = {$createdByColName} WHERE {$versionCreatedByColName} IS NULL";
+        $mvc->db->query($query);
     }
 
 
@@ -105,6 +128,11 @@ class change_History extends core_Manager
         $Class = cls::get($classId);
         $classId = $Class->getClassId();
         $loggableFields = arr::make($Class->loggableFields, true);
+        
+        $metaFields = array(
+            'versionCreatedOn' => 'versionCreatedOn',
+            'versionCreatedBy' => 'versionCreatedBy',
+        );
 
         // Оттегляне на съществуващите записи с това ид
         if(isset($newRec)){
@@ -128,11 +156,22 @@ class change_History extends core_Manager
         // Към тях се добавят текущия и новия запис
         foreach (array('m' => $oldRec, 'n' => $newRec) as $k => $r1){
             if(!isset($r1)) continue;
+
             $data = new stdClass();
             foreach ($loggableFields as $logFld){
                 $data->{$logFld} = $r1->{$logFld};
             }
-            $arr[$k] = (object)array('id' => $k, 'data' => $data, 'classId' => $classId, 'objectId' => $objectId, 'validFrom' => $r1->validFrom, 'state' => 'active');
+
+            $arr[$k] = (object)array(
+                'id' => $k,
+                'data' => $data,
+                'classId' => $classId,
+                'objectId' => $objectId,
+                'validFrom' => $r1->validFrom,
+                'state' => 'active',
+                'versionCreatedOn' => !empty($r1->versionCreatedOn) ? $r1->versionCreatedOn : $r1->createdOn,
+                'versionCreatedBy' => !empty($r1->versionCreatedBy) ? $r1->versionCreatedBy : $r1->createdBy,
+            );
         }
 
         // Ако текущия запис вече идва от историята - него
@@ -154,6 +193,8 @@ class change_History extends core_Manager
          */
         arr::sortObjects($arr, 'validFrom', 'ASC');
         $loggableFields['validTo'] = 'validTo';
+        
+        $saveMetaFields = $metaFields;
 
         $now = dt::now();
         $currentRec = null;
@@ -177,7 +218,7 @@ class change_History extends core_Manager
             unset($arr['n']->id);
             $newId = static::save($arr['n']);
             $arr[$newId] = $arr['n'];
-            $saveFields = $loggableFields;
+            $saveFields = $loggableFields + $saveMetaFields;
             unset($arr['n']);
         } else {
 
@@ -200,7 +241,7 @@ class change_History extends core_Manager
             }
 
             $loggableFields['validFrom'] = 'validFrom';
-            $saveFields = $loggableFields;
+            $saveFields = $loggableFields + $saveMetaFields;
         }
 
         // Преизчисляване на валидността на множеството от записи
@@ -228,6 +269,8 @@ class change_History extends core_Manager
         // Във върнатите данни добавяме и валидността, да се обновят данните в мениджъра
         $currentRec->data->validFrom = $currentRec->validFrom;
         $currentRec->data->validTo = $validToMap[$currentRec->validFrom];
+        $currentRec->data->versionCreatedOn = !empty($currentRec->versionCreatedOn) ? $currentRec->versionCreatedOn : $currentRec->createdOn;
+        $currentRec->data->versionCreatedBy = !empty($currentRec->versionCreatedBy) ? $currentRec->versionCreatedBy : $currentRec->createdBy;
 
         return $currentRec->data;
     }
@@ -312,9 +355,51 @@ class change_History extends core_Manager
             }
             $res->validFrom = $historyRec->validFrom;
             $res->validTo = $historyRec->validTo;
+
+            // И metadata за създаването на версията
+            $res->versionCreatedOn = !empty($historyRec->versionCreatedOn) ? $historyRec->versionCreatedOn : $historyRec->createdOn;
+            $res->versionCreatedBy = !empty($historyRec->versionCreatedBy) ? $historyRec->versionCreatedBy : $historyRec->createdBy;
         }
 
         return $res;
+    }
+    
+    
+    /**
+     * Преизчислява validTo на всички активни версии за обекта
+     *
+     * @param mixed $class
+     * @param int $objectId
+     * @return void
+     */
+    public static function recalcActiveVersionValidTo($class, $objectId)
+    {
+        $Class = cls::get($class);
+        $classId = $Class->getClassId();
+
+        $query = self::getQuery();
+        $query->where("#classId = '{$classId}' AND #objectId = '{$objectId}' AND #state = 'active'");
+
+        $arr = array();
+        while ($rec = $query->fetch()) {
+            $arr[$rec->id] = $rec;
+        }
+
+        if (!countR($arr)) {
+            return;
+        }
+
+        arr::sortObjects($arr, 'validFrom', 'ASC');
+        $vals = array_values($arr);
+
+        $saveArr = array();
+        $count = count($vals);
+        for ($i = 0; $i < $count; $i++) {
+            $vals[$i]->validTo = isset($vals[$i + 1]) ? $vals[$i + 1]->validFrom : null;
+            $saveArr[$vals[$i]->id] = $vals[$i];
+        }
+
+        cls::get(get_called_class())->saveArray($saveArr, 'id,validTo');
     }
 
 
@@ -336,9 +421,13 @@ class change_History extends core_Manager
         $query->where("#classId = {$data->masterMvc->getClassId()} AND #objectId = {$data->masterId} AND #state != 'rejected'");
         $count = $query->count();
 
-        if($count > 0){
-            $data->TabCaption = tr('Версии');
+        // Ако няма реални записи в историята, не показваме detail "Версии"
+        if (!$count) {
+            $data->hide = true;
+            return;
         }
+
+        $data->TabCaption = tr('Версии');
 
         if($prepareTab != 'change_History') {
             $data->hide = true;
@@ -353,37 +442,72 @@ class change_History extends core_Manager
 
         // Ако текущата версия е от историята - взима се тя, ако не показва се в историята
         if(!array_key_exists($masterRec->validFrom, $data->recs)){
-            $data->recs[$masterRec->validFrom] = (object)array('validFrom' => $masterRec->validFrom,
-                                                               'validTo'   => $masterRec->validTo,
-                                                               'classId'   => $data->masterMvc->getClassId(),
-                                                               'objectId'  => $masterRec->id,
-                                                               'isCurrent' => true,
-                                                               'createdOn' => $masterRec->validFrom,
-                                                               'createdBy' => $masterRec->modifiedBy);
+            $currentCreatedOn = !empty($masterRec->versionCreatedOn)
+                ? $masterRec->versionCreatedOn
+                : (!empty($masterRec->createdOn) ? $masterRec->createdOn : $masterRec->validFrom);
+
+            $currentCreatedBy = !empty($masterRec->versionCreatedBy)
+                ? $masterRec->versionCreatedBy
+                : (!empty($masterRec->createdBy) ? $masterRec->createdBy : null);
+
+            $data->recs[$masterRec->validFrom] = (object) array(
+                'validFrom' => $masterRec->validFrom,
+                'validTo'   => $masterRec->validTo,
+                'classId'   => $data->masterMvc->getClassId(),
+                'objectId'  => $masterRec->id,
+                'isCurrent' => true,
+                'createdOn' => $currentCreatedOn,
+                'createdBy' => $currentCreatedBy,
+                'versionCreatedOn' => $currentCreatedOn,
+                'versionCreatedBy' => $currentCreatedBy,
+            );
         } else {
             $data->recs[$masterRec->validFrom]->isCurrent = true;
         }
+
         $now = dt::now();
 
         arr::sortObjects($data->recs, 'validFrom', 'DESC');
         $count = countR($data->recs);
+
         foreach ($data->recs as $rec) {
             $rec->count = $count;
+
+            if (!empty($rec->versionCreatedOn)) {
+                $rec->createdOn = $rec->versionCreatedOn;
+            }
+            if (!empty($rec->versionCreatedBy)) {
+                $rec->createdBy = $rec->versionCreatedBy;
+            }
+
             $row = $this->recToVerbal($rec);
 
             $data->recs[$rec->id] = $rec;
-            $row->date = "{$row->validFrom}" . (!empty($row->validTo) ? " - {$row->validTo}" : '');
+
+            $row->validFrom = core_Type::getByName('date')->toVerbal(substr($rec->validFrom, 0, 10));
+            if (!empty($rec->validTo)) {
+                $row->validTo = core_Type::getByName('date')->toVerbal(substr($rec->validTo, 0, 10));
+            }
+
+            $row->date = $row->validFrom;
             $row->count = core_Type::getByName('int')->toVerbal($rec->count);
+
             if($rec->validFrom > $now){
                 $row->ROW_ATTR['class'] = "state-draft";
-            } elseif($rec->isCurrent){
+            } elseif(!empty($rec->isCurrent)){
                 $row->ROW_ATTR['class'] = "state-active";
             } else {
                 $row->ROW_ATTR['class'] = "state-closed";
             }
 
+            // Моливче само за текущата версия
+            if (!empty($rec->isCurrent)) {
+                $editRec = (object) array('id' => $data->masterId);
+                $row->validFrom = change_plg_History::appendValidFromEditIcon($data->masterMvc, $editRec, $row->validFrom);
+            }
+
             // Подготовка на бутоните за избор
-            $versionId = $rec->isCurrent ? static::CURRENT_VERSION_ID : $rec->id;
+            $versionId = !empty($rec->isCurrent) ? static::CURRENT_VERSION_ID : $rec->id;
             if($this->isSelected($data->masterMvc->getClassId(), $data->masterId, $versionId)){
                 $icon = 'img/16/checkbox_yes.png';
                 $action = 'deselect';
@@ -394,9 +518,18 @@ class change_History extends core_Manager
                 $title = 'Избор на версията';
             }
 
-            $link = array($this, 'log', 'classId' => $rec->classId, 'objectId' => $rec->objectId, 'versionId' => $versionId, 'tab' => Request::get('Tab'), 'action' => $action, 'verString' => $rec->count);
+            $link = array(
+                $this,
+                'log',
+                'classId' => $rec->classId,
+                'objectId' => $rec->objectId,
+                'versionId' => $versionId,
+                'tab' => Request::get('Tab'),
+                'action' => $action,
+                'verString' => $rec->count
+            );
             $row->count = ht::createLink('', $link, null, "ef_icon={$icon},title={$title}")->getContent() . $row->count;
-            $row->created =  "{$row->createdOn} " . tr('от||by') . " {$row->createdBy}";
+            $row->created = "{$row->createdOn} " . tr('от||by') . " {$row->createdBy}";
 
             $data->rows[$rec->id] = $row;
             $count--;
@@ -418,7 +551,7 @@ class change_History extends core_Manager
         if($data->hide) return $tpl;
 
         // Рендиране на таблицата с оборудването
-        $data->listFields = arr::make('validFrom=От,validTo=До,created=Създаване,count=Вер.');
+        $data->listFields = arr::make('validFrom=От,created=Създаване,count=Вер.');
 
         $listTableMvc = clone $this;
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
@@ -496,15 +629,17 @@ class change_History extends core_Manager
     /**
      * Задава в сесията масива със селектирани версии
      *
-     * @param int  $classId - името или id на класа
-     * @param int $objectId - id на документа
-     * @param array  $arr   - масива, който ще добавим
+     * @param int  $classId
+     * @param int  $objectId
+     * @param array  $arr
      */
     private function updateSelectedVersion($classId, $objectId, $arr)
     {
-        // Вземаме всички избрани версии за документите
-        $allVersionArr = self::getSelectedVersionsArr($classId, $objectId);
-        arr::sortObjects($allVersionArr, 'date', 'ASC');
+        // Вземаме глобалния масив за всички документи
+        $allVersionArr = Mode::get(static::PERMANENT_SAVE_NAME);
+        $allVersionArr = is_array($allVersionArr) ? $allVersionArr : array();
+
+        arr::sortObjects($arr, 'date', 'ASC');
         $allVersionArr["{$classId}_{$objectId}"] = array_slice($arr, -2, 2, true);
 
         Mode::setPermanent(static::PERMANENT_SAVE_NAME, $allVersionArr);

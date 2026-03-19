@@ -710,6 +710,9 @@ class crm_Persons extends core_Master
 
             // Разширяване на $row
             crm_ext_ContragentInfo::extendRow($mvc, $row, $rec, $fields);
+
+            // Моливче и в "Друга информация" след текущата валидност
+            $row->validFrom = change_plg_History::appendValidFromEditIcon($mvc, $rec, $row->validFrom);
         }
 
         static $ownCompany;
