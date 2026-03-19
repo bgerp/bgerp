@@ -966,21 +966,21 @@ abstract class bank_Document extends deals_PaymentDocument
                         $saveFields['ownAccount'] = 'ownAccount';
                         $dRec->ownAccount = $rec->ownAccount;
                         $changed++;
-                        $errorsForCreator[] = "промени сметка";
+                        $errorsForCreator[] = tr("промени сметка");
                     }
 
                     $docValior = $dRec->valior ?? dt::today();
                     $dRec->valior = $rec->valior;
                     $saveFields['valior'] = 'valior';
                     if($docValior != $rec->valior){
-                        $errorsForCreator[] = "зададе вальор";
+                        $errorsForCreator[] = tr("зададе вальор");
                     }
 
                     if(countR($saveFields)){
                         $this->save($dRec, $saveFields);
 
                         if($errorsForCreator){
-                            bgerp_Notifications::add("|*{$nick} |контира, " . implode(',', $errorsForCreator) . " |на документ|* #{$this->getHandle($dRec->id)}", array($this, 'single', $dRec->id), $dRec->createdBy);
+                            bgerp_Notifications::add("|*{$nick} |контира|*, " . implode(' |и|* ', $errorsForCreator) . " |на документ|* #{$this->getHandle($dRec->id)}", array($this, 'single', $dRec->id), $dRec->createdBy);
                         }
                     }
 
