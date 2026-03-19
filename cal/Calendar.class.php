@@ -790,7 +790,7 @@ class cal_Calendar extends core_Master
                 $data[$i] = new stdClass();
             }
             $iDay = str_pad($i, 2, '0', STR_PAD_LEFT);
-            $data[$i]->url = toUrl(array('cal_Calendar', 'day', 'selectPeriod' => "{$year}.{$month}.{$iDay}|{$year}.{$month}.{$iDay}"));;
+            $data[$i]->url = toUrl(array('cal_Calendar', 'day', 'selectPeriod' => "{$year}-{$month}-{$iDay}|{$year}-{$month}-{$iDay}"));;
         }
         
         $tpl = new ET("[#MONTH_CALENDAR#] <br> [#AGENDA#]");
@@ -1562,10 +1562,10 @@ class cal_Calendar extends core_Master
     public static function getFromToDay($data)
     {
         // От началото на деня
-        $from['fromDate'] = $data->listFilter->rec->from. " 00:00:00";
+        $from['fromDate'] = $data->listFilter->rec->from . " 00:00:00";
         
         // До края на същия ден
-        $from['toDate'] = $data->listFilter->rec->from. " 23:59:59";
+        $from['toDate'] = $data->listFilter->rec->from . " 23:59:59";
         
         return $from;
     }
