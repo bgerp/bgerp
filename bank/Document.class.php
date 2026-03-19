@@ -51,9 +51,21 @@ abstract class bank_Document extends deals_PaymentDocument
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, termDate,valior,modifiedOn,activatedOn';
+
+
+    /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy';
+    public $listFields = 'termDate,valior=Вальор, title=Документ,ownAccount=Сметка, invoices=Фактури, folderId, currencyId=Валута, amount, state, createdOn, createdBy';
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'termDate,invoices';
 
 
     /**
@@ -84,12 +96,6 @@ abstract class bank_Document extends deals_PaymentDocument
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'bank, ceo, purchase, sales';
-
-
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    public $hideListFieldsIfEmpty = 'reason,invoices';
 
 
     /**
@@ -196,7 +202,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $mvc->FLD('reason', 'richtext(bucket=Notes,rows=6)', 'caption=Основание');
         $mvc->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
         $mvc->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка');
-        $mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=В->Сметка,silent,removeAndRefreshForm=currencyId|amount');
+        $mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=В->Сметка,silent,removeAndRefreshForm=currencyId|amount,tdClass=small');
         $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code,maxRadio=0)', 'caption=В->Валута,input=hidden,silent,removeAndRefreshForm=amount');
 
         $mvc->FLD('amount', 'double(decimals=2,max=2000000000,Min=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
@@ -435,6 +441,10 @@ abstract class bank_Document extends deals_PaymentDocument
     {
         // Добавяме към формата за търсене търсене по Каса
         bank_OwnAccounts::prepareBankFilter($data, array('ownAccount'));
+
+        if(isset($data->listFilter->rec->own)){
+            unset($data->listFields['ownAccount']);
+        }
     }
 
 
@@ -544,6 +554,18 @@ abstract class bank_Document extends deals_PaymentDocument
     {
         $row->title = $mvc->getLink($rec->id, 0);
 
+        if (isset($rec->ownAccount)) {
+            $row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount);
+        } else {
+            $row->ownAccount = tr('Предстои да бъде уточнена');
+            $row->ownAccount = "<span class='red'><small><i>{$row->ownAccount}</i></small></span>";
+        }
+
+        if ($fields['-list']) {
+            if(!empty($rec->reason)){
+                $row->title .= "<small>{$mvc->getFieldType('reason')->toVerbal($rec->reason)}</small>";
+            }
+        }
         if ($fields['-single']) {
             if ($rec->dealCurrencyId != $rec->currencyId) {
                 $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
@@ -583,13 +605,6 @@ abstract class bank_Document extends deals_PaymentDocument
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld) {
                 $row->{$fld} = $headerInfo[$fld];
-            }
-
-            if (isset($rec->ownAccount)) {
-                $row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount);
-            } else {
-                $row->ownAccount = tr('Предстои да бъде уточнена');
-                $row->ownAccount = "<span class='red'><small><i>{$row->ownAccount}</i></small></span>";
             }
 
             if ($origin = $mvc->getOrigin($rec)) {
