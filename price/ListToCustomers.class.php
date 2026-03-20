@@ -333,7 +333,9 @@ class price_ListToCustomers extends core_Manager
                 
                 // Ако драйвера може да върне цена, връщаме нея
                 if ($Driver = cat_Products::getDriver($productId)) {
-                    $rec = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat, $listId);
+                    Mode::push('contragentListId', $listId);
+                    $rec = $Driver->getPrice($productId, $quantity, $deltas->minDelta, $deltas->maxDelta, $datetime, $rate, $chargeVat);
+                    Mode::pop('contragentListId');
                     $rec = is_object($rec) ? $rec : (object)array('price' => $rec);
 
                     // @TODO хак за закръгляне на цените
