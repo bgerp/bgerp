@@ -827,8 +827,7 @@ abstract class bank_Document extends deals_PaymentDocument
         // Показват се в инфото
         $infoTpl = getTplFromFile('bank/tpl/GroupContoInfo.shtml');
         $fields = $this->selectFields();
-        $fields['-list'] = true;
-        $totalSelected = 0;
+        $totalSelectedArr = array();
         $handles = array();
         foreach (array('contable' => 'CONTABLE', 'notContable' => 'NOT_CONTABLE') as $varName => $placeholder){
             $arr = ${$varName};
@@ -847,15 +846,18 @@ abstract class bank_Document extends deals_PaymentDocument
                 $bTpl = clone $infoTpl->getBlock('ACCOUNT_BLOCK');
                 $accountName = $accountId ? bank_OwnAccounts::getHyperlink($accountId) : "<i style='color:red;'>" . tr('Без избрана сметка') . "</i>";
                 $bTpl->append($accountName, 'accountName');
+                $bankAccCurrencyCode = $accountId ? currency_Currencies::getCodeById(bank_OwnAccounts::getDefaultCurrency($accountId)) : acc_Periods::getBaseCurrencyCode();
 
+                $totalForBank = 0;
                 foreach ($recs as $dRec) {
                     $count++;
                     $rTpl = clone $bTpl->getBlock('ROWS');
                     $dRow = $this->recToVerbal($dRec, $fields);
-                    $handles[$dRec->id] = $dRow->title->getContent();
+                    $handles[$dRec->id] = $dRow->title;
+                    $totalForBank += currency_CurrencyRates::convertAmount($dRec->amount, null, currency_Currencies::getCodeById($dRec->currencyId), $bankAccCurrencyCode);
 
                     if($varName == 'contable'){
-                        $totalSelected += currency_CurrencyRates::convertAmount($dRec->amount, null, currency_Currencies::getCodeById($dRec->currencyId));
+                        $totalSelectedArr[currency_Currencies::getCodeById($dRec->currencyId)] += $dRec->amount;
                     }
 
                     $rTpl->append($dRow->title, 'handle');
@@ -868,6 +870,10 @@ abstract class bank_Document extends deals_PaymentDocument
                     $bTpl->append($rTpl, 'ACCOUNT_ROWS');
                 }
 
+                $totalForBankVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($totalForBank);
+                $totalForBankVerbal = currency_Currencies::decorate($totalForBankVerbal, $bankAccCurrencyCode, true);
+                $bTpl->append($totalForBankVerbal, 'bankTotal');
+
                 $bTpl->removeBlocksAndPlaces();
                 $infoTpl->append($bTpl, $placeholder);
             }
@@ -879,9 +885,13 @@ abstract class bank_Document extends deals_PaymentDocument
         }
 
         // Вербализира се тотала
-        $totalSelectedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($totalSelected);
-        $totalSelectedVerbal = currency_Currencies::decorate($totalSelectedVerbal, 'EUR', true);
-        $infoTpl->append($totalSelectedVerbal, 'total');
+        $totalSelectedArrByCurrency = array();
+        foreach ($totalSelectedArr as $cCode => $cAmount) {
+            $cAmountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($cAmount);
+            $totalSelectedArrByCurrency[] = currency_Currencies::decorate($cAmountVerbal, $cCode, true);
+        }
+
+        $infoTpl->append(implode(' и  ', $totalSelectedArrByCurrency), 'total');
         $form->info = $infoTpl;
 
         $form->title = 'Контиране на|* ' . tr(mb_strtolower($this->title));
