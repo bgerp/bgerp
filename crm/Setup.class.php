@@ -164,7 +164,7 @@ class crm_Setup extends core_ProtoSetup
         'migrate::updateGroups2524',
         'migrate::calcExpand36Field2445v3',
         'migrate::forceGatherCron2451v3',
-        'migrate::fillHistoryVersionMeta2630',
+        'migrate::fillHistoryVersionMeta2612',
     );
     
     
@@ -379,7 +379,7 @@ class crm_Setup extends core_ProtoSetup
      * Попълване на validFrom / versionCreatedOn / versionCreatedBy
      * за съществуващите записи на контрагентите
      */
-    public function fillHistoryVersionMeta2630()
+    public function fillHistoryVersionMeta2612()
     {
         foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
             $mvc = cls::get($clsName);
