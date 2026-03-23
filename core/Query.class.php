@@ -697,7 +697,7 @@ class core_Query extends core_FieldSet
     {
         if (countR($this->unions)) {
             $count = countR($this->unions);
-            
+
             foreach ($this->unions as $cond) {
                 $q = clone($this);
                 $q->unions = null;
@@ -716,8 +716,12 @@ class core_Query extends core_FieldSet
                 $unionStr = !$this->useUnionAll ? 'UNION' : "UNION ALL";
                 $string = ($count > 1) ? '(' . $q->buildQuery() . ')' : $q->buildQuery();
                 $query .= ($query ? "\n{$unionStr}\n" : '') . $string;
+
+                // Виртуалните полета от всеки юниън се добавят към тези на куерито иначе FNC полетата не се изчисляват
+                $this->virtualFields = array_merge($this->virtualFields, $q->virtualFields);
+                $this->show = array_merge($this->show, $q->show);
             }
-            
+
             $query .= $this->getOrderBy(true);
             $query .= $this->getLimit();
         } else {
@@ -908,10 +912,11 @@ class core_Query extends core_FieldSet
                         }
                     }
                 }
-                
+
+
                 if (countR($this->virtualFields) > 0) {
                     $virtualFields = array_intersect($this->virtualFields, array_keys($this->show));
-                    
+
                     foreach ($virtualFields as $fld) {
                         $this->mvc->invoke('Calc' . $fld, array(&$rec));
                     }
