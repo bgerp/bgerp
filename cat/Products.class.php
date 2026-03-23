@@ -2213,7 +2213,9 @@ class cat_Products extends embed_Manager
         $primeCostDriver = null;
         if ($Driver = cat_Products::getDriver($productId)) {
             try {
-                $primeCostDriver = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $primeCostlistId);
+                Mode::push('contragentListId', price_ListRules::PRICE_LIST_COST);
+                $primeCostDriver = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no');
+                Mode::pop('contragentListId');
             } catch(core_exception_Expect $e){
                 wp($e, $productId, $quantity);
             }
