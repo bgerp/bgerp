@@ -750,8 +750,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     // Скриваме левия текстов блок и го показваме отделно вдясно
                     $row->leftMetaClass = 'production-note-hidden';
 
-                    $stateClass = !empty($row->STATE_CLASS) ? $row->STATE_CLASS : '';
-                    $zoneCaption = tr('Зона');
                     $docTitle = tr('протокол за производство');
 
                     $rightMeta = "<div class='production-note-right-meta-wrap'>
@@ -760,22 +758,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                                     <div style='padding-top:5px;'>
                                         № <span class='bigData'>{$row->id}</span> /
                                         <span class='bigData'>{$row->valior}</span>
-                                    </div>";
-
-                    if (!empty($row->state)) {
-                        $rightMeta .= "<div class='state {$stateClass}' style='margin: 5px 0;'>{$row->state}</div>";
-                    }
-
-                    if (!empty($row->zoneReadiness)) {
-                        $rightMeta .= "<table class='document-block no-border'>
-                                            <tr>
-                                                <td class='block-caption leftCol'>{$zoneCaption} {$row->zoneId}</td>
-                                                <td><div class='block-readiness'>{$row->zoneReadiness}</div></td>
-                                            </tr>
-                                       </table>";
-                    }
-
-                    $rightMeta .= "</div>";
+                                    </div>
+                                  </div>";
 
                     $row->productImageRightMeta = $rightMeta;
                 }
