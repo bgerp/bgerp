@@ -91,12 +91,13 @@ class bgerp_plg_CsvExport extends core_BaseClass
     {
         $sets = $selected = array();
         $fields = $this->getCsvFieldSet($this->mvc)->selectFields();
-        $detailFields = array();
 
         foreach ($fields as $name => $fld) {
             $sets[] = "{$name}={$fld->caption}";
             if(!$fld->detailField){
-                $selected[$name] = $name;
+                if (substr($name, 0, 1) != '_') {
+                    $selected[$name] = $name;
+                }
             }
         }
 

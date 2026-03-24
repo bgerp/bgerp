@@ -714,14 +714,23 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $row->calcPrimeCostBtn = ht::createBtn('Изчисли сб-ст', array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true));
                 $calcedPrice = core_Permanent::get("{$mvc->className}_{$rec->id}_calcedPrimeCost");
                 if(is_array($calcedPrice)){
-                    $row->calcedPrimeCost = core_Type::getByName('double(decimals=2)')->toVerbal($calcedPrice['primecost']);
-                    $row->calcedPrimeCost = currency_Currencies::decorate($row->calcedPrimeCost, null, true);
-                    $row->calcedPrimeCost = ht::styleNumber($row->calcedPrimeCost, $calcedPrice['primecost']);
-
+                    $primeCost = $calcedPrice['primecost'];
                     $withExpenses = $calcedPrice['primecost'] + $calcedPrice['expenses'];
-                    $row->calcedPrimeCostExpenses = core_Type::getByName('double(decimals=2)')->toVerbal($withExpenses);
-                    $row->calcedPrimeCostExpenses = currency_Currencies::decorate($row->calcedPrimeCostExpenses, null, true);
-                    $row->calcedPrimeCostExpenses = ht::styleNumber($row->calcedPrimeCostExpenses, $withExpenses);
+                    foreach (array('calcedPrimeCost' => $primeCost, 'calcedPrimeCostExpenses' => $withExpenses) as $key => $cost) {
+                        $row->{$key} = core_Type::getByName('double(decimals=2)')->toVerbal($cost);
+                        $row->{$key} = currency_Currencies::decorate($row->{$key}, null, true);
+                        $row->{$key} = ht::styleNumber($row->{$key}, $cost);
+
+                        if($rec->quantity != 1){
+                            $singlePrice = $cost / $rec->quantity;
+                            $singlePriceRow = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice);
+                            $singlePriceRow = currency_Currencies::decorate($singlePriceRow, null, true);
+                            $singlePriceRow = ht::styleNumber($singlePriceRow, $singlePrice);
+                            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+                            $measureName = cat_UoM::getShortName($measureId);
+                            $row->{$key} .= " <i style='font-weight:normal;'>({$singlePriceRow}/{$measureName})</i>";
+                        }
+                    }
                     $row->calcedPrimeCostDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($calcedPrice['date']);
                 }
             }
