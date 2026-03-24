@@ -4866,4 +4866,70 @@ class cat_Products extends embed_Manager
 
         return self::getDisplayName($rec);
     }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        // Показваме зададените параметри, като възможни опции
+        $paramsExport = cat_Setup::get('EXPORTABLE_FIELDS');
+
+        $paramsExport = arr::make($paramsExport);
+        if (!empty($paramsExport)) {
+            foreach ($paramsExport as $k => $v) {
+                $pRec = cat_Params::fetch($v);
+                if ($pRec->state != 'active') {
+                    continue;
+                }
+
+                $fieldset->FLD('_cat_Params_' . $pRec->id, 'varchar', 'caption= ' . $pRec->typeExt);
+            }
+        }
+    }
+
+
+    /**
+     * След подготовка на записите за експортиране
+     *
+     * @param crm_Companies $mvc
+     * @param array $recs
+     */
+    public static function on_AfterPrepareExportRecs($mvc, &$recs)
+    {
+        // Ако в конфига е зададено, добавяме и параметрите на продуктите
+        $paramsExport = cat_Setup::get('EXPORTABLE_FIELDS');
+        $selParArr = array();
+        $paramsExport = arr::make($paramsExport);
+        if (!empty($paramsExport)) {
+            foreach ($paramsExport as $v) {
+                $pRec = cat_Params::fetch($v);
+                if ($pRec->state != 'active') {
+                    continue;
+                }
+
+                $selParArr[$pRec->id] = $pRec->id;
+            }
+        }
+
+        if (!empty($selParArr)) {
+            Mode::push('doNotCalculate',true);
+            foreach ($recs as $rec) {
+                $pArr = $mvc->getParams($rec->id);
+                if (!empty($pArr)) {
+                    foreach ($selParArr as $k => $v) {
+                        if (isset($pArr[$k])) {
+                            $kv = "_cat_Params_{$k}";
+                            $rec->{$kv} = $pArr[$k];
+                        }
+                    }
+                }
+            }
+
+            Mode::pop('doNotCalculate');
+        }
+    }
 }
