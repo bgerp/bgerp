@@ -751,66 +751,87 @@ class core_Query extends core_FieldSet
         
         return $query;
     }
-    
-    
-    /**
-     * Преброява записите, които отговарят на условието, което се добавя като AND във WHERE
-     */
+
+
     public function count($cond = null, $limit = 0)
     {
         if ($this->mvc->invoke('BeforeCount', array(&$res, &$this, &$cond)) === false) {
-            
             return $res;
         }
-        
+
         $temp = clone($this);
-        
+
         $temp->where($cond);
-        
+
         if ($limit) {
             $temp->limit($limit);
         }
-        
+
+        // Ако има UNION/UNION ALL, броим върху вече построената заявка,
+        // защото ръчното сглобяване на COUNT игнорира setUnion() условията
+        if (countR($temp->unions)) {
+            $countQuery = clone($temp);
+
+            // ORDER BY не влияе на COUNT и само товари,
+            // освен ако няма LIMIT/START
+            if ($countQuery->limit === null && $countQuery->start === null) {
+                $countQuery->orderBy = array();
+            }
+
+            $innerQuery = $countQuery->buildQuery();
+            $query = "SELECT COUNT(*) AS `_count` FROM ({$innerQuery}) AS COUNT_TABLE";
+
+            $db = $countQuery->mvc->db;
+
+            DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
+            $dbRes = $db->query($query);
+            DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
+
+            $r = $db->fetchObject($dbRes);
+
+            $db->freeResult($dbRes);
+
+            return (int) $r->_count;
+        }
+
         $wh = $temp->getWhereAndHaving();
-        
+
         $options = '';
-        
+
         if (!empty($this->_selectOptions)) {
             $options = implode(' ', $this->_selectOptions);
         }
-        
+
         $query = "SELECT {$options}\n   count(*) AS `_count`";
         if (countR($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
             $fields = $temp->getShowFields();
             $query .= ($fields ? ',' : '') . $fields;
         }
-        
+
         $query .= "\nFROM ";
         $query .= $temp->getTables();
-        
+
         $query .= $wh->w;
         $query .= $wh->h;
         $query .= $temp->getGroupBy();
         $query .= $temp->getLimit();
-        
+
         if ($temp->useHaving || $temp->getGroupBy() || ($temp->limit)) {
             $query = str_replace('count(*) AS `_count`', '1 AS `fix_val`', $query);
             $query = "SELECT COUNT(*) AS `_count` FROM ({$query}) as COUNT_TABLE";
         }
-        
+
         $db = $temp->mvc->db;
-        
+
         DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
         $dbRes = $db->query($query);
         DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
-        
+
         $r = $db->fetchObject($dbRes);
-        
-        // Освобождаваме MySQL резултата
+
         $db->freeResult($dbRes);
-        
-        // Връщаме брояча на редовете
-        return (integer) $r->_count;
+
+        return (int) $r->_count;
     }
     
     
