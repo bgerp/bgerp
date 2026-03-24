@@ -257,7 +257,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'cat_GeneralProductDriver,cat_ImportedProductDriver,cat_interface_BomDetailImport,cat_interface_AllergensParamAggregateImpl,cat_interface_EnergyValueAggregateImpl';
+    public $defClasses = 'cat_GeneralProductDriver,cat_ImportedProductDriver,cat_interface_BomDetailImport,cat_interface_AllergensParamAggregateImpl,cat_interface_EnergyValueAggregateImpl, cat_RepairProductDriver';
     
     
     /**
@@ -289,7 +289,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC' => array('keylist(mvc=cat_UoM,select=name)', array('caption' => 'Кои опаковки да се пропускат, при избор на опаковка за транспортен обем->Избор')),
         'CAT_SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC' => array('enum(yes=Да,no=Не)', array('caption' => 'Показване на изображението на универсалния артикул във външните документи->Избор')),
         'CAT_LAST_PACK_USAGES' => array('int(Min=1)', array('caption' => 'Колко назад да се броят използванията на продуктовите опаковки->Месеци')),
-        'CAT_EXPORTABLE_FIELDS' => array('keylist(mvc=cat_Params, select=name)', array('caption' => 'Полета|*&nbsp; |коието мога да се експортират->Избор')),
+        'CAT_EXPORTABLE_FIELDS' => array('keylist(mvc=cat_Params, select=typeExt)', array('caption' => 'Полета|*&nbsp; |коието мога да се експортират->Избор')),
     );
     
     
