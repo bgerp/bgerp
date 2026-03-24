@@ -209,7 +209,7 @@ class change_plg_History extends core_Plugin
 
         // 4) Бъдеща версия
         $tomorrow = dt::addDays(1, $today, false);
-        $lines[] = '• всяка дата след ' . $todayVerbal . ' - за да създадете бъдеща/изчакваща началото на валидността си версия';
+        $lines[] = '• всяка дата след ' . $todayVerbal . ' (от ' . self::verbalValidFrom($tomorrow) . ') - за да създадете бъдеща/изчакваща началото на валидността си версия';
 
         return implode('<br>', $lines);
     }
@@ -746,6 +746,34 @@ class change_plg_History extends core_Plugin
 
         if (empty($rec->versionCreatedBy) && !empty($rec->_oldRec->versionCreatedBy)) {
             $rec->versionCreatedBy = $rec->_oldRec->versionCreatedBy;
+        }
+    }
+
+
+    /**
+     * Генериране на searchKeywords когато плъгинът е ново-инсталиран на модел в който е имало записи
+     */
+    public static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $validFromColName = str::phpToMysqlName('validFrom');
+        $createdOnColName = str::phpToMysqlName('createdOn');
+        $createdByColName = str::phpToMysqlName('createdBy');
+        $versionCreatedOnColName = str::phpToMysqlName('versionCreatedOn');
+        $versionCreatedByColName = str::phpToMysqlName('versionCreatedBy');
+
+        if ($mvc->count("#validFrom IS NULL")) {
+            $query = "UPDATE {$mvc->dbTableName} SET {$validFromColName} = {$createdOnColName} WHERE {$validFromColName} IS NULL";
+            $mvc->db->query($query);
+        }
+
+        if ($mvc->count("#versionCreatedOn IS NULL")) {
+            $query = "UPDATE {$mvc->dbTableName} SET {$versionCreatedOnColName} = {$createdOnColName} WHERE {$versionCreatedOnColName} IS NULL";
+            $mvc->db->query($query);
+        }
+
+        if ($mvc->count("#versionCreatedBy IS NULL")) {
+            $query = "UPDATE {$mvc->dbTableName} SET {$versionCreatedByColName} = {$createdByColName} WHERE {$versionCreatedByColName} IS NULL";
+            $mvc->db->query($query);
         }
     }
 
