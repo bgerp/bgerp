@@ -38,7 +38,7 @@ class cat_products_Relations extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created, plg_State2';
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created, plg_State2, plg_Sorting';
 
 
     /**
@@ -364,7 +364,7 @@ class cat_products_Relations extends core_Manager
                 $tabRow = is_object($groupData['rows'][$id]) ? clone $groupData['rows'][$id] : $groupData['rows'][$id];
 
                 // В колоната productId показваме "другия" артикул от релацията
-                if ((int)$rec->productId1 == (int)$data->masterId) {
+                if ($rec->productId1 == $data->masterId) {
                     $tabRow->productId = $tabRow->productId2;
                     $tabRec->productId = $rec->productId2;
                 } else {
@@ -382,6 +382,7 @@ class cat_products_Relations extends core_Manager
 
             $listMvc = clone $this;
             $listMvc->FNC('productId', 'varchar', 'tdClass=leftCol');
+            $listMvc->FNC('created', 'varchar', 'tdClass=small');
 
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
             $this->invoke('BeforeRenderListTable', array($paneTpl, &$tabData));
@@ -523,8 +524,10 @@ class cat_products_Relations extends core_Manager
 
                 // Подготовка на записите
                 $newRecs = array();
+                $now = dt::now();
+                $cu = core_Users::getCurrent();
                 foreach ($otherProducts as $otherProductId) {
-                    $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId);
+                    $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId, 'createdOn' => $now, 'createdBy' => $cu);
                     $newRecs[] = $newRec;
                 }
 
