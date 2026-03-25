@@ -239,6 +239,10 @@ class cat_products_Relations extends core_Manager
         $query->EXT('group2Name', 'cat_RelationTypes', 'externalName=group2Name,externalKey=relTypeId');
         $query->EXT('group1GroupId', 'cat_RelationTypes', 'externalName=group1GroupId,externalKey=relTypeId');
         $query->EXT('group2GroupId', 'cat_RelationTypes', 'externalName=group2GroupId,externalKey=relTypeId');
+        $query->EXT('group1Info', 'cat_RelationTypes', 'externalName=group1Info,externalKey=relTypeId');
+        $query->EXT('group2Info', 'cat_RelationTypes', 'externalName=group2Info,externalKey=relTypeId');
+        $query->EXT('show1InExternal', 'cat_RelationTypes', 'externalName=show1InExternal,externalKey=relTypeId');
+        $query->EXT('show2InExternal', 'cat_RelationTypes', 'externalName=show2InExternal,externalKey=relTypeId');
         $query->EXT('saoOrder', 'cat_RelationTypes', 'externalName=saoOrder,externalKey=relTypeId');
 
         if(Mode::is('renderExternalRelation')){
@@ -284,22 +288,29 @@ class cat_products_Relations extends core_Manager
             if ($rec->productId1 == $data->masterId) {
                 $otherGroupName = $rec->group2Name;
                 $otherProductId = $rec->productId2;
+                $groupNameInfo = $rec->group2Info;
             } elseif ($rec->productId2 == $data->masterId) {
                 $otherGroupName = $rec->group1Name;
                 $otherProductId = $rec->productId1;
+                $groupNameInfo = $rec->group1Info;
             } else {
                 continue;
             }
 
             if (!isset($groupedRows[$otherGroupName])) {
                 $groupedRows[$otherGroupName] = array(
-                    'groupName' => $otherGroupName,
+                    'groupName' => core_Type::getByName('varchar')->toVerbal($otherGroupName),
+                    'relType' => cat_RelationTypes::getTitleById($rec->relTypeId),
                     'order' => $rec->saoOrder,
                     'rows' => array(),
                     'recs' => array(),
                     'productIds' => array(),
                     'count' => 0,
                 );
+
+                if(!empty($groupNameInfo)){
+                    $groupedRows[$otherGroupName]['info'] = core_Type::getByName('richtext')->toVerbal($groupNameInfo);
+                }
             }
 
             $groupedRows[$otherGroupName]['rows'][$id] = $data->rows[$id];
@@ -329,9 +340,10 @@ class cat_products_Relations extends core_Manager
     {
         $tpl = new core_ET("[#content#]");
         if ($data->hide) return $tpl;
+
         $isExternal = Mode::is('wrapper', 'cms_page_External');
 
-        if(!$isExternal){
+        if (!$isExternal) {
             $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
             $title = tr('Релации с други артикули');
             $tpl->append($title, 'title');
@@ -348,9 +360,11 @@ class cat_products_Relations extends core_Manager
 
         // Ключът е стабилен по masterId, за да се помни активният таб между reload/followRetUrl
         $storageKey = 'prodRelTabs_' . $data->masterId;
+
         $tabsTpl = new core_ET("
-        <div id='[#TAB_KEY#]' class='product-rel-tabs-compact ' data-storage-key='[#STORAGE_KEY#]'>
+        <div id='[#TAB_KEY#]' class='product-rel-tabs-compact' data-storage-key='[#STORAGE_KEY#]'>
             <div class='tab-row'>[#TAB_LINKS#]</div>
+            <div class='product-rel-tabs-info'>[#ACTIVE_TAB_INFO#]</div>
             <div class='product-rel-tabs-content'>[#TAB_PANES#]</div>
         </div>
     ");
@@ -360,14 +374,15 @@ class cat_products_Relations extends core_Manager
         $tabLinks = '';
         $tabPanes = '';
         $tabN = 0;
+        $activeTabInfo = '';
 
         $eshopProducts = array();
-        if($isExternal){
+        if ($isExternal) {
             $domainId = cms_Domains::getPublicDomain()->id;
             $eQuery = eshop_ProductDetails::getQuery();
             $eQuery->EXT('domainId', 'eshop_Products', 'externalName=domainId,externalKey=eshopProductId');
             $eQuery->where("#domainId = '{$domainId}' AND #state != 'closed'");
-            while($eRec = $eQuery->fetch()) {
+            while ($eRec = $eQuery->fetch()) {
                 $eshopProducts[$eRec->productId] = $eRec;
             }
         }
@@ -377,20 +392,26 @@ class cat_products_Relations extends core_Manager
             $paneId = $tabKey . '_pane_' . $tabN;
             $isActive = ($tabN == 1) ? ' active' : '';
             $count = $groupData['count'] ?? countR($groupData['rows']);
+            $groupInfo = !$isExternal ? $groupData['relType'] : '';
+            $groupInfo .= !empty($groupData['info']) ? $groupData['info'] : '';
+            if ($tabN == 1) {
+                $activeTabInfo = $groupInfo;
+            }
 
-            $groupNameEsc = type_Varchar::escape($groupName);
             $groupNameAttr = ht::escapeAttr($groupName);
+            $tabInfoAttr = ht::escapeAttr($groupInfo);
+            $tabCaption = "{$groupName} <span class='product-rel-tab-count'>({$count})</span>";
 
-            $tabCaption = "{$groupNameEsc} <span class='product-rel-tab-count'>({$count})</span>";
-            $tabLinks .= "<a href=\"#\" class=\"product-rel-tab tab {$isActive}\" data-pane=\"{$paneId}\" data-tab-key=\"{$groupNameAttr}\" onclick=\"return catProductsRelationsShowTab(this, '{$tabKey}');\">{$tabCaption}</a>";
+            $tabLinks .= "<a href=\"#\" class=\"product-rel-tab tab {$isActive}\" data-pane=\"{$paneId}\" data-tab-key=\"{$groupNameAttr}\" data-info=\"{$tabInfoAttr}\" onclick=\"return catProductsRelationsShowTab(this, '{$tabKey}');\">{$tabCaption}</a>";
 
             $tabData = clone $data;
             $tabData->recs = $tabData->rows = array();
 
-            $tabData->listFields = arr::make('productId=Артикул,relTypeId=Релация,created=Създаване');
-            if($isExternal){
+            $tabData->listFields = arr::make('productId=Артикул,created=Създаване');
+            if ($isExternal) {
                 $tabData->listFields = arr::make('productId=Артикул,code=Кат. №,price=Цена,btn=Поръчка');
             }
+
             foreach ($groupData['recs'] as $id => $rec) {
                 $tabRec = is_object($rec) ? clone $rec : $rec;
                 $tabRow = is_object($groupData['rows'][$id]) ? clone $groupData['rows'][$id] : $groupData['rows'][$id];
@@ -404,14 +425,15 @@ class cat_products_Relations extends core_Manager
                     $tabRec->productId = $rec->productId1;
                 }
 
-                if(array_key_exists($tabRec->productId, $eshopProducts)){
+                if (array_key_exists($tabRec->productId, $eshopProducts)) {
                     $eshopProductId = $eshopProducts[$tabRec->productId]->eshopProductId;
                     $tabRow->productId = eshop_ProductDetails::getPublicProductTitle($eshopProductId, $tabRec->productId, false);
                     $tabRow->productId = ht::createLink($tabRow->productId, eshop_Products::getUrl($eshopProductId));
+
                     $eshopRec = eshop_Products::fetch($eshopProductId);
                     $thumb = eshop_Products::getProductThumb($eshopRec, 40, 40);
                     if (empty($thumb)) {
-                        $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), 300, 300, 'path');
+                        $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), 300, 300, 'path');
                     }
 
                     $img = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
@@ -427,8 +449,9 @@ class cat_products_Relations extends core_Manager
                     $tabRow->price = $dRow->catalogPrice;
                     $tabRow->btn = $dRow->btn;
                 }
-                if($isExternal){
-                    $tabRow->code = cat_Products::fetchField($tabRec->productId,'code');
+
+                if ($isExternal) {
+                    $tabRow->code = cat_Products::fetchField($tabRec->productId, 'code');
                 }
 
                 $tabData->rows[$id] = $tabRow;
@@ -455,6 +478,7 @@ class cat_products_Relations extends core_Manager
             $tabPanes .= $paneTpl->getContent();
         }
 
+        $tabsTpl->replace($activeTabInfo, 'ACTIVE_TAB_INFO');
         $tabsTpl->replace($tabLinks, 'TAB_LINKS');
         $tabsTpl->replace($tabPanes, 'TAB_PANES');
 

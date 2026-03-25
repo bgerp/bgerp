@@ -74,13 +74,34 @@ class cat_RelationTypes extends core_Manager
         $this->FLD('group1GroupId', 'key(mvc=cat_Groups, select=name,allowEmpty)', 'caption=Първа група->Група,mandatory');
         $this->FLD('group1Info', 'varchar(128)', 'caption=Първа група->Описание');
 
-        $this->FLD('group2Name', 'varchar(32)', 'caption=Втора група->Име,mandatory');
-        $this->FLD('group2GroupId', 'key(mvc=cat_Groups, select=name,allowEmpty)', 'caption=Втора група->Група,mandatory');
+        $this->FLD('group2Name', 'varchar(32)', 'caption=Втора група->Име');
+        $this->FLD('group2GroupId', 'key(mvc=cat_Groups, select=name,allowEmpty)', 'caption=Втора група->Група');
         $this->FLD('group2Info', 'varchar(128)', 'caption=Втора група->Описание');
-        $this->FLD('isSymmetric', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Симетричност,maxRadio=0,notNull,value=yes');
+        $this->FLD('isSymmetric', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Симетричност,maxRadio=0,notNull,value=no,silent,removeAndRefreshForm');
+        $this->FLD('show1InExternal', 'enum(yes=Да,no=Не)', 'caption=Показване във външната част->Първа група,notNull,value=yes');
+        $this->FLD('show2InExternal', 'enum(yes=Да,no=Не)', 'caption=Показване във външната част->Втора група,notNull,value=yes');
 
         $this->setDbIndex('group1GroupId');
         $this->setDbIndex('group2GroupId');
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    public static function on_AfterInputEditForm($mvc, $form)
+    {
+        if ($form->isSubmitted()) {
+            $rec = &$form->rec;
+
+            if(empty($rec->group2Name) || $rec->isSymmetric == 'yes'){
+                $rec->group2Name = $rec->group1Name;
+            }
+
+            if(empty($rec->group2GroupId) || $rec->isSymmetric == 'yes'){
+                $rec->group2GroupId = $rec->group1GroupId;
+            }
+        }
     }
 
 
@@ -99,7 +120,14 @@ class cat_RelationTypes extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = &$data->form;
-        $form->setDefault('isSymmetric', 'yes');
+        $rec = &$form->rec;
+        $form->setDefault('isSymmetric', 'no');
+
+        if($rec->isSymmetric == 'yes'){
+            $form->setField('group2Name', 'input=hidden');
+            $form->setField('group2GroupId', 'input=hidden');
+            $form->setField('group2Info', 'input=hidden');
+        }
     }
 
 
@@ -112,25 +140,32 @@ class cat_RelationTypes extends core_Manager
         if(cat_Products::haveRightFor('list')){
             $group1GroupIdVerbal = $mvc->getFieldType('group1GroupId')->toVerbal($rec->group1GroupId);
             $group1GroupIdVerbal = ht::createLink($group1GroupIdVerbal, array('cat_Products', 'list', 'groupId' => $rec->group1GroupId));
-            $row->group1Name .= tr("|<div class='small'>|Група|*: {$group1GroupIdVerbal}</div>");
+            $row->group1Name .= tr("|<div class='small'><span class='quiet'>|Група|*</span>: {$group1GroupIdVerbal}</div>");
 
             $group2GroupIdVerbal = $mvc->getFieldType('group2GroupId')->toVerbal($rec->group2GroupId);
             $group2GroupIdVerbal = ht::createLink($group2GroupIdVerbal, array('cat_Products', 'list', 'groupId' => $rec->group2GroupId));
-            $row->group2Name .= tr("|<div class='small'>|Група|*: {$group2GroupIdVerbal}</div>");
+            $row->group2Name .= tr("|<div class='small'><span class='quiet'>|Група|*</span>: {$group2GroupIdVerbal}</div>");
 
             if(cat_products_Relations::haveRightFor('list')){
                 $row->title = ht::createLink($rec->title, array('cat_products_Relations', 'list', 'relTypeId' => $rec->id));
             }
         }
 
+        $row->show1InExternal = $mvc->getFieldType('show1InExternal')->toVerbal($rec->show1InExternal);
+        $row->group1Name .= "<div class='small'><span class='quiet'>" . tr('Показване навън') . "</span>: <i>{$row->show1InExternal}</i></div>";
+
+        $row->show2InExternal = $mvc->getFieldType('show2InExternal')->toVerbal($rec->show2InExternal);
+        $row->group2Name .= "<div class='small'><span class='quiet'>" . tr('Показване навън') . "</span>: <i>{$row->show2InExternal}</i></div>";
+
         if(!empty($rec->group1Info)){
-            $row->group1Name .= "<hr style='margin-bottom:2px;'><div class='richtext small'>{$rec->group1Info}</div>";
+            $row->group1Info = $mvc->getFieldType('group1Info')->toVerbal($rec->group1Info);
+            $row->group1Name .= "<hr style='margin-bottom:2px;'><div class='richtext small'>{$row->group1Info}</div>";
         }
 
         if(!empty($rec->group2Info)){
-            $row->group2Name .= "<hr style='margin-bottom:2px;'><div class='richtext small'>{$rec->group2Info}</div>";
+            $row->group2Info = $mvc->getFieldType('group2Info')->toVerbal($rec->group2Info);
+            $row->group2Name .= "<hr style='margin-bottom:2px;'><div class='richtext small'>{$row->group2Info}</div>";
         }
-
         $row->ROW_ATTR['class'] = "state-active";
     }
 

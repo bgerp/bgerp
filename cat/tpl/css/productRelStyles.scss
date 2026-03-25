@@ -1,4 +1,3 @@
-
 .product-rel-tab-pane {
   display: none;
 }
@@ -7,19 +6,53 @@
   display: block;
 }
 
-div.tab-control.alphabet div.product-rel-tabs-compact  .tab {
+div.tab-control.alphabet div.product-rel-tabs-compact .tab {
   font-weight: bold;
   font-size: 0.85em !important;
   margin-bottom: 10px !important;
   margin-right: 10px !important;
 }
-div.tab-control.alphabet div.tab-row  .tab.active {
+
+div.tab-control.alphabet div.tab-row .tab.active {
   border-bottom: 1px solid black !important;
   background: #ffc !important;
+
   &:hover {
     color: #333;
   }
 }
+
+
+/* =========================================
+   ВЪТРЕШЕН И ВЪНШЕН ОБЩ БЛОК ЗА INFO
+   ========================================= */
+
+.product-rel-tabs-compact .product-rel-tabs-info {
+  display: block;
+  width: 100%;
+  clear: both;
+  margin: 0 0 12px 0;
+  padding: 10px 12px;
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: #333;
+  font-size: 0.9em;
+  line-height: 1.45;
+}
+
+.product-rel-tabs-compact .product-rel-tabs-info:empty {
+  display: none;
+}
+
+.product-rel-tabs-compact .product-rel-tabs-info .richtext {
+  margin: 0;
+}
+
+
+/* =========================================
+   СТИЛ НА ТАБОВЕТЕ САМО ЗА ESHOP ВЪНШЕН ИЗГЛЕД
+   ========================================= */
 
 .eshop-product .product-rel-tabs-compact .tab-row {
   display: flex;
@@ -60,8 +93,6 @@ div.tab-control.alphabet div.tab-row  .tab.active {
   background: linear-gradient(to bottom, #ffffff 0%, #eeeeee 100%);
 }
 
-
-
 .eshop-product .product-rel-tabs-compact .tab-row .tab.active,
 .eshop-product .product-rel-tabs-compact .tab-row .tab.current {
   z-index: 2;
@@ -83,6 +114,11 @@ div.tab-control.alphabet div.tab-row  .tab.active {
   opacity: 0.92;
 }
 
+
+/* =========================================
+   MOBILE САМО ЗА ESHOP
+   ========================================= */
+
 @media (max-width: 768px) {
   .eshop-product .product-rel-tabs-compact .tab-row {
     gap: 3px;
@@ -101,7 +137,19 @@ div.tab-control.alphabet div.tab-row  .tab.active {
     width: 26px;
     height: 7px;
   }
+
+  .product-rel-tabs-compact .product-rel-tabs-info {
+    margin: 0 0 10px 0;
+    padding: 8px 10px;
+    font-size: 0.85em;
+    line-height: 1.4;
+  }
 }
+
+
+/* =========================================
+   ТАБЛИЦА
+   ========================================= */
 
 .eshop-product .product-rel-tab-pane {
   table {
@@ -109,6 +157,7 @@ div.tab-control.alphabet div.tab-row  .tab.active {
     border-spacing: 0;
     background: #fff;
     color: #333333;
+
     th {
       padding: 12px 14px;
       text-align: left;
@@ -129,6 +178,7 @@ div.tab-control.alphabet div.tab-row  .tab.active {
       background: #fff;
       font-size: 0.7em;
     }
+
     tr:last-child td {
       border-bottom: none;
     }

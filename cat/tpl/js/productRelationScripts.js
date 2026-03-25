@@ -22,13 +22,42 @@ function catProductsRelationsGetStorage()
 
 
 /**
+ * Обновява info блока под табовете според активния таб.
+ *
+ * @param {HTMLElement} el
+ * @param {HTMLElement} wrap
+ */
+function catProductsRelationsUpdateInfo(el, wrap)
+{
+    if (!wrap) return;
+
+    var infoBox = wrap.querySelector('.product-rel-tabs-info');
+    if (!infoBox) return;
+
+    var info = '';
+    if (el) {
+        info = el.getAttribute('data-info') || '';
+    }
+
+    infoBox.innerHTML = info;
+
+    if (info.replace(/\s+/g, '') === '') {
+        infoBox.style.display = 'none';
+    } else {
+        infoBox.style.display = '';
+    }
+}
+
+
+/**
  * Активира конкретен таб вътре в даден wrapper.
  *
  * Прави следното:
  * - маха active класа от всички табове;
  * - маха active класа от всички pane-ове;
  * - активира подадения таб;
- * - активира pane-а, към който сочи data-pane.
+ * - активира pane-а, към който сочи data-pane;
+ * - обновява info блока под табовете.
  *
  * @param {HTMLElement} el
  * @param {HTMLElement} wrap
@@ -55,6 +84,8 @@ function catProductsRelationsActivateTab(el, wrap)
     if (pane) {
         pane.classList.add('active');
     }
+
+    catProductsRelationsUpdateInfo(el, wrap);
 
     return false;
 }
