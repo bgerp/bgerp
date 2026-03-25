@@ -156,7 +156,7 @@ class cat_products_Relations extends core_Manager
         if(!array_key_exists("{$productId}|{$position}|{$limit}", $this->cacheRelations)){
             $options = [];
             $groups = cat_Products::fetchField($productId, 'groups');
-            $groupsArr = arr::make($groups, true);
+            $groupsArr = keylist::toArray($groups);
             $groupsArrStr = implode(',', $groupsArr);
 
             // Ако артикулът има групи - извличат се връзките към него
@@ -191,14 +191,23 @@ class cat_products_Relations extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $row->productId1 = cat_Products::getHyperlink($rec->productId1, true);
-        $row->productId2 = cat_Products::getHyperlink($rec->productId2, true);
+        $isExternal = Mode::is('wrapper', 'cms_page_External');
+        if(!$isExternal){
+            $row->productId1 = cat_Products::getHyperlink($rec->productId1, true);
+            $row->productId2 = cat_Products::getHyperlink($rec->productId2, true);
+        } else {
+            $row->productId1 = cat_Products::getVerbal($rec->productId1, 'name');
+            $row->productId2 = cat_Products::getVerbal($rec->productId2, 'name');
+            unset($row->ROW_ATTR['class']);
+        }
 
         // Добавяне на бутон за модифициране, заместващ стандартния за редакция
         $productId = ($rec->_masterProductId) ?? $rec->productId1;
-        if($mvc->haveRightFor('modify', (object)array('id' => $rec->id, 'productId' => $productId))) {
-            core_RowToolbar::createIfNotExists($row->_rowTools);
-            $row->_rowTools->addLink('Редактиране', array($mvc, 'modify', 'id' => $rec->id, 'productId' => $productId, 'ret_url' => true), 'ef_icon=img/16/edit-icon.png, title=Редактиране на продуктова връзка');
+        if(!Mode::is('noToolbar')){
+            if($mvc->haveRightFor('modify', (object)array('id' => $rec->id, 'productId' => $productId))) {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Редактиране', array($mvc, 'modify', 'id' => $rec->id, 'productId' => $productId, 'ret_url' => true), 'ef_icon=img/16/edit-icon.png, title=Редактиране на продуктова връзка');
+            }
         }
 
         $row->created = tr("|*{$row->createdOn} |от|* {$row->createdBy}");
@@ -232,6 +241,10 @@ class cat_products_Relations extends core_Manager
         $query->EXT('group2GroupId', 'cat_RelationTypes', 'externalName=group2GroupId,externalKey=relTypeId');
         $query->EXT('saoOrder', 'cat_RelationTypes', 'externalName=saoOrder,externalKey=relTypeId');
 
+        if(Mode::is('renderExternalRelation')){
+            $query->where("#state = 'active'");
+        }
+
         $query->setUnion("#productId1 = {$data->masterId}");
         $query->setUnion("#productId2 = {$data->masterId}");
         $foundRecs = $query->fetchAll();
@@ -244,10 +257,12 @@ class cat_products_Relations extends core_Manager
         $data->TabCaption = 'Релации';
         $data->Tab = 'top';
 
-        $prepareTab = Request::get($data->masterData->tabTopParam);
-        if($prepareTab != 'Relations') {
-            $data->hide = true;
-            return;
+        if(empty($data->forceCalc)){
+            $prepareTab = Request::get($data->masterData->tabTopParam);
+            if($prepareTab != 'Relations') {
+                $data->hide = true;
+                return;
+            }
         }
 
         // Подготовка на данните
@@ -312,15 +327,19 @@ class cat_products_Relations extends core_Manager
      */
     public function renderRelations_(&$data)
     {
-        if ($data->hide) return new core_ET("");
+        $tpl = new core_ET("[#content#]");
+        if ($data->hide) return $tpl;
+        $isExternal = Mode::is('wrapper', 'cms_page_External');
 
-        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $title = tr('Релации с други артикули');
-        $tpl->append($title, 'title');
+        if(!$isExternal){
+            $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+            $title = tr('Релации с други артикули');
+            $tpl->append($title, 'title');
 
-        if (isset($data->addUrl)) {
-            $addBtn = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,caption=Добавяне на нова продуктова връзка');
-            $tpl->append($addBtn, 'title');
+            if (isset($data->addUrl)) {
+                $addBtn = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,caption=Добавяне на нова продуктова връзка');
+                $tpl->append($addBtn, 'title');
+            }
         }
 
         if (empty($data->groupedRows)) return $tpl;
@@ -342,6 +361,17 @@ class cat_products_Relations extends core_Manager
         $tabPanes = '';
         $tabN = 0;
 
+        $eshopProducts = array();
+        if($isExternal){
+            $domainId = cms_Domains::getPublicDomain()->id;
+            $eQuery = eshop_ProductDetails::getQuery();
+            $eQuery->EXT('domainId', 'eshop_Products', 'externalName=domainId,externalKey=eshopProductId');
+            $eQuery->where("#domainId = '{$domainId}' AND #state != 'closed'");
+            while($eRec = $eQuery->fetch()) {
+                $eshopProducts[$eRec->productId] = $eRec;
+            }
+        }
+
         foreach ($data->groupedRows as $groupName => $groupData) {
             $tabN++;
             $paneId = $tabKey . '_pane_' . $tabN;
@@ -355,10 +385,12 @@ class cat_products_Relations extends core_Manager
             $tabLinks .= "<a href=\"#\" class=\"product-rel-tab{$isActive}\" data-pane=\"{$paneId}\" data-tab-key=\"{$groupNameAttr}\" onclick=\"return catProductsRelationsShowTab(this, '{$tabKey}');\">{$tabCaption}</a>";
 
             $tabData = clone $data;
-            $tabData->rows = array();
-            $tabData->recs = array();
-            $tabData->listFields = arr::make('productId=Артикул,relTypeId=Релация,created=Създаване');
+            $tabData->recs = $tabData->rows = array();
 
+            $tabData->listFields = arr::make('productId=Артикул,relTypeId=Релация,created=Създаване');
+            if($isExternal){
+                $tabData->listFields = arr::make('productId=Артикул,code=Кат. №,price=Цена,btn=Поръчка');
+            }
             foreach ($groupData['recs'] as $id => $rec) {
                 $tabRec = is_object($rec) ? clone $rec : $rec;
                 $tabRow = is_object($groupData['rows'][$id]) ? clone $groupData['rows'][$id] : $groupData['rows'][$id];
@@ -372,6 +404,35 @@ class cat_products_Relations extends core_Manager
                     $tabRec->productId = $rec->productId1;
                 }
 
+                if(array_key_exists($tabRec->productId, $eshopProducts)){
+                    $eshopProductId = $eshopProducts[$tabRec->productId]->eshopProductId;
+                    $tabRow->productId = eshop_ProductDetails::getPublicProductTitle($eshopProductId, $tabRec->productId, false);
+                    $tabRow->productId = ht::createLink($tabRow->productId, eshop_Products::getUrl($eshopProductId));
+                    $eshopRec = eshop_Products::fetch($eshopProductId);
+                    $thumb = eshop_Products::getProductThumb($eshopRec, 40, 40);
+                    if (empty($thumb)) {
+                        $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), 300, 300, 'path');
+                    }
+
+                    $img = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
+                    $tabRow->productId = "<span class='externalRelImg'>{$img}</span><span class='externalRelName'>{$tabRow->productId}</span>";
+
+                    $pRecClone = clone $eshopProducts[$tabRec->productId];
+                    $minData = eshop_ProductDetails::getMinPackagingAndQuantity($pRecClone);
+                    $pRecClone->packagingId = $minData['packagingId'];
+                    $pRecClone->quantityInPack = $minData['quantity'];
+                    $pRecClone->_listView = true;
+
+                    $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
+                    $tabRow->price = $dRow->catalogPrice;
+                    $tabRow->btn = $dRow->btn;
+                } elseif($isExternal){
+                    $tabRow->productId = "<i class='small'>{$tabRow->productId}</i>";
+                }
+                if($isExternal){
+                    $tabRow->code = cat_Products::fetchField($tabRec->productId,'code');
+                }
+
                 $tabData->rows[$id] = $tabRow;
                 $tabData->recs[$id] = $tabRec;
             }
@@ -381,8 +442,11 @@ class cat_products_Relations extends core_Manager
             $paneTpl->replace($isActive, 'ACTIVE');
 
             $listMvc = clone $this;
-            $listMvc->FNC('productId', 'varchar', 'tdClass=leftCol');
-            $listMvc->FNC('created', 'varchar', 'tdClass=small');
+            $listMvc->FNC('productId', 'varchar', 'tdClass=leftCol relProductCol');
+            $listMvc->FNC('created', 'varchar', 'tdClass=small relCol');
+            $listMvc->FNC('code', 'varchar', 'tdClass=small relCol');
+            $listMvc->FNC('price', 'varchar', 'tdClass=small relCol');
+            $listMvc->FNC('btn', 'varchar', 'tdClass=small relCol');
 
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
             $this->invoke('BeforeRenderListTable', array($paneTpl, &$tabData));
@@ -574,5 +638,35 @@ class cat_products_Relations extends core_Manager
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
         return $this->renderWrapping($form->renderHtml());
+    }
+
+
+    /**
+     * Подготовка за показването на връзките във външната част
+     *
+     * @param int $productId            - ид на артикул
+     * @param stdClass $eshopProductRec - ид на е-артикул
+     * @return stdClass $data           - подготовените данни
+     */
+    public static function prepareExternalData($productId, $eshopProductRec)
+    {
+        $rec = cat_Products::fetch($productId);
+        $data = new stdClass();
+        $data->masterMvc = cls::get('cat_Products');
+        $data->masterId = $productId;
+        $data->masterData = new stdClass();
+        $data->masterData->rec = $rec;
+        $data->masterData->row = cat_Products::recToVerbal($rec);
+        $data->masterData->tabTopParam = "TabTop{$rec->containerId}";
+        $data->forceCalc = true;
+
+        $me = cls::get(get_called_class());
+        Mode::push('noToolbar', true);
+        Mode::push('renderExternalRelation', true);
+        $me->prepareRelations($data);
+        Mode::pop();
+        Mode::pop('noToolbar', true);
+
+        return $data;
     }
 }

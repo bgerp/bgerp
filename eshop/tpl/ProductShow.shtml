@@ -42,5 +42,10 @@
 		</div>
 	</div>
 	<div class="clearfix21"></div>
+	<!--ET_BEGIN RELATION_TABS-->
+	<div class="overflow-scroll" style="margin: 5px 0;">
+		[#RELATION_TABS#]
+	</div>
+	<!--ET_END RELATION_TABS-->
 	[#eshop/tpl/NearProducts.shtml#]
 </div>
