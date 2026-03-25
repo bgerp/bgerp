@@ -61,7 +61,7 @@ class purchase_PurchasesData extends core_Manager
      /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId,valior=Вальор,productId,quantity,price,discount=Отст.,amount,expenses,state,folderId';
+    public $listFields = 'id,containerId,valior=Вальор,productId,quantity,price,discount=Отст.,amount,expenses,state,folderId';
   
     
     /**
@@ -237,7 +237,7 @@ class purchase_PurchasesData extends core_Manager
             $timestamp = date('Ymd_His');
             $Class->copyTable($timestamp);
 
-            // Изважда цонтейнерите на записите от този период
+            // Изважда контейнерите на записите от този период
             $query = $this->getQuery();
 
             $query->where(array(
@@ -252,10 +252,11 @@ class purchase_PurchasesData extends core_Manager
 
             // Изтриване на записите от този период
             $this->delete(array(
-                "#valior >= '[#1#]' AND #valior <= '[#2#]'",
+                "#valior >= '[#1#]' AND #valior <= '[#2#]' AND #isFromInventory = 'false'",
                 $form->rec->from . ' 00:00:00',
                 $form->rec->to . ' 23:59:59'
             ));
+
             foreach ($purRecs as $v) {
 
                 $pRec = doc_Containers::fetch($v);
