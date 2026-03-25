@@ -349,8 +349,8 @@ class cat_products_Relations extends core_Manager
         // Ключът е стабилен по masterId, за да се помни активният таб между reload/followRetUrl
         $storageKey = 'prodRelTabs_' . $data->masterId;
         $tabsTpl = new core_ET("
-        <div id='[#TAB_KEY#]' class='product-rel-tabs-wrap product-rel-tabs-compact' data-storage-key='[#STORAGE_KEY#]'>
-            <div class='product-rel-tabs-nav'>[#TAB_LINKS#]</div>
+        <div id='[#TAB_KEY#]' class='product-rel-tabs-compact ' data-storage-key='[#STORAGE_KEY#]'>
+            <div class='tab-row'>[#TAB_LINKS#]</div>
             <div class='product-rel-tabs-content'>[#TAB_PANES#]</div>
         </div>
     ");
@@ -382,7 +382,7 @@ class cat_products_Relations extends core_Manager
             $groupNameAttr = ht::escapeAttr($groupName);
 
             $tabCaption = "{$groupNameEsc} <span class='product-rel-tab-count'>({$count})</span>";
-            $tabLinks .= "<a href=\"#\" class=\"product-rel-tab{$isActive}\" data-pane=\"{$paneId}\" data-tab-key=\"{$groupNameAttr}\" onclick=\"return catProductsRelationsShowTab(this, '{$tabKey}');\">{$tabCaption}</a>";
+            $tabLinks .= "<a href=\"#\" class=\"product-rel-tab tab {$isActive}\" data-pane=\"{$paneId}\" data-tab-key=\"{$groupNameAttr}\" onclick=\"return catProductsRelationsShowTab(this, '{$tabKey}');\">{$tabCaption}</a>";
 
             $tabData = clone $data;
             $tabData->recs = $tabData->rows = array();
@@ -426,8 +426,6 @@ class cat_products_Relations extends core_Manager
                     $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
                     $tabRow->price = $dRow->catalogPrice;
                     $tabRow->btn = $dRow->btn;
-                } elseif($isExternal){
-                    $tabRow->productId = "<i class='small'>{$tabRow->productId}</i>";
                 }
                 if($isExternal){
                     $tabRow->code = cat_Products::fetchField($tabRec->productId,'code');
