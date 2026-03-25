@@ -6791,39 +6791,6 @@ function copyPlaceholderAsValOnClick() {
 
 
 /**
- * Показване на табове за връзки на артикулите
- * @param el
- * @param wrapId
- * @returns {boolean}
- */
-function catProductsRelationsShowTab(el, wrapId)
-{
-    var wrap = document.getElementById(wrapId);
-    if (!wrap) return false;
-
-    var tabs = wrap.querySelectorAll('.product-rel-tab');
-    for (var i = 0; i < tabs.length; i++) {
-        tabs[i].classList.remove('active');
-    }
-
-    var panes = wrap.querySelectorAll('.product-rel-tab-pane');
-    for (var j = 0; j < panes.length; j++) {
-        panes[j].classList.remove('active');
-    }
-
-    el.classList.add('active');
-
-    var paneId = el.getAttribute('data-pane');
-    var pane = document.getElementById(paneId);
-    if (pane) {
-        pane.classList.add('active');
-    }
-
-    return false;
-}
-
-
-/**
  * Скриване/показване на допълнителните бутони в лист изгледа
  */
 function toggleListFilter() {
