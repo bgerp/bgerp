@@ -889,7 +889,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                             //Превалутиране
                             $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
 
-                            $deltaPrevious = $recPrime->delta * 1.95583;
+                            $deltaPrevious = $recPrime->delta ;
                         }
 
 
