@@ -113,7 +113,6 @@
             <!--ET_BEGIN info-->
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Друга информация|*</legend>
-                <div> <!--ET_BEGIN validFrom--><span class="quiet">|Валидност|*</span> <i>[#validFrom#]</i><!--ET_END validFrom--> <!--ET_BEGIN validTo--><span class="quiet">-</span> <i>[#validTo#]</i><!--ET_END validTo--></div>
                 <div class="groupList">
                     [#info#]
                     <!--ET_BEGIN CONTRAGENT_INFO_BLOCK-->

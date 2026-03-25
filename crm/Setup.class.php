@@ -164,7 +164,6 @@ class crm_Setup extends core_ProtoSetup
         'migrate::updateGroups2524',
         'migrate::calcExpand36Field2445v3',
         'migrate::forceGatherCron2451v3',
-        'migrate::fillHistoryVersionMeta2612',
     );
     
     
@@ -372,39 +371,5 @@ class crm_Setup extends core_ProtoSetup
     {
         $callOn = dt::addSecs(480);
         core_CallOnTime::setOnce('core_Cron', 'forceProcess', 'Gather_contragent_info', $callOn);
-    }
-    
-    
-    /**
-     * Попълване на validFrom / versionCreatedOn / versionCreatedBy
-     * за съществуващите записи на контрагентите
-     */
-    public function fillHistoryVersionMeta2612()
-    {
-        foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
-            $mvc = cls::get($clsName);
-            $mvc->setupMvc();
-
-            $validFromColName = str::phpToMysqlName('validFrom');
-            $createdOnColName = str::phpToMysqlName('createdOn');
-            $createdByColName = str::phpToMysqlName('createdBy');
-            $versionCreatedOnColName = str::phpToMysqlName('versionCreatedOn');
-            $versionCreatedByColName = str::phpToMysqlName('versionCreatedBy');
-
-            $query = "UPDATE {$mvc->dbTableName}
-                         SET {$validFromColName} = {$createdOnColName}
-                       WHERE {$validFromColName} IS NULL";
-            $mvc->db->query($query);
-
-            $query = "UPDATE {$mvc->dbTableName}
-                         SET {$versionCreatedOnColName} = {$createdOnColName}
-                       WHERE {$versionCreatedOnColName} IS NULL";
-            $mvc->db->query($query);
-
-            $query = "UPDATE {$mvc->dbTableName}
-                         SET {$versionCreatedByColName} = {$createdByColName}
-                       WHERE {$versionCreatedByColName} IS NULL";
-            $mvc->db->query($query);
-        }
     }
 }

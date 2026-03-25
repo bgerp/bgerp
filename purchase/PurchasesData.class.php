@@ -213,4 +213,82 @@ class purchase_PurchasesData extends core_Manager
 
         return null;
     }
+    /**
+     * Преизчисляване на записи
+     */
+    public function act_Recalc()
+    {
+        expect(haveRole('debug'));
+
+
+        $form = cls::get('core_Form');
+        $form->title = 'Преизчисляване на записи';
+        $form->FLD('from', 'date', 'caption=От дата,mandatory');
+        $form->FLD('to', 'date', 'caption=До дата,mandatory');
+
+        $form->setDefault('from', '2026-01-01 00:00:00');
+        $form->setDefault('to', '2026-01-01 00:00:00');
+        $form->input();
+
+        if ($form->isSubmitted()) {
+
+            //Създаване копие на таблицата
+            $Class = cls::get('purchase_PurchasesData');
+            $timestamp = date('Ymd_His');
+            $Class->copyTable($timestamp);
+
+            // Изважда цонтейнерите на записите от този период
+            $query = $this->getQuery();
+
+            $query->where(array(
+                "#valior >= '[#1#]' AND #valior <= '[#2#]'",
+                $form->rec->from . ' 00:00:00',
+                $form->rec->to . ' 23:59:59'
+            ));
+
+            $query->where("#isFromInventory = 'false'");
+
+            $purRecs = arr::extractValuesFromArray($query->fetchAll(), 'containerId');
+
+            // Изтриване на записите от този период
+            $this->delete(array(
+                "#valior >= '[#1#]' AND #valior <= '[#2#]'",
+                $form->rec->from . ' 00:00:00',
+                $form->rec->to . ' 23:59:59'
+            ));
+            foreach ($purRecs as $v) {
+
+                $pRec = doc_Containers::fetch($v);
+
+                $mvc = cls::get($pRec->docClass);
+
+                $docRec = $mvc->className::fetch($pRec->docId);
+
+                purchase_plg_ExtractPurchasesData::add($mvc, $docRec);
+
+            }
+
+            followRetUrl();
+        }
+
+
+        $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+        $res = $this->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($res, $form);
+
+        return $res;
+    }
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Преизчисли', array($mvc, 'Recalc', 'ret_url' => true), null, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на записи,target=_blank');
+        }
+    }
+
 }
