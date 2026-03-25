@@ -106,7 +106,6 @@ div.tab-control.alphabet div.tab-row  .tab.active {
 .eshop-product .product-rel-tab-pane {
   table {
     width: 100% !important;
-    border-collapse: separate;
     border-spacing: 0;
     background: #fff;
     color: #333333;
@@ -119,13 +118,13 @@ div.tab-control.alphabet div.tab-row  .tab.active {
       letter-spacing: 0.04em;
       color: #646464;
       background: #f8f8f8;
-      border-bottom: 1px solid #eee;
+      border: 1px solid #ddd !important;
       white-space: nowrap;
     }
 
     td {
       padding: 10px;
-      border-bottom: 1px solid #eeeeee;
+      border: 1px solid #ddd !important;
       vertical-align: middle;
       background: #fff;
       font-size: 0.7em;
