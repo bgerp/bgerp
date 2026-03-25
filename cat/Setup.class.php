@@ -225,6 +225,8 @@ class cat_Setup extends core_ProtoSetup
         'cat_ListingDetails',
         'cat_PackParams',
         'cat_ParamFormulaVersions',
+        'cat_products_Relations',
+        'cat_RelationTypes',
         'migrate::repairSearchKeywords2536',
         'migrate::calcExpand36Field2445v2',
         'migrate::updateFiltersCreatedBy2625',
