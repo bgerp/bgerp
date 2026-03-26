@@ -1082,6 +1082,7 @@ div.acc-detail {
     color: black; }
     .additionalInfo-holder .additionalInfo.bottom {
       bottom: auto;
+      top: 0;
       top: 0; }
     .additionalInfo-holder .additionalInfo .aright {
       padding-right: 5px; }
@@ -2240,6 +2241,15 @@ td.rowtools-column {
 
 .medium-field {
   width: 200px; }
+
+.custom-field {
+  width: 1%; }
+  .custom-field a,
+  .custom-field .linkWithIcon {
+    display: block; }
+    .custom-field a img,
+    .custom-field .linkWithIcon img {
+      float: none !important; }
 
 .large-field {
   width: 50%; }
@@ -5054,8 +5064,11 @@ iframe.autoHeight {
 .narrow-scroll .main-container {
   display: block; }
 
-.listBlock {
+.listBlock:has(.listTopContainer) {
   display: table; }
+
+.listBlock .listRows {
+  overflow-x: auto; }
 
 .narrow-scroll .listBlock {
   display: block; }
@@ -7111,6 +7124,9 @@ only screen and (max-width: 320px) {
     width: 100%;
     max-width: 1200px;
     padding: 0px !important; }
+
+  .printing .document {
+    max-width: 1200px !important; }
 
   .no-print {
     display: none; }

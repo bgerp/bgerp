@@ -142,7 +142,7 @@ class rack_RackDetails extends core_Detail
         // Ако има палет на това място, или към него е насочено движение
         // То статусът може да е само 'Използваемо'
         if (!rack_Pallets::isEmpty(null, "{$data->masterRec->num}-{$rec->row}-{$rec->col}", null)) {
-            setIfNot($rec->status, 'usable');
+            $rec->status = $rec->status ?? 'usable';
             $form->setReadOnly('status');
         }
     }

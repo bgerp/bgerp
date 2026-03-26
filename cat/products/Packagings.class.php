@@ -1538,7 +1538,7 @@ class cat_products_Packagings extends core_Detail
             }
         }
 
-        setIfNot($dInst->productFld, 'productId');
+        setPartIfNot($dInst, 'productFld', 'productId');
         list($productFld, $packagingFld) = array($dInst->productFld, $packagingFld);
         if ($Detail == 'pos_ReceiptDetails') {
             $dQuery->where("#action = 'sale|code'");

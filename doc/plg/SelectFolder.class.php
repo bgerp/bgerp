@@ -52,14 +52,15 @@ class doc_plg_SelectFolder extends core_Plugin
         }
 
         // Ако документа ще се рутира след създаване няма да се правят такива проверки
-        if($mvc->routeDocumentAfterCreation === true) return;
 
         if (Request::get('folderId', 'key(mvc=doc_Folders)') ||
             Request::get('threadId', 'key(mvc=doc_Threads)') ||
             Request::get('cloneId', 'key(mvc=doc_Containers)') ||
             ($mvc->alwaysForceFolderIfEmpty === false && Request::get('originId', 'key(mvc=doc_Containers)'))) {
             // Има основание - не правим нищо
-            
+
+            if($mvc->routeDocumentAfterCreation === true) return;
+
             $fId = Request::get('folderId', 'key(mvc=doc_Folders)');
             $tId = Request::get('threadId', 'key(mvc=doc_Threads)');
             if (!empty($fId)) {
@@ -134,8 +135,8 @@ class doc_plg_SelectFolder extends core_Plugin
         // ВАЖНО: спираме изпълнението на евентуални други плъгини
         return false;
     }
-    
-    
+
+
     /**
      * Подготвя формата за избор на папка, за новия документ от клас $mvc
      */

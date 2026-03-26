@@ -208,7 +208,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterDescription(core_Master &$mvc)
     {
         // Ако е указано да се кешират допълни данни
-        setIfNot($mvc->cacheAdditionalConditions, false);
+        setPartIfNot($mvc, 'cacheAdditionalConditions', false);
         if($mvc->cacheAdditionalConditions){
             $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
         }
@@ -1736,8 +1736,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $totalInDealBaseCurrency = ($total / $displayRate) * $aggregator->get('rate');
         }
 
-        $dueDate = null;
-        setIfNot($dueDate, $rec->dueDate, $rec->date);
+        $dueDate = $rec->dueDate ?? $rec->date;
         $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $totalInDealBaseCurrency, 'type' => $rec->type));
         $aggregator->sum('invoicedAmount', $totalInDealBaseCurrency);
         $aggregator->setIfNot('invoicedValior', $rec->date);

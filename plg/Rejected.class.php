@@ -41,8 +41,8 @@ class plg_Rejected extends core_Plugin
         
         $mvc->doWithSelected = arr::make($mvc->doWithSelected ?? []) + array('reject' => '*Оттегляне', 'restore' => '*Възстановяване');
         
-        setIfNot($mvc, 'showRejectedRows', false);
-        setIfNot($mvc, 'canRejectsysdata', 'no_one');
+        setPartIfNot($mvc, 'showRejectedRows', false);
+        setPartIfNot($mvc, 'canRejectsysdata', 'no_one');
     }
     
     

@@ -373,6 +373,14 @@ class email_Setup extends core_ProtoSetup
             'period' => 1,
             'timeLimit' => 100,
             'state' => 'stopped',
+        ), 
+        array(
+            'systemId' => 'automaticResponse',
+            'description' => 'Автоматичен отговор на имейл',
+            'controller' => 'email_AutomaticResponse',
+            'action' => 'runAutoResponder',
+            'period' => 1,
+            'timeLimit' => 100,
         ),
     );
     
@@ -501,6 +509,7 @@ class email_Setup extends core_ProtoSetup
         'email_ServiceRulesData',
         'email_AddressesInfo',
         'email_IncomingsShowTypes',
+        'email_AutomaticResponse',
         'migrate::serviceRules2121',
     );
     

@@ -625,13 +625,11 @@ class eshop_CartDetails extends core_Detail
         $query->show('productId,quantity,packagingId,canStore');
         
         if (empty($masterRec->termId) || !$query->count()) {
-            
             return;
         }
         
         $TransCalc = cond_DeliveryTerms::getTransportCalculator($masterRec->termId);
         if (!$TransCalc) {
-            
             return;
         }
         

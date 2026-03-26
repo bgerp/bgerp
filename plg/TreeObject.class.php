@@ -553,8 +553,11 @@ class plg_TreeObject extends core_Plugin
             $i = 0;
             
             if(!Mode::is('treeShortName')){
+                Mode::push('treeShortName', true);
                 while ($parent && ($pRec = $mvc->fetch($parent))) {
-                    $pName = type_Varchar::escape($pRec->{$mvc->nameField});
+//                    $pName = type_Varchar::escape($pRec->{$mvc->nameField});
+//                    $pName = type_Varchar::escape($mvc->getVerbal($pRec, $mvc->nameField));
+                    $pName = $mvc->getVerbal($pRec, $mvc->nameField);
                     $title = $pName . ' » ' . $title;
                     $parent = $pRec->{$mvc->parentFieldName};
                     $i++;
@@ -563,6 +566,7 @@ class plg_TreeObject extends core_Plugin
                         break;
                     }
                 }
+                Mode::pop('treeShortName');
             }
             
             $num = $title;

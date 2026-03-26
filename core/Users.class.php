@@ -678,7 +678,7 @@ class core_Users extends core_Manager
                 foreach ($roleTypes['rang'] as $i => $r) {
                     if ($iRoles[$i]) {
                         $form->setDefault('roleRank', $i);
-                        setIfNot($rec->roleRank, $i);
+                        $rec->roleRank = $rec->roleRank ?? $i;
                         break;
                     }
                 }

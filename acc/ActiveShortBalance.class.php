@@ -299,9 +299,12 @@ class acc_ActiveShortBalance
     {
         $accArr = array();
         $newBalance = $this->getBalanceBefore($accs, $accArr, $beforeBalanceRec);
-        foreach ($newBalance as &$b1) {
-            foreach (array('blAmount', 'baseAmount') as &$v) {
-                $b1[$v] = deals_Helper::getSmartBaseCurrency($b1[$v], $beforeBalanceRec->toDate, $this->to);
+
+        if(acc_Periods::getBaseCurrencyCode($beforeBalanceRec->toDate) == acc_Periods::getBaseCurrencyCode($this->to)){
+            foreach ($newBalance as &$b1) {
+                foreach (array('blAmount', 'baseAmount') as &$v) {
+                    $b1[$v] = deals_Helper::getSmartBaseCurrency($b1[$v], $beforeBalanceRec->toDate, $this->to);
+                }
             }
         }
 

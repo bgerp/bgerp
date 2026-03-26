@@ -81,7 +81,7 @@ class planning_plg_StateManager extends core_Plugin
 
         $mvc->setDbIndex('timeClosed');
 
-        setIfNot($mvc->statesCanClose, array('active', 'wakeup', 'stopped'));
+        setPartIfNot($mvc, 'statesCanClose', array('active', 'wakeup', 'stopped'));
     }
     
     
@@ -536,7 +536,7 @@ class planning_plg_StateManager extends core_Plugin
             $tpl = new ET(' ' . tr('от|* [#user#] |на|* [#date#]'));
             
             $dateChanged = ($rec->state == 'closed') ? $rec->timeClosed : $rec->modifiedOn;
-            setIfNot($dateChanged, $rec->modifiedOn);
+            $dateChanged = $dateChanged ?? $rec->modifiedOn;
             $row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($dateChanged)));
         }
     }

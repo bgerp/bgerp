@@ -25,11 +25,11 @@ class rack_plg_Shipments extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->storeFieldName, 'storeId');
-        setIfNot($mvc->rackStoreFieldName, $mvc->storeFieldName);
-        setIfNot($mvc->detailToPlaceInZones, $mvc->mainDetail);
-        setIfNot($mvc->canPrintzonemovements, 'no_one');
-        setIfNot($mvc->canDoallmovements, 'no_one');
+        setPartIfNot($mvc, 'storeFieldName', 'storeId');
+        setPartIfNot($mvc, 'rackStoreFieldName', $mvc->storeFieldName);
+        setPartIfNot($mvc, 'detailToPlaceInZones', $mvc->mainDetail);
+        setPartIfNot($mvc, 'canPrintzonemovements', 'no_one');
+        setPartIfNot($mvc, 'canDoallmovements', 'no_one');
     }
     
     

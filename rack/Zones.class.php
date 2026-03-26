@@ -197,20 +197,20 @@ class rack_Zones extends core_Master
             }
         }
     }
-	
-	
-	/**
-	 * Маха .00 / ,00 от вербализиран процент (100.00% -> 100%)
-	 */
-	public static function smartPercentVerbal($verbal)
-	{
-		if (!isset($verbal) || $verbal === '') return $verbal;
+    
+    
+    /**
+     * Маха .00 / ,00 от вербализиран процент (100.00% -> 100%)
+     */
+    public static function smartPercentVerbal($verbal)
+    {
+        if (!isset($verbal) || $verbal === '') return $verbal;
 
-		// 100.00% / 100,00% / 100.00 % / 100,00 %
-		$verbal = preg_replace('/(\d+)([.,]00)(\s*%)/u', '$1$3', $verbal);
+        // 100.00% / 100,00% / 100.00 % / 100,00 %
+        $verbal = preg_replace('/(\d+)([.,]00)(\s*%)/u', '$1$3', $verbal);
 
-		return $verbal;
-	}
+        return $verbal;
+    }
 
 
     /**
@@ -279,10 +279,10 @@ class rack_Zones extends core_Master
 
         $readiness = isset($rec->readiness) ? $row->readiness : 'none';
         $row->readiness = "<div class='block-readiness'>{$readiness}</div>";
-		
-		if (isset($row->readiness)) {
-			$row->readiness = self::smartPercentVerbal($row->readiness);
-		}
+        
+        if (isset($row->readiness)) {
+            $row->readiness = self::smartPercentVerbal($row->readiness);
+        }
 
         $row->num = $mvc->getHyperlink($rec->id);
         if (isset($fields['-list'])) {
@@ -675,6 +675,8 @@ class rack_Zones extends core_Master
                 if($fRec->zoneId != $zoneRec->id){
                     if(rack_Movements::fetch("LOCATE('|{$zoneRec->id}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
                         $form->setError('zoneId', "Не може да премахнете документа от зона|* <b>" . rack_Zones::getDisplayZone($zoneRec->id) . "</b>, |защото има вече запазени или започнати движения. Документът може да бъде премахнат след отказването им|*!");
+                    } elseif (rack_ZoneDetails::fetchField("#zoneId = {$zoneRec->id} AND (#movementQuantity IS NOT NULL AND #movementQuantity != 0)")) {
+                        $form->setError('zoneId', "Не може да премахнете документа от зона|* <b>" . rack_Zones::getDisplayZone($zoneRec->id) . "</b>, |защото има вече нагласени количества в зоната|*!");
                     } elseif(!$this->haveRightFor('removedocument', $zoneRec->id)){
                         $form->setError('zoneId', "Нямате права да премахнете документа от Зона:|*" . rack_Zones::getRecTitle($zoneRec->id, false));
                     }
@@ -873,142 +875,142 @@ class rack_Zones extends core_Master
 
         core_Cache::removeByType("rack_Zones_{$zoneRec->id}");
     }
-	
-	
-	/**
-	 * Дали готовността е практически 100% (защита от float закръгляния)
-	 */
-	public static function isReadinessFull($readiness, $eps = 0.00001)
-	{
-		if ($readiness === null || $readiness === '') return false;
+    
+    
+    /**
+     * Дали готовността е практически 100% (защита от float закръгляния)
+     */
+    public static function isReadinessFull($readiness, $eps = 0.00001)
+    {
+        if ($readiness === null || $readiness === '') return false;
 
-		return ((float)$readiness >= (1 - $eps));
-	}
+        return ((float)$readiness >= (1 - $eps));
+    }
 
 
     public function updateMaster_($id)
-	{
-		// Самата зона
-		$rec = $this->fetchRec($id);
+    {
+        // Самата зона
+        $rec = $this->fetchRec($id);
 
-		// Всички детайли в зоната с някакво заявено количество (в БАЗОВА мярка)
-		$dRecs = array();
-		$dQuery = rack_ZoneDetails::getQuery();
-		$dQuery->where("#zoneId = {$rec->id}");
-		while ($dRec = $dQuery->fetch()) {
-			if (!empty($dRec->documentQuantity)) {
-				$dRecs[] = $dRec;
-			}
-		}
+        // Всички детайли в зоната с някакво заявено количество (в БАЗОВА мярка)
+        $dRecs = array();
+        $dQuery = rack_ZoneDetails::getQuery();
+        $dQuery->where("#zoneId = {$rec->id}");
+        while ($dRec = $dQuery->fetch()) {
+            if (!empty($dRec->documentQuantity)) {
+                $dRecs[] = $dRec;
+            }
+        }
 
-		$readiness = 0;
-		$isStarted = false;
-		$count = countR($dRecs);
+        $readiness = 0;
+        $isStarted = false;
+        $count = countR($dRecs);
 
-		// Ако няма детайли или няма документ – няма какво да изчисляваме
-		if ($count && isset($rec->containerId)) {
-			$containerId = (int) $rec->containerId;
+        // Ако няма детайли или няма документ – няма какво да изчисляваме
+        if ($count && isset($rec->containerId)) {
+            $containerId = (int) $rec->containerId;
 
-			/**
-			 * Готовността се изчислява така:
-			 *  - за всеки ред в зоната намираме реално изпълненото по документа количество (в БАЗОВА мярка)
-			 *    от движенията със state IN ('active','closed'), вързани към този документ и зона;
-			 *  - делим го на заявеното по документа количество за този ред;
-			 *  - правим средно аритметично от процентите на всички редове.
-			 */
-			foreach ($dRecs as $dRec) {
+            /**
+             * Готовността се изчислява така:
+             *  - за всеки ред в зоната намираме реално изпълненото по документа количество (в БАЗОВА мярка)
+             *    от движенията със state IN ('active','closed'), вързани към този документ и зона;
+             *  - делим го на заявеното по документа количество за този ред;
+             *  - правим средно аритметично от процентите на всички редове.
+             */
+            foreach ($dRecs as $dRec) {
 
-				$docBase = (float) $dRec->documentQuantity;
-				if ($docBase <= 0) {
-					// ред със странно или нулево количество – пропускаме
-					continue;
-				}
+                $docBase = (float) $dRec->documentQuantity;
+                if ($docBase <= 0) {
+                    // ред със странно или нулево количество – пропускаме
+                    continue;
+                }
 
-				// Реално изпълненото по документа за този ред и тази зона (в БАЗОВА мярка)
-				$doneBase = 0.0;
+                // Реално изпълненото по документа за този ред и тази зона (в БАЗОВА мярка)
+                $doneBase = 0.0;
 
-				$q = rack_Movements::getQuery();
-				$q->in('state', array('active', 'closed'));
-				$q->where("#productId = {$dRec->productId}");
+                $q = rack_Movements::getQuery();
+                $q->in('state', array('active', 'closed'));
+                $q->where("#productId = {$dRec->productId}");
 
-				// Филтър по партида – както в детайла
-				if ($dRec->batch !== null && $dRec->batch !== '') {
-					$q->where(array("#batch = '[#1#]'", $dRec->batch));
-				} else {
-					$q->where("#batch IS NULL OR #batch = ''");
-				}
+                // Филтър по партида – както в детайла
+                if ($dRec->batch !== null && $dRec->batch !== '') {
+                    $q->where(array("#batch = '[#1#]'", $dRec->batch));
+                } else {
+                    $q->where("#batch IS NULL OR #batch = ''");
+                }
 
-				// Само движения, вързани към този документ
-				$q->where(array("LOCATE('|[#1#]|', #documents)", $containerId));
+                // Само движения, вързани към този документ
+                $q->where(array("LOCATE('|[#1#]|', #documents)", $containerId));
 
-				// Трябват ни зоните и quantityInPack, за да сметнем реалната база
-				$q->show('zones,quantityInPack');
+                // Трябват ни зоните и quantityInPack, за да сметнем реалната база
+                $q->show('zones,quantityInPack');
 
-				while ($m = $q->fetch()) {
-					$zones = type_Table::toArray($m->zones);
-					if (!is_array($zones)) {
-						continue;
-					}
+                while ($m = $q->fetch()) {
+                    $zones = type_Table::toArray($m->zones);
+                    if (!is_array($zones)) {
+                        continue;
+                    }
 
-					foreach ($zones as $z) {
-						if ((int)$z->zone === (int)$rec->id) {
-							// z->quantity е в опаковки на движението; quantityInPack -> базова мярка
-							$doneBase += (float)$z->quantity * (float)$m->quantityInPack;
-						}
-					}
-				}
+                    foreach ($zones as $z) {
+                        if ((int)$z->zone === (int)$rec->id) {
+                            // z->quantity е в опаковки на движението; quantityInPack -> базова мярка
+                            $doneBase += (float)$z->quantity * (float)$m->quantityInPack;
+                        }
+                    }
+                }
 
-				if ($doneBase > 0) {
-					$isStarted = true;
-				}
+                if ($doneBase > 0) {
+                    $isStarted = true;
+                }
 
-				// Процент за този ред, ограничен в [0;1]
-				$dReadiness = $doneBase / $docBase;
-				if ($dReadiness < 0)  $dReadiness = 0;
-				if ($dReadiness > 1)  $dReadiness = 1;
+                // Процент за този ред, ограничен в [0;1]
+                $dReadiness = $doneBase / $docBase;
+                if ($dReadiness < 0)  $dReadiness = 0;
+                if ($dReadiness > 1)  $dReadiness = 1;
 
-				// Средно аритметично на % за всички редове
-				$readiness += $dReadiness / $count;
-			}
-		}
+                // Средно аритметично на % за всички редове
+                $readiness += $dReadiness / $count;
+            }
+        }
 
-		// Запомняме старата готовност и записваме новата
-		$oldReadiness = null;
-		if ($isStarted) {
-			$oldReadiness = $rec->readiness;
+        // Запомняме старата готовност и записваме новата
+        $oldReadiness = null;
+        if ($isStarted) {
+            $oldReadiness = $rec->readiness;
 
-			// нормализация и "заключване" към 1 при много близки стойности
-			$readiness = min(1, max(0, (float)$readiness));
-			if (self::isReadinessFull($readiness)) {
-				$readiness = 1.0;
-			}
+            // нормализация и "заключване" към 1 при много близки стойности
+            $readiness = min(1, max(0, (float)$readiness));
+            if (self::isReadinessFull($readiness)) {
+                $readiness = 1.0;
+            }
 
-			// по желание: стабилизирай записваната стойност
-			$rec->readiness = round($readiness, 6);
-		} else {
-			// няма нито едно реално изпълнено движение – показваме "none"
-			$rec->readiness = null;
-		}
+            // по желание: стабилизирай записваната стойност
+            $rec->readiness = round($readiness, 6);
+        } else {
+            // няма нито едно реално изпълнено движение – показваме "none"
+            $rec->readiness = null;
+        }
 
-		$this->save($rec, 'readiness');
+        $this->save($rec, 'readiness');
 
-		// Останалото (уведомяване на документа при преминаване през 100%) оставяме както е
-		if (isset($rec->containerId)) {
-			$Document = doc_Containers::getDocument($rec->containerId);
-			$oldFull = self::isReadinessFull($oldReadiness);
-			$newFull = self::isReadinessFull($rec->readiness);
+        // Останалото (уведомяване на документа при преминаване през 100%) оставяме както е
+        if (isset($rec->containerId)) {
+            $Document = doc_Containers::getDocument($rec->containerId);
+            $oldFull = self::isReadinessFull($oldReadiness);
+            $newFull = self::isReadinessFull($rec->readiness);
 
-			if ($oldFull != $newFull) {
+            if ($oldFull != $newFull) {
 
-				// Ако документа в зоната е закачен към транспортна линия - тя се маркира да се обнови
-				if ($Document->getInstance()->hasPlugin('trans_plg_LinesPlugin')) {
-					if ($documentLineId = $Document->fetchField($Document->lineFieldName)) {
-						$this->syncLinesOnShutdown[] = $documentLineId;
-					}
-				}
-			}
-		}
-	}
+                // Ако документа в зоната е закачен към транспортна линия - тя се маркира да се обнови
+                if ($Document->getInstance()->hasPlugin('trans_plg_LinesPlugin')) {
+                    if ($documentLineId = $Document->fetchField($Document->lineFieldName)) {
+                        $this->syncLinesOnShutdown[] = $documentLineId;
+                    }
+                }
+            }
+        }
+    }
 
 
     /**
@@ -1246,7 +1248,7 @@ class rack_Zones extends core_Master
     }
 
 
-	/**
+    /**
      * Генерира очакваните движения за зоните в склада
      *
      * @param int         $storeId   - ид на склад
@@ -1264,21 +1266,21 @@ class rack_Zones extends core_Master
         }
 
         // 1) Очакваните количества по зони/редове от документите
-		$expected = self::getExpectedProducts($storeId, $zoneIds, $productIds);
+        $expected = self::getExpectedProducts($storeId, $zoneIds, $productIds);
 
-		// 2) ver3: агрегиране на нуждите в БАЗОВА мярка (без повторно конвертиране)
-		//    + КРИТИЧНО: приспадаме вече "изпълненото" (active+closed) по документ за всяка зона
-		$useVer3 = (rack_Setup::get('PICKUP_STRATEGY') == 'ver3');
-		if ($useVer3) {
-			// агрегирани нужди в base uom
-			$iterProducts = array_values(rack_Ver3Base::aggregateExpectedBase($expected));
+        // 2) ver3: агрегиране на нуждите в БАЗОВА мярка (без повторно конвертиране)
+        //    + КРИТИЧНО: приспадаме вече "изпълненото" (active+closed) по документ за всяка зона
+        $useVer3 = (rack_Setup::get('PICKUP_STRATEGY') == 'ver3');
+        if ($useVer3) {
+            // агрегирани нужди в base uom
+            $iterProducts = array_values(rack_Ver3Base::aggregateExpectedBase($expected));
 
-			// приспадане на вече изпълненото за конкретния документ във всяка зона (active + closed)			
-			// Оптимизираната версия – 1 заявка + PHP агрегация:
-			rack_Ver3Base::subtractDoneBaseForAllZoneDocsOptimized($iterProducts);
-		} else {
-			$iterProducts = $expected->products;
-		}
+            // приспадане на вече изпълненото за конкретния документ във всяка зона (active + closed)            
+            // Оптимизираната версия – 1 заявка + PHP агрегация:
+            rack_Ver3Base::subtractDoneBaseForAllZoneDocsOptimized($iterProducts);
+        } else {
+            $iterProducts = $expected->products;
+        }
 
         // константа за "Под"
         $floor = rack_PositionType::FLOOR;
@@ -1559,9 +1561,9 @@ class rack_Zones extends core_Master
         $productIds = arr::make($productIds, true);
         $res = (object)array('products' => array());
         $res->zones = (is_numeric($zoneIds)) ? array($zoneIds => $zoneIds) : ((is_array($zoneIds)) ? $zoneIds : array());
-		
-		// Работим ли с новия генератор на движения ver.3?
-		$useVer3 = (rack_Setup::get('PICKUP_STRATEGY') == 'ver3');
+        
+        // Работим ли с новия генератор на движения ver.3?
+        $useVer3 = (rack_Setup::get('PICKUP_STRATEGY') == 'ver3');
 
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
@@ -1577,69 +1579,69 @@ class rack_Zones extends core_Master
 
             $mQuery = rack_Movements::getQuery();
 
-			/* ВЕР.3: търсим движения за зоните, които са променени от ПОТРЕБИТЕЛ,
-			 * за да отчетем върнати/запазени от човек (а не от системата).
-			 * Вземаме всякакво състояние ≠ 'closed', но по-надолу приспадаме
-			 * САМО не-активните, защото активните вече са в movementQuantity.
-			 */
-			$mQuery->where("#state IN ('pending','waiting','active')");
-			$mQuery->where("#modifiedBy != " . core_Users::SYSTEM_USER);
+            /* ВЕР.3: търсим движения за зоните, които са променени от ПОТРЕБИТЕЛ,
+             * за да отчетем върнати/запазени от човек (а не от системата).
+             * Вземаме всякакво състояние ≠ 'closed', но по-надолу приспадаме
+             * САМО не-активните, защото активните вече са в movementQuantity.
+             */
+            $mQuery->where("#state IN ('pending','waiting','active')");
+            $mQuery->where("#modifiedBy != " . core_Users::SYSTEM_USER);
 
-			$mQuery->likeKeylist('zoneList', keylist::fromArray($zoneIds));
+            $mQuery->likeKeylist('zoneList', keylist::fromArray($zoneIds));
 
-			if (countR($productIds)) {
-				$mQuery->in('productId', $productIds);
-			}
+            if (countR($productIds)) {
+                $mQuery->in('productId', $productIds);
+            }
 
-			$zoneMovements = $mQuery->fetchAll();
+            $zoneMovements = $mQuery->fetchAll();
         }
 
         while ($dRec = $dQuery->fetch()) {
             $notActiveQuantity = 0;
-			array_walk($zoneMovements, function ($a) use ($dRec, &$notActiveQuantity) {
-				if ($dRec->productId == $a->productId && $dRec->batch == $a->batch) {
+            array_walk($zoneMovements, function ($a) use ($dRec, &$notActiveQuantity) {
+                if ($dRec->productId == $a->productId && $dRec->batch == $a->batch) {
 
-					// Активните НЕ ги приспадаме тук (вече са в movementQuantity на детайла)
-					if ($a->state == 'active') return;
+                    // Активните НЕ ги приспадаме тук (вече са в movementQuantity на детайла)
+                    if ($a->state == 'active') return;
 
-					$zones = rack_Movements::getZoneArr($a);
+                    $zones = rack_Movements::getZoneArr($a);
 
-					$quantityInZoneArr = array_values(array_filter($zones, function ($z) use ($dRec) {
-						return $z->zone == $dRec->zoneId;
-					}));
+                    $quantityInZoneArr = array_values(array_filter($zones, function ($z) use ($dRec) {
+                        return $z->zone == $dRec->zoneId;
+                    }));
 
-					if (isset($quantityInZoneArr[0]) && is_object($quantityInZoneArr[0])) {
-						// към БАЗОВА мярка → умножаваме по quantityInPack
-						$notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
-					}
-				}
-			});
+                    if (isset($quantityInZoneArr[0]) && is_object($quantityInZoneArr[0])) {
+                        // към БАЗОВА мярка → умножаваме по quantityInPack
+                        $notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
+                    }
+                }
+            });
 
-			// Участват само тези по които се очакват още движения
-			if ($useVer3) {
-				// ver.3: movementQuantity ще се приспадне по-късно чрез rack_Ver3Base::subtractDoneBaseForAllZoneDocsOptimized()
-				// тук приспадаме само „ръчно“ запазеното/върнатото (notActiveQuantity)
-				$needed = $dRec->documentQuantity - $notActiveQuantity;
-			} else {
-				// ver.1/2: старото поведение – приспадаме и movementQuantity
-				$needed = $dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity;
-			}
+            // Участват само тези по които се очакват още движения
+            if ($useVer3) {
+                // ver.3: movementQuantity ще се приспадне по-късно чрез rack_Ver3Base::subtractDoneBaseForAllZoneDocsOptimized()
+                // тук приспадаме само „ръчно“ запазеното/върнатото (notActiveQuantity)
+                $needed = $dRec->documentQuantity - $notActiveQuantity;
+            } else {
+                // ver.1/2: старото поведение – приспадаме и movementQuantity
+                $needed = $dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity;
+            }
 
-			if (empty($needed) || $needed < 0) continue;
+            if (empty($needed) || $needed < 0) continue;
 
-			$key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->batch}";
-			if (!array_key_exists($key, $res->products)) {
-				$res->products[$key] = (object)array(
-					'productId'    => $dRec->productId,
-					'packagingId'  => $dRec->packagingId,
-					'zones'        => array(),
-					'batch'        => $dRec->batch
-				);
-				$res->zones[$dRec->zoneId] = $dRec->zoneId;
-			}
+            $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->batch}";
+            if (!array_key_exists($key, $res->products)) {
+                $res->products[$key] = (object)array(
+                    'productId'    => $dRec->productId,
+                    'packagingId'  => $dRec->packagingId,
+                    'zones'        => array(),
+                    'batch'        => $dRec->batch
+                );
+                $res->zones[$dRec->zoneId] = $dRec->zoneId;
+            }
 
-			// тук вече използваме изчисленото $needed, а не повтаряме формулата
-			$res->products[$key]->zones[$dRec->zoneId] += $needed;
+            // тук вече използваме изчисленото $needed, а не повтаряме формулата
+            $res->products[$key]->zones[$dRec->zoneId] += $needed;
         }
 
         return $res;

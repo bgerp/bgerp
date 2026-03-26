@@ -497,6 +497,9 @@ class deals_InvoicesToDocuments extends core_Manager
     {
         $tpl = new core_ET("");
         $block = getTplFromFile('deals/tpl/InvoicesToDocuments.shtml');
+        if(!($data->masterMvc instanceof deals_Document)){
+            $block->replace('no-border', 'INV_CLASS');
+        }
 
         if (countR($data->rows)) {
             foreach ($data->rows as $row) {

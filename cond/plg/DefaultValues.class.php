@@ -47,7 +47,7 @@ class cond_plg_DefaultValues extends core_Plugin
     {
         // Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
-        setIfNot($mvc->dontReloadDefaultsOnRefresh, true);
+        setPartIfNot($mvc, 'dontReloadDefaultsOnRefresh', true);
     }
     
     

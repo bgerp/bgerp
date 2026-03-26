@@ -4,11 +4,15 @@
         <h2 style='line-height:26px' class='[#STATE_CLASS#]'>|График|* <b style="color:green;">[#name#]</b></h2>
         <fieldset class="detail-info" style='margin-bottom:20px; line-height: 1.3em'>
             <legend class="groupTitle">|Информация|*</legend>
+            <!--ET_BEGIN nonWorking-->
             <div><span class='quiet'>|Изключване на|*</span>: [#nonWorking#]</div>
+            <!--ET_END nonWorking-->
             <!--ET_BEGIN parentId-->
             <div><span class='quiet'>|Наследява|*</span>: [#parentId#]</div>
             <!--ET_END parentId-->
+            <!--ET_BEGIN sysId-->
             <div><span class='quiet'>|Служебно ид|*</span>: [#sysId#]</div>
+            <!--ET_END sysId-->
             <div><span class='quiet'>|Създаване|*</span> [#createdOn#] |от|* [#createdBy#]</div>
         </fieldset>
 

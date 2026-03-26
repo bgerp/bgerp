@@ -1036,6 +1036,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако не е намерен артикул търси се в етикет от опаковка
         $serialProductId = is_object($pRec) ? $pRec->id : null;
         $labelOriginTaskId = null;
+
         if(empty($serialProductId)){
             if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
                 $printRec = label_Prints::fetch($serialPrintId, 'objectId,classId');
@@ -2187,8 +2188,10 @@ class planning_ProductionTaskDetails extends doc_Detail
     public function getModeAutoLabelPrint_($rec)
     {
         $rec = $this->fetchRec($rec);
-        $labelType = planning_Tasks::fetchField($rec->taskId, 'labelType');
-        if($labelType == 'autoPrint') return 'both';
+        if(is_object($rec)){
+            $labelType = planning_Tasks::fetchField($rec->taskId, 'labelType');
+            if($labelType == 'autoPrint') return 'both';
+        }
 
         return 'no';
     }

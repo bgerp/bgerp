@@ -56,8 +56,7 @@ class core_Detail extends core_Manager
         expect($mvc->masterKey);
         
         $mvc->fields[$mvc->masterKey]->silent = 'silent';
-        
-        setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
+        setPartIfNot($mvc, 'fetchFieldsBeforeDelete', $mvc->masterKey);
         
         if ($mvc->masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']) {
             $mvc->Master = cls::get($mvc->masterClass);
@@ -71,9 +70,9 @@ class core_Detail extends core_Manager
             $mvc->setDbIndex($mvc->masterKey);
         }
 
-        setIfNot($mvc->requireMasterBeInstanceOfCoreMaster, true);
-        setIfNot($mvc->addDeleteSelectRows, true);
-        setIfNot($mvc->addDeleteSelectedRowsMinCount, 2);
+        setPartIfNot($mvc, 'requireMasterBeInstanceOfCoreMaster', true);
+        setPartIfNot($mvc, 'addDeleteSelectRows', true);
+        setPartIfNot($mvc, 'addDeleteSelectedRowsMinCount', 2);
     }
     
     
@@ -82,8 +81,8 @@ class core_Detail extends core_Manager
      */
     public function prepareDetail_($data)
     {
-        setIfNot($data->masterKey, $this->masterKey);
-        setIfNot($data->masterMvc, $this->Master);
+        setPartIfNot($data, 'masterKey', $this->masterKey);
+        setPartIfNot($data, 'masterMvc', $this->Master);
         
         // Очакваме да masterKey да е зададен
         expect($data->masterKey);
@@ -177,7 +176,7 @@ class core_Detail extends core_Manager
         $tpl->append($this->renderListSummary($data), 'ListSummary');
         
         // Попълваме таблицата с редовете
-        setIfNot($data->listTableMvc, clone $this);
+        setPartIfNot($data, 'listTableMvc', clone $this);
         $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
@@ -238,8 +237,7 @@ class core_Detail extends core_Manager
      */
     public function prepareEditForm_($data)
     {
-        setIfNot($data->singleTitle, $this->singleTitle);
-        
+        setPartIfNot($data, 'singleTitle', $this->singleTitle);
         parent::prepareEditForm_($data);
         
         $form = $data->form;

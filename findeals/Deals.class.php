@@ -547,7 +547,7 @@ class findeals_Deals extends deals_DealBase
 
         $rate = $rec->currencyRate;
         if (empty($rec->currencyRate)) {
-            setIfNot($valior, $rec->valior, dt::today());
+            $valior = $rec->valior ?? dt::today();
             $rate = currency_CurrencyRates::getRate($valior, $rec->currencyId, null);
             if($rec->state == 'draft'){
                 $row->currencyRate = $mvc->getFieldType('currencyRate')->toVerbal($rate);

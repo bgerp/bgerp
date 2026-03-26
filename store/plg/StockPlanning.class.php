@@ -25,11 +25,11 @@ class store_plg_StockPlanning extends core_Plugin
      */
     public static function on_AfterDescription(core_Master &$mvc)
     {
-        setIfNot($mvc->updatePlannedStockOnChangeStates, array('pending'));
-        setIfNot($mvc->stockPlanningDirection, 'out');
-        setIfNot($mvc->updateStocksOnShutdown, array());
-        setIfNot($mvc->exStateField, $mvc->hasPlugin('doc_DocumentPlg') ? 'brState' : 'exState');
-        setIfNot($mvc->filterFutureOptions, true);
+        setPartIfNot($mvc, 'updatePlannedStockOnChangeStates', array('pending'));
+        setPartIfNot($mvc, 'stockPlanningDirection', 'out');
+        setPartIfNot($mvc, 'updateStocksOnShutdown', array());
+        setPartIfNot($mvc, 'exStateField', $mvc->hasPlugin('doc_DocumentPlg') ? 'brState' : 'exState');
+        setPartIfNot($mvc, 'filterFutureOptions', true);
 
         $mvc->declareInterface('store_StockPlanningIntf');
     }

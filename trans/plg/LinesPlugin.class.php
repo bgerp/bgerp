@@ -31,9 +31,8 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('trans_TransportableIntf');
-
-        setIfNot($mvc->lineFieldName, 'lineId');
-        setIfNot($mvc->lineNoteFieldName, 'lineNotes');
+        setPartIfNot($mvc, 'lineFieldName', 'lineId');
+        setPartIfNot($mvc, 'lineNoteFieldName', 'lineNotes');
 
         // Създаваме поле за избор на линия, ако няма такова
         if (!$mvc->getField($mvc->lineFieldName, false)) {
@@ -45,10 +44,10 @@ class trans_plg_LinesPlugin extends core_Plugin
         $mvc->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'input=none,caption=Забележки');
 
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            setIfNot($mvc->totalWeightFieldName, 'weight');
-            setIfNot($mvc->totalVolumeFieldName, 'volume');
-            setIfNot($mvc->totalNetWeightFieldName, 'netWeight');
-            setIfNot($mvc->totalTareWeightFieldName, 'tareWeight');
+            setPartIfNot($mvc, 'totalWeightFieldName', 'weight');
+            setPartIfNot($mvc, 'totalVolumeFieldName', 'volume');
+            setPartIfNot($mvc, 'totalNetWeightFieldName', 'netWeight');
+            setPartIfNot($mvc, 'totalTareWeightFieldName', 'tareWeight');
 
             // Създаваме поле за общ обем
             if (!$mvc->getField($mvc->totalVolumeFieldName, false)) {
@@ -513,7 +512,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
 
             // Вербално показване на общото нето тегло
-            setIfNot($rec->{$mvc->totalNetWeightFieldName}, $transInfo->netWeight);
+            $rec->{$mvc->totalNetWeightFieldName} = $rec->{$mvc->totalNetWeightFieldName} ?? $transInfo->netWeight;
             $rec->calcedNetWeight = $rec->{$mvc->totalNetWeightFieldName};
             $rec->{$mvc->totalNetWeightFieldName} = ($rec->netWeightInput) ? $rec->netWeightInput : $rec->{$mvc->totalNetWeightFieldName};
 
@@ -532,7 +531,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
 
             // Вербално показване на общото нето тегло
-            setIfNot($rec->{$mvc->totalTareWeightFieldName}, $transInfo->tareWeight);
+            $rec->{$mvc->totalTareWeightFieldName} = $rec->{$mvc->totalTareWeightFieldName} ?? $transInfo->tareWeight;
             $rec->calcedTareWeight = $rec->{$mvc->totalTareWeightFieldName};
             $rec->{$mvc->totalTareWeightFieldName} = ($rec->tareWeightInput) ? $rec->tareWeightInput : $rec->{$mvc->totalTareWeightFieldName};
 
@@ -551,7 +550,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
 
             // Вербално показване на общия обем
-            setIfNot($rec->{$mvc->totalVolumeFieldName}, $transInfo->volume);
+            $rec->{$mvc->totalVolumeFieldName} = $rec->{$mvc->totalVolumeFieldName} ?? $transInfo->volume;
             $rec->calcedVolume = $rec->{$mvc->totalVolumeFieldName};
 
             $rec->{$mvc->totalVolumeFieldName} = ($rec->volumeInput) ? $rec->volumeInput : $rec->{$mvc->totalVolumeFieldName};

@@ -570,8 +570,8 @@ class label_Labels extends core_Master
         }
         
         // Ако не е сетната бройката
-        setIfNot($data->cnt, 1);
-        setIfNot($data->copyCnt, 1);
+        setPartIfNot($data, 'cnt', 1);
+        setPartIfNot($data, 'copyCnt', 1);
         
         if (!$data->allCnt) {
             $data->allCnt = $data->cnt * $data->copyCnt;
@@ -597,11 +597,11 @@ class label_Labels extends core_Master
         $printCntField = label_TemplateFormats::getPlaceholderFieldName('Общо_етикети');
         $currPrintCntField = label_TemplateFormats::getPlaceholderFieldName('Текущ_етикет');
         $currPageCntField = label_TemplateFormats::getPlaceholderFieldName('Страница');
-        
-        setIfNot($itemsPerPage, $data->pageLayout->itemsPerPage, 1);
+
+        $itemsPerPage = $itemsPerPage ?? $data->pageLayout->itemsPerPage ?? 1;
         
         // Ако не е зададена стойност за брой отпечатвания
-        setIfNot($params[$printCntField], $data->printCnt, $data->cnt, 1);
+        $params[$printCntField] = $params[$printCntField] ?? $data->printCnt ?? $data->cnt ?? 1;
         
         // Ако не е зададена стойност за текущия отпечатван етикет
         $updatePrintCnt = false;
@@ -713,7 +713,7 @@ class label_Labels extends core_Master
         $allTpl = new core_ET();
         
         // Брой записи на страница
-        setIfNot($itemsPerPage, $data->pageLayout->itemsPerPage, 1);
+        $itemsPerPage = $data->pageLayout->itemsPerPage ?? 1;
         
         // Обхождаме резултатите
         foreach ((array) $data->rows as $rowId => $row) {

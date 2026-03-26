@@ -416,7 +416,7 @@ class crm_Locations extends core_Master
         }
 
         if(!empty($rec->regularDelivery)){
-            $row->address .= tr("|*<br>|Посещения|*: ") . $row->regularDelivery;
+            $row->address .= (!empty($row->address) ? ', ' : '') . tr("|*<br>|Доставка|*: ") . $row->regularDelivery;
         }
     }
     
@@ -716,10 +716,11 @@ class crm_Locations extends core_Master
      * @param mixed $id
      * @param bool $transliterate
      * @param bool $showFeatures
+     * @param bool $showSpecifics
      * @return string
      * @throws core_exception_Expect
      */
-    public static function getAddress($id, $transliterate = false, $showFeatures = true)
+    public static function getAddress($id, $transliterate = false, $showFeatures = true, $showSpecifics = true)
     {
         expect($rec = static::fetchRec($id));
         $row = static::recToVerbal($rec);
@@ -744,9 +745,11 @@ class crm_Locations extends core_Master
             $string .= "; " . trans_Features::getVerbalFeatures($rec->features, $transliterate);
         }
 
-        if(!empty($rec->specifics)){
-            $specifics = core_Type::getByName('richtext')->toVerbal($rec->specifics);
-            $string .= ", {$specifics}";
+        if($showSpecifics){
+            if(!empty($rec->specifics)){
+                $specifics = core_Type::getByName('richtext')->toVerbal($rec->specifics);
+                $string .= ", {$specifics}";
+            }
         }
 
         return $string;

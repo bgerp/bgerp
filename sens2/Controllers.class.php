@@ -701,8 +701,8 @@ class sens2_Controllers extends core_Master
         }
         
         $sleepNanoSec = round(min(0.5, 35 / $cnt) * 1000000000); // 1000_000_000
-        
-        
+
+        $res = '';
         while ($rec = $query->fetch("#state = 'active'")) {
             if ($mustSleep) {
                 time_nanosleep(0, $sleepNanoSec);
@@ -718,13 +718,16 @@ class sens2_Controllers extends core_Master
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($curl, CURLOPT_HTTPHEADER, array('Connection: close'));
-            $data = curl_exec($curl);
-            curl_close($curl);
+            $data = @curl_exec($curl);
+            @curl_close($curl);
             
             // $data = file_get_contents($url);
-            
-            $res .= '<li>' . $data . '</li>';
-            
+            if ($data !== false) {
+                $res .= '<li>' . $data . '</li>';
+            } else {
+                $res .= '<li style="color: red;">Грешка при обновяване на контролер #' . $rec->id . '</li>';
+            }
+
             $mustSleep = true;
         }
         

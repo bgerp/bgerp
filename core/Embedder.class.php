@@ -67,9 +67,9 @@ class core_Embedder extends core_Master
      */
     public static function on_AfterDescription(core_Master &$mvc)
     {
-        setIfNot($mvc->innerClassField, 'innerClass');
-        setIfNot($mvc->innerFormField, 'innerForm');
-        setIfNot($mvc->innerStateField, 'innerState');
+        setPartIfNot($mvc, 'innerClassField', 'innerClass');
+        setPartIfNot($mvc, 'innerFormField', 'innerForm');
+        setPartIfNot($mvc, 'innerStateField', 'innerState');
         
         expect($mvc->innerObjectInterface);
         expect(is_subclass_of($mvc->innerObjectInterface, 'core_InnerObjectIntf'));

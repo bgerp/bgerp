@@ -452,7 +452,7 @@ class crm_Companies extends core_Master
         }
         
         // Подредба
-        setIfNot($data->listFilter->rec->order, 'alphabetic');
+        setPartIfNot($data->listFilter->rec, 'order', 'alphabetic');
         $orderCond = $mvc->listOrderBy[$data->listFilter->rec->order][1];
         if ($orderCond) {
             if (strpos($orderCond, '#nameT') !== false) {

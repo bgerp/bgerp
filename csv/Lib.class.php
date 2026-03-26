@@ -235,6 +235,16 @@ class csv_Lib
     {
         return self::importOnce($mvc, $file, $fields, $defaults, $format, true, true);
     }
+
+
+    /**
+     * Импортира съдържанието на посочения CSV файл, когато той е променян
+     */
+    public static function largeImportOnce($mvc, $file, $fields = array(), $defaults = array(), $format = array())
+    {
+
+        return self::importOnce($mvc, $file, $fields, $defaults, $format, false, true);
+    }
     
     
     /**

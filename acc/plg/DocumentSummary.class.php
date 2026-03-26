@@ -561,6 +561,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         $data->listSummary->summary = array();
         $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
+
         $showFields = arr::make(array_keys($fieldsArr), true);
         $showFields['state'] = 'state';
         if($mvc->getField('createdOn', false)){
@@ -569,6 +570,11 @@ class acc_plg_DocumentSummary extends core_Plugin
         if($mvc->getField('rate', false)){
             $showFields['rate'] = 'rate';
         }
+
+        if($mvc->getField($mvc->filterCurrencyField, false)){
+            $showFields[$mvc->filterCurrencyField] = $mvc->filterCurrencyField;
+        }
+
         if(isset($mvc->valiorFld)){
             $showFields[$mvc->valiorFld] = $mvc->valiorFld;
         }
@@ -658,10 +664,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             switch ($fld->summary) {
                 case 'amount':
-
                     $baseAmount = $rec->{$fld->name};
-                    if ($mvc->amountIsInNotInBaseCurrency === true && isset($rec->rate)) {
-                        $baseAmount *= $rec->rate;
+                    if ($mvc->amountIsInNotInBaseCurrency === true) {
+                        if(isset($rec->rate)){
+                            $baseAmount *= $rec->rate;
+                        }
                     }
 
                     if(isset($mvc->valiorFld)){

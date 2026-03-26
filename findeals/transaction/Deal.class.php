@@ -33,10 +33,9 @@ class findeals_transaction_Deal extends acc_DocumentTransactionSource
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
         $title = str::mbUcfirst($this->class->singleTitle);
-        
-        setIfNot($rec->valior, $rec->valior, dt::today());
-        setIfNot($rec->currencyRate, $rec->currencyRate, currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
-        
+        $rec->valior = $rec->valior ?? dt::today();
+        $rec->currencyRate = $rec->currencyRate ?? currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
+
         $result = (object) array(
             'reason' => "{$title} №{$rec->id}",
             'valior' => $rec->valior,

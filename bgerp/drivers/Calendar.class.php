@@ -163,7 +163,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 if (!isset($resData->cData[$i])) {
                     $resData->cData[$i] = new stdClass();
                 }
-                $resData->cData[$i]->url = toUrl(array('cal_Calendar', 'day', 'from' => "{$i}.{$resData->month}.{$resData->year}"));
+                $iDay = str_pad($i, 2, '0', STR_PAD_LEFT);
+                $resData->cData[$i]->url = toUrl(array('cal_Calendar', 'day', 'selectPeriod' => "{$resData->year}-{$resData->month}-{$iDay}|{$resData->year}-{$resData->month}-{$iDay}"));
             }
             
             // Съдържание на списъка със събития

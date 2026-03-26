@@ -414,8 +414,8 @@ class plg_RefreshRows extends core_Plugin
             
             // Рендираме общия лейаут
             $tpl = $mvc->renderListLayout($data);
-            
-            setIfNot($data->listTableMvc, clone $mvc);
+
+            setPartIfNot($data, 'listTableMvc', clone $mvc);
             
             // Попълваме таблицата с редовете
             $tpl->append($mvc->renderListTable($data), 'ListTable');

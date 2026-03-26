@@ -498,6 +498,8 @@ class drdata_Vats extends core_Manager
      */
     public static function isBulstat($inBULSTAT)
     {
+        $BULSTAT = '';
+
         for ($i = 0 ; $i <= strlen($inBULSTAT); $i++) {
             $c = substr($inBULSTAT, $i, 1);
             
@@ -523,27 +525,23 @@ class drdata_Vats extends core_Manager
                 }
                 
                 return (int) substr($BULSTAT, 8, 1) == $c;
-            
+
             case 10:
-                
-                /*
-                 * За данъчен номер:
-                 * първите 9 цифри се умножават съответно по тези множители:
-                 * 4 3 2 7 6 5 4 3 2, Контролната цифра е равна на 11 минус остатъка
-                 *  на сбора разделен на 11. Ако контролната цифра е 10 - се приема за 0.
-                 */
                 $v = array(4, 3, 2, 7, 6, 5, 4, 3, 2);
                 $c = 0;
-                
+
                 for ($i = 0; $i < 9; $i++) {
-                    $currentChar = ((int) substr($BULSTAT, $i, 1));
-                    $c = $c + $currentChar * $v[$i];
+                    $currentChar = (int) substr($BULSTAT, $i, 1);
+                    $c += $currentChar * $v[$i];
                 }
+
                 $c = 11 - ($c % 11);
-                $c = ($c == 10) ? 0 : $c;
-                
-                $lastDigit = ((int) substr($BULSTAT, 9, 1));
-                
+                if ($c == 10 || $c == 11) {
+                    $c = 0;
+                }
+
+                $lastDigit = (int) substr($BULSTAT, 9, 1);
+
                 return $lastDigit == $c;
                 
             case 13:

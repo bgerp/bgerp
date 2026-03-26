@@ -120,8 +120,8 @@ abstract class deals_DealDetail extends doc_Detail
 
         // За по-бързо преброяване на Usage
         $mvc->setDbIndex('productId');
-        setIfNot($mvc->quantityFld, 'quantity');
-        setIfNot($mvc->allowInputPriceForQuantity, false);
+        setPartIfNot($mvc, 'quantityFld', 'quantity');
+        setPartIfNot($mvc, 'allowInputPriceForQuantity', false);
     }
     
     
@@ -133,7 +133,7 @@ abstract class deals_DealDetail extends doc_Detail
         // Скриване на полетата за създаване
         $mvc->setField('createdOn', 'column=none');
         $mvc->setField('createdBy', 'column=none');
-        setIfNot($mvc->combineSameRecsWhenImport, false);
+        setPartIfNot($mvc, 'combineSameRecsWhenImport', false);
     }
     
     

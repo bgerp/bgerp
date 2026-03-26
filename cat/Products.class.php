@@ -1546,11 +1546,7 @@ class cat_Products extends embed_Manager
         
         return $res;
     }
-    
-    function act_love()
-    {
-        static::getVat(5);
-    }
+
 
     /**
      * Връща ДДС на даден продукт
@@ -3251,26 +3247,36 @@ class cat_Products extends embed_Manager
 
         log_System::add('cat_Products', 'Products Private not used' . countR($saveArr), null, 'info', 17);
     }
-    
-    
+
+
     /**
-     * Връща дефолтната цена
+     * Връща дефолтната единична цена отговаряща на количеството
      *
      * @param mixed $id - ид/запис на обекта
+     * @param double $quantity - За какво количество
+     * @param string|null $valior - вальор
+     *
+     * @return double|NULL - дефолтната единична цена
      */
-    public function getDefaultCost($id, $quantity)
+    public function getDefaultCost($id, $quantity, $valior = null)
     {
+        $valior = $valior ?? dt::now();
+
         // Намира се цената на последния дебит в складовата сметка където участва артикула, с най-голямо количество
         if ($itemId = acc_Items::fetchField("#classId = '{$this->getClassId()}' AND #objectId = '{$id}'")) {
             $jQuery = acc_JournalDetails::getQuery();
+            $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
             $sysId = acc_Accounts::getRecBySystemId('321')->id;
             $jQuery->where("#debitAccId = {$sysId} AND #debitItem2 = {$itemId} AND #debitPrice > 0");
             $jQuery->orderBy('debitQuantity', 'DESC');
-            $jQuery->show('debitPrice');
+            $jQuery->show('debitPrice,valior');
             $jQuery->limit(1);
-            
+            $lastRec = $jQuery->fetch();
+
             // Ако има таква цена, то това ще е дефолтната цена
-            if ($biggestDebitPrice = $jQuery->fetch()->debitPrice) {
+            if (is_object($lastRec)) {
+                $biggestDebitPrice = deals_Helper::getSmartBaseCurrency($lastRec->debitPrice, $lastRec->valior, $valior);
+
                 return $biggestDebitPrice;
             }
         }
@@ -3281,7 +3287,7 @@ class cat_Products extends embed_Manager
         }
         
         // За артикула, това е цената по себестойност за исканото количество
-        return self::getPrimeCost($id, null, $quantity);
+        return self::getPrimeCost($id, null, $quantity, $valior);
     }
     
     
@@ -4176,7 +4182,9 @@ class cat_Products extends embed_Manager
 
         $showReffCol = false;
         $detArr = arr::make($masterMvc->details);
-        $csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
+        if(!($masterMvc instanceof store_InventoryNotes)){
+            $csvFields->FLD('vatPercent', 'percent', 'caption=ДДС %');
+        }
         if($masterMvc instanceof cat_Listings){
             $csvFields->FLD('moq', 'double(smartRound)', 'caption=МКП');
         }
@@ -4195,6 +4203,11 @@ class cat_Products extends embed_Manager
 
             $exportFStr = $this->getExportMasterFieldName($dName);
             $dInst = cls::get($dName);
+
+            if($masterMvc instanceof store_InventoryNotes) {
+                $dInst->FNC('packagingId', 'key(mvc=cat_UoM,select=name)', "caption=Мярка,after={$dInst->productFld}");
+                $csvFields->FNC('packagingId', 'key(mvc=cat_UoM,select=name)', "caption=Мярка,after={$dInst->productFld}");
+            }
 
             $detClsId = $dInst->getClassId();
 
@@ -4246,8 +4259,10 @@ class cat_Products extends embed_Manager
                     continue;
                 }
 
+                $dRec->packagingId = !empty($dRec->packagingId) ? $dRec->packagingId : cat_Products::fetchField($dRec->{$dInst->productFld}, 'measureId');
                 if (!$recs[$dRec->id]) {
                     $recs[$dRec->id] = new stdClass();
+
                     $recs[$dRec->id]->_productId = $dRec->{$dInst->productFld};
                     $recs[$dRec->id]->id = $dRec->id;
                     $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId;
@@ -4264,9 +4279,14 @@ class cat_Products extends embed_Manager
                     }
                 }
 
-                setIfNot($dInst->productFld, 'productId');
+                setPartIfNot($dInst, 'productFld', 'productId');
 
-                foreach (array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка", 'notes' => 'Забележки') as $fName => $fCaption) {
+                $dFields = array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка", 'notes' => 'Забележки');
+                if($masterMvc instanceof store_InventoryNotes){
+                    arr::placeInAssocArray($dFields, array('packagingId' => 'Мярка'), null, $dInst->productFld);
+                }
+
+                foreach ($dFields as $fName => $fCaption) {
 
                     if (!isset($dInst->fields[$fName]) && !isset($dRec->{$fName}) && !array_key_exists($fName, (array) $dRec)) {
 
@@ -4279,6 +4299,7 @@ class cat_Products extends embed_Manager
                         $fCaption = $dInst->fields[$fName]->caption;
                     }
                     if (!$csvFields->fields[$fName]) {
+
                         $csvFields->FLD($fName, 'varchar', "caption={$fCaption}");
                     }
                 }
@@ -4298,7 +4319,7 @@ class cat_Products extends embed_Manager
 
                     $allFFieldsArr = array_merge($allFFieldsArr, $exportToMasterArr);
                 }
-
+                ;
                 foreach ($allFFieldsArr as $k => $vArr) {
                     if (!$dInst->fields[$k]) {
                         continue;
@@ -4395,7 +4416,8 @@ class cat_Products extends embed_Manager
                     }
                 }
 
-                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $mRec->{$masterMvc->valiorFld}, $vatExceptionId);
+                $valior = !empty($masterMvc->valiorFld) ? $mRec->{$masterMvc->valiorFld} : dt::today();
+                $recs[$dRec->id]->vatPercent = cat_Products::getVat($dRec->{$dInst->productFld}, $valior, $vatExceptionId);
                 $recs[$dRec->id]->notes = $dRec->notes;
 
                 // За добавяне на бачовете
@@ -4523,6 +4545,7 @@ class cat_Products extends embed_Manager
         // Подреждане за запазване на предишна логика
         $orderMap = array('reff', 'code', 'packQuantity', 'packagingId', 'packPrice', 'batch', 'notes');
         $fArr = $csvFields->fields;
+
         $newFArr = array();
         foreach ($fArr as $fName => $fRec) {
             foreach ($orderMap as $oFieldName) {
@@ -4844,5 +4867,71 @@ class cat_Products extends embed_Manager
         $rec = static::fetchRec($rec);
 
         return self::getDisplayName($rec);
+    }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        // Показваме зададените параметри, като възможни опции
+        $paramsExport = cat_Setup::get('EXPORTABLE_FIELDS');
+
+        $paramsExport = arr::make($paramsExport);
+        if (!empty($paramsExport)) {
+            foreach ($paramsExport as $k => $v) {
+                $pRec = cat_Params::fetch($v);
+                if ($pRec->state != 'active') {
+                    continue;
+                }
+
+                $fieldset->FLD('_cat_Params_' . $pRec->id, 'varchar', 'caption= ' . $pRec->typeExt);
+            }
+        }
+    }
+
+
+    /**
+     * След подготовка на записите за експортиране
+     *
+     * @param crm_Companies $mvc
+     * @param array $recs
+     */
+    public static function on_AfterPrepareExportRecs($mvc, &$recs)
+    {
+        // Ако в конфига е зададено, добавяме и параметрите на продуктите
+        $paramsExport = cat_Setup::get('EXPORTABLE_FIELDS');
+        $selParArr = array();
+        $paramsExport = arr::make($paramsExport);
+        if (!empty($paramsExport)) {
+            foreach ($paramsExport as $v) {
+                $pRec = cat_Params::fetch($v);
+                if ($pRec->state != 'active') {
+                    continue;
+                }
+
+                $selParArr[$pRec->id] = $pRec->id;
+            }
+        }
+
+        if (!empty($selParArr)) {
+            Mode::push('doNotCalculate',true);
+            foreach ($recs as $rec) {
+                $pArr = $mvc->getParams($rec->id);
+                if (!empty($pArr)) {
+                    foreach ($selParArr as $k => $v) {
+                        if (isset($pArr[$k])) {
+                            $kv = "_cat_Params_{$k}";
+                            $rec->{$kv} = $pArr[$k];
+                        }
+                    }
+                }
+            }
+
+            Mode::pop('doNotCalculate');
+        }
     }
 }

@@ -19,7 +19,7 @@ abstract class deals_Document extends deals_PaymentDocument
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, currencyId=Валута, folderId, amount, state, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, folderId, currencyId=Валута, amountDeal=Заверено, state, createdOn, createdBy';
     
     
     /**
@@ -56,8 +56,16 @@ abstract class deals_Document extends deals_PaymentDocument
      * Кой може да избира ф-ра по документа?
      */
     public $canSelectinvoice = 'cash, ceo, purchase, sales, acc';
-    
-    
+
+
+    /**
+     * Дали сумата е във валута (различна от основната)
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $amountIsInNotInBaseCurrency = true;
+
+
     /**
      * @param core_Mvc $mvc
      */
@@ -67,10 +75,10 @@ abstract class deals_Document extends deals_PaymentDocument
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
         $mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
         $mvc->FLD('dealId', 'key(mvc=doc_Containers,select=id,allowEmpty)', 'caption=Сделка,input=none');
-        $mvc->FLD('amount', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Платени,mandatory,summary=amount');
+        $mvc->FLD('amount', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Платени,mandatory');
         $mvc->FNC('dealFolderId', 'key2(mvc=doc_Folders, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf,allowEmpty)', 'caption=Насрещна сделка->Папка,mandatory,input,silent,removeAndRefreshForm=dealHandler|currencyId|rate|amountDeal|dealId');
         $mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=currencyId|rate|amountDeal|dealId');
-        $mvc->FLD('amountDeal', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
+        $mvc->FLD('amountDeal', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Насрещна сделка->Заверени,mandatory,input=none,summary=amount,summaryCaption=Заверени');
         $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,input=none');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
         $mvc->FLD('description', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
@@ -306,7 +314,7 @@ abstract class deals_Document extends deals_PaymentDocument
             // Ако няма позволени операции за документа не може да се създава
             $operations = $dealInfo->get('allowedPaymentOperations');
             
-            return isset($operations[static::$operationSysId]) ? true : false;
+            return isset($operations[static::$operationSysId]);
         }
         
         return false;
@@ -355,6 +363,7 @@ abstract class deals_Document extends deals_PaymentDocument
     {
     }
 
+
     /**
      * Връща информация за сумите по платежния документ
      *
@@ -373,5 +382,21 @@ abstract class deals_Document extends deals_PaymentDocument
         $dealCurrencyId = currency_Currencies::getIdByCode($Origin->fetchField('currencyId'));
 
         return (object)array('amount' => $rec->amountDeal, 'currencyId' => $rec->currencyId, 'amountDeal' => $rec->amount, 'dealCurrencyId' => $dealCurrencyId, 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
+    }
+
+
+    /**
+     * Метод по подразбиране допълващ полетата за филтриране в съмърито в лист изгледа
+     * @see acc_plg_DocumentSummary
+     */
+    public function fillSummaryRec(&$rec, &$summaryFields)
+    {
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+        $currencyId = currency_Currencies::getCodeById($rec->currencyId);
+        if($currencyId == $baseCurrencyCode){
+            $rec->rate = 1;
+        } else {
+            $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyId, $baseCurrencyCode);
+        }
     }
 }

@@ -306,7 +306,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 
         $previewId = cat_Params::force('preview', 'Изглед||Preview', 'cond_type_Image', null, '', true);
         if(!array_key_exists($previewId, $params)){
-            $params[$previewId] = cls::get($classId)->fetch($id)->photo;
+            $preview = cls::get($classId)->fetch($id)->photo;
+            if(!empty($preview)){
+                $params[$previewId] = $preview;
+            }
         }
 
         return $params;

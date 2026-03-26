@@ -1,0 +1,135 @@
+.bank-selected-docs{
+  font-size:14px;
+}
+
+
+/* SUCCESS BLOCK */
+
+.docs-success-block{
+  margin:10px 0;
+  border:2px solid #3c9a5f;
+  background:#eefaf2;
+  border-radius:6px;
+  overflow:hidden;
+}
+
+.docs-success-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#3c9a5f;
+  color:#fff;
+  padding:6px 10px;
+}
+
+.docs-success-title{
+  font-weight:600;
+}
+
+.docs-success-total{
+  font-weight:800;
+  font-size:16px;
+}
+
+.docs-success-content{
+  padding:6px 10px;
+}
+
+
+/* WARNING BLOCK */
+
+.docs-warning-block{
+  margin:10px 0;
+  border:2px solid #d9534f;
+  background:#fff3f3;
+  border-radius:6px;
+  overflow:hidden;
+}
+
+.docs-warning-header{
+  background:#d9534f;
+  color:#fff;
+  padding:6px 10px;
+  font-weight:600;
+}
+
+.docs-warning-content{
+  padding:6px 10px;
+}
+
+
+/* ACCOUNT BLOCK */
+
+.account-block{
+  margin-top:10px;
+}
+
+.account-header{
+  font-weight:600;
+  color:#2b5fa8;
+  margin-bottom:4px;
+}
+
+
+/* TABLE */
+
+.doc-table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.doc-table td{
+  padding:4px 6px;
+  vertical-align:middle;
+}
+
+.doc-icon{
+  width:24px;
+}
+
+.doc-handle{
+  color:#2b5fa8;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+.doc-amount{
+  width:110px;
+  text-align:right;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.doc-folder{
+  color:#555;
+}
+
+
+/* ROW EFFECTS */
+
+.doc-table tr:nth-child(even){
+  background:rgba(0,0,0,0.03);
+}
+
+.doc-table tr:hover{
+  background:#e7edf8;
+}
+
+.doc-valior{
+  color:#2b6cb0;
+  margin-left:4px;
+}
+
+.docs-empty-warning{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 12px;
+  color:#6b5b2a;
+  font-size:14px;
+}
+
+.docs-empty-icon{
+  font-size:16px;
+  color:#c79a00;
+}

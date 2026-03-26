@@ -25,11 +25,11 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->productFieldName, 'productId');
-        setIfNot($mvc->storeFieldName, 'storeId');
-        setIfNot($mvc->batchMovementDocument, 'out');
-        setIfNot($mvc->canReceiveNewBatch, true);
-        setIfNot($mvc->canSplitbatches, 'no_one');
+        setPartIfNot($mvc, 'productFieldName', 'productId');
+        setPartIfNot($mvc, 'storeFieldName', 'storeId');
+        setPartIfNot($mvc, 'batchMovementDocument', 'out');
+        setPartIfNot($mvc, 'canReceiveNewBatch', true);
+        setPartIfNot($mvc, 'canSplitbatches', 'no_one');
 
         $mvc->declareInterface('batch_MovementSourceIntf');
     }

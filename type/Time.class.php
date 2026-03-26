@@ -251,6 +251,11 @@ class type_Time extends type_Varchar
 
         $res = null;
 
+        $colorizeMinus = null;
+        if (($value < 0) && ($this->params['colorizeMinus'] ?? null)) {
+            $colorizeMinus = $this->params['colorizeMinus'];
+        }
+
         $v = abs($value);
         $restDays = ($v % core_DateTime::SECONDS_IN_MONTH);
 
@@ -403,6 +408,10 @@ class type_Time extends type_Varchar
             $res .= $res ? ' ' . tr('и') . ' ' : '';
             
             $res .= "{$secundes} " . tr('сек.');
+        }
+
+        if (isset($colorizeMinus)) {
+            $res = "<span class='{$colorizeMinus}'>{$res}</span>";
         }
 
         return isset($res) ? $res : $value;

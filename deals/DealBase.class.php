@@ -468,7 +468,7 @@ abstract class deals_DealBase extends core_Master
 
             if (!$form->gotErrors()) {
                 $formRec = $form->rec;
-                setIfNot($rec->valior, dt::today());
+                $rec->valior = $rec->valior ?? dt::today();
 
                 // Ако ще има преизчисляване на курс
                 $errorArr = array();

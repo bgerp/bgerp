@@ -445,7 +445,7 @@ class store_StockPlanning extends core_Manager
             $query = $Source->getQuery();
             $query->in("state", $Source->updatePlannedStockOnChangeStates);
             if($onlyWithoutValior){
-                setIfNot($Source->valiorFld, 'valior');
+                $Source->valiorFld = $Source->valiorFld ?? 'valior';
                 $query->where("#{$Source->valiorFld} IS NULL");
             }
 

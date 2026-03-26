@@ -21,7 +21,12 @@ class crm_Profiles extends core_Master
     public $interfaces = 'crm_ProfileIntf, core_SettingsIntf';
     
     
-    public $details = 'AuthorizationsList=remote_Authorizations,Personalization=crm_Personalization';
+     /**
+     * Детайла, на модела
+     *
+     * @var string|array
+     */
+    public $details = 'AuthorizationsList=remote_Authorizations,AutoResponses=email_AutomaticResponse, Personalization=crm_Personalization';
     
     
     /**
@@ -277,7 +282,12 @@ class crm_Profiles extends core_Master
             if (!isset($data->Person->row->buzTel) && isset($data->Person->row->tel)) {
                 $data->Person->row->buzTel = $data->Person->row->tel;
             }
-            
+
+            // Ако има права за добавяне
+            if (email_AutomaticResponse::haveRightFor('add', (object)array('userId' => $data->rec->userId))) {
+                // Добавяме бутон за добавяне на шаблон
+                $data->toolbar->addBtn('Авт. отговори', array('email_AutomaticResponse', 'add', 'userId' => $data->rec->userId, 'ret_url' => true), 'id=btnAutomaticResponse', 'ef_icon = img/16/email_forward.png, row=2');
+            }
             // Ако има права за сингъл
             if (crm_Persons::haveRightFor('single', $data->Person->rec)) {
                 if ($data->Person->rec->id) {

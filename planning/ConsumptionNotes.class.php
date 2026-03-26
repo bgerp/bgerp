@@ -422,4 +422,55 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
             }
         }
     }
+
+
+    /**
+     * След като документа стане на заявка
+     */
+    public static function on_AfterSavePendingDocument($mvc, $rec)
+    {
+        if(!($rec->state == 'pending' && ($rec->brState == 'draft' || empty($rec->brState)))) return;
+
+        // Ако ПВ е в нишка на задание
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        if(empty($firstDoc) || !$firstDoc->isInstanceOf('planning_Tasks')) return;
+
+        // и в центъра на ПО е посочено, че материалите трябва да се пренасят в таб Планиране на ПО
+        $Cover = doc_Folders::getCover($rec->folderId);
+        if(!$Cover->isInstanceOf('planning_Centers')) return;
+
+        $departmentRec = $Cover->fetch();
+        $autoAddConvertableInTask = ($departmentRec->autoAddConvertableInTask == 'auto') ? planning_Setup::get('AUTO_ADD_CONVERTABLE_TO_TASK'): $departmentRec->autoAddConvertableInTask;
+        if($autoAddConvertableInTask != 'yes') return;
+
+        // Сумират се вложимите артикули от протокола
+        $converted = array();
+        $dQuery = planning_ConsumptionNoteDetails::getQuery();
+        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
+        $dQuery->EXT('pMeasureId', 'cat_Products', "externalName=measureId,externalKey=productId");
+        $dQuery->where("#noteId = {$rec->id} AND #canConvert = 'yes'");
+        while($dRec = $dQuery->fetch()){
+            if(!array_key_exists($dRec->productId, $converted)){
+                $converted[$dRec->productId] = (object)array('taskId' => $firstDoc->that, 'productId' => $dRec->productId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 0, 'packagingId' => $dRec->pMeasureId);
+            }
+            $converted[$dRec->productId]->plannedQuantity += $dRec->quantity;
+        }
+
+        // Добавят се в таба планиране на ПО (освен ако вече не са добавени)
+        $savedCount = 0;
+        $Products = cls::get('planning_ProductionTaskProducts');
+        foreach ($converted as $convertableRec){
+            $fields = array();
+            $exRec = null;
+            if ($Products->isUnique($convertableRec, $fields, $exRec)) {
+                $Products->save($convertableRec);
+                $savedCount++;
+            }
+        }
+
+        // Показване на броя добавени артикули
+        if($savedCount){
+            core_Statuses::newStatus("Добавени артикули към планирането в производствената операция|*: <b>{$savedCount}</b>", 'warning');
+        }
+    }
 }

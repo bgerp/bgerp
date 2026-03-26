@@ -81,6 +81,10 @@
 					<!--ET_BEGIN supportUsers-->
 					<div>|Отговорници при подаване на сигнали|*: [#supportUsers#]</div>
 					<!--ET_END supportUsers-->
+
+					<!--ET_BEGIN autoAddConvertableInTask-->
+					<div>|Автоматично добавяне на артикули от протокол за влагане в ПО|*: [#autoAddConvertableInTask#]</div>
+					<!--ET_END autoAddConvertableInTask-->
 	            </div>
 	        </fieldset>
 	        [#Assets#]
