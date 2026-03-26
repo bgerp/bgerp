@@ -1,0 +1,190 @@
+.product-rel-tab-pane {
+  display: none;
+}
+
+.product-rel-tab-pane.active {
+  display: block;
+}
+
+div.tab-control.alphabet div.product-rel-tabs-compact .tab {
+  font-weight: bold;
+  font-size: 0.85em !important;
+  margin-bottom: 10px !important;
+  margin-right: 10px !important;
+}
+
+div.tab-control.alphabet div.tab-row .tab.active {
+  border-bottom: 1px solid black !important;
+  background: #ffc !important;
+
+  &:hover {
+    color: #333;
+  }
+}
+
+
+/* =========================================
+   ВЪТРЕШЕН И ВЪНШЕН ОБЩ БЛОК ЗА INFO
+   ========================================= */
+
+.product-rel-tabs-compact .product-rel-tabs-info {
+  display: block;
+  width: 100%;
+  clear: both;
+  margin: 0 0 12px 0;
+  padding: 10px 12px;
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: #333;
+  font-size: 0.9em;
+  line-height: 1.45;
+}
+
+.product-rel-tabs-compact .product-rel-tabs-info:empty {
+  display: none;
+}
+
+.product-rel-tabs-compact .product-rel-tabs-info .richtext {
+  margin: 0;
+}
+
+
+/* =========================================
+   СТИЛ НА ТАБОВЕТЕ САМО ЗА ESHOP ВЪНШЕН ИЗГЛЕД
+   ========================================= */
+
+.eshop-product .product-rel-tabs-compact .tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 4px;
+  border-bottom: 1px solid #d7dce3;
+  padding: 0 8px;
+  margin-bottom: 12px;
+}
+
+.eshop-product .product-rel-tabs-compact .tab-row .tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px 9px !important;
+  min-height: 22px;
+  border: 1px solid #cfd6df;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(to bottom, #f7f7f7 0%, #e9e9e9 100%);
+  color: #333333;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+          background 0.2s ease,
+          color 0.2s ease,
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
+}
+
+.eshop-product .product-rel-tabs-compact .tab-row .tab:hover {
+  background: linear-gradient(to bottom, #ffffff 0%, #eeeeee 100%);
+}
+
+.eshop-product .product-rel-tabs-compact .tab-row .tab.active,
+.eshop-product .product-rel-tabs-compact .tab-row .tab.current {
+  z-index: 2;
+  background: linear-gradient(to bottom, #ffffff 0%, #ffffff 100%);
+  border-color: #cfd6df;
+  margin-bottom: -1px;
+  padding-bottom: 10px !important;
+  box-shadow: 0 -2px 8px rgba(15, 23, 42, 0.06);
+  outline: none !important;
+}
+
+.eshop-product .product-rel-tabs-compact .tab-row .tab.active::before,
+.eshop-product .product-rel-tabs-compact .tab-row .tab.current::before {
+  background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+  border-color: #cfd6df;
+}
+
+.eshop-product .product-rel-tabs-compact .tab-row .tab:not(.active):not(.current) {
+  opacity: 0.92;
+}
+
+
+/* =========================================
+   MOBILE САМО ЗА ESHOP
+   ========================================= */
+
+@media (max-width: 768px) {
+  .eshop-product .product-rel-tabs-compact .tab-row {
+    gap: 3px;
+    padding: 0 4px;
+  }
+
+  .eshop-product .product-rel-tabs-compact .tab-row .tab {
+    padding: 9px 12px 8px;
+    min-height: 38px;
+    font-size: 13px;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .eshop-product .product-rel-tabs-compact .tab-row .tab::before {
+    left: 10px;
+    width: 26px;
+    height: 7px;
+  }
+
+  .product-rel-tabs-compact .product-rel-tabs-info {
+    margin: 0 0 10px 0;
+    padding: 8px 10px;
+    font-size: 0.85em;
+    line-height: 1.4;
+  }
+}
+
+
+/* =========================================
+   ТАБЛИЦА
+   ========================================= */
+
+.eshop-product .product-rel-tab-pane {
+  table {
+    width: 100% !important;
+    border-spacing: 0;
+    background: #fff;
+    color: #333333;
+
+    th {
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #646464;
+      background: #f8f8f8;
+      border: 1px solid #ddd !important;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px;
+      border: 1px solid #ddd !important;
+      vertical-align: middle;
+      background: #fff;
+      font-size: 0.7em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: #f5f5f5;
+    }
+  }
+}

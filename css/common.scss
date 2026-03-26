@@ -466,7 +466,6 @@ input, textarea, select,input:focus, textarea:focus, select:focus, input:hover, 
 	height:1.5em;
 	margin-bottom: 20px;
 	border-radius: 5px;
-	box-shadow: 1px 1px 0 rgba(60,60,60,0.1);
 }
 
 .wide  #all #simpleSearch {
@@ -2192,7 +2191,6 @@ td.formElement {
 
 .wide .vertical .formTable {
 	@include border-radius(5px);
-    @include shadow4(2px,2px,8px,3px,#aab);
     margin-bottom: 20px;
     border-collapse: separate;
     max-width: 48em;

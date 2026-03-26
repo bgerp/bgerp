@@ -740,29 +740,10 @@ class eshop_Products extends core_Master
                 }
 
                 $dRec = $dQuery->fetch();
-                $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
-                $packagings = cat_Products::getProductInfo($dRec->productId)->packagings;
 
-                // Какви са к-та в опаковките
-                $selectedPackagings = keylist::toArray($dRec->packagings);
-                $packs = array($measureId => 1);
-                foreach ($packagings as $packRec) {
-                    $packs[$packRec->packagingId] = $packRec->quantity;
-                }
-
-                // Коя е най-малката опаковка от избраните
-                $minPackagingId = $minQuantityInPack = null;
-                foreach ($selectedPackagings as $selPackId) {
-                    $q = $packs[$selPackId];
-                    if (!$q) {
-                        continue;
-                    }
-
-                    if (is_null($minPackagingId) || (isset($minPackagingId) && $q < $minQuantityInPack)) {
-                        $minPackagingId = $selPackId;
-                        $minQuantityInPack = $q;
-                    }
-                }
+                $minData = eshop_ProductDetails::getMinPackagingAndQuantity($dRec);
+                $minPackagingId = $minData['packagingId'];
+                $minQuantityInPack = $minData['quantity'];
 
                 // Ако мярката е брой и е показано да се показва
                 if (isset($minPackagingId)) {
@@ -776,7 +757,7 @@ class eshop_Products extends core_Master
                         $pRow->saleInfo = $dRow->saleInfo;
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
-                        $pRow->catalogPrice = $dRow->catalogPrice;
+                        $pRow->catalogPrice = "<b>" . $dRow->catalogPrice . "</b>";
                         $pRow->packagingId = $dRow->packagingId;
                         $pRow->btn = $dRow->btn;
                     }
@@ -812,8 +793,7 @@ class eshop_Products extends core_Master
             $data->addUrl = array('eshop_Products', 'add', 'groupId' => $data->groupId, 'ret_url' => true);
         }
     }
-    
-    
+
     /**
      * Рендира всички артикули
      */
@@ -947,7 +927,7 @@ class eshop_Products extends core_Master
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
-        
+
         $data = new stdClass();
         $data->productId = Request::get('id', 'int');
 
@@ -1004,7 +984,6 @@ class eshop_Products extends core_Master
         
         // Поставяме SEO данните
         cms_Content::renderSeo($tpl, $rec);
-        
         $tpl->append($this->renderProduct($data), 'PAGE_CONTENT');
         
         // Добавя канонично URL
@@ -1107,6 +1086,13 @@ class eshop_Products extends core_Master
                 $data->row->STATE_EXTERNAL = $data->detailData->rows[0]->saleInfo;
             }
         }
+
+        // Ако е само 1 артикул се подтовят релациите му (ако има такива)
+        $individualProducts = arr::extractValuesFromArray($data->detailData->recs, 'productId');
+        if(countR($individualProducts) == 1){
+            $onlyProductId = key($individualProducts);
+            $data->relationData = cat_products_Relations::prepareExternalData($onlyProductId, $data->rec);
+        }
     }
     
     
@@ -1182,7 +1168,16 @@ class eshop_Products extends core_Master
                 $tpl->append($block, 'NEAR_ROWS');
             }
         }
-        
+
+        if(!empty($data->relationData)){
+            if($data->relationData->hide !== true){
+                $Relations = cls::get('cat_products_Relations');
+                $relTpl = $Relations->renderRelations($data->relationData);
+                $relTpl->removeBlocksAndPlaces();
+                $tpl->append($relTpl, 'RELATION_TABS');
+            }
+        }
+
         return $tpl;
     }
     

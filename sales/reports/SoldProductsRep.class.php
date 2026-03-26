@@ -93,8 +93,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealersTeam');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
-        
-        $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
+
+        $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули, nogrp=Без групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
         $fieldset->FLD('category', 'keylist(mvc=cat_Categories,select=name)', 'caption=Артикули->Категории артикули,after=typeOfGroups,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=category,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,placeholder=Всички,after=group,single=none,input=none,class=w100');
@@ -220,7 +220,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->input('typeOfGroups');
         if ($rec->typeOfGroups == 'category') {
             $form->setField('group', 'input=hidden');
-        } elseif ($rec->typeOfGroups == 'art') {
+        } elseif (($rec->typeOfGroups == 'art') || ($rec->typeOfGroups == 'nogrp')) {
             $form->setField('category', 'input=hidden');
         } elseif ($rec->typeOfGroups == 'no') {
             $form->setField('category', 'input=hidden');
@@ -473,7 +473,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $baseCurrencyId = currency_Currencies::getIdByCode($baseCurrency);
 
         //При групиране по кои групи да работи: групи артикули или категории артикули
-        if ($rec->typeOfGroups == 'art') {
+        if ($rec->typeOfGroups == 'art' || $rec->typeOfGroups == 'nogrp') {
             $checkForGruping = 'group';
         } elseif (($rec->typeOfGroups == 'category')) {
             $checkForGruping = 'category';
@@ -488,7 +488,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         //Показването да бъде ли ГРУПИРАНО
         if (($rec->grouping == 'no') && ($rec->group || $rec->category)) {
-            if ($rec->typeOfGroups == 'art') {
+            if ($rec->typeOfGroups == 'art' || $rec->typeOfGroups == 'nogrp') {
                 $groupByField = 'group';
             } elseif (($rec->typeOfGroups == 'category')) {
                 $groupByField = 'category';
@@ -748,8 +748,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         //Филтър за АРТИКУЛ и ГРУПИ АРТИКУЛИ
-        
-        if ($rec->typeOfGroups == 'art') {
+
+        if ($rec->typeOfGroups == 'art' || $rec->typeOfGroups == 'nogrp') {
             $filterGroupsType = 'group';
         } elseif ($rec->typeOfGroups == 'category') {
             $filterGroupsType = 'category';
@@ -871,7 +871,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                         //Превалутиране
                         $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
-                        $primeCostPrevious = $pricePr * $recPrime->quantity * 1.95583;
+                        $primeCostPrevious = $pricePr * $recPrime->quantity;
 
 
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
@@ -887,7 +887,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                             //Превалутиране
                             $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
 
-                            $deltaPrevious = $recPrime->delta * 1.95583;
+                            $deltaPrevious = $recPrime->delta ;
                         }
                         
                         
@@ -1471,7 +1471,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->orderBy == 'changeCost') {
                 $orderBy = $changePrimeCost;
             }
-            
+
+            if ($rec->orderBy == 'quantity') {
+              //  $orderBy = $changePrimeCost;
+            }
+
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
         }
 
