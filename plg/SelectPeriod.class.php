@@ -194,7 +194,7 @@ class plg_SelectPeriod extends core_Plugin
         }
         
         $keySel = null;
-        if (($rec->selectPeriod ?? null) !== 'select') {
+        if (!empty($rec->selectPeriod) && $rec->selectPeriod !== 'select') {
             list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod ?? '');
             Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
         }

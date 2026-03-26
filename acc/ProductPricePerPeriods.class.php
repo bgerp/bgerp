@@ -505,4 +505,22 @@ class acc_ProductPricePerPeriods extends core_Manager
 
         acc_ProductPricePerPeriods::invalidateAfterDate($date);
     }
+
+
+    /**
+     * Извиква се преди изпълняването на екшън
+     *
+     * @param core_Mvc $mvc
+     * @param mixed    $res
+     * @param string   $action
+     */
+    public static function on_BeforeAction($mvc, &$res, $action)
+    {
+        if(in_array($action, array('list', 'default'))){
+            $type = Request::get('type', 'enum(stores,production,costs)');
+            if(empty($type)){
+                redirect(array($mvc, 'list', 'type' => 'stores'));
+            }
+        }
+    }
 }

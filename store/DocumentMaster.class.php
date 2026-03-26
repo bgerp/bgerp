@@ -368,6 +368,7 @@ abstract class store_DocumentMaster extends core_Master
                     $dQuery = $invDetail->getQuery();
                     $dQuery->where("#invoiceId = {$invRec->id}");
                     $details = $dQuery->fetchAll();
+
                     $invDetail::modifyDcDetails($details, $invRec, $invDetail);
                     $withChangedQuantityDetails = array_filter($details, function($a) {return $a->changedQuantity === true;});
 
@@ -377,7 +378,7 @@ abstract class store_DocumentMaster extends core_Master
                         $shipProduct->{$Detail->masterKey} = $rec->id;
                         $shipProduct->productId = $invDetailRec->productId;
                         $shipProduct->packagingId = $invDetailRec->packagingId;
-                        $shipProduct->quantity = abs($invDetailRec->quantity);
+                        $shipProduct->quantity = abs($invDetailRec->quantity) * $invDetailRec->quantityInPack;
                         $shipProduct->price = $invDetailRec->price;
                         $shipProduct->discount = $invDetailRec->discount;
                         $shipProduct->quantityInPack = $invDetailRec->quantityInPack;

@@ -37,7 +37,7 @@ class email_AutomaticResponse extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'userId, title, dateFrom, dateTo, folders, sender, titleOfMessage';
+    public $listFields = 'titleOfMessage, userId, title, dateFrom, dateTo, folders, sender';
 
 
      /**
@@ -85,7 +85,7 @@ class email_AutomaticResponse extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'no_one';
+    public $canList = 'debug';
     
     
     /**
@@ -206,8 +206,9 @@ class email_AutomaticResponse extends core_Master
     {
          // Ако е субмитната формата
         if ($data->form && $data->form->isSubmitted()) {
-            // Променяма да сочи към single'a
-            $profile = crm_Profiles::fetch($data->form->rec->userId);
+
+            // Променяма да сочи към single-a
+            $profile = crm_Profiles::fetch("#userId = {$data->form->rec->userId}");
             $data->retUrl = array('crm_Profiles', 'single', $profile->id);        
         }
 
@@ -215,7 +216,8 @@ class email_AutomaticResponse extends core_Master
         if($data->cmd == 'delete'){
             if($id = Request::get('id', 'int')){
                 $rec = $mvc->fetch($id);
-                $data->retUrl =  array('crm_Profiles', 'single', $rec->userId);
+                $profile = crm_Profiles::fetch("#userId = {$rec->userId}");
+                $data->retUrl =  array('crm_Profiles', 'single', $profile->id);
             }
         }   
     }
@@ -230,11 +232,11 @@ class email_AutomaticResponse extends core_Master
         
         // Взимаме всички шаблони
         $query = email_AutomaticResponse::getQuery();
-        $query->where("#userId LIKE {$data->masterId}");
+        $query->where("#userId LIKE {$data->masterData->rec->userId}");
         $query->orderBy('createdOn', 'DESC');
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 5));
         $data->Pager->setLimit($query);
-
+      
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec);
@@ -254,7 +256,8 @@ class email_AutomaticResponse extends core_Master
         $title = tr('Автоматични отговори на имейли');
         $tpl->append($title, 'title');
         
-        $data->listFields = arr::make('title=Заглавие, dateFrom=Дата от, dateTo=Дата до, folders=Папка, sender=Изпращач, titleOfMessage=Заглавие на отг.');
+        $data->listFields = arr::make('titleOfMessage=Заглавие, title=Условие->Заглавие, dateFrom=Условие->Дата от, dateTo=Условие->Дата до, folders=Условие->Папка, sender=Условие->Изпращач, createdBy=Създаване->От, createdOn=Създаване->На');
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'title, dateFrom, dateTo, folders, sender');
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $details = $table->get($data->rows, $data->listFields);

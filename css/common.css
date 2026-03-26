@@ -2630,7 +2630,8 @@ div.richEdit {
   min-height: 100px; }
 
 .wide .richEdit textarea {
-  min-width: 310px; }
+  min-width: 310px;
+  overflow-y: auto !important; }
 
 .richedit-toolbar {
   position: relative;
