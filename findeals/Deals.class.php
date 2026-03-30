@@ -649,7 +649,7 @@ class findeals_Deals extends deals_DealBase
         
         $entries = acc_Journal::getEntries(array(get_called_class(), $rec->id), $item);
         $data->history = array();
-        
+
         if (countR($entries)) {
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
             $Pager->itemsCount = countR($entries);
@@ -657,7 +657,8 @@ class findeals_Deals extends deals_DealBase
             $data->pager = $Pager;
             
             $recs = array();
-            
+            $rec->valior = $rec->valior ?? $rec->activatedOn ?? $rec->createdOn;
+
             // Групираме записите по документ
             foreach ($entries as $jRec) {
                 $index = $jRec->docType . '|' . $jRec->docId;
@@ -849,7 +850,8 @@ class findeals_Deals extends deals_DealBase
         $accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
         $cItemId = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId)->id;
         $curItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
-        
+
+        $rec->valior = $rec->valior ?? $rec->activatedOn ?? $rec->createdOn;
         $blAmount = acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $curItemId), array(), $rec->valior)->amount;
         if(isset($rec->oldCurrencyId)){
             $oItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->oldCurrencyId))->id;
@@ -1020,8 +1022,25 @@ class findeals_Deals extends deals_DealBase
         
         return $options;
     }
-    
-    
+
+
+    /**
+     * След ръчно реконтиране на документа
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterDebugReconto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
+            $mvc->invoke('AfterJournalItemAffect', array($rec, $itemRec));
+        }
+    }
+
+
     /**
      * След промяна в журнала със свързаното перо
      */
@@ -1029,7 +1048,8 @@ class findeals_Deals extends deals_DealBase
     {
         $aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
         $rec->amountDeal = $aggregateDealInfo->get('blAmount');
-        
+        $rec->valior = $rec->valior ?? $rec->activatedOn ?? $rec->createdOn;
+
         $mvc->save($rec);
     }
     
