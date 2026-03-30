@@ -424,8 +424,8 @@ abstract class cash_Document extends deals_PaymentDocument
             }
             
             $mvc->invoke('AfterSubmitInputEditForm', array($form));
-            if (isset($rec->amountGiven) && $rec->amountGiven <= $rec->amount) {
-                $form->setError('amountGiven', 'Сумата трябва да е над сумата по документа');
+            if (isset($rec->amountGiven) && $rec->amountGiven < $rec->amount) {
+                $form->setError('amountGiven', 'Платеното в брой е под сумата на документа');
             }
         }
     }
