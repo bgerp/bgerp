@@ -102,7 +102,7 @@ class cat_products_Relations extends core_Manager
      */
     public function description()
     {
-        $this->FLD('relTypeId', 'key(mvc=cat_RelationTypes,select=title,allowEmpty)', 'input,caption=Вид връзка,mandatory,silent,removeAndRefreshForm=productId2,oldFieldName=relType');
+        $this->FLD('relTypeId', 'key(mvc=cat_RelationTypes,select=title,allowEmpty)', 'input,caption=Вид,mandatory,silent,removeAndRefreshForm=productId2,oldFieldName=relType');
         $this->FLD('productId1', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', 'caption=Артикул 1,input=hidden,silent');
         $this->FLD('productId2', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', 'caption=Артикул 2,input=hidden');
 
@@ -375,7 +375,7 @@ class cat_products_Relations extends core_Manager
         </div>
     ");
         $tabsTpl->replace($tabKey, 'TAB_KEY');
-        $tabsTpl->replace(ht::escapeAttr($storageKey), 'STORAGE_KEY');
+        $tabsTpl->replace($storageKey, 'STORAGE_KEY');
 
         $tabLinks = '';
         $tabPanes = '';
@@ -484,6 +484,7 @@ class cat_products_Relations extends core_Manager
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
             $this->invoke('BeforeRenderListTable', array($paneTpl, &$tabData));
             arr::sortObjects($tabData->rows, 'state', 'DESC');
+            $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn');
             $details = $table->get($tabData->rows, $tabData->listFields);
 
             $paneTpl->replace($details, 'TABLE');

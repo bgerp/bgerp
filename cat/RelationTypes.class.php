@@ -69,6 +69,7 @@ class cat_RelationTypes extends core_Manager
     public function description()
     {
         $this->FNC('title', 'varchar(120)', 'caption=Релация');
+        $this->FLD('isSymmetric', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Симетричност,maxRadio=0,notNull,value=no,silent,removeAndRefreshForm');
 
         $this->FLD('group1Name', 'varchar(32)', 'caption=Първа група->Име,mandatory');
         $this->FLD('group1GroupId', 'key(mvc=cat_Groups, select=name,allowEmpty)', 'caption=Първа група->Група,mandatory');
@@ -78,8 +79,6 @@ class cat_RelationTypes extends core_Manager
         $this->FLD('group2GroupId', 'key(mvc=cat_Groups, select=name,allowEmpty)', 'caption=Втора група->Група');
         $this->FLD('group2Info', 'varchar(128)', 'caption=Втора група->Описание');
         $this->FLD('show2InExternal', 'enum(yes=Показване,no=Скриване)', 'caption=Втора група->Външна част,notNull,value=yes');
-
-        $this->FLD('isSymmetric', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Симетричност,maxRadio=0,notNull,value=no,silent,removeAndRefreshForm');
 
         $this->setDbIndex('group1GroupId');
         $this->setDbIndex('group2GroupId');
