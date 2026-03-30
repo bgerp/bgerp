@@ -60,6 +60,7 @@ class findeals_Setup extends core_ProtoSetup
         'findeals_ClosedDeals',
         'findeals_AdvanceReports',
         'findeals_AdvanceReportDetails',
+        'migrate::oldDeals2614',
     );
     
     
@@ -79,4 +80,22 @@ class findeals_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.1, 'Финанси', 'Сделки', 'findeals_Deals', 'default', 'findeals, ceo, acc'),
     );
+
+
+    /**
+     * Миграция на финансовите сделки без вальор
+     */
+    public function oldDeals2614()
+    {
+        $valiorColName = str::phpToMysqlName('valior');
+        $activatedOnColName = str::phpToMysqlName('activatedOn');
+        $createdOnColName = str::phpToMysqlName('createdOn');
+        $stateColName = str::phpToMysqlName('state');
+
+        foreach (array('findeals_Deals', 'findeals_AdvanceDeals') as $Cls){
+            $Cls = cls::get($Cls);
+            $query = "UPDATE {$Cls->dbTableName} SET {$valiorColName} = COALESCE({$activatedOnColName}, {$createdOnColName}) WHERE {$valiorColName} IS NULL AND {$stateColName} IN ('active', 'closed')";
+            $Cls->db->query($query);
+        }
+    }
 }

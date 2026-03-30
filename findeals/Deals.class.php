@@ -1048,7 +1048,6 @@ class findeals_Deals extends deals_DealBase
     {
         $aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
         $rec->amountDeal = $aggregateDealInfo->get('blAmount');
-        $rec->valior = $rec->valior ?? $rec->activatedOn ?? $rec->createdOn;
 
         $mvc->save($rec);
     }
