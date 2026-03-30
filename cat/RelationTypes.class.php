@@ -73,13 +73,13 @@ class cat_RelationTypes extends core_Manager
         $this->FLD('group1Name', 'varchar(32)', 'caption=Първа група->Име,mandatory');
         $this->FLD('group1GroupId', 'key(mvc=cat_Groups, select=name,allowEmpty)', 'caption=Първа група->Група,mandatory');
         $this->FLD('group1Info', 'varchar(128)', 'caption=Първа група->Описание');
-
+        $this->FLD('show1InExternal', 'enum(yes=Показване,no=Скриване)', 'caption=Първа група->Външна част,notNull,value=yes');
         $this->FLD('group2Name', 'varchar(32)', 'caption=Втора група->Име');
         $this->FLD('group2GroupId', 'key(mvc=cat_Groups, select=name,allowEmpty)', 'caption=Втора група->Група');
         $this->FLD('group2Info', 'varchar(128)', 'caption=Втора група->Описание');
+        $this->FLD('show2InExternal', 'enum(yes=Показване,no=Скриване)', 'caption=Втора група->Външна част,notNull,value=yes');
+
         $this->FLD('isSymmetric', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Симетричност,maxRadio=0,notNull,value=no,silent,removeAndRefreshForm');
-        $this->FLD('show1InExternal', 'enum(yes=Да,no=Не)', 'caption=Показване във външната част->Първа група,notNull,value=yes');
-        $this->FLD('show2InExternal', 'enum(yes=Да,no=Не)', 'caption=Показване във външната част->Втора група,notNull,value=yes');
 
         $this->setDbIndex('group1GroupId');
         $this->setDbIndex('group2GroupId');
@@ -152,10 +152,10 @@ class cat_RelationTypes extends core_Manager
         }
 
         $row->show1InExternal = $mvc->getFieldType('show1InExternal')->toVerbal($rec->show1InExternal);
-        $row->group1Name .= "<div class='small'><span class='quiet'>" . tr('Показване навън') . "</span>: <i>{$row->show1InExternal}</i></div>";
+        $row->group1Name .= "<div class='small'><span class='quiet'>" . tr('Външна част') . "</span>: <i>{$row->show1InExternal}</i></div>";
 
         $row->show2InExternal = $mvc->getFieldType('show2InExternal')->toVerbal($rec->show2InExternal);
-        $row->group2Name .= "<div class='small'><span class='quiet'>" . tr('Показване навън') . "</span>: <i>{$row->show2InExternal}</i></div>";
+        $row->group2Name .= "<div class='small'><span class='quiet'>" . tr('Външна част') . "</span>: <i>{$row->show2InExternal}</i></div>";
 
         if(!empty($rec->group1Info)){
             $row->group1Info = $mvc->getFieldType('group1Info')->toVerbal($rec->group1Info);
