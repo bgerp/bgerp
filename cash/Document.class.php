@@ -607,8 +607,13 @@ abstract class cash_Document extends deals_PaymentDocument
 
             // Ако има посочено колко е платено - показва се и рестото
             if(isset($rec->amountGiven)){
-                $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
-                $row->change = self::renderChange($rec);
+                $change = round($rec->amountGiven - $rec->amount, 2);
+                if($change != 0){
+                    $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
+                    $row->change = self::renderChange($rec);
+                } else {
+                    unset($row->amountGiven);
+                }
             }
         }
     }
@@ -642,8 +647,10 @@ abstract class cash_Document extends deals_PaymentDocument
 
             return "{$changeEuroRow}/ {$changeBgnRow}";
         }
+        $change = core_Type::getByName("double(decimals=2)")->toVerbal($change);
+        $change = currency_Currencies::decorate($change, $currencyCode, true);
 
-        return core_Type::getByName("double(decimals=2)")->toVerbal($change);
+        return $change;
     }
 
 
@@ -751,9 +758,12 @@ abstract class cash_Document extends deals_PaymentDocument
             }
         } else {
             if(!empty($rec->amountGiven)){
-                $change = $this->renderChange($rec);
-                $info['amountVerbal'] = "<b class='quiet'>{$info['amountVerbal']}</b>";
-                $info['amountVerbal'] .= tr("|*<div class='small'><span class='quiet'>|Ресто|*</span>: {$change}</div>");
+                $change = round($rec->amountGiven - $rec->amount, 2);
+                if($change != 0){
+                    $change = $this->renderChange($rec);
+                    $info['amountVerbal'] = "<b class='quiet'>{$info['amountVerbal']}</b>";
+                    $info['amountVerbal'] .= tr("|*<div class='small'><span class='quiet'>|Ресто|*</span>: {$change}</div>");
+                }
             }
 
             $info['amountVerbal'] = "<div id={$this->getHandle($rec->id)}>{$info['amountVerbal']}</div>";
