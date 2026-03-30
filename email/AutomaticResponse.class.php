@@ -111,14 +111,14 @@ class email_AutomaticResponse extends core_Master
      */
     public function description()
     {
-        $this->FLD('userId', 'user', 'caption=Шаблон за получени отговори->Потребител,silent,removeAndRefreshForm=folders');
-        $this->FLD('dateFrom', 'date', 'caption=Шаблон за получени отговори->Дата от');
-        $this->FLD('dateTo', 'date', 'caption=Шаблон за получени отговори->Дата до');
-        $this->FLD('sender', 'varchar(128)', 'caption=Шаблон за получени отговори->Изпращач');
-        $this->FLD('receiver', 'emails', 'caption=Шаблон за получени отговори->Получател');
-        $this->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Шаблон за получени отговори->Папка');
-        $this->FLD('title', 'varchar(128)', 'caption=Шаблон за получени отговори->Заглавие');
-        $this->FLD('content', 'richtext(rows=4)', 'caption=Шаблон за получени отговори->Съдържание');
+        $this->FLD('userId', 'user', 'caption=Шаблон за получени имейли->Потребител,silent,removeAndRefreshForm=folders');
+        $this->FLD('dateFrom', 'date', 'caption=Шаблон за получени имейли->Дата от');
+        $this->FLD('dateTo', 'date', 'caption=Шаблон за получени имейли->Дата до');
+        $this->FLD('sender', 'varchar(128)', 'caption=Шаблон за получени имейли->Изпращач');
+        $this->FLD('receiver', 'emails', 'caption=Шаблон за получени имейли->Получател');
+        $this->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Шаблон за получени имейли->Папка');
+        $this->FLD('title', 'varchar(128)', 'caption=Шаблон за получени имейли->Заглавие');
+        $this->FLD('content', 'richtext(rows=4)', 'caption=Шаблон за получени имейли->Съдържание');
         $this->FLD('titleOfMessage', 'varchar(128)', 'caption=Автоматични отговори->Заглавие, mandatory');
         $this->FLD('text', 'richtext(rows=4)', 'caption=Автоматични отговори->Съдържание, mandatory');
         $this->FLD('state', 'enum(active=Активна, rejected=Отхвърлена)', 'caption=Автоматични отговори->Състояние');
@@ -176,6 +176,7 @@ class email_AutomaticResponse extends core_Master
         //избиране имейл от който да се изпрати отговора
         $queryEmails = email_Inboxes::getQuery();
         $queryEmails->where("#inCharge = $rec->userId");
+        $queryEmails->where("#state = 'active'");
 
         $emails = array();
         while($emailRec = $queryEmails->fetch()){

@@ -600,13 +600,14 @@ class eshop_Products extends core_Master
     /**
      * Показване на тъмбнейла на е-артикула
      *
-     * @param stdClass $rec
-     * @param int      $width
-     * @param int      $height
+     * @param stdClass $rec                 - запис на е-артикула
+     * @param int      $width               - широчина на тхъмба
+     * @param int      $height              - височина на тхъмба
+     * @param boolean  $showInternalPreview - дали да се показва вътрешната картинка на артикула
      *
      * @return thumb_Img|NULL
      */
-    public static function getProductThumb($rec, $width = 240, $height = 240)
+    public static function getProductThumb($rec, $width = 240, $height = 240, $showInternalPreview = false)
     {
         $imageArr = array();
         foreach (array('', '2', '3', '4', '5') as $i) {
@@ -618,7 +619,25 @@ class eshop_Products extends core_Master
                 }
             }
         }
-        
+
+        // Ако е-артикула няма изображения да се показва превюто на някой от посочените му артикули (ако е посочено да се търси така)
+        if($showInternalPreview){
+            if(!countR($imageArr)){
+                $eQuery = eshop_ProductDetails::getQuery();
+                $eQuery->where("#eshopProductId = {$rec->id} AND #state = 'active'");
+                $eQuery->show('productId,eshopProductId');
+                while($eRec = $eQuery->fetch()){
+                    $preview = cat_Products::getParams($eRec->productId, 'preview');
+                    if(!empty($preview)){
+                        $path = fileman::fetchByFh($preview, 'path');
+                        if (file_exists($path)) {
+                            $imageArr[] = $preview;
+                        }
+                    }
+                }
+            }
+        }
+
         if (countR($imageArr)) {
             $howToSelectMainImage = ($rec->howToSelectMainImage == 'auto') ? eshop_Setup::get('PRODUCT_IMG_LOGIC') : $rec->howToSelectMainImage;
             if($howToSelectMainImage == 'rotation'){

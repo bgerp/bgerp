@@ -102,7 +102,7 @@ class cat_products_Relations extends core_Manager
      */
     public function description()
     {
-        $this->FLD('relTypeId', 'key(mvc=cat_RelationTypes,select=title,allowEmpty)', 'input,caption=Вид връзка,mandatory,silent,removeAndRefreshForm=productId2,oldFieldName=relType');
+        $this->FLD('relTypeId', 'key(mvc=cat_RelationTypes,select=title,allowEmpty)', 'input,caption=Вид,mandatory,silent,removeAndRefreshForm=productId2,oldFieldName=relType');
         $this->FLD('productId1', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', 'caption=Артикул 1,input=hidden,silent');
         $this->FLD('productId2', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', 'caption=Артикул 2,input=hidden');
 
@@ -275,6 +275,7 @@ class cat_products_Relations extends core_Manager
         $fields = $this->selectFields();
         $fields['-list'] = true;
         $fields['-detail'] = true;
+        $isExternal = Mode::is('wrapper', 'cms_page_External');
 
         foreach($foundRecs as $rec){
             $rec->_masterProductId = $data->masterId;
@@ -289,13 +290,18 @@ class cat_products_Relations extends core_Manager
                 $otherGroupName = $rec->group2Name;
                 $otherProductId = $rec->productId2;
                 $groupNameInfo = $rec->group2Info;
+                $showInExternal = $rec->show2InExternal;
             } elseif ($rec->productId2 == $data->masterId) {
                 $otherGroupName = $rec->group1Name;
                 $otherProductId = $rec->productId1;
                 $groupNameInfo = $rec->group1Info;
+                $showInExternal = $rec->show1InExternal;
             } else {
                 continue;
             }
+
+            // Ако не трябва да се показва във външната част - да не се показва
+            if($isExternal && $showInExternal !== 'yes') continue;
 
             if (!isset($groupedRows[$otherGroupName])) {
                 $groupedRows[$otherGroupName] = array(
@@ -369,7 +375,7 @@ class cat_products_Relations extends core_Manager
         </div>
     ");
         $tabsTpl->replace($tabKey, 'TAB_KEY');
-        $tabsTpl->replace(ht::escapeAttr($storageKey), 'STORAGE_KEY');
+        $tabsTpl->replace($storageKey, 'STORAGE_KEY');
 
         $tabLinks = '';
         $tabPanes = '';
@@ -387,6 +393,7 @@ class cat_products_Relations extends core_Manager
             }
         }
 
+        $data->imageSize = array('width' => 40, 'height' => 40);
         foreach ($data->groupedRows as $groupName => $groupData) {
             $tabN++;
             $paneId = $tabKey . '_pane_' . $tabN;
@@ -409,7 +416,7 @@ class cat_products_Relations extends core_Manager
 
             $tabData->listFields = arr::make('productId=Артикул,created=Създаване');
             if ($isExternal) {
-                $tabData->listFields = arr::make('productId=Артикул,code=Кат. №,price=Цена,btn=Поръчка');
+                $tabData->listFields = arr::make('img=|*&nbsp;,productId=Артикул,code=Кат. №,price=Цена,btn=Поръчка');
             }
 
             foreach ($groupData['recs'] as $id => $rec) {
@@ -431,14 +438,8 @@ class cat_products_Relations extends core_Manager
                     $tabRow->productId = ht::createLink($tabRow->productId, eshop_Products::getUrl($eshopProductId));
 
                     $eshopRec = eshop_Products::fetch($eshopProductId);
-                    $thumb = eshop_Products::getProductThumb($eshopRec, 40, 40);
-                    if (empty($thumb)) {
-                        $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), 300, 300, 'path');
-                    }
-
-                    $img = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
-                    $tabRow->productId = "<span class='externalRelImg'>{$img}</span><span class='externalRelName'>{$tabRow->productId}</span>";
-
+                    $thumb = eshop_Products::getProductThumb($eshopRec, $data->imageSize['width'], $data->imageSize['height'], true);
+                    $tabRow->img = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
                     $pRecClone = clone $eshopProducts[$tabRec->productId];
                     $minData = eshop_ProductDetails::getMinPackagingAndQuantity($pRecClone);
                     $pRecClone->packagingId = $minData['packagingId'];
@@ -448,6 +449,16 @@ class cat_products_Relations extends core_Manager
                     $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
                     $tabRow->price = $dRow->catalogPrice;
                     $tabRow->btn = $dRow->btn;
+                } else {
+                    $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), $data->imageSize['width'], $data->imageSize['height'], 'path');
+                    $preview = cat_Products::getParams($tabRec->productId, 'preview');
+                    if(!empty($preview)) {
+                        $path = fileman::fetchByFh($preview, 'path');
+                        if (file_exists($path)) {
+                            $thumb = new thumb_Img($preview, $data->imageSize['width'], $data->imageSize['height']);
+                        }
+                    }
+                    $tabRow->img = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
                 }
 
                 if ($isExternal) {
@@ -468,10 +479,12 @@ class cat_products_Relations extends core_Manager
             $listMvc->FNC('code', 'varchar', 'tdClass=small relCol');
             $listMvc->FNC('price', 'varchar', 'tdClass=small relCol');
             $listMvc->FNC('btn', 'varchar', 'tdClass=small relCol');
+            $listMvc->FNC('img', 'varchar', 'tdClass=small relCol relImgCol');
 
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
             $this->invoke('BeforeRenderListTable', array($paneTpl, &$tabData));
             arr::sortObjects($tabData->rows, 'state', 'DESC');
+            $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn');
             $details = $table->get($tabData->rows, $tabData->listFields);
 
             $paneTpl->replace($details, 'TABLE');
@@ -602,7 +615,9 @@ class cat_products_Relations extends core_Manager
             }
 
             $count = count($otherProducts);
-            if($count > 1){
+            if($count > 100){
+                $form->setWarning('otherProductId', "Не може да добавите повече от|* 100 |артикула|*");
+            } elseif($count > 1){
                 $form->setWarning('otherProductId', "Наистина ли искате да добавите релации към|* <b>{$count}</b> |артикула|*:");
             }
 
