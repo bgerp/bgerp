@@ -18,7 +18,7 @@ class cat_RelationTypes extends core_Manager
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Created, plg_SaveAndNew, plg_StructureAndOrder';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Created, plg_SaveAndNew, plg_StructureAndOrder, plg_Modified';
 
 
     /**
@@ -54,13 +54,19 @@ class cat_RelationTypes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, group1Name=Първо, group2Name=Второ, isSymmetric=Симетр., saoOrder=Подредба, createdOn, createdBy';
+    public $listFields = 'title, group1Name=Първо, group2Name=Второ, isSymmetric=Симетр., saoOrder=Подредба, modifiedOn, modifiedBy, createdOn, createdBy';
 
 
     /**
      * Кои полета да се извличат при изтриване
      */
     public $fetchFieldsBeforeDelete = 'id';
+
+
+    /**
+     * Кои видове релации са обновени
+     */
+    protected $updatedRecs = array();
 
 
     /**
@@ -204,5 +210,37 @@ class cat_RelationTypes extends core_Manager
     public function saoCanHaveSublevel($rec, $newRec = null)
     {
         return false;
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        $mvc->updatedRecs[$rec->id] = $rec->id;
+    }
+
+
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(countR($mvc->updatedRecs)){
+
+            // Треине на кеша на релациите на променените групи
+            $relQuery = cat_products_Relations::getQuery();
+            $relQuery->in("relTypeId", $mvc->updatedRecs);
+            $relQuery->show('productId1,productId2');
+            $allRelations = $relQuery->fetchAll();
+            $productsArr = arr::extractValuesFromArray($allRelations, 'productId1') + arr::extractValuesFromArray($allRelations, 'productId2');
+
+            if(countR($productsArr)){
+                foreach ($productsArr as $productId){
+                    core_Cache::removeByType("cat_products_Relations_{$productId}");
+                }
+            }
+        }
     }
 }
