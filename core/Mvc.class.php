@@ -369,7 +369,8 @@ class core_Mvc extends core_FieldSet
         
         if ($rec->id ?? null) {
             $exRec = $this->_cachedRecords[$rec->id .'|*'] ?? null;
-            if ($exRec === null && $this->lastFetchedRec && $this->lastFetchedRec == $rec->id) {
+            if (($exRec === null) && isset($this->lastFetchedRec) && isset($this->lastFetchedRec->id) &&
+                ($this->lastFetchedRec->id == $rec->id)) {
                 $exRec = $this->lastFetchedRec;
             }
         }
