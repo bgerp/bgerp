@@ -731,11 +731,13 @@ class cat_products_Relations extends core_Manager
             if(!$form->gotErrors()){
 
                 // Подготовка на записите
+                $this->updatedProducts[$productId] = $productId;
                 $newRecs = array();
                 $now = dt::now();
                 $cu = core_Users::getCurrent();
                 foreach ($otherProducts as $otherProductId) {
                     if(!array_key_exists($otherProductId, $symmetricProducts)){
+                        $this->updatedProducts[$otherProductId] = $otherProductId;
                         $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId, 'createdOn' => $now, 'createdBy' => $cu, 'modifiedOn' => $now, 'modifiedBy' => $cu);
                         $newRecs[] = $newRec;
                     }
@@ -825,7 +827,9 @@ class cat_products_Relations extends core_Manager
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        $mvc->updatedProducts[$rec->id] = $rec->id;
+        // Кои артикули с променени - заопашават се за инвалидиране на кеша на табовете
+        $mvc->updatedProducts[$rec->productId1] = $rec->productId1;
+        $mvc->updatedProducts[$rec->productId2] = $rec->productId2;
     }
 
 
@@ -834,7 +838,8 @@ class cat_products_Relations extends core_Manager
      */
     protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
-        foreach ($query->getDeletedRecs() as $id => $rec) {
+        // Кои артикули са с изтрити релации - заопашават се за инвалидиране на кеша на табовете
+        foreach ($query->getDeletedRecs() as $rec) {
             $mvc->updatedProducts[$rec->productId1] = $rec->productId1;
             $mvc->updatedProducts[$rec->productId2] = $rec->productId2;
         }
