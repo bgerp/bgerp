@@ -38,7 +38,7 @@ class cat_products_Relations extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created, plg_State2, plg_Sorting';
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created, plg_State2, plg_Sorting, plg_Select';
 
 
     /**
@@ -251,6 +251,7 @@ class cat_products_Relations extends core_Manager
 
         $query->setUnion("#productId1 = {$data->masterId}");
         $query->setUnion("#productId2 = {$data->masterId}");
+        $query->orderBy('id', 'ASC');
         $foundRecs = $query->fetchAll();
 
         if(!(countR($relationshipTypes) || countR($foundRecs))){
@@ -484,10 +485,11 @@ class cat_products_Relations extends core_Manager
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
             $this->invoke('BeforeRenderListTable', array($paneTpl, &$tabData));
             arr::sortObjects($tabData->rows, 'state', 'DESC');
+
             $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn');
             $details = $table->get($tabData->rows, $tabData->listFields);
+            $paneTpl->append($details, 'TABLE');
 
-            $paneTpl->replace($details, 'TABLE');
             $tabPanes .= $paneTpl->getContent();
         }
 
@@ -601,6 +603,16 @@ class cat_products_Relations extends core_Manager
 
             // Ако е избран конкретен друг артикул - той, ако не всички от групата
             $relRec = cat_RelationTypes::fetch($rec->relTypeId);
+            $symmetricProducts = array();
+
+            // Ако релацията е симетрична се проверява дали двата артикула вече не са обвързани
+            if($relRec->isSymmetric == 'yes'){
+                $exQuery = $this->getQuery();
+                $exQuery->where("#{$otherProductField} = {$productId} AND #relTypeId = {$rec->relTypeId}");
+                $exQuery->show("{$thisProductField}");
+                $symmetricProducts = arr::extractValuesFromArray($exQuery->fetchAll(), $thisProductField);
+            }
+
             $otherProducts = array();
             if(empty($rec->otherProductId)){
                 $pQuery = cat_Products::getQuery();
@@ -612,6 +624,9 @@ class cat_products_Relations extends core_Manager
                 }
             } else {
                 $otherProducts[$rec->otherProductId] = $rec->otherProductId;
+                if(array_key_exists($rec->otherProductId, $symmetricProducts)){
+                    $form->setError('otherProductId', "Двата артикула са вече свързани в симетрична релация|*!");
+                }
             }
 
             $count = count($otherProducts);
@@ -628,12 +643,15 @@ class cat_products_Relations extends core_Manager
                 $now = dt::now();
                 $cu = core_Users::getCurrent();
                 foreach ($otherProducts as $otherProductId) {
-                    $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId, 'createdOn' => $now, 'createdBy' => $cu);
-                    $newRecs[] = $newRec;
+                    if(!array_key_exists($otherProductId, $symmetricProducts)){
+                        $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId, 'createdOn' => $now, 'createdBy' => $cu);
+                        $newRecs[] = $newRec;
+                    }
                 }
 
                 // Ако е повече от 1 запис ще се добавят всичките, които не присъстват
-                if(countR($newRecs) > 1){
+                $count = countR($newRecs);
+                if($count > 1){
                     $exQuery = $this->getQuery();
                     $exQuery->where("#{$thisProductField} = {$productId} AND #relTypeId = {$rec->relTypeId}");
                     $exRecs = $exQuery->fetchAll();
@@ -645,7 +663,7 @@ class cat_products_Relations extends core_Manager
                     }
 
                     $msg = "Добавени връзки|*: <b>{$countNewRecs}</b>";
-                } else {
+                } elseif($count == 1) {
                     $onlyRec = $newRecs[key($newRecs)];
                     $saveFields = null;
                     if(isset($id)){
@@ -663,6 +681,8 @@ class cat_products_Relations extends core_Manager
                     } else {
                         $msg = 'Такава релация вече съществува|*!';
                     }
+                } else {
+                    $msg = 'Не са добавени нови релации|*!';
                 }
 
                 cat_Products::logWrite('Промяна на релации', $productId);
