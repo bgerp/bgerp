@@ -184,7 +184,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 }
                 
                 purchase_PurchasesData::save($dRec);
-                
+
                 self::setUpdateOnShutdown($mvc, $rec);
             }
         }

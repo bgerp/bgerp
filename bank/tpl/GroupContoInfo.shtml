@@ -24,7 +24,7 @@
     [#ACCOUNT_BLOCK#]
     <div class="account-block">
         <div class="account-header">
-            [#accountName#]
+            [#accountName#]: <span class="bankTotal">[#bankTotal#]</span>
         </div>
         <table class="doc-table">
             [#ACCOUNT_ROWS#]

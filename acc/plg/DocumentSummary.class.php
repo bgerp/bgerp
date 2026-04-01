@@ -357,6 +357,9 @@ class acc_plg_DocumentSummary extends core_Plugin
                         $stateOptions[$k] = is_object($v) ? $v->title : $v;
                     }
                     $stateOptions = array('all' => 'Всички') + $stateOptions;
+                    if(isset($stateOptions['draft']) && isset($stateOptions['pending'])){
+                        $stateOptions += array('draftAndPending' => 'Чернова+Заявка');
+                    }
                     $stateOptionsString = arr::fromArray($stateOptions);
                     $data->listFilter->FNC('fState', "enum({$stateOptionsString})", 'caption=Състояние,input,silent');
                     $data->listFilter->showFields .= ',fState';
@@ -378,8 +381,12 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $data->query->where("#template = '{$filter->template}'");
             }
 
-            if(!empty($filter->fState) && $filter->fState != 'all'){
-                $data->query->where("#state = '{$filter->fState}'");
+            if(!empty($filter->fState)){
+                if($filter->fState == 'draftAndPending'){
+                    $data->query->in('state', array('draft', 'pending'));
+                } elseif($filter->fState != 'all'){
+                    $data->query->where("#state = '{$filter->fState}'");
+                }
             }
 
             // Записваме в кеша последно избраните потребители
