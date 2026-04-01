@@ -32,19 +32,25 @@ class cat_products_Relations extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId1,productId2,relTypeId,state,createdOn,createdBy';
+    public $listFields = 'productId1,productId2,relTypeId,state,modifiedOn,modifiedBy,createdOn,createdBy';
 
 
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created, plg_State2, plg_Sorting';
+    public $loadList = 'cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_Created, plg_State2, plg_Sorting, plg_Select, plg_Modified';
 
 
     /**
      * Кой може да добавя
      */
     public $canAdd = 'no_one';
+
+
+    /**
+     * Кой може да инвалидира кеша
+     */
+    public $canInvalidate = 'catEdit,ceo';
 
 
     /**
@@ -95,6 +101,18 @@ class cat_products_Relations extends core_Manager
      * Работен кеш
      */
     private $cacheRelations = array();
+
+
+    /**
+     * Кеш на артикули, които са им променени релациите
+     */
+    protected $updatedProducts = array();
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'productId1,productId2';
 
 
     /**
@@ -211,20 +229,7 @@ class cat_products_Relations extends core_Manager
         }
 
         $row->created = tr("|*{$row->createdOn} |от|* {$row->createdBy}");
-
-        if(isset($fields['-detail'])){
-            $groupId1 = $rec->group1GroupId;
-            $groupId2 = $rec->group2GroupId;
-        } else {
-            $relType = cat_RelationTypes::fetch($rec->relTypeId);
-            $groupId1 = $relType->group1GroupId;
-            $groupId2 = $relType->group2GroupId;
-        }
-
-        list($rel1, $rel2) = explode(" ⬌ ", $row->relTypeId);
-        $rel1 = ht::createHint($rel1, "Група|*: " . cat_Groups::getTitleById($groupId1), 'notice', false);
-        $rel2 = ht::createHint($rel2, "Група|*: " . cat_Groups::getTitleById($groupId2), 'notice', false);
-        $row->relTypeId = "{$rel1} ⬌ {$rel2}";
+        $row->relTypeId = cat_RelationTypes::getRelTypeInfo($rec->relTypeId);
     }
 
 
@@ -245,15 +250,18 @@ class cat_products_Relations extends core_Manager
         $query->EXT('show2InExternal', 'cat_RelationTypes', 'externalName=show2InExternal,externalKey=relTypeId');
         $query->EXT('saoOrder', 'cat_RelationTypes', 'externalName=saoOrder,externalKey=relTypeId');
 
-        if(Mode::is('renderExternalRelation')){
+        $isExternal = Mode::is('wrapper', 'cms_page_External');
+
+        if (Mode::is('renderExternalRelation')) {
             $query->where("#state = 'active'");
         }
 
         $query->setUnion("#productId1 = {$data->masterId}");
         $query->setUnion("#productId2 = {$data->masterId}");
+        $query->orderBy('id', 'ASC');
         $foundRecs = $query->fetchAll();
 
-        if(!(countR($relationshipTypes) || countR($foundRecs))){
+        if (!(countR($relationshipTypes) || countR($foundRecs))) {
             $data->hide = true;
             return $data;
         }
@@ -261,23 +269,22 @@ class cat_products_Relations extends core_Manager
         $data->TabCaption = 'Релации';
         $data->Tab = 'top';
 
-        if(empty($data->forceCalc)){
+        if (empty($data->forceCalc)) {
             $prepareTab = Request::get($data->masterData->tabTopParam);
-            if($prepareTab != 'Relations') {
+            if ($prepareTab != 'Relations') {
                 $data->hide = true;
                 return;
             }
         }
 
-        // Подготовка на данните
+        // Подготовка на суровите данни
         $data->recs = $data->rows = array();
         $this->prepareListFields($data);
         $fields = $this->selectFields();
         $fields['-list'] = true;
         $fields['-detail'] = true;
-        $isExternal = Mode::is('wrapper', 'cms_page_External');
 
-        foreach($foundRecs as $rec){
+        foreach ($foundRecs as $rec) {
             $rec->_masterProductId = $data->masterId;
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
@@ -301,12 +308,14 @@ class cat_products_Relations extends core_Manager
             }
 
             // Ако не трябва да се показва във външната част - да не се показва
-            if($isExternal && $showInExternal !== 'yes') continue;
+            if ($isExternal && $showInExternal !== 'yes') continue;
 
-            if (!isset($groupedRows[$otherGroupName])) {
-                $groupedRows[$otherGroupName] = array(
+            $groupKey = $rec->relTypeId . '|' . $otherGroupName;
+
+            if (!isset($groupedRows[$groupKey])) {
+                $groupedRows[$groupKey] = array(
                     'groupName' => core_Type::getByName('varchar')->toVerbal($otherGroupName),
-                    'relType' => cat_RelationTypes::getTitleById($rec->relTypeId),
+                    'relType' => cat_RelationTypes::getRelTypeInfo($rec->relTypeId),
                     'order' => $rec->saoOrder,
                     'rows' => array(),
                     'recs' => array(),
@@ -314,22 +323,190 @@ class cat_products_Relations extends core_Manager
                     'count' => 0,
                 );
 
-                if(!empty($groupNameInfo)){
-                    $groupedRows[$otherGroupName]['info'] = core_Type::getByName('richtext')->toVerbal($groupNameInfo);
+                if (!empty($groupNameInfo)) {
+                    $groupedRows[$groupKey]['info'] = core_Type::getByName('richtext')->toVerbal($groupNameInfo);
                 }
             }
 
-            $groupedRows[$otherGroupName]['rows'][$id] = $data->rows[$id];
-            $groupedRows[$otherGroupName]['recs'][$id] = $rec;
-            $groupedRows[$otherGroupName]['productIds'][$id] = $otherProductId;
-            $groupedRows[$otherGroupName]['count']++;
+            $groupedRows[$groupKey]['rows'][$id] = $data->rows[$id];
+            $groupedRows[$groupKey]['recs'][$id] = $rec;
+            $groupedRows[$groupKey]['productIds'][$id] = $otherProductId;
+            $groupedRows[$groupKey]['count']++;
         }
 
-        // Подредба на групираните записи по група
         arr::sortObjects($groupedRows, 'order');
         $data->groupedRows = $groupedRows;
-        if($this->haveRightFor('modify', (object)array('productId' => $data->masterId))){
+
+        if ($this->haveRightFor('modify', (object)array('productId' => $data->masterId))) {
             $data->addUrl = array($this, 'modify', 'productId' => $data->masterId, 'ret_url' => true);
+        }
+
+        if ($this->haveRightFor('invalidate', (object)array('productId' => $data->masterId))) {
+            $data->invalidateUrl = array($this, 'invalidate', 'productId' => $data->masterId, 'ret_url' => true);
+        }
+
+        if (empty($data->groupedRows)) {
+            return $data;
+        }
+
+        // Подготовка на табовете за рендиране
+        $data->tabKey = 'prodRelTabs_' . $data->masterId . '_' . substr(md5(implode('|', array_keys($data->groupedRows))), 0, 8);
+        $data->storageKey = 'prodRelTabs_' . $data->masterId;
+        $data->imageSize = array('width' => 40, 'height' => 40);
+
+        $isExternalKey = $isExternal ? ("{$isExternal}|" . cms_Domains::getPublicDomain()->id) : $isExternal;
+        $cacheKey = "relTabs{$isExternalKey}";
+        $cachedTabs = core_Cache::get("{$this->className}_{$data->masterId}", $cacheKey, 120);
+        $isFromCache = is_array($cachedTabs);
+
+        if (!$isFromCache) {
+            $tabs = array();
+            $activeTabInfo = '';
+
+            $eshopProducts = $productIds = $productRecs = array();
+            if ($isExternal) {
+                foreach ($data->groupedRows as $groupData1) {
+                    $productIds = array_merge($groupData1['productIds'], $productIds);
+                }
+
+                $productIds = array_unique($productIds);
+
+                $pQuery = cat_Products::getQuery();
+                if (countR($productIds)) {
+                    $pQuery->in('id', $productIds);
+                } else {
+                    $pQuery->where('1=2');
+                }
+                $pQuery->show('code');
+                $productRecs = $pQuery->fetchAll();
+
+                $domainId = cms_Domains::getPublicDomain()->id;
+                $eQuery = eshop_ProductDetails::getQuery();
+                $eQuery->EXT('domainId', 'eshop_Products', 'externalName=domainId,externalKey=eshopProductId');
+                $eQuery->where("#domainId = '{$domainId}' AND #state != 'closed'");
+                if (countR($productIds)) {
+                    $eQuery->in('productId', $productIds);
+                } else {
+                    $eQuery->where("1=2");
+                }
+
+                while ($eRec = $eQuery->fetch()) {
+                    $eshopProducts[$eRec->productId] = $eRec;
+                }
+            }
+
+            $tabN = 0;
+            foreach ($data->groupedRows as $groupKey => $groupData) {
+                $tabN++;
+                $paneId = $data->tabKey . '_pane_' . $tabN;
+                $count = $groupData['count'] ?? countR($groupData['rows']);
+
+                $groupInfo = '';
+                if (!$isExternal && !empty($groupData['relType'])) {
+                    $groupInfo = $groupData['relType'];
+                }
+                if (!empty($groupData['info'])) {
+                    $groupInfo .= ($groupInfo ? ' ' : '') . $groupData['info'];
+                }
+
+                if ($tabN == 1) {
+                    $activeTabInfo = $groupInfo;
+                }
+
+                $tabData = new stdClass();
+                $tabData->rows = array();
+                $tabData->recs = array();
+
+                $tabData->listFields = arr::make('productId=Артикул,created=Създаване');
+                if ($isExternal) {
+                    $tabData->listFields = arr::make('img=|*&nbsp;,productId=Артикул,code=Кат. №,price=Цена,btn=Поръчка');
+                }
+
+                foreach ($groupData['recs'] as $id => $rec) {
+                    $tabRec = is_object($rec) ? clone $rec : $rec;
+                    $tabRow = is_object($groupData['rows'][$id]) ? clone $groupData['rows'][$id] : $groupData['rows'][$id];
+
+                    // В колоната productId показваме "другия" артикул от релацията
+                    if ($rec->productId1 == $data->masterId) {
+                        $tabRow->productId = $tabRow->productId2;
+                        $tabRec->productId = $rec->productId2;
+                    } else {
+                        $tabRow->productId = $tabRow->productId1;
+                        $tabRec->productId = $rec->productId1;
+                    }
+
+                    if ($isExternal) {
+                        if (array_key_exists($tabRec->productId, $eshopProducts)) {
+                            $eshopProductId = $eshopProducts[$tabRec->productId]->eshopProductId;
+                            $tabRow->productId = eshop_ProductDetails::getPublicProductTitle($eshopProductId, $tabRec->productId, false);
+                            $tabRow->productId = ht::createLink($tabRow->productId, eshop_Products::getUrl($eshopProductId));
+
+                            $eshopRec = eshop_Products::fetch($eshopProductId);
+                            $thumb = eshop_Products::getProductThumb($eshopRec, $data->imageSize['width'], $data->imageSize['height'], true);
+                            $tabRow->img = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
+
+                            $pRecClone = clone $eshopProducts[$tabRec->productId];
+                            $minData = eshop_ProductDetails::getMinPackagingAndQuantity($pRecClone);
+                            $pRecClone->packagingId = $minData['packagingId'];
+                            $pRecClone->quantityInPack = $minData['quantity'];
+                            $pRecClone->_listView = true;
+
+                            $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
+                            $tabRow->price = $dRow->catalogPrice;
+                            $tabRow->btn = $dRow->btn;
+                        } else {
+                            $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), $data->imageSize['width'], $data->imageSize['height'], 'path');
+                            $preview = cat_Products::getParams($tabRec->productId, 'preview');
+                            if (!empty($preview)) {
+                                $path = fileman::fetchByFh($preview, 'path');
+                                if (file_exists($path)) {
+                                    $thumb = new thumb_Img($preview, $data->imageSize['width'], $data->imageSize['height']);
+                                }
+                            }
+                            $tabRow->img = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
+                        }
+
+                        $tabRow->code = $productRecs[$tabRec->productId]->code ?? "Art{$tabRec->productId}";
+                    }
+
+                    $tabData->rows[$id] = $tabRow;
+                    $tabData->recs[$id] = $tabRec;
+                }
+
+                arr::sortObjects($tabData->rows, 'state', 'DESC');
+                $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn');
+
+                $tabs[] = array(
+                    'groupKey' => $groupKey,
+                    'groupName' => $groupData['groupName'],
+                    'groupInfo' => $groupInfo,
+                    'count' => $count,
+                    'paneId' => $paneId,
+                    'isActive' => ($tabN == 1),
+                    'tabData' => $tabData,
+                );
+            }
+
+            $cachedTabs = array(
+                'tabs' => $tabs,
+                'activeTabInfo' => $activeTabInfo,
+            );
+
+            core_Cache::set("{$this->className}_{$data->masterId}", $cacheKey, $cachedTabs, 120);
+        }
+
+        $data->tabs = $cachedTabs['tabs'];
+        $data->activeTabInfo = $cachedTabs['activeTabInfo'];
+
+        if (haveRole('debug')) {
+            $debugLabel = $isFromCache ? '<div style="margin-top:5px;font-size:0.6em;">GET FROM CACHE</div>' : '<div style="margin-top:5px;font-size:0.6em;">CACHE</div>';
+
+            foreach ($data->tabs as &$tab) {
+                $tab['groupInfo'] .= ($tab['groupInfo'] ? ' ' : '') . $debugLabel;
+            }
+            unset($tab);
+
+            $data->activeTabInfo .= ($data->activeTabInfo ? ' ' : '') . $debugLabel;
         }
 
         return $data;
@@ -358,14 +535,14 @@ class cat_products_Relations extends core_Manager
                 $addBtn = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,caption=Добавяне на нова продуктова връзка');
                 $tpl->append($addBtn, 'title');
             }
+
+            if (isset($data->invalidateUrl)) {
+                $invalidateBtn = ht::createLink('', $data->invalidateUrl, false, 'ef_icon=img/16/arrow_refresh.png,caption=Опресняване на кешираните данни');
+                $tpl->append($invalidateBtn, 'title');
+            }
         }
 
-        if (empty($data->groupedRows)) return $tpl;
-
-        $tabKey = 'prodRelTabs_' . $data->masterId . '_' . substr(md5(implode('|', array_keys($data->groupedRows))), 0, 8);
-
-        // Ключът е стабилен по masterId, за да се помни активният таб между reload/followRetUrl
-        $storageKey = 'prodRelTabs_' . $data->masterId;
+        if (empty($data->tabs)) return $tpl;
 
         $tabsTpl = new core_ET("
         <div id='[#TAB_KEY#]' class='product-rel-tabs-compact' data-storage-key='[#STORAGE_KEY#]'>
@@ -374,104 +551,23 @@ class cat_products_Relations extends core_Manager
             <div class='product-rel-tabs-content'>[#TAB_PANES#]</div>
         </div>
     ");
-        $tabsTpl->replace($tabKey, 'TAB_KEY');
-        $tabsTpl->replace($storageKey, 'STORAGE_KEY');
+        $tabsTpl->replace($data->tabKey, 'TAB_KEY');
+        $tabsTpl->replace($data->storageKey, 'STORAGE_KEY');
 
         $tabLinks = '';
         $tabPanes = '';
-        $tabN = 0;
-        $activeTabInfo = '';
 
-        $eshopProducts = array();
-        if ($isExternal) {
-            $domainId = cms_Domains::getPublicDomain()->id;
-            $eQuery = eshop_ProductDetails::getQuery();
-            $eQuery->EXT('domainId', 'eshop_Products', 'externalName=domainId,externalKey=eshopProductId');
-            $eQuery->where("#domainId = '{$domainId}' AND #state != 'closed'");
-            while ($eRec = $eQuery->fetch()) {
-                $eshopProducts[$eRec->productId] = $eRec;
-            }
-        }
+        foreach ($data->tabs as $tab) {
+            $isActiveClass = $tab['isActive'] ? ' active' : '';
+            $groupNameAttr = ht::escapeAttr($tab['groupName']);
+            $tabInfoAttr = ht::escapeAttr($tab['groupInfo']);
+            $tabCaption = "{$tab['groupName']} <span class='product-rel-tab-count'>({$tab['count']})</span>";
 
-        $data->imageSize = array('width' => 40, 'height' => 40);
-        foreach ($data->groupedRows as $groupName => $groupData) {
-            $tabN++;
-            $paneId = $tabKey . '_pane_' . $tabN;
-            $isActive = ($tabN == 1) ? ' active' : '';
-            $count = $groupData['count'] ?? countR($groupData['rows']);
-            $groupInfo = !$isExternal ? $groupData['relType'] : '';
-            $groupInfo .= !empty($groupData['info']) ? $groupData['info'] : '';
-            if ($tabN == 1) {
-                $activeTabInfo = $groupInfo;
-            }
-
-            $groupNameAttr = ht::escapeAttr($groupName);
-            $tabInfoAttr = ht::escapeAttr($groupInfo);
-            $tabCaption = "{$groupName} <span class='product-rel-tab-count'>({$count})</span>";
-
-            $tabLinks .= "<a href=\"#\" class=\"product-rel-tab tab {$isActive}\" data-pane=\"{$paneId}\" data-tab-key=\"{$groupNameAttr}\" data-info=\"{$tabInfoAttr}\" onclick=\"return catProductsRelationsShowTab(this, '{$tabKey}');\">{$tabCaption}</a>";
-
-            $tabData = clone $data;
-            $tabData->recs = $tabData->rows = array();
-
-            $tabData->listFields = arr::make('productId=Артикул,created=Създаване');
-            if ($isExternal) {
-                $tabData->listFields = arr::make('img=|*&nbsp;,productId=Артикул,code=Кат. №,price=Цена,btn=Поръчка');
-            }
-
-            foreach ($groupData['recs'] as $id => $rec) {
-                $tabRec = is_object($rec) ? clone $rec : $rec;
-                $tabRow = is_object($groupData['rows'][$id]) ? clone $groupData['rows'][$id] : $groupData['rows'][$id];
-
-                // В колоната productId показваме "другия" артикул от релацията
-                if ($rec->productId1 == $data->masterId) {
-                    $tabRow->productId = $tabRow->productId2;
-                    $tabRec->productId = $rec->productId2;
-                } else {
-                    $tabRow->productId = $tabRow->productId1;
-                    $tabRec->productId = $rec->productId1;
-                }
-
-                if (array_key_exists($tabRec->productId, $eshopProducts)) {
-                    $eshopProductId = $eshopProducts[$tabRec->productId]->eshopProductId;
-                    $tabRow->productId = eshop_ProductDetails::getPublicProductTitle($eshopProductId, $tabRec->productId, false);
-                    $tabRow->productId = ht::createLink($tabRow->productId, eshop_Products::getUrl($eshopProductId));
-
-                    $eshopRec = eshop_Products::fetch($eshopProductId);
-                    $thumb = eshop_Products::getProductThumb($eshopRec, $data->imageSize['width'], $data->imageSize['height'], true);
-                    $tabRow->img = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
-                    $pRecClone = clone $eshopProducts[$tabRec->productId];
-                    $minData = eshop_ProductDetails::getMinPackagingAndQuantity($pRecClone);
-                    $pRecClone->packagingId = $minData['packagingId'];
-                    $pRecClone->quantityInPack = $minData['quantity'];
-                    $pRecClone->_listView = true;
-
-                    $dRow = eshop_ProductDetails::getExternalRow($pRecClone);
-                    $tabRow->price = $dRow->catalogPrice;
-                    $tabRow->btn = $dRow->btn;
-                } else {
-                    $thumb = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') .'.png'), $data->imageSize['width'], $data->imageSize['height'], 'path');
-                    $preview = cat_Products::getParams($tabRec->productId, 'preview');
-                    if(!empty($preview)) {
-                        $path = fileman::fetchByFh($preview, 'path');
-                        if (file_exists($path)) {
-                            $thumb = new thumb_Img($preview, $data->imageSize['width'], $data->imageSize['height']);
-                        }
-                    }
-                    $tabRow->img = $thumb->createImg(array('class' => 'eshopNearProductThumb'))->getContent();
-                }
-
-                if ($isExternal) {
-                    $tabRow->code = cat_Products::fetchField($tabRec->productId, 'code');
-                }
-
-                $tabData->rows[$id] = $tabRow;
-                $tabData->recs[$id] = $tabRec;
-            }
+            $tabLinks .= "<a href=\"#\" class=\"product-rel-tab tab{$isActiveClass}\" data-pane=\"{$tab['paneId']}\" data-tab-key=\"{$groupNameAttr}\" data-info=\"{$tabInfoAttr}\" onclick=\"return catProductsRelationsShowTab(this, '{$data->tabKey}');\">{$tabCaption}</a>";
 
             $paneTpl = new core_ET("<div id='[#PANE_ID#]' class='product-rel-tab-pane[#ACTIVE#]'>[#TABLE#]</div>");
-            $paneTpl->replace($paneId, 'PANE_ID');
-            $paneTpl->replace($isActive, 'ACTIVE');
+            $paneTpl->replace($tab['paneId'], 'PANE_ID');
+            $paneTpl->replace($isActiveClass, 'ACTIVE');
 
             $listMvc = clone $this;
             $listMvc->FNC('productId', 'varchar', 'tdClass=leftCol relProductCol');
@@ -482,23 +578,24 @@ class cat_products_Relations extends core_Manager
             $listMvc->FNC('img', 'varchar', 'tdClass=small relCol relImgCol');
 
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
-            $this->invoke('BeforeRenderListTable', array($paneTpl, &$tabData));
-            arr::sortObjects($tabData->rows, 'state', 'DESC');
-            $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn');
-            $details = $table->get($tabData->rows, $tabData->listFields);
+            $tabData = $tab['tabData'];
 
-            $paneTpl->replace($details, 'TABLE');
+            $this->invoke('BeforeRenderListTable', array($paneTpl, &$tabData));
+            $details = $table->get($tabData->rows, $tabData->listFields);
+            $paneTpl->append($details, 'TABLE');
+
             $tabPanes .= $paneTpl->getContent();
         }
 
-        $tabsTpl->replace($activeTabInfo, 'ACTIVE_TAB_INFO');
+        $tabsTpl->replace($data->activeTabInfo, 'ACTIVE_TAB_INFO');
         $tabsTpl->replace($tabLinks, 'TAB_LINKS');
         $tabsTpl->replace($tabPanes, 'TAB_PANES');
 
         $tpl->append($tabsTpl, 'content');
         $tpl->push('cat/tpl/css/productRelStyles.scss', 'CSS');
         $tpl->push('cat/tpl/js/productRelationScripts.js', 'JS');
-        jquery_Jquery::run($tpl, "catProductsRelationsInitTabsById('{$tabKey}');");
+        jquery_Jquery::run($tpl, "catProductsRelationsInitTabsById('{$data->tabKey}');");
+        jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
 
         return $tpl;
     }
@@ -601,6 +698,16 @@ class cat_products_Relations extends core_Manager
 
             // Ако е избран конкретен друг артикул - той, ако не всички от групата
             $relRec = cat_RelationTypes::fetch($rec->relTypeId);
+            $symmetricProducts = array();
+
+            // Ако релацията е симетрична се проверява дали двата артикула вече не са обвързани
+            if($relRec->isSymmetric == 'yes'){
+                $exQuery = $this->getQuery();
+                $exQuery->where("#{$otherProductField} = {$productId} AND #relTypeId = {$rec->relTypeId}");
+                $exQuery->show("{$thisProductField}");
+                $symmetricProducts = arr::extractValuesFromArray($exQuery->fetchAll(), $thisProductField);
+            }
+
             $otherProducts = array();
             if(empty($rec->otherProductId)){
                 $pQuery = cat_Products::getQuery();
@@ -612,6 +719,9 @@ class cat_products_Relations extends core_Manager
                 }
             } else {
                 $otherProducts[$rec->otherProductId] = $rec->otherProductId;
+                if(array_key_exists($rec->otherProductId, $symmetricProducts)){
+                    $form->setError('otherProductId', "Двата артикула са вече свързани в симетрична релация|*!");
+                }
             }
 
             $count = count($otherProducts);
@@ -624,16 +734,21 @@ class cat_products_Relations extends core_Manager
             if(!$form->gotErrors()){
 
                 // Подготовка на записите
+                $this->updatedProducts[$productId] = $productId;
                 $newRecs = array();
                 $now = dt::now();
                 $cu = core_Users::getCurrent();
                 foreach ($otherProducts as $otherProductId) {
-                    $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId, 'createdOn' => $now, 'createdBy' => $cu);
-                    $newRecs[] = $newRec;
+                    if(!array_key_exists($otherProductId, $symmetricProducts)){
+                        $this->updatedProducts[$otherProductId] = $otherProductId;
+                        $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId, 'createdOn' => $now, 'createdBy' => $cu, 'modifiedOn' => $now, 'modifiedBy' => $cu);
+                        $newRecs[] = $newRec;
+                    }
                 }
 
                 // Ако е повече от 1 запис ще се добавят всичките, които не присъстват
-                if(countR($newRecs) > 1){
+                $count = countR($newRecs);
+                if($count > 1){
                     $exQuery = $this->getQuery();
                     $exQuery->where("#{$thisProductField} = {$productId} AND #relTypeId = {$rec->relTypeId}");
                     $exRecs = $exQuery->fetchAll();
@@ -645,12 +760,12 @@ class cat_products_Relations extends core_Manager
                     }
 
                     $msg = "Добавени връзки|*: <b>{$countNewRecs}</b>";
-                } else {
+                } elseif($count == 1) {
                     $onlyRec = $newRecs[key($newRecs)];
                     $saveFields = null;
                     if(isset($id)){
                         $onlyRec->id = $id;
-                        $saveFields = 'productId1,productId2,relTypeId';
+                        $saveFields = 'productId1,productId2,relTypeId,modifiedOn,modifiedBy';
                     }
 
                     $exRec = $fields = null;
@@ -663,6 +778,8 @@ class cat_products_Relations extends core_Manager
                     } else {
                         $msg = 'Такава релация вече съществува|*!';
                     }
+                } else {
+                    $msg = 'Не са добавени нови релации|*!';
                 }
 
                 cat_Products::logWrite('Промяна на релации', $productId);
@@ -701,9 +818,60 @@ class cat_products_Relations extends core_Manager
         Mode::push('noToolbar', true);
         Mode::push('renderExternalRelation', true);
         $me->prepareRelations($data);
-        Mode::pop();
+        Mode::pop('renderExternalRelation');
         Mode::pop('noToolbar', true);
 
         return $data;
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        // Кои артикули с променени - заопашават се за инвалидиране на кеша на табовете
+        $mvc->updatedProducts[$rec->productId1] = $rec->productId1;
+        $mvc->updatedProducts[$rec->productId2] = $rec->productId2;
+    }
+
+
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        // Кои артикули са с изтрити релации - заопашават се за инвалидиране на кеша на табовете
+        foreach ($query->getDeletedRecs() as $rec) {
+            $mvc->updatedProducts[$rec->productId1] = $rec->productId1;
+            $mvc->updatedProducts[$rec->productId2] = $rec->productId2;
+        }
+    }
+
+
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // Триене на кеша на артикулите с променени връзки
+        if(countR($mvc->updatedProducts)){
+            foreach ($mvc->updatedProducts as $productId){
+                core_Cache::removeByType("cat_products_Relations_{$productId}");
+            }
+        }
+    }
+
+
+    /**
+     * Модифициране на записите
+     */
+    public function act_Invalidate()
+    {
+        $this->requireRightFor('invalidate');
+        expect($productId = Request::get('productId', 'int'));
+        core_Cache::removeByType("cat_products_Relations_{$productId}");
+
+        followRetUrl(null, 'Данните за релациите са опреснени');
     }
 }
