@@ -600,13 +600,14 @@ class eshop_Products extends core_Master
     /**
      * Показване на тъмбнейла на е-артикула
      *
-     * @param stdClass $rec
-     * @param int      $width
-     * @param int      $height
+     * @param stdClass $rec                 - запис на е-артикула
+     * @param int      $width               - широчина на тхъмба
+     * @param int      $height              - височина на тхъмба
+     * @param boolean  $showInternalPreview - дали да се показва вътрешната картинка на артикула
      *
      * @return thumb_Img|NULL
      */
-    public static function getProductThumb($rec, $width = 240, $height = 240)
+    public static function getProductThumb($rec, $width = 240, $height = 240, $showInternalPreview = false)
     {
         $imageArr = array();
         foreach (array('', '2', '3', '4', '5') as $i) {
@@ -618,7 +619,25 @@ class eshop_Products extends core_Master
                 }
             }
         }
-        
+
+        // Ако е-артикула няма изображения да се показва превюто на някой от посочените му артикули (ако е посочено да се търси така)
+        if($showInternalPreview){
+            if(!countR($imageArr)){
+                $eQuery = eshop_ProductDetails::getQuery();
+                $eQuery->where("#eshopProductId = {$rec->id} AND #state = 'active'");
+                $eQuery->show('productId,eshopProductId');
+                while($eRec = $eQuery->fetch()){
+                    $preview = cat_Products::getParams($eRec->productId, 'preview');
+                    if(!empty($preview)){
+                        $path = fileman::fetchByFh($preview, 'path');
+                        if (file_exists($path)) {
+                            $imageArr[] = $preview;
+                        }
+                    }
+                }
+            }
+        }
+
         if (countR($imageArr)) {
             $howToSelectMainImage = ($rec->howToSelectMainImage == 'auto') ? eshop_Setup::get('PRODUCT_IMG_LOGIC') : $rec->howToSelectMainImage;
             if($howToSelectMainImage == 'rotation'){
@@ -740,29 +759,10 @@ class eshop_Products extends core_Master
                 }
 
                 $dRec = $dQuery->fetch();
-                $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
-                $packagings = cat_Products::getProductInfo($dRec->productId)->packagings;
 
-                // Какви са к-та в опаковките
-                $selectedPackagings = keylist::toArray($dRec->packagings);
-                $packs = array($measureId => 1);
-                foreach ($packagings as $packRec) {
-                    $packs[$packRec->packagingId] = $packRec->quantity;
-                }
-
-                // Коя е най-малката опаковка от избраните
-                $minPackagingId = $minQuantityInPack = null;
-                foreach ($selectedPackagings as $selPackId) {
-                    $q = $packs[$selPackId];
-                    if (!$q) {
-                        continue;
-                    }
-
-                    if (is_null($minPackagingId) || (isset($minPackagingId) && $q < $minQuantityInPack)) {
-                        $minPackagingId = $selPackId;
-                        $minQuantityInPack = $q;
-                    }
-                }
+                $minData = eshop_ProductDetails::getMinPackagingAndQuantity($dRec);
+                $minPackagingId = $minData['packagingId'];
+                $minQuantityInPack = $minData['quantity'];
 
                 // Ако мярката е брой и е показано да се показва
                 if (isset($minPackagingId)) {
@@ -776,7 +776,7 @@ class eshop_Products extends core_Master
                         $pRow->saleInfo = $dRow->saleInfo;
                         $pRow->singleCurrencyId = $settings->currencyId;
                         $pRow->chargeVat = ($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
-                        $pRow->catalogPrice = $dRow->catalogPrice;
+                        $pRow->catalogPrice = "<b>" . $dRow->catalogPrice . "</b>";
                         $pRow->packagingId = $dRow->packagingId;
                         $pRow->btn = $dRow->btn;
                     }
@@ -812,8 +812,7 @@ class eshop_Products extends core_Master
             $data->addUrl = array('eshop_Products', 'add', 'groupId' => $data->groupId, 'ret_url' => true);
         }
     }
-    
-    
+
     /**
      * Рендира всички артикули
      */
@@ -947,7 +946,7 @@ class eshop_Products extends core_Master
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
-        
+
         $data = new stdClass();
         $data->productId = Request::get('id', 'int');
 
@@ -1004,7 +1003,6 @@ class eshop_Products extends core_Master
         
         // Поставяме SEO данните
         cms_Content::renderSeo($tpl, $rec);
-        
         $tpl->append($this->renderProduct($data), 'PAGE_CONTENT');
         
         // Добавя канонично URL
@@ -1107,6 +1105,13 @@ class eshop_Products extends core_Master
                 $data->row->STATE_EXTERNAL = $data->detailData->rows[0]->saleInfo;
             }
         }
+
+        // Ако е само 1 артикул се подтовят релациите му (ако има такива)
+        $individualProducts = arr::extractValuesFromArray($data->detailData->recs, 'productId');
+        if(countR($individualProducts) == 1){
+            $onlyProductId = key($individualProducts);
+            $data->relationData = cat_products_Relations::prepareExternalData($onlyProductId, $data->rec);
+        }
     }
     
     
@@ -1182,7 +1187,16 @@ class eshop_Products extends core_Master
                 $tpl->append($block, 'NEAR_ROWS');
             }
         }
-        
+
+        if(!empty($data->relationData)){
+            if($data->relationData->hide !== true){
+                $Relations = cls::get('cat_products_Relations');
+                $relTpl = $Relations->renderRelations($data->relationData);
+                $relTpl->removeBlocksAndPlaces();
+                $tpl->append($relTpl, 'RELATION_TABS');
+            }
+        }
+
         return $tpl;
     }
     

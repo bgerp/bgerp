@@ -179,7 +179,6 @@ body {
   margin-top: 0;
   margin-bottom: 15px;
   border-radius: 2px;
-  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
   -webkit-transition: -webkit-transform 300 ease-in-out, opacity 300;
   transition: transform 300 ease-in-out, opacity 300;
   padding: 0px 15px 15px; }
@@ -195,7 +194,6 @@ body {
     position: relative;
     top: 0;
     border-radius: 0 !important;
-    box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1);
     margin-bottom: 20px; }
   .portal .pages a {
     background-color: rgba(255, 255, 255, 0.3);
@@ -646,35 +644,6 @@ body {
     /*
    * Old browsers
    */
-  background: -moz-linear-gradient(top, #4a4a4a 0%, #383838 100%);
-    /*
-   * FF3.6+
-   */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #4a4a4a), color-stop(100%, #383838));
-    /*
-   * Chrome,Safari4+
-   */
-  background: -webkit-linear-gradient(top, #4a4a4a 0%, #383838 100%);
-    /*
-   * Chrome10+,Safari5.1+
-   */
-  background: -o-linear-gradient(top, #4a4a4a 0%, #383838 100%);
-    /*
-   * Opera 11.10+
-   */
-  background: -ms-linear-gradient(top, #4a4a4a 0%, #383838 100%);
-    /*
-   * IE10+
-   */
-  background: linear-gradient(to bottom, #4a4a4a 0%, #383838 100%);
-    /*
-   * W3C
-   */
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4a4a4a', endColorstr='#383838', GradientType=0);
-    /*
-   * IE6-9
-   */
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
   cursor: pointer;
   font-size: 0.95em;
   text-shadow: 0 1px 1px black;
@@ -734,13 +703,13 @@ body {
   cursor: pointer;
   background: #eeeeee;
   margin: 0 6px;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); }
+  border: 1px solid #aaaaaa; }
   .btn-sidemenu .menuIcon {
     opacity: 0.6;
     width: 20px;
     border-radius: 6px; }
   .btn-sidemenu:hover {
-    border-color: #444444; }
+    border-color: #666666; }
     .btn-sidemenu:hover .menuIcon {
       opacity: 0.9; }
 
@@ -762,10 +731,10 @@ body {
   border: solid 1px var(--theme-color);
   z-index: 11;
   padding: 0px 15px 0px 1px;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  border: 1px solid #aaaaaa;
   background: #eeeeee url('../img/16/arrow_down3.png') 28px center no-repeat; }
   .menu-options:hover {
-    border-color: #444444; }
+    border-color: #666666; }
   .menu-options img {
     border-radius: 3px 0 0 3px;
     height: 28px;
@@ -801,8 +770,7 @@ body {
   z-index: 1000;
   background-color: white;
   border-radius: 6px;
-  border: 1px solid #cccccc;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); }
+  border: 1px solid #cccccc; }
   .menu-holder a:not(.profile) {
     color: #333333 !important; }
   .menu-holder a {
@@ -998,8 +966,7 @@ button {
   border-right: 1px solid #dfdfdf;
   border-bottom: 1px solid #b4b4b4;
   border-right: 1px solid #dfdfdf;
-  -webkit-box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+  box-shadow: none;
   text-shadow: 0 1px 0px #f1f1f1; }
   a.button:hover,
   input[type="button"]:hover,
@@ -1087,9 +1054,6 @@ white)) {
 .formTitle a,
 .formGroup a {
   color: white !important; }
-
-.wide .vertical .formTable {
-  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); }
 
 form[method="post"] input[type="submit"] {
   background-color: #888888;
