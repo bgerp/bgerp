@@ -243,4 +243,22 @@ class cat_RelationTypes extends core_Manager
             }
         }
     }
+
+
+    /**
+     * Вербално описание на връзката
+     * @param stdClass|int $id
+     * @return string
+     */
+    public static function getRelTypeInfo($id)
+    {
+        $rec = self::fetchRec($id);
+        $typeVerbal = self::getTitleById($id);
+
+        list($rel1, $rel2) = explode(" ⬌ ", $typeVerbal);
+        $rel1 = ht::createHint($rel1, "Група|*: " . cat_Groups::getTitleById($rec->group1GroupId), 'notice', false);
+        $rel2 = ht::createHint($rel2, "Група|*: " . cat_Groups::getTitleById($rec->group2GroupId), 'notice', false);
+
+        return  "{$rel1} ⬌ {$rel2}";
+    }
 }

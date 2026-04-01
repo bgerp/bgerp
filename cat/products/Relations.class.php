@@ -48,6 +48,12 @@ class cat_products_Relations extends core_Manager
 
 
     /**
+     * Кой може да инвалидира кеша
+     */
+    public $canInvalidate = 'catEdit,ceo';
+
+
+    /**
      * Кой може да листва
      */
     public $canList = 'catEdit,ceo';
@@ -223,20 +229,7 @@ class cat_products_Relations extends core_Manager
         }
 
         $row->created = tr("|*{$row->createdOn} |от|* {$row->createdBy}");
-
-        if(isset($fields['-detail'])){
-            $groupId1 = $rec->group1GroupId;
-            $groupId2 = $rec->group2GroupId;
-        } else {
-            $relType = cat_RelationTypes::fetch($rec->relTypeId);
-            $groupId1 = $relType->group1GroupId;
-            $groupId2 = $relType->group2GroupId;
-        }
-
-        list($rel1, $rel2) = explode(" ⬌ ", $row->relTypeId);
-        $rel1 = ht::createHint($rel1, "Група|*: " . cat_Groups::getTitleById($groupId1), 'notice', false);
-        $rel2 = ht::createHint($rel2, "Група|*: " . cat_Groups::getTitleById($groupId2), 'notice', false);
-        $row->relTypeId = "{$rel1} ⬌ {$rel2}";
+        $row->relTypeId = cat_RelationTypes::getRelTypeInfo($rec->relTypeId);
     }
 
 
@@ -322,7 +315,7 @@ class cat_products_Relations extends core_Manager
             if (!isset($groupedRows[$groupKey])) {
                 $groupedRows[$groupKey] = array(
                     'groupName' => core_Type::getByName('varchar')->toVerbal($otherGroupName),
-                    'relType' => cat_RelationTypes::getTitleById($rec->relTypeId),
+                    'relType' => cat_RelationTypes::getRelTypeInfo($rec->relTypeId),
                     'order' => $rec->saoOrder,
                     'rows' => array(),
                     'recs' => array(),
@@ -346,6 +339,10 @@ class cat_products_Relations extends core_Manager
 
         if ($this->haveRightFor('modify', (object)array('productId' => $data->masterId))) {
             $data->addUrl = array($this, 'modify', 'productId' => $data->masterId, 'ret_url' => true);
+        }
+
+        if ($this->haveRightFor('invalidate', (object)array('productId' => $data->masterId))) {
+            $data->invalidateUrl = array($this, 'invalidate', 'productId' => $data->masterId, 'ret_url' => true);
         }
 
         if (empty($data->groupedRows)) {
@@ -538,6 +535,11 @@ class cat_products_Relations extends core_Manager
                 $addBtn = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,caption=Добавяне на нова продуктова връзка');
                 $tpl->append($addBtn, 'title');
             }
+
+            if (isset($data->invalidateUrl)) {
+                $invalidateBtn = ht::createLink('', $data->invalidateUrl, false, 'ef_icon=img/16/arrow_refresh.png,caption=Опресняване на кешираните данни');
+                $tpl->append($invalidateBtn, 'title');
+            }
         }
 
         if (empty($data->tabs)) return $tpl;
@@ -593,6 +595,7 @@ class cat_products_Relations extends core_Manager
         $tpl->push('cat/tpl/css/productRelStyles.scss', 'CSS');
         $tpl->push('cat/tpl/js/productRelationScripts.js', 'JS');
         jquery_Jquery::run($tpl, "catProductsRelationsInitTabsById('{$data->tabKey}');");
+        jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
 
         return $tpl;
     }
@@ -857,5 +860,18 @@ class cat_products_Relations extends core_Manager
                 core_Cache::removeByType("cat_products_Relations_{$productId}");
             }
         }
+    }
+
+
+    /**
+     * Модифициране на записите
+     */
+    public function act_Invalidate()
+    {
+        $this->requireRightFor('invalidate');
+        expect($productId = Request::get('productId', 'int'));
+        core_Cache::removeByType("cat_products_Relations_{$productId}");
+
+        followRetUrl(null, 'Данните за релациите са опреснени');
     }
 }
