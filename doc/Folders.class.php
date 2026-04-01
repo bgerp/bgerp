@@ -492,7 +492,7 @@ class doc_Folders extends core_Master
             $row->threads = '';
         }
         $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . '</span>';
-        
+
         $row->title = self::getFolderTitle($rec, $row->title);
         
         $attr = array();
@@ -970,7 +970,8 @@ class doc_Folders extends core_Master
         } else {
             expect($coverRec = $coverMvc->fetch($rec->coverId));
         }
-        
+
+        //bp($coverRec, $coverMvc->getFolderTitle($coverRec->id, false));
         $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, false);
         $isRevert = ($rec->state == 'rejected' && $coverRec->state != 'rejected');
         $isReject = ($rec->state != 'rejected' && $coverRec->state == 'rejected');

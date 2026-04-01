@@ -600,11 +600,28 @@ class doc_FolderPlg extends core_Plugin
         if (!$rec->folderId) {
             $rec->folderId = $mvc->fetchField($rec->id, 'folderId');
         }
-        
+
+        // Ако има папка - обновяме ковъра
         if ($rec->folderId) {
-            
-            //Ако има папка - обновяме ковъра
-            doc_Folders::updateByCover($rec->folderId);
+
+            // При редакция на корицата ще се обнови папката
+            $updateFolderByCover = true;
+            if($mvc->hasPlugin('change_plg_History')){
+
+                // Но ако корицата поддържа версии и има дата на валидност на новата версия
+                // и тя е след ДНЕС, тогава папката няма да се обновява;
+                if(!empty($rec->newValidFrom)){
+                    $newValidFrom = strlen($rec->newValidFrom) == 10 ? "{$rec->newValidFrom} 00:00:00" : $rec->newValidFrom;
+                    $today = dt::today() . " 00:00:00";
+                    if($newValidFrom > $today){
+                        $updateFolderByCover = false;
+                    }
+                }
+            }
+
+            if($updateFolderByCover){
+                doc_Folders::updateByCover($rec->folderId);
+            }
         } else {
             
             //Ako няма папка и autoCreateFolder е TRUE, тогава създава папка
