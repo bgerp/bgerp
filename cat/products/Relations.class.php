@@ -666,7 +666,7 @@ class cat_products_Relations extends core_Manager
         // Гледа се артикула от коя страна е, показва се другата
         $thisProductField = 'productId1';
         $otherProductField = 'productId2';
-        $productsNotAllowed = array();
+        $productsNotAllowed = array($productId => $productId);
 
         if(isset($rec->relTypeId)){
             $relRec = cat_RelationTypes::fetch($rec->relTypeId);
@@ -714,9 +714,7 @@ class cat_products_Relations extends core_Manager
                 $pQuery->where("#state = 'active'");
                 $pQuery->show('id,isPublic,name,nameEn,code');
                 plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $relRec->{$otherGroupIdFieldName});
-                if(countR($productsNotAllowed)){
-                    $pQuery->notIn('id', $productsNotAllowed);
-                }
+                $pQuery->notIn('id', $productsNotAllowed);
                 while($pRec = $pQuery->fetch()) {
                     $otherProductOptions[$pRec->id] = cat_Products::getRecTitle($pRec, false);
                 }
