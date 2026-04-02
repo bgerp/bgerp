@@ -354,7 +354,7 @@ class cat_products_Relations extends core_Manager
         $data->storageKey = 'prodRelTabs_' . $data->masterId;
         $data->imageSize = array('width' => 40, 'height' => 40);
 
-        $isExternalKey = $isExternal ? ("{$isExternal}|" . cms_Domains::getPublicDomain()->id) : $isExternal;
+        $isExternalKey = $isExternal ? ("{$isExternal}|" . cms_Domains::getPublicDomain()->id) : "{$isExternal}" . core_Lg::getCurrent();
         $cacheKey = "relTabs{$isExternalKey}";
         $cachedTabs = core_Cache::get("{$this->className}_{$data->masterId}", $cacheKey, 120);
         $isFromCache = is_array($cachedTabs);
@@ -666,6 +666,8 @@ class cat_products_Relations extends core_Manager
         // Гледа се артикула от коя страна е, показва се другата
         $thisProductField = 'productId1';
         $otherProductField = 'productId2';
+        $productsNotAllowed = array();
+
         if(isset($rec->relTypeId)){
             $relRec = cat_RelationTypes::fetch($rec->relTypeId);
 
@@ -681,11 +683,50 @@ class cat_products_Relations extends core_Manager
             $otherGroupIdFieldName = $otherProductField == 'productId1' ? 'group1GroupId' : 'group2GroupId';
             $otherGroupNameFieldName = $otherProductField == 'productId1' ? 'group1Name' : 'group2Name';
             $groupName = cat_Groups::getTitleById($relRec->{$otherGroupIdFieldName});
-            $form->FLD("otherProductId", 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', "caption=|*{$relRec->{$otherGroupNameFieldName}}->|Група|*: {$groupName}->Артикул,placeholder=Всички от групата");
-            $form->setFieldTypeParams('otherProductId', array('groups' => $relRec->{$otherGroupIdFieldName}));
+
+            // Ако релацията е симетрична се проверява дали двата артикула вече не са обвързани
+            if($relRec->isSymmetric == 'yes'){
+                $exQuery = $this->getQuery();
+                $exQuery->where("#{$otherProductField} = {$productId} AND #relTypeId = {$rec->relTypeId}");
+                $exQuery->show("{$thisProductField}");
+                $productsNotAllowed = arr::extractValuesFromArray($exQuery->fetchAll(), $thisProductField);
+            }
+
+            // Ако се редактира запис - полето е ключ само за промяна на този запис
             if(!empty($currentRec->{$otherProductField})){
+                $form->FLD("otherProductId", 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', "caption=|*{$relRec->{$otherGroupNameFieldName}}->|Група|*: {$groupName}->Артикул,placeholder=Всички от групата");
+                $form->setFieldTypeParams('otherProductId', array('groups' => $relRec->{$otherGroupIdFieldName}));
                 $form->setDefault('otherProductId', $currentRec->{$otherProductField});
                 $form->setField('otherProductId', 'mandatory');
+            } else {
+                // Ако не се редактира запис то се показват недобавените артикули от групата
+                $form->FLD("otherProducts", 'keylist(mvc=cat_Products,select=name,allowEmpty)', "caption=|*{$relRec->{$otherGroupNameFieldName}}->|Група|*: {$groupName}->Артикул,placeholder=Всички от групата");
+
+                // Кои са вече добавените артикули - тях ги махаме
+                $exQuery = self::getQuery();
+                $exQuery->where("#relTypeId = {$relRec->id} AND #{$thisProductField} = {$productId}");
+                $exQuery->show($otherProductField);
+                $productsNotAllowed += arr::extractValuesFromArray($exQuery->fetchAll(), $otherProductField);
+
+                // Зареждане само на артикулите от тази група
+                $otherProductOptions = array();
+                $pQuery = cat_Products::getQuery();
+                $pQuery->where("#state = 'active'");
+                $pQuery->show('id,isPublic,name,nameEn,code');
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $relRec->{$otherGroupIdFieldName});
+                if(countR($productsNotAllowed)){
+                    $pQuery->notIn('id', $productsNotAllowed);
+                }
+                while($pRec = $pQuery->fetch()) {
+                    $otherProductOptions[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+                }
+                if(countR($otherProductOptions)){
+                    $form->setSuggestions('otherProducts', array('' => '') + $otherProductOptions);
+                } else {
+                    $form->setReadOnly('otherProducts');
+                    $form->setError('otherProducts', 'Всички артикули от групата са вече добавени');
+                }
+                $form->rec->_allProductsInGroup = $otherProductOptions;
             }
         }
         $form->input();
@@ -697,31 +738,17 @@ class cat_products_Relations extends core_Manager
             }
 
             // Ако е избран конкретен друг артикул - той, ако не всички от групата
-            $relRec = cat_RelationTypes::fetch($rec->relTypeId);
-            $symmetricProducts = array();
-
-            // Ако релацията е симетрична се проверява дали двата артикула вече не са обвързани
-            if($relRec->isSymmetric == 'yes'){
-                $exQuery = $this->getQuery();
-                $exQuery->where("#{$otherProductField} = {$productId} AND #relTypeId = {$rec->relTypeId}");
-                $exQuery->show("{$thisProductField}");
-                $symmetricProducts = arr::extractValuesFromArray($exQuery->fetchAll(), $thisProductField);
-            }
-
             $otherProducts = array();
-            if(empty($rec->otherProductId)){
-                $pQuery = cat_Products::getQuery();
-                $pQuery->where("#state NOT IN ('rejected', 'closed')");
-                $pQuery->show('id');
-                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $relRec->{$otherGroupIdFieldName});
-                while($pRec = $pQuery->fetch()){
-                    $otherProducts[$pRec->id] = $pRec->id;
-                }
-            } else {
+
+            if(!empty($rec->otherProducts)){
+                $otherProducts = keylist::toArray($rec->otherProducts);
+            } elseif(!empty($rec->otherProductId)){
                 $otherProducts[$rec->otherProductId] = $rec->otherProductId;
-                if(array_key_exists($rec->otherProductId, $symmetricProducts)){
+                if(array_key_exists($rec->otherProductId, $productsNotAllowed)){
                     $form->setError('otherProductId', "Двата артикула са вече свързани в симетрична релация|*!");
                 }
+            } elseif(!empty($rec->_allProductsInGroup)){
+                $otherProducts = array_combine(array_keys($rec->_allProductsInGroup), array_keys($rec->_allProductsInGroup));
             }
 
             $count = count($otherProducts);
@@ -732,18 +759,15 @@ class cat_products_Relations extends core_Manager
             }
 
             if(!$form->gotErrors()){
-
                 // Подготовка на записите
                 $this->updatedProducts[$productId] = $productId;
                 $newRecs = array();
                 $now = dt::now();
                 $cu = core_Users::getCurrent();
                 foreach ($otherProducts as $otherProductId) {
-                    if(!array_key_exists($otherProductId, $symmetricProducts)){
-                        $this->updatedProducts[$otherProductId] = $otherProductId;
-                        $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId, 'createdOn' => $now, 'createdBy' => $cu, 'modifiedOn' => $now, 'modifiedBy' => $cu);
-                        $newRecs[] = $newRec;
-                    }
+                    $this->updatedProducts[$otherProductId] = $otherProductId;
+                    $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId, 'createdOn' => $now, 'createdBy' => $cu, 'modifiedOn' => $now, 'modifiedBy' => $cu);
+                    $newRecs[] = $newRec;
                 }
 
                 // Ако е повече от 1 запис ще се добавят всичките, които не присъстват
