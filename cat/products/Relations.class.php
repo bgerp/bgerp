@@ -518,17 +518,6 @@ class cat_products_Relations extends core_Manager
         $data->tabs = $cachedTabs['tabs'];
         $data->activeTabInfo = $cachedTabs['activeTabInfo'];
 
-        if (haveRole('debug')) {
-            $debugLabel = $isFromCache ? '<div style="margin-top:5px;font-size:0.6em;">GET FROM CACHE</div>' : '<div style="margin-top:5px;font-size:0.6em;">CACHE</div>';
-
-            foreach ($data->tabs as &$tab) {
-                $tab['groupInfo'] .= ($tab['groupInfo'] ? ' ' : '') . $debugLabel;
-            }
-            unset($tab);
-
-            $data->activeTabInfo .= ($data->activeTabInfo ? ' ' : '') . $debugLabel;
-        }
-
         return $data;
     }
 
