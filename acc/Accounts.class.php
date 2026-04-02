@@ -188,8 +188,7 @@ class acc_Accounts extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-
-        if ($rec->id && $action == 'delete') {
+        if ($action == 'delete' && isset($rec)) {
             $rec = $mvc->fetch($rec->id);
             
             if ($rec->lastUseOn) {
