@@ -147,6 +147,12 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 
 
     /**
+     * Кой може да приключва всички движения?
+     */
+    public $canDoallmovements = 'ceo,rack';
+
+
+    /**
      * Описание на модела
      */
     public function description()
