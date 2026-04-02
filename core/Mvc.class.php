@@ -673,21 +673,20 @@ class core_Mvc extends core_FieldSet
         } elseif (isset($params['titleFld'])) {
             $query->orderBy($params['titleFld']);
         }
-        
+
+        $ids = implode(',', $onlyIds);
         if (is_array($onlyIds)) {
             if (!countR($onlyIds)) {
                 
                 return array();
             }
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-            
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
-        } elseif (preg_match("/^[0-9\,]+$/", $onlyIds)) {
-            $query->where("#id IN (${onlyIds})");
+            $query->where("#id = {$onlyIds}");
+        } elseif (preg_match("/^[0-9\,]+$/", $ids)) {
+            $query->where("#id IN ({$onlyIds})");
         }
         
         $titleFld = $params['titleFld'];
