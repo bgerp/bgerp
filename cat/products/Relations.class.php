@@ -417,7 +417,7 @@ class cat_products_Relations extends core_Manager
                 $tabData->rows = array();
                 $tabData->recs = array();
 
-                $tabData->listFields = arr::make('productId=Артикул,created=Създаване');
+                $tabData->listFields = arr::make('productId=Артикул,analogs=Аналози,created=Създаване');
                 if ($isExternal) {
                     $tabData->listFields = arr::make('img=|*&nbsp;,productId=Артикул,code=Кат. №,price=Цена,btn=Поръчка');
                 }
@@ -467,6 +467,21 @@ class cat_products_Relations extends core_Manager
                         }
 
                         $tabRow->code = $productRecs[$tabRec->productId]->code ?? "Art{$tabRec->productId}";
+                    } else {
+                        $relQuery = cat_products_Relations::getQuery();
+                        $relQuery->EXT('isSymmetric', 'cat_RelationTypes', 'externalName=isSymmetric,externalKey=relTypeId');
+                        $relQuery->where("(#productId1 = {$tabRec->productId} OR #productId2 = {$tabRec->productId}) AND #isSymmetric = 'yes' AND #relTypeId != {$tabRec->relTypeId}");
+                        $countAnalogs = $relQuery->count();
+                        if($countAnalogs){
+                            $countAnalogVerbal = core_Type::getByName('int')->toVerbal($countAnalogs);
+                            $singleUrlArray = cat_Products::getSingleUrlArray($tabRec->productId);
+                            if(countR($singleUrlArray)){
+                                $containerId = cat_Products::fetchField($tabRec->productId, 'containerId');
+                                $singleUrlArray["TabTop{$containerId}"] = 'Relations';
+                                $singleUrlArray["#Ivo"] = "rel{$rec->relTypeId}";
+                            }
+                            $tabRow->analogs = ht::createLink($countAnalogVerbal, $singleUrlArray);
+                        }
                     }
 
                     $tabData->rows[$id] = $tabRow;
@@ -474,7 +489,7 @@ class cat_products_Relations extends core_Manager
                 }
 
                 arr::sortObjects($tabData->rows, 'state', 'DESC');
-                $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn');
+                $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn,analogs');
 
                 $tabs[] = array(
                     'groupKey' => $groupKey,
@@ -576,6 +591,7 @@ class cat_products_Relations extends core_Manager
             $listMvc->FNC('price', 'varchar', 'tdClass=small relCol');
             $listMvc->FNC('btn', 'varchar', 'tdClass=small relCol');
             $listMvc->FNC('img', 'varchar', 'tdClass=small relCol relImgCol');
+            $listMvc->FNC('analogs', 'varchar', 'tdClass=small-field');
 
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
             $tabData = $tab['tabData'];
@@ -752,8 +768,6 @@ class cat_products_Relations extends core_Manager
             $count = count($otherProducts);
             if($count > 100){
                 $form->setWarning('otherProductId', "Не може да добавите повече от|* 100 |артикула|*");
-            } elseif($count > 1){
-                $form->setWarning('otherProductId', "Наистина ли искате да добавите релации към|* <b>{$count}</b> |артикула|*:");
             }
 
             if(!$form->gotErrors()){
