@@ -1,32 +1,64 @@
-/**
- * Връща storage обекта, в който пазим последно избрания таб.
- *
- * Използваме sessionStorage, защото:
- * - пази избора при reload / redirect / submit;
- * - е отделен за всеки browser tab;
- * - не смесва състоянието между различни отворени табове на браузъра.
- *
- * Ако по-късно решиш да се пази и след затваряне на браузъра,
- * може да се смени с window.localStorage.
- *
- * @returns {Storage|null}
- */
 function catProductsRelationsGetStorage()
 {
     try {
         return window.sessionStorage;
     } catch (e) {
+        console.log('catProductsRelationsGetStorage error', e);
         return null;
     }
 }
 
 
-/**
- * Обновява info блока под табовете според активния таб.
- *
- * @param {HTMLElement} el
- * @param {HTMLElement} wrap
- */
+function catProductsRelationsGetPendingUniqueKey()
+{
+    return 'catProductsRelationsPendingUnique';
+}
+
+
+function catProductsRelationsSetPendingUnique(uniqueStr)
+{
+    var storage = catProductsRelationsGetStorage();
+    if (!storage || !uniqueStr) {
+        console.log('catProductsRelationsSetPendingUnique skipped', {
+            hasStorage: !!storage,
+            uniqueStr: uniqueStr
+        });
+        return;
+    }
+
+    storage.setItem(catProductsRelationsGetPendingUniqueKey(), uniqueStr);
+    console.log('catProductsRelationsSetPendingUnique saved', uniqueStr);
+}
+
+
+function catProductsRelationsGetPendingUnique()
+{
+    var storage = catProductsRelationsGetStorage();
+    if (!storage) {
+        console.log('catProductsRelationsGetPendingUnique no storage');
+        return null;
+    }
+
+    var val = storage.getItem(catProductsRelationsGetPendingUniqueKey());
+    console.log('catProductsRelationsGetPendingUnique read', val);
+
+    return val;
+}
+
+
+function catProductsRelationsClearPendingUnique()
+{
+    var storage = catProductsRelationsGetStorage();
+    if (!storage) {
+        console.log('catProductsRelationsClearPendingUnique no storage');
+        return;
+    }
+
+    storage.removeItem(catProductsRelationsGetPendingUniqueKey());
+    console.log('catProductsRelationsClearPendingUnique removed');
+}
+
+
 function catProductsRelationsUpdateInfo(el, wrap)
 {
     if (!wrap) return;
@@ -49,23 +81,22 @@ function catProductsRelationsUpdateInfo(el, wrap)
 }
 
 
-/**
- * Активира конкретен таб вътре в даден wrapper.
- *
- * Прави следното:
- * - маха active класа от всички табове;
- * - маха active класа от всички pane-ове;
- * - активира подадения таб;
- * - активира pane-а, към който сочи data-pane;
- * - обновява info блока под табовете.
- *
- * @param {HTMLElement} el
- * @param {HTMLElement} wrap
- * @returns {boolean}
- */
 function catProductsRelationsActivateTab(el, wrap)
 {
-    if (!wrap || !el) return false;
+    if (!wrap || !el) {
+        console.log('catProductsRelationsActivateTab skipped', {
+            hasWrap: !!wrap,
+            hasEl: !!el
+        });
+        return false;
+    }
+
+    console.log('catProductsRelationsActivateTab', {
+        tabKey: el.getAttribute('data-tab-key'),
+        unique: el.getAttribute('data-unique'),
+        pane: el.getAttribute('data-pane'),
+        text: el.textContent
+    });
 
     var tabs = wrap.querySelectorAll('.product-rel-tab');
     for (var i = 0; i < tabs.length; i++) {
@@ -83,6 +114,8 @@ function catProductsRelationsActivateTab(el, wrap)
     var pane = document.getElementById(paneId);
     if (pane) {
         pane.classList.add('active');
+    } else {
+        console.log('catProductsRelationsActivateTab pane not found', paneId);
     }
 
     catProductsRelationsUpdateInfo(el, wrap);
@@ -91,21 +124,19 @@ function catProductsRelationsActivateTab(el, wrap)
 }
 
 
-/**
- * Обработва клик върху таб.
- *
- * Освен че активира визуално таба, записва и избора в sessionStorage,
- * за да може след followRetUrl / reload / submit да се отвори пак
- * последно активният таб.
- *
- * @param {HTMLElement} el
- * @param {string} wrapId
- * @returns {boolean}
- */
 function catProductsRelationsShowTab(el, wrapId)
 {
     var wrap = document.getElementById(wrapId);
-    if (!wrap) return false;
+    if (!wrap) {
+        console.log('catProductsRelationsShowTab wrap not found', wrapId);
+        return false;
+    }
+
+    console.log('catProductsRelationsShowTab click', {
+        wrapId: wrapId,
+        tabKey: el ? el.getAttribute('data-tab-key') : null,
+        unique: el ? el.getAttribute('data-unique') : null
+    });
 
     catProductsRelationsActivateTab(el, wrap);
 
@@ -116,6 +147,10 @@ function catProductsRelationsShowTab(el, wrapId)
 
         if (storageKey && tabKey) {
             storage.setItem(storageKey, tabKey);
+            console.log('catProductsRelationsShowTab saved normal tab state', {
+                storageKey: storageKey,
+                tabKey: tabKey
+            });
         }
     }
 
@@ -124,54 +159,179 @@ function catProductsRelationsShowTab(el, wrapId)
 
 
 /**
- * Инициализира табовете за конкретен wrapper.
- *
- * Логика:
- * 1. намира wrapper-а;
- * 2. търси запомнен таб в sessionStorage;
- * 3. ако намери съвпадение - активира него;
- * 4. иначе активира:
- *    - таба, който вече има class=active, или
- *    - първия таб.
- *
- * Извиква се ръчно от PHP с inline script след рендерирането на HTML-а,
- * затова не използваме DOMContentLoaded listener.
- *
- * @param {string} wrapId
+ * Глобално прихваща клик по analogBtn.
  */
-function catProductsRelationsInitTabsById(wrapId)
+function catProductsRelationsBindAnalogButtonsOnce()
 {
-    var wrap = document.getElementById(wrapId);
-    if (!wrap) return;
+    if (document._catProductsRelationsAnalogBound) {
+        console.log('catProductsRelationsBindAnalogButtonsOnce already bound');
+        return;
+    }
+
+    document._catProductsRelationsAnalogBound = true;
+    console.log('catProductsRelationsBindAnalogButtonsOnce bind');
+
+    document.addEventListener('click', function (e) {
+        var el = e.target;
+
+        while (el && el !== document) {
+            if (el.classList && el.classList.contains('analogBtn')) {
+                var tabName = el.getAttribute('data-tab-name') || '';
+                console.log('analogBtn clicked', {
+                    tabName: tabName,
+                    href: el.getAttribute('href'),
+                    text: el.textContent
+                });
+
+                if (tabName) {
+                    catProductsRelationsSetPendingUnique(tabName);
+                } else {
+                    console.log('analogBtn clicked but no data-tab-name');
+                }
+
+                break;
+            }
+            el = el.parentNode;
+        }
+    }, true);
+}
+
+
+/**
+ * Търси таб по data-unique
+ */
+function catProductsRelationsFindTabByUnique(wrap, uniqueStr)
+{
+    if (!wrap || !uniqueStr) {
+        console.log('catProductsRelationsFindTabByUnique skipped', {
+            hasWrap: !!wrap,
+            uniqueStr: uniqueStr
+        });
+        return null;
+    }
 
     var links = wrap.querySelectorAll('.product-rel-tab');
-    if (!links.length) return;
+    console.log('catProductsRelationsFindTabByUnique search start', {
+        uniqueStr: uniqueStr,
+        linksCount: links.length
+    });
+
+    for (var i = 0; i < links.length; i++) {
+        var currentUnique = links[i].getAttribute('data-unique');
+        console.log('catProductsRelationsFindTabByUnique compare', {
+            wanted: uniqueStr,
+            current: currentUnique,
+            text: links[i].textContent
+        });
+
+        if (currentUnique === uniqueStr) {
+            console.log('catProductsRelationsFindTabByUnique matched', currentUnique);
+            return links[i];
+        }
+    }
+
+    console.log('catProductsRelationsFindTabByUnique no match', uniqueStr);
+    return null;
+}
+
+
+function catProductsRelationsInitTabsById(wrapId)
+{
+    console.log('catProductsRelationsInitTabsById start', wrapId);
+
+    catProductsRelationsBindAnalogButtonsOnce();
+
+    var wrap = document.getElementById(wrapId);
+    if (!wrap) {
+        console.log('catProductsRelationsInitTabsById wrap not found', wrapId);
+        return;
+    }
+
+    var links = wrap.querySelectorAll('.product-rel-tab');
+    if (!links.length) {
+        console.log('catProductsRelationsInitTabsById no links');
+        return;
+    }
+
+    console.log('catProductsRelationsInitTabsById links found', links.length);
+
+    for (var x = 0; x < links.length; x++) {
+        console.log('tab present', {
+            index: x,
+            tabKey: links[x].getAttribute('data-tab-key'),
+            unique: links[x].getAttribute('data-unique'),
+            pane: links[x].getAttribute('data-pane'),
+            active: links[x].classList.contains('active'),
+            text: links[x].textContent
+        });
+    }
 
     var storage = catProductsRelationsGetStorage();
     var defaultLink = links[0];
     var activeLink = null;
     var restoredLink = null;
+    var pendingLink = null;
 
     for (var i = 0; i < links.length; i++) {
         if (links[i].classList.contains('active')) {
             activeLink = links[i];
+            console.log('catProductsRelationsInitTabsById activeLink from html', {
+                tabKey: activeLink.getAttribute('data-tab-key'),
+                unique: activeLink.getAttribute('data-unique')
+            });
             break;
         }
+    }
+
+    var pendingUnique = catProductsRelationsGetPendingUnique();
+    if (pendingUnique) {
+        pendingLink = catProductsRelationsFindTabByUnique(wrap, pendingUnique);
+
+        if (pendingLink) {
+            console.log('catProductsRelationsInitTabsById pendingLink matched', {
+                unique: pendingLink.getAttribute('data-unique'),
+                tabKey: pendingLink.getAttribute('data-tab-key')
+            });
+
+            catProductsRelationsClearPendingUnique();
+            catProductsRelationsActivateTab(pendingLink, wrap);
+            return;
+        } else {
+            console.log('catProductsRelationsInitTabsById pendingUnique exists but no matching tab', pendingUnique);
+        }
+    } else {
+        console.log('catProductsRelationsInitTabsById no pendingUnique');
     }
 
     if (storage) {
         var storageKey = wrap.getAttribute('data-storage-key');
         var savedTabKey = storageKey ? storage.getItem(storageKey) : null;
 
+        console.log('catProductsRelationsInitTabsById normal restore check', {
+            storageKey: storageKey,
+            savedTabKey: savedTabKey
+        });
+
         if (savedTabKey) {
             for (var j = 0; j < links.length; j++) {
                 if (links[j].getAttribute('data-tab-key') === savedTabKey) {
                     restoredLink = links[j];
+                    console.log('catProductsRelationsInitTabsById restoredLink matched', {
+                        tabKey: restoredLink.getAttribute('data-tab-key'),
+                        unique: restoredLink.getAttribute('data-unique')
+                    });
                     break;
                 }
             }
         }
     }
 
-    catProductsRelationsActivateTab(restoredLink || activeLink || defaultLink, wrap);
+    console.log('catProductsRelationsInitTabsById final pick', {
+        pending: pendingLink ? pendingLink.getAttribute('data-unique') : null,
+        restored: restoredLink ? restoredLink.getAttribute('data-tab-key') : null,
+        active: activeLink ? activeLink.getAttribute('data-tab-key') : null,
+        defaultTab: defaultLink ? defaultLink.getAttribute('data-tab-key') : null
+    });
+
+    catProductsRelationsActivateTab(pendingLink || restoredLink || activeLink || defaultLink, wrap);
 }

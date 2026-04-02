@@ -314,6 +314,7 @@ class cat_products_Relations extends core_Manager
 
             if (!isset($groupedRows[$groupKey])) {
                 $groupedRows[$groupKey] = array(
+                    'groupId' => $rec->relTypeId,
                     'groupName' => core_Type::getByName('varchar')->toVerbal($otherGroupName),
                     'relType' => cat_RelationTypes::getRelTypeInfo($rec->relTypeId),
                     'order' => $rec->saoOrder,
@@ -468,19 +469,22 @@ class cat_products_Relations extends core_Manager
 
                         $tabRow->code = $productRecs[$tabRec->productId]->code ?? "Art{$tabRec->productId}";
                     } else {
+
                         $relQuery = cat_products_Relations::getQuery();
                         $relQuery->EXT('isSymmetric', 'cat_RelationTypes', 'externalName=isSymmetric,externalKey=relTypeId');
                         $relQuery->where("(#productId1 = {$tabRec->productId} OR #productId2 = {$tabRec->productId}) AND #isSymmetric = 'yes' AND #relTypeId != {$tabRec->relTypeId}");
-                        $countAnalogs = $relQuery->count();
-                        if($countAnalogs){
-                            $countAnalogVerbal = core_Type::getByName('int')->toVerbal($countAnalogs);
+                        $relQuery->XPR('count', 'int', "COUNT(#id)");
+                        $relQuery->show('count, relTypeId');
+                        $foundRec = $relQuery->fetch();
+
+                        if($foundRec->count){
+                            $countAnalogVerbal = core_Type::getByName('int')->toVerbal($foundRec->count);
                             $singleUrlArray = cat_Products::getSingleUrlArray($tabRec->productId);
                             if(countR($singleUrlArray)){
                                 $containerId = cat_Products::fetchField($tabRec->productId, 'containerId');
                                 $singleUrlArray["TabTop{$containerId}"] = 'Relations';
-                                $singleUrlArray["#Ivo"] = "rel{$rec->relTypeId}";
                             }
-                            $tabRow->analogs = ht::createLink($countAnalogVerbal, $singleUrlArray);
+                            $tabRow->analogs = ht::createLink($countAnalogVerbal, $singleUrlArray, false, "class=analogBtn,data-tab-name={$tabRec->productId}_{$foundRec->relTypeId}");
                         }
                     }
 
@@ -492,6 +496,7 @@ class cat_products_Relations extends core_Manager
                 $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn,analogs');
 
                 $tabs[] = array(
+                    'uniqueStr' => "{$data->masterId}_{$groupData['groupId']}",
                     'groupKey' => $groupKey,
                     'groupName' => $groupData['groupName'],
                     'groupInfo' => $groupInfo,
@@ -577,8 +582,7 @@ class cat_products_Relations extends core_Manager
             $groupNameAttr = ht::escapeAttr($tab['groupName']);
             $tabInfoAttr = ht::escapeAttr($tab['groupInfo']);
             $tabCaption = "{$tab['groupName']} <span class='product-rel-tab-count'>({$tab['count']})</span>";
-
-            $tabLinks .= "<a href=\"#\" class=\"product-rel-tab tab{$isActiveClass}\" data-pane=\"{$tab['paneId']}\" data-tab-key=\"{$groupNameAttr}\" data-info=\"{$tabInfoAttr}\" onclick=\"return catProductsRelationsShowTab(this, '{$data->tabKey}');\">{$tabCaption}</a>";
+            $tabLinks .= "<a href=\"#\" class=\"product-rel-tab tab{$isActiveClass}\" data-pane=\"{$tab['paneId']}\" data-tab-key=\"{$groupNameAttr}\" data-info=\"{$tabInfoAttr}\" data-unique=\"{$tab['uniqueStr']}\" onclick=\"return catProductsRelationsShowTab(this, '{$data->tabKey}');\">{$tabCaption}</a>";
 
             $paneTpl = new core_ET("<div id='[#PANE_ID#]' class='product-rel-tab-pane[#ACTIVE#]'>[#TABLE#]</div>");
             $paneTpl->replace($tab['paneId'], 'PANE_ID');
