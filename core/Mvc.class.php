@@ -674,18 +674,18 @@ class core_Mvc extends core_FieldSet
             $query->orderBy($params['titleFld']);
         }
 
-        $ids = implode(',', $onlyIds);
         if (is_array($onlyIds)) {
             if (!countR($onlyIds)) {
                 
                 return array();
             }
+
+            $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
-            
             $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = {$onlyIds}");
-        } elseif (preg_match("/^[0-9\,]+$/", $ids)) {
+        } elseif (preg_match("/^[0-9\,]+$/", $onlyIds)) {
             $query->where("#id IN ({$onlyIds})");
         }
         
