@@ -1603,7 +1603,7 @@ class crm_Companies extends core_Master
         if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;
 
         // Ако не е посочена държава, вингаи начисляваме ДДС
-        if (!empty($rec->country)) {
+        if (empty($rec->country)) {
             
             return true;
         }
