@@ -551,7 +551,11 @@ class cat_products_Relations extends core_Manager
             }
         }
 
-        if (empty($data->tabs)) return $tpl;
+        if (empty($data->tabs)) {
+            $tpl->append("<i>" . tr("Няма") . "</i>", 'content');
+
+            return $tpl;
+        }
 
         $tabsTpl = new core_ET("
         <div id='[#TAB_KEY#]' class='product-rel-tabs-compact' data-storage-key='[#STORAGE_KEY#]'>
@@ -731,7 +735,7 @@ class cat_products_Relations extends core_Manager
                     $form->setSuggestions('otherProducts', array('' => '') + $otherProductOptions);
                 } else {
                     $form->setReadOnly('otherProducts');
-                    $form->setError('otherProducts', 'Всички артикули от групата са вече добавени');
+                    $form->setError('otherProducts', 'Всички артикули от групата са вече добавени|*!');
                 }
                 $form->rec->_allProductsInGroup = $otherProductOptions;
             }
@@ -760,7 +764,7 @@ class cat_products_Relations extends core_Manager
 
             $count = count($otherProducts);
             if($count > 100){
-                $form->setWarning('otherProductId', "Не може да добавите повече от|* 100 |артикула|*");
+                $form->setWarning('otherProductId', "Не може да добавите повече от|* 100 |артикула|*!");
             }
 
             if(!$form->gotErrors()){
