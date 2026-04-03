@@ -2242,7 +2242,7 @@ class sales_Sales extends deals_DealMaster
 
         $errorMsg = null;
         if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)) {
-            $rec->contoActions = '';
+            $rec->contoActions = null;
             $mvc->save_($rec, 'contoActions');
             core_Statuses::newStatus($errorMsg, 'error');
 
@@ -2256,7 +2256,7 @@ class sales_Sales extends deals_DealMaster
             $dQuery->show('productId');
             $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
             if($error = voucher_Cards::getContoErrors($rec->voucherId, $productIds, $mvc->getClassId(), $rec->id)){
-                $rec->contoActions = '';
+                $rec->contoActions = null;
                 $mvc->save_($rec, 'contoActions');
                 core_Statuses::newStatus($error, 'error');
 
