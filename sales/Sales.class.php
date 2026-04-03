@@ -1083,11 +1083,10 @@ class sales_Sales extends deals_DealMaster
             if (core_Users::isContractor($userId)) {
                 $res = 'no_one';
             }
-            
             if (isset($rec) && $res != 'no_one') {
-                if (empty($rec->productId) || empty($rec->folderId)) {
+                if(empty($rec->folderId)) {
                     $res = 'no_one';
-                } else {
+                } else if (!empty($rec->productId)){
                     $pRec = cat_Products::fetch($rec->productId, 'state,canSell');
                     if ($pRec->state != 'active' || $pRec->canSell != 'yes') {
                         $res = 'no_one';
