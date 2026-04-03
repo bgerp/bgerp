@@ -3305,7 +3305,7 @@ class cat_Products extends embed_Manager
         $cover = doc_Folders::getCover($data->form->rec->folderId);
         if($cover->haveInterface('crm_ContragentAccRegIntf')){
             if(sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->form->rec->folderId))){
-                $data->form->toolbar->addSbBtn('Запис и Продажба', 'saveandsale', 'saveAndSale', 'ef_icon=img/16/cart_go.png,title=Запис и създаване на нова продажба', 'order=10');
+                $data->form->toolbar->addSbBtn('Запис и Продажба', 'saveandsale', null, 'ef_icon=img/16/cart_go.png,title=Запис и създаване на нова продажба, order=9.99980');
             }
         }
     }
