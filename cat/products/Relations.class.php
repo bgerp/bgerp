@@ -417,8 +417,7 @@ class cat_products_Relations extends core_Manager
                 $tabData = new stdClass();
                 $tabData->rows = array();
                 $tabData->recs = array();
-
-                $tabData->listFields = arr::make('productId=Артикул,analogs=Аналози,created=Създаване');
+                $tabData->listFields = arr::make('productId=Артикул,created=Създаване');
                 if ($isExternal) {
                     $tabData->listFields = arr::make('img=|*&nbsp;,productId=Артикул,code=Кат. №,price=Цена,btn=Поръчка');
                 }
@@ -484,7 +483,9 @@ class cat_products_Relations extends core_Manager
                                 $containerId = cat_Products::fetchField($tabRec->productId, 'containerId');
                                 $singleUrlArray["TabTop{$containerId}"] = 'Relations';
                             }
-                            $tabRow->analogs = ht::createLink($countAnalogVerbal, $singleUrlArray, false, "class=analogBtn,data-tab-name={$tabRec->productId}_{$foundRec->relTypeId}");
+
+                            $suffix = $foundRec->count == 1 ? tr('аналог') : tr('аналози');
+                            $tabRow->productId .= "  <span style='float:right;'> " . ht::createLink("[{$countAnalogVerbal}]", $singleUrlArray, false, "class=analogBtn,data-tab-name={$tabRec->productId}_{$foundRec->relTypeId}")->getContent() . " {$suffix}";
                         }
                     }
 
@@ -493,7 +494,7 @@ class cat_products_Relations extends core_Manager
                 }
 
                 arr::sortObjects($tabData->rows, 'state', 'DESC');
-                $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn,analogs');
+                $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn');
 
                 $tabs[] = array(
                     'uniqueStr' => "{$data->masterId}_{$groupData['groupId']}",
