@@ -305,11 +305,13 @@ abstract class deals_DealDetail extends doc_Detail
 
             // Показване на едровото к-во ако е избрано в пакета
             if(isset($rec->packagingId)){
-                $showHigherQtyHint = sales_Setup::get('SHOW_NEXT_PACK_UNIT');
-                if($showHigherQtyHint == 'yes'){
-                    $packData = cat_products_Packagings::getCurrentAndNextBiggerPack($rec->productId, $rec->packagingId);
-                    if(!empty($packData['nextPackName'])){
-                        $form->setField('packQuantity', "unit=|* ( {$packData['nextQty']} |в|* {$packData['nextPackName']} )");
+                if($mvc instanceof sales_SalesDetails){
+                    $showHigherQtyHint = sales_Setup::get('SHOW_NEXT_PACK_UNIT');
+                    if($showHigherQtyHint == 'yes'){
+                        $packData = cat_products_Packagings::getCurrentAndNextBiggerPack($rec->productId, $rec->packagingId);
+                        if(!empty($packData['nextPackName'])){
+                            $form->setField('packQuantity', "unit=|* ( {$packData['nextQty']} |в|* {$packData['nextPackName']} )");
+                        }
                     }
                 }
             }
