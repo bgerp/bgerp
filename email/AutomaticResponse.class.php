@@ -479,5 +479,11 @@ class email_AutomaticResponse extends core_Master
 
         // Изпращане на имейла
         email_Outgoings::send($emailRec, $options, 'bg');
+
+        // Известие за изпратен автоматичен отговор
+        $msg = 'Изпратен автоматичен отговор';
+        $userId = $rule->userId;
+        $urlArr = array('email_Outgoings', 'single', $emailRec->id);
+        bgerp_Notifications::add($msg, $urlArr, $userId, 'normal');
     }
 }
