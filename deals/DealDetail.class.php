@@ -288,19 +288,31 @@ abstract class deals_DealDetail extends doc_Detail
         
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         
-        if ($rec->productInfo) {
+        if (!empty($rec->productInfo)) {
             $productInfo = $rec->productInfo;
-        } elseif ($rec->productId) {
+        } elseif (!empty($rec->productId)) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
         }
         
-        if ($rec->productId) {
+        if (!empty($rec->productId)) {
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('packagingId', 'input');
+
+
+            // Показване на едровото к-во ако е избрано в пакета
+            if(isset($rec->packagingId)){
+                $showHigherQtyHint = sales_Setup::get('SHOW_NEXT_PACK_UNIT');
+                if($showHigherQtyHint == 'yes'){
+                    $packData = cat_products_Packagings::getCurrentAndNextBiggerPack($rec->productId, $rec->packagingId);
+                    if(!empty($packData['nextPackName'])){
+                        $form->setField('packQuantity', "unit=|* ( {$packData['nextQty']} |в|* {$packData['nextPackName']} )");
+                    }
+                }
+            }
 
             if (isset($mvc->LastPricePolicy)) {
                 $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
