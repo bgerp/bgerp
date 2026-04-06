@@ -134,7 +134,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         $form->setDefault('packType', 'yes');
         $form->setDefault('showUiextLabels', 'no');
         if(!core_Packs::isInstalled('uiext')){
-            $form->setFiedl('showUiextLabels', 'input=none');
+            $form->setField('showUiextLabels', 'input=none');
         }
 
         $suggestions = cat_UoM::getPackagingOptions();
@@ -181,7 +181,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 // Ако справката не е в папка на клиент, проверява се дали политиката е частна
                 // ако е частна, взима се списъка от листваните артикули на клиента
                 $listRec = price_Lists::fetch($rec->policyId);
-                if($listRec->isPublic = 'no'){
+                if($listRec->isPublic == 'no'){
                     if($foundRec = price_ListToCustomers::fetch("#listId = {$rec->policyId}")){
                         $listingId = cond_Parameters::getParameter($foundRec->cClass, $foundRec->cId, 'salesList');
                     }
@@ -214,6 +214,17 @@ class price_reports_PriceList extends frame2_driver_TableData
         $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
         $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, $rec->notInGroups, 'yes');
 
+        // Ако се показват за себестойност излизат и активните нестандартни със сб-ст
+        if($rec->policyId == price_ListRules::PRICE_LIST_COST){
+            $ruleQuery = price_ListRules::getQuery();
+            $ruleQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+            $ruleQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
+            $ruleQuery->where("#listId = {$rec->policyId} AND #productId IS NOT NULL AND #isPublic = 'no' AND #pState = 'active'");
+            $ruleQuery->groupBy('productId');
+
+            $sellableProducts += arr::extractValuesFromArray($ruleQuery->fetchAll(), 'productId');
+        }
+
         $sellableProducts = array_keys($sellableProducts);
         unset($sellableProducts[0]);
 
@@ -234,24 +245,41 @@ class price_reports_PriceList extends frame2_driver_TableData
         if ($rec->packType == 'yes') {
             $packArr = (!empty($rec->packagings)) ? keylist::toArray($rec->packagings) : arr::make(array_keys(cat_UoM::getPackagingOptions(), true));
         }
-
         $data->variationId = price_ListVariations::getActiveVariationId($rec->policyId, $date);
 
-        // За всеки продаваем стандартен артикул
-        foreach ($sellableProducts as $id) {
-            $productRec = cat_Products::fetch($id, 'groups,code,measureId,name,isPublic,nameEn');
+        $basePackagings = array();
+        $pQuery = cat_Products::getQuery();
+        if(countR($sellableProducts)){
+            $pQuery->in('id', $sellableProducts);
 
+            if ($rec->packType == 'base') {
+                $packQuery = cat_products_Packagings::getQuery();
+                $packQuery->in('productId', $sellableProducts);
+                $packQuery->where("#isBase = 'yes'");
+                while($packRec = $packQuery->fetch()){
+                    $basePackagings[$packRec->productId] = $packRec;
+                }
+            }
+        } else {
+            $pQuery->where("1=2");
+        }
+        $pQuery->show('groups,code,measureId,name,isPublic,nameEn');
+
+
+        // За всеки продаваем стандартен артикул
+        while ($productRec = $pQuery->fetch()) {
             $quantity = 1;
             $obj = (object) array('productId' => $productRec->id,
                 'code' => (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}",
                 'measureId' => $productRec->measureId,
+                'isPublic' => $productRec->isPublic,
                 'vat' => cat_Products::getVat($productRec->id, $date, $rec->vatExceptionId),
                 'packs' => array(),
                 'groups' => $productRec->groups);
 
             if ($rec->packType == 'base') {
-                $basePack = cat_products_Packagings::fetch("#productId = {$productRec->id} AND #isBase = 'yes'");
-                if (is_object($basePack)) {
+                if(array_key_exists($productRec->id, $basePackagings)){
+                    $basePack = $basePackagings[$productRec->id];
                     $obj->measureId = $basePack->packagingId;
                     $quantity = $basePack->quantity;
                 }
@@ -273,7 +301,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 if (empty($oldPrice)) {
                     $obj->type = 'new';
                     $difference = 1;
-                } elseif (!empty($oldPrice) && empty($priceByPolicy)) {
+                } elseif (empty($priceByPolicy)) {
                     $obj->type = 'removed';
                     $difference = -1;
                 } else {
@@ -322,7 +350,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 }
             }
 
-            $recs[$id] = $obj;
+            $recs[$productRec->id] = $obj;
         }
         
         // Ако има подговени записи
@@ -397,6 +425,9 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row->price = $Double->toVerbal($dRec->price);
         $row->price = currency_Currencies::decorate($row->price, $rec->currencyId, true);
 
+        if($dRec->isPublic != 'yes'){
+            $row->productId = ht::createHint($row->productId, "Артикулът е нестандартен|*!", 'warning', false);
+        }
         if($rec->templateType == 'foods'){
             $showDualPrice = $date <= '2026-06-30' && in_array($rec->currencyId, array('BGN', 'EUR'));
             if($showDualPrice){

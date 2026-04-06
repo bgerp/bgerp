@@ -1630,4 +1630,59 @@ class cat_products_Packagings extends core_Detail
             }
         }
     }
+
+
+    /**
+     * Връща текущата опаковка и следващата по-голяма опаковка за артикул.
+     *
+     * Функцията зарежда всички опаковки на посочения артикул от тип `packaging`,
+     * подредени във възходящ ред по количество. За подадената опаковка намира:
+     *
+     * @param int $productId   ид на артикула
+     * @param int $packagingId ид на текущата опаковка
+     *
+     * @return array Масив със следните ключове:
+     *               - `currentPackagingId` — ид на подадената опаковка
+     *               - `currentQty`         — количеството в текущата опаковка
+     *               - `nextPackagingId`    — ид на следващата по-голяма опаковка или `null`
+     *               - `nextQty`            — колко текущи опаковки се съдържат в следващата или `null`
+     *               - `nextQtyVerbal`      — вербално представяне на `nextQty` или `null`
+     *               - `nextPackName`       — име на следващата опаковка или `null`
+     */
+    public static function getCurrentAndNextBiggerPack($productId, $packagingId)
+    {
+        $packs = array();
+        $pQuery = cat_products_Packagings::getQuery();
+        $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
+        $pQuery->orderBy('quantity', 'ASC');
+        while($pRec = $pQuery->fetch()) {
+            $packs[$pRec->packagingId] = $pRec->quantity;
+        }
+
+        $currentQty = $packs[$packagingId] ?? 1;
+        $nextPackagingId = $nextQty = $nextQtyVerbal = $nextPackName = null;
+        foreach ($packs as $packId => $qty) {
+            if ($qty > $currentQty && ($nextQty === null || $qty < $nextQty)) {
+                $nextQty = $qty;
+                $nextPackagingId = $packId;
+            }
+        }
+
+        if(isset($nextPackagingId)){
+            $nextQty = round($nextQty / $currentQty, 4);
+            $nextQtyVerbal = core_Type::getByName('double(smartRound)')->toVerbal($nextQty);
+            $nextPackName = cat_UoM::getTitleById($nextPackagingId);
+        }
+
+        $res = array('currentPackagingId' => $packagingId,
+                            'currentQty' => $currentQty,
+                            'nextPackagingId' => $nextPackagingId,
+                            'nextQty' => $nextQty,
+                            'nextQtyVerbal' => $nextQtyVerbal,
+                            'nextPackName' => $nextPackName,
+        );
+
+        return $res;
+    }
 }

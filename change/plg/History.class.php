@@ -455,13 +455,12 @@ class change_plg_History extends core_Plugin
 
                     if (!empty($data['prev'])) {
                         $data['prev']->validTo = $newValidFrom;
-                        change_History::save($data['prev'], 'validTo');
+                        cls::get('change_History')->save_($data['prev'], 'validTo');
                     }
 
                     $newValidFromVerbal = dt::mysql2verbal($newValidFrom, 'd.m.y');
                     $mvc->logWrite("Промяна на валидността на текущия запис", $rec->id);
                     followRetUrl(null, "Текущата версия е с нова валидност от|*: <b>{$newValidFromVerbal}</b>");
-
                 }
             }
 

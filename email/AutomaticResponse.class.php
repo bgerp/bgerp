@@ -253,6 +253,9 @@ class email_AutomaticResponse extends core_Master
      */
     public function renderAutoResponses($data)
     {
+        if(empty($data->recs)){
+            return new core_ET();
+        }
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $title = tr('Автоматични отговори на имейли');
         $tpl->append($title, 'title');

@@ -314,6 +314,7 @@ class cat_products_Relations extends core_Manager
 
             if (!isset($groupedRows[$groupKey])) {
                 $groupedRows[$groupKey] = array(
+                    'groupId' => $rec->relTypeId,
                     'groupName' => core_Type::getByName('varchar')->toVerbal($otherGroupName),
                     'relType' => cat_RelationTypes::getRelTypeInfo($rec->relTypeId),
                     'order' => $rec->saoOrder,
@@ -354,7 +355,7 @@ class cat_products_Relations extends core_Manager
         $data->storageKey = 'prodRelTabs_' . $data->masterId;
         $data->imageSize = array('width' => 40, 'height' => 40);
 
-        $isExternalKey = $isExternal ? ("{$isExternal}|" . cms_Domains::getPublicDomain()->id) : $isExternal;
+        $isExternalKey = $isExternal ? ("{$isExternal}|" . cms_Domains::getPublicDomain()->id) : "{$isExternal}" . core_Lg::getCurrent();
         $cacheKey = "relTabs{$isExternalKey}";
         $cachedTabs = core_Cache::get("{$this->className}_{$data->masterId}", $cacheKey, 120);
         $isFromCache = is_array($cachedTabs);
@@ -416,7 +417,6 @@ class cat_products_Relations extends core_Manager
                 $tabData = new stdClass();
                 $tabData->rows = array();
                 $tabData->recs = array();
-
                 $tabData->listFields = arr::make('productId=Артикул,created=Създаване');
                 if ($isExternal) {
                     $tabData->listFields = arr::make('img=|*&nbsp;,productId=Артикул,code=Кат. №,price=Цена,btn=Поръчка');
@@ -467,6 +467,26 @@ class cat_products_Relations extends core_Manager
                         }
 
                         $tabRow->code = $productRecs[$tabRec->productId]->code ?? "Art{$tabRec->productId}";
+                    } else {
+
+                        $relQuery = cat_products_Relations::getQuery();
+                        $relQuery->EXT('isSymmetric', 'cat_RelationTypes', 'externalName=isSymmetric,externalKey=relTypeId');
+                        $relQuery->where("(#productId1 = {$tabRec->productId} OR #productId2 = {$tabRec->productId}) AND #isSymmetric = 'yes' AND #relTypeId != {$tabRec->relTypeId}");
+                        $relQuery->XPR('count', 'int', "COUNT(#id)");
+                        $relQuery->show('count, relTypeId');
+                        $foundRec = $relQuery->fetch();
+
+                        if($foundRec->count){
+                            $countAnalogVerbal = core_Type::getByName('int')->toVerbal($foundRec->count);
+                            $singleUrlArray = cat_Products::getSingleUrlArray($tabRec->productId);
+                            if(countR($singleUrlArray)){
+                                $containerId = cat_Products::fetchField($tabRec->productId, 'containerId');
+                                $singleUrlArray["TabTop{$containerId}"] = 'Relations';
+                            }
+
+                            $suffix = $foundRec->count == 1 ? tr('аналог') : tr('аналози');
+                            $tabRow->productId .= "  <span style='float:right;'> " . ht::createLink("[{$countAnalogVerbal}]", $singleUrlArray, false, "class=analogBtn,data-tab-name={$tabRec->productId}_{$foundRec->relTypeId}")->getContent() . " {$suffix}";
+                        }
                     }
 
                     $tabData->rows[$id] = $tabRow;
@@ -477,6 +497,7 @@ class cat_products_Relations extends core_Manager
                 $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn');
 
                 $tabs[] = array(
+                    'uniqueStr' => "{$data->masterId}_{$groupData['groupId']}",
                     'groupKey' => $groupKey,
                     'groupName' => $groupData['groupName'],
                     'groupInfo' => $groupInfo,
@@ -497,17 +518,6 @@ class cat_products_Relations extends core_Manager
 
         $data->tabs = $cachedTabs['tabs'];
         $data->activeTabInfo = $cachedTabs['activeTabInfo'];
-
-        if (haveRole('debug')) {
-            $debugLabel = $isFromCache ? '<div style="margin-top:5px;font-size:0.6em;">GET FROM CACHE</div>' : '<div style="margin-top:5px;font-size:0.6em;">CACHE</div>';
-
-            foreach ($data->tabs as &$tab) {
-                $tab['groupInfo'] .= ($tab['groupInfo'] ? ' ' : '') . $debugLabel;
-            }
-            unset($tab);
-
-            $data->activeTabInfo .= ($data->activeTabInfo ? ' ' : '') . $debugLabel;
-        }
 
         return $data;
     }
@@ -542,7 +552,11 @@ class cat_products_Relations extends core_Manager
             }
         }
 
-        if (empty($data->tabs)) return $tpl;
+        if (empty($data->tabs)) {
+            $tpl->append("<i>" . tr("Няма") . "</i>", 'content');
+
+            return $tpl;
+        }
 
         $tabsTpl = new core_ET("
         <div id='[#TAB_KEY#]' class='product-rel-tabs-compact' data-storage-key='[#STORAGE_KEY#]'>
@@ -562,8 +576,7 @@ class cat_products_Relations extends core_Manager
             $groupNameAttr = ht::escapeAttr($tab['groupName']);
             $tabInfoAttr = ht::escapeAttr($tab['groupInfo']);
             $tabCaption = "{$tab['groupName']} <span class='product-rel-tab-count'>({$tab['count']})</span>";
-
-            $tabLinks .= "<a href=\"#\" class=\"product-rel-tab tab{$isActiveClass}\" data-pane=\"{$tab['paneId']}\" data-tab-key=\"{$groupNameAttr}\" data-info=\"{$tabInfoAttr}\" onclick=\"return catProductsRelationsShowTab(this, '{$data->tabKey}');\">{$tabCaption}</a>";
+            $tabLinks .= "<a href=\"#\" class=\"product-rel-tab tab{$isActiveClass}\" data-pane=\"{$tab['paneId']}\" data-tab-key=\"{$groupNameAttr}\" data-info=\"{$tabInfoAttr}\" data-unique=\"{$tab['uniqueStr']}\" onclick=\"return catProductsRelationsShowTab(this, '{$data->tabKey}');\">{$tabCaption}</a>";
 
             $paneTpl = new core_ET("<div id='[#PANE_ID#]' class='product-rel-tab-pane[#ACTIVE#]'>[#TABLE#]</div>");
             $paneTpl->replace($tab['paneId'], 'PANE_ID');
@@ -576,6 +589,7 @@ class cat_products_Relations extends core_Manager
             $listMvc->FNC('price', 'varchar', 'tdClass=small relCol');
             $listMvc->FNC('btn', 'varchar', 'tdClass=small relCol');
             $listMvc->FNC('img', 'varchar', 'tdClass=small relCol relImgCol');
+            $listMvc->FNC('analogs', 'varchar', 'tdClass=small-field');
 
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
             $tabData = $tab['tabData'];
@@ -666,6 +680,8 @@ class cat_products_Relations extends core_Manager
         // Гледа се артикула от коя страна е, показва се другата
         $thisProductField = 'productId1';
         $otherProductField = 'productId2';
+        $productsNotAllowed = array($productId => $productId);
+
         if(isset($rec->relTypeId)){
             $relRec = cat_RelationTypes::fetch($rec->relTypeId);
 
@@ -681,11 +697,48 @@ class cat_products_Relations extends core_Manager
             $otherGroupIdFieldName = $otherProductField == 'productId1' ? 'group1GroupId' : 'group2GroupId';
             $otherGroupNameFieldName = $otherProductField == 'productId1' ? 'group1Name' : 'group2Name';
             $groupName = cat_Groups::getTitleById($relRec->{$otherGroupIdFieldName});
-            $form->FLD("otherProductId", 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', "caption=|*{$relRec->{$otherGroupNameFieldName}}->|Група|*: {$groupName}->Артикул,placeholder=Всички от групата");
-            $form->setFieldTypeParams('otherProductId', array('groups' => $relRec->{$otherGroupIdFieldName}));
+
+            // Ако релацията е симетрична се проверява дали двата артикула вече не са обвързани
+            if($relRec->isSymmetric == 'yes'){
+                $exQuery = $this->getQuery();
+                $exQuery->where("#{$otherProductField} = {$productId} AND #relTypeId = {$rec->relTypeId}");
+                $exQuery->show("{$thisProductField}");
+                $productsNotAllowed = arr::extractValuesFromArray($exQuery->fetchAll(), $thisProductField);
+            }
+
+            // Ако се редактира запис - полето е ключ само за промяна на този запис
             if(!empty($currentRec->{$otherProductField})){
+                $form->FLD("otherProductId", 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', "caption=|*{$relRec->{$otherGroupNameFieldName}}->|Група|*: {$groupName}->Артикул,placeholder=Всички от групата");
+                $form->setFieldTypeParams('otherProductId', array('groups' => $relRec->{$otherGroupIdFieldName}));
                 $form->setDefault('otherProductId', $currentRec->{$otherProductField});
                 $form->setField('otherProductId', 'mandatory');
+            } else {
+                // Ако не се редактира запис то се показват недобавените артикули от групата
+                $form->FLD("otherProducts", 'keylist(mvc=cat_Products,select=name,allowEmpty)', "caption=|*{$relRec->{$otherGroupNameFieldName}}->|Група|*: {$groupName}->Артикул,placeholder=Всички от групата");
+
+                // Кои са вече добавените артикули - тях ги махаме
+                $exQuery = self::getQuery();
+                $exQuery->where("#relTypeId = {$relRec->id} AND #{$thisProductField} = {$productId}");
+                $exQuery->show($otherProductField);
+                $productsNotAllowed += arr::extractValuesFromArray($exQuery->fetchAll(), $otherProductField);
+
+                // Зареждане само на артикулите от тази група
+                $otherProductOptions = array();
+                $pQuery = cat_Products::getQuery();
+                $pQuery->where("#state = 'active'");
+                $pQuery->show('id,isPublic,name,nameEn,code');
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $relRec->{$otherGroupIdFieldName});
+                $pQuery->notIn('id', $productsNotAllowed);
+                while($pRec = $pQuery->fetch()) {
+                    $otherProductOptions[$pRec->id] = cat_Products::getRecTitle($pRec, false);
+                }
+                if(countR($otherProductOptions)){
+                    $form->setSuggestions('otherProducts', array('' => '') + $otherProductOptions);
+                } else {
+                    $form->setReadOnly('otherProducts');
+                    $form->setError('otherProducts', 'Всички артикули от групата са вече добавени|*!');
+                }
+                $form->rec->_allProductsInGroup = $otherProductOptions;
             }
         }
         $form->input();
@@ -697,53 +750,34 @@ class cat_products_Relations extends core_Manager
             }
 
             // Ако е избран конкретен друг артикул - той, ако не всички от групата
-            $relRec = cat_RelationTypes::fetch($rec->relTypeId);
-            $symmetricProducts = array();
-
-            // Ако релацията е симетрична се проверява дали двата артикула вече не са обвързани
-            if($relRec->isSymmetric == 'yes'){
-                $exQuery = $this->getQuery();
-                $exQuery->where("#{$otherProductField} = {$productId} AND #relTypeId = {$rec->relTypeId}");
-                $exQuery->show("{$thisProductField}");
-                $symmetricProducts = arr::extractValuesFromArray($exQuery->fetchAll(), $thisProductField);
-            }
-
             $otherProducts = array();
-            if(empty($rec->otherProductId)){
-                $pQuery = cat_Products::getQuery();
-                $pQuery->where("#state NOT IN ('rejected', 'closed')");
-                $pQuery->show('id');
-                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $relRec->{$otherGroupIdFieldName});
-                while($pRec = $pQuery->fetch()){
-                    $otherProducts[$pRec->id] = $pRec->id;
-                }
-            } else {
+
+            if(!empty($rec->otherProducts)){
+                $otherProducts = keylist::toArray($rec->otherProducts);
+            } elseif(!empty($rec->otherProductId)){
                 $otherProducts[$rec->otherProductId] = $rec->otherProductId;
-                if(array_key_exists($rec->otherProductId, $symmetricProducts)){
+                if(array_key_exists($rec->otherProductId, $productsNotAllowed)){
                     $form->setError('otherProductId', "Двата артикула са вече свързани в симетрична релация|*!");
                 }
+            } elseif(!empty($rec->_allProductsInGroup)){
+                $otherProducts = array_combine(array_keys($rec->_allProductsInGroup), array_keys($rec->_allProductsInGroup));
             }
 
             $count = count($otherProducts);
             if($count > 100){
-                $form->setWarning('otherProductId', "Не може да добавите повече от|* 100 |артикула|*");
-            } elseif($count > 1){
-                $form->setWarning('otherProductId', "Наистина ли искате да добавите релации към|* <b>{$count}</b> |артикула|*:");
+                $form->setWarning('otherProductId', "Не може да добавите повече от|* 100 |артикула|*!");
             }
 
             if(!$form->gotErrors()){
-
                 // Подготовка на записите
                 $this->updatedProducts[$productId] = $productId;
                 $newRecs = array();
                 $now = dt::now();
                 $cu = core_Users::getCurrent();
                 foreach ($otherProducts as $otherProductId) {
-                    if(!array_key_exists($otherProductId, $symmetricProducts)){
-                        $this->updatedProducts[$otherProductId] = $otherProductId;
-                        $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId, 'createdOn' => $now, 'createdBy' => $cu, 'modifiedOn' => $now, 'modifiedBy' => $cu);
-                        $newRecs[] = $newRec;
-                    }
+                    $this->updatedProducts[$otherProductId] = $otherProductId;
+                    $newRec = (object)array("{$thisProductField}" => $productId, "{$otherProductField}" => $otherProductId, 'relTypeId' => $rec->relTypeId, 'createdOn' => $now, 'createdBy' => $cu, 'modifiedOn' => $now, 'modifiedBy' => $cu);
+                    $newRecs[] = $newRec;
                 }
 
                 // Ако е повече от 1 запис ще се добавят всичките, които не присъстват

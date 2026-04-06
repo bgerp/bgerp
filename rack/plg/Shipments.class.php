@@ -30,6 +30,7 @@ class rack_plg_Shipments extends core_Plugin
         setPartIfNot($mvc, 'detailToPlaceInZones', $mvc->mainDetail);
         setPartIfNot($mvc, 'canPrintzonemovements', 'no_one');
         setPartIfNot($mvc, 'canDoallmovements', 'no_one');
+        setPartIfNot($mvc, 'syncWithZone', array());
     }
     
     
@@ -147,7 +148,7 @@ class rack_plg_Shipments extends core_Plugin
                             foreach ($batches as $k => $b) {
                                 $key2 = "{$key}|{$k}";
                                 if(!array_key_exists($key2, $res)){
-                                    $res[$key2] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => $k);
+                                    $res[$key2] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => $k, 'quantity' => 0);
                                 }
                                 $res[$key2]->quantity += $quantity;
                                 $rest -= $quantity;
@@ -158,7 +159,7 @@ class rack_plg_Shipments extends core_Plugin
                     if(round($rest, 5) > 0){
                         $key3 = "{$key}|||";
                         if(!array_key_exists($key3, $res)){
-                            $res[$key3] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => '');
+                            $res[$key3] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => '', 'quantity' => 0);
                         }
                         $res[$key3]->quantity += $rest;
                     }
@@ -207,11 +208,14 @@ class rack_plg_Shipments extends core_Plugin
     public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
+
+        // Към коя зона е закачен документа
         $zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}", 'id,readiness');
         if(is_object($zoneRec)){
+
+            // Ако има зона, проверява се дали са готови движенията
             $dQuery = rack_ZoneDetails::getQuery();
             $dQuery->where("#zoneId = {$zoneRec->id} AND #movementQuantity IS NOT NULL");
-
             if($dQuery->count()){
                 if (!rack_Zones::isReadinessFull($zoneRec->readiness)) {
 					core_Statuses::newStatus('Документът не може да се контира. Не е нагласен в зоните на палетния склад|*!', 'error');
@@ -223,6 +227,19 @@ class rack_plg_Shipments extends core_Plugin
                 core_Statuses::newStatus('Документът не може да се контира. Има започнати и/или запазени движения към зоната в която е закачен|*!', 'error');
 
                 return false;
+            }
+        } elseif(!empty($rec->{$mvc->rackStoreFieldName})){
+
+            // Ако не е закачен към зона, но има зони в склада - проверява се дали използването в зона е задължително
+            if(rack_Zones::count("#storeId = {$rec->{$mvc->rackStoreFieldName}} AND #state = 'active'")){
+                $requireZoneInDocuments = store_Stores::fetchField($rec->{$mvc->rackStoreFieldName}, 'requireZoneInDocuments');
+
+                // Ако е се сетва грешка
+                if($requireZoneInDocuments == 'yes'){
+                    core_Statuses::newStatus('Документът не може да се контира. Без да е закачен към зона|*!', 'error');
+
+                    return false;
+                }
             }
         }
     }
@@ -351,7 +368,7 @@ class rack_plg_Shipments extends core_Plugin
                 $res->append($documentRow->logisticInfo, 'logisticInfo');
             }
 
-            if($mvc->lineFieldName){
+            if(!empty($mvc->lineFieldName)){
                 if($rec->{$mvc->lineFieldName}){
                     $lineRow = trans_Lines::recToVerbal($rec->{$mvc->lineFieldName});
                     $res->append(trans_Lines::getTitleById($rec->{$mvc->lineFieldName}), 'lineId');
@@ -474,7 +491,7 @@ class rack_plg_Shipments extends core_Plugin
 
             foreach ($movementRecs as $mRec){
                 if($mRec->productId == $zRec->productId && $mRec->packagingId == $zRec->packagingId && $mRec->batch == $zRec->batch){
-                    $data->recs[$zRec->id]->positions[$mRec->position] += $mRec->quantity;
+                    $data->recs[$zRec->id]->positions[$mRec->position] = ($data->recs[$zRec->id]->positions[$mRec->position] ?? 0) + $mRec->quantity;
                 }
             }
         }

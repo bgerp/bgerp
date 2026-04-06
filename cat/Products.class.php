@@ -3042,7 +3042,7 @@ class cat_Products extends embed_Manager
         
         if (core_Packs::isInstalled('batch')) {
             if (batch_Defs::haveRightFor('add', (object) array('productId' => $data->rec->id))) {
-                $data->toolbar->addBtn('Партидност', array('batch_Defs', 'add', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/wooden-box.png,title=Добавяне на партидност,row=2');
+                $data->toolbar->addBtn('Нова партидност', array('batch_Defs', 'add', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/wooden-box.png,title=Добавяне на партидност,row=2');
             }
         }
         
@@ -3291,9 +3291,7 @@ class cat_Products extends embed_Manager
         // За артикула, това е цената по себестойност за исканото количество
         return self::getPrimeCost($id, null, $quantity, $valior);
     }
-    
-    
-    /**
+   /**
      * Подготовка на бутоните на формата за добавяне/редактиране.
      *
      * @param core_Manager $mvc
@@ -3303,7 +3301,13 @@ class cat_Products extends embed_Manager
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         $data->form->toolbar->renameBtn('save', 'Запис');
-        $data->form->toolbar->removeBtn('activate');
+        $data->form->toolbar->removeBtn('activate'); 
+        $cover = doc_Folders::getCover($data->form->rec->folderId);
+        if($cover->haveInterface('crm_ContragentAccRegIntf')){
+            if(sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->form->rec->folderId))){
+                $data->form->toolbar->addSbBtn('Запис и Продажба', 'saveandsale', null, 'ef_icon=img/16/cart_go.png,title=Запис и създаване на нова продажба, order=9.99975');
+            }
+        }
     }
     
     
@@ -4943,6 +4947,24 @@ class cat_Products extends embed_Manager
             }
 
             Mode::pop('doNotCalculate');
+        }
+    }
+
+
+     /**
+     * Логика за определяне къде да се пренасочва потребителския интерфейс.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $data, $id = null)
+    {
+        if ($data->form->cmd == 'saveandsale') {
+           if(isset($id)){
+                if(sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->form->rec->folderId, 'productId' => $data->form->rec->id))){
+                    $data->retUrl = array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->form->rec->folderId, 'productId' => $data->form->rec->id);
+                }
+            }
         }
     }
 }

@@ -1083,11 +1083,10 @@ class sales_Sales extends deals_DealMaster
             if (core_Users::isContractor($userId)) {
                 $res = 'no_one';
             }
-            
             if (isset($rec) && $res != 'no_one') {
-                if (empty($rec->productId) || empty($rec->folderId)) {
+                if(empty($rec->folderId)) {
                     $res = 'no_one';
-                } else {
+                } else if (!empty($rec->productId)){
                     $pRec = cat_Products::fetch($rec->productId, 'state,canSell');
                     if ($pRec->state != 'active' || $pRec->canSell != 'yes') {
                         $res = 'no_one';
@@ -2242,7 +2241,7 @@ class sales_Sales extends deals_DealMaster
 
         $errorMsg = null;
         if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)) {
-            $rec->contoActions = '';
+            $rec->contoActions = null;
             $mvc->save_($rec, 'contoActions');
             core_Statuses::newStatus($errorMsg, 'error');
 
@@ -2256,7 +2255,7 @@ class sales_Sales extends deals_DealMaster
             $dQuery->show('productId');
             $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
             if($error = voucher_Cards::getContoErrors($rec->voucherId, $productIds, $mvc->getClassId(), $rec->id)){
-                $rec->contoActions = '';
+                $rec->contoActions = null;
                 $mvc->save_($rec, 'contoActions');
                 core_Statuses::newStatus($error, 'error');
 

@@ -662,11 +662,11 @@ abstract class deals_DealBase extends core_Master
             $row->closedDocuments = trim($row->closedDocuments, ', ');
         }
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = static::getLink($rec->id);
         }
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if(isset($rec->clonedFromId)){
                 $row->clonedFromId = static::getLink($rec->clonedFromId, 0);
             }
@@ -939,11 +939,15 @@ abstract class deals_DealBase extends core_Master
                 $e->documentCreatedOn = cls::get($e->docType)->fetchField($e->docId, 'createdOn');
             }
 
-            // Подредба по вальор
             usort($entries, function ($a, $b) {
                 if ($a->valior == $b->valior) {
+                    if ($a->documentCreatedOn == $b->documentCreatedOn) {
+                        return 0;
+                    }
+
                     return ($a->documentCreatedOn < $b->documentCreatedOn) ? -1 : 1;
                 }
+
                 return ($a->valior < $b->valior) ? -1 : 1;
             });
 

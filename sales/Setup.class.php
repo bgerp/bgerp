@@ -276,6 +276,12 @@ defIfNot('SALES_SHOW_COMPANY_QUOTES_DUAL_PRICES', 'no');
 
 
 /**
+ * Показване на подсказка за едрово количество в продажбите
+ */
+defIfNot('SALES_SHOW_NEXT_PACK_UNIT', 'no');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -455,6 +461,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_SHOW_CODE_IN_SEPARATE_COLUMN' => array('enum(no=Не,yes=Да)', 'caption=Показване на кода на артикула в продажбите в отделна колонка->Избор'),
         'SALES_RECALC_PRICES_ON_CLONE' => array('enum(no=Не,yes=Да)', 'caption=Преизчисление на цените в продажбата при клониране->Избор'),
         'SALES_SHOW_COMPANY_QUOTES_DUAL_PRICES' => array('enum(no=Не,yes=Да)', 'caption=Показване на двойни цени Евро/Лева в изходящите оферти за фирми->Избор'),
+        'SALES_SHOW_NEXT_PACK_UNIT' =>array('enum(no=Не,yes=Да)', 'caption=Показване на подсказка за едрово количество в продажбите->Избор'),
     );
     
     

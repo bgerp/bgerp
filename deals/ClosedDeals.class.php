@@ -659,8 +659,8 @@ abstract class deals_ClosedDeals extends core_Master
 
         return $id;
     }
-    
-    
+
+
     /**
      * Дали документа има приключени пера в транзакцията му
      */
