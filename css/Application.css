@@ -1107,35 +1107,55 @@ div.acc-detail {
   .additionalInfo-holder .anchor-arrow {
     cursor: pointer; }
 
-.toggleLink {
-  float: right;
-  display: inline-block;
-  height: 20px;
-  cursor: pointer;
-  padding: 3px; }
-
 .narrow #cmsNavigation .articles-navigation {
-  margin-top: -10px !important;
-  margin-bottom: 0 !important; }
-  .narrow #cmsNavigation .articles-navigation #searchform {
-    margin: 0 !important;
-    float: left; }
+  display: flex;
+  align-items: center;
+  padding: 6px 0 6px 8px;
+  gap: 6px;
+  justify-content: space-between; }
+  .narrow #cmsNavigation .articles-navigation form {
+    float: none;
+    flex: 1;
+    min-width: 0;
+        /*
+     * важно
+     */ }
   .narrow #cmsNavigation .articles-navigation #simpleSearch {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 6px;
+    position: relative;
     margin: 0 !important;
     padding: 0;
     box-shadow: none !important;
     border: none !important;
-    position: relative; }
+    min-width: auto !important; }
   .narrow #cmsNavigation .articles-navigation #searchInput {
     border-radius: 3px;
-    box-shadow: none !important;
-    border: none !important; }
+    min-width: 0;
+        /*
+     * важно за мобилни
+     */
+    height: 26px;
+    padding: 4px 8px;
+    width: 100% !important;
+    font-size: 14px;
+    box-sizing: border-box; }
   .narrow #cmsNavigation .articles-navigation #searchButton {
     position: absolute;
     top: 2px;
-    right: 26px; }
+    right: 0;
+    width: 30px; }
     .narrow #cmsNavigation .articles-navigation #searchButton:focus {
       outline: none; }
+  .narrow #cmsNavigation .articles-navigation .toggleLink {
+    float: none;
+    height: 20px;
+    cursor: pointer;
+    padding: 3px;
+    flex-shrink: 0;
+    margin-left: 0 !important; }
 
 .narrowNav {
   display: none;
@@ -4449,9 +4469,6 @@ table .eshop-btn {
 #cmsNavigation .navWithIcon.lastOrderedLink a.linkWithIcon {
   height: auto !important;
   background-position: 5px 5px !important; }
-
-.narrow #cmsNavigation a.linkWithIcon {
-  float: right; }
 
 #cmsNavigation form {
   display: inline-block;

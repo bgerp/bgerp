@@ -5,7 +5,6 @@
         [#TOP_NAV#]
         <div class='articles-navigation'>
              [#SEARCH_BOX#] [#TOGGLE_BTN#]
-            <div class="clearfix21"></div>
         </div>
         <div class="narrowNav">
             [#NAVIGATION#]
