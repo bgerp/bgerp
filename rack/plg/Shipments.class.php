@@ -236,7 +236,7 @@ class rack_plg_Shipments extends core_Plugin
 
                 // Ако е се сетва грешка
                 if($requireZoneInDocuments == 'yes'){
-                    core_Statuses::newStatus('Документът не може да се контира. Без да е закачен към зона|*!', 'error');
+                    core_Statuses::newStatus('Документът не може да се контира, без да е закачен към зона|*!', 'error');
 
                     return false;
                 }
