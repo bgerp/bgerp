@@ -3042,7 +3042,7 @@ class cat_Products extends embed_Manager
         
         if (core_Packs::isInstalled('batch')) {
             if (batch_Defs::haveRightFor('add', (object) array('productId' => $data->rec->id))) {
-                $data->toolbar->addBtn('Партидност', array('batch_Defs', 'add', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/wooden-box.png,title=Добавяне на партидност,row=2');
+                $data->toolbar->addBtn('Нова партидност', array('batch_Defs', 'add', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/wooden-box.png,title=Добавяне на партидност,row=2');
             }
         }
         
