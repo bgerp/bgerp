@@ -9382,3 +9382,10 @@ td.td-clamp[data-overflow="true"] .clamp-ellipsis{
 }
 td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-ellipsis::after{ content:"…"; }
 td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after{ content:"↥"; }
+
+.earlyPaymentDiscountActive {
+	background: #e8f7e8;
+	border: 1px solid #8fce8f;
+	color: #1f6b1f;
+	font-weight: 700;
+}
