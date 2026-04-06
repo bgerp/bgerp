@@ -264,7 +264,7 @@ abstract class deals_DealDetail extends doc_Detail
                 $form->setField('term', 'input');
             }
         }
-        
+
         if (core_Users::haveRole('partner')) {
             $form->setField('packPrice', 'input=none');
             $form->setField('tolerance', 'input=none');
@@ -844,7 +844,20 @@ abstract class deals_DealDetail extends doc_Detail
             $form->FLD("quantity{$lId}", 'double(Min=0)', "caption={$caption}->Количество");
             $form->setDefault("productId{$lId}", $lRec->productId);
             $form->setDefault("packagingId{$lId}", $lRec->packagingId);
-            
+
+            // Показване на едровото к-во ако е избрано в пакета
+            if($this instanceof sales_SalesDetails){
+                if(isset($lRec->productId) && isset($lRec->packagingId)){
+                    $showHigherQtyHint = sales_Setup::get('SHOW_NEXT_PACK_UNIT');
+                    if($showHigherQtyHint == 'yes'){
+                        $packData = cat_products_Packagings::getCurrentAndNextBiggerPack($lRec->productId, $lRec->packagingId);
+                        if(!empty($packData['nextPackName'])){
+                            $form->setField("quantity{$lId}", "unit=|* ( {$packData['nextQty']} |в|* {$packData['nextPackName']} )");
+                        }
+                    }
+                }
+            }
+
             $unit = '';
             if (isset($lRec->moq)) {
                 $moq = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($lRec->moq);

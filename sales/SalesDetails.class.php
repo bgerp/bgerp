@@ -398,4 +398,28 @@ class sales_SalesDetails extends deals_DealDetail
     {
         $data->showCodeColumn = sales_Setup::get('SHOW_CODE_IN_SEPARATE_COLUMN') == 'yes';
     }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $rec = &$form->rec;
+
+        // Показване на едровото к-во ако е избрано в пакета
+        if(isset($rec->productId) && isset($rec->packagingId)){
+            $showHigherQtyHint = sales_Setup::get('SHOW_NEXT_PACK_UNIT');
+            if($showHigherQtyHint == 'yes'){
+                $packData = cat_products_Packagings::getCurrentAndNextBiggerPack($rec->productId, $rec->packagingId);
+                if(!empty($packData['nextPackName'])){
+                    $form->setField('packQuantity', "unit=|* ( {$packData['nextQty']} |в|* {$packData['nextPackName']} )");
+                }
+            }
+        }
+    }
 }
