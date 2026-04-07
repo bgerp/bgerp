@@ -569,25 +569,6 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listSummary->summary = array();
         $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
 
-        $showFields = arr::make(array_keys($fieldsArr), true);
-        $showFields['state'] = 'state';
-        if($mvc->getField('createdOn', false)){
-            $showFields['createdOn'] = 'createdOn';
-        }
-        if($mvc->getField('rate', false)){
-            $showFields['rate'] = 'rate';
-        }
-
-        if($mvc->getField($mvc->filterCurrencyField, false)){
-            $showFields[$mvc->filterCurrencyField] = $mvc->filterCurrencyField;
-        }
-
-        if(isset($mvc->valiorFld)){
-            $showFields[$mvc->valiorFld] = $mvc->valiorFld;
-        }
-        $showFields = implode(',', $showFields);
-        $sQuery->show($showFields);
-
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
         $draftCount = $activeCount = $pendingCount = 0;
