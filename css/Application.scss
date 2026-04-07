@@ -5555,12 +5555,16 @@ table .eshop-btn {
 	width: 100%;
 	margin: 0 auto;
 	overflow: hidden;
-	padding-top: 25px;
+	display: flex;
+	padding: 25px 0;
+	box-sizing: border-box;
+	gap: 20px;
+	justify-content: space-between;
 }
-
+.background-holder cms-row {
+	padding: 25px;
+}
 .onecol, .twocol, .threecol, .fourcol, .fivecol, .sixcol, .sevencol, .eightcol, .ninecol, .tencol, .elevencol{
-	margin-right: 3.8%;
-	float: left;
 	min-height: 1px;
 	_display: inline;
 }
@@ -5578,7 +5582,7 @@ table .eshop-btn {
 }
 
 .cms-row .fourcol {
-	width: 27.73%;
+	width: 27%;
 }
 
 .cms-row .fivecol {
@@ -5594,8 +5598,7 @@ table .eshop-btn {
 }
 
 .cms-row .eightcol {
-	width: 64%;
-	float:right;
+	width: 66%;
 }
 
 .cms-row .ninecol {
@@ -5612,7 +5615,6 @@ table .eshop-btn {
 
 .cms-row .twelvecol {
 	width: 100%;
-	float: left;
 }
 
 .cms-last {

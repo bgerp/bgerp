@@ -1,6 +1,6 @@
 <div class='cms-row'>
     <!--ET_BEGIN NAVIGATION-->
-    <div class='fourcol' id='cmsNavigation'  style='margin-left:2%'>
+    <div class='fourcol' id='cmsNavigation'>
         [#TOP_NAV#]
         [#SEARCH_BOX#]
         [#NAVIGATION_EXTRA_BTNS#]
@@ -14,7 +14,7 @@
         <div class='bulletin-link clearfix21'></div>
     </div>
     <!--ET_END NAVIGATION-->
-    <div class='eightcol cms-last' style='margin-right:2%;'>
+    <div class='eightcol cms-last'>
         [#TOP_CONTENT#]
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
