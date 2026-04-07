@@ -1370,7 +1370,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($overdueAmountInCurrency);
                     $row->paymentState = $overdueAmount;
                     $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
-                    if(!$fields['-list']){
+                    if(empty($fields['-list'])){
                         $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
                     }
                     $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'warning', false);
@@ -1381,7 +1381,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if(doc_plg_HidePrices::canSeePriceFields($mvc, $rec)) {
                 $row->paymentState = $row->amountToPay;
             }
-            if(!$fields['-list']){
+            if(empty($fields['-list'])){
                 $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
             }
         }
@@ -1394,7 +1394,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $row->initiatorId = crm_Profiles::createLink($rec->initiatorId);
         }
         
-        if ($fields['-single']) {
+        if (!empty($fields['-single'])) {
             if (core_Users::haveRole('partner')) {
                 unset($row->closedDocuments);
                 unset($row->initiatorId);
@@ -2873,18 +2873,20 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $arr = deals_Helper::normalizeProducts(array($all));
         arr::sortObjects($arr, 'sumAmounts', 'desc');
-        $arr = array_values($arr);
-        
-        if ($productId = $arr[0]->productId) {
-            $tplLang = doc_TplManager::fetchField($rec->template, 'lang');
-            if($tplLang){
-                core_Lg::push($tplLang);
-                $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
-                $productName = cat_Products::getVerbal($pRec, 'name');
-                core_Lg::pop();
-                $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
+        if(!empty($arr)) {
+            $arr = array_values($arr);
 
-                return $productName;
+            if ($productId = $arr[0]->productId) {
+                $tplLang = doc_TplManager::fetchField($rec->template, 'lang');
+                if($tplLang){
+                    core_Lg::push($tplLang);
+                    $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
+                    $productName = cat_Products::getVerbal($pRec, 'name');
+                    core_Lg::pop();
+                    $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
+
+                    return $productName;
+                }
             }
         }
     }
