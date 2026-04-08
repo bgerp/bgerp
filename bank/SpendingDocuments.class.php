@@ -83,7 +83,7 @@ class bank_SpendingDocuments extends bank_Document
         parent::getFields($this);
         $this->setField('termDate', 'caption=Срок');
         $this->FLD('earlyPaymentUntil', 'date', 'caption=Отстъпка за предсрочно плащане->Краен срок,input=none,autohide');
-        $this->FLD('earlyPaymentPercent', 'percent(min=0)', 'caption=Отстъпка за предсрочно плащане->Отстъпка,input=none,autohide');
+        $this->FLD('earlyPaymentPercent', 'percent(Min=0)', 'caption=Отстъпка за предсрочно плащане->Отстъпка,input=none,autohide');
         $this->XPR('termDateCalc', 'date', 'COALESCE(#earlyPaymentUntil, #termDate)', 'caption=Краен срок');
     }
     
@@ -134,7 +134,7 @@ class bank_SpendingDocuments extends bank_Document
             // И нейния метод за плащане е с отстъпка за предсрочно плащане
             if($paymentMethodId = $firstDoc->fetchField('paymentMethodId')){
                 $paymentRec = cond_PaymentMethods::fetch($paymentMethodId);
-                if(!empty($paymentRec->discountPercent) || !empty($paymentRec->discountPeriod)){
+                if(!empty($paymentRec->discountPercent) && !empty($paymentRec->discountPeriod)){
                     $form->setField('earlyPaymentUntil', 'input');
                     $form->setField('earlyPaymentPercent', 'input');
 
@@ -200,6 +200,9 @@ class bank_SpendingDocuments extends bank_Document
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if(!empty($rec->earlyPaymentUntil) && !empty($rec->earlyPaymentPercent)){
+            $row->earlyPaymentPercent = $row->earlyPaymentPercent ?? $mvc->getFieldType('earlyPaymentPercent')->toVerbal($rec->earlyPaymentPercent);
+            $row->earlyPaymentUntil = $row->earlyPaymentUntil ?? $mvc->getFieldType('earlyPaymentUntil')->toVerbal($rec->earlyPaymentUntil);
+
             if(isset($fields['-single'])) {
                 $row->earlyPaymentInfo = tr("|*<b>{$row->earlyPaymentPercent}</b> |отстъпка при плащане до|* <b>{$row->earlyPaymentUntil}</b>");
             }
@@ -210,8 +213,6 @@ class bank_SpendingDocuments extends bank_Document
                 $row->earlyPaymentInfo .= " (" . tr('изтекло') . ")";
             } elseif(!Mode::isReadOnly()) {
                 $row->earlyPaymentClass = 'earlyPaymentDiscountActive';
-                $row->earlyPaymentPercent = $row->earlyPaymentPercent ?? $mvc->getFieldType('earlyPaymentPercent')->toVerbal($rec->earlyPaymentPercent);
-                $row->earlyPaymentUntil = $row->earlyPaymentUntil ?? $mvc->getFieldType('earlyPaymentUntil')->toVerbal($rec->earlyPaymentUntil);
 
                 // Ако вальора е в срока на предсрочно плащане да се показва с каква сума е намалена
                 $amountWithoutDiscount = round($rec->amount * (1 - $rec->earlyPaymentPercent), 2);
@@ -219,12 +220,14 @@ class bank_SpendingDocuments extends bank_Document
                 if(in_array($rec->state, array('draft', 'pending'))){
                     $icon = isset($fields['-list']) ? 'notice' : 'noicon';
                     $hintColor = '#3939ef;';
+                    $infoSuffix = " |при плащане до|* {$row->earlyPaymentUntil}";
                 } else {
                     $hintColor = 'black';
                     $icon = 'noicon';
+                    $infoSuffix = '';
                 }
 
-                $row->amount = ht::createHint("<span style='color:{$hintColor}'>{$amountWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amount, $rec->currencyId, true) . " |при плащане до|* {$row->earlyPaymentUntil}", $icon, false);
+                $row->amount = ht::createHint("<span style='color:{$hintColor}'>{$amountWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amount, $rec->currencyId, true) . $infoSuffix, $icon, false);
                 if(in_array($rec->state, array('draft', 'pending')) && isset($fields['-list'])){
                     $row->amount = ht::createElement('div', array('class' => 'amountBadge'), $row->amount, true);
                 }
@@ -233,7 +236,7 @@ class bank_SpendingDocuments extends bank_Document
                     if(!empty($row->amountDeal)){
                         $amountDealWithoutDiscount = round($rec->amountDeal * (1 - $rec->earlyPaymentPercent), 2);
                         $amountDealWithoutDiscountVerbal = $mvc->getFieldType('amountDeal')->toVerbal($amountDealWithoutDiscount);
-                        $row->amountDeal = ht::createHint("<span style='color:{$hintColor}'>{$amountDealWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amountDeal, $rec->dealCurrencyId, true) . " |при плащане до|* {$row->earlyPaymentUntil}", 'noicon');
+                        $row->amountDeal = ht::createHint("<span style='color:{$hintColor}'>{$amountDealWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amountDeal, $rec->dealCurrencyId, true) . $infoSuffix, 'noicon');
                     }
                 }
             }

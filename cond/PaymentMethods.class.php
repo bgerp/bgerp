@@ -210,6 +210,10 @@ class cond_PaymentMethods extends embed_Manager
             if ($total > 1) {
                 $form->setError('downpayment,paymentBeforeShipping,paymentOnDelivery', 'Въведените проценти не бива да надвишават 100%');
             }
+
+            if(!empty($rec->discountPercent) && empty($rec->discountPeriod)) {
+                $form->setError('discountPercent,discountPeriod', 'Въведете валиден срок за отстъпката при предсрочно плащане');
+            }
         }
     }
     
