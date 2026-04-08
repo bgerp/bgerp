@@ -582,7 +582,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         $defPaymentId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $mvc->getFieldParam('paymentMethodId', 'salecondSysId'));
-        if($rec->_isBeingCloned && !empty($defPaymentId)){
+        if (!empty($rec->_isBeingCloned) && !empty($defPaymentId)) {
             if($rec->paymentMethodId != $defPaymentId){
                 $form->setWarning('paymentMethodId', 'Методът на плащане се различава от дефолтния в търговските условия на контрагента|*: <b>' . cond_PaymentMethods::getTitleById($defPaymentId) . "</b>");
             }
@@ -1069,7 +1069,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(isset($rec->_newCurrencyRate) && $rec->currencyRate != $rec->_newCurrencyRate){
             deals_Helper::recalcRate($mvc, $rec->id, $rec->_newCurrencyRate);
             $msg = 'Курсът е променен';
-            $msg .= haveRole('debug') ? " : (стар) {$rec->currencyRate} - (нов) {$rec->_newCurrencyRate} " : $msg;
+            $msg .= haveRole('debug') ? " : (стар) {$rec->currencyRate} - (нов) {$rec->_newCurrencyRate}" : '';
             core_Statuses::newStatus($msg, 'notice');
         }
 
@@ -1845,7 +1845,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
                 // Може да се плати от каса
                 $caseName = cash_Cases::getTitleById($defaultCaseId);
-                $options['pay'] = "{$opt['pay']} \"${caseName}\"";
+                $options['pay'] = "{$opt['pay']} \"{$caseName}\"";
             }
         }
 
@@ -1898,17 +1898,17 @@ abstract class deals_DealMaster extends deals_DealBase
         $isTakenFromPlace = ($paymentType == 'cash' && $deliveryAddress == 'supplier');
 
         // Ако има склад и експедиране и потребителя е логнат в склада, слагаме отметка
-        if ($options['ship'] && $rec->shipmentStoreId) {
+        if (!empty($options['ship']) && $rec->shipmentStoreId) {
             if ($isTakenFromPlace || ($rec->shipmentStoreId === $curStoreId && $map['service'] != $options['ship'])) {
                 $selected[] = 'ship';
             }
-        } elseif ($options['ship']) {
+        } elseif (!empty($options['ship'])) {
             $selected[] = 'ship';
         }
         
         // Ако има каса и потребителя е логнат в нея, Слагаме отметка
         $defaultCaseId = $rec->caseId ?? cash_Cases::getCurrent('id', false);
-        if ($options['pay'] && isset($defaultCaseId)) {
+        if (!empty($options['pay']) && isset($defaultCaseId)) {
             if ($isTakenFromPlace) {
                 $selected[] = 'pay';
             }
@@ -1931,19 +1931,19 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->isContable = ($form->rec->action == 'activate') ? 'activate' : 'yes';
 
             $actions = type_Set::toArray($form->rec->action);
-            if ($actions['pay'] && empty($rec->caseId)){
+            if (!empty($actions['pay']) && empty($rec->caseId)){
                 $rec->caseId = cash_Cases::getCurrent('id', false);
             }
 
             $this->save($rec);
             
             // Ако се експедира и има склад, форсира се логване
-            if ($options['ship'] && isset($rec->shipmentStoreId) && $rec->shipmentStoreId != $curStoreId) {
+            if (!empty($options['ship']) && isset($rec->shipmentStoreId) && $rec->shipmentStoreId != $curStoreId) {
                 store_Stores::selectCurrent($rec->shipmentStoreId);
             }
             
             // Ако има сметка и се експедира, форсира се логване
-            if ($options['pay'] && isset($rec->caseId) && $rec->caseId != $curCaseId) {
+            if (!empty($options['pay']) && isset($rec->caseId) && $rec->caseId != $curCaseId) {
                 cash_Cases::selectCurrent($rec->caseId);
             }
             
@@ -2287,6 +2287,9 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         $rec->deliveryTermId = (empty($fields['deliveryTermId'])) ? cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'deliveryTermId', 'clientCondition|lastDocUser|lastDoc') : $rec->deliveryTermId;
         $rec->paymentMethodId = (empty($fields['paymentMethodId'])) ? cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'paymentMethodId', 'clientCondition|lastDocUser|lastDoc') : $rec->paymentMethodId;
+        if (!empty($rec->paymentMethodId) && empty($rec->paymentType)) {
+            $rec->paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
+        }
 
         if($me instanceof sales_Sales){
             if(isset($fields['deliveryTermId'])){
@@ -2626,7 +2629,7 @@ abstract class deals_DealMaster extends deals_DealBase
         foreach ($products as $product) {
             $quantity = $product->quantity;
             if($strategy == 'shippedNotInvoiced') {
-                $quantity -= $invoiced[$product->productId];
+                $quantity -= $invoiced[$product->productId] ?? 0;
             }
 
             if ($quantity <= 0) continue;
@@ -3106,7 +3109,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!empty($rec->deliveryTime)) {
             $dateArr['date'] = $rec->deliveryTime;
         } else {
-            $date = $date ?? ($rec->valior ?? $rec->activatedOn);
+            $date = $rec->valior ?? $rec->activatedOn;
             $dateArr['date'] = $date;
 
             // Датата ще е вальора/датата на активиране/датата на създаване в този ред
