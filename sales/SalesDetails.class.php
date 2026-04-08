@@ -226,7 +226,7 @@ class sales_SalesDetails extends deals_DealDetail
 
             if (core_Users::haveRole('ceo,seePriceSale') && isset($row->packPrice)) {
                $hintField = isset($data->listFields['packPrice']) ? 'packPrice' : 'amount';
-               $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
+               $priceDate = ($masterRec->state == 'draft') ? null : $masterRec->valior;
                
                // Предупреждение дали цената е под себестойност
                $comparedWithPrimeCostObj = sales_PrimeCostByDocument::comparePriceWithPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $mvc, $rec->id);
@@ -261,7 +261,9 @@ class sales_SalesDetails extends deals_DealDetail
             $fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $masterRec->vatExceptionId);
             if(doc_plg_HidePrices::canSeePriceFields($mvc->Master, $masterRec)){
-                $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
+                if(is_object($fee)){
+                    $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
+                }
             }
 
             if(haveRole('debug')){
@@ -307,7 +309,7 @@ class sales_SalesDetails extends deals_DealDetail
             $rec->price = $policyInfo->price;
             $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior, $masterRec->vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
             $rec->discount = $policyInfo->discount;
-        } else {;
+        } else {
             $rec->discount = $oldRec->inputDiscount;
             $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
             if (isset($cRec->fee) && $cRec->fee > 0) {

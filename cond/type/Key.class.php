@@ -130,14 +130,13 @@ class cond_type_Key extends cond_type_abstract_Proto
     {
         $Class = cls::get($rec->class);
         $select = $rec->select;
-        if(isset($rec->displayVerbal)){
+        if(!empty($rec->displayVerbal)){
             $select = $rec->displayVerbal;
         } else {
-            if ($rec->selectBg && core_Lg::getCurrent() == 'bg') {
+            if (!empty($rec->selectBg) && core_Lg::getCurrent() == 'bg') {
                 $select = $rec->selectBg;
             }
         }
-
         $verbal = $Class->getVerbal($value, $select);
 
         // Обръщане в линк, ако може

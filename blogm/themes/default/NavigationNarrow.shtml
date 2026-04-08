@@ -1,7 +1,6 @@
 <!--ET_BEGIN NAVIGATION-->
     <div class='articles-navigation'>
         [#SEARCH_FORM#] [#TOGGLE_BTN#]
-        <div class="clearfix21"></div>
     </div>
     <div class="narrowNav">
         <!--ET_BEGIN WORKSHOP-->
