@@ -8313,7 +8313,7 @@ td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after {
   line-height: 1.2;
   white-space: nowrap;
   box-sizing: border-box;
-  font-weight3: 700;
+  font-weight: 700;
   font-variant-numeric: tabular-nums; }
 
 .amountBadge .textHint {

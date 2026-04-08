@@ -211,6 +211,7 @@ class bank_SpendingDocuments extends bank_Document
             } elseif(!Mode::isReadOnly()) {
                 $row->earlyPaymentClass = 'earlyPaymentDiscountActive';
                 $row->earlyPaymentPercent = $row->earlyPaymentPercent ?? $mvc->getFieldType('earlyPaymentPercent')->toVerbal($rec->earlyPaymentPercent);
+                $row->earlyPaymentUntil = $row->earlyPaymentUntil ?? $mvc->getFieldType('earlyPaymentUntil')->toVerbal($rec->earlyPaymentUntil);
 
                 // Ако вальора е в срока на предсрочно плащане да се показва с каква сума е намалена
                 $amountWithoutDiscount = round($rec->amount * (1 - $rec->earlyPaymentPercent), 2);
@@ -223,7 +224,7 @@ class bank_SpendingDocuments extends bank_Document
                     $icon = 'noicon';
                 }
 
-                $row->amount = ht::createHint("<span style='color:{$hintColor}'>{$amountWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amount, $rec->currencyId, true), $icon, false);
+                $row->amount = ht::createHint("<span style='color:{$hintColor}'>{$amountWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amount, $rec->currencyId, true) . " |при плащане до|* {$row->earlyPaymentUntil}", $icon, false);
                 if(in_array($rec->state, array('draft', 'pending')) && isset($fields['-list'])){
                     $row->amount = ht::createElement('div', array('class' => 'amountBadge'), $row->amount, true);
                 }
@@ -232,7 +233,7 @@ class bank_SpendingDocuments extends bank_Document
                     if(!empty($row->amountDeal)){
                         $amountDealWithoutDiscount = round($rec->amountDeal * (1 - $rec->earlyPaymentPercent), 2);
                         $amountDealWithoutDiscountVerbal = $mvc->getFieldType('amountDeal')->toVerbal($amountDealWithoutDiscount);
-                        $row->amountDeal = ht::createHint("<span style='color:{$hintColor}'>{$amountDealWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amountDeal, $rec->dealCurrencyId, true), 'noicon');
+                        $row->amountDeal = ht::createHint("<span style='color:{$hintColor}'>{$amountDealWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amountDeal, $rec->dealCurrencyId, true) . " |при плащане до|* {$row->earlyPaymentUntil}", 'noicon');
                     }
                 }
             }
