@@ -257,7 +257,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         $singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $Document->that);
         
-        $row->documentType .= "<span class= 'large' >" . "${typeOfDocument}" .'</span>';
+        $row->documentType .= "<span class= 'large' >" . "{$typeOfDocument}" .'</span>';
         
         $row->valior = $Date->toVerbal($dRec->valior);
         

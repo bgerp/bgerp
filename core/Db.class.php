@@ -291,7 +291,7 @@ class core_Db
         }
         
         DEBUG::startTimer('DB::query()');
-        DEBUG::log("${sqlQuery}");
+        DEBUG::log("{$sqlQuery}");
 
         $link = $this->connect();
         $this->query = $sqlQuery;
@@ -439,7 +439,7 @@ class core_Db
      */
     public function getLMT($table)
     {
-        $dbRes = $this->query("SHOW TABLE STATUS LIKE \"${table}\"");
+        $dbRes = $this->query("SHOW TABLE STATUS LIKE \"{$table}\"");
         $lmt = 0;
         
         if ($this->numRows($dbRes) == 1) {

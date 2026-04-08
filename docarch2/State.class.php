@@ -320,7 +320,7 @@ class docarch2_State extends core_Master
 
                 $handle = $Document->singleTitle . '-' . $Document->getHandle();
 
-                $url = toUrl(array("${className}", 'single', $Document->that));
+                $url = toUrl(array($className, 'single', $Document->that));
 
                 $row->documentId .= ht::createLink($handle, $url, false, array());
             } elseif (in_array($rec->movieType, array('volIn', 'volOut', 'volRelocation'))) {

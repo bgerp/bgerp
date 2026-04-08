@@ -182,8 +182,8 @@ class core_page_InternalModern extends core_page_Active
             $searchImg = ht::createElement('img', array('src' => sbf('img/32/search.png', ''), 'alt' => 'search', 'width' => '20','height' => '20'));
             $pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => 'menuIcon pinned [#pinned#]', 'alt' => 'unpin'));
             
-            $pinImg = str_replace('&#91;', '[', "${pinImg}");
-            $pinnedImg = str_replace('&#91;', '[', "${pinnedImg}");
+            $pinImg = str_replace('&#91;', '[', "{$pinImg}");
+            $pinnedImg = str_replace('&#91;', '[', "{$pinnedImg}");
 
             // Задаваме лейаута на страницата
             $header = "<div style='position: relative'>

@@ -292,7 +292,7 @@ class core_Composer extends core_Mvc
         
         $wd = '--working-dir=' . $vPath;
         $composerHome = 'COMPOSER_HOME=' . $vPath . '/.composer';
-        $cmd = "{$composerHome} \"{$phpCmd}\" \"${bowerphp}\" install {$pack} {$wd}";
+        $cmd = "{$composerHome} \"{$phpCmd}\" \"{$bowerphp}\" install {$pack} {$wd}";
         putenv('COMPOSER_HOME=' . $vPath . '/.composer');
         exec($cmd, $lines, $result);
         

@@ -742,7 +742,7 @@ class core_Html
             
             $attr['rel'] = 'nofollow';
             
-            return self::createElement('a', $attr, "${title}");
+            return self::createElement('a', $attr, "{$title}");
         }
         
         // Вкарваме JavaScript-a
@@ -1302,7 +1302,7 @@ class core_Html
                     }
                     
                     if ($name === 'dbPass') {
-                        $html .= "\n    <li>" . self::createElement('span', $attr, "${name} : ******")  . '</li>';
+                        $html .= "\n    <li>" . self::createElement('span', $attr, "{$name} : ******")  . '</li>';
                     } else {
                         if (is_scalar($value) || $value === null || (is_array($value) && countR($value) == 0)) {
                             $html .= "\n    <li>" . self::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . ' : ' .

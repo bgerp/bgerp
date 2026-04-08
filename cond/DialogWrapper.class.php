@@ -53,12 +53,7 @@ class cond_DialogWrapper extends core_Plugin
             $url['Act'] = $params['Act'];
             $url['selectedTab'] = $name;
             $url['Protected'] = Request::get('Protected');
-            
             $title = $params['caption'];
-            
-            if ($params['icon'] && !Mode::is('screenMode', 'narrow')) {
-                $title = "${title}";
-            }
             
             $tabs->TAB($name, $title, $url, $name);
         }
