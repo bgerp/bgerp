@@ -318,7 +318,7 @@ class email_AutomaticResponse extends core_Master
         $rules = $rulesQuery->fetchAll();
         if (!countR($rules)) return;
         
-        // Вземаме всички входящи имейли от последните 3 часа със състояние 'closed'
+        // Ако в core_Permanent няма id взимаме 3 часа назад входящите имейли
         $mailId = core_Permanent::get('automaticResponseMailId');
         $incomQuery = email_Incomings::getQuery();
         if(empty($mailId)){
@@ -329,6 +329,9 @@ class email_AutomaticResponse extends core_Master
             $incomQuery->where("#id > '{$mailId}' AND #state = 'closed'");
         }
         $incomings = $incomQuery->fetchAll();
+
+        // Взимаме всеки имейл от incomings и проверяваме дали отговаря на правилата, 
+        // ако отговаря изпращаме имейл
         if (!countR($incomings)) return;
         foreach ($incomings as $mail) {
             foreach ($rules as $rule) {
