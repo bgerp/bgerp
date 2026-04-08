@@ -89,9 +89,6 @@ abstract class deals_Helper
             $arr['withVat'] = ($price * (1 + $vat));
         }
         
-        $arr['noVat'] = $arr['noVat'];
-        $arr['withVat'] = $arr['withVat'];
-        
         return (object) $arr;
     }
     
@@ -287,6 +284,7 @@ abstract class deals_Helper
         // Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
         $arr = array();
         $values = (array) $values;
+        $arr['value'] = $values['amount'];
         $arr['currencyId'] = $currencyId;                          // Валута на документа
         
         $baseCurrency = acc_Periods::getBaseCurrencyCode($date);   // Основната валута
@@ -535,8 +533,8 @@ abstract class deals_Helper
         
         $info = tr($text);
         $obj = (object) array('formInfo' => "<div class='formCustomInfo'>{$info}</div>");
-        $quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
-        
+        $quantityInPack = isset($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
+
         // Показваме предупреждение ако наличното в склада е по-голямо от експедираното
         if ($packQuantity > ($quantity / $quantityInPack)) {
             $obj->warning = "Въведеното количество е по-голямо от разполагаемо|* <b>{$verbalQuantity}</b> |в склада|*";
@@ -580,7 +578,7 @@ abstract class deals_Helper
     public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack = null, $cachePacks = null)
     {
         if(is_array($cachePacks)) {
-            $packRec = $cachePacks["{$productId}|{$packagingId}"];
+            $packRec = $cachePacks["{$productId}|{$packagingId}"] ?? null;
         } else {
             $packRec = cat_products_Packagings::getPack($productId, $packagingId);
         }
@@ -675,7 +673,7 @@ abstract class deals_Helper
      */
     public static function fetchExistingDetail(core_Detail $mvc, $masterId, $id, $productId, $packagingId, $price, $discount, $tolerance = null, $term = null, $batch = null, $expenseItemId = null, $notes = null, $quantity = null)
     {
-        $cond = "#{$mvc->masterKey} = ${masterId}";
+        $cond = "#{$mvc->masterKey} = {$masterId}";
         $vars = array('productId' => $productId, 'packagingId' => $packagingId, 'price' => $price, 'discount' => $discount);
         
         if ($mvc->getField('tolerance', false)) {
@@ -718,7 +716,7 @@ abstract class deals_Helper
             
             // Сравняване на хеша на забележките с този на новата забележка
             $query = $mvc->getQuery();
-            $query->XPR('hashNotes', 'double', 'MD5(#notes)');
+            $query->XPR('hashNotes', 'varchar', 'MD5(#notes)');
             $notes = md5(gzcompress($notes));
             $cond .= " AND #hashNotes = '{$notes}'";
             $query->where($cond);
@@ -756,8 +754,17 @@ abstract class deals_Helper
                             }
                             
                             if (!isset($combined[$index])) {
-                                $combined[$index] = new stdClass();
-                                $combined[$index]->productId = $p->productId;
+                                $combined[$index] = (object) array(
+                                    'productId' => $p->productId,
+                                    'discount' => 0,
+                                    'fee' => 0,
+                                    'quantity' => 0,
+                                    'sumAmounts' => 0,
+                                    'deliveryTimeFromFee' => null,
+                                    'syncFee' => false,
+                                    'batches' => array(),
+                                    'batchesSums' => array(),
+                                );
                                 
                                 if (!empty($p->notes)) {
                                     $combined[$index]->notes = $p->notes;
@@ -792,8 +799,8 @@ abstract class deals_Helper
 
                             if(is_array($p->batches)){
                                 foreach ($p->batches as $batch => $batchQuantity){
-                                    $d->batches[$batch] += $sign * $batchQuantity;
-                                    $d->batchesSums[$batch] += $sign * ($batchQuantity * $p->price * (1 - $p->discount));
+                                    $d->batches[$batch] = ($d->batches[$batch] ?? 0) + $sign * $batchQuantity;
+                                    $d->batchesSums[$batch] = ($d->batchesSums[$batch] ?? 0) + $sign * ($batchQuantity * $p->price * (1 - $p->discount));
                                 }
                             }
 
@@ -814,7 +821,7 @@ abstract class deals_Helper
 
         if (countR($combined)) {
             foreach ($combined as &$det) {
-                //$det->sumAmounts = core_Math::roundNumber($det->sumAmounts);
+
                 if(is_array($det->batches) && countR($det->batches)){
                     $sumBatches = $sumQuantities = 0;
                     foreach ($det->batches as $b => $q){
@@ -1024,7 +1031,7 @@ abstract class deals_Helper
         
         // Ако е масив
         if (is_array($array) && !empty($array)) {
-            $currencyItemId = $currencyItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($currencyCode))->id;
+            $currencyItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($currencyCode))->id;
             $currencyListId = acc_Lists::fetchBySystemId('currencies')->id;
             
             // За всеки обект от него
@@ -1213,8 +1220,11 @@ abstract class deals_Helper
                 $res['contragentName'] = $res['contragentName']->getContent();
             }
         }
-        
-        $showCountries = !(($ownCompanyData->countryId == $cData->countryId));
+
+        $showCountries = true;
+        if (isset($cData)) {
+            $showCountries = !($ownCompanyData->countryId == $cData->countryId);
+        }
         if (isset($contragentClass, $contragentId)) {
             $res['contragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $dateFromWhichToGetName)->getContent();
             $res['inlineContragentAddress'] = $ContragentClass->getFullAdress($contragentId, false, $showCountries, true, $dateFromWhichToGetName)->getContent();
@@ -1223,7 +1233,7 @@ abstract class deals_Helper
         
         $res['MyAddress'] = $Companies->getFullAdress($ownCompanyData->companyId, true, $showCountries, true, $dateFromWhichToGetName)->getContent();
 
-        if(drdata_Countries::isEu($cData->countryId) && empty($cData->eori)){
+        if (isset($cData) && drdata_Countries::isEu($cData->countryId) && empty($cData->eori)) {
             unset($res['MyCompanyEori']);
         }
 
@@ -1437,8 +1447,10 @@ abstract class deals_Helper
                     $key = md5(strtolower(str::utf2ascii(trim($t))));
                     $value = preg_replace('!\s+!', ' ', str::mbUcfirst($t));
                     $res[$key] = $value;
-                    
-                    $productConditions[$key] = is_array($productConditions[$key]) ? $productConditions[$key] : array();
+
+                    $productConditions[$key] = isset($productConditions[$key]) && is_array($productConditions[$key])
+                        ? $productConditions[$key]
+                        : array();
                     
                     // Запомня се кои артикули подават същото условие
                     if (!array_key_exists($dRec->productId, $productConditions[$key])) {
@@ -3256,7 +3268,7 @@ abstract class deals_Helper
             
             $dQuery = $Detail::getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-            $priceDate = ($rec == 'draft') ? null : $rec->valior;
+            $priceDate = ($rec->state == 'draft') ? null : $rec->valior;
 
             if($mvc instanceof sales_Sales){
                 $useQuotationPrice = isset($rec->originId);
@@ -3443,16 +3455,17 @@ abstract class deals_Helper
 
                 // Извличане на файлове от детайла
                 while($dRec = $dQuery->fetch()){
+
+                    // Ако има артикул извличат се файловете от него
+                    if(isset($Detail->productFld)) {
+                        if($Driver = cat_Products::getDriver($dRec->{$Detail->productFld})){
+                            $fhArr += $Driver->getLinkedFiles($dRec->{$Detail->productFld});
+                        }
+                    }
+
                     foreach ($detailRichtextFields as $detField){
                         if(!empty($dRec->{$detField})){
                             $fhArr += fileman_RichTextPlg::getFiles($dRec->{$detField});
-                        }
-
-                        // Ако има артикул извличат се файловете от него
-                        if(isset($Detail->productFld)) {
-                            if($Driver = cat_Products::getDriver($dRec->{$Detail->productFld})){
-                                $fhArr += $Driver->getLinkedFiles($dRec->{$Detail->productFld});
-                            }
                         }
                     }
                 }
@@ -3680,7 +3693,7 @@ abstract class deals_Helper
 
         if(isset($tareWeight) && isset($weight)){
             if($weight < $tareWeight){
-                $res['errors'][] = array('fields' => "{$weightFieldName},{$tareWeightFieldName}", 'text' => 'Тарата е по-малко от брутото');
+                $res['errors'][] = array('fields' => "{$weightFieldName},{$tareWeightFieldName}", 'text' => 'Тарата е по-голяма от брутото');
             }
         }
 
