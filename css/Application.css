@@ -4583,7 +4583,13 @@ table .eshop-btn {
   margin-bottom: 5px; }
 
 .narrow .cms-row {
-  padding-top: 20px; }
+  padding-top: 20px;
+  flex-direction: column;
+  gap: 0; }
+
+.narrow .cms-row .eightcol,
+.narrow  .cms-row .fourcol {
+  width: 100%; }
 
 .cms-row h1 {
   margin-top: 0;
@@ -6010,7 +6016,6 @@ div.location.public {
 
 .productHolder {
   display: flex;
-  display: flex;
   flex-wrap: wrap;
   gap: 16px;
     /*
@@ -6025,7 +6030,7 @@ div.location.public {
     font-size: 1em;
     margin-top: 2px;
     font-weight: normal;
-    height: 50px; }
+    height: 40px; }
     .eshop-group-button .eshop-group-button-title a {
       color: #004488; }
   .eshop-group-button .eshop-group-button-img {
@@ -6050,15 +6055,11 @@ div.location.public {
 .eshop-group-button-img:hover img {
   transform: scale(1.1); }
 
-/*
- * мобилно
- */
-@media (max-width: 768px) {
-  .eshop-group-button {
-    width: 100%;
-        /*
-     * 1 на ред
-     */ } }
+.narrow .eshop-group-button {
+  width: 100%; }
+
+.narrow .eshop-group-button .eshop-group-button-title {
+  height: 30px; }
 
 .eshopProduct {
   max-width: 800px; }
@@ -6556,25 +6557,6 @@ only screen and (max-width: 950px) {
     padding-left: 0;
     padding-right: 0; }
 
-  .row .onecol,
-  .row .twocol,
-  .row .threecol,
-  .row .fourcol,
-  .row .fivecol,
-  .row .sixcol,
-  .row .sevencol,
-  .row .eightcol,
-  .row .ninecol,
-  .row .tencol,
-  .row .elevencol,
-  .row .twelvecol {
-    width: auto;
-    float: none;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 20px;
-    padding-right: 20px; }
-
   #cmsMenu a {
     margin-left: 8px;
     margin-right: 8px;
@@ -6598,16 +6580,6 @@ only screen and (max-width: 950px) {
 
 @media handheld,
 only screen and (max-width: 900px) {
-  .wide .eshop-group-button {
-    width: 96%;
-    margin: 0 2% 4%;
-    height: auto; }
-    .wide .eshop-group-button .eshop-group-button-img a img {
-      width: 100%;
-      height: auto;
-      margin-right: 1%;
-      margin-left: 1%; }
-
   .externalPage h2 {
     font-size: 1.38em; }
 
@@ -6627,17 +6599,6 @@ only screen and (max-width: 800px) {
     margin-left: 6px !important;
     margin-right: 6px !important;
     font-size: 0.97em; }
-
-  .wide .eshop-group-button {
-    width: 96%;
-    margin: 0 2% 4%;
-    font-size: 0.9em;
-    height: auto; }
-    .wide .eshop-group-button .eshop-group-button-img a img {
-      width: 98%;
-      height: auto;
-      margin-right: 1%;
-      margin-left: 1%; }
 
   .externalPage .formTitle {
     font-size: 1em; }
@@ -6661,12 +6622,6 @@ only screen and (max-width: 760px) {
     margin-right: 4px !important;
     font-size: 0.89em; }
 
-  .wide .eshop-group-button {
-    width: 96%;
-    margin-right: 2%;
-    margin-left: 2%;
-    font-size: 0.9em; }
-
   .externalPage h2 {
     font-size: 1.36em; }
 
@@ -6689,13 +6644,6 @@ only screen and (max-width: 700px) {
   .narrow .single-thread .listTable .rich-text {
     max-width: 630px; }
 
-  .narrow .eshop-group-button {
-    width: 46%;
-    min-height: 150px;
-    margin-right: 2%;
-    margin-left: 2%;
-    font-size: 0.9em; }
-
   .externalPage h2 {
     font-size: 1.34em; }
 
@@ -6709,23 +6657,6 @@ only screen and (max-width: 700px) {
 only screen and (max-width: 640px) {
   .narrow #all {
     border: none; }
-
-  .wide .eshop-group-button {
-    width: 96%;
-    margin: 0 2% 5%;
-    font-size: 0.9em;
-    height: auto; }
-    .wide .eshop-group-button .eshop-group-button-img a img {
-      width: 98%;
-      height: auto;
-      margin-right: 1%;
-      margin-left: 1%; }
-
-  .narrow .eshop-group-button {
-    width: 46%;
-    margin-right: 2%;
-    margin-left: 2%;
-    font-size: 0.9em; }
 
   .externalPage h2 {
     font-size: 1.32em; }
@@ -6752,12 +6683,6 @@ only screen and (max-width: 600px) {
 
   .narrow #cmsTop {
     margin-top: -1px; }
-
-  .narrow .eshop-group-button {
-    width: 46%;
-    margin-right: 2%;
-    margin-left: 2%;
-    font-size: 0.9em; }
 
   .externalPage .formTitle {
     font-size: 0.95em; }
@@ -6794,12 +6719,6 @@ only screen and (max-width: 533px) {
   .narrow #all {
     border: none; }
 
-  .narrow  .eshop-group-button {
-    width: 46%;
-    margin-right: 2%;
-    margin-left: 2%;
-    font-size: 0.9em; }
-
     :not(.modern-theme) .narrow .main-container .chzn-container,
     :not(.modern-theme) .narrow .main-container .formFields input,
     :not(.modern-theme) .narrow .main-container .formFields .richEdit,
@@ -6822,12 +6741,6 @@ only screen and (max-width: 533px) {
 only screen and (max-width: 500px) {
   .background-holder {
     padding: 0 !important; }
-
-  .narrow  .eshop-group-button {
-    width: 46%;
-    margin-right: 2%;
-    margin-left: 2%;
-    font-size: 0.9em; }
 
     :not(.modern-theme) .narrow .main-container .chzn-container,
     :not(.modern-theme) .narrow .main-container .formFields input,
@@ -6855,11 +6768,6 @@ only screen and (max-width: 480px) {
   .narrow #all {
     border: none; }
 
-  .narrow .eshop-group-button {
-    width: 46%;
-    margin: 0 2%;
-    font-size: 0.9em; }
-
     :not(.modern-theme) .narrow .main-container .chzn-container,
     :not(.modern-theme) .narrow .main-container .formFields input,
     :not(.modern-theme) .narrow .main-container .formFields .richEdit,
@@ -6886,26 +6794,12 @@ only screen and (max-width: 480px) {
     font-size: 1.1em; } }
 
 @media handheld,
-only screen and (max-width: 375px) {
-  .narrow .eshop-group-button {
-    width: 100%;
-    margin-right: 0%;
-    margin-left: 0%;
-    font-size: 0.9em; } }
-
-@media handheld,
 only screen and (max-width: 360px) {
   .background-holder {
     padding: 0 !important; }
 
   .narrow #all {
     border: none; }
-
-  .narrow .eshop-group-button {
-    width: 100%;
-    margin-right: 0%;
-    margin-left: 0%;
-    font-size: 0.9em; }
 
   .externalPage .formTitle {
     font-size: 0.9em; }
@@ -6959,12 +6853,6 @@ only screen and (max-width: 320px) {
 
   .narrow #all {
     border: none; }
-
-  .narrow .eshop-group-button {
-    width: 100%;
-    margin-right: 0%;
-    margin-left: 0%;
-    font-size: 0.9em; }
 
     :not(.modern-theme) .narrow .main-container .chzn-container,
     :not(.modern-theme) .narrow .main-container .formFields input,
