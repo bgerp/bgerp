@@ -215,9 +215,18 @@ class bank_SpendingDocuments extends bank_Document
                 // Ако вальора е в срока на предсрочно плащане да се показва с каква сума е намалена
                 $amountWithoutDiscount = round($rec->amount * (1 - $rec->earlyPaymentPercent), 2);
                 $amountWithoutDiscountVerbal = $mvc->getFieldType('amount')->toVerbal($amountWithoutDiscount);
-                $hintColor = in_array($rec->state, array('draft', 'pending')) ? "#3939ef;" : "black";
-                $row->amount = ht::createHint("<span style='color:{$hintColor}'>{$amountWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amount, $rec->currencyId, true), 'noicon');
+                if(in_array($rec->state, array('draft', 'pending'))){
+                    $icon = isset($fields['-list']) ? 'notice' : 'noicon';
+                    $hintColor = '#3939ef;';
+                } else {
+                    $hintColor = 'black';
+                    $icon = 'noicon';
+                }
 
+                $row->amount = ht::createHint("<span style='color:{$hintColor}'>{$amountWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amount, $rec->currencyId, true), $icon, false);
+                if(in_array($rec->state, array('draft', 'pending')) && isset($fields['-list'])){
+                    $row->amount = ht::createElement('div', array('class' => 'amountBadge'), $row->amount, true);
+                }
                 // Ако сме в сингъла да се показва и намалената сума
                 if(isset($fields['-single'])) {
                     if(!empty($row->amountDeal)){
