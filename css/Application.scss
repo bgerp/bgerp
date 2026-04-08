@@ -9406,3 +9406,24 @@ td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after{ 
 	color: #1f6b1f;
 	font-weight: 700;
 }
+
+.amountBadge {
+	display: inline-block;
+	padding: 4px 10px;
+	background: #eaf6ff;
+	border: 1px solid #67add7;
+	border-radius: 5px;
+	line-height: 1.2;
+	white-space: nowrap;
+	box-sizing: border-box;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.amountBadge .textHint {
+	display: inline-block;
+}
+
+.amountBadge .textHint > span {
+	font-weight: 700;
+}
