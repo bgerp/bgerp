@@ -541,7 +541,7 @@ class sales_Sales extends deals_DealMaster
                     if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                         $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                         $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
-                        $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
+                        $form->setDefault('deliveryCalcTransport', $calcCostDefault);
                         if(empty($rec->deliveryCalcTransport)){
                             $form->setReadOnly('deliveryCalcTransport', $calcCostDefault);
                         } else {
@@ -762,6 +762,7 @@ class sales_Sales extends deals_DealMaster
         core_Debug::startTimer('GET_SALE_ENTRIES');
         $entries = sales_transaction_Sale::getEntries($rec->id);
         core_Debug::stopTimer('GET_SALE_ENTRIES');
+        $deliveredAmount = $paidAmount = 0;
 
         if(!Mode::is('onlySimpleDealInfo')){
             $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries, $rec);
@@ -928,7 +929,8 @@ class sales_Sales extends deals_DealMaster
                     if(!array_key_exists($batchRec->productId, $batches)){
                         $batches[$batchRec->productId] = array();
                     }
-                    $batches[$batchRec->productId][$batchRec->batch] += $batchRec->quantity;
+
+                    $batches[$batchRec->productId][$batchRec->batch] = ($batches[$batchRec->productId][$batchRec->batch] ?? 0) + $batchRec->quantity;
                 }
 
                 // Добавя се информация за експедираните партиди към данните за експедираните артикули
@@ -1062,9 +1064,8 @@ class sales_Sales extends deals_DealMaster
     {
         if ($action == 'printfiscreceipt' && isset($rec)) {
             $actions = type_Set::toArray($rec->contoActions);
-            
-            if ($actions['ship'] && $actions['pay']) {
-            } else {
+
+            if (!(!empty($actions['ship']) && !empty($actions['pay']))) {
                 $res = 'no_one';
             }
         }
@@ -1145,8 +1146,8 @@ class sales_Sales extends deals_DealMaster
         
         $tpl = new ET('[#link#]');
         $row = new stdClass();
-        
-        if (substr(strstr($id, 'job='), 1)) {
+
+        if (strpos($id, 'job=') !== false) {
             $jobId = substr(strstr($id, '='), 1);
             $rec = planning_Jobs::fetchRec($jobId);
             $row = planning_Jobs::recToVerbal($rec);
@@ -1225,7 +1226,8 @@ class sales_Sales extends deals_DealMaster
                 $dQuery->EXT('contragentClassId', $Detail->Master->className, "externalName=contragentClassId,externalKey={$Detail->masterKey}");
                 $dQuery->EXT('contragentId', $Detail->Master->className, "externalName=contragentId,externalKey={$Detail->masterKey}");
                 $dQuery->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
-                
+                $dQuery->orderBy('valior', 'DESC');
+
                 // Кешираме артикулите с цените
                 while ($dRec = $dQuery->fetch()) {
                     $cacheArr[$dRec->productId] = (object)array('date' => $dRec->valior, 'price' => $dRec->price);
@@ -2493,6 +2495,8 @@ class sales_Sales extends deals_DealMaster
      */
     public static function autoCreateSaleCsvIfNeeded($rec)
     {
+        $rec = sales_Sales::fetchRec($rec);
+
         $cartRec = core_Packs::isInstalled('eshop') ? eshop_Carts::fetch("#saleId = {$rec->id}") : null;
         if(is_object($cartRec)){
             if (!defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')) return;
@@ -2511,8 +2515,6 @@ class sales_Sales extends deals_DealMaster
             $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
             $fields[] = 'ExternalLink';
             $fields = implode(',', $fields);
-
-            $rec = sales_Sales::fetchRec($rec);
             $Sales->updateMaster_($rec);
 
             // Подготовка на експорта
