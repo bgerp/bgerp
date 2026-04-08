@@ -14,7 +14,7 @@
         <div class='bulletin-link clearfix21'></div>
     </div>
     <!--ET_END NAVIGATION-->
-    <div class='eightcol cms-last'>
+    <div class='eightcol'>
         [#TOP_CONTENT#]
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->
