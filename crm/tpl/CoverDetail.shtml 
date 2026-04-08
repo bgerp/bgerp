@@ -1,0 +1,6 @@
+ <fieldset class="detail-info">
+	<legend class="groupTitle">
+		[#title#]
+	</legend>
+	 [#content#]
+</fieldset>
