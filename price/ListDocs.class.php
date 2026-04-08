@@ -597,7 +597,7 @@ class price_ListDocs extends core_Master
         foreach ($recs as $id => $el) {
             if (is_array($el)) {
                 foreach ($el as $id1 => $r1) {
-                    $index = "${id}|${id1}";
+                    $index = "{$id}|{$id1}";
                     $recs1[$index] = $r1;
                     $rows1[$index] = &$rows[$id][$id1];
                 }

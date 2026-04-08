@@ -60,7 +60,7 @@ class drdata_IP
     public function toCountry($ip)
     {
         global $db;
-        $ips = explode('.', "${ip}");
+        $ips = explode('.', $ip);
         $ipn = ($ips[3] + $ips[2] * 256 + $ips[1] * 256 * 256 + $ips[0] * 256 * 256 * 256);
         $dbRes = $db->query("SELECT c FROM ip2country WHERE l<${ipn} AND h>${ipn}");
         

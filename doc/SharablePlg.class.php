@@ -239,7 +239,7 @@ class doc_SharablePlg extends core_Plugin
         
         $htmlStr = implode(', ', $html);
         
-        $htmlStr = "${htmlStr}";
+        $htmlStr = "{$htmlStr}";
         
         return $htmlStr;
     }

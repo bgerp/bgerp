@@ -510,7 +510,7 @@ class core_Url
                 $post_data = array();
                 
                 foreach ($options['post_data'] as $key => $value) {
-                    $post_data[] = "${key}=" . urlencode($value);
+                    $post_data[] = "{$key}=" . urlencode($value);
                 }
                 $url_parts['query'] = implode('&', $post_data);
             } else { //Its a string
@@ -547,7 +547,7 @@ class core_Url
                     $post_data = array();
                     
                     foreach ($options['post_data'] as $key => $value) {
-                        $post_data[] = "${key}=" . urlencode($value);
+                        $post_data[] = "{$key}=" . urlencode($value);
                     }
                     $url_parts['query'] = implode('&', $post_data);
                 } else { //Its a string
@@ -642,10 +642,10 @@ class core_Url
             foreach ($send_header as $name => $value) {
                 if (is_array($value)) {
                     foreach ($value as $item) {
-                        $custom_headers[] = "${name}: ${item}";
+                        $custom_headers[] = "{$name}: ${item}";
                     }
                 } else {
-                    $custom_headers[] = "${name}: ${value}";
+                    $custom_headers[] = "{$name}: ${value}";
                 }
             }
             
@@ -695,10 +695,10 @@ class core_Url
                 foreach ($send_header as $name => $value) {
                     if (is_array($value)) {
                         foreach ($value as $item) {
-                            $out .= "${name}: ${item}\r\n";
+                            $out .= "{$name}: ${item}\r\n";
                         }
                     } else {
-                        $out .= "${name}: ${value}\r\n";
+                        $out .= "{$name}: ${value}\r\n";
                     }
                 }
                 $out .= "Connection: Close\r\n";

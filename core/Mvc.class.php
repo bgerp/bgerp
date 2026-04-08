@@ -1053,7 +1053,7 @@ class core_Mvc extends core_FieldSet
         if ($this->invoke('BeforeSetupMVC', array(&$html)) === false) {
             $html .= '<li>Пропускаме началното установяване на модела</li>';
             
-            return "${html}</ul>";
+            return "{$html}</ul>";
         }
         
         if ($this->oldClassName) {
@@ -1366,7 +1366,7 @@ class core_Mvc extends core_FieldSet
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
         
-        return "${html}</ul>";
+        return "{$html}</ul>";
     }
     
     

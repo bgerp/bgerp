@@ -31,14 +31,15 @@ class price_Updates extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_Sorting';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_Sorting, plg_Select';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'type=За,name=Наименование,sourceClass1,sourceClass2,sourceClass3,costAdd,costAddAmount,costValue=Сб-ст,appliedOn,createdOn,createdBy,updateMode=Обновяване';
-    
+
+
     /**
      * Кой може да го промени?
      */

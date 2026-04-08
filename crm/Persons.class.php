@@ -2297,7 +2297,7 @@ class crm_Persons extends core_Master
         $role = tr($currVcard['role']);
 
         // Съединяваме името на работата с ролята
-        $buzPosition = ($role) ? "${jobTitle} - ${role}" : $jobTitle;
+        $buzPosition = ($role) ? "{$jobTitle} - {$role}" : $jobTitle;
 
         // Задаваме позицията на работата
         $form->setDefault('buzPosition', $buzPosition);
