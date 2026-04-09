@@ -368,11 +368,12 @@ abstract class deals_DealDetail extends doc_Detail
             // Проверка дали к-то е под МКП
             $action = ($mvc instanceof sales_SalesDetails) ? 'sell' : 'buy';
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack, 'packQuantity', $action);
+            $price = null;
 
             if (!isset($rec->packPrice)) {
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                 
-                if ($rec->productId) {
+                if (isset($rec->productId)) {
                     $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
                     $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
                     if (!isset($policyInfo->price)) {
@@ -466,22 +467,12 @@ abstract class deals_DealDetail extends doc_Detail
     {
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             $masterRec = $data->masterData->rec;
-            
+            $error = '';
             if (!countR(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, null, 1))) {
                 $error = 'error=Няма продаваеми артикули, ';
             }
             
-            $data->toolbar->addBtn(
-                
-                'Артикул',
-                
-                array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => true),
-            "id=btnAdd-{$masterRec->id},{$error} order=10,title=Добавяне на артикул",
-                
-                'ef_icon = img/16/shopping.png'
-            
-            );
-            
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => true), "id=btnAdd-{$masterRec->id},{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
             unset($data->toolbar->buttons['btnAdd']);
         }
         
