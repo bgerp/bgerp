@@ -136,13 +136,13 @@ class bank_SpendingDocuments extends bank_Document
         // Ако документа е към покупка
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if($firstDoc->isInstanceOf('purchase_Purchases')){
+            $form->setField('earlyPaymentUntil', 'input');
+            $form->setField('earlyPaymentPercent', 'input');
 
             // И нейния метод за плащане е с отстъпка за предсрочно плащане
             if($paymentMethodId = $firstDoc->fetchField('paymentMethodId')){
                 $paymentRec = cond_PaymentMethods::fetch($paymentMethodId);
                 if(!empty($paymentRec->discountPercent) && !empty($paymentRec->discountPeriod)){
-                    $form->setField('earlyPaymentUntil', 'input');
-                    $form->setField('earlyPaymentPercent', 'input');
 
                     // Ако е към входяща фактура да излизат попълнени данните за плащането
                     if(isset($rec->originId)) {
