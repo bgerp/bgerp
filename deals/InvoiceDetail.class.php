@@ -96,7 +96,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $masterRec = $data->masterRec;
 
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
-        $data->form->fields['packPrice']->unit = '|без ДДС|*';
+        $data->form->fields['packPrice']->unit .= '|без ДДС|*';
         $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
         
         if (isset($rec->id)) {
@@ -817,6 +817,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     {
         $Master = $this->Master;
         $masterRec = $Master->fetch($masterId);
+        $policyInfo = null;
 
         $pRec = cat_Products::getByCode($row->code);
         $packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
