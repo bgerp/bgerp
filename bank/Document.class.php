@@ -610,7 +610,7 @@ abstract class bank_Document extends deals_PaymentDocument
 
             if ($origin = $mvc->getOrigin($rec)) {
                 $options = $origin->allowedPaymentOperations;
-                $row->operationSysId = $options[$rec->operationSysId]['title'];
+                $row->operationSysId = tr($options[$rec->operationSysId]['title']);
             }
 
             if(isset($rec->contragentIban)){
