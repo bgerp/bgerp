@@ -437,7 +437,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $dateRange[1] = $filter->to;
             }
 
-            if (countR($dateRange) == 2) {
+            if ($dateRange[0] && $dateRange[1]) {
                 sort($dateRange);
             }
             

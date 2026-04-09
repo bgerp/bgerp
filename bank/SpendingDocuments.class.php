@@ -76,6 +76,12 @@ class bank_SpendingDocuments extends bank_Document
 
 
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'termDateCalc, valior=Вальор ,title=Документ, ownAccount=Сметка, invoices=Фактури, folderId, amount, currencyId=Валута, state, createdOn, createdBy';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -84,7 +90,7 @@ class bank_SpendingDocuments extends bank_Document
         $this->setField('termDate', 'caption=Срок');
         $this->FLD('earlyPaymentUntil', 'date', 'caption=Отстъпка за предсрочно плащане->Краен срок,input=none,autohide');
         $this->FLD('earlyPaymentPercent', 'percent(Min=0)', 'caption=Отстъпка за предсрочно плащане->Отстъпка,input=none,autohide');
-        $this->XPR('termDateCalc', 'date', 'COALESCE(#earlyPaymentUntil, #termDate)', 'caption=Краен срок');
+        $this->XPR('termDateCalc', 'date', 'IF(#earlyPaymentUntil IS NOT NULL AND #earlyPaymentUntil >= CURDATE(), #earlyPaymentUntil, #termDate)', 'caption=Срок');
     }
     
     
@@ -254,22 +260,6 @@ class bank_SpendingDocuments extends bank_Document
         if($form->isSubmitted()){
             if((!empty($rec->earlyPaymentUntil) && empty($rec->earlyPaymentPercent)) || (empty($rec->earlyPaymentUntil) && !empty($rec->earlyPaymentPercent))){
                 $form->setError('earlyPaymentUntil,earlyPaymentPercent', 'Трябва и двете полета за отстъпка при предсрочно плащане да са попълнени');
-            }
-        }
-    }
-
-
-    /**
-     * Подготовка на филтър формата
-     */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        // Ако се филтрира по краен-срок да се показва колоната
-        if($filterDateField = $data->listFilter->rec->filterDateField){
-            $data->query->orderBy($filterDateField, 'DESC', 1);
-            if($filterDateField == 'termDateCalc'){
-                unset($data->listFields['termDate']);
-                arr::placeInAssocArray($data->listFields, array('termDateCalc' => 'Кр. срок'), 'valior');
             }
         }
     }
