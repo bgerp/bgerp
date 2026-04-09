@@ -94,9 +94,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
     {
         $rec = &$data->form->rec;
         $masterRec = $data->masterRec;
-        
+
         $data->form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
-        $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
+        $data->form->fields['packPrice']->unit = '|без ДДС|*';
         $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
         
         if (isset($rec->id)) {
@@ -144,7 +144,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $masterRec = $data->masterData->rec;
             
             $error = '';
-            if (!countR(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, 'generic', 1))) {
+            if (!countR(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $mvc->metaProducts, 'generic', 1))) {
                 $text = ($mvc->metaProducts == 'canSell') ? 'продаваеми' : 'купуваеми';
                 $error = "error=Няма {$text} артикули,";
             }
@@ -404,7 +404,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             
             deals_Helper::addNotesToProductRow($row1->productId, $rec->notes);
 
-            if ($masterRec->type != 'dc_note' || !isset($masterRec->type)) {
+            if (!isset($masterRec->type) || $masterRec->type != 'dc_note') {
                 $row1->discount = deals_Helper::getDiscountRow($rec->discount, $rec->inputDiscount, $rec->autoDiscount, $masterRec->state);
             }
         }
@@ -420,7 +420,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $changed = false;
             
             foreach (array('Quantity' => 'quantity', 'Price' => 'packPrice', 'Amount' => 'amount') as $key => $fld) {
-                if ($rec->{"changed{$key}"} === true) {
+                if (isset($rec->{"changed{$key}"}) && $rec->{"changed{$key}"} === true) {
                     $changed = true;
                     if ($rec->{$fld} < 0) {
                         $row->{$fld} = "<span style='color:red'>{$row->{$fld}}</span>";
@@ -848,10 +848,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 }
             }
 
-            if (!$policyInfo) {
+            if (empty($policyInfo)) {
                 $Policy = (isset($this->Policy)) ? $this->Policy : cls::get('price_ListToCustomers');
                 $listId = ($row->_dealInfo->get('priceListId')) ? $row->_dealInfo->get('priceListId') : null;
-                $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
+                $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $dRec->productId, $dRec->packagingId, $dRec->quantity, dt::today(), $masterRec->rate, 'no', $listId);
             }
 
             $dRec->price = $policyInfo->price;
