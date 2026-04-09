@@ -242,7 +242,7 @@ class purchase_Invoices extends deals_InvoiceMaster
 
             if($originRec->currencyId == 'BGN' && $dealRec->currencyId == 'EUR') {
                 $form->setDefault('currencyId', 'EUR');
-                $form->setDefault('rate', currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
+                $form->setDefault('rate', currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null));
             } else {
                 $form->setDefault('currencyId', $originRec->currencyId);
                 $form->setDefault('rate', $originRec->currencyRate);
@@ -262,7 +262,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             $form->setDefault('importProducts', 'shippedNotInvoiced');
         }
 
-        if ($data->aggregateInfo) {
+        if (!empty($data->aggregateInfo)) {
             if ($data->aggregateInfo->get('bankAccountId')) {
                 $form->setDefault('accountId', $data->aggregateInfo->get('bankAccountId'));
             }
@@ -355,7 +355,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             $foundInvoiceId = null;
             $checkRec = clone $rec;
-            if($form->_cloneForm === true){
+            if (!empty($form->_cloneForm)) {
                 unset($checkRec->id);
             }
             
@@ -507,8 +507,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         $tplArr[] = array('name' => 'Входяща фактура нормален изглед', 'content' => 'purchase/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/InvoiceNarrow.shtml');
         $tplArr[] = array('name' => 'Входяща фактура изглед за писмо', 'content' => 'purchase/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/InvoiceNarrow.shtml');
         
-        $res = '';
-        $res .= doc_TplManager::addOnce($this, $tplArr);
+        $res = doc_TplManager::addOnce($this, $tplArr);
         
         return $res;
     }
@@ -639,11 +638,8 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         $ext = fileman_Files::getExt($fileName);
-        
-        if (($minLen = $typeToLen[$ext]) && ($minLen <= $fileLen)) {
-            
-            return true;
-        }
+        $minLen = $typeToLen[$ext] ?? null;
+        if ($minLen && ($minLen <= $fileLen)) return true;
         
         return false;
     }
@@ -883,7 +879,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         if ($form->isSubmitted()) {
             
             // Ако ще се клонира покупката - пращаме директно към съответната форма
-            if ($pRec->state == 'closed') {
+            if (is_object($pRec) && $pRec->state == 'closed') {
                 Mode::setPermanent('clonedPurFh|' . $pRec->id, $fileHnd);
                 
                 return new Redirect(array('purchase_Purchases', 'clonefields', $pRec->id, 'ret_url' => true));
@@ -982,7 +978,7 @@ class purchase_Invoices extends deals_InvoiceMaster
                             if ($dRec->productId) {
                                 if ($clsInst instanceof store_Receipts || $clsInst instanceof purchase_Services) {
                                     $pRecStoreAndBuy = cat_Products::fetch($dRec->productId, 'canStore, canBuy');
-                                    
+
                                     if (!$pRecStoreAndBuy->canBuy == 'no') {
                                         continue;
                                     }
