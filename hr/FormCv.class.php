@@ -398,7 +398,7 @@ class hr_FormCv extends core_Master
             }
         }
         
-        $row->workpreff = "${prepare}";
+        $row->workpreff = "{$prepare}";
         
         $prepare = '';
     }

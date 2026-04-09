@@ -87,7 +87,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'titleLink=Сделка,currencyId=Валута,folderId,state,createdOn,createdBy';
+    public $listFields = 'titleLink=Сделка,amountDeal=Салдо,currencyId=Валута,folderId,state,createdOn,createdBy';
     
     
     /**
@@ -166,8 +166,8 @@ class findeals_Deals extends deals_DealBase
      * Кой може да превалутира документите в нишката
      */
     public $canChangerate = 'debug';
-    
-    
+
+
     /**
      * Позволени операции на последващите платежни документи
      */
@@ -535,7 +535,11 @@ class findeals_Deals extends deals_DealBase
                 $row->contragentCaption = tr('Контрагент');
             }
         }
-        
+
+        if(isset($fields['-list'])){
+            $row->amountDeal =  ht::styleNumber($row->amountDeal, $rec->amountDeal);
+        }
+
         $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         
         if (isset($rec->baseAccountId)) {
@@ -630,6 +634,8 @@ class findeals_Deals extends deals_DealBase
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
+        $data->canSeePrices = doc_plg_HidePrices::canSeePriceFields($mvc, $data->rec);
+
         $mvc->getHistory($data);
     }
     
@@ -692,8 +698,11 @@ class findeals_Deals extends deals_DealBase
                     if (empty($data->pager) || ($count >= $start && $count <= $end)) {
                         $data->rec->curDebitAmount += $rec->debitA;
                         $data->rec->curCreditAmount += $rec->creditA;
-
-                        $data->history[] = $this->getHistoryRow($rec);
+                        $dRow = $this->getHistoryRow($rec);
+                        if(!$data->canSeePrices) {
+                            $dRow->debitA = $dRow->creditA =doc_plg_HidePrices::getBuriedElement();
+                        }
+                        $data->history[] = $dRow;
                     }
                     $count++;
                 }
@@ -701,12 +710,20 @@ class findeals_Deals extends deals_DealBase
         }
 
         foreach (array('amountDeal', 'debitAmount', 'creditAmount', 'curDebitAmount', 'curCreditAmount') as $fld) {
-            if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
-                @$data->rec->{$fld} /= $rate;
+            if($data->canSeePrices){
+                if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
+                    @$data->rec->{$fld} /= $rate;
+                }
+                $roundedVal = round($data->rec->{$fld}, 2);
+                $data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($roundedVal);
+                $data->row->{$fld} =  ht::styleNumber($data->row->{$fld}, $roundedVal);
+            } else {
+                $data->row->{$fld} = doc_plg_HidePrices::getBuriedElement();
             }
-            $roundedVal = round($data->rec->{$fld}, 2);
-            $data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($roundedVal);
-            $data->row->{$fld} =  ht::styleNumber($data->row->{$fld}, $roundedVal);
+        }
+
+        if(!$data->canSeePrices){
+            $data->row->baseAmount = doc_plg_HidePrices::getBuriedElement();
         }
 
         if(round($data->rec->debitAmount, 4) == round($data->rec->curDebitAmount, 4)){
@@ -1048,7 +1065,6 @@ class findeals_Deals extends deals_DealBase
     {
         $aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
         $rec->amountDeal = $aggregateDealInfo->get('blAmount');
-
         $mvc->save($rec);
     }
     

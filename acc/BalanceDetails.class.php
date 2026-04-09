@@ -172,7 +172,7 @@ class acc_BalanceDetails extends core_Detail
                     $data->listFields[$fld] = "{$part1}->{$part2}->{$part3}|* <small>({$baseCurrencyCode})</small>";
                 } else {
                     list($part1, $part2) = explode('->', $data->listFields[$fld]);
-                    $data->listFields[$fld] = "{$part1}->{$part2}|* <small>({$baseCurrencyCode})";
+                    $data->listFields[$fld] = "{$part1}->{$part2}|* <small>({$baseCurrencyCode})</small>";
                 }
             }
         }
@@ -396,7 +396,7 @@ class acc_BalanceDetails extends core_Detail
     
     /**
      * Дали потребителя може да вижда детайл от баланса, може ако има достъп
-     * до всички негови пера
+     * до поне едно от перата му
      *
      * @param stdClass $rec - запис от модела
      *
@@ -407,18 +407,14 @@ class acc_BalanceDetails extends core_Detail
         foreach (range(1, 3) as $i) {
             $ent = $rec->{"ent{$i}Id"};
             
-            if (empty($ent)) {
-                continue;
-            }
-            
-            $itemRec = acc_Items::fetch($ent, 'classId,objectId');
-            
-            if ($itemRec->classId) {
-                $AccRegMan = cls::get($itemRec->classId);
-                
-                if ($AccRegMan->haveRightFor('single', $itemRec->objectId)) {
-                    
-                    return true;
+            if (empty($ent)) continue;
+            if($itemRec = acc_Items::fetch($ent, 'classId,objectId')){
+                if ($itemRec->classId) {
+                    $AccRegMan = cls::get($itemRec->classId);
+                    if ($AccRegMan->haveRightFor('single', $itemRec->objectId)) {
+
+                        return true;
+                    }
                 }
             }
         }
@@ -476,7 +472,7 @@ class acc_BalanceDetails extends core_Detail
                     break;
                 }
                 
-                if (isset($recs[$id])) {
+                if (isset($rec)) {
                     if ($feat && $feat != '*' && empty($featuresArr[$rec->{"ent{$i}Id"}][$feat])) {
                         unset($recs[$id]);
                         break;
@@ -574,11 +570,17 @@ class acc_BalanceDetails extends core_Detail
             
             // Групиране на данните
             foreach (array('ent1Id', 'ent2Id', 'ent3Id', 'accountNum', 'balanceId') as $fld) {
+                if (!isset($r->{$fld})) {
+                    $r->{$fld} = 0;
+                }
                 $r->{$fld} = $rec1->{$fld};
             }
             
             // Събираме числовите данни
             foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld) {
+                if (!isset($r->{$fld})) {
+                    $r->{$fld} = 0;
+                }
                 $r->{$fld} += $rec1->{$fld};
             }
             
@@ -975,8 +977,8 @@ class acc_BalanceDetails extends core_Detail
         $query = self::getQuery();
         while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
             $key = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
-            
-            if ($newRec = $toSave[$key]) {
+            $newRec = $toSave[$key];
+            if (isset($newRec)) {
                 if ($newRec->blAmount != $rec->blAmount || $newRec->baseAmount != $rec->baseAmount ||
                     $newRec->blQuantity != $rec->blQuantity || $newRec->baseQuantity != $rec->baseQuantity ||
                     $newRec->debitQuantity != $rec->debitQuantity || $newRec->debitAmount != $rec->debitAmount ||
@@ -1018,20 +1020,6 @@ class acc_BalanceDetails extends core_Detail
         core_Locks::release(acc_Balances::saveLockKey);
         
         return $res;
-    }
-    
-    
-    public static function getCheckSum($balanceId)
-    {
-        $query = self::getQuery();
-        $query->XPR('checkSum', 'int', "SUM(CRC32(CONCAT_WS('', #accountId, #ent1Id, #ent2Id, #ent3Id, #baseQuantity,#baseAmount,#debitQuantity,#debitAmount,#creditQuantity,#creditAmount, #blQuantity,#blAmount)))");
-        $query->where("#balanceId = {$balanceId}");
-        
-        $rec = $query->fetch();
-        
-        $rec2 = $query->fetch();
-        
-        return $rec->checkSum;
     }
     
     
@@ -1553,7 +1541,7 @@ class acc_BalanceDetails extends core_Detail
      */
     public static function on_AfterRenderListSummary($mvc, &$tpl, $data)
     {
-        if ($data->summary) {
+        if (!empty($data->summary)) {
             $table = getTplFromFile('acc/tpl/BalanceSummary.shtml');
             $table->placeObject($data->summary);
             

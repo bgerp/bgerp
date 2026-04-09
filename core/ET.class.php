@@ -752,7 +752,7 @@ class core_ET extends core_BaseClass
         }
         
         if ($emptyBlock) {
-            $empty = $this->getBlock("${emptyBlock}");
+            $empty = $this->getBlock("{$emptyBlock}");
         }
         
         if (is_array($data)) {

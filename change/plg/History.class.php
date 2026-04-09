@@ -8,7 +8,7 @@
  * @package   change
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -22,8 +22,9 @@ class change_plg_History extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->loggableFields, '');
-        setIfNot($mvc->loggableAdditionalComparableFields, '');
+        setPartIfNot($mvc, 'loggableFields', '');
+        setPartIfNot($mvc, 'loggableAdditionalComparableFields', '');
+        setPartIfNot($mvc, 'canEditcurrentversion', 'powerUser');
 
         $mvc->FLD('validFrom', 'datetime', 'caption=Валидност->От,input=none');
         $mvc->FLD('validTo', 'datetime', 'caption=Валидност->До,input=none');
@@ -37,40 +38,7 @@ class change_plg_History extends core_Plugin
     {
         $form = $data->form;
         if(isset($form->rec->id)){
-            $form->FLD("newValidFrom", 'datetime', 'input,caption=Валидност->От,autohide');
-        }
-    }
-
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    protected static function on_AfterInputEditForm($mvc, &$form)
-    {
-        $rec = &$form->rec;
-
-        if(!empty($rec->saveVersionDate)){
-            if($rec->saveVersionDate <= dt::now()){
-                if(!haveRole('admin')){
-                    $form->setError('versionDate', "Версията не може да е валидна с минала дата|*!");
-                }
-            }
-        }
-
-        // Ако ще се запише нова версия - проверка с уорнинг
-        if($form->isSubmitted()){
-            if(!empty($rec->id)){
-                $oldHash = self::getOldRecHash($mvc, $rec, true);
-                $newFieldHash = self::getNewRecHash($mvc, $rec, true);
-
-                if($oldHash != $newFieldHash){
-                    $validFrom = !empty($rec->newValidFrom) ? $rec->newValidFrom : (dt::today() . " 00:00:00");
-                    $validFromVerbal = dt::mysql2verbal($validFrom);
-                    $form->setWarning('versionDate', "Ще бъде записана нова версия с данните на контрагента от|* <b>{$validFromVerbal}</b>!");
-                }
-            }
+            $form->FLD("newValidFrom", 'date', 'input,caption=Валидност->От,autohide');
         }
     }
 
@@ -189,7 +157,9 @@ class change_plg_History extends core_Plugin
         }
 
         if(!$sync) return;
-        $rec->validFrom = !empty($rec->newValidFrom) ? $rec->newValidFrom : (dt::today() . " 00:00:00");
+        $rec->validFrom = !empty($rec->newValidFrom) ? $rec->newValidFrom : dt::today();
+        $rec->validFrom = "{$rec->validFrom} 00:00:00";
+
         $updateFields = array();
         $currentRecData = change_History::getCurrentRec($mvc->getClassId(), $rec->id, $rec->_oldRec, $rec, $updateFields);
 
@@ -296,7 +266,7 @@ class change_plg_History extends core_Plugin
 
         if(isset($rec->validFrom)){
             $oneMonthAgo = dt::addMonths(-1);
-            if($rec->validFrom < $oneMonthAgo || $rec->validFrom == $rec->createdBy){
+            if($rec->validFrom < $oneMonthAgo || $rec->validFrom == $rec->createdOn){
                 unset($row->validFrom);
             }
         }
@@ -390,5 +360,156 @@ class change_plg_History extends core_Plugin
         }
 
         return $clone;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * Забранява изтриването на вече използвани сметки
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'editcurrentversion' && isset($rec)){
+            if(!$mvc->haveRightFor('edit', $rec->id)){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * Извиква се преди изпълняването на екшън
+     *
+     * @param core_Mvc $mvc
+     * @param mixed    $res
+     * @param string   $action
+     */
+    public static function on_BeforeAction($mvc, &$res, $action)
+    {
+        if($action == 'editcurrentversion'){
+            $mvc->requireRightFor('editcurrentversion');
+            expect($id = Request::get('id', 'int'));
+            expect($rec = $mvc->fetch($id));
+            $mvc->requireRightFor('editcurrentversion', $rec);
+
+            $form = cls::get('core_Form');
+            $form->title = "Промяна на валидността на текущата версия|* " . $mvc->getFormTitleLink($rec->id);
+            $validTo = !empty($rec->validTo) ? dt::mysql2verbal($rec->validTo, 'd.m.y') : '|сега|*';
+            $form->FLD('validFrom', 'date', "caption=Валидно от,unit=до| {$validTo}");
+            $date = date('Y-m-d', strtotime($rec->validFrom));
+            $form->setDefault('validFrom', $date);
+
+            $versions = array();
+            $vQuery = change_History::getQuery();
+            $vQuery->where("#classId = {$mvc->getClassId()} AND #objectId = {$rec->id} AND #state != 'rejected'");
+            $vQuery->show('id,validFrom,validTo');
+            $vQuery->orderBy("validFrom", 'ASC');
+            while($vRec = $vQuery->fetch()) {
+                $versions[dt::mysql2timestamp($vRec->validFrom)] = $vRec;
+            }
+
+            $data = self::getPrevAndNextByDate($versions, $rec->validFrom);
+            $info = '';
+            if(!empty($data['prev'])){
+                $prevValidFromVerbal = dt::mysql2verbal($data['prev']->validFrom, 'd.m.y');
+                $info .= "|Предишна версия от|*: <b>{$prevValidFromVerbal}</b>";
+            }
+
+            if(!empty($data['next'])){
+                $nextValidFromVerbal = dt::mysql2verbal($data['next']->validFrom, 'd.m.y');
+                $info .= (!empty($info) ? "<br>" : "") . "|Следваща версия от|*: <b>{$nextValidFromVerbal}</b>";
+            }
+
+            if(!empty($info)){
+                $form->info .= "<div class='formNotice'>" . tr($info) . '</div>';
+            }
+
+            $form->input();
+
+            if ($form->isSubmitted()) {
+                $formRec = $form->rec;
+                $newValidFrom = "{$formRec->validFrom} 00:00:00";
+
+                if (!empty($data['prev'])) {
+                    $prevCompareDate = date('Y-m-d 00:00:00', strtotime($data['prev']->validFrom));
+                    if ($newValidFrom <= $prevCompareDate) {
+                        $prevValidFromVerbal = dt::mysql2verbal($data['prev']->validFrom, 'd.m.y');
+                        $form->setError('validFrom', "Новата валидност трябва да е по-голяма от валидността на предишната версия|*: <b>{$prevValidFromVerbal}</b>");
+                    }
+                }
+
+                if (strtotime($newValidFrom) > strtotime(dt::today() . ' 00:00:00')) {
+                    $form->setError('validFrom', "Валидността на текущата версия не може да е в бъдещето|*!");
+                }
+
+                if(!$form->gotErrors()){
+                    $rec->validFrom = $newValidFrom;
+                    $mvc->save_($rec, 'validFrom');
+
+                    if (!empty($data['prev'])) {
+                        $data['prev']->validTo = $newValidFrom;
+                        cls::get('change_History')->save_($data['prev'], 'validTo');
+                    }
+
+                    $newValidFromVerbal = dt::mysql2verbal($newValidFrom, 'd.m.y');
+                    $mvc->logWrite("Промяна на валидността на текущия запис", $rec->id);
+                    followRetUrl(null, "Текущата версия е с нова валидност от|*: <b>{$newValidFromVerbal}</b>");
+                }
+            }
+
+            // Добавяне на бутони
+            $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+            $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+            // Записваме, че потребителя е разглеждал този списък
+            $mvc->logInfo('Преглед на формата за промяна на валидност на текущата версия');
+            $res = $mvc->renderWrapping($form->renderHtml());
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Връща:
+     * - 'prev' => записът с най-голям key < подадената дата
+     * - 'next' => записът с най-малък key > подадената дата
+     *
+     * Ако липсва такъв запис, стойността е null
+     *
+     * @param array $items Масив, сортиран по key във възходящ ред
+     * @param string $dateTime Дата във формат datetime string
+     * @return array{prev:?stdClass,next:?stdClass}
+     */
+    public static function getPrevAndNextByDate(array $items, string $dateTime): array
+    {
+        $targetTs = strtotime($dateTime);
+
+        $prev = null;
+        $next = null;
+        foreach ($items as $ts => $row) {
+            $ts = (int) $ts;
+
+            if ($ts < $targetTs) {
+                $prev = $row;
+                continue;
+            }
+
+            if ($ts > $targetTs) {
+                $next = $row;
+                break;
+            }
+
+            // ако ts == targetTs, не го взимаме нито за prev, нито за next
+        }
+
+        return array('prev' => $prev, 'next' => $next);
     }
 }

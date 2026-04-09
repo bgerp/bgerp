@@ -734,12 +734,13 @@ class doc_Threads extends core_Manager
         $title = new ET("<div class='path-title'>[#user#] » [#folder#] ([#folderCover#])</div>");
         
         // Папка и корица
-        $folderRec = doc_Folders::fetch($data->folderId);
+        $folderRec = doc_Folders::fetch($data->folderId, '*', false);
+
         $folderRow = doc_Folders::recToVerbal($folderRec);
         if ($folderRec->state == 'closed') {
             $folderRow->title = ht::createHint($folderRow->title, 'Папката е затворена', 'warning');
         }
-        
+
         $title->append($folderRow->title, 'folder');
         $title->replace($folderRow->type, 'folderCover');
         
@@ -3445,7 +3446,7 @@ class doc_Threads extends core_Manager
             }
             
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {

@@ -104,8 +104,8 @@ class plg_Select extends core_Plugin
         } else {
             $data->listClass .= ' selectRows';
         }
-        
-        $mvc->FNC('_checkboxes', 'html', 'tdClass=centered');
+
+        $mvc->FNC('_checkboxes', 'html', 'tdClass=centered,forceField');
     }
     
     

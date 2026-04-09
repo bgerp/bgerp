@@ -53,14 +53,12 @@ class acc_plg_DocumentSummary extends core_Plugin
     public static $rolesAllMap = array(
         'purchase_Invoices' => 'invoiceAll',
         'sales_Invoices' => 'invoiceAll',
-        'sales_Proformas' => 'invoiceAll',
         'store_ShipmentOrders' => 'storeAll',
         'store_Receipts' => 'storeAll',
         'store_Transfers' => 'storeAll',
         'store_ConsignmentProtocols' => 'storeAll',
         'store_InventoryNotes' => 'storeAll',
         'purchase_Services' => 'storeAll',
-        'sales_Services' => 'storeAll',
         'rack_Movements' => 'storeAll',
         'store_Stores' => 'storeAll',
         'bank_IncomeDocuments' => 'bankAll',
@@ -73,7 +71,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         'cash_ExchangeDocument' => 'cashAll',
         'sales_Sales' => 'saleAll',
         'sales_Quotations' => 'saleAll',
-        'sales_Proformas' => 'saleAll',
+        'sales_Proformas' => 'saleAll,invoiceAll',
         'sales_Services' => 'saleAll',
         'purchase_Purchases' => 'purchaseAll',
         'planning_DirectProductionNote' => 'planningAll,storeAll',
@@ -109,6 +107,12 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         setPartIfNot($mvc, 'termDateFld', null);
         setPartIfNot($mvc, 'showNullDateFields', false);
+        setPartIfNot($mvc, 'amountIsInNotInBaseCurrency', false);
+
+        setPartIfNot($mvc, 'filterFieldDateTo', null);
+        setPartIfNot($mvc, 'filterFieldDateFrom', null);
+        setPartIfNot($mvc, 'filterDateFrom', null);
+        setPartIfNot($mvc, 'filterDateTo', null);
 
         $mvc->filterRolesForTeam ??= '';
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
@@ -162,7 +166,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     public function on_BeforeSave($mvc, $id, $rec, $fields = null)
     {
         // Ако създаваме нов документ и ...
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             // Задаваме стойностите на created полетата
             if (!isset($rec->createdBy)) {
                 $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
@@ -182,7 +186,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     {
         // Проверка за права за частния сингъл
         if ($action == 'viewpsingle') {
-            $rolesAll = self::$rolesAllMap[$mvc->className];
+            $rolesAll = self::$rolesAllMap[$mvc->className] ?? null;
             if (!$rolesAll || !haveRole($rolesAll, $userId)) {
                 $requiredRoles = 'no_one';
             }
@@ -221,6 +225,9 @@ class acc_plg_DocumentSummary extends core_Plugin
     {
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $showFilterDateField = $lastPeriod = $lastFolderId = null;
+        $cKey = $mvc->className . '|' . core_Users::getCurrent();
+        $userFields = array();
 
         if(!$mvc->hidePeriodFilter){
             $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
@@ -251,8 +258,6 @@ class acc_plg_DocumentSummary extends core_Plugin
                 }
                 $data->listFilter->FLD('filterDateField', 'enum(' . implode(',', $opt) . ')', 'width=6em,caption=Филтър по||Filter by,silent,input');
                 $showFilterDateField = ',filterDateField';
-            } else {
-                $showFilterDateField = null;
             }
 
             if (!isset($data->listFilter->fields['Rejected'])) {
@@ -283,8 +288,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam}, showClosedGroups)", 'caption=Потребители,silent,autoFilter,remember');
             $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,silent,after=users');
             $data->listFilter->showFields .= ',folder';
-            
-            $cKey = $mvc->className . '|' . core_Users::getCurrent();
+
             $haveUsers = false;
             
             if ($lastUsers = core_Permanent::get('userFilter' . $cKey)) {
@@ -370,7 +374,8 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         // Активиране на филтъра
         $data->listFilter->input($data->listFilter->showFields, 'silent');
-        
+        $usedUsers = null;
+
         // Ако формата за търсене е изпратена
         if ($filter = $data->listFilter->rec) {
             if(!empty($filter->{$mvc->currencyFld})){
@@ -423,8 +428,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 }
             }
 
-            $dateRange = array();
-            
+            $dateRange = array(null, null);
             if ($filter->from) {
                 $dateRange[0] = $filter->from;
             }
@@ -433,7 +437,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $dateRange[1] = $filter->to;
             }
 
-            if (countR($dateRange) == 2) {
+            if ($dateRange[0] && $dateRange[1]) {
                 sort($dateRange);
             }
             
@@ -491,10 +495,10 @@ class acc_plg_DocumentSummary extends core_Plugin
                         }
                     }
 
-                    if($autoCalcField){
-                        $nullCond = " OR #{$fromField} IS NULL";
-                    } else {
+                    if ($autoCalcField) {
                         $nullCond = " OR (#{$fromField} IS NULL AND #{$autoCalcField} IS NULL)";
+                    } else {
+                        $nullCond = " OR #{$fromField} IS NULL";
                     }
                 }
 
@@ -531,7 +535,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $data->query->where(array($where, $dateRange[0], $dateRange[1]));
             }
 
-            if (isset($filter->folder)) {
+            if (!empty($filter->folder)) {
                 unset($data->listFields['folderId']);
                 $data->query->where("#folderId = '{$filter->folder}'");
                 if($mvc->rememberListFilterFolderId) {
@@ -568,25 +572,6 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         $data->listSummary->summary = array();
         $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
-
-        $showFields = arr::make(array_keys($fieldsArr), true);
-        $showFields['state'] = 'state';
-        if($mvc->getField('createdOn', false)){
-            $showFields['createdOn'] = 'createdOn';
-        }
-        if($mvc->getField('rate', false)){
-            $showFields['rate'] = 'rate';
-        }
-
-        if($mvc->getField($mvc->filterCurrencyField, false)){
-            $showFields[$mvc->filterCurrencyField] = $mvc->filterCurrencyField;
-        }
-
-        if(isset($mvc->valiorFld)){
-            $showFields[$mvc->valiorFld] = $mvc->valiorFld;
-        }
-        $showFields = implode(',', $showFields);
-        $sQuery->show($showFields);
 
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
@@ -655,18 +640,14 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
     {
-        if (countR($fieldsArr) == 0) {
-            
-            return;
-        }
+        if (countR($fieldsArr) == 0) return;
 
-        $today = dt::today();
         foreach ($fieldsArr as $fld) {
             if (!array_key_exists($fld->name, $res)) {
                 $captionValue = (isset($fld->summaryCaption)) ? $fld->summaryCaption : $fld->caption;
                 $captionArr = explode('->', $captionValue);
                 $caption = (countR($captionArr) == 2) ? tr($captionArr[0]) . ': ' . tr($captionArr[1]) : tr($captionValue);
-                $res[$fld->name] = (object) array('caption' => $caption, 'measure' => '', 'number' => 0);
+                $res[$fld->name] = (object) array('caption' => $caption, 'measure' => '', 'number' => 0, 'amount' => null, 'quantity' => null);
             }
             
             switch ($fld->summary) {

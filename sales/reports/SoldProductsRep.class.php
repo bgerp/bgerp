@@ -857,7 +857,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
 
                         //Превалутиране
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
                         $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
 
                         $quantityPrevious = (-1) * $recPrime->quantity;
@@ -870,7 +870,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $quantityPrevious = $recPrime->quantity;
 
                         //Превалутиране
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
                         $primeCostPrevious = $pricePr * $recPrime->quantity;
 
 
@@ -928,7 +928,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails ) {
 
                         //Превалутиране
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
                         $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
 
                         $quantityLastYear = (-1) * $recPrime->quantity;
@@ -938,7 +938,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
 
                         //Превалутиране
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
 
                         $quantityLastYear = $recPrime->quantity;
                         $primeCostLastYear = $pricePr * $recPrime->quantity ;
@@ -993,9 +993,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     //Превалутиране
                     if($rec->quantityType != 'shipped'){
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
                     }else{
-                        $pricePr = $recPrime->{"${price}"};
+                        $pricePr = $recPrime->{"{$price}"};
                     }
                     if($rec->quantityType != 'shipped'){
 
@@ -1012,9 +1012,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     //Превалутиране
                     if($rec->quantityType != 'shipped'){
 
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
                     }else{
-                        $pricePr = $recPrime->{"${price}"};
+                        $pricePr = $recPrime->{"{$price}"};
                     }
 
                     $primeCost = $pricePr * $recPrime->quantity;

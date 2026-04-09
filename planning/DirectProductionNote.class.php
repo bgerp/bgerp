@@ -104,8 +104,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,production,store';
-	
-	
+
+
+    /**
+     * Кой може да приключва всички движения?
+     */
+    public $canDoallmovements = 'ceo,rack';
+
+
     /**
      * Кои роли може да променят активен ПП
      */

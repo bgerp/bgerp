@@ -253,7 +253,10 @@ class email_AutomaticResponse extends core_Master
      */
     public function renderAutoResponses($data)
     {
-        $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        if(empty($data->recs)){
+            return new core_ET();
+        }
+        $tpl = getTplFromFile('crm/tpl/CoverDetail.shtml');
         $title = tr('Автоматични отговори на имейли');
         $tpl->append($title, 'title');
         
@@ -302,7 +305,7 @@ class email_AutomaticResponse extends core_Master
      */    
     public function cron_runAutoResponder()
     { 
-        //валидиране на дата
+        // Валидиране на дата
         $now = dt::now();
         $today = dt::today();
 
@@ -310,20 +313,29 @@ class email_AutomaticResponse extends core_Master
         $rulesQuery->where("#state = 'active'");
         $rulesQuery->where("(#dateFrom IS NULL OR DATE(#dateFrom) <= '{$today}')");
         $rulesQuery->where("(#dateTo IS NULL OR DATE(#dateTo) >= '{$today}')");
-
-        //Вземаме активните правила за текущия момент
+        
+        // Вземаме активните правила за текущия момент
         $rules = $rulesQuery->fetchAll();
         if (!countR($rules)) return;
         
-        //Вземаме всички входящи имейли от последната минута със състояние 'closed'
-        $beforeOneMin = dt::addSecs(-60, $now);
+        // Ако в core_Permanent няма id взимаме 3 часа назад входящите имейли
+        $mailId = core_Permanent::get('automaticResponseMailId');
         $incomQuery = email_Incomings::getQuery();
-        $incomQuery->where("#createdOn > '{$beforeOneMin}' AND #state = 'closed'");
+        if(empty($mailId)){
+            $threeHoursBack = dt::addSecs(-10800, $now);
+            $incomQuery->where("#createdOn > '{$threeHoursBack}' AND #state = 'closed'");
+            $incomQuery->orderBy('id', 'DESC');
+        } else{
+            $incomQuery->where("#id > '{$mailId}' AND #state = 'closed'");
+        }
         $incomings = $incomQuery->fetchAll();
+
+        // Взимаме всеки имейл от incomings и проверяваме дали отговаря на правилата, 
+        // ако отговаря изпращаме имейл
         if (!countR($incomings)) return;
-       
         foreach ($incomings as $mail) {
             foreach ($rules as $rule) {
+                core_Permanent::set('automaticResponseMailId', $mail->id, core_Permanent::FOREVER_VALUE);
                 //Проверяваме за съвападение 
                 if ($this->matchesRule($mail, $rule)){
                     //изпращаме имейл
@@ -476,5 +488,11 @@ class email_AutomaticResponse extends core_Master
 
         // Изпращане на имейла
         email_Outgoings::send($emailRec, $options, 'bg');
+
+        // Известие за изпратен автоматичен отговор
+        $msg = 'Изпратен автоматичен отговор';
+        $userId = $rule->userId;
+        $urlArr = array('email_Outgoings', 'single', $emailRec->id);
+        bgerp_Notifications::add($msg, $urlArr, $userId, 'normal');
     }
 }

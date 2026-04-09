@@ -142,7 +142,7 @@ class cond_PaymentMethods extends embed_Manager
         $this->FLD('paymentOnDelivery', 'percent(min=0,max=1)', 'caption=Плащане при доставка->Дял,hint=Процент,oldFieldName=payOnDeliveryShare');
         $this->FLD('eventBalancePayment', 'enum(,invDate=след датата на фактурата||after invoice date,invEndOfMonth=след края на месеца на фактурата||after the end of invoice\'s month)', 'caption=Балансово плащане->Събитие');
         $this->FLD('timeBalancePayment', 'time(uom=days,suggestions=незабавно|15 дни|30 дни|60 дни)', 'caption=Балансово плащане->Срок,hint=дни,oldFieldName=payBeforeInvTerm');
-        $this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка за предсрочно плащане->Процент,hint=Процент');
+        $this->FLD('discountPercent', 'percent(Min=0,Max=1)', 'caption=Отстъпка за предсрочно плащане->Процент,hint=Процент');
         $this->FLD('discountPeriod', 'time(uom=days,suggestions=незабавно|5 дни|10 дни|15 дни)', 'caption=Отстъпка за предсрочно плащане->Срок,hint=Дни');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         
@@ -209,6 +209,10 @@ class cond_PaymentMethods extends embed_Manager
             
             if ($total > 1) {
                 $form->setError('downpayment,paymentBeforeShipping,paymentOnDelivery', 'Въведените проценти не бива да надвишават 100%');
+            }
+
+            if((!empty($rec->discountPeriod) && empty($rec->discountPercent)) || (empty($rec->discountPeriod) && !empty($rec->discountPercent))){
+                $form->setError('discountPeriod,discountPercent', 'Трябва и двете полета за отстъпка при предсрочно плащане да са попълнени');
             }
         }
     }

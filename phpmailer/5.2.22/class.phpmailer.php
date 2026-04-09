@@ -1474,7 +1474,7 @@ class PHPMailer
     {
         // Future-proof
         if (escapeshellcmd($string) !== $string
-            or !in_array(escapeshellarg($string), array("'${string}'", "\"${string}\""))
+            or !in_array(escapeshellarg($string), array("'{$string}'", "\"{$string}\""))
         ) {
             
             return false;
@@ -2827,7 +2827,7 @@ class PHPMailer
                         return ($encoded);
                     }
 
-                    return ("\"${encoded}\"");
+                    return ("\"{$encoded}\"");
                 }
                 $matchcount = preg_match_all('/[^\040\041\043-\133\135-\176]/', $str, $matches);
                 break;

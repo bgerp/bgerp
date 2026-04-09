@@ -1252,40 +1252,57 @@ div.acc-detail {
 	   cursor: pointer;
 	}
 }
-.toggleLink {
-	float: right;
-	display: inline-block;
-	height: 20px;
-	cursor: pointer;
-	padding: 3px;
-}
+
 
 .narrow #cmsNavigation .articles-navigation {
-	margin-top: -10px !important;
-	margin-bottom: 0 !important;
-	#searchform{
-		margin: 0 !important;
-		float: left;
+	display: flex;
+	align-items: center;
+	padding: 6px 0 6px 8px;
+	gap: 6px;
+	justify-content: space-between;
+	form {
+		float: none;
+		flex: 1;
+		min-width: 0; /* важно */
 	}
 	#simpleSearch {
+		display: flex;
+		align-items: center;
+		width: 100%;
+		gap: 6px;
+		position: relative;
 		margin: 0 !important;
 		padding: 0;
 		box-shadow: none !important;
 		border: none !important;
-		position: relative;
+		min-width: auto !important;
 	}
 	#searchInput {
 		border-radius: 3px;
-		box-shadow: none !important;
-		border: none !important;
+		min-width: 0; /* важно за мобилни */
+		height: 26px ;
+		padding: 4px 8px;
+
+		width: 100% !important;
+		font-size: 14px;
+		box-sizing: border-box;
 	}
 	#searchButton {
 		position: absolute;
 		top: 2px;
-		right: 26px;
+		right: 0;
+		width: 30px;
 		&:focus {
 			outline: none;
 		}
+	}
+	.toggleLink {
+		float: none;
+		height: 20px;
+		cursor: pointer;
+		padding: 3px;
+		flex-shrink: 0;
+		margin-left: 0 !important;
 	}
 
 }
@@ -5197,9 +5214,7 @@ table .eshop-btn {
 	height: auto !important;
 	background-position: 5px 5px !important;
 }
-.narrow #cmsNavigation a.linkWithIcon {
-	float: right;
-}
+
 
 #cmsNavigation form {
 	display: inline-block;;
@@ -5338,10 +5353,16 @@ table .eshop-btn {
 
 }
 
-
 .narrow .cms-row {
 	padding-top: 20px;
+	flex-direction: column;
+	gap: 0;
 }
+
+.narrow .cms-row .eightcol, .narrow  .cms-row .fourcol{
+	width: 100%;
+}
+
 .cms-row h1 {
     margin-top: 0;
     margin-left: 0;
@@ -5540,12 +5561,16 @@ table .eshop-btn {
 	width: 100%;
 	margin: 0 auto;
 	overflow: hidden;
-	padding-top: 25px;
+	display: flex;
+	padding: 25px 0;
+	box-sizing: border-box;
+	gap: 20px;
+	justify-content: space-between;
 }
-
+.background-holder cms-row {
+	padding: 25px;
+}
 .onecol, .twocol, .threecol, .fourcol, .fivecol, .sixcol, .sevencol, .eightcol, .ninecol, .tencol, .elevencol{
-	margin-right: 3.8%;
-	float: left;
 	min-height: 1px;
 	_display: inline;
 }
@@ -5563,7 +5588,7 @@ table .eshop-btn {
 }
 
 .cms-row .fourcol {
-	width: 27.73%;
+	width: 27%;
 }
 
 .cms-row .fivecol {
@@ -5579,8 +5604,7 @@ table .eshop-btn {
 }
 
 .cms-row .eightcol {
-	width: 64%;
-	float:right;
+	width: 66%;
 }
 
 .cms-row .ninecol {
@@ -5597,7 +5621,6 @@ table .eshop-btn {
 
 .cms-row .twelvecol {
 	width: 100%;
-	float: left;
 }
 
 .cms-last {
@@ -6839,29 +6862,53 @@ div.location.public {
 .eshop-group-holder{
     margin-bottom: 25px;
 }
-
+.productHolder {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px; /* по желание */
+}
 .eshop-group-button {
-    float: left;
-    width: 46%;
-    margin: 5px 2%;
+	width: unquote("calc(50% - 8px)");
     text-align: center;
     .eshop-group-button-title {
 		background: none !important;
 		font-size: 1em;
         margin-top: 2px;
 		font-weight: normal;
-		height: 50px;
+		height: 40px;
         a{
 	        color: #048;
         }
     }
-    .eshop-group-button-img a {
-		display: block;
+    .eshop-group-button-img {
+		width: 100%;
+		height: 170px;
+		overflow: hidden;
+		border-radius: 15px;
+		a {
+			display: block;
+			width: 100%;
+			height: 100%;
+		}
 		img{
-			max-width: 100% ;
-			max-height: 220px;
+			width: 100%;
+			height: 100%;
+			object-fit: cover; /* ключовото */
+			display: block;
+			transition: transform 0.4s ease;
 		}
 	}
+}
+.eshop-group-button-img:hover img {
+	transform: scale(1.1);
+}
+
+
+.narrow .eshop-group-button {
+	width: 100%;
+}
+.narrow .eshop-group-button .eshop-group-button-title {
+	height: 30px;
 }
 .eshopProduct {
 	max-width: 800px;
@@ -7431,15 +7478,7 @@ body.narrow {
 		padding-right: 0;
 	}
 
-	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol,
-	.row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol {
-		width: auto;
-		float: none;
-		margin-left: 0;
-		margin-right: 0;
-		padding-left: 20px;
-		padding-right: 20px;
-	}
+
 	#cmsMenu a {
 		margin-left: 8px;
 		margin-right: 8px;
@@ -7464,17 +7503,7 @@ body.narrow {
 
 }
 @media handheld, only screen and (max-width: 900px) {
-	.wide .eshop-group-button {
-       width: 96%;
-       margin: 0 2% 4%;
-       height:auto;
-       .eshop-group-button-img a img{
-            width:100%;
-            height:auto;
-            margin-right: 1%;
-            margin-left: 1%;
-       }
-    }
+
     .externalPage h2{
         font-size: 1.38em;
     }
@@ -7494,18 +7523,6 @@ body.narrow {
 		margin-left: 6px !important;
 		margin-right: 6px !important;
 		font-size: 0.97em;
-    }
-    .wide .eshop-group-button {
-       width: 96%;
-       margin: 0 2% 4%;
-       font-size: 0.9em;
-       height:auto;
-        .eshop-group-button-img a img{
-            width:98%;
-            height:auto;
-            margin-right: 1%;
-            margin-left: 1%;
-       }
     }
     .externalPage .formTitle {
         font-size: 1em;
@@ -7530,12 +7547,8 @@ body.narrow {
 		margin-right: 4px !important;
 		font-size: 0.89em;
     }
-    .wide .eshop-group-button {
-		width: 96%;
-		margin-right: 2%;
-		margin-left: 2%;
-		font-size: 0.9em;
-    }
+
+
     .externalPage h2{
         font-size: 1.36em;
     }
@@ -7559,13 +7572,6 @@ body.narrow {
     .narrow .single-thread .listTable .rich-text {
     	max-width: 630px;
     }
-    .narrow .eshop-group-button {
-       width: 46%;
-       min-height: 150px;
-       margin-right: 2%;
-       margin-left: 2%;
-       font-size: 0.9em;
-    }
     .externalPage h2{
         font-size: 1.34em;
     }
@@ -7581,24 +7587,7 @@ body.narrow {
 	.narrow #all {
 		border: none;
 	}
-	.wide .eshop-group-button {
-       width: 96%;
-       margin: 0 2% 5%;
-       font-size: 0.9em;
-       height:auto;
-        .eshop-group-button-img a img{
-            width:98%;
-            height:auto;
-            margin-right: 1%;
-            margin-left: 1%;
-       }
-    }
-	.narrow .eshop-group-button {
-       width: 46%;
-       margin-right: 2%;
-       margin-left: 2%;
-       font-size: 0.9em;
-    }
+
     .externalPage h2{
         font-size: 1.32em;
     }
@@ -7626,12 +7615,7 @@ body.narrow {
     .narrow #cmsTop {
     	margin-top: -1px;
     }
-	.narrow .eshop-group-button {
-	   width: 46%;
-       margin-right: 2%;
-       margin-left: 2%;
-       font-size: 0.9em;
-	}
+
 	.externalPage .formTitle {
         font-size: 0.95em;
     }
@@ -7667,12 +7651,7 @@ body.narrow {
 	.narrow #all {
 		border: none;
 	}
-	.narrow  .eshop-group-button {
-       width: 46%;
-       margin-right: 2%;
-       margin-left: 2%;
-       font-size: 0.9em;
-    }
+
     :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 483px;
@@ -7696,12 +7675,7 @@ body.narrow {
 	.background-holder{
           padding: 0 !important;
     }
-	.narrow  .eshop-group-button {
-       width: 46%;
-       margin-right: 2%;
-       margin-left: 2%;
-       font-size: 0.9em;
-    }
+
     :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 458px;
@@ -7728,12 +7702,6 @@ body.narrow {
 	.narrow #all {
 		border: none;
 	}
-	.narrow .eshop-group-button {
-       width: 46%;
-       margin: 0 2%;
-       font-size: 0.9em;
-
-    }
     :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 438px;
@@ -7760,14 +7728,7 @@ body.narrow {
 	}
 }
 
-@media handheld, only screen and (max-width: 375px) {
-	.narrow .eshop-group-button {
-		width: 100%;
-		margin-right: 0%;
-		margin-left: 0%;
-		font-size: 0.9em;
-	}
-}
+
 
 @media handheld, only screen and (max-width: 360px) {
 	.background-holder {
@@ -7776,12 +7737,7 @@ body.narrow {
 	.narrow #all {
 		border: none;
 	}
-	.narrow .eshop-group-button {
-       width: 100%;
-       margin-right: 0%;
-       margin-left: 0%;
-       font-size: 0.9em;
-    }
+
     .externalPage .formTitle{
         font-size: 0.9em;
     }
@@ -7840,12 +7796,7 @@ body.narrow {
 	.narrow #all {
 		border: none;
 	}
-	.narrow .eshop-group-button {
-       width: 100%;
-       margin-right: 0%;
-       margin-left: 0%;
-       font-size: 0.9em;
-    }
+
     :not(.modern-theme) {
         .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
             max-width: 278px;
@@ -9382,3 +9333,31 @@ td.td-clamp[data-overflow="true"] .clamp-ellipsis{
 }
 td.td-clamp[data-overflow="true"]:not([data-expanded="true"]) .clamp-ellipsis::after{ content:"…"; }
 td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after{ content:"↥"; }
+
+.earlyPaymentDiscountActive {
+	background: #e8f7e8;
+	border: 1px solid #8fce8f;
+	color: #1f6b1f;
+	font-weight: 700;
+}
+
+.amountBadge {
+	display: inline-block;
+	padding: 1px 3px;
+	background: #eaf6ff;
+	border: 1px solid #67add7;
+	border-radius: 5px;
+	line-height: 1.2;
+	white-space: nowrap;
+	box-sizing: border-box;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.amountBadge .textHint {
+	display: inline-block;
+}
+
+.amountBadge .textHint > span {
+	font-weight: 700;
+}

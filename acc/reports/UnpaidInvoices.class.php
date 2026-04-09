@@ -434,7 +434,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             foreach ($amountsValiors as $v) {
                 $paidDate = dt::mysql2verbal($v, $mask = 'd.m.y');
                 
-                $paidDates .= "${paidDate}" . '<br>';
+                $paidDates .= "{$paidDate}" . '<br>';
             }
         } else {
             $amountsValiors = explode(',', trim($paidDatesList, ','));
@@ -442,7 +442,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             foreach ($amountsValiors as $v) {
                 $paidDate = dt::mysql2verbal($v, $mask = 'd.m.y');
                 
-                $paidDates .= "${paidDate}" . "\n\r";
+                $paidDates .= "{$paidDate}" . "\n\r";
             }
         }
         

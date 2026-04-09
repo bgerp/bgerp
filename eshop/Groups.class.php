@@ -577,7 +577,7 @@ class eshop_Groups extends core_Master
      */
     public function renderAllGroups_($data)
     {
-        $all = new ET('');
+        $all = new ET('<div class="productHolder">');
         
         if (is_array($data->recs)) {
             foreach ($data->recs as $rec) {
@@ -594,7 +594,8 @@ class eshop_Groups extends core_Master
                 $all->append($tpl);
             }
         }
-        
+
+        $all .= "</div>";
         return $all;
     }
     

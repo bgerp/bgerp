@@ -2297,7 +2297,7 @@ class crm_Persons extends core_Master
         $role = tr($currVcard['role']);
 
         // Съединяваме името на работата с ролята
-        $buzPosition = ($role) ? "${jobTitle} - ${role}" : $jobTitle;
+        $buzPosition = ($role) ? "{$jobTitle} - {$role}" : $jobTitle;
 
         // Задаваме позицията на работата
         $form->setDefault('buzPosition', $buzPosition);
@@ -3209,7 +3209,7 @@ class crm_Persons extends core_Master
             }
 
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
 
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {

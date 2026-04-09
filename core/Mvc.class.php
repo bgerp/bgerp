@@ -673,21 +673,20 @@ class core_Mvc extends core_FieldSet
         } elseif (isset($params['titleFld'])) {
             $query->orderBy($params['titleFld']);
         }
-        
+
         if (is_array($onlyIds)) {
             if (!countR($onlyIds)) {
                 
                 return array();
             }
-            
+
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
-            
-            $query->where("#id IN (${ids})");
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         } elseif (preg_match("/^[0-9\,]+$/", $onlyIds)) {
-            $query->where("#id IN (${onlyIds})");
+            $query->where("#id IN ({$onlyIds})");
         }
         
         $titleFld = $params['titleFld'];
@@ -1054,7 +1053,7 @@ class core_Mvc extends core_FieldSet
         if ($this->invoke('BeforeSetupMVC', array(&$html)) === false) {
             $html .= '<li>Пропускаме началното установяване на модела</li>';
             
-            return "${html}</ul>";
+            return "{$html}</ul>";
         }
         
         if ($this->oldClassName) {
@@ -1367,7 +1366,7 @@ class core_Mvc extends core_FieldSet
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
         
-        return "${html}</ul>";
+        return "{$html}</ul>";
     }
     
     

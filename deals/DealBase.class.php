@@ -390,7 +390,7 @@ abstract class deals_DealBase extends core_Master
             $valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
 
             $err = $closedDeals = $threads = $warning = array();
-            $warning[$rec->currencyRate] = $rec->currencyRate;
+            $warning["{$rec->currencyRate}"] = $rec->currencyRate;
 
             $deals1 = keylist::toArray($form->rec->closeWith);
             $CloseDoc = cls::get($this->closeDealDoc);
@@ -414,7 +414,7 @@ abstract class deals_DealBase extends core_Master
                 if($dealItemRec->state == 'closed' || $exClosedDoc){
                     $closedDeals[] = $this->getLink($dealRec->id, 0);
                 }
-                $warning[$dealRec->currencyRate] = $dealRec->currencyRate;
+                $warning["{$dealRec->currencyRate}"] = $dealRec->currencyRate;
                 $threads[$dealRec->threadId] = $dealRec->threadId;
             }
 
@@ -662,11 +662,11 @@ abstract class deals_DealBase extends core_Master
             $row->closedDocuments = trim($row->closedDocuments, ', ');
         }
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = static::getLink($rec->id);
         }
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if(isset($rec->clonedFromId)){
                 $row->clonedFromId = static::getLink($rec->clonedFromId, 0);
             }
@@ -837,12 +837,17 @@ abstract class deals_DealBase extends core_Master
         if (countR($productIds)) {
             foreach ($productIds as $productId) {
                 $pRec = cat_Products::fetch($productId, 'measureId,isPublic,nameEn,code,name,canStore');
-                $expRec = (object) array('code' => ($pRec->code) ? $pRec->code : "Art{$productId}",
+
+                $orderedQty = $dealInfo->products[$productId]->quantity ?? 0;
+                $shippedQty = $dealInfo->shippedProducts[$productId]->quantity ?? 0;
+
+                $expRec = (object) array(
+                    'code' => ($pRec->code) ? $pRec->code : "Art{$productId}",
                     'productId' => $productId,
                     'measureId' => $pRec->measureId,
-                    'blQuantity' => $dealInfo->products[$productId]->quantity - $dealInfo->shippedProducts[$productId]->quantity,
-                    'quantity' => ($dealInfo->products[$productId]->quantity) ? $dealInfo->products[$productId]->quantity : 0,
-                    'shipQuantity' => ($dealInfo->shippedProducts[$productId]->quantity) ? $dealInfo->shippedProducts[$productId]->quantity : 0,
+                    'blQuantity' => $orderedQty - $shippedQty,
+                    'quantity' => $orderedQty,
+                    'shipQuantity' => $shippedQty,
                 );
                 
                 $row = (object) array('code' => core_Type::getByName('varchar')->toVerbal($expRec->code),
@@ -851,8 +856,9 @@ abstract class deals_DealBase extends core_Master
                 );
 
                 if ($pRec->canStore == 'yes') {
-                    $expRec->free = store_Products::getQuantities($productId)->free;
-                    $expRec->inStock = store_Products::getQuantities($productId)->quantity;
+                    $qRec = store_Products::getQuantities($productId);
+                    $expRec->free = $qRec->free;
+                    $expRec->inStock = $qRec->quantity;
                 }
                 
                 foreach (array('quantity', 'shipQuantity', 'blQuantity', 'inStock', 'free') as $q) {
@@ -939,11 +945,15 @@ abstract class deals_DealBase extends core_Master
                 $e->documentCreatedOn = cls::get($e->docType)->fetchField($e->docId, 'createdOn');
             }
 
-            // Подредба по вальор
             usort($entries, function ($a, $b) {
                 if ($a->valior == $b->valior) {
+                    if ($a->documentCreatedOn == $b->documentCreatedOn) {
+                        return 0;
+                    }
+
                     return ($a->documentCreatedOn < $b->documentCreatedOn) ? -1 : 1;
                 }
+
                 return ($a->valior < $b->valior) ? -1 : 1;
             });
 

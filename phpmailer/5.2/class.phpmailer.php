@@ -1755,7 +1755,7 @@ class PHPMailer
                 return ($encoded);
             }
 
-            return ("\"${encoded}\"");
+            return ("\"{$encoded}\"");
         }
         $x = preg_match_all('/[^\040\041\043-\133\135-\176]/', $str, $matches);
         break;

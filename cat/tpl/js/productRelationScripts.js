@@ -1,16 +1,3 @@
-/**
- * Връща storage обекта, в който пазим последно избрания таб.
- *
- * Използваме sessionStorage, защото:
- * - пази избора при reload / redirect / submit;
- * - е отделен за всеки browser tab;
- * - не смесва състоянието между различни отворени табове на браузъра.
- *
- * Ако по-късно решиш да се пази и след затваряне на браузъра,
- * може да се смени с window.localStorage.
- *
- * @returns {Storage|null}
- */
 function catProductsRelationsGetStorage()
 {
     try {
@@ -21,12 +8,39 @@ function catProductsRelationsGetStorage()
 }
 
 
-/**
- * Обновява info блока под табовете според активния таб.
- *
- * @param {HTMLElement} el
- * @param {HTMLElement} wrap
- */
+function catProductsRelationsGetPendingUniqueKey()
+{
+    return 'catProductsRelationsPendingUnique';
+}
+
+
+function catProductsRelationsSetPendingUnique(uniqueStr)
+{
+    var storage = catProductsRelationsGetStorage();
+    if (!storage || !uniqueStr) return;
+
+    storage.setItem(catProductsRelationsGetPendingUniqueKey(), uniqueStr);
+}
+
+
+function catProductsRelationsGetPendingUnique()
+{
+    var storage = catProductsRelationsGetStorage();
+    if (!storage) return null;
+
+    return storage.getItem(catProductsRelationsGetPendingUniqueKey());
+}
+
+
+function catProductsRelationsClearPendingUnique()
+{
+    var storage = catProductsRelationsGetStorage();
+    if (!storage) return;
+
+    storage.removeItem(catProductsRelationsGetPendingUniqueKey());
+}
+
+
 function catProductsRelationsUpdateInfo(el, wrap)
 {
     if (!wrap) return;
@@ -49,20 +63,6 @@ function catProductsRelationsUpdateInfo(el, wrap)
 }
 
 
-/**
- * Активира конкретен таб вътре в даден wrapper.
- *
- * Прави следното:
- * - маха active класа от всички табове;
- * - маха active класа от всички pane-ове;
- * - активира подадения таб;
- * - активира pane-а, към който сочи data-pane;
- * - обновява info блока под табовете.
- *
- * @param {HTMLElement} el
- * @param {HTMLElement} wrap
- * @returns {boolean}
- */
 function catProductsRelationsActivateTab(el, wrap)
 {
     if (!wrap || !el) return false;
@@ -91,17 +91,6 @@ function catProductsRelationsActivateTab(el, wrap)
 }
 
 
-/**
- * Обработва клик върху таб.
- *
- * Освен че активира визуално таба, записва и избора в sessionStorage,
- * за да може след followRetUrl / reload / submit да се отвори пак
- * последно активният таб.
- *
- * @param {HTMLElement} el
- * @param {string} wrapId
- * @returns {boolean}
- */
 function catProductsRelationsShowTab(el, wrapId)
 {
     var wrap = document.getElementById(wrapId);
@@ -124,23 +113,52 @@ function catProductsRelationsShowTab(el, wrapId)
 
 
 /**
- * Инициализира табовете за конкретен wrapper.
- *
- * Логика:
- * 1. намира wrapper-а;
- * 2. търси запомнен таб в sessionStorage;
- * 3. ако намери съвпадение - активира него;
- * 4. иначе активира:
- *    - таба, който вече има class=active, или
- *    - първия таб.
- *
- * Извиква се ръчно от PHP с inline script след рендерирането на HTML-а,
- * затова не използваме DOMContentLoaded listener.
- *
- * @param {string} wrapId
+ * Глобално прихваща клик по analogBtn.
  */
+function catProductsRelationsBindAnalogButtonsOnce()
+{
+    if (document._catProductsRelationsAnalogBound) return;
+    document._catProductsRelationsAnalogBound = true;
+
+    document.addEventListener('click', function (e) {
+        var el = e.target;
+
+        while (el && el !== document) {
+            if (el.classList && el.classList.contains('analogBtn')) {
+                var tabName = el.getAttribute('data-tab-name') || '';
+                if (tabName) {
+                    catProductsRelationsSetPendingUnique(tabName);
+                }
+                break;
+            }
+            el = el.parentNode;
+        }
+    }, true);
+}
+
+
+/**
+ * Търси таб по data-unique
+ */
+function catProductsRelationsFindTabByUnique(wrap, uniqueStr)
+{
+    if (!wrap || !uniqueStr) return null;
+
+    var links = wrap.querySelectorAll('.product-rel-tab');
+    for (var i = 0; i < links.length; i++) {
+        if (links[i].getAttribute('data-unique') === uniqueStr) {
+            return links[i];
+        }
+    }
+
+    return null;
+}
+
+
 function catProductsRelationsInitTabsById(wrapId)
 {
+    catProductsRelationsBindAnalogButtonsOnce();
+
     var wrap = document.getElementById(wrapId);
     if (!wrap) return;
 
@@ -151,11 +169,23 @@ function catProductsRelationsInitTabsById(wrapId)
     var defaultLink = links[0];
     var activeLink = null;
     var restoredLink = null;
+    var pendingLink = null;
 
     for (var i = 0; i < links.length; i++) {
         if (links[i].classList.contains('active')) {
             activeLink = links[i];
             break;
+        }
+    }
+
+    var pendingUnique = catProductsRelationsGetPendingUnique();
+    if (pendingUnique) {
+        pendingLink = catProductsRelationsFindTabByUnique(wrap, pendingUnique);
+
+        if (pendingLink) {
+            catProductsRelationsClearPendingUnique();
+            catProductsRelationsActivateTab(pendingLink, wrap);
+            return;
         }
     }
 

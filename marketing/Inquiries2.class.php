@@ -248,7 +248,7 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('quantity2', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none,formOrder=48');
         $this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
         $this->FLD('company', 'varchar(128)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
-        $this->FLD('personNames', 'varchar(128)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,oldFieldName=name');
+        $this->FLD('personNames', 'varchar(128)', 'caption=Контактни данни->Имена,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,oldFieldName=name');
 
         $this->FLD('vatId', 'drdata_VatType', 'caption=Контактни данни->ДДС №,formOrder=52,class=contactData');
         $this->FLD('uicId', 'drdata_type_Uic(26)', 'caption=Контактни данни->ЕИК / ЕГН,formOrder=53,class=contactData');
@@ -356,8 +356,8 @@ class marketing_Inquiries2 extends embed_Manager
             $quantityCount = 3;
         } elseif (isset($quantityCount) && $quantityCount == 0) {
             if ($form->rec->moq) {
-                $form->setReadOnly('quantity1', $form->rec->moq);
-                $form->setField('quantity1', "input,unit={$uom},caption={$caption}->Количество|* 1");
+                $form->setDefault('quantity1', $form->rec->moq);
+                $form->setField('quantity1', "input,unit={$uom},caption={$caption}->Количество");
             } else {
                 $form->setDefault('quantity1', 1);
                 $form->setField('quantity1', 'input=hidden');
