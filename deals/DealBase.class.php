@@ -373,7 +373,7 @@ abstract class deals_DealBase extends core_Master
         $form->info = 'Посочете кои сделки желаете да обедините с тази сделка';
         $form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1,mandatory');
         $form->FLD('rate', "double(decimals=5)", 'caption=Общ курс,input=hidden');
-        $form->setDefault('rate', currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null));
+        $form->setDefault('rate', currency_CurrencyRates::getRate($rec->{$this->valiorFld}, $rec->currencyId, null));
         $form->setSuggestions('closeWith', $options);
         $form->input();
         
@@ -386,7 +386,7 @@ abstract class deals_DealBase extends core_Master
             }
 
             $beforeEu = $afterEu = 0;
-            $valior = $rec->valior ?? dt::today();
+            $valior = $rec->{$this->valiorFld} ?? dt::today();
             $valior < acc_Setup::getEurozoneDate() ? $beforeEu++ : $afterEu++;
 
             $err = $closedDeals = $threads = $warning = array();
@@ -468,7 +468,7 @@ abstract class deals_DealBase extends core_Master
 
             if (!$form->gotErrors()) {
                 $formRec = $form->rec;
-                $rec->valior = $rec->valior ?? dt::today();
+                $rec->{$this->valiorFld} = $rec->{$this->valiorFld} ?? dt::today();
 
                 // Ако ще има преизчисляване на курс
                 $errorArr = array();
@@ -828,8 +828,8 @@ abstract class deals_DealBase extends core_Master
         $rec = $data->rec;
         if ($rec->state == 'draft') return;
         
-        // обобщената информация за цялата нищка
-        $dealInfo = self::getAggregateDealInfo($rec->id);
+        // Oбобщената информация за цялата нищка
+        $dealInfo = $this->getAggregateDealInfo($rec->id);
         $Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
         $report = $dealReportCSV = array();
         $productIds = arr::extractValuesFromArray($dealInfo->products, 'productId') + arr::extractValuesFromArray($dealInfo->shippedProducts, 'productId');
