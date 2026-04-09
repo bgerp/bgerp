@@ -323,14 +323,14 @@ class sales_Invoices extends deals_InvoiceMaster
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $firstRec = $firstDoc->rec();
 
-        if ($rec->sourceContainerId) {
+        if (!empty($rec->sourceContainerId)) {
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('sales_Proformas')) {
                 if ($proformaRec = $Source->fetch()) {
                     $mvc->prepareFromProforma($proformaRec, $form);
                     $handle = sales_Proformas::getHandle($Source->that);
                     $mvc->pushTemplateLg($rec->template);
-                    $defInfo .= (($defInfo) ? ' ' : '') . tr('По проформа|* #') . $handle . "\n";
+                    $defInfo .= (!empty($defInfo) ? ' ' : '') . tr('По проформа|* #') . $handle . "\n";
                     core_Lg::pop();
                 }
             }
@@ -478,7 +478,7 @@ class sales_Invoices extends deals_InvoiceMaster
 
             // Валидна ли е датата (при само промяна няма да се изпълни)
             $warning = null;
-            if (!$mvc->isAllowedToBePosted($rec, $warning) && $rec->__isBeingChanged !== true) {
+            if (!$mvc->isAllowedToBePosted($rec, $warning) && empty($rec->__isBeingChanged)) {
                 $form->setError('date', $warning);
             }
 
@@ -796,9 +796,10 @@ class sales_Invoices extends deals_InvoiceMaster
         $date = !empty($rec->date) ? $rec->date : dt::today();
 
         if ($restore === false) {
-            $query->orderBy('date', 'DESC');
-            $newDate = $query->fetch()->date;
-            if ($newDate > $date) {
+            $lastActiveRec = $query->fetch();
+            $newDate = $lastActiveRec->date ?? null;
+
+            if (isset($newDate) && $newDate > $date) {
                 $newDate = dt::mysql2verbal($newDate, 'd.m.y');
                 $msg = "Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* [<b>{$rangeName}</b>] ({$newDate})";
                 

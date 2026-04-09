@@ -1023,7 +1023,7 @@ class pos_Reports extends core_Master
      * Помощна ф-я в кой пос отчет е включена въпросната бележка
      *
      * @param $receiptId
-     * @return void
+     * @return int
      */
     public static function getReportReceiptIsIn($receiptId)
     {
