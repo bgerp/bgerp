@@ -524,9 +524,17 @@ class purchase_Invoices extends deals_InvoiceMaster
         if ($rec->state == 'active') {
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             $firstRec = $firstDoc->fetch();
-            $minus = ($rec->type == 'dc_note' || $firstRec->currencyId != $rec->currencyId) ? 0 : 0.005;
-            $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount - $minus;
-            $amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+
+            $rate = $rec->displayRate ? $rec->displayRate : $rec->rate;
+            $rawAmount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
+            $minus = 0;
+            if ($rec->type != 'dc_note' && $firstRec->currencyId == $rec->currencyId) {
+                $testAmount = $rate ? ($rawAmount / $rate) : $rawAmount;
+                if (abs($testAmount - round($testAmount, 2)) > 0.000001) {
+                    $minus = 0.005;
+                }
+            }
+            $amount = ($rawAmount - $minus) / $rate;
             if($firstRec->currencyId != $rec->currencyId){
                 $amount = currency_CurrencyRates::convertAmount($amount, null, $rec->currencyId, $firstRec->currencyId);
             }
