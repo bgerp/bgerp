@@ -338,13 +338,13 @@ class sales_Proformas extends deals_InvoiceMaster
 
         parent::getVerbalInvoice($mvc, $rec, $row, $fields);
         
-		if ($fields['-single']) {
+		if (isset($fields['-single'])) {
             if(isset($rec->paymentMethodId)){
                 $rec->paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
             }
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
 
             if (isset($rec->accountId)) {
                 $Varchar = cls::get('type_Varchar');

@@ -93,7 +93,7 @@ class findeals_AdvanceDeals extends findeals_Deals
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->contragentCaption = tr('Подотчетно лице');
         }
     }

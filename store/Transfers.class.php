@@ -325,7 +325,7 @@ class store_Transfers extends core_Master
         $row->fromStore = store_Stores::getHyperlink($rec->fromStore, true);
         $row->toStore = store_Stores::getHyperlink($rec->toStore, true);
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if ($rec->fromStore) {
                 $fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
                 if ($fromStoreLocation) {
@@ -341,7 +341,7 @@ class store_Transfers extends core_Master
             }
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = $mvc->getLink($rec->id, 0);
 
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {

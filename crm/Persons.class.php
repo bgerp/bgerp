@@ -654,7 +654,7 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = null)
     {
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
 
             // Fancy ефект за картинката
             $Fancybox = cls::get('fancybox_Fancybox');
@@ -725,7 +725,7 @@ class crm_Persons extends core_Master
         $address = $mvc->getVerbal($rec, 'address');
 
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
 
             // Дали има права single' а на този потребител
             $canSingle = static::haveRightFor('single', $rec);

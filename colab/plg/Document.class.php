@@ -32,7 +32,7 @@ class colab_plg_Document extends core_Plugin
      */
     public static function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = array())
     {
-        if ($fields && $fields['-single']) {
+        if (isset($fields['-single'])) {
             if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && core_Users::isPowerUser() && colab_FolderToPartners::fetch("#folderId = '{$rec->folderId}'")) {
                 $isVisible = false;
                 if ($rec->containerId) {

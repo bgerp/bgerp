@@ -650,7 +650,7 @@ class cat_products_Packagings extends core_Detail
             }
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
             if($rec->createdOn >= self::getPastHorizon()){
                 $row->user = ht::createHint($row->user, "Използвания|*: {$rec->usages}");

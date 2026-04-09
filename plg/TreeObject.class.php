@@ -372,7 +372,7 @@ class plg_TreeObject extends core_Plugin
             }
         }
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
 
             $mQuery = $mvc->getQuery();
 

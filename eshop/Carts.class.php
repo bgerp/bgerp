@@ -2165,7 +2165,7 @@ class eshop_Carts extends core_Master
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
         $row->domainId = cms_Domains::getHyperlink($rec->domainId);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if ($rec->state == 'draft') {
                 $delitionTime = self::getDeletionTime($rec);
                 $row->delitionTime = core_Type::getByName('datetime(format=smartTime)')->toVerbal($delitionTime);

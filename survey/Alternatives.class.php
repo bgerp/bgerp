@@ -159,7 +159,7 @@ class survey_Alternatives extends core_Detail
      */
     protected function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->label = str::mbUcfirst($row->label);
             if (!Mode::is('printing') && $mvc->haveRightFor('edit', $rec)) {
                 $addUrl = array('survey_Options', 'add', 'alternativeId' => $rec->id, 'ret_url' => true);

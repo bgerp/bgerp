@@ -698,7 +698,7 @@ class cal_Tasks extends embed_Manager
             }
         }
 
-        if($fields['-list']) {
+        if(isset($fields['-list'])) {
             $times = $assets = array();
             foreach (array('timeStart' => 'Начало', 'timeEnd' => 'Край', 'timeDuration' => 'Прод.') as $timeFld => $timeCaption) {
                 if(!empty($rec->{$timeFld})) {

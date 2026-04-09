@@ -726,7 +726,7 @@ class cat_Boms extends core_Master
         $row->quantity .= ' ' . $shortUom;
 
         $row->title = $mvc->getHyperlink($rec, true);
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if(!doc_HiddenContainers::isHidden($rec->containerId)) {
                 $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
                 $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;

@@ -118,7 +118,7 @@ abstract class rack_MovementAbstract extends core_Manager
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
         $row->movement = $mvc->getMovementDescription($rec, false, $makeLinks);
 
-        if($fields['-inline'] && isset($rec->workerId)){
+        if(isset($fields['-inline']) && isset($rec->workerId)){
             $row->workerId = core_Users::getVerbal($rec->workerId, 'nick');
         }
 

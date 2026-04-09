@@ -471,7 +471,7 @@ abstract class deals_QuotationMaster extends core_Master
             $row->date = ht::createHint('', 'Датата ще бъде записана при активиране');
         }
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
 
             // Линк към от коя оферта е клонирано
             if(isset($rec->clonedFromId)){
@@ -606,7 +606,7 @@ abstract class deals_QuotationMaster extends core_Master
             }
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = $mvc->getLink($rec->id, 0);
         }
 

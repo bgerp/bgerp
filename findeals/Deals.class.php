@@ -523,7 +523,7 @@ class findeals_Deals extends deals_DealBase
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->titleLink = $mvc->getHyperlink($rec->id, true);
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->contragentName = cls::get($rec->contragentClassId)->getHyperLink($rec->contragentId, true);
             
             if ($rec->secondContragentClassId) {

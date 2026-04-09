@@ -154,7 +154,7 @@ class bank_CashWithdrawOrders extends bank_DocumentBlank
     {
         $row->number = static::getHandle($rec->id);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $spellNumber = cls::get('core_SpellNumber');
             $row->sayWords = $spellNumber->asCurrency($rec->amount, 'bg', false);
 

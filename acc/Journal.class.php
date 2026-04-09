@@ -276,7 +276,7 @@ class acc_Journal extends core_Master
             }
         }
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $dQuery = acc_JournalDetails::getQuery();
             $dQuery->where("#journalId = {$rec->id}");
             $details = $dQuery->fetchAll();

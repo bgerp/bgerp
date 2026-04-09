@@ -1490,7 +1490,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->autoPaymentType);
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
 
             if(!in_array($rec->vatRate, array('yes', 'separate'))){

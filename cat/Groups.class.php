@@ -288,16 +288,16 @@ class cat_Groups extends core_Master
             $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
             $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
 
-            if ($fields['-list']) {
+            if (isset($fields['-list'])) {
                 $row->productCnt = ht::createLinkRef($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
 
-            if ($fields['-single']) {
+            if (isset($fields['-single'])) {
                 $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
         }
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if(!isset($rec->defaultOverheadCostsPercent)){
                 // Ако е намерена наследена стойност
                 if ($overheadCostArr = $mvc->getDefaultOverheadCostFromParent($rec)) {

@@ -439,7 +439,7 @@ class core_Classes extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = tr($row->title);
             
             if ($rec->state == 'active') {

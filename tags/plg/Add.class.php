@@ -26,7 +26,7 @@ class tags_plg_Add extends core_Plugin
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             core_RowToolbar::createIfNotExists($row->_rowTools);
 
             if (tags_Logs::haveRightFor('tag', $rec)) {

@@ -145,7 +145,7 @@ class email_Accounts extends core_Master
     {
         //  protocol, server, user, smtpServer, smtpUser,
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->retreiving = $mvc->getVerbal($rec, 'protocol');
             $row->retreiving .= ' / ' . $mvc->getVerbal($rec, 'server');
             $row->retreiving .= '<br>' . $mvc->getVerbal($rec, 'user');
@@ -154,7 +154,7 @@ class email_Accounts extends core_Master
             $row->sending .= '<br>' . $mvc->getVerbal($rec, 'smtpUser');
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if (!$rec->deleteAfterPeriod) {
                 $row->deleteAfterPeriod .= tr('Никога');
             }

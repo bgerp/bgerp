@@ -335,7 +335,7 @@ abstract class deals_Document extends deals_PaymentDocument
     {
         $row->title = $mvc->getHyperlink($rec->id, true);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             try{
                 $row->nextHandle = doc_Containers::getDocument($rec->dealId)->getLink();
             } catch(core_exception_Expect $e){

@@ -222,7 +222,7 @@ class pos_Reports extends core_Master
             $row->to = dt::mysql2verbal($toDate, 'd.m.Y H:i');
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $valiorToBe = $mvc->getFieldType('valior')->toVerbal(dt::today());
             $row->valior = (isset($rec->valior)) ? $row->valior : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
 
@@ -236,7 +236,7 @@ class pos_Reports extends core_Master
             }
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->paid = ht::styleNumber($row->paid, $rec->paid);
             $row->total = ht::styleNumber($row->total, $rec->total);
         }

@@ -555,7 +555,7 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $row->title = $mvc->getLink($rec->id, 0);
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 
             if ($rec->dealCurrencyId != $rec->currencyId) {
