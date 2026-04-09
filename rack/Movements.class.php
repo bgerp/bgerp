@@ -1825,7 +1825,7 @@ class rack_Movements extends rack_MovementAbstract
         if ($mvc->haveRightFor('load', $rec)) {
             $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'load', 'additional' => $additional, 'ret_url' => true);
 
-            if($fields['-inline'] && !isset($fields['-inline-single'])){
+            if(isset($fields['-inline']) && !isset($fields['-inline-single'])){
                 unset($loadUrl['ret_url']);
                 $loadUrl = toUrl($loadUrl, 'local');
                 $row->leftColBtns = ht::createFnBtn('Запазване', '', null, array('id' => "ajLoad{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $loadUrl, 'title' => 'Запазване на движението', 'ef_icon' => 'img/16/checkbox_no.png', 'data-moveid' => $rec->id));
@@ -1849,7 +1849,7 @@ class rack_Movements extends rack_MovementAbstract
             $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'additional' => $additional, 'ret_url' => true);
             $row->_rowTools->addLink('Започване', $startUrl, array('warning' => $startWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/control_play.png', 'title' => 'Започване на движението'));
 
-            if($fields['-inline'] && !isset($fields['-inline-single'])){
+            if(isset($fields['-inline']) && !isset($fields['-inline-single'])){
                 unset($startUrl['ret_url']);
                 $startUrl = toUrl($startUrl, 'local');
                 $row->rightColBtns = ht::createFnBtn('Започване', '', $startWarning, array('id' => "ajStart{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png', 'data-moveid' => $rec->id));
@@ -1866,7 +1866,7 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             $row->_rowTools->addLink('Приключване', $doneUrl, array('id' => "done{$rec->id}", 'warning' => $doneWarning, 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
-            if($fields['-inline'] && !isset($fields['-inline-single'])){
+            if(isset($fields['-inline']) && !isset($fields['-inline-single'])){
                 unset($doneUrl['ret_url']);
                 $doneUrl = toUrl($doneUrl, 'local');
                 $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('id' => "ajDone{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $doneUrl, 'title' => 'Приключване на движението', 'ef_icon' => 'img/16/gray-close.png', 'data-moveid' => $rec->id));

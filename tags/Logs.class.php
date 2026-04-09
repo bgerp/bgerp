@@ -181,7 +181,7 @@ class tags_Logs extends core_Manager
             $row->docLink = tr('Липсващ документ');
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             if ($rec->tagId) {
                 $tArr = tags_Tags::getTagNameArr($rec->tagId);
                 $row->tagId = "<span class='documentTags'>" . $tArr['spanNoName'] . $row->tagId . '</span>';

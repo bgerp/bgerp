@@ -471,7 +471,7 @@ abstract class deals_QuotationMaster extends core_Master
             $row->date = ht::createHint('', 'Датата ще бъде записана при активиране');
         }
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
 
             // Линк към от коя оферта е клонирано
             if(isset($rec->clonedFromId)){
@@ -606,7 +606,7 @@ abstract class deals_QuotationMaster extends core_Master
             }
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = $mvc->getLink($rec->id, 0);
         }
 
@@ -964,7 +964,7 @@ abstract class deals_QuotationMaster extends core_Master
         }
 
         // Създаваме нова продажба от офертата
-        $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+        $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, null, $fields);
 
         return $dealId;
     }
@@ -1035,7 +1035,7 @@ abstract class deals_QuotationMaster extends core_Master
         $this->requireRightFor('dealfromquotation', $rec);
 
         // Подготовка на формата за филтриране на данните
-        $form = $this->getFilterForm($rec->id, $id);
+        $form = $this->getFilterForm($rec->id);
         $form->input();
 
         if ($form->isSubmitted()) {
@@ -1357,7 +1357,7 @@ abstract class deals_QuotationMaster extends core_Master
         $this->requireRightFor('dealfromquotation');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetchRec($id));
-        expect($rec->state = 'active');
+        expect($rec->state == 'active');
         expect($items = $this->getItems($id));
         $this->requireRightFor('dealfromquotation', $rec);
         $force = Request::get('force', 'int');

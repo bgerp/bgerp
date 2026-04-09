@@ -439,7 +439,7 @@ class trans_LineDetails extends doc_Detail
 
         $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$class}";
         $row->ROW_ATTR['class'] .= " group{$rec->classId}";
-        if($fields['renderDocumentInline']){
+        if(isset($fields['renderDocumentInline'])){
             $row->ROW_ATTR['class'] .= " detailedView";
         }
     }

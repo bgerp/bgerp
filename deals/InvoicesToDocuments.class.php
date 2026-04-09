@@ -113,7 +113,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 foreach ($iData['containerId'] as $k => $v){
                     if(empty($iData['amount'][$k])){
                         $iDoc = doc_Containers::getDocument($iData['containerId'][$k]);
-                        $iRec = doc_Containers::getDocument($iData['containerId'][$k])->fetch();
+                        $iRec = $iDoc->fetch();
                         $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
                         $totalValue = $iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount;
                         if($iRec->type == 'dc_note' && $totalValue < 0){
@@ -356,7 +356,6 @@ class deals_InvoicesToDocuments extends core_Manager
             }
         }
 
-        $totalAmount = 0;
         foreach ($tableData['amount'] as $key => $amount) {
             if (!empty($amount) && empty($tableData['containerId'][$key])) {
                 $error[] = 'Зададенa сума без посочен документ';
@@ -366,13 +365,9 @@ class deals_InvoicesToDocuments extends core_Manager
             if(!empty($amount)){
                 $Double = core_Type::getByName('double');
                 $q2 = $Double->fromVerbal($amount);
-                if (!$q2) {
+                if (empty($q2)) {
                     $error[] = 'Невалидна сума';
                     $errorFields['amount'][$key] = 'Невалидна сума';
-                }
-
-                if(!isset($errorFields['amount'][$key])){
-                    $totalAmount += $amount;
                 }
             }
         }

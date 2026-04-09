@@ -181,7 +181,7 @@ class survey_Surveys extends core_Master
     {
         $row->number = static::getHandle($rec->id);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if (static::isClosed($rec->id)) {
                 $row->closed = tr('Анкетата е затворена');
             }
@@ -195,7 +195,7 @@ class survey_Surveys extends core_Master
             }
         }
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             if (static::isClosed($rec->id)) {
                 $row->title = $row->title . " - <span style='color:darkred'>" .tr('затворена'). '</span>';
             }

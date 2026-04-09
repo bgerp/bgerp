@@ -87,8 +87,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+        $productInfo = null;
+        $vat = 0;
 
-        if ($form->rec->productId) {
+        if (isset($form->rec->productId)) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $productInfo = cat_Products::getProductInfo($rec->productId);
             
@@ -133,9 +135,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         if ($form->isSubmitted() && !$form->gotErrors()) {
             if (!isset($rec->packQuantity)) {
                 $form->setDefault('packQuantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
-                if (empty($rec->packQuantity)) {
-                    $form->setError('packQuantity', 'Не е въведено количество');
-                }
+                $form->setError('packQuantity', 'Не е въведено количество');
             }
             
             // Проверка на к-то
@@ -178,9 +178,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                     }
                 }
                 
-                if (!$policyInfo) {
+                if (empty($policyInfo)) {
                     if(isset($rec->productId)){
-                        $listId = ($dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
+                        $listId = (isset($dealInfo) && $dealInfo->get('priceListId')) ? $dealInfo->get('priceListId') : null;
 
                         // Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
                         $Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get('price_ListToCustomers')) : (($mvc->Policy) ? $mvc->Policy : cls::get('price_ListToCustomers'));
@@ -201,7 +201,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                     }
                 }
                 
-                if ($policyInfo->discount && !isset($rec->discount)) {
+                if (isset($policyInfo->discount) && !isset($rec->discount)) {
                     $rec->discount = $policyInfo->discount;
                 }
             } else {
@@ -328,7 +328,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
      */
     public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (!isset($rec->price) || !isset($rec->quantity) || empty($rec->quantityInPack)) {
+        if (!isset($rec->quantity) || empty($rec->quantityInPack)) {
             
             return;
         }
@@ -369,18 +369,20 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
-        $meta = cat_Products::fetch($pRec->productId, $this->metaProducts);
         $masterThreadId = $Master::fetchField($masterId, 'threadId');
+        $metaFld = $this->metaProducts;
+        $metaRec = cat_Products::fetch($pRec->productId, "{$metaFld},canSell,canBuy");
+        $meta = $metaRec->{$metaFld} ?? null;
 
-        if (!$meta->metaProducts) {
-            if (doc_Threads::getFirstDocument($masterThreadId)->className == 'sales_Sales') {
-                $meta = $meta->canSell;
-            } elseif (doc_Threads::getFirstDocument($masterThreadId)->className == 'purchase_Purchases') {
-                $meta = $meta->canBuy;
+        if (!$meta) {
+            $firstDoc = doc_Threads::getFirstDocument($masterThreadId);
+            if ($firstDoc->className == 'sales_Sales') {
+                $meta = $metaRec->canSell ?? null;
+            } elseif ($firstDoc->className == 'purchase_Purchases') {
+                $meta = $metaRec->canBuy ?? null;
             }
         }
-        
-        
+
         if ($meta != 'yes') {
 
             return;
@@ -389,8 +391,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $price = null;
         
         // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
-        if ($row->price) {
-            
+        if (isset($row->price)) {
             $packRec = cat_products_Packagings::getPack($pRec->productId,  $pRec->packagingId);
             $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
             $row->price /= $quantityInPack;

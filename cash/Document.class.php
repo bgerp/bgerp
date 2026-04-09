@@ -232,14 +232,27 @@ abstract class cash_Document extends deals_PaymentDocument
         $Document = doc_Containers::getDocument($fromContainerId);
         $documentRec = $Document->fetch();
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $firstRec = $firstDoc->fetch('currencyRate,currencyId');
+        $firstRec = $firstDoc->fetch();
         $willConvert = ($firstRec->currencyId != $documentRec->currencyId);
 
-        if($Document->isInstanceOf('deals_InvoiceMaster')){ 
-            $minus = ($documentRec->type == 'dc_note' || $willConvert) ? 0 : 0.005;
-            $amount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount - $minus;
-            $amount /= ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
-        } elseif($Document->isInstanceOf('store_DocumentMaster')){
+        if ($Document->isInstanceOf('deals_InvoiceMaster')) {
+            $rate = ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
+            $rawAmount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount;
+
+            $minus = 0;
+            if ($documentRec->type != 'dc_note') {
+                $testAmount = $rate ? ($rawAmount / $rate) : $rawAmount;
+
+                // Ако резултатът и без това е практически точен до 2 знака,
+                // не прилагаме хака, защото само ще развали сумата
+                if (abs($testAmount - round($testAmount, 2)) > 0.000001) {
+                    $minus = 0.005;
+                }
+            }
+
+            $amount = ($rawAmount - $minus);
+            $amount /= $rate;
+        } elseif ($Document->isInstanceOf('store_DocumentMaster')) {
             $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
         }
 
@@ -542,7 +555,7 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $row->title = $mvc->getLink($rec->id, 0);
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 
             if ($rec->dealCurrencyId != $rec->currencyId) {

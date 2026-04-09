@@ -285,7 +285,7 @@ class marketing_Inquiries2 extends embed_Manager
      */
     public static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = null)
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $mvc->setFieldTypeParams('email', array('maskVerbal' => true));
             $mvc->setFieldTypeParams('tel', array('maskVerbal' => true));
         }
@@ -529,7 +529,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         $row->brid = log_Browsers::getLink($rec->brid);
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = $mvc->getTitle($rec);
 
             $attr = array();

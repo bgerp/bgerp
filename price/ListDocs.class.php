@@ -764,7 +764,7 @@ class price_ListDocs extends core_Master
             unset($row->vat);
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->singleTitle = $row->title;
         }
     }

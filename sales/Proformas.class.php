@@ -223,6 +223,7 @@ class sales_Proformas extends deals_InvoiceMaster
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        $rec = &$form->rec;
         parent::prepareInvoiceForm($mvc, $data);
         if(empty($rec->id)){
             $form->setDefault('importProducts', 'onlyFromDeal');
@@ -236,7 +237,7 @@ class sales_Proformas extends deals_InvoiceMaster
             $form->setField('number', 'input=none');
         }
         
-        if ($data->aggregateInfo) {
+        if (!empty($data->aggregateInfo)) {
             $form->setDefault('reff', $data->aggregateInfo->get('reff'));
 			$form->setDefault('paymentType', $data->aggregateInfo->get('paymentType'));
             if ($accId = $data->aggregateInfo->get('bankAccountId')) {
@@ -289,9 +290,8 @@ class sales_Proformas extends deals_InvoiceMaster
         if (empty($number)) {
             $query = $mvc->getQuery();
             $query->XPR('maxNumber', 'int', 'MAX(#number)');
-            $number = $query->fetch()->maxNumber;
-            $number += 1;
-            
+            $maxRec = $query->fetch();
+            $number = ($maxRec->maxNumber ?? 0) + 1;
             while(self::fetchField("#number = '{$number}'")){
                 $number += 1;
             }
@@ -338,13 +338,13 @@ class sales_Proformas extends deals_InvoiceMaster
 
         parent::getVerbalInvoice($mvc, $rec, $row, $fields);
         
-		if ($fields['-single']) {
+		if (isset($fields['-single'])) {
             if(isset($rec->paymentMethodId)){
                 $rec->paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
             }
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
 
             if (isset($rec->accountId)) {
                 $Varchar = cls::get('type_Varchar');

@@ -907,7 +907,7 @@ class pos_ReceiptDetails extends core_Detail
         switch ($action->type) {
             case 'sale':
                 $mvc->renderSale($rec, $row, $receiptRec, $fields);
-                if ($fields['-list']) {
+                if (isset($fields['-list'])) {
                     $row->productId = cat_Products::getHyperlink($rec->productId, true);
                 }
 
@@ -939,7 +939,7 @@ class pos_ReceiptDetails extends core_Detail
                     }
                 }
 
-                if ($fields['-list']) {
+                if (isset($fields['-list'])) {
                     $row->productId = tr('Плащане') . ': ' . $row->actionValue;
                     unset($row->quantity, $row->value);
                 }

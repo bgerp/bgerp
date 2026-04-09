@@ -377,7 +377,7 @@ class bank_InternalMoneyTransfer extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->currency = currency_Currencies::getCodeById($rec->currencyId);
             
             // Изчисляваме равностойността на сумата в основната валута

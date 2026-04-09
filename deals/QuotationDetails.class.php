@@ -184,6 +184,8 @@ class deals_QuotationDetails extends doc_Detail
             if ($oDocId && !Mode::is('stopRenderOrigin')) {
                 $document = doc_Containers::getDocument($oDocId);
                 if ($document && cls::haveInterface('doc_DocumentIntf', $document->instance)) {
+                    $className = '';
+
                     // Добавяме клас, за да може формата да застане до привюто на документа/файла
                     if (Mode::is('screenMode', 'wide')) {
                         $className = ' floatedElement ';
@@ -212,6 +214,7 @@ class deals_QuotationDetails extends doc_Detail
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+        $vat = 0;
 
         if(isset($rec->productId)) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
@@ -450,7 +453,7 @@ class deals_QuotationDetails extends doc_Detail
 
         // Подреждане на груприаните записи по к-ва
         $zebra = 'zebra1';
-        foreach ($newRows as &$group) {
+        foreach ($newRows as $groupKey => &$group) {
 
             // Сортиране по к-во
             usort($group, function ($a, $b) {
@@ -467,7 +470,7 @@ class deals_QuotationDetails extends doc_Detail
                     $row->rowspanId = $group[0]->rowspanId;
                     $row->TR_CLASS = $group[0]->TR_CLASS;
                 } else {
-                    $prot = md5($pId.$data->masterData->rec->id);
+                    $prot = md5($groupKey . $data->masterData->rec->id);
                     $row->rowspanId = $row->rowspanpId = "product-row{$prot}";
                     $zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
                 }
@@ -532,8 +535,7 @@ class deals_QuotationDetails extends doc_Detail
             $res->price = $rec->price;
             if($me instanceof sales_QuotationsDetails){
                 $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
-
-                if ($fee && $fee->fee > 0) {
+                if (is_object($fee) && $fee->fee > 0) {
                     $res->price -= round($fee->fee / $rec->quantity, 4);
                 }
             }
@@ -634,7 +636,7 @@ class deals_QuotationDetails extends doc_Detail
             // Показване на к-то в основна мярка, само ако тя е различна от мярката/опаковката на показване
             if($measureId != $rec->packagingId){
                 $row->totalQuantity = core_Type::getByName('double(smartRound)')->toVerbal($totalQuantity);
-                $shortUom = cat_Uom::getShortName($measureId);
+                $shortUom = cat_UoM::getShortName($measureId);
                 $row->totalQuantity .= ' ' . tr($shortUom);
             }
         }

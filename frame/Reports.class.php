@@ -204,7 +204,7 @@ class frame_Reports extends core_Embedder
     {
         $row->title = $mvc->getLink($rec->id, 0);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             
             $now = dt::now();
             if ($rec->earlyActivationOn < $now) {

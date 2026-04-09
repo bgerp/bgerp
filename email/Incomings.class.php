@@ -1025,7 +1025,7 @@ class email_Incomings extends core_Master
             }
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if ($rec->files) {
                 $vals = keylist::toArray($rec->files);
                 

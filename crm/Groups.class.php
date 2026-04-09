@@ -356,7 +356,7 @@ class crm_Groups extends core_Master
         $row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
         $row->name = "<b>{$row->name}</b>";
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->personsCnt = str_pad($row->personsCnt, '6', '0', STR_PAD_LEFT);
             $row->companiesCnt = str_pad($row->companiesCnt, '6', '0', STR_PAD_LEFT);
         }

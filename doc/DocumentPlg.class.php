@@ -665,7 +665,7 @@ class doc_DocumentPlg extends core_Plugin
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y');
         $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if (!$row->ident) {
                 $row->ident = '#' . $invoker->getHandle($rec->id);
             }
@@ -687,7 +687,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             if ($rec->folderId) {
                 $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
                 

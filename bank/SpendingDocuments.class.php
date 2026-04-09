@@ -136,13 +136,13 @@ class bank_SpendingDocuments extends bank_Document
         // Ако документа е към покупка
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if($firstDoc->isInstanceOf('purchase_Purchases')){
+            $form->setField('earlyPaymentUntil', 'input');
+            $form->setField('earlyPaymentPercent', 'input');
 
             // И нейния метод за плащане е с отстъпка за предсрочно плащане
             if($paymentMethodId = $firstDoc->fetchField('paymentMethodId')){
                 $paymentRec = cond_PaymentMethods::fetch($paymentMethodId);
                 if(!empty($paymentRec->discountPercent) && !empty($paymentRec->discountPeriod)){
-                    $form->setField('earlyPaymentUntil', 'input');
-                    $form->setField('earlyPaymentPercent', 'input');
 
                     // Ако е към входяща фактура да излизат попълнени данните за плащането
                     if(isset($rec->originId)) {
@@ -217,7 +217,7 @@ class bank_SpendingDocuments extends bank_Document
             if($valior > $rec->earlyPaymentUntil){
                 $row->earlyPaymentClass = 'quiet';
                 $row->earlyPaymentInfo .= " (" . tr('изтекло') . ")";
-            } elseif(!Mode::isReadOnly()) {
+            } else {
                 $row->earlyPaymentClass = 'earlyPaymentDiscountActive';
 
                 // Ако вальора е в срока на предсрочно плащане да се показва с каква сума е намалена
@@ -245,6 +245,10 @@ class bank_SpendingDocuments extends bank_Document
                         $row->amountDeal = ht::createHint("<span style='color:{$hintColor}'>{$amountDealWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amountDeal, $rec->dealCurrencyId, true) . $infoSuffix, 'noicon');
                     }
                 }
+            }
+
+            if(Mode::isReadOnly()){
+                unset($row->earlyPaymentClass);
             }
         }
     }
