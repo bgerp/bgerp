@@ -964,7 +964,7 @@ abstract class deals_QuotationMaster extends core_Master
         }
 
         // Създаваме нова продажба от офертата
-        $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+        $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, null, $fields);
 
         return $dealId;
     }
@@ -1035,7 +1035,7 @@ abstract class deals_QuotationMaster extends core_Master
         $this->requireRightFor('dealfromquotation', $rec);
 
         // Подготовка на формата за филтриране на данните
-        $form = $this->getFilterForm($rec->id, $id);
+        $form = $this->getFilterForm($rec->id);
         $form->input();
 
         if ($form->isSubmitted()) {
@@ -1357,7 +1357,7 @@ abstract class deals_QuotationMaster extends core_Master
         $this->requireRightFor('dealfromquotation');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetchRec($id));
-        expect($rec->state = 'active');
+        expect($rec->state == 'active');
         expect($items = $this->getItems($id));
         $this->requireRightFor('dealfromquotation', $rec);
         $force = Request::get('force', 'int');
