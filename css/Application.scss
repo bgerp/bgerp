@@ -5851,10 +5851,6 @@ iframe.autoHeight {
 	display: block;
 }
 
-.listBlock:has(.listTopContainer) {
-	display: table;
-}
-
 .listBlock .listRows {
 	overflow-x: auto;
 }

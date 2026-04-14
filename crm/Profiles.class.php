@@ -490,8 +490,8 @@ class crm_Profiles extends core_Master
         if (self::canModifySettings($key, $data->rec->userId)) {
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
         }
-        
-        if (($currUser == $data->User->rec->id) && bgerp_Portal::haveRightFor('list')) {
+
+        if (!empty($data->User->rec) && ($currUser == $data->User->rec->id) && bgerp_Portal::haveRightFor('list')) {
             $data->toolbar->addBtn('Портал', array('bgerp_Portal', 'list'), 'ef_icon=img/16/application_home.png');
         }
     }
@@ -538,10 +538,10 @@ class crm_Profiles extends core_Master
         }
         
         // Показваме достъпните папки на колабораторите
-        if ($data->ColabFolders) {
+        if (!empty($data->ColabFolders)) {
             $colabTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileColabFoldersLayout.shtml')));
             
-            if ($data->ColabFolders->rowsArr) {
+            if (!empty($data->ColabFolders->rowsArr)) {
                 $folderBlockTpl = $colabTpl->getBlock('folders');
                 foreach ((array) $data->ColabFolders->rowsArr as $rows) {
                     $folderBlockTpl->placeObject($rows);
@@ -549,7 +549,7 @@ class crm_Profiles extends core_Master
                 }
             }
             
-            if ($data->ColabFolders->addUrl) {
+            if (!empty($data->ColabFolders->addUrl)) {
                 // Иконата за редактиране
                 $img = '<img src=' . sbf('img/16/add.png') . " width='16' height='16'>";
                 $addLink = ht::createLink($img, $data->ColabFolders->addUrl, null, 'title=Споделяне на нова папка');
@@ -558,9 +558,10 @@ class crm_Profiles extends core_Master
             
             $tpl->prepend($colabTpl, 'colabFolders');
         }
-        
-        if ($data->LoginLog) {
-            if ($data->LoginLog->rowsArr) {
+        $lTpl = null;
+
+        if (!empty($data->LoginLog)) {
+            if (!empty($data->LoginLog->rowsArr)) {
                 // Вземаме шаблона за потребителя
                 $lTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileLoginLogLayout.shtml')));
                 
@@ -578,8 +579,8 @@ class crm_Profiles extends core_Master
             }
         }
         
-        if ($data->ActionLog) {
-            if ($data->ActionLog->rowsArr) {
+        if (!empty($data->ActionLog)) {
+            if (!empty($data->ActionLog->rowsArr)) {
                 $lTpl = getTplFromFile('crm/tpl/SingleProfileActionLogLayout.shtml');
                 
                 $logBlockTpl = $lTpl->getBlock('log');
@@ -597,8 +598,8 @@ class crm_Profiles extends core_Master
             }
         }
         
-        if ($data->RoleLogs) {
-            if ($data->RoleLogs->rowsArr) {
+        if (!empty($data->RoleLogs)) {
+            if (!empty($data->RoleLogs->rowsArr)) {
                 $lTpl = getTplFromFile('crm/tpl/SingleProfileRoleLogsLayout.shtml');
                 
                 $logBlockTpl = $lTpl->getBlock('log');
@@ -617,7 +618,7 @@ class crm_Profiles extends core_Master
         }
         
         if (isset($data->tabs) && $data->HaveRightForLog) {
-            if (!$lTpl) {
+            if (empty($lTpl)) {
                 $lTpl = new ET(tr('Липсва информация'));
             }
             $tabHtml = $data->tabs->renderHtml($lTpl, $data->LogTab);
@@ -959,7 +960,8 @@ class crm_Profiles extends core_Master
         if (!empty($personId)) {
             $person = crm_Persons::fetch($personId);
         }
-        
+        $mustSave = false;
+
         if (empty($person)) {
             $person = (object) array(
                 'groupList' => '',
@@ -1067,17 +1069,14 @@ class crm_Profiles extends core_Master
      */
     public static function syncUser($personRec)
     {
-        if ($personRec->_skipUserUpdate) {
+        if (!empty($personRec->_skipUserUpdate)) {
             
             return;
         }
         
         $profile = static::fetch("#personId = {$personRec->id}");
         
-        if (!$profile) {
-            
-            return;
-        }
+        if (empty($profile)) return;
         
         // Обновяване на записа на потребителя след промяна на асоциираната му визитка
         if (!$userRec = core_Users::fetch($profile->userId)) {
@@ -1106,13 +1105,10 @@ class crm_Profiles extends core_Master
         
         // Флаг за предотвратяване на безкраен цикъл след промяна на визитка
         $userRec->_skipPersonUpdate = true;
-        
-        // Синхронизираме профила при промяна на `core_Users`
-        if ($profile) {
-            $profile->_syncUser = false;
-            $profile->_skipUserUpdate = true;
-            self::save($profile, 'searchKeywords');
-        }
+
+        $profile->_syncUser = false;
+        $profile->_skipUserUpdate = true;
+        self::save($profile, 'searchKeywords');
 
         core_Users::save($userRec);
     }
@@ -1162,7 +1158,7 @@ class crm_Profiles extends core_Master
     /**
      * Метод за удобство при генерирането на линкове към потребителски профили
      *
-     * @param string|int $user    @see crm_Profiles::getUrl()
+     * @param string|int $userId    @see crm_Profiles::getUrl()
      * @param string     $title   @see core_Html::createLink()
      * @param string     $warning @see core_Html::createLink()
      * @param array      $attr    @see core_Html::createLink()
@@ -1300,8 +1296,6 @@ class crm_Profiles extends core_Master
     
     
     /**
-     *
-     *
      * @param int  $id
      * @param bool $escape
      */
@@ -1656,7 +1650,7 @@ class crm_Profiles extends core_Master
                 $params = arr::combine($arguments[1], $arguments[2]);
                 
                 // Ако не е зададено, че може да се конфигурира или не може да се конфигурира за текущия потребител
-                if (!$params['customizeBy'] || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {
+                if (empty($params['customizeBy']) || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {
                     continue;
                 }
 

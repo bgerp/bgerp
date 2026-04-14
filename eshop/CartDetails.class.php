@@ -180,7 +180,9 @@ class eshop_CartDetails extends core_Detail
 
         if ($form->isSubmitted()) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->quantityInPack = isset($productInfo->packagings[$rec->packagingId])
+                ? $productInfo->packagings[$rec->packagingId]->quantity
+                : 1;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
         }
     }
@@ -343,6 +345,8 @@ class eshop_CartDetails extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $maxQuantity = null;
+        $settings = null;
+
         if (isset($fields['-list'])) {
             $row->productId = cat_Products::getHyperlink($rec->productId, true);
             $row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, true);
@@ -643,7 +647,8 @@ class eshop_CartDetails extends core_Detail
             
             return array('amount' => -1);
         }
-        
+
+        $fee = array();
         $transportAmount = 0;
         foreach ($products as $p1) {
             $fee = sales_TransportValues::getTransportCost($masterRec->termId, $p1->productId, $p1->packagingId, $p1->quantity, $total, $deliveryData, $masterRec->createdOn);
@@ -676,7 +681,7 @@ class eshop_CartDetails extends core_Detail
 
         // Коя е ценовата политика
         // Ако има ваучер и той е с активна ЦП - нея, ако не тази от потребителя или от домейна
-        $finalPrice = null;
+        $price = $discount = $finalPrice = null;
         $oldListId = $settings->listId;
         $listId = eshop_Carts::getCartListId($cartRec, $settings);
 
@@ -696,7 +701,6 @@ class eshop_CartDetails extends core_Detail
                 }
             }
 
-            $discount = null;
             $priceObject = cls::get('price_ListToCustomers')->getPriceByList($listId, $rec->productId, $rec->packagingId, $rec->quantityInPack, $now);
             if (!empty($priceObject->discount)) {
                 $discount = $priceObject->discount;

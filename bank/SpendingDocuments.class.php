@@ -172,7 +172,7 @@ class bank_SpendingDocuments extends bank_Document
         // Оставяме само тези операции, в които се дебитира основната сметка на документа
         foreach ($operations as $sysId => $op) {
             if ($op['credit'] == static::$baseAccountSysId) {
-                $options[$sysId] = $op['title'];
+                $options[$sysId] = tr($op['title']);
             }
         }
         

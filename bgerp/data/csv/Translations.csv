@@ -3300,7 +3300,20 @@ en,Информация за фактура,Invoice info
 en,Партидност,Batches
 en,Нова партидност,Add Batch
 en,Платени по сделката,Paid under the deal
-en,Плащане към Доставчик,Payment to Supplier
 en,отстъпка при плащане до,discount for payment by
 en,Засклаждане,Stock In
+en,Авансово плащане към Доставчик,Advance payment to Supplier
+en,Авансово плащане към Доставчик,Advance payment to Supplier
+en,Плащане към Доставчик,Payment to Supplier
+en,Плащане към Доставчик,Payment to Supplier
+en,Прихващане на плащане,Offsetting of payment
+en,Прихващане на плащане,Offsetting of payment
+en,Връщане от Доставчик,Refund from Supplier
+en,Връщане от Доставчик,Refund from Supplier
+en,Прихванат аванс от Доставчик,Offset advance from Supplier
+en,Прихванат аванс от Доставчик,Offset advance from Supplier
+en,Връщане на аванс от Доставчик,Refund of advance from Supplier
+en,Връщане на аванс от Доставчик,Refund of advance from Supplier
+en,Прихващане на вземания,Offsetting of receivables
+en,Прихващане на задължение,Offsetting of liability
 

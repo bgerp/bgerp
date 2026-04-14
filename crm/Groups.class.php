@@ -415,7 +415,7 @@ class crm_Groups extends core_Master
             ),
             array(
                 'name' => 'Управители',
-                'sysId' => 'managers ',
+                'sysId' => 'managers',
                 'exName' => 'Управители',
                 'allow' => 'persons',
             ),
@@ -494,7 +494,7 @@ class crm_Groups extends core_Master
             $res .= "<li class='debug-new'>Добавени са {$nAffected} групи.</li>";
         }
         
-        if ($flagChange) {
+        if ($nUpdated) {
             $res .= "<li class='debug-new'>Обновени са {$nUpdated} групи.</li>";
         }
 

@@ -224,7 +224,7 @@ class cash_Pko extends cash_Document
         // Оставяме само тези операции, в които се дебитира основната сметка на документа
         foreach ($operations as $sysId => $op) {
             if ($op['debit'] == static::$baseAccountSysId) {
-                $options[$sysId] = $op['title'];
+                $options[$sysId] = tr($op['title']);
             }
         }
         

@@ -402,7 +402,7 @@ class eshop_Settings extends core_Master
                 }
                 $form->setDefault('objectId', key($options));
             } else {
-                $form->info = "<div class='formError'>" . tr("Всички налични домейни имат вече настройки|*!") . "</info>";
+                $form->info = "<div class='formError'>" . tr("Всички налични домейни имат вече настройки|*!") . "</div>";
                 $form->setReadOnly('objectId');
             }
         }
@@ -438,6 +438,7 @@ class eshop_Settings extends core_Master
         }
         
         // Добавяне на плейсхолдъри на някои полета
+        $lang = 'bg';
         if (isset($rec->objectId)) {
             $lang = cls::get($rec->classId)->fetchField($rec->objectId, 'lang');
             
@@ -503,7 +504,7 @@ class eshop_Settings extends core_Master
 
         $form->setDefault('mandatoryEcartContactFields', 'auto');
         $form->setDefault('mandatoryInquiryContactFields', 'auto');
-        $form->setDefault('showProductsWithoutPrices', 'auto');
+        $form->setDefault('showProductsWithoutPrices', 'yes');
     }
     
     
