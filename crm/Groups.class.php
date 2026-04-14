@@ -415,7 +415,7 @@ class crm_Groups extends core_Master
             ),
             array(
                 'name' => 'Управители',
-                'sysId' => 'managers ',
+                'sysId' => 'managers',
                 'exName' => 'Управители',
                 'allow' => 'persons',
             ),
