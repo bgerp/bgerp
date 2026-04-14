@@ -337,16 +337,6 @@ class eshop_Carts extends core_Master
                 $msg = "|Избраното количество|* <b>{$q}</b> |е по-голямо от наличното|* <b>{$availableQuantity}</b>!";
                 $skip = true;
             }
-
-            // Проверка колко общо има от избрания артикул в количката без значение от опаковката
-            $checkQuantity = $packQuantity;
-            if($exCartId = self::force(null, null, false)){
-                $dQuery = eshop_CartDetails::getQuery();
-                $dQuery->where("#cartId = {$exCartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId}");
-                $dQuery->XPR('sum', 'double', 'SUM(#quantity)');
-                $quantityByNow = $dQuery->fetch()->sum;
-                $checkQuantity += $quantityByNow / $quantityInPack;
-            }
         }
        
         $actions = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'action');
