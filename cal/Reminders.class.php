@@ -287,7 +287,7 @@ class cal_Reminders extends core_Master
         $this->FLD('weekDayNames', 'varchar(12)', 'caption=Име на деня,notNull,input=none');
 
         // Кога е следващото стартирване на напомнянето?
-        $this->FLD('nextStartTime', 'datetime(format=smartTime)', 'caption=Следващо напомняне,input=none');
+        $this->FLD('nextStartTime', 'datetime(format=smartTime)', 'caption=Действие в,input=none');
 
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -1334,7 +1334,7 @@ class cal_Reminders extends core_Master
             'action' => 'Действие',
             'timePreviously' => 'Предварително',
             'calcTimeStart' => 'Начало',
-            'nextStartTime' => 'Следващо напомняне',
+            'nextStartTime' => 'Действие в',
             'notifyCnt' => 'Брой известия',
             'rem' => 'Напомняне',
             'repetitionTypeMonth' => 'Съблюдаване на',
