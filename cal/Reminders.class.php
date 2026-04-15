@@ -1367,7 +1367,7 @@ class cal_Reminders extends core_Master
                 $row->notifyOn = $Datetime->toVerbal($t);
 
                 if ($rec->notifyCnt) {
-                    $row->notifyOn .= " ({$nCnt} " . tr('от ') . "{$row->notifyCnt})";
+                    $row->notifyOn .= " ({$nCnt} " . tr('от') . " {$row->notifyCnt})";
                 }
 
                 break;
