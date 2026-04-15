@@ -756,8 +756,8 @@ abstract class deals_Helper
                             if (!isset($combined[$index])) {
                                 $combined[$index] = (object) array(
                                     'productId' => $p->productId,
-                                    'discount' => 0,
-                                    'fee' => 0,
+                                    'discount' => null,
+                                    'fee' => null,
                                     'quantity' => 0,
                                     'sumAmounts' => 0,
                                     'deliveryTimeFromFee' => null,
@@ -3722,10 +3722,13 @@ abstract class deals_Helper
             if(empty($manualDiscount) && !empty($calcedDiscount) && empty($autoDiscount)) {
                 $manualDiscount = $calcedDiscount;
             }
-            $res = $Percent->toVerbal($manualDiscount);
-            if($calcedDiscount != $manualDiscount){
-                $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", 'notice', false);
-            }
+
+            //if(isset($manualDiscount) || isset($autoDiscountVerbal)){
+                $res = $Percent->toVerbal($manualDiscount);
+                if($calcedDiscount != $manualDiscount){
+                    $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", 'notice', false);
+                }
+           // }
         } else {
             $res = $Percent->toVerbal($calcedDiscount);
             if(isset($autoDiscount)){
