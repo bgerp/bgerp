@@ -1345,19 +1345,26 @@ class cal_Reminders extends core_Master
             'rem' => 'Напомняне',
             'repetitionTypeMonth' => 'Съблюдаване на',
         );
+        $nArr = array();
 
+        $now = dt::now();
         if ($rec->notifyCnt) {
-            $now = dt::now();
-            $nArr = array();
-            $mvc->shouldSendNotification($rec->notifyCnt,  $rec->nextStartTime, $rec->timeStart ?? $rec->calcTimeStart, $now, $nArr);
-            foreach ($nArr as $t) {
-                if ($t > $now) {
-                    $Datetime = cls::get('type_Datetime');
-                    $Datetime->params['format'] = 'smartTime';
-                    $row->notifyOn = $Datetime->toVerbal($t) . " ({$row->notifyCnt})";
 
-                    break;
-                }
+            $mvc->shouldSendNotification($rec->notifyCnt,  $rec->nextStartTime, $rec->timeStart ?? $rec->calcTimeStart, $now, $nArr);
+        }
+
+        if ($rec->action == 'notify') {
+            $nArr = array($rec->nextStartTime) + $nArr;
+            unset($row->nextStartTime);
+        }
+
+        foreach ($nArr as $t) {
+            if ($t > $now) {
+                $Datetime = cls::get('type_Datetime');
+                $Datetime->params['format'] = 'smartTime';
+                $row->notifyOn = $Datetime->toVerbal($t) . " ({$row->notifyCnt})";
+
+                break;
             }
         }
 
