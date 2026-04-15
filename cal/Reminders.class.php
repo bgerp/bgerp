@@ -869,6 +869,8 @@ class cal_Reminders extends core_Master
             return false;
         }
 
+        $res = false;
+
         // Параметър на прогресията (0.5 до 0.9 за добър ефект)
         // Колкото е по-малко, толкова по-бързо ще се "сгъстяват" накрая
         $r = 0.75;
@@ -892,11 +894,12 @@ class cal_Reminders extends core_Master
             $nArr[] = dt::timestamp2Mysql($triggerTime);
             // Проверка с допуск от 60 секунди (тъй като кронът е на минута)
             if ($now >= $triggerTime && $now < $triggerTime + 60) {
-                return true;
+
+                $res = true;
             }
         }
 
-        return false;
+        return $res;
     }
 
 
