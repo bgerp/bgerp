@@ -848,10 +848,11 @@ class cal_Reminders extends core_Master
      * @param string $startTimeStr
      * @param string $endTimeStr
      * @param null|string $now
+     * @param array $nArr
      *
      * @return bool
      */
-    function shouldSendNotification($notifyCnt, $startTimeStr, $endTimeStr, $now = null)
+    function shouldSendNotification($notifyCnt, $startTimeStr, $endTimeStr, $now = null, &$nArr = array())
     {
         $now = dt::mysql2timestamp($now);
         $start = dt::mysql2timestamp($startTimeStr);
@@ -888,6 +889,7 @@ class cal_Reminders extends core_Master
 
         // Проверяваме дали текущата минута съвпада с някой от изчислените моменти
         foreach ($intervals as $triggerTime) {
+            $nArr[] = dt::timestamp2Mysql($triggerTime);
             // Проверка с допуск от 60 секунди (тъй като кронът е на минута)
             if ($now >= $triggerTime && $now < $triggerTime + 60) {
                 return true;
@@ -1336,9 +1338,25 @@ class cal_Reminders extends core_Master
             'calcTimeStart' => 'Начало',
             'nextStartTime' => 'Действие в',
             'notifyCnt' => 'Брой известия',
+            'notifyOn' => 'Следващо известие в',
             'rem' => 'Напомняне',
             'repetitionTypeMonth' => 'Съблюдаване на',
         );
+
+        if ($rec->notifyCnt) {
+            $now = dt::now();
+            $mvc->shouldSendNotification($rec->notifyCnt,  $rec->nextStartTime, $rec->timeStart ?? $rec->calcTimeStart, $now, $nArr);
+            foreach ($nArr as $t) {
+                if ($t > $now) {
+                    $Datetime = cls::get('type_Datetime');
+                    $Datetime->params['format'] = 'smartTime';
+                    $row->notifyOn = $Datetime->toVerbal($t);
+
+                    break;
+                }
+            }
+        }
+
         foreach ($allFieldsArr as $fieldName => $val) {
             if ($row->{$fieldName}) {
                 $resArr[$fieldName] = array('name' => tr($val), 'val' => "[#{$fieldName}#]");
