@@ -1347,6 +1347,7 @@ class cal_Reminders extends core_Master
 
         if ($rec->notifyCnt) {
             $now = dt::now();
+            $nArr = array();
             $mvc->shouldSendNotification($rec->notifyCnt,  $rec->nextStartTime, $rec->timeStart ?? $rec->calcTimeStart, $now, $nArr);
             foreach ($nArr as $t) {
                 if ($t > $now) {
