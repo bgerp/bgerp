@@ -1358,14 +1358,16 @@ class cal_Reminders extends core_Master
             unset($row->nextStartTime);
         }
 
+        $nCnt = 0;
         foreach ($nArr as $t) {
+            $nCnt++;
             if ($t > $now) {
                 $Datetime = cls::get('type_Datetime');
                 $Datetime->params['format'] = 'smartTime';
                 $row->notifyOn = $Datetime->toVerbal($t);
 
                 if ($rec->notifyCnt) {
-                    $row->notifyOn .= " ({$row->notifyCnt})";
+                    $row->notifyOn .= " ({$nCnt} " . tr('от ') . "{$row->notifyCnt})";
                 }
 
                 break;
