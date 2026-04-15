@@ -1337,8 +1337,7 @@ class cal_Reminders extends core_Master
             'timePreviously' => 'Предварително',
             'calcTimeStart' => 'Начало',
             'nextStartTime' => 'Действие в',
-            'notifyCnt' => 'Брой известия',
-            'notifyOn' => 'Следващо известие в',
+            'notifyOn' => 'Известие в',
             'rem' => 'Напомняне',
             'repetitionTypeMonth' => 'Съблюдаване на',
         );
@@ -1350,7 +1349,7 @@ class cal_Reminders extends core_Master
                 if ($t > $now) {
                     $Datetime = cls::get('type_Datetime');
                     $Datetime->params['format'] = 'smartTime';
-                    $row->notifyOn = $Datetime->toVerbal($t);
+                    $row->notifyOn = $Datetime->toVerbal($t) . " ({$row->notifyCnt})";
 
                     break;
                 }
