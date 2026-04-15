@@ -859,11 +859,6 @@ class cal_Reminders extends core_Master
         $end = dt::mysql2timestamp($endTimeStr);
         $totalDuration = $end - $start;
 
-        if ($now < $start || $now > $end) {
-
-            return false;
-        }
-
         if ($start > $end) {
 
             return false;
@@ -897,6 +892,12 @@ class cal_Reminders extends core_Master
 
                 $res = true;
             }
+        }
+
+
+        if ($now < $start || $now > $end) {
+
+            $res = false;
         }
 
         return $res;
