@@ -3723,12 +3723,12 @@ abstract class deals_Helper
                 $manualDiscount = $calcedDiscount;
             }
 
-            //if(isset($manualDiscount) || isset($autoDiscountVerbal)){
+            if(isset($manualDiscount) || isset($autoDiscountVerbal)){
                 $res = $Percent->toVerbal($manualDiscount);
                 if($calcedDiscount != $manualDiscount){
                     $res = ht::createHint($res, "Осреднена отстъпка|*: {$calcedDiscountVerbal}. |Авт.|*: {$autoDiscountVerbal}", 'notice', false);
                 }
-           // }
+            }
         } else {
             $res = $Percent->toVerbal($calcedDiscount);
             if(isset($autoDiscount)){
