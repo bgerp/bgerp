@@ -252,6 +252,9 @@ class cal_Setup extends core_ProtoSetup
                     case 'task':
                         $tVerbal = tr('Задачи');
                         break;
+                    case 'house':
+                        $tVerbal = tr('Работа от вкъщи');
+                        break;
                     default:
                         $tVerbal = $rec->type;
                         

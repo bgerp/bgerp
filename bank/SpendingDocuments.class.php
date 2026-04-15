@@ -172,7 +172,7 @@ class bank_SpendingDocuments extends bank_Document
         // Оставяме само тези операции, в които се дебитира основната сметка на документа
         foreach ($operations as $sysId => $op) {
             if ($op['credit'] == static::$baseAccountSysId) {
-                $options[$sysId] = $op['title'];
+                $options[$sysId] = tr($op['title']);
             }
         }
         
@@ -217,7 +217,7 @@ class bank_SpendingDocuments extends bank_Document
             if($valior > $rec->earlyPaymentUntil){
                 $row->earlyPaymentClass = 'quiet';
                 $row->earlyPaymentInfo .= " (" . tr('изтекло') . ")";
-            } elseif(!Mode::isReadOnly()) {
+            } else {
                 $row->earlyPaymentClass = 'earlyPaymentDiscountActive';
 
                 // Ако вальора е в срока на предсрочно плащане да се показва с каква сума е намалена
@@ -245,6 +245,10 @@ class bank_SpendingDocuments extends bank_Document
                         $row->amountDeal = ht::createHint("<span style='color:{$hintColor}'>{$amountDealWithoutDiscountVerbal}</span>", "Намалена с|* {$row->earlyPaymentPercent} |от|* " . currency_Currencies::decorate($row->amountDeal, $rec->dealCurrencyId, true) . $infoSuffix, 'noicon');
                     }
                 }
+            }
+
+            if(Mode::isReadOnly()){
+                unset($row->earlyPaymentClass);
             }
         }
     }

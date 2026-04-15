@@ -320,7 +320,7 @@ class eshop_Favourites extends core_Manager
         $query->where("#userId IS NULL");
         while($rec = $query->fetch()){
             $deadline = dt::addSecs($lifetime, $rec->createdOn);
-            if($deadline >= $now){
+            if($deadline <= $now){
                 eshop_Favourites::delete($rec->id);
             }
         }
@@ -333,7 +333,7 @@ class eshop_Favourites extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('id', "ASC");
         $data->listFilter->showFields = 'userId,brid';

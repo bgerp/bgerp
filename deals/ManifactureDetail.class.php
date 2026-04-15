@@ -151,7 +151,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         $rec = &$form->rec;
         
-        if ($rec->productId) {
+        if (isset($rec->productId)) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $form->setDefault('measureId', $measureId);
             
@@ -173,14 +173,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
         
         if ($form->isSubmitted()) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-            
-            if ($rec->productId) {
-                if ($rec->productId) {
-                    $rec->measureId = $productInfo->productRec->measureId;
-                }
-            }
-            
+            $rec->quantityInPack = isset($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->measureId = $productInfo->productRec->measureId;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
         }
     }
@@ -263,11 +257,11 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
 
         $productInfo = cat_Products::getProductInfo($pRec->productId);
-        $quantityInPack = ($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
+        $quantityInPack = isset($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
         $packQuantity = $row->quantity;
         $batch = is_array($row->batches) ? $row->batches : $row->batch;
 
-        $isSubProduct = $row->_type == 'subProduct' ? true : false;
+        $isSubProduct = $row->_type == 'subProduct';
 
         return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack, false, null, $isSubProduct, $batch);
     }
@@ -283,9 +277,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         $me = cls::get(get_called_class());
         $dQuery = $me->getQuery();
-
-        $dQuery->where("#{$me->masterKey} = {$masterId} AND #canStore = 'yes'");
         $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $dQuery->where("#{$me->masterKey} = {$masterId} AND #canStore = 'yes'");
 
         return $dQuery->count();
     }

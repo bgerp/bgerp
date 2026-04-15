@@ -968,7 +968,7 @@ class forum_Postings extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->themeId === null) {
-            if ($fields['-list']) {
+            if (isset($fields['-list'])) {
                 if ($rec->status == 'locked') {
                     $row->status = ht::createElement('img', array('src' => sbf('forum/tpl/img/32/locked.png', ''), 'width' => '20px'));
                     $row->status .= '&nbsp';
@@ -983,7 +983,7 @@ class forum_Postings extends core_Detail
                 }
                 
                 (!$row->lastWho) ? $row->lastWho = tr('няма') : $row->lastWho = core_Users::fetch($rec->lastWho)->nick;
-            } elseif ($fields['-browse']) {
+            } elseif (isset($fields['-browse'])) {
                 
                 // Ако екшъна е browse правим обработки на заглавието и типа
                 $row->title = ht::createLink($row->title, array($mvc, 'Theme', $row->id));
@@ -1016,7 +1016,7 @@ class forum_Postings extends core_Detail
             }
         } else {
             if (!$mvc->masterMVC) {
-                if ($fields['-list']) {
+                if (isset($fields['-list'])) {
                     $row->type = 'коментар';
                     $commentURL = array($mvc, 'Topic', $rec->themeId, '#' => "C{$rec->id}");
                     $row->title = ht::createLink("#C{$rec->id}", $commentURL);
@@ -1024,7 +1024,7 @@ class forum_Postings extends core_Detail
             }
         }
         
-        if ($fields['-theme'] || $fields['-topic']) {
+        if (isset($fields['-theme']) || isset($fields['-topic'])) {
             $row->avatar = avatar_Plugin::getImg(0, core_Users::fetch($rec->createdBy)->email, 100);
             
             //$row->topLink = ht::createLink(tr('начало'), getCurrentUrl(), NULL, array('class' => 'button'));

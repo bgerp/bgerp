@@ -128,7 +128,7 @@ class forum_Categories extends core_Manager
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = ht::createLink($row->title, array('forum_Boards', 'list', 'cat' => $rec->id));
         }
     }

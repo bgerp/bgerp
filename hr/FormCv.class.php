@@ -356,7 +356,7 @@ class hr_FormCv extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->singleTitle = 'CV - ' . $row->name;
             
             // Fancy ефект за картинката

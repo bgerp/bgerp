@@ -399,7 +399,7 @@ class doc_LikesPlg extends core_Plugin
             return ;
         }
         
-        if ($fields && $fields['-single']) {
+        if (isset($fields['-single'])) {
             if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
                 if ($rec->state != 'draft' && $rec->state != 'rejected') {
                     $likesCnt = doc_Likes::getLikesCnt($rec->containerId, $rec->threadId);

@@ -386,9 +386,9 @@ class pos_Receipts extends core_Master
             $row->voucherId = voucher_Cards::getVerbal($rec->voucherId, 'number');
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = $mvc->getHyperlink($rec->id, true);
-        } elseif ($fields['-single']) {
+        } elseif (isset($fields['-single'])) {
             $row->title = self::getRecTitle($rec);
             $row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
             $row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), true);

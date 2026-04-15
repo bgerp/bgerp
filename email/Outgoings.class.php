@@ -2842,7 +2842,7 @@ class email_Outgoings extends core_Master
     {
         $row->handle = $mvc->getHandle($rec->id);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->singleTitle = tr('Изходящ имейл');
             
             $isAbsolute = (boolean) Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf');

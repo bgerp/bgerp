@@ -707,7 +707,7 @@ class eshop_Products extends core_Master
         }
 
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
-        $data->Pager->itemsCount = $pQuery->count();
+        $data->Pager->itemsCount = countR($data->recs);
 
         foreach ($data->recs as $pRec) {
             if (!$data->Pager->isOnPage()) continue;
@@ -723,7 +723,7 @@ class eshop_Products extends core_Master
             $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
 
             // Кои от детайлите отговарят на разрешените опаковки (ако има)
-            $allowedPacks = eshop_Products::getSettingField($pRec->id, 'null', 'showPacks');
+            $allowedPacks = eshop_Products::getSettingField($pRec->id, null, 'showPacks');
             $dQuery = eshop_ProductDetails::getQuery();
             $dQuery->where("#eshopProductId = {$pRec->id} AND #state != 'closed'");
             if(countR($allowedPacks)){
@@ -1081,7 +1081,7 @@ class eshop_Products extends core_Master
         $used = array();
         
         while ($pgId) {
-            if ($used[$pgId]) {
+            if (!empty($used[$pgId])) {
                 break;
             }
             $pGroupRec = eshop_Groups::fetch($pgId);
@@ -1713,87 +1713,111 @@ class eshop_Products extends core_Master
         
         return $res;
     }
-    
-    
+
+
     /**
      * Връща общите параметри за артикулите, тези които са с еднакви стойности за
      * всички артикули от опциите
      *
-     * @param int $id
+     * @param int  $id
+     * @param bool $list
      *
      * @return array
      */
     public static function getCommonParams($id, $list = false)
     {
         $rec = self::fetchRec($id);
-        $paramField = ($list) ? 'showListParams' : 'showParams';
+        $paramField = $list ? 'showListParams' : 'showParams';
 
         if (!isset(static::$cacheParams[$rec->id])) {
-            $res = $rowParams = $totalParams = array();
-            
+            $res = array();
+            $rowParams = array();
+            $totalParams = array();
+
             // Има ли параметри за показване
             $displayParams = eshop_Products::getSettingField($id, null, $paramField);
             if (countR($displayParams)) {
-                
+
                 // Опциите към артикула
                 $displayPacks = eshop_Products::getSettingField($id, null, 'showPacks');
                 $dQuery = eshop_ProductDetails::getQuery();
                 $dQuery->where("#eshopProductId = {$rec->id} AND #state = 'active'");
                 $dQuery->show('productId,packagings');
-                
+
                 while ($dRec = $dQuery->fetch()) {
-                    if (!eshop_ProductDetails::getPublicDisplayPrice($dRec->productId)) {
-                        continue;
-                    }
-                    
-                    // Ако нито една от опаковките на артикула няма да се показва, игнорираме го
+                    $packagings = keylist::toArray($dRec->packagings);
+
+                    // Ако има ограничение за показваните опаковки, оставяме само тях
                     if (countR($displayPacks)) {
-                        $packs = keylist::toArray($dRec->packagings);
-                        if (!array_intersect_key($packs, $displayPacks)) {
+                        $packagings = array_intersect_key($packagings, $displayPacks);
+                        if (!countR($packagings)) {
                             continue;
                         }
                     }
-                    
+
+                    // Ако никоя от оставащите опаковки няма публична цена, игнорираме артикула
+                    $hasDisplayPrice = false;
+                    foreach ($packagings as $packagingId) {
+                        $packRec = cat_products_Packagings::getPack($dRec->productId, $packagingId);
+                        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
+                        if (eshop_ProductDetails::getPublicDisplayPrice($dRec->productId, $packagingId, $quantityInPack)) {
+                            $hasDisplayPrice = true;
+                            break;
+                        }
+                    }
+
+                    if (!$hasDisplayPrice) {
+                        continue;
+                    }
+
                     // Какви стойности имат избраните параметри
                     $intersect = array();
                     $productParams = cat_Products::getParams($dRec->productId, null, true);
                     foreach ($displayParams as $displayParamId) {
-                        $intersect[$displayParamId] = $productParams[$displayParamId];
+                        $intersect[$displayParamId] = $productParams[$displayParamId] ?? null;
+                        $totalParams[$displayParamId] = $displayParamId;
                     }
-                    
-                    $totalParams = $totalParams + array_combine(array_keys($intersect), array_keys($intersect));
+
                     $rowParams[$dRec->productId] = $intersect;
                 }
-                
+
                 // За всеки от избраните параметри
                 foreach ($totalParams as $paramId) {
                     $isCommon = true;
-                    $value = false;
-                    
+                    $hasValue = false;
+                    $value = null;
+
                     foreach ($rowParams as $params) {
-                        if ($value === false) {
-                            $value = $params[$paramId];
-                        } elseif (trim($value) != trim($params[$paramId])) {
-                            $value = false;
+                        $currentValue = $params[$paramId] ?? null;
+
+                        if (!$hasValue) {
+                            $value = $currentValue;
+                            $hasValue = true;
+                            continue;
+                        }
+
+                        if (trim((string) $value) != trim((string) $currentValue)) {
                             $isCommon = false;
+                            break;
                         }
                     }
-                    
+
                     // Ако всичките записи имат еднаква стойност, значи параметъра е общ
-                    if ($isCommon === true && isset($value)) {
+                    if ($isCommon && $hasValue && isset($value)) {
                         $paramRow = cat_Params::recToVerbal($paramId, 'suffix');
                         if (!empty($paramRow->suffix)) {
                             $value .= " {$paramRow->suffix}";
                         }
-                        
+
                         $res[$paramId] = $value;
                     }
                 }
             }
-            
+
             static::$cacheParams[$rec->id] = $res;
         }
-        
+
         return static::$cacheParams[$rec->id];
     }
     
@@ -1973,7 +1997,7 @@ class eshop_Products extends core_Master
                     $relData = sales_ProductRelations::fetchField("#productId = {$pId}", 'data');
                     if (is_array($relData)) {
                         foreach ($relData as $relPid => $weight) {
-                            $relEshopId = $map[$menuId][$relPid];
+                            $relEshopId = $map[$menuId][$relPid] ?? null;
                             if (isset($relEshopId) && $relEshopId != $epId) {
                                 $r[$epId][$relEshopId] = $weight;
                             }

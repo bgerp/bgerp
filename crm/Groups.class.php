@@ -356,7 +356,7 @@ class crm_Groups extends core_Master
         $row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
         $row->name = "<b>{$row->name}</b>";
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->personsCnt = str_pad($row->personsCnt, '6', '0', STR_PAD_LEFT);
             $row->companiesCnt = str_pad($row->companiesCnt, '6', '0', STR_PAD_LEFT);
         }
@@ -415,7 +415,7 @@ class crm_Groups extends core_Master
             ),
             array(
                 'name' => 'Управители',
-                'sysId' => 'managers ',
+                'sysId' => 'managers',
                 'exName' => 'Управители',
                 'allow' => 'persons',
             ),
@@ -494,7 +494,7 @@ class crm_Groups extends core_Master
             $res .= "<li class='debug-new'>Добавени са {$nAffected} групи.</li>";
         }
         
-        if ($flagChange) {
+        if ($nUpdated) {
             $res .= "<li class='debug-new'>Обновени са {$nUpdated} групи.</li>";
         }
 

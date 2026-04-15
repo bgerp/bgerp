@@ -252,7 +252,7 @@ class acc_ClosePeriods extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $periodRec = acc_Periods::fetch($rec->periodId);
             $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($periodRec->end);
             

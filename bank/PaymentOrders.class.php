@@ -224,9 +224,7 @@ class bank_PaymentOrders extends bank_DocumentBlank
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->number = static::getHandle($rec->id);
-        
-        
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             
             // Извличаме името на банката и BIC-а на получателя от IBAN-а му
             $row->contragentBank = bglocal_Banks::getBankName($rec->beneficiaryIban);

@@ -443,7 +443,7 @@ class pos_Points extends core_Master
             $row->prototypeId = pos_Points::getHyperlink($rec->prototypeId, true);
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
             if(!empty($rec->discountPolicyId)){
                 $row->discountPolicyId = price_Lists::getHyperlink($rec->discountPolicyId, true);

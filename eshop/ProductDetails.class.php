@@ -155,7 +155,7 @@ class eshop_ProductDetails extends core_Detail
             } else {
                 $form->setDefault('action', 'buy');
             }
-            
+
             if ($productRec->canStore == 'yes') {
                 $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
                 
@@ -355,7 +355,7 @@ class eshop_ProductDetails extends core_Detail
             $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId, false, false);
             
             $packagings = keylist::toArray($rec->packagings);
-            $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, 'null', 'showPacks');
+            $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, null, 'showPacks');
             if(countR($allowedPacks)){
                 $packagings = array_intersect_key($packagings, $allowedPacks);
             }
@@ -447,7 +447,8 @@ class eshop_ProductDetails extends core_Detail
             $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
             $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", 1, "class=eshop-product-option option-quantity-input") . $plus . '</span>';
         }
-        
+
+        $catalogPriceInfo = (object) array('price' => null, 'discount' => null);
         if($showPrice){
             $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
 
@@ -461,7 +462,7 @@ class eshop_ProductDetails extends core_Detail
                     $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId, true);
                 }
             } else {
-                $showCartBtn = $showPrice = false;
+                $showCartBtn = false;
                 if($rec->action != 'inquiry'){
                     $row->catalogPrice = "<span class=' option-not-in-stock' style='background-color: #e6e6e6 !important;border: solid 1px #ff7070;color: #c00;margin-top: 5px;'>" . tr('Свържете се с нас') . "</span><br>";
                     if(in_array($rec->action, array('price', 'buy'))){

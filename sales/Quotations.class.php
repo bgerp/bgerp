@@ -339,7 +339,7 @@ class sales_Quotations extends deals_QuotationMaster
             $row->date = ht::createHint('', 'Датата ще бъде записана при активиране');
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
 
             // Линк към от коя оферта е клонирано
             if(isset($rec->clonedFromId)){

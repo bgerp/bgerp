@@ -183,7 +183,7 @@ class cash_NonCashPaymentDetails extends core_Manager
                 $row->deviceLink = peripheral_Devices::getHyperlink($deviceId);//ht::createLink($deviceId, peripheral_Devices::getSingleUrlArray($deviceId));
             }
 
-            if($fields['-detail'] && !empty($row->deviceId)) {
+            if(isset($fields['-detail']) && !empty($row->deviceId)) {
                 $row->paymentId = $row->deviceId;
             }
 

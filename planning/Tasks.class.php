@@ -567,7 +567,7 @@ class planning_Tasks extends core_Master
                 $row->{$useField} = ht::createHint($row->{$useField}, "Планирания край е след падежа на заданието|*!", 'img/16/red-warning.png');
             }
 
-            if($fields['-single']){
+            if(isset($fields['-single'])){
                 // Проверяване на времената
                 foreach (array('expectedTimeStart', 'expectedTimeEnd') as $eTimeField) {
                     $DateTime = core_Type::getByName('datetime(format=smartTime)');
