@@ -203,7 +203,7 @@ class cal_Reminders extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'timePreviously,repetitionEach,repetitionType,timeStart,calcTimeStart,nextStartTime';
+    public $fieldsNotToClone = 'timePreviously,repetitionEach,repetitionType,timeStart,calcTimeStart,nextStartTime,notifySent';
 
 
     /**
@@ -263,6 +263,8 @@ class cal_Reminders extends core_Master
 
         // Предварително напомняне
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително,changable');
+
+        $this->FLD('notifyCnt', 'int(min=1, max=100)', 'caption=Брой напомняния->Брой,changable');
 
         // Колко пъти ще се повтаря напомнянето?
         $this->FLD('repetitionEach', 'int(Min=0)', 'caption=Повторение->Всеки,changable,autohide');
@@ -368,6 +370,10 @@ class cal_Reminders extends core_Master
                     // Добавяме съобщение за грешка
                     $form->setError('timeStart', 'Не може да се направи напомняне в миналото|* '. dt::mysql2verbal($now, 'smartTime'));
                 }
+            }
+
+            if (!empty($form->rec->notifyCnt) && !isset($form->rec->timePreviously)) {
+                $form->setError('timePreviously, notifyCnt', 'Трябва да има въведено време за предварително напомняне');
             }
         }
     }
@@ -754,6 +760,10 @@ class cal_Reminders extends core_Master
     }
 
 
+    /**
+     * @return void
+     * @throws core_exception_Break
+     */
     public function doReminderingForActiveRecs()
     {
         $now = dt::verbal2mysql();
@@ -765,8 +775,7 @@ class cal_Reminders extends core_Master
 
             if ($rec->repetitionEach == 0) {
                 $rec->notifySent = 'yes';
-                $rec->state = 'closed';
-                $fields = 'state,notifySent';
+                $fields = 'notifySent';
             } else {
                 $rec->nextStartTime = $this->getNextStartingTime2($rec);
                 $fields = 'nextStartTime';
@@ -786,6 +795,106 @@ class cal_Reminders extends core_Master
                 $this->save($rec, 'calcTimeStart');
             }
         }
+
+        // Затваряме напомнянията, които не са с повторение и са минали
+        $now = dt::verbal2mysql();
+        $query = self::getQuery();
+        $query->where("#state = 'active' AND if(#timeStart, #timeStart, #calcTimeStart) <= '{$now}'");
+        while ($rec = $query->fetch()) {
+            if (!isset($rec->repetitionEach)) {
+                $rec->state = 'closed';
+                $this->save($rec, 'state');
+            }
+        }
+
+        // Ако отговря на условията, пращаме напомяне
+        $query = self::getQuery();
+        $query->where("( #state = 'active' ) 
+                        AND ( #notifyCnt IS NOT NULL AND #nextStartTime IS NOT NULL )
+                        AND ( #nextStartTime <= '{$now}' )
+                        AND ( if(#timeStart, #timeStart, #calcTimeStart) >= '{$now}' )
+                        AND ( #nextStartTime <> #timeStart AND #nextStartTime <> #calcTimeStart )");
+
+        while ($rec = $query->fetch()) {
+            if ($rec->notifyCnt < 1) {
+
+                continue ;
+            }
+
+            $mustNotify = $this->shouldSendNotification($rec->notifyCnt,  $rec->nextStartTime, $rec->timeStart ?? $rec->calcTimeStart, $now);
+
+            if ($mustNotify === true) {
+                $subscribedArr = keylist::toArray($rec->sharedUsers);
+
+                $rec->message = '|Напомняне|* "' . self::getVerbal($rec, 'title') . '"';
+                $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                $rec->customUrl = array('cal_Reminders', 'single',  $rec->id);
+
+                if (countR($subscribedArr)) {
+                    $today = dt::today();
+                    foreach ($subscribedArr as $userId) {
+                        bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     *
+     *
+     * @param integer $notifyCnt
+     * @param string $startTimeStr
+     * @param string $endTimeStr
+     * @param null|string $now
+     *
+     * @return bool
+     */
+    function shouldSendNotification($notifyCnt, $startTimeStr, $endTimeStr, $now = null)
+    {
+        $now = dt::mysql2timestamp($now);
+        $start = dt::mysql2timestamp($startTimeStr);
+        $end = dt::mysql2timestamp($endTimeStr);
+        $totalDuration = $end - $start;
+
+        if ($now < $start || $now > $end) {
+
+            return false;
+        }
+
+        if ($start > $end) {
+
+            return false;
+        }
+
+        // Параметър на прогресията (0.5 до 0.9 за добър ефект)
+        // Колкото е по-малко, толкова по-бързо ще се "сгъстяват" накрая
+        $r = 0.75;
+        $n = (int)$notifyCnt;
+
+        // Изчисляваме първия интервал (a)
+        // Формула: a = D * (1-r) / (1-r^n)
+        $firstInterval = $totalDuration * (1 - $r) / (1 - pow($r, $n));
+
+        $currentTimestamp = $start;
+        $intervals = [];
+
+        for ($i = 0; $i < $n; $i++) {
+            $interval = $firstInterval * pow($r, $i);
+            $currentTimestamp += $interval;
+            $intervals[] = (int)$currentTimestamp;
+        }
+
+        // Проверяваме дали текущата минута съвпада с някой от изчислените моменти
+        foreach ($intervals as $triggerTime) {
+            // Проверка с допуск от 60 секунди (тъй като кронът е на минута)
+            if ($now >= $triggerTime && $now < $triggerTime + 60) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
@@ -1226,6 +1335,7 @@ class cal_Reminders extends core_Master
             'timePreviously' => 'Предварително',
             'calcTimeStart' => 'Начало',
             'nextStartTime' => 'Следващо напомняне',
+            'notifyCnt' => 'Брой известия',
             'rem' => 'Напомняне',
             'repetitionTypeMonth' => 'Съблюдаване на',
         );
