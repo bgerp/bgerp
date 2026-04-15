@@ -585,10 +585,10 @@ class cat_products_Relations extends core_Manager
             $listMvc = clone $this;
             $listMvc->FNC('productId', 'varchar', 'tdClass=leftCol relProductCol');
             $listMvc->FNC('created', 'varchar', 'tdClass=small relCol');
-            $listMvc->FNC('code', 'varchar', 'tdClass=small relCol');
+            $listMvc->FNC('code', 'varchar', 'tdClass=small-cell relCol');
             $listMvc->FNC('price', 'varchar', 'tdClass=small relCol');
             $listMvc->FNC('btn', 'varchar', 'tdClass=small relCol');
-            $listMvc->FNC('img', 'varchar', 'tdClass=small relCol relImgCol');
+            $listMvc->FNC('img', 'varchar', 'tdClass=small-cell relCol relImgCol');
             $listMvc->FNC('analogs', 'varchar', 'tdClass=small-field');
 
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
