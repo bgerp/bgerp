@@ -4831,7 +4831,7 @@ table .eshop-btn {
   gap: 20px;
   justify-content: space-between; }
 
-.background-holder cms-row {
+.background-holder .cms-row {
   padding: 25px; }
 
 .onecol,
