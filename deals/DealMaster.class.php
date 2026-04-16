@@ -2203,6 +2203,9 @@ abstract class deals_DealMaster extends deals_DealBase
         if(core_Packs::isInstalled('voucher')) {
             $allowedFields['voucherId'] = true;
         }
+        if(core_Packs::isInstalled('holding')) {
+            $allowedFields[$me->ownCompanyFieldName] = true;
+        }
 
         // Проверяваме подадените полета дали са позволени
         if (countR($fields)) {
@@ -2267,6 +2270,16 @@ abstract class deals_DealMaster extends deals_DealBase
         $fields['paymentState'] = 'pending';
         if(isset($fields['vatExceptionId'])) {
             expect(cond_VatExceptions::fetch($fields['vatExceptionId']), 'Няма такова ДДС основание');
+        }
+
+        // Избраната наша фирма ще се запише само ако е инсталиран пакета
+        if(isset($fields[$me->ownCompanyFieldName])){
+            if(core_Packs::isInstalled('holding')){
+                $ownCompanyRec = holding_Companies::getRec($fields[$me->ownCompanyFieldName]);
+                expect(is_object($ownCompanyRec), 'Невалидна наша фирма');
+            } else {
+                unset($fields[$me->ownCompanyFieldName]);
+            }
         }
 
         // Опиваме се да запишем мастъра на сделката
@@ -2514,20 +2527,33 @@ abstract class deals_DealMaster extends deals_DealBase
         expect($contragentClassId = Request::get('contragentClassId', 'int'));
         expect($contragentId = Request::get('contragentId', 'int'));
         expect($currencyId = Request::get('currencyId', 'varchar'));
-
+        $quotationId = Request::get('quotationId', 'int');
         if($currencyId == 'BGN' && dt::today() >= acc_Setup::getEurozoneDate()) {
             $currencyId = "EUR";
         }
         $query = $this->getQuery();
         $query->where("#state = 'draft' AND #currencyId = '{$currencyId}' AND #contragentId = {$contragentId} AND #contragentClassId = {$contragentClassId}");
-        
+        $Quotation = cls::get($this->quotationClass);
+
+        // Ако ще се създава към оферта - да се филтрира и по избраната наша фирма в нея, ако е инсталиран пакета за многофирменост
+        if(core_Packs::isInstalled('holding')){
+            if(isset($quotationId) && isset($Quotation->ownCompanyFieldName)){
+                $quotationOwnCompanyId = $Quotation->fetchField($quotationId, $Quotation->ownCompanyFieldName);
+                if(isset($quotationOwnCompanyId)){
+                    $query->where("#{$this->ownCompanyFieldName} = {$quotationOwnCompanyId}");
+                } else {
+                    $query->where("#{$this->ownCompanyFieldName} IS NULL");
+                }
+            }
+        }
+
         $options = array();
         while ($rec = $query->fetch()) {
             if ($this->haveRightFor('single', $rec)) {
                 $options[$rec->id] = $this->getTitleById($rec->id, true);
             }
         }
-        
+
         $retUrl = getRetUrl();
         
         // Ако няма опции, връщаме се назад
@@ -2552,7 +2578,6 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         $singleTitle = mb_strtolower($this->singleTitle);
-        $quotationId = Request::get('quotationId', 'int');
         $rejectUrl = toUrl(array($this->quotationClass, 'single', $quotationId));
         $form->title = '|Прехвърляне в|* ' . $singleTitle . ' ' . tr('на') . ' ' . cls::get($this->quotationClass)->getFormTitleLink($quotationId);
         
