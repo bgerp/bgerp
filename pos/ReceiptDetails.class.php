@@ -196,7 +196,7 @@ class pos_ReceiptDetails extends core_Detail
                     expect($amount > 0, 'Сумата трябва да е положителна|*!');
                     $maxAllowed = $receiptRec->total + 500;
                     $maxAllowedVerbal = core_Type::getByName('double(decimals=2)')->fromVerbal($maxAllowed);
-                    expect($amount <= $maxAllowed, "Въведената сума е над максималната от|* {$maxAllowedVerbal}!");
+                    expect($amount <= $maxAllowed, "Въведената сума на плащане е несъразмерна спрямо дължимата!");
                 } else {
                     expect(!$paymentCount, 'Има вече направено плащане|*!');
                     expect($type == -1, 'На бележките с нулева сума е позволено само плащане в брой|*!');
