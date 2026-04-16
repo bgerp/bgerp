@@ -519,9 +519,10 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
+            $ownCompanyId = core_Packs::isInstalled('holding') ? $rec->ownCompanyId : null;
             $dateFromWhichToGetName = !empty($rec->date) ? $rec->date : dt::now();
             $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
-            $ownCompanyData = crm_Companies::fetchOwnCompany(null, $dateFromWhichToGetName);
+            $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $dateFromWhichToGetName);
 
             $Varchar = cls::get('type_Varchar');
             $row->MyCompany = $Varchar->toVerbal($ownCompanyData->companyVerb);
