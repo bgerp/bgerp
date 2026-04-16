@@ -3385,7 +3385,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Дебъг екшън показващ разпределени плащанията по фактури
      */
-    public static function act_showDebugPayments()
+    public function act_showDebugPayments()
     {
         requireRole('debug');
         $threadId = Request::get('threadId', 'int');
@@ -3399,6 +3399,12 @@ abstract class deals_DealMaster extends deals_DealBase
 
         $debug = '';
         $paymentState = $firstDoc->getInstance()->getPaymentState($pRec, null, $debug);
+        if($paymentState != $pRec->paymentState){
+            $pRec->paymentState = $paymentState;
+            $this->save_($pRec, 'paymentState,overdueAmountPerDays,overdueAmount');
+            $debug .= "<br>Състоянието е обновено";
+        }
+
         echo $debug;
         bp($paymentState, $payment1, $payments2, $payment3);
     }
