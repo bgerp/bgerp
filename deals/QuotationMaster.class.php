@@ -519,9 +519,10 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
+            $ownCompanyId = core_Packs::isInstalled('holding') ? $rec->ownCompanyId : null;
             $dateFromWhichToGetName = !empty($rec->date) ? $rec->date : dt::now();
             $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
-            $ownCompanyData = crm_Companies::fetchOwnCompany(null, $dateFromWhichToGetName);
+            $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $dateFromWhichToGetName);
 
             $Varchar = cls::get('type_Varchar');
             $row->MyCompany = $Varchar->toVerbal($ownCompanyData->companyVerb);
@@ -940,6 +941,11 @@ abstract class deals_QuotationMaster extends core_Master
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
 
+        // Ако е инсталирана многофирменоста - продажбата ще е за същата избрана наша фирма
+        if(core_Packs::isInstalled('holding')  && isset($this->ownCompanyFieldName)){
+            $fields[$DealClass->ownCompanyFieldName] = $rec->{$this->ownCompanyFieldName};
+        }
+
         $folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
         if($DealClass instanceof sales_Sales){
             $fields['dealerId'] = $DealClass::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
@@ -964,7 +970,7 @@ abstract class deals_QuotationMaster extends core_Master
         }
 
         // Създаваме нова продажба от офертата
-        $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, null, $fields);
+        $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
 
         return $dealId;
     }

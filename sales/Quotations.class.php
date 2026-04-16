@@ -182,7 +182,7 @@ class sales_Quotations extends deals_QuotationMaster
     {
         parent::setQuotationFields($this);
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
-        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
+        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty,maxRadio=0)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
 
         $this->FNC('row1', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
         $this->FNC('row2', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
@@ -208,6 +208,14 @@ class sales_Quotations extends deals_QuotationMaster
         $form = &$data->form;
         $rec = &$form->rec;
         $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($rec->contragentClassId, $rec->contragentId));
+
+        $myCompany = crm_Companies::fetchOwnCompany();
+        $options = bank_OwnAccounts::getOwnAccounts(false, null, null, false); bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
+        $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$options));
+        if (countR($options)) {
+            $options = array('' => '') + $options;
+        }
+        $form->setOptions('bankAccountId', $options);
 
         if (isset($rec->originId) && $data->action != 'clone' && empty($form->rec->id)) {
             
