@@ -821,7 +821,7 @@ class cal_Reminders extends core_Master
                 continue ;
             }
 
-            $mustNotify = $this->shouldSendNotification($rec->notifyCnt,  $rec->nextStartTime, $rec->timeStart ?? $rec->calcTimeStart, $now);
+            $mustNotify = $this->shouldSendNotification($rec->notifyCnt,  dt::subtractSecs($rec->timePreviously, $rec->calcTimeStart), $rec->calcTimeStart ?? $rec->timeStart, $now);
 
             if ($mustNotify === true) {
                 $subscribedArr = keylist::toArray($rec->sharedUsers);
@@ -1348,13 +1348,7 @@ class cal_Reminders extends core_Master
 
         $now = dt::now();
         if ($rec->notifyCnt) {
-
-            $mvc->shouldSendNotification($rec->notifyCnt,  $rec->nextStartTime, $rec->timeStart ?? $rec->calcTimeStart, $now, $nArr);
-        }
-
-        if ($rec->action == 'notify') {
-            $nArr = array_merge(array($rec->nextStartTime), $nArr);
-            unset($row->nextStartTime);
+            $mvc->shouldSendNotification($rec->notifyCnt,  dt::subtractSecs($rec->timePreviously, $rec->calcTimeStart), $rec->calcTimeStart ?? $rec->timeStart, $now, $nArr);
         }
 
         $nCnt = 0;
@@ -1371,6 +1365,11 @@ class cal_Reminders extends core_Master
 
                 break;
             }
+        }
+
+        if (!empty($row->notifyOn) && $rec->action == 'notify') {
+            $nArr = array_merge(array($rec->nextStartTime), $nArr);
+            unset($row->nextStartTime);
         }
 
         foreach ($allFieldsArr as $fieldName => $val) {
