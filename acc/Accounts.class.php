@@ -334,7 +334,8 @@ class acc_Accounts extends core_Manager
                 $groupFields[] = "groupId{$i}";
             }
         }
-        
+
+        $nDimensions = 0;
         if ($form->rec->isSynthetic) {
             //
             // Синтетична сметка
@@ -355,8 +356,6 @@ class acc_Accounts extends core_Manager
             //
             
             // Колко от избраните номенклатури имат размерност?
-            $nDimensions = 0;
-            
             foreach ($groupFields as $groupId) {
                 if (acc_Lists::isDimensional($form->rec->{$groupId})) {
                     $nDimensions++;
@@ -399,37 +398,37 @@ class acc_Accounts extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if ($rec->state == 'active') {
-            $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->num);
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' level-' . strlen($rec->num);
         }
         
         if ($rec->groupId1) {
             $listRec = acc_Lists::fetch($rec->groupId1);
-            $row->lists .= "<div class='acc-detail'><a href='" .
+            $row->lists = ($row->lists ?? '') . "<div class='acc-detail'><a href='" .
             toUrl(array('acc_Items', 'listId' => $rec->groupId1)) .
             "'>{$listRec->caption}</a></div>";
         }
         
         if ($rec->groupId2) {
             $listRec = acc_Lists::fetch($rec->groupId2);
-            $row->lists .= "<div class='acc-detail'><a href='" .
+            $row->lists = ($row->lists ?? '') . "<div class='acc-detail'><a href='" .
             toUrl(array('acc_Items', 'listId' => $rec->groupId2)) .
             "'>{$listRec->caption}</a></div>";
         }
         
         if ($rec->groupId3) {
             $listRec = acc_Lists::fetch($rec->groupId3);
-            $row->lists .= "<div class='acc-detail'><a href='" .
+            $row->lists = ($row->lists ?? '') . "<div class='acc-detail'><a href='" .
             toUrl(array('acc_Items', 'listId' => $rec->groupId3)) .
             "'>{$listRec->caption}</a></div>";
         }
         
         if ($rec->type) {
             $row->type = "<div class='acc-detail'>" .
-            $row->type . '</div>';
+            ($row->type ?? '') . '</div>';
         }
-        
+
         if ($rec->strategy) {
-            $row->type .= "<div class='acc-detail'>" .
+            $row->type = ($row->type ?? '') . "<div class='acc-detail'>" .
             $mvc->getVerbal($rec, 'strategy') . '</div>';
         }
     }
@@ -499,13 +498,7 @@ class acc_Accounts extends core_Manager
             return;
         }
         
-        expect(
-            
-            preg_match('/\((\d+)\)\s*$/', $string, $matches),
-            'Некоректно форматирано име на номенклатура, очаква се `Име (код)`',
-            $string
-        
-        );
+        expect(preg_match('/\((\d+)\)\s*$/', $string, $matches), 'Некоректно форматирано име на номенклатура, очаква се `Име (код)`', $string);
         
         // Проблем: парсиран е код, но не е намерена номенклатура с този код
         $num = (int) $matches[1];
