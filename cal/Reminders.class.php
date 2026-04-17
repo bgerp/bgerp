@@ -1337,9 +1337,9 @@ class cal_Reminders extends core_Master
         
         $allFieldsArr = array('priority' => 'Приоритет',
             'action' => 'Действие',
+            'nextStartTime' => 'Време',
             'calcTimeStart' => 'Начало',
             'timePreviously' => 'Предварително',
-            'nextStartTime' => 'Действие в',
             'notifyOn' => 'Известие в',
             'rem' => 'Напомняне',
             'repetitionTypeMonth' => 'Съблюдаване на',
