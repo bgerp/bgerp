@@ -637,7 +637,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,overdueAndAct=Просрочени и активни,unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени,fastPayment=Платено веднага,fastDelivery=Доставено веднага,fastBoth=Платено и доставено веднага');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени (Всички),overdueAndAct=Просрочени (активни ),overdueAndClosed=Просрочени (приключени),unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени,fastPayment=Платено веднага,fastDelivery=Доставено веднага,fastBoth=Платено и доставено веднага');
     
         return $options;
     }
@@ -716,6 +716,9 @@ abstract class deals_DealMaster extends deals_DealBase
             case 'overdueAndAct':
                 $query->where("#paymentState = 'overdue'");
                 $query->where("#state = 'active'");
+            case 'overdueAndClosed':
+                $query->where("#paymentState = 'overdue'");
+                $query->where("#state = 'closed'");
                 break;
             case 'delivered':
                 $query->where('#deliveredRound >= #dealRound');
