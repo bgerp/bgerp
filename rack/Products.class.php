@@ -581,7 +581,7 @@ class rack_Products extends store_Products
         $fieldSet->FLD('storeId', 'varchar', 'tdClass=leftCol');
         $fieldSet->FLD('tools', 'varchar', 'tdClass=small-field');
         $fieldSet->FLD('measureId', 'varchar', 'smartCenter');
-        $fieldSet->FLD('batch', 'varchar', 'smartCenter');
+        $fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol wrapText');
         $fieldSet->FLD('quantity', 'double');
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
 
