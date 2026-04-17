@@ -264,7 +264,7 @@ class cal_Reminders extends core_Master
         // Предварително напомняне
         $this->FLD('timePreviously', 'time', 'caption=Време->Предварително,changable');
 
-        $this->FLD('notifyCnt', 'int(min=1, max=100)', 'caption=Брой напомняния->Брой,changable');
+        $this->FLD('notifyCnt', 'int(min=1, max=100)', 'caption=Време->Брой, inlineTo=timePreviously, changable');
 
         // Колко пъти ще се повтаря напомнянето?
         $this->FLD('repetitionEach', 'int(Min=0)', 'caption=Повторение->Всеки,changable,autohide');
@@ -852,7 +852,7 @@ class cal_Reminders extends core_Master
      *
      * @return bool
      */
-    function shouldSendNotification($notifyCnt, $startTimeStr, $endTimeStr, $now = null, &$nArr = array())
+    protected function shouldSendNotification($notifyCnt, $startTimeStr, $endTimeStr, $now = null, &$nArr = array())
     {
         $now = dt::mysql2timestamp($now);
         $start = dt::mysql2timestamp($startTimeStr);
@@ -893,7 +893,6 @@ class cal_Reminders extends core_Master
                 $res = true;
             }
         }
-
 
         if ($now < $start || $now > $end) {
 
@@ -1354,7 +1353,7 @@ class cal_Reminders extends core_Master
         }
 
         if ($rec->action == 'notify') {
-            $nArr = array($rec->nextStartTime) + $nArr;
+            $nArr = array_merge(array($rec->nextStartTime), $nArr);
             unset($row->nextStartTime);
         }
 
