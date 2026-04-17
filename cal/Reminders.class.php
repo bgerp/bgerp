@@ -305,7 +305,7 @@ class cal_Reminders extends core_Master
         $Cover = doc_Folders::getCover($data->form->rec->folderId);
 
         // Трябва да е в папка на лице или на фирма
-        if (!($Cover->className == 'crm_Persons' && $Cover->className == 'crm_Companies')) {
+        if (!($Cover->className == 'crm_Persons' || $Cover->className == 'crm_Companies')) {
             unset($mvc->getFieldType('repetitionType')->options['notifyNoAns']);
         }
 
@@ -1313,7 +1313,7 @@ class cal_Reminders extends core_Master
      */
     public static function getSecOfInterval($each, $type)
     {
-        if (($type == 'days') || ($type = 'workDays')) {
+        if (($type == 'days') || ($type == 'workDays')) {
             $intervalTs = $each * 24 * 60 * 60;
         } else {
             $intervalTs = $each * 7 * 24 * 60 * 60;
@@ -1389,7 +1389,7 @@ class cal_Reminders extends core_Master
                     $row->repetitionType = tr('ден');
                     break;
                     // работни дни
-                case 'days':
+                case 'workDays':
                     $row->repetitionType = tr('работен ден');
                     break;
                     // седмици
