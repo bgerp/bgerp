@@ -1248,7 +1248,7 @@ abstract class deals_Helper
      * @param stdClass $cData2
      * @return array $warningMsgArr
      */
-    private static function getContragentDataCompareString($cData1, $cData2)
+    public static function getContragentDataCompareString($cData1, $cData2)
     {
         $warningMsgArr = array();
         $cName1 = ($cData1->personVerb) ? $cData1->personVerb : $cData1->companyVerb;

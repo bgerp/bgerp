@@ -418,7 +418,7 @@ class change_plg_History extends core_Plugin
             $data = self::getPrevAndNextByDate($versions, $rec->validFrom);
             $info = '';
             if(!empty($data['prev'])){
-                $prevValidFromVerbal = dt::mysql2verbal($data['prev']->validFrom, 'd.m.y');
+                $prevValidFromVerbal = dt::mysql2verbal($data['prev']->validFrom, 'd.m.Y');
                 $info .= "|Предишна версия от|*: <b>{$prevValidFromVerbal}</b>";
             }
 

@@ -637,7 +637,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,overdueAndAct=Просрочени и активни,unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени,fastPayment=Платено веднага,fastDelivery=Доставено веднага,fastBoth=Платено и доставено веднага');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени (Всички),overdueAndAct=Просрочени (активни ),overdueAndClosed=Просрочени (приключени),unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени,fastPayment=Платено веднага,fastDelivery=Доставено веднага,fastBoth=Платено и доставено веднага');
     
         return $options;
     }
@@ -716,6 +716,9 @@ abstract class deals_DealMaster extends deals_DealBase
             case 'overdueAndAct':
                 $query->where("#paymentState = 'overdue'");
                 $query->where("#state = 'active'");
+            case 'overdueAndClosed':
+                $query->where("#paymentState = 'overdue'");
+                $query->where("#state = 'closed'");
                 break;
             case 'delivered':
                 $query->where('#deliveredRound >= #dealRound');
@@ -2203,6 +2206,9 @@ abstract class deals_DealMaster extends deals_DealBase
         if(core_Packs::isInstalled('voucher')) {
             $allowedFields['voucherId'] = true;
         }
+        if(core_Packs::isInstalled('holding')) {
+            $allowedFields[$me->ownCompanyFieldName] = true;
+        }
 
         // Проверяваме подадените полета дали са позволени
         if (countR($fields)) {
@@ -2267,6 +2273,16 @@ abstract class deals_DealMaster extends deals_DealBase
         $fields['paymentState'] = 'pending';
         if(isset($fields['vatExceptionId'])) {
             expect(cond_VatExceptions::fetch($fields['vatExceptionId']), 'Няма такова ДДС основание');
+        }
+
+        // Избраната наша фирма ще се запише само ако е инсталиран пакета
+        if(isset($fields[$me->ownCompanyFieldName])){
+            if(core_Packs::isInstalled('holding')){
+                $ownCompanyRec = holding_Companies::getRec($fields[$me->ownCompanyFieldName]);
+                expect(is_object($ownCompanyRec), 'Невалидна наша фирма');
+            } else {
+                unset($fields[$me->ownCompanyFieldName]);
+            }
         }
 
         // Опиваме се да запишем мастъра на сделката
@@ -2514,20 +2530,33 @@ abstract class deals_DealMaster extends deals_DealBase
         expect($contragentClassId = Request::get('contragentClassId', 'int'));
         expect($contragentId = Request::get('contragentId', 'int'));
         expect($currencyId = Request::get('currencyId', 'varchar'));
-
+        $quotationId = Request::get('quotationId', 'int');
         if($currencyId == 'BGN' && dt::today() >= acc_Setup::getEurozoneDate()) {
             $currencyId = "EUR";
         }
         $query = $this->getQuery();
         $query->where("#state = 'draft' AND #currencyId = '{$currencyId}' AND #contragentId = {$contragentId} AND #contragentClassId = {$contragentClassId}");
-        
+        $Quotation = cls::get($this->quotationClass);
+
+        // Ако ще се създава към оферта - да се филтрира и по избраната наша фирма в нея, ако е инсталиран пакета за многофирменост
+        if(core_Packs::isInstalled('holding')){
+            if(isset($quotationId) && isset($Quotation->ownCompanyFieldName)){
+                $quotationOwnCompanyId = $Quotation->fetchField($quotationId, $Quotation->ownCompanyFieldName);
+                if(isset($quotationOwnCompanyId)){
+                    $query->where("#{$this->ownCompanyFieldName} = {$quotationOwnCompanyId}");
+                } else {
+                    $query->where("#{$this->ownCompanyFieldName} IS NULL");
+                }
+            }
+        }
+
         $options = array();
         while ($rec = $query->fetch()) {
             if ($this->haveRightFor('single', $rec)) {
                 $options[$rec->id] = $this->getTitleById($rec->id, true);
             }
         }
-        
+
         $retUrl = getRetUrl();
         
         // Ако няма опции, връщаме се назад
@@ -2552,7 +2581,6 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         $singleTitle = mb_strtolower($this->singleTitle);
-        $quotationId = Request::get('quotationId', 'int');
         $rejectUrl = toUrl(array($this->quotationClass, 'single', $quotationId));
         $form->title = '|Прехвърляне в|* ' . $singleTitle . ' ' . tr('на') . ' ' . cls::get($this->quotationClass)->getFormTitleLink($quotationId);
         
@@ -3360,7 +3388,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Дебъг екшън показващ разпределени плащанията по фактури
      */
-    public static function act_showDebugPayments()
+    public function act_showDebugPayments()
     {
         requireRole('debug');
         $threadId = Request::get('threadId', 'int');
@@ -3374,6 +3402,12 @@ abstract class deals_DealMaster extends deals_DealBase
 
         $debug = '';
         $paymentState = $firstDoc->getInstance()->getPaymentState($pRec, null, $debug);
+        if($paymentState != $pRec->paymentState){
+            $pRec->paymentState = $paymentState;
+            $this->save_($pRec, 'paymentState,overdueAmountPerDays,overdueAmount');
+            $debug .= "<br>Състоянието е обновено";
+        }
+
         echo $debug;
         bp($paymentState, $payment1, $payments2, $payment3);
     }

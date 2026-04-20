@@ -4831,7 +4831,7 @@ table .eshop-btn {
   gap: 20px;
   justify-content: space-between; }
 
-.background-holder cms-row {
+.background-holder .cms-row {
   padding: 25px; }
 
 .onecol,
@@ -5087,7 +5087,7 @@ iframe.autoHeight {
 .narrow-scroll .main-container {
   display: block; }
 
-.listBlock:has(.listTopContainer) {
+.listBlock:has(.single-thread) {
   display: table; }
 
 .listBlock .listRows {

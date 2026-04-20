@@ -3807,6 +3807,7 @@ class planning_Tasks extends core_Master
     {
         $now = dt::now();
 
+        $Products = cls::get('planning_ProductionTaskProducts');
         if(isset($rec->wasteProductId)){
 
             // Ако отпадъчният артикул е ръчно добавен - нищо не се прави
@@ -3833,7 +3834,12 @@ class planning_Tasks extends core_Master
             }
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId, 'createdBy' => core_Users::getCurrent(), 'modifiedOn' => $now, 'createdOn' => $now);
-            planning_ProductionTaskProducts::save($wasteRec);
+
+            $fields = array();
+            $exRec = null;
+            if ($Products->isUnique($wasteRec, $fields, $exRec)) {
+                $Products->save($wasteRec);
+            }
         }
 
         // Ако има параметри на ПО-то, които са от тип "Група артикули"
@@ -3852,7 +3858,6 @@ class planning_Tasks extends core_Master
         }
 
         // Ще се добавят в таба "Планиране" като такива за влагане
-        $Products = cls::get('planning_ProductionTaskProducts');
         foreach ($convertable as $convRec){
             $fields = array();
             $exRec = null;
