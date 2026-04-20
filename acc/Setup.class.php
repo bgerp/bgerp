@@ -462,18 +462,33 @@ class acc_Setup extends core_ProtoSetup
             'roles' => 'debug',
         ),
         array(
-            'title' => 'Прикл. сделки с активни пера',
+            'title' => 'Прикл. сделки с акт. пера',
             'url' => array(
                 'acc_Journal',
                 'findDeals',
+                'type' => 'closed',
                 'ret_url' => true
             ),
             'params' => array(
-                'title' => 'Има ли неактивни сделки с приключени пера',
+                'title' => 'Има ли неактивни сделки с активни пера',
+                'ef_icon' => 'img/16/arrow_refresh.png'
+            ),
+            'roles' => 'debug',
+        ),  array(
+            'title' => 'Акт. сделки с затв. пера',
+            'url' => array(
+                'acc_Journal',
+                'findDeals',
+                'type' => 'active',
+                'ret_url' => true
+            ),
+            'params' => array(
+                'title' => 'Има ли активни сделки с приключени пера',
                 'ef_icon' => 'img/16/arrow_refresh.png'
             ),
             'roles' => 'debug',
         )
+
     );
 
 

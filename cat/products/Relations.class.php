@@ -484,7 +484,7 @@ class cat_products_Relations extends core_Manager
                                 $singleUrlArray["TabTop{$containerId}"] = 'Relations';
                             }
 
-                            $suffix = $foundRec->count == 1 ? tr('аналог') : tr('аналози');
+                            $suffix = $foundRec->count == 1 ? tr('аналог') : tr('аналога');
                             $tabRow->productId .= "  <span style='float:right;'> " . ht::createLink("[{$countAnalogVerbal}]", $singleUrlArray, false, "class=analogBtn,data-tab-name={$tabRec->productId}_{$foundRec->relTypeId}")->getContent() . " {$suffix}";
                         }
                     }
