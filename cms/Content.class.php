@@ -816,7 +816,8 @@ class cms_Content extends core_Manager
     {
         $query = self::getQuery();
         $query->orderBy('order');
-        
+        $rec = null;
+
         if ($menuId) {
             $rec = self::fetch($menuId);
             $domainId = $rec->domainId;
@@ -828,7 +829,12 @@ class cms_Content extends core_Manager
         $query->orderBy('id', 'ASC');
         $html = '';
 
-        while ($rec = $query->fetch()) {
+        $recs = $query->fetchAll();
+        if(isset($rec)){
+            $recs = array($rec->id => $rec) + $recs;
+        }
+
+        foreach ($recs as $rec) {
             if (!cls::load($rec->source, true)) {
                 continue;
             }
