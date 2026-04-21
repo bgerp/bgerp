@@ -937,7 +937,7 @@ class acc_Items extends core_Manager
             // После се извличат и самите сделки
             $query = $Class->getQuery();
             $query->in('id', $ids);
-            $query->in('state', array('active', 'closed'));
+            $query->in('state', array('active', 'closed', 'stopped'));
             $query->show('id,state');
             while($rec = $query->fetch()){
                 $iRec = $iRecs[$classId][$rec->id];
