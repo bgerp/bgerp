@@ -5852,10 +5852,6 @@ iframe.autoHeight {
 	display: block;
 }
 
-.listBlock:has(.single-thread) {
-	display: table;
-}
-
 .listBlock .listRows {
 	overflow-x: auto;
 }
