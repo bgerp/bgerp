@@ -233,10 +233,13 @@ class cat_products_Packagings extends core_Detail
                 }
             }
 
-            if (!$form->gotErrors() && cat_UoM::fetch($rec->packagingId)->type == 'packaging') {
-                $warning = null;
-                if (!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)) {
-                    $form->setError('quantity', $warning);
+            if (!$form->gotErrors()) {
+                $uomType =  cat_UoM::fetchField($rec->packagingId, 'type');
+                if($uomType  == 'packaging'){
+                    $warning = null;
+                    if (!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)) {
+                        $form->setError('quantity', $warning);
+                    }
                 }
             }
 
@@ -848,11 +851,7 @@ class cat_products_Packagings extends core_Detail
         $inClsName = false;
         foreach ($allClsArr as $cls) {
             $cls = cls::get($cls);
-
-            if (!$cls->fields['packagingId']) {
-
-                continue;
-            }
+            if (!$cls->getField('packagingId', false)) continue;
 
             $allClsName[$cls->className] = $cls->className;
             $productIdFld = $packagingIdFld = false;
@@ -878,7 +877,7 @@ class cat_products_Packagings extends core_Detail
 
         if ($inClsName === false) {
             foreach ($mDetailsArr as $dName) {
-                if ($allClsName[$dName]) {
+                if (isset($allClsName[$dName])) {
                     wp('Използван пакет, който е прескочен', $mDetailsArr, $dName);
                 }
             }
@@ -1091,6 +1090,7 @@ class cat_products_Packagings extends core_Detail
     {
         sync_Helper::requireRight('export');
         expect($ids = Request::get('exportIds'));
+        $resArr = array();
 
         try {
             $dArr = explode('|', $ids);
@@ -1574,7 +1574,7 @@ class cat_products_Packagings extends core_Detail
 
         // Ако е създадена повече от зададеното време - НЕ
         $pastHorizon = self::getPastHorizon();
-        if($rec->createdOn <= $pastHorizon) return false;
+        if(is_object($rec) && $rec->createdOn <= $pastHorizon) return false;
 
         // Ако е създадена в хоризонта, само ако не е използвана никъде
         if(is_null($rec->usages) || $rec->usages <= 0) return true;
