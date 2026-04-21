@@ -506,7 +506,7 @@ class bgerp_Portal extends embed_Manager
         
         // Добавяме URL за страниране
         if (!empty($rec->__cUrl)) {
-            if ($data->data->pager) {
+            if (($data->data ?? null) && ($data->data->pager ?? null)) {
                 $data->data->pager->url = $rec->__cUrl;
             } elseif (!empty($data->pager)) {
                 $data->pager->url = $rec->__cUrl;
@@ -846,7 +846,7 @@ class bgerp_Portal extends embed_Manager
         // пропускаме тези които не са параметри в нея
         foreach (getCurrentUrl() as $key => $value) {
             if ($key != 'App' && $key != 'Ctr' && $key != 'Act' && $key != 'Cmd' && !strpos($key, 'Search')) {
-                if (!$form->fields[$key]) {
+                if (!($form->fields[$key] ?? null)) {
                     $form->FNC($key, 'varchar', 'input=hidden');
                     $form->setDefault($key, $value);
                 }

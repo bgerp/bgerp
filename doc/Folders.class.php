@@ -332,13 +332,13 @@ class doc_Folders extends core_Master
         $data->listFilter->input('search,users,order,docType', 'silent');
 
         $cu = core_Users::getCurrent();
-        if (!$data->listFilter->rec->users) {
+        if (!($data->listFilter->rec->users ?? null)) {
             $data->listFilter->rec->users = '|' . $cu . '|';
         }
         
-        if (!$data->listFilter->rec->search) {
+        if (!($data->listFilter->rec->search ?? null)) {
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
-            if ($data->listFilter->rec->order != 'inCharge') {
+            if (($data->listFilter->rec->order ?? null) != 'inCharge') {
                 $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
             }
             $data->title = 'Папките на |*<span class="green">' .
@@ -348,11 +348,11 @@ class doc_Folders extends core_Master
             $data->listFilter->getFieldType('search')->toVerbal($data->listFilter->rec->search) . '"</span>';
         }
 
-        if ($data->listFilter->rec->docType) {
+        if ($data->listFilter->rec->docType ?? null) {
             $data->query->where("#coverClass={$data->listFilter->rec->docType}");
         }
 
-        switch ($data->listFilter->rec->order) {
+        switch ($data->listFilter->rec->order ?? null) {
             case 'inCharge':
             case 'last':
                 $data->query->orderBy('#last', 'DESC');
@@ -485,7 +485,7 @@ class doc_Folders extends core_Master
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
         if ($rec->openThreadsCnt) {
-            $row->threads = "<span style='float-right; color:#5a6;'>${openThreads}</span>";
+            $row->threads = "<span style='float-right; color:#5a6;'>{$openThreads}</span>";
         }
 
         if (!isset($row->threads)) {
@@ -2288,9 +2288,9 @@ class doc_Folders extends core_Master
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
         
         if ($threadId = $params['moveThread']) {

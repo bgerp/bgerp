@@ -284,7 +284,7 @@ abstract class embed_Manager extends core_Master
         }
         
         $me = cls::get(get_called_class());
-        $row->{$me->driverClassField} = tr($row->{$me->driverClassField});
+        $row->{$me->driverClassField} = tr($row->{$me->driverClassField} ?? null);
         
         return $row;
     }
@@ -339,7 +339,7 @@ abstract class embed_Manager extends core_Master
                 case 'afterlabelisprinted':
                 case 'afteractivation':
 
-                    $driverClass = $args[0]->{$this->driverClassField};
+                    $driverClass = $args[0]->{$this->driverClassField} ?? null;
                     break;
                 case 'beforeaction':
                     if($id = Request::get('id', 'int')){
@@ -348,7 +348,7 @@ abstract class embed_Manager extends core_Master
                     break;
                 case 'aftergetrequiredroles':
                     if (is_object($args[2])) {
-                        $driverClass = $args[2]->{$this->driverClassField};
+                        $driverClass = $args[2]->{$this->driverClassField} ?? null;
                     }
                     break;
                 

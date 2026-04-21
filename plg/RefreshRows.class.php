@@ -35,7 +35,7 @@ class plg_RefreshRows extends core_Plugin
             return;
         }
 
-        if($data->stopListRefresh) return;
+        if($data->stopListRefresh ?? null) return;
 
         // Ако не се тегли по AJAX
         if (!Request::get('ajax_mode')) {
@@ -68,7 +68,7 @@ class plg_RefreshRows extends core_Plugin
             $name = $mvc->className . '_RefreshRows';
             
             // Ако страницата ще се обновява ръчно по AJAX
-            if ($mvc->manualRefreshCnt) {
+            if ($mvc->manualRefreshCnt ?? null) {
                 $hitId = Request::get('hit_id');
                 if (!$hitId) {
                     $hitId = str::getRand('######');

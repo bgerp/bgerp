@@ -1127,7 +1127,8 @@ class crm_Profiles extends core_Master
             $userId = core_Users::getCurrent();
         }
         
-        $profileId = self::fetch("#userId = {$userId}")->id;
+        $profileRec = self::fetch("#userId = {$userId}");
+        $profileId = $profileRec ? $profileRec->id : null;
         
         return $profileId;
     }
@@ -1247,7 +1248,7 @@ class crm_Profiles extends core_Master
                 
                 $link = ht::createLink($title . $e, $url, $warning, $attr);
             } else {
-                $attr['style'] .= ';color:#999 !important;';
+                $attr['style'] = ($attr['style'] ?? '') . ';color:#999 !important;';
                 $link = ht::createLink($userRec->nick . $e, null, null, $attr);
             }
             

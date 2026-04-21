@@ -657,13 +657,13 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = array())
     {
-        if ($invoker->addRowClass !== false) {
+        if (($invoker->addRowClass ?? null) !== false) {
             $row->ROW_ATTR['class'] .= " state-{$rec->state}";
         }
-        $row->STATE_CLASS .= " state-{$rec->state}";
+        $row->STATE_CLASS = ($row->STATE_CLASS ?? '') . " state-{$rec->state}";
         
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y');
-        $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
+        $row->createdDate = dt::mysql2verbal($rec->createdOn ?? null, 'd.m.Y');
         
         if (isset($fields['-single'])) {
             if (!$row->ident) {
@@ -2648,8 +2648,8 @@ class doc_DocumentPlg extends core_Plugin
         if ($action == 'add') {
             
             // Ако има нишка
-            if ($rec->threadId) {
-                
+            if (!empty($rec->threadId)) {
+
                 // Ако няма права за добавяне в нишката
                 if ($mvc->canAddToThread($rec->threadId) === false) {
                     
@@ -2672,7 +2672,7 @@ class doc_DocumentPlg extends core_Plugin
                         $requiredRoles = 'no_one';
                     }
                 }
-            } elseif ($rec->folderId) {
+            } elseif (!empty($rec->folderId)) {
                 
                 // Ако създаваме нова нишка
                 
@@ -2912,7 +2912,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Потребителите само с ранг ексикютив може да редактират документи, които те са създали
         if (!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
-            if ($rec->id && ($action == 'edit') || ($action == 'reject')) {
+            if ((!empty($rec->id) && ($action == 'edit')) || ($action == 'reject')) {
                 if (!$userId) {
                     $userId = core_Users::getCurrent();
                 }
@@ -2982,7 +2982,7 @@ class doc_DocumentPlg extends core_Plugin
                 $cId = $mvc->fetchField($rec->id, 'containerId');
             }
             
-            if (!$cId || !$allowedCidArr[$cId]) {
+            if (!$cId || empty($allowedCidArr[$cId])) {
                 $requiredRoles = 'no_one';
             }
         }

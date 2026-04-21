@@ -280,7 +280,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                     break;
                 }
                 
-                if (!$tArr['now'][$d]) {
+                if (empty($tArr['now'][$d])) {
                     $tArr['now'][$d][] = (object)array('title' => $noEvent);
                 }
             }
@@ -323,7 +323,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $dBlock->replace($nowDateClass, 'NOW_DATE_CLASS');
                 $dBlock->replace($nowClassName, 'NOW_CLASS_NAME');
                 
-                if ($tRowArr['events']) {
+                if (!empty($tRowArr['events'])) {
                     $dBlock->append('<span class="subTitle"><small style="vertical-align:text-top">' . tr('Празнуваме||Celebrate') . ':</small>' . $tRowArr['events'] . '</span>', 'NOW');
                     unset($tRowArr['events']);
                 }

@@ -260,7 +260,7 @@ class doc_AssignPlg extends core_Plugin
             }
         }
         
-        if ($rec->assignedDate) {
+        if (!empty($rec->assignedDate)) {
             $row->assignedDate = dt::mysql2verbal($rec->assignedDate, 'd-m-Y');
         }
     }

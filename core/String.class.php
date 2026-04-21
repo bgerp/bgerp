@@ -746,7 +746,7 @@ class core_String
         $char = mb_strtolower($char);
         
         // Ако е съгласна
-        return (boolean) $vowelArr[$char];
+        return (boolean) ($vowelArr[$char] ?? false);
     }
     
     

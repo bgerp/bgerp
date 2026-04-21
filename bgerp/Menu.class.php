@@ -68,15 +68,16 @@ class bgerp_Menu extends core_Manager
         $menuObj = core_Cache::get($cachePrefix, $cacheKey);
         
         if (!is_array($menuObj)) {
+            $menuObj = array();
             $query = self::getQuery();
-            
+
             $query->orderBy('#row,#id', 'ASC');
             $pos = array();
             $next = 1;
             
             while ($rec = $query->fetch()) {
                 $newRec = clone($rec);
-                if (!($thisMenu = $pos[$rec->menu])) {
+                if (!($thisMenu = ($pos[$rec->menu] ?? null))) {
                     $thisMenu = $pos[$rec->menu] = $next++;
                 }
                 list($whole, $decimal) = explode('.', $rec->row);

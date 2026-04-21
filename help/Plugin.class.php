@@ -30,7 +30,7 @@ class help_Plugin extends core_Plugin
         
         $act = Request::get('Act');
         
-        $act = strtolower($act);
+        $act = strtolower($act ?? '');
         
         // какъв е метода на показваната страница?
         if ($act == 'edit' || $act == 'add') {

@@ -67,7 +67,7 @@ class plg_Search extends core_Plugin
                 $fields['searchKeywords'] = 'searchKeywords';
             }
             
-            $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
+            $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords ?? null);
             
             $rec->searchKeywords = $mvc->getSearchKeywords($rec);
         }

@@ -173,7 +173,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
                     }
                     
                     if (doc_Threads::fetchField($rec->threadId, 'state') == 'opened') {
-                        $linkArr['class'] .= ' state-opened';
+                        $linkArr['class'] = ($linkArr['class'] ?? '') . ' state-opened';
                     }
 
                     $singleUrlArray = cal_Tasks::getSingleUrlArray($rec->id);
@@ -187,9 +187,9 @@ class bgerp_drivers_Tasks extends core_BaseClass
                     $row->title = ht::createLink($title, $singleUrlArray, null, $linkArr);
                     
                     if ($row->title instanceof core_ET) {
-                        $row->title->append($row->subTitleDiv);
+                        $row->title->append($row->subTitleDiv ?? null);
                     } else {
-                        $row->title .= $row->subTitleDiv;
+                        $row->title .= ($row->subTitleDiv ?? '');
                     }
                     
                     if ($rec->state) {

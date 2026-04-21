@@ -908,7 +908,7 @@ class core_Mvc extends core_FieldSet
                 }
             }
             
-            if ($fieldName == 'id' && isset($me->singleTitle)) {
+            if (($fieldName ?? null) == 'id' && isset($me->singleTitle)) {
                 $cRec->id = tr("|{$me->singleTitle}|* №" . $cRec->id);
             }
             

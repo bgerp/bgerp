@@ -873,7 +873,7 @@ class core_App
     public static function toLocalUrl($arr)
     {
         if (is_array($arr)) {
-            if (!$arr['Act']) {
+            if (!($arr['Act'] ?? null)) {
                 $arr['Act'] = 'default';
             }
 
