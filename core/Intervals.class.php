@@ -378,4 +378,18 @@ class core_Intervals
         // Ако е под зададения процент - значи има прекъсване
         return $ratio < $percent;
     }
+
+
+    /**
+     * Връща продължителност на дадена рамка
+     */
+    public function frameDuration(int $start, int $end) : int {
+        $frame = $this->getFrame($start, $end);
+        $duration = 0;
+        foreach($frame as $t) {
+            $duration += $t[1] - $t[0];
+        }
+        
+        return $duration;
+    }
 }
