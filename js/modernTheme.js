@@ -112,8 +112,9 @@ function setMaxWidth() {
 	if ($('body').hasClass('narrow')) {
 		$('.folder-cover .scrolling-holder').css('max-width', viewportWidth - 45);
 	} else {
-		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 30;
+		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').outerWidth() - 30;
 		if(contentWidth < $('.listTable').first().width()){
+			alert();
 			$('#packWrapper').width(contentWidth);
 			$('.listBlock').css({
 				'max-width': contentWidth,
