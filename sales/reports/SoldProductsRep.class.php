@@ -1557,6 +1557,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
 
         $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
+
         $changeQuatity = $dcRec->quantity * $dcRec->quantityInPack - $originQuantity;
         $changePrice = $dcRec->price - $originDetRec->price;
         
@@ -1712,8 +1713,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->seeDelta == 'yes') {
                 $fld->FLD('delta', 'double(decimals=2)', "smartCenter,caption={$name1} Делта");
             }
-            
-            
+
+            if ($rec->seeWeight == 'yes') {
+                $fld->FLD('weight', 'double(smartRound,decimals=2)', 'smartCenter,caption=Тегло->[кг]');
+            }
+
+
             if ($rec->compare != 'no') {
                 $fld->FLD('quantityCompare', 'double(decimals=2)', "smartCenter,caption={$name2} Продажби,tdClass=newCol");
                 $fld->FLD('primeCostCompare', 'double(decimals=2)', "smartCenter,caption={$name2} Стойност,tdClass=newCol");

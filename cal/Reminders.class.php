@@ -894,11 +894,6 @@ class cal_Reminders extends core_Master
             }
         }
 
-        if ($now < $start || $now > $end) {
-
-            $res = false;
-        }
-
         return $res;
     }
 

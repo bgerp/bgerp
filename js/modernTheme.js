@@ -108,9 +108,15 @@ function setMaxWidth() {
 	if ($('body').hasClass('narrow')) {
 		$('.folder-cover .scrolling-holder').css('max-width', viewportWidth - 45);
 	} else {
-		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 64 - $('.wide-profile-info').width();
+		var profileWidth = $('.wide-profile-info').width() ? $('.wide-profile-info').width() : 0;
+		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 64 - profileWidth;
 		if(contentWidth < $('.listTable').first().width()){
-			$('#packWrapper, .listBlock').width(contentWidth);
+			$('#packWrapper').width(contentWidth);
+			$('.listBlock').css({
+				'max-width': contentWidth,
+				'overflow-x': 'auto',
+				'display': 'block'
+			});
 			$('.listRows > .listTable > tbody > tr > td:last-child').css('min-width', 0);
 			$('.document').css('width', contentWidth - 3);
 			$('.document .scrolling-holder').addClass('overflow-scroll');

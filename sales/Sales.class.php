@@ -1077,7 +1077,6 @@ class sales_Sales extends deals_DealMaster
                 $res = 'no_one';
             }
         }
-        
         // Проверка на екшъна за създаване на артикул към продажба
         if ($action == 'createsaleforproduct') {
             $res = $mvc->getRequiredRoles('add', $rec, $userId);
@@ -1767,7 +1766,15 @@ class sales_Sales extends deals_DealMaster
         // Създаване на продажба и редирект към добавянето на артикула
         try {
             expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that, $fields));
-            redirect(array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId));
+
+            $quantity = core_Request::get('quantity', 'double');
+            if(!empty($quantity)){
+                $redirectArr = array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId, 'packQuantity' => $quantity);
+            }else {
+                $redirectArr = array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId);
+            }
+            redirect($redirectArr);
+
         } catch (core_exception_Expect $e) {
             $errorMsg = $e->getMessage();
             reportException($e);

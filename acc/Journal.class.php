@@ -1218,29 +1218,56 @@ class acc_Journal extends core_Master
     function act_findDeals()
     {
         requireRole('debug');
+        $type = Request::get('type', 'enum(active,closed)');
 
         $listId = acc_Lists::fetchBySystemId('deals')->id;
-        $tpl = new core_ET("");
+        $tpl = new core_ET("<table>");
         foreach (array('purchase_Purchases', 'sales_Sales', 'findeals_Deals') as $class){
             $Class = cls::get($class);
             $classId = $Class->getClassId();
 
+            $fields = cls::get('acc_Items')->selectFields();
+            $fields['-list'] = true;
+
+            $Items = cls::get('acc_Items');
+            $iRecs = $ids = array();
             $iQuery = acc_Items::getQuery();
-            $iQuery->where("#state = 'active' AND #classId = {$classId}");
-            $ids = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+            if($type == 'closed'){
+                $iQuery->where("#state = 'active' AND #classId = {$classId}");
+            } else {
+                $iQuery->where("#state = 'closed' AND #classId = {$classId}");
+            }
+            while($iRec = $iQuery->fetch()){
+                $ids[$iRec->objectId] = $iRec->objectId;
+                $iRecs[$iRec->objectId] = $iRec;
+            }
 
             $query = $Class->getQuery();
             $query->in('id', $ids);
-            $query->where("#state != 'active'");
-            while($rec = $query->fetch()){
-                $tpl->append("<li>");
-                $tpl->append($Class->getLink($rec->id, 0));
+            if($type == 'closed'){
+                $query->where("#state != 'active'");
+            } else {
+                $query->where("#state = 'active'");
+            }
 
+            while($rec = $query->fetch()){
+                $blockTpl = new core_ET("<tr><td style='min-width:100px;'>[#handle#]</td><td style='min-width:50px;'>[#item#]</td><td style='min-width:50px;'>[#state#]</td></tr>");
+
+                $handleLink = $Class->getLink($rec->id, 0);
+                $handleLink = "<span class= 'state-{$rec->state} document-handler' >" . $handleLink . '</span>';
+                $blockTpl->replace($handleLink, 'handle');
+
+                $iRow = $Items->recToVerbal($iRecs[$rec->id], $fields);
                 $handle = "#" . $Class->getHandle($rec->id);
                 $itemLink = array('acc_Items', 'list', 'listId' => $listId, 'search' => $handle);
-                $tpl->append(" -> " . ht::createLink('Перо', $itemLink));
+                $blockTpl->replace(ht::createLink('Перо', $itemLink), 'item');
+                $blockTpl->replace($iRow->state, 'state');
+                $blockTpl->removeBlocksAndPlaces();
+                $tpl->append($blockTpl);
             }
         }
+
+        $tpl->append("</table>");
 
         return $tpl;
     }

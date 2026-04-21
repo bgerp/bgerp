@@ -468,6 +468,15 @@ class cat_products_Relations extends core_Manager
 
                         $tabRow->code = $productRecs[$tabRec->productId]->code ?? "Art{$tabRec->productId}";
                     } else {
+                        $singleUrlArray = cat_Products::getSingleUrlArray($tabRec->productId);
+                        if(countR($singleUrlArray)){
+                            $containerId = cat_Products::fetchField($tabRec->productId, 'containerId');
+                            $singleUrlArray["TabTop{$containerId}"] = 'Relations';
+                        }
+
+                        $icon = cls::get('cat_Products')->getIcon($tabRec->productId);
+                        $pName = cat_Products::getTitleById($tabRec->productId);
+                        $tabRow->productId = ht::createLink($pName, $singleUrlArray, false, "ef_icon={$icon}");
 
                         $relQuery = cat_products_Relations::getQuery();
                         $relQuery->EXT('isSymmetric', 'cat_RelationTypes', 'externalName=isSymmetric,externalKey=relTypeId');
@@ -478,13 +487,7 @@ class cat_products_Relations extends core_Manager
 
                         if($foundRec->count){
                             $countAnalogVerbal = core_Type::getByName('int')->toVerbal($foundRec->count);
-                            $singleUrlArray = cat_Products::getSingleUrlArray($tabRec->productId);
-                            if(countR($singleUrlArray)){
-                                $containerId = cat_Products::fetchField($tabRec->productId, 'containerId');
-                                $singleUrlArray["TabTop{$containerId}"] = 'Relations';
-                            }
-
-                            $suffix = $foundRec->count == 1 ? tr('аналог') : tr('аналози');
+                            $suffix = $foundRec->count == 1 ? tr('аналог') : tr('аналога');
                             $tabRow->productId .= "  <span style='float:right;'> " . ht::createLink("[{$countAnalogVerbal}]", $singleUrlArray, false, "class=analogBtn,data-tab-name={$tabRec->productId}_{$foundRec->relTypeId}")->getContent() . " {$suffix}";
                         }
                     }
