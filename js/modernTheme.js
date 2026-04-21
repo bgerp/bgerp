@@ -114,7 +114,6 @@ function setMaxWidth() {
 	} else {
 		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').outerWidth() - 30;
 		if(contentWidth < $('.listTable').first().width()){
-			alert();
 			$('#packWrapper').width(contentWidth);
 			$('.listBlock').css({
 				'max-width': contentWidth,
