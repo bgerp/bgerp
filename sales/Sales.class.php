@@ -1768,10 +1768,9 @@ class sales_Sales extends deals_DealMaster
             expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that, $fields));
 
             $quantity = core_Request::get('quantity', 'double');
+            $redirectArr = array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId);
             if(!empty($quantity)){
                 $redirectArr = array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId, 'packQuantity' => $quantity);
-            }else {
-                $redirectArr = array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId);
             }
             redirect($redirectArr);
 

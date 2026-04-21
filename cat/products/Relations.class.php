@@ -127,6 +127,7 @@ class cat_products_Relations extends core_Manager
         $this->setDbUnique('productId1,productId2,relTypeId');
         $this->setDbIndex('productId1');
         $this->setDbIndex('productId2');
+        $this->setDbIndex('relTypeId');
     }
 
 
@@ -239,6 +240,7 @@ class cat_products_Relations extends core_Manager
     public function prepareRelations_(&$data)
     {
         $relationshipTypes = $this->getRelationshipOptions($data->masterId, null, 1);
+
         $query = self::getQuery();
         $query->EXT('group1Name', 'cat_RelationTypes', 'externalName=group1Name,externalKey=relTypeId');
         $query->EXT('group2Name', 'cat_RelationTypes', 'externalName=group2Name,externalKey=relTypeId');
@@ -248,10 +250,11 @@ class cat_products_Relations extends core_Manager
         $query->EXT('group2Info', 'cat_RelationTypes', 'externalName=group2Info,externalKey=relTypeId');
         $query->EXT('show1InExternal', 'cat_RelationTypes', 'externalName=show1InExternal,externalKey=relTypeId');
         $query->EXT('show2InExternal', 'cat_RelationTypes', 'externalName=show2InExternal,externalKey=relTypeId');
+        $query->EXT('relState', 'cat_RelationTypes', 'externalName=state,externalKey=relTypeId');
         $query->EXT('saoOrder', 'cat_RelationTypes', 'externalName=saoOrder,externalKey=relTypeId');
 
         $isExternal = Mode::is('wrapper', 'cms_page_External');
-
+        $query->where("#relState = 'active'");
         if (Mode::is('renderExternalRelation')) {
             $query->where("#state = 'active'");
         }
@@ -712,7 +715,7 @@ class cat_products_Relations extends core_Manager
             // Ако се редактира запис - полето е ключ само за промяна на този запис
             if(!empty($currentRec->{$otherProductField})){
                 $form->FLD("otherProductId", 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,allowEmpty)', "caption=|*{$relRec->{$otherGroupNameFieldName}}->|Група|*: {$groupName}->Артикул,placeholder=Всички от групата");
-                $form->setFieldTypeParams('otherProductId', array('groups' => $relRec->{$otherGroupIdFieldName}));
+                $form->setFieldTypeParams('otherProductId', array('groups' => $relRec->{$otherGroupIdFieldName}, 'notIn' => $productId));
                 $form->setDefault('otherProductId', $currentRec->{$otherProductField});
                 $form->setField('otherProductId', 'mandatory');
             } else {
@@ -724,6 +727,7 @@ class cat_products_Relations extends core_Manager
                 $exQuery->where("#relTypeId = {$relRec->id} AND #{$thisProductField} = {$productId}");
                 $exQuery->show($otherProductField);
                 $productsNotAllowed += arr::extractValuesFromArray($exQuery->fetchAll(), $otherProductField);
+                $productsNotAllowed[$productId] = $productId;
 
                 // Зареждане само на артикулите от тази група
                 $otherProductOptions = array();
@@ -748,9 +752,6 @@ class cat_products_Relations extends core_Manager
 
         // При събмит на формата
         if ($form->isSubmitted()) {
-            if($rec->productId == $rec->otherProductId){
-                $form->setError('otherProductId', 'Не може да изберете същия артикул|*!');
-            }
 
             // Ако е избран конкретен друг артикул - той, ако не всички от групата
             $otherProducts = array();
