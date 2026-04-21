@@ -497,10 +497,10 @@ class acc_Setup extends core_ProtoSetup
      */
     public $cronSettings = array(
         array(
-            'systemId' => 'Delete Items',
-            'description' => 'Изтриване на неизползвани затворени пера',
+            'systemId' => 'Fix Items',
+            'description' => 'Поправка на пера',
             'controller' => 'acc_Items',
-            'action' => 'DeleteUnusedItems',
+            'action' => 'FixItems',
             'period' => 1440,
             'offset' => 60,
             'timeLimit' => 100

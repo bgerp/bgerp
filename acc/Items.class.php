@@ -908,7 +908,7 @@ class acc_Items extends core_Manager
     /**
      * Изтрива всички затворени и неизползвани пера
      */
-    public function cron_DeleteUnusedItems()
+    public function cron_FixItems()
     {
         $numRows = $this->delete("#state = 'closed' AND #lastUseOn IS NULL");
         
@@ -916,6 +916,59 @@ class acc_Items extends core_Manager
             $this->logWrite('Изтрити неизползвани, затворени пера');
             $this->logInfo("Изтрити са {$numRows} неизползвани, затворени пера");
         }
+
+        $saveRecs = $logMsg = array();
+        foreach (array('purchase_Purchases', 'sales_Sales', 'findeals_Deals') as $class){
+            $Class = cls::get($class);
+            $classId = $Class->getClassId();
+
+            $iRecs = $ids = array();
+            $iQuery = $this->getQuery();
+            $iQuery->where("#classId = {$classId}");
+            while($iRec = $iQuery->fetch()){
+                $ids[$iRec->objectId] = $iRec->objectId;
+                $iRecs[$classId][$iRec->objectId] = $iRec;
+            }
+
+            $query = $Class->getQuery();
+            $query->in('id', $ids);
+            $query->in('state', array('active', 'closed'));
+
+            while($rec = $query->fetch()){
+                $iRec = $iRecs[$classId][$rec->id];
+                if(isset($iRec)) {
+                    if($rec->state == 'active') {
+                        if($iRec->state == 'closed') {
+                            $iRec->state = 'active';
+                            $iRec->_oldState = 'closed';
+                            $saveRecs[$iRec->id] = $iRec;
+                            $logMsg[$classId][$rec->id] = 'Отваряне на грешно затворено перо';
+                        }
+                    } elseif($iRec->state == 'active') {
+                        $iRec->state = 'closed';
+                        $iRec->_oldState = 'active';
+                        $saveRecs[$iRec->id] = $iRec;
+                        $logMsg[$classId][$rec->id] = 'Затваряне на грешно активно перо';
+                    }
+                }
+            }
+        }
+
+        bp($saveRecs, $logMsg);
+        if(countR($saveRecs)) {
+            $this->saveArray($saveRecs, 'id,state');
+        }
+
+        foreach ($logMsg as $clsId => $recs) {
+            $Class = cls::get($clsId);
+            foreach ($recs as $id => $msg) {
+                $Class->logWrite($id, $msg);
+            }
+        }
+
+        echo "<pre>";
+        print_r($saveRecs);
+        echo "</pre>";
     }
     
     
