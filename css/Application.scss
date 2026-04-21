@@ -5852,7 +5852,7 @@ iframe.autoHeight {
 	display: block;
 }
 
-.listBlock:has(.single-thread) {
+.listBlock{
 	display: table;
 }
 

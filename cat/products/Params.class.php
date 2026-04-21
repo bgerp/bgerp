@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -177,7 +177,7 @@ class cat_products_Params extends doc_Detail
         $form = &$data->form;
         $rec = $form->rec;
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $form->setField('paramId', array('removeAndRefreshForm' => 'paramValue|paramValue[lP]|paramValue[rP]'));
             $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
             
@@ -201,7 +201,7 @@ class cat_products_Params extends doc_Detail
             $form->setReadOnly('paramId');
         }
         
-        if ($rec->paramId) {
+        if (!empty($rec->paramId)) {
             $pRec = cat_Params::fetch($rec->paramId);
             if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
                 $form->setField('paramValue', 'input');
@@ -322,19 +322,12 @@ class cat_products_Params extends doc_Detail
         $taskClassId = planning_Tasks::getClassId();
         $bomClassId = cat_BomDetails::getClassId();
         if ($classId == cat_Products::getClassId()) {
-            $grSysid = cat_Params::fetchIdBySysId('weight');
-            $kgSysid = cat_Params::fetchIdBySysId('weightKg');
-            
             $measureId = cat_Products::fetchField($productId, 'measureId');
             if (cat_UoM::isWeightMeasure($measureId)) {
-                $ids[$grSysid] = $grSysid;
-                $ids[$kgSysid] = $kgSysid;
-            } else {
-                if (!empty($ids[$grSysid])) {
-                    $ids[$kgSysid] = $kgSysid;
-                } elseif (!empty($ids[$kgSysid])) {
-                    $ids[$grSysid] = $grSysid;
-                }
+                $grSysid = cat_Params::fetchIdBySysId('weight');
+                $kgSysid = cat_Params::fetchIdBySysId('weightKg');
+                $notIn[$grSysid] = $grSysid;
+                $notIn[$kgSysid] = $kgSysid;
             }
         } elseif($classId == $taskClassId || $classId == $bomClassId){
             $productField = ($classId == $taskClassId) ? 'productId' : 'resourceId';
@@ -405,7 +398,7 @@ class cat_products_Params extends doc_Detail
                 }
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                if ($data->noChange !== true && !Mode::isReadOnly()) {
+                if (empty($data->noChange) && !Mode::isReadOnly()) {
                     $minRowToolbar = $data->minRowToolbar ?? null;
                     $row->tools = $row->_rowTools->renderHtml($minRowToolbar);
                 } else {
@@ -447,7 +440,8 @@ class cat_products_Params extends doc_Detail
             $query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
             $query->where("#showInPublicDocuments = 'yes'");
         }
-        
+
+        $data->params = array();
         while ($rec = $query->fetch()) {
             $data->params[$rec->id] = static::recToVerbal($rec);
             $data->params[$rec->id]->_paramId = $rec->paramId;
@@ -522,7 +516,7 @@ class cat_products_Params extends doc_Detail
      */
     public static function renderParams($data)
     {
-        if ($data->addUrl && !Mode::isReadOnly()) {
+        if (isset($data->addUrl) && !Mode::isReadOnly()) {
             $data->changeBtn = ht::createLink('<img src=' . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, false, 'title=Добавяне на нов параметър');
         }
         
@@ -838,7 +832,7 @@ class cat_products_Params extends doc_Detail
         }
 
         // Синхронизиране
-        $synced = arr::syncArrays($newRecs, $exRecs, 'classId,objectId,paramId', 'paramValue');
+        $synced = arr::syncArrays($newRecs, $exRecs, 'classId,productId,paramId', 'paramValue');
         if (countR($synced['insert'])) {
             static::saveArray($synced['insert']);
         }
@@ -865,8 +859,10 @@ class cat_products_Params extends doc_Detail
     public static function saveParams($class, $rec, $paramField = '_params')
     {
         $params = array();
-        foreach ($rec->{$paramField} as $k => $o) {
-            $params[$o->paramId] = $rec->{$k};
+        if(is_array($rec->{$paramField})){
+            foreach ($rec->{$paramField} as $k => $o) {
+                $params[$o->paramId] = $rec->{$k};
+            }
         }
 
         static::syncParams($class, $rec->id, $params);
@@ -890,7 +886,7 @@ class cat_products_Params extends doc_Detail
             if(!in_array($objectRec->state, array('draft', 'active'))){
                 $d->noChange = true;
             }
-        } elseif ($objectRec->state == 'closed' || $objectRec->state == 'stopped' || $objectRec->state == 'rejected') {
+        } elseif (in_array($objectRec->state, array('closed', 'stopped', 'rejected'))) {
             $d->noChange = true;
         }
         cat_products_Params::prepareParams($d);
@@ -910,7 +906,7 @@ class cat_products_Params extends doc_Detail
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         if($filter = $data->listFilter->rec){
-            if(isset($filter->paramId)){
+            if(!empty($filter->paramId)){
                 $data->query->where("#paramId = {$filter->paramId}");
             }
         }

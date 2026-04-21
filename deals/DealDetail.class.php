@@ -87,7 +87,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function getDealDetailFields(&$mvc)
     {
-        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance|batch');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance|batch');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,input=hidden');
         
         // Количество в основна мярка
@@ -101,7 +101,7 @@ abstract class deals_DealDetail extends doc_Detail
         $mvc->FLD('price', 'double', 'caption=Цена,input=none');
 
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
-        $mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,smartCenter');
+        $mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,smartCenter,silent');
         $mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
@@ -272,6 +272,10 @@ abstract class deals_DealDetail extends doc_Detail
             
             $mvc->currentTab = 'Нишка';
             plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
+        }
+        // Ако има зададен артикул, няма да излиза падащо меню за избиране
+        if(empty($rec->productId)){
+            $mvc->setFieldTypeParams('productId', array('forceOpen' => 'forceOpen'));
         }
     }
     

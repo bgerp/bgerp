@@ -5087,7 +5087,7 @@ iframe.autoHeight {
 .narrow-scroll .main-container {
   display: block; }
 
-.listBlock:has(.single-thread) {
+.listBlock {
   display: table; }
 
 .listBlock .listRows {
