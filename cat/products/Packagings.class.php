@@ -1070,7 +1070,7 @@ class cat_products_Packagings extends core_Detail
                         }
                     }
                 } else {
-                    wp($dArr, $data);
+                    wp('Няма отговор', $dArr, $data);
                 }
             }
         }
