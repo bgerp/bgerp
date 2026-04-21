@@ -18,7 +18,7 @@ class cat_RelationTypes extends core_Manager
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Created, plg_SaveAndNew, plg_StructureAndOrder, plg_Modified';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, plg_Created, plg_SaveAndNew, plg_StructureAndOrder, plg_Modified, plg_State2';
 
 
     /**
@@ -54,7 +54,7 @@ class cat_RelationTypes extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, group1Name=Първо, group2Name=Второ, isSymmetric=Симетр., saoOrder=Подредба, modifiedOn, modifiedBy, createdOn, createdBy';
+    public $listFields = 'title, group1Name=Първо, group2Name=Второ, isSymmetric=Симетр., saoOrder=Подредба, state, modifiedOn, modifiedBy';
 
 
     /**
@@ -171,7 +171,6 @@ class cat_RelationTypes extends core_Manager
             $row->group2Info = $mvc->getFieldType('group2Info')->toVerbal($rec->group2Info);
             $row->group2Name .= "<hr style='margin-bottom:2px;'><div class='richtext small'>{$row->group2Info}</div>";
         }
-        $row->ROW_ATTR['class'] = "state-active";
     }
 
 
@@ -260,5 +259,26 @@ class cat_RelationTypes extends core_Manager
         $rel2 = ht::createHint($rel2, "Група|*: " . cat_Groups::getTitleById($rec->group2GroupId), 'notice', false);
 
         return  "{$rel1} ⬌ {$rel2}";
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * Забранява изтриването на вече използвани сметки
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'delete' && isset($rec)) {
+            if(cat_products_Relations::count("#relTypeId = {$rec->id}")) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }
