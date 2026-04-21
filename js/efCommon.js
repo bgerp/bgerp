@@ -6657,14 +6657,8 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
 
 
 
-
-/**
- * smartresize - намалява събитията на on resize
- */
 (function ($, sr) {
 
-    // debouncing function from John Hann
-    // http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
     var debounce = function (func, threshold, execAsap) {
         var timeout;
 
@@ -6684,10 +6678,29 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
 
             timeout = setTimeout(delayed, threshold || 100);
         };
-    }
-    // smartresize
+    };
+
+    let lastZoom = window.devicePixelRatio;
+
     jQuery.fn[sr] = function (fn) {
-        return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr);
+        if (!fn) return this.trigger(sr);
+
+        const handler = debounce(function (e) {
+            fn.call(this, e);
+        });
+
+        // resize
+        this.on('resize', handler);
+
+        // zoom detection
+        window.addEventListener('resize', function () {
+            if (window.devicePixelRatio !== lastZoom) {
+                lastZoom = window.devicePixelRatio;
+                handler();
+            }
+        });
+
+        return this;
     };
 
 })(jQuery, 'smartresize');
