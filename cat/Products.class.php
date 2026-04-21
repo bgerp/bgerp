@@ -3051,7 +3051,7 @@ class cat_Products extends embed_Manager
             if(!empty($data->rec->originId)){
                 $quantity = marketing_Inquiries2::fetchField("#containerId = {$data->rec->originId}", 'quantity1');
                 if(!empty($quantity)){
-                    $saleUrlArr['quantity'] = $quantity;
+                    $saleUrlArr['packQuantity'] = $quantity;
                 }
             }
             $data->toolbar->addBtn('Продажба', $saleUrlArr, 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба,warning=Наистина ли искате да създадете нова продажба|*?');
@@ -4973,7 +4973,7 @@ class cat_Products extends embed_Manager
                     if(!empty($data->form->rec->originId)){ 
                         $quantity = marketing_Inquiries2::fetchField("#containerId = {$data->form->rec->originId}", 'quantity1');
                         if(!empty($quantity)){
-                            $saleRetUrl['quantity'] = $quantity;
+                            $saleRetUrl['packQuantity'] = $quantity;
                         }
                     }
                     $data->retUrl = $saleRetUrl; 
