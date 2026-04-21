@@ -105,7 +105,7 @@ class type_Class extends type_Key
     public function renderInput_($name, $value = '', &$attr = array())
     {
         if (!$value) {
-            $value = $attr['value'];
+            $value = $attr['value'] ?? null;
         }
         
         if (!is_numeric($value)) {

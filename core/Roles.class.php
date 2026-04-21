@@ -150,8 +150,9 @@ class core_Roles extends core_Manager
             self::$rolesArr = core_Cache::get('core_Roles', 'allRoles', 1440, array('core_Roles'));
             
             if (!self::$rolesArr) {
+                self::$rolesArr = [];
                 $query = static::getQuery();
-                
+
                 while ($rec = $query->fetch()) {
                     if ($rec->role) {
                         self::$rolesArr[$rec->role] = $rec->id;
@@ -269,7 +270,8 @@ class core_Roles extends core_Manager
         }
         
         $roleQuery->orderBy('orderByRole=ASC');
-        
+
+        $res = [];
         while ($roleRec = $roleQuery->fetch("#type = '{$type}'")) {
             $res[$roleRec->id] = $roleRec->id;
         }
@@ -430,7 +432,8 @@ class core_Roles extends core_Manager
     {
         $rolesInputArr = keylist::toArray($rec->inheritInput);
         $rolesArr = keylist::toArray($rec->inherit);
-        
+        $addRoles = '';
+
         foreach ($rolesArr as $roleId) {
             if (!$rolesInputArr[$roleId]) {
                 $addRoles .= ($addRoles ? ', ' : '') . $mvc->getVerbal($roleId, 'role');
@@ -451,14 +454,15 @@ class core_Roles extends core_Manager
     public static function rebuildRoles()
     {
         $i = 0;
-        
+        $ind = 0;
+
         $maxI = self::count() + 1;
-        
+
         $Roles = cls::get('core_Roles');
-        
+
         do {
             $haveChanges = false;
-            
+
             expect($i++ <= $maxI);
             
             $query = self::getQuery();
@@ -477,7 +481,7 @@ class core_Roles extends core_Manager
             }
         } while ($haveChanges);
         
-        return "<li> Преизчислени са ${ind} индиректни роли</li>";
+        return "<li> Преизчислени са {$ind} индиректни роли</li>";
     }
     
     

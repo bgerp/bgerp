@@ -91,6 +91,7 @@ class core_Tabs extends core_BaseClass
         }
         
         // Изчисляване сумата от символите на всички табове
+        $sumLen = 0;
         foreach ($this->captions as $tab => $caption) {
             $sumLen += mb_strlen(strip_tags(trim($caption))) + 1;
         }
@@ -178,7 +179,7 @@ class core_Tabs extends core_BaseClass
         if ($this->htmlId) {
             $idAttr .= " id=\"head-{$this->htmlId}\"";
         }
-        if($this->htmlIdClass){
+        if($this->htmlIdClass ?? null){
             $idAttr .= " class='{$this->htmlIdClass}'";
         }
  

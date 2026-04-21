@@ -210,11 +210,11 @@ class plg_Clone extends core_Plugin
         if ($rec && $requiredRoles != 'no_one') {
             
             // Ако записа е на системен потребител
-            if ($rec->createdBy == core_Users::SYSTEM_USER) {
+            if (($rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
                 if ($action == 'edit') {
                     $requiredRoles = $mvc->getRequiredRoles('editsysdata', $rec, $userId);
                 }
-                
+
                 if ($action == 'delete') {
                     $requiredRoles = $mvc->getRequiredRoles('deletesysdata', $rec, $userId);
                 }
