@@ -366,7 +366,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
 
             $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,sales');
-            $defaultOverheadCost = $bomRec->expenses;
+            $defaultOverheadCost = $bomRec->expenses ?? null;
             if(!isset($defaultOverheadCost)){
                 if($defaultOverheadCostArr = cat_Products::getDefaultOverheadCost($rec->productId)){
                     $defaultOverheadCost = $defaultOverheadCostArr['overheadCost'];
@@ -504,7 +504,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = &$form->rec;
 
         if ($form->isSubmitted()) {
-
             if($form->getField('inputStoreId')->input != 'none'){
                 if(empty($rec->inputStoreId)){
                     if(!planning_ConsumptionNotes::existActivatedInThread($rec->threadId)){
@@ -537,26 +536,29 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $rec->dealId = null;
             }
 
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->quantityInPack = isset($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
 
             // Ако има въведена втора мярка
             if(!empty($rec->additionalMeasureId) && !empty($rec->additionalMeasureQuantity)){
-                $measureDerivities = cat_Uom::getSameTypeMeasures($productInfo->productRec->measureId);
+                $measureDerivities = cat_UoM::getSameTypeMeasures($productInfo->productRec->measureId);
                 $secondMeasureType = cat_UoM::fetchField($rec->additionalMeasureId, 'type');
 
                 // Ако втората мярка е производна на основната, обръща се в основната
                 if(array_key_exists($rec->additionalMeasureId, $measureDerivities)){
-                    $additionalMeasureQuantity = cat_Uom::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $productInfo->productRec->measureId);
+                    $additionalMeasureQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $productInfo->productRec->measureId);
                     $rec->quantityInPack = $additionalMeasureQuantity / $rec->packQuantity;
                 } elseif($secondMeasureType == 'packaging'){
                     $origin = doc_Containers::getDocument($rec->originId);
                     $originRec = $origin->fetch();
 
                     // Ако втората мярка е опаковка, смята се колко е в основната мярка
-                    $quantityInPack = ($productInfo->packagings[$rec->additionalMeasureId]) ? $productInfo->packagings[$rec->additionalMeasureId]->quantity : 1;
+                    $quantityInPack = isset($productInfo->packagings[$rec->additionalMeasureId])
+                        ? $productInfo->packagings[$rec->additionalMeasureId]->quantity
+                        : 1;
+
                     if($origin->isInstanceOf('planning_Tasks')){
                         if($originRec->labelPackagingId == $rec->additionalMeasureId){
-                            $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId, $originRec->id);
+                            $quantityInPack = $originRec->labelQuantityInPack ?? planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId, $originRec->id);
                         }
                     }
 
@@ -1011,12 +1013,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         // Ако артикула има активна рецепта
-        $bomId = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')->id;
+        $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales');
 
         // Ако ням рецепта, не могат да се определят дефолт детайли за влагане
-        if (!$bomId) return $details;
+        if (empty($bomRec)) return $details;
 
         // К-ко е произведено до сега и колко ще произвеждаме
+        $bomId = $bomRec->id;
         $quantityProduced = $originRec->quantityProduced;
         $quantityToProduce = $rec->quantity + $quantityProduced;
 
@@ -1070,7 +1073,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     protected static function on_AfterCreate($mvc, $rec)
     {
         // Ако записа е клониран не правим нищо
-        if ($rec->_isClone === true) return;
+        if (isset($rec->_isClone) && $rec->_isClone === true) return;
         $rec->_isCreated = true;
 
         $details = $mvc->getDefaultDetails($rec);
@@ -1087,7 +1090,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                     // Ако са материали за влагане склада е посочения за влагане от
                     if($dRec->type == 'input') {
-                        if(isset($rec->inputStoreId) && $dRec->_realData !== true){
+                        if (isset($rec->inputStoreId) && (!isset($dRec->_realData) || $dRec->_realData !== true)) {
                             if (cat_Products::fetchField($dRec->productId, 'canStore') == 'yes') {
                                 $dRec->storeId = $rec->inputStoreId;
                             }
@@ -1100,7 +1103,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     }
                 }
 
-                if($dRec->_realData === true){
+                if (isset($dRec->_realData) && $dRec->_realData === true) {
                     $dRec->autoAllocate = false;
                     $dRec->_clonedWithBatches = true;
                 }
@@ -1166,7 +1169,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         // Ако за артикула има произведени партиди в другите операции да се прехвърлят
-        if(empty($rec->batch) && $rec->_isCreated){
+        if(empty($rec->batch) && !empty($rec->_isCreated)){
             if(core_Packs::isInstalled('batch')){
                 $jobRec = static::getJobRec($rec->id);
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
@@ -1189,7 +1192,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $dQuery = $Details->getQuery();
             $dQuery->where("#noteId = {$rec->id} AND #quantityFromBom IS NOT NULL");
             while($dRec = $dQuery->fetch()){
-                if(!$rec->_isCreated){
+                if(empty($rec->_isCreated)){
                     $singleQuantity = $dRec->quantityFromBom / $rec->_exQuantity;
                     $measureId = $dRec->measureId ?? $dRec->packagingId;
                     $round = cat_UoM::fetchField($measureId, 'round');
@@ -1205,7 +1208,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 core_Statuses::newStatus("След промяна на количеството е преизчислено очакваното по рецепта!");
 
                 foreach ($save as $sRec){
-                    if($sRec->_reAlocateBatches){
+                    if(!empty($sRec->_reAlocateBatches)){
                         batch_BatchesInDocuments::delete("#detailClassId = {$Details->getClassId()} AND #detailRecId = {$sRec->id}");
                         batch_plg_DocumentMovementDetail::autoAllocate($Details, $sRec);
                     }
@@ -1341,7 +1344,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             if(round($rec->debitAmount, 2) < round($subtractAmount, 2)){
                 $subProductAmountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($subtractAmount);
-                $form->setWarning('debitAmount', "Въведената сб-ст е по-малка от сумата на сб-стите на отпадъците и субпродуктите|*: <b>{$subProductAmountVerbal}</b>");
+                $form->setWarning('debitPrice', "Въведената сб-ст е по-малка от сумата на сб-стите на отпадъците и субпродуктите|*: <b>{$subProductAmountVerbal}</b>");
             }
 
             if(!$form->gotErrors()){
@@ -1523,7 +1526,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec->originId = $jRec->containerId;
         $rec->threadId = $jRec->threadId;
         $rec->productId = $productId;
-        expect($productRec->canManifacture = 'yes', 'Артикулът не е производим');
+        expect($productRec->canManifacture == 'yes', 'Артикулът не е производим');
 
         $Double = cls::get('type_Double');
         expect($rec->quantity = $Double->fromVerbal($quantity));
@@ -1532,7 +1535,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             expect(store_Stores::fetch($fields['storeId']), "Несъществуващ склад {$fields['storeId']}");
             $rec->storeId = $fields['storeId'];
         } else {
-            if ($rec->canConvert == 'yes') {
+            if ($productRec->canConvert == 'yes') {
                 $rec->expenseItemId = acc_CostAllocations::getUnallocatedItemId();
             } else {
                 expect($fields['expenseItemId'], 'Няма разходен обект');
@@ -1587,7 +1590,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * @param array    $batch          - партида
      * @return void
      */
-    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null, $isSubProduct = false, $batches)
+    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null, $isSubProduct = false, $batches = array())
     {
         // Проверки на параметрите
         expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
@@ -1961,7 +1964,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = static::fetchRec($id);
         $journalRec = acc_Journal::fetchByDoc(get_called_class(), $rec->id);
         $jQuery = acc_JournalDetails::getQuery();
-        $jQuery->where("#journalId = {$journalRec->id}");
+        $journalId = $journalRec->id ?? null;
+        $jQuery->where("#journalId = '{$journalId}");
 
         $productItemId = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
         $debitAccArr = array(acc_Accounts::getRecBySystemId(321)->id, acc_Accounts::getRecBySystemId(60201)->id);
