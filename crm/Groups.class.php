@@ -574,7 +574,7 @@ class crm_Groups extends core_Master
         $name = trim($name ?? '');
         if($name === '') return null;
 
-        $res = $groups[$parentIdNumb][$name];
+        $res = $groups[$parentIdNumb][$name] ?? null;
         if (empty($res)) {
             if (strpos($name, '»') !== false) {
                 $gArr = explode('»', $name);
