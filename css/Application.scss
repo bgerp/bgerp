@@ -5852,6 +5852,10 @@ iframe.autoHeight {
 	display: block;
 }
 
+.listBlock{
+	display: table;
+}
+
 .listBlock .listRows {
 	overflow-x: auto;
 }
