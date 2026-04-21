@@ -699,7 +699,7 @@ class core_Manager extends core_Mvc
                 $Type = $data->listFilter->getField($name);
                 $options = array();
 
-                if (in_array($Type->input, array('hidden', 'none')) || $Type->alwaysShowInListFilter) continue;
+                if (in_array($Type->input, array('hidden', 'none')) || ($Type->alwaysShowInListFilter ?? null)) continue;
 
                 try {
                     // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
@@ -756,14 +756,14 @@ class core_Manager extends core_Mvc
         if ($data->query) {
             
             // Ако няма обощени
-            if (!$data->listSummary) {
+            if (!($data->listSummary ?? null)) {
                 
                 // Създаваме обекта
                 $data->listSummary = new stdClass();
             }
             
             // Ако няма заявка за резюме
-            if (!$data->listSummary->query) {
+            if (!($data->listSummary->query ?? null)) {
                 
                 // Клонираме заявката
                 $data->listSummary->query = clone $data->query;
@@ -1017,7 +1017,7 @@ class core_Manager extends core_Mvc
         
         // Попълваме таблицата с редовете
         setIfNot($data->listTableMvc, clone $this);
-        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty ?? null, true);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме долния тулбар
@@ -1055,7 +1055,7 @@ class core_Manager extends core_Mvc
             </div>
           ");
         
-        if ($data->listScroll) {
+        if ($data->listScroll ?? null) {
             $listLayout->replace('narrow-scroll', 'NARROWSCROLL');
         }
         jquery_Jquery::run( $listLayout, 'toggleListFilter();', true);
@@ -1117,7 +1117,7 @@ class core_Manager extends core_Mvc
         $listFilter->showFields = isset($listFilter->showFields) ? arr::make($listFilter->showFields, true) : array();
 
         if (countR($listFilter->showFields)) {
-            if($listFilter->hide === true) return new core_ET("");
+            if(($listFilter->hide ?? null) === true) return new core_ET("");
 
             $tpl = new ET("<div class='listFilter'>[#1#]</div>", $listFilter->renderHtml(null, $listFilter->rec));
             core_Form::preventDoubleSubmission($tpl, $listFilter);
@@ -1259,7 +1259,7 @@ class core_Manager extends core_Mvc
         $className = get_called_class();
         $self = cls::get($className);
 
-        $id = is_object($rec) ? $rec->id : $rec;
+        $id = is_object($rec) ? ($rec->id ?? null) : $rec;
         // Ако нямаме зададен потребите - приемаме, че въпроса се отнася за текущия
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();

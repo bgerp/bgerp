@@ -47,7 +47,7 @@ class core_TableView extends core_BaseClass
      */
     protected function getColWithClass($rows)
     {
-        return (array) $this->mvc->rowToolsColumn;
+        return (array) ($this->mvc->rowToolsColumn ?? null);
     }
     
     
@@ -368,7 +368,7 @@ class core_TableView extends core_BaseClass
                 if (!empty($r['TBODY_ROW_ATTR']) && is_array($r['TBODY_ROW_ATTR'])) {
                     $tBodyAttr = '';
                     foreach ($r['TBODY_ROW_ATTR'] as $attrName => $attrValue) {
-                        $tBodyAttr .= " ${attrName}=\"{$attrValue}\"";
+                        $tBodyAttr .= " {$attrName}=\"{$attrValue}\"";
                     }
                     $rowTpl->replace($tBodyAttr, 'TBODY_ROW_ATTR', false, false);
                 }
@@ -379,7 +379,7 @@ class core_TableView extends core_BaseClass
                     
                     
                     foreach ($r['ROW_ATTR'] as $attrName => $attrValue) {
-                        $attrs .= " ${attrName}=\"{$attrValue}\"";
+                        $attrs .= " {$attrName}=\"{$attrValue}\"";
                     }
                     
                     if (!empty($this->mvc->commonRowClass)) {
@@ -387,7 +387,7 @@ class core_TableView extends core_BaseClass
                     }
                     
                     foreach ($r['ROW_ATTR'] as $attrName => $attrValue) {
-                        $attrs1 .= " ${attrName}=\"{$attrValue}\"";
+                        $attrs1 .= " {$attrName}=\"{$attrValue}\"";
                     }
                     
                     $rowTpl->replace($attrs, 'ROW_ATTR', false, false);

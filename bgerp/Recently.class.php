@@ -158,7 +158,7 @@ class bgerp_Recently extends core_Manager
     {
         $query = self::getQuery();
         
-        $query->where("#type = '{$type}'  AND #objectId = ${objectId}");
+        $query->where("#type = '{$type}'  AND #objectId = {$objectId}");
         
         if ($userId) {
             $query->where("#userId = '{$userId}'");
@@ -188,7 +188,7 @@ class bgerp_Recently extends core_Manager
                 
                 $attr = array();
                 if ($folderRec->last > $mvc->getLastFolderSee($folderRec->id, null, false)) {
-                    $attr['class'] .= " tUnsighted";
+                    $attr['class'] = ($attr['class'] ?? '') . " tUnsighted";
                 }
                 
                 $row->title = doc_Folders::getFolderTitle($folderRec, null, $attr);
@@ -383,7 +383,7 @@ class bgerp_Recently extends core_Manager
         
         // Намираме времето на последния запис
         $query = $Recently->getQuery();
-        $query->where("#userId = ${userId}");
+        $query->where("#userId = {$userId}");
         $query->limit(1);
         $query->orderBy('#last', 'DESC');
         $lastRec = $query->fetch();

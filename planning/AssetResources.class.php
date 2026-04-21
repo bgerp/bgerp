@@ -402,7 +402,7 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_CalcShortName($mvc, &$rec)
     {
-        if (!$rec->shortName) {
+        if (!($rec->shortName ?? null)) {
             $rec->shortName = '[' . $rec->code . '] ' . $rec->name;
         }
     }

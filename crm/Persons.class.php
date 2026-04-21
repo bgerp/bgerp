@@ -552,10 +552,10 @@ class crm_Persons extends core_Master
     public static function addNewPersonBtn2Toolbar(core_Toolbar &$toolbar, core_Form $listFilter)
     {
         $addPersonUrl = array('crm_Persons', 'add', 'ret_url' => true);
-        if ($groupId = $listFilter->rec->groupId) {
+        if ($groupId = ($listFilter->rec->groupId ?? null)) {
             $addPersonUrl["groupList"] = $groupId;
         }
-        $searchString = $listFilter->rec->search;
+        $searchString = $listFilter->rec->search ?? null;
 
         // Ако има въведен стринг за търсене
         if (!empty($searchString)) {

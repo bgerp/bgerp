@@ -221,10 +221,7 @@ class crm_Groups extends core_Master
      */
     public static function updateGroupsCnt($clsName, $fieldName)
     {
-        if (!$clsName) {
-            
-            return ;
-        }
+        if (empty($clsName)) return; 
 
         $query = $clsName::getQuery();
         $query->where("#state != 'rejected'");
@@ -236,7 +233,7 @@ class crm_Groups extends core_Master
         
         foreach ($gCntArr as $gId => $cCnt) {
             $gRec = crm_Groups::fetch($gId);
-            if ($gRec->parentId) {
+            if (isset($gRec->parentId)) {
                 $gCntArr[$gRec->parentId] -= $cCnt;
             }
         }
@@ -310,8 +307,10 @@ class crm_Groups extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($rec->sysId || $rec->companiesCnt || $rec->personsCnt) && $action == 'delete') {
-            $requiredRoles = 'no_one';
+        if(!empty($rec)){
+            if (($rec->sysId || $rec->companiesCnt || $rec->personsCnt) && $action == 'delete') {
+                $requiredRoles = 'no_one';
+            }
         }
         
         if ($rec) {
@@ -571,9 +570,13 @@ class crm_Groups extends core_Master
     {
         static $groups = array();
         $parentIdNumb = (int) $parentId;
-        
-        if (!($res = $groups[$parentIdNumb][$name])) {
-            if (strpos($name, '»')) {
+
+        $name = trim($name ?? '');
+        if($name === '') return null;
+
+        $res = $groups[$parentIdNumb][$name] ?? null;
+        if (empty($res)) {
+            if (strpos($name, '»') !== false) {
                 $gArr = explode('»', $name);
                 foreach ($gArr as $gName) {
                     $gName = trim($gName);
@@ -769,6 +772,7 @@ class crm_Groups extends core_Master
      */
     public function getPersonalizationDescr($id)
     {
+        if(strpos($id, '_') === false) return array();
         list(, $p) = explode('_', $id);
         
         $filedsArr = (array) $this->getFieldsFor($p);

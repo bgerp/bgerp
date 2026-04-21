@@ -20,7 +20,7 @@ class plg_HighlightListSearch extends core_Plugin
     public function on_AfterRenderList($mvc, $res, $data)
     {
         // Име на полето по което се търси
-        $field = $mvc->searchFilterField ? $mvc->searchFilterField : 'search';
+        $field = ($mvc->searchFilterField ?? null) ?: 'search';
         
         // Оцветяваме ако има търсене
         if ($q = Request::get($field)) {

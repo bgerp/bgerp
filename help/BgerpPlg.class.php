@@ -55,7 +55,7 @@ class help_BgerpPlg extends core_Plugin
     public static function on_AfterRenderWrapping($mvc, &$res, $tpl, $data = null)
     {
         // Ако е зададено да не се показва
-        if (!$data || !$data->__needHelp) {
+        if (!$data || !($data->__needHelp ?? null)) {
             
             return ;
         }

@@ -547,11 +547,11 @@ class crm_Companies extends core_Master
     public static function addNewCompanyBtn2Toolbar(core_Toolbar &$toolbar,core_Form $listFilter)
     {
         $addCompanyUrl = array('crm_Companies', 'add');
-        if($groupId = $listFilter->rec->groupId){
+        if($groupId = ($listFilter->rec->groupId ?? null)){
             $addCompanyUrl["groupList"] = $groupId;
         }
         
-        $searchString = $listFilter->rec->search;
+        $searchString = $listFilter->rec->search ?? null;
         
         // Ако има въведен стринг за търсене
         if(!empty($searchString)){

@@ -811,7 +811,6 @@ class cal_Reminders extends core_Master
         $query = self::getQuery();
         $query->where("( #state = 'active' ) 
                         AND ( #notifyCnt IS NOT NULL AND #nextStartTime IS NOT NULL )
-                        AND ( #nextStartTime <= '{$now}' )
                         AND ( if(#timeStart, #timeStart, #calcTimeStart) >= '{$now}' )
                         AND ( #nextStartTime <> #timeStart AND #nextStartTime <> #calcTimeStart )");
 

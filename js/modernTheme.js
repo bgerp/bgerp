@@ -38,8 +38,10 @@ function initElements() {
     // отваря менютата, спрямо ширината (ако няма инфо в бисквитката)
 	if(cookie == null && viewportWidth > 1280 && !isTouchDevice()) {
 		$('.btn-menu-left ').click();
+		setMaxWidth();
 		if(viewportWidth > 1604){
 			$('.btn-menu-right ').click();
+			setMaxWidth();
 		}
 	}
 
@@ -48,9 +50,11 @@ function initElements() {
 		if(cookie.indexOf('l') != "-1" && !$('.sidemenu-left').hasClass('sidemenu-open')) {
 			openSubmenus();
 			$('.btn-menu-left ').click();
+			setMaxWidth();
 		}
 		if(cookie.indexOf('r') != "-1" && !$('.sidemenu-right').hasClass('sidemenu-open')) {
 			$('.btn-menu-right ').click();
+			setMaxWidth();
 		}
 	}
 
@@ -68,7 +72,7 @@ function initElements() {
 		}
 	} else {
 		$(window).smartresize(function(){
-			setMaxWidth(viewportWidth);
+			setMaxWidth();
         });
 	}
 
@@ -108,8 +112,9 @@ function setMaxWidth() {
 	if ($('body').hasClass('narrow')) {
 		$('.folder-cover .scrolling-holder').css('max-width', viewportWidth - 45);
 	} else {
-		var profileWidth = $('.wide-profile-info').width() ? $('.wide-profile-info').width() : 0;
-		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').width() - 64 - profileWidth;
+		if($('.single-thread .listTable').length) return;
+		$('.listBlock').css({'display': 'table'});
+		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').outerWidth() - 30;
 		if(contentWidth < $('.listTable').first().width()){
 			$('#packWrapper').width(contentWidth);
 			$('.listBlock').css({

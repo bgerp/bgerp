@@ -3045,16 +3045,16 @@ class cat_Products extends embed_Manager
                 $data->toolbar->addBtn('Нова партидност', array('batch_Defs', 'add', 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/wooden-box.png,title=Добавяне на партидност,row=2');
             }
         }
-
+        
         if(sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))) {
+            $saleUrlArr =  array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true);
             if(!empty($data->rec->originId)){
                 $quantity = marketing_Inquiries2::fetchField("#containerId = {$data->rec->originId}", 'quantity1');
                 if(!empty($quantity)){
-                    $data->toolbar->addBtn('Продажба', array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'quantity' => $quantity, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба,warning=Наистина ли искате да създадете нова продажба|*?');
+                    $saleUrlArr['packQuantity'] = $quantity;
                 }
-            } else{
-                $data->toolbar->addBtn('Продажба', array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба,warning=Наистина ли искате да създадете нова продажба|*?');
             }
+            $data->toolbar->addBtn('Продажба', $saleUrlArr, 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба,warning=Наистина ли искате да създадете нова продажба|*?');
         }
     }
     
@@ -4968,15 +4968,15 @@ class cat_Products extends embed_Manager
     {
         if ($data->form->cmd == 'saveandsale') {
            if(isset($id)){
-                if(!empty($data->form->rec->originId)){ 
-                $quantity = marketing_Inquiries2::fetchField("#containerId = {$data->form->rec->originId}", 'quantity1');
-                if(!empty($quantity)){
-                    if(sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->form->rec->folderId, 'productId' => $data->form->rec->id))){
-                        $data->retUrl = array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->form->rec->folderId, 'productId' => $data->form->rec->id, 'quantity' => $quantity);
+                if(sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->form->rec->folderId, 'productId' => $data->form->rec->id))){
+                    $saleRetUrl = array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->form->rec->folderId, 'productId' => $data->form->rec->id);
+                    if(!empty($data->form->rec->originId)){ 
+                        $quantity = marketing_Inquiries2::fetchField("#containerId = {$data->form->rec->originId}", 'quantity1');
+                        if(!empty($quantity)){
+                            $saleRetUrl['packQuantity'] = $quantity;
+                        }
                     }
-                }
-                }else {
-                    $data->retUrl = array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->form->rec->folderId, 'productId' => $data->form->rec->id);
+                    $data->retUrl = $saleRetUrl; 
                 }
             }
         }

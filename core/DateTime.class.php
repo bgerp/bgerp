@@ -412,7 +412,7 @@ class core_DateTime
             $title = dt::mysql2verbal($mysqlDate, 'd.m.Y H:i:s (l)', $lg, false, false);
             $title = "  title='{$title}'";
             
-            $verbDate = "<span class='timeSpan' style=\"color:#{$color}\" ${title}>{$verbDate}</span>";
+            $verbDate = "<span class='timeSpan' style=\"color:#{$color}\" {$title}>{$verbDate}</span>";
         }
         
         if ($callRecursive && $timeZoneDiff &&
@@ -492,6 +492,8 @@ class core_DateTime
             $baseDatetime = self::now(true, true);
         }
         
+        if (!$datetime) return '';
+
         $dist = strtotime($baseDatetime) - strtotime($datetime);
 
         $color = '';
@@ -861,7 +863,7 @@ class core_DateTime
         $rc = $r4 + $r5;
         
         // Православния Великден за тази година се пада $rc дни след 3-ти Април
-        return strtotime("3 April ${year} + ${rc} days");
+        return strtotime("3 April {$year} + {$rc} days");
     }
     
     

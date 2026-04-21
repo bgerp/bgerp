@@ -120,7 +120,7 @@ class type_Users extends type_Keylist
             $this->options = array();
             
             $removeClosedGroups = true;
-            if ($this->params['showClosedGroups']) {
+            if ($this->params['showClosedGroups'] ?? null) {
                 $removeClosedGroups = false;
             }
 
@@ -225,7 +225,8 @@ class type_Users extends type_Keylist
             $userArr = core_Users::getRolesWithUsers();
             
             $cuRecArr = array();
-            
+            $rejected = '';
+
             foreach ($teams as $t) {
                 $group = new stdClass();
                 $tRole = core_Roles::fetchById($t);

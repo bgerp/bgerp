@@ -338,8 +338,9 @@ class core_Debug
     {
         // Ако сме в работен, а не тестов режим, не показваме прекъсването
         if (!isDebug()) {
-            error_log("Breakpoint on line ${breakLine} in ${breakFile}");
-            
+            list(, $breakFile, $breakLine) = self::analyzeStack($stack);
+            error_log("Breakpoint on line {$breakLine} in {$breakFile}");
+
             return;
         }
         
@@ -567,7 +568,7 @@ class core_Debug
             if ($i + 1 == $line) {
                 $style = " class='debugErrLine' style='background-color:#ff9;'";
             }
-            $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>${l}</span> ".
+            $l = "<span{$style}><span style='border-right:solid 1px #999;padding-right:5px;'>{$l}</span> ".
                 str_replace(array('&', '<'), array('&amp', '&lt;'), rtrim($lines[$i])) . "</span>\n";
             $code .= $l;
         }
@@ -782,7 +783,11 @@ class core_Debug
      * Рендира страница за грешка
      */
     private static function getErrorPage(&$state)
-    { print_r($state); die;
+    {
+        // @TODO - remove
+        print_r($state);
+        die;
+
         $tpl = new core_NT(getFileContent('core/tpl/Error.shtml'));
         if (isset($state['errTitle']) && $state['errTitle'][0] == '@') {
             $state['errTitle'] = $state['httpStatusMsgBg'];
@@ -803,7 +808,7 @@ class core_Debug
             $bName = basename($state['_debugFileName'], '.debug');
             $state['signal'] = log_Debug::getReportLink($bName, 'Сигнал', 'img/16/headset.png', 'signalLink');
         }
-        
+
         $page = $tpl->render($state);
         
         return $page;
