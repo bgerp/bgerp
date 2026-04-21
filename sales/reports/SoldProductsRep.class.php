@@ -1547,15 +1547,24 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     public static function dcNoteCorrection($dcRec, $rec)
     {
+
+       // bp($dcRec,$rec);
+
+
         $originQuantity = $changeQuatity = $changePrice = $invQuantity = $invAmount = 0;
 
         $res = array();
 
         $originId = doc_Containers::getDocument($dcRec->originId)->that;
 
+
         $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = $originId AND #productId = '$dcRec->productId' AND
-                                                           #packagingId = '$dcRec->packagingId'
+                                                           #packagingId = '$dcRec->packagingId' AND
+                                                           #id = '$dcRec->clonedFromDetailId' 
                                                            AND (#quantity != '$dcRec->quantity' OR #price != '$dcRec->price')");
+
+
+        if(sales_InvoiceDetails::fetch($originId)->clonedFromDetailId) bp(sales_InvoiceDetails::fetch($originId));
 
 
         $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
