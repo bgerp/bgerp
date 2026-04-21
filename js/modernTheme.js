@@ -113,6 +113,7 @@ function setMaxWidth() {
 		$('.folder-cover .scrolling-holder').css('max-width', viewportWidth - 45);
 	} else {
 		if($('.single-thread .listTable').length) return;
+		$('.listBlock').css({'display': 'table'});
 		var contentWidth = viewportWidth - $('.sidemenu-open').length * $('.sidemenu-open').outerWidth() - 30;
 		if(contentWidth < $('.listTable').first().width()){
 			$('#packWrapper').width(contentWidth);
