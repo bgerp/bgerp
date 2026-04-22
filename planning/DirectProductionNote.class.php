@@ -1888,8 +1888,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $errorMsg = "Не може да {$actionStr} протокола, защото е без втора мярка, а заданието вече не позволява";
         }
 
-
-
         return $errorMsg;
     }
 
