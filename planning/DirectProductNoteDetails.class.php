@@ -10,7 +10,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2024 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -251,7 +251,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
 
             if ($form->isSubmitted()) {
-                if($rec->_isStorable && empty($rec->storeId) && $rec->type != 'pop'){
+                if (!empty($rec->_isStorable) && empty($rec->storeId) && $rec->type != 'pop') {
                     if(!planning_ConsumptionNotes::existActivatedInThread($noteRec->threadId, $rec->productId)){
                         $form->setWarning('storeId', "В Заданието(и операциите към него) няма контиран Протокол за влагане с посочения артикул, а е избрано влагане от Незавършено производство! Ако няма предварително (общо) влагане - изберете склад за изписване на материала!");
                     }
@@ -434,7 +434,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
         if($firstDoc->isInstanceOf('planning_Tasks')){
             $firstDocRec = $firstDoc->fetch('isFinal,productId');
-            if($firstDocRec->isFinal == 'no') return new $tpl;
+            if($firstDocRec->isFinal == 'no') return $tpl;
         }
 
         $fieldset = clone $this;
@@ -742,7 +742,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                                           'storeId'        => $subProduct->storeId ?? $noteRec->storeId,
                                           'type'           => 'subProduct',
                                           'productId'      => $subProduct->productId,
-                                          'quantity'       => $subProduct->quantity * $subProduct->quantityInPack,
+                                          'quantity'       => $fRec->{$subProductKey} * $subProduct->quantityInPack,
                                           'quantityInPack' => $subProduct->quantityInPack);
 
                     $this->save($dRec);
@@ -759,7 +759,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $tpl = $this->renderWrapping($form->renderHtml());
 
         // Записваме, че потребителя е разглеждал този списък
-        $this->logRead('Разглеждане на произведени субпродукти', $form->rec->id);
+        $this->logRead('Разглеждане на произведени субпродукти', $noteRec->id);
 
         return $tpl;
     }

@@ -155,7 +155,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $form->setDefault('measureId', $measureId);
             
-            if($form->_replaceProduct !== true){
+            if(empty($form->_replaceProduct)){
                 $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
 
                 // Ако е само една разрешената мярка да се зареди тя
@@ -236,7 +236,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
             $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
         }
     }
-    
+
+
     /**
      * Импортиране на артикул генериран от ред на csv файл
      *

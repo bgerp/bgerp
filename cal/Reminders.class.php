@@ -1351,8 +1351,12 @@ class cal_Reminders extends core_Master
             if ($t > $now) {
                 $Datetime = cls::get('type_Datetime');
                 $Datetime->params['format'] = 'smartTime';
-                $row->notifyOn = $Datetime->toVerbal($t);
 
+                if (($rec->nextStartTime > $now) && ($rec->action == 'notify')) {
+                    $t = $rec->nextStartTime;
+                }
+
+                $row->notifyOn = $Datetime->toVerbal($t);
                 if ($rec->notifyCnt) {
                     $row->notifyOn .= " ({$nCnt} " . tr('от') . " {$row->notifyCnt})";
                 }

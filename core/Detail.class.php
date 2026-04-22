@@ -345,11 +345,11 @@ class core_Detail extends core_Manager
         if ($action == 'write' && isset($rec) && $this->Master instanceof core_Master) {
             expect($masterKey = $this->masterKey);
             
-            if ($rec->{$masterKey}) {
+            if (isset($rec->{$masterKey})) {
                 $masterRec = $this->Master->fetch($rec->{$masterKey});
             }
             
-            if ($masterRec) {
+            if (isset($masterRec)) {
                 
                 return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
             }
@@ -504,17 +504,18 @@ class core_Detail extends core_Manager
         $rec = $this->fetch($id);
         
         $masterKey = $this->masterKey;
-        
         $masters = $this->getMasters($rec);
         
         foreach ($masters as $masterKey => $masterInstance) {
-            if ($rec->{$masterKey}) {
+            if (isset($rec->{$masterKey})) {
                 $masterId = $rec->{$masterKey};
-            } elseif ($rec->id) {
+            } elseif (isset($rec->id)) {
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
-            
-            $masterInstance->logInfo('Изтриване на детайл', $masterId);
+
+            if(isset($masterId)){
+                $masterInstance->logInfo('Изтриване на детайл', $masterId);
+            }
         }
         
         return parent::act_Delete();
@@ -644,7 +645,7 @@ class core_Detail extends core_Manager
         $form->input();
 
         // Ако има събмитнати редове за изтриване - да се изтрият
-        if($form->rec->selected){
+        if(!empty($form->rec->selected)){
             $selectedArr = explode('|', $form->rec->selected);
             if(countR($selectedArr)){
                 $idArr = array();
