@@ -1352,7 +1352,7 @@ class cal_Reminders extends core_Master
                 $Datetime = cls::get('type_Datetime');
                 $Datetime->params['format'] = 'smartTime';
 
-                if (($rec->nextStartTime > $now) && ($rec->action == 'notify')) {
+                if (($rec->nextStartTime > $now) && ($rec->calcTimeStart > $rec->nextStartTime) && ($rec->action == 'notify')) {
                     $t = $rec->nextStartTime;
                 }
 
