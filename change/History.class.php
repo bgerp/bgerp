@@ -169,12 +169,15 @@ class change_History extends core_Manager
         }
 
         if($currentRec->id == 'n'){
-
-            // Ако текущия запис е новия, записваме съществуващия в историята
             if(isset($arr['m'])){
-                unset($arr['m']->id);
-                $oldId = static::save($arr['m']);
-                $arr[$oldId] = $arr['m'];
+                if($arr['m']->validFrom != $arr['n']->validFrom){
+                    // Различни дати - нормален случай, записва се в историята
+                    unset($arr['m']->id);
+                    $oldId = static::save($arr['m']);
+                    $arr[$oldId] = $arr['m'];
+                }
+                // Еднакви дати = корекция в същия ден, не се записва нулева версия
+                unset($arr['m']);
             }
         } elseif($currentRec->id == 'm' && isset($arr['n'])){
 
