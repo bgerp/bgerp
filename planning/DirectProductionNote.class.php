@@ -1875,11 +1875,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         if($action == 'conto'){
-            if(planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #productId = '{$rec->productId}' AND #type = 'input' AND #storeId = {$rec->storeId}")){
-                return "Едновременното Произвеждане и Влагане на един и същ артикул е допустимо САМО от различни складове|*!";
+            if(isset($rec->storeId)){
+                if(planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #productId = '{$rec->productId}' AND #type = 'input' AND #storeId = {$rec->storeId}")){
+                    return "Едновременното Произвеждане и Влагане на един и същ артикул е допустимо САМО от различни складове|*!";
+                }
             }
         }
-
 
         if ($jobRec->allowSecondMeasure == 'no' && !empty($rec->additionalMeasureId)) {
             $errorMsg = "Не може да {$actionStr} протокола, защото е с втора мярка, а заданието вече не е избрана";
