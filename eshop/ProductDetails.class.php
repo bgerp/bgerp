@@ -155,7 +155,7 @@ class eshop_ProductDetails extends core_Detail
             } else {
                 $form->setDefault('action', 'buy');
             }
-            
+
             if ($productRec->canStore == 'yes') {
                 $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
                 
@@ -355,7 +355,7 @@ class eshop_ProductDetails extends core_Detail
             $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId, false, false);
             
             $packagings = keylist::toArray($rec->packagings);
-            $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, 'null', 'showPacks');
+            $allowedPacks = eshop_Products::getSettingField($rec->eshopProductId, null, 'showPacks');
             if(countR($allowedPacks)){
                 $packagings = array_intersect_key($packagings, $allowedPacks);
             }
@@ -370,6 +370,7 @@ class eshop_ProductDetails extends core_Detail
                 $clone->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
                 
                 $row = self::getExternalRow($clone);
+                $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
                 if(isset($row->_noPrice) && $showProductsWithoutPrices == 'no') {
                     if(!haveRole('debug')) continue;
                     $row->ROW_ATTR['class'] .= 'eshopHiddenRow';
@@ -438,7 +439,7 @@ class eshop_ProductDetails extends core_Detail
         $productRec = cat_Products::fetch($rec->productId, 'state');
         $row->packagingId = cat_UoM::getShortName($rec->packagingId);
         
-        $showPrice = ($productRec->state == 'template') ? false : true;
+        $showPrice = !(($productRec->state == 'template'));
         $showCartBtn = in_array($rec->action, array('buy', 'both'));
         
         if($productRec->state != 'template' && $rec->action != 'inquiry'){
@@ -446,7 +447,8 @@ class eshop_ProductDetails extends core_Detail
             $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
             $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}-{$rec->packagingId}", 1, "class=eshop-product-option option-quantity-input") . $plus . '</span>';
         }
-        
+
+        $catalogPriceInfo = (object) array('price' => null, 'discount' => null);
         if($showPrice){
             $catalogPriceInfo = self::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack);
 
@@ -459,10 +461,8 @@ class eshop_ProductDetails extends core_Detail
                 } else {
                     $row->catalogPrice = currency_Currencies::decorate($row->catalogPrice, $settings->currencyId, true);
                 }
-
-                $row->catalogPrice = "<b>{$row->catalogPrice}</b>";
             } else {
-                $showCartBtn = $showPrice = false;
+                $showCartBtn = false;
                 if($rec->action != 'inquiry'){
                     $row->catalogPrice = "<span class=' option-not-in-stock' style='background-color: #e6e6e6 !important;border: solid 1px #ff7070;color: #c00;margin-top: 5px;'>" . tr('Свържете се с нас') . "</span><br>";
                     if(in_array($rec->action, array('price', 'buy'))){
@@ -987,6 +987,42 @@ class eshop_ProductDetails extends core_Detail
         }
 
         return $date >= $endSale;
+    }
+
+
+    /**
+     * Коя опавкока и кой-артикул са за минималното к-во
+     *
+     * @param stdClass $dRec
+     * @return void
+     */
+    public static function getMinPackagingAndQuantity($dRec)
+    {
+        $measureId = cat_Products::fetchField($dRec->productId, 'measureId');
+        $packagings = cat_Products::getProductInfo($dRec->productId)->packagings;
+
+        // Какви са к-та в опаковките
+        $selectedPackagings = keylist::toArray($dRec->packagings);
+        $packs = array($measureId => 1);
+        foreach ($packagings as $packRec) {
+            $packs[$packRec->packagingId] = $packRec->quantity;
+        }
+
+        // Коя е най-малката опаковка от избраните
+        $minPackagingId = $minQuantityInPack = null;
+        foreach ($selectedPackagings as $selPackId) {
+            $q = $packs[$selPackId];
+            if (!$q) {
+                continue;
+            }
+
+            if (is_null($minPackagingId) || (isset($minPackagingId) && $q < $minQuantityInPack)) {
+                $minPackagingId = $selPackId;
+                $minQuantityInPack = $q;
+            }
+        }
+
+        return array('packagingId' => $minPackagingId, 'quantity' => $minQuantityInPack);
     }
 }
 

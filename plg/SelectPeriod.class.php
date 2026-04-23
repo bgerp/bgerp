@@ -203,7 +203,7 @@ class plg_SelectPeriod extends core_Plugin
         } else {
             $showSelect = true;
         }
-        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}, $showFuturePeriods, $showSelect));
+        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF} ?? null, $rec->{$fT} ?? null, $showFuturePeriods, $showSelect));
         
         if ($keySel) {
             $form->setDefault('selectPeriod', $keySel);
@@ -491,7 +491,7 @@ class plg_SelectPeriod extends core_Plugin
                     continue;
                 }
                 list($key, $title) = explode('=>', $val);
-                if (!$opt[$key]) {
+                if (empty($opt[$key])) {
                     $opt[$key] = $title;
                 }
             }

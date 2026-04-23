@@ -232,14 +232,27 @@ abstract class cash_Document extends deals_PaymentDocument
         $Document = doc_Containers::getDocument($fromContainerId);
         $documentRec = $Document->fetch();
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $firstRec = $firstDoc->fetch('currencyRate,currencyId');
+        $firstRec = $firstDoc->fetch();
         $willConvert = ($firstRec->currencyId != $documentRec->currencyId);
 
-        if($Document->isInstanceOf('deals_InvoiceMaster')){ 
-            $minus = ($documentRec->type == 'dc_note' || $willConvert) ? 0 : 0.005;
-            $amount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount - $minus;
-            $amount /= ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
-        } elseif($Document->isInstanceOf('store_DocumentMaster')){
+        if ($Document->isInstanceOf('deals_InvoiceMaster')) {
+            $rate = ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
+            $rawAmount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount;
+
+            $minus = 0;
+            if ($documentRec->type != 'dc_note') {
+                $testAmount = $rate ? ($rawAmount / $rate) : $rawAmount;
+
+                // Ако резултатът и без това е практически точен до 2 знака,
+                // не прилагаме хака, защото само ще развали сумата
+                if (abs($testAmount - round($testAmount, 2)) > 0.000001) {
+                    $minus = 0.005;
+                }
+            }
+
+            $amount = ($rawAmount - $minus);
+            $amount /= $rate;
+        } elseif ($Document->isInstanceOf('store_DocumentMaster')) {
             $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
         }
 
@@ -424,8 +437,8 @@ abstract class cash_Document extends deals_PaymentDocument
             }
             
             $mvc->invoke('AfterSubmitInputEditForm', array($form));
-            if (isset($rec->amountGiven) && $rec->amountGiven <= $rec->amount) {
-                $form->setError('amountGiven', 'Сумата трябва да е над сумата по документа');
+            if (isset($rec->amountGiven) && $rec->amountGiven < $rec->amount) {
+                $form->setError('amountGiven', 'Платеното в брой е под сумата на документа');
             }
         }
     }
@@ -542,7 +555,7 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $row->title = $mvc->getLink($rec->id, 0);
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 
             if ($rec->dealCurrencyId != $rec->currencyId) {
@@ -607,8 +620,13 @@ abstract class cash_Document extends deals_PaymentDocument
 
             // Ако има посочено колко е платено - показва се и рестото
             if(isset($rec->amountGiven)){
-                $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
-                $row->change = self::renderChange($rec);
+                $change = round($rec->amountGiven - $rec->amount, 2);
+                if($change != 0){
+                    $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
+                    $row->change = self::renderChange($rec);
+                } else {
+                    unset($row->amountGiven);
+                }
             }
         }
     }
@@ -642,8 +660,10 @@ abstract class cash_Document extends deals_PaymentDocument
 
             return "{$changeEuroRow}/ {$changeBgnRow}";
         }
+        $change = core_Type::getByName("double(decimals=2)")->toVerbal($change);
+        $change = currency_Currencies::decorate($change, $currencyCode, true);
 
-        return core_Type::getByName("double(decimals=2)")->toVerbal($change);
+        return $change;
     }
 
 
@@ -751,9 +771,12 @@ abstract class cash_Document extends deals_PaymentDocument
             }
         } else {
             if(!empty($rec->amountGiven)){
-                $change = $this->renderChange($rec);
-                $info['amountVerbal'] = "<b class='quiet'>{$info['amountVerbal']}</b>";
-                $info['amountVerbal'] .= tr("|*<div class='small'><span class='quiet'>|Ресто|*</span>: {$change}</div>");
+                $change = round($rec->amountGiven - $rec->amount, 2);
+                if($change != 0){
+                    $change = $this->renderChange($rec);
+                    $info['amountVerbal'] = "<b class='quiet'>{$info['amountVerbal']}</b>";
+                    $info['amountVerbal'] .= tr("|*<div class='small'><span class='quiet'>|Ресто|*</span>: {$change}</div>");
+                }
             }
 
             $info['amountVerbal'] = "<div id={$this->getHandle($rec->id)}>{$info['amountVerbal']}</div>";

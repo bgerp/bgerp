@@ -227,7 +227,8 @@ class cms_Domains extends core_Embedder
     public static function findPublicDomainRecs()
     {
         // Вземаме домейна от текущото URL
-        $domain = strtolower(trim($_SERVER['SERVER_NAME']));
+        $serverName = $_SERVER['SERVER_NAME'] ?? '';
+        $domain = strtolower(trim($serverName));
         
         // Най-добре е да имаме запис за точно този домейн
         $query = self::getQuery();
@@ -272,7 +273,8 @@ class cms_Domains extends core_Embedder
         }
         
         // Вземаме домейна от текущото URL
-        $domain = strtolower(trim($_SERVER['SERVER_NAME']));
+        $serverName = $_SERVER['SERVER_NAME'] ?? '';
+        $domain = strtolower(trim($serverName));
         
         if (!$domainRec || (isset($lang) && $domainRec->lang != $lang) || ($domainRec->actualDomain != $domain)) {
             $domainRecs = self::findPublicDomainRecs();
@@ -280,7 +282,7 @@ class cms_Domains extends core_Embedder
             $cmsLangs = self::getCmsLangs($domainRecs);
             
             // Определяме езика, ако не е зададен или е зададен неправилно
-            if (!$lang || !$cmsLangs[$lang]) {
+            if (!$lang || !isset($cmsLangs[$lang])) {
                 $lang = self::detectLang($cmsLangs);
             }
             
@@ -310,8 +312,8 @@ class cms_Domains extends core_Embedder
         }
         
         if ($part) {
-            
-            return $domainRec->{$part};
+
+            return $domainRec->{$part} ?? null;
         }
         
         return $domainRec;
@@ -353,9 +355,12 @@ class cms_Domains extends core_Embedder
         }
         
         $newHost = ($rec->domain == 'localhost') ? $mainHost : $rec->domain;
-        
-        if(($newHost != $rec->actualDomain) && $_SERVER['REQUEST_METHOD'] === 'GET') {
-            $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+        if(($newHost != $rec->actualDomain) && $requestMethod === 'GET') {
+            $httpHost = $_SERVER['HTTP_HOST'] ?? '';
+            $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+            $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$httpHost}{$requestUri}";
             $newUrl = core_Url::change($url, array(), $newHost);
             
             redirect($newUrl, false, null,'notice', true);
@@ -414,7 +419,8 @@ class cms_Domains extends core_Embedder
         }
         
         $langParse = array();
-        
+        $acceptLanguage = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
+
         // Парсираме Accept-Language съгласно:
         // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
         preg_match_all(
@@ -422,7 +428,7 @@ class cms_Domains extends core_Embedder
            '(-[a-z]{1,8})*\s*' .   // M2 -other parts of language e.g -us
            // Optional quality factor M3 ;q=, M4 - Quality Factor
            '(;\s*q\s*=\s*((1(\.0{0,3}))|(0(\.[0-9]{0,3}))))?/i',
-           $_SERVER['HTTP_ACCEPT_LANGUAGE'],
+            $acceptLanguage,
            $langParse
         );
         
@@ -465,7 +471,7 @@ class cms_Domains extends core_Embedder
         arsort($langArr, SORT_NUMERIC);
         
         foreach ($langArr as $lg => $q) {
-            if ($cmsLangs[$lg]) {
+            if (isset($cmsLangs[$lg])) {
                 
                 return $lg;
             }
@@ -481,8 +487,9 @@ class cms_Domains extends core_Embedder
      */
     public static function getCmsSkin()
     {
+        $driver = null;
         $dRec = self::getPublicDomain();
-        if ($dRec) {
+        if (is_object($dRec)) {
             $driver = self::getDriver($dRec->id);
         }
         
@@ -742,8 +749,8 @@ class cms_Domains extends core_Embedder
     public static function getReal($domain)
     {
         if($domain == 'localhost') {
-            
-            $host = strtolower($_SERVER['SERVER_NAME']);
+            $serverName = $_SERVER['SERVER_NAME'] ?? '';
+            $host = strtolower($serverName);
             
             if(self::fetch(array("#domain = '[#1#]'", $host))) {
                 
@@ -794,8 +801,7 @@ class cms_Domains extends core_Embedder
     public static function getSeoTitle()
     {
         $rec = self::getPublicDomain();
-        
-        if ($rec->seoTitle) {
+        if (is_object($rec) && !empty($rec->seoTitle)) {
             $res = self::getVerbal($rec, 'seoTitle');
         } else {
             $res = core_Setup::get('EF_APP_TITLE', true);
@@ -829,7 +835,7 @@ class cms_Domains extends core_Embedder
             }
             
             if($uniqDomains) {
-                if($domains[$rec->domain]) continue;
+                if (isset($domains[$rec->domain])) continue;
                 
                 $domains[$rec->domain] = true;
                 $options[$rec->id] = $rec->domain;
@@ -858,8 +864,15 @@ class cms_Domains extends core_Embedder
             
             return array();
         }
-        $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
-        
+
+        if(!isset($domainId)) {
+            $publicDomain = self::getPublicDomain();
+            if(is_object($publicDomain)){
+                $domainId = $publicDomain->id;
+            }
+        }
+        expect($domainId, 'Няма домейн');
+
         return eshop_Settings::getSettings('cms_Domains', $domainId, $date);
     }
     
@@ -895,12 +908,13 @@ class cms_Domains extends core_Embedder
     public static function getAbsoluteUrl($id, &$name = null)
     {
         $s = empty($_SERVER['HTTPS']) ? '' : (($_SERVER['HTTPS'] == 'on') ? 's' : '');
-        $slashPos = strpos($_SERVER['SERVER_PROTOCOL'], '/');
-        $protocol = substr(strtolower($_SERVER['SERVER_PROTOCOL']), 0, $slashPos) . $s;
+        $serverProtocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
+        $slashPos = strpos($serverProtocol, '/');
+        $protocol = strtolower(($slashPos !== false) ? substr($serverProtocol, 0, $slashPos) : 'http') . $s;
         
         $name = cms_Domains::fetchField($id, 'domain');
         if($name == 'localhost'){
-            $name = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : $_SERVER['HTTP_HOST'];
+            $name = defined('BGERP_ABSOLUTE_HTTP_HOST') ? BGERP_ABSOLUTE_HTTP_HOST : ($_SERVER['HTTP_HOST'] ?? '');
         }
         
         $url = "{$protocol}://{$name}";

@@ -161,7 +161,7 @@ class sales_reports_VatOnSalesWithoutInvoices extends frame2_driver_TableData
             }
         
         if (is_array($recs)) {
-            usort($recs, array($this, "${f}"));
+            usort($recs, array($this, "{$f}"));
         }
         
         return $recs;

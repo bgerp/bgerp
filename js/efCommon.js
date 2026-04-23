@@ -6656,14 +6656,8 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
 
 
 
-
-/**
- * smartresize - намалява събитията на on resize
- */
 (function ($, sr) {
 
-    // debouncing function from John Hann
-    // http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
     var debounce = function (func, threshold, execAsap) {
         var timeout;
 
@@ -6683,10 +6677,29 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
 
             timeout = setTimeout(delayed, threshold || 100);
         };
-    }
-    // smartresize
+    };
+
+    let lastZoom = window.devicePixelRatio;
+
     jQuery.fn[sr] = function (fn) {
-        return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr);
+        if (!fn) return this.trigger(sr);
+
+        const handler = debounce(function (e) {
+            fn.call(this, e);
+        });
+
+        // resize
+        this.on('resize', handler);
+
+        // zoom detection
+        window.addEventListener('resize', function () {
+            if (window.devicePixelRatio !== lastZoom) {
+                lastZoom = window.devicePixelRatio;
+                handler();
+            }
+        });
+
+        return this;
     };
 
 })(jQuery, 'smartresize');
@@ -6786,39 +6799,6 @@ function copyPlaceholderAsValOnClick() {
             $(this).val(placeholder);
         }
     });
-}
-
-
-/**
- * Показване на табове за връзки на артикулите
- * @param el
- * @param wrapId
- * @returns {boolean}
- */
-function catProductsRelationsShowTab(el, wrapId)
-{
-    var wrap = document.getElementById(wrapId);
-    if (!wrap) return false;
-
-    var tabs = wrap.querySelectorAll('.product-rel-tab');
-    for (var i = 0; i < tabs.length; i++) {
-        tabs[i].classList.remove('active');
-    }
-
-    var panes = wrap.querySelectorAll('.product-rel-tab-pane');
-    for (var j = 0; j < panes.length; j++) {
-        panes[j].classList.remove('active');
-    }
-
-    el.classList.add('active');
-
-    var paneId = el.getAttribute('data-pane');
-    var pane = document.getElementById(paneId);
-    if (pane) {
-        pane.classList.add('active');
-    }
-
-    return false;
 }
 
 

@@ -87,6 +87,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 
                 // Всеки дефолтен параметър го добавяме към формата
                 $paramRec = cat_Params::fetch($id);
+                if (empty($paramRec)) continue;
                 if(in_array($paramRec->state, array('rejected', 'closed'))) continue;
 
                 $name = cat_Params::getVerbal($paramRec, 'name');
@@ -230,10 +231,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         core_Debug::log('START SAVE_ALL_PARAMS');
 
         $exQuery = cat_products_Params::getQuery();
-        $exQuery->fetch("#classId = {$classId} AND #productId = {$rec->id}");
-        $exRecs = $exQuery->fetch();
-
+        $exQuery->where("#classId = {$classId} AND #productId = {$rec->id}");
+        $exRecs = $exQuery->fetchAll();
         $syncedArr = arr::syncArrays($updateRecs, $exRecs, 'classId,productId,paramId', 'paramValue');
+
         $Params = cls::get('cat_products_Params');
         if(countR($syncedArr['insert'])){
             $Params->saveArray($syncedArr['insert']);
@@ -373,13 +374,13 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     public function renderProductDescription($data)
     {
         // Вербализиране на снимката, да е готова за показване
-        if(!$data->_hidePhoto){
+        if(empty($data->_hidePhoto)){
             $data->rec->photo =  $this->getParams(cls::get($data->Embedder)->getClassId(), $data->rec->id, 'preview');
         } else {
             unset($data->rec->photo);
         }
 
-        if ($data->rec->photo) {
+        if (!empty($data->rec->photo)) {
             $size = array(280, 150);
             $Fancybox = cls::get('fancybox_Fancybox');
             $data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(1200, 1200));
@@ -410,7 +411,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         }
         
         // Рендираме параметрите винаги ако сме към артикул или ако има записи
-        if ($data->noChange !== true || countR($data->params)) {
+        if (($data->noChange ?? null) !== true || countR($data->params ?? array())) {
             $paramTpl = cat_products_Params::renderParams($data);
             $tpl->append($paramTpl, 'PARAMS');
         }

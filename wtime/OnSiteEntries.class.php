@@ -481,12 +481,8 @@ class wtime_OnSiteEntries extends core_Manager
         // Началото и края на интервала, който ще засичаме
         $begin =  strtotime($startOn);
         $end = $begin + $duration;
-
-        $workingTimeInFrames = $Schedule->getFrame($begin, $end);
-        $workTimeOnSchedule = 0;
-        foreach($workingTimeInFrames as $t) {
-            $workTimeOnSchedule += $t[1] - $t[0];
-        }
+        
+        $workTimeOnSchedule = $Schedule->frameDuration($begin, $end);
 
         // От цялата продължителност се вади прекараното работно време по график - остатъка е извън графика
         $offTimeSchedule = $duration - $workTimeOnSchedule;

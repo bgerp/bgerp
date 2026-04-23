@@ -182,8 +182,8 @@ class core_page_InternalModern extends core_page_Active
             $searchImg = ht::createElement('img', array('src' => sbf('img/32/search.png', ''), 'alt' => 'search', 'width' => '20','height' => '20'));
             $pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => 'menuIcon pinned [#pinned#]', 'alt' => 'unpin'));
             
-            $pinImg = str_replace('&#91;', '[', "${pinImg}");
-            $pinnedImg = str_replace('&#91;', '[', "${pinnedImg}");
+            $pinImg = str_replace('&#91;', '[', "{$pinImg}");
+            $pinnedImg = str_replace('&#91;', '[', "{$pinnedImg}");
 
             // Задаваме лейаута на страницата
             $header = "<div style='position: relative'>
@@ -281,14 +281,15 @@ class core_page_InternalModern extends core_page_Active
         
         if (is_array($menuObj)) {
             uasort($menuObj, function ($a, $b) {
-                
-                return($a->order > $b->order);
+                return $a->order <=> $b->order;
             });
         }
         
         $active = bgerp_Menu::getActiveItem($menuObj);
         
-        list($aMainMenu, $aSubMenu) = explode(':', $active);
+        $activeParts = explode(':', $active);
+        $aMainMenu = $activeParts[0] ?? '';
+        $aSubMenu = $activeParts[1] ?? '';
         
         $html = '';
         $lastMenu = '';
@@ -430,7 +431,7 @@ class core_page_InternalModern extends core_page_Active
         $inputType = "<input {$val} class='search-input-modern' type='search' list = 'searchList' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
 
         // Показване на даталист с последно търсените стрингове
-        $countDocSearch = $countFolSearch = array();
+        $countDocSearch = $countFolSearch = 0;
         $rQuery = recently_Values::getQuery();
         $rQuery->where("#createdBy = " . core_Users::getCurrent());
         $rQuery->where("#name IN ('doc_containers.search', 'doc_folders.search')");

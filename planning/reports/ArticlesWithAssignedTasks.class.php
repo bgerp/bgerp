@@ -298,8 +298,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             }
             
             usort($recs, array(
-                $this,
-                "${sorting}"
+                $this, $sorting
             ));
         }
         
@@ -311,10 +310,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                 $sorting = 'orderByActivatedDateDown';
             }
             
-            usort($recs, array(
-                $this,
-                "${sorting}"
-            ));
+            usort($recs, array($this, $sorting));
         }
         
         return $recs;
@@ -411,7 +407,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $saleState = (sales_Sales::fetch($dRec->saleId)->state);
             $singleUrl = $Sale->getUrlWithAccess($Sale->getInstance(), $Sale->that);
             
-            $row->jobsId .= "<span class= 'small' >" . "${typeOfDateText}" . $Date->toVerbal($typeOfDate) . '</span>' .
+            $row->jobsId .= "<span class= 'small' >" . "{$typeOfDateText}" . $Date->toVerbal($typeOfDate) . '</span>' .
                  ' »  ' . "<span class= 'state-{$saleState} document-handler' >" . ht::createLink(
                      "#{$saleNandle}",
                     $singleUrl,
@@ -419,7 +415,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                      "ef_icon={$Sale->singleIcon}"
                  ) . '</span>';
         } else {
-            $row->jobsId .= "<span class= 'small' >" . "${typeOfDateText}" . $Date->toVerbal($typeOfDate) . '</span>';
+            $row->jobsId .= "<span class= 'small' >" . "{$typeOfDateText}" . $Date->toVerbal($typeOfDate) . '</span>';
         }
         
         foreach ($tasksContainerIdArr as $k => $v) {

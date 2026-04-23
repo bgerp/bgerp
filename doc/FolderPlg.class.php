@@ -284,7 +284,7 @@ class doc_FolderPlg extends core_Plugin
             }
         }
         
-        if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc') && $requiredRoles != 'no_one') {
+        if ($rec && $rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc') && $requiredRoles != 'no_one') {
             $rec = $mvc->fetch($rec->id);
             
             // Ако модела е достъпен за всички потребители по подразбиране,
@@ -326,7 +326,7 @@ class doc_FolderPlg extends core_Plugin
         
         // Потребителите само с ранг ексикютив може да променят само корици на които са отговорник
         if (!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
-            if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
+            if ($rec && $rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
                 if (!$userId) {
                     $userId = core_Users::getCurrent();
                 }
@@ -600,11 +600,28 @@ class doc_FolderPlg extends core_Plugin
         if (!$rec->folderId) {
             $rec->folderId = $mvc->fetchField($rec->id, 'folderId');
         }
-        
+
+        // Ако има папка - обновяме ковъра
         if ($rec->folderId) {
-            
-            //Ако има папка - обновяме ковъра
-            doc_Folders::updateByCover($rec->folderId);
+
+            // При редакция на корицата ще се обнови папката
+            $updateFolderByCover = true;
+            if($mvc->hasPlugin('change_plg_History')){
+
+                // Но ако корицата поддържа версии и има дата на валидност на новата версия
+                // и тя е след ДНЕС, тогава папката няма да се обновява;
+                if(!empty($rec->newValidFrom)){
+                    $newValidFrom = strlen($rec->newValidFrom) == 10 ? "{$rec->newValidFrom} 00:00:00" : $rec->newValidFrom;
+                    $today = dt::today() . " 00:00:00";
+                    if($newValidFrom > $today){
+                        $updateFolderByCover = false;
+                    }
+                }
+            }
+
+            if($updateFolderByCover){
+                doc_Folders::updateByCover($rec->folderId);
+            }
         } else {
             
             //Ako няма папка и autoCreateFolder е TRUE, тогава създава папка
@@ -850,15 +867,15 @@ class doc_FolderPlg extends core_Plugin
             break;
         }
         
-        if (!$query->fields['folderAccess']) {
+        if (!($query->fields['folderAccess'] ?? null)) {
             $query->XPR('folderAccess', 'varchar', '#access');
         }
-        
-        if (!$query->fields['folderInCharge']) {
+
+        if (!($query->fields['folderInCharge'] ?? null)) {
             $query->XPR('folderInCharge', 'varchar', '#inCharge');
         }
-        
-        if (!$query->fields['folderShared']) {
+
+        if (!($query->fields['folderShared'] ?? null)) {
             $query->XPR('folderShared', 'varchar', '#shared');
         }
 

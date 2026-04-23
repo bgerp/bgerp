@@ -287,13 +287,13 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             //Вложени и върнати артикули по протоколи, които са в нишките на избраните задания
             $pQuery = $details::getQuery();
 
-            $pQuery->EXT('valior', "${master}", 'externalName=valior,externalKey=noteId');
-            $pQuery->EXT('state', "${master}", 'externalName=state,externalKey=noteId');
+            $pQuery->EXT('valior', $master, 'externalName=valior,externalKey=noteId');
+            $pQuery->EXT('state', $master, 'externalName=state,externalKey=noteId');
             if ($master == 'planning_DirectProductionNote') {
-                $pQuery->EXT('inputStoreId', "${master}", 'externalName=inputStoreId,externalKey=noteId');
+                $pQuery->EXT('inputStoreId', $master, 'externalName=inputStoreId,externalKey=noteId');
             }
 
-            $pQuery->EXT('threadId', "${master}", 'externalName=threadId,externalKey=noteId');
+            $pQuery->EXT('threadId', $master, 'externalName=threadId,externalKey=noteId');
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
             $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');

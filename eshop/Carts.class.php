@@ -304,7 +304,9 @@ class eshop_Carts extends core_Master
         $productId = Request::get('productId', 'int');
         $packagingId = Request::get('packagingId', 'int');
         $packQuantity = Request::get('packQuantity', 'double');
-        
+        $msg = null;
+        $skip = false;
+
         // Пушване на езика от публичната част
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
@@ -334,17 +336,6 @@ class eshop_Carts extends core_Master
             if($availableQuantity < $q){
                 $msg = "|Избраното количество|* <b>{$q}</b> |е по-голямо от наличното|* <b>{$availableQuantity}</b>!";
                 $skip = true;
-            }
-
-            // Проверка колко общо има от избрания артикул в количката без значение от опаковката
-            $checkQuantity = $packQuantity;
-            $quantityByNow = 0;
-            if($exCartId = self::force(null, null, false)){
-                $dQuery = eshop_CartDetails::getQuery();
-                $dQuery->where("#cartId = {$exCartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId}");
-                $dQuery->XPR('sum', 'double', 'SUM(#quantity)');
-                $quantityByNow = $dQuery->fetch()->sum;
-                $checkQuantity += $quantityByNow / $quantityInPack;
             }
         }
        
@@ -411,9 +402,12 @@ class eshop_Carts extends core_Master
             core_Statuses::newStatus($msg, ($success === true) ? 'notice' : 'error');
             
             // Ще се реплейсне статуса на кошницата
-            $resObj = new stdClass();
-            $resObj->func = 'html';
-            $resObj->arg = array('id' => 'cart-external-status', 'html' => self::getStatus($cartId)->getContent(), 'replace' => true);
+            if(isset($cartId)){
+                $resObj = new stdClass();
+                $resObj->func = 'html';
+                $resObj->arg = array('id' => 'cart-external-status', 'html' => self::getStatus($cartId)->getContent(), 'replace' => true);
+            }
+
             if ($success === true) {
                 $resObj2 = new stdClass();
                 $resObj2->func = 'Sound';
@@ -1965,7 +1959,7 @@ class eshop_Carts extends core_Master
         $data->listFields = arr::make('code=Код,productId=Артикул,quantity=Количество,finalPrice=Цена,amount=Сума');
         $settings = cms_Domains::getSettings();
 
-        $data->productRecs = $data->productRows = array();
+        $data->productRecs = $data->productRows = $data->recs = $data->rows = array();
         $dQuery = eshop_CartDetails::getQuery();
         $dQuery->where("#cartId = {$data->rec->id}");
         $dQuery->orderBy('id', 'ASC');
@@ -1979,7 +1973,7 @@ class eshop_Carts extends core_Master
             if (!empty($dRec->discount) || !empty($dRec->autoDiscount)) {
                 $discountType = type_Set::toArray($settings->discountType);
 
-                $amountWithoutPureDiscount = isset($dRec->discount) ? $dRec->finalPrice / (1 - $dRec->discount) : $dRec->finalPrice;
+                $amountWithoutPureDiscount = (isset($dRec->discount) && $dRec->discount != 1) ? $dRec->finalPrice / (1 - $dRec->discount): $dRec->finalPrice;
                 $discount = isset($dRec->autoDiscount) ? round((1 - (1 - $dRec->discount) * (1 - $dRec->autoDiscount)), 4) : $dRec->discount;
 
                 $row->finalPrice = "<span class='end-price'>{$row->finalPrice}</span>";
@@ -2165,7 +2159,7 @@ class eshop_Carts extends core_Master
         $row->STATE_CLASS = $row->ROW_ATTR['class'];
         $row->domainId = cms_Domains::getHyperlink($rec->domainId);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if ($rec->state == 'draft') {
                 $delitionTime = self::getDeletionTime($rec);
                 $row->delitionTime = core_Type::getByName('datetime(format=smartTime)')->toVerbal($delitionTime);

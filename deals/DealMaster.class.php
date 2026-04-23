@@ -582,7 +582,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         $defPaymentId = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $mvc->getFieldParam('paymentMethodId', 'salecondSysId'));
-        if($rec->_isBeingCloned && !empty($defPaymentId)){
+        if (!empty($rec->_isBeingCloned) && !empty($defPaymentId)) {
             if($rec->paymentMethodId != $defPaymentId){
                 $form->setWarning('paymentMethodId', 'Методът на плащане се различава от дефолтния в търговските условия на контрагента|*: <b>' . cond_PaymentMethods::getTitleById($defPaymentId) . "</b>");
             }
@@ -637,7 +637,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,overdueAndAct=Просрочени и активни,unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени,fastPayment=Платено веднага,fastDelivery=Доставено веднага,fastBoth=Платено и доставено веднага');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени (Всички),overdueAndAct=Просрочени (активни ),overdueAndClosed=Просрочени (приключени),unpaid=Неплатени,expectedPayment=С чакащо плащане,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране",stopped=Спрени,fastPayment=Платено веднага,fastDelivery=Доставено веднага,fastBoth=Платено и доставено веднага');
     
         return $options;
     }
@@ -716,6 +716,9 @@ abstract class deals_DealMaster extends deals_DealBase
             case 'overdueAndAct':
                 $query->where("#paymentState = 'overdue'");
                 $query->where("#state = 'active'");
+            case 'overdueAndClosed':
+                $query->where("#paymentState = 'overdue'");
+                $query->where("#state = 'closed'");
                 break;
             case 'delivered':
                 $query->where('#deliveredRound >= #dealRound');
@@ -1069,7 +1072,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(isset($rec->_newCurrencyRate) && $rec->currencyRate != $rec->_newCurrencyRate){
             deals_Helper::recalcRate($mvc, $rec->id, $rec->_newCurrencyRate);
             $msg = 'Курсът е променен';
-            $msg .= haveRole('debug') ? " : (стар) {$rec->currencyRate} - (нов) {$rec->_newCurrencyRate} " : $msg;
+            $msg .= haveRole('debug') ? " : (стар) {$rec->currencyRate} - (нов) {$rec->_newCurrencyRate}" : '';
             core_Statuses::newStatus($msg, 'notice');
         }
 
@@ -1370,7 +1373,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     $overdueAmount = core_Type::getByName('double(decimals=2)')->toVerbal($overdueAmountInCurrency);
                     $row->paymentState = $overdueAmount;
                     $row->paymentStateCaption = "<b style='color:red'>" . tr('Просрочено') . "</b>";
-                    if(!$fields['-list']){
+                    if(empty($fields['-list'])){
                         $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
                     }
                     $row->paymentState = ht::createHint($row->paymentState, $overdueOnHint, 'warning', false);
@@ -1381,7 +1384,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if(doc_plg_HidePrices::canSeePriceFields($mvc, $rec)) {
                 $row->paymentState = $row->amountToPay;
             }
-            if(!$fields['-list']){
+            if(empty($fields['-list'])){
                 $row->paymentState = currency_Currencies::decorate($row->paymentState, $rec->currencyId);
             }
         }
@@ -1394,7 +1397,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $row->initiatorId = crm_Profiles::createLink($rec->initiatorId);
         }
         
-        if ($fields['-single']) {
+        if (!empty($fields['-single'])) {
             if (core_Users::haveRole('partner')) {
                 unset($row->closedDocuments);
                 unset($row->initiatorId);
@@ -1845,7 +1848,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
                 // Може да се плати от каса
                 $caseName = cash_Cases::getTitleById($defaultCaseId);
-                $options['pay'] = "{$opt['pay']} \"${caseName}\"";
+                $options['pay'] = "{$opt['pay']} \"{$caseName}\"";
             }
         }
 
@@ -1898,17 +1901,17 @@ abstract class deals_DealMaster extends deals_DealBase
         $isTakenFromPlace = ($paymentType == 'cash' && $deliveryAddress == 'supplier');
 
         // Ако има склад и експедиране и потребителя е логнат в склада, слагаме отметка
-        if ($options['ship'] && $rec->shipmentStoreId) {
+        if (!empty($options['ship']) && $rec->shipmentStoreId) {
             if ($isTakenFromPlace || ($rec->shipmentStoreId === $curStoreId && $map['service'] != $options['ship'])) {
                 $selected[] = 'ship';
             }
-        } elseif ($options['ship']) {
+        } elseif (!empty($options['ship'])) {
             $selected[] = 'ship';
         }
         
         // Ако има каса и потребителя е логнат в нея, Слагаме отметка
         $defaultCaseId = $rec->caseId ?? cash_Cases::getCurrent('id', false);
-        if ($options['pay'] && isset($defaultCaseId)) {
+        if (!empty($options['pay']) && isset($defaultCaseId)) {
             if ($isTakenFromPlace) {
                 $selected[] = 'pay';
             }
@@ -1931,19 +1934,19 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->isContable = ($form->rec->action == 'activate') ? 'activate' : 'yes';
 
             $actions = type_Set::toArray($form->rec->action);
-            if ($actions['pay'] && empty($rec->caseId)){
+            if (!empty($actions['pay']) && empty($rec->caseId)){
                 $rec->caseId = cash_Cases::getCurrent('id', false);
             }
 
             $this->save($rec);
             
             // Ако се експедира и има склад, форсира се логване
-            if ($options['ship'] && isset($rec->shipmentStoreId) && $rec->shipmentStoreId != $curStoreId) {
+            if (!empty($options['ship']) && isset($rec->shipmentStoreId) && $rec->shipmentStoreId != $curStoreId) {
                 store_Stores::selectCurrent($rec->shipmentStoreId);
             }
             
             // Ако има сметка и се експедира, форсира се логване
-            if ($options['pay'] && isset($rec->caseId) && $rec->caseId != $curCaseId) {
+            if (!empty($options['pay']) && isset($rec->caseId) && $rec->caseId != $curCaseId) {
                 cash_Cases::selectCurrent($rec->caseId);
             }
             
@@ -2203,6 +2206,9 @@ abstract class deals_DealMaster extends deals_DealBase
         if(core_Packs::isInstalled('voucher')) {
             $allowedFields['voucherId'] = true;
         }
+        if(core_Packs::isInstalled('holding')) {
+            $allowedFields[$me->ownCompanyFieldName] = true;
+        }
 
         // Проверяваме подадените полета дали са позволени
         if (countR($fields)) {
@@ -2269,6 +2275,16 @@ abstract class deals_DealMaster extends deals_DealBase
             expect(cond_VatExceptions::fetch($fields['vatExceptionId']), 'Няма такова ДДС основание');
         }
 
+        // Избраната наша фирма ще се запише само ако е инсталиран пакета
+        if(isset($fields[$me->ownCompanyFieldName])){
+            if(core_Packs::isInstalled('holding')){
+                $ownCompanyRec = holding_Companies::getRec($fields[$me->ownCompanyFieldName]);
+                expect(is_object($ownCompanyRec), 'Невалидна наша фирма');
+            } else {
+                unset($fields[$me->ownCompanyFieldName]);
+            }
+        }
+
         // Опиваме се да запишем мастъра на сделката
         $rec = (object)$fields;
 
@@ -2287,6 +2303,9 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         $rec->deliveryTermId = (empty($fields['deliveryTermId'])) ? cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'deliveryTermId', 'clientCondition|lastDocUser|lastDoc') : $rec->deliveryTermId;
         $rec->paymentMethodId = (empty($fields['paymentMethodId'])) ? cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'paymentMethodId', 'clientCondition|lastDocUser|lastDoc') : $rec->paymentMethodId;
+        if (!empty($rec->paymentMethodId) && empty($rec->paymentType)) {
+            $rec->paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
+        }
 
         if($me instanceof sales_Sales){
             if(isset($fields['deliveryTermId'])){
@@ -2511,20 +2530,33 @@ abstract class deals_DealMaster extends deals_DealBase
         expect($contragentClassId = Request::get('contragentClassId', 'int'));
         expect($contragentId = Request::get('contragentId', 'int'));
         expect($currencyId = Request::get('currencyId', 'varchar'));
-
+        $quotationId = Request::get('quotationId', 'int');
         if($currencyId == 'BGN' && dt::today() >= acc_Setup::getEurozoneDate()) {
             $currencyId = "EUR";
         }
         $query = $this->getQuery();
         $query->where("#state = 'draft' AND #currencyId = '{$currencyId}' AND #contragentId = {$contragentId} AND #contragentClassId = {$contragentClassId}");
-        
+        $Quotation = cls::get($this->quotationClass);
+
+        // Ако ще се създава към оферта - да се филтрира и по избраната наша фирма в нея, ако е инсталиран пакета за многофирменост
+        if(core_Packs::isInstalled('holding')){
+            if(isset($quotationId) && isset($Quotation->ownCompanyFieldName)){
+                $quotationOwnCompanyId = $Quotation->fetchField($quotationId, $Quotation->ownCompanyFieldName);
+                if(isset($quotationOwnCompanyId)){
+                    $query->where("#{$this->ownCompanyFieldName} = {$quotationOwnCompanyId}");
+                } else {
+                    $query->where("#{$this->ownCompanyFieldName} IS NULL");
+                }
+            }
+        }
+
         $options = array();
         while ($rec = $query->fetch()) {
             if ($this->haveRightFor('single', $rec)) {
                 $options[$rec->id] = $this->getTitleById($rec->id, true);
             }
         }
-        
+
         $retUrl = getRetUrl();
         
         // Ако няма опции, връщаме се назад
@@ -2549,7 +2581,6 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         $singleTitle = mb_strtolower($this->singleTitle);
-        $quotationId = Request::get('quotationId', 'int');
         $rejectUrl = toUrl(array($this->quotationClass, 'single', $quotationId));
         $form->title = '|Прехвърляне в|* ' . $singleTitle . ' ' . tr('на') . ' ' . cls::get($this->quotationClass)->getFormTitleLink($quotationId);
         
@@ -2626,7 +2657,7 @@ abstract class deals_DealMaster extends deals_DealBase
         foreach ($products as $product) {
             $quantity = $product->quantity;
             if($strategy == 'shippedNotInvoiced') {
-                $quantity -= $invoiced[$product->productId];
+                $quantity -= $invoiced[$product->productId] ?? 0;
             }
 
             if ($quantity <= 0) continue;
@@ -2873,18 +2904,20 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $arr = deals_Helper::normalizeProducts(array($all));
         arr::sortObjects($arr, 'sumAmounts', 'desc');
-        $arr = array_values($arr);
-        
-        if ($productId = $arr[0]->productId) {
-            $tplLang = doc_TplManager::fetchField($rec->template, 'lang');
-            if($tplLang){
-                core_Lg::push($tplLang);
-                $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
-                $productName = cat_Products::getVerbal($pRec, 'name');
-                core_Lg::pop();
-                $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
+        if(!empty($arr)) {
+            $arr = array_values($arr);
 
-                return $productName;
+            if ($productId = $arr[0]->productId) {
+                $tplLang = doc_TplManager::fetchField($rec->template, 'lang');
+                if($tplLang){
+                    core_Lg::push($tplLang);
+                    $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
+                    $productName = cat_Products::getVerbal($pRec, 'name');
+                    core_Lg::pop();
+                    $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
+
+                    return $productName;
+                }
             }
         }
     }
@@ -3104,7 +3137,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!empty($rec->deliveryTime)) {
             $dateArr['date'] = $rec->deliveryTime;
         } else {
-            $date = $date ?? ($rec->valior ?? $rec->activatedOn);
+            $date = $rec->valior ?? $rec->activatedOn;
             $dateArr['date'] = $date;
 
             // Датата ще е вальора/датата на активиране/датата на създаване в този ред
@@ -3355,7 +3388,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Дебъг екшън показващ разпределени плащанията по фактури
      */
-    public static function act_showDebugPayments()
+    public function act_showDebugPayments()
     {
         requireRole('debug');
         $threadId = Request::get('threadId', 'int');
@@ -3369,6 +3402,12 @@ abstract class deals_DealMaster extends deals_DealBase
 
         $debug = '';
         $paymentState = $firstDoc->getInstance()->getPaymentState($pRec, null, $debug);
+        if($paymentState != $pRec->paymentState){
+            $pRec->paymentState = $paymentState;
+            $this->save_($pRec, 'paymentState,overdueAmountPerDays,overdueAmount');
+            $debug .= "<br>Състоянието е обновено";
+        }
+
         echo $debug;
         bp($paymentState, $payment1, $payments2, $payment3);
     }

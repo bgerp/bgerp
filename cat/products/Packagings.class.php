@@ -233,10 +233,13 @@ class cat_products_Packagings extends core_Detail
                 }
             }
 
-            if (!$form->gotErrors() && cat_UoM::fetch($rec->packagingId)->type == 'packaging') {
-                $warning = null;
-                if (!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)) {
-                    $form->setError('quantity', $warning);
+            if (!$form->gotErrors()) {
+                $uomType =  cat_UoM::fetchField($rec->packagingId, 'type');
+                if($uomType  == 'packaging'){
+                    $warning = null;
+                    if (!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)) {
+                        $form->setError('quantity', $warning);
+                    }
                 }
             }
 
@@ -650,7 +653,7 @@ class cat_products_Packagings extends core_Detail
             }
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
             if($rec->createdOn >= self::getPastHorizon()){
                 $row->user = ht::createHint($row->user, "Използвания|*: {$rec->usages}");
@@ -848,11 +851,7 @@ class cat_products_Packagings extends core_Detail
         $inClsName = false;
         foreach ($allClsArr as $cls) {
             $cls = cls::get($cls);
-
-            if (!$cls->fields['packagingId']) {
-
-                continue;
-            }
+            if (!$cls->getField('packagingId', false)) continue;
 
             $allClsName[$cls->className] = $cls->className;
             $productIdFld = $packagingIdFld = false;
@@ -878,7 +877,7 @@ class cat_products_Packagings extends core_Detail
 
         if ($inClsName === false) {
             foreach ($mDetailsArr as $dName) {
-                if ($allClsName[$dName]) {
+                if (isset($allClsName[$dName])) {
                     wp('Използван пакет, който е прескочен', $mDetailsArr, $dName);
                 }
             }
@@ -1070,7 +1069,7 @@ class cat_products_Packagings extends core_Detail
                         }
                     }
                 } else {
-                    wp($dArr, $data);
+                    wp('Няма отговор', $dArr, $data);
                 }
             }
         }
@@ -1091,6 +1090,7 @@ class cat_products_Packagings extends core_Detail
     {
         sync_Helper::requireRight('export');
         expect($ids = Request::get('exportIds'));
+        $resArr = array();
 
         try {
             $dArr = explode('|', $ids);
@@ -1574,7 +1574,7 @@ class cat_products_Packagings extends core_Detail
 
         // Ако е създадена повече от зададеното време - НЕ
         $pastHorizon = self::getPastHorizon();
-        if($rec->createdOn <= $pastHorizon) return false;
+        if(is_object($rec) && $rec->createdOn <= $pastHorizon) return false;
 
         // Ако е създадена в хоризонта, само ако не е използвана никъде
         if(is_null($rec->usages) || $rec->usages <= 0) return true;
@@ -1629,5 +1629,60 @@ class cat_products_Packagings extends core_Detail
                 $data->query->where("#packagingId = {$filter->packagingId}");
             }
         }
+    }
+
+
+    /**
+     * Връща текущата опаковка и следващата по-голяма опаковка за артикул.
+     *
+     * Функцията зарежда всички опаковки на посочения артикул от тип `packaging`,
+     * подредени във възходящ ред по количество. За подадената опаковка намира:
+     *
+     * @param int $productId   ид на артикула
+     * @param int $packagingId ид на текущата опаковка
+     *
+     * @return array Масив със следните ключове:
+     *               - `currentPackagingId` — ид на подадената опаковка
+     *               - `currentQty`         — количеството в текущата опаковка
+     *               - `nextPackagingId`    — ид на следващата по-голяма опаковка или `null`
+     *               - `nextQty`            — колко текущи опаковки се съдържат в следващата или `null`
+     *               - `nextQtyVerbal`      — вербално представяне на `nextQty` или `null`
+     *               - `nextPackName`       — име на следващата опаковка или `null`
+     */
+    public static function getCurrentAndNextBiggerPack($productId, $packagingId)
+    {
+        $packs = array();
+        $pQuery = cat_products_Packagings::getQuery();
+        $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
+        $pQuery->orderBy('quantity', 'ASC');
+        while($pRec = $pQuery->fetch()) {
+            $packs[$pRec->packagingId] = $pRec->quantity;
+        }
+
+        $currentQty = $packs[$packagingId] ?? 1;
+        $nextPackagingId = $nextQty = $nextQtyVerbal = $nextPackName = null;
+        foreach ($packs as $packId => $qty) {
+            if ($qty > $currentQty && ($nextQty === null || $qty < $nextQty)) {
+                $nextQty = $qty;
+                $nextPackagingId = $packId;
+            }
+        }
+
+        if(isset($nextPackagingId)){
+            $nextQty = round($nextQty / $currentQty, 4);
+            $nextQtyVerbal = core_Type::getByName('double(smartRound)')->toVerbal($nextQty);
+            $nextPackName = cat_UoM::getTitleById($nextPackagingId);
+        }
+
+        $res = array('currentPackagingId' => $packagingId,
+                            'currentQty' => $currentQty,
+                            'nextPackagingId' => $nextPackagingId,
+                            'nextQty' => $nextQty,
+                            'nextQtyVerbal' => $nextQtyVerbal,
+                            'nextPackName' => $nextPackName,
+        );
+
+        return $res;
     }
 }

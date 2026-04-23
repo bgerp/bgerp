@@ -442,6 +442,7 @@ class crm_Companies extends core_Master
         $data->listFilter->input('alpha,users,search,order,groupId', 'silent');
         
         // Според заявката за сортиране, показваме различни полета
+        setPartIfNot($data->listFilter->rec, 'order', 'alphabetic');
         $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
         
         if ($showColumns) {
@@ -450,9 +451,7 @@ class crm_Companies extends core_Master
                 $data->listFields[$field] = $title;
             }
         }
-        
-        // Подредба
-        setPartIfNot($data->listFilter->rec, 'order', 'alphabetic');
+
         $orderCond = $mvc->listOrderBy[$data->listFilter->rec->order][1];
         if ($orderCond) {
             if (strpos($orderCond, '#nameT') !== false) {
@@ -502,10 +501,12 @@ class crm_Companies extends core_Master
      */
     public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
+
         if (is_array($data->recs)) {
             $cnt = array();
             foreach ($data->recs as $rec) {
-                $cnt[str::utf2ascii(trim($rec->name))]++;
+                $key = str::utf2ascii(trim($rec->name));
+                $cnt[$key] = ($cnt[$key] ?? 0) + 1;
             }
             foreach ($data->recs as $rec) {
                 if ($cnt[str::utf2ascii(trim($rec->name))] >= 2) {
@@ -546,11 +547,11 @@ class crm_Companies extends core_Master
     public static function addNewCompanyBtn2Toolbar(core_Toolbar &$toolbar,core_Form $listFilter)
     {
         $addCompanyUrl = array('crm_Companies', 'add');
-        if($groupId = $listFilter->rec->groupId){
+        if($groupId = ($listFilter->rec->groupId ?? null)){
             $addCompanyUrl["groupList"] = $groupId;
         }
         
-        $searchString = $listFilter->rec->search;
+        $searchString = $listFilter->rec->search ?? null;
         
         // Ако има въведен стринг за търсене
         if(!empty($searchString)){
@@ -646,7 +647,7 @@ class crm_Companies extends core_Master
                 if ($fax) {
                     $fax1 = drdata_PhoneType::setCodeIfMissing($fax, $code);
                     if ($fax1 != $fax) {
-                        Request::push(array('tel' => $fax1));
+                        Request::push(array('fax' => $fax1));
                     }
                 }
             }
@@ -680,9 +681,7 @@ class crm_Companies extends core_Master
                 
                 if ($oldValArr) {
                     foreach ($oldValArr as $fName => $fVal) {
-                        if (!$form->fields[$fName]) {
-                            continue;
-                        }
+                        if (empty($form->fields[$fName])) continue;
                         
                         if ($form->fields[$fName]->type instanceof type_Key || $form->fields[$fName]->type instanceof type_Keylist) {
                             $form->fields[$fName]->unit = '|*(' . $form->fields[$fName]->type->toVerbal($fVal) . ')';
@@ -709,11 +708,11 @@ class crm_Companies extends core_Master
     {
         $resStr = '';
         
-        $similarsArr = self::getSimilarRecs($rec, $fields);
+        $similarArr = self::getSimilarRecs($rec, $fields);
         
-        if (!empty($similarsArr)) {
+        if (!empty($similarArr)) {
             $similarCompany = '';
-            foreach ($similarsArr as $similarRec) {
+            foreach ($similarArr as $similarRec) {
                 $class = '';
                 
                 if ($similarRec->state == 'rejected') {
@@ -751,9 +750,9 @@ class crm_Companies extends core_Master
                 $similarCompany .= '</li>';
             }
             
-            $sledniteFirmi = (countR($similarsArr) == 1) ? 'следната фирма' : 'следните фирми';
+            $str = (countR($similarArr) == 1) ? 'следната фирма' : 'следните фирми';
             
-            $resStr = "Възможно е дублиране със {$sledniteFirmi}|*: <ul>{$similarCompany}</ul>";
+            $resStr = "Възможно е дублиране със {$str}|*: <ul>{$similarCompany}</ul>";
         }
         
         return $resStr;
@@ -781,7 +780,7 @@ class crm_Companies extends core_Master
         if (empty($companyTypesArr)) {
             $companyTypes = getFileContent('drdata/data/companyTypes.txt');
             $companyTypesArr = explode("\n", $companyTypes);
-            arr::combine($companyTypesArr, array('ет','еоод','сд', 'ад', 'еад'));
+            $companyTypesArr = arr::combine($companyTypesArr, array('ет','еоод','сд', 'ад', 'еад'));
         }
         
         foreach ($companyTypesArr as $word) {
@@ -809,7 +808,7 @@ class crm_Companies extends core_Master
             $fieldsArr['name'] = 'name';
         }
         
-        $vatNumb = preg_replace('/[^0-9]/', '', $rec->vatId);
+        $vatNumb = !empty($rec->vatId) ? preg_replace('/[^0-9]/', '', $rec->vatId) : null;
         
         if ($vatNumb) {
             $vQuery = clone $oQuery;
@@ -946,7 +945,7 @@ class crm_Companies extends core_Master
     {
         $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
 
-        if ($fields['-single']) {
+        if (!empty($fields['-single'])) {
             // Fancy ефект за картинката
             $Fancybox = cls::get('fancybox_Fancybox');
             
@@ -1144,7 +1143,7 @@ class crm_Companies extends core_Master
         if (!isset($cRec)) {
             $cRec = crm_Companies::fetchOwnCompany();
         }
-        
+
         $cRec->company = trim($cRec->company);
         $companyName = transliterate(tr($cRec->company));
         $tpl->append($companyName, 'myCompanyName');
@@ -1152,27 +1151,27 @@ class crm_Companies extends core_Master
         $tpl->replace(self::getCompanyFontSize($cRec->company), 'companyFontSize');
         
         // Подготвяме адреса
-        $fAddres = '';
+        $fAddress = $tel = $fax = $email = '';
         if ($cRec->country) {
-            $fAddres .= transliterate($cRec->country);
+            $fAddress .= transliterate($cRec->country);
         }
         
         if (trim($cRec->pCode)) {
-            $fAddres .= (trim($fAddres)) ? ', ' : '';
-            $fAddres .= transliterate($cRec->pCode);
+            $fAddress .= (trim($fAddress)) ? ', ' : '';
+            $fAddress .= transliterate($cRec->pCode);
         }
         
         if (trim($cRec->place)) {
-            if (trim($fAddres)) {
-                $fAddres .= (trim($cRec->pCode)) ? ' ' : ', ';
+            if (trim($fAddress)) {
+                $fAddress .= (trim($cRec->pCode)) ? ' ' : ', ';
             }
             
-            $fAddres .= transliterate(tr($cRec->place));
+            $fAddress .= transliterate(tr($cRec->place));
         }
         
         if (trim($cRec->address)) {
-            $fAddres .= (trim($fAddres)) ? ', ' : '';
-            $fAddres .= transliterate(tr($cRec->address));
+            $fAddress .= (trim($fAddress)) ? ', ' : '';
+            $fAddress .= transliterate(tr($cRec->address));
         }
         
         if (trim($cRec->tel)) {
@@ -1201,7 +1200,7 @@ class crm_Companies extends core_Master
         } else {
             $tpl->append(66, 'smallFontSize');
         }
-        $tpl->append($fAddres, 'address');
+        $tpl->append($fAddress, 'address');
         
         if (trim($tel)) {
             $tpl->append($tel, 'tel');
@@ -1246,7 +1245,7 @@ class crm_Companies extends core_Master
                     $url = CRM_REMOTE_COMPANY_LOGO_CREATOR;
                     
                     $data = array('myCompanyName' => $companyName,
-                        'address' => $fAddres,
+                        'address' => $fAddress,
                         'tel' => $tel,
                         'fax' => $fax,
                         'email' => $email,
@@ -1351,7 +1350,7 @@ class crm_Companies extends core_Master
             }
             
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
@@ -1365,6 +1364,7 @@ class crm_Companies extends core_Master
         $query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
         if ($q) {
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }
@@ -1603,7 +1603,7 @@ class crm_Companies extends core_Master
         if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;
 
         // Ако не е посочена държава, вингаи начисляваме ДДС
-        if (!$rec->country) {
+        if (empty($rec->country)) {
             
             return true;
         }
@@ -1683,6 +1683,7 @@ class crm_Companies extends core_Master
         } else {
             // Конфигурационните данните
             $conf = core_Packs::getConfig('crm');
+            $commonName = $country = null;
 
             if ($escaped) {
                 // Заглавието
@@ -1692,7 +1693,7 @@ class crm_Companies extends core_Master
             }
 
             // Ако е зададена държава
-            if ($rec->country) {
+            if (!empty($rec->country)) {
                 
                 // Името на дръжавата
                 $commonName = mb_strtolower(drdata_Countries::fetchField($rec->country, 'commonName'));
@@ -1797,7 +1798,8 @@ class crm_Companies extends core_Master
             }
         }
 
-        //Заместваме и връщаме данните
+        // Заместваме и връщаме данните
+        $contrData = null;
         if ($company) {
             $contrData = new stdClass();
             $contrData->company = $company->name;
@@ -2092,7 +2094,7 @@ class crm_Companies extends core_Master
                     
                     // Ако факса е същия
                     if (($cFax->countryCode == $oFax->countryCode) && ($cFax->areaCode == $oFax->areaCode)
-                        && ($cTel->number == $oFax->number)) {
+                        && ($cFax->number == $oFax->number)) {
                         
                         // Премахваме от масива на контрагента
                         unset($cFaxArr[$key]);
@@ -2114,7 +2116,7 @@ class crm_Companies extends core_Master
         }
         
         // Ако адреса е същия
-        if (mb_strtolower($ownCompany->address) == mb_strtolower($contrData->address)) {
+        if (!empty($ownCompany->address) && mb_strtolower($ownCompany->address) == mb_strtolower($contrData->address)) {
             
             // Премахваме от данните
             $contrData->address = null;
@@ -2140,7 +2142,7 @@ class crm_Companies extends core_Master
                 foreach ($oEmailArr as $oEmail) {
                     
                     // Ако стойността я има в масива на контрагента, премахваме го
-                    if ($cEmailArr[$oEmail]) {
+                    if (!empty($cEmailArr[$oEmail])) {
                         unset($cEmailArr[$oEmail]);
                     }
                 }
@@ -2151,6 +2153,8 @@ class crm_Companies extends core_Master
         }
         
         // Ако има групови имейли
+        $oEmailArr = null;
+        $cGroupEmailArr = array();
         if ($ownCompany->email && $contrData->groupEmails) {
             
             // Ако не сме намерили масива преди
@@ -2474,7 +2478,7 @@ class crm_Companies extends core_Master
         }
         
         if ($vatId = trim($rec->vatId)) {
-            $query->orWhere(array("#name = '[#1#]'", $vatId));
+            $query->orWhere(array("#vatId = '[#1#]'", $vatId));
         }
         
         $query->orderBy('#vatId', 'DESC');

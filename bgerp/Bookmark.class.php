@@ -107,7 +107,7 @@ class bgerp_Bookmark extends core_Manager
      */
     public static function renderBookmarks()
     {
-        $cookie = $_COOKIE['bookmarkInfo'];
+        $cookie = $_COOKIE['bookmarkInfo'] ?? null;
 
         $screen = Mode::is('screenMode', 'narrow') ? 'm' : 'd';
         

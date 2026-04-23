@@ -151,9 +151,9 @@ class Color
         }
         
         // Convert to hex
-        $r = dechex($r);
-        $g = dechex($g);
-        $b = dechex($b);
+        $r = dechex((int) $r);
+        $g = dechex((int) $g);
+        $b = dechex((int) $b);
         
         // Make sure we get 2 digits for decimals
         $r = (strlen(''.$r) === 1) ? '0'.$r:$r;

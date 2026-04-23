@@ -45,7 +45,7 @@ class core_Html
                 foreach ($attributes as $atr => $content) {
                     // Смятаме, че всички атрибути с имена, започващи със '#'
                     // са вътрешни и поради това не ги показваме в елемента
-                    if ($atr[0] == '#') continue;
+                    if (is_string($atr) && isset($atr[0]) && $atr[0] == '#') continue;
 
                     if (is_string($content)) {
                         /**
@@ -137,9 +137,9 @@ class core_Html
             // За съвместимост с IE
             $tpl->appendOnce("\n<!--[if IE 7]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
             $tpl->appendOnce("\n<!--[if IE 6]><STYLE>Select.combo {margin-top:1px !important;}</STYLE><![endif]-->", 'HEAD');
-            
-            
-            $attr['class'] .= ' combo';
+
+
+            $attr['class'] = ($attr['class'] ?? '') . ' combo';
             $attr['value'] = $value;
             $id = $attr['id'];
             
@@ -151,10 +151,10 @@ class core_Html
             if (!empty($attr['ajaxAutoRefreshOptions'])) {
                 $attr['onkeydown'] = "focusSelect(event, '{$selectId}');";
                 $attr['onkeyup'] = "  if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} this.proc = setTimeout( \"  $('#" . $id . "').change();\", 1500); ";
-                if ($attr['onchange']) {
+                if (!empty($attr['onchange'])) {
                     $attr['onchange'] = "if(isOptionExists('" . $selectId . "', this.value)) {" . $attr['onchange'] . '} ';
                 }
-                $attr['onchange'] .= "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$selectId}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
+                $attr['onchange'] = ($attr['onchange'] ?? '') . "if(typeof(this.proc) != 'undefined') {clearTimeout(this.proc); delete this.proc;} ajaxAutoRefreshOptions('{$id}','{$selectId}'" . ", this, {$attr['ajaxAutoRefreshOptions']});";
                 unset($attr['ajaxAutoRefreshOptions']);
             }
             
@@ -204,6 +204,7 @@ class core_Html
      */
     public static function groupOptions($options, $div = '»')
     {
+        $lastGroup = null;
         if (countR($options) > 1) {
             $groups = $newOptions = array();
             
@@ -211,7 +212,7 @@ class core_Html
             $defaultGroup = '';
             foreach ($options as $index => $opt) {
                 if (is_object($opt)) {
-                    if ($opt->group) {
+                    if (!empty($opt->group)) {
                         $defaultGroup = trim($opt->title);
                         continue;
                     }
@@ -221,8 +222,8 @@ class core_Html
                 }
                 
                 // Ако в името на класа има '->' то приемаме, че стринга преди знака е името на групата
-                list($group, $caption) = explode($div, $title);
-                
+                list($group, $caption) = array_pad(explode($div, $title, 2), 2, null);
+
                 if (!$caption) {
                     $caption = $group;
                     $group = $defaultGroup;
@@ -273,7 +274,7 @@ class core_Html
             // Смятаме, че всички атрибути с имена, започващи със '#'
             // са вътрешни и поради това не ги показваме в елемента
             // Същото правим и за атрибутите placeholder и value
-            if ($atr[0] == '#' || $atr == 'placeholder' || $atr == 'value') {
+            if ((is_string($atr) && isset($atr[0]) && $atr[0] == '#') || $atr == 'placeholder' || $atr == 'value') {
                 continue;
             }
             
@@ -295,14 +296,14 @@ class core_Html
                 $element = 'option';
                 
                 if (is_object($title)) {
-                    if ($title->group) {
+                    if (!empty($title->group)) {
                         if ($openGroup) {
                             // затваряме групата
                             $select->append('</optgroup>', 'OPTIONS');
                         }
                         $element = 'optgroup';
-                        $attr = $title->attr;
-                        $attr['label'] = $title->title;
+                        $attr = is_array($title->attr ?? null) ? $title->attr : array();
+                        $attr['label'] = $title->title ?? '';
                         $option = self::createElement($element, $attr);
                         $select->append($option, 'OPTIONS');
                         $openGroup = true;
@@ -310,8 +311,8 @@ class core_Html
                     } elseif ($title instanceof core_ET) {
                         $title = $title->getContent();
                     } else {
-                        $attr = $title->attr;
-                        $title = $title->title;
+                        $attr = is_array($title->attr ?? null) ? $title->attr : array();
+                        $title = $title->title ?? '';
                     }
                 }
                 
@@ -329,7 +330,7 @@ class core_Html
                 if (!empty($selAttr['placeholder']) &&
                     strlen($attr['value']) == 0 && !trim($title)) {
                     $title = $selAttr['placeholder'];
-                    $attr['style'] .= 'color:#777;';
+                    $attr['style'] = ($attr['style'] ?? '') . 'color:#777;';
                 }
                 
                 $option = self::createElement($element, $attr, $title);
@@ -358,7 +359,7 @@ class core_Html
         
         if (countR($options)) {
             foreach ($options as $opt) {
-                if (!is_object($opt) || !$opt->group) {
+                if (!is_object($opt) || empty($opt->group)) {
                     $cnt++;
                 }
             }
@@ -393,9 +394,9 @@ class core_Html
         expect($optionsCnt > 0, "Липсват опции за '{$name}'");
 
         // Когато имаме само една опция, правим readOnly <input>
-        if ($optionsCnt == 1 && (!$attr['_isAllowEmpty'] || array_key_exists('', $options))) {
+        if ($optionsCnt == 1 && (!(bool)($attr['_isAllowEmpty'] ?? false) || array_key_exists('', $options))) {
             foreach ($options as $id => $opt) {
-                if (is_object($opt) && $opt->group) {
+                if (is_object($opt) && !empty($opt->group)) {
                     continue;
                 }
                 
@@ -403,19 +404,19 @@ class core_Html
                     if ($opt instanceof core_ET) {
                         $value = $opt->getContent();
                     } else {
-                        $value = $opt->title;
+                        $value = $opt->title ?? '';
                     }
                 } else {
                     $value = $opt;
                 }
                 
                 // Запазваме класа и стила на опцията
-                if (is_object($opt) && is_array($opt->attr)) {
-                    if ($opt->attr['class']) {
-                        $attr['class'] .= ($attr['class']? ' ' : '') . $opt->attr['class'];
+                if (is_object($opt) && is_array($opt->attr ?? null)) {
+                    if (!empty($opt->attr['class'])) {
+                        $attr['class'] = ($attr['class'] ?? '') . (($attr['class'] ?? '') ? ' ' : '') . $opt->attr['class'];
                     }
-                    if ($opt->attr['style']) {
-                        $attr['style'] .= ($attr['style']? ';' : '') . $opt->attr['style'];
+                    if (!empty($opt->attr['style'])) {
+                        $attr['style'] = ($attr['style'] ?? '') . (($attr['style'] ?? '') ? ';' : '') . $opt->attr['style'];
                     }
                 }
                 
@@ -426,7 +427,7 @@ class core_Html
             $attr['class'] = 'readonly';
             
             if (empty($value)) {
-                if ($attr['placeholder']) {
+                if (!empty($attr['placeholder'])) {
                     $value = $attr['placeholder'];
                     $attr['style'] = 'color:#777';
                 } else {
@@ -435,7 +436,7 @@ class core_Html
             }
 
             unset($attr['_isAllowEmpty']);
-            $input = self::createElement('select', $attr, "<option>${value}</option>", true);
+            $input = self::createElement('select', $attr, "<option>{$value}</option>", true);
             
             $input->append(self::createElement('input', array(
                 'type' => 'hidden',
@@ -490,13 +491,14 @@ class core_Html
             foreach ($options as $id => $opt) {
                 $input = new ET();
 
-                if (is_object($opt) && $opt->group) {
-                    $input->append(self::createElement('div', $opt->attr, $opt->title));
-                    
+                if (is_object($opt) && !empty($opt->group)) {
+                    $input->append(self::createElement('div', is_array($opt->attr ?? null) ? $opt->attr : array(), $opt->title ?? ''));
                     $indent = '&nbsp;&nbsp;&nbsp;';
                 } else {
-                    $title = is_object($opt) ? (($opt instanceof core_ET) ? type_Varchar::escape($opt->getContent()) : $opt->title) : $opt;
-                    $attrLabel = is_object($opt) ? $opt->attr : array();
+                    $title = is_object($opt)
+                        ? (($opt instanceof core_ET) ? type_Varchar::escape($opt->getContent()) : ($opt->title ?? ''))
+                        : $opt;
+                    $attrLabel = (is_object($opt) && is_array($opt->attr ?? null)) ? $opt->attr : array();
                     $radioAttr = array('type' => 'radio', 'name' => $name, 'value' => $id);
                     
                     self::setUniqId($radioAttr);
@@ -532,10 +534,10 @@ class core_Html
             $attr['style'] = ($attr['style'] ?? '') . ';width:100%;';
 
             if(isset($attr['_isAllowEmpty'])){
-                $attr['class'] .= ' allowEmptyRadioHolder';
+                $attr['class'] = ($attr['class'] ?? '') . ' allowEmptyRadioHolder';
                 unset($attr['_isAllowEmpty']);
             } else {
-                $attr['class'] .= ' notAllowEmptyRadioHolder';
+                $attr['class'] = ($attr['class'] ?? '') . ' notAllowEmptyRadioHolder';
             }
 
             $input = self::createElement('div', $attr, $tpl);
@@ -625,7 +627,7 @@ class core_Html
             foreach ($defLines as $l) {
                 $l = trim($l);
                 if ($l) {
-                    list($titles, $c) = explode('=', $l);
+                    list($titles, $c) = array_pad(explode('=', $l, 2), 2, null);
                     $titles = trim($titles);
                     $c = str::utf2ascii(trim($c));
                     if (strlen($titles) > 1 && strlen($c) == 1) {
@@ -649,8 +651,8 @@ class core_Html
             } else {
                 $hint = '[Alt]+' . $c;
             }
-            
-            $attr['title'] .= ($attr['title'] ? '|* ' : '') . $hint;
+
+            $attr['title'] = ($attr['title'] ?? '') . (($attr['title'] ?? '') ? '|* ' : '') . $hint;
         }
     }
     
@@ -662,7 +664,8 @@ class core_Html
     {
         $attr = arr::make($attr);
         $attr['error'] = $error;
-        if($attr['ef_icon'] != 'none'){
+        $icon = $attr['ef_icon'] ?? null;
+        if($icon != 'none'){
             $attr['ef_icon'] = 'img/16/error.png';
         }
         
@@ -691,7 +694,7 @@ class core_Html
         
         // URL с потвърждение
         if (is_array($url) && $warning) {
-            $content = $url[1] . ($url['id'] ? $url['id'] : $url[2]);
+            $content = ($url[1] ?? '') . (($url['id'] ?? null) ? $url['id'] : ($url[2] ?? ''));
             if ($content) {
                 $url['Cf'] = core_Request::getSessHash($content);
             }
@@ -702,23 +705,23 @@ class core_Html
             $url = toUrl($url);
         } catch (core_exception_Expect $e) {
             $url = null;
-            $attr['style'] .= ' border:dotted 1px red;';
+            $attr['style'] = ($attr['style'] ?? '') . ' border:dotted 1px red;';
         }
         
         // Подготвяме атрибутите
-        $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
-        
+        $attr['class'] = ($attr['class'] ?? '') . (($attr['class'] ?? '') ? ' ' : '') . 'button';
+
         // Оцветяваме бутона в зависимост от особеностите му
-        if (!$attr['disabled']) {
-            if ($attr['error']) {
-                $attr['style'] .= 'color:#9A5919;';
+        if (empty($attr['disabled'])) {
+            if (!empty($attr['error'])) {
+                $attr['style'] = ($attr['style'] ?? '') . 'color:#9A5919;';
             } elseif ($warning) {
-                $attr['style'] .= 'color:#772200;';
+                $attr['style'] = ($attr['style'] ?? '') . 'color:#772200;';
             } elseif ($newWindow) {
-                $attr['style'] .= 'color:#008800;';
+                $attr['style'] = ($attr['style'] ?? '') . 'color:#008800;';
             }
         } else {
-            $attr['style'] .= 'color:#888;';
+            $attr['style'] = ($attr['style'] ?? '') . 'color:#888;';
         }
         
         // Добавяме икона на бутона, ако има
@@ -742,22 +745,22 @@ class core_Html
             
             $attr['rel'] = 'nofollow';
             
-            return self::createElement('a', $attr, "${title}");
+            return self::createElement('a', $attr, "{$title}");
         }
         
         // Вкарваме JavaScript-a
         if ($newWindow) {
             if (is_string($newWindow) && ($newWindow != '_blank')) {
-                $attr['onclick'] .= " window.open('{$url}','{$newWindow}')";
+                $attr['onclick'] = ($attr['onclick'] ?? '') . " window.open('{$url}','{$newWindow}')";
             } else {
-                $attr['onclick'] .= " window.open('{$url}')";
+                $attr['onclick'] = ($attr['onclick'] ?? '') . " window.open('{$url}')";
             }
         } else {
-            $attr['onclick'] .= " document.location='{$url}'";
+            $attr['onclick'] = ($attr['onclick'] ?? '') . " document.location='{$url}'";
         }
         
         // Ако имаме грешка - показваме я и не продължаваме
-        if ($attr['error']) {
+        if (!empty($attr['error'])) {
             $attr['error'] = tr($attr['error']);
             $attr['onclick'] = " alert('{$attr['error']}'); return false; ";
             unset($attr['error']);
@@ -836,8 +839,8 @@ class core_Html
     public static function createFnBtn($title, $function, $warning = null, $attr = array())
     {
         $attr = self::prepareLinkAndBtnAttr($attr, $warning);
-        
-        $attr['onclick'] .= $function;
+
+        $attr['onclick'] = ($attr['onclick'] ?? '') . $function;
         
         $attr['type'] = 'button';
         
@@ -845,7 +848,7 @@ class core_Html
         
         // Оцветяваме бутона в зависимост от особеностите му
         if ($warning) {
-            $attr['style'] .= 'color:#772200;';
+            $attr['style'] = ($attr['style'] ?? '') . 'color:#772200;';
         }
         
         $attr['class'] .= ($attr['class'] ? ' ' : '') . 'button';
@@ -879,7 +882,7 @@ class core_Html
         
         // URL с потвърждение
         if (is_array($url) && $warning) {
-            $content = $url[1] . ($url['id'] ? $url['id'] : $url[2]);
+            $content = ($url[1] ?? '') . (($url['id'] ?? null) ? $url['id'] : ($url[2] ?? ''));
             if ($content) {
                 $url['Cf'] = core_Request::getSessHash($content);
             }
@@ -919,7 +922,7 @@ class core_Html
                         $srcset = sbf($icon2, '', Mode::is('text', 'xhtml')) . ' 2x';
                     }
                 }
-                $icon = "<img src='${iconSrc}' {$srcset} width='16' height='16' style='float:left;margin:1px 5px -3px 6px;' alt=''>";
+                $icon = "<img src='{$iconSrc}' {$srcset} width='16' height='16' style='float:left;margin:1px 5px -3px 6px;' alt=''>";
                 $title = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
             } else {
                 
@@ -961,6 +964,7 @@ class core_Html
     public static function createLinkRef($title, $url = false, $warning = false, $attr = array())
     {
         // Ако има зададена иконка в линка, слагаме я преди заглавието
+        $link = null;
         if (is_array($attr) && isset($attr['ef_icon'])) {
             $icon = ht::createElement('img', array('src' => sbf($attr['ef_icon'], ''), 'class' => 'linkRefIcon'));
             $title = "{$icon} <span class = 'linkRefText'>{$title}</span>";
@@ -968,7 +972,7 @@ class core_Html
         }
         
         if ($url !== false && (is_string($url) || (is_array($url) && countR($url)))) {
-            $imgSrc = isset($attr['ef_icon']) ? $attr['ef_icon'] : 'img/16/anchor-image.png';
+            $imgSrc = $attr['ef_icon'] ?? 'img/16/anchor-image.png';
             $arrowImg = ht::createElement('img', array('src' => sbf($imgSrc, '')));
             $link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
         }
@@ -994,6 +998,7 @@ class core_Html
      */
     public static function createSelectMenu($options, $selected, $maxRadio = 0, $attr = array())
     {
+        $button = $i = null;
         if (countR($options) < $maxRadio) {
             self::setUniqId($attr);
             $i = 0;
@@ -1008,7 +1013,7 @@ class core_Html
                     "<label for=\"{$id}\"{$style}>{$title}</label></div>", 'selectMenu');
             }
         } else {
-            $name = 'sm' . $i;
+            $name = 'sm';
             $attr['onChange'] = 'openUrl(this.options[this.selectedIndex].value, event)';
             $attr['onfocus'] = 'this.selectedIndex = -1;';
             $attr['class'] = ($attr['class'] ? $attr['class'] . ' ' : '') . 'button';
@@ -1098,7 +1103,7 @@ class core_Html
         }
         
         $hint = strip_tags(tr($hint));
-        
+
         if ($type == 'noicon') {
             $element = "<span class='textHint' title='[#hint#]' rel='tooltip'>[#body#]</span>";
         } else {
@@ -1130,8 +1135,10 @@ class core_Html
         $hint = str_replace("'", '"', $hint);
         $elementTpl->append($body, 'body');
         $elementTpl->append($hint, 'hint');
-        $elementTpl->append($iconHtml, 'icon');
-        
+        if(!empty($iconHtml)){
+            $elementTpl->append($iconHtml, 'icon');
+        }
+
         return $elementTpl;
     }
     
@@ -1249,8 +1256,8 @@ class core_Html
                     ) as $prop) {
                         $prop->setAccessible(true);
                         $name = $prop->getName();
-                        
-                        if (!$scopeArr[$name]) {
+
+                        if (!isset($scopeArr[$name])) {
                             $res[$name] = @$prop->getValue($o);
                             if ($prop->isStatic()) {
                                 $scopeArr[$name] = 'static';
@@ -1281,9 +1288,9 @@ class core_Html
         
         if (is_array($o)) {
             if ($i >= $hideLevel + 1) {
-                $html = "\n(${r})\n<ul class='hidden' style='display:none;'>";
+                $html = "\n({$r})\n<ul class='hidden' style='display:none;'>";
             } else {
-                $html = "\n(${r})\n<ul>";
+                $html = "\n({$r})\n<ul>";
             }
             
             if ($i >= $hideLevel && $i < $maxLevel) {
@@ -1302,7 +1309,7 @@ class core_Html
                     }
                     
                     if ($name === 'dbPass') {
-                        $html .= "\n    <li>" . self::createElement('span', $attr, "${name} : ******")  . '</li>';
+                        $html .= "\n    <li>" . self::createElement('span', $attr, "{$name} : ******")  . '</li>';
                     } else {
                         if (is_scalar($value) || $value === null || (is_array($value) && countR($value) == 0)) {
                             $html .= "\n    <li>" . self::createElement('span', $attr, htmlentities($name, ENT_COMPAT | ENT_IGNORE, 'UTF-8')) . ' : ' .
@@ -1321,11 +1328,11 @@ class core_Html
             }
             $html .= "\n</ul>";
         } elseif (is_string($o)) {
-            $html = "(${r}) " . htmlentities($o, ENT_COMPAT | ENT_IGNORE, 'UTF-8');
+            $html = "({$r}) " . htmlentities($o, ENT_COMPAT | ENT_IGNORE, 'UTF-8');
         } elseif (is_bool($o)) {
-            $html = "(${r}) " . ($o ? 'TRUE' : 'FALSE');
+            $html = "({$r}) " . ($o ? 'TRUE' : 'FALSE');
         } else {
-            $html = "(${r}) " . $o;
+            $html = "({$r}) " . $o;
         }
         $i--;
         
@@ -1344,8 +1351,9 @@ class core_Html
     public static function fixObject(&$object)
     {
         if ($object instanceof __PHP_Incomplete_Class) {
-            
-            return ($object = unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . strlen($class) . ':"' . $class . '"', serialize($object))));
+            $class = $class ?? null;
+            $strlen = $class ? strlen($class) : '';
+            return ($object = unserialize(preg_replace('/^O:\d+:"[^"]++"/', 'O:' . $strlen . ':"' . $class . '"', serialize($object))));
         }
         
         return $object;
@@ -1577,18 +1585,18 @@ class core_Html
             if (isset($params[$key])) {
                 $value = $params[$key];
                 if ($key === 'class') {
-                    $videoTag .= ' class="' . htmlspecialchars($value) . '"';
+                    $videoTag .= ' class="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
                 } elseif ($value === true) {
                     $videoTag .= ' ' . $key;
                 } elseif (!is_bool($value)) {
-                    $videoTag .= ' ' . $key . '="' . htmlspecialchars($value) . '"';
+                    $videoTag .= ' ' . $key . '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
                 }
             }
         }
         $videoTag .= '>';
 
         // Добавяне на source таг с подадения тип
-        $videoTag .= '<source src="' . htmlspecialchars($src) . '" type="' . htmlspecialchars($sourceType) . '">';
+        $videoTag .= '<source src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" type="' . htmlspecialchars($sourceType, ENT_QUOTES, 'UTF-8') . '">';
 
         // Добавяне на fallback текст
         $videoTag .= tr('Браузърът не поддържа видео тага');

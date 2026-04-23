@@ -171,14 +171,21 @@ abstract class deals_Document extends deals_PaymentDocument
         // Има ли активни служебни аванси в избраната папка
         $options = $dealOptions = $accOptionsFiltered = array();
         $aQuery = findeals_AdvanceDeals::getQuery();
-        $aQuery->where("#folderId = {$folderId} AND #state = 'active' AND #threadId != '{$threadId}'");
+        $aQuery->where("#folderId = {$folderId} AND #state = 'active'");
+        if(isset($threadId)) {
+            $aQuery->where("#threadId != '{$threadId}'");
+        }
+
         while ($fRec = $aQuery->fetch()) {
             $dealOptions[$fRec->containerId] = findeals_AdvanceDeals::getTitleById($fRec, false);
         }
         
         // Има ли активни ф. сделки в избраната папка
         $fQuery = findeals_Deals::getQuery();
-        $fQuery->where("#folderId = {$folderId} AND #state = 'active' AND #threadId != '{$threadId}'");
+        $fQuery->where("#folderId = {$folderId} AND #state = 'active'");
+        if(isset($threadId)) {
+            $fQuery->where("#threadId != '{$threadId}'");
+        }
         while ($fRec = $fQuery->fetch()) {
             $dealOptions[$fRec->containerId] = findeals_Deals::getTitleById($fRec, false) . "/" . $fRec->currencyId;
         }
@@ -328,7 +335,7 @@ abstract class deals_Document extends deals_PaymentDocument
     {
         $row->title = $mvc->getHyperlink($rec->id, true);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             try{
                 $row->nextHandle = doc_Containers::getDocument($rec->dealId)->getLink();
             } catch(core_exception_Expect $e){

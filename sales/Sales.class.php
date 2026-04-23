@@ -540,7 +540,7 @@ class sales_Sales extends deals_DealMaster
                     if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
                         $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                         $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
-                        $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
+                        $form->setDefault('deliveryCalcTransport', $calcCostDefault);
                         if(empty($rec->deliveryCalcTransport)){
                             $form->setReadOnly('deliveryCalcTransport', $calcCostDefault);
                         } else {
@@ -761,6 +761,7 @@ class sales_Sales extends deals_DealMaster
         core_Debug::startTimer('GET_SALE_ENTRIES');
         $entries = sales_transaction_Sale::getEntries($rec->id);
         core_Debug::stopTimer('GET_SALE_ENTRIES');
+        $deliveredAmount = $paidAmount = 0;
 
         if(!Mode::is('onlySimpleDealInfo')){
             $deliveredAmount = sales_transaction_Sale::getDeliveryAmount($entries, $rec);
@@ -927,7 +928,8 @@ class sales_Sales extends deals_DealMaster
                     if(!array_key_exists($batchRec->productId, $batches)){
                         $batches[$batchRec->productId] = array();
                     }
-                    $batches[$batchRec->productId][$batchRec->batch] += $batchRec->quantity;
+
+                    $batches[$batchRec->productId][$batchRec->batch] = ($batches[$batchRec->productId][$batchRec->batch] ?? 0) + $batchRec->quantity;
                 }
 
                 // Добавя се информация за експедираните партиди към данните за експедираните артикули
@@ -1061,9 +1063,8 @@ class sales_Sales extends deals_DealMaster
     {
         if ($action == 'printfiscreceipt' && isset($rec)) {
             $actions = type_Set::toArray($rec->contoActions);
-            
-            if ($actions['ship'] && $actions['pay']) {
-            } else {
+
+            if (!(!empty($actions['ship']) && !empty($actions['pay']))) {
                 $res = 'no_one';
             }
         }
@@ -1075,18 +1076,16 @@ class sales_Sales extends deals_DealMaster
                 $res = 'no_one';
             }
         }
-        
         // Проверка на екшъна за създаване на артикул към продажба
         if ($action == 'createsaleforproduct') {
             $res = $mvc->getRequiredRoles('add', $rec, $userId);
             if (core_Users::isContractor($userId)) {
                 $res = 'no_one';
             }
-            
             if (isset($rec) && $res != 'no_one') {
-                if (empty($rec->productId) || empty($rec->folderId)) {
+                if(empty($rec->folderId)) {
                     $res = 'no_one';
-                } else {
+                } else if (!empty($rec->productId)){
                     $pRec = cat_Products::fetch($rec->productId, 'state,canSell');
                     if ($pRec->state != 'active' || $pRec->canSell != 'yes') {
                         $res = 'no_one';
@@ -1145,8 +1144,8 @@ class sales_Sales extends deals_DealMaster
         
         $tpl = new ET('[#link#]');
         $row = new stdClass();
-        
-        if (substr(strstr($id, 'job='), 1)) {
+
+        if (strpos($id, 'job=') !== false) {
             $jobId = substr(strstr($id, '='), 1);
             $rec = planning_Jobs::fetchRec($jobId);
             $row = planning_Jobs::recToVerbal($rec);
@@ -1225,7 +1224,8 @@ class sales_Sales extends deals_DealMaster
                 $dQuery->EXT('contragentClassId', $Detail->Master->className, "externalName=contragentClassId,externalKey={$Detail->masterKey}");
                 $dQuery->EXT('contragentId', $Detail->Master->className, "externalName=contragentId,externalKey={$Detail->masterKey}");
                 $dQuery->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
-                
+                $dQuery->orderBy('valior', 'DESC');
+
                 // Кешираме артикулите с цените
                 while ($dRec = $dQuery->fetch()) {
                     $cacheArr[$dRec->productId] = (object)array('date' => $dRec->valior, 'price' => $dRec->price);
@@ -1765,7 +1765,14 @@ class sales_Sales extends deals_DealMaster
         // Създаване на продажба и редирект към добавянето на артикула
         try {
             expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that, $fields));
-            redirect(array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId));
+            
+            $redirectArr = array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId);
+            $quantity = core_Request::get('packQuantity', 'double');
+            if(!empty($quantity)){
+                $redirectArr['packQuantity'] = $quantity;
+            }
+            redirect($redirectArr);
+
         } catch (core_exception_Expect $e) {
             $errorMsg = $e->getMessage();
             reportException($e);
@@ -2241,7 +2248,7 @@ class sales_Sales extends deals_DealMaster
         
         $errorMsg = null;
         if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)) {
-            $rec->contoActions = '';
+            $rec->contoActions = null;
             $mvc->save_($rec, 'contoActions');
             core_Statuses::newStatus($errorMsg, 'error');
             
@@ -2255,7 +2262,7 @@ class sales_Sales extends deals_DealMaster
             $dQuery->show('productId');
             $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
             if($error = voucher_Cards::getContoErrors($rec->voucherId, $productIds, $mvc->getClassId(), $rec->id)){
-                $rec->contoActions = '';
+                $rec->contoActions = null;
                 $mvc->save_($rec, 'contoActions');
                 core_Statuses::newStatus($error, 'error');
 
@@ -2493,6 +2500,8 @@ class sales_Sales extends deals_DealMaster
      */
     public static function autoCreateSaleCsvIfNeeded($rec)
     {
+        $rec = sales_Sales::fetchRec($rec);
+
         $cartRec = core_Packs::isInstalled('eshop') ? eshop_Carts::fetch("#saleId = {$rec->id}") : null;
         if(is_object($cartRec)){
             if (!defined('ESHOP_AUTO_EXPORT_SALE_CSV_PATH')) return;
@@ -2511,8 +2520,6 @@ class sales_Sales extends deals_DealMaster
             $fields = array_keys($Driver->getCsvFieldSet($Sales)->selectFields());
             $fields[] = 'ExternalLink';
             $fields = implode(',', $fields);
-
-            $rec = sales_Sales::fetchRec($rec);
             $Sales->updateMaster_($rec);
 
             // Подготовка на експорта

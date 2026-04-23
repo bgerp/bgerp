@@ -190,7 +190,7 @@ class bank_DepositSlips extends bank_DocumentBlank
     {
         $row->number = static::getHandle($rec->id);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $SpellNumber = cls::get('core_SpellNumber');
             $row->sayWords = $SpellNumber->asCurrency($rec->amount, 'bg', true);
             

@@ -324,6 +324,7 @@ class core_Users extends core_Manager
      */
     public static function getUsersArr_($rolesArr = array(), $nick = null, $limit = null)
     {
+        $roles = null;
         if ($rolesArr) {
             
             // id-та на ролите
@@ -532,7 +533,7 @@ class core_Users extends core_Manager
         $nick = trim($nick);
         $nick = mb_strtolower($nick);
         
-        if ($fNicksArr[$nick]) {
+        if (isset($fNicksArr[$nick])) {
             $errorMsg = 'Не може да бъде създаден потребител с този ник';
             
             return true;
@@ -662,7 +663,7 @@ class core_Users extends core_Manager
             
             $form->FNC('roleRank', 'key(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Ранг,after=rolesInput,input,mandatory,silent,refreshForm');
             
-            $rangs = array();
+            $rangs = $iRoles = array();
             $rangs[core_Roles::fetchByName('ceo')] = 'ceo';
             $rangs[core_Roles::fetchByName('manager')] = 'manager';
             $rangs[core_Roles::fetchByName('officer')] = 'officer';
@@ -672,11 +673,11 @@ class core_Users extends core_Manager
             
             $form->setOptions('roleRank', $rangs);
             $rec = $form->input(null, 'silent');
-            
+
             if ($rec->id) {
                 $iRoles = keylist::toArray($rec->rolesInput);
                 foreach ($roleTypes['rang'] as $i => $r) {
-                    if ($iRoles[$i]) {
+                    if (isset($iRoles[$i])) {
                         $form->setDefault('roleRank', $i);
                         $rec->roleRank = $rec->roleRank ?? $i;
                         break;
@@ -686,7 +687,8 @@ class core_Users extends core_Manager
             
             $partnerR = core_Roles::fetchByName('partner');
             $partnerRpower = core_Roles::fetchByName('powerPartner');
-            
+            $otherRoles = array();
+
             if ($rec->roleRank == $partnerR || $rec->roleRank == $partnerRpower) {
                 $otherRoles = arr::combine(
                         array('external' => (object) array('title' => 'Външен достъп', 'group' => true)),
@@ -714,7 +716,7 @@ class core_Users extends core_Manager
                 if ($rec->id) {
                     $teams = array();
                     foreach ($roleTypes['team'] as $i => $r) {
-                        if ($iRoles[$i]) {
+                        if (isset($iRoles[$i])) {
                             $teams[$i] = $i;
                         }
                     }
@@ -728,7 +730,7 @@ class core_Users extends core_Manager
                 $other = array();
                 if (is_array($otherRoles)) {
                     foreach ($otherRoles as $i => $r) {
-                        if ($iRoles[$i]) {
+                        if (isset($iRoles[$i])) {
                             $other[$i] = $i;
                         }
                     }
@@ -874,6 +876,8 @@ class core_Users extends core_Manager
     public static function on_AfterCreate($mvc, $rec)
     {
         if (self::count() == 1) {
+            $html = '';
+
             $mvc->invoke('AfterCreateFirstUser', array(&$html));
         }
     }
@@ -1133,6 +1137,7 @@ class core_Users extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $addRoles = '';
         $row->lastLoginTime = $mvc->getVerbal($rec, 'lastLoginTime');
         $row->lastLoginIp = type_Ip::decorateIp($rec->lastLoginIp, $rec->lastLoginTime);
         $row->nick = $mvc->getVerbal($rec, 'nick');
@@ -1158,7 +1163,7 @@ class core_Users extends core_Manager
         $rolesArr = keylist::toArray($rec->roles);
         
         foreach ($rolesArr as $roleId) {
-            if (!$rolesInputArr[$roleId]) {
+            if (!isset($rolesInputArr[$roleId])) {
                 $addRoles .= ($addRoles ? ', ' : '') . core_Roles::getVerbal($roleId, 'role');
             }
         }
@@ -1189,7 +1194,7 @@ class core_Users extends core_Manager
             $rangs[core_Roles::fetchByName('partner')] = 'partner';
             foreach ($rangs as $roleId => $roleName) {
                 if (!$haveRang) {
-                    if ($rolesArr[$roleId]) {
+                    if (isset($rolesArr[$roleId])) {
                         $haveRang = true;
                         continue;
                     }
@@ -1799,8 +1804,8 @@ class core_Users extends core_Manager
     public static function forceLogin($retUrl)
     {
         $state = Users::getCurrent('state');
-        
-        if (!Users::getCurrent() || !$state == 'active') {
+
+        if (!Users::getCurrent() || $state != 'active') {
             
             // Опитваме да получим адрес за връщане от заявката
             $retUrl = $retUrl ? $retUrl :  getCurrentUrl();
@@ -1900,12 +1905,10 @@ class core_Users extends core_Manager
      */
     public static function getUserRolesByType($userId = null, $type = null, $result = 'keylist', $removeClosed = true)
     {
+        $res = array();
         $roles = core_Users::getRoles($userId);
-        
         $rolesArr = keylist::toArray($roles);
-        
         $roleQuery = core_Roles::getQuery();
-        
         $roleQuery->orderBy('#role', 'ASC');
         
         $cond = '';
@@ -1982,7 +1985,7 @@ class core_Users extends core_Manager
         $rolesArr = keylist::toArray($userRec->roles);
         
         foreach ($rangs as $role => $roleId) {
-            if ($rolesArr[$roleId]) {
+            if (isset($rolesArr[$roleId])) {
                 
                 return $role;
             }
@@ -2104,7 +2107,7 @@ class core_Users extends core_Manager
         $userRoles = core_Users::getRoles($userId);
         
         $Roles = cls::get('core_Roles');
-        
+        $requiredRoles = array();
         if (keylist::isKeylist($roles)) {
             foreach (keylist::toArray($roles) as $roleId) {
                 $requiredRoles[] = $Roles->fetchByName($roleId);
@@ -2191,7 +2194,7 @@ class core_Users extends core_Manager
     public static function rebuildRoles()
     {
         $query = self::getQuery();
-        
+        $i = 0;
         while ($rec = $query->fetch()) {
             self::save($rec, 'roles');
             $i++;
@@ -2267,6 +2270,7 @@ class core_Users extends core_Manager
      */
     public static function encodePwd($password, $nick, $salt = EF_USERS_PASS_SALT, $hashFactor = EF_USERS_HASH_FACTOR)
     {
+        $res = '';
         if ($hashFactor <= 0) {
             $res = md5($password . md5($password) . $salt);
         } else {
@@ -2489,11 +2493,15 @@ class core_Users extends core_Manager
         $currUrl = core_Url::parseUrl($url);
         
         $currUrl['scheme'] = 'https';
+        $host = $currUrl['host'] ?? '';
+        $port = $currUrl['port'] ?? null;
+        $path = $currUrl['path'] ?? '';
+        $query = $currUrl['query'] ?? '';
 
-        if ($currUrl['port'] != '443' && $currUrl['scheme'] === 'https') {
-            $newUrl = $currUrl['scheme']. '://' . $currUrl['host'] . ':' . $currUrl['port']. $currUrl['path'] . '?' . $currUrl['query'];
+        if ($port != '443' && $currUrl['scheme'] === 'https') {
+            $newUrl = $currUrl['scheme']. '://' . $host . ':' . $port. $path . '?' . $query;
         } else {
-            $newUrl = $currUrl['scheme']. '://' . $currUrl['host'] . $currUrl['path'] . '?' . $currUrl['query'];
+            $newUrl = $currUrl['scheme']. '://' . $host . $path . '?' . $query;
         }
         
         return $newUrl;
@@ -2560,7 +2568,8 @@ class core_Users extends core_Manager
     public function act_MigrateFolders()
     {
         requireRole('admin');
-        
+        $res = array();
+
         $form = cls::get('core_Form');
         
         $form->FLD('userFrom', 'user(allowEmpty)', 'caption=Потребител - образец->Избор,refreshForm,silent,mandatory');
@@ -2625,7 +2634,7 @@ class core_Users extends core_Manager
         
         if ($id > 0) {
             $uwr = $me->getRolesWithUsers();
-            $rec = $uwr['r'][$id];
+            $rec = $uwr['r'][$id] ?? null;
         }
         
         if (empty($rec)) {
@@ -2659,7 +2668,7 @@ class core_Users extends core_Manager
     {
         $query = self::getQuery();
         
-        if ($params['excludeArr']) {
+        if (!empty($params['excludeArr'])) {
             $query->notIn('id', $params['excludeArr']);
         }
         
@@ -2670,14 +2679,14 @@ class core_Users extends core_Manager
             }
             
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");
         }
         
-        if ($params['rolesArr']) {
+        if (!empty($params['rolesArr'])) {
             $rolesArr = explode('|', $params['rolesArr']);
             $rolesIdArr = array();
             foreach ($rolesArr as $role) {
@@ -2698,9 +2707,10 @@ class core_Users extends core_Manager
         
         $titleFld = $params['titleFld'];
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
-        
+
+        $strict = false;
         if ($q) {
-            if ($q[0] == '"') {
+            if ($q !== '' && $q[0] == '"') {
                 $strict = true;
             }
             

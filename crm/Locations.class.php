@@ -197,6 +197,7 @@ class crm_Locations extends core_Master
         );
         
         // Ако има локация, ъпдейт
+        $exLocationRec = null;
         if (isset($locationId)) {
             $exLocationRec = self::fetch($locationId);
             $newRec->id = $locationId;
@@ -359,7 +360,8 @@ class crm_Locations extends core_Master
                 $lQuery = crm_Locations::getQuery();
                 $lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
                 $lQuery->XPR('count', 'int', 'COUNT(#id)');
-                $count = $lQuery->fetch()->count + 1;
+                $lRec = $lQuery->fetch();
+                $count = ($lRec->count ?? 0) + 1;
                 
                 $rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
             }
@@ -404,7 +406,7 @@ class crm_Locations extends core_Master
         }
         
         if ($rec->state == 'rejected') {
-            if ($fields['-single']) {
+            if (isset($fields['-single'])) {
                 $row->headerRejected = ' state-rejected';
             } else {
                 $row->ROW_ATTR['class'] .= ' state-rejected';
@@ -579,7 +581,7 @@ class crm_Locations extends core_Master
             return;
         }
         
-        if ($rec->contragentCls) {
+        if (isset($rec->contragentCls)) {
             $contragent = cls::get($rec->contragentCls);
             $requiredRoles = $contragent->getRequiredRoles($action, $rec->contragentId, $userId);
         }
@@ -737,9 +739,18 @@ class crm_Locations extends core_Master
             $row->place = transliterate($row->place);
             $row->address = transliterate($row->address);
         }
-        
-        $string .= "{$row->pCode} {$row->place}, {$row->address}";
-        $string = trim($string, ',  ');
+
+        $parts = array();
+
+        $placePart = trim(($row->pCode ?? '') . ' ' . ($row->place ?? ''));
+        if ($placePart !== '') {
+            $parts[] = $placePart;
+        }
+        if (!empty($row->address)) {
+            $parts[] = $row->address;
+        }
+        $string .= implode(', ', $parts);
+        $string = trim($string, ', ');
 
         if($showFeatures && !empty($rec->features)){
             $string .= "; " . trans_Features::getVerbalFeatures($rec->features, $transliterate);

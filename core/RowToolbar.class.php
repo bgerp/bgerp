@@ -80,11 +80,11 @@ class core_RowToolbar extends core_BaseClass
         if (isset($params['order'])) {
             $btn->order = $params['order'];
             unset($params['order']);
-        } elseif ($btn->error) {
+        } elseif (!empty($btn->error)) {
             $btn->order = 40;
-        } elseif ($btn->warning) {
+        } elseif (!empty($btn->warning)) {
             $btn->order = 30;
-        } elseif ($btn->newWindow) {
+        } elseif (!empty($btn->newWindow)) {
             $btn->order = 20;
         } else {
             $btn->order = 10;
@@ -94,7 +94,7 @@ class core_RowToolbar extends core_BaseClass
         
         $btn->attr = $params;
         
-        $id = $params['id'] ? $params['id'] : $btn->title;
+        $id = !empty($params['id']) ? $params['id'] : $btn->title;
         
         $this->links[$id] = $btn;
     }

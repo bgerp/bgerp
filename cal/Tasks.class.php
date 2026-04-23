@@ -649,20 +649,20 @@ class cal_Tasks extends embed_Manager
         $row->progress = "<span class='progress' style='color:{$grey};{$bold}{$lineTh}'>{$progressStr}</span>";
         
         // Ако имаме само начална дата на задачата
-        if ($rec->timeStart && !$rec->timeEnd) {
+        if (($rec->timeStart ?? null) && !($rec->timeEnd ?? null)) {
             // я парвим хипервръзка към календара- дневен изглед
-            $row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $rec->timeStart, 'Task' => 'true'), null, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-        
+            $row->timeStart = ht::createLink($row->timeStart ?? null, array('cal_Calendar', 'day', 'from' => $rec->timeStart, 'Task' => 'true'), null, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+
         // Ако имаме само крайна дата на задачата
-        } elseif ($rec->timeEnd && !$rec->timeStart) {
+        } elseif (($rec->timeEnd ?? null) && !($rec->timeStart ?? null)) {
             // я правим хипервръзка към календара - дневен изглед
-            $row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $rec->timeEnd, 'Task' => 'true'), null, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-        
+            $row->timeEnd = ht::createLink($row->timeEnd ?? null, array('cal_Calendar', 'day', 'from' => $rec->timeEnd, 'Task' => 'true'), null, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+
         // Ако задачата е с начало и край едновременно
-        } elseif ($rec->timeStart && $rec->timeEnd) {
+        } elseif (($rec->timeStart ?? null) && ($rec->timeEnd ?? null)) {
             // и двете ги правим хипервръзка към календара - дневен изглед
-            $row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $rec->timeStart, 'Task' => 'true'), null, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
-            $row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $rec->timeEnd, 'Task' => 'true'), null, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+            $row->timeStart = ht::createLink($row->timeStart ?? null, array('cal_Calendar', 'day', 'from' => $rec->timeStart, 'Task' => 'true'), null, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+            $row->timeEnd = ht::createLink($row->timeEnd ?? null, array('cal_Calendar', 'day', 'from' => $rec->timeEnd, 'Task' => 'true'), null, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
         }
 
         if ($rec->assetResourceId) {
@@ -698,11 +698,11 @@ class cal_Tasks extends embed_Manager
             }
         }
 
-        if($fields['-list']) {
+        if(isset($fields['-list'])) {
             $times = $assets = array();
             foreach (array('timeStart' => 'Начало', 'timeEnd' => 'Край', 'timeDuration' => 'Прод.') as $timeFld => $timeCaption) {
                 if(!empty($rec->{$timeFld})) {
-                    $times[] = tr("|*<small class='nowrap'>|{$timeCaption}|*:") . $row->{$timeFld} . "</small>";
+                    $times[] = tr("|*<small class='nowrap'>|{$timeCaption}|*:") . ($row->{$timeFld} ?? null) . "</small>";
                 }
             }
 
@@ -4061,7 +4061,7 @@ class cal_Tasks extends embed_Manager
                 return array();
             }
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
             $query->where("#id = ${onlyIds}");

@@ -201,7 +201,7 @@ class acc_Balances extends core_Master
         if (empty($rec->periodId)) {
             $row->periodId = dt::mysql2verbal($rec->fromDate, 'd', null, false) . '-' . dt::mysql2verbal($rec->toDate, 'd F Y', null, false);
 
-            if ($fields['-list']) {
+            if (isset($fields['-list'])) {
                 if ($mvc->haveRightFor('single', $rec)) {
                     $row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), null, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
                 }

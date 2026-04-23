@@ -87,7 +87,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function getDealDetailFields(&$mvc)
     {
-        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance|batch');
+        $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance|batch');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,input=hidden');
         
         // Количество в основна мярка
@@ -101,7 +101,7 @@ abstract class deals_DealDetail extends doc_Detail
         $mvc->FLD('price', 'double', 'caption=Цена,input=none');
 
         // Брой опаковки (ако има packagingId) или к-во в основна мярка (ако няма packagingId)
-        $mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,smartCenter');
+        $mvc->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,smartCenter,silent');
         $mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
         
         // Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
@@ -264,7 +264,7 @@ abstract class deals_DealDetail extends doc_Detail
                 $form->setField('term', 'input');
             }
         }
-        
+
         if (core_Users::haveRole('partner')) {
             $form->setField('packPrice', 'input=none');
             $form->setField('tolerance', 'input=none');
@@ -272,6 +272,10 @@ abstract class deals_DealDetail extends doc_Detail
             
             $mvc->currentTab = 'Нишка';
             plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
+        }
+        // Ако има зададен артикул, няма да излиза падащо меню за избиране
+        if(empty($rec->productId)){
+            $mvc->setFieldTypeParams('productId', array('forceOpen' => 'forceOpen'));
         }
     }
     
@@ -288,19 +292,33 @@ abstract class deals_DealDetail extends doc_Detail
         
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         
-        if ($rec->productInfo) {
+        if (!empty($rec->productInfo)) {
             $productInfo = $rec->productInfo;
-        } elseif ($rec->productId) {
+        } elseif (!empty($rec->productId)) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
         }
         
-        if ($rec->productId) {
+        if (!empty($rec->productId)) {
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('packagingId', 'input');
+
+
+            // Показване на едровото к-во ако е избрано в пакета
+            if(isset($rec->packagingId)){
+                if($mvc instanceof sales_SalesDetails){
+                    $showHigherQtyHint = sales_Setup::get('SHOW_NEXT_PACK_UNIT');
+                    if($showHigherQtyHint == 'yes'){
+                        $packData = cat_products_Packagings::getCurrentAndNextBiggerPack($rec->productId, $rec->packagingId);
+                        if(!empty($packData['nextPackName'])){
+                            $form->setField('packQuantity', "unit=|* ( {$packData['nextQty']} |в|* {$packData['nextPackName']} )");
+                        }
+                    }
+                }
+            }
 
             if (isset($mvc->LastPricePolicy)) {
                 $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
@@ -354,11 +372,12 @@ abstract class deals_DealDetail extends doc_Detail
             // Проверка дали к-то е под МКП
             $action = ($mvc instanceof sales_SalesDetails) ? 'sell' : 'buy';
             deals_Helper::isQuantityBellowMoq($form, $rec->productId, $rec->quantity, $rec->quantityInPack, 'packQuantity', $action);
+            $price = null;
 
             if (!isset($rec->packPrice)) {
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
                 
-                if ($rec->productId) {
+                if (isset($rec->productId)) {
                     $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
                     $policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat, $listId);
                     if (!isset($policyInfo->price)) {
@@ -452,22 +471,12 @@ abstract class deals_DealDetail extends doc_Detail
     {
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             $masterRec = $data->masterData->rec;
-            
+            $error = '';
             if (!countR(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, null, 1))) {
                 $error = 'error=Няма продаваеми артикули, ';
             }
             
-            $data->toolbar->addBtn(
-                
-                'Артикул',
-                
-                array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => true),
-            "id=btnAdd-{$masterRec->id},{$error} order=10,title=Добавяне на артикул",
-                
-                'ef_icon = img/16/shopping.png'
-            
-            );
-            
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => true), "id=btnAdd-{$masterRec->id},{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
             unset($data->toolbar->buttons['btnAdd']);
         }
         
@@ -844,7 +853,20 @@ abstract class deals_DealDetail extends doc_Detail
             $form->FLD("quantity{$lId}", 'double(Min=0)', "caption={$caption}->Количество");
             $form->setDefault("productId{$lId}", $lRec->productId);
             $form->setDefault("packagingId{$lId}", $lRec->packagingId);
-            
+
+            // Показване на едровото к-во ако е избрано в пакета
+            if($this instanceof sales_SalesDetails){
+                if(isset($lRec->productId) && isset($lRec->packagingId)){
+                    $showHigherQtyHint = sales_Setup::get('SHOW_NEXT_PACK_UNIT');
+                    if($showHigherQtyHint == 'yes'){
+                        $packData = cat_products_Packagings::getCurrentAndNextBiggerPack($lRec->productId, $lRec->packagingId);
+                        if(!empty($packData['nextPackName'])){
+                            $form->setField("quantity{$lId}", "unit=|* ( {$packData['nextQty']} |в|* {$packData['nextPackName']} )");
+                        }
+                    }
+                }
+            }
+
             $unit = '';
             if (isset($lRec->moq)) {
                 $moq = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($lRec->moq);

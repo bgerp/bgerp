@@ -220,6 +220,7 @@ class store_Stores extends core_Master
             $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Палетен склад->Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
             $this->FLD('fullPalletStrategy', "enum(oldest=Най-стария,lowest=Най-ниския,closest=Най-близкия)",'caption=Палетен склад->Вземане / разбутване на цял палет (само за ver3)->Първо,notNull,value=oldest');
             $this->FLD('minKeepPct', 'percent','caption=Палетен склад->Минимален остатък по позиции (само за ver3)->Процент от палет,unit=%');
+            $this->FLD('requireZoneInDocuments', 'enum(yes=Да,no=Не)','caption=Палетен склад->Избор на зона в експедиращи документи->Задължително,notNull,value=no');
         }
 
         $this->FLD('notifyUsers', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Нотифициране при промяна на транспортна линия->Потребители,autohide');
@@ -331,7 +332,7 @@ class store_Stores extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
             }

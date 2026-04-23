@@ -462,18 +462,33 @@ class acc_Setup extends core_ProtoSetup
             'roles' => 'debug',
         ),
         array(
-            'title' => 'Прикл. сделки с активни пера',
+            'title' => 'Прикл. сделки с акт. пера',
             'url' => array(
                 'acc_Journal',
                 'findDeals',
+                'type' => 'closed',
                 'ret_url' => true
             ),
             'params' => array(
-                'title' => 'Има ли неактивни сделки с приключени пера',
+                'title' => 'Има ли неактивни сделки с активни пера',
+                'ef_icon' => 'img/16/arrow_refresh.png'
+            ),
+            'roles' => 'debug',
+        ),  array(
+            'title' => 'Акт. сделки с затв. пера',
+            'url' => array(
+                'acc_Journal',
+                'findDeals',
+                'type' => 'active',
+                'ret_url' => true
+            ),
+            'params' => array(
+                'title' => 'Има ли активни сделки с приключени пера',
                 'ef_icon' => 'img/16/arrow_refresh.png'
             ),
             'roles' => 'debug',
         )
+
     );
 
 
@@ -482,13 +497,13 @@ class acc_Setup extends core_ProtoSetup
      */
     public $cronSettings = array(
         array(
-            'systemId' => 'Delete Items',
-            'description' => 'Изтриване на неизползвани затворени пера',
+            'systemId' => 'Fix Items',
+            'description' => 'Поправка на пера',
             'controller' => 'acc_Items',
-            'action' => 'DeleteUnusedItems',
+            'action' => 'FixItems',
             'period' => 1440,
             'offset' => 60,
-            'timeLimit' => 100
+            'timeLimit' => 300
         ),
         array(
             'systemId' => 'Create Periods',

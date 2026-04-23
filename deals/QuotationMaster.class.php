@@ -471,7 +471,7 @@ abstract class deals_QuotationMaster extends core_Master
             $row->date = ht::createHint('', 'Датата ще бъде записана при активиране');
         }
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
 
             // Линк към от коя оферта е клонирано
             if(isset($rec->clonedFromId)){
@@ -519,9 +519,10 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
+            $ownCompanyId = core_Packs::isInstalled('holding') ? $rec->ownCompanyId : null;
             $dateFromWhichToGetName = !empty($rec->date) ? $rec->date : dt::now();
             $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
-            $ownCompanyData = crm_Companies::fetchOwnCompany(null, $dateFromWhichToGetName);
+            $ownCompanyData = crm_Companies::fetchOwnCompany($ownCompanyId, $dateFromWhichToGetName);
 
             $Varchar = cls::get('type_Varchar');
             $row->MyCompany = $Varchar->toVerbal($ownCompanyData->companyVerb);
@@ -606,7 +607,7 @@ abstract class deals_QuotationMaster extends core_Master
             }
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = $mvc->getLink($rec->id, 0);
         }
 
@@ -940,6 +941,11 @@ abstract class deals_QuotationMaster extends core_Master
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
 
+        // Ако е инсталирана многофирменоста - продажбата ще е за същата избрана наша фирма
+        if(core_Packs::isInstalled('holding')  && isset($this->ownCompanyFieldName)){
+            $fields[$DealClass->ownCompanyFieldName] = $rec->{$this->ownCompanyFieldName};
+        }
+
         $folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
         if($DealClass instanceof sales_Sales){
             $fields['dealerId'] = $DealClass::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
@@ -1035,7 +1041,7 @@ abstract class deals_QuotationMaster extends core_Master
         $this->requireRightFor('dealfromquotation', $rec);
 
         // Подготовка на формата за филтриране на данните
-        $form = $this->getFilterForm($rec->id, $id);
+        $form = $this->getFilterForm($rec->id);
         $form->input();
 
         if ($form->isSubmitted()) {
@@ -1357,7 +1363,7 @@ abstract class deals_QuotationMaster extends core_Master
         $this->requireRightFor('dealfromquotation');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetchRec($id));
-        expect($rec->state = 'active');
+        expect($rec->state == 'active');
         expect($items = $this->getItems($id));
         $this->requireRightFor('dealfromquotation', $rec);
         $force = Request::get('force', 'int');

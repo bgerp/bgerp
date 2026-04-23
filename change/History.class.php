@@ -43,7 +43,7 @@ class change_History extends core_Manager
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'debug';
+    public $canDelete = 'powerUser';
 
 
     /**
@@ -55,7 +55,7 @@ class change_History extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, plg_Select, doc_Wrapper, plg_Sorting';
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Rejected, doc_Wrapper, plg_Sorting';
 
 
     /**
@@ -69,6 +69,11 @@ class change_History extends core_Manager
      */
     const CURRENT_VERSION_ID = '_ID_';
 
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,classId,objectId,validFrom';
 
     /**
      * Описание на модела
@@ -90,7 +95,7 @@ class change_History extends core_Manager
 
 
     /**
-     * Коя е текущата версия от мнодежството:
+     * Коя е текущата версия от множеството:
      * версии в историята + съществуващия запис + новия запис
      *
      * @param mixed $classId
@@ -376,8 +381,13 @@ class change_History extends core_Manager
             $row->count = core_Type::getByName('int')->toVerbal($rec->count);
             if($rec->validFrom > $now){
                 $row->ROW_ATTR['class'] = "state-draft";
+                $row->btn = ht::createLink('', $this->getDeleteUrl($rec), 'Наистина ли желаете да изтриете бъдещата версия', 'ef_icon=img/16/delete.png,title=Изтриване на бъдеща версия');
             } elseif($rec->isCurrent){
                 $row->ROW_ATTR['class'] = "state-active";
+                $Class = cls::get($rec->classId);
+                if($Class->haveRightFor('editcurrentversion', $data->masterId)){
+                    $row->btn = ht::createLink('', array($Class, 'editcurrentversion', $data->masterId, 'ret_url' => true), false, 'ef_icon=img/16/edit-icon.png,title=Промяна на валидноста на текущата версия');
+                }
             } else {
                 $row->ROW_ATTR['class'] = "state-closed";
             }
@@ -415,10 +425,11 @@ class change_History extends core_Manager
     public function renderDetail_($data)
     {
         $tpl = new core_ET('');
-        if($data->hide) return $tpl;
+        if(!empty($data->hide)) return $tpl;
 
         // Рендиране на таблицата с оборудването
-        $data->listFields = arr::make('validFrom=От,validTo=До,created=Създаване,count=Вер.');
+        $data->listFields = arr::make('btn=|*&nbsp;,validFrom=От,validTo=До,created=Създаване,count=Вер.');
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, 'btn');
 
         $listTableMvc = clone $this;
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
@@ -485,7 +496,7 @@ class change_History extends core_Manager
     public static function getSelectedVersionsArr($classId, $objectId)
     {
         // Вземаме масива за версиите
-        $versionArr = mode::get(static::PERMANENT_SAVE_NAME);
+        $versionArr = Mode::get(static::PERMANENT_SAVE_NAME);
         $versionArr = is_array($versionArr) ? $versionArr : array();
         if (!$classId || !$objectId) return $versionArr;
 
@@ -524,5 +535,87 @@ class change_History extends core_Manager
         $arr = self::getSelectedVersionsArr($classId, $objectId);
 
         return array_key_exists($versionId, $arr);
+    }
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * Забранява изтриването на вече използвани сметки
+     *
+     * @param core_Mvc      $mvc
+     * @param string        $requiredRoles
+     * @param string        $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL      $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        // Само бъдещата версия може да се изтрива, от потребител който може да редактира визитката
+        if($action == 'delete' && isset($rec)){
+            if($rec->validFrom <= dt::now()){
+                //$requiredRoles = 'no_one';
+            } else {
+                $Object = new core_ObjectReference($rec->classId, $rec->objectId);
+                if(!$Object->haveRightFor('edit')){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+
+
+    /**
+     * След изтриване на запис
+     */
+    protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+
+            // Ако се трие бъдеща версия
+            $today = dt::today();
+            $today = "{$today} 00:00:00";
+            if($rec->validFrom > $today){
+
+                // Преизчислява се края на текущата с началото на най-близката бъдеша версия
+                $query = self::getQuery();
+                $query->where("#classId = {$rec->classId} AND #objectId = {$rec->objectId} AND #validFrom > '{$today}'");
+                $query->XPR('min', 'datetime', 'MIN(#validFrom)');
+                $minRec = $query->fetch();
+                $minValidFrom = is_object($minRec) ? $minRec->min : null;
+
+                $Class = cls::get($rec->classId);
+                $objectRec = $Class->fetch($rec->objectId);
+                $objectRec->validTo = $minValidFrom;
+                $Class->save_($objectRec, 'validTo');
+
+                if($minValidFrom){
+                    $minValidFromVerbal = dt::mysql2verbal($minValidFrom);
+                    core_Statuses::newStatus("Зададен край на текущата версия|*: <b>{$minValidFromVerbal}</b>!");
+                } else {
+                    core_Statuses::newStatus("Премахнат край на текущата версия|*!");
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Реализация по подразбиране на метода getDeleteUrl()
+     *
+     * @param core_Mvc $mvc
+     * @param array    $deleteUrl
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetDeleteUrl($mvc, &$deleteUrl, $rec)
+    {
+        // При изтриване на версия
+        if(is_array($deleteUrl) && countR($deleteUrl)){
+            $count = self::count("#classId = {$rec->classId} AND #objectId = {$rec->objectId}");
+            if($count == 1){
+                $retUrl = getCurrentUrl();
+                unset($retUrl['Tab']);
+                $deleteUrl['ret_url'] = $retUrl;
+            }
+        }
     }
 }

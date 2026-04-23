@@ -649,9 +649,7 @@ class cat_Boms extends core_Master
         if (($action == 'reject' || $action == 'restore') && isset($rec)) {
             
             // Ако не можеш да редактираш записа, не можеш да оттегляш/възстановяваш
-            if (!haveRole($mvc->getRequiredRoles('edit'))) {
-                $res = 'no_one';
-            }
+            $res = $mvc->getRequiredRoles('edit', $rec, $userId);
         }
         
         if($action == 'recalcselfvalue' && isset($rec)){
@@ -726,7 +724,7 @@ class cat_Boms extends core_Master
         $row->quantity .= ' ' . $shortUom;
 
         $row->title = $mvc->getHyperlink($rec, true);
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if(!doc_HiddenContainers::isHidden($rec->containerId)) {
                 $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
                 $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
@@ -1154,7 +1152,7 @@ class cat_Boms extends core_Master
         }
         
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        if(!$data->fromConvertable){
+        if(!empty($data->fromConvertable)){
             $title = tr('Технологични рецепти');
             $tpl->append($title, 'title');
         }

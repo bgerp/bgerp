@@ -144,7 +144,7 @@ class cms_Objects extends core_Master
     {
         $row->tag = "[obj={$rec->tag}]";
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $richText = cls::get('type_Richtext');
             
             $text = "[obj={$rec->tag}]";

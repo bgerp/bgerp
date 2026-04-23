@@ -95,8 +95,8 @@ abstract class deals_ManifactureMaster extends core_Master
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
         }
-        
-        if ($fields['-single']) {
+
+        if (isset($fields['-single'])) {
             if (isset($rec->storeId)) {
                 $storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
                 if ($storeLocation) {
@@ -109,7 +109,7 @@ abstract class deals_ManifactureMaster extends core_Master
             }
         }
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = $mvc->getLink($rec->id, 0);
         }
     }
@@ -126,7 +126,7 @@ abstract class deals_ManifactureMaster extends core_Master
         $rec = static::fetchRec($rec);
         $threadId = isset($rec->originId) ? doc_Containers::fetchField($rec->originId, 'threadId') : $rec->threadId;
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if(isset($firstDoc) && $firstDoc->isInstanceOf('deals_ManifactureMaster')) return;
+        if(isset($firstDoc) && $firstDoc->isInstanceOf('deals_ManifactureMaster')) return null;
 
         $Origin = isset($rec->originId) ? doc_Containers::getDocument($rec->originId) : $firstDoc;
         if($Origin){

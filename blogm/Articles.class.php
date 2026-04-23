@@ -130,7 +130,7 @@ class blogm_Articles extends core_Master
     {
         $rec->body = trim($rec->body);
         
-        if ($fields['-browse']) {
+        if (isset($fields['-browse'])) {
 
             $minLen = blogm_Setup::get('ARTICLE_ANNOTATION_MIN_LENGTH');
             $maxLen = blogm_Setup::get('ARTICLE_ANNOTATION_MAX_LENGTH');
@@ -157,7 +157,7 @@ class blogm_Articles extends core_Master
             $row->body = plg_Search::highlight($row->body, $q, 'searchContent');
         }
         
-        if ($fields['-browse'] || $fields['-article']) {
+        if (isset($fields['-browse']) || isset($fields['-article'])) {
             if ($row->commentsCnt == 1) {
                 $row->commentsCnt .= '&nbsp;' . tr('коментар');
             } else {
@@ -174,7 +174,7 @@ class blogm_Articles extends core_Master
         
         $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $url = self::getUrl($rec);
             $url['cMenuId'] = static::getDefaultMenuId($rec);
 
@@ -186,7 +186,7 @@ class blogm_Articles extends core_Master
         }
 
         // Ако се рендира статия във външната част
-        if ($fields['-article']) {
+        if (isset($fields['-article'])) {
             $categories = keylist::toArray($rec->categories);
             $Category = cls::get('blogm_Categories');
 

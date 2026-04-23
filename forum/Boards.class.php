@@ -584,7 +584,7 @@ class forum_Boards extends core_Master
      */
     public function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-list'] || $fields['-single']) {
+        if (isset($fields['-list']) || isset($fields['-single'])) {
             
             // Правим заглавието на линк за единичен изглед
             $row->title = ht::createLink($row->title, array($mvc, 'Single', $rec->id));
@@ -611,7 +611,7 @@ class forum_Boards extends core_Master
         }
         
         // Модификации по вербалното представяне на записите  в екшъна forum
-        if ($fields['-public']) {
+        if (isset($fields['-public'])) {
             $row->title = ht::createLink($row->title, array($mvc, 'Browse', $rec->id));
             $categoryRec = forum_Categories::fetch($rec->category);
             $row->category = forum_Categories::recToVerbal($categoryRec, 'id,title,-public');

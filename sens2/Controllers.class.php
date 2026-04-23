@@ -669,7 +669,7 @@ class sens2_Controllers extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $Driver = cls::get($rec->driver);
             $path = $Driver->getPicture($rec->config);
             if (!$path) {

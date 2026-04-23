@@ -416,9 +416,8 @@ class fileman_Data extends core_Manager
     {
         $fm = cls::get('fileman_Data');
         $query = $fm->getQuery();
-        
-        //$query->where("#md5 = '[#1#]'", $md5);
-        $rec = $query->fetch("${id}");
+
+        $rec = $query->fetch($id);
         $rec->archived = dt::verbal2mysql();
         static::save($rec);
     }

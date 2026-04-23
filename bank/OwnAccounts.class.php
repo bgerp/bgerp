@@ -633,10 +633,11 @@ class bank_OwnAccounts extends core_Master
      * @param bool        $selectIban
      * @param string|null $currencyCode
      * @param mixed|null  $onlyIds
+     * @param bool  $showCurrency
      *
      * @return array $accounts
      */
-    public static function getOwnAccounts($selectIban = true, $currencyCode = null, $onlyIds = null)
+    public static function getOwnAccounts($selectIban = true, $currencyCode = null, $onlyIds = null, $showCurrency = true)
     {
         $Varchar = cls::get('type_Varchar');
         $accounts = array();
@@ -660,8 +661,12 @@ class bank_OwnAccounts extends core_Master
                 if (isset($currencyCode) && strtoupper($currencyCode) != $cCode) continue;
 
                 $verbal = ($selectIban === true) ? $Varchar->toVerbal($accountRec->iban) : $rec->title;
-                
-                $accounts[$rec->id] = "{$cCode} - {$verbal}";
+
+                if($showCurrency){
+                    $accounts[$rec->id] = "{$cCode} - {$verbal}";
+                } else {
+                    $accounts[$rec->id] = $verbal;
+                }
             }
         }
         

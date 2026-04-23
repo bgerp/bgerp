@@ -331,7 +331,7 @@ class doc_UnsortedFolders extends core_Master
             $row->contragentFolderId = doc_Folders::recToVerbal($rec->contragentFolderId)->title;
         }
 
-        if($fields['-single']){
+        if(isset($fields['-single'])){
             if(isset($rec->clonedFromId)){
                 $row->clonedFromId = doc_UnsortedFolders::getHyperlink($rec->clonedFromId, true);
             }
@@ -791,7 +791,7 @@ class doc_UnsortedFolders extends core_Master
             }
             
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {

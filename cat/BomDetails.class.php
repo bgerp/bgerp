@@ -498,6 +498,7 @@ class cat_BomDetails extends doc_Detail
      */
     public static function highlightExpr($expr, $params, $coefficient)
     {
+        $style = '';
         $rQuantity = cat_BomDetails::calcExpr($expr, $params);
         if ($rQuantity === self::CALC_ERROR) {
             $style = 'color:red;';
@@ -628,7 +629,7 @@ class cat_BomDetails extends doc_Detail
             $form->setSuggestions('propQuantity', $context);
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
 
-            if($form->_replaceProduct !== true){
+            if(empty($form->_replaceProduct) || $form->_replaceProduct !== true){
                 $packs = cat_Products::getPacks($rec->resourceId, $rec->packagingId);
                 $form->setOptions('packagingId', $packs);
                 $form->setDefault('packagingId', key($packs));
@@ -640,7 +641,7 @@ class cat_BomDetails extends doc_Detail
             if (!isset($pInfo->meta['canStore'])) {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
                 $form->setField('propQuantity', "unit={$measureShort}");
-            } elseif($form->_replaceProduct !== true) {
+            } elseif(empty($form->_replaceProduct)) {
                 $form->setField('packagingId', 'input');
             }
         }
@@ -653,13 +654,13 @@ class cat_BomDetails extends doc_Detail
         if ($form->isSubmitted()) {
             $calced = static::calcExpr($rec->propQuantity, $rec->params);
             if ($calced == static::CALC_ERROR) {
-                if($form->_replaceProduct === true){
+                if(isset($form->_replaceProduct) && $form->_replaceProduct === true){
                     $form->setWarning('resourceId', 'При замяна на артикула, формулата за количествата му няма да може да се изчисли');
                 } else {
                     $form->setWarning('propQuantity', 'Има проблем при изчисляването на количеството');
                 }
             } elseif ($calced <= 0) {
-                if($form->_replaceProduct = true){
+                if(isset($form->_replaceProduct) && $form->_replaceProduct === true){
                     $form->setError('propQuantity', 'При замяна на артикула, формулата за количествата му не може да изчисли положително число');
                 } else {
                     $form->setError('propQuantity', 'Изчисленото количество трябва да е положително');
@@ -692,7 +693,7 @@ class cat_BomDetails extends doc_Detail
                 }
             }
             
-            $rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->quantityInPack = (isset($pInfo) && $pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
             
             // Ако има артикул със същата позиция, или няма позиция добавяме нова
             if (!isset($rec->position)) {
@@ -1055,7 +1056,7 @@ class cat_BomDetails extends doc_Detail
         $this->save($rec);
         $title = cat_Products::getTitleById($rec->resourceId);
         $msg = "|Свиване на|* {$title}";
-        $this->Master->logRead('Свиване на етап', $rec->bomId);
+        $this->Master->logWrite('Свиване на етап', $rec->bomId);
         
         return new Redirect(array('cat_Boms', 'single', $rec->bomId), $msg);
     }
@@ -1118,11 +1119,11 @@ class cat_BomDetails extends doc_Detail
                 if ($type == 'production') {
                     $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'production');
                 }
-                if (!$aBom) {
+                if (empty($aBom)) {
                     $aBom = cat_Products::getLastActiveBom($rec->resourceId, 'sales');
                 }
                
-               if (!$aBom) {
+               if (empty($aBom)) {
                     $requiredRoles = 'no_one';
                }
             }
@@ -1191,7 +1192,7 @@ class cat_BomDetails extends doc_Detail
             $res[$rec->resourceId . '|' . $rec->packagingId] = $obj;
             
             if ($rec->type != 'stage') {
-                self::getComponents($rec->resourceId, $res);
+                $this->getComponents($rec->resourceId, $res);
             }
             $this->getDescendents($rec->id, $res);
         }
@@ -1207,10 +1208,8 @@ class cat_BomDetails extends doc_Detail
     {
         // Имали последна активна търговска рецепта за артикула?
         $rec = cat_Products::getLastActiveBom($productId, 'sales');
-        if (!$rec) {
-            
-            return $res;
-        }
+
+        if (empty($rec))  return $res;
         
         // Кои детайли от нея ще показваме като компоненти
         $details = cat_BomDetails::getOrderedBomDetails($rec->id);
@@ -1225,7 +1224,7 @@ class cat_BomDetails extends doc_Detail
                 $res[$dRec->resourceId . '|' . $dRec->packagingId] = $obj;
                 
                 if ($dRec->type != 'stage') {
-                    self::getComponents($dRec->resourceId, $res);
+                    $this->getComponents($dRec->resourceId, $res);
                 }
             }
         }
@@ -1401,7 +1400,7 @@ class cat_BomDetails extends doc_Detail
     {
         // Ако има позиция, шифтваме всички с по-голяма или равна позиция напред
         if (isset($rec->position)) {
-            if($rec->position != $rec->_exPosition){
+            if($rec->position != ($rec->_exPosition ?? null)){
                 $query = $mvc->getQuery();
                 $cond = "#bomId = {$rec->bomId} AND #id != {$rec->id} AND #position >= {$rec->position} AND ";
                 $cond .= (isset($rec->parentId)) ? "#parentId = {$rec->parentId}" : '#parentId IS NULL';
@@ -1415,7 +1414,7 @@ class cat_BomDetails extends doc_Detail
         }
         
         // Ако сме добавили нов етап
-        if ($rec->stageAdded === true) {
+        if (($rec->stageAdded ?? null) === true) {
             $bomRec = null;
             static::addProductComponents($rec->resourceId, $rec->bomId, $rec->id, $bomRec);
             if ($bomRec) {
@@ -1503,7 +1502,7 @@ class cat_BomDetails extends doc_Detail
                 $oldId = $dRec->id;
 
                 unset($dRec->id);
-                $dRec->modidiedOn = dt::now();
+                $dRec->modifiedOn = dt::now();
                 $dRec->modifiedBy = $cu;
                 $dRec->bomId = $toRec->id;
                 if (empty($dRec->parentId)) {

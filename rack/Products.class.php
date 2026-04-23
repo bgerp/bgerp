@@ -373,6 +373,7 @@ class rack_Products extends store_Products
             $form->view = 'horizontal';
             $form->setAction(getCurrentUrl());
             $form->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon=img/16/funnel.png');
+            $form->input(null, 'silent');
 
             // Инпутваме формата
             $form->input();
@@ -499,8 +500,11 @@ class rack_Products extends store_Products
             return strcmp((string)$posA, (string)$posB);
         });
 
+        $url = getCurrentUrl();
+        $url["storeId{$data->masterId}"] = $form->rec->{"storeId{$data->masterId}"};
+
         // Подготвяме страницирането
-        $pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $pager = cls::get('core_Pager', array('itemsPerPage' => 20, 'url' => toUrl($url)));
         $pager->setPageVar($data->masterMvc->className, $data->masterId);
         $pager->itemsCount = countR($data->recs);
         $data->pager = $pager;
@@ -581,7 +585,7 @@ class rack_Products extends store_Products
         $fieldSet->FLD('storeId', 'varchar', 'tdClass=leftCol');
         $fieldSet->FLD('tools', 'varchar', 'tdClass=small-field');
         $fieldSet->FLD('measureId', 'varchar', 'smartCenter');
-        $fieldSet->FLD('batch', 'varchar', 'smartCenter');
+        $fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol wrapText');
         $fieldSet->FLD('quantity', 'double');
         $table = cls::get('core_TableView', array('mvc' => $fieldSet));
 

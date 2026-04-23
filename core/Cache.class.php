@@ -124,8 +124,8 @@ class core_Cache extends core_Manager
                 // изтриваме кеша и връщаме NULL
                 if ($data->dHash != $dHash) {
                     $Cache->deleteData($key);
-                    
-                    Debug::log("Cache::get ${type}, ${handler} - other models are changed, no success");
+
+                    Debug::log("Cache::get {$type}, {$handler} - other models are changed, no success");
                     
                     return false;
                 }
@@ -133,12 +133,12 @@ class core_Cache extends core_Manager
             
             // Увеличаваме времето на валидността на данните ????
             
-            Debug::log("Cache::get ${type}, ${handler} - success");
+            Debug::log("Cache::get {$type}, {$handler} - success");
             
             return $data->value;
         }
         
-        Debug::log("Cache::get ${type}, ${handler} - no exists");
+        Debug::log("Cache::get {$type}, {$handler} - no exists");
         
         return false;
     }

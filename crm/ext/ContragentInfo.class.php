@@ -206,7 +206,7 @@ class crm_ext_ContragentInfo extends core_manager
             foreach (array('activeSalesAmount', 'totalSalesAmount', 'overdueSalesAmount', 'activePurchaseAmount', 'totalPurchaseAmount', 'overdueSalesThreshold', 'overdueSalesThresholdParam') as $amountFld) {
                 if (isset($cInfo->{$amountFld})) {
                     $row->{$amountFld} = core_Type::getByName('double(decimals=2)')->toVerbal($cInfo->{$amountFld});
-                    if ($fields['-single']) {
+                    if (isset($fields['-single'])) {
                         $row->{$amountFld} = currency_Currencies::decorate($row->{$amountFld}, $baseCurrencyCode, true);
                     }
 

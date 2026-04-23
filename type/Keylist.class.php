@@ -491,35 +491,35 @@ class type_Keylist extends core_Type
             $mvc = &cls::get($this->params['mvc']);
             $query = $mvc->getQuery();
             
-            if ($groupBy = $this->params['groupBy']) {
+            if ($groupBy = ($this->params['groupBy'] ?? null)) {
                 $query->orderBy("#{$groupBy}")->show($groupBy);
             }
 
-            if ($forceGroupBy = $this->params['forceGroupBy']) {
+            if ($forceGroupBy = ($this->params['forceGroupBy'] ?? null)) {
                 $query->groupBy("{$forceGroupBy}");
             }
 
-            if ($where = $this->params['where']) {
+            if ($where = ($this->params['where'] ?? null)) {
                 $query->where("{$where}");
             }
             
-            if ($orderBy = $this->params['orderBy']) {
+            if ($orderBy = ($this->params['orderBy'] ?? null)) {
                 $query->orderBy("#{$orderBy}", null, 100);
             }
-            
+
             if ($select != '*') {
                 $query->show($select)
                 ->show('id')
                 ->orderBy($select);
             }
-            
+
             // Ако имаме метод, за подготвяне на заявката - задействаме го
-            if ($onPrepareQuery = $this->params['prepareQuery']) {
+            if ($onPrepareQuery = ($this->params['prepareQuery'] ?? null)) {
                 cls::callFunctArr($onPrepareQuery, array($this, $query));
             }
             
             // Ако имаме where клауза за сортиране
-            if ($where = $this->params['where']) {
+            if ($where = ($this->params['where'] ?? null)) {
                 $query->where($where);
             }
             

@@ -80,23 +80,23 @@ class select2_PluginEnum extends core_Plugin
         }
 
         // Ако ще са радиобутони
-        if ($invoker->params['maxRadio'] && ($invoker->params['maxRadio'] >= $optionsCnt)) {
-            
+        if (($invoker->params['maxRadio'] ?? null) && ($invoker->params['maxRadio'] >= $optionsCnt)) {
+
             return ;
         }
-        
-        $select = ($attr['placeholder']) ? ($attr['placeholder']) :  '';
-        
-        if ($invoker->params['allowEmpty'] || isset($invoker->options['']) || isset($invoker->options[' '])) {
+
+        $select = ($attr['placeholder'] ?? null) ?: '';
+
+        if (($invoker->params['allowEmpty'] ?? null) || isset($invoker->options['']) || isset($invoker->options[' '])) {
             $allowClear = true;
         } else {
             $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
         }
 
         $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
-        $matchOnlyStartsWith = $this->params['find'] == 'everywhere' ? false : true;
+        $matchOnlyStartsWith = ($this->params['find'] ?? null) == 'everywhere' ? false : true;
 
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen'], $minimumResultsForSearch, $matchOnlyStartsWith);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen'] ?? null, $minimumResultsForSearch, $matchOnlyStartsWith);
     }
 }

@@ -162,6 +162,11 @@ class thumb_Img
      */
     protected $thumbPath;
 
+    protected $thumbName;
+
+    protected $hash;
+
+    protected $thumbUrl;
 
     /**
      * @var string Дефолтен път до файла от системата, който да се използва, при липса на изображение

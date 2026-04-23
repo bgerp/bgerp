@@ -622,7 +622,6 @@ class batch_Items extends core_Master
             } else {
 
                 // Линк към историята защитена
-                $row->batch = "<span style='float:left'>{$row->batch}</span>";
                 Request::setProtected('batch,productId,storeId');
                 $histUrl = array('batch_Movements', 'list', 'batch' => $rec->batch, 'productId' => $rec->productId, 'storeId' => $rec->storeId);
                 $row->icon = ht::createLink('', $histUrl, null, $attr);
@@ -675,7 +674,7 @@ class batch_Items extends core_Master
         }
         
         $fieldSet = cls::get('core_FieldSet');
-        $fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol');
+        $fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol wrapText');
         $fieldSet->FLD('storeId', 'varchar', 'tdClass=leftCol');
         $fieldSet->FLD('icon', 'varchar', 'tdClass=small-field');
         $fieldSet->FLD('quantity', 'double');

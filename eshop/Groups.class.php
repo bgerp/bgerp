@@ -153,7 +153,7 @@ class eshop_Groups extends core_Master
 
         // Форсиране на домейна на групата при редакция
         if(isset($rec->id)){
-            $menuId = isset($oRec->menuId) ? $oRec->menuId : $mvc->fetchField($rec->id, 'menuId', false);
+            $menuId = $mvc->fetchField($rec->id, 'menuId', false);
             $domainId = cms_Content::fetchField($menuId, 'domainId');
             cms_Domains::selectCurrent($domainId);
         }
@@ -458,8 +458,8 @@ class eshop_Groups extends core_Master
         // Страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
         Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
-        
-        if (core_Packs::fetch("#name = 'vislog'")) {
+
+        if (core_Packs::fetch("#name = 'vislog'") && isset($groupRec)) {
             vislog_History::add('Група «' . $groupRec->name . '»');
         }
         
@@ -577,7 +577,7 @@ class eshop_Groups extends core_Master
      */
     public function renderAllGroups_($data)
     {
-        $all = new ET('');
+        $all = new ET('<div class="productHolder">');
         
         if (is_array($data->recs)) {
             foreach ($data->recs as $rec) {
@@ -594,7 +594,8 @@ class eshop_Groups extends core_Master
                 $all->append($tpl);
             }
         }
-        
+
+        $all .= "</div>";
         return $all;
     }
     
@@ -767,11 +768,6 @@ class eshop_Groups extends core_Master
         }
 
         $mRec = cms_Content::fetch($rec->menuId);
-        
-        $lg = $mRec->lang ?? null;
-        
-        $lg[0] = strtoupper($lg[0] ?? '');
-        
         $url = array('A', 'g', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
         
         if (!empty($rec->altMenuId)) {
@@ -824,6 +820,7 @@ class eshop_Groups extends core_Master
     {
         $cDefaultMenuId = cms_Content::getDefaultMenuId($this);
         $lang = cms_Domains::getPublicDomain('lang');
+        $url = array();
         if ($cDefaultMenuId == $cMenuId && ($lang == 'bg' || $lang == 'en')) {
             $url = array(ucfirst($lang), 'Products');
         }

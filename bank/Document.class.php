@@ -59,7 +59,7 @@ abstract class bank_Document extends deals_PaymentDocument
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'termDate,valior=Вальор, title=Документ,ownAccount=Сметка, invoices=Фактури, folderId, currencyId=Валута, amount, state, createdOn, createdBy';
+    public $listFields = 'termDate,valior=Вальор, title=Документ,ownAccount=Сметка, invoices=Фактури, folderId, amount, currencyId=Валута, state, createdOn, createdBy';
 
 
     /**
@@ -278,21 +278,22 @@ abstract class bank_Document extends deals_PaymentDocument
             $Iban = core_Type::getByName('iban_Type(64)');
             $fields['contragentIban'] = $Iban->fromVerbal($fields['contragentIban']);
             $checkArr = $Iban->isValid($fields['contragentIban']);
-            expect(empty($checkArr['error']), $checkArr['error']);
+            $error = $checkArr['error'] ?? null;
+            expect(empty($error), $error);
         }
 
         // Подготвяне на записа
         $rec = (object)array('operationSysId' => $fields['operation'],
             'threadId' => $threadId,
-            'termDate' => $fields['termDate'],
-            'valior' => $fields['valior'],
+            'termDate' => $fields['termDate'] ?? null,
+            'valior' => $fields['valior'] ?? null,
             'contragentClassId' => $firstRec->contragentClassId,
             'contragentId' => $firstRec->contragentId,
             'state' => 'draft',
-            'reason' => $fields['reason'],
+            'reason' => $fields['reason'] ?? null,
             'currencyId' => $currencyId,
-            'contragentIban' => $fields['contragentIban'],
-            'ownAccount' => $fields['ownAccountId'],
+            'contragentIban' => $fields['contragentIban'] ?? null,
+            'ownAccount' => $fields['ownAccountId'] ?? null,
             'dealCurrencyId' => $dealCurrencyId,
         );
 
@@ -561,12 +562,12 @@ abstract class bank_Document extends deals_PaymentDocument
             $row->ownAccount = "<span class='red'><small><i>{$row->ownAccount}</i></small></span>";
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             if(!empty($rec->reason)){
                 $row->title .= "<small>{$mvc->getFieldType('reason')->toVerbal($rec->reason)}</small>";
             }
         }
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if ($rec->dealCurrencyId != $rec->currencyId) {
                 $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
 
@@ -609,7 +610,7 @@ abstract class bank_Document extends deals_PaymentDocument
 
             if ($origin = $mvc->getOrigin($rec)) {
                 $options = $origin->allowedPaymentOperations;
-                $row->operationSysId = $options[$rec->operationSysId]['title'];
+                $row->operationSysId = tr($options[$rec->operationSysId]['title']);
             }
 
             if(isset($rec->contragentIban)){
@@ -686,6 +687,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $defaultOperation = $dealInfo->get('defaultBankOperation');
         $options = static::getOperations($pOperations);
         expect(countR($options));
+        $amount = null;
 
         if ($expectedPayment = $dealInfo->get('expectedPayment')) {
             if (isset($form->rec->originId, $form->rec->amountDeal)) {
@@ -857,7 +859,8 @@ abstract class bank_Document extends deals_PaymentDocument
                     $totalForBank += currency_CurrencyRates::convertAmount($dRec->amount, null, currency_Currencies::getCodeById($dRec->currencyId), $bankAccCurrencyCode);
 
                     if($varName == 'contable'){
-                        $totalSelectedArr[currency_Currencies::getCodeById($dRec->currencyId)] += $dRec->amount;
+                        $cCode = currency_Currencies::getCodeById($dRec->currencyId);
+                        $totalSelectedArr[$cCode] = ($totalSelectedArr[$cCode] ?? 0) + $dRec->amount;
                     }
 
                     $rTpl->append($dRow->title, 'handle');
@@ -1027,13 +1030,14 @@ abstract class bank_Document extends deals_PaymentDocument
                 $msg = "Контирани са|* {$posted}. |Зададени банкови сметки|* {$changed}";
                 core_Statuses::newStatus($msg);
 
+                $msgType = 'notice';
                 if(countR($error)){
                     $errorStr = implode(",", $error);
                     $msg = "Проблем при контирането на|* {$errorStr}.";
-                    core_Statuses::newStatus($msg, 'error');
+                    $msgType = 'error';
                 }
 
-                $res = new Redirect($retUrl, $msg);
+                $res = new Redirect($retUrl, $msg, $msgType);
 
                 return $res;
             }

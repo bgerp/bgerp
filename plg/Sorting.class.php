@@ -46,7 +46,7 @@ class plg_Sorting extends core_Plugin
                     continue;
                 }
                 
-                if ($mvc->fields[$f]) {
+                if ($mvc->fields[$f] ?? null) {
                     if (!empty($mvc->fields[$f]->sortingLike)) {
                         $dbField = $mvc->fields[$f]->sortingLike;
                     } elseif (($mvc->fields[$f]->kind ?? null) != 'FNC' && strtolower(get_class($mvc->fields[$f]->type ?? null)) == 'type_key') {
