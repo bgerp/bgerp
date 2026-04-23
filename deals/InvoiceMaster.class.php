@@ -1124,7 +1124,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $rec->uicNo = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
             } elseif (!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)) {
                 if ($rec->contragentClassId != crm_Persons::getClassId()) {
-                    $form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
+                    if(!($mvc instanceof sales_Proformas)){
+                        $form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
+                    }
                 } else {
                     $form->setWarning('contragentVatNo,uicNo', 'Сигурни ли сте, че не трябва да въведете поне един от номерата|*?');
                 }

@@ -1282,7 +1282,13 @@ class acc_BalanceDetails extends core_Detail
             $creditType = $this->Accounts->getType($rec->creditAccId);
             
             if ($creditType == 'passive') {
+
+                // Ако кредита е пасивна сметка - храним с к-то и сумата
                 $creditStrategy->feed($rec->creditQuantity, $rec->amount);
+            } elseif($creditType == 'active' && $rec->creditQuantity < 0) {
+
+                // Ако кредита е пасивна активна сметка и отрицателно к-во - храним с модул на к-то и сумата
+                $creditStrategy->feed(abs($rec->creditQuantity), abs($rec->amount));
             }
         }
         
@@ -1291,7 +1297,13 @@ class acc_BalanceDetails extends core_Detail
             $debitType = $this->Accounts->getType($rec->debitAccId);
             
             if ($debitType == 'active') {
+
+                // Ако дебита е активна сметка - храним с к-то и сумата
                 $debitStrategy->feed($rec->debitQuantity, $rec->amount);
+            } elseif($debitType == 'passive' && $rec->debitQuantity < 0) {
+
+                // Ако дебита е пасивна активна сметка и отрицателно к-во - храним с модул на к-то и сумата
+                $debitStrategy->feed(abs($rec->debitQuantity), abs($rec->amount));
             }
         }
     }
