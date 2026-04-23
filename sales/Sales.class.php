@@ -1171,8 +1171,8 @@ class sales_Sales extends deals_DealMaster
         
         return $tpl;
     }
-    
-    
+
+
     /**
      *  Намира последната продажна цена на артикулите
      *
@@ -1187,7 +1187,7 @@ class sales_Sales extends deals_DealMaster
     {
         $Contragent = cls::get($contragentClass);
         $ids = array();
-        
+
         // Намираме ид-та на всички продажби, ЕН и протоколи за този контрагент
         foreach (array('sales_Sales', 'store_ShipmentOrders', 'sales_Services') as $Cls) {
             $query = $Cls::getQuery();
@@ -1198,22 +1198,21 @@ class sales_Sales extends deals_DealMaster
             while ($rec = $query->fetch()) {
                 $ids[] = $rec->id;
             }
-            $key = md5(implode('', $ids));
         }
-        
-        if (!countR($ids)) {
-            return array();
-        }
-        
+
+        // $key се изчислява след като $ids е напълно попълнен
+        $key = md5(implode('', $ids));
+        if (!countR($ids)) return array();
+
         $cacheArr = core_Cache::get('sales_Sales', $key);
-        
+
         // Имаме ли кеширани данни
         if (!$cacheArr) {
-            
+
             // Ако няма инвалидираме досегашните кешове за продажбите
             core_Cache::removeByType('sales_Sales');
             $cacheArr = array();
-            
+
             // Проверяваме на какви цени сме продавали в детайлите на продажбите, ЕН и протоколите
             foreach (array('sales_SalesDetails', 'store_ShipmentOrderDetails', 'sales_ServicesDetails') as $Detail) {
                 $Detail = cls::get($Detail);
@@ -1227,16 +1226,23 @@ class sales_Sales extends deals_DealMaster
                 $dQuery->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
                 $dQuery->orderBy('valior', 'DESC');
 
-                // Кешираме артикулите с цените
+                // Кешираме артикулите с цените — запазваме само ако е по-нова дата
                 while ($dRec = $dQuery->fetch()) {
-                    $cacheArr[$dRec->productId] = (object)array('date' => $dRec->valior, 'price' => $dRec->price);
+                    $existing = $cacheArr[$dRec->productId] ?? null;
+
+                    if (!$existing || $dRec->valior > $existing->date) {
+                        $cacheArr[$dRec->productId] = (object)array(
+                            'date'  => $dRec->valior,
+                            'price' => $dRec->price
+                        );
+                    }
                 }
             }
-            
+
             // Кешираме новите данни
             core_Cache::set('sales_Sales', $key, $cacheArr, 1440);
         }
-        
+
         return $cacheArr;
     }
     
