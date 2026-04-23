@@ -33,7 +33,7 @@ class store_InventoryNotes extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Ivn';
+    public $abbr = 'Inv';
     
     
     /**
