@@ -33,8 +33,8 @@ class store_InventoryNotes extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Inv';
-    
+    public $abbr = 'Ivn';
+
     
     /**
      * Кой може да го разглежда?
