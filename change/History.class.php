@@ -309,7 +309,9 @@ class change_History extends core_Manager
 
         $res = clone $rec;
         $historyQuery = self::getQuery();
-        $historyQuery->where("#classId = {$Class->getClassId()} AND #objectId = {$rec->id} AND #validFrom <= '{$date}' AND ('{$date}' < #validTo OR #validTo IS NULL) AND #state = 'active'");
+        $historyQuery->EXT('recCreatedOn', $Class->className, 'externalName=createdOn,externalKey=objectId');
+        $historyQuery->XPR('validFromCalc', 'datetime', 'COALESCE(#validFrom, #recCreatedOn)');
+        $historyQuery->where("#classId = {$Class->getClassId()} AND #objectId = {$rec->id} AND #validFromCalc <= '{$date}' AND ('{$date}' < #validTo OR #validTo IS NULL) AND #state = 'active'");
         $historyQuery->orderBy("validFrom", 'DESC');
         $historyRec = $historyQuery->fetch();
 
