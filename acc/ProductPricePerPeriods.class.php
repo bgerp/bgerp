@@ -16,8 +16,6 @@
  */
 class acc_ProductPricePerPeriods extends core_Manager
 {
-
-
     /**
      * Заглавие на мениджъра
      */
@@ -46,6 +44,12 @@ class acc_ProductPricePerPeriods extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'debug';
+
+
+    /**
+     * Дали в листовия изглед да се показва бутона за добавяне
+     */
+    public $listAddBtn = false;
 
 
     /**

@@ -169,12 +169,15 @@ class change_History extends core_Manager
         }
 
         if($currentRec->id == 'n'){
-
-            // Ако текущия запис е новия, записваме съществуващия в историята
             if(isset($arr['m'])){
-                unset($arr['m']->id);
-                $oldId = static::save($arr['m']);
-                $arr[$oldId] = $arr['m'];
+                if($arr['m']->validFrom != $arr['n']->validFrom){
+                    // Различни дати - нормален случай, записва се в историята
+                    unset($arr['m']->id);
+                    $oldId = static::save($arr['m']);
+                    $arr[$oldId] = $arr['m'];
+                }
+                // Еднакви дати = корекция в същия ден, не се записва нулева версия
+                unset($arr['m']);
             }
         } elseif($currentRec->id == 'm' && isset($arr['n'])){
 
@@ -306,7 +309,9 @@ class change_History extends core_Manager
 
         $res = clone $rec;
         $historyQuery = self::getQuery();
-        $historyQuery->where("#classId = {$Class->getClassId()} AND #objectId = {$rec->id} AND #validFrom <= '{$date}' AND ('{$date}' < #validTo OR #validTo IS NULL) AND #state = 'active'");
+        $historyQuery->EXT('recCreatedOn', $Class->className, 'externalName=createdOn,externalKey=objectId');
+        $historyQuery->XPR('validFromCalc', 'datetime', 'COALESCE(#validFrom, #recCreatedOn)');
+        $historyQuery->where("#classId = {$Class->getClassId()} AND #objectId = {$rec->id} AND #validFromCalc <= '{$date}' AND ('{$date}' < #validTo OR #validTo IS NULL) AND #state = 'active'");
         $historyQuery->orderBy("validFrom", 'DESC');
         $historyRec = $historyQuery->fetch();
 
