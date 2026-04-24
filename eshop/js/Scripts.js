@@ -96,7 +96,7 @@ function productGallery() {
 
 function eshopActions() {
 	changeInputWidth();
-	if ($(".product-gallery").length()) productGallery();
+	if ($(".product-gallery").length) productGallery();
 
 
 	// Добавяне/махане на артикул от любими
