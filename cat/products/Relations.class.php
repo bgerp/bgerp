@@ -420,7 +420,7 @@ class cat_products_Relations extends core_Manager
                 $tabData = new stdClass();
                 $tabData->rows = array();
                 $tabData->recs = array();
-                $tabData->listFields = arr::make('productId=Артикул,created=Създаване');
+                $tabData->listFields = arr::make('productId=Артикул,analogs=Аналози,created=Създаване');
                 if ($isExternal) {
                     $tabData->listFields = arr::make('img=|*&nbsp;,productId=Артикул,code=Кат. №,price=Цена,btn=Поръчка');
                 }
@@ -491,7 +491,7 @@ class cat_products_Relations extends core_Manager
                         if($foundRec->count){
                             $countAnalogVerbal = core_Type::getByName('int')->toVerbal($foundRec->count);
                             $suffix = $foundRec->count == 1 ? tr('аналог') : tr('аналога');
-                            $tabRow->productId .= "  <span style='float:right;'> " . ht::createLink("[{$countAnalogVerbal}]", $singleUrlArray, false, "class=analogBtn,data-tab-name={$tabRec->productId}_{$foundRec->relTypeId}")->getContent() . " {$suffix}";
+                            $tabRow->analogs = "<span style='float:right;'> " . ht::createLink("[{$countAnalogVerbal}]", $singleUrlArray, false, "class=analogBtn,data-tab-name={$tabRec->productId}_{$foundRec->relTypeId}")->getContent() . " {$suffix}";
                         }
                     }
 
@@ -500,7 +500,7 @@ class cat_products_Relations extends core_Manager
                 }
 
                 arr::sortObjects($tabData->rows, 'state', 'DESC');
-                $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn');
+                $tabData->listFields = core_TableView::filterEmptyColumns($tabData->rows, $tabData->listFields, 'price,btn,analogs');
 
                 $tabs[] = array(
                     'uniqueStr' => "{$data->masterId}_{$groupData['groupId']}",
@@ -595,7 +595,7 @@ class cat_products_Relations extends core_Manager
             $listMvc->FNC('price', 'varchar', 'tdClass=small-field nowrap');
             $listMvc->FNC('btn', 'varchar', 'tdClass=small-field relCol');
             $listMvc->FNC('img', 'varchar', 'tdClass=small-cell relCol relImgCol');
-            $listMvc->FNC('analogs', 'varchar', 'tdClass=small-field');
+            $listMvc->FNC('analogs', 'varchar', 'tdClass=small-field nowrap');
 
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
             $tabData = $tab['tabData'];
