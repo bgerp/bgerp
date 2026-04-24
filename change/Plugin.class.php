@@ -41,6 +41,8 @@ class change_Plugin extends core_Plugin
         if (empty($mvc->fields['changeModifiedBy'])) {
             $mvc->FLD('changeModifiedBy', 'key(mvc=core_Users)', 'caption=Промяна->От,input=none,column=none,single=none');
         }
+
+        $mvc->canPickup = $mvc->canPickup ?? 'powerUser';
     }
     
     
@@ -75,9 +77,28 @@ class change_Plugin extends core_Plugin
                 $data->rec->id,
                 'ret_url' => array($mvc, 'single', $data->rec->id),
             );
-            
+
+
             // Добавяме бутона за промяна
             $data->toolbar->addBtn('Промяна', $changeUrl, array('id' => 'changeBtn' . $data->rec->id,'order' => '19', 'ef_icon' => 'img/16/to_do_list.png', 'title' => 'Промяна на документа', 'row' => 2));
+        }
+
+        if ($mvc->haveRightFor('pickup', $data->rec)) {
+            $pickUrl = array(
+                $mvc,
+                'pickUp',
+                $data->rec->id,
+                'ret_url' => array($mvc, 'single', $data->rec->id),
+            );
+
+            $btnName = 'Възлагане';
+            $btnTitle = 'Възлагане на документа';
+            if (type_Keylist::isIn(core_Users::getCurrent(), $data->rec->assign)) {
+                $btnName = 'Връщане';
+                $btnTitle = 'Връщане на документа';
+            }
+
+            $data->toolbar->addBtn($btnName, $pickUrl, array('id' => 'pickBtn' . $data->rec->id,'order' => '19.09', 'ef_icon' => 'img/16/hand.png', 'title' => $btnTitle, 'row' => 2));
         }
     }
     
@@ -85,11 +106,48 @@ class change_Plugin extends core_Plugin
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
         // Ако екшъна не е changefields, да не се изпълнява
-        if (strtolower($action) != 'changefields') {
+        if ((strtolower($action) != 'changefields') && (strtolower($action) != 'pickup')) {
             
             return ;
         }
-        
+
+        if (strtolower($action) == 'pickup') {
+            // Ако има права за промяна
+            $mvc->requireRightFor('pickup');
+
+            $id = Request::get('id', 'int');
+            expect($id);
+
+            $rec = $mvc->fetch($id);
+            expect($rec);
+
+            $mvc->requireRightFor('pickup', $rec);
+
+            $cu = core_Users::getCurrent();
+
+            if (type_Keylist::isIn($cu, $rec->assign)) {
+                $rec->assign = type_Keylist::removeKey($rec->assign, $cu);
+                $msg = 'Връщане на документа';
+            } else {
+                $rec->assign = type_Keylist::addKey($rec->assign, $cu);
+                $msg = 'Възлагане на документа';
+            }
+
+            $mvc->save($rec, 'assign');
+
+            $mvc->logWrite($msg, $rec);
+
+            $retUrl = getRetUrl();
+
+            if (empty($retUrl)) {
+                $retUrl = array($mvc, 'single', $rec->id);
+            }
+
+            redirect($retUrl, false, $msg);
+
+            return false;
+        }
+
         // Ако има права за промяна
         $mvc->requireRightFor('changerec');
         
@@ -702,6 +760,15 @@ class change_Plugin extends core_Plugin
         if ($rec && $action == 'changerec') {
             if (($requiredRoles != 'no_one') && (!$mvc->canChangeRec($rec))) {
                 $requiredRoles = 'no_one';
+            }
+        }
+        if ($rec && $action == 'pickup') {
+            if (!$mvc->haveRightFor('changerec', $rec, $userId)) {
+                $requiredRoles = 'no_one';
+            } else {
+                if (!array_key_exists('assign', (array) $rec)) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
