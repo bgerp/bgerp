@@ -127,7 +127,7 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Кои полета да могат да се променят след активация
      */
-    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template,detailOrderBy,deliveryId';
+    public $changableFields = 'responsible,contragentName,contragentVatNo,contragentEori,uicNo,contragent,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template,detailOrderBy,deliveryId';
 
 
     /**
@@ -661,6 +661,10 @@ abstract class deals_InvoiceMaster extends core_Master
             $mvc->logWrite('Променено условие от сметка', $rec->id);
         }
 
+        if(isset($rec->_changedContragentData) && $rec->_changedContragentData){
+            $mvc->logWrite('Променяна на клиентски данни', $rec->id);
+        }
+
         if(!empty($rec->_oldValior)){
             // Ако вальора е сменен и основната валута към стария вальор е различна от тази към новия
             if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyCode($rec->date)){
@@ -830,6 +834,21 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+
+        if($data->action == 'changefields'){
+
+            // При промяна да има бутон за бърза смяна на контрагентските данни
+            $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId, null);
+            $cArr = array();
+            $nameField = ($rec->contragentClassId == crm_Companies::getClassId()) ? 'company' : 'person';
+            foreach (array('contragentName' => $nameField, 'contragentCountryId' => 'countryId', 'contragentVatNo' => 'vatNo', 'uicNo' => 'uicId', 'contragentPCode' => 'pCode', 'contragentPlace' => 'place', 'contragentAddress' => 'address') as $k => $v) {
+                $cArr[$k] = $cData->{$v};
+            }
+            $cDataJson = base64_encode(json_encode($cArr, JSON_HEX_APOS));
+            $btn = ht::createFnBtn('Обновяване с данни към|*: ' . core_Type::getByName('date')->toVerbal(dt::today()), 'swapContragentData("swapContragentBtn");', null, array('id' => 'swapContragentBtn', 'data-contragent' => $cDataJson, 'data-toggle-title' => tr('Възстановяване на оригиналните данни'), 'style' => 'display:block; margin-left:auto; margin-right:0; width:fit-content;'));
+            $caption = "Контрагент->|*{$btn->getContent()}->Име";
+            $form->setField('contragentName', array('caption' => $caption));
+        }
 
         if (empty($form->rec->id)) {
             $form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
@@ -1051,6 +1070,14 @@ abstract class deals_InvoiceMaster extends core_Master
             $rec = &$form->rec;
             $rec->_dealCurrencyId = $form->aggregateInfo->get('currency');
             $oldRec = null;
+
+            if(isset($rec->id)){
+                if($rec->state == 'active'){
+                    $oldRec = $mvc->fetch($rec->id, '*', false);
+                    $haveChange = (trim($oldRec->contragentName) != trim($rec->contragentName)) || (trim($oldRec->contragentCountryId) != trim($rec->contragentCountryId)) || (trim($oldRec->contragentVatNo) != trim($rec->contragentVatNo)) || (trim($oldRec->uicNo) != trim($rec->uicNo));
+                    $rec->_changedContragentData = true;
+                }
+            }
 
             // Ако валутата на документа не е разрешена ще се подмени след запис
             if($form->aggregateInfo->get('currency') == 'BGN'){
