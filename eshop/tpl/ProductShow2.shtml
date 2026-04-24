@@ -4,27 +4,25 @@
 
 	<div class="productContainer">
 
-		[#IMAGES_BLOCK#]
 		<div class="productInfo">
 			<div class='eshop-product-labels'>
 				<!--ET_BEGIN ONLY_PRODUCT_NAME-->
 				<div style='padding-bottom:5px'><b style='font-size:1.4em'>[#ONLY_PRODUCT_NAME#]</b></div>
 				<!--ET_END ONLY_PRODUCT_NAME-->
 				<div>
-				<!--ET_BEGIN code--><span style="margin-right: 5px;">|код|*: <b>[#code#]</b></span><!--ET_END code-->
-				[#coInquiry#]<!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*' >|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq-->
+					<!--ET_BEGIN code--><span style="margin-right: 5px;">|код|*: <b>[#code#]</b></span><!--ET_END code-->
+					[#coInquiry#]<!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*' >|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq-->
 					<!--ET_BEGIN FAVOURITES_BTN-->
 					<span id="addToFavouritesBtn">[#FAVOURITES_BTN#]</span>
 					<!--ET_END FAVOURITES_BTN-->
 				</div>
-				<div class="clearfix21"></div>
 			</div>
 
 			<!--ET_BEGIN STATE_EXTERNAL-->
 			<div>[#STATE_EXTERNAL#]</div>
 			<!--ET_END STATE_EXTERNAL-->
 			<div style="padding: 10px 0;">
-			[#info#]
+				[#info#]
 			</div>
 			<!--ET_BEGIN PRODUCT_OPT-->
 			<div class="overflow-scroll" style="margin: 10px 0;">
@@ -32,10 +30,11 @@
 			</div>
 			<!--ET_END PRODUCT_OPT-->
 			<div style="padding: 10px 0;">
-			[#AFTER_PRODUCTS#]
-			[#longInfo#]
+				[#AFTER_PRODUCTS#]
+				[#longInfo#]
 			</div>
 		</div>
+
 		<div class="clearfix21"></div>
 		<!--ET_BEGIN RELATION_TABS-->
 		<div class="overflow-scroll" style="margin: 5px 0;">
@@ -43,4 +42,5 @@
 		</div>
 		<!--ET_END RELATION_TABS-->
 		[#eshop/tpl/NearProducts.shtml#]
+	</div>
 </div>
