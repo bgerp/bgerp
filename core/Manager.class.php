@@ -268,14 +268,14 @@ class core_Manager extends core_Mvc
             $title = $inst->className;
         }
 
-        if (!trim($title)) {
+        if (!trim($title ?? '')) {
             $title = $inst->title;
             if ($objId) {
                 $title .= ' №' . $objId;
             }
         }
 
-        if (!trim($title)) {
+        if (!trim($title ?? '')) {
             $title = '????????';
         }
         
@@ -477,6 +477,7 @@ class core_Manager extends core_Mvc
         
         // Проверка дали входните данни са уникални
         if ($rec) {
+            $fields = null;
             if ($data->form->isSubmitted() && !$this->isUnique($rec, $fields)) {
                 $data->form->setError($fields, 'Вече съществува запис със същите данни');
             }
@@ -534,7 +535,7 @@ class core_Manager extends core_Mvc
      */
     public function prepareEditTitle_($data)
     {
-        setIfNot($data->title, $this->title);
+        setPartIfNot($data, 'title', $this->title);
         $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
                 '|*' . ($this->title ? ' |в|* ' . '"' . tr($data->title) . '"' : '');
     }
@@ -627,7 +628,7 @@ class core_Manager extends core_Mvc
 
             // Ако титлата съвпада с името на полето, вадим името от caption
             foreach ($data->listFields as $field => $caption) {
-                if (($field == $caption) && $this->fields[$field]->caption) {
+                if (($field == $caption) && !empty($this->fields[$field]) && ($this->fields[$field]->caption ?? null)) {
                     $data->listFields[$field] = $this->fields[$field]->caption;
                 }
             }
@@ -699,7 +700,7 @@ class core_Manager extends core_Mvc
                 $Type = $data->listFilter->getField($name);
                 $options = array();
 
-                if (in_array($Type->input, array('hidden', 'none')) || ($Type->alwaysShowInListFilter ?? null)) continue;
+                if (in_array($Type->input ?? null, array('hidden', 'none')) || ($Type->alwaysShowInListFilter ?? null)) continue;
 
                 try {
                     // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
@@ -769,7 +770,7 @@ class core_Manager extends core_Mvc
                 $data->listSummary->query = clone $data->query;
             }
 
-            setIfNot($data->listSummary->mvc, clone $this);
+            setPartIfNot($data->listSummary, 'mvc', clone $this);
         }
     }
     
@@ -824,8 +825,8 @@ class core_Manager extends core_Mvc
      */
     public function prepareListTitle_(&$data)
     {
-        setIfNot($data->title, $this->title);
-        
+        setPartIfNot($data, 'title', $this->title);
+
         if ($data->ListId) {
             $data->title = "Резултати за запис номер|* {$data->ListId}: |" . $data->title;
         }
@@ -943,8 +944,8 @@ class core_Manager extends core_Mvc
                 );
             } else {
                 if (is_a($this, 'core_Detail')) {
-                    if (($masterKey = $this->masterKey) && ($masterId = $data->form->rec->{$masterKey})) {
-                        $master = $this->masterClass;
+                    if (($masterKey = ($this->masterKey ?? null)) && ($masterId = $data->form->rec->{$masterKey})) {
+                        $master = $this->masterClass ?? null;
                         if (!$master) {
                             $master = $this->getFieldTypeParam($masterKey, 'mvc');
                         }
@@ -954,7 +955,7 @@ class core_Manager extends core_Mvc
                     }
                 }
                 
-                if (!$data->retUrl) {
+                if (empty($data->retUrl)) {
                     $data->retUrl = array($this, 'list');
                 }
             }
@@ -1016,7 +1017,7 @@ class core_Manager extends core_Mvc
         $tpl->append($this->renderListPager($data), 'ListPagerBottom');
         
         // Попълваме таблицата с редовете
-        setIfNot($data->listTableMvc, clone $this);
+        setPartIfNot($data, 'listTableMvc', clone $this);
         $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty ?? null, true);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
@@ -1084,13 +1085,13 @@ class core_Manager extends core_Mvc
         if (!isset($listFilter)) return;
 
         // Ако лист филтъра не е хоризонтален
-        if($listFilter->view != 'horizontal'){
+        if(($listFilter->view ?? null) != 'horizontal'){
 
             // И има посочени полета за скриване да им се добавя клас, че може да се скриват
             $toggableFieldsCount = 0;
-            setIfNot($data->toggableFieldsInVerticalListFilter, $this->toggableFieldsInVerticalListFilter);
+            setPartIfNot($data, 'toggableFieldsInVerticalListFilter', $this->toggableFieldsInVerticalListFilter ?? null);
 
-            $toggableFields = arr::make($listFilter->mvc->toggableFieldsInVerticalListFilter, true);
+            $toggableFields = arr::make($listFilter->mvc->toggableFieldsInVerticalListFilter ?? null, true);
             foreach ($toggableFields as $toggableField){
                 if($listFilter->getField($toggableField, false)){
 
@@ -1132,7 +1133,7 @@ class core_Manager extends core_Mvc
      */
     public function renderListPager_($data)
     {
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             return $data->pager->getHtml();
         }
     }
@@ -1143,8 +1144,8 @@ class core_Manager extends core_Mvc
      */
     public function renderListTable_($data)
     {
-        setIfNot($data->listTableMvc, $this);
-        setIfNot($data->listTableHideHeaders, $this->listTableHideHeaders);
+        setPartIfNot($data, 'listTableMvc', $this);
+        setPartIfNot($data, 'listTableHideHeaders', $this->listTableHideHeaders);
         $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders, 'tableId' => ($data->listTableId ?? null)));
         
         if (($data->action ?? null) == 'list') {
@@ -1188,10 +1189,11 @@ class core_Manager extends core_Mvc
      */
     public function renderListToolbar_($data)
     {
+        $res = null;
         if (isset($data->toolbar) && cls::isSubclass($data->toolbar, 'core_Toolbar') && !Mode::is('printing') && $data->toolbar->count()) {
             $res = new ET("<div class='listToolbar'>[#1#]</div>", $data->toolbar->renderHtml());
         }
-        
+
         return $res;
     }
     
@@ -1316,7 +1318,7 @@ class core_Manager extends core_Mvc
                 }
                 if (is_array($rights)) {
                     foreach ($rights as $key => $d) {
-                        if (isset($exRights) && abs($exRights[$key]) >= abs($d)) {
+                        if (isset($exRights) && abs($exRights[$key] ?? 0) >= abs($d)) {
                             continue;
                         }
                         if (abs($d) < $time) {
@@ -1401,13 +1403,15 @@ class core_Manager extends core_Mvc
         $options = $this->fetchOptions($q);
         
         if (is_array($options)) {
+            $openGroup = false;
+            $selected = null;
             foreach ($options as $id => $title) {
                 $attr = array();
-                
+
                 $element = 'option';
-                
+
                 if (is_object($title)) {
-                    if ($title->group) {
+                    if (!empty($title->group)) {
                         if ($openGroup) {
                             // затваряме групата
                             $select->append('</optgroup>');
@@ -1451,6 +1455,8 @@ class core_Manager extends core_Mvc
         $query = $this->getQuery();
         
         // Подготовка на полетата по които ще се търси
+        $concat = '';
+        $show = '';
         foreach ($this->fields as $name => $field) {
             if ($field->searchable || $name == 'id') {
                 $concat .= ", LOWER(#{$name}), ' '";
@@ -1467,7 +1473,7 @@ class core_Manager extends core_Mvc
             $str = ltrim(trim($str), '0');
             
             if ($str) {
-                $query->where("CONCAT(' '{$concat})  LIKE  '% ${str}%'");
+                $query->where("CONCAT(' '{$concat})  LIKE  '% {$str}%'");
             }
         }
         
