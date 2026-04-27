@@ -150,7 +150,7 @@ class email_AddressesInfo extends core_Manager
             $saveFieldsArr[$fName] = $fName;
         }
 
-        $saveFieldsArr = $rEmail->id ? $saveFieldsArr : null;
+        $saveFieldsArr = ($rEmail->id ?? null) ? $saveFieldsArr : null;
 
         self::save($rEmail, $saveFieldsArr);
 
@@ -177,7 +177,7 @@ class email_AddressesInfo extends core_Manager
         }
 
         $rEmail = self::fetchField(array("#email = '[#1#]'", $email), 'redirection');
-        if (trim($rEmail)) {
+        if (trim($rEmail ?? '')) {
             $oEmail = $rEmail;
         }
 
@@ -315,23 +315,18 @@ class email_AddressesInfo extends core_Manager
      */
     public function on_BeforeImportRec($mvc, &$rec)
     {
-        if (!trim($rec->email)) {
-            
+        if (!trim($rec->email ?? '')) {
+
             return false;
         }
-        
-        if (!$rec->state) {
+
+        if (empty($rec->state ?? null)) {
             $rec->state = 'ok';
         }
-        
-        // Опитваме се да определим състоянието
-        if (!$rec->state) {
-            $rec->state = 'ok';
-        }
-        
-        if (!$mvc->fields['state']->type->options[$rec->state]) {
-            $state = mb_strtolower($rec->state);
-            if ($mvc->fields['state']->type->options[$state]) {
+
+        if (!($mvc->fields['state']->type->options[$rec->state] ?? null)) {
+            $state = mb_strtolower($rec->state ?? '');
+            if ($mvc->fields['state']->type->options[$state] ?? null) {
                 $rec->state = $state;
             } else {
                 $state = str::mbUcfirst($state);
@@ -446,7 +441,7 @@ class email_AddressesInfo extends core_Manager
         $rec->email = $email;
         $rec->lastSent = dt::now();
         
-        if ($rec->state != 'blocked' || ($update === 'force')) {
+        if (($rec->state ?? null) != 'blocked' || ($update === 'force')) {
             $rec->state = $state;
             if (is_array($saveFields)) {
                 $saveFields['state'] = 'state';
@@ -484,7 +479,7 @@ class email_AddressesInfo extends core_Manager
             $sRec = doclog_Documents::fetchByMid($mid);
             
             if ($sRec) {
-                $sentEArr = type_Emails::toArray(strtolower($sRec->data->to));
+                $sentEArr = type_Emails::toArray(strtolower($sRec->data->to ?? ''));
                 
                 $sentEArr = arr::make($sentEArr, true);
                 
@@ -492,13 +487,13 @@ class email_AddressesInfo extends core_Manager
                     foreach ($eArr as $email) {
                         $email = strtolower($email);
                         
-                        if ($hArr[$email]) {
+                        if ($hArr[$email] ?? null) {
                             continue;
                         }
-                        
+
                         $hArr[$email] = $email;
-                        
-                        if ($sentEArr[$email]) {
+
+                        if ($sentEArr[$email] ?? null) {
                             self::addEmail($email, true, $state);
                             
                             break;
@@ -558,7 +553,8 @@ class email_AddressesInfo extends core_Manager
             return ;
         }
         
-        list(, $domain) = explode('@', $email);
+        $emailParts = explode('@', $email);
+        $domain = $emailParts[1] ?? '';
         
         if (!trim($domain)) {
             
@@ -599,23 +595,23 @@ class email_AddressesInfo extends core_Manager
      */
     public static function on_BeforeSave($mvc, $res, $rec, &$fields = null)
     {
-        if (!$rec->state) {
+        if (empty($rec->state ?? null)) {
             $rec->state = 'ok';
         }
-        
+
         if (!Mode::is('importing')) {
             if (!isset($rec->lastSent)) {
                 $rec->lastSent = dt::now();
             }
-            
-            if ($rec->state == 'error') {
-                $rec->checkPoint--;
 
-                if ($rec->checkPoint < 0 || !(isset($rec->checkPoint))) {
+            if ($rec->state == 'error') {
+                $rec->checkPoint = (int) ($rec->checkPoint ?? 0) - 1;
+
+                if ($rec->checkPoint < 0) {
                     $rec->checkPoint = 0;
                 }
             } elseif ($rec->state == 'ok') {
-                if (!$rec->checkPoint) {
+                if (!($rec->checkPoint ?? null)) {
                     $rec->checkPoint = 5;
                 } else {
                     $rec->checkPoint++;
@@ -626,7 +622,7 @@ class email_AddressesInfo extends core_Manager
                 }
             }
 
-            if (is_array($fields) && !$fields['checkPoint'] && $fields['state']) {
+            if (is_array($fields) && !($fields['checkPoint'] ?? null) && ($fields['state'] ?? null)) {
                 if (isset($rec->checkPoint)) {
                     $fields['checkPoint'] = 'checkPoint';
                 }
@@ -659,7 +655,7 @@ class email_AddressesInfo extends core_Manager
         
         $data->listFilter->input();
         
-        if ($data->listFilter->rec->state) {
+        if ($data->listFilter->rec->state ?? null) {
             $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->state));
         }
     }

@@ -1327,9 +1327,9 @@ class acc_Journal extends core_Master
 
 
     /**
-     * Крон за поправка на документи останали без вальор
+     * Поправка на документи останали без вальор
      */
-    public function cron_fixPostedDocsWithoutValior()
+    public static function fixPostedDocsWithoutValior()
     {
         $i = 0;
         $docs = core_Classes::getOptionsByInterface('deals_SaveValiorOnActivationIntf');

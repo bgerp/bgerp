@@ -46,9 +46,9 @@ class plg_RowTools2 extends core_Plugin
             
             $singleIcon = $mvc->getIcon($rec->id);
             
-            if ($singleField = $mvc->rowToolsSingleField) {
+            if ($singleField = ($mvc->rowToolsSingleField ?? null)) {
                 $attr1['ef_icon'] = $singleIcon;
-                $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
+                $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField} ?? ''), 70);
                 $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, null, $attr1);
             } else {
                 $singleImg = '<img src=' . sbf($mvc->singleIcon) . " width='16' height='16' title='{$titleDD}' alt=''>";
@@ -81,7 +81,7 @@ class plg_RowTools2 extends core_Plugin
         if (!empty($deleteUrl)) {
             $ddTools->addLink('Изтриване', $deleteUrl, "ef_icon=img/16/delete.png,warning=Наистина ли желаете записът да бъде изтрит?,id=del{$rec->id},title=Изтриване на|* {$singleTitle}");
         } else {
-            if ($mvc->fields['state']->type->options['rejected'] && !($mvc instanceof core_Master)) {
+            if (($mvc->fields['state']->type->options['rejected'] ?? null) && !($mvc instanceof core_Master)) {
                 if ($rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec->id)) {
                     $rejectUrl = array($mvc, 'reject', 'id' => $rec->id, 'ret_url' => $retUrl);
                     $ddTools->addLink('Оттегляне', $rejectUrl, "ef_icon=img/16/reject.png,warning=Наистина ли желаете записът да бъде оттеглен?,id=rej{$rec->id},title=Оттегляне на|* {$singleTitle}");
@@ -202,7 +202,7 @@ class plg_RowTools2 extends core_Plugin
                 }
 
                 $mvc->invoke('BeforeRenderListTableRowToolbar', array(&$tools, $data));
-                $tools = $tools->renderHtml($mvc->rowToolsMinLinksToShow);
+                $tools = $tools->renderHtml($mvc->rowToolsMinLinksToShow ?? null);
                 
                 if ($tools) {
                     $mustShow = true;
