@@ -97,7 +97,7 @@ class doc_FolderPlg extends core_Plugin
         
         $data->ActionLog = new stdClass();
         
-        $perPage = $mvc->actLogPerPage ? $mvc->actLogPerPage : 10;
+        $perPage = $mvc->actLogPerPage ?? 10;
         
         $data->ActionLog->pager = cls::get('core_Pager', array('itemsPerPage' => $perPage, 'pageVar' => 'P_Act_Log'));
         
@@ -128,7 +128,7 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterRenderHistory($mvc, &$tpl, $data)
     {
-        if (($data->ActionLog) && ($data->ActionLog->rows)) {
+        if (!empty($data->ActionLog) && !empty($data->ActionLog->rows)) {
             $tpl = getTplFromFile('doc/tpl/FolderHistoryLog.shtml');
             
             $logBlockTpl = $tpl->getBlock('log');
@@ -230,16 +230,16 @@ class doc_FolderPlg extends core_Plugin
         $allSysTeamId = type_UserOrRole::getAllSysTeamId();
         $fKey = doc_Folders::getSettingsKey($data->rec->folderId);
         $settings = core_Settings::fetchKeyNoMerge($fKey, $allSysTeamId);
-        if ($settings['closeTime']) {
+        if (!empty($settings['closeTime'])) {
             $typeTime = cls::get('type_Time');
             $data->row->CloseTime = $typeTime->toVerbal($settings['closeTime']);
         }
         
-        if ($settings['showDocumentsAsButtons']) {
+        if (!empty($settings['showDocumentsAsButtons'])) {
             $typeKeylist = cls::get('type_Keylist');
             $typeKeylist->params['mvc'] = 'core_Classes';
             $typeKeylist->params['select'] = 'title';
-            
+
             $data->row->ShowDocumentsAsButtons = $typeKeylist->toVerbal($settings['showDocumentsAsButtons']);
         }
     }
@@ -274,10 +274,11 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако оттегляме документа
-        if ($action == 'reject' && $rec->folderId && $requiredRoles != 'no_one') {
-            
+        if ($action == 'reject' && $rec && $rec->folderId && $requiredRoles != 'no_one') {
+
             // Ако има запис, който не е оттеглен
-            if (doc_Folders::fetch($rec->folderId)->allThreadsCnt) {
+            $fRec = doc_Folders::fetch($rec->folderId);
+            if ($fRec && $fRec->allThreadsCnt) {
                 
                 // Никой да не може да оттегля папката
                 $requiredRoles = 'no_one';
@@ -352,9 +353,9 @@ class doc_FolderPlg extends core_Plugin
         $cu = core_Users::getCurrent();
         
         if (!haveRole('ceo') && $cu > 0) {
-            $add = "NOT (#access = 'secret' AND #inCharge != ${cu} AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)";
+            $add = "NOT (#access = 'secret' AND #inCharge != {$cu} AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)";
             if ($where) {
-                $where = "(${where}) AND " . $add;
+                $where = "({$where}) AND " . $add;
             } else {
                 $where = $add;
             }
@@ -580,7 +581,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // Връщаме ид-то на намерения потребител
-        return $userRec->id;
+        return $userRec ? $userRec->id : null;
     }
     
     
@@ -725,7 +726,9 @@ class doc_FolderPlg extends core_Plugin
         $fField = $mvc->listFieldForFolderLink ?? null;
         // Подготовка на линк към папката (или създаване на нова) на корицата
         if (!empty($fField)) {
-            list($fField, $fName) = explode('=', $fField);
+            $fParts = explode('=', $fField, 2);
+            $fField = $fParts[0];
+            $fName = $fParts[1] ?? null;
             $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
             if ($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
@@ -769,7 +772,7 @@ class doc_FolderPlg extends core_Plugin
                             // Добавяме го в rowToolbar-а
                             $url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $Cls->getClassId(), 'ret_url' => true);
                             core_RowToolbar::createIfNotExists($row->_rowTools);
-                            $title = $obj->caption ? $obj->caption : $Cls->singleTitle;
+                            $title = !empty($obj->caption) ? $obj->caption : $Cls->singleTitle;
                             $row->_rowTools->addLink($title, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
                         }
                     }
@@ -937,11 +940,12 @@ class doc_FolderPlg extends core_Plugin
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            
+            $sharedUsersArr = array();
+
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
             foreach ((array) $mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
-                    if ($field->type->params['nickToLink'] == 'no') {
+                    if (($field->type->params['nickToLink'] ?? null) == 'no') {
                         continue;
                     }
                     
@@ -1037,7 +1041,7 @@ class doc_FolderPlg extends core_Plugin
         $fKey = doc_Folders::getSettingsKey($rec->folderId);
         $settings = core_Settings::fetchKeyNoMerge($fKey, $allSysTeamId);
         
-        if ($settings['showDocumentsAsButtons']) {
+        if (!empty($settings['showDocumentsAsButtons'])) {
             $keyArr = type_Keylist::toArray($settings['showDocumentsAsButtons']);
             foreach ($keyArr as $key){
                 $res[] = (object)array('class' => $key);
