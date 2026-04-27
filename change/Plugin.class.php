@@ -91,12 +91,12 @@ class change_Plugin extends core_Plugin
                 'ret_url' => array($mvc, 'single', $data->rec->id),
             );
 
-            $btnName = 'Възлагане';
-            $btnTitle = 'Възлагане на документа';
+            $btnName = 'Поемане';
+            $btnTitle = 'Възлагане на документа към себе си';
             $row = 1;
             if (type_Keylist::isIn(core_Users::getCurrent(), $data->rec->assign)) {
-                $btnName = 'Връщане';
-                $btnTitle = 'Връщане на документа';
+                $btnName = 'Освобождаване';
+                $btnTitle = 'Премахване на възлагането към себе си';
                 $row = 2;
             }
 
@@ -129,10 +129,10 @@ class change_Plugin extends core_Plugin
 
             if (type_Keylist::isIn($cu, $rec->assign)) {
                 $rec->assign = type_Keylist::removeKey($rec->assign, $cu);
-                $msg = 'Връщане на документа';
+                $msg = 'Премахнато възлагане';
             } else {
                 $rec->assign = type_Keylist::addKey($rec->assign, $cu);
-                $msg = 'Възлагане на документа';
+                $msg = 'Възложен документ';
             }
 
             $mvc->save($rec, 'assign');
