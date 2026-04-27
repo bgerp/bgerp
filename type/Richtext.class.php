@@ -86,7 +86,7 @@ class type_Richtext extends type_Blob
         setPartIfNot($params['params'], 'size', '1000000');
 
         // Ако е зададено да не се компресира
-        if ($params['params']['compress'] == 'no') {
+        if (($params['params']['compress'] ?? null) == 'no') {
             
             // Премахваме от масива
             unset($params['params']['compress']);
@@ -110,14 +110,20 @@ class type_Richtext extends type_Blob
         $tpl = new ET("<div class='richEdit'>[#TEXTAREA#]<div class='richedit-toolbar {$attr['errorClass']}'>[#TBL_GROUP1#][#TBL_GROUP2#][#TBL_GROUP3#]</div></div>");
         
         if (Mode::is('screenMode', 'narrow')) {
-            setIfNot($attr['rows'], $this->params['rows'], 7);
+            setIfNot($attr['rows'], $this->params['rows'] ?? null, 7);
         } else {
-            setIfNot($attr['rows'], $this->params['rows'], 10);
+            setIfNot($attr['rows'], $this->params['rows'] ?? null, 10);
         }
         
         // Атрибута 'id' се сетва с уникален такъв, ако не е зададен
         ht::setUniqId($attr);
         
+        $attr['onselect'] ??= '';
+        $attr['onclick'] ??= '';
+        $attr['onkeyup'] ??= '';
+        $attr['onchange'] ??= '';
+        $attr['onfocus'] ??= '';
+        $attr['onblur'] ??= '';
         $attr['onselect'] .= ($attr['onselect']) ? ' ' : '';
         $attr['onclick'] .= ($attr['onclick']) ? ' ' : '';
         $attr['onkeyup'] .= ($attr['onkeyup']) ? ' ' : '';
@@ -133,7 +139,7 @@ class type_Richtext extends type_Blob
         $attr['onblur'] .= "getEO().textareaBlur('{$attr['id']}');";
         
         // Сигнализиране на потребителя, ако въведе по-дълъг текст от допустимото
-        setIfNot($size, $this->params['size'], $this->params[0]);
+        $size = $this->params['size'] ?? $this->params[0] ?? null;
         if ($size > 0) {
             $attr['onblur'] .= "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" .
                  tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " ${size} " . tr('символа') . "');";
@@ -153,7 +159,7 @@ class type_Richtext extends type_Blob
         }
 
         // Ако е зададено да се аппендва маркирания текст, като цитата
-        if ($this->params['appendQuote']) {
+        if ($this->params['appendQuote'] ?? null) {
             $line = is_numeric($this->params['appendQuote']) ? $this->params['appendQuote'] : 0;
 
             $useParagraph = doc_Setup::get('SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE');
@@ -183,7 +189,7 @@ class type_Richtext extends type_Blob
      */
     public function toVerbal($value)
     {
-        if (!strlen($value)) {
+        if (!strlen($value ?? '')) {
             
             return;
         }
@@ -230,8 +236,8 @@ class type_Richtext extends type_Blob
     {
         Debug::startTimer('RichtextToHtml');
         
-        if (!strlen($html)) {
-            
+        if (!strlen($html ?? '')) {
+
             return '';
         }
         
@@ -827,6 +833,7 @@ class type_Richtext extends type_Blob
         $lg = $match[2];
         
         if ($lg && $lg != 'text') {
+            $classLg = '';
             if ($lg != 'auto') {
                 $classLg = " {$lg}";
             }
@@ -1065,9 +1072,9 @@ class type_Richtext extends type_Blob
         
         // Парсираме URL' то
         $urlArr = @parse_url($url);
-        
+
         // Домейна
-        $domain = $urlArr['host'];
+        $domain = is_array($urlArr) ? ($urlArr['host'] ?? '') : '';
         
         // Ако няма заглавие
         if (!trim($title)) {
@@ -1092,7 +1099,7 @@ class type_Richtext extends type_Blob
         
         if ($title[0] != ' ' && !Mode::is('text', 'xhtml')) {
             $bgPlace = $this->getPlace();
-            $sDomain = $urlArr['scheme'] . '://' . $domain;
+            $sDomain = ($urlArr['scheme'] ?? '') . '://' . $domain;
             $thumb = new thumb_Img(array("https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url={$sDomain}&size=16", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly(), 'default' => 'img/16/link.png'));
             $iconUrl = $thumb->getUrl();
             $this->_htmlBoard[$bgPlace] = "background-image:url('{$iconUrl}');";
@@ -1182,7 +1189,7 @@ class type_Richtext extends type_Blob
             $iconFile = sbf($path, '"', true);
             $res = "<img src={$iconFile} style='margin-left:1px; margin-right:1px;position: relative;top: 2px;' height=16 width=16>";
         } elseif (Mode::is('text', 'plain')) {
-            $res = self::$emoticons[$em] ? self::$emoticons[$em] : "[{$em}]";
+            $res = self::$emoticons[$em] ?? "[{$em}]";
         } else {
             $iconFile = sbf($path);
             $res = "<img src={$iconFile} style='margin-left:1px; margin-right:1px; position: relative;top: 2px;' height=16 width=16>";
@@ -1225,6 +1232,7 @@ class type_Richtext extends type_Blob
         
         $url = $html[0];
         
+        $trim = '';
         if ($tLen = (strlen($html[0]) - strlen($url))) {
             $trim = substr($html[0], 0 - $tLen);
         }
@@ -1481,13 +1489,13 @@ class type_Richtext extends type_Blob
                 $i++;
                 
                 // Начало и край на блока
-                $begin = $blockeElement['begin'] ? $blockeElement['begin'] : $blockeElement['text'];
-                $end = $blockeElement['end'] ? $blockeElement['end'] : $blockeElement['text'];
-                
+                $begin = ($blockeElement['begin'] ?? null) ?: ($blockeElement['text'] ?? null);
+                $end = ($blockeElement['end'] ?? null) ?: ($blockeElement['text'] ?? null);
+
                 // Нагласяме параметрите необходими за фунцкията s()
                 $newLine = 1;
-                $multiline = $blockeElement['multiline'] ? $blockeElement['multiline'] : 0;
-                $maxOneLine = $blockeElement['maxOneLine'] ? $blockeElement['maxOneLine'] : 0;
+                $multiline = ($blockeElement['multiline'] ?? null) ?: 0;
+                $maxOneLine = ($blockeElement['maxOneLine'] ?? null) ?: 0;
                 
                 // Генерираме текста
                 $toolbarTxt = "<a class='rtbutton' title='" . $blockeElement['title'] .
@@ -1637,10 +1645,10 @@ class type_Richtext extends type_Blob
             return false;
         }
         
-        setIfNot($params['Act'], $restArr[1], 'default');
-        
+        setIfNot($params['Act'], $restArr[1] ?? null, 'default');
+
         if (countR($restArr) % 2) {
-            setIfNot($params['id'], $restArr[2]);
+            setIfNot($params['id'], $restArr[2] ?? null);
             $pId = 3;
         } else {
             $pId = 2;
@@ -1742,7 +1750,7 @@ class type_Richtext extends type_Blob
         }
         
         // Добавяме
-        $suggestionsStr = str_replace('|', ',', $this->params['suggestions']);
+        $suggestionsStr = str_replace('|', ',', $this->params['suggestions'] ?? '');
         $this->suggestions = arr::make($suggestionsStr, true);
         
         $this->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));
@@ -1799,14 +1807,14 @@ class type_Richtext extends type_Blob
 
         foreach ($tags as $tag) {
             if (preg_match('/^\[([a-z]+)(?:=[^\]]+)?\]$/i', $tag, $m)) {
-                if ($ignoreTags[$m[1]]) {
+                if ($ignoreTags[$m[1]] ?? null) {
 
                     continue;
                 }
                 // Отварящ таг
                 $stack[] = strtolower($m[1]);
             } elseif (preg_match('/^\[\/([a-z]+)\]$/i', $tag, $m)) {
-                if ($ignoreTags[$m[1]]) {
+                if ($ignoreTags[$m[1]] ?? null) {
 
                     continue;
                 }
