@@ -1324,4 +1324,33 @@ class acc_Journal extends core_Master
             core_CallOnTime::setCall('acc_Journal', 'recontoActiveDocuments', $data, $callOn);
         }
     }
+
+
+    /**
+     * Крон за поправка на документи останали без вальор
+     */
+    public function cron_fixPostedDocsWithoutValior()
+    {
+        $i = 0;
+        $docs = core_Classes::getOptionsByInterface('deals_SaveValiorOnActivationIntf');
+        foreach ($docs as $doc){
+            $update = array();
+            $Cls = cls::get($doc);
+
+            $query = $Cls->getQuery();
+            $query->where("#state IN ('active', 'closed') AND #{$Cls->valiorFld} IS NULL");
+            while($rec = $query->fetch()){
+                $activatedOn = $rec->activatedOn ?? $rec->modifiedOn;
+                $rec->{$Cls->valiorFld} = $activatedOn;
+                $update[$rec->id] = $rec;
+                $i++;
+            }
+
+            if(countR($update)){
+                $Cls->saveArray($update, "id,{$Cls->valiorFld}");
+            }
+
+            core_Debug::log("CHECK {$Cls->className} : FIXED {$i};");
+        }
+    }
 }
