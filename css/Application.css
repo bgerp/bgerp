@@ -4954,6 +4954,9 @@ table .eshop-btn {
 .background-holder .cms-row {
   padding: 25px; }
 
+.narrow .cms-row {
+  padding: 5px 0 0 !important; }
+
 .onecol,
 .twocol,
 .threecol,
@@ -6179,7 +6182,11 @@ div.location.public {
   width: 100%; }
 
 .narrow .eshop-group-button .eshop-group-button-title {
-  height: 30px; }
+  height: auto; }
+
+.eshop-group-button .eshop-group-button-img {
+  max-height: 170px;
+  height: auto; }
 
 .eshopProduct {
   max-width: 800px; }
@@ -6227,7 +6234,6 @@ div.location.public {
   right: 0; }
 
 .narrow .eshop-group-button {
-  margin-bottom: 10px;
   height: auto; }
 
 .narrow .eshop-group-button-title {
