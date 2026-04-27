@@ -497,10 +497,10 @@ class acc_Setup extends core_ProtoSetup
      */
     public $cronSettings = array(
         array(
-            'systemId' => 'Fix Items',
-            'description' => 'Поправка на пера',
+            'systemId' => 'Fix Items And Docs',
+            'description' => 'Поправка на пера и документи',
             'controller' => 'acc_Items',
-            'action' => 'FixItems',
+            'action' => 'FixItemsAndDocs',
             'period' => 1440,
             'offset' => 60,
             'timeLimit' => 300
@@ -544,14 +544,6 @@ class acc_Setup extends core_ProtoSetup
             'controller' => 'acc_ProductPricePerPeriods',
             'action' => 'UpdateStockPricesPerPeriod',
             'period' => 60,
-            'offset' => 1,
-            'timeLimit' => 300
-        ), array(
-            'systemId' => 'FixPostedDocs',
-            'description' => 'Поправка на контирани документи без вальор',
-            'controller' => 'acc_Journal',
-            'action' => 'FixPostedDocsWithoutValior',
-            'period' => 1440,
             'offset' => 1,
             'timeLimit' => 300
         ),
