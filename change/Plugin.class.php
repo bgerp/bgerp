@@ -93,12 +93,14 @@ class change_Plugin extends core_Plugin
 
             $btnName = 'Възлагане';
             $btnTitle = 'Възлагане на документа';
+            $row = 1;
             if (type_Keylist::isIn(core_Users::getCurrent(), $data->rec->assign)) {
                 $btnName = 'Връщане';
                 $btnTitle = 'Връщане на документа';
+                $row = 2;
             }
 
-            $data->toolbar->addBtn($btnName, $pickUrl, array('id' => 'pickBtn' . $data->rec->id,'order' => '19.09', 'ef_icon' => 'img/16/hand.png', 'title' => $btnTitle, 'row' => 2));
+            $data->toolbar->addBtn($btnName, $pickUrl, array('id' => 'pickBtn' . $data->rec->id,'order' => '19.09', 'ef_icon' => 'img/16/hand.png', 'title' => $btnTitle, 'row' => $row));
         }
     }
     
