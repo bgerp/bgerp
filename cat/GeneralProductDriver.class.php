@@ -169,7 +169,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         }
         
         // Ако има намерен ордижнин
-        if ($originRecId) {
+        if (isset($originRecId)) {
             
             // Ако артикула е прототипен, взимаме неговите параметри с техните стойностти
             $paramQuery = cat_products_Params::getQuery();
@@ -354,7 +354,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         parent::prepareProductDescription($data);
 
         $showImgInPublic = cat_Setup::get('SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC');
-        if($data->documentType == 'public' && $showImgInPublic != 'yes'){
+        if(($data->documentType ?? null) == 'public' && $showImgInPublic != 'yes'){
             $data->_hidePhoto = true;
         }
 

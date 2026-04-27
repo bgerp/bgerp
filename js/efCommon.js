@@ -6945,6 +6945,71 @@ function selectAllCheckboxes() {
     });
 }
 
+var swapContragentDataRunning = false;
+
+function swapContragentData(btnId) {
+    if (swapContragentDataRunning) {
+        console.log("БЛОКИРАНО - вече се изпълнява");
+        return;
+    }
+    swapContragentDataRunning = true;
+
+    var $btn = $("#" + btnId);
+    var isRestore = !!$btn.data("savedData");
+
+    console.log("=== swapContragentData ===");
+    console.log("Бутон ID:", btnId);
+    console.log("Режим:", isRestore ? "ВЪЗСТАНОВЯВАНЕ" : "ЗАРЕЖДАНЕ");
+
+    if (isRestore) {
+        var original = $btn.data("savedData");
+        console.log("Възстановявам:", JSON.stringify(original));
+
+        $("[name='contragentCountryId']").val(original.contragentCountryId).trigger("change");
+
+        setTimeout(function() {
+            $.each(original, function(key, value) {
+                if (key !== "contragentCountryId") {
+                    $("[name='" + key + "']").val(value);
+                }
+            });
+            $btn.data("savedData", null);
+            $btn.val($btn.data("originalTitle"));
+            swapContragentDataRunning = false;
+            console.log("=== ВЪЗСТАНОВЯВАНЕТО ПРИКЛЮЧИ ===");
+        }, 500);
+
+    } else {
+        var base64 = $btn.data("contragent");
+        var newData = JSON.parse(decodeURIComponent(atob(base64).split("").map(function(c) {
+            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join("")));
+
+        console.log("Нови данни:", JSON.stringify(newData));
+
+        var original = {};
+        $.each(newData, function(key) {
+            original[key] = $("[name='" + key + "']").val();
+        });
+        console.log("Запазвам оригинални:", JSON.stringify(original));
+        $btn.data("savedData", original);
+        $btn.data("originalTitle", $btn.val());
+
+        $("[name='contragentCountryId']").val(newData.contragentCountryId).trigger("change");
+
+        setTimeout(function() {
+            $.each(newData, function(key, value) {
+                if (key !== "contragentCountryId") {
+                    $("[name='" + key + "']").val(value);
+                }
+            });
+            $btn.val($btn.data("toggleTitle"));
+            swapContragentDataRunning = false;
+            console.log("=== ЗАРЕЖДАНЕТО ПРИКЛЮЧИ ===");
+        }, 500);
+    }
+}
+
 /**
 Възможност за скрива на част от редовете в дълги листови таблици
  */
