@@ -569,8 +569,8 @@ class blast_ListDetails extends doc_Detail
         $exp->DEF('#personsGroup=Група лица', 'group(base=crm_Persons,keylist=groupList,allowEmpty)', 'notNull');
         $exp->DEF('#inChargeUsers=Отговорници', 'userList', 'notNull');
         
-        $exp->question('#companiesGroup,#inChargeUsers, #noSalesFrom, #noSalesTo', tr('Посочете група от фирми, от която да се импортират контактните данни') . ':', "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
-        $exp->question('#personsGroup,#inChargeUsers, #noSalesFrom, #noSalesTo', tr('Посочете група от лица, от която да се импортират контактните данни') . ':', "#source == 'groupPersons'", 'title=' . tr('Избор на група лица'));
+        $exp->question('#companiesGroup,#inChargeUsers, #noSalesFrom, #noSalesTo, #city', tr('Посочете група от фирми, от която да се импортират контактните данни') . ':', "#source == 'groupCompanies'", 'title=' . tr('Избор на група фирми'));
+        $exp->question('#personsGroup,#inChargeUsers, #noSalesFrom, #noSalesTo, #city', tr('Посочете група от лица, от която да се импортират контактните данни') . ':', "#source == 'groupPersons'", 'title=' . tr('Избор на група лица'));
         
         $exp->DEF('#countriesInclude=Държава->Само тези', 'keylist(mvc=drdata_Countries, select=commonName, selectBg=commonNameBg, allowEmpty)', 'placeholder=Всички, notNull');
         $exp->SUGGESTIONS('#countriesInclude', 'getCountriesFromGroup(#companiesGroup)');
@@ -590,6 +590,8 @@ class blast_ListDetails extends doc_Detail
         $exp->DEF('#noSalesFrom=Без продажби през->От', 'date', 'placeholder=Игнорарине след, notNull');
         $exp->DEF('#noSalesTo=Без продажби през->До', 'date', 'placeholder=Игнориране преди, notNull');
 
+        $exp->DEF('#city=Контрагент данни->Град', 'varchar(32)', 'placeholder=Град, notNull');
+
         $exp->DEF('#docFrom=Период->От', 'date', 'notNull');
         $exp->DEF('#docTo=Период->До', 'date', 'notNull');
         $exp->DEF('#amountTo=Сума->От', 'int', 'notNull');
@@ -597,17 +599,17 @@ class blast_ListDetails extends doc_Detail
         
         $exp->question('#countriesInclude,#countriesExclude', tr('Филтър по държави') . ':', "#source == 'groupCompanies' || #source == 'groupPersons'", 'title=' . tr('Филтър по държави'));
         
-        $exp->question('#documentType,#catGroups,#countriesInclude,#countriesExclude,#contragentType,#contragentAccess, #noSalesFrom, #noSalesTo, #docFrom,#docTo, #amountTo, #amountFrom', tr('Избор на вид документ') . ':', "#source == 'document'", 'title=' . tr('Избор на вид документ'));
+        $exp->question('#documentType,#catGroups,#countriesInclude,#countriesExclude,#contragentType,#contragentAccess, #noSalesFrom, #noSalesTo, #docFrom,#docTo, #amountTo, #amountFrom, #city', tr('Избор на вид документ') . ':', "#source == 'document'", 'title=' . tr('Избор на вид документ'));
         
         $exp->rule('#delimiter', "','", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
         $exp->rule('#delimiterAsk', '#delimiter');
         $exp->rule('#enclosure', "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
         $exp->rule('#firstRow', "'columnNames'", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
         
-        $exp->rule('#csvData', "importCsvFromContacts('crm_Companies', #companiesGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers, #noSalesFrom, #noSalesTo)");
-        $exp->rule('#csvData', "importCsvFromContacts('crm_Persons', #personsGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers, #noSalesFrom, #noSalesTo)");
+        $exp->rule('#csvData', "importCsvFromContacts('crm_Companies', #companiesGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers, #noSalesFrom, #noSalesTo, #city)");
+        $exp->rule('#csvData', "importCsvFromContacts('crm_Persons', #personsGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers, #noSalesFrom, #noSalesTo, #city)");
         
-        $exp->rule('#csvData', 'importCsvFromDocuments(#documentType,#catGroups,#listId,#countriesInclude,#countriesExclude,#contragentType,#contragentAccess,#docFrom,#docTo, #amountTo, #amountFrom, #noSalesFrom, #noSalesTo)');
+        $exp->rule('#csvData', 'importCsvFromDocuments(#documentType,#catGroups,#listId,#countriesInclude,#countriesExclude,#contragentType,#contragentAccess,#docFrom,#docTo, #amountTo, #amountFrom, #noSalesFrom, #noSalesTo, #city)');
         
         $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
         
@@ -1078,7 +1080,7 @@ class blast_ListDetails extends doc_Detail
      *
      * @return array
      */
-    public static function importCsvFromDocuments($documentType, $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $contragentAccess, $docFrom, $docTo, $amountFrom, $amountTo, $noSalesFrom, $noSalesTo)
+    public static function importCsvFromDocuments($documentType, $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $contragentAccess, $docFrom, $docTo, $amountFrom, $amountTo, $noSalesFrom, $noSalesTo, $city)
     {
         core_App::setTimeLimit(600);
 
@@ -1103,7 +1105,7 @@ class blast_ListDetails extends doc_Detail
         $allEmailArr = array();
 
         $allFoldersArr = false;
-        if ($countriesInclude || $countriesExlude) {
+        if ($countriesInclude || $countriesExlude || $city) {
             $allFoldersArr = array();
 
             $fQuery = doc_Folders::getQuery();
@@ -1130,6 +1132,17 @@ class blast_ListDetails extends doc_Detail
             if ($countriesExlude) {
                 $fQuery->notIn('country', type_Keylist::toArray($countriesExlude));
                 $fpQuery->notIn('country', type_Keylist::toArray($countriesExlude));
+            }
+
+            // Премахваме тези държави от списъка
+            if ($city) {
+                $fpQuery->EXT('place', 'crm_Persons', 'externalKey=coverId');
+                $fpQuery->like("place", $city);
+                $fpQuery->like("place", str::utf2ascii($city), true, true);
+
+                $fQuery->EXT('place', 'crm_Companies', 'externalKey=coverId');
+                $fQuery->like("place", $city);
+                $fQuery->like("place", str::utf2ascii($city), true, true);
             }
 
             while ($rec = $fQuery->fetch()) {
@@ -1528,7 +1541,7 @@ class blast_ListDetails extends doc_Detail
 
         // Премахваме продажбите в избрания период
         if (!empty($csvArr) && ($noSalesFrom || $noSalesTo)) {
-            $salesEmailsArr = self::importCsvFromDocuments(sales_Sales::getClassId(), $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $contragentAccess, $noSalesFrom, $noSalesTo, $amountFrom, $amountTo, false, false);
+            $salesEmailsArr = self::importCsvFromDocuments(sales_Sales::getClassId(), $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $contragentAccess, $noSalesFrom, $noSalesTo, $amountFrom, $amountTo, false, false, $city);
             if (!empty($salesEmailsArr)) {
                 foreach ($salesEmailsArr as $email) {
                     $aSearch = array_search($email, $csvArr);
@@ -1631,7 +1644,7 @@ class blast_ListDetails extends doc_Detail
     /**
      * Импортира CSV от моделите на визитника
      */
-    public static function importCsvFromContacts($className, $groupId, $listId, $countriesInclude, $countriesExlude, $inChargeUsers, $noSalesFrom, $noSalesTo)
+    public static function importCsvFromContacts($className, $groupId, $listId, $countriesInclude, $countriesExlude, $inChargeUsers, $noSalesFrom, $noSalesTo, $city)
     {
         core_App::setTimeLimit(240);
 
@@ -1639,7 +1652,7 @@ class blast_ListDetails extends doc_Detail
 
         // Премахваме продажбите в избрания период
         if ($noSalesFrom || $noSalesTo) {
-            $salesEmailsArr = self::importCsvFromDocuments(sales_Sales::getClassId(), false, $listId, $countriesInclude, $countriesExlude, false, false, $noSalesFrom, $noSalesTo, false, false, false, false);
+            $salesEmailsArr = self::importCsvFromDocuments(sales_Sales::getClassId(), false, $listId, $countriesInclude, $countriesExlude, false, false, $noSalesFrom, $noSalesTo, false, false, false, false, $city);
             if (!empty($salesEmailsArr)) {
                 foreach ($salesEmailsArr as $key => $eStr) {
                     if ($key === 0) {
@@ -1681,6 +1694,11 @@ class blast_ListDetails extends doc_Detail
         // Премахваме тези държави от списъка
         if ($countriesExlude) {
             $cQuery->notIn('country', type_Keylist::toArray($countriesExlude));
+        }
+
+        if ($city) {
+            $cQuery->like("place", $city);
+            $cQuery->like("place", str::utf2ascii($city), true, true);
         }
         
         $csv = array();
