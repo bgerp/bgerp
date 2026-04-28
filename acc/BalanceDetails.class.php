@@ -1326,7 +1326,7 @@ class acc_BalanceDetails extends core_Detail
         if ($creditStrategy) {
             $creditType = $this->Accounts->getType($rec->creditAccId);
             
-            if ($creditType == 'active') {
+            if ($creditType == 'active' && $rec->creditQuantity > 0) {
                 $amount = $creditStrategy->consume($rec->creditQuantity);
                 if (!is_null($amount)) {
                     $rec->amount = $amount;
@@ -1338,7 +1338,7 @@ class acc_BalanceDetails extends core_Detail
         if ($debitStrategy) {
             $debitType = $this->Accounts->getType($rec->debitAccId);
             
-            if ($debitType == 'passive') {
+            if ($debitType == 'passive' && $rec->debitQuantity > 0) {
                 $amount = $debitStrategy->consume($rec->debitQuantity);
                 if (!is_null($amount)) {
                     $rec->amount = $amount;
