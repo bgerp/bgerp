@@ -745,7 +745,7 @@ class cat_products_Packagings extends core_Detail
      * @param int $packagingId - ид на опаковката
      * @param string|null $field - ид на опаковката
      *
-     * @return stdClass
+     * @return mixed
      */
     public static function getPack($productId, $packagingId, $field = null)
     {
