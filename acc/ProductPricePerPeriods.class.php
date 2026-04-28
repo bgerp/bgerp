@@ -44,12 +44,6 @@ class acc_ProductPricePerPeriods extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'debug';
-    
-
-    /**
-     * Кой може да го изтрие?
-     */
-    public $canDelete = 'debug';
 
 
     /**
