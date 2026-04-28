@@ -423,22 +423,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 
-
-    /**
-     * След подготовка на реда за експорт
-     *
-     * @param frame2_driver_Proto $Driver
-     * @param stdClass $res
-     * @param stdClass $rec
-     * @param stdClass $dRec
-     */
-    protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
-    {
-
-        $res->name = cat_Products::fetch($dRec->productId)->name;
-        $res->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->productId)->measureId, 'shortName');
-    }
-
+    
     /**
      * Връща смяната за всеки служител по дни от периода.
      *
