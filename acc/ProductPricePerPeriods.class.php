@@ -44,6 +44,12 @@ class acc_ProductPricePerPeriods extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'debug';
+    
+
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'debug';
 
 
     /**
@@ -473,10 +479,6 @@ class acc_ProductPricePerPeriods extends core_Manager
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-        if (haveRole('admin,debug')) {
-            $data->toolbar->addBtn('Изтриване', array($mvc, 'Truncate', 'ret_url' => true), 'ef_icon=img/16/sport_shuttlecock.png, title=Премахване на кешираните записи');
-        }
-        
         $cronRec = core_Cron::getRecForSystemId('UpdateStockPricesPerPeriod');
         $url = array('core_Cron', 'ProcessRun', str::addHash($cronRec->id), 'forced' => 'yes');
 
