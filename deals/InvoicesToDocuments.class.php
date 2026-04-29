@@ -344,7 +344,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 }
 
                 if($logMsg){
-                    $Document->logWrite("Отнасяне към документ", $rec->id);
+                    $Document->logWrite("Отнасяне към ф-ри", $rec->id);
                 }
 
                 // Реконтиране на документа при промяна на ф-те ако се иска
