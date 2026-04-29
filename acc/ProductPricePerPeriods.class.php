@@ -25,7 +25,7 @@ class acc_ProductPricePerPeriods extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'acc_Wrapper, plg_Sorting';
+    public $loadList = 'acc_Wrapper, plg_Sorting, plg_RowTools2';
 
 
     /**
@@ -37,7 +37,13 @@ class acc_ProductPricePerPeriods extends core_Manager
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'debug';
+    public $canWrite = 'no_one';
+
+
+    /**
+     * Кой може да изтриване?
+     */
+    public $canDelete = 'debug';
 
 
     /**
@@ -242,14 +248,26 @@ class acc_ProductPricePerPeriods extends core_Manager
 
 
     /**
-     * Тестов екшън за първоначално наливане на данните
+     * Екшън за първоначално наливане на данни в таблицата
      */
-    public function act_Test()
+    public function act_Regen()
     {
         self::requireRightFor('debug');
         $this->callback_SyncStockPrices();
 
-        redirect(array($this, 'list', 'type' => 'stores'));
+        followRetUrl(null, 'Таблицата е регенерирана|*!');
+    }
+
+
+    /**
+     * Тестов екшън за първоначално наливане на данните
+     */
+    public function act_truncate()
+    {
+        self::requireRightFor('debug');
+        $this->truncate();
+
+        followRetUrl(null, 'Таблицата е изпразнена|*!');
     }
 
 
@@ -424,10 +442,9 @@ class acc_ProductPricePerPeriods extends core_Manager
         $me = cls::get(get_called_class());
 
         $toDate = dt::getLastDayOfMonth(dt::addMonths(-1, dt::getLastDayOfMonth($date), false));
-        $date = $date ?? '000-00-00';
+        $date = $date ?? '0000-00-00';
 
         foreach (array('stores' => 'type,otherItemId,productItemId,date', 'production' => 'type,productItemId,date', 'costs' => 'type,otherItemId,productItemId,date') as $type => $keyFields){
-
             core_Debug::startTimer("CALC_{$type}");
             $pricesToDate = static::getPricesToDate($toDate, null, null, $type, false);
 
@@ -475,8 +492,12 @@ class acc_ProductPricePerPeriods extends core_Manager
     {
         $cronRec = core_Cron::getRecForSystemId('UpdateStockPricesPerPeriod');
         $url = array('core_Cron', 'ProcessRun', str::addHash($cronRec->id), 'forced' => 'yes');
-
         $data->toolbar->addBtn('Преизчисляване', $url, 'ef_icon=img/16/arrow_refresh.png, title = Преизчисляване');
+
+        if(haveRole('debug')){
+            $data->toolbar->addBtn('Изтриване', array($mvc, 'truncate', 'ret_url' => true), 'warning=Наистина ли искате да изпразните таблицата?,ef_icon=img/16/bug.png, title = Изтриване');
+            $data->toolbar->addBtn('Регенериране', array($mvc, 'regen', 'ret_url' => true), 'warning=Наистина ли искате да регенерирате всички данни от самото начало?,ef_icon=img/16/arrow_refresh.png, title = Изтриване');
+        }
     }
 
 
@@ -506,8 +527,9 @@ class acc_ProductPricePerPeriods extends core_Manager
     {
         requireRole('debug');
         $date = Request::get('date', 'date');
-
         acc_ProductPricePerPeriods::invalidateAfterDate($date);
+
+        followRetUrl(null, 'Таблицата е обновена|*!');
     }
 
 

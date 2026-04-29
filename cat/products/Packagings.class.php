@@ -1602,7 +1602,13 @@ class cat_products_Packagings extends core_Detail
             $rec->usages += 1;
         }
 
-        return self::save($rec, 'usages');
+        $me = cls::get(get_called_class());
+
+        Mode::push("stopMasterUpdate{$productId}", true);
+        $res = $me->save_($rec, 'usages');;
+        Mode::pop("stopMasterUpdate{$productId}");
+
+        return $res;
     }
 
 
