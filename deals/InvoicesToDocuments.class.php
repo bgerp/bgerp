@@ -125,6 +125,8 @@ class deals_InvoicesToDocuments extends core_Manager
             $paymentCurrencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
             if($form->cmd == 'reset'){
                 $fRec->invoices = null;
+                $fRec->fromContainerId = null;
+                $fRec->invoicesList = null;
             }
 
             // Ако е избрана таблица със фактури
@@ -272,7 +274,7 @@ class deals_InvoicesToDocuments extends core_Manager
                         $form->setError('invoicesList', 'РБД със сконто, може да е само към една ф-ра и кредитни за сума към нея');
                     }
 
-                    if(round($amountInvoice, 2) != round($paymentData->amount, 2)){
+                    if($amountInvoice && round($amountInvoice, 2) != round($paymentData->amount, 2)){
                         $amountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($paymentData->amount);
                         $form->setError('invoicesList', "Сумата на ф-та трябва да е точно толкова колкото е сумата на РБД-то без сконто|*: <b>{$amountVerbal} {$currencyCode}</b>");
                     }
