@@ -86,11 +86,33 @@ class deals_InvoicesToDocuments extends core_Manager
         // Задаване на наличните фактури за избор
         $invoices = $Document->getReasonContainerOptions($rec);
 
-        if($onlyOneAllowedInvoice){
+        // Има ли сконто в документа - ако има ограничаваме избора до наличните фактури
+        $haveCashDiscount = false;
+        if($Document instanceof bank_SpendingDocuments) {
+            $valior = $rec->{$Document->valiorFld} ?? dt::today();
+            if (!empty($rec->earlyPaymentUntil) && !empty($rec->earlyPaymentPercent) && $valior <= $rec->earlyPaymentUntil) {
+                $haveCashDiscount = true;
+            }
+        }
+
+        // Ако има сконто фактурите ще се показват като списък
+        if($haveCashDiscount){
+            $form->FLD('invoicesList', "keylist(mvc=doc_Containers,select=id)", "caption=Документи");
+            $form->setSuggestions('invoicesList', array('' => '') + $invoices);
+            $curInvoiceArr = static::getInvoicesTableArr($rec->containerId);
+            if(countR($curInvoiceArr)){
+                $selectedContainerIds = array_combine($curInvoiceArr['containerId'], $curInvoiceArr['containerId']);
+                $form->setDefault('invoicesList', keylist::fromArray($selectedContainerIds));
+            }
+        } elseif($onlyOneAllowedInvoice){
+
+            // Ако ще е само една ф-ра ще се показва като избор
             $form->FLD('fromContainerId', "int", "caption=Избор");
             $form->setOptions('fromContainerId', array('' => '') + $invoices);
             $form->setDefault('fromContainerId', $rec->fromContainerId);
         } else {
+
+            // Ако може да са няколко ф-ри и няма сконто се показва таблица, потребителя да си разписва свободно
             $form->FLD('invoices', "table(columns=containerId|amount,captions=Документ|Сума ({$currencyCode}),validate=deals_InvoicesToDocuments::validateTable)", "caption=Избор");
             $form->setFieldTypeParams('invoices', array('amount_sgt' => array('' => '', "{$paymentData->amount}" => $paymentData->amount), 'containerId_opt' => array('' => '') + $invoices, 'totalAmount' => $paymentData->amount, 'currencyId' => $paymentData->currencyId));
             $curInvoiceArr = static::getInvoicesTableArr($rec->containerId);
@@ -101,9 +123,15 @@ class deals_InvoicesToDocuments extends core_Manager
         if($form->isSubmitted()){
             $fRec = $form->rec;
 
-            $invArr = array();
+            $invArr = $fullRecs = array();
             $paymentCurrencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
+            if($form->cmd == 'reset'){
+                $fRec->invoices = null;
+                $fRec->fromContainerId = null;
+                $fRec->invoicesList = null;
+            }
 
+            // Ако е избрана таблица със фактури
             if(!empty($fRec->invoices)){
                 $iData =  @json_decode($fRec->invoices, true);
                 foreach ($iData['amount'] as &$a){
@@ -111,21 +139,20 @@ class deals_InvoicesToDocuments extends core_Manager
                 }
 
                 foreach ($iData['containerId'] as $k => $v){
+                    $iDoc = doc_Containers::getDocument($iData['containerId'][$k]);
+                    $iRec = $iDoc->fetch();
+                    $fullRecs[$iRec->containerId] = $iRec;
                     if(empty($iData['amount'][$k])){
-                        $iDoc = doc_Containers::getDocument($iData['containerId'][$k]);
-                        $iRec = $iDoc->fetch();
                         $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
                         $totalValue = $iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount;
                         if($iRec->type == 'dc_note' && $totalValue < 0){
                             $expectedAmountToPayData->amount = -1 * $expectedAmountToPayData->amount;
                         }
-
                         $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
                         $vAmount = round($vAmount, 2);
                         if($paymentData->isReverse){
                             $vAmount = abs($vAmount);
                         }
-
                         if($iDoc->getInstance()->fetch("#type = 'dc_note' AND #originId = {$iData['containerId'][$k]} AND #dealValue < 0 AND #state = 'active'")){
                             $defAmount = $vAmount;
                         } else {
@@ -139,8 +166,10 @@ class deals_InvoicesToDocuments extends core_Manager
                 $fRec->invoices = @json_encode($iData);
                 $invArr = type_Table::toArray($form->rec->invoices);
             } elseif(!empty($fRec->fromContainerId)){
-                $iRec = doc_Containers::getDocument($fRec->fromContainerId)->fetch();
 
+                // Ако е избрана конкретна ф-ра
+                $iRec = doc_Containers::getDocument($fRec->fromContainerId)->fetch();
+                $fullRecs[$iRec->containerId] = $iRec;
                 $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
                 $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
                 $vAmount = round($vAmount, 2);
@@ -153,27 +182,40 @@ class deals_InvoicesToDocuments extends core_Manager
                     }
                     $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $paymentData->amount));
                 }
-            }
+            } elseif(!empty($fRec->invoicesList)){
 
+                // Ако ф-те са кейлист се приема че са за своите стойности
+                $iList = array_keys(keylist::toArray($fRec->invoicesList));
+                foreach ($iList as $iContainerId){
+                    $iDoc = doc_Containers::getDocument($iContainerId);
+                    $iRec = $iDoc->fetch();
+                    $iTotalValue = $iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount;
+                    $invArr[] = (object)array('containerId' => $iContainerId, 'amount' => $iTotalValue);
+                    $fullRecs[$iRec->containerId] = $iRec;
+                }
+            }
+            $currencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
+
+            // Ако е към платежен документ проверка дали са допустими
             if($Document instanceof deals_PaymentDocument){
                 $amountWarnings = $amountErrors = array();
                 foreach ($invArr as $iRec){
                     $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
                     $eAmount = round(currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode), 2);
+
+                    $invRec = $fullRecs[$iRec->containerId];
                     $Invoice = doc_Containers::getDocument($iRec->containerId);
                     $iInst = $Invoice->getInstance();
 
                     if(abs($iRec->amount) > abs($eAmount)){
                         if ($iInst->fields['number']) {
-                            $number = $iInst->getVerbal($Invoice->fetch(), 'number');
+                            $number = $iInst->getVerbal($invRec, 'number');
                         } else {
                             $number = "#" . $Invoice->getHandle();
                         }
-
                         $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
                         $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
                     } elseif($iRec->amount < 0){
-                        $invRec = $Invoice->fetch('type,dealValue');
                         if($invRec->type == 'invoice' || $invRec->dealValue > 0){
                             if(!$isReverseWithTransfer){
                                 $amountErrors[] = "Към фактура или дебитно разпределената сума, трябва да е положителна";
@@ -183,26 +225,70 @@ class deals_InvoicesToDocuments extends core_Manager
                 }
 
                 if(countR($amountWarnings)){
-                    $form->setWarning('invoices,fromContainerId', implode("<li>", $amountWarnings));
+                    $form->setWarning('invoices,fromContainerId,invoicesList', implode("<li>", $amountWarnings));
                 }
                 if(countR($amountErrors)){
-                    $form->setError('invoices,fromContainerId', implode("<li>", $amountErrors));
+                    $form->setError('invoices,fromContainerId,invoicesList', implode("<li>", $amountErrors));
                 }
 
                 $summed = arr::sumValuesArray($invArr, 'amount');
                 if(isset($paymentData->amount)){
                     if($summed < 0){
-                        $form->setError('invoices,fromContainerId', "Общата сума не може да е отрицателна");
+                        $form->setError('invoices,fromContainerId,invoicesList', "Общата сума не може да е отрицателна");
                     } elseif($summed > $paymentData->amount){
                         $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($paymentData->amount);
-                        $currencyCode = currency_Currencies::getCodeById($form->getFieldTypeParam('invoices', 'currencyId'));
-                        $form->setError('invoices,fromContainerId', "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> {$currencyCode}");
+                        $form->setError('invoices,fromContainerId,invoicesList', "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> {$currencyCode}");
+                    }
+                }
+
+                // Ако не е обратен документа и е към РБД със сконто
+                if(!$paymentData->isReverse && $haveCashDiscount){
+                    $countInvoices = $countCreditNotesWithQuantity = $amountInvoice = $amountCreditNotes = 0;
+
+                    foreach ($fullRecs as $iRec1){
+                        $totalValue = round($iRec1->dealValue - $iRec1->discountAmount + $iRec1->vatAmount, 2);
+                        if($totalValue > 0){
+                            $countInvoices++;
+                            $amountInvoice += $totalValue;
+                        } else {
+                            if(empty($iRec1->changeAmount)){
+
+                                // Ако има кредитни се изисква да са само за сума (КИ за к-во не допускаме)
+                                $dQuery = purchase_InvoiceDetails::getQuery();
+                                $dQuery->where("#invoiceId = {$iRec1->id}");
+                                $details = $dQuery->fetchAll();
+                                purchase_InvoiceDetails::modifyDcDetails($details, $iRec1, cls::get('purchase_InvoiceDetails'));
+                                foreach ($details as $detail) {
+                                    if (!empty($detail->changedQuantity)) {
+                                        $countCreditNotesWithQuantity++;
+                                    }
+                                }
+                            }
+                            $amountCreditNotes += abs($totalValue);
+                        }
+                    }
+
+                    if($countCreditNotesWithQuantity) {
+                        $form->setError('invoicesList', "Не може да са избрани КИ за количество");
+                    }
+
+                    if($countInvoices > 1) {
+                        $form->setError('invoicesList', 'РБД със сконто, може да е само към една ф-ра и кредитни за сума към нея');
+                    }
+
+                    if($amountInvoice && round($amountInvoice, 2) != round($paymentData->amount, 2)){
+                        $amountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($paymentData->amount);
+                        $form->setError('invoicesList', "Сумата на ф-та трябва да е точно толкова колкото е сумата на РБД-то без сконто|*: <b>{$amountVerbal} {$currencyCode}</b>");
+                    }
+
+                    if($amountCreditNotes && round($amountCreditNotes, 2) != round($paymentData->cashDiscount, 2)){
+                        $amountCashDiscount = core_Type::getByName('double(smartRound)')->toVerbal($paymentData->cashDiscount);
+                        $form->setError('invoicesList', "Сумата на КИ трябва да е точно толкова колкото е сумата на сконтото на РБД-то|*: <b>{$amountCashDiscount} {$currencyCode}</b>");
                     }
                 }
             }
 
             if(!$form->gotErrors()){
-
                 $newArr = array();
                 foreach ($invArr as $obj){
                     $newArr[] = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $obj->containerId, 'amount' => $obj->amount);
@@ -261,13 +347,24 @@ class deals_InvoicesToDocuments extends core_Manager
                     $Document->logWrite("Отнасяне към документ", $rec->id);
                 }
 
-                followRetUrl(null, 'Промяната е записана успешно');
+                // Реконтиране на документа при промяна на ф-те ако се иска
+                if(!empty($Document->recontoWhenChange)){
+                    if($rec->state == 'active' && $Document->hasPlugin('acc_plg_Contable')){
+                        if(acc_Journal::reconto($rec->containerId)){
+                            $Document->logWrite('Ре-контиране на документа', $rec->id);
+                        }
+                    }
+                }
+
+                followRetUrl(null, 'Промяната е записана успешно|*!');
             }
         }
 
         // Добавяне на тулбар
-        $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Импорт');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/disk.png, title = Импорт,order=9.8');
+        $form->toolbar->addSbBtn('Изчистване', 'reset', 'ef_icon = img/16/delete.png, title = Импорт,warning=Наистина ли желаете да изтриете разпределянията към фактури?,order=9.99');
+
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията,order=9.9999');
 
         // Рендиране на опаковката
         $tpl = $Document->renderWrapping($form->renderHtml());
@@ -397,6 +494,16 @@ class deals_InvoicesToDocuments extends core_Manager
         $data->recs = static::getInvoiceArr($masterRec->containerId);
         $currencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
         $unallocated = $paymentData->amount;
+
+        // Ако има сконто приспада се
+        $valior = $masterRec->{$data->masterMvc->valiorFld} ?? dt::today();
+
+        // Ако има сконто то няма да участва като неразпределени
+        if($data->masterMvc instanceof bank_SpendingDocuments){
+            if(!empty($masterRec->earlyPaymentUntil) && !empty($masterRec->earlyPaymentPercent) && $valior <= $masterRec->earlyPaymentUntil){
+                $unallocated *= 1 - $masterRec->earlyPaymentPercent;
+            }
+        }
 
         // Бутон за редакция
         if ($data->masterMvc->haveRightFor('selectinvoice', $data->masterData->rec) && !Mode::isReadOnly()) {

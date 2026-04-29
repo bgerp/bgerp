@@ -1251,6 +1251,34 @@ class cal_Tasks extends embed_Manager
                 }
             }
         }
+
+        if ($rec->id) {
+            $oldRec = $mvc->fetch($rec->id);
+            // Ако отговаря на условията да се активира, вместо да е заявка
+            if (($oldRec->state == 'waiting' && $rec->state == 'waiting') ||
+                ($oldRec->state == 'active' && $rec->state == 'active')) {
+                $canActivate = $mvc->canActivateTask($rec);
+
+                if ($canActivate !== null) {
+                    $now = dt::now();
+                    if (dt::addDays(-1 * cal_Tasks::$taskShowPeriod, $canActivate) <= $now) {
+                        $rec->state = 'active';
+                        if ($oldRec->state != 'active') {
+                            $rec->timeActivated = dt::now();
+                        }
+                    } else {
+                        $rec->state = 'waiting';
+                    }
+                } else {
+                    $rec->state = 'pending';
+                }
+
+                if ($rec->state != $oldRec->state) {
+                    $rec->brState = $oldRec->state;
+                    $mvc->save_($rec, 'state, brState');
+                }
+            }
+        }
     }
     
     
@@ -1814,12 +1842,12 @@ class cal_Tasks extends embed_Manager
         if ($newRec->notifySent === 'yes') {
             $newRec->notifySent = 'no';
         }
-        
+
         // Ако отговаря на условията да се активира, вместо да е заявка
         if (($oldRec->state == 'waiting' && $newRec->state == 'waiting') ||
             ($oldRec->state == 'active' && $newRec->state == 'active')) {
             $canActivate = $mvc->canActivateTask($newRec);
-            
+
             if ($canActivate !== null) {
                 $now = dt::now();
                 if (dt::addDays(-1 * cal_Tasks::$taskShowPeriod, $canActivate) <= $now) {
