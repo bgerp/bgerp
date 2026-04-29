@@ -424,10 +424,9 @@ class acc_ProductPricePerPeriods extends core_Manager
         $me = cls::get(get_called_class());
 
         $toDate = dt::getLastDayOfMonth(dt::addMonths(-1, dt::getLastDayOfMonth($date), false));
-        $date = $date ?? '000-00-00';
+        $date = $date ?? '0000-00-00';
 
         foreach (array('stores' => 'type,otherItemId,productItemId,date', 'production' => 'type,productItemId,date', 'costs' => 'type,otherItemId,productItemId,date') as $type => $keyFields){
-
             core_Debug::startTimer("CALC_{$type}");
             $pricesToDate = static::getPricesToDate($toDate, null, null, $type, false);
 
