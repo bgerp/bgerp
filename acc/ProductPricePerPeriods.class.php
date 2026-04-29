@@ -27,7 +27,7 @@ class acc_ProductPricePerPeriods extends core_Manager
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'acc_Wrapper, plg_Sorting';
+    public $loadList = 'acc_Wrapper, plg_Sorting, plg_RowTools2';
 
 
     /**
@@ -39,7 +39,13 @@ class acc_ProductPricePerPeriods extends core_Manager
     /**
      * Кой може да пише?
      */
-    public $canWrite = 'debug';
+    public $canWrite = 'no_one';
+
+
+    /**
+     * Кой може да изтриване?
+     */
+    public $canDelete = 'debug';
 
 
     /**
