@@ -100,8 +100,10 @@ class deals_InvoicesToDocuments extends core_Manager
             $form->FLD('invoicesList', "keylist(mvc=doc_Containers,select=id)", "caption=Документи");
             $form->setSuggestions('invoicesList', array('' => '') + $invoices);
             $curInvoiceArr = static::getInvoicesTableArr($rec->containerId);
-            $selectedContainerIds = array_combine($curInvoiceArr['containerId'], $curInvoiceArr['containerId']);
-            $form->setDefault('invoicesList', keylist::fromArray($selectedContainerIds));
+            if(countR($curInvoiceArr)){
+                $selectedContainerIds = array_combine($curInvoiceArr['containerId'], $curInvoiceArr['containerId']);
+                $form->setDefault('invoicesList', keylist::fromArray($selectedContainerIds));
+            }
         } elseif($onlyOneAllowedInvoice){
 
             // Ако ще е само една ф-ра ще се показва като избор
