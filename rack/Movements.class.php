@@ -359,9 +359,9 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             rack_OldMovements::sync($rec);
-            if($rec->_isCreated){
+            if($rec->_isCreated ?? null){
                 rack_Logs::add($rec->storeId, $rec->productId, 'create', $rec->position, $rec->id,"Създаване на движение #{$rec->id}");
-            } elseif($rec->_isEdited){
+            } elseif($rec->_isEdited ?? null){
                 rack_Logs::add($rec->storeId, $rec->productId, 'edit', $rec->position, $rec->id, "Редактиране на движение #{$rec->id}");
             }
 

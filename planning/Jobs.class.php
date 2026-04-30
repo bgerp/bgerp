@@ -1348,7 +1348,7 @@ class planning_Jobs extends core_Master
     protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
         $updateFields = array('history');
-        if($rec->_updateProductParams == 'yes'){
+        if(($rec->_updateProductParams ?? 'no') == 'yes'){
             $rec->productViewCacheDate = dt::now();
             $updateFields[] = 'productViewCacheDate';
         }
@@ -2471,7 +2471,7 @@ class planning_Jobs extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // При местене на заданието да се подменя и центъра на дейност
-        if($rec->_isBeingMoved && isset($rec->department)){
+        if(($rec->_isBeingMoved ?? false) && isset($rec->department)){
             $folderCover = doc_Folders::getCover($rec->folderId);
             if($folderCover->isInstanceOf('planning_Centers')){
                 if($rec->department != $folderCover->that){
@@ -2481,12 +2481,12 @@ class planning_Jobs extends core_Master
             }
         }
 
-        if($rec->__isBeingChanged && $rec->allowSecondMeasure == 'no'){
+        if(($rec->__isBeingChanged ?? null) && $rec->allowSecondMeasure == 'no'){
             $rec->secondMeasureId = null;
             $mvc->save_($rec, 'secondMeasureId');
         }
 
-        if($rec->_dueDateChanged){
+        if($rec->_dueDateChanged ?? null){
             static::recalcExpectedDueDates($rec->containerId);
         }
     }

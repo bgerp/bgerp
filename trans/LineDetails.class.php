@@ -430,7 +430,7 @@ class trans_LineDetails extends doc_Detail
         // В какъв цвят да се оцвети реда на линията
         if($Document->haveInterface('store_iface_DocumentIntf')){
             $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? $transportInfo['state'] : 'waiting';
-            if($rec->_allPaymentActive && $class == 'active'){
+            if(($rec->_allPaymentActive) ?? null && $class == 'active'){
                 $class = 'closed';
             }
         } else {

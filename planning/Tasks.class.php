@@ -3524,12 +3524,12 @@ class planning_Tasks extends core_Master
         }
 
         // Преизчисляване на продължителноста след промяна
-        if($rec->_fromForm){
+        if($rec->_fromForm ?? null){
             planning_TaskConstraints::calcTaskDuration($rec->id);
         }
 
         // Маркиране на операцията, ако е променена нормата ѝ, да се преизчислят нормите на детайлите ѝ
-        if($rec->_exIndTime != $rec->indTime){
+        if(($rec->_exIndTime ?? null) != $rec->indTime){
             $product4Task = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
             if(planning_ProductionTaskDetails::count("#taskId = {$rec->id} AND #type = 'production' AND #productId = {$product4Task}")){
                 $mvc->recalcProducedDetailIndTime[$rec->id] = (object)array('id' => $rec->id, 'productId' => $product4Task);

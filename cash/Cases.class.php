@@ -43,7 +43,7 @@ class cash_Cases extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,cashiers,activateRoles,selectUsers,selectRoles,blAmount=Сума';
+    public $listFields = 'name,blAmount,cashiers,activateRoles,selectUsers,selectRoles';
     
     
     /**
@@ -55,7 +55,7 @@ class cash_Cases extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_plg_Registry, cash_Wrapper, bgerp_plg_FLB, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified, doc_plg_Close, deals_plg_AdditionalConditions';
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, cash_Wrapper, bgerp_plg_FLB, plg_Current, plg_StyleNumbers, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified, doc_plg_Close, deals_plg_AdditionalConditions';
 
 
     /**
@@ -162,8 +162,14 @@ class cash_Cases extends core_Master
      * @see bgerp_plg_FLB
      */
     public $canActivateUserFld = 'cashiers';
-    
-    
+
+
+    /**
+     * Ключ с който да се заключи ъпдейта на таблицата
+     */
+    const SYNC_LOCK_KEY = 'syncCashBlAmount';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -173,7 +179,8 @@ class cash_Cases extends core_Master
         $this->FLD('cashiers', 'userList(roles=cash|ceo,showClosedUsers=no)', 'caption=Контиране на документи->Потребители');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
         $this->FLD('defaultPaymentType', 'key(mvc=cond_Payments,select=title,allowEmpty)', 'caption=Безналичен метод на плащане по подразбиране->Избор');
-        
+        $this->FLD('blAmount', 'double(decimals=2)', 'caption=Наличност->Сума,input=none,notNull,value=0');
+
         $this->setDbUnique('name');
     }
     
@@ -202,37 +209,9 @@ class cash_Cases extends core_Master
         if($mvc->getCurrent('id', false) != $rec->id){
             $row->ROW_ATTR['class'] = $stateClass;
         }
-
-        if (isset($fields['-list'])) {
-            if (bgerp_plg_FLB::canUse($mvc, $rec)) {
-                $rec->blAmount = 0;
-                if($caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id)){
-                    // Намираме всички записи от текущия баланс за това перо
-                    if ($balRec = acc_Balances::getLastBalance()) {
-                        $bQuery = acc_BalanceDetails::getQuery();
-                        acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, null, $caseItem->id);
-                        
-                        // Събираме ги да намерим крайното салдо на перото
-                        while ($bRec = $bQuery->fetch()) {
-                            $rec->blAmount += $bRec->blAmount;
-                        }
-                    }
-                }
-                
-                // Обръщаме го във четим за хората вид
-                $row->blAmount = ht::styleNumber(core_Type::getByName('double(decimals=2)')->toVerbal($rec->blAmount), $rec->blAmount);
-            }
-        }
     }
 
 
-    /**
-     * Ако няма записи не вади таблицата
-     */
-    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
-    {
-        $data->listTableMvc->FLD('blAmount', 'int');
-    }
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
@@ -252,7 +231,7 @@ class cash_Cases extends core_Master
     public static function prepareCaseFilter(&$data, $fields = array(), $operationFieldName = null)
     {
         $data->listFilter->FNC('case', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,width=10em,silent');
-        $data->listFilter->showFields .= ',case';
+        $data->listFilter->showFields .= (!empty($data->listFilter->showFields) ? ',' : '') . 'case';
         $data->listFilter->setDefault('case', static::getCurrent('id', false));
 
         if($operationFieldName){
@@ -260,16 +239,16 @@ class cash_Cases extends core_Master
             $operationOptions += $data->query->mvc->getFieldType($operationFieldName)->options;
             $data->listFilter->FNC('operation', 'varchar', 'caption=Операция');
             $data->listFilter->setOptions('operation', $operationOptions);
-            $data->listFilter->showFields .= ',operation';
+            $data->listFilter->showFields .= (!empty($data->listFilter->showFields) ? ',' : '') . 'operation';
             $data->listFilter->setDefault('operation', 'all');
         }
 
         $data->listFilter->input();
         
         if ($filter = $data->listFilter->rec) {
-            if ($filter->case) {
+            if (!empty($filter->case)) {
                 foreach ($fields as $i => $fld) {
-                    $or = ($i === 0) ? false : true;
+                    $or = !(($i === 0));
                     $data->query->where("#{$fld} = {$filter->case}", $or);
                 }
             }
@@ -279,28 +258,23 @@ class cash_Cases extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * След рендиране на лист таблицата
      */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-        if (!countR($data->rows)) {
-            
-            return;
-        }
-        
+        if (!countR($data->recs)) return;
+
+        $total = 0;
         foreach ($data->recs as $rec) {
             $total += $rec->blAmount;
         }
-        
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        $total = $Double->toVerbal($total);
-        if ($total < 0) {
-            $total = "<span style='color:red'>{$total}</span>";
-        }
+
+        $Double =  core_Type::getByName('double(decimals=2)');
+        $totalVerbal = $Double->toVerbal($total);
+        $total = ht::styleNumber($totalVerbal, $total);
         
         $currencyId = acc_Periods::getBaseCurrencyCode();
         $state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
@@ -308,7 +282,6 @@ class cash_Cases extends core_Master
         $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<span class='cCode'>{$currencyId}</span> <b>[#total#]</b> </td><td>&nbsp;</td></tr>");
         $lastRow->replace(tr('Общо'), 'caption');
         $lastRow->replace($total, 'total');
-        
         $tpl->append($lastRow, 'ROW_AFTER');
     }
     
@@ -351,9 +324,29 @@ class cash_Cases extends core_Master
     {
         // @todo!
     }
-    
-    
+
     /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
+     * Синхронизиране на запис от счетоводството с модела, Вика се от крон-а
+     * (@see acc_Balances::cron_Recalc)
+     *
+     * @param array $arr
      */
+    public static function sync($arr)
+    {
+        $query = self::getQuery();
+        $query->show('id,blAmount');
+        $oldRecs = $query->fetchAll();
+        $res = arr::syncArrays($arr, $oldRecs, 'id', 'blAmount');
+        if (!core_Locks::obtain(self::SYNC_LOCK_KEY, 60, 3, 1)) {
+            self::logWarning('Синхронизирането на касовите наличности е заключено от друг процес');
+
+            return;
+        }
+
+        // Добавят се и се обновяват новите
+        $self = cls::get(get_called_class());
+        $self->saveArray($res['update'], 'id,blAmount');
+
+        core_Locks::release(self::SYNC_LOCK_KEY);
+    }
 }

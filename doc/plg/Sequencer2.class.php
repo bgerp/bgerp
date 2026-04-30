@@ -130,8 +130,8 @@ class doc_plg_Sequencer2 extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if($rec->_isNumberGenerated){
-            if($rec->_rollback !== true){
+        if(($rec->_isNumberGenerated ?? false) === true){
+            if(($rec->_rollback ?? false) !== true){
                 
                 // Маркиране на диапазона, като използван
                 cond_Ranges::updateRange($rec->{$mvc->rangeNumFld}, $rec->{$mvc->numberFld});

@@ -133,7 +133,7 @@ class wtime_OnSiteEntries extends core_Manager
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if($rec->_fromForm){
+        if($rec->_fromForm ?? null){
             $mvc->recalcOnShutdown[] = $rec;
         }
     }
