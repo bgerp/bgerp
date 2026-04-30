@@ -736,16 +736,14 @@ class acc_Journal extends core_Master
      * и се записват на ново
      *
      * @param mixed $accSysIds - списък от систем ид-та на сметки
-     * @param datetime  $from      - от коя дата
-     * @param datetime  $to        - до коя дата
+     * @param datetime|null  $from - от коя дата
+     * @param datetime|null  $to   - до коя дата
+     * @param array  $types        - видове
      *
      * @return int - колко документа са били реконтирани
      */
     private function recontoAll($accSysIds, $from = null, $to = null, $types = array())
     {
-        // Дигаме времето за изпълнение на скрипта
-        core_App::setTimeLimit(1500);
-        
         // Филтрираме записите в журнала по подадените параметри
         $to = (!$to) ? dt::today() : $to;
         $query = acc_JournalDetails::getQuery();
@@ -753,7 +751,7 @@ class acc_Journal extends core_Master
         
         $accSysIds = array_values($accSysIds);
         foreach ($accSysIds as $index => $sysId) {
-            $or = ($index == 0) ? false : true;
+            $or = !(($index == 0));
             $acc = acc_Accounts::getRecBySystemId($sysId);
             $query->where("#debitAccId = {$acc->id} OR #creditAccId = {$acc->id}", $or);
         }
@@ -766,6 +764,10 @@ class acc_Journal extends core_Master
         $query->show('docId,docType,valior');
         $query->groupBy('docId,docType');
         $recs = $query->fetchAll();
+        $countRecs = countR($recs);
+
+        // Дигаме времето за изпълнение на скрипта
+        core_App::setTimeLimit($countRecs * 30, false, 6000);
 
         // За всеки запис ако има
         $count = 0;
@@ -822,6 +824,11 @@ class acc_Journal extends core_Master
                 $query->where("#journalId IS NULL AND (#state = 'active' || #state = 'closed')");
                 $query->where("#{$Doc->valiorFld} BETWEEN '{$from}' AND '{$to}'");
                 $query->show("id,{$Doc->valiorFld},state,journalId");
+                $dRecs = $query->fetchAll();
+                $dRecsCount = count($dRecs);
+
+                // Дигаме времето за изпълнение на скрипта
+                core_App::setTimeLimit($dRecsCount * 30, false, 6000);
 
                 // Да се реконтират и те
                 while($dRec = $query->fetch()){
