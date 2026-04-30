@@ -150,7 +150,7 @@ class acc_Journal extends core_Master
         if ($rec = $data->listFilter->rec) {
             
             // Ако се търси по стринг
-            if ($rec->search) {
+            if (!empty($rec->search)) {
                 
                 // и този стринг отговаря на хендлър на документ в системата
                 $doc = doc_Containers::getDocumentByHandle($rec->search);
@@ -171,12 +171,12 @@ class acc_Journal extends core_Master
             }
             
             // Филтер по начална дата
-            if ($rec->dateFrom) {
+            if (!empty($rec->dateFrom)) {
                 $data->query->where(array("#valior >= '[#1#]'", $rec->dateFrom));
             }
             
             // Филтър по крайна дата
-            if ($rec->dateTo) {
+            if (!empty($rec->dateTo)) {
                 $data->query->where(array("#valior <= '[#1#] 23:59:59'", $rec->dateTo));
             }
             
@@ -262,17 +262,13 @@ class acc_Journal extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
-        
         if ($rec->docType && cls::load($rec->docType, true)) {
-            $mvc = cls::get($rec->docType);
             $doc = new core_ObjectReference($rec->docType, $rec->docId);
-            
-            if ($doc) {
-                try {
-                    $row->docType = $doc->getLink();
-                } catch (core_exception_Expect $e) {
-                    $row->docType = "{$rec->docType}:{$rec->docId}";
-                }
+
+            try {
+                $row->docType = $doc->getLink();
+            } catch (core_exception_Expect $e) {
+                $row->docType = "{$rec->docType}:{$rec->docId}";
             }
         }
         
@@ -309,10 +305,6 @@ class acc_Journal extends core_Master
      *
      * Документа се задава чрез двойката параметри в URL `docId` и `docType`. Класът, зададен
      * в `docType` трябва да поддържа интерфейса `acc_TransactionSourceIntf`
-     *
-     * @param int   $docId   (от URL)
-     * @param mixed $docType (от URL) ид или име на клас поддържащ интерфейса
-     *                       `acc_TransactionSourceIntf`
      */
     public function act_Conto()
     {
@@ -337,10 +329,6 @@ class acc_Journal extends core_Master
      *
      * Документа се задава чрез двойката параметри в URL `docId` и `docType`. Класът, зададен
      * в `docType` трябва да поддържа интерфейса `acc_TransactionSourceIntf`
-     *
-     * @param int   $docId   (от URL)
-     * @param mixed $docType (от URL) ид или име на клас поддържащ интерфейса
-     *                       `acc_TransactionSourceIntf`
      */
     public function act_Revert()
     {
@@ -376,7 +364,7 @@ class acc_Journal extends core_Master
      *
      * @param mixed      $docClassId     - класа на документа
      * @param int|object $docId          - ид на документа
-     * @param bool       $notifyDocument - да нотифицира ли документа, че транзакцията е приключена
+     * @param boolean       $notifyDocument - да нотифицира ли документа, че транзакцията е приключена
      */
     public static function saveTransaction($docClassId, $docId, $notifyDocument = true)
     {
@@ -745,6 +733,7 @@ class acc_Journal extends core_Master
     private function recontoAll($accSysIds, $from = null, $to = null, $types = array())
     {
         // Филтрираме записите в журнала по подадените параметри
+        $this->logDebug('Начало на реконтиране');
         $to = (!$to) ? dt::today() : $to;
         $query = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($query, $from, $to);
@@ -767,9 +756,10 @@ class acc_Journal extends core_Master
         $countRecs = countR($recs);
 
         // Дигаме времето за изпълнение на скрипта
-        core_App::setTimeLimit($countRecs * 30, false, 6000);
+        core_App::setTimeLimit($countRecs * 30, false, 2000);
 
         // За всеки запис ако има
+        $this->logDebug('Изтриване на журнали');
         $count = 0;
         $deletedRecs = array();
         if (countR($recs)) {
@@ -788,12 +778,14 @@ class acc_Journal extends core_Master
             }
 
             // Преизчисляване на балансите
+            $this->logDebug('Рекалкулиране на баланси');
             cls::get('acc_Balances')->recalc();
             foreach ($recs as $rec) {
                 try{
                     if(is_object($deletedRecs[$rec->docType][$rec->docId])){
                         Mode::push('recontoWithCreatedOnDate', $deletedRecs[$rec->docType][$rec->docId]->createdOn);
                     }
+                    $this->logDebug("Реконтиране на документ {$rec->id}");
                     $this->recalcDoc($rec->docType, $rec->docId, $rec->valior);
                     $count++;
                     if(is_object($deletedRecs[$rec->docType][$rec->docId])){
@@ -828,11 +820,12 @@ class acc_Journal extends core_Master
                 $dRecsCount = count($dRecs);
 
                 // Дигаме времето за изпълнение на скрипта
-                core_App::setTimeLimit($dRecsCount * 30, false, 6000);
+                core_App::setTimeLimit($dRecsCount * 30, false, 2000);
 
                 // Да се реконтират и те
                 while($dRec = $query->fetch()){
                     try{
+                        $this->logDebug("Реконтиране на документ {$dRec->id}");
                         $this->recalcDoc($Doc, $dRec->id, $dRec->{$Doc->valiorFld});
                         $count++;
                     } catch(core_exception_Expect $e){
@@ -843,6 +836,7 @@ class acc_Journal extends core_Master
         }
 
         // Реконтираните документи
+        $this->logDebug('Край на реконтиране');
         return $count;
     }
 
@@ -923,7 +917,7 @@ class acc_Journal extends core_Master
                 Mode::setPermanent('recontoJournalLastDateFrom', $rec->from);
                 Mode::setPermanent('recontoJournalLastDateTo', $rec->to);
 
-                return followRetUrl(null, tr("|Реконтирани са|* {$res} |документа|*"), 'warning');
+                followRetUrl(null, tr("|Реконтирани са|* {$res} |документа|*"), 'warning');
             }
         }
         
@@ -933,7 +927,7 @@ class acc_Journal extends core_Master
         $tpl = $this->renderWrapping($form->renderHtml());
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logRead('Разглеждане на реконтиране на документ', $form->rec->id);
+        $this->logRead('Разглеждане на реконтиране на документ');
         
         return $tpl;
     }
@@ -1206,7 +1200,6 @@ class acc_Journal extends core_Master
                     if(array_key_exists($rec->id, $detailCount)){
                         if(empty($detailCount[$rec->id])) continue;
                     }
-
                     if(!array_key_exists($Class->className, $res)){
                         $res[$Class->className] = array();
                     }
