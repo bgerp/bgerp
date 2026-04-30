@@ -785,6 +785,7 @@ class acc_Journal extends core_Master
                     if(is_object($deletedRecs[$rec->docType][$rec->docId])){
                         Mode::push('recontoWithCreatedOnDate', $deletedRecs[$rec->docType][$rec->docId]->createdOn);
                     }
+                    $this->logDebug("Реконтиране на документ {$rec->id}");
                     $this->recalcDoc($rec->docType, $rec->docId, $rec->valior);
                     $count++;
                     if(is_object($deletedRecs[$rec->docType][$rec->docId])){
