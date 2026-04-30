@@ -165,4 +165,18 @@ class cash_Setup extends core_ProtoSetup
             acc_Articles::conto($mRec);
         }
     }
+
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+
+        // Закачане на плъгина за прехвърляне на собственотст на системни папки към core_Users
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->installPlugin('Синхронизиране на касови наличности', 'cash_plg_BalanceSync', 'acc_Balances', 'private');
+
+        return $html;
+    }
 }
