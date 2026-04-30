@@ -537,7 +537,7 @@ class eshop_ProductDetails extends core_Detail
             }
         }
 
-        if($rec->_listView !== true){
+        if(($rec->_listView ?? false) !== true){
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         }
 
@@ -609,7 +609,7 @@ class eshop_ProductDetails extends core_Detail
             $row->saleInfo .= "<span class='{$class} option-not-in-stock requirerReferer'>" . tr('Изисква препоръка') . '</span>';
         }
 
-        if($rec->_listView !== true){
+        if(($rec->_listView ?? false) !== true){
             $row->catalogPrice = "<div class='eshop-product-price-holder'>{$row->catalogPrice}</div>";
             if(!empty($row->btn)){
                 $row->catalogPrice .= "<div class='eshop-product-buy-button'>{$row->btn}</div>";

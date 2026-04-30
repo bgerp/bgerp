@@ -315,7 +315,9 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
-        if($rec->_isCreated && $mvc->saoReorderAfterSave === false) return;
+        if (($rec->_isCreated ?? false) === true && (($mvc->saoReorderAfterSave ?? null) === false)) {
+            return;
+        }
 
         if ($fields === null || $fields === '*') {
             if(Mode::is('manualSaoOrder')) return;

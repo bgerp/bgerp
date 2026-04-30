@@ -365,7 +365,7 @@ class planning_Steps extends core_Extender
         }
 
         // След редакция
-        if($rec->_isCreated !== true){
+        if(($rec->_isCreated ?? false) !== true){
             if(isset($rec->labelPackagingId)){
 
                 // Ако избраната опаковка за етикетиране не е използвана никъде маркира се като използвана

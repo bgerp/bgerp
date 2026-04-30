@@ -1450,7 +1450,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             Mode::setPermanent("newAsset{$rec->taskId}", $rec->newAssetId);
         }
 
-        if($rec->_serialIsForced){
+        if($rec->_serialIsForced ?? null){
             plg_Search::forceUpdateKeywords($mvc, $rec);
         }
     }

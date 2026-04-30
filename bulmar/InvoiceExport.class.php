@@ -231,7 +231,7 @@ class bulmar_InvoiceExport extends core_Manager
         }
 
         $byProducts = $byServices = 0;
-        if(!$rec->_isVirtual){
+        if(empty($rec->_isVirtual)){
             $dQuery = sales_InvoiceDetails::getQuery();
             $dQuery->where("#invoiceId = {$rec->id}");
             $details = $dQuery->fetchAll();
@@ -293,7 +293,7 @@ class bulmar_InvoiceExport extends core_Manager
             $nRec->amountPaid = $nRec->amount;
             
             // Ако към ф-та има ПКО и ВКТ за инкасиране на банково плащане да не се води като платена в брой
-            if(!$rec->_isVirtual){
+            if(empty($rec->_isVirtual)){
                 $pkoQuery = cash_Pko::getQuery();
                 $pkoQuery->where("#state = 'active' AND #fromContainerId = {$rec->containerId}");
                 $pkoQuery->show('containerId');

@@ -2151,7 +2151,7 @@ class pos_Terminal extends peripheral_Terminal
         // Ако не е посочен стринг се показват най-продаваните артикули
         if(empty($searchString)){
             $defaultOrder = true;
-            if($rec->_selectedGroupId == 'similar'){
+            if(($rec->_selectedGroupId ?? null) == 'similar'){
                 if(countR($similarProducts)){
                     $pQuery->in('productId', $similarProducts);
                 } else {
@@ -2192,7 +2192,7 @@ class pos_Terminal extends peripheral_Terminal
                 $cloneQuery = clone $pQuery;
                 $cloneQuery->where("#productId = {$foundRec->productId}");
 
-                if($rec->_selectedGroupId == 'similar'){
+                if(($rec->_selectedGroupId ?? null) == 'similar'){
                     if(countR($cloneQuery)){
                         $pQuery->in('productId', $similarProducts);
                     } else {
@@ -2219,7 +2219,7 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery1->where("LOCATE (' {$searchString}', #string)");
             plg_Search::applySearch($searchString, $pQuery1);
 
-            if($rec->_selectedGroupId == 'similar'){
+            if(($rec->_selectedGroupId ?? null) == 'similar'){
                 if(countR($similarProducts)){
                     $pQuery1->in('productId', $similarProducts);
                 } else {
@@ -2241,7 +2241,7 @@ class pos_Terminal extends peripheral_Terminal
                 $notInKeys = array_keys($sellable);
                 $pQuery2 = clone $pQuery;
                 $pQuery2->limit($settings->maxSearchProducts);
-                if($rec->_selectedGroupId == 'similar'){
+                if(($rec->_selectedGroupId ?? null) == 'similar'){
                     if(countR($similarProducts)){
                         $pQuery2->in('productId', $similarProducts);
                     } else {
@@ -2504,9 +2504,9 @@ class pos_Terminal extends peripheral_Terminal
         
         if(in_array($rec->_selectedReceiptFilter, array('draft', 'waiting', 'closed', 'rejected'))){
             $query->where("#state = '{$rec->_selectedReceiptFilter}'");
-        } elseif($rec->_selectedReceiptFilter == 'transfered'){
+        } elseif(($rec->_selectedReceiptFilter ?? null) == 'transfered'){
             $query->where("#transferredIn IS NOT NULL");
-        } elseif($rec->_selectedReceiptFilter == 'paid'){
+        } elseif(($rec->_selectedReceiptFilter ?? null) == 'paid'){
             $query->where("#paid IS NOT NULL AND #paid != 0 AND (#state != 'closed' && #state != 'rejected')");
         }
         
@@ -2538,7 +2538,7 @@ class pos_Terminal extends peripheral_Terminal
         }
 
         $contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
-        if($rec->_selectedReceiptFilter == 'draft'){
+        if(($rec->_selectedReceiptFilter ?? null) == 'draft'){
             $allowDraftReceipts = (pos_Setup::get('ALLOW_DRAFT_RECEIPTS') != 'no');
 
             // Бутоните за 'нова бележка' се виждат винаги, но при забранени чернови са неактивни

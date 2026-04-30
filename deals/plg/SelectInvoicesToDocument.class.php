@@ -121,7 +121,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
-        if($rec->_amountChange || $rec->_currencyChange){
+        if(($rec->_amountChange ?? null) || ($rec->_currencyChange ?? null)){
 
             // Какви са разпределените ф-ри
             $iQuery = deals_InvoicesToDocuments::getQuery();

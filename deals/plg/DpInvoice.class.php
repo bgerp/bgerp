@@ -358,7 +358,7 @@ class deals_plg_DpInvoice extends core_Plugin
                     $dVerbal = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($downpayment);
                     $warning = ($downpayment === (double) 0) ? 'Зададена е сума, без да се очаква аванс по сделката' : "|Въведения аванс е по-голям от очаквания|* <b>{$dVerbal} {$rec->currencyId}</b> |{$warningUnit}|*";
 
-                    if(!$rec->_recalcBaseCurrency){
+                    if(empty($rec->_recalcBaseCurrency)){
                         $form->setWarning('amountAccrued', $warning);
                     }
                 }
@@ -385,7 +385,7 @@ class deals_plg_DpInvoice extends core_Plugin
                     $rec->dpAmount *= -1;
                 }
             } else {
-                if($form->_expectedDownpaymentReduction){
+                if($form->_expectedDownpaymentReduction ?? null){
                     $form->setWarning('amountDeducted', 'Очаква се приспадане на аванс, но не е избран такъв');
                 }
             }

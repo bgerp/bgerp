@@ -327,7 +327,7 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if($rec->_isClone){
+        if($rec->_isClone ?? null){
             $masterRec = $mvc->Master->fetch($rec->saleId);
             if($masterRec->deliveryCalcTransport == 'yes'){
 
