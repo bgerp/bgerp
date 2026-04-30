@@ -375,9 +375,10 @@ class pos_Points extends core_Master
      */
     public static function defaultContragent($id = null)
     {
-        ($id) ? $pos = $id : $pos = pos_Points::getCurrent();
+        $pos = $id ?? pos_Points::getCurrent();
         $query = crm_Persons::getQuery();
-        $query->where("#name LIKE '%POS:{$pos}%'");
+        $query->where("#name LIKE '%POS:{$pos}-%'");
+
         if ($rec = $query->fetch()) {
 
             return $rec->id;
@@ -543,9 +544,10 @@ class pos_Points extends core_Master
                     $res->{$field} = pos_Setup::get($const);
                     $inherited->{$field} = $field;
                 }
-            }
-            if($field == 'discountPolicyId'){
-                $res->{$field} = empty($res->{$field}) ? null : $res->{$field};
+
+                if($field == 'discountPolicyId'){
+                    $res->{$field} = empty($res->{$field}) ? null : $res->{$field};
+                }
             }
         }
     }
