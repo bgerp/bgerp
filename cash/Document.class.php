@@ -319,7 +319,7 @@ abstract class cash_Document extends deals_PaymentDocument
         }
 
         $expectedPayment = null;
-        $realOriginId = $form->rec->fromContainerId ?? $form->rec->originId;
+        $realOriginId = !empty($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
         $realOriginId = $realOriginId ?? doc_Threads::getFirstContainerId($form->rec->threadId);
         if($expectedPayment1 = $mvc->getExpectedAmount($realOriginId, $form->rec)){
             $expectedPayment = $expectedPayment1 * $dealInfo->get('rate');
@@ -328,7 +328,7 @@ abstract class cash_Document extends deals_PaymentDocument
         if(!isset($expectedPayment)){
             $expectedPayment = $dealInfo->get('expectedPayment');
         }
-
+        $amount = 0;
         if ($expectedPayment > 0) {
             $amount = round($expectedPayment / $dealInfo->get('rate'), 2);
             
@@ -506,7 +506,7 @@ abstract class cash_Document extends deals_PaymentDocument
             $operations = $firstDoc->getPaymentOperations();
             $options = static::getOperations($operations);
             
-            return countR($options) ? true : false;
+            return (bool)countR($options);
         }
         
         return false;
@@ -644,7 +644,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $change = $rec->amountGiven - $rec->amount;
         if($change <= 0) return;
 
-        setIfNot($date, $rec->activatedOn, $rec->modifiedOn);
+        $date = $rec->activatedOn ?? $rec->modifiedOn;
         if(in_array($currencyCode, array('BGN', 'EUR')) && $date <= acc_Setup::getBgnDeprecationDate()){
             $changeBgn = $currencyCode == 'BGN' ? $change : round($change * 1.95583, 2);
             $changeEur = $currencyCode == 'EUR' ? $change : round($change / 1.95583, 2);
@@ -672,10 +672,8 @@ abstract class cash_Document extends deals_PaymentDocument
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles == 'no_one') {
-            
-            return;
-        }
+        if ($requiredRoles == 'no_one') return;
+
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')) {
             if(($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
             $requiredRoles = 'no_one';
@@ -686,7 +684,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Информацията на документа, за показване в транспортната линия
      *
-     * @param mixed $id
+     * @param mixed $rec
      * @param int $lineId
      *
      * @return array

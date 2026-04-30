@@ -367,7 +367,7 @@ class cash_Pko extends cash_Document
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         if (Mode::isReadOnly()) return;
-        if(!$data->_deviceRec) return;
+        if(empty($data->_deviceRec)) return;
 
         $intf = cls::getInterface('bank_interface_POS', $data->_deviceRec->driverClass);
         $tpl->append($intf->getJS($data->_deviceRec), 'SCRIPTS');
