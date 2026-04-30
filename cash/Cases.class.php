@@ -231,7 +231,7 @@ class cash_Cases extends core_Master
     public static function prepareCaseFilter(&$data, $fields = array(), $operationFieldName = null)
     {
         $data->listFilter->FNC('case', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,width=10em,silent');
-        $data->listFilter->showFields .= ',case';
+        $data->listFilter->showFields .= (!empty($data->listFilter->showFields) ? ',' : '') . 'case';
         $data->listFilter->setDefault('case', static::getCurrent('id', false));
 
         if($operationFieldName){
@@ -239,14 +239,14 @@ class cash_Cases extends core_Master
             $operationOptions += $data->query->mvc->getFieldType($operationFieldName)->options;
             $data->listFilter->FNC('operation', 'varchar', 'caption=Операция');
             $data->listFilter->setOptions('operation', $operationOptions);
-            $data->listFilter->showFields .= ',operation';
+            $data->listFilter->showFields .= (!empty($data->listFilter->showFields) ? ',' : '') . 'operation';
             $data->listFilter->setDefault('operation', 'all');
         }
 
         $data->listFilter->input();
         
         if ($filter = $data->listFilter->rec) {
-            if ($filter->case) {
+            if (!empty($filter->case)) {
                 foreach ($fields as $i => $fld) {
                     $or = !(($i === 0));
                     $data->query->where("#{$fld} = {$filter->case}", $or);
