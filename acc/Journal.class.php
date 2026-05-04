@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -894,7 +894,7 @@ class acc_Journal extends core_Master
             // Трябва баланса да е преизчислен за да продължим
             if (core_Locks::isLocked(acc_Balances::saveLockKey)) {
                 
-                return followRetUrl(null, tr('|Балансът се преизчислява в момента. Моля, изчакайте!'));
+                followRetUrl(null, tr('|Балансът се преизчислява в момента. Моля, изчакайте!'));
             }
             
             if ($rec->from > $rec->to) {
@@ -953,12 +953,12 @@ class acc_Journal extends core_Master
         $dQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($dQuery, $from, $to);
         
-        if ($debitSysId) {
+        if (isset($debitSysId)) {
             expect($debitAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $debitSysId), 'id'), "Няма сметка със систем ид {$debitAccId}");
             $dQuery->where("#debitAccId = {$debitAccId}");
         }
         
-        if ($creditSysId) {
+        if (isset($creditSysId)) {
             expect($creditAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $creditSysId), 'id'), "Няма сметка със систем ид {$creditSysId}");
             $dQuery->where("#creditAccId = {$creditAccId}");
         }
@@ -1011,10 +1011,7 @@ class acc_Journal extends core_Master
     {
         // Оригиналния документ трябва да не е в затворен период
         $origin = doc_Containers::getDocument($containerId);
-        if (acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) {
-            
-            return;
-        }
+        if (acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) return;
         
         // Изтриване на старата транзакция на документа
         acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
