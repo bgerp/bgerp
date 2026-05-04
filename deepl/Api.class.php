@@ -66,9 +66,15 @@ class deepl_Api
 
         $translateArr = $noTranslateArr = $translateMap = array();
 
-        $stArr = preg_split('/\s*<br>\s*<br>\s*/ui', $text);
+        $stArr = preg_split('/(<(?!\/?(?:span|b|i|u)\b)[^>]*>)/ui', $text, -1, PREG_SPLIT_DELIM_CAPTURE);
 
         foreach ($stArr as $k => $st) {
+            if ($k % 2 === 1) {
+                $noTranslateArr[$k] = $st;
+
+                continue;
+            }
+
             $st = trim($st);
             $strip = strip_tags(html_entity_decode($st));
             $strip = preg_replace('#[\xC2\xA0]#', '', $strip);
@@ -142,7 +148,7 @@ class deepl_Api
             $allResStrArr = $resStrArr;
         }
 
-        return implode("<br><br>", $allResStrArr);
+        return implode('', $allResStrArr);
     }
 
 
