@@ -731,11 +731,12 @@ abstract class deals_InvoiceMaster extends core_Master
             } else {
                 $Source = static::getOrigin($rec);
             }
+        } else {
+            return;
         }
 
         if (isset($Source) && $Source->haveInterface('deals_InvoiceSourceIntf')) {
             $detailsToSave = $Source->getDetailsFromSource($mvc, $rec->importProducts);
-
             $SourceRec = $Source->fetch("currencyId,{$Source->valiorFld}");
             if (is_array($detailsToSave)) {
                 foreach ($detailsToSave as $det) {
