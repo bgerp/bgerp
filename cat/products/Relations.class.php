@@ -589,7 +589,7 @@ class cat_products_Relations extends core_Manager
             $paneTpl->replace($isActiveClass, 'ACTIVE');
 
             $listMvc = clone $this;
-            $listMvc->FNC('productId', 'varchar', 'tdClass=relProductCol');
+            $listMvc->FNC('productId', 'varchar', 'tdClass=relProductCol leftCol');
             $listMvc->FNC('created', 'varchar', 'tdClass=small relCol');
             $listMvc->FNC('code', 'varchar', 'tdClass=relCode');
             $listMvc->FNC('price', 'varchar', 'tdClass=small-field nowrap');
