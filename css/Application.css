@@ -7852,7 +7852,8 @@ tr.wasteWeightPercent td {
   .treeView .treeLevel4 .leafName {
     text-indent: 100px; }
   .treeView .leafName {
-    min-width: 250px; }
+    min-width: 250px;
+    max-width: 700px !important; }
   .treeView .toggleBtn {
     margin-right: 3px;
     cursor: pointer;
