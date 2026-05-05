@@ -1038,7 +1038,7 @@ class eshop_Products extends core_Master
         $data->row = $this->recToVerbal($data->rec, $fields);
         $settings = cms_Domains::getSettings($data->rec->domainId);
 
-        $hasImage = false;
+        $data->row->_imageCount = 0;
         foreach (array('image', 'image2', 'image3', 'image4', 'image5') as $i => $imgFld) {
             if (!empty($data->rec->{$imgFld})) {
                 $path = fileman::fetchByFh($data->rec->{$imgFld}, 'path');
@@ -1052,14 +1052,14 @@ class eshop_Products extends core_Master
                         $data->row->{$imgFld} = fancybox_Fancybox::getImage($data->rec->{$imgFld}, array(160, 160), array(800, 800), $data->row->name . " {$i}", array('class' => 'product-image'));
                     }
 
-                    $hasImage = true;
+                    $data->row->_imageCount++;
                 } else {
                     unset($data->row->{$imgFld});
                 }
             }
         }
-        
-        if ($hasImage === false) {
+
+        if (empty($data->row->_imageCount)) {
             $data->row->image = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), 180, 180, 'path');
             $data->row->image = $data->row->image->createImg(array('width' => 160, 'height' => 160, 'class' => 'product-image'));
         }
@@ -1177,7 +1177,7 @@ class eshop_Products extends core_Master
         }
 
         $settings = cms_Domains::getSettings($data->rec->domainId);
-        if($settings->imageDisplayType == 'carousel'){
+        if($settings->imageDisplayType == 'carousel' && $data->row->_imageCount > 1){
             $imgTpl = getTplFromFile('eshop/tpl/ProductImagesCarousel.shtml');
         } else {
             $imgTpl = getTplFromFile('eshop/tpl/ProductImagesStandart.shtml');
