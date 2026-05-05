@@ -108,7 +108,7 @@ class plg_Printing extends core_Plugin
                 self::addCmdParams($url);
                 
                 // По подразбиране бутона за принтиране се показва на втория ред на тулбара
-                setIfNot($mvc->printBtnToolbarRow, 2);
+                setPartIfNot($mvc, 'printBtnToolbarRow', 2);
                 $printBtnId = self::getPrintBtnId($mvc, $data->rec->id);
                 
                 // Бутон за отпечатване

@@ -229,7 +229,7 @@ class pos_Reports extends core_Master
             $pointRec = pos_Points::fetch($rec->pointId);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
-            setIfNot($row->dealerId, $row->createdBy);
+            $row->dealerId = $row->dealerId ?? $row->createdBy;
 
             if(empty($rec->operators)){
                 $row->operators = "<i>" . tr("Всички") . "</i>";
@@ -995,8 +995,8 @@ class pos_Reports extends core_Master
                     $r->sellCost = 0;
                     wp($r, $rec);
                 }
-                
-                setIfNot($userId, $rec->createdBy);
+
+                $userId = $userId ?? $rec->createdBy;
                 $r->dealerId = $userId;
                 
                 // Изчисляване на себестойността на артикула

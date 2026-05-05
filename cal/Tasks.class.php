@@ -1897,9 +1897,8 @@ class cal_Tasks extends embed_Manager
         // Подготвяме запис за началната дата
         if ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'pending' || $rec->state == 'waiting') {
             $calRec = new stdClass();
-            
-            setIfNot($calRec->time, $rec->timeStart, $rec->timeCalc, $rec->expectationTimeStart, $calRec->timeEnd);
-            
+            $calRec->time = $calRec->time ?? $rec->timeStart ?? $rec->timeCalc ?? $rec->expectationTimeStart ?? $calRec->timeEnd;
+
             // В чии календари да влезе?
             $calRec->users = $rec->assign;
             
@@ -3834,8 +3833,8 @@ class cal_Tasks extends embed_Manager
             $sTitle = 'Задача';
         }
 
-        setIfNot($form->title, str::mbUcfirst($sTitle) . ' към екипа за поддръжка на|* ' . '"|' . support_Systems::getTitleById($systemId) . '|*"');
-
+        $form->title = $form->title ?? str::mbUcfirst($sTitle) . ' към екипа за поддръжка на|* ' . '"|' . support_Systems::getTitleById($systemId) . '|*"';
+        
         $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/ticket.png,title=Изпращане на сигнала');
         if (countR(getRetUrl())) {
             $form->toolbar->addBtn('Отказ', getRetUrl(), 'id=cancel, ef_icon = img/16/close-red.png,title=Отказ');

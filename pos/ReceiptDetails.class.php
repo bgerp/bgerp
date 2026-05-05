@@ -1278,8 +1278,7 @@ class pos_ReceiptDetails extends core_Detail
                 $obj->pack = null;
                 $obj->caseId = $caseId;
             }
-
-            setIfNot($obj->userId, $rec->waitingBy, $rec->receiptCreatedBy);
+            $obj->userId = $obj->userId ?? $rec->waitingBy ?? $rec->receiptCreatedBy;
             $obj->contragentClassId = $rec->contragentClsId;
             $obj->contragentId = $rec->contragentId;
             $obj->quantity = $rec->quantity;

@@ -556,10 +556,8 @@ class plg_UserReg extends core_Plugin
         }
         
         $rec1 = clone ($rec);
-        
-        setIfNot($rec1->url, toUrl(array('core_Users', $act, $h), 'absolute'));
-        
-        setIfNot($rec1->senderName, phpmailer_Setup::get('PML_FROM_NAME', true));
+        $rec1->url = $rec1->url ?? toUrl(array('core_Users', $act, $h), 'absolute');
+        $rec1->senderName = $rec1->senderName ?? phpmailer_Setup::get('PML_FROM_NAME', true);
         
         $expireDate = dt::addDays(USERS_DRAFT_MAX_DAYS);
         $dt = cls::get('type_Datetime');

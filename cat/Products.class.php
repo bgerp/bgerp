@@ -4155,7 +4155,7 @@ class cat_Products extends embed_Manager
      */
     public function getExportMasterFieldName($class)
     {
-        setIfNot($productFldName, cls::get($class)->productFld, 'productId');
+        $productFldName = cls::get($class)->productFld ?? 'productId';
 
         return $productFldName;
     }

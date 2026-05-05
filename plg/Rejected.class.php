@@ -264,7 +264,7 @@ class plg_Rejected extends core_Plugin
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        setIfNot($data->showRejectedRows, $mvc->showRejectedRows);
+        $data->showRejectedRows = $data->showRejectedRows ?? $mvc->showRejectedRows;
         
         // Добавяме скрито полето за оттегляне
         if (!isset($data->listFilter->fields['Rejected'])) {

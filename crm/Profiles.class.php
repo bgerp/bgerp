@@ -1658,7 +1658,7 @@ class crm_Profiles extends core_Master
                 $haveCustomizable = true;
 
                 // Ако не е зададено, заглавието на полето е неговото име
-                setIfNot($params['caption'], '|*' . $field);
+                $params['caption'] = $params['caption'] ?? '|*' . $field;
                 
                 $typeInst = core_Type::getByName($type);
                 
