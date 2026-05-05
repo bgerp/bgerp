@@ -48,7 +48,7 @@ class plg_Search extends core_Plugin
         }
         
         // Как ще се казва полето за търсене, по подразбиране  е 'search'
-        setIfNot($mvc->searchInputField, 'search');
+        setPartIfNot($mvc, 'searchInputField', 'search');
     }
     
     

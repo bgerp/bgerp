@@ -20,8 +20,8 @@ class doc_plg_Tabs extends core_Plugin
      */
     public static function on_AfterDescription(&$mvc)
     {
-        setIfNot($mvc->mainTabCaption, 'Статистика');
-        setIfNot($mvc->tabPlaceholder, 'TABS');
+        setPartIfNot($mvc, 'mainTabCaption', 'Статистика');
+        setPartIfNot($mvc, 'tabPlaceholder', 'TABS');
     }
 
 

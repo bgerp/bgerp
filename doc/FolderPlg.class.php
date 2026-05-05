@@ -44,8 +44,7 @@ class doc_FolderPlg extends core_Plugin
         
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
-
-        setIfNot($mvc->interfaces['doc_FolderIntf'], 'doc_FolderIntf');
+        $mvc->interfaces['doc_FolderIntf'] = $mvc->interfaces['doc_FolderIntf'] ?? 'doc_FolderIntf';
         setPartIfNot($mvc, 'canCreatenewfolder', 'powerUser');
         setPartIfNot($mvc, 'canViewlogact', 'powerUser');
         $mvc->details = arr::make($mvc->details);

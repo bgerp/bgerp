@@ -26,9 +26,9 @@ class doc_plg_Sequencer2 extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->rangeNumFld, 'numberRange');
-        setIfNot($mvc->numberFld, 'number');
-        setIfNot($mvc->addNumberOnActivation, false);
+        setPartIfNot($mvc, 'rangeNumFld', 'numberRange');
+        setPartIfNot($mvc, 'numberFld', 'number');
+        setPartIfNot($mvc, 'addNumberOnActivation', false);
         
         if (!isset($mvc->fields[$mvc->rangeNumFld])) {
             $mvc->FLD($mvc->rangeNumFld, "key(mvc=cond_Ranges,select=id)", 'caption=Диапазон,input=hidden');

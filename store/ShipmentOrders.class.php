@@ -917,7 +917,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
                     // Какви са логистичните данни на документа
                     $logisticData = $this->getLogisticData($rec);
-                    setIfNot($logisticData['toPCode'], '');
+                    $logisticData['toPCode'] = $logisticData['toPCode'] ?? '';
                     $firstRec->deliveryData = is_array($firstRec->deliveryData) ? $firstRec->deliveryData : array();
                     $deliveryData = $firstRec->deliveryData + array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
 

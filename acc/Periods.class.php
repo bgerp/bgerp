@@ -359,8 +359,8 @@ class acc_Periods extends core_Manager
         }
         
         // Вземаме последните
-        setIfnot($rec->vatRate, $prevRec->vatRate, ACC_DEFAULT_VAT_RATE);
-        
+        $rec->vatRate = isset($rec->vatRate) ? $rec->vatRate : (isset($prevRec->vatRate) ? $prevRec->vatRate : ACC_DEFAULT_VAT_RATE);
+
         if ($prevRec->baseCurrencyId) {
             $rec->baseCurrencyId = $prevRec->baseCurrencyId;
         } else {

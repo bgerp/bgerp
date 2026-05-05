@@ -1993,9 +1993,7 @@ class cal_Tasks extends embed_Manager
         // Подготвяме запис за Крайния срок
         if ($rec->state == 'closed') {
             $calRec = new stdClass();
-            
-            // Време за край на задачата
-            setIfNot($calRec->time, $rec->timeClosed);
+            $calRec->time = $calRec->time ?? $rec->timeClosed;
             
             // В чии календари да влезе?
             $calRec->users = $rec->assign;

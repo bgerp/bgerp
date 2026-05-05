@@ -564,11 +564,9 @@ class plg_UserReg extends core_Plugin
         $expireDate = dt::addDays(USERS_DRAFT_MAX_DAYS);
         $dt = cls::get('type_Datetime');
         $expireDate = $dt->toVerbal($expireDate);
-        
-        setIfNot($rec1->regLifetime, $expireDate);
-        
-        setIfNot($rec1->EF_APP_TITLE, core_Setup::get('EF_APP_TITLE', true));
-        
+        $rec1->regLifetime = $rec1->regLifetime ?? $expireDate;
+        $rec1->EF_APP_TITLE = $rec1->EF_APP_TITLE ?? core_Setup::get('EF_APP_TITLE', true);
+
         $tpl = new ET($tpl);
         
         $tpl->translate();

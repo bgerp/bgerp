@@ -233,7 +233,7 @@ class sens2_Controllers extends core_Master
                 }
                 $partUom = $port . '_uom';
                 $res = (object) array('caption' => $caption, 'uom' => $config->{$partUom}, 'title' => $title);
-                setIfNot($res->uom, $params->uom);
+                $res->uom = $res->uom ?? $params->uom;
                 
                 $ap[$controllerId . '_' . $type][$port] = $res;
             }
