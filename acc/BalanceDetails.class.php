@@ -1209,8 +1209,15 @@ class acc_BalanceDetails extends core_Detail
             $journalRows = [];
 
             foreach ($recs as $rec) {
+                $amountBefore = $rec->amount;
                 $this->calcAmount($rec);
+                $amountChanged = (round((float)$rec->amount, 8) != round((float)$amountBefore, 8));
                 $update = $this->calcPrice($rec);
+
+                // Ако calcAmount е сменил сумата, записваме дори цената да не се е променила
+                if ($amountChanged) {
+                    $update = true;
+                }
 
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
