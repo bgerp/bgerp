@@ -343,11 +343,11 @@ class acc_Balances extends core_Master
 
         $form = cls::get('core_Form');
         $form->title = tr('Дебъг преизчисляване на баланса');
-        $form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Дебъг проследяване на сметка->Избор');
+        $form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Дебъг проследяване на сметка->Избор,mandatory');
         $form->input();
 
         if ($form->isSubmitted()) {
-            $accNum = ($form->rec->accountId) ? acc_Accounts::getNumById($form->rec->accountId) : '';
+            $accNum = ($form->rec->accountId) ? acc_Accounts::getNumById($form->rec->accountId) : null;
 
             $checkForLock = true;
             $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
@@ -366,7 +366,7 @@ class acc_Balances extends core_Master
                 }
             }
 
-            acc_BalanceDebugger::clear();
+            acc_BalanceDebugger::clear($accNum ?? '');
             Mode::push('traceBalance', true);
 
             self::forceCalc($rec, true);
