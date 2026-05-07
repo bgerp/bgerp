@@ -3969,7 +3969,7 @@ span.sharing-history-title {
 
 .thumbnails img {
   width: 53px;
-  max-width: none;
+  height: 53px;
   object-fit: contain;
   border: 2px solid rgba(0, 0, 0, 0);
   border-radius: 8px;
