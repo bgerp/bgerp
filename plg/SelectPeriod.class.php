@@ -235,8 +235,7 @@ class plg_SelectPeriod extends core_Plugin
         if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
             $form->setField($fT, array('rowStyle' => 'display:none'));
         }
-
-        setIfNot($form->defOrder, $data->defOrder, true);
+        $form->defOrder = $form->defOrder ?? $data->defOrder ?? true;
     }
     
     

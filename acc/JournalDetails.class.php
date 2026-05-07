@@ -156,7 +156,7 @@ class acc_JournalDetails extends core_Detail
                     foreach (range(1, 3) as $i) {
                         $ent = "{$type}Item{$i}";
                         
-                        if ($rec->{$ent}) {
+                        if (!empty($rec->{$ent})) {
                             $row->{$ent} = $mvc->recToVerbal($rec, $ent)->{$ent};
                             $ents .= "<li><span style='margin-left:10px; font-size: 11px; color: #747474;'>{$i}.</span> " . $row->{$ent} . '</li>';
                         }
@@ -338,7 +338,7 @@ class acc_JournalDetails extends core_Detail
         $row->debitAccId = acc_Balances::getAccountLink($rec->debitAccId, $balanceValior);
         $row->creditAccId = acc_Balances::getAccountLink($rec->creditAccId, $balanceValior);
         
-        if ($rec->reasonCode) {
+        if (!empty($rec->reasonCode)) {
             $row->reasonCode = "<div style='color:#444;font-size:0.9em;margin-left:10px'>{$row->reasonCode}</div>";
         }
     }

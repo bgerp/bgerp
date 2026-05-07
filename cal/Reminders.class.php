@@ -1220,7 +1220,7 @@ class cal_Reminders extends core_Master
                     // Най-ранния работен ден на всички споделени
                     foreach ($shareUsersArr as $uId) {
                         $nextStartTime = cal_Calendar::nextWorkingDay($timeStart, $uId, $rec->repetitionEach);
-                        setIfNot($bestNextStartTime, $nextStartTime);
+                        $bestNextStartTime = $bestNextStartTime ?? $nextStartTime;
                         if ($nextStartTime < $bestNextStartTime) {
                             $bestNextStartTime = $nextStartTime;
                         }

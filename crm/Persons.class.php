@@ -429,7 +429,7 @@ class crm_Persons extends core_Master
         $data->listFilter->input('users,alpha,search,order,groupId', 'silent');
 
         // Според заявката за сортиране, показваме различни полета
-        setIfNot($data->listFilter->rec->order, 'alphabetic');
+        $data->listFilter->rec->order = $data->listFilter->rec->order ?? 'alphabetic';
         $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
 
         if ($showColumns) {

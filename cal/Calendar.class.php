@@ -249,6 +249,7 @@ class cal_Calendar extends core_Master
                     if(!trim($e->users)) {
                         unset($e->users);
                     }
+
                     if(($e->id = $exEvents[$e->key]->id) ||
                                     ($e->id = self::fetchField(array("#key = '[#1#]'", $e->key), 'id')) ) {
                                         unset($exEvents[$e->key]);
@@ -450,7 +451,7 @@ class cal_Calendar extends core_Master
          	$i = "img/16/{$lowerType}.png";
          	$img = "<img class='calImg' src=". sbf($i) .">&nbsp;";
     	
-    	} elseif($rec->type = ' ') {
+    	} elseif($rec->type == ' ') {
          	$attr['ef_icon'] = "img/16/alarm_clock.png";
          	
          	$i = "img/16/alarm_clock.png";
@@ -465,6 +466,7 @@ class cal_Calendar extends core_Master
         $attr = ht::addBackgroundIcon($attr);
         
         if($rec->priority <= 0) {
+            $attr['style'] ??= '';
             $attr['style'] .= 'color:#aaa;text-decoration:line-through;';
         }
         
@@ -524,7 +526,10 @@ class cal_Calendar extends core_Master
         list($rec->date,) = explode(' ', $rec->time);
         
         $row->date = dt::mysql2verbal($rec->time, 'd.m.Y');
-        
+
+        $row->ROW_ATTR = $row->ROW_ATTR ?? array();
+        $row->ROW_ATTR['style'] = $row->ROW_ATTR['style'] ?? '';
+
         if($rec->date == $today) {
             $row->ROW_ATTR['style'] .= 'background-color:#ffc;';
         } elseif($rec->date == $tommorow) {
@@ -596,7 +601,7 @@ class cal_Calendar extends core_Master
         
         // Днес
         $today = date('j-m-Y');
-        
+        $monthArr = array();
         for($i = 1; $i <= $lastDay; $i++) {
             $t = mktime(0, 0, 0, $month, $i, $year);
             $monthArr[date('W', $t)][date('N', $t)] = $i;
@@ -628,7 +633,11 @@ class cal_Calendar extends core_Master
             for($wd = 1; $wd <= 7; $wd++) {
                 $d = $weekArr[$wd] ?? null;
                 if(!empty($d)) {
-                    $data[$d]->type = $data[$d]->type ?? '';
+                    if (!isset($data[$d])) {
+                        $data[$d] = new stdClass();
+                    }
+                    $data[$d]->type ??= '';
+
                     if($data[$d]->type == 'holiday') {
                         $class = 'mc-holiday';
                     } elseif(($wd == 6 || ($data[$d]->type == 'non-working' && $wd >= 4) ) && ($data[$d]->type != 'workday')) {
@@ -1293,6 +1302,8 @@ class cal_Calendar extends core_Master
      */
     public static function getNextTime($startOn, $period, $ajust1, $ajust2, $after = NULL)
     {
+        $res1 = $res2 = null;
+
         // Ако не е зададено, търси се следващото време след сега
         if(!$after) {
             $after = dt::now();
@@ -1504,7 +1515,8 @@ class cal_Calendar extends core_Master
     	
     	$hours1 = trim(date("H:i:s", strtotime("{$leaveFrom}")));
     	$hours2 = trim(date("H:i:s", strtotime("{$leaveTo}")));
-    	
+        $testArray = array();
+
     	if ($date1 == $date2){
     	    $date1Type = self::getDayStatus($date1, 'bg');
     	    if($date1Type->specialDay  == FALSE || $date1Type->specialDay  == 'workday') {
@@ -1535,7 +1547,7 @@ class cal_Calendar extends core_Master
         	}
     	}
     	
-    	return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays, 'testArray'=>$testArray);
+    	return (object) array('nonWorking'=>$nonWorking, 'workDays'=>$workDays, 'allDays'=>$allDays, 'testArray'=> $testArray);
     }
     
     
@@ -1715,7 +1727,7 @@ class cal_Calendar extends core_Master
         if ($showHoliday === FALSE) {
             $state->query->where("1=2");
         }
-		
+        $recState = array();
 		while($rec = $state->query->fetch()){
 			$recState[] = $rec;
 		}
@@ -2632,7 +2644,7 @@ class cal_Calendar extends core_Master
         $attr = array();
         if(!strpos($rec->type, '/')) {
             $attr['ef_icon'] = "img/16/{$lowerType}.png";
-        } elseif($rec->type = 'reminder') {
+        } elseif($rec->type == 'reminder') {
             $attr['ef_icon'] = "img/16/alarm_clock.png";
         } else {
             $attr['ef_icon'] = $rec->type;

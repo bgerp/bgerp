@@ -1379,8 +1379,7 @@ class core_Form extends core_FieldSet
      */
     public function renderHtml_($fields = null, $vars = null)
     {
-        setIfNot($this->formAttr['id'], str::getRand());
-
+        $this->formAttr['id'] = $this->formAttr['id'] ?? str::getRand();
         $this->smartSet('showFields', arr::make($fields, true));
         $this->smartSet('renderVars', arr::make($vars, true));
         
@@ -1745,7 +1744,7 @@ class core_Form extends core_FieldSet
      */
     public static function preventDoubleSubmission(core_ET &$tpl, $form)
     {
-        setIfNot($form->formAttr['id'], str::getRand());
+        $form->formAttr['id'] = $form->formAttr['id'] ?? str::getRand();
 
         $formId = $form->formAttr['id'];
 

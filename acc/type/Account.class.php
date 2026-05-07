@@ -24,10 +24,9 @@ class acc_type_Account extends type_Key
     public function init($params = array())
     {
         $params['params']['mvc'] = 'acc_Accounts';
-        
-        setIfNot($params['params']['select'], 'title');
-        setIfNot($params['params']['root'], '');
-        setIfNot($params['params']['regInterfaces'], '');
+        $params['params']['select'] = $params['params']['select'] ?? 'title';
+        $params['params']['root'] = $params['params']['root'] ?? '';
+        $params['params']['regInterfaces'] = ['params']['regInterfaces'] ?? '';
         
         parent::init($params);
     }

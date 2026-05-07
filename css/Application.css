@@ -3953,14 +3953,13 @@ span.sharing-history-title {
 .main-image {
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 10px;
   overflow: hidden; }
 
 .main-image img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  background: white; }
+  border-radius: 10px; }
 
 .thumbnails {
   display: flex;
@@ -3970,7 +3969,7 @@ span.sharing-history-title {
 
 .thumbnails img {
   width: 53px;
-  height: 53px;
+  max-width: none;
   object-fit: contain;
   border: 2px solid rgba(0, 0, 0, 0);
   border-radius: 8px;
@@ -4030,15 +4029,20 @@ span.sharing-history-title {
   width: 74%; }
 
 .product-gallery + .productInfo {
-  overflow: hidden;
+  overflow: visible;
   padding-top: 5px; }
-  .product-gallery + .productInfo .richtext ul {
+  .product-gallery + .productInfo > * {
+    overflow: hidden; }
+  .product-gallery + .productInfo .richtext ul,
+  .product-gallery + .productInfo .richtext > p {
     overflow: hidden; }
   .product-gallery + .productInfo .optionsTable {
     width: auto !important; }
   .product-gallery + .productInfo .overflow-scroll {
     width: auto !important;
     overflow: hidden !important; }
+  .product-gallery + .productInfo .eshop-product-labels {
+    padding-top: 5px; }
 
 .narrow .optionsTable .productCol {
   white-space: nowrap; }
@@ -7848,7 +7852,8 @@ tr.wasteWeightPercent td {
   .treeView .treeLevel4 .leafName {
     text-indent: 100px; }
   .treeView .leafName {
-    min-width: 250px; }
+    min-width: 250px;
+    max-width: 700px !important; }
   .treeView .toggleBtn {
     margin-right: 3px;
     cursor: pointer;

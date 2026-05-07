@@ -3,7 +3,6 @@
 	<h1 style='font-size:1.5em'>[#name#] &nbsp;<!--ET_BEGIN singleLink-->[#singleLink#]<!--ET_END singleLink--><!--ET_BEGIN editLink-->[#editLink#]<!--ET_END editLink--></h1>
 
 	<div class="productContainer">
-
 		[#IMAGES_BLOCK#]
 		<div class="productInfo">
 			<div class='eshop-product-labels'>

@@ -1223,7 +1223,7 @@ class cat_products_Packagings extends core_Detail
 
         // Извличане на най-важната информация за артикула
         $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,nameEn,isPublic,folderId,state,measureId');
-        setIfNot($productData->packagingId, $productRec->measureId);
+        $productData->packagingId = $productData->packagingId ?? $productRec->measureId;
 
         $packagingName = $packagingNameShort = tr(cat_UoM::getTitleById($productData->packagingId));
         $packRec = (cat_products_Packagings::getPack($productData->productId, $productData->packagingId));

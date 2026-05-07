@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Покупки
+ * @title     Договори за покупка
  */
 class purchase_Purchases extends deals_DealMaster
 {
