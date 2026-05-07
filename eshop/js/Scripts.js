@@ -62,6 +62,7 @@ function render_changeInputWidth()
 
 function productGallery() {
 	const $gallery = $(".product-gallery");
+	$(".main-image a").removeClass("fancybox").removeAttr('href');
 
 	$gallery.each(function () {
 		const $thumbs = $(this).find(".thumbnails img");
@@ -71,11 +72,6 @@ function productGallery() {
 		// Ако няма снимки → нищо не правим
 		if ($thumbs.length === 0) return;
 
-		// Ако има само една → скриваме thumbnails
-		if ($thumbs.length === 1) {
-			$thumbsContainer.hide();
-		}
-
 		// Вземаме първата снимка
 		const firstSrc = $thumbs.first().attr("src");
 
@@ -83,10 +79,11 @@ function productGallery() {
 		$thumbs.first().addClass("active");
 		$mainImage.attr("src", firstSrc);
 
-		$thumbs.on("mouseover", function () {
-			const newSrc = $(this).attr("src");
+		$thumbs.on("mouseover", function (e) {
+			e.stopPropagation();
 
-			$mainImage.attr("src", newSrc);
+			const newSrc = $(this).attr("src");
+			$mainImage.attr("srcset", newSrc);
 
 			$thumbs.removeClass("active");
 			$(this).addClass("active");

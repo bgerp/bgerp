@@ -1043,14 +1043,14 @@ class eshop_Products extends core_Master
             if (!empty($data->rec->{$imgFld})) {
                 $path = fileman::fetchByFh($data->rec->{$imgFld}, 'path');
                 if (file_exists($path)) {
-                    if($settings->imageDisplayType == 'carousel'){
-                        $thumb = new thumb_Img(array($data->rec->{$imgFld}, 800, 600, 'fileman'));
-                        $imgURL = $thumb->getUrl('forced');
-                        $img = ht::createElement('img', array('src' => $imgURL));
-                        $data->row->imageArray[] = $img->getContent();
-                    } else {
-                        $data->row->imageArray[] = fancybox_Fancybox::getImage($data->rec->{$imgFld}, array(160, 160), array(800, 800), $data->row->name . " {$i}", array('class' => 'product-image'));
-                    }
+                    $data->row->imageArray[] = fancybox_Fancybox::getImage(
+                        $data->rec->{$imgFld},
+                        array(400, 300),
+                        array(1600, 1200),
+                        $data->row->name . " {$i}",
+                        array('class' => 'product-image')
+                    );
+
                 } else {
                     unset($data->row->{$imgFld});
                 }
