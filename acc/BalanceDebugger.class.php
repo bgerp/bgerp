@@ -2,69 +2,109 @@
 /**
  * Дебъгер за изчисляване на счетоводен баланс
  *
- * Формат: JSON Lines (NDJSON) – един обект на ред.
+ * Формат: CSV с header ред, разделител запетая, обграждане с кавички.
+ * Всяко събитие → един или повече редове. Без RAM буфериране.
  *
- * Оптимизации за минимален размер:
- *  - Филтриране при запис (само релевантните редове влизат)
- *  - Легенда за пера: ID → label еднократно; в събитията само числото
- *  - Кратки ключове (a=acc_num, e1=ent1_id, q=qty, m=amount ...)
- *  - strategy_probe само при !isTruthy
- *  - strategy_consume само при реална разлика в сумата
- *  - source кодиран като 1 буква: i=initial, j=journal
- *
- * Типове редове:
- *   L   – легенда за перо:        {"t":"L","id":6,"v":"[6 b] EUR - BNP..."}
- *   CS  – calc_start
- *   PB  – prev_balance_found
- *   JR  – journal_range
- *   LB  – load_balance_rows      масив
- *   JE  – journal_entries        масив
- *   SF  – strategy_feed
- *   SC  – strategy_consume       само при разлика
- *   SP  – strategy_probe         само при !isTruthy
- *   FB  – final_balance          масив
- *   SR  – save_result
+ * Колони:
+ *   type         – тип на събитието
+ *   iter         – номер на calc() итерацията
+ *   source       – initial / journal (за SF)
+ *   valior       – дата на журналния запис
+ *   acc          – номер на сметката
+ *   acc_type     – active / passive
+ *   from_acc     – контра-сметка при изписване
+ *   e1_id        – ид на перо 1
+ *   e1_lbl       – четимо описание на перо 1
+ *   e2_id        – ид на перо 2
+ *   e2_lbl       – четимо описание на перо 2
+ *   e3_id        – ид на перо 3
+ *   e3_lbl       – четимо описание на перо 3
+ *   qty          – количество (SF, SC)
+ *   amount       – сума (SF, JE)
+ *   amount_before– сума преди стратегия (SC)
+ *   amount_after – сума след стратегия (SC)
+ *   diff         – разлика (SC)
+ *   base_qty     – начално к-во (LB, FB)
+ *   base_amount  – начална сума (LB, FB)
+ *   bl_qty       – крайно к-во (LB, FB)
+ *   bl_amount    – крайна сума (LB, FB)
+ *   is_middle    – 1 ако е междинен баланс (LB)
+ *   debit_acc    – дебитна сметка (JE)
+ *   de1_id       – дебитно перо 1 ид (JE)
+ *   de1_lbl      – дебитно перо 1 текст (JE)
+ *   de2_id       – дебитно перо 2 ид (JE)
+ *   de2_lbl      – дебитно перо 2 текст (JE)
+ *   de3_id       – дебитно перо 3 ид (JE)
+ *   de3_lbl      – дебитно перо 3 текст (JE)
+ *   debit_qty    – дебитно к-во (JE, FB)
+ *   debit_amount – дебитна сума (JE, FB)
+ *   credit_acc   – кредитна сметка (JE)
+ *   ce1_id       – кредитно перо 1 ид (JE)
+ *   ce1_lbl      – кредитно перо 1 текст (JE)
+ *   ce2_id       – кредитно перо 2 ид (JE)
+ *   ce2_lbl      – кредитно перо 2 текст (JE)
+ *   ce3_id       – кредитно перо 3 ид (JE)
+ *   ce3_lbl      – кредитно перо 3 текст (JE)
+ *   credit_qty   – кредитно к-во (JE, FB)
+ *   credit_amount– кредитна сума (JE, FB)
+ *   price_updated– 1 ако е обновена цената (JE)
+ *   bal_from     – начало на баланса (CS)
+ *   bal_to       – край на баланса (CS)
+ *   currency     – валута (CS)
+ *   prev_bal_id  – ид на предходния баланс (PB)
+ *   prev_from    – начало на предходния (PB)
+ *   prev_to      – край на предходния (PB)
+ *   journal_from – начало на журналния диапазон (JR)
+ *   journal_to   – край на журналния диапазон (JR)
+ *   changed      – дали е имало промяна (SR)
  *
  * @category  bgerp
  * @package   acc
  */
 class acc_BalanceDebugger
 {
-    // ── Статични полета ───────────────────────────────────────────────────────
+    // ── Колони в реда на CSV хедъра ───────────────────────────────────────────
+    private static $COLUMNS = [
+        'type', 'iter', 'source', 'valior',
+        'acc', 'acc_type', 'from_acc',
+        'e1_id', 'e1_lbl', 'e2_id', 'e2_lbl', 'e3_id', 'e3_lbl',
+        'qty', 'amount', 'amount_before', 'amount_after', 'diff',
+        'base_qty', 'base_amount', 'bl_qty', 'bl_amount', 'is_middle',
+        'debit_acc',
+        'de1_id', 'de1_lbl', 'de2_id', 'de2_lbl', 'de3_id', 'de3_lbl',
+        'debit_qty', 'debit_amount',
+        'credit_acc',
+        'ce1_id', 'ce1_lbl', 'ce2_id', 'ce2_lbl', 'ce3_id', 'ce3_lbl',
+        'credit_qty', 'credit_amount',
+        'price_updated',
+        'bal_from', 'bal_to', 'currency',
+        'prev_bal_id', 'prev_from', 'prev_to', 'is_middle_bal',
+        'journal_from', 'journal_to',
+        'changed',
+    ];
 
-    /** @var string|null Път до лог файла */
-    private static $logFile = null;
-
-    /** @var string Филтър по номер на сметка ('' = всички) */
+    private static $logFile   = null;
     private static $filterAcc = '';
-
-    /** @var array Кеш: entId → label (за entLabel()) */
-    private static $entCache = [];
-
-    /** @var array Вече записани легенди: entId → true */
-    private static $legendWritten = [];
+    private static $iter      = 0;
+    private static $entCache  = [];
 
 
     // =========================================================================
     //  Инициализация
     // =========================================================================
 
-    /**
-     * Нулира лог файла. Извиква се в act_ForceCalc.
-     *
-     * @param string $filterAcc Системен номер на сметка за филтриране ('' = всички)
-     */
     public static function clear(string $filterAcc = ''): void
     {
-        self::$filterAcc    = ltrim(trim($filterAcc), '0');
-        self::$entCache     = [];
-        self::$legendWritten = [];
+        self::$filterAcc = ltrim(trim($filterAcc), '0');
+        self::$entCache  = [];
+        self::$iter      = 0;
 
         $dir  = EF_TEMP_PATH;
-        $name = 'balance_debug_' . date('Ymd_His') . '.json';
+        $name = 'balance_debug_' . date('Ymd_His') . '.csv';
         self::$logFile = rtrim($dir, '/') . '/' . $name;
 
-        file_put_contents(self::$logFile, '');
+        // Записваме header реда
+        file_put_contents(self::$logFile, self::csvRow(self::$COLUMNS));
     }
 
 
@@ -75,40 +115,129 @@ class acc_BalanceDebugger
 
 
     // =========================================================================
-    //  Основни log методи (извикват се от acc_Balances::calc)
+    //  Основни log методи
     // =========================================================================
 
     public static function log(string $type, $data): void
     {
-        // Картиране на тип → кратък тип
-        $map = [
-            'calc_start'        => 'CS',
-            'prev_balance_found'=> 'PB',
-            'journal_range'     => 'JR',
-            'load_balance_rows' => 'LB',
-            'journal_entries'   => 'JE',
-            'final_balance'     => 'FB',
-            'save_result'       => 'SR',
-        ];
-
-        $t = $map[$type] ?? $type;
-
         switch ($type) {
+            case 'calc_start':
+                self::$iter++;
+                self::writeRow([
+                    'type'     => 'CS',
+                    'iter'     => self::$iter,
+                    'bal_from' => $data['balance_from'] ?? '',
+                    'bal_to'   => $data['balance_to']   ?? '',
+                    'currency' => $data['period_currency'] ?? '',
+                ]);
+                break;
+
+            case 'prev_balance_found':
+                self::writeRow([
+                    'type'         => 'PB',
+                    'iter'         => self::$iter,
+                    'prev_bal_id'  => $data['prev_balance_id'] ?? '',
+                    'prev_from'    => $data['prev_from']       ?? '',
+                    'prev_to'      => $data['prev_to']         ?? '',
+                    'is_middle_bal'=> $data['is_middle_balance'] ?? ($data['note'] ?? ''),
+                    'currency'     => $data['prev_currency']   ?? '',
+                ]);
+                break;
+
+            case 'journal_range':
+                self::writeRow([
+                    'type'         => 'JR',
+                    'iter'         => self::$iter,
+                    'journal_from' => $data['journal_from'] ?? '',
+                    'journal_to'   => $data['journal_to']   ?? '',
+                ]);
+                break;
+
             case 'load_balance_rows':
-                self::writeLoadBalance($data);
+                foreach ($data as $r) {
+                    if (!self::accMatch($r['acc_num'])) continue;
+                    list($e1id, $e1lbl) = self::entPair($r['ent1']);
+                    list($e2id, $e2lbl) = self::entPair($r['ent2']);
+                    list($e3id, $e3lbl) = self::entPair($r['ent3']);
+                    self::writeRow([
+                        'type'        => 'LB',
+                        'iter'        => self::$iter,
+                        'acc'         => $r['acc_num'],
+                        'e1_id'       => $e1id,  'e1_lbl' => $e1lbl,
+                        'e2_id'       => $e2id,  'e2_lbl' => $e2lbl,
+                        'e3_id'       => $e3id,  'e3_lbl' => $e3lbl,
+                        'base_qty'    => $r['base_quantity'],
+                        'base_amount' => $r['base_amount'],
+                        'bl_qty'      => $r['bl_quantity'],
+                        'bl_amount'   => $r['bl_amount'],
+                        'is_middle'   => $r['is_middle'] ? 1 : '',
+                    ]);
+                }
                 break;
 
             case 'journal_entries':
-                self::writeJournalEntries($data);
+                foreach ($data as $r) {
+                    $dm = self::accMatch($r['debit_acc_num']);
+                    $cm = self::accMatch($r['credit_acc_num']);
+                    if (!$dm && !$cm) continue;
+                    list($de1id, $de1lbl) = self::entPair($r['debit_item1']);
+                    list($de2id, $de2lbl) = self::entPair($r['debit_item2']);
+                    list($de3id, $de3lbl) = self::entPair($r['debit_item3']);
+                    list($ce1id, $ce1lbl) = self::entPair($r['credit_item1']);
+                    list($ce2id, $ce2lbl) = self::entPair($r['credit_item2']);
+                    list($ce3id, $ce3lbl) = self::entPair($r['credit_item3']);
+                    self::writeRow([
+                        'type'          => 'JE',
+                        'iter'          => self::$iter,
+                        'valior'        => $r['valior'],
+                        'debit_acc'     => $r['debit_acc_num'],
+                        'de1_id'        => $de1id, 'de1_lbl' => $de1lbl,
+                        'de2_id'        => $de2id, 'de2_lbl' => $de2lbl,
+                        'de3_id'        => $de3id, 'de3_lbl' => $de3lbl,
+                        'debit_qty'     => $r['debit_quantity'],
+                        'credit_acc'    => $r['credit_acc_num'],
+                        'ce1_id'        => $ce1id, 'ce1_lbl' => $ce1lbl,
+                        'ce2_id'        => $ce2id, 'ce2_lbl' => $ce2lbl,
+                        'ce3_id'        => $ce3id, 'ce3_lbl' => $ce3lbl,
+                        'credit_qty'    => $r['credit_quantity'],
+                        'amount'        => $r['amount'],
+                        'price_updated' => $r['price_updated'] === 'да' ? 1 : '',
+                    ]);
+                }
                 break;
 
             case 'final_balance':
-                self::writeFinalBalance($data);
+                foreach ($data as $r) {
+                    if (!self::accMatch($r['acc_num'])) continue;
+                    list($e1id, $e1lbl) = self::entPair($r['ent1']);
+                    list($e2id, $e2lbl) = self::entPair($r['ent2']);
+                    list($e3id, $e3lbl) = self::entPair($r['ent3']);
+                    self::writeRow([
+                        'type'          => 'FB',
+                        'iter'          => self::$iter,
+                        'acc'           => $r['acc_num'],
+                        'e1_id'         => $e1id,  'e1_lbl' => $e1lbl,
+                        'e2_id'         => $e2id,  'e2_lbl' => $e2lbl,
+                        'e3_id'         => $e3id,  'e3_lbl' => $e3lbl,
+                        'base_qty'      => $r['base_quantity'],
+                        'base_amount'   => $r['base_amount'],
+                        'debit_qty'     => $r['debit_quantity'],
+                        'debit_amount'  => $r['debit_amount'],
+                        'credit_qty'    => $r['credit_quantity'],
+                        'credit_amount' => $r['credit_amount'],
+                        'bl_qty'        => $r['bl_quantity'],
+                        'bl_amount'     => $r['bl_amount'],
+                    ]);
+                }
                 break;
 
-            default:
-                // Простите key-value блокове – само кратките ключове
-                self::write($t, self::shortenKeys($data));
+            case 'save_result':
+                self::writeRow([
+                    'type'    => 'SR',
+                    'iter'    => self::$iter,
+                    'changed' => $data['changed'] ?? '',
+                ]);
+                break;
         }
     }
 
@@ -128,20 +257,25 @@ class acc_BalanceDebugger
                $amount,
         string $valior = ''
     ): void {
-        // Филтриране по сметка
         if (!self::accMatch($accNum)) return;
 
-        self::write('SF', array_filter([
-            's'  => $source === 'initial' ? 'i' : 'j',
-            'v'  => $valior ?: null,
-            'a'  => $accNum,
-            'at' => $accType,
-            'e1' => self::entId($ent1),
-            'e2' => self::entId($ent2),
-            'e3' => self::entId($ent3),
-            'q'  => $qty,
-            'm'  => $amount,
-        ], fn($v) => $v !== null && $v !== '' && $v !== 0));
+        list($e1id, $e1lbl) = self::entPair($ent1);
+        list($e2id, $e2lbl) = self::entPair($ent2);
+        list($e3id, $e3lbl) = self::entPair($ent3);
+
+        self::writeRow([
+            'type'     => 'SF',
+            'iter'     => self::$iter,
+            'source'   => $source === 'initial' ? 'initial' : 'journal',
+            'valior'   => $valior,
+            'acc'      => $accNum,
+            'acc_type' => $accType,
+            'e1_id'    => $e1id,  'e1_lbl' => $e1lbl,
+            'e2_id'    => $e2id,  'e2_lbl' => $e2lbl,
+            'e3_id'    => $e3id,  'e3_lbl' => $e3lbl,
+            'qty'      => $qty,
+            'amount'   => $amount,
+        ]);
     }
 
 
@@ -159,29 +293,31 @@ class acc_BalanceDebugger
     ): void {
         if (!self::accMatch($accNum)) return;
 
-        // Записваме само при реална разлика
         $diff = round((float)$amountAfter - (float)$amountBefore, 8);
         if ($diff == 0) return;
 
-        self::write('SC', array_filter([
-            'v'  => $valior ?: null,
-            'a'  => $accNum,
-            'at' => $accType,
-            'fa' => $fromAccNum ?: null,
-            'e1' => self::entId($ent1),
-            'e2' => self::entId($ent2),
-            'e3' => self::entId($ent3),
-            'q'  => $qty,
-            'mb' => $amountBefore,
-            'ma' => $amountAfter,
-            'df' => $diff,
-        ], fn($v) => $v !== null && $v !== '' && $v !== 0));
+        list($e1id, $e1lbl) = self::entPair($ent1);
+        list($e2id, $e2lbl) = self::entPair($ent2);
+        list($e3id, $e3lbl) = self::entPair($ent3);
+
+        self::writeRow([
+            'type'         => 'SC',
+            'iter'         => self::$iter,
+            'valior'       => $valior,
+            'acc'          => $accNum,
+            'acc_type'     => $accType,
+            'from_acc'     => $fromAccNum,
+            'e1_id'        => $e1id,  'e1_lbl' => $e1lbl,
+            'e2_id'        => $e2id,  'e2_lbl' => $e2lbl,
+            'e3_id'        => $e3id,  'e3_lbl' => $e3lbl,
+            'qty'          => $qty,
+            'amount_before'=> $amountBefore,
+            'amount_after' => $amountAfter,
+            'diff'         => $diff,
+        ]);
     }
 
 
-    /**
-     * Probe – записва само проблемните редове (is_truthy = false).
-     */
     public static function logStrategyProbe(
         string $accNum,
                $accId,
@@ -192,24 +328,26 @@ class acc_BalanceDebugger
         bool $notNullOrFalse,
         bool $isTruthy
     ): void {
-        // Записваме само при проблем – когато стратегията не се открива
         if ($isTruthy) return;
         if (!self::accMatch($accNum)) return;
 
-        self::write('SP', array_filter([
-            'a'   => $accNum,
-            'ai'  => $accId,
-            'e1'  => self::entId($ent1),
-            'e2'  => self::entId($ent2),
-            'e3'  => self::entId($ent3),
-            'bq'  => $blQuantity,
-            'nnf' => $notNullOrFalse,
-        ], fn($v) => $v !== null && $v !== '' && $v !== 0));
+        list($e1id, $e1lbl) = self::entPair($ent1);
+        list($e2id, $e2lbl) = self::entPair($ent2);
+
+        self::writeRow([
+            'type'     => 'SP',
+            'iter'     => self::$iter,
+            'acc'      => $accNum,
+            'e1_id'    => $e1id,  'e1_lbl' => $e1lbl,
+            'e2_id'    => $e2id,  'e2_lbl' => $e2lbl,
+            'qty'      => $blQuantity,
+            'changed'  => $notNullOrFalse ? 'not_null' : 'null_or_false',
+        ]);
     }
 
 
     // =========================================================================
-    //  Сервиране на файла
+    //  Сервиране
     // =========================================================================
 
     public static function download($rec, string $filterAcc = ''): void
@@ -221,25 +359,24 @@ class acc_BalanceDebugger
         }
 
         $filterEsc = $filterAcc ? "_acc{$filterAcc}" : '';
-        $filename  = 'balance_debug_' . $rec->fromDate . '_' . $rec->toDate . $filterEsc . '.json';
+        $filename  = 'balance_debug_' . $rec->fromDate . '_' . $rec->toDate . $filterEsc . '.csv';
 
-        header('Content-Type: application/x-ndjson; charset=utf-8');
+        header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Content-Length: ' . filesize($path));
         header('Cache-Control: no-cache');
 
+        // BOM за Excel да разпознае UTF-8
+        echo "\xEF\xBB\xBF";
         readfile($path);
         exit;
     }
 
 
     // =========================================================================
-    //  Четимо представяне на пера – кеш + легенда
+    //  Четимо представяне на пера
     // =========================================================================
 
-    /**
-     * Връща четимото описание на перо (за вътрешна употреба при зареждане).
-     */
     public static function entLabel($entId): string
     {
         if (empty($entId)) return '';
@@ -251,150 +388,25 @@ class acc_BalanceDebugger
     }
 
 
+    // =========================================================================
+    //  Вътрешни помощни методи
+    // =========================================================================
+
     /**
-     * Извлича числовото ID от label стринг "[6 b] EUR - BNP..."
-     * и осигурява легендата да е записана преди да се ползва ID-то.
-     * Връща числото (int) или null ако няма.
+     * От label стринг "[6 b] EUR..." извлича [id, label].
+     * Ако label е '' връща ['', ''].
      */
-    private static function entId(string $label): ?int
+    private static function entPair(string $label): array
     {
-        if ($label === '') return null;
+        if ($label === '') return ['', ''];
 
-        // Обратно търсене: label → id от кеша
         $entId = array_search($label, self::$entCache, true);
+        if ($entId === false) return ['', $label];
 
-        if ($entId === false) return null;
-
-        // Записваме легендата еднократно
-        if (!isset(self::$legendWritten[$entId])) {
-            self::writeDirect(['t' => 'L', 'id' => $entId, 'v' => $label]);
-            self::$legendWritten[$entId] = true;
-        }
-
-        return (int)$entId;
+        return [(int)$entId, $label];
     }
 
 
-    // =========================================================================
-    //  Специализирани write методи за масивни секции
-    // =========================================================================
-
-    private static function writeLoadBalance(array $rows): void
-    {
-        $out = [];
-        foreach ($rows as $r) {
-            if (!self::accMatch($r['acc_num'])) continue;
-
-            $out[] = array_filter([
-                'a'  => $r['acc_num'],
-                'e1' => self::entId($r['ent1']),
-                'e2' => self::entId($r['ent2']),
-                'e3' => self::entId($r['ent3']),
-                'bq' => $r['bl_quantity']   ?: null,
-                'ba' => $r['bl_amount']     ?: null,
-                'sq' => $r['base_quantity'] ?: null,
-                'sa' => $r['base_amount']   ?: null,
-                'mi' => $r['is_middle'] ? 1 : null,
-            ], fn($v) => $v !== null);
-        }
-        if (!empty($out)) {
-            self::write('LB', $out);
-        }
-    }
-
-
-    private static function writeJournalEntries(array $rows): void
-    {
-        $out = [];
-        foreach ($rows as $r) {
-            $dm = self::accMatch($r['debit_acc_num']);
-            $cm = self::accMatch($r['credit_acc_num']);
-            if (!$dm && !$cm) continue;
-
-            $row = array_filter([
-                'v'   => $r['valior'],
-                'da'  => $r['debit_acc_num'],
-                'de1' => self::entId($r['debit_item1']),
-                'de2' => self::entId($r['debit_item2']),
-                'de3' => self::entId($r['debit_item3']),
-                'dq'  => $r['debit_quantity']  ?: null,
-                'ca'  => $r['credit_acc_num'],
-                'ce1' => self::entId($r['credit_item1']),
-                'ce2' => self::entId($r['credit_item2']),
-                'ce3' => self::entId($r['credit_item3']),
-                'cq'  => $r['credit_quantity'] ?: null,
-                'm'   => $r['amount']          ?: null,
-                'pu'  => $r['price_updated'] === 'да' ? 1 : null,
-            ], fn($v) => $v !== null);
-
-            $out[] = $row;
-        }
-        if (!empty($out)) {
-            self::write('JE', $out);
-        }
-    }
-
-
-    private static function writeFinalBalance(array $rows): void
-    {
-        $out = [];
-        foreach ($rows as $r) {
-            if (!self::accMatch($r['acc_num'])) continue;
-
-            $out[] = array_filter([
-                'a'   => $r['acc_num'],
-                'e1'  => self::entId($r['ent1']),
-                'e2'  => self::entId($r['ent2']),
-                'e3'  => self::entId($r['ent3']),
-                'bsq' => $r['base_quantity']   ?: null,
-                'bsa' => $r['base_amount']     ?: null,
-                'dq'  => $r['debit_quantity']  ?: null,
-                'da'  => $r['debit_amount']    ?: null,
-                'cq'  => $r['credit_quantity'] ?: null,
-                'ca'  => $r['credit_amount']   ?: null,
-                'blq' => $r['bl_quantity']     ?: null,
-                'bla' => $r['bl_amount']       ?: null,
-            ], fn($v) => $v !== null);
-        }
-        if (!empty($out)) {
-            self::write('FB', $out);
-        }
-    }
-
-
-    // =========================================================================
-    //  Помощни методи
-    // =========================================================================
-
-    /** Съкращава ключовете на прост key-value масив */
-    private static function shortenKeys(array $data): array
-    {
-        $map = [
-            'balance_from'    => 'bf',
-            'balance_to'      => 'bt',
-            'period_currency' => 'cur',
-            'prev_balance_id' => 'pid',
-            'prev_from'       => 'pf',
-            'prev_to'         => 'pt',
-            'prev_period_id'  => 'ppid',
-            'is_middle_balance' => 'mid',
-            'prev_currency'   => 'pcur',
-            'convert_to_date' => 'conv',
-            'note'            => 'n',
-            'journal_from'    => 'jf',
-            'journal_to'      => 'jt',
-            'changed'         => 'ch',
-        ];
-
-        $out = [];
-        foreach ($data as $k => $v) {
-            $out[$map[$k] ?? $k] = $v;
-        }
-        return $out;
-    }
-
-
-    /** Проверява дали acc_num съвпада с филтъра (точно, без водещи нули) */
     private static function accMatch(string $accNum): bool
     {
         if (self::$filterAcc === '') return true;
@@ -402,21 +414,34 @@ class acc_BalanceDebugger
     }
 
 
-    /** Записва JSON ред с тип */
-    private static function write(string $type, $data): void
+    /**
+     * Записва един ред в CSV файла.
+     * $data е асоц. масив с имена на колони → стойности.
+     * Незададените колони излизат празни.
+     */
+    private static function writeRow(array $data): void
     {
-        self::writeDirect(['t' => $type, 'd' => $data]);
+        if (!self::$logFile) return;
+
+        $row = [];
+        foreach (self::$COLUMNS as $col) {
+            $row[] = isset($data[$col]) ? (string)$data[$col] : '';
+        }
+
+        file_put_contents(self::$logFile, self::csvRow($row), FILE_APPEND | LOCK_EX);
     }
 
 
-    /** Записва произволен масив като JSON ред */
-    private static function writeDirect(array $obj): void
+    /**
+     * Форматира масив от стойности като CSV ред.
+     * Всяко поле е оградено с кавички; вградените кавички се удвояват.
+     */
+    private static function csvRow(array $fields): string
     {
-        if (!self::$logFile) return;
-        file_put_contents(
-            self::$logFile,
-            json_encode($obj, JSON_UNESCAPED_UNICODE) . "\n",
-            FILE_APPEND | LOCK_EX
+        $escaped = array_map(
+            fn($v) => '"' . str_replace('"', '""', (string)$v) . '"',
+            $fields
         );
+        return implode(',', $escaped) . "\r\n";
     }
 }
