@@ -933,60 +933,73 @@ class acc_BalanceDetails extends core_Detail
      */
     public function saveBalance($balanceId)
     {
-        $toSave = array();
-        $toDelete = array();
+        $toSave   = [];
+        $toDelete = [];
+
         if (countR($this->balance)) {
             foreach ($this->balance as $accId => $l0) {
                 foreach ($l0 as $ent1 => $l1) {
                     foreach ($l1 as $ent2 => $l2) {
                         foreach ($l2 as $ent3 => $rec) {
-                            
-                            // Детайлите на текущия баланс ги записваме под системно ид -1
-                            // След като всички данни са записани, ще се ъпдейтне индекса
                             $rec['balanceId'] = $balanceId;
-                            
-                            // Ако има сума закръгляме я до втория знак преди запис
-                            foreach (array('blAmount', 'baseAmount') as $fld) {
+
+                            foreach (['blAmount', 'baseAmount'] as $fld) {
                                 if (!is_null($rec[$fld])) {
                                     $rec[$fld] = round($rec[$fld], 8);
                                 }
                             }
-                            
-                            // Закръгляме количествата, само ако закръглени равнят на нула
-                            foreach (array('blQuantity', 'baseQuantity') as $fld) {
-                                if (!is_null($rec[$fld])) {
-                                    if (!is_null($rec[$fld]) && round($rec[$fld], 8) == 0) {
-                                        $rec[$fld] = round($rec[$fld], 8);
-                                    }
+
+                            foreach (['blQuantity', 'baseQuantity'] as $fld) {
+                                if (!is_null($rec[$fld]) && round($rec[$fld], 8) == 0) {
+                                    $rec[$fld] = round($rec[$fld], 8);
                                 }
                             }
-                            
-                            $key = $rec['accountId'] . '|' . $rec['ent1Id'] . '|' . $rec['ent2Id'] . '|' . $rec['ent3Id'];
-                            
+
+                            $key          = $rec['accountId'] . '|' . $rec['ent1Id'] . '|' . $rec['ent2Id'] . '|' . $rec['ent3Id'];
                             $toSave[$key] = (object) $rec;
                         }
                     }
                 }
             }
         }
-        
-        // Заключваме показването на информацията от баланса в кориците и документи
+
+        if (Mode::is('traceBalance')) {
+            $finalRows = [];
+            foreach ($toSave as $rec) {
+                $finalRows[] = [
+                    'acc_num'        => $this->Accounts->getNumById($rec->accountId),
+                    'ent1'           => acc_BalanceDebugger::entLabel($rec->ent1Id),
+                    'ent2'           => acc_BalanceDebugger::entLabel($rec->ent2Id),
+                    'ent3'           => acc_BalanceDebugger::entLabel($rec->ent3Id),
+                    'base_quantity'  => $rec->baseQuantity  ?? null,
+                    'base_amount'    => $rec->baseAmount     ?? null,
+                    'debit_quantity' => $rec->debitQuantity  ?? null,
+                    'debit_amount'   => $rec->debitAmount    ?? null,
+                    'credit_quantity'=> $rec->creditQuantity ?? null,
+                    'credit_amount'  => $rec->creditAmount   ?? null,
+                    'bl_quantity'    => $rec->blQuantity     ?? null,
+                    'bl_amount'      => $rec->blAmount       ?? null,
+                ];
+            }
+            usort($finalRows, function($a, $b) { return strnatcmp($a['acc_num'], $b['acc_num']); });
+            acc_BalanceDebugger::log('final_balance', $finalRows);
+        }
+
+        // Оригинална логика на запис (непроменена)
         core_Locks::obtain(acc_Balances::saveLockKey);
-        
-        //Прочитаме всички текущи записи за този баланс
+
         $query = self::getQuery();
         while ($rec = $query->fetch("#balanceId = {$balanceId}")) {
-            $key = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
+            $key    = $rec->accountId . '|' . $rec->ent1Id . '|' . $rec->ent2Id . '|' . $rec->ent3Id;
             $newRec = $toSave[$key];
             if (isset($newRec)) {
-                if ($newRec->blAmount != $rec->blAmount || $newRec->baseAmount != $rec->baseAmount ||
-                    $newRec->blQuantity != $rec->blQuantity || $newRec->baseQuantity != $rec->baseQuantity ||
-                    $newRec->debitQuantity != $rec->debitQuantity || $newRec->debitAmount != $rec->debitAmount ||
-                    $newRec->creditQuantity != $rec->creditQuantity || $newRec->creditAmount != $rec->creditAmount) {
+                if ($newRec->blAmount       != $rec->blAmount       || $newRec->baseAmount     != $rec->baseAmount     ||
+                    $newRec->blQuantity     != $rec->blQuantity     || $newRec->baseQuantity   != $rec->baseQuantity   ||
+                    $newRec->debitQuantity  != $rec->debitQuantity  || $newRec->debitAmount    != $rec->debitAmount    ||
+                    $newRec->creditQuantity != $rec->creditQuantity || $newRec->creditAmount   != $rec->creditAmount) {
                     if (isset($toSave[$key]->id)) {
                         $toDelete[$toSave[$key]->id] = $toSave[$key]->id;
                     }
-                    
                     $toSave[$key]->id = $rec->id;
                 } else {
                     unset($toSave[$key]);
@@ -995,30 +1008,26 @@ class acc_BalanceDetails extends core_Detail
                 $toDelete[$rec->id] = $rec->id;
             }
         }
-        
+
         $res = false;
-        
-        // Записваме новите данни
+
         if (countR($toSave)) {
             $this->logInfo('Save balance details: ' . countR($toSave));
             $this->saveArray($toSave);
             $res = true;
         }
-        
-        // Изтриваме старите записи, които не се срещат в новия
+
         if (countR($toDelete)) {
             $this->logInfo('Delete balance details: ' . countR($toDelete));
             $idList = implode(',', $toDelete);
             $this->delete("#id IN ({$idList})");
             $res = true;
         }
-        
-        // Изтриваме запаметените изчислени данни
+
         unset($this->balance, $this->strategies);
-        
-        // Освобождаваме заключването
+
         core_Locks::release(acc_Balances::saveLockKey);
-        
+
         return $res;
     }
     
@@ -1026,15 +1035,13 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Зарежда в сингълтона баланса с посоченото id
      */
-    public function loadBalance($balanceId, $isMiddleBalance = false, $accs = null, $itemsAll = null, $items1 = null, $items2 = null, $items3 = null, $convertToDate = null)
+    public function loadBalance($balanceId, $isMiddleBalance = false, $accs      = null, $itemsAll  = null, $items1    = null, $items2    = null, $items3    = null, $convertToDate = null)
     {
         $query = $this->getQuery();
-        
-        $this->balance = array();
-        
+        $this->balance = [];
+
         static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
-        
-        // Да се пропускат записите с нулево крайно салдо, при зареждането на не-междинен баланс
+
         if (!$isMiddleBalance) {
             $query->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.01');
         }
@@ -1042,69 +1049,111 @@ class acc_BalanceDetails extends core_Detail
         $feedWithNegativeBlQuantity = acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY');
         $balanceRec = acc_Balances::fetch($balanceId);
 
+        $tracing    = Mode::is('traceBalance');
+        $loadedRows = [];
+
         while ($rec = $query->fetch()) {
-            $accId = $rec->accountId;
+            $accId  = $rec->accountId;
             $ent1Id = !empty($rec->ent1Id) ? $rec->ent1Id : null;
             $ent2Id = !empty($rec->ent2Id) ? $rec->ent2Id : null;
             $ent3Id = !empty($rec->ent3Id) ? $rec->ent3Id : null;
-            
-            // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
-            if ($rec->blQuantity >= 0 || $feedWithNegativeBlQuantity == 'yes') {
-                if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
-                    $feedAmount = $rec->blAmount;
-                    if(isset($convertToDate)){
-                        $feedAmount = deals_Helper::getSmartBaseCurrency($feedAmount, $balanceRec->toDate, $convertToDate);
-                    }
 
+            if ($rec->blQuantity >= 0 || $feedWithNegativeBlQuantity == 'yes') {
+                $strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id);
+
+                // ── Трейс: логваме резултата от getStrategyFor за всеки ред ──
+                if ($tracing) {
+                    acc_BalanceDebugger::logStrategyProbe(
+                        $rec->accountNum ?? $this->Accounts->getNumById($accId),
+                        $accId,
+                        acc_BalanceDebugger::entLabel($ent1Id),
+                        acc_BalanceDebugger::entLabel($ent2Id),
+                        acc_BalanceDebugger::entLabel($ent3Id),
+                        $rec->blQuantity,
+                        $strategy !== null && $strategy !== false,  // !==null/false
+                        (bool)$strategy                              // if($strategy)
+                    );
+                }
+
+                if ($strategy) {
+                    $feedAmount = $rec->blAmount;
+                    if (isset($convertToDate)) {
+                        $feedAmount = deals_Helper::getSmartBaseCurrency(
+                            $feedAmount, $balanceRec->toDate, $convertToDate
+                        );
+                    }
                     $strategy->feed($rec->blQuantity, $feedAmount);
+
+                    // ── Трейс: захранване от начално салдо ───────────────────
+                    if ($tracing) {
+                        acc_BalanceDebugger::logStrategyFeed(
+                            'initial',
+                            $rec->accountNum ?? $this->Accounts->getNumById($accId),
+                            $this->Accounts->getType($accId),
+                            acc_BalanceDebugger::entLabel($ent1Id),
+                            acc_BalanceDebugger::entLabel($ent2Id),
+                            acc_BalanceDebugger::entLabel($ent3Id),
+                            $rec->blQuantity,
+                            $feedAmount
+                        );
+                    }
                 }
             }
 
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
-            
             $b['accountId'] = $accId;
-            $b['ent1Id'] = $ent1Id;
-            $b['ent2Id'] = $ent2Id;
-            $b['ent3Id'] = $ent3Id;
-            
+            $b['ent1Id']    = $ent1Id;
+            $b['ent2Id']    = $ent2Id;
+            $b['ent3Id']    = $ent3Id;
+
             if ($isMiddleBalance) {
-
-                // Ако ще се конвертират салдата към основната валута за дата
-                $debitAmount = $rec->debitAmount;
+                $debitAmount  = $rec->debitAmount;
                 $creditAmount = $rec->creditAmount;
-                $baseAmount = $rec->baseAmount;
-                if(isset($convertToDate)){
-                    $debitAmount = deals_Helper::getSmartBaseCurrency($debitAmount, $balanceRec->toDate, $convertToDate);
+                $baseAmount   = $rec->baseAmount;
+                if (isset($convertToDate)) {
+                    $debitAmount  = deals_Helper::getSmartBaseCurrency($debitAmount,  $balanceRec->toDate, $convertToDate);
                     $creditAmount = deals_Helper::getSmartBaseCurrency($creditAmount, $balanceRec->toDate, $convertToDate);
-                    $baseAmount = deals_Helper::getSmartBaseCurrency($baseAmount, $balanceRec->toDate, $convertToDate);
+                    $baseAmount   = deals_Helper::getSmartBaseCurrency($baseAmount,   $balanceRec->toDate, $convertToDate);
                 }
-
-                // Ако зареждаме междинен баланс взимаме и неговия дебитен/кредитен оборот
-                $this->inc($b['debitQuantity'], $rec->debitQuantity);
-                $this->inc($b['debitAmount'], $debitAmount);
+                $this->inc($b['debitQuantity'],  $rec->debitQuantity);
+                $this->inc($b['debitAmount'],    $debitAmount);
                 $this->inc($b['creditQuantity'], $rec->creditQuantity);
-                $this->inc($b['creditAmount'], $creditAmount);
-                
+                $this->inc($b['creditAmount'],   $creditAmount);
                 $b['baseQuantity'] += $rec->baseQuantity;
-                $b['baseAmount'] += $baseAmount;
+                $b['baseAmount']   += $baseAmount;
             } else {
                 $blAmount = $rec->blAmount;
-                if(isset($convertToDate)){
+                if (isset($convertToDate)) {
                     $blAmount = deals_Helper::getSmartBaseCurrency($blAmount, $balanceRec->toDate, $convertToDate);
                 }
-
-                // Ако не зареждаме междинен баланс взимаме само  крайното му салдо като начално
                 $b['baseQuantity'] += $rec->blQuantity;
-                $b['baseAmount'] += $blAmount;
+                $b['baseAmount']   += $blAmount;
             }
 
             $blAmount = $rec->blAmount;
-            if(isset($convertToDate)){
+            if (isset($convertToDate)) {
                 $blAmount = deals_Helper::getSmartBaseCurrency($blAmount, $balanceRec->toDate, $convertToDate);
             }
-
             $b['blQuantity'] += $rec->blQuantity;
-            $b['blAmount'] += $blAmount;
+            $b['blAmount']   += $blAmount;
+
+            if ($tracing) {
+                $loadedRows[] = [
+                    'acc_num'       => $rec->accountNum ?? $this->Accounts->getNumById($accId),
+                    'ent1'          => acc_BalanceDebugger::entLabel($ent1Id),
+                    'ent2'          => acc_BalanceDebugger::entLabel($ent2Id),
+                    'ent3'          => acc_BalanceDebugger::entLabel($ent3Id),
+                    'bl_quantity'   => $rec->blQuantity,
+                    'bl_amount'     => $rec->blAmount,
+                    'base_quantity' => $isMiddleBalance ? $rec->baseQuantity : $rec->blQuantity,
+                    'base_amount'   => $isMiddleBalance ? $rec->baseAmount   : $rec->blAmount,
+                    'is_middle'     => $isMiddleBalance,
+                ];
+            }
+        }
+
+        if ($tracing) {
+            acc_BalanceDebugger::log('load_balance_rows', $loadedRows);
         }
     }
     
@@ -1122,68 +1171,88 @@ class acc_BalanceDetails extends core_Detail
     {
         if ($cronRec = core_Cron::getCurrentRec()) {
             list($d, $t) = explode(' ', $cronRec->lastStart);
-            log_System::add('acc_Balances', 'calcBalanceForPeriod: ' . $from  . ' - ' . $to . ' (Cron at ' . $t . ')', null, 'notice');
+            log_System::add('acc_Balances', 'calcBalanceForPeriod: ' . $from . ' - ' . $to . ' (Cron at ' . $t . ')', null, 'notice');
         }
-        
+
         $JournalDetails = &cls::get('acc_JournalDetails');
-        
+
         $query = $JournalDetails->getQuery();
         acc_JournalDetails::filterQuery($query, $from, $to);
         $query->orderBy('valior,id', 'ASC');
         $recs = $query->fetchAll();
-        
-        // Дигаме времето за изпълнение на скрипта пропорционално на извлечените записи
+
         $timeLimit = ceil(countR($recs) / 3000) * 180;
         if ($timeLimit != 0) {
             core_App::setTimeLimit($timeLimit);
         }
-        
-        // Слагаме флага да не преизчислява баланса
+
         $hasUpdatedJournal = false;
-        
+
         if (countR($recs)) {
             if ($isMiddleBalance === true) {
-                
-                // Ако зареждаме данните от журнала, които са в междинния баланс
-                // за храненето на стратегията се взимат всичките записи до края
                 $queryClone = $JournalDetails->getQuery();
-                $to = dt::getLastDayOfMonth($to);
+                $to         = dt::getLastDayOfMonth($to);
                 acc_JournalDetails::filterQuery($queryClone, $from, $to);
                 $queryClone->orderBy('valior,id', 'ASC');
                 $strategyRecs = $queryClone->fetchAll();
             } else {
                 $strategyRecs = $recs;
             }
-            
-            // Хранене на стратегията със записите от журнала
+
             if (is_array($strategyRecs)) {
                 foreach ($strategyRecs as $rec1) {
                     $this->feedStrategy($rec1);
                 }
             }
-            
+
+            $tracing     = Mode::is('traceBalance');
+            $journalRows = [];
+
             foreach ($recs as $rec) {
                 $this->calcAmount($rec);
                 $update = $this->calcPrice($rec);
-                
+
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
-                
-                // Обновява се записа само ако има промяна с цената
+
                 if ($update) {
                     $JournalDetails->save_($rec);
-                    
-                    // Дигаме флага за преизчисляване
                     $hasUpdatedJournal = true;
                 }
+
+                if ($tracing) {
+                    $journalRows[] = [
+                        'valior'          => $rec->valior,
+                        'debit_acc_num'   => $this->Accounts->getNumById($rec->debitAccId),
+                        'debit_item1'     => acc_BalanceDebugger::entLabel($rec->debitItem1  ?? null),
+                        'debit_item2'     => acc_BalanceDebugger::entLabel($rec->debitItem2  ?? null),
+                        'debit_item3'     => acc_BalanceDebugger::entLabel($rec->debitItem3  ?? null),
+                        'debit_quantity'  => $rec->debitQuantity,
+                        'credit_acc_num'  => $this->Accounts->getNumById($rec->creditAccId),
+                        'credit_item1'    => acc_BalanceDebugger::entLabel($rec->creditItem1 ?? null),
+                        'credit_item2'    => acc_BalanceDebugger::entLabel($rec->creditItem2 ?? null),
+                        'credit_item3'    => acc_BalanceDebugger::entLabel($rec->creditItem3 ?? null),
+                        'credit_quantity' => $rec->creditQuantity,
+                        'amount'          => $rec->amount,
+                        'price_updated'   => $update ? 'да' : 'не',
+                    ];
+                }
             }
-            
-            // Връщаме дали трябва да се преизчислява баланса
+
+            if ($tracing) {
+                acc_BalanceDebugger::log('journal_entries', $journalRows);
+            }
+
             return $hasUpdatedJournal;
         }
+
+        if (Mode::is('traceBalance')) {
+            acc_BalanceDebugger::log('journal_entries', []);
+        }
     }
-    
-    
+
+
+
     /**
      * Проверява дали сумата на записа се различава от тази по стратегия
      * Ако не участват сметки по стратегия или няма променени цени по стратегия
@@ -1272,38 +1341,85 @@ class acc_BalanceDetails extends core_Detail
     private function feedStrategy($rec)
     {
         $debitStrategy = $creditStrategy = null;
-        
-        // Намираме стратегиите на дебит и кредит с/ките (ако има)
-        $debitStrategy = $this->getStrategyFor($rec->debitAccId, $rec->debitItem1, $rec->debitItem2, $rec->debitItem3);
+
+        $debitStrategy  = $this->getStrategyFor($rec->debitAccId,  $rec->debitItem1,  $rec->debitItem2,  $rec->debitItem3);
         $creditStrategy = $this->getStrategyFor($rec->creditAccId, $rec->creditItem1, $rec->creditItem2, $rec->creditItem3);
-        
-        // Ако кредитната сметка е със стратегия и е пасивна, захранваме я с данните от кредита
+
+        $tracing = Mode::is('traceBalance');
+
         if ($creditStrategy) {
             $creditType = $this->Accounts->getType($rec->creditAccId);
-            
+
             if ($creditType == 'passive') {
-
-                // Ако кредита е пасивна сметка - храним с к-то и сумата
                 $creditStrategy->feed($rec->creditQuantity, $rec->amount);
-            } elseif($creditType == 'active' && $rec->creditQuantity < 0) {
 
-                // Ако кредита е пасивна активна сметка и отрицателно к-во - храним с модул на к-то и сумата
+                if ($tracing) {
+                    acc_BalanceDebugger::logStrategyFeed(
+                        'journal',
+                        $this->Accounts->getNumById($rec->creditAccId),
+                        $creditType,
+                        acc_BalanceDebugger::entLabel($rec->creditItem1 ?? null),
+                        acc_BalanceDebugger::entLabel($rec->creditItem2 ?? null),
+                        acc_BalanceDebugger::entLabel($rec->creditItem3 ?? null),
+                        $rec->creditQuantity,
+                        $rec->amount,
+                        $rec->valior
+                    );
+                }
+            } elseif ($creditType == 'active' && $rec->creditQuantity < 0) {
                 $creditStrategy->feed(abs($rec->creditQuantity), abs($rec->amount));
+
+                if ($tracing) {
+                    acc_BalanceDebugger::logStrategyFeed(
+                        'journal',
+                        $this->Accounts->getNumById($rec->creditAccId),
+                        $creditType . ' (отриц.к-во)',
+                        acc_BalanceDebugger::entLabel($rec->creditItem1 ?? null),
+                        acc_BalanceDebugger::entLabel($rec->creditItem2 ?? null),
+                        acc_BalanceDebugger::entLabel($rec->creditItem3 ?? null),
+                        abs($rec->creditQuantity),
+                        abs($rec->amount),
+                        $rec->valior
+                    );
+                }
             }
         }
-        
-        // Ако дебитната сметка е със стратегия и е активна, захранваме я с данните от дебита
+
         if ($debitStrategy) {
             $debitType = $this->Accounts->getType($rec->debitAccId);
-            
+
             if ($debitType == 'active') {
-
-                // Ако дебита е активна сметка - храним с к-то и сумата
                 $debitStrategy->feed($rec->debitQuantity, $rec->amount);
-            } elseif($debitType == 'passive' && $rec->debitQuantity < 0) {
 
-                // Ако дебита е пасивна активна сметка и отрицателно к-во - храним с модул на к-то и сумата
+                if ($tracing) {
+                    acc_BalanceDebugger::logStrategyFeed(
+                        'journal',
+                        $this->Accounts->getNumById($rec->debitAccId),
+                        $debitType,
+                        acc_BalanceDebugger::entLabel($rec->debitItem1 ?? null),
+                        acc_BalanceDebugger::entLabel($rec->debitItem2 ?? null),
+                        acc_BalanceDebugger::entLabel($rec->debitItem3 ?? null),
+                        $rec->debitQuantity,
+                        $rec->amount,
+                        $rec->valior
+                    );
+                }
+            } elseif ($debitType == 'passive' && $rec->debitQuantity < 0) {
                 $debitStrategy->feed(abs($rec->debitQuantity), abs($rec->amount));
+
+                if ($tracing) {
+                    acc_BalanceDebugger::logStrategyFeed(
+                        'journal',
+                        $this->Accounts->getNumById($rec->debitAccId),
+                        $debitType . ' (отриц.к-во)',
+                        acc_BalanceDebugger::entLabel($rec->debitItem1 ?? null),
+                        acc_BalanceDebugger::entLabel($rec->debitItem2 ?? null),
+                        acc_BalanceDebugger::entLabel($rec->debitItem3 ?? null),
+                        abs($rec->debitQuantity),
+                        abs($rec->amount),
+                        $rec->valior
+                    );
+                }
             }
         }
     }
@@ -1317,31 +1433,64 @@ class acc_BalanceDetails extends core_Detail
     private function calcAmount($rec)
     {
         $debitStrategy = $creditStrategy = null;
-        
-        // Намираме стратегиите на дебит и кредит сметките (ако има)
-        $debitStrategy = $this->getStrategyFor($rec->debitAccId, $rec->debitItem1, $rec->debitItem2, $rec->debitItem3);
+
+        $debitStrategy  = $this->getStrategyFor($rec->debitAccId,  $rec->debitItem1,  $rec->debitItem2,  $rec->debitItem3);
         $creditStrategy = $this->getStrategyFor($rec->creditAccId, $rec->creditItem1, $rec->creditItem2, $rec->creditItem3);
-        
-        // Ако има кредитна стратегия и тя е активна, опитваме се да извлечем цената според стратегията
+
+        $tracing = Mode::is('traceBalance');
+
         if ($creditStrategy) {
             $creditType = $this->Accounts->getType($rec->creditAccId);
-            
+
             if ($creditType == 'active' && $rec->creditQuantity > 0) {
-                $amount = $creditStrategy->consume($rec->creditQuantity);
+                $amountBefore = $rec->amount;
+                $amount       = $creditStrategy->consume($rec->creditQuantity);
+
                 if (!is_null($amount)) {
                     $rec->amount = $amount;
+
+                    if ($tracing) {
+                        acc_BalanceDebugger::logStrategyConsume(
+                            $this->Accounts->getNumById($rec->creditAccId),
+                            $creditType,
+                            acc_BalanceDebugger::entLabel($rec->creditItem1 ?? null),
+                            acc_BalanceDebugger::entLabel($rec->creditItem2 ?? null),
+                            acc_BalanceDebugger::entLabel($rec->creditItem3 ?? null),
+                            $rec->creditQuantity,
+                            $amountBefore,
+                            $amount,
+                            $rec->valior,
+                            $this->Accounts->getNumById($rec->debitAccId)  // изписва КЪМ дебита
+                        );
+                    }
                 }
             }
         }
-        
-        // Ако има дебитна стратегия и тя е пасивна, опитваме се да извлечем цената според стратегията
+
         if ($debitStrategy) {
             $debitType = $this->Accounts->getType($rec->debitAccId);
-            
+
             if ($debitType == 'passive' && $rec->debitQuantity > 0) {
-                $amount = $debitStrategy->consume($rec->debitQuantity);
+                $amountBefore = $rec->amount;
+                $amount       = $debitStrategy->consume($rec->debitQuantity);
+
                 if (!is_null($amount)) {
                     $rec->amount = $amount;
+
+                    if ($tracing) {
+                        acc_BalanceDebugger::logStrategyConsume(
+                            $this->Accounts->getNumById($rec->debitAccId),
+                            $debitType,
+                            acc_BalanceDebugger::entLabel($rec->debitItem1 ?? null),
+                            acc_BalanceDebugger::entLabel($rec->debitItem2 ?? null),
+                            acc_BalanceDebugger::entLabel($rec->debitItem3 ?? null),
+                            $rec->debitQuantity,
+                            $amountBefore,
+                            $amount,
+                            $rec->valior,
+                            $this->Accounts->getNumById($rec->creditAccId)  // изписва КЪМ кредита
+                        );
+                    }
                 }
             }
         }
