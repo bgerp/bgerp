@@ -382,7 +382,7 @@ class acc_BalanceDebugger
         if (empty($entId)) return '';
         if (!isset(self::$entCache[$entId])) {
             $iRec = acc_Items::fetch($entId, 'num,title');
-            self::$entCache[$entId] = $iRec ? "[{$iRec->num}] {$iRec->title}" : "#{$entId}";
+            self::$entCache[$entId] = $iRec ? "[{$iRec->num}]" : "#{$entId}";
         }
         return self::$entCache[$entId];
     }
