@@ -815,7 +815,6 @@ class sales_Invoices extends deals_InvoiceMaster
         
         try{
             $number = (isset($rec->number)) ? $rec->number : cond_Ranges::getNextNumber($rec->numlimit, $this, 'number', false);
-            core_Statuses::newStatus("N1:{$number}", 'warning');
         } catch(core_exception_Expect $e){
             $msg = $e->getMessage();
             
