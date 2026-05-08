@@ -72,7 +72,7 @@ class doc_plg_Sequencer2 extends core_Plugin
 
                     try{
                         $rec->{$mvc->numberFld} = cond_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld);
-
+                        core_Statuses::newStatus("N: {$rec->{$mvc->numberFld}}", 'warning');
                         if(isset($rec->id)){
                             $exRec = $mvc->fetch("#id = {$rec->id}", 'state', false);
                             if($exRec->state == 'active'){
@@ -134,7 +134,7 @@ class doc_plg_Sequencer2 extends core_Plugin
             if(($rec->_rollback ?? false) !== true){
                 
                 // Маркиране на диапазона, като използван
-                cond_Ranges::updateRange($rec->{$mvc->rangeNumFld}, $rec->{$mvc->numberFld});
+                cond_Ranges::updateRange($rec->{$mvc->rangeNumFld});
             
                 // Обновяване на ключовите думи, да се добави номера към тях
                 if($mvc->hasPlugin('plg_Search')){
