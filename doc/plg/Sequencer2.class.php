@@ -72,7 +72,6 @@ class doc_plg_Sequencer2 extends core_Plugin
 
                     try{
                         $rec->{$mvc->numberFld} = cond_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld);
-                        core_Statuses::newStatus("N: {$rec->{$mvc->numberFld}}", 'warning');
                         if(isset($rec->id)){
                             $exRec = $mvc->fetch("#id = {$rec->id}", 'state', false);
                             if($exRec->state == 'active'){
