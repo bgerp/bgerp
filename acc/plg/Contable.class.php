@@ -589,6 +589,7 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
+        core_Locks::release("conto_{$mvc->getClassId()}_{$rec->id}");
 
         // Ако документа се контира при обединяване със сделка да не се try/catch
         if(Mode::is('isBeingClosedWithDeal')){
@@ -599,6 +600,7 @@ class acc_plg_Contable extends core_Plugin
         try {
             self::conto($mvc, $rec);
         } catch (acc_journal_RejectRedirect $e) {
+
             $mvc->invoke('beforeContoRedirectError', array($rec));
             $url = $mvc->getSingleUrlArray($rec->id);
             redirect($url, false, '|' . $e->getMessage(), 'error');

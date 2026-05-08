@@ -312,14 +312,21 @@ class acc_Journal extends core_Master
         expect($docClassId = Request::get('docType', 'class(interface=acc_TransactionSourceIntf)'));
         $mvc = cls::get($docClassId);
         $mvc->requireRightFor('conto', $docId);
-        
-        // Контиране на документа
-        $mvc->conto($docId);
-        
+
         // Редирект към сингъла
         $retUrl = getRetUrl();
         $redirectUrl = !empty($retUrl) ? $retUrl : $mvc->getSingleUrlArray($docId);
-        
+
+        if (!core_Locks::obtain("conto_{$docClassId}_{$docId}", 60, 0, 0)) {
+            core_Statuses::newStatus('Документът се контира в момента|*!', 'warning');
+
+            return new Redirect($redirectUrl);
+        }
+
+        // Контиране на документа
+        $mvc->conto($docId);
+        core_Locks::release("conto_{$docClassId}_{$docId}");
+
         return new Redirect($redirectUrl);
     }
     
