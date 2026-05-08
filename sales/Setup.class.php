@@ -328,7 +328,7 @@ class sales_Setup extends core_ProtoSetup
         ),
         'SALE_CLOSE_OLDER_THAN' => array(
             'time(uom=days,suggestions=1 ден|2 дена|3 дена)',
-            'caption=Изчакване преди автоматично приключване на продажби в BGN / EUR->Дни'
+            'caption=Изчакване преди автоматично приключване на продажби->Дни'
         ),
         'SALE_CLOSE_OLDER_NUM' => array(
             'int',

@@ -2026,7 +2026,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $closeDealThreads = arr::extractValuesFromArray($foundDealsArr, 'threadId');
         $contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'id');
         $cQuery = doc_Containers::getQuery();
-        $cQuery->where("#state = 'pending' || #state = 'draft'");
+        $cQuery->where("#state IN ('pending', 'draft')");
         $cQuery->in('docClass', $contoClasses);
         $cQuery->show('threadId,docClass,docId');
         $cQuery->in('threadId', $closeDealThreads);
