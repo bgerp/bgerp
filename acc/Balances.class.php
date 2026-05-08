@@ -342,7 +342,13 @@ class acc_Balances extends core_Master
         $this->requireRightFor('forcecalc', $rec);
 
         $form = cls::get('core_Form');
-        $form->title = tr('Дебъг преизчисляване на баланса');
+        if(empty($rec->periodId)){
+            $periodId = dt::mysql2verbal($rec->fromDate, 'd', null, false) . '-' . dt::mysql2verbal($rec->toDate, 'd F Y', null, false);
+        } else {
+            $periodId = acc_Periods::getTitleById($rec->periodId);
+        }
+
+        $form->title = 'Преизчисляване на баланса за|* <b>' . $periodId . "</b>";
         $form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Дебъг проследяване на сметка->Избор,mandatory');
         $form->input();
 

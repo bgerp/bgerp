@@ -3969,7 +3969,7 @@ span.sharing-history-title {
 
 .thumbnails img {
   width: 53px;
-  max-width: none;
+  height: 53px;
   object-fit: contain;
   border: 2px solid rgba(0, 0, 0, 0);
   border-radius: 8px;
@@ -3991,13 +3991,6 @@ span.sharing-history-title {
 
 .eshop-product>table {
   width: 100%; }
-
-  .subgroups .eshop-group-button {
-    margin-right: 1%;
-    margin-left: 1%;
-    width: 48%; }
-    .subgroups .eshop-group-button .eshop-group-button-title a {
-      color: #444444; }
 
 .optionsTable {
   color: #222222;

@@ -205,6 +205,12 @@ class store_Receipts extends store_DocumentMaster
 
 
     /**
+     * Шаблон за изглед при рендиране в транспортна линия
+     */
+    public $layoutFileInLine = 'store/tpl/ShortReceipt.shtml';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
