@@ -173,7 +173,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                                 array($origin->className, $origin->that),
                                 array('currency_Currencies', $rec->dealCurrencyId),
                                 'quantity' => $sign * round($debitDiscount, 2)),
-                            'credit' => array(729));
+                            'credit' => array(729), 'reason' => "Сконто (отстъпка) за ранно плащане");
                     }
                 }
             } else {
@@ -216,7 +216,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                         'debit' => array(481,
                             array('currency_Currencies', $currencyId481),
                             'quantity' => $sign * round($amountDiscount, 2)),
-                        'credit' => array(729));
+                        'credit' => array(729), 'reason' => "Сконто (отстъпка) за ранно плащане");
 
                 }
             }
