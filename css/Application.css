@@ -6155,7 +6155,6 @@ div.location.public {
       color: #004488; }
   .eshop-group-button .eshop-group-button-img {
     width: 100%;
-    height: 170px;
     overflow: hidden;
     border-radius: 15px; }
     .eshop-group-button .eshop-group-button-img a {
@@ -6182,7 +6181,6 @@ div.location.public {
   height: auto; }
 
 .eshop-group-button .eshop-group-button-img {
-  max-height: 170px;
   height: auto; }
 
 .eshopProduct {

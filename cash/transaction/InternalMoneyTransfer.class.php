@@ -48,7 +48,7 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
         $rec->amount = $rec->amount ?? 0;
         $reason = cash_InternalMoneyTransfer::getVerbal($rec, 'operationSysId');
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
-
+        $entries = array();
         if (in_array($rec->operationSysId, array('nonecash2bank', 'nonecash2case', 'noncash2noncash'))) {
             $creditArr = array($rec->creditAccId, array('cash_Cases', $rec->creditCase),
                                                   array('cond_Payments', $rec->paymentId),
@@ -57,9 +57,15 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
             if($rec->operationSysId == 'nonecash2case'){
                 $creditArr['quantity'] = round(currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode), 2);
             }
-            $entry = array('debit' => array($rec->debitAccId, $debitArr, $item2Arr, 'quantity' => $rec->amount),
-                           'credit' => $creditArr, 'reason' => $reason);
-            $entries = array($entry);
+
+            $baseCurrencyEquivalent = round(cond_Payments::toBaseCurrency($rec->paymentId, $rec->amount, $rec->valior), 2);
+            $entries[] = array('amount' => $baseCurrencyEquivalent,
+                'debit' => array($rec->debitAccId, $debitArr, $item2Arr, 'quantity' => $rec->amount),
+                'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $baseCurrencyEquivalent), 'reason' => $reason);
+
+            $entries[] = array('debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $baseCurrencyEquivalent),
+                              'credit' => $creditArr, 'reason' => $reason);
+
         } else {
             // Кредитирането на сметката за разликите сумата е винаци тази на валутата към централния курс
             $debitAmount = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $currencyCode);
