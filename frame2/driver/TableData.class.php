@@ -231,8 +231,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         setIfNot($data->chartTabCaption, $this->chartTabCaption);
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
-
-        if (empty($data->recs['values'])) {
+        
+        if (!countR($data->recs)) {
             $this->enableChartTab = false;
             $this->chartTabDefault = false;
         }
