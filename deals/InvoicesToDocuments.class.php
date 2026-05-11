@@ -207,7 +207,7 @@ class deals_InvoicesToDocuments extends core_Manager
                     $Invoice = doc_Containers::getDocument($iRec->containerId);
                     $iInst = $Invoice->getInstance();
 
-                    if(abs($iRec->amount) > abs($eAmount)){
+                    if(abs(round($iRec->amount, 2)) > abs(round($eAmount, 2))){
                         if ($iInst->fields['number']) {
                             $number = $iInst->getVerbal($invRec, 'number');
                         } else {
@@ -215,7 +215,7 @@ class deals_InvoicesToDocuments extends core_Manager
                         }
                         $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
                         $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
-                    } elseif($iRec->amount < 0){
+                    } elseif(round($iRec->amount, 2) < 0){
                         if($invRec->type == 'invoice' || $invRec->dealValue > 0){
                             if(!$isReverseWithTransfer){
                                 $amountErrors[] = "Към фактура или дебитно разпределената сума, трябва да е положителна";
