@@ -67,6 +67,7 @@ class cash_Setup extends core_ProtoSetup
         'cash_NonCashPaymentDetails',
         'cash_InternalMoneyTransferDetails',
         'migrate::fixNonCashBlQuantities2602',
+        'migrate::recontoDocs2620',
     );
     
     
@@ -178,5 +179,19 @@ class cash_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Синхронизиране на касови наличности', 'cash_plg_BalanceSync', 'acc_Balances', 'private');
 
         return $html;
+    }
+
+
+    /**
+     * Реконтиране на ПКО и ВКТ
+     */
+    public function recontoDocs2620()
+    {
+        $callOn = dt::addSecs(120);
+        $data = (object)array('class' => 'cash_InternalMoneyTransfer', 'from' => '2026-01-01', 'fields' => array(), 'lastId' => null);
+        core_CallOnTime::setCall('acc_Journal', 'recontoActiveDocuments', $data, $callOn);
+
+        $data = (object)array('class' => 'cash_Pko', 'from' => '2026-01-01', 'fields' => array(), 'lastId' => null);
+        core_CallOnTime::setCall('acc_Journal', 'recontoActiveDocuments', $data, $callOn);
     }
 }

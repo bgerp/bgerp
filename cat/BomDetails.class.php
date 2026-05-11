@@ -303,11 +303,11 @@ class cat_BomDetails extends doc_Detail
 
                     if(empty($rec->centerId) && empty($rec->norm) && empty($rec->storeIn) && empty($rec->inputStores) && empty($rec->fixedAssets) && empty($rec->employees) && empty($rec->labelPackagingId) && empty($rec->labelTemplate) && empty($rec->labelType) && empty($rec->labelQuantityInPack) && empty($rec->wasteProductId) && empty($rec->wasteStart) && empty($rec->wastePercent)){
                        foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate', 'wasteProductId', 'wasteStart', 'wastePercent') as $productionFld){
-                            $defaultValue = is_array($productionData[$productionFld]) ? keylist::fromArray($productionData[$productionFld]) : $productionData[$productionFld];
-                            $form->setDefault($productionFld, $defaultValue);
-                            if($data->masterRec->type != 'production') {
-                                $form->setField($productionFld, 'autohide=any');
-                            }
+                           $productionValue = $productionData[$productionFld] ?? null;
+                           $defaultValue = is_array($productionValue) ? keylist::fromArray($productionValue) : $productionValue;$form->setDefault($productionFld, $defaultValue);
+                           if($data->masterRec->type != 'production') {
+                               $form->setField($productionFld, 'autohide=any');
+                           }
                         }
                     }
 
@@ -692,9 +692,8 @@ class cat_BomDetails extends doc_Detail
                     $form->setWarning('resourceId', $midCaption);
                 }
             }
-            
-            $rec->quantityInPack = (isset($pInfo) && $pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
-            
+            $rec->quantityInPack = (isset($pInfo) && isset($pInfo->packagings[$rec->packagingId])) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+
             // Ако има артикул със същата позиция, или няма позиция добавяме нова
             if (!isset($rec->position)) {
                 $rec->position = $mvc->getDefaultPosition($rec->bomId, $rec->parentId);
@@ -705,7 +704,8 @@ class cat_BomDetails extends doc_Detail
                 // Пътя към този артикул
                 $thisPath = $mvc->getProductPath($rec);
                 unset($thisPath[0]);
-                
+
+                $path = array();
                 $canAdd = true;
                 if (isset($rec->parentId)) {
                     
@@ -809,7 +809,7 @@ class cat_BomDetails extends doc_Detail
         $position = implode('.', $codePath);
         $position = cls::get('type_Varchar')->toVerbal($position);
         $row->position = $position;
-        $row->ROW_ATTR['class'] .= ' collapse';
+        $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' collapse';
         $row->ROW_ATTR['data-position'] = "bom{$rec->bomId}-" . $position;
         $row->ROW_ATTR['data-depth'] = countR($codePath) - 1;
 
@@ -831,8 +831,7 @@ class cat_BomDetails extends doc_Detail
             if($rec->type == 'stage'){
                 if(cat_BomDetails::count("#parentId = {$rec->id} AND #bomId = {$rec->bomId}")){
                     $bomRec = cat_Boms::fetch($rec->bomId);
-                    if(in_array($bomRec->state, array('active', 'closed')) && !$fields['-components']){
-                        $extraBtnTpl2 = new core_ET("<!--ET_BEGIN BTN-->[#BTN#]<!--ET_END BTN-->");
+                    if (in_array($bomRec->state, array('active', 'closed')) && empty($fields['-components'])) {                        $extraBtnTpl2 = new core_ET("<!--ET_BEGIN BTN-->[#BTN#]<!--ET_END BTN-->");
                         $extraBtnTpl2->replace(' <span  class=" newIconStyle bomExpandStageDetails' . $rec->id . '" title="Показване/Скриване на детайли"> </span>', 'BTN');
                         $row->position .= $extraBtnTpl2->getContent();
                     }
@@ -869,7 +868,7 @@ class cat_BomDetails extends doc_Detail
             }
 
             foreach (array('wasteProductId' => 'Отпадък', 'wasteStart' => 'Отпадък: Начален', 'wastePercent' => 'Отпадък: Допустим') as $wasteFld => $wasteCaption){
-                $wasteFldVal = !empty($rec->{$wasteFld}) ? $rec->{$wasteFld} : $productionData[$wasteFld];
+                $wasteFldVal = !empty($rec->{$wasteFld}) ? $rec->{$wasteFld} : ($productionData[$wasteFld] ?? null);
                 if(!empty($wasteFldVal)){
                     $wasteFldValVerbal = $mvc->getFieldType($wasteFld)->toVerbal($wasteFldVal);
                     if(empty($rec->{$wasteFld})){
@@ -945,7 +944,7 @@ class cat_BomDetails extends doc_Detail
         if (isset($rec->parentId)) {
             $coefficient = $mvc->fetchField($rec->parentId, 'coefficient');
             if (isset($coefficient)) {
-                $rec->propQuantity = "({$rec->propQuantity}) / ${coefficient}";
+                $rec->propQuantity = "({$rec->propQuantity}) / {$coefficient}";
             }
         }
 
@@ -1018,7 +1017,8 @@ class cat_BomDetails extends doc_Detail
         if(isset($Driver)){
             $productionData = $Driver->getProductionData($rec->resourceId);
             foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate') as $productionFld) {
-                $defaultValue = is_array($productionData[$productionFld]) ? keylist::fromArray($productionData[$productionFld]) : $productionData[$productionFld];
+                $productionValue = $productionData[$productionFld] ?? null;
+                $defaultValue = is_array($productionValue) ? keylist::fromArray($productionValue) : $productionValue;
                 $rec->{$productionFld} = $defaultValue;
             }
         }
@@ -1245,6 +1245,11 @@ class cat_BomDetails extends doc_Detail
         
         $areSame = true;
         foreach ($children as $index => $obj) {
+            if (!isset($bomDetails[$index])) {
+                $areSame = false;
+                break;
+            }
+
             $other = $bomDetails[$index];
             if ($obj->propQuantity != $other->propQuantity || $obj->resourceId != $other->resourceId || $obj->packagingId != $other->packagingId) {
                 $areSame = false;
@@ -1626,7 +1631,7 @@ class cat_BomDetails extends doc_Detail
 
         // Винаги се регенерират и параметрите
         $pData = $StepDriver->getProductionData($dRec->resourceId);
-        if (is_array($pData['planningParams'])) {
+        if (is_array($pData['planningParams'] ?? null)) {
             foreach ($pData['planningParams'] as $paramId){
                 $productParamValues = cat_Products::getParams($bomProductId);
                 $stepParams = cat_Products::getParams($dRec->resourceId);

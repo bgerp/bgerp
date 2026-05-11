@@ -166,7 +166,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
 
                     $amountDiscount -= $creditAmount;
                     $debitDiscount -= $creditAmount;
-                    if(round($amountDiscount, 2) > 0){
+                    if(round($amountDiscount, 2) >= 0){
                         $entry[] = array('amount' => $sign * round($amountDiscount, 2),
                             'debit' => array($rec->debitAccId,
                                 array($rec->contragentClassId, $rec->contragentId),
