@@ -1287,9 +1287,12 @@ class acc_Journal extends core_Master
     {
         // Взимат се записите от документа с вальор след последния затворен период
         $lastClosedPeriod = acc_Periods::getLastClosed();
+
         $Class = cls::get($data->class);
         $query = $Class->getQuery();
-        if(is_object($lastClosedPeriod)){
+        if(!empty($data->from)){
+            $query->where("#{$Class->valiorFld} >= '{$data->from}'");
+        } elseif(is_object($lastClosedPeriod)){
             $query->where("#{$Class->valiorFld} > '{$lastClosedPeriod->end}'");
         }
 

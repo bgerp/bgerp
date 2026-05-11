@@ -69,7 +69,8 @@ class bank_Setup extends core_ProtoSetup
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
         'bank_Register',
-        'migrate::recontoExchangeDocuments2601'
+        'migrate::recontoExchangeDocuments2601',
+        'migrate::recontoDocs2620',
     );
 
 
@@ -101,5 +102,16 @@ class bank_Setup extends core_ProtoSetup
         while($bRec = $bQuery->fetch()) {
             acc_Journal::reconto($bRec->containerId);
         }
+    }
+
+
+    /**
+     * Реконтиране на ПКО и ВКТ
+     */
+    public function recontoDocs2620()
+    {
+        $callOn = dt::addSecs(120);
+        $data = (object)array('class' => 'bank_InternalMoneyTransfer', 'from' => '2026-01-01', 'fields' => array(), 'lastId' => null);
+        core_CallOnTime::setCall('acc_Journal', 'recontoActiveDocuments', $data, $callOn);
     }
 }
