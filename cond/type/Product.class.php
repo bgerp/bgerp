@@ -76,10 +76,19 @@ class cond_type_Product extends cond_type_Varchar
 
         if($optionsCount > $this->driverRec->maxRadio) return $CType;
 
+        // Ако параметъра е към прототипен артикул - се рендира като кей2 за да може да се избере празната опция
+        if(isset($domainClass) && isset($domainId)){
+            $Domain = cls::get($domainClass);
+            if($Domain instanceof cat_Products){
+                $state = $Domain->fetchField($domainId, 'state');
+                if($state == 'template') return $CType;
+            }
+        }
+
         // Ако има радио бутони ще се показва като селект
         $Type = core_Type::getByName('key(mvc=cat_Products,select=name)');
-        $Type->params['maxRadio'] = isset($this->driverRec->maxRadio) ? $this->driverRec->maxRadio : 20;
-        $columns = isset($this->driverRec->columns) ? $this->driverRec->columns : 2;
+        $Type->params['maxRadio'] = $this->driverRec->maxRadio ?? 20;
+        $columns = $this->driverRec->columns ?? 2;
         $Type->params['columns'] = $columns;
 
         $Type->options = $options;
