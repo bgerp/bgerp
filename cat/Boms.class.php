@@ -377,8 +377,7 @@ class cat_Boms extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        if ($rec->cloneDetails === true || !empty($rec->prototypeId) || $rec->_regenerate === true) return;
-
+        if (($rec->cloneDetails ?? false) === true || !empty($rec->prototypeId) || ($rec->_regenerate ?? false) === true) return;
         $activeBom = null;
         cat_BomDetails::addProductComponents($rec->productId, $rec->id, null, $activeBom, true);
     }
@@ -562,7 +561,7 @@ class cat_Boms extends core_Master
         // Обновяваме датата на модифициране на артикула след промяна по рецептата
         if ($rec->productId) {
             $bRec = cat_Products::getLastActiveBom($rec->productId, 'sales');
-            if (($rec->type == 'sales' && !$bRec) || $bRec->id == $rec->id) {
+            if (($rec->type == 'sales' && !$bRec) || (is_object($bRec) && $bRec->id == $rec->id)) {
                 cat_Products::touchRec($rec->productId);
             }
         }
@@ -1029,8 +1028,8 @@ class cat_Boms extends core_Master
                     $nRec->packagingId = cat_Products::fetchField($prod->productId, 'measureId');
                     if (isset($prod->packagingId)) {
                         $nRec->packagingId = $prod->packagingId;
-                        if ($pRec = cat_products_Packagings::getPack($prod->productId, $prod->packagingId)) {
-                            $nRec->quantityInPack = $pRec->quantity;
+                        if ($packRec = cat_products_Packagings::getPack($prod->productId, $prod->packagingId)) {
+                            $nRec->quantityInPack = $packRec->quantity;
                         }
                     }
                     
@@ -1120,9 +1119,8 @@ class cat_Boms extends core_Master
         if (!isset($masterInfo->meta['canManifacture'])) {
             $data->notManifacturable = true;
         }
-        
-        if (!haveRole('ceo,sales,cat,planning') || ($data->notManifacturable === true && !countR($data->rows))) {
-            $data->hide = true;
+
+        if (!haveRole('ceo,sales,cat,planning') || (($data->notManifacturable ?? false) === true && !countR($data->rows))) {            $data->hide = true;
             
             return;
         }
@@ -1146,10 +1144,7 @@ class cat_Boms extends core_Master
      */
     public function renderBoms($data)
     {
-        if ($data->hide === true) {
-            
-            return;
-        }
+        if (!empty($data->hide)) return;
         
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         if(!empty($data->fromConvertable)){
@@ -1161,12 +1156,12 @@ class cat_Boms extends core_Master
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $details = $table->get($data->rows, $data->listFields);
-        if ($data->Pager) {
+        if (!empty($data->Pager)) {
             $details->append($data->Pager->getHtml());
         }
 
         // Ако артикула не е производим, показваме в детайла
-        if ($data->notManifacturable === true) {
+        if (!empty($data->notManifacturable)) {
             $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
         }
@@ -1412,8 +1407,8 @@ class cat_Boms extends core_Master
         // Изчисляваме количеството ако можем
         $rowParams = self::getProductParams($rec->resourceId);
         self::pushParams($params, $rowParams);
-        $doTouchRec = !(($rec->state == 'rejected'));
-        
+        $doTouchRec = !(($rec->state ?? null) == 'rejected');
+
         $scope = self::getScope($params);
         $rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
         if ($rQuantity != cat_BomDetails::CALC_ERROR) {
