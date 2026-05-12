@@ -2251,4 +2251,105 @@ class cat_Boms extends core_Master
 
         followRetUrl(null, '|Параметрите на артикула са синхронизирани от рецептата');
     }
+
+
+    /**
+     * Опитва да подмени материала на един ред от рецептата с нова стойност
+     *
+     * @param stdClass $dRec               - ред от cat_BomDetails (мутира се)
+     * @param int      $newValue           - id на новия материал
+     * @param array    $resourceByStages   - bomId => parentId => [resourceId => resourceId];
+     *                                       обновява се при успешна подмяна
+     * @param string   $saveFields         - кои полета да се запишат
+     * @return string|null                 - null при успех, иначе текст на грешката
+     */
+    public static function tryReplaceBomMaterial($dRec, $newValue, &$resourceByStages, $saveFields = 'resourceId,packagingId,quantityInPack,params')
+    {
+        $matRec = cat_Products::fetch($newValue, 'canConvert,measureId');
+
+        if ($matRec->canConvert != 'yes') return "Избраният материал не е вложим";
+
+        $notAllowed = array();
+        $BomDetails = cls::get('cat_BomDetails');
+        $BomDetails->findNotAllowedProducts($newValue, $dRec->productId, $notAllowed);
+        if (isset($notAllowed[$newValue])) {
+            return "Участва в някоя от рецептите на другите материали";
+        }
+
+        if (isset($resourceByStages[$dRec->bomId][$dRec->parentId]) && array_key_exists($newValue, $resourceByStages[$dRec->bomId][$dRec->parentId])) {
+            return "Вече присъства на същия етап в рецептата";
+        }
+
+        unset($resourceByStages[$dRec->bomId][$dRec->parentId][$dRec->resourceId]);
+        $resourceByStages[$dRec->bomId][$dRec->parentId][$newValue] = $newValue;
+
+        $dRec->resourceId     = $newValue;
+        $dRec->packagingId    = $matRec->measureId;
+        $dRec->quantityInPack = 1;
+        $dRec->params = $BomDetails->getProductParamScope($dRec, $dRec->productId);
+        $BomDetails->save($dRec, $saveFields);
+
+        return null;
+    }
+
+
+    /**
+     * След клониране на записа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec  - клонирания запис
+     * @param stdClass $nRec - новия запис
+     */
+    protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        $dQuery = cat_BomDetails::getQuery();
+        $dQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
+        $dQuery->where("#bomId = {$nRec->id}");
+
+        // Групиране на детайлите по етапи
+        $dRecs = $resourceByStages = $params = array();
+        while ($dRec = $dQuery->fetch()) {
+            $dRecs[$dRec->id] = $dRec;
+            $resourceByStages[$dRec->bomId][$dRec->parentId][$dRec->resourceId] = $dRec->resourceId;
+            if(!empty($dRec->paramId)){
+                $params[$dRec->paramId] = $dRec->paramId;
+            }
+        }
+        if (!countR($dRecs)) return;
+
+        // Ако няма детайли зависими от параметри - пропуска се
+        if (!countR($params)) return;
+
+        // Извличане на параметрите на артикула
+        Mode::push('doNotCalculate', true);
+        $params = cat_Products::getParams($nRec->productId);
+        Mode::pop('doNotCalculate');
+
+        $errors = array();
+        $count  = 0;
+
+        foreach ($dRecs as $dRec) {
+            // Ако реда зависи от параметър проверява се има ли нова стойност
+            if (empty($dRec->paramId)) continue;
+            if (!array_key_exists($dRec->paramId, $params)) continue;
+
+            $val = $params[$dRec->paramId];
+            if (!strlen($val)) continue;
+
+            // Опит за подмяна на материала
+            $err = self::tryReplaceBomMaterial($dRec, $val, $resourceByStages);
+            if ($err === null) {
+                $count++;
+            } else {
+                $errors[] = $err;
+            }
+        }
+
+        if ($count) {
+            core_Statuses::newStatus("Сменени материали на спрямо нова стойност на параметър|*: {$count}");
+        }
+        if (countR($errors)) {
+            core_Statuses::newStatus("Материалът не може да бъде подменен|*: " . implode(',', $errors) . "!", 'warning');
+        }
+    }
 }

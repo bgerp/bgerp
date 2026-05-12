@@ -254,9 +254,18 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $Params = cls::get('cat_products_Params');
         if(countR($syncedArr['insert'])){
             $Params->saveArray($syncedArr['insert']);
+            foreach ($syncedArr['insert'] as $iRec){
+                $res = cat_Params::onParamChanged($iRec->paramId, $iRec->classId, $iRec->productId, $iRec->paramValue, null);
+                if(!empty($res['msg'])){
+                    core_Statuses::newStatus($res['msg']);
+                }
+                if(!empty($res['error'])){
+                    core_Statuses::newStatus($res['error'], 'error');
+                }
+            }
         }
 
-        if(countR($syncedArr['update'])){
+        if(countR($syncedArr['update'])){ core_Statuses::newStatus('UPP', 'warning');
             $Params->saveArray($syncedArr['update'], 'id,paramValue');
         }
 

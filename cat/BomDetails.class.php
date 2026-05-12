@@ -103,7 +103,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'bomId=Рецепта,position=№, type=Вид, resourceId=Материал / Етап, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
+    public $listFields = 'bomId=Рецепта,position=№, type=Вид, resourceId=Материал / Етап,paramId=Параметър, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -145,12 +145,19 @@ class cat_BomDetails extends doc_Detail
 
 
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'paramId';
+
+
+    /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
         $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,tdClass=materialCol,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|subTitle|description|inputStores|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
+        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,allowEmpty)', 'input=none,caption=Зависи от парам.,tdClass=small');
         $this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Подетап на,remember,removeAndRefreshForm=propQuantity,silent');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -181,7 +188,7 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('params', 'blob(serialize, compress)', 'input=none');
         $this->FNC('rowQuantity', 'double(maxDecimals=4)', 'caption=Количество,input=none,tdClass=accCell');
         $this->FLD('coefficient', 'double', 'input=none');
-        
+
         $this->setDbIndex('parentId');
         $this->setDbIndex('resourceId');
         $this->setDbIndex('type');
@@ -246,8 +253,8 @@ class cat_BomDetails extends doc_Detail
         
         $form->setDefault('type', 'input');
         $quantity = $data->masterRec->quantity;
-        $originInfo = cat_Products::getProductInfo($data->masterRec->productId);
-        $shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
+        $pRec = cat_Products::fetch($data->masterRec->productId, 'measureId,state');
+        $shortUom = cat_UoM::getShortName($pRec->measureId);
 
         if(!empty($rec->parentId)){
             $form->setField('propQuantity', "caption=Количество->|За 1 от етапа");
@@ -261,6 +268,21 @@ class cat_BomDetails extends doc_Detail
             $form->setOptions('parentId', array('' => '') + $stepOptions);
         } else {
             $form->setReadOnly('parentId');
+        }
+
+        // Ако ще се добавя материал показват се за избор и параметрите от тип група артикули
+        if($rec->type == 'input'){
+            $paramOptions = array();
+            $paramQuery = cat_Params::getQuery();
+            $paramQuery->where("#state = 'active' AND #driverClass = " . cond_type_Product::getClassId());
+            while($pRec = $paramQuery->fetch()) {
+                $paramOptions[$pRec->id] = $pRec->typeExt;
+            }
+
+            if(countR($paramOptions)){
+                $form->setField('paramId', 'input');
+                $form->setOptions('paramId', array('' => '') + $paramOptions);
+            }
         }
 
         if($rec->type == 'stage'){
@@ -802,6 +824,11 @@ class cat_BomDetails extends doc_Detail
             $row->ROW_ATTR['title'] = tr('Етап');
         } else {
             $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : ($rec->type == 'pop' ? 'row-removed' : 'row-subProduct');
+
+            if(!empty($rec->paramId)){
+                $row->resourceId = ht::createHint("<span style='color:blue'>{$row->resourceId}</span>", "Материалът ще бъде подменен при промяна на стойноста на параметъра|*: {$row->paramId}", 'warning', false);
+                $row->paramId = cat_Params::getHyperlink($rec->paramId);
+            }
         }
 
         // Генерираме кода според позицията на артикула и етапите
