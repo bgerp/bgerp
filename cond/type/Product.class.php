@@ -165,6 +165,7 @@ class cond_type_Product extends cond_type_Varchar
     {
         $res = array('msg' => null, 'error' => null);
         if (!(isset($domainClass) && isset($domainId))) return $res;
+        if (empty($newValue)) return $res;
 
         $Domain = cls::get($domainClass);
         if (!($Domain instanceof cat_Products)) return $res;
@@ -178,7 +179,7 @@ class cond_type_Product extends cond_type_Varchar
         $bQuery = $BomDetails->getQuery();
         $bQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
         $bQuery->EXT('state',     'cat_Boms', 'externalName=state,externalKey=bomId');
-        $bQuery->where("#productId = {$domainId} AND #state != 'rejected'");
+        $bQuery->where("#productId = {$domainId} AND #state NOT IN ('rejected', 'closed')");
 
         $details = $resourceByStages = array();
         while ($bRec = $bQuery->fetch()) {
@@ -189,7 +190,7 @@ class cond_type_Product extends cond_type_Varchar
         $errors = $boms = array();
         foreach ($details as $bRec) {
             if ($bRec->paramId != $rec->id) continue;
-            $err = cat_Boms::tryReplaceBomMaterial($bRec, $newValue, $resourceByStages, 'resourceId,modifiedOn,modifiedBy,packagingId,quantityInPack,params');
+            $err = cat_Boms::tryReplaceBomMaterial($bRec, $newValue, $resourceByStages);
 
             if ($err === null) {
                 $Boms->logWrite("Смяна на материал след променен параметър", $bRec->bomId);

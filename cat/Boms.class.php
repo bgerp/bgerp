@@ -2260,12 +2260,14 @@ class cat_Boms extends core_Master
      * @param int      $newValue           - id на новия материал
      * @param array    $resourceByStages   - bomId => parentId => [resourceId => resourceId];
      *                                       обновява се при успешна подмяна
-     * @param string   $saveFields         - кои полета да се запишат
      * @return string|null                 - null при успех, иначе текст на грешката
      */
-    public static function tryReplaceBomMaterial($dRec, $newValue, &$resourceByStages, $saveFields = 'resourceId,packagingId,quantityInPack,params')
+    public static function tryReplaceBomMaterial($dRec, $newValue, &$resourceByStages)
     {
         $matRec = cat_Products::fetch($newValue, 'canConvert,measureId');
+        if(empty($dRec->productId)){
+            $dRec->productId = cat_Boms::fetchField($dRec->bomId, 'productId');
+        }
 
         if ($matRec->canConvert != 'yes') return "Избраният материал не е вложим";
 
@@ -2286,8 +2288,10 @@ class cat_Boms extends core_Master
         $dRec->resourceId     = $newValue;
         $dRec->packagingId    = $matRec->measureId;
         $dRec->quantityInPack = 1;
+        $dRec->modifiedOn = dt::now();
+        $dRec->modifiedBy = core_Users::getCurrent();
         $dRec->params = $BomDetails->getProductParamScope($dRec, $dRec->productId);
-        $BomDetails->save($dRec, $saveFields);
+        $BomDetails->save($dRec, 'resourceId,packagingId,quantityInPack,params,modifiedOn,modifiedBy');
 
         return null;
     }
@@ -2307,18 +2311,18 @@ class cat_Boms extends core_Master
         $dQuery->where("#bomId = {$nRec->id}");
 
         // Групиране на детайлите по етапи
-        $dRecs = $resourceByStages = $params = array();
+        $dRecs = $resourceByStages = $paramsInBom = array();
         while ($dRec = $dQuery->fetch()) {
             $dRecs[$dRec->id] = $dRec;
             $resourceByStages[$dRec->bomId][$dRec->parentId][$dRec->resourceId] = $dRec->resourceId;
             if(!empty($dRec->paramId)){
-                $params[$dRec->paramId] = $dRec->paramId;
+                $paramsInBom[$dRec->paramId] = $dRec->paramId;
             }
         }
         if (!countR($dRecs)) return;
 
         // Ако няма детайли зависими от параметри - пропуска се
-        if (!countR($params)) return;
+        if (!countR($paramsInBom)) return;
 
         // Извличане на параметрите на артикула
         Mode::push('doNotCalculate', true);
