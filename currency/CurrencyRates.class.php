@@ -314,9 +314,15 @@ class currency_CurrencyRates extends core_Detail
         $fromId = is_null($from) ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($from);
         $toId = is_null($to)   ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($to);
 
-        // Ако от лева се обръща в евро се дели на 1.95583 а не да се умножава по 0.51129 защото се получават разлики спрямо очакваното
-        if($fromId == currency_Currencies::getIdByCode('BGN') && $toId == currency_Currencies::getIdByCode('EUR')) {
-            return $amount / static::getRate($date, $to, $from);
+        $bgnId = currency_Currencies::getIdByCode('BGN');
+        $euroId = currency_Currencies::getIdByCode('EUR');
+
+        // От Евро в Лева (и обратно) се минава винаги през официалния курс 1.95593, за да не се получат разлики
+        // в нови системи няма курс на лева и се чупи логиката, ако гледаме от моделите
+        if($fromId == $bgnId && $toId == $euroId) {
+            return round($amount / 1.95583, 5);
+        } elseif($fromId == $euroId && $toId == $bgnId) {
+            return round($amount * 1.95583, 5);
         }
 
         return $amount * static::getRate($date, $from, $to);
