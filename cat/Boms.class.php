@@ -1768,7 +1768,6 @@ class cat_Boms extends core_Master
     public static function getTasksFromBom($id, $quantity = 1)
     {
         expect($rec = self::fetchRec($id));
-        $pName = cat_Products::getTitleById($rec->productId, false);
         $Details = cls::get('cat_BomDetails');
         $productStepClassId = planning_interface_StepProductDriver::getClassId();
 
@@ -1798,13 +1797,13 @@ class cat_Boms extends core_Master
             }
             
             $parent = $dRec->parentId;
-            while ($parent && ($pRec = cat_BomDetails::fetch($parent))) {
-                $q = cat_BomDetails::calcExpr($pRec->propQuantity, $pRec->params);
+            while ($parent && ($bRec = cat_BomDetails::fetch($parent))) {
+                $q = cat_BomDetails::calcExpr($bRec->propQuantity, $bRec->params);
                 if ($q == cat_BomDetails::CALC_ERROR) {
                     $q = 0;
                 }
                 $quantityP *= $q;
-                $parent = $pRec->parentId;
+                $parent = $bRec->parentId;
             }
 
             $quantityP = (($quantityP) / $rec->quantity) * $quantity;
@@ -1842,8 +1841,8 @@ class cat_Boms extends core_Master
             $pQuery = cat_products_Params::getQuery();
             $pQuery->where("#classId = '{$Details->getClassId()}' AND #productId = {$dRec->id}");
             $pQuery->show('paramId,paramValue');
-            while($pRec = $pQuery->fetch()){
-                $obj->params[$pRec->paramId] = $pRec->paramValue;
+            while($paramRec = $pQuery->fetch()){
+                $obj->params[$paramRec->paramId] = $paramRec->paramValue;
             }
 
             // Добавяме директните наследници на етапа като материали за влагане/отпадък
@@ -1868,7 +1867,7 @@ class cat_Boms extends core_Master
             $tasks[] = $obj;
         }
 
-        foreach ($tasks as $k => $defTask){
+        foreach ($tasks as $defTask){
             $siblingSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_parentId && $a->position < $defTask->_position;});
             $childrenSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_dId;});
 
@@ -2182,7 +2181,7 @@ class cat_Boms extends core_Master
 
             foreach ($dRecs as $bRec){
                 $bRec->parentId = $dRec->id;
-                $bRec->coefficient = $activeBom->quantity;
+                $bRec->coefficient = $activeBom ? $activeBom->quantity : $oldBomRec->quantity;
                 $this->regenDetailRec($bRec, $newBomRec, $oldBomRec, $cloneIfDetailsAreNewer);
             }
         }

@@ -1208,7 +1208,7 @@ class cat_BomDetails extends doc_Detail
     {
         $query = $this->getQuery();
         $query->where("#parentId = {$id}");
-        $query->show('resourceId,propQuantity,packagingId,quantityInPack');
+        $query->show('resourceId,propQuantity,packagingId,quantityInPack,type');
         $query->orderBy('resourceId', 'ASC');
         
         while ($rec = $query->fetch()) {
