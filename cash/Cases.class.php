@@ -9,7 +9,7 @@
  * @package   cash
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,7 +43,7 @@ class cash_Cases extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,blAmount,cashiers,activateRoles,selectUsers,selectRoles';
+    public $listFields = 'name,totalBlAmount,cashiers,activateRoles,selectUsers,selectRoles';
     
     
     /**
@@ -180,11 +180,13 @@ class cash_Cases extends core_Master
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
         $this->FLD('defaultPaymentType', 'key(mvc=cond_Payments,select=title,allowEmpty)', 'caption=Безналичен метод на плащане по подразбиране->Избор');
         $this->FLD('blAmount', 'double(decimals=2)', 'caption=Наличност->Сума,input=none,notNull,value=0');
+        $this->FLD('blAmountInWaitingReceipts', 'double(decimals=2)', 'caption=Наличност->По чакащи бележки,input=none,notNull,value=0');
+        $this->FNC('totalBlAmount', 'double(decimals=2)', 'caption=Наличност->Общо,input=none,notNull,value=0,single=show');
 
         $this->setDbUnique('name');
     }
-    
-    
+
+
     /**
      * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
@@ -194,20 +196,44 @@ class cash_Cases extends core_Master
             if (isset($fields['-list'])) {
                 $rec->name = $mvc->singleTitle . " \"{$rec->name}\"";
             }
+
+            $rec->totalBlAmount = $rec->blAmount + $rec->blAmountInWaitingReceipts;
         }
     }
-    
-    
+
+
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     protected static function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
         $stateClass = ($rec->state == 'rejected') ? ' state-rejected' : (($rec->state == 'closed' ? ' state-closed': ' state-active'));
-        $row->STATE_CLASS .= $stateClass;
-
+        $row->STATE_CLASS = ($row->STATE_CLASS ?? '') . $stateClass;
         if($mvc->getCurrent('id', false) != $rec->id){
             $row->ROW_ATTR['class'] = $stateClass;
+        }
+
+        if (isset($fields['-list'])) {
+            if(!empty($rec->blAmountInWaitingReceipts)){
+                $blAmountInWaitingReceipts = $mvc->getFieldType('blAmountInWaitingReceipts')->toVerbal($rec->blAmountInWaitingReceipts);
+                $row->totalBlAmount = ht::createHint($row->totalBlAmount, "Включено от чакащи ПОС бележки|*: {$blAmountInWaitingReceipts}", 'notice', false);
+            }
+        }
+
+        if (isset($fields['-single'])) {
+            $row->totalBlAmount = currency_Currencies::decorate($row->totalBlAmount, $row->currencyId, true);
+            $row->totalBlAmount = ht::styleNumber($row->totalBlAmount, $rec->totalBlAmount);
+
+            $row->currencyId = acc_Periods::getBaseCurrencyCode();
+            $row->blAmount = currency_Currencies::decorate($row->blAmount, $row->currencyId, true);
+            $row->blAmount = ht::styleNumber($row->blAmount, $rec->blAmount);
+            if(!empty($rec->blAmountInWaitingReceipts)){
+                $row->blAmountInWaitingReceipts = currency_Currencies::decorate($row->blAmountInWaitingReceipts, $row->currencyId, true);
+                $row->blAmountInWaitingReceipts = ht::styleNumber($row->blAmountInWaitingReceipts, $rec->blAmountInWaitingReceipts);
+            } else {
+                unset($row->blAmountInWaitingReceipts);
+                unset($row->blAmount);
+            }
         }
     }
 
@@ -217,7 +243,7 @@ class cash_Cases extends core_Master
      */
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
-        $data->listFields['blAmount'] .= '|*, ' . acc_Periods::getBaseCurrencyCode();
+        $data->listFields['totalBlAmount'] .= '|*, ' . acc_Periods::getBaseCurrencyCode();
     }
     
     
@@ -348,5 +374,29 @@ class cash_Cases extends core_Master
         $self->saveArray($res['update'], 'id,blAmount');
 
         core_Locks::release(self::SYNC_LOCK_KEY);
+    }
+
+
+    /**
+     * Изчисление на какви суми се очакват по чакащи пос бележки
+     *
+     * @param stdClass $rec
+     * @return void
+     */
+    public static function updateAmountInWaitingReceipts($rec)
+    {
+        $rec = self::fetchRec($rec);
+        if(empty($rec)) return;
+
+        $rec->blAmountInWaitingReceipts = 0;
+        $rQuery = pos_Receipts::getQuery();
+        $rQuery->EXT('caseId', 'pos_Points', 'externalName=caseId,externalKey=pointId');
+        $rQuery->where("#caseId = {$rec->id} AND #state = 'waiting'");
+        while($rRec = $rQuery->fetch()) {
+            $currencyCode = acc_Periods::getBaseCurrencyCode($rRec->createdOn);
+            $rec->blAmountInWaitingReceipts += currency_CurrencyRates::convertAmount($rRec->paid, dt::today(), $currencyCode);
+        }
+
+        self::save($rec, 'blAmountInWaitingReceipts');
     }
 }

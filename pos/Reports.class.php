@@ -735,6 +735,10 @@ class pos_Reports extends core_Master
             if ($count) {
                 core_Statuses::newStatus("|{$msg} бележки за продажба|*: {$count}");
             }
+
+            // Обновяване на чакащото по бележки на касата на точката
+            $pointRec = pos_Points::fetch($rec->pointId);
+            cash_Cases::updateAmountInWaitingReceipts($pointRec->caseId);
         }
     }
     
@@ -1028,7 +1032,7 @@ class pos_Reports extends core_Master
     public static function getReportReceiptIsIn($receiptId)
     {
         $reportQuery = pos_Reports::getQuery();
-        $reportQuery->where("#state = 'active' || #state = 'closed'");
+        $reportQuery->where("#state IN ('active', 'closed')");
         $reportQuery->show('details');
 
         // Опитваме се да намерим репорта в който е приключена бележката

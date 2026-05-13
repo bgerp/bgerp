@@ -203,6 +203,7 @@ class pos_Setup extends core_ProtoSetup
         'pos_Reports',
         'pos_SellableProductsCache',
         'migrate::updateNonCashPayments3024',
+        'migrate::updateCaseAmountInReceipts2620'
     );
 
 
@@ -303,6 +304,25 @@ class pos_Setup extends core_ProtoSetup
         while($posRec = $pointQuery->fetch()){
             $posRec->payments = keylist::fromArray($payments);
             pos_Points::save($posRec, 'payments');
+        }
+    }
+
+
+    /**
+     * Миграция на касовите наличности по бележки
+     */
+    public function updateCaseAmountInReceipts2620()
+    {
+        $Cases = cls::get('cash_Cases');
+        $Cases->setupMvc();
+
+        $pQuery = pos_Points::getQuery();
+        $pQuery->show('caseId');
+        $cases = arr::extractValuesFromArray($pQuery->fetchAll(), 'caseId');
+        if(!countR($cases)) return;
+
+        foreach ($cases as $caseId){
+            cash_Cases::updateAmountInWaitingReceipts($caseId);
         }
     }
 }
