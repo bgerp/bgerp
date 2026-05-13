@@ -79,8 +79,10 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Филтър по->Центрове,placeholder=Всички,after=groups');
         $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Филтър по->Склад,placeholder=Всички,after=centre');
 
+        $fieldset->FLD('seeWeight', 'enum(yes=да, no=не)', 'caption=Показване->Покажи тегло,after=storeId,single=none');
+
         //Групиране на резултата
-        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=storeId,single=none');
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=seeWeight,single=none');
 
 
         //Подредба на резултатите
@@ -94,7 +96,6 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         } else {
             $fieldset->FLD('groupsMat', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени материали->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
         }
-
 
         $fieldset->FNC('montsArr', 'varchar', 'caption=Месеци по,after=groupsMat,input=hiden,single=none');
         $fieldset->FNC('totalConsumed', 'varchar', 'caption=Обща стойност на вложените материали,after=montsArr,input=hiden,single=none');
@@ -135,10 +136,20 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('groupBy', 'no');
+
         $form->setDefault('orderBy', 'code');
+
         $form->setDefault('totalConsumed', null);
+
         $form->setDefault('consumedFrom', 'protocols');
+
         $form->setDefault('accProd', 'no');
+
+        $form->setDefault('seeWeight', 'no');
+
+        if ($rec->accProd != 'no') {
+            $form->setField('seeWeight', 'input=hidden');
+        }
 
         if (!core_Packs::isInstalled('extrapack')) {
             $form->setField('accProd', 'input=hidden');
@@ -521,6 +532,21 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $recs = $temp;
         }
 
+        //Добавяне на колона за теглото
+        if ($rec->seeWeight == 'yes' && $rec->groupBy == 'no' && $rec->accProd == 'no') {
+
+            foreach ($recs as $val) {
+
+                $prodRec = cat_Products::fetch($val->productId);
+
+                $prodWeight = sales_reports_SoldProductsRep::getProductWeight($prodRec);
+
+                $val->weight = (is_numeric($prodWeight)) ? $prodWeight * $val->quantity : 'n.a.';
+
+            }
+
+        }
+
         //Подредба на резултатите
         if (!is_null($recs) && $rec->accProd == 'no') {
             $typeOrder = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
@@ -572,6 +598,10 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
         $fld->FLD('amount', 'varchar', 'caption=Стойност,tdClass=centered');
 
+
+        if ($rec->seeWeight == 'yes') {
+            $fld->FLD('weight', 'double(smartRound,decimals=2)', "smartCenter,caption=Тегло->[кг]");
+        }
         $monthArr = $rec->montsArr;
         sort($monthArr);
         if ($rec->groupBy == 'month') {
@@ -602,12 +632,13 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 4;
+        $Double->params['decimals'] = 2;
         $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произв.', 'consum' => 'вл.')));
 
         $row = new stdClass();
 
         if ($rec->accProd == 'yes') {
+            $Double->params['decimals'] = 4;
 
             $accProd = $dRec->accProd ? $dRec->accProd : 'Няма';
             $row->accProd = $accProd;
@@ -679,6 +710,8 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
             }
         }
+
+        $row->weight = $Double->toVerbal($dRec->weight);
 
         if ($dRec->consumedType == 'prod' && $rec->consumed == 'yes') {
             $row->ROW_ATTR['class'] = 'bold state-active';
