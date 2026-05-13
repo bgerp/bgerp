@@ -1768,20 +1768,25 @@ class cat_Boms extends core_Master
     public static function getTasksFromBom($id, $quantity = 1)
     {
         expect($rec = self::fetchRec($id));
+        if (!$rec->quantity) {
+            $rec->quantity = 1;
+        }
         $Details = cls::get('cat_BomDetails');
         $productStepClassId = planning_interface_StepProductDriver::getClassId();
 
-        // Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
-        // А неговите подетапи са за влагане/отпадък
-        $onlySteps = $allStages = array();
+        // Едно извличане на всички детайли на рецептата; разделяме ги в масиви според предназначението
+        $onlySteps = $allStages = $stageParentCache = array();
         $query = cat_BomDetails::getQuery();
         $query->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $query->where("#bomId = {$rec->id}");
-        $query->where("#type = 'stage' AND #innerClass = {$productStepClassId}");
         $query->orderBy('parentId,position', 'ASC');
         while($dRec1 = $query->fetch()){
-            $allStages[$dRec1->id] = $dRec1;
-            if($dRec1->innerClass == $productStepClassId){
+            // Cache за parent lookup - всички детайли (parent винаги е stage, но няма вреда да са всички)
+            $stageParentCache[$dRec1->id] = $dRec1;
+
+            // Само етапите с productStepClass генерират задачи
+            if($dRec1->type == 'stage' && $dRec1->innerClass == $productStepClassId){
+                $allStages[$dRec1->id] = $dRec1;
                 $onlySteps[$dRec1->id] = $dRec1;
             }
         }
@@ -1795,9 +1800,12 @@ class cat_Boms extends core_Master
             if ($quantityP == cat_BomDetails::CALC_ERROR) {
                 $quantityP = 0;
             }
-            
+
             $parent = $dRec->parentId;
-            while ($parent && ($bRec = cat_BomDetails::fetch($parent))) {
+            while ($parent && isset($stageParentCache[$parent])) {
+                $bRec = $stageParentCache[$parent];
+                $bRec->params['$T'] = $quantity;
+                $bRec->params['$тираж_задание'] = $quantity;
                 $q = cat_BomDetails::calcExpr($bRec->propQuantity, $bRec->params);
                 if ($q == cat_BomDetails::CALC_ERROR) {
                     $q = 0;
@@ -1809,34 +1817,34 @@ class cat_Boms extends core_Master
             $quantityP = (($quantityP) / $rec->quantity) * $quantity;
             $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
-            $pRec = cat_Products::fetch($dRec->resourceId);
+            $productRec = cat_Products::fetch($dRec->resourceId);
             $obj = (object) array('title' => cat_Products::getTitleById($dRec->resourceId, false),
-                                  'plannedQuantity' => $q1,
-                                  'measureId' => $pRec->measureId,
-                                  'productId' => $dRec->resourceId,
-                                  'packagingId' => $dRec->packagingId,
-                                  'quantityInPack' => $dRec->quantityInPack,
-                                  'storeId' => $dRec->storeIn,
-                                  'centerId' => $dRec->centerId,
-                                  'fixedAssets' => $dRec->fixedAssets,
-                                  'employees' => $dRec->employees,
-                                  'indTime' => $dRec->norm,
-                                  '_inputPreviousSteps' => (($dRec->inputPreviousSteps == 'auto') ? planning_Setup::get('INPUT_PREVIOUS_BOM_STEP') : $dRec->inputPreviousSteps),
-                                  '_dId' => $dRec->id,
-                                  '_parentId' => $dRec->parentId,
-                                  '_position' => $dRec->position,
-								  'subTitle' => $dRec->subTitle,
-                                  'description' => $dRec->description,
-                                  'labelPackagingId' => $dRec->labelPackagingId,
-                                  'labelQuantityInPack' => $dRec->labelQuantityInPack,
-                                  'labelType' => $dRec->labelType,
-                                  'labelTemplate' => $dRec->labelTemplate,
-                                  'showadditionalUom' => ($pRec->planning_Steps_calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $pRec->planning_Steps_calcWeightMode,
-                                  'params' => array(),
-                                  'wasteProductId' => ($dRec->wasteProductId) ? $dRec->wasteProductId : $pRec->planning_Steps_wasteProductId,
-                                  'wasteStart' => ($dRec->wasteStart) ? $dRec->wasteStart : $pRec->planning_Steps_wasteStart,
-                                  'wastePercent' => ($dRec->wastePercent) ? $dRec->wastePercent : $pRec->planning_Steps_wastePercent,
-                                  'products' => array('input' => array(), 'waste' => array(), 'production' => array()));
+                'plannedQuantity' => $q1,
+                'measureId' => $productRec->measureId,
+                'productId' => $dRec->resourceId,
+                'packagingId' => $dRec->packagingId,
+                'quantityInPack' => $dRec->quantityInPack,
+                'storeId' => $dRec->storeIn,
+                'centerId' => $dRec->centerId,
+                'fixedAssets' => $dRec->fixedAssets,
+                'employees' => $dRec->employees,
+                'indTime' => $dRec->norm,
+                '_inputPreviousSteps' => (($dRec->inputPreviousSteps == 'auto') ? planning_Setup::get('INPUT_PREVIOUS_BOM_STEP') : $dRec->inputPreviousSteps),
+                '_dId' => $dRec->id,
+                '_parentId' => $dRec->parentId,
+                '_position' => $dRec->position,
+                'subTitle' => $dRec->subTitle,
+                'description' => $dRec->description,
+                'labelPackagingId' => $dRec->labelPackagingId,
+                'labelQuantityInPack' => $dRec->labelQuantityInPack,
+                'labelType' => $dRec->labelType,
+                'labelTemplate' => $dRec->labelTemplate,
+                'showadditionalUom' => ($productRec->planning_Steps_calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $productRec->planning_Steps_calcWeightMode,
+                'params' => array(),
+                'wasteProductId' => ($dRec->wasteProductId) ? $dRec->wasteProductId : $productRec->planning_Steps_wasteProductId,
+                'wasteStart' => ($dRec->wasteStart) ? $dRec->wasteStart : $productRec->planning_Steps_wasteStart,
+                'wastePercent' => ($dRec->wastePercent) ? $dRec->wastePercent : $productRec->planning_Steps_wastePercent,
+                'products' => array('input' => array(), 'waste' => array(), 'production' => array()));
 
             $pQuery = cat_products_Params::getQuery();
             $pQuery->where("#classId = '{$Details->getClassId()}' AND #productId = {$dRec->id}");
@@ -1846,21 +1854,17 @@ class cat_Boms extends core_Master
             }
 
             // Добавяме директните наследници на етапа като материали за влагане/отпадък
-            $query2 = cat_BomDetails::getQuery();
-            $query2->where("#parentId = {$dRec->id}");
-            $query2->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
-            $stageChildren = $query2->fetchAll();
+            foreach ($stageParentCache as $cRec) {
+                if ($cRec->parentId != $dRec->id) continue;
+                if ($cRec->innerClass == $productStepClassId) continue;
 
-            foreach ($stageChildren as $cRec){
-                if($cRec->innerClass != $productStepClassId){
-                    $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
-                    if ($quantityS == cat_BomDetails::CALC_ERROR) {
-                        $quantityS = 0;
-                    }
-
-                    $place = ($cRec->type == 'pop') ? 'waste' : ($cRec->type == 'subProduct' ? 'production': 'input');
-                    $obj->products[$place][] = array('productName' => cat_Products::getTitleById($cRec->resourceId), 'productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
+                $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
+                if ($quantityS == cat_BomDetails::CALC_ERROR) {
+                    $quantityS = 0;
                 }
+
+                $place = ($cRec->type == 'pop') ? 'waste' : ($cRec->type == 'subProduct' ? 'production': 'input');
+                $obj->products[$place][] = array('productName' => cat_Products::getTitleById($cRec->resourceId), 'productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
             }
 
             // Събираме задачите
@@ -1868,23 +1872,22 @@ class cat_Boms extends core_Master
         }
 
         foreach ($tasks as $defTask){
+            if ($defTask->_inputPreviousSteps != 'yes') continue;
+
             $siblingSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_parentId && $a->position < $defTask->_position;});
             $childrenSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_dId;});
 
             foreach (array($siblingSteps, $childrenSteps) as $arr){
-                if(countR($arr)){
-                    arr::sortObjects($arr, 'position', 'DESC');
-                    $foundStepId = key($arr);
-                    if($foundStepId){
-                        $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
-                        $foundStepTask = $foundStepArr[key($foundStepArr)];
-                        if($foundStepTask){
-                            if($defTask->_inputPreviousSteps == 'yes'){
-                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack, 'isPrevStep' => true);
-                            }
-                        }
-                    }
-                }
+                if(!countR($arr)) continue;
+                arr::sortObjects($arr, 'position', 'DESC');
+                $foundStepId = key($arr);
+                if(!$foundStepId) continue;
+
+                $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
+                if(!countR($foundStepArr)) continue;
+                $foundStepTask = reset($foundStepArr);
+
+                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack, 'isPrevStep' => true);
             }
         }
 
