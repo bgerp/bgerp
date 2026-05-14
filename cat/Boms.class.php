@@ -2261,11 +2261,10 @@ class cat_Boms extends core_Master
      *
      * @param stdClass $dRec               - ред от cat_BomDetails (мутира се)
      * @param int      $newValue           - id на новия материал
-     * @param array    $resourceByStages   - bomId => parentId => [resourceId => resourceId];
      *                                       обновява се при успешна подмяна
      * @return string|null                 - null при успех, иначе текст на грешката
      */
-    public static function tryReplaceBomMaterial($dRec, $newValue, &$resourceByStages)
+    public static function tryReplaceBomMaterial($dRec, $newValue)
     {
         $matRec = cat_Products::fetch($newValue, 'canConvert,measureId');
         if(empty($dRec->productId)){
@@ -2281,14 +2280,6 @@ class cat_Boms extends core_Master
             core_Permanent::set("receiptErrReplace_{$dRec->id}", $newValue, 1440);
             return "Участва в някоя от рецептите на другите материали";
         }
-
-        if (isset($resourceByStages[$dRec->bomId][$dRec->parentId]) && array_key_exists($newValue, $resourceByStages[$dRec->bomId][$dRec->parentId])) {
-            core_Permanent::set("receiptErrReplace_{$dRec->id}", $newValue, 1440);
-            return "Вече присъства на същия етап в рецептата";
-        }
-
-        unset($resourceByStages[$dRec->bomId][$dRec->parentId][$dRec->resourceId]);
-        $resourceByStages[$dRec->bomId][$dRec->parentId][$newValue] = $newValue;
         core_Permanent::remove("receiptErrReplace_{$dRec->id}");
 
         $dRec->resourceId     = $newValue;
@@ -2318,10 +2309,9 @@ class cat_Boms extends core_Master
         $dQuery->where("#bomId = {$rec->id}");
 
         // Групиране на детайлите по етапи
-        $dRecs = $resourceByStages = $paramsInBom = array();
+        $dRecs = $paramsInBom = array();
         while ($dRec = $dQuery->fetch()) {
             $dRecs[$dRec->id] = $dRec;
-            $resourceByStages[$dRec->bomId][$dRec->parentId][$dRec->resourceId] = $dRec->resourceId;
             if(!empty($dRec->paramId)){
                 $paramsInBom[$dRec->paramId] = $dRec->paramId;
             }
@@ -2348,7 +2338,7 @@ class cat_Boms extends core_Master
             if (!strlen($val)) continue;
 
             // Опит за подмяна на материала
-            $err = self::tryReplaceBomMaterial($dRec, $val, $resourceByStages);
+            $err = self::tryReplaceBomMaterial($dRec, $val);
             if ($err === null) {
                 $count++;
             } else {

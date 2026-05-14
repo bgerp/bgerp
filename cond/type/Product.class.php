@@ -181,16 +181,15 @@ class cond_type_Product extends cond_type_Varchar
         $bQuery->EXT('state',     'cat_Boms', 'externalName=state,externalKey=bomId');
         $bQuery->where("#productId = {$domainId} AND #state NOT IN ('rejected', 'closed')");
 
-        $details = $resourceByStages = array();
+        $details = array();
         while ($bRec = $bQuery->fetch()) {
-            $resourceByStages[$bRec->bomId][$bRec->parentId][$bRec->resourceId] = $bRec->resourceId;
             $details[$bRec->id] = $bRec;
         }
 
         $errors = $boms = array();
         foreach ($details as $bRec) {
             if ($bRec->paramId != $rec->id) continue;
-            $err = cat_Boms::tryReplaceBomMaterial($bRec, $newValue, $resourceByStages);
+            $err = cat_Boms::tryReplaceBomMaterial($bRec, $newValue);
 
             if ($err === null) {
                 $Boms->logWrite("Смяна на материал след променен параметър", $bRec->bomId);
