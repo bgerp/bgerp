@@ -46,6 +46,21 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
      */
     protected $groupByField;
 
+    /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields= 'amount,weight';
+
+
+    /**
+     * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
+     *
+     * @var int
+     */
+    protected $summaryRowCaption = 'ОБЩО';
+
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
