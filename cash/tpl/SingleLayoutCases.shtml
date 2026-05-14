@@ -2,7 +2,7 @@
     [#SingleToolbar#]
     <div class="folder-cover [#STATE_CLASS#]">
         <div class="inner-folder">
-            <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Каса|* <b style="color:green;">[#name#]</b> <span style="float:right;">|Налично|*: <b>[#totalBlAmount#]</b></span></div>
+            <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Каса|* <b style="color:green;">[#name#]</b></div>
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Информация|*</legend>
                 <div class="groupList">
@@ -22,24 +22,6 @@
                             </td>
                         </tr>
                         <!--ET_END creation-->
-
-                        <tr>
-                            <td class='dt'>|Налично (общо)|*:</td>
-                            <td><b>[#totalBlAmount#]</b></td>
-                        </tr>
-                        <!--ET_BEGIN blAmount-->
-                        <tr>
-                            <td class='dt'>|Налично (от баланса)|*:</td>
-                            <td><b>[#blAmount#]</b></td>
-                        </tr>
-                        <!--ET_END blAmount-->
-
-                        <!--ET_BEGIN blAmountInWaitingReceipts-->
-                        <tr>
-                            <td class='dt'>|Налично (от чак. бележки)|*:</td>
-                            <td><b>[#blAmountInWaitingReceipts#]</b></td>
-                        </tr>
-                        <!--ET_END blAmountInWaitingReceipts-->
                         <!--ET_BEGIN CloseTime-->
                         <tr>
                             <td class='dt'>|Затваряне на нишките|*:</td>
@@ -55,7 +37,14 @@
                     </table>
                 </div>
             </fieldset>
-            
+
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Касова наличност|*: <b style="color:green;">[#totalBlAmount#]</b></legend>
+                <div class="groupList">
+                    [#inCashData#]
+                </div>
+            </fieldset>
+
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Кой може да контира документи, в които е избрана касата|*</legend>
                 <div class="groupList">

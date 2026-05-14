@@ -203,7 +203,7 @@ class pos_Setup extends core_ProtoSetup
         'pos_Reports',
         'pos_SellableProductsCache',
         'migrate::updateNonCashPayments3024',
-        'migrate::updateCaseAmountInReceipts2620'
+        'migrate::updateCaseAmountInReceipts2620v2'
     );
 
 
@@ -311,7 +311,7 @@ class pos_Setup extends core_ProtoSetup
     /**
      * Миграция на касовите наличности по бележки
      */
-    public function updateCaseAmountInReceipts2620()
+    public function updateCaseAmountInReceipts2620v2()
     {
         $Cases = cls::get('cash_Cases');
         $Cases->setupMvc();

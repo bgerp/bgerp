@@ -180,8 +180,10 @@ class cash_Cases extends core_Master
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
         $this->FLD('defaultPaymentType', 'key(mvc=cond_Payments,select=title,allowEmpty)', 'caption=Безналичен метод на плащане по подразбиране->Избор');
         $this->FLD('blAmount', 'double(decimals=2)', 'caption=Наличност->Сума,input=none,notNull,value=0');
+        $this->FLD('blData', 'blob(serialize, compress)', 'caption=Кеширани данни->От баланса,input=none');
+        $this->FLD('posData', 'blob(serialize, compress)', 'caption=Кеширани данни->От POS,input=none');
         $this->FLD('blAmountInWaitingReceipts', 'double(decimals=2)', 'caption=Наличност->По чакащи бележки,input=none,notNull,value=0');
-        $this->FNC('totalBlAmount', 'double(decimals=2)', 'caption=Наличност->Общо,input=none,notNull,value=0,single=show');
+        $this->FNC('totalBlAmount', 'double(decimals=2)', 'caption=Наличност->В брой,input=none,notNull,value=0,single=show');
 
         $this->setDbUnique('name');
     }
@@ -223,17 +225,6 @@ class cash_Cases extends core_Master
         if (isset($fields['-single'])) {
             $row->totalBlAmount = currency_Currencies::decorate($row->totalBlAmount, $row->currencyId, true);
             $row->totalBlAmount = ht::styleNumber($row->totalBlAmount, $rec->totalBlAmount);
-
-            $row->currencyId = acc_Periods::getBaseCurrencyCode();
-            $row->blAmount = currency_Currencies::decorate($row->blAmount, $row->currencyId, true);
-            $row->blAmount = ht::styleNumber($row->blAmount, $rec->blAmount);
-            if(!empty($rec->blAmountInWaitingReceipts)){
-                $row->blAmountInWaitingReceipts = currency_Currencies::decorate($row->blAmountInWaitingReceipts, $row->currencyId, true);
-                $row->blAmountInWaitingReceipts = ht::styleNumber($row->blAmountInWaitingReceipts, $rec->blAmountInWaitingReceipts);
-            } else {
-                unset($row->blAmountInWaitingReceipts);
-                unset($row->blAmount);
-            }
         }
     }
 
@@ -245,8 +236,52 @@ class cash_Cases extends core_Master
     {
         $data->listFields['totalBlAmount'] .= '|*, ' . acc_Periods::getBaseCurrencyCode();
     }
-    
-    
+
+
+    /**
+     * След рендиране на еденичния изглед
+     */
+    protected static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+        $rec = &$data->rec;
+        $row = &$data->row;
+
+        $inCashRecs = $inCashRows = array();
+        foreach (array('blData' => 'blQuantity', 'posData' => 'posQuantity') as $varName => $varFld){
+            $d = $rec->{$varName};
+            if(is_array($d)){
+                foreach ($d as $cId => $cData){
+                    if(!array_key_exists($cId, $inCashRecs)){
+                        $inCashRecs[$cId] = (object)array('currencyId' => $cId, 'blQuantity' => 0, 'posQuantity' => 0, 'total' => 0);
+                    }
+                    $inCashRecs[$cId]->{$varFld} += $cData->quantity;
+                    $inCashRecs[$cId]->total += $cData->quantity;
+                }
+            }
+        }
+
+        $Double = core_Type::getByName('double(decimals=2)');
+        foreach ($inCashRecs as $cId => $cRec){
+            $cRow = new stdClass();
+            $cRow->currencyId = currency_Currencies::getCodeById($cId);
+            $cRow->blQuantity = ht::styleNumber($Double->toVerbal($cRec->blQuantity), $cRec->blQuantity);
+            $cRow->posQuantity = ht::styleNumber($Double->toVerbal($cRec->posQuantity), $cRec->posQuantity);
+            $cRow->total =  "<b>" . ht::styleNumber($Double->toVerbal($cRec->total), $cRec->total) . "</b>";
+            $inCashRows[$cId] = $cRow;
+        }
+
+        $fieldset = new core_FieldSet();
+        $fieldset->FLD('currencyId', 'varchar', 'smartCenter');
+        $fieldset->FLD('total', 'double');
+        $fieldset->FLD('blQuantity', 'double');
+        $fieldset->FLD('posQuantity', 'double');
+
+        $table = cls::get('core_TableView', array('mvc' => $fieldset));
+        $tableHtml = $table->get($inCashRows, 'currencyId=Валута,total=В брой,blQuantity=От баланса,posQuantity=От чакащи ПОС бележки');
+        $row->inCashData = $tableHtml;
+    }
+
+
     /**
      * Подготвя и осъществява търсене по каса, изпозлва се в касовите документи
      *
@@ -359,19 +394,21 @@ class cash_Cases extends core_Master
      */
     public static function sync($arr)
     {
-        $query = self::getQuery();
-        $query->show('id,blAmount');
-        $oldRecs = $query->fetchAll();
-        $res = arr::syncArrays($arr, $oldRecs, 'id', 'blAmount');
         if (!core_Locks::obtain(self::SYNC_LOCK_KEY, 60, 3, 1)) {
             self::logWarning('Синхронизирането на касовите наличности е заключено от друг процес');
 
             return;
         }
 
-        // Добавят се и се обновяват новите
-        $self = cls::get(get_called_class());
-        $self->saveArray($res['update'], 'id,blAmount');
+        $query = self::getQuery();
+        while($rec = $query->fetch()){
+            $rec->blData = null;
+            if(array_key_exists($rec->id, $arr)){
+                $rec->blAmount = arr::sumValuesArray($arr[$rec->id]->currencies, 'amount');
+                $rec->blData = $arr[$rec->id]->currencies;
+            }
+            cash_Cases::save($rec, 'blAmount,blData');
+        }
 
         core_Locks::release(self::SYNC_LOCK_KEY);
     }
@@ -388,15 +425,33 @@ class cash_Cases extends core_Master
         $rec = self::fetchRec($rec);
         if(empty($rec)) return;
 
-        $rec->blAmountInWaitingReceipts = 0;
-        $rQuery = pos_Receipts::getQuery();
-        $rQuery->EXT('caseId', 'pos_Points', 'externalName=caseId,externalKey=pointId');
-        $rQuery->where("#caseId = {$rec->id} AND #state = 'waiting'");
-        while($rRec = $rQuery->fetch()) {
-            $currencyCode = acc_Periods::getBaseCurrencyCode($rRec->createdOn);
-            $rec->blAmountInWaitingReceipts += currency_CurrencyRates::convertAmount($rRec->paid, dt::today(), $currencyCode);
-        }
+        $pointQuery = pos_Points::getQuery();
+        $pointQuery->where("#caseId = {$rec->id}");
+        $pointQuery->show('id');
+        $points = arr::extractValuesFromArray($pointQuery->fetchAll(), 'id');
+        if(!countR($points)) return;
 
-        self::save($rec, 'blAmountInWaitingReceipts');
+        $rQuery = pos_ReceiptDetails::getQuery();
+        $rQuery->EXT('pointId', 'pos_Receipts', 'externalName=pointId,externalKey=receiptId');
+        $rQuery->EXT('state', 'pos_Receipts', 'externalName=state,externalKey=receiptId');
+        $rQuery->EXT('rCreatedOn', 'pos_Receipts', 'externalName=createdOn,externalKey=receiptId');
+        $rQuery->where("#state = 'waiting' AND #action = 'payment|-1'");
+        $rQuery->in("pointId", $points);
+
+        $today = dt::today();
+        $posData = array();
+        while($rRec = $rQuery->fetch()) {
+            $currencyId = acc_Periods::getBaseCurrencyId($rRec->rCreatedOn);
+            $currencyCode = acc_Periods::getBaseCurrencyCode($rRec->rCreatedOn);
+            if(!array_key_exists($currencyId, $posData)){
+                $posData[$currencyId] = (object)array('quantity' => 0, 'amount' => 0);
+            }
+            $posData[$currencyId]->quantity += $rRec->amount;
+            $posData[$currencyId]->amount += currency_CurrencyRates::convertAmount($rRec->amount, $today, $currencyCode);
+        }
+        $rec->posData = countR($posData) ? $posData : null;
+        $rec->blAmountInWaitingReceipts = countR($posData) ? arr::sumValuesArray($posData, 'amount') : 0;
+
+        self::save($rec, 'blAmountInWaitingReceipts,posData');
     }
 }
