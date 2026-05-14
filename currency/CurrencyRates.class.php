@@ -331,10 +331,8 @@ class currency_CurrencyRates extends core_Detail
     
     /**
      *  Обменният курс на една валута спрямо друга към дата
+     *  Закръгля резултата до 5-тата цифра след дес. точка
      *
-     *  Закръгля резултата до 4-тата цифра след дес. точка
-     *
-     *  @param float      $amount Сума която ще обърнем
      *  @param datetime        $date   NULL = текущата дата
      *  @param string|null $from   Код на валутата от която ще обръщаме
      *                             NULL = базова валута към $date
@@ -385,6 +383,16 @@ class currency_CurrencyRates extends core_Detail
                 return round($rate, 5);
             }
         }
+
+        // Ако няма намерен курс и търсим BGN->EUR или EUR->BGN да е винаги по исторически курс
+        // в нови системи лева няма валутен курс и тази ф-я нямаше да връща нищо
+        $bgnId = currency_Currencies::getIdByCode('BGN');
+        $euroId = currency_Currencies::getIdByCode('EUR');
+        if($fromId == $bgnId && $toId == $euroId) {
+            return 0.51129;
+        } elseif($fromId == $euroId && $toId == $bgnId){
+            return 1.95583;
+        }
     }
     
     
@@ -424,7 +432,6 @@ class currency_CurrencyRates extends core_Detail
     protected static function getDirectRate($date, $fromId, $toId)
     {
         $rate = static::getStoredRate($date, $fromId, $toId);
-
         if (is_null($rate)) {
             if (!is_null($rate = static::getStoredRate($date, $toId, $fromId))) {
                 $rate = 1 / $rate;
