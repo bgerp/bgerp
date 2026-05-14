@@ -1212,6 +1212,7 @@ class cat_Boms extends core_Master
 
             if (static::save($nRec)) {
                 cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
+                self::replaceClonedBomProducts($nRec, $activeBom);
             } else {
                 core_Statuses::newStatus('|Грешка при клониране на запис', 'warning');
             }
@@ -2277,15 +2278,18 @@ class cat_Boms extends core_Master
         $BomDetails = cls::get('cat_BomDetails');
         $BomDetails->findNotAllowedProducts($newValue, $dRec->productId, $notAllowed);
         if (isset($notAllowed[$newValue])) {
+            core_Permanent::set("receiptErrReplace_{$dRec->id}", $newValue, 1440);
             return "Участва в някоя от рецептите на другите материали";
         }
 
         if (isset($resourceByStages[$dRec->bomId][$dRec->parentId]) && array_key_exists($newValue, $resourceByStages[$dRec->bomId][$dRec->parentId])) {
+            core_Permanent::set("receiptErrReplace_{$dRec->id}", $newValue, 1440);
             return "Вече присъства на същия етап в рецептата";
         }
 
         unset($resourceByStages[$dRec->bomId][$dRec->parentId][$dRec->resourceId]);
         $resourceByStages[$dRec->bomId][$dRec->parentId][$newValue] = $newValue;
+        core_Permanent::remove("receiptErrReplace_{$dRec->id}");
 
         $dRec->resourceId     = $newValue;
         $dRec->packagingId    = $matRec->measureId;
@@ -2300,17 +2304,18 @@ class cat_Boms extends core_Master
 
 
     /**
-     * След клониране на записа
+     * При клониране на рецепта да се подменят артикулите от зависими параметри
      *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec  - клонирания запис
-     * @param stdClass $nRec - новия запис
+     * @param stdClass $rec
+     * @param stdClass $clonedFromRec
+     * @return void
      */
-    protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    public static function replaceClonedBomProducts($rec, $clonedFromRec)
     {
+        // Ако е чисто клониране няма да се прави нищо
         $dQuery = cat_BomDetails::getQuery();
         $dQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
-        $dQuery->where("#bomId = {$nRec->id}");
+        $dQuery->where("#bomId = {$rec->id}");
 
         // Групиране на детайлите по етапи
         $dRecs = $resourceByStages = $paramsInBom = array();
@@ -2328,7 +2333,7 @@ class cat_Boms extends core_Master
 
         // Извличане на параметрите на артикула
         Mode::push('doNotCalculate', true);
-        $params = cat_Products::getParams($nRec->productId);
+        $params = cat_Products::getParams($rec->productId);
         Mode::pop('doNotCalculate');
 
         $errors = array();

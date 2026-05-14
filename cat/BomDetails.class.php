@@ -270,8 +270,8 @@ class cat_BomDetails extends doc_Detail
             $form->setReadOnly('parentId');
         }
 
-        // Ако ще се добавя материал показват се за избор и параметрите от тип група артикули
-        if($rec->type == 'input'){
+        // Ако ще се добавя материал показват се за избор и параметрите от тип група артикули (ако е търговска)
+        if($rec->type == 'input' && $data->masterRec->type == 'sales'){
             $paramOptions = array();
             $paramQuery = cat_Params::getQuery();
             $paramQuery->where("#state = 'active' AND #driverClass = " . cond_type_Product::getClassId());
@@ -828,6 +828,12 @@ class cat_BomDetails extends doc_Detail
             if(!empty($rec->paramId)){
                 $row->resourceId = ht::createHint("<span style='color:blue'>{$row->resourceId}</span>", "Материалът ще бъде подменен при промяна на стойноста на параметъра|*: {$row->paramId}", 'warning', false);
                 $row->paramId = cat_Params::getHyperlink($rec->paramId);
+
+                if($errorProductId = core_Permanent::get("receiptErrReplace_{$rec->id}")){
+                    $pCode = cat_Products::fetchField($errorProductId, 'code');
+                    $pCode = $pCode ?? "Art{$errorProductId}";
+                    $row->resourceId = ht::createHint("<span style='color:blue'>{$row->resourceId}</span>", "Имало е неуспешен опит за авт. промяна на материала при промяна на параметъра на|*: [{$pCode}]", 'error', false);
+                }
             }
         }
 
@@ -1541,6 +1547,10 @@ class cat_BomDetails extends doc_Detail
                     $dRec->parentId = $componentId;
                 } else {
                     $dRec->parentId = $map[$dRec->parentId];
+                }
+
+                if($toRec->type != 'sales'){
+                    unset($dRec->paramId);
                 }
 
                 // Добавяме записа
