@@ -197,10 +197,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         // Кои оператори са въведени досега
+        $selectedEmployeesByNowKeylist = '';
+        $lastEmployees = null;
         $defaultFillUser = planning_Setup::get('TASK_PROGRESS_OPERATOR');
         if(in_array($defaultFillUser, array('lastAndOptional', 'lastAndMandatory'))){
-            $lastEmployees = null;
-            $selectedEmployeesByNowKeylist = '';
             $query = $mvc->getQuery();
             $query->where("#taskId = {$rec->taskId} AND #employees IS NOT NULL");
             $query->orderBy('id', 'ASC');
@@ -562,9 +562,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             if (!$form->gotErrors()) {
                 if ($rec->type == 'scrap') {
                     if (empty($rec->quantity) && empty($rec->weight)) {
-                        $rec->quantity = $rec->_defaultScrapQuantity;
-                        $rec->weight = $rec->_defaultScrapWeight;
-                        $rec->netWeight = $rec->_defaultScrapNetWeight;
+                        $rec->quantity = $rec->_defaultScrapQuantity ?? null;
+                        $rec->weight = $rec->_defaultScrapWeight ?? null;
+                        $rec->netWeight = $rec->_defaultScrapNetWeight ?? null;
                     } elseif (!empty($rec->quantity) && empty($rec->weight)) {
                         if (isset($rec->_defaultScrapWeight)) {
                             $singleWeight = $rec->_defaultScrapWeight / $rec->_defaultScrapQuantity;
@@ -624,9 +624,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                         $rec->employees = keylist::merge($rec->employees, $rec->otherEmployees);
                     }
 
-                    if ($rec->_isKgMeasureId) {
+                    if (!empty($rec->_isKgMeasureId)) {
                         $rec->quantity = !empty($rec->quantity) ? $rec->quantity : ((!empty($rec->netWeight)) ? $rec->netWeight : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1));
-                        $rec->weight = $rec->weight;
                     } else {
                         $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
                     }
@@ -915,7 +914,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     private static function getProgressSerialInfo($serial, $productId, $taskId, $type)
     {
         $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId,assetId');
-        $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
+        $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown', 'totalQuantity' => 0);
 
         // Търси се в другите ПО от това задание дали вече се използва този сериен номер
         // със същата опаковка за етикетиране
@@ -946,7 +945,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         while($rec = $query->fetch()){
 
             if(!array_key_exists($rec->taskId, $foundRecs)){
-                $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
+                $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing', 'quantity' => 0);
             }
             $sign = ($rec->type == 'scrap') ? -1 : 1;
             $quantity = $rec->quantity;
