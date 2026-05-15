@@ -639,7 +639,7 @@ class cat_Products extends embed_Manager
             if (isset($rec->folderId)) {
                 $Cover = doc_Folders::getCover($rec->folderId);
                 if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
-                    $cond = ($form->_cloneForm !== true) ? "AND #id != '{$rec->id}'" : '';
+                    $cond = (($form->_cloneForm ?? false) !== true) ? "AND #id != '{$rec->id}'" : '';
                     while (cat_Products::fetchField(array("#folderId = {$rec->folderId} AND #name = '[#1#]' {$cond}", $rec->name), 'id')) {
                         $rec->name = str::addIncrementSuffix($rec->name, 'v', 2);
                     }
@@ -4155,7 +4155,7 @@ class cat_Products extends embed_Manager
      */
     public function getExportMasterFieldName($class)
     {
-        setIfNot($productFldName, cls::get($class)->productFld, 'productId');
+        $productFldName = cls::get($class)->productFld ?? 'productId';
 
         return $productFldName;
     }

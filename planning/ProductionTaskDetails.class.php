@@ -414,7 +414,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr(keylist::toArray($selectedEmployeesByNowKeylist) + keylist::toArray($masterRec->employees)) : planning_Hr::getByFolderId($masterRec->folderId, $selectedEmployeesByNowKeylist);
-
         if (countR($employees)) {
             $form->setSuggestions('employees', array('' => '') + $employees);
             $form->setField('employees', 'input');
@@ -1450,7 +1449,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             Mode::setPermanent("newAsset{$rec->taskId}", $rec->newAssetId);
         }
 
-        if($rec->_serialIsForced){
+        if($rec->_serialIsForced ?? null){
             plg_Search::forceUpdateKeywords($mvc, $rec);
         }
     }

@@ -123,13 +123,14 @@ class core_RowToolbar extends core_BaseClass
     {
         $ids = arr::make($ids, true);
         $remains = arr::make($remains, true);
+        $cnt = 0;
         foreach ($this->links as $id => $btn) {
             if (($ids['*'] || $ids[$id]) && !$remains[$id]) {
                 unset($this->links[$id]);
                 $cnt++;
             }
         }
-        
+
         return $cnt;
     }
     
@@ -207,12 +208,11 @@ class core_RowToolbar extends core_BaseClass
             $layout = new core_ET('<span>[#ROW_TOOLS#]</span>');
             foreach ($this->links as $linkObj) {
                 setIfNot($linkObj->attr['hint'], $linkObj->title);
-                $linkObj->attr['title'] = $linkObj->attr['title'];
 
                 $btnTitle = '';
                 $attr = (array) $linkObj->attr;
 
-                if ($linkObj->fn) {
+                if (isset($linkObj->fn)) {
                     $attr['onclick'] = $linkObj->fn;
                     $attr['onMouseOver'] = "document.body.style.cursor = 'pointer';";
                     $attr['onMouseLeave'] = "document.body.style.cursor = '';";
@@ -226,7 +226,7 @@ class core_RowToolbar extends core_BaseClass
                         }
                     }
                 }
-                $btn = ht::createLink($btnTitle, $linkObj->url, tr($linkObj->error ? $linkObj->error : $linkObj->warning), $attr);
+                $btn = ht::createLink($btnTitle, $linkObj->url, tr(($linkObj->error ?? null) ?: ($linkObj->warning ?? null)), $attr);
 
                 $layout->append($btn, 'ROW_TOOLS');
             }
@@ -258,13 +258,13 @@ class core_RowToolbar extends core_BaseClass
                     }
                 }
 
-                if ($linkObj->fn) {
+                if (isset($linkObj->fn)) {
                     $attr['onclick'] = $linkObj->fn;
                     $attr['onMouseOver'] = "document.body.style.cursor = 'pointer';";
                     $attr['onMouseLeave'] = "document.body.style.cursor = '';";
                 }
 
-                $link = ht::createLink($btnTitle, $linkObj->url, $linkObj->error ? $linkObj->error : $linkObj->warning, $attr);
+                $link = ht::createLink($btnTitle, $linkObj->url, ($linkObj->error ?? null) ?: ($linkObj->warning ?? null), $attr);
                 $layout->append($link, $placeholder);
             }
             

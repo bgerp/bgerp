@@ -1010,6 +1010,6 @@ class acc_ValueCorrections extends core_Master
         }
         $amount = round($amount / $rec->rate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'isReverse' => $rec->action == 'decrease');
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'isReverse' => $rec->action == 'decrease', 'cashDiscount' => null);
     }
 }

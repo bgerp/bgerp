@@ -50,6 +50,7 @@ class help_Plugin extends core_Plugin
                 $rec->lg = $lg;
             } else {
                 // Трябва ли да бъде първоначално отворен хинта и дали въобще да го показваме?
+                $mustSeeClass = '';
                 switch (help_Log::getDisplayMode($rec->id)) {
                     case 'open':
                         $mustSeeClass = 'show-tooltip';
@@ -69,10 +70,10 @@ class help_Plugin extends core_Plugin
             $img = ht::createElement('img', array('src' => $imageUrl, 'alt' => 'help'));
             $hintBtn = new ET("<a class='tooltip-button'>[#1#]</a>", $img);
             $convertText = cls::get('type_Richtext');
-            $hintText = $convertText->toVerbal($rec->text . '');
+            $hintText = $convertText->toVerbal(($rec->text ?? '') . '');
             if (haveRole('help')) {
                 $imgEdit = ht::createElement('img', array('src' => sbf('img/16/edit-icon.png', ''), 'alt' => 'edit'));
-                if (!$rec->id) {
+                if (!($rec->id ?? null)) {
                     $urlAE = array('help_Info', 'add', 'class' => $ctr, 'action' => $act, 'lg' => $lg, 'ret_url' => true);
                 } else {
                     $urlAE = array('help_Info', 'edit', $rec->id, 'ret_url' => true);
@@ -80,7 +81,7 @@ class help_Plugin extends core_Plugin
                 $hintText .= ht::createLink($imgEdit, $urlAE, null, array('class' => 'edit-tooltip'));
             }
             
-            if ($rec->url) {
+            if ($rec->url ?? null) {
                 $hintText .= "<div class='clearfix21'><div style='float:right;font-size:0.8em;'>" . ht::createLink('» виж документацията', $rec->url, null, 'target=_blank') . '</div></div>';
             }
             

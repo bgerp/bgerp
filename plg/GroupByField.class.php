@@ -37,8 +37,7 @@ class plg_GroupByField extends core_Plugin
         
         $recs = &$data->recs;
         
-        $field = null;
-        setIfNot($field, $data->groupByField, $mvc->groupByField);
+        $field = $data->groupByField ?? $mvc->groupByField;
         
         // Ако не е зададено поле за групиране, не правим нищо
         if (!$field) {

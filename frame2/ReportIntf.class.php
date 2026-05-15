@@ -273,4 +273,16 @@ class frame2_ReportIntf extends embed_DriverIntf
     {
         return $this->class->getLog($rec);
     }
+
+
+    /**
+     *  Връща сериите за експорт
+     * 
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getSeriesForExport($rec)
+    {
+        return $this->class->getSeriesForExport($rec);
+    }
 }

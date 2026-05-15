@@ -27,8 +27,8 @@ class doc_LikesPlg extends core_Plugin
     public function on_AfterDescription(&$mvc)
     {
         // Дали мжое да се редактират активирани документи
-        setIfNot($mvc->canLike, 'user');
-        setIfNot($mvc->canDislike, 'user');
+        setPartIfNot($mvc, 'canLike', 'user');
+        setPartIfNot($mvc, 'canDislike', 'user');
     }
     
     

@@ -82,6 +82,12 @@ class bank_SpendingDocuments extends bank_Document
 
 
     /**
+     * Да се реконтира ли документа при промяна на разпределянето на фактурите?
+     */
+    public $recontoWhenChange = true;
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -140,21 +146,32 @@ class bank_SpendingDocuments extends bank_Document
             $form->setField('earlyPaymentPercent', 'input');
 
             // И нейния метод за плащане е с отстъпка за предсрочно плащане
-            if($paymentMethodId = $firstDoc->fetchField('paymentMethodId')){
-                $paymentRec = cond_PaymentMethods::fetch($paymentMethodId);
-                if(!empty($paymentRec->discountPercent) && !empty($paymentRec->discountPeriod)){
+            $paymentMethodId = $firstDoc->fetchField('paymentMethodId');
+            if(isset($paymentMethodId)){
+                if(!isset($rec->id)){
+                    $paymentRec = cond_PaymentMethods::fetch($paymentMethodId);
+                    if(!empty($paymentRec->discountPercent) && !empty($paymentRec->discountPeriod)){
 
-                    // Ако е към входяща фактура да излизат попълнени данните за плащането
-                    if(isset($rec->originId)) {
-                        $originDoc = doc_Containers::getDocument($rec->originId);
-                        if($originDoc->isInstanceOf('purchase_Invoices')){
-                            $form->setDefault('earlyPaymentPercent', $paymentRec->discountPercent);
-                            $form->setDefault('earlyPaymentUntil', dt::addSecs($paymentRec->discountPeriod, $originDoc->fetchField('date')));
-                        } elseif($originDoc->isInstanceOf('purchase_Purchases')){
+                        // Ако е към входяща фактура да излизат попълнени данните за плащането
+                        if(isset($rec->originId)) {
+                            $originDoc = doc_Containers::getDocument($rec->originId);
+                            if($originDoc->isInstanceOf('purchase_Invoices')){
+                                $form->setDefault('earlyPaymentPercent', $paymentRec->discountPercent);
+                                $form->setDefault('earlyPaymentUntil', dt::addSecs($paymentRec->discountPeriod, $originDoc->fetchField('date')));
+                            } elseif($originDoc->isInstanceOf('purchase_Purchases')){
+                                $form->setDefault('earlyPaymentPercent', $paymentRec->discountPercent);
+                            }
+                        } else {
                             $form->setDefault('earlyPaymentPercent', $paymentRec->discountPercent);
                         }
-                    } else {
-                        $form->setDefault('earlyPaymentPercent', $paymentRec->discountPercent);
+                    }
+                } else {
+                    $containerId = $rec->containerId ?? $mvc->fetchField($rec->id, 'containerId');
+                    $invoices = deals_InvoicesToDocuments::getInvoiceArr($containerId);
+                    if(countR($invoices)){
+                        $form->setField('earlyPaymentUntil', array("caption" => "Отстъпка за предсрочно плащане->Не може да се променя датата и отстъпката, докато има разпределени фактури|*!->Краен срок"));
+                        $form->setReadOnly('earlyPaymentUntil');
+                        $form->setReadOnly('earlyPaymentPercent');
                     }
                 }
             }

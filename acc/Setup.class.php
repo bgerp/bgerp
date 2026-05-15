@@ -497,10 +497,10 @@ class acc_Setup extends core_ProtoSetup
      */
     public $cronSettings = array(
         array(
-            'systemId' => 'Fix Items',
-            'description' => 'Поправка на пера',
+            'systemId' => 'Fix Items And Docs',
+            'description' => 'Поправка на пера и документи',
             'controller' => 'acc_Items',
-            'action' => 'FixItems',
+            'action' => 'FixItemsAndDocs',
             'period' => 1440,
             'offset' => 60,
             'timeLimit' => 300

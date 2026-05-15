@@ -18,14 +18,7 @@
 	<!--ET_BEGIN STATE_EXTERNAL-->
 	<div style='padding-bottom:5px'>[#STATE_EXTERNAL#]</div>
 	<!--ET_END STATE_EXTERNAL-->
-	<div class="eshop-product-images">
-		[#image#]
-		[#image2#]
-		[#image3#]
-		[#image4#]
-		[#image5#]
-	</div>
-	
+	[#IMAGES_BLOCK#]
 	<!--ET_BEGIN PRODUCT_OPT-->
 	<div class="scrolling-holder" style="margin: 15px 0;">
 		[#PRODUCT_OPT#]

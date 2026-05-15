@@ -249,12 +249,15 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if (!$defaultFilterDateField) {
                         $defaultFilterDateField = $f;
                     }
-                    $caption = $data->listFilter->getField($f)->caption;
-                    if (strpos($caption, '->')) {
-                        list($l, $r) = explode('->', $caption);
-                        $caption = tr($l) . ' » ' . tr($r);
+                    $fField = $data->listFilter->getField($f);
+                    if(!empty($fField)){
+                        $caption = $fField->caption;
+                        if (strpos($caption, '->')) {
+                            list($l, $r) = explode('->', $caption);
+                            $caption = tr($l) . ' » ' . tr($r);
+                        }
+                        $opt[] = $f . '=' . $caption;
                     }
-                    $opt[] = $f . '=' . $caption;
                 }
                 $data->listFilter->FLD('filterDateField', 'enum(' . implode(',', $opt) . ')', 'width=6em,caption=Филтър по||Filter by,silent,input');
                 $showFilterDateField = ',filterDateField';
@@ -272,9 +275,8 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
         
         $fields = $data->listFilter->selectFields();
-        
         if (isset($fields['search'])) {
-            $data->listFilter->showFields .= 'search';
+            $data->listFilter->showFields .= (!empty($data->listFilter->showFields) ? ',' : '') . 'search';
         }
 
         if(!$mvc->hidePeriodFilter){
@@ -333,7 +335,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
 
         // Ако има поле по валута да се филтрира по нея
-        if($mvc->getField($mvc->currencyFld, false)){
+        if(!empty($mvc->currencyFld) && $mvc->getField($mvc->currencyFld, false)){
             $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ", {$mvc->currencyFld}";
             $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setField($mvc->currencyFld, "caption=Валута,input,formOrder=1000");
@@ -378,7 +380,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         // Ако формата за търсене е изпратена
         if ($filter = $data->listFilter->rec) {
-            if(!empty($filter->{$mvc->currencyFld})){
+            if(!empty($mvc->currencyFld) && !empty($filter->{$mvc->currencyFld})){
                 $data->query->where("#{$mvc->currencyFld} = '{$filter->{$mvc->currencyFld}}'");
             }
 
@@ -407,18 +409,18 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
             
             // Филтрираме по потребители
-            if ($filter->users && $isDocument) {
+            if (!empty($filter->users) && $isDocument) {
                 $userIds = keylist::toArray($filter->users);
 
                 // Ако не се търси по всички
                 if ($usedUsers != 'all_users') {
                     $userArr = implode(',', $userIds);
 
-                    if(in_array($filter->filterDateField, $userFields)){
+                    if(!empty($filter->filterDateField) && in_array($filter->filterDateField, $userFields)){
                         $data->query->where("#{$filter->filterDateField} IN ({$userArr})");
                     } else {
                         $map = array('createdOn' => 'createdBy', 'modifiedOn' => 'modifiedBy', 'activatedOn' => 'activatedBy');
-                        $useUserField = isset($map[$filter->filterDateField]) ? $map[$filter->filterDateField] : $mvc->filterFieldUsers;
+                        $useUserField = $map[$filter->filterDateField] ?? $mvc->filterFieldUsers;
 
                         $data->query->where("#{$useUserField} IN ({$userArr})");
                         if(!isset($map[$filter->filterDateField]) && $useUserField != $mvc->filterFieldUsers){
@@ -429,11 +431,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
 
             $dateRange = array(null, null);
-            if ($filter->from) {
+            if (!empty($filter->from)) {
                 $dateRange[0] = $filter->from;
             }
             
-            if ($filter->to) {
+            if (!empty($filter->to)) {
                 $dateRange[1] = $filter->to;
             }
 
@@ -519,8 +521,8 @@ class acc_plg_DocumentSummary extends core_Plugin
                 }
 
                 if (($fromField == 'createdOn') || ($toField == 'createdOn')) {
-                    $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
-                    $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
+                    $fF = !empty($mvc->filterDateFrom) ? $mvc->filterDateFrom : 'from';
+                    $fT = !empty($mvc->filterDateTo) ? $mvc->filterDateTo : 'to';
                     if ($data->listFilter->rec->{$fF} || $data->listFilter->rec->{$fT}) {
                         $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('createdOn'))));
                         $data->query->useIndex($indexName);
@@ -554,7 +556,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
         // Ако няма заявка, да не се изпълнява
-        if (!$data->listSummary->query) {
+        if (empty($data->listSummary->query)) {
             
             return ;
         }
@@ -580,7 +582,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $eurozoneDate = acc_Setup::getEurozoneDate();
         $data->hasDocumentBeforeEu = false;
         while ($rec = $sQuery->fetch()) {
-            if(isset($mvc->valiorFld) && $rec->{$mvc->valiorFld}) {
+            if(isset($mvc->valiorFld) && !empty($rec->{$mvc->valiorFld})) {
                 if($rec->{$mvc->valiorFld} < $eurozoneDate){
                     $data->hasDocumentBeforeEu = true;
                 }
@@ -618,8 +620,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     public static function on_AfterRenderListSummary($mvc, &$tpl, $data)
     {
-
-        if ($data->listSummary->summary) {
+        if (!empty($data->listSummary->summary)) {
             $tpl = self::renderSummary($data);
         }
         
@@ -683,16 +684,14 @@ class acc_plg_DocumentSummary extends core_Plugin
     /**
      * Рендира обобщението
      *
-     * @param array $res - Масив от записи за показване
-     *
+     * @param array $data - Масив от записи за показване
      * @return core_ET $tpl - Шаблон на обобщението
      */
     private static function renderSummary($data)
     {
         // Зареждаме и подготвяме шаблона
-        $double = cls::get('type_Double');
-        $int = cls::get('type_Int');
-        $double->params['decimals'] = 2;
+        $Double = core_Type::getByName('double(decimals=2)');
+        $Int = core_Type::getByName('int');
         $tpl = new ET(tr('|*' . getFileContent('acc/plg/tpl/Summary.shtml')));
         $rowTpl = $tpl->getBlock('ROW');
 
@@ -704,21 +703,21 @@ class acc_plg_DocumentSummary extends core_Plugin
 
                 $row->colspan = 1;
                 if (isset($rec->amount)) {
-                    $row->amount = $double->toVerbal($rec->amount);
+                    $row->amount = $Double->toVerbal($rec->amount);
                     $row->amount = currency_Currencies::decorate($row->amount,  $rec->measure, true);
                     $row->amount = ht::styleNumber($row->amount, $rec->amount);
 
-                    if($data->hasDocumentBeforeEu){
+                    if(!empty($data->hasDocumentBeforeEu)){
                         $amountBgn = currency_CurrencyRates::convertAmount($rec->amount, null, 'EUR', 'BGN');
-                        $row->amountBgn = $double->toVerbal($amountBgn);
+                        $row->amountBgn = $Double->toVerbal($amountBgn);
                         $row->amountBgn = currency_Currencies::decorate($row->amountBgn,  'BGN');
                         $row->amountBgn = ht::styleNumber($row->amountBgn, $amountBgn);
                     }
                 } elseif (isset($rec->quantity)) {
                     $row->measure = $rec->measure;
-                    $row->quantity = $int->toVerbal($rec->quantity);
+                    $row->quantity = $Int->toVerbal($rec->quantity);
                     $row->quantity = ($rec->quantity < 0) ? "<span style='color:red'>{$row->quantity}</span>" : $row->quantity;
-                    if($data->hasDocumentBeforeEu){
+                    if(!empty($data->hasDocumentBeforeEu)){
                         $row->colspan = 3;
                     }
                 }

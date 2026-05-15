@@ -154,14 +154,27 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                         'quantity' => $sign * round($creditQuantity, 2)));
 
                 if($hasEarlierPayment){
-                    $entry[] = array('amount' => $sign * round($amountDiscount, 2),
-                        'debit' => array($rec->debitAccId,
-                            array($rec->contragentClassId, $rec->contragentId),
-                            array($origin->className, $origin->that),
-                            array('currency_Currencies', $rec->dealCurrencyId),
-                            'quantity' => $sign * round($debitDiscount, 2)),
-                        'credit' => array(729));
 
+                    // Ако има разпределени кредитни приспадат се от сумата за сконто
+                    $invoices = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+                    $creditAmount = 0;
+                    array_walk($invoices, function(&$iRec) use (&$creditAmount){
+                        if($iRec->amount <= 0){
+                            $creditAmount += abs($iRec->amount);
+                        }
+                    });
+
+                    $amountDiscount -= $creditAmount;
+                    $debitDiscount -= $creditAmount;
+                    if(round($amountDiscount, 2) >= 0){
+                        $entry[] = array('amount' => $sign * round($amountDiscount, 2),
+                            'debit' => array($rec->debitAccId,
+                                array($rec->contragentClassId, $rec->contragentId),
+                                array($origin->className, $origin->that),
+                                array('currency_Currencies', $rec->dealCurrencyId),
+                                'quantity' => $sign * round($debitDiscount, 2)),
+                            'credit' => array(729), 'reason' => "Сконто (отстъпка) за ранно плащане");
+                    }
                 }
             } else {
 
@@ -203,7 +216,7 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                         'debit' => array(481,
                             array('currency_Currencies', $currencyId481),
                             'quantity' => $sign * round($amountDiscount, 2)),
-                        'credit' => array(729));
+                        'credit' => array(729), 'reason' => "Сконто (отстъпка) за ранно плащане");
 
                 }
             }

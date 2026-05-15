@@ -539,7 +539,7 @@ class eshop_Carts extends core_Master
         $rec->haveProductsWithExpectedDelivery = 'no';
         $settings = cms_Domains::getSettings($rec->domainId);
 
-        if($rec->_haveRecalcedAutoDiscounts === false){
+        if(($rec->_haveRecalcedAutoDiscounts ?? null) === false){
             foreach ($dRecs as $dRec1) {
                 $dRec1->autoDiscount = null;
             }
@@ -1621,7 +1621,7 @@ class eshop_Carts extends core_Master
         $tpl = self::renderView($rec);
         
         // Редирект ако количката се е ъпдейтнала
-        if($rec->_updatedPrice === true){
+        if(($rec->_updatedPrice ?? false) === true){
             
             return new Redirect(array($this, 'view', $rec->id));
         }

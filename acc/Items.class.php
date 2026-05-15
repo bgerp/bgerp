@@ -908,7 +908,7 @@ class acc_Items extends core_Manager
     /**
      * Изтрива всички затворени и неизползвани пера
      */
-    public function cron_FixItems()
+    public function cron_FixItemsAndDocs()
     {
         // Изтриват се неизползваните пера
         $numRows = $this->delete("#state = 'closed' AND #lastUseOn IS NULL");
@@ -974,6 +974,8 @@ class acc_Items extends core_Manager
         }
 
         $this->logWrite("Поправени пера {$count}");
+
+        acc_Journal::fixPostedDocsWithoutValior();
     }
     
     

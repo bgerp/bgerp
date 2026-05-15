@@ -188,7 +188,7 @@ class cond_VatExceptions extends core_Manager
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Ако не е ръчно сменено състоянието
-        if(!$rec->_manualStateChange){
+        if(empty($rec->_manualStateChange)){
             $mvc->syncState($rec);
         }
     }

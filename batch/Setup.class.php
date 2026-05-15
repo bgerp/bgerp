@@ -151,8 +151,27 @@ class batch_Setup extends core_ProtoSetup
             'timeLimit' => 60
         ),
     );
-    
-    
+
+
+    /**
+     * Описание на системните действия
+     */
+    public $systemActions = array(
+        array(
+            'title' => 'Регенериране',
+            'url' => array(
+                'batch_Items',
+                'recalc',
+                'ret_url' => true
+            ),
+            'params' => array(
+                'title' => 'Регенериране на движенията на партидите от документите',
+                'ef_icon' => 'img/16/arrow_refresh.png'
+            ),
+            'roles' => 'debug',
+        ),);
+
+
     /**
      * Инсталиране на пакета
      */

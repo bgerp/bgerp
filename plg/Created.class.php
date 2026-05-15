@@ -32,8 +32,8 @@ class plg_Created extends core_Plugin
         }
 
         // По подразбиране никой не може да редактира данни, записани от системата
-        setIfNot($invoker->canEditsysdata, 'no_one');
-        setIfNot($invoker->canDeletesysdata, 'no_one');
+        setPartIfNot($invoker, 'canEditsysdata', 'no_one');
+        setPartIfNot($invoker, 'canDeletesysdata', 'no_one');
     }
     
     

@@ -21,9 +21,9 @@ class plg_Clone extends core_Plugin
     public static function on_AfterDescription(&$invoker)
     {
         // Правата по подразбиране за екшъните
-        setIfNot($invoker->canClonesysdata, 'admin, ceo');
-        setIfNot($invoker->canCloneuserdata, 'user');
-        setIfNot($invoker->canClonerec, 'user');
+        setPartIfNot($invoker, 'canClonesysdata', 'admin, ceo');
+        setPartIfNot($invoker, 'canCloneuserdata', 'user');
+        setPartIfNot($invoker, 'canClonerec', 'user');
         
         $invoker->FLD('clonedFromId', "key(mvc={$invoker->className})", 'caption=Клонирано,input=hidden,forceField,single=none,column=none');
     }

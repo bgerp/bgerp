@@ -304,7 +304,7 @@ class store_Setup extends core_ProtoSetup
 
             // Обикалят се всички заявки и чакащи и се преизчислява това им поле
             $query = $Class->getQuery();
-            $query->where("#state = 'pending' || #state = 'draft'");
+            $query->where("#state IN ('pending', 'draft')");
             while($rec = $query->fetch()){
                 if($Class->recalcShipmentDateFields($rec, false)){
                     $toSave[$rec->id] = $rec;

@@ -784,10 +784,6 @@ class core_Debug
      */
     private static function getErrorPage(&$state)
     {
-        // @TODO - remove
-        print_r($state);
-        die;
-
         $tpl = new core_NT(getFileContent('core/tpl/Error.shtml'));
         if (isset($state['errTitle']) && $state['errTitle'][0] == '@') {
             $state['errTitle'] = $state['httpStatusMsgBg'];

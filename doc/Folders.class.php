@@ -201,9 +201,9 @@ class doc_Folders extends core_Master
         if (!static::haveRightFor('single', $id)) {
             $url = array();
         }
-        
-        $attr['class'] .= ' linkWithIcon';
-        $attr['style'] .= $iconStyle;
+
+        $attr['class'] = ($attr['class'] ?? '') . ' linkWithIcon';
+        $attr['style'] = ($attr['style'] ?? '') . $iconStyle;
         
         if ($rec->state == 'rejected') {
             $attr['class'] .= ' state-rejected';
@@ -217,7 +217,7 @@ class doc_Folders extends core_Master
         $doubleClickUrl = $Cover->getUrlForDblClick($url, true);
         if(isset($doubleClickUrl)){
             $doubleClickDataUrl = toUrl($doubleClickUrl);
-            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+            $attr['data-doubleclick'] = ($attr['data-doubleclick'] ?? '') . $doubleClickDataUrl;
         }
         $link = ht::createLink($title, $url, null, $attr);
         
@@ -398,7 +398,7 @@ class doc_Folders extends core_Master
         }
         
         // Всеки има право на достъп до папките, които са му споделени
-        if (strpos($rec->shared, '|' . $userId . '|') !== false) {
+        if (strpos((string) ($rec->shared ?? ''), '|' . $userId . '|') !== false) {
             
             return true;
         }
@@ -479,7 +479,7 @@ class doc_Folders extends core_Master
     /**
      * След преобразуване към вербални данни на записа
      */
-    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
@@ -576,7 +576,7 @@ class doc_Folders extends core_Master
         $doubleClickUrl = $Cover->getUrlForDblClick($link, true);
         if(isset($doubleClickUrl)){
             $doubleClickDataUrl = toUrl($doubleClickUrl);
-            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+            $attr['data-doubleclick'] = ($attr['data-doubleclick'] ?? '') . $doubleClickDataUrl;
         }
 
         if ($haveRight) {
@@ -695,8 +695,8 @@ class doc_Folders extends core_Master
                 $rec->last = $lastThRec->last;
                 
                 doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt,state');
-                
-                if (!$mvc->preventNotification[$id]) {
+
+                if (empty($mvc->preventNotification[$id])) {
                     // Генерираме нотификация за потребителите, споделили папката
                     // ако имаме повече отворени теми от преди
                     if ($exOpenThreadsCnt < $rec->openThreadsCnt) {
@@ -856,9 +856,9 @@ class doc_Folders extends core_Master
     public static function getUsersArrForNotify($rec, $notifyPartners = false)
     {
         static $resArr = array();
-        
-        if ($resArr[$rec->id]) {
-            $resArr[$rec->id];
+
+        if (!empty($resArr[$rec->id])) {
+            return $resArr[$rec->id];
         }
         
         $notifyArr = array();
@@ -885,10 +885,10 @@ class doc_Folders extends core_Master
         
         if ($settingsNotifyArr) {
             foreach ($settingsNotifyArr as $userId => $uConfArr) {
-                if ($uConfArr[$pName] == 'no') {
+                if (($uConfArr[$pName] ?? null) == 'no') {
                     unset($sharedArr[$userId]);
-                } elseif ($uConfArr[$pName] == 'yes') {
-                    if ($oSharedArr[$userId]) {
+                } elseif (($uConfArr[$pName] ?? null) == 'yes') {
+                    if (!empty($oSharedArr[$userId])) {
                         $sharedArr[$userId] = $userId;
                     }
                 }
@@ -902,9 +902,9 @@ class doc_Folders extends core_Master
         
         // В зависимост от избраната персонална настройка добавяме/премахваме от масива
         foreach ((array) $folOpeningNotifications as $userId => $folOpening) {
-            if ($folOpening['folOpenings'] == 'no') {
+            if (($folOpening['folOpenings'] ?? null) == 'no') {
                 unset($notifyArr[$userId]);
-            } elseif ($folOpening['folOpenings'] == 'yes') {
+            } elseif (($folOpening['folOpenings'] ?? null) == 'yes') {
                 
                 // Може да е абониран, но да няма права
                 if (doc_Folders::haveRightFor('single', $rec->id, $userId)) {
@@ -961,7 +961,8 @@ class doc_Folders extends core_Master
         }
 
         $coverMvc = cls::get($rec->coverClass);
-        
+        $mustSave = false;
+
         if (!$rec->coverId) {
             expect($coverRec = $coverMvc->fetch("#folderId = {$id}"));
             $rec->coverId = $coverRec->id;
@@ -970,7 +971,6 @@ class doc_Folders extends core_Master
             expect($coverRec = $coverMvc->fetch($rec->coverId));
         }
 
-        //bp($coverRec, $coverMvc->getFolderTitle($coverRec->id, false));
         $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, false);
         $isRevert = ($rec->state == 'rejected' && $coverRec->state != 'rejected');
         $isReject = ($rec->state != 'rejected' && $coverRec->state == 'rejected');
@@ -1457,7 +1457,7 @@ class doc_Folders extends core_Master
             try {
                 // Ако има папка без собственик
                 if (!isset($rec->inCharge) || ($rec->inCharge <= 0)) {
-                    $resArr['inCharge']++;
+                    $resArr['inCharge'] = ($resArr['inCharge'] ?? 0) + 1;
                     $rec->inCharge = $currUser;
                     self::save($rec, 'inCharge');
                     self::logNotice('Добавен е собственик на папката', $rec->id);
@@ -1601,14 +1601,16 @@ class doc_Folders extends core_Master
                 }
                 
                 // Премахва повтарящите се folderId
-                if ($fArr[$cRec->folderId]) {
+                if (!empty($fArr[$cRec->folderId])) {
                     
                     // Избираме най-добрият запис
                     $cPoints = self::getPointsForRec($cRec);
                     $aPoints = self::getPointsForRec($fArr[$cRec->folderId]['rec']);
                     
                     if ($cPoints == $aPoints) {
-                        if ($cRec->lastUsedOn > $fArr[$cRec->folderId]['rec']->lastUsedOn) {
+                        $cLastUsedOn = $cRec->lastUsedOn ?? null;
+                        $aLastUsedOn = $fArr[$cRec->folderId]['rec']->lastUsedOn ?? null;
+                        if ($cLastUsedOn > $aLastUsedOn) {
                             $cPoints++;
                         }
                     }
@@ -1768,7 +1770,7 @@ class doc_Folders extends core_Master
     public function act_Repair()
     {
         requireRole('admin');
-        
+        $html = '';
         core_Debug::$isLogging = false;
         
         $Folders = cls::get('doc_Folders');
@@ -1887,10 +1889,8 @@ class doc_Folders extends core_Master
      */
     public static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
-        if (!$rec->coverClass) {
-            
-            return ;
-        }
+        if (empty($rec->coverClass)) return ;
+
         $class = cls::get($rec->coverClass);
         $title = $class->getTitle();
         
@@ -1911,7 +1911,7 @@ class doc_Folders extends core_Master
             }
         }
 
-        if ($rec->coverId) {
+        if (!empty($rec->coverId)) {
             $plugins = arr::make($class->loadList, true);
             if ($plugins['plg_Search'] || method_exists($class, 'getSearchKeywords')) {
                 $searchKeywords .= ' ' . $class->getSearchKeywords($rec->coverId);
@@ -2026,7 +2026,7 @@ class doc_Folders extends core_Master
         // Изходящ имейл по-подразбиране за съответната папка
         try {
             $userId = null;
-            if ($form->rec->_userOrRole > 0) {
+            if (($form->rec->_userOrRole ?? 0) > 0) {
                 $userId = $form->rec->_userOrRole;
             }
             
@@ -2121,9 +2121,10 @@ class doc_Folders extends core_Master
             if (!$sRec->data) {
                 continue;
             }
-            
-            if (!trim($sRec->data['closeTime'])) {
-                continue ;
+
+            $closeTimeData = is_array($sRec->data) ? ($sRec->data['closeTime'] ?? '') : '';
+            if (!trim((string) $closeTimeData)) {
+                continue;
             }
             
             $folderId = $sRec->objectId;
@@ -2200,11 +2201,11 @@ class doc_Folders extends core_Master
     {
         $query = self::getQuery();
         
-        if ($params['excludeArr']) {
+        if (!empty($params['excludeArr'])) {
             $query->notIn('id', $params['excludeArr']);
         }
 
-        if ($params['orderBy']) {
+        if (!empty($params['orderBy'])) {
             $query->orderBy($params['orderBy']);
         } else {
             $query->orderBy('last=DESC');
@@ -2303,6 +2304,7 @@ class doc_Folders extends core_Master
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         
         if ($q) {
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }

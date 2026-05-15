@@ -24,6 +24,7 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
     public static function on_AfterDescription(core_Master &$mvc)
     {
         setIfNot($mvc->valiorFld, 'valior');
+        $mvc->declareInterface('deals_SaveValiorOnActivationIntf');
     }
     
     

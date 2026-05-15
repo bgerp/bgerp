@@ -12,3 +12,4 @@ syntax: regexp
 /myself/
 .vscode/launch.json
 **/.env
+.codex

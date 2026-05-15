@@ -545,7 +545,7 @@ class rack_Pallets extends core_Manager
         core_Cache::removeByType($cacheType);
 
         // Ако е ревизирано движението
-        if($rec->_isRevisioned){
+        if($rec->_isRevisioned ?? null){
 
             // Лог на ревизията и изтриване на чакащите движения
             rack_Logs::add($rec->storeId, $rec->productId, 'revision', $rec->position, null, $rec->_logMsg);

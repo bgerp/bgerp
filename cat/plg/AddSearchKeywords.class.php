@@ -50,8 +50,8 @@ class cat_plg_AddSearchKeywords extends core_Plugin
                         $dQuery->where("#state != 'rejected' AND #state != 'closed'");
                     }
 
-                    setIfNot($Detail->productFld, 'productId');
-                    setIfNot($Detail->notesFld, 'notes');
+                    setPartIfNot($Detail, 'productFld', 'productId');
+                    setPartIfNot($Detail, 'notesFld', 'notes');
                     $dQuery->where("#{$Detail->productFld} IS NOT NULL");
 
                     // Кои полета да се показват

@@ -22,8 +22,8 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
      * @var cash_Pko
      */
     public $class;
-    
-    
+
+
     /**
      *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      *  Създава транзакция която се записва в Журнала, при контирането
@@ -32,7 +32,7 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
     {
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
-        
+
         $origin = $this->class->getOrigin($rec);
         $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : $this->class->getDefaultCase($rec);
 
@@ -47,22 +47,22 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
             // Ако документа е обратен, правим контировката на РКО-то но с отрицателен знак
             $entry = cash_transaction_Rko::getReverseEntries($rec, $origin);
         } else {
-            
+
             // Ако документа не е обратен, правим нормална контировка на ПКО
             $entry = $this->getEntry($rec, $origin);
         }
-        
+
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
             'reason' => (!empty($rec->reason)) ? $rec->reason : deals_Helper::getPaymentOperationText($rec->operationSysId),
             'valior' => $rec->valior,   // датата на ордера
             'entries' => $entry
         );
-        
+
         return $result;
     }
-    
-    
+
+
     /**
      * Връща записа на транзакцията
      */
@@ -182,15 +182,15 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 
                     $type = cond_Payments::getTitleById($dRec->paymentId);
 
+                    $caseCreditQuantity = $sign * round($dRec->amount, 2);
                     $entry[] = array('amount' => $sign * $amount,
-                        'debit' => array('502',
-                            array('cash_Cases', $rec->peroCase),
-                            array('cond_Payments', $dRec->paymentId),
-                            'quantity' => $sign * $amount),
-                        'credit' => array($rec->debitAccount,
-                            array('cash_Cases', $rec->peroCase),
-                            array('currency_Currencies', $rec->currencyId),
-                            'quantity' => $sign * round($dRec->amount, 2)),
+                        'debit' => array('502', array('cash_Cases', $rec->peroCase), array('cond_Payments', $dRec->paymentId), 'quantity' => $sign * $amount),
+                        'credit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $caseCreditQuantity),
+                        'reason' => "Плащане с '{$type}'");
+
+                    $entry[] = array(
+                        'debit' => array('481', array('currency_Currencies', $rec->currencyId), 'quantity' => $caseCreditQuantity),
+                        'credit' => array($rec->debitAccount, array('cash_Cases', $rec->peroCase), array('currency_Currencies', $rec->currencyId), 'quantity' => $caseCreditQuantity),
                         'reason' => "Плащане с '{$type}'");
                 }
             }
@@ -198,15 +198,15 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 
         return $entry;
     }
-    
-    
+
+
     /**
      * Връща обратна контировка на стандартната
      */
     public static function getReverseEntries($rec, $origin)
     {
         $self = cls::get(get_called_class());
-        
+
         return $self->getEntry($rec, $origin, true);
     }
 }

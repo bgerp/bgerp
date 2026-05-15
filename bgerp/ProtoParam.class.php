@@ -486,4 +486,31 @@ abstract class bgerp_ProtoParam extends embed_Manager
 
         return $value;
     }
+
+
+    /**
+     * Параметри функция за вербализиране
+     *
+     * @param int   $id          - ид на параметър
+     * @param mixed $domainClass - клас на домейна на параметъра
+     * @param int   $domainId    - ид на домейна на параметъра
+     * @param mixed $newValue    - нова стойност на параметъра
+     * @param mixed $oldValue    - стара стойност
+     *
+     * @return $res
+     */
+    public static function onParamChanged($id, $domainClass, $domainId, $newValue, $oldValue) : array
+    {
+        $res = array('msg' => null, 'error' => null);
+        $rec = static::fetchRec($id);
+        if ($Driver = static::getDriver($rec)){
+
+            // Драйвера се нотифицира, че е променена стойност на параметъра
+            $newValue = strlen($newValue) ? trim($newValue) : $newValue;
+            $oldValue = !is_null($oldValue) ? trim($oldValue) : $oldValue;
+            $res = $Driver->onParamChanged($rec, $domainClass, $domainId, $newValue, $oldValue);
+        }
+
+        return $res;
+    }
 }

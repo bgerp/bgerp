@@ -100,7 +100,14 @@ abstract class deals_PaymentDocument extends core_Master
             $rec = $this->fetchRec($id, '*', false);
         }
 
-        return (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId, 'amountDeal' => $rec->amountDeal, 'dealCurrencyId' => $rec->dealCurrencyId, 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
+        $res = (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId, 'amountDeal' => $rec->amountDeal, 'dealCurrencyId' => $rec->dealCurrencyId, 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'), 'cashDiscount' => null);
+
+        $valior = $rec->valior ?? dt::today();
+        if(!empty($rec->earlyPaymentUntil) && $valior <= $rec->earlyPaymentUntil){
+            $res->cashDiscount = $rec->amount * $rec->earlyPaymentPercent;
+        }
+
+        return $res;
     }
 
 

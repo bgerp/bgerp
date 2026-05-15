@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -312,14 +312,21 @@ class acc_Journal extends core_Master
         expect($docClassId = Request::get('docType', 'class(interface=acc_TransactionSourceIntf)'));
         $mvc = cls::get($docClassId);
         $mvc->requireRightFor('conto', $docId);
-        
-        // Контиране на документа
-        $mvc->conto($docId);
-        
+
         // Редирект към сингъла
         $retUrl = getRetUrl();
         $redirectUrl = !empty($retUrl) ? $retUrl : $mvc->getSingleUrlArray($docId);
-        
+
+        if (!core_Locks::obtain("conto_{$docClassId}_{$docId}", 60, 0, 0)) {
+            core_Statuses::newStatus('Документът се контира в момента|*!', 'warning');
+
+            return new Redirect($redirectUrl);
+        }
+
+        // Контиране на документа
+        $mvc->conto($docId);
+        core_Locks::release("conto_{$docClassId}_{$docId}");
+
         return new Redirect($redirectUrl);
     }
     
@@ -894,7 +901,7 @@ class acc_Journal extends core_Master
             // Трябва баланса да е преизчислен за да продължим
             if (core_Locks::isLocked(acc_Balances::saveLockKey)) {
                 
-                return followRetUrl(null, tr('|Балансът се преизчислява в момента. Моля, изчакайте!'));
+                followRetUrl(null, tr('|Балансът се преизчислява в момента. Моля, изчакайте!'));
             }
             
             if ($rec->from > $rec->to) {
@@ -953,12 +960,12 @@ class acc_Journal extends core_Master
         $dQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($dQuery, $from, $to);
         
-        if ($debitSysId) {
+        if (isset($debitSysId)) {
             expect($debitAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $debitSysId), 'id'), "Няма сметка със систем ид {$debitAccId}");
             $dQuery->where("#debitAccId = {$debitAccId}");
         }
         
-        if ($creditSysId) {
+        if (isset($creditSysId)) {
             expect($creditAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $creditSysId), 'id'), "Няма сметка със систем ид {$creditSysId}");
             $dQuery->where("#creditAccId = {$creditAccId}");
         }
@@ -1011,10 +1018,7 @@ class acc_Journal extends core_Master
     {
         // Оригиналния документ трябва да не е в затворен период
         $origin = doc_Containers::getDocument($containerId);
-        if (acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) {
-            
-            return;
-        }
+        if (acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) return;
         
         // Изтриване на старата транзакция на документа
         acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
@@ -1283,9 +1287,12 @@ class acc_Journal extends core_Master
     {
         // Взимат се записите от документа с вальор след последния затворен период
         $lastClosedPeriod = acc_Periods::getLastClosed();
+
         $Class = cls::get($data->class);
         $query = $Class->getQuery();
-        if(is_object($lastClosedPeriod)){
+        if(!empty($data->from)){
+            $query->where("#{$Class->valiorFld} >= '{$data->from}'");
+        } elseif(is_object($lastClosedPeriod)){
             $query->where("#{$Class->valiorFld} > '{$lastClosedPeriod->end}'");
         }
 
@@ -1322,6 +1329,35 @@ class acc_Journal extends core_Master
         if(isset($data->lastId)){
             $callOn = dt::addSecs(120);
             core_CallOnTime::setCall('acc_Journal', 'recontoActiveDocuments', $data, $callOn);
+        }
+    }
+
+
+    /**
+     * Поправка на документи останали без вальор
+     */
+    public static function fixPostedDocsWithoutValior()
+    {
+        $i = 0;
+        $docs = core_Classes::getOptionsByInterface('deals_SaveValiorOnActivationIntf');
+        foreach ($docs as $doc){
+            $update = array();
+            $Cls = cls::get($doc);
+
+            $query = $Cls->getQuery();
+            $query->where("#state IN ('active', 'closed') AND #{$Cls->valiorFld} IS NULL");
+            while($rec = $query->fetch()){
+                $activatedOn = $rec->activatedOn ?? $rec->modifiedOn;
+                $rec->{$Cls->valiorFld} = $activatedOn;
+                $update[$rec->id] = $rec;
+                $i++;
+            }
+
+            if(countR($update)){
+                $Cls->saveArray($update, "id,{$Cls->valiorFld}");
+            }
+
+            core_Debug::log("CHECK {$Cls->className} : FIXED {$i};");
         }
     }
 }

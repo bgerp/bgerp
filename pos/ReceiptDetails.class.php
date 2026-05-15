@@ -751,7 +751,7 @@ class pos_ReceiptDetails extends core_Detail
                 expect($rec->quantity > 0, 'При добавяне количеството трябва да е положително');
             }
 
-            if($rec->_canStore == 'yes'){
+            if(($rec->_canStore ?? 'no') == 'yes'){
                 $rec->storeId = $rec->storeId ?? $defaultStoreId;
                 if(empty($rec->storeId)){
                     $pName = cat_Products::getTitleById($rec->productId);
@@ -1278,8 +1278,7 @@ class pos_ReceiptDetails extends core_Detail
                 $obj->pack = null;
                 $obj->caseId = $caseId;
             }
-
-            setIfNot($obj->userId, $rec->waitingBy, $rec->receiptCreatedBy);
+            $obj->userId = $obj->userId ?? $rec->waitingBy ?? $rec->receiptCreatedBy;
             $obj->contragentClassId = $rec->contragentClsId;
             $obj->contragentId = $rec->contragentId;
             $obj->quantity = $rec->quantity;

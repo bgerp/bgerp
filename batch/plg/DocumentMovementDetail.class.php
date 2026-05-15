@@ -289,7 +289,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if ($mvc->getBatchMovementDocument($rec) == 'out') {
-            if($rec->_forceBatch !== true){
+            if(($rec->_forceBatch ?? false) !== true){
                 if ($rec->autoAllocate === true) {
                     batch_BatchesInDocuments::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$rec->id}");
                     self::autoAllocate($mvc, $rec);

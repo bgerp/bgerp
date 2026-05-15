@@ -22,9 +22,9 @@ class cat_plg_ShowCodes extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->showCodeColumn, false);
-        setIfNot($mvc->productFld, 'productId');
-        setIfNot($mvc->showReffCode, false);
+        setPartIfNot($mvc, 'showCodeColumn', false);
+        setPartIfNot($mvc, 'productFld', 'productId');
+        setPartIfNot($mvc, 'showReffCode', false);
     }
 
 

@@ -456,8 +456,7 @@ class cms_Domains extends core_Embedder
                 }
             }
         }
-        
-        setIfNot($langArr['en'], 0.01);
+        $langArr['en'] = $langArr['en'] ?? 0.01;
 
         if (isset($langArr['en'])) {
             $langArr['en'] *= 0.99;

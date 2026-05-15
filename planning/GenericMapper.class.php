@@ -582,7 +582,7 @@ class planning_GenericMapper extends core_Manager
      */
     protected static function on_AfterSave($mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if($rec->_updateHorizons) {
+        if(!empty($rec->_updateHorizons)) {
             self::updateStocksPlanningByProductId($rec);
         }
     }

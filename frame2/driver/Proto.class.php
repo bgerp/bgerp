@@ -361,4 +361,16 @@ abstract class frame2_driver_Proto extends core_BaseClass
     {
        return $this->log;
     }
+
+
+    /**
+     *  Връща сериите за експорт
+     * 
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getSeriesForExport($rec){
+        
+        return array();
+    }
 }

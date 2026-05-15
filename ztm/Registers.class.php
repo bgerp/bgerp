@@ -413,7 +413,7 @@ class ztm_Registers extends core_Master
      */
     public function on_AfterImportRec($mvc, $rec)
     {
-        setIfNot($mvc->activeRegistersArr, array());
+        setPartIfNot($mvc, 'activeRegistersArr', array());
         $mvc->activeRegistersArr[$rec->id] = $rec->id;
     }
     
