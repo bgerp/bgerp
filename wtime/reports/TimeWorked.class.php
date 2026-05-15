@@ -346,10 +346,13 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $summary = $this->getSummary($rec);
             foreach ($summary as $fldId => $dRec){
                 $dRec->hours = round($dRec->workingMinutes / 3600);
+                if($fldId ==+ 0){
+                    $dRec->personName = 'Общо';
+                }
             }
             $recsToExport = $summary;
         }
-
+        
         return $recsToExport;
     }
 
