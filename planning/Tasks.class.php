@@ -923,7 +923,7 @@ class planning_Tasks extends core_Master
                 $dQuery->where("#taskId = {$taskId} AND #productId = {$productId} AND #type='production' AND #state != 'rejected'");
                 $dRecs = array();
                 while ($dRec = $dQuery->fetch()) {
-                    $dRecs[$dRec->serial] += $dRec->quantity;
+                    $dRecs[$dRec->serial] = ($dRecs[$dRec->serial] ?? 0) + $dRec->quantity;
                 }
                 $detailsCount = countR($dRecs);
                 if ($detailsCount) {
@@ -1015,7 +1015,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            if (in_array($rec->state, array('active', 'wakeup', 'stopped')) && !$form->_cloneForm) {
+            if (in_array($rec->state, array('active', 'wakeup', 'stopped')) && empty($form->_cloneForm)) {
                 if (empty($rec->timeDuration) && empty($rec->assetId)) {
                     $form->setError('timeDuration,assetId,indTime', "Продължителността/нормата и оборудването са задължителни при започната операция|*!");
                 }
@@ -1444,7 +1444,7 @@ class planning_Tasks extends core_Master
         $mvc->setLastInJobQueue($rec);
 
         // Ако записа е създаден с клониране не се прави нищо
-        if ($rec->_isClone === true) return;
+        if (($rec->_isClone ?? false) === true) return;
 
         $saveProducts = array();
         if (isset($rec->originId)) {
@@ -1459,7 +1459,7 @@ class planning_Tasks extends core_Master
 
                     // Намираме на коя дефолтна операция отговаря и се извличат продуктите от нея
                     foreach (array('production' => 'production', 'input' => 'input', 'waste' => 'waste') as $var => $type) {
-                        if (is_array($def->products[$var])) {
+                        if (is_array($def->products[$var] ?? null)) {
                             foreach ($def->products[$var] as $p) {
                                 $p = (object)$p;
                                 $nRec = new stdClass();
@@ -1602,8 +1602,8 @@ class planning_Tasks extends core_Master
             $lastTask4Step = $eQuery->fetch();
             if ($lastTask4Step) {
                 foreach (array('indPackagingId', 'indTimeAllocation') as $exFld) {
-                    if (!empty($lastTask4Step->{$fld})) {
-                        $form->setDefault($exFld, $lastTask4Step->{$fld});
+                    if (!empty($lastTask4Step->{$exFld})) {
+                        $form->setDefault($exFld, $lastTask4Step->{$exFld});
                     }
                 }
             }
@@ -1623,7 +1623,9 @@ class planning_Tasks extends core_Master
             if (!isset($rec->systemId) && empty($rec->id)) {
                 $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,showadditionalUom=calcWeightMode,mandatoryDocuments=mandatoryDocuments,offsetAfter=offsetAfter");
                 foreach ($defFields as $fld => $val) {
-                    $form->setDefault($fld, $productionData[$val]);
+                    if (array_key_exists($val, $productionData)) {
+                        $form->setDefault($fld, $productionData[$val]);
+                    }
                 }
             }
 
@@ -1761,12 +1763,12 @@ class planning_Tasks extends core_Master
                 $indPacks = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false)) + cat_products_Packagings::getOnlyPacks($productId4Form);
 
                 $form->setOptions('indPackagingId', $indPacks);
-                if (isset($productionData) && array_key_exists($productionData['normPackagingId'], $packs)) {
+                if (isset($productionData['normPackagingId']) && array_key_exists($productionData['normPackagingId'], $packs)) {
                     $form->setDefault('indPackagingId', $productionData['normPackagingId']);
                 }
 
                 if ($rec->isFinal != 'yes') {
-                    if (array_key_exists($productionData['labelPackagingId'], $packs)) {
+                    if (isset($productionData['labelPackagingId']) && array_key_exists($productionData['labelPackagingId'], $packs)) {
                         $form->setDefault('labelPackagingId', $productionData['labelPackagingId']);
                     }
                 }
@@ -1971,8 +1973,9 @@ class planning_Tasks extends core_Master
             $sign = ($next) ? "<" : ">";
             $query->where("#orderByAssetId {$sign} {$rec->orderByAssetId}");
         }
+        $rec = $query->fetch();
 
-        return $query->fetch()->id;
+        return $rec ? $rec->id : null;
     }
 
 
@@ -2823,7 +2826,7 @@ class planning_Tasks extends core_Master
             followRetUrl(null, $msg);
         } elseif ($type == 'all') {
             $selected = Request::get('selected', 'varchar');
-            $selectedArr = !strlen($selected) ? array() : explode('|', $selected);
+            $selectedArr = empty($selected) ? array() : explode('|', $selected);
             if(!countR($selectedArr)) followRetUrl(null, 'Не са избрани шаблонни операции за клониране', 'warning');
 
             // Ако ще се клонират всички шаблонни операции
@@ -3064,7 +3067,7 @@ class planning_Tasks extends core_Master
         }
 
         // Ако има избран център - тези параметри от тях/ ако няма всички параметри от центровете с листвани задачи
-        if(!$data->masterMvc){
+        if (empty($data->masterMvc)) {
             if(!empty($data->listFilter->rec->folders)){
                 $folderIds = keylist::toArray($data->listFilter->rec->folders);
                 $cQuery = planning_Centers::getQuery();
@@ -3227,10 +3230,9 @@ class planning_Tasks extends core_Master
         $haveDiffProductIds = countR($productIds) > 1;
 
         foreach ($rows as $id => $row) {
-
             core_Debug::startTimer('RENDER_ROW');
             $rec = $data->recs[$id];
-            if($saleIdRow = $jobRecs[$rec->originId]->_saleId){
+            if ($saleIdRow = ($jobRecs[$rec->originId]->_saleId ?? null)) {
                 $row->saleId = $saleIdRow;
             }
 
@@ -3285,7 +3287,7 @@ class planning_Tasks extends core_Master
                 foreach ($data->listFieldsParams as $paramId) {
                     $live = true;
                     $pValue = array_key_exists($paramId, $jobParams) ? $jobParams[$paramId] : null;
-                    if (is_array($taskSpecificParams[$rec->id]) && array_key_exists($paramId, $taskSpecificParams[$rec->id])) {
+                    if (is_array($taskSpecificParams[$rec->id] ?? null) && array_key_exists($paramId, $taskSpecificParams[$rec->id])) {
                         $pValue = $taskSpecificParams[$rec->id][$paramId];
                         $live = false;
                     }
@@ -3308,7 +3310,7 @@ class planning_Tasks extends core_Master
             $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . ($haveDiffJobPacks ? "<span class='small'>" . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity) . "</span>" : '');
 
-            if($dependantTaskArr[$rec->id]['previous'][0]){
+            if (!empty($dependantTaskArr[$rec->id]['previous'][0])) {
                 $rec->prevExpectedTimeEnd = $dependantTaskArr[$rec->id]['previous'][0]->expectedTimeEnd;
             }
 
@@ -3353,7 +3355,7 @@ class planning_Tasks extends core_Master
             }
 
             $row->jobQuantity = $quantityStr;
-            $row->plannedQuantity = $row->plannedQuantity . ($haveDiffMeasure ? " <span class='small'>" . cat_UoM::getSmartName($rec->measureId, $rec->plannedQUantity) . "</span>" : '');
+            $row->plannedQuantity = $row->plannedQuantity . ($haveDiffMeasure ? " <span class='small'>" . cat_UoM::getSmartName($rec->measureId, $rec->plannedQuantity) . "</span>" : '');
 
             core_Debug::stopTimer('RENDER_ROW');
         }
@@ -3496,7 +3498,8 @@ class planning_Tasks extends core_Master
             $mQuery->where(array("#folderId = '[#1#]'", $folderId));
         }
 
-        $res = md5(trim($mQuery->fetch()->modifiedOn));
+        $mRec = $mQuery->fetch();
+        $res = md5(trim($mRec->modifiedOn ?? ''));
     }
 
 
@@ -3576,7 +3579,7 @@ class planning_Tasks extends core_Master
 
 
         // Копиране на параметрите на артикула към операцията
-        if (is_array($rec->_params)) {
+        if (is_array($rec->_params ?? null)) {
             cat_products_Params::saveParams($mvc, $rec);
         }
     }
@@ -3874,8 +3877,6 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $assetId = Request::get('assetId', 'int');
-
         if (Mode::is('isReorder')) {
             $data->toolbar->removeBtn('btnPrint');
             $data->toolbar->removeBtn('binBtn');
@@ -4475,7 +4476,7 @@ class planning_Tasks extends core_Master
 
         $selectedIds = Request::get('selectedIds');
         $selectedIds = json_decode($selectedIds);
-        expect(count($selectedIds));
+        expect(countR($selectedIds));
 
         // Подготовка на формата за избор на дестинация
         $form = cls::get('core_Form');

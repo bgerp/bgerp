@@ -245,10 +245,6 @@ class planning_ProductionTaskProducts extends core_Detail
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            if(!empty($rec->inputedQuantity) && empty($rec->employees)){
-                $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
-            }
-
             if ($rec->type == 'waste') {
                 $selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
                 if (!isset($selfValue)) {
@@ -257,8 +253,9 @@ class planning_ProductionTaskProducts extends core_Detail
             }
             
             $pInfo = cat_Products::getProductInfo($rec->productId);
-            $rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
-            
+            $packRec = $pInfo->packagings[$rec->packagingId] ?? null;
+            $rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
             // Проверка дали артикула може да бъде избран
             $msg = $error = null;
             if (!self::canAddProductToTask($rec, $msg, $error)) {
@@ -267,11 +264,11 @@ class planning_ProductionTaskProducts extends core_Detail
             }
             
             if (isset($rec->limit)) {
-                if ($rec->plannedQuantity > $rec->limit) {
+                if (($rec->plannedQuantity ?? 0) > $rec->limit) {
                     $form->setError('plannedQuantity,limit', 'Планираното количество е повече от зададения лимит');
                 }
 
-                if ($rec->inputedQuantity > $rec->limit) {
+                if (($rec->inputedQuantity ?? 0) > $rec->limit) {
                     $caption = ($rec->type == 'input') ? 'Вложеното' : (($rec->type == 'waste') ? 'Отпадъкът' : 'Произведеното');
                     $form->setError('inputedQuantity,limit', "{$caption} е повече от зададения лимит");
                 }
@@ -285,11 +282,6 @@ class planning_ProductionTaskProducts extends core_Detail
             if(empty($rec->id) && $rec->productId == $taskRec->wasteProductId && $rec->type != 'waste'){
                 $form->setError('productId', 'Артикулът е посочен като планиран отпадък');
             }
-
-            if(!empty($rec->inputedQuantity) && empty($rec->employees)){
-                $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
-            }
-
 
             if(!$form->gotErrors()){
                 if (!empty($rec->inputedQuantity) && !empty($rec->indTime)){
@@ -483,7 +475,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $query->where("#type = '{$type}'");
             if(isset($inputType)){
                 if($inputType == 'subProducts'){
-                    $expectProductId = $taskRec->isFinal = 'yes' ? planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId') : $taskRec->productId;
+                    $expectProductId = $taskRec->isFinal == 'yes' ? planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId') : $taskRec->productId;
                     $query->where("#productId != {$expectProductId}");
                     unset($options[$taskRec->productId]);
                 } elseif($inputType != 'actions'){
@@ -647,7 +639,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 if ($rec->indTime != $normRec->indTime) {
                     $defaultIndTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($normRec->indTime);
                     $msg = "Нормата се различава от очакваната|* <b>{$defaultIndTime}</b>";
-                    $error = 'FALSE';
+                    $error = false;
                     
                     return false;
                 }
@@ -737,7 +729,7 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         // Ако има прогрес и са сменени заработките, преизчисляват се на старите записи
-        if($rec->indTime != $rec->_exIndTime){
+        if (($rec->indTime ?? null) != ($rec->_exIndTime ?? null)) {
             if(planning_ProductionTaskDetails::count("#taskId = {$rec->taskId} AND #type = '{$rec->type}' AND #productId = {$rec->productId}")){
                 $mvc->recalcProducedDetailIndTime[$rec->id] = (object)array('taskId' => $rec->taskId, 'type' => $rec->type, 'productId' => $rec->productId);
             }
@@ -780,7 +772,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $jobId = $firstDoc->that;
         } elseif($firstDoc->isInstanceOf('planning_Tasks')) {
             $tasks = array($firstDoc->that);
-            $jobId = planning_Jobs::fetchField($firstDoc->fetchField('originId'), 'containerId');
+            $jobId = planning_Jobs::fetchField("#containerId={$firstDoc->fetchField('originId')}", 'id');
         }
         if(!countR($tasks)) return $res;
 
@@ -792,8 +784,11 @@ class planning_ProductionTaskProducts extends core_Detail
             $nQuery->where("#state NOT IN ('rejected', 'draft')");
             $nQuery->in("threadId", $threads);
             while($nRec = $nQuery->fetch()) {
-                $producedByStoreArr["{$nRec->productId}|{$nRec->packagingId}|{$nRec->storeId}"] += $nRec->quantity;
-                $producedAll["{$nRec->productId}|{$nRec->packagingId}"] += $nRec->quantity;
+                $key = "{$nRec->productId}|{$nRec->packagingId}|{$nRec->storeId}";
+                $producedByStoreArr[$key] = ($producedByStoreArr[$key] ?? 0) + $nRec->quantity;
+
+                $keyAll = "{$nRec->productId}|{$nRec->packagingId}";
+                $producedAll[$keyAll] = ($producedAll[$keyAll] ?? 0) + $nRec->quantity;
             }
 
             $dQuery = planning_DirectProductNoteDetails::getQuery();
@@ -802,8 +797,11 @@ class planning_ProductionTaskProducts extends core_Detail
             $dQuery->where("#state NOT IN ('rejected', 'draft') AND #type = 'subProduct'");
             $dQuery->in("threadId", $threads);
             while($dRec1 = $dQuery->fetch()) {
-                $producedByStoreArr["{$dRec1->productId}|{$dRec1->packagingId}|{$dRec1->storeId}"] += $dRec1->quantity;
-                $producedAll["{$dRec1->productId}|{$dRec1->packagingId}"] += $dRec1->quantity;
+                $key = "{$dRec1->productId}|{$dRec1->packagingId}|{$dRec1->storeId}";
+                $producedByStoreArr[$key] = ($producedByStoreArr[$key] ?? 0) + $dRec1->quantity;
+
+                $keyAll = "{$dRec1->productId}|{$dRec1->packagingId}";
+                $producedAll[$keyAll] = ($producedAll[$keyAll] ?? 0) + $dRec1->quantity;
             }
         }
 
@@ -815,7 +813,7 @@ class planning_ProductionTaskProducts extends core_Detail
         while($dRec = $dQuery->fetch()){
             $key = $subtractProduced ? "{$dRec->productId}|{$dRec->packagingId}|{$dRec->storeId}": "{$dRec->productId}|{$dRec->packagingId}";
             if(!array_key_exists($key, $res)){
-                $res[$key] = (object)array('packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'productId' => $dRec->productId, 'productLink' => cat_Products::getHyperlink($dRec->productId));
+                $res[$key] = (object)array('packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'productId' => $dRec->productId, 'productLink' => cat_Products::getHyperlink($dRec->productId), 'quantity' => 0);
                 if($subtractProduced){
                     $res[$key]->storeId = $dRec->storeId;
                 }
@@ -890,7 +888,7 @@ class planning_ProductionTaskProducts extends core_Detail
         while($rec = $query->fetch()){
             $key = "{$rec->productId}|{$rec->packagingId}";
             if(!array_key_exists($key, $res)){
-                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'quantityInPack' => $rec->quantityInPack, 'productId' => $rec->productId, 'productLink' => cat_Products::getHyperlink($rec->productId));
+                $res[$key] = (object)array('packagingId' => $rec->packagingId, 'quantityInPack' => $rec->quantityInPack, 'productId' => $rec->productId, 'productLink' => cat_Products::getHyperlink($rec->productId), 'quantity' => 0);
             }
             $res[$key]->quantity += $rec->totalQuantity;
         }
