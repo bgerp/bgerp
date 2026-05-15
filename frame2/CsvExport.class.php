@@ -121,9 +121,11 @@ class frame2_CsvExport extends core_Mvc
             if(isset($lang)){
                 core_Lg::push($lang);
             }
-            
+
+            Mode::push('series', $form->rec->series);
             $csvRecs = $Driver->getExportRecs($frameRec, $this);
             $fields = $Driver->getCsvExportFieldset($frameRec);
+            Mode::pop('series');
         }
         
         // Ако има данни за експорт
@@ -219,6 +221,17 @@ class frame2_CsvExport extends core_Mvc
         $form->FLD("columns", 'enum(yes=Да,none=Не)', "caption=|{$title}|* - |настройки|*->Имена на колони,autohide=any");
         $form->setDefault("columns", 'yes');
         
+        $Cls = cls::get($clsId);
+        $Driver = $Cls->getDriver($objId);
+        $rec = $Cls->fetch($objId);
+        $seriesArr = $Driver->getSeriesForExport($rec);
+        
+        if(countR($seriesArr)){
+            $form->FNC('series', 'varchar', "input,caption=|{$title}|* - |Серия на експорт|*->Серия, before=columns");
+            $form->setOptions('series', $seriesArr);
+            $form->setDefault('series', key($seriesArr));
+        }
+
         $form->FNC('decPoint', 'varchar(1,size=3)', "input,caption=|{$title}|* - |настройки|*->Десетичен знак,autohide=any,maxRadio=1");
         $form->FNC('dateFormat', 'enum(,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', "input,caption=|{$title}|* - |настройки|*->Формат за дата,autohide=any,maxRadio=1");
         $form->FNC('datetimeFormat', 'enum(,d.m.y H:i=|*22.11.1999 00:00, d.m.y H:i:s=|*22.11.1999 00:00:00)', "input,caption=|{$title}|* - |настройки|*->Формат за дата и час,autohide=any,maxRadio=1");
@@ -232,7 +245,7 @@ class frame2_CsvExport extends core_Mvc
         setIfNot($dateFormat, csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', true));
         $form->setDefault('dateFormat', $dateFormat);
 
-        $cacheKey = $this->getCacheKey(cls::get($clsId)->getDriver($objId));
+        $cacheKey = $this->getCacheKey($Driver);
         setIfNot($defaultEncoding, core_Permanent::get("{$cacheKey}_encoding"), 'utf-8');
         $form->setDefault('encoding', $defaultEncoding);
 

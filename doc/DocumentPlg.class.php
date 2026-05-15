@@ -2187,12 +2187,14 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
-        
-        $shareUserRoles = 'no_one';
-        $userRolesForShare = 'no_one';
+
+        $shareUserRoles = '';
+        $userRolesForShare = '';
 
         // Ако има поне едно поле от тип type_UserList
         if (!$userListFieldsArr) {
+            $shareUserRoles = 'no_one';
+            $userRolesForShare = 'no_one';
             // стойностите вече са зададени по подразбиране
         } else {
 
@@ -2213,10 +2215,10 @@ class doc_DocumentPlg extends core_Plugin
                     
                     // Добавяме в параметрите ролите за споделяне
                     $mvc->fields[$fieldName]->type->params['shareUsersRoles'] = $shareUserRoles;
-                    
+
                     // Ако има роли за споделяне
-                    if ($userRolesForShare) {
-                        
+                    if (!empty($userRolesForShare)) {
+
                         // Ако не са зададени в ричтекст
                         if (!($mvc->fields[$fieldName]->type->params['userRolesForShare'] ?? null)) {
                             

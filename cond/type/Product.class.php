@@ -148,4 +148,65 @@ class cond_type_Product extends cond_type_Varchar
         $data->form->setDefault('display', 'name');
         $data->form->setDefault('orderBy', 'idAsc');
     }
+
+
+    /**
+     * Параметри функция за вербализиране
+     *
+     * @param stdClass   $rec    - запис на параметър
+     * @param mixed $domainClass - клас на домейна на параметъра
+     * @param int   $domainId    - ид на домейна на параметъра
+     * @param mixed $newValue    - нова стойност на параметъра
+     * @param mixed $oldValue    - стара стойност
+     *
+     * @return array $res
+     */
+    public function onParamChanged($rec, $domainClass, $domainId, $newValue, $oldValue) : array
+    {
+        $res = array('msg' => null, 'error' => null);
+        if (!(isset($domainClass) && isset($domainId))) return $res;
+        if (empty($newValue)) return $res;
+
+        $Domain = cls::get($domainClass);
+        if (!($Domain instanceof cat_Products)) return $res;
+
+        $matRec = cat_Products::fetch($newValue, 'canConvert,measureId');
+        if ($matRec->canConvert != 'yes') return $res;
+
+        $Boms = cls::get('cat_Boms');
+        $BomDetails = cls::get('cat_BomDetails');
+
+        $bQuery = $BomDetails->getQuery();
+        $bQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
+        $bQuery->EXT('state',     'cat_Boms', 'externalName=state,externalKey=bomId');
+        $bQuery->where("#productId = {$domainId} AND #state NOT IN ('rejected', 'closed')");
+
+        $details = array();
+        while ($bRec = $bQuery->fetch()) {
+            $details[$bRec->id] = $bRec;
+        }
+
+        $errors = $boms = array();
+        foreach ($details as $bRec) {
+            if ($bRec->paramId != $rec->id) continue;
+            $err = cat_Boms::tryReplaceBomMaterial($bRec, $newValue);
+
+            if ($err === null) {
+                $Boms->logWrite("Смяна на материал след променен параметър", $bRec->bomId);
+                $boms[$bRec->bomId] = $bRec->bomId;
+                store_StockPlanning::recalcByReff($Boms, $bRec->bomId);
+            } else {
+                $errors[] = "|*#Bom[{$bRec->bomId}] |{$err}|*";
+            }
+        }
+
+        if (countR($details)) {
+            $res['msg'] = "Рецепти с подменен материал|*: " . countR($boms);
+        }
+        if (countR($errors)) {
+            $res['error'] = "Материалът не е подменен защото|*:" . implode(', ', $errors);
+        }
+
+        return $res;
+    }
 }

@@ -587,7 +587,13 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if(!isset($rec->id)){
+        if(isset($rec->id)){
+
+            // Кои са старите стойности
+            $exRec = $mvc->fetch($rec->id, '*', 'paramId,paramValue');
+            $rec->_exParamId = $exRec->paramId;
+            $rec->_exParamValue = $exRec->paramValue;
+        } else {
             $rec->_isCreated = true;
         }
     }
@@ -602,7 +608,19 @@ class cat_products_Params extends doc_Detail
         if($Class instanceof cat_Products){
             $mvc->syncWithFeature($rec->paramId, $rec->productId);
         }
-        
+
+        // Има ли промяна на стойноста на параметъра
+        $exValue = $rec->_exParamValue ?? null;
+        if($exValue != $rec->paramValue){
+            $res = cat_Params::onParamChanged($rec->paramId, $Class, $rec->productId, $rec->paramValue, $exValue);
+            if(!empty($res['msg'])){
+                core_Statuses::newStatus($res['msg']);
+            }
+            if(!empty($res['error'])){
+                core_Statuses::newStatus($res['error'], 'error');
+            }
+        }
+
         $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
         $logMsg = ($rec->_isCreated) ? 'Добавяне на параметър' : 'Редактиране на параметър';
 

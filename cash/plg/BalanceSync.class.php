@@ -31,7 +31,7 @@ class cash_plg_BalanceSync extends core_Plugin
 
 
     /**
-     * Извлича информацията нужна за ъпдейт на склада
+     * Извлича информацията нужна за ъпдейт на касата
      */
     private static function prepareCashBalanceData()
     {
@@ -41,25 +41,18 @@ class cash_plg_BalanceSync extends core_Plugin
         // Ако няма баланс няма какво да подготвяме
         if (empty($balanceRec)) return $arr;
 
-        // Извличане на сметките по които ще се ситематизират данните
-        $accIds = array();
-        $Cases = cls::get('cash_Cases');
-        foreach (arr::make($Cases->balanceRefAccounts, true) as $accSysId){
-            $accRec = acc_Accounts::getRecBySystemId($accSysId);
-            if(!empty($accRec)) {
-                $accIds[$accRec->id] = $accRec->id;
-            }
-        }
 
-        // Филтриране да се показват само касовите сметки
+        // Филтриране да се показват само за 501 сметка
         $dQuery = acc_BalanceDetails::getQuery();
-        $dQuery->in("accountId", $accIds);
+        $accRec = acc_Accounts::getRecBySystemId(501);
+        $dQuery->in("accountId", array($accRec->id => $accRec->id));
         $dQuery->where("#balanceId = {$balanceRec->id} AND #ent1Id IS NOT NULL");
         $recs = $dQuery->fetchAll();
         if(!countR($recs)) return $arr;
 
         // Кои са ид-та на перата от баланса
         $itemIds = arr::extractValuesFromArray($recs, "ent1Id");
+        $itemIds += arr::extractValuesFromArray($recs, "ent2Id");
         if(countR($itemIds)){
             $itemQuery = acc_Items::getQuery();
             $itemQuery->in('id', $itemIds);
@@ -70,13 +63,16 @@ class cash_plg_BalanceSync extends core_Plugin
         // За всеки запис от баланса
         foreach ($recs as $rec) {
             $pItem = $iRecs[$rec->ent1Id];
+            $cItem = $iRecs[$rec->ent2Id];
             if(!array_key_exists($pItem->objectId, $arr)) {
-                // Ако няма такъв продукт в масива, се записва
-                $arr[$pItem->objectId] = new stdClass();
-                $arr[$pItem->objectId]->id = $pItem->objectId;
-                $arr[$pItem->objectId]->blAmount = 0;
+                $arr[$pItem->objectId] = (object)array('id' => $pItem->objectId, 'currencies' => array());
             }
-            $arr[$pItem->objectId]->blAmount += $rec->blAmount;
+            if(!array_key_exists($cItem->objectId, $arr[$pItem->objectId]->currencies)) {
+                $arr[$pItem->objectId]->currencies[$cItem->objectId] = (object)array('currencyId' => $cItem->objectId,
+                                                                                     'quantity' => 0, 'amount' => 0);
+            }
+            $arr[$pItem->objectId]->currencies[$cItem->objectId]->quantity += $rec->blQuantity;
+            $arr[$pItem->objectId]->currencies[$cItem->objectId]->amount += $rec->blAmount;
         }
 
         // Връщане на групираните крайни суми

@@ -1212,6 +1212,7 @@ class cat_Boms extends core_Master
 
             if (static::save($nRec)) {
                 cls::get('cat_Boms')->invoke('AfterSaveCloneRec', array($activeBom, &$nRec));
+                self::replaceClonedBomProducts($nRec, $activeBom);
             } else {
                 core_Statuses::newStatus('|Грешка при клониране на запис', 'warning');
             }
@@ -1768,21 +1769,25 @@ class cat_Boms extends core_Master
     public static function getTasksFromBom($id, $quantity = 1)
     {
         expect($rec = self::fetchRec($id));
-        $pName = cat_Products::getTitleById($rec->productId, false);
+        if (!$rec->quantity) {
+            $rec->quantity = 1;
+        }
         $Details = cls::get('cat_BomDetails');
         $productStepClassId = planning_interface_StepProductDriver::getClassId();
 
-        // Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
-        // А неговите подетапи са за влагане/отпадък
-        $onlySteps = $allStages = array();
+        // Едно извличане на всички детайли на рецептата; разделяме ги в масиви според предназначението
+        $onlySteps = $allStages = $stageParentCache = array();
         $query = cat_BomDetails::getQuery();
         $query->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $query->where("#bomId = {$rec->id}");
-        $query->where("#type = 'stage' AND #innerClass = {$productStepClassId}");
         $query->orderBy('parentId,position', 'ASC');
         while($dRec1 = $query->fetch()){
-            $allStages[$dRec1->id] = $dRec1;
-            if($dRec1->innerClass == $productStepClassId){
+            // Cache за parent lookup - всички детайли (parent винаги е stage, но няма вреда да са всички)
+            $stageParentCache[$dRec1->id] = $dRec1;
+
+            // Само етапите с productStepClass генерират задачи
+            if($dRec1->type == 'stage' && $dRec1->innerClass == $productStepClassId){
+                $allStages[$dRec1->id] = $dRec1;
                 $onlySteps[$dRec1->id] = $dRec1;
             }
         }
@@ -1796,96 +1801,94 @@ class cat_Boms extends core_Master
             if ($quantityP == cat_BomDetails::CALC_ERROR) {
                 $quantityP = 0;
             }
-            
+
             $parent = $dRec->parentId;
-            while ($parent && ($pRec = cat_BomDetails::fetch($parent))) {
-                $q = cat_BomDetails::calcExpr($pRec->propQuantity, $pRec->params);
+            while ($parent && isset($stageParentCache[$parent])) {
+                $bRec = $stageParentCache[$parent];
+                $bRec->params['$T'] = $quantity;
+                $bRec->params['$тираж_задание'] = $quantity;
+                $q = cat_BomDetails::calcExpr($bRec->propQuantity, $bRec->params);
                 if ($q == cat_BomDetails::CALC_ERROR) {
                     $q = 0;
                 }
                 $quantityP *= $q;
-                $parent = $pRec->parentId;
+                $parent = $bRec->parentId;
             }
 
             $quantityP = (($quantityP) / $rec->quantity) * $quantity;
             $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
-            $pRec = cat_Products::fetch($dRec->resourceId);
+            $productRec = cat_Products::fetch($dRec->resourceId);
             $obj = (object) array('title' => cat_Products::getTitleById($dRec->resourceId, false),
-                                  'plannedQuantity' => $q1,
-                                  'measureId' => $pRec->measureId,
-                                  'productId' => $dRec->resourceId,
-                                  'packagingId' => $dRec->packagingId,
-                                  'quantityInPack' => $dRec->quantityInPack,
-                                  'storeId' => $dRec->storeIn,
-                                  'centerId' => $dRec->centerId,
-                                  'fixedAssets' => $dRec->fixedAssets,
-                                  'employees' => $dRec->employees,
-                                  'indTime' => $dRec->norm,
-                                  '_inputPreviousSteps' => (($dRec->inputPreviousSteps == 'auto') ? planning_Setup::get('INPUT_PREVIOUS_BOM_STEP') : $dRec->inputPreviousSteps),
-                                  '_dId' => $dRec->id,
-                                  '_parentId' => $dRec->parentId,
-                                  '_position' => $dRec->position,
-								  'subTitle' => $dRec->subTitle,
-                                  'description' => $dRec->description,
-                                  'labelPackagingId' => $dRec->labelPackagingId,
-                                  'labelQuantityInPack' => $dRec->labelQuantityInPack,
-                                  'labelType' => $dRec->labelType,
-                                  'labelTemplate' => $dRec->labelTemplate,
-                                  'showadditionalUom' => ($pRec->planning_Steps_calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $pRec->planning_Steps_calcWeightMode,
-                                  'params' => array(),
-                                  'wasteProductId' => ($dRec->wasteProductId) ? $dRec->wasteProductId : $pRec->planning_Steps_wasteProductId,
-                                  'wasteStart' => ($dRec->wasteStart) ? $dRec->wasteStart : $pRec->planning_Steps_wasteStart,
-                                  'wastePercent' => ($dRec->wastePercent) ? $dRec->wastePercent : $pRec->planning_Steps_wastePercent,
-                                  'products' => array('input' => array(), 'waste' => array(), 'production' => array()));
+                'plannedQuantity' => $q1,
+                'measureId' => $productRec->measureId,
+                'productId' => $dRec->resourceId,
+                'packagingId' => $dRec->packagingId,
+                'quantityInPack' => $dRec->quantityInPack,
+                'storeId' => $dRec->storeIn,
+                'centerId' => $dRec->centerId,
+                'fixedAssets' => $dRec->fixedAssets,
+                'employees' => $dRec->employees,
+                'indTime' => $dRec->norm,
+                '_inputPreviousSteps' => (($dRec->inputPreviousSteps == 'auto') ? planning_Setup::get('INPUT_PREVIOUS_BOM_STEP') : $dRec->inputPreviousSteps),
+                '_dId' => $dRec->id,
+                '_parentId' => $dRec->parentId,
+                '_position' => $dRec->position,
+                'subTitle' => $dRec->subTitle,
+                'description' => $dRec->description,
+                'labelPackagingId' => $dRec->labelPackagingId,
+                'labelQuantityInPack' => $dRec->labelQuantityInPack,
+                'labelType' => $dRec->labelType,
+                'labelTemplate' => $dRec->labelTemplate,
+                'showadditionalUom' => ($productRec->planning_Steps_calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $productRec->planning_Steps_calcWeightMode,
+                'params' => array(),
+                'wasteProductId' => ($dRec->wasteProductId) ? $dRec->wasteProductId : $productRec->planning_Steps_wasteProductId,
+                'wasteStart' => ($dRec->wasteStart) ? $dRec->wasteStart : $productRec->planning_Steps_wasteStart,
+                'wastePercent' => ($dRec->wastePercent) ? $dRec->wastePercent : $productRec->planning_Steps_wastePercent,
+                'products' => array('input' => array(), 'waste' => array(), 'production' => array()));
 
             $pQuery = cat_products_Params::getQuery();
             $pQuery->where("#classId = '{$Details->getClassId()}' AND #productId = {$dRec->id}");
             $pQuery->show('paramId,paramValue');
-            while($pRec = $pQuery->fetch()){
-                $obj->params[$pRec->paramId] = $pRec->paramValue;
+            while($paramRec = $pQuery->fetch()){
+                $obj->params[$paramRec->paramId] = $paramRec->paramValue;
             }
 
             // Добавяме директните наследници на етапа като материали за влагане/отпадък
-            $query2 = cat_BomDetails::getQuery();
-            $query2->where("#parentId = {$dRec->id}");
-            $query2->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
-            $stageChildren = $query2->fetchAll();
+            foreach ($stageParentCache as $cRec) {
+                if ($cRec->parentId != $dRec->id) continue;
+                if ($cRec->innerClass == $productStepClassId) continue;
 
-            foreach ($stageChildren as $cRec){
-                if($cRec->innerClass != $productStepClassId){
-                    $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
-                    if ($quantityS == cat_BomDetails::CALC_ERROR) {
-                        $quantityS = 0;
-                    }
-
-                    $place = ($cRec->type == 'pop') ? 'waste' : ($cRec->type == 'subProduct' ? 'production': 'input');
-                    $obj->products[$place][] = array('productName' => cat_Products::getTitleById($cRec->resourceId), 'productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
+                $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
+                if ($quantityS == cat_BomDetails::CALC_ERROR) {
+                    $quantityS = 0;
                 }
+
+                $place = ($cRec->type == 'pop') ? 'waste' : ($cRec->type == 'subProduct' ? 'production': 'input');
+                $obj->products[$place][] = array('productName' => cat_Products::getTitleById($cRec->resourceId), 'productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
             }
 
             // Събираме задачите
             $tasks[] = $obj;
         }
 
-        foreach ($tasks as $k => $defTask){
+        foreach ($tasks as $defTask){
+            if ($defTask->_inputPreviousSteps != 'yes') continue;
+
             $siblingSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_parentId && $a->position < $defTask->_position;});
             $childrenSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_dId;});
 
             foreach (array($siblingSteps, $childrenSteps) as $arr){
-                if(countR($arr)){
-                    arr::sortObjects($arr, 'position', 'DESC');
-                    $foundStepId = key($arr);
-                    if($foundStepId){
-                        $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
-                        $foundStepTask = $foundStepArr[key($foundStepArr)];
-                        if($foundStepTask){
-                            if($defTask->_inputPreviousSteps == 'yes'){
-                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack, 'isPrevStep' => true);
-                            }
-                        }
-                    }
-                }
+                if(!countR($arr)) continue;
+                arr::sortObjects($arr, 'position', 'DESC');
+                $foundStepId = key($arr);
+                if(!$foundStepId) continue;
+
+                $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
+                if(!countR($foundStepArr)) continue;
+                $foundStepTask = reset($foundStepArr);
+
+                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack, 'isPrevStep' => true);
             }
         }
 
@@ -2182,7 +2185,7 @@ class cat_Boms extends core_Master
 
             foreach ($dRecs as $bRec){
                 $bRec->parentId = $dRec->id;
-                $bRec->coefficient = $activeBom->quantity;
+                $bRec->coefficient = $activeBom ? $activeBom->quantity : $oldBomRec->quantity;
                 $this->regenDetailRec($bRec, $newBomRec, $oldBomRec, $cloneIfDetailsAreNewer);
             }
         }
@@ -2250,5 +2253,104 @@ class cat_Boms extends core_Master
         }
 
         followRetUrl(null, '|Параметрите на артикула са синхронизирани от рецептата');
+    }
+
+
+    /**
+     * Опитва да подмени материала на един ред от рецептата с нова стойност
+     *
+     * @param stdClass $dRec               - ред от cat_BomDetails (мутира се)
+     * @param int      $newValue           - id на новия материал
+     *                                       обновява се при успешна подмяна
+     * @return string|null                 - null при успех, иначе текст на грешката
+     */
+    public static function tryReplaceBomMaterial($dRec, $newValue)
+    {
+        $matRec = cat_Products::fetch($newValue, 'canConvert,measureId');
+        if(empty($dRec->productId)){
+            $dRec->productId = cat_Boms::fetchField($dRec->bomId, 'productId');
+        }
+
+        if ($matRec->canConvert != 'yes') return "Избраният материал не е вложим";
+
+        $notAllowed = array();
+        $BomDetails = cls::get('cat_BomDetails');
+        $BomDetails->findNotAllowedProducts($newValue, $dRec->productId, $notAllowed);
+        if (isset($notAllowed[$newValue])) {
+            core_Permanent::set("receiptErrReplace_{$dRec->id}", $newValue, 1440);
+            return "Участва в някоя от рецептите на другите материали";
+        }
+        core_Permanent::remove("receiptErrReplace_{$dRec->id}");
+
+        $dRec->resourceId     = $newValue;
+        $dRec->packagingId    = $matRec->measureId;
+        $dRec->quantityInPack = 1;
+        $dRec->modifiedOn = dt::now();
+        $dRec->modifiedBy = core_Users::getCurrent();
+        $dRec->params = $BomDetails->getProductParamScope($dRec, $dRec->productId);
+        $BomDetails->save($dRec, 'resourceId,packagingId,quantityInPack,params,modifiedOn,modifiedBy');
+
+        return null;
+    }
+
+
+    /**
+     * При клониране на рецепта да се подменят артикулите от зависими параметри
+     *
+     * @param stdClass $rec
+     * @param stdClass $clonedFromRec
+     * @return void
+     */
+    public static function replaceClonedBomProducts($rec, $clonedFromRec)
+    {
+        // Ако е чисто клониране няма да се прави нищо
+        $dQuery = cat_BomDetails::getQuery();
+        $dQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
+        $dQuery->where("#bomId = {$rec->id}");
+
+        // Групиране на детайлите по етапи
+        $dRecs = $paramsInBom = array();
+        while ($dRec = $dQuery->fetch()) {
+            $dRecs[$dRec->id] = $dRec;
+            if(!empty($dRec->paramId)){
+                $paramsInBom[$dRec->paramId] = $dRec->paramId;
+            }
+        }
+        if (!countR($dRecs)) return;
+
+        // Ако няма детайли зависими от параметри - пропуска се
+        if (!countR($paramsInBom)) return;
+
+        // Извличане на параметрите на артикула
+        Mode::push('doNotCalculate', true);
+        $params = cat_Products::getParams($rec->productId);
+        Mode::pop('doNotCalculate');
+
+        $errors = array();
+        $count  = 0;
+
+        foreach ($dRecs as $dRec) {
+            // Ако реда зависи от параметър проверява се има ли нова стойност
+            if (empty($dRec->paramId)) continue;
+            if (!array_key_exists($dRec->paramId, $params)) continue;
+
+            $val = $params[$dRec->paramId];
+            if (!strlen($val)) continue;
+
+            // Опит за подмяна на материала
+            $err = self::tryReplaceBomMaterial($dRec, $val);
+            if ($err === null) {
+                $count++;
+            } else {
+                $errors[] = $err;
+            }
+        }
+
+        if ($count) {
+            core_Statuses::newStatus("Сменени материали на спрямо нова стойност на параметър|*: {$count}");
+        }
+        if (countR($errors)) {
+            core_Statuses::newStatus("Материалът не може да бъде подменен|*: " . implode(',', $errors) . "!", 'warning');
+        }
     }
 }

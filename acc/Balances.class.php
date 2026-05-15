@@ -349,7 +349,7 @@ class acc_Balances extends core_Master
         }
 
         $form->title = 'Преизчисляване на баланса за|* <b>' . $periodId . "</b>";
-        $form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Дебъг проследяване на сметка->Избор,mandatory');
+        $form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Дебъг проследяване на сметка->Избор');
         $form->input();
 
         if ($form->isSubmitted()) {
@@ -384,8 +384,12 @@ class acc_Balances extends core_Master
                 core_Locks::release($lockKey);
             }
 
-            acc_BalanceDebugger::download($rec, $accNum);
-            // download() извиква exit – кодът след тук не се достига
+            if(!empty($accNum)) {
+                // download() извиква exit – кодът след тук не се достига
+                acc_BalanceDebugger::download($rec, $accNum);
+            } else {
+                followRetUrl(null, 'Балансът е преизчислен успешно');
+            }
         }
 
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Преизчисляване, class=submitBtn');
