@@ -382,9 +382,6 @@ class planning_Hr extends core_Master
 
         if(!$noOptions){
 
-
-
-
             // Ако има съществуващи ид-та и тях ги няма в опциите да се добавят
             if(isset($exIds)) {
                 $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
@@ -409,10 +406,12 @@ class planning_Hr extends core_Master
             $query = static::getQuery();
             $query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
             $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
+            $query->EXT('name', 'crm_Persons', 'externalName=name,externalKey=personId');
             $query->like('groupList', "|{$employeeGroupId}|");
             $query->where("#state != 'rejected' && #state != 'closed'");
+
             $query->show('personId,code');
-            $query->orderBy('id', 'ASC');
+            $query->orderBy('name', 'ASC');
             if (countR($objectIds)) {
                 $query->in('id', $objectIds);
             } else {
@@ -566,6 +565,7 @@ class planning_Hr extends core_Master
     public static function getPersonsCodesArr($arr, $withLinks = false, $codesAsKeys = false)
     {
         $res = $tempKeys = $codes = array();
+        $res = $tempKeys = $codes = array();
         $arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : arr::make($arr, true);
         if (empty($arr)) return $res;
 
@@ -579,6 +579,7 @@ class planning_Hr extends core_Master
             $codes[$id] = $code;
         }
 
+        natcasesort($tempKeys);
         foreach ($tempKeys as $k => $v) {
             $key = ($codesAsKeys) ? $codes[$k] : $k;
             $res[$key] = "{$codes[$k]} - {$v}";
