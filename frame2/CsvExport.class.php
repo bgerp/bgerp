@@ -227,7 +227,7 @@ class frame2_CsvExport extends core_Mvc
         $seriesArr = $Driver->getSeriesForExport($rec);
         
         if(countR($seriesArr)){
-            $form->FNC('series', 'varchar', "input,caption=|{$title}|* - |разширени настройки|*->Серия,autohide=any");
+            $form->FNC('series', 'varchar', "input,caption=|{$title}|* - |Серия на експорт|*->Серия, before=columns");
             $form->setOptions('series', $seriesArr);
             $form->setDefault('series', key($seriesArr));
         }
