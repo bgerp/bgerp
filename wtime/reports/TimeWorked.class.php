@@ -8,7 +8,7 @@
  * @package   wtime
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2025 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -91,30 +91,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-
         //Период
         $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title,single=none');
 
         //Потребители
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Група служители,placeholder=Избери група,mandatory,after=periods,single=none');
-
-    }
-
-
-    /**
-     * След рендиране на единичния изглед
-     *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager $Embedder
-     * @param core_Form $form
-     * @param stdClass $data
-     */
-    protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
-    {
-        if ($form->isSubmitted()) {
-
-
-        }
     }
 
 
@@ -147,9 +128,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-
         $recs = array();
-
         // Нужни са избрани групи и период (acc_Periods)
         if (empty($rec->crmGroup) || empty($rec->periods)) {
             return $recs;
@@ -288,7 +267,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $fld->FLD('percent', 'percent', 'caption=Процент,tdClass=center');
         }
 
-
         return $fld;
     }
 
@@ -342,6 +320,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                     $recsToExport[] = $exportRec;
                 }
             }
+        // при експорт на общата справка 
         } elseif ($series == 'summary') {
             $summary = $this->getSummary($rec);
             foreach ($summary as $fldId => $dRec){
@@ -376,7 +355,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     }
         
 
-    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
@@ -488,20 +466,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             }
         }
         return $row;
-    }
-
-
-    /**
-     * След рендиране на единичния изглед
-     *
-     * @param frame2_driver_Proto $Driver
-     * @param embed_Manager $Embedder
-     * @param core_ET $tpl
-     * @param stdClass $data
-     */
-    protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
-    {
-
     }
 
 
@@ -680,7 +644,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         }
 
         return $personsShiftsInPeriod;
-
     }
 
 
@@ -708,7 +671,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         }
 
         return $personsShiftsInPeriod;
-
     }
 
 
@@ -749,7 +711,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function getPersonsHomeOfficeDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
     {
-
         // За всеки човек и всяка дата проверяваме да ли е бил болничен на датата
         foreach ($personsInGroups as $personId => $personName) {
             foreach ($dates as $ymd) {
@@ -764,7 +725,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         }
 
         return $personsShiftsInPeriod;
-
     }
     
 
@@ -802,7 +762,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 4) Акумулация по ключ "<personId>|<Y-m-d>"
         $arr = array();
-
 
         while ($qRec = $q->fetch()) {
 
@@ -913,7 +872,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $Time->params['uom'] = 'hours';
 
         $rows = array();
-        $expectedMinutes = count($rec->data->periodDates) * 8 * 60;
 
         foreach ($summary as $personId => $rowData) {
             $isTotal = ($personId === 0);
@@ -948,6 +906,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      *
      * @param stdClass $rec
      * @return array $summary
+     * 
      */
     protected function getSummary($rec)
     {
@@ -999,19 +958,16 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 }
             }
         }
-
         foreach ($rec->data->recs as $dataRec) {
             if (!isset($summary[$dataRec->personId])) {
                 continue;
             }
-
             if ($dataRec->rowType === 'onsite') {
                 foreach ($dataRec->onSiteTimeByDate as $minutes) {
                     $summary[$dataRec->personId]->workingMinutes += (int)$minutes;
                     $summary[0]->workingMinutes += (int)$minutes;
                 }
             }
-
             if ($dataRec->rowType === 'ops') {
                 foreach ($dataRec->opsMinutesByDate as $minutes) {
                     $summary[$dataRec->personId]->taskMinutes += (int)$minutes;
@@ -1028,6 +984,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         return $summary;
     }
 
+    
     /**
      *  Връща сериите за експорт
      * 
