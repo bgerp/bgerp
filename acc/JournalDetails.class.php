@@ -368,8 +368,8 @@ class acc_JournalDetails extends core_Detail
      */
     public function save_(&$rec, $fields = null, $mode = null)
     {
-        if (empty($fields)) {
-            
+        // Ако не са посочени полета и реда не е обработен от стратегия
+        if (empty($fields) && empty($rec->_isFromStrategy)) {
             // Кое е перото на основната валута за периода
             $valior = ($rec->valior) ? $rec->valior : acc_Journal::fetchField($rec->journalId, 'valior');
             $baseCurrencyItemId = self::getBaseCurrencyItemId($valior);
@@ -394,12 +394,10 @@ class acc_JournalDetails extends core_Detail
                     break;
                 }
             }
-            
-            // Ако е намерено к-во на основната валута
+
+            //
             if ($replaceAmount !== false) {
-                
-                // И то е различно от сумата на реда замества се
-                // Така се подсигуряваме че К-то и сумата на основната валута винаги ще са еднакви
+                // Ако сумата е изчислена от стратегия (WAC/FIFO/LIFO) – не я презаписваме
                 if (trim($replaceAmount) != trim($rec->amount)) {
                     $rec->amount = $replaceAmount;
                 }

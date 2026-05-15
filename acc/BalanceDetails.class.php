@@ -1321,6 +1321,7 @@ class acc_BalanceDetails extends core_Detail
 
                                     // Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
                                     $rec->amount = $defCost * $rec->{$quantityField};
+                                    $rec->_isFromStrategy = true;
                                     if (!empty(round($rec->{$quantityField}, 6))) {
                                         $price = round($rec->amount / $rec->{$quantityField}, 4);
                                     } else {
@@ -1439,8 +1440,6 @@ class acc_BalanceDetails extends core_Detail
      */
     private function calcAmount($rec)
     {
-        $debitStrategy = $creditStrategy = null;
-
         $debitStrategy  = $this->getStrategyFor($rec->debitAccId,  $rec->debitItem1,  $rec->debitItem2,  $rec->debitItem3);
         $creditStrategy = $this->getStrategyFor($rec->creditAccId, $rec->creditItem1, $rec->creditItem2, $rec->creditItem3);
 
@@ -1455,6 +1454,7 @@ class acc_BalanceDetails extends core_Detail
 
                 if (!is_null($amount)) {
                     $rec->amount = $amount;
+                    $rec->_isFromStrategy = true;
 
                     if ($tracing) {
                         acc_BalanceDebugger::logStrategyConsume(
@@ -1483,6 +1483,7 @@ class acc_BalanceDetails extends core_Detail
 
                 if (!is_null($amount)) {
                     $rec->amount = $amount;
+                    $rec->_isFromStrategy = true;
 
                     if ($tracing) {
                         acc_BalanceDebugger::logStrategyConsume(
