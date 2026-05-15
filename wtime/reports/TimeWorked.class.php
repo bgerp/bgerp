@@ -896,7 +896,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function renderChart($rec, &$data)
     {
-        $fields = array('workingDays' => 'Работни дни', 'restDays' => 'Почивни дни', 'paidLeave' => 'Отпуска', 'sickDays' => 'Болнични', 'tripDays' => 'Командировка', 'homeOfficeDays' => 'Хоумофис', 'hours' => 'Часове', 'taskPct' => 'Процент задачи');
+        $fields = array('workingDays' => 'Работни дни', 'restDays' => 'Почивни дни', 'paidLeave' => 'Отпуска', 'sickDays' => 'Болнични', 'tripDays' => 'Командировка', 'homeOfficeDays' => 'Хоумофис', 'hours' => 'Часове');
 
         $summary = $this->getSummary($rec);
 
@@ -930,9 +930,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 } elseif ($fKey == 'hours') {
                     $hours = ($rowData->workingMinutes > 0) ? $Time->toVerbal($rowData->workingMinutes) : '-';
                     $row->{$fKey} = $isTotal ? "<b>{$hours}</b>" : $hours;
-                } elseif ($fKey == 'taskPct') {
-                    $taskPct = $expectedMinutes ? round(($rowData->taskMinutes / $expectedMinutes) * 100, 1) : 0;
-                    $row->{$fKey} = ($isTotal || $taskPct <= 0) ? '-' : $taskPct . '%';
                 } else {
                     $val = $rowData->{$fKey};
                     $row->{$fKey} = $isTotal ? "<b>{$val}</b>" : $val;
@@ -954,7 +951,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function getSummary($rec)
     {
-        $params = array('workingDays', 'restDays', 'paidLeave', 'sickDays', 'tripDays', 'homeOfficeDays', 'hours', 'taskPct');
+        $params = array('workingDays', 'restDays', 'paidLeave', 'sickDays', 'tripDays', 'homeOfficeDays', 'hours');
         $obj = new stdClass;
         foreach ($params as $paramFld) {
             $obj->{$paramFld} = 0;
