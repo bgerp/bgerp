@@ -344,7 +344,7 @@ class cash_Cases extends core_Master
 
         $remainingCols = 5;
         $colspan = countR($data->listFields) - $remainingCols;
-        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<span class='cCode'>{$currencyId}</span> <b>[#total#]</b> </td><td colspan='{$remainingCols}'>&nbsp;</td></tr>");
+        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp; <b>[#total#]</b> </td><td colspan='{$remainingCols}'>&nbsp;</td></tr>");
         $lastRow->replace(tr('Общо'), 'caption');
         $lastRow->replace($total, 'total');
         $tpl->append($lastRow, 'ROW_AFTER');
