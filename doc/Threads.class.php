@@ -949,7 +949,7 @@ class doc_Threads extends core_Manager
             }
         }
         
-        $lastFieldName = $filter->LastFieldName ? $filter->LastFieldName : 'last';
+        $lastFieldName = $filter->LastFieldName ?? 'last';
         
         // Подредба - @TODO
         switch ($filter->order) {
@@ -3182,8 +3182,8 @@ class doc_Threads extends core_Manager
         $vals = core_Settings::fetchKey($key);
         
         // Ако е зададено да се страницира
-        if ($vals['perPage']) {
-            
+        if ($vals['perPage'] ?? null) {
+
             // Променяме броя на страниците
             $mvc->listItemsPerPage = $vals['perPage'];
         }
