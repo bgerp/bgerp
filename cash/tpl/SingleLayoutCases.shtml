@@ -4,6 +4,12 @@
         <div class="inner-folder">
             <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Каса|* <b style="color:green;">[#name#]</b></div>
             <fieldset class="detail-info">
+                <legend class="groupTitle">|Наличност ОБЩО|*: <b style="color:green;">[#totalBlAmount#]</b> [#hint#]</legend>
+                <div class="groupList">
+                    [#inCashData#]
+                </div>
+            </fieldset>
+            <fieldset class="detail-info">
                 <legend class="groupTitle">|Информация|*</legend>
                 <div class="groupList">
                     <table>
@@ -35,13 +41,6 @@
                         </tr>
                         <!--ET_END ShowDocumentsAsButtons-->
                     </table>
-                </div>
-            </fieldset>
-
-            <fieldset class="detail-info">
-                <legend class="groupTitle">|Касова наличност|*: <b style="color:green;">[#totalBlAmount#]</b></legend>
-                <div class="groupList">
-                    [#inCashData#]
                 </div>
             </fieldset>
 
