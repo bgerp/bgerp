@@ -231,7 +231,7 @@ class hr_Trips extends core_Master
         $data->listFilter->input('employeeId', 'silent');
         
         if ($filterRec = $data->listFilter->rec) {
-            if ($filterRec->employeeId) {
+            if ($filterRec->employeeId ?? null) {
                 $data->query->where(array("#personId = '[#1#]'", $filterRec->employeeId));
             }
         }
@@ -507,7 +507,7 @@ class hr_Trips extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($rec->id) {
+        if ($rec->id ?? null) {
             if ($action == 'reject' && $rec && $rec->state == 'active' && $rec->startDate <= dt::now()) {
                 if (!haveRole('hrTrips, ceo')) {
                     $requiredRoles = 'no_one';

@@ -99,7 +99,7 @@ class plg_Select extends core_Plugin
             return;
         }
         
-        if (!$data->listClass) {
+        if (!($data->listClass ?? null)) {
             $data->listClass = 'listRows selectRows';
         } else {
             $data->listClass .= ' selectRows';
@@ -316,6 +316,7 @@ class plg_Select extends core_Plugin
         
         $tpl->append('</form>');
         
+        $js = '';
         foreach ($data->rows as $id => $row) {
             $js .= "chRwCl('{$id}');";
         }

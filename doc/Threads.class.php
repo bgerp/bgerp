@@ -830,7 +830,7 @@ class doc_Threads extends core_Manager
         $vals = core_Settings::fetchKey($key);
         
         // Ако е зададено подреждане в персонализацията
-        if ($vals['ordering']) {
+        if ($vals['ordering'] ?? null) {
             
             // Подреждаме по зададената стойност
             $data->listFilter->setDefault('order', $vals['ordering']);
@@ -844,7 +844,7 @@ class doc_Threads extends core_Manager
         
         doc_Folders::requireRightFor('single', $folderRec);
         
-        $mvc::applyFilter($data->listFilter->rec, $data->query, $data->rejQuery);
+        $mvc::applyFilter($data->listFilter->rec, $data->query, $data->rejQuery ?? null);
 
         
         // Изчистване на нотификации, свързани с промени в тази папка
@@ -896,7 +896,7 @@ class doc_Threads extends core_Manager
         
         $resArr = array();
         
-        foreach ((array) $fStatArr[$visKey][$rejKey] as $clsId => $cnt) {
+        foreach ((array) (($fStatArr[$visKey] ?? [])[$rejKey] ?? []) as $clsId => $cnt) {
             $resArr[$clsId] = core_Classes::getTitleById($clsId);
         }
         
@@ -941,7 +941,7 @@ class doc_Threads extends core_Manager
             $query->groupBy('`doc_threads`.`id`');
         }
         
-        if ($filter->documentClassId) {
+        if ($filter->documentClassId ?? null) {
             $query->where("#firstDocClass = {$filter->documentClassId}");
             if (cls::load($filter->documentClassId, true)) {
                 $dMvc = cls::get($filter->documentClassId);
@@ -952,11 +952,11 @@ class doc_Threads extends core_Manager
         $lastFieldName = $filter->LastFieldName ?? 'last';
         
         // Подредба - @TODO
-        switch ($filter->order) {
+        switch ($filter->order ?? null) {
             default:
             case 'open':
             case 'mine':
-                if ($filter->order == 'mine') {
+                if (($filter->order ?? null) == 'mine') {
                     if ($cu = core_Users::getCurrent()) {
                         $tList = array();
                         
@@ -1098,11 +1098,11 @@ class doc_Threads extends core_Manager
                 }
             }
             
-            if ($mvc->addThreadStateClassToLink) {
+            if ($mvc->addThreadStateClassToLink ?? null) {
                 $attr['class'] .= " state-{$rec->state}";
             }
 
-            if ($dRec->priority) {
+            if ($dRec->priority ?? null) {
                 $attr['class'] .= 'priority-' . $dRec->priority;
             }
             
@@ -1132,9 +1132,9 @@ class doc_Threads extends core_Manager
                 $row->author = $docRow->author;
             }
             
-            $row->hnd .= "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#" . ($rec->handle ? substr($rec->handle, 0, strlen($rec->handle) - 3) : $docProxy->getHandle()) . '</div>';
+            $row->hnd = ($row->hnd ?? '') . "<div onmouseup='selectInnerText(this);' class=\"state-{$docRow->state} document-handler\">#" . (($rec->handle ?? null) ? substr($rec->handle, 0, strlen($rec->handle) - 3) : $docProxy->getHandle()) . '</div>';
         } catch (core_Exception_Expect $expect) {
-            $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle) - 3) : '???';
+            $row->hnd = ($row->hnd ?? '') . (($rec->handle ?? null) ? substr($rec->handle, 0, strlen($rec->handle) - 3) : '???');
             $row->title = '?????????????';
             if ($rec->firstContainerId) {
                 $cRec = doc_Containers::fetch($rec->firstContainerId);
@@ -2357,7 +2357,7 @@ class doc_Threads extends core_Manager
                         
                         if ($Cls->haveRightFor('add', (object) array('folderId' => $data->folderId))) {
                             $bArr = array();
-                            $bArr['btnTitle'] = ($obj->caption) ? $obj->caption : $Cls->singleTitle;
+                            $bArr['btnTitle'] = ($obj->caption ?? null) ?: $Cls->singleTitle;
                             $bArr['url'] = (isset($obj->url)) ? $obj->url : array($Cls, 'add', 'folderId' => $data->folderId, 'ret_url' => true);
                             $bArr['ef_icon'] = $Cls->singleIcon;
                             $bArr['title'] = 'Създаване на ' . mb_strtolower($Cls->singleTitle);
@@ -2395,7 +2395,7 @@ class doc_Threads extends core_Manager
         $filterArr = (array)$data->listFilter->rec;
 
         // Ако не се търси текст или документ или някое поле добавено от корицата, прави се опит за по-бързо намиране на документите
-        if (!$data->listFilter->rec->search && !$data->listFilter->rec->documentClassId && !array_intersect_key($filterArr, $data->listFilterAddedFields)) {
+        if (!($data->listFilter->rec->search ?? null) && !($data->listFilter->rec->documentClassId ?? null) && !array_intersect_key($filterArr, $data->listFilterAddedFields ?? [])) {
             $fStatistic = doc_Folders::getStatistic($data->folderId);
             
             $visType = '_all';
@@ -2405,7 +2405,7 @@ class doc_Threads extends core_Manager
             
             $rejCnt = 0;
             
-            foreach ((array) $fStatistic[$visType]['rejected'] as $cnt) {
+            foreach ((array) (($fStatistic[$visType] ?? [])['rejected'] ?? []) as $cnt) {
                 $rejCnt += $cnt;
             }
 

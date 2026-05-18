@@ -539,7 +539,7 @@ class crm_Locations extends core_Master
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         $tpl->append(tr('Локации'), 'title');
-        $count = countR($data->rows);
+        $count = countR($data->rows ?? null);
         if ($count) {
             $divider = ($count == 1) ? '' : "<hr>";
             foreach ($data->rows as $id => $row) {

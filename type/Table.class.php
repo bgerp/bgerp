@@ -317,7 +317,7 @@ class type_Table extends type_Blob
             $value = @json_decode($value, true);
         }
         
-        if ($this->params['render']) {
+        if ($this->params['render'] ?? null) {
             $res = call_user_func_array($this->params['render'], array($value, $this));
             
             return $res;
@@ -326,12 +326,13 @@ class type_Table extends type_Blob
         if (is_array($value)) {
             $columns = $this->getColumns();
             $opt = $this->getOptions();
-            
+            $row0 = '';
             foreach ($columns as $field => $fObj) {
                 $row0 .= html_entity_decode("<td class='formTypeTable'>{$fObj->caption}</td>", ENT_QUOTES, 'UTF-8');
             }
 
             $i = 0;
+            $rows = '';
             do {
                 $isset = false;
                 $empty = true;
@@ -339,15 +340,16 @@ class type_Table extends type_Blob
                 foreach ($columns as $field => $fObj) {
                     $tdClass = ($this->params["{$field}_class"]) ? "class={$this->params["{$field}_class"]}" : '';
 
+                    $cellVal = $value[$field][$i] ?? null;
                     if (isset($opt[$field])) {
-                        $row .= "<td {$tdClass}>" . $opt[$field][$value[$field][$i]] . '</td>';
+                        $row .= "<td {$tdClass}>" . ($opt[$field][$cellVal] ?? '') . '</td>';
                     } else {
-                        $row .= "<td {$tdClass}>" . $value[$field][$i] . '</td>';
+                        $row .= "<td {$tdClass}>" . $cellVal . '</td>';
                     }
                     if (isset($value[$field][$i])) {
                         $isset = true;
                     }
-                    if (strlen($value[$field][$i])) {
+                    if (strlen((string)$cellVal)) {
                         $empty = false;
                     }
                 }
@@ -454,8 +456,8 @@ class type_Table extends type_Blob
         
         foreach ($colsArr as $i => $c) {
             $obj = new stdClass();
-            $obj->caption = $captionArr[$i] ? $captionArr[$i] : $c;
-            $obj->width = $widthsArr[$i];
+            $obj->caption = ($captionArr[$i] ?? null) ? $captionArr[$i] : $c;
+            $obj->width = $widthsArr[$i] ?? null;
             $obj->mandatory = countR($mandatoryArr) && in_array($c, $mandatoryArr) || $i == 0 && !countR($mandatoryArr);
             $res[$c] = $obj;
         }
@@ -474,7 +476,7 @@ class type_Table extends type_Blob
         foreach ($columns as $field => $fObj) {
             $selOpt = $field . '_opt';
             
-            if ($this->params[$selOpt]) {
+            if ($this->params[$selOpt] ?? null) {
                 if (is_string($this->params[$selOpt])) {
                     $opt = explode('|', $this->params[$selOpt]);
                     foreach ($opt as $o) {

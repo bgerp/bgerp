@@ -144,7 +144,7 @@ class core_Locks extends core_Manager
             core_App::setTimeLimit($lockDuration);
         }
 
-        $rec = $Locks->locks[$objectId];
+        $rec = $Locks->locks[$objectId] ?? null;
 
         // Ако този обект е заключен от текущия хит, връщаме TRUE
         if ($rec) {

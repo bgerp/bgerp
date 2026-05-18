@@ -298,7 +298,7 @@ class peripheral_Devices extends embed_Manager
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        if ($data->listFilter->rec->{$mvc->driverClassField}) {
+        if ($data->listFilter->rec->{$mvc->driverClassField} ?? null) {
             $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $data->listFilter->rec->{$mvc->driverClassField}));
         }
     }

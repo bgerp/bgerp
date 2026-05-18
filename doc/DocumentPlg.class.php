@@ -667,15 +667,15 @@ class doc_DocumentPlg extends core_Plugin
         $row->createdDate = dt::mysql2verbal($rec->createdOn ?? null, 'd.m.Y');
         
         if (isset($fields['-single'])) {
-            if (!$row->ident) {
+            if (!($row->ident ?? null)) {
                 $row->ident = '#' . $invoker->getHandle($rec->id);
             }
-            
-            if (!$row->singleTitle) {
+
+            if (!($row->singleTitle ?? null)) {
                 $row->singleTitle = tr($invoker->singleTitle);
             }
 
-            if ($rec->priority) {
+            if ($rec->priority ?? null) {
                 $row->DOCUMENT_PRIORITY_CLASS = 'priority-' . $rec->priority;
             }
             
@@ -2685,7 +2685,7 @@ class doc_DocumentPlg extends core_Plugin
                 } else {
                     
                     // Ако папката на нишката е затворена, не може да се добавят документи
-                    $folderId = $rec->folderId ? $rec->folderId : doc_Threads::fetch($rec->threadId)->folderId;
+                    $folderId = ($rec->folderId ?? null) ?: doc_Threads::fetch($rec->threadId)->folderId;
                     if (doc_Folders::fetch($folderId)->state == 'closed') {
                         $requiredRoles = 'no_one';
                     }
@@ -2994,9 +2994,9 @@ class doc_DocumentPlg extends core_Plugin
             $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
             $allowedCidArr = Mode::get($modeAllowedContainerIdName);
             
-            $cId = $rec->containerId;
-            
-            if (!$cId && $rec->id) {
+            $cId = $rec->containerId ?? null;
+
+            if (!$cId && ($rec->id ?? null)) {
                 $cId = $mvc->fetchField($rec->id, 'containerId');
             }
             
@@ -3172,7 +3172,7 @@ class doc_DocumentPlg extends core_Plugin
             $tpl->removeBlock('header');
         }
 
-        if ($data->rec->_resending) {
+        if ($data->rec->_resending ?? null) {
             $tpl->append(tr($data->rec->_resending), '_resending');
         }
         $tpl->removeBlocks();
@@ -4408,7 +4408,7 @@ class doc_DocumentPlg extends core_Plugin
         $rec = $mvc->fetchRec($id);
         if ($rec) {
             // Задаваме стойностите на полетата за последно модифициране
-            if (!$rec->_notModified) {
+            if (!($rec->_notModified ?? null)) {
                 $dKey = $mvc->className . '|' . $rec->id;
                 $mvc->pendingUpdateModifiedArr[$dKey] = array('id' => $rec->id, 'mvc' => $mvc, 'modifiedOn' => dt::now(), 'modifiedBy' => core_Users::getCurrent());
 
@@ -4462,7 +4462,7 @@ class doc_DocumentPlg extends core_Plugin
         $res = arr::make($res);
         
         // Ако няма избрана версия, да не се показва във вътрешната част
-        if (!$row->FirstSelectedVersion) {
+        if (!($row->FirstSelectedVersion ?? null)) {
             $res['internal']['versionAndDate'] = true;
             $res['internal']['date'] = true;
             $res['internal']['version'] = true;

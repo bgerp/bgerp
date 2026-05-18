@@ -60,7 +60,7 @@ class type_Keylist extends core_Type
         
         $value = trim($value);
 
-        $minSignRegex = $this->params['allowMinus'] ? $minSignRegex = '\-' : '';
+        $minSignRegex = ($this->params['allowMinus'] ?? null) ? '\-' : '';
 
         // Очакваме валиден keylist
         if (preg_match("/^[0-9{$minSignRegex}\\|]*$/", $value)) {
@@ -82,7 +82,7 @@ class type_Keylist extends core_Type
         if ($ids) {
             $idsKey = md5($ids . '|' . json_encode($this->params) . '|' . Mode::get('text-export') . '|' . Mode::get('text'));
             
-            if (($res = $cache[$mvc->className][$idsKey]) === null) {
+            if (($res = ($cache[$mvc->className][$idsKey] ?? null)) === null) {
                 foreach ($vals as $v) {
                     if ($v) {
                         $attr = array();
@@ -100,7 +100,7 @@ class type_Keylist extends core_Type
                                 $name = ht::createLink($name, array($mvc, 'Single', $v), false, $attr);
                             }
                         } else {
-                            if($this->params['makeLinks'] === 'hyperlink' && ($mvc instanceof core_Master)){
+                            if(($this->params['makeLinks'] ?? null) === 'hyperlink' && ($mvc instanceof core_Master)){
                                 $name = $mvc->getTitleById($v);
                             }
                             if (!Mode::is('text-export', 'csv') && !Mode::is('printLabel')) {
@@ -153,7 +153,7 @@ class type_Keylist extends core_Type
             $value = $this->suggestions[$k];
         }
  
-        if(($parentIdName = $this->params['parentId']) && isset($this->params['pathDivider'])) {
+        if(($parentIdName = ($this->params['parentId'] ?? null)) && isset($this->params['pathDivider'])) {
             $rec = $mvc->fetch($k);
             if(isset($rec) && ($parentId = $rec->{$parentIdName})) {
                 $value = $this->getVerbal($parentId) . $this->params['pathDivider'] . $value;
@@ -255,7 +255,7 @@ class type_Keylist extends core_Type
             foreach ($this->suggestions as $key => $v) {
                 
                 // Ако имаме група, правим ред и пишем името на групата
-                if (is_object($v) && $v->group) {
+                if (is_object($v) && ($v->group ?? null)) {
                     $j++;
                     
                     if ($trOpen) {
@@ -283,7 +283,7 @@ class type_Keylist extends core_Type
                     $class = 'keylistCategory';
                     
                     // Ако е вдигнат флага, за отваряне на група
-                    if ($v->autoOpen) {
+                    if ($v->autoOpen ?? null) {
                         
                         // Добавяме класа за отворена група
                         $class .= ' group-autoOpen';
@@ -312,15 +312,15 @@ class type_Keylist extends core_Type
 
                     $labelStyle = $insideLabel = $insideLabelEnd = '';
                     if (is_object($v)) {
-                        if ($v->labelStyle) {
+                        if ($v->labelStyle ?? null) {
                             $labelStyle = $v->labelStyle;
                         }
 
-                        if ($v->insideLabel) {
+                        if ($v->insideLabel ?? null) {
                             $insideLabel = $v->insideLabel;
                         }
 
-                        if ($v->insideLabelEnd) {
+                        if ($v->insideLabelEnd ?? null) {
                             $insideLabelEnd = $v->insideLabelEnd;
                         }
                     }
@@ -341,8 +341,8 @@ class type_Keylist extends core_Type
                     
                     $v = type_Varchar::escape($v);
 
-                    list(, $uId) = explode('_', $key);  
-                    if ($this->profileInfo[$uId]) {
+                    $uId = explode('_', $key)[1] ?? null;
+                    if ($this->profileInfo[$uId] ?? null) {
                         $class = $this->profileInfo[$uId]['class'];
                         $v = "<span class='{$class}'>" . $v . $this->profileInfo[$uId]['emoji'] . '</span>';
                     }
@@ -418,14 +418,15 @@ class type_Keylist extends core_Type
         }
         
         // Разпределяме опциите в 2,3 и 4 групи и гледаме при всяко разпределение, колко е максималния брой опции
+        $max = [];
         $i = 0;
         foreach ($options as $key => $v) {
-            if ($v->group) {
+            if ($v->group ?? null) {
                 $i = 0;
                 continue;
             }
             for ($j = 2; $j <= 4; $j++) {
-                $max[$j][$i % $j] = max($max[$j][$i % $j], min($maxChars * 0.9, mb_strlen(type_Key::getOptionTitle($v))));
+                $max[$j][$i % $j] = max($max[$j][$i % $j] ?? 0, min($maxChars * 0.9, mb_strlen(type_Key::getOptionTitle($v))));
                 $res[] = type_Key::getOptionTitle($v);
             }
             $i++;

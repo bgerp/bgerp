@@ -197,7 +197,7 @@ class currency_Currencies extends core_Master
                 $amount .= '&nbsp;<span class="cCode">' . $currency . '</span>';
         }
 
-        if (Mode::get('text', 'plain')) {
+        if (Mode::get('text') == 'plain') {
             $amount = strip_tags($amount);
             $amount = str_replace('&nbsp;', ' ', $amount);
         }

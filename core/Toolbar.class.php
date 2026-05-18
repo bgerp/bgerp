@@ -194,8 +194,9 @@ class core_Toolbar extends core_BaseClass
     {
         $ids = arr::make($ids, true);
         $remains = arr::make($remains, true);
+        $cnt = 0;
         foreach ($this->buttons as $id => $btn) {
-            if (($ids['*'] || $ids[$id]) && !$remains[$id]) {
+            if ((($ids['*'] ?? null) || ($ids[$id] ?? null)) && !($remains[$id] ?? null)) {
                 unset($this->buttons[$id]);
                 $cnt++;
             }

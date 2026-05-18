@@ -838,7 +838,7 @@ class label_Prints extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Ако не е избран потребител по подразбиране
-        if (!$data->listFilter->rec->author) {
+        if (!($data->listFilter->rec->author ?? null)) {
             
             // Да е текущия
             $data->listFilter->rec->author = '|' . core_Users::getCurrent() . '|';
@@ -856,11 +856,11 @@ class label_Prints extends core_Master
                 $data->query->orWhereArr('modifiedBy', $usersArr, true);
             }
             
-            if ($filter->templateId) {
+            if ($filter->templateId ?? null) {
                 $data->query->where(array("#templateId = '[#1#]'", $filter->templateId));
             }
-            
-            if ($filter->mediaId) {
+
+            if ($filter->mediaId ?? null) {
                 $data->query->where(array("#mediaId = '[#1#]'", $filter->mediaId));
             }
         }

@@ -559,8 +559,8 @@ class acc_Items extends core_Manager
         if ($regRec) {
             $itemRec->num = $regRec->num;
             $itemRec->title = $regRec->title;
-            $itemRec->uomId = $regRec->uomId;
-            $itemRec->features = $regRec->features;
+            $itemRec->uomId = $regRec->uomId ?? null;
+            $itemRec->features = $regRec->features ?? null;
             
             if (!empty($register->autoList)) {
                 // Автоматично добавяне към номенклатурата $autoList

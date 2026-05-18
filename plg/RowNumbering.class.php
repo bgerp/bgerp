@@ -42,7 +42,7 @@ class plg_RowNumbering extends core_Plugin
     public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         if ($cnt = countR($data->recs)) {
-            if ($data->reverseOrder) {
+            if ($data->reverseOrder ?? null) {
                 if ($data->pager) {
                     $number = $data->pager->itemsCount - $data->pager->rangeStart;
                 } else {
@@ -63,24 +63,24 @@ class plg_RowNumbering extends core_Plugin
             $zebra = 1;
             
             foreach ($data->rows as $id => $row) {
-                if ($data->rows[$id]->RowNumb instanceof core_Et) {
+                if (($data->rows[$id]->RowNumb ?? null) instanceof core_Et) {
                     $data->rows[$id]->RowNumb->append($number, 'ROWTOOLS_CAPTION');
                 } else {
                     $title = haveRole('debug') ? "title = '{$id}'" : '';
-                    $data->rows[$id]->RowNumb .= "<span class='detailNumbering' {$title}>${number}</span>";
+                    $data->rows[$id]->RowNumb = ($data->rows[$id]->RowNumb ?? '') . "<span class='detailNumbering' {$title}>{$number}</span>";
                 }
                 
                 $rec = $data->recs[$id];
                 
-                if ($mvc->zebraRows !== false && $rec->state == '') {
-                    $row->ROW_ATTR['class'] .= ' zebra' . ($zebra % 2);
+                if (($mvc->zebraRows ?? null) !== false && ($rec->state ?? null) == '') {
+                    $row->ROW_ATTR['class'] = (($row->ROW_ATTR ?? [])['class'] ?? '') . ' zebra' . ($zebra % 2);
                 }
                 $zebra++;
                 $number += $increment;
             }
         }
         
-        if (!$data->listFields['RowNumb'] && $mvc instanceof core_Detail) {
+        if (!($data->listFields['RowNumb'] ?? null) && $mvc instanceof core_Detail) {
             $data->listFields = arr::combine(array('RowNumb' => '№'), $data->listFields);
         }
     }

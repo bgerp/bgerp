@@ -167,7 +167,7 @@ abstract class deals_Helper
             }
             
             if ($discountVal) {
-                if (!($masterRec->type === 'dc_note' && $rec->changedQuantity !== true && $rec->changedPrice !== true)) {
+                if (!(($masterRec->type ?? null) === 'dc_note' && $rec->changedQuantity !== true && $rec->changedPrice !== true)) {
                     $discount += $rec->{$map['amountFld']} * $discountVal;
                 }
             }
@@ -177,7 +177,7 @@ abstract class deals_Helper
             }
 
             // Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
-            if ($masterRec->type === 'dc_note') {
+            if (($masterRec->type ?? null) === 'dc_note') {
                 if ($rec->changedQuantity === true || $rec->changedPrice === true) {
                     $amountRow += $rec->{$map['amountFld']};
                     $amount += $noVatAmount;
@@ -213,7 +213,7 @@ abstract class deals_Helper
                 }
             }
 
-            if (!($masterRec->type === 'dc_note' && ($rec->changedQuantity !== true && $rec->changedPrice !== true))) {
+            if (!(($masterRec->type ?? null) === 'dc_note' && ($rec->changedQuantity !== true && $rec->changedPrice !== true))) {
                 if (!array_key_exists($vat, $vats)) {
                     $vats[$vat] = (object) array('amount' => 0, 'sum' => 0);
                 }
@@ -373,7 +373,7 @@ abstract class deals_Helper
             $arr['sayWordsValue'] = str::mbUcfirst($arr['sayWordsValue']);
         }
 
-        if($arr['neto'] != 0){
+        if(($arr['neto'] ?? null) != 0){
             $arr['sayWordsNetto'] = $SpellNumber->asCurrency($arr['neto'], $lang, false, $currencyId);
             $arr['sayWordsNetto'] = str::mbUcfirst($arr['sayWordsNetto']);
         }
@@ -1179,7 +1179,7 @@ abstract class deals_Helper
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
             $cData = $ContragentClass->getContragentData($contragentId, $dateFromWhichToGetName);
-            $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
+            $cName = ($cData->personVerb ?? null) ?: ($cData->companyVerb ?? null);
             $res['contragentName'] = $contragentName ?? $cName;
 
             $res['inlineContragentName'] = $res['contragentName'];
@@ -3715,6 +3715,7 @@ abstract class deals_Helper
 
     public static function getDiscountRow($calcedDiscount, $manualDiscount, $autoDiscount, $state)
     {
+        $res = null;
         $Percent = core_Type::getByName('percent');
         $autoDiscountVerbal = $Percent->toVerbal($autoDiscount);
         if(!in_array($state, array('draft', 'pending'))){

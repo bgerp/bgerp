@@ -41,7 +41,7 @@ class plg_StyleNumbers extends core_Plugin
         foreach ($mvc->selectFields() as $name => $field) {
             if (is_a($field->type, 'type_Double')) {
                 foreach ($data->recs as $i => $rec) {
-                    $rows[$i]->{$name} = ht::styleNumber($rows[$i]->{$name}, round($rec->{$name}, 4));
+                    $rows[$i]->{$name} = ht::styleNumber($rows[$i]->{$name} ?? null, round((float)($rec->{$name} ?? 0), 4));
                 }
             }
         }

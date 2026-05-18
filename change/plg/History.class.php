@@ -259,7 +259,7 @@ class change_plg_History extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        if($data->skip) return;
+        if($data->skip ?? null) return;
 
         $rec = &$data->rec;
         $row = &$data->row;

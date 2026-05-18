@@ -509,7 +509,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if (isset($rec->contragentClassId, $rec->contragentId)) {
                 $crm = cls::get($rec->contragentClassId);
                 $cRec = $crm->getContragentData($rec->contragentId, $rec->activatedOn);
-                $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
+                $contragent = str::limitLen(($cRec->person ?? null) ?: ($cRec->company ?? null), 16);
             } else {
                 $contragent = tr('Проблем при показването');
             }
@@ -1337,7 +1337,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $actions = type_Set::toArray($rec->contoActions);
         
         foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct') as $amnt) {
-            if (round($rec->{"amount{$amnt}"}, 2) == 0) {
+            if (round($rec->{"amount{$amnt}"} ?? 0, 2) == 0) {
                 $row->{"amount{$amnt}"} = ht::styleNumber($amountType->toVerbal(0), 0);
             } else {
                 if (!empty($rec->currencyRate)) {
@@ -1358,7 +1358,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct', "Delivered") as $amnt) {
-            $row->{"amount{$amnt}"} = ht::styleNumber($row->{"amount{$amnt}"}, round($rec->{"amount{$amnt}"}, 2), 'green');
+            $row->{"amount{$amnt}"} = ht::styleNumber($row->{"amount{$amnt}"} ?? null, round($rec->{"amount{$amnt}"} ?? 0, 2), 'green');
         }
 
         // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
@@ -1532,7 +1532,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $row = (object) ((array) $row + (array) $headerInfo);
             
             if (isset($actions['ship'])) {
-                $row->isDelivered .= mb_strtoupper(tr('доставено'));
+                $row->isDelivered = ($row->isDelivered ?? '') . mb_strtoupper(tr('доставено'));
                 if ($rec->state == 'rejected') {
                     $row->isDelivered = "<span class='quiet'>{$row->isDelivered}</span>";
                 }
@@ -2133,7 +2133,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
-        if ($data->paymentPlan) {
+        if ($data->paymentPlan ?? null) {
             $tpl->placeObject($data->paymentPlan);
         }
         
@@ -3301,7 +3301,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
         // Ако е експедирано с договора, бутон за връщане
         $contoActions = type_Set::toArray($rec->contoActions);
-        if($contoActions['ship']){
+        if($contoActions['ship'] ?? null){
             if($ReverseClass = $mvc->getDocumentReverseClass($data->rec)) {
                 if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
                     $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");

@@ -904,7 +904,7 @@ class crm_Persons extends core_Master
             $query = $mvc->getQuery();
 
             $viewAccess = true;
-            if ($typeKey->params['restrictViewAccess'] == 'yes') {
+            if (($typeKey->params['restrictViewAccess'] ?? null) == 'yes') {
                 $viewAccess = false;
             }
 
@@ -1162,7 +1162,7 @@ class crm_Persons extends core_Master
      */
     public function prepareCompanyExpandData(&$data)
     {
-        if (!$data->query) {
+        if (!($data->query ?? null)) {
             $query = $this->getQuery();
             $query->where("#buzCompanyId = {$data->masterId}");
             $query->where("#state != 'rejected'");
@@ -1216,13 +1216,13 @@ class crm_Persons extends core_Master
                             <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt-->
                          </fieldset>");
 
-        if ($data->addBtn) {
+        if ($data->addBtn ?? null) {
             $tpl->replace($data->addBtn, 'BTN');
         }
-        if ($data->companiesCnt) {
+        if ($data->companiesCnt ?? null) {
             $tpl->replace($data->companiesCnt, 'CNT');
         }
-        if (countR($data->rows)) {
+        if (countR($data->rows ?? null)) {
             $i = 0;
             foreach ($data->rows as $id => $row) {
                 $tpl->append("<div style='margin-bottom:10px'>", 'persons');
@@ -1315,7 +1315,7 @@ class crm_Persons extends core_Master
      */
     public static function renderNamedays($data)
     {
-        if (!countR($data->rows)) {
+        if (!countR($data->rows ?? null)) {
 
             return '';
         }
@@ -3185,7 +3185,7 @@ class crm_Persons extends core_Master
 
 
         $viewAccess = true;
-        if ($params['restrictViewAccess'] == 'yes') {
+        if (($params['restrictViewAccess'] ?? null) == 'yes') {
             $viewAccess = false;
         }
 
@@ -3196,7 +3196,7 @@ class crm_Persons extends core_Master
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
 
-        if ($params['where']) {
+        if ($params['where'] ?? null) {
             $query->where($params['where']);
         }
 
@@ -3250,7 +3250,7 @@ class crm_Persons extends core_Master
 
         $res = array();
 
-        if ($params['group']) {
+        if ($params['group'] ?? null) {
             $gId = crm_Groups::getIdFromSysId($params['group']);
             expect($gId);
             plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $gId);

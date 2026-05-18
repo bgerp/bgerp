@@ -346,7 +346,7 @@ class log_Browsers extends core_Master
             $rec = self::fetch(array("#brid = '[#1#]'", $brid));
         }
         
-        if (!$rec->userAgent) {
+        if (!is_object($rec) || !$rec->userAgent) {
             
             return '';
         }

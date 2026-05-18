@@ -119,8 +119,8 @@ class doc_HiddenContainers extends core_Manager
         foreach ((array) $containerRecsArr as $cId => $cRec) {
             $i++;
             
-            $nextKey = $cKeys[++$kId];
-            $nextRec = $containerRecsArr[$nextKey];
+            $nextKey = $cKeys[++$kId] ?? null;
+            $nextRec = $containerRecsArr[$nextKey] ?? null;
             
             if (!$firstCid && $cRec->threadId) {
                 $firstCid = doc_Threads::getFirstContainerId($cRec->threadId);
@@ -229,7 +229,7 @@ class doc_HiddenContainers extends core_Manager
             return false;
         }
         
-        return self::$hiddenDocsArr[$cId];
+        return self::$hiddenDocsArr[$cId] ?? null;
     }
     
     

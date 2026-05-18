@@ -175,7 +175,7 @@ class hr_Positions extends core_Master
     protected function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if ($mvc->haveRightFor('single', $rec)) {
-            $row->id = ht::createLink($row->id, array($mvc, 'list', $rec->id));
+            $row->id = ht::createLink($row->id ?? null, array($mvc, 'list', $rec->id));
         }
 
         if(isset($rec->salaryBase)){

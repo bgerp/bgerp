@@ -433,7 +433,7 @@ class accda_Da extends core_Master
             $data->listFilter->showFields .= ',location';
             $data->listFilter->input('location');
             
-            if ($data->listFilter->rec->location) {
+            if ($data->listFilter->rec->location ?? null) {
                 $data->query->where(array("#location = '[#1#]'", $data->listFilter->rec->location));
             }
         }

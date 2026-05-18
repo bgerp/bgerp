@@ -396,7 +396,7 @@ class acc_plg_Contable extends core_Plugin
                 
                 // Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
                 $jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
-                $valior = isset($jRec) ? $jRec->valior : $mvc->getValiorValue($rec);
+                $valior = is_object($jRec) ? $jRec->valior : $mvc->getValiorValue($rec);
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
                 // Само активни документи с транзакция и в незатворен период могат да се сторнират
@@ -503,7 +503,7 @@ class acc_plg_Contable extends core_Plugin
         
         // Проверка за права за частния сингъл
         if ($action == 'viewpsingle') {
-            $rolesAll = acc_plg_DocumentSummary::$rolesAllMap[$mvc->className];
+            $rolesAll = acc_plg_DocumentSummary::$rolesAllMap[$mvc->className] ?? null;
             if (!$rolesAll || !haveRole($rolesAll, $userId)) {
                 $requiredRoles = 'no_one';
             }

@@ -183,7 +183,7 @@ abstract class embed_Manager extends core_Master
     {
         try {
             if (!empty($rec->{$mvc->driverClassField}) && cls::load($rec->{$mvc->driverClassField}, true)) {
-                $driverRec = $rec->driverRec;
+                $driverRec = $rec->driverRec ?? null;
                 
                 if (is_array($driverRec)) {
                     foreach ($driverRec as $field => $value) {
@@ -276,7 +276,7 @@ abstract class embed_Manager extends core_Master
                 $driver->invoke('AfterAddFields', array($mvc, &$fieldset));
                 
                 foreach ($fieldset->fields as $name => $field) {
-                    if (!isset($row->{$name}) && $fields[$name] && isset($rec->{$name})) {
+                    if (!isset($row->{$name}) && ($fields[$name] ?? null) && isset($rec->{$name})) {
                         $row->{$name} = $field->type->toVerbal($rec->{$name});
                     }
                 }
@@ -309,7 +309,7 @@ abstract class embed_Manager extends core_Master
         $res = array();
         if (is_array($fieldset->fields)) {
             foreach ($fieldset->fields as $name => $f) {
-                if ($onlySingleFields === true && $f->single == 'none') {
+                if ($onlySingleFields === true && ($f->single ?? null) == 'none') {
                     continue;
                 }
                 

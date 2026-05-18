@@ -58,7 +58,7 @@ class core_QueryCnts extends core_Manager
         $data = core_Cache::get(self::CACHE_PREFIX, $hash);
         
         if (!empty($part)) {
-            $res = $data->{$part};
+            $res = is_object($data) ? $data->{$part} : null;
         } else {
             $res = $data;
         }

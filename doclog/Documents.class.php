@@ -2295,7 +2295,7 @@ class doclog_Documents extends core_Manager
                 $data[$rec->containerId] = new stdClass();
             }
             if (($rec->action != $open) && ($rec->action != $download) && ($rec->action != $change) && ($rec->action != $forward) && ($rec->action != $used)) {
-                ++$data[$rec->containerId]->summary[$rec->action];
+                $data[$rec->containerId]->summary[$rec->action] = (($data[$rec->containerId]->summary ?? [])[$rec->action] ?? 0) + 1;
             }
             
             // Ако екшъна е change
@@ -2319,9 +2319,9 @@ class doclog_Documents extends core_Manager
                 }
             }
             
-            $data[$rec->containerId]->summary[$open] += countR($rec->data->{$open});
-            $data[$rec->containerId]->summary[$download] += static::getCountOfDownloads($rec->data->{$download});
-            $data[$rec->containerId]->summary[$forward] += countR($rec->data->{$forward});
+            $data[$rec->containerId]->summary[$open] = (($data[$rec->containerId]->summary[$open] ?? 0)) + countR($rec->data->{$open} ?? null);
+            $data[$rec->containerId]->summary[$download] = (($data[$rec->containerId]->summary[$download] ?? 0)) + static::getCountOfDownloads($rec->data->{$download} ?? null);
+            $data[$rec->containerId]->summary[$forward] = (($data[$rec->containerId]->summary[$forward] ?? 0)) + countR($rec->data->{$forward} ?? null);
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
         

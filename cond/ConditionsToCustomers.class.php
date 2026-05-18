@@ -349,7 +349,8 @@ class cond_ConditionsToCustomers extends core_Manager
             $query->where("#conditionId = {$conditionId}");
             $query->show('value');
             
-            return $query->fetch()->value;
+            $result = $query->fetch();
+            return $result ? $result->value : null;
         }
         $query->show('conditionId,value');
         $recs = array();

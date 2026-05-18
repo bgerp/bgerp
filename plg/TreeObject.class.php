@@ -312,10 +312,10 @@ class plg_TreeObject extends core_Plugin
         
         foreach ($array as $key => $value) {
             $return[$value->id] = $value;
-            if (countR($value->children)) {
+            if (countR($value->children ?? null)) {
                 $return = $return + self::flattenTree($value->children);
             }
-            $value->_childrenCount = countR($value->children);
+            $value->_childrenCount = countR($value->children ?? null);
             unset($value->children);
         }
         
@@ -347,10 +347,11 @@ class plg_TreeObject extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-list'])) {
-            $row->ROW_ATTR['data-parentid'] .= $rec->{$mvc->parentFieldName};
-            $row->ROW_ATTR['data-id'] .= $rec->id;
+            $row->ROW_ATTR ??= [];
+            $row->ROW_ATTR['data-parentid'] = ($row->ROW_ATTR['data-parentid'] ?? '') . $rec->{$mvc->parentFieldName};
+            $row->ROW_ATTR['data-id'] = ($row->ROW_ATTR['data-id'] ?? '') . $rec->id;
             $row->ROW_ATTR['data-manager'] = $mvc->className;
-            $row->ROW_ATTR['class'] .= ' treeLevel' . $rec->_level;
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' treeLevel' . $rec->_level;
             
             // Ако може да се добавя поделемент, показваме бутон за добавяне
             if ($mvc->haveRightFor('add', (object) array($mvc->parentFieldName => $rec->id))) {
@@ -367,8 +368,8 @@ class plg_TreeObject extends core_Plugin
             }
             
             // Ако записа е намерен при търсене добавяме му клас
-            if ($rec->show === true) {
-                $row->ROW_ATTR['class'] .= ' searchResult';
+            if (($rec->show ?? null) === true) {
+                $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' searchResult';
             }
         }
 

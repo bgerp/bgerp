@@ -97,7 +97,7 @@ class plg_Created extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if ($data->form->rec->createdBy == core_Users::SYSTEM_USER && $mvc->protectedSystemFields) {
+        if ($data->form->rec->createdBy == core_Users::SYSTEM_USER && ($mvc->protectedSystemFields ?? null)) {
             $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, true);
             
             foreach ($data->form->fields as &$f) {

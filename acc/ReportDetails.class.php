@@ -75,7 +75,7 @@ class acc_ReportDetails extends core_Manager
         }
 
         // Ако потребителя има достъп до репортите
-        if (haveRole($data->masterMvc->canReports) && ($data->Tab == 'top' || $data->isCurrent)) {
+        if (haveRole($data->masterMvc->canReports) && (($data->Tab ?? null) == 'top' || $data->isCurrent)) {
 
             // Извличане на счетоводните записи
             $this->prepareBalanceReports($data);
@@ -375,7 +375,7 @@ class acc_ReportDetails extends core_Manager
         }
         
         // Ако баланса се преизчислява в момента, показваме подходящо съобщение
-        if ($data->balanceIsRecalculating === true) {
+        if (($data->balanceIsRecalculating ?? null) === true) {
             $warning = "<span class='red'>" . tr('Балансът се преизчислява в момента|*. |Моля, изчакайте|*!') . '</span>';
             $tpl->append($warning, 'CONTENT');
             
@@ -433,7 +433,7 @@ class acc_ReportDetails extends core_Manager
                 }
                 
                 $tableHtml = null;
-                if($arr['empty'] !== true){
+                if(($arr['empty'] ?? null) !== true){
                     if(countR($rows)){
                         $fields = core_TableView::filterEmptyColumns($rows, $fields, 'tools');
                         $tableHtml = $table->get($rows, $fields);
@@ -462,7 +462,7 @@ class acc_ReportDetails extends core_Manager
                 }
                 
                 // Ако има зададени лимити за тази сметка, показваме и тях
-                if (countR($arr['limits'])) {
+                if (countR($arr['limits'] ?? null)) {
                     $unset1 = $unset2 = $unset3 = true;
                     foreach ($arr['limits'] as $lRec) {
                         $lRec->_rowTools = $lRec->_rowTools->renderHtml();

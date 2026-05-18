@@ -584,6 +584,7 @@ class doc_Containers extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = null)
     {
+        $docRow = null;
         try {
             try {
                 $document = $mvc->getDocument($rec->id);
@@ -605,9 +606,10 @@ class doc_Containers extends core_Manager
             // Не се предвижда коригиращо действие
         }
         
+        $hidden = false;
         if ($docRow) {
             $q = Request::get('Q');
-            
+
             // Ако е задеден да не се скрива документа или ако се търси в него
             $hidden = (boolean) (doc_HiddenContainers::isHidden($rec->id));
             
@@ -629,7 +631,7 @@ class doc_Containers extends core_Manager
                     Mode::pop('saveObjectsToCid');
                     $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
                     
-                    $data->row->DocumentSettings = new ET($data->row->DocumentSettings);
+                    $data->row->DocumentSettings = new ET($data->row->DocumentSettings ?? null);
                     
                     // Добавяме линк за скриване на документа
                     if (doc_HiddenContainers::isHidden($rec->id) === false) {
@@ -686,6 +688,7 @@ class doc_Containers extends core_Manager
             
             $row->created = str::limitLen($docRow->author, 32);
         } else {
+            $debug = '';
             if (isDebug()) {
                 if (!$rec->docClass) {
                     $debug = 'Липсващ $docClass ';
@@ -693,7 +696,7 @@ class doc_Containers extends core_Manager
                 if (!$rec->docId) {
                     $debug .= 'Липсващ $docId ';
                 }
-                if (!$document) {
+                if (!($document ?? null)) {
                     $debug .= 'Липсващ $document ';
                 }
             }
@@ -701,17 +704,17 @@ class doc_Containers extends core_Manager
             $row->document = new ET("<h2 style='color:red'>[#1#]</h2><p>[#2#]</p>", tr('Грешка при показването на документа'), $debug);
         }
         
-        $row->created = type_Nick::normalize($row->created);
+        $row->created = type_Nick::normalize($row->created ?? null);
         
         if ($rec->createdBy > 0) {
             $row->created = crm_Profiles::createLink($rec->createdBy);
         }
         
         if (!$hidden) {
-            if ($docRow->authorId > 0 || ($docRow->authorEmail && !($rec->createdBy > 0))) {
-                $avatar = avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail);
+            if (($docRow->authorId ?? null) > 0 || (($docRow->authorEmail ?? null) && !($rec->createdBy > 0))) {
+                $avatar = avatar_Plugin::getImg($docRow->authorId ?? null, $docRow->authorEmail ?? null);
             } else {
-                $avatar = avatar_Plugin::getImg($rec->createdBy, $docRow->authorEmail);
+                $avatar = avatar_Plugin::getImg($rec->createdBy, $docRow->authorEmail ?? null);
             }
             
             if (Mode::is('screenMode', 'narrow')) {
@@ -1925,6 +1928,7 @@ class doc_Containers extends core_Manager
         
         //Ако няма
         if (!$abbrArr) {
+            $abbrArr = [];
             $docClasses = core_Classes::getOptionsByInterface('doc_DocumentIntf');
             
             //Обикаляме всички записи, които имплементират doc_DocumentInrf
@@ -1933,10 +1937,10 @@ class doc_Containers extends core_Manager
                 //Създаваме инстанция на класа в масив
                 $instanceArr[$id] = cls::get($className);
                 
-                $abbr = strtoupper($instanceArr[$id]->abbr);
+                $abbr = strtoupper($instanceArr[$id]->abbr ?? '');
                 
-                expect(i18n_Charset::is7Bit($abbr), $abbr, $abbrArr[$abbr], $className);
-                expect(!$abbrArr[$abbr], $abbr, $abbrArr[$abbr], $className);
+                expect(i18n_Charset::is7Bit($abbr), $abbr, $abbrArr[$abbr] ?? null, $className);
+                expect(!($abbrArr[$abbr] ?? null), $abbr, $abbrArr[$abbr] ?? null, $className);
                 
                 // Ако няма абревиатура
                 if (!trim($abbr)) {

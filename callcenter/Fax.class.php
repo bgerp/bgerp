@@ -218,7 +218,7 @@ class callcenter_Fax extends core_Manager
         $data->listFilter->input('number,usersSearch', 'silent');
         
         // Ако не е избран потребител по подразбиране
-        if (!$data->listFilter->rec->usersSearch) {
+        if (!($data->listFilter->rec->usersSearch ?? null)) {
             
             // Да е текущия
             $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
@@ -231,7 +231,7 @@ class callcenter_Fax extends core_Manager
         if ($filter = $data->listFilter->rec) {
             
             // Ако се търси по номера
-            if ($number = $filter->number) {
+            if ($number = ($filter->number ?? null)) {
                 
                 // Премахваме нулите и + от началото на номера
                 $number = ltrim($number, '0+');

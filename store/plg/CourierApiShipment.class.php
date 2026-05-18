@@ -172,7 +172,7 @@ class store_plg_CourierApiShipment extends core_Plugin
     public static function on_BeforeRenderSingle($mvc, &$tpl, $data)
     {
         $rec = $data->rec;
-        if($mvc->lineFieldName){
+        if($mvc->lineFieldName ?? null){
             if(!empty($rec->courierApiPrice) && !Mode::isReadOnly()){
                 $courierApiPrice = currency_Currencies::decorate($rec->courierApiPrice, $rec->currencyId);
                 $data->row->{$mvc->lineFieldName} .= " {$courierApiPrice}";

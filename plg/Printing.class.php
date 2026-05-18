@@ -77,6 +77,7 @@ class plg_Printing extends core_Plugin
             ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && ($mvc->printRejected ?? null) === false))) {
             if (($mvc instanceof core_Manager) && $mvc->haveRightFor('single', $data->rec)) {
                 // Текущото URL
+                $url = null;
                 $currUrl = getCurrentUrl();
                 
                 // Ако името на класа е текущото URL
@@ -243,7 +244,7 @@ class plg_Printing extends core_Plugin
             if ($data->listFilter && $data->listFilter->rec) {
                 Mode::push('text', 'plain');
                 foreach ($showFieldsArr as $showFields) {
-                    $fRecVal = $data->listFilter->rec->{$showFields};
+                    $fRecVal = $data->listFilter->rec->{$showFields} ?? null;
                     if (isset($fRecVal) && trim($fRecVal)) {
                         $field = $data->listFilter->fields[$showFields];
                         
@@ -251,11 +252,11 @@ class plg_Printing extends core_Plugin
                             continue;
                         }
                         
-                        if (($field->input == 'hidden') || ($field->input == 'none')) {
+                        if ((($field->input ?? null) == 'hidden') || (($field->input ?? null) == 'none')) {
                             continue;
                         }
-                        
-                        if ($field->printListFilter == 'none') {
+
+                        if (($field->printListFilter ?? null) == 'none') {
                             continue;
                         }
                         
@@ -313,7 +314,7 @@ class plg_Printing extends core_Plugin
      */
     public static function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
     {
-        if ($data->_selectTplForm) {
+        if ($data->_selectTplForm ?? null) {
             $tpl->append($data->_selectTplForm, 'noPrint');
         }
     }

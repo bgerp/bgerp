@@ -145,7 +145,7 @@ class vislog_History extends core_Manager
         $domainsCnt = cms_Domains::count();
 
         // Ако е ясен домейна, махаме колонката
-        if($data->listFilter->rec->domainId || $domainsCnt == 1) {
+        if(($data->listFilter->rec->domainId ?? null) || $domainsCnt == 1) {
             unset($data->listFields['domainId']);
         }
 
@@ -153,20 +153,20 @@ class vislog_History extends core_Manager
             $data->listFilter->showFields = 'ip, brid';  //, HistoryResourceId';
         }
         
-        if ($ip = $data->listFilter->rec->ip) {
+        if ($ip = ($data->listFilter->rec->ip ?? null)) {
             $ip = str_replace('*', '%', $ip);
             $data->query->where(array("#ip LIKE '[#1#]'", $ip));
         }
         
-        if ($brid = $data->listFilter->rec->brid) {
+        if ($brid = ($data->listFilter->rec->brid ?? null)) {
             $data->query->where(array("#brid LIKE '[#1#]'", $brid));
         }
-        
-        if ($domainId = $data->listFilter->rec->domainId) {
+
+        if ($domainId = ($data->listFilter->rec->domainId ?? null)) {
             $data->query->where(array("#domainId = '[#1#]'", $domainId));
         }
 
-        if ($HistoryResourceId = $data->listFilter->rec->HistoryResourceId) {
+        if ($HistoryResourceId = ($data->listFilter->rec->HistoryResourceId ?? null)) {
             // $data->query->where("#HistoryResourceId = {$HistoryResourceId}");
         }
         

@@ -443,7 +443,7 @@ class crm_Companies extends core_Master
         
         // Според заявката за сортиране, показваме различни полета
         setPartIfNot($data->listFilter->rec, 'order', 'alphabetic');
-        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
+        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2] ?? null;
         
         if ($showColumns) {
             $showColumns = arr::make($showColumns, true);
@@ -461,7 +461,7 @@ class crm_Companies extends core_Master
         }
         
         
-        if ($data->listFilter->rec->alpha) {
+        if ($data->listFilter->rec->alpha ?? null) {
             if ($data->listFilter->rec->alpha[0] == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
@@ -905,14 +905,14 @@ class crm_Companies extends core_Master
      */
     protected static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
-        if ($data->listFilter->rec->groupId) {
+        if ($data->listFilter->rec->groupId ?? null) {
             $data->title = "Фирми в групата|* \"<b style='color:green'>|" .
             $mvc->Groups->getTitleById($data->listFilter->rec->groupId) . '|*</b>"';
-        } elseif ($data->listFilter->rec->search) {
+        } elseif ($data->listFilter->rec->search ?? null) {
             $data->title = "Фирми, отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .
             '</b>"';
-        } elseif ($data->listFilter->rec->alpha) {
+        } elseif ($data->listFilter->rec->alpha ?? null) {
             if ($data->listFilter->rec->alpha[0] == '0') {
                 $data->title = 'Фирми, които започват с не-буквени символи';
             } else {
@@ -981,6 +981,7 @@ class crm_Companies extends core_Master
         $place = $mvc->getVerbal($rec, 'place');
         $address = $mvc->getVerbal($rec, 'address');
         
+        $row->addressBox ??= '';
         $row->addressBox .= $pCode ? "{$pCode} " : '';
         $row->addressBox .= $place;
 
@@ -991,6 +992,7 @@ class crm_Companies extends core_Master
         $eml = $mvc->getVerbal($rec, 'email');
 
         // phonesBox
+        $row->phonesBox ??= '';
         $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : '';
         $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : '';
         $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : '';
@@ -1013,11 +1015,11 @@ class crm_Companies extends core_Master
         $row->id = $mvc->getVerbal($rec, 'id');
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : '');
         
-        if (!$row->title) {
-            $row->title .= $mvc->getTitleById($rec);
+        if (!($row->title ?? null)) {
+            $row->title = $mvc->getTitleById($rec);
         }
-        
-        if ($rec->folderName) {
+
+        if ($rec->folderName ?? null) {
             $row->folderName = "<div style='color:blue;'>" . $mvc->getVerbal($rec, 'folderName') . '</div>';
         }
         

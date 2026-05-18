@@ -300,7 +300,7 @@ class support_Systems extends core_Master
         if ($action == 'list') {
 
             // Ако е активен
-            if ($rec->state == 'active') {
+            if (($rec->state ?? null) == 'active') {
 
                 // Ако няма папка
                 if (!$folderId = $rec->folderId) {

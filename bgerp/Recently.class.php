@@ -144,7 +144,7 @@ class bgerp_Recently extends core_Manager
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
-        if (!$rec->threadId && $rec->objectId && ($rec->type == 'document')) {
+        if (!($rec->threadId ?? null) && ($rec->objectId ?? null) && (($rec->type ?? null) == 'document')) {
             $rec->threadId = doc_Containers::fetchField($rec->objectId, 'threadId');
         }
     }

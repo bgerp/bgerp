@@ -426,7 +426,7 @@ class callcenter_Numbers extends core_Manager
         
         // Ако има филтър
         if ($filter = $data->listFilter->rec) {
-            if ($type = $filter->type) {
+            if ($type = ($filter->type ?? null)) {
                 $data->query->where(array("#type = '[#1#]'", $type));
             }
         }

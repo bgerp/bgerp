@@ -1914,7 +1914,7 @@ class doc_Folders extends core_Master
 
         if (!empty($rec->coverId)) {
             $plugins = arr::make($class->loadList, true);
-            if ($plugins['plg_Search'] || method_exists($class, 'getSearchKeywords')) {
+            if (($plugins['plg_Search'] ?? null) || method_exists($class, 'getSearchKeywords')) {
                 $searchKeywords .= ' ' . $class->getSearchKeywords($rec->coverId);
             }
         }
@@ -2264,7 +2264,7 @@ class doc_Folders extends core_Master
         }
         
         $viewAccess = true;
-        if ($params['restrictViewAccess'] == 'yes') {
+        if (($params['restrictViewAccess'] ?? null) == 'yes') {
             $viewAccess = false;
         }
 
@@ -2276,7 +2276,7 @@ class doc_Folders extends core_Master
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
         
-        if ($params['where']) {
+        if ($params['where'] ?? null) {
             $query->where($params['where']);
         }
         
@@ -2294,7 +2294,7 @@ class doc_Folders extends core_Master
             $query->where("#id = {$onlyIds}");
         }
         
-        if ($threadId = $params['moveThread']) {
+        if ($threadId = ($params['moveThread'] ?? null)) {
             $tRec = doc_Threads::fetch($threadId);
             expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
             $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query, $viewAccess);

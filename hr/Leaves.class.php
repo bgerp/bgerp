@@ -276,11 +276,11 @@ class hr_Leaves extends core_Master
         
         $data->listFilter->input('employeeId, paid', 'silent');
         
-        if ($data->listFilter->rec->paid) {
+        if ($data->listFilter->rec->paid ?? null) {
             $data->query->where("#paid = '{$data->listFilter->rec->paid}'");
         }
-        
-        if ($data->listFilter->rec->employeeId) {
+
+        if ($data->listFilter->rec->employeeId ?? null) {
             $data->query->where("#personId = '{$data->listFilter->rec->employeeId}'");
         }
     }
@@ -518,7 +518,7 @@ class hr_Leaves extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($rec->id) {
+        if ($rec->id ?? null) {
             
             if ($action == 'order') {
                 // и нямаме нужните права
@@ -530,7 +530,7 @@ class hr_Leaves extends core_Master
         }
         
         if ($action == 'add' || $action == 'reject' || $action == 'decline') {
-            if ($rec->folderId) {
+            if ($rec->folderId ?? null) {
                 $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
                 
                 if ($rec->folderId && $folderClass == 'crm_Persons') {

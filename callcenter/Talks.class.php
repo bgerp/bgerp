@@ -1917,7 +1917,7 @@ class callcenter_Talks extends core_Master
         $data->listFilter->input('number, usersSearch, dialStatusType, from, to', 'silent');
         
         // Ако не е избран потребител по подразбиране
-        if (!$data->listFilter->rec->usersSearch) {
+        if (!($data->listFilter->rec->usersSearch ?? null)) {
             
             // Да е текущия
             $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
@@ -1931,7 +1931,7 @@ class callcenter_Talks extends core_Master
         if ($filter = $data->listFilter->rec) {
             
             // Ако се търси по номера
-            if ($number = $filter->number) {
+            if ($number = ($filter->number ?? null)) {
                 
                 // Премахваме нулите и + от началото на номера
                 $number = ltrim($number, '0+');
@@ -1973,7 +1973,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Ако се търси по статус или вид
-            if ($filter->dialStatusType) {
+            if ($filter->dialStatusType ?? null) {
                 $dialStatusType = $filter->dialStatusType;
                 
                 // Разделяме статуса от типа
@@ -2007,14 +2007,14 @@ class callcenter_Talks extends core_Master
             $dateRange = array();
             
             // Ако е зададено от
-            if ($filter->from) {
-                
+            if ($filter->from ?? null) {
+
                 // Добавяме в масива
                 $dateRange[0] = $filter->from;
             }
-            
+
             // Ако е зададено до
-            if ($filter->to) {
+            if ($filter->to ?? null) {
                 
                 // Добавяме в масива
                 $dateRange[1] = $filter->to;
@@ -2028,14 +2028,14 @@ class callcenter_Talks extends core_Master
             }
             
             // Ако има от
-            if ($dateRange[0]) {
-                
+            if ($dateRange[0] ?? null) {
+
                 // Разговори приети От дата
                 $data->query->where(array("#startTime >= '[#1#]'", $dateRange[0]));
             }
-            
+
             // Ако има до
-            if ($dateRange[1]) {
+            if ($dateRange[1] ?? null) {
                 
                 // Разговори До дата
                 $data->query->where(array("#startTime <= '[#1#] 23:59:59'", $dateRange[1]));
@@ -2089,7 +2089,7 @@ class callcenter_Talks extends core_Master
         $data->listSummary->stat = $stat;
         
         // Ако има продължителност
-        if ($stat['duration']) {
+        if ($stat['duration'] ?? null) {
             
             // Инстанция на класа
             $Time = cls::get('type_Time');
@@ -2149,7 +2149,7 @@ class callcenter_Talks extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако искаме да отворим сингъла на документа
-        if ($rec->id && $action == 'single' && $userId) {
+        if (($rec->id ?? null) && $action == 'single' && $userId) {
             
             // Ако нямаме роля CEO
             if (!haveRole('ceo, callcenter', $userId)) {
