@@ -280,8 +280,8 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                 $dpRec = $query->fetch("#docType = $pDpClassId AND #docId = $planningRec->id AND #state = 'active' ");
                 $dpQuery = acc_JournalDetails::getQuery();
                 $dpQuery->where("#journalId = $dpRec->id AND #debitAccId = $debitAccId");
-
-                while ($dpRecDet = $dpQuery->fetch()) {
+$c=0;
+                while ($dpRecDet = $dpQuery->fetch()) {$aaa[]=$dpRecDet;$c++;
                     unset($amount, $quantity, $matRec, $matItemRec, $matClassName);
                     if ($dpRecDet->creditItem2) {
                         $matItemRec = acc_Items::fetch($dpRecDet->creditItem2);
@@ -290,7 +290,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                         //rec-а на вложения материал
                         $matRec = $matClassName::fetch($matItemRec->objectId);
 
-                        $id = $planningRec->productId . '|' . $matRec->id;
+                        $id = $planningRec->productId . '|' . $matRec->id . '|' .$dpRecDet->id;
                     }
                     if (!$dpRecDet->creditItem2 && $dpRecDet->creditItem1) {
                         $matItemRec = acc_Items::fetch($dpRecDet->creditItem1);
@@ -299,11 +299,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                         //rec-а на вложения материал
                         $matRec = $matClassName::fetch($matItemRec->objectId);
 
-                        $id = $planningRec->productId . '|' . $matRec->id;
+                        $id = $planningRec->productId . '|' . $matRec->id . '|' .$dpRecDet->id;
                     }
 
                     if (!$dpRecDet->creditItem1 && !$dpRecDet->creditItem2) {
-                        $id = $planningRec->productId . '|' . 'distrib';
+                        $id = $planningRec->productId . '|' . 'distrib'. '|' .$dpRecDet->id;
                     }
 
 
