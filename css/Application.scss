@@ -9044,6 +9044,12 @@ tr.wasteWeightPercent td {
 	}
 }
 
+
+legend .frontTooltip, legend .endTooltip {
+	position: relative;
+	top: -1px !important;
+}
+
 .narrow .elem-holder .endTooltip {
 	float: right !important;
 }

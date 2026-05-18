@@ -7925,6 +7925,11 @@ tr.wasteWeightPercent td {
     width: 16px;
     height: 16px; }
 
+legend .frontTooltip,
+legend .endTooltip {
+  position: relative;
+  top: -1px !important; }
+
 .narrow .elem-holder .endTooltip {
   float: right !important; }
 
