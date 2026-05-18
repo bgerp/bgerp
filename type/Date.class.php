@@ -99,7 +99,7 @@ class type_Date extends core_Type
         if ($value && !$this->error) {
             $value = dt::mysql2verbal($value, 'd.m.Y', null, false);
         } else {
-            $value = $attr['value'];
+            $value = $attr['value'] ?? null;
         }
         
         $attr['autocomplete'] = 'off';
