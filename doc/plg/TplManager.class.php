@@ -51,7 +51,7 @@ class doc_plg_TplManager extends core_Plugin
             
             // На всеки детайл от модела му се прикача 'doc_plg_TplManagerDetail' (ако го няма)
             foreach ($details as $Detail) {
-                if ($mvc->$Detail instanceof $Detail) {
+                if (isset($mvc->$Detail) && $mvc->$Detail instanceof $Detail) {
                     $plugins = $mvc->$Detail->getPlugins();
                     if (empty($plugins['doc_plg_TplManagerDetail'])) {
                         $mvc->$Detail->load('doc_plg_TplManagerDetail');
