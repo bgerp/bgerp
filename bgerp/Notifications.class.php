@@ -2052,7 +2052,7 @@ class bgerp_Notifications extends core_Manager
             }
             
             // Ако няма да се записва само 'lastTime', сетваме стойността от modifiedOn
-            if (!isset($fields) || (!$fields['lastTime'] && $fields['modifiedOn'])) {
+            if (!isset($fields) || (!($fields['lastTime'] ?? null) && ($fields['modifiedOn'] ?? null))) {
                 $modifiedOn = self::fetchField($rec->id, 'modifiedOn', false);
                 $rec->lastTime = $modifiedOn;
                 
