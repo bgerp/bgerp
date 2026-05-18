@@ -232,7 +232,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Когато полето е скрито и няма стойност, гледаме да не е NULL
-                if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === null)) {
+                if (($field->input ?? null) == 'hidden' && !$value && ($field->type->toVerbal($value) === null)) {
                     continue;
                 }
             }
@@ -394,7 +394,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Когато полето е скрито и няма стойност, гледаме да не е NULL
-                if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === null)) {
+                if (($field->input ?? null) == 'hidden' && !$value && ($field->type->toVerbal($value) === null)) {
                     continue;
                 }
             }
