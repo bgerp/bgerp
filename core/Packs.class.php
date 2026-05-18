@@ -495,8 +495,8 @@ class core_Packs extends core_Manager
                 $isAll = true;
             }
             
-            if ($filter->state != 'hidden') {
-                if (!$filter->search && $isAll) {
+            if (($filter->state ?? null) != 'hidden') {
+                if (!($filter->search ?? null) && $isAll) {
                     $data->query->where("#state != 'hidden'");
                 }
             }
@@ -674,7 +674,7 @@ class core_Packs extends core_Manager
             $row->ROW_ATTR['style'] = 'background-color:red';
         }
         
-        if ($row->config && $row->install) {
+        if (($row->config ?? null) && ($row->install ?? null)) {
             $row->configInstall = ' ';
         }
     }
