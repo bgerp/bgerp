@@ -56,6 +56,7 @@ header('X-Accel-Buffering: no');
 // На коя стъпка се намираме в момента?
 $step = $_GET['step'] ? $_GET['step'] : 1;
 $texts['currentStep'] = $step;
+$efSaltGenerated = false;
 
 $flagOK = MD5($_GET['SetupKey'] . 'flagOK');
 if ($step == 'testSelfUrl') {
@@ -73,8 +74,8 @@ if (isset($_SERVER['HTTPS']) &&
     $protocol = 'http://';
 }
 
-if ($username = $_SERVER['PHP_AUTH_USER']) {
-    $password = $_SERVER['PHP_AUTH_PW'];
+if (isset($_SERVER['PHP_AUTH_USER']) && ($username = $_SERVER['PHP_AUTH_USER'])) {
+    $password = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : '';
     $auth = $username . ':' . $password . '@';
 } else {
     $auth = '';
@@ -107,7 +108,7 @@ if (defined('BGERP_ABSOLUTE_HTTP_HOST')) {
 
 // URL на следващата стъпка
 $selfUrl = addParams($selfUri, array('step' => $step));
-$nextUrl = addParams($selfUri, array('step' => round($step) + 1));
+$nextUrl = addParams($selfUri, array('step' => round((float) $step) + 1));
  
 // Определяме линка към приложението
 $appUri = $selfUrl;
@@ -689,7 +690,7 @@ if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
     // Статистика за различните класове съобщения
     $stat = array();
     
-    $texts['body'] .= logToHtml($log, $stat);
+    $texts['body'] = ($texts['body'] ?? '') . logToHtml($log, $stat);
     $texts['body'] .= "<div style='font-size:14px;margin-top: 10px; clear:both;'> ${reposLastDate}</div>";
 }
 
@@ -968,7 +969,7 @@ if ($step == 3) {
 
     // Статистика за различните класове съобщения
     $stat = array();
-    $texts['body'] .= logToHtml($log, $stat);
+    $texts['body'] = ($texts['body'] ?? '') . logToHtml($log, $stat);
     
     if ($stat['err']) {
         $texts['body'] = "<ul class='msg stats'><li>" .
@@ -988,7 +989,7 @@ if ($step == 3) {
 // Ако се намираме на етапа на инициализиране, по-долу стартираме setup-а
 if ($step == 4) {
     $stat = $log = array();
-    $texts['body'] .= linksToHtml(array("new|{$selfUrl}&step=5| Стартиране инициализация »"));
+    $texts['body'] = ($texts['body'] ?? '') . linksToHtml(array("new|{$selfUrl}&step=5| Стартиране инициализация »"));
 
     // Ако базата не е празна и се намираме в dev бранча - даваме възможност за директно стартиране
     if(getDbRows() > 0) {
@@ -1013,7 +1014,7 @@ if ($step == 4) {
 
     // Статистика за различните класове съобщения
     
-    $texts['body'] .= logToHtml($log, $stat);
+    $texts['body'] = ($texts['body'] ?? '') . logToHtml($log, $stat);
 }
 
 if(substr($step, 0, 7) == 'restore') {
@@ -1027,14 +1028,14 @@ if(substr($step, 0, 7) == 'restore') {
 
     // Статистика за различните класове съобщения
     $stat = array();
-    $texts['body'] .= logToHtml($log, $stat);
+    $texts['body'] = ($texts['body'] ?? '') . logToHtml($log, $stat);
 
 }
 
 if ($step == 5) {
     // Първоначално изтриване на Log-a
     file_put_contents(EF_SETUP_LOG_PATH, '');
-    $texts['body'] .= "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
+    $texts['body'] = ($texts['body'] ?? '') . "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
     
     // Слагаме кода за стартиране на сетъп процеса
     $pURL = parse_url($localUrl);
@@ -1350,9 +1351,14 @@ die;
  */
 function logToHtml($log, &$stat)
 {
+    $html = '';
+
     foreach ($log as $line) {
         list($class, $text) = explode(':', $line, 2);
         $html .= "\n<div class='{$class}'>{$text}</div>";
+        if (!isset($stat[$class])) {
+            $stat[$class] = 0;
+        }
         $stat[$class]++;
     }
 

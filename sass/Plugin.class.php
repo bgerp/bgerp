@@ -41,7 +41,8 @@ class sass_Plugin extends core_Plugin
                 $cssPath = $scssFileArr['dirname'] . '/' . $pathArr['basename'];
                 if (!file_exists($cssPath) || $time > filemtime($cssPath)) {
                     $cssCode = sass_Converter::convert($scssFile, true);
-                    if (!@file_put_contents($cssPath, $cssCode)) {
+                    $cssWritable = file_exists($cssPath) ? is_writable($cssPath) : is_writable(dirname($cssPath));
+                    if (!($cssWritable && file_put_contents($cssPath, $cssCode))) {
                         // Ако не успеем да запишем в проекта файла, записваме го директно в sbf
                         if (core_Sbf::saveFile($cssCode, $sbfPath, true)) {
                             $res = $sbfPath;
