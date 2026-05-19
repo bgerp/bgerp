@@ -50,7 +50,9 @@ div.tab-control.alphabet div.tab-row .tab.active {
   box-sizing: border-box;
   line-height: 1.45;
 }
-
+.relProductCol {
+  text-align: left !important;
+}
 .product-rel-tabs-compact .product-rel-tabs-info:empty {
   display: none;
 }
