@@ -4682,10 +4682,10 @@ fieldset.sharing-history {
 	width:74%
 }
 
-.oldView img {
-	max-width: 100%;
+.oldView.eshop-product-images img {
+	max-width: 100% !important;
 	width: auto;
-	height: auto;
+	height: auto !important;
 }
 
 .product-gallery + .productInfo {
