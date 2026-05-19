@@ -4021,6 +4021,11 @@ span.sharing-history-title {
   float: right;
   width: 74%; }
 
+.oldView img {
+  max-width: 100%;
+  width: auto;
+  height: auto; }
+
 .product-gallery + .productInfo {
   overflow: visible;
   padding-top: 5px; }
