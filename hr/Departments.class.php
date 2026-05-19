@@ -219,7 +219,7 @@ class hr_Departments extends core_Master
     {
         $arrData = (array) $data->recs;
         
-        $first = $arrData[self::ROOT_DEPARTMENT_ID];
+        $first = $arrData[self::ROOT_DEPARTMENT_ID] ?? null;
         unset($arrData[self::ROOT_DEPARTMENT_ID]);
         $oldId = null;
         $res = array();
@@ -248,7 +248,7 @@ class hr_Departments extends core_Master
             $res[] = array('id' => $rec->id, 'title' => $name, 'parent_id' => $parent);
         }
         
-        $firstRow = array('id' => '1', 'title' => $first->name, 'parent_id' => 'NULL');
+        $firstRow = array('id' => '1', 'title' => $first->name ?? null, 'parent_id' => 'NULL');
         if (countR($res)) {
             array_unshift($res, $firstRow);
         } else {

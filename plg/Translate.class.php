@@ -28,7 +28,7 @@ class plg_Translate extends core_Plugin
     public static function on_BeforeGetVerbal($mvc, &$num, &$rec, $part = null)
     {
         // Ако е зададено да се превежда полето и има поле
-        if ($part && $mvc->fields[$part]->translate) {
+        if ($part && ($mvc->fields[$part]->translate ?? null)) {
             
             // Ако не е обект
             if (!is_object($rec)) {

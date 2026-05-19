@@ -4021,6 +4021,11 @@ span.sharing-history-title {
   float: right;
   width: 74%; }
 
+.oldView.eshop-product-images img {
+  max-width: 100% !important;
+  width: auto;
+  height: auto !important; }
+
 .product-gallery + .productInfo {
   overflow: visible;
   padding-top: 5px; }
@@ -7924,6 +7929,11 @@ tr.wasteWeightPercent td {
   .frontTooltip img {
     width: 16px;
     height: 16px; }
+
+legend .frontTooltip,
+legend .endTooltip {
+  position: relative;
+  top: -1px !important; }
 
 .narrow .elem-holder .endTooltip {
   float: right !important; }

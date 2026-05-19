@@ -338,8 +338,8 @@ class cal_Calendar extends core_Master
         $data->query->orderBy("#time=ASC,#priority=DESC");
         
         //Филтър по тип
-        if(!$data->listFilter->rec->types == ''){
-            if ($data->listFilter->rec->types == 'religian'){
+        if($data->listFilter->rec->types ?? null){
+            if (($data->listFilter->rec->types ?? null) == 'religian'){
                 $religianArr = array('orthodox','muslim');
                 $data->query->in('type', $religianArr);
             }elseif ($data->listFilter->rec->types == 'task'){
@@ -361,7 +361,7 @@ class cal_Calendar extends core_Master
             }
         }
       	
-      	if(!$data->listFilter->rec->selectedUsers) {
+        if(!($data->listFilter->rec->selectedUsers ?? null)) {
 		  
 		  $data->listFilter->rec->selectedUsers =
 		  keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
@@ -406,7 +406,7 @@ class cal_Calendar extends core_Master
     {
         $fields = arr::make($fields, true);
         
-        if(isset($fields) && $fields['-list']) {
+        if(isset($fields) && ($fields['-list'] ?? null)) {
             $fields += arr::make('time,duration,type,title,priority', TRUE);
             $row = parent::recToVerbal_($rec, $fields);
         } else {
@@ -1752,11 +1752,12 @@ class cal_Calendar extends core_Master
         $state->query->orWhere('#users IS NULL OR #users = ""');
         
         $state->query->orderBy('time', 'ASC');
-		
+
+        $recState = [];
 		while($rec = $state->query->fetch()){
 			$recState[] = $rec;
 		}
-		
+
 		return $recState;
     }
     
@@ -1865,7 +1866,7 @@ class cal_Calendar extends core_Master
 	            
 	            $rec->title = type_Varchar::escape($rec->title);
 	            
-	            $weekData[$hourKey][$dayKey] .= $row->event;
+	            $weekData[$hourKey][$dayKey] = ($weekData[$hourKey][$dayKey] ?? '') . ($row->event ?? '');
 	        
 	        }
         }
@@ -2275,7 +2276,7 @@ class cal_Calendar extends core_Master
     		
     		if($h === 'allDay' || ($h >= self::$tr && $h <= self::$tk)){
     			$tUrl = str_replace('Цял ден', '', $t);
-	    		$hourArr = $dayData[$h];
+	    		$hourArr = $dayData[$h] ?? [];
 	    		$hourArr['time'] = $t;
 
 //	    		$hourArr['timeJs'] = $h;
@@ -2398,10 +2399,10 @@ class cal_Calendar extends core_Master
    			
    			// Ограничаваме часовета в таблицата до цел ден и най-малкия и най-големия час
    			if($h === 'allDay' || ($h >= self::$tr && $h <= self::$tk)){
-    		$hourArr = $weekData[$h];
+    		$hourArr = $weekData[$h] ?? [];
     		$hourArr['time'] = $t;
     		if($h === 'allDay'){
-    			$hourArr['timeJs'];
+    			$hourArr['timeJs'] ??= null;
     		} else {
     			$hourArr['timeJs'] = '+'.$t;
     		}
@@ -2505,9 +2506,9 @@ class cal_Calendar extends core_Master
         	
         	$cTpl = $tpl->getBlock("COMMENT_LI");
         	
-        	$cTpl->placeArray($monthArr->colorTitle[$weekNum]);
-        	$cTpl->placeArray($monthArr->tdCssClass[$weekNum]);
-        	$cTpl->placeArray($monthArr->dateJs[$weekNum]);
+        	$cTpl->placeArray(($monthArr->colorTitle ?? [])[$weekNum] ?? []);
+        	$cTpl->placeArray(($monthArr->tdCssClass ?? [])[$weekNum] ?? []);
+        	$cTpl->placeArray(($monthArr->dateJs ?? [])[$weekNum] ?? []);
         	
         	$cTpl->replace($weekNum, 'weekNum');
         	$cTpl->placeArray($weekArr);

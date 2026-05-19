@@ -955,7 +955,7 @@ class blast_Letters extends core_Master
         //Добавяме бутон "Филтрирай"
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        $filterInput = trim($data->listFilter->input()->filter);
+        $filterInput = trim(($data->listFilter->input()->filter ?? ''));
         
         if ($filterInput) {
             $data->query->where(array("#subject LIKE '%[#1#]%'", $filterInput));

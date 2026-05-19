@@ -949,7 +949,7 @@ class core_String
         
         $bgColor = str_pad(dechex(hexdec(substr($hash, 6, 6)) | 0x808080), 6, '0', STR_PAD_LEFT);
         
-        $attr['style'] = ($attr['style'] ? rtrim($attr['style'], '; ') . ';' : '') . "color:#{$txColor}; background-color:#{$bgColor}";
+        $attr['style'] = (($attr['style'] ?? null) ? rtrim($attr['style'], '; ') . ';' : '') . "color:#{$txColor}; background-color:#{$bgColor}";
         
         $text = ht::createElement('span', $attr, $text);
         

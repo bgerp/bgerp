@@ -48,7 +48,7 @@ class plg_Created extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles != 'no_one' && is_object($rec) && $rec->id && $rec->createdBy == core_Users::SYSTEM_USER) {
+        if ($requiredRoles != 'no_one' && is_object($rec) && ($rec->id ?? null) && ($rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
             if ($action == 'edit') {
                 $requiredRoles = $mvc->getRequiredRoles('editsysdata', $rec, $userId);
             }
@@ -97,7 +97,7 @@ class plg_Created extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if ($data->form->rec->createdBy == core_Users::SYSTEM_USER && $mvc->protectedSystemFields) {
+        if ($data->form->rec->createdBy == core_Users::SYSTEM_USER && ($mvc->protectedSystemFields ?? null)) {
             $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, true);
             
             foreach ($data->form->fields as &$f) {

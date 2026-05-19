@@ -465,7 +465,7 @@ class core_Manager extends core_Mvc
         // Очакваме до този момент във формата да няма грешки
         $fieldsH = $this->selectFields("#input == 'hidden'");
         
-        expect(!$data->form->gotErrors(array_keys($fieldsH)), 'Има грешки в silent полетата на формата', $data->form->errors);
+        expect(!$data->form->gotErrors(array_keys($fieldsH)), 'Има грешки в silent полетата на формата', $data->form->errors ?? null);
         
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $data->form->rec, null, $retUrl);
@@ -645,7 +645,7 @@ class core_Manager extends core_Mvc
     {
         $data = parent::prepareListFilter($data);
 
-        if ($data && $data->listFields) {
+        if ($data && ($data->listFields ?? null)) {
             $data->listFields = arr::make($data->listFields);
 
             if ($data->query && $data->listFields && isset($data->listFields['id'])) {
@@ -1274,7 +1274,7 @@ class core_Manager extends core_Mvc
             self::$cacheRights[$userId] = core_Cache::get('RightsForObject', $userId);
         }
 
-        $key = crc32("{$className}|{$action}") . "|{$id}|" . crc32(serialize($rec));
+        $key = crc32("{$className}|{$action}") . "|" . (is_scalar($id) ? $id : serialize($id)) . "|" . crc32(serialize($rec));
  
         if (!isset(self::$cacheRights[$userId][$key]) || !isset($id)) {
             

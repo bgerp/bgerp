@@ -35,7 +35,7 @@ class export_Doc extends core_Mvc
     public function canUseExport($clsId, $objId)
     {
         $currentUserRec = Mode::get('currentUserRec');
-        if (!$currentUserRec || $currentUserRec->_isSudo || !haveRole('powerUser')) {
+        if (!$currentUserRec || ($currentUserRec->_isSudo ?? null) || !haveRole('powerUser')) {
 
             return false;
         }

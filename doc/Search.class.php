@@ -176,12 +176,12 @@ class doc_Search extends core_Manager
         $aArr = type_UserList::toArray($filterRec->author); 
         if (countR($aArr) == 1 && is_numeric(reset($aArr))) {
             $useIndex = 'created_by';
-        } elseif ($filterRec->scopeFolderId) {
+        } elseif ($filterRec->scopeFolderId ?? null) {
             $useIndex = 'folder_id';
         }
         
         // Ако се търси по документите на някой потребител, без да се гледа много 
-        if ($isFiltered && !$filterRec->fromDate && !$filterRec->toDate && !$data->listFilter->ignore && !$data->query->isSlowQuery) {
+        if ($isFiltered && !($filterRec->fromDate ?? null) && !($filterRec->toDate ?? null) && !($data->listFilter->ignore ?? null) && !($data->query->isSlowQuery ?? null)) {
             if (empty($filterRec->search) && empty($filterRec->scopeFolderId)) {
                 if (!empty($filterRec->docClass) && (!strpos($filterRec->author, '-1')) && plg_Search::isBigTable($data->query)) {
                     $data->query->isSlowQuery = true;
@@ -189,8 +189,8 @@ class doc_Search extends core_Manager
             }
         }
 
-        if ($data->query->isSlowQuery && !$data->listFilter->ignore && !$useIndex) {
-            if (!$filterRec->fromDate && !$filterRec->toDate) {
+        if (($data->query->isSlowQuery ?? null) && !($data->listFilter->ignore ?? null) && !$useIndex) {
+            if (!($filterRec->fromDate ?? null) && !($filterRec->toDate ?? null)) {
                 $data->listFilter->setWarning('search, fromDate, toDate', 'Заявката за търсене е много обща и вероятно ще се изпълни бавно. Добавете още думи или я ограничете по дати');
                 $dFrom = dt::addMonths(-1, null, false);
                 $dFrom = cls::get('type_Date')->toVerbal($dFrom);
@@ -561,7 +561,7 @@ class doc_Search extends core_Manager
         $attr = array();
         $attr['ef_icon'] = $docProxy->getIcon();
         
-        $handle = $rec->handle ? substr($rec->handle, 0, strlen($rec->handle) - 3) : $docProxy->getHandle();
+        $handle = ($rec->handle ?? null) ? substr($rec->handle, 0, strlen($rec->handle) - 3) : $docProxy->getHandle();
         
         if (mb_strlen($docRow->title) > doc_Threads::maxLenTitle) {
             $attr['title'] = '|*' . $docRow->title;
@@ -576,19 +576,19 @@ class doc_Search extends core_Manager
         
         // Удебеляване на документи, променени след последното виждане
         if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->id)) {
-            $attr['class'] .= " tUnsighted";
+            $attr['class'] = ($attr['class'] ?? '') . " tUnsighted";
         }
         
         $row->title = ht::createLink(str::limitLen($docRow->title, doc_Threads::maxLenTitle), $linkUrl, null, $attr);
         
-        if ($docRow->authorId > 0) {
+        if (($docRow->authorId ?? 0) > 0) {
             $row->author = crm_Profiles::createLink($docRow->authorId);
         } else {
             $row->author = $docRow->author;
         }
 
-        if ($docRow->subTitle) {
-            $noTagsClass = ($docRow->_haveTags && !$docRow->_haveSubtitle) ? ' onlyTags' : '';
+        if ($docRow->subTitle ?? null) {
+            $noTagsClass = (($docRow->_haveTags ?? null) && !($docRow->_haveSubtitle ?? null)) ? ' onlyTags' : '';
             $row->title .= "\n<div class='threadSubTitle{$noTagsClass}'>{$docRow->subTitle}</div>";
         }
 

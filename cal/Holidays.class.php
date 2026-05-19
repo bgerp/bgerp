@@ -477,11 +477,11 @@ class cal_Holidays extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input('type, base', 'silent');
         
-        if ($type = $data->listFilter->rec->type) {
+        if ($type = ($data->listFilter->rec->type ?? null)) {
             $data->query->where("#type = '{$type}'");
         }
-        
-        if ($base = $data->listFilter->rec->base) {
+
+        if ($base = ($data->listFilter->rec->base ?? null)) {
             $data->query->where("#base = '{$base}'");
         }
     }

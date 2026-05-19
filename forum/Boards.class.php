@@ -324,7 +324,7 @@ class forum_Boards extends core_Master
         $navigation = trim($navigation, '&nbsp»&nbsp;');
         $navigation = "<span id='navigation-inner-link'>" . $navigation . '</span>';
         
-        if ($data->display) {
+        if ($data->display ?? null) {
            
            // Добавяме външният изглед, само ако екшъна е за външен изглед
             Mode::set('wrapper', 'cms_page_External');

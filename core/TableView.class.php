@@ -338,7 +338,7 @@ class core_TableView extends core_BaseClass
             $tableId = " id = \"{$this->tableId}\"";
         }
         
-        $theadStyle = ($this->thHide === true) ? 'style="display:none"' : '';
+        $theadStyle = (($this->thHide ?? null) === true) ? 'style="display:none"' : '';
         $tpl = new ET("\n<table [#TABLE_ATTR#] {$tableId} class=\"{$this->tableClass}\"><thead {$theadStyle}>{$tableHeader}</thead>[#ROW_BEFORE#]{$row}[#ROW_AFTER#]</table>\n");
         
         if (countR($rows)) {

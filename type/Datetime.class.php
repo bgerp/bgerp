@@ -209,11 +209,11 @@ class type_Datetime extends type_Date
         list($d, $t) = array_pad(explode(' ', $value ?? ''), 2, null);
 
         $stp = $this->timePart;
-        $sf = $this->params['format'];
-        
-        if ($t == $this->params['defaultTime']) {
+        $sf = $this->params['format'] ?? null;
+
+        if ($t == ($this->params['defaultTime'] ?? null)) {
             $this->timePart = '';
-            if ($this->params['format'] == 'smartTime') {
+            if (($this->params['format'] ?? null) == 'smartTime') {
                 $this->params['format'] = 'smartDate';
             }
         }

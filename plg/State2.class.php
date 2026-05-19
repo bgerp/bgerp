@@ -103,7 +103,7 @@ class plg_State2 extends core_Plugin
      */
     public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
-        if (!$mvc->state2PreventOrderingByState) {
+        if (!($mvc->state2PreventOrderingByState ?? null)) {
             $data->query->orderBy('#state');
         }
     }
@@ -168,12 +168,13 @@ class plg_State2 extends core_Plugin
      */
     public function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->STATE_CLASS = "state-{$rec->state}";
-        $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-{$rec->state}";
+        $recState = is_object($rec) ? ($rec->state ?? null) : null;
+        $row->STATE_CLASS = "state-{$recState}";
+        $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-{$recState}";
 
         if (isset($fields['-list']) && (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('noToolbar'))) return;
 
-        if ($mvc->haveRightFor('changeState', $rec)) {
+        if (is_object($rec) && $mvc->haveRightFor('changeState', $rec)) {
             $this->getActiveAndClosedState($mvc);
 
             if ($rec->state == $this->activeState || $rec->state == $this->closedState) {
@@ -325,7 +326,7 @@ class plg_State2 extends core_Plugin
             
             $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
             
-            if(isset($rec) && $rec->state == 'rejected'){
+            if(is_object($rec) && ($rec->state ?? null) == 'rejected'){
                 $requiredRoles = 'no_one';
             }
         }

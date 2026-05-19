@@ -1128,7 +1128,7 @@ class sales_Sales extends deals_DealMaster
         if (!Mode::is('printing') && !Mode::is('text', 'xhtml')) {
             $tpl->append("<iframe name='iframe_a' style='display:none'></iframe>");
             
-            if (is_array($data->jobs) === true) {
+            if (isset($data->jobs) && is_array($data->jobs) === true) {
                 $mvc->renderJobsInfo($tpl, $data);
             }
         }

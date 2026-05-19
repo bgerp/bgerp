@@ -165,7 +165,7 @@ class bgerp_Menu extends core_Manager
             $ctr = cls::getClassName($ctr);
             $mvc = cls::get($ctr);
             
-            if ($mvc->menuPage && $menuObj[$mvc->menuPage]) {
+            if (($mvc->menuPage ?? null) && ($menuObj[$mvc->menuPage] ?? null)) {
                 return $mvc->menuPage;
             }
         }

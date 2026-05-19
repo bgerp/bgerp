@@ -233,7 +233,7 @@ class crm_ext_ContragentInfo extends core_manager
         $val = ($type == 'client') ? 'customerSince' : 'supplierSince';
         $exRec = self::getByContragent($contragentClassId, $contragentId);
         
-        if (empty($exRec->{$val})) {
+        if (!is_object($exRec) || empty($exRec->{$val})) {
             $since = self::getFirstDate($contragentClassId, $contragentId, $type);
             
             if (!empty($since)) {
@@ -249,7 +249,7 @@ class crm_ext_ContragentInfo extends core_manager
             }
         }
         
-        return $exRec->{$val};
+        return is_object($exRec) ? $exRec->{$val} : null;
     }
     
     

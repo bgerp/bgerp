@@ -445,19 +445,19 @@ class label_Templates extends core_Master
         // Подреждане по състояние
         $data->query->orderBy('createdOn', 'DESC');
         
-        if ($state = $data->listFilter->rec->fState) {
+        if ($state = ($data->listFilter->rec->fState ?? null)) {
             $data->query->where(array("#state = '[#1#]'", $state));
         }
-        
-        if ($classId = $data->listFilter->rec->fClassId) {
+
+        if ($classId = ($data->listFilter->rec->fClassId ?? null)) {
             if ($classId == '-1') {
                 $data->query->where('#classId IS NULL');
             } else {
                 $data->query->where(array("#classId = '[#1#]'", $classId));
             }
         }
-        $sizes = $data->listFilter->rec->sizes;
-        $sizes = trim($sizes);
+        $sizes = $data->listFilter->rec->sizes ?? null;
+        $sizes = trim((string)$sizes);
         if ($sizes) {
             $data->query->where(array("#sizes = '[#1#]'", $sizes));
         }

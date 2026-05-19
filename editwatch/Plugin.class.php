@@ -61,7 +61,7 @@ class editwatch_Plugin extends core_Plugin
         core_Cache::set(get_called_class(), $nameHash, $statusHash, 60);
         
         // Ако не е зададено, рефрешът се извършва на всеки 5 секунди
-        $time = $mvc->refreshEditwatchTime ? $mvc->refreshEditwatchTime : 5000;
+        $time = ($mvc->refreshEditwatchTime ?? null) ?: 5000;
         
         // Шаблон за информацията
         $info = new ET("<div id='editStatus'>[#1#]</div>", $status);

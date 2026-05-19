@@ -230,7 +230,7 @@ class core_UserTranslates extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add') && $rec->classId && $rec->recId && !$rec->id && ($requiredRoles != 'no_one')) {
+        if (($action == 'add') && ($rec->classId ?? null) && ($rec->recId ?? null) && !($rec->id ?? null) && ($requiredRoles != 'no_one')) {
             $tFields = $mvc->getUserTranslateFields($rec->classId, 'user', $rec->recId);
             if (empty($tFields)) {
                 $requiredRoles = 'no_one';

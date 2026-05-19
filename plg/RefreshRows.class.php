@@ -62,7 +62,7 @@ class plg_RefreshRows extends core_Plugin
             $url = array($mvc, 'ajaxRefreshRows', 'divId' => $attr['id'], 'refreshUrl' => $refreshUrlLocal);
             
             // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
-            $time = $mvc->refreshRowsTime ? $mvc->refreshRowsTime : 60000;
+            $time = ($mvc->refreshRowsTime ?? null) ?: 60000;
             
             // Името с което ще се добави в масива
             $name = $mvc->className . '_RefreshRows';

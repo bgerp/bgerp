@@ -225,7 +225,7 @@ class acc_Periods extends core_Manager
         
         $lastDayOfMonth = dt::getLastdayOfMonth($date);
         
-        if (!$periods[$lastDayOfMonth]) {
+        if (!($periods[$lastDayOfMonth] ?? null)) {
             $periods[$lastDayOfMonth] = self::fetch("#end = '{$lastDayOfMonth}'");
         }
         

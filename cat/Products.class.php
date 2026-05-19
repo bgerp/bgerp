@@ -2828,7 +2828,7 @@ class cat_Products extends embed_Manager
         // Връщаме шаблона с подготвените данни
         $tpl = new ET("[#name#]<!--ET_BEGIN additionalTitle--><br>[#additionalTitle#]<!--ET_END additionalTitle--><!--ET_BEGIN desc--><br><div style='font-size:0.85em'>[#desc#]</div><!--ET_END desc-->");
         $tpl->replace($title, 'name');
-        $tpl->replace($descriptionTpl, 'desc');
+        $tpl->replace($descriptionTpl ?? null, 'desc');
         
         if (!empty($subTitle)) {
             $tpl->replace($subTitle, 'additionalTitle');

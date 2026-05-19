@@ -53,7 +53,7 @@ class plg_LastUsedKeys extends core_Plugin
                     $field
                 );
             }
-            if ($mvc->noCheckLastUsedField !== false) {
+            if (($mvc->noCheckLastUsedField ?? null) !== false) {
                 $noCheckLastUsedField = true;
             } else {
                 $noCheckLastUsedField = false;

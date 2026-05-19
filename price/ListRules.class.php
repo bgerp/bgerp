@@ -327,7 +327,7 @@ class price_ListRules extends core_Detail
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
 
-        if(!static::$alreadyReplaced["{$listId}|{$productId}"]){
+        if(!(static::$alreadyReplaced["{$listId}|{$productId}"] ?? null)){
             $variationId = price_ListVariations::getActiveVariationId($listId, $datetime);
             if(!empty($variationId)){
                 static::$alreadyReplaced["{$listId}|{$productId}"] = true;
@@ -801,7 +801,7 @@ class price_ListRules extends core_Detail
             }
         }
         
-        $row->ROW_ATTR['class'] .= " state-{$state}";
+        $row->ROW_ATTR['class'] = (($row->ROW_ATTR ?? [])['class'] ?? '') . " state-{$state}";
         if ($state == 'active') {
             $row->rule = "<b>{$row->rule}</b>";
         }
@@ -967,7 +967,7 @@ class price_ListRules extends core_Detail
             if ($priority == 1) {
                 $fields['domain'] = 'Артикул';
                 if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
-                    $url = array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product, 'priority' => $priority);
+                    $url = array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product ?? null, 'priority' => $priority);
                     if(countR($retUrl)){
                         $url['ret_url'] = $retUrl;
                     }
@@ -977,7 +977,7 @@ class price_ListRules extends core_Detail
 
                 if ($this->haveRightFor('import', (object)array($this->masterKey => $data->masterId))) {
                     $url = array($this, 'import', 'listId' => $masterRec->id, 'ret_url' => true);
-                    $toolbar->addBtn('Импорт', $url, null, 'row=2,ef_icon=img/16/import.png,title=Импортиране на ' . mb_strtolower($mvc->title));
+                    $toolbar->addBtn('Импорт', $url, null, 'row=2,ef_icon=img/16/import.png,title=Импортиране на ' . mb_strtolower($this->title));
                 }
             } else {
                 $fields['domain'] = 'Група';
@@ -987,7 +987,7 @@ class price_ListRules extends core_Detail
             if ($masterRec->parent) {
                 if ($priority == 1) {
                     if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
-                        $url = array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product, 'priority' => $priority);
+                        $url = array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product ?? null, 'priority' => $priority);
                         if(countR($retUrl)){
                             $url['ret_url'] = $retUrl;
                         }

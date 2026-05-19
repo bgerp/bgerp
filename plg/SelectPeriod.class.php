@@ -218,21 +218,21 @@ class plg_SelectPeriod extends core_Plugin
      */
     public static function on_BeforePrepareListSummary($mvc, &$res, $data)
     {
-        if ($mvc->useFilterDateOnFilter === false) {
+        if (($mvc->useFilterDateOnFilter ?? null) === false) {
             
             return ;
         }
         
         $form = $data->listFilter;
         if (empty($form)) return;
-        $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
-        $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
-        
-        if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
+        $fF = ($mvc->filterDateFrom ?? null) ?: 'from';
+        $fT = ($mvc->filterDateTo ?? null) ?: 'to';
+
+        if (($form->fields[$fF] ?? null) && (($form->rec->selectPeriod ?? null) != 'select')) {
             $form->setField($fF, array('rowStyle' => 'display:none'));
         }
-            
-        if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
+
+        if (($form->fields[$fF] ?? null) && (($form->rec->selectPeriod ?? null) != 'select')) {
             $form->setField($fT, array('rowStyle' => 'display:none'));
         }
         $form->defOrder = $form->defOrder ?? $data->defOrder ?? true;

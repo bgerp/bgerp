@@ -107,7 +107,7 @@ class core_ObjectCollection implements Iterator
             $obj = new stdClass();
             
             foreach ($this->fields as $id => $fname) {
-                $obj->{$fname} = $args[$id];
+                $obj->{$fname} = $args[$id] ?? null;
             }
             $this->container[] = $obj;
             

@@ -1353,7 +1353,7 @@ class type_Richtext extends type_Blob
         $out = '';
         
         foreach ($lines as $l) {
-            if ($l[0] == '|') {
+            if (isset($l[0]) && $l[0] == '|') {
                 if (!$table) {
                     $out .= "\n<div class='overflow-scroll'><table class='inlineRichTable listTable'>";
                     $table = true;

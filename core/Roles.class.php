@@ -525,8 +525,8 @@ class core_Roles extends core_Manager
      */
     public static function getVerbal($rec, $fieldName)
     {
-        if ($rec->id === 0) {
-            
+        if (is_object($rec) && $rec->id === 0) {
+
             return tr($rec->name);
         }
         

@@ -109,7 +109,7 @@ class core_ObjectConfiguration extends core_BaseClass
         if (countR($this->_description)) {
             foreach ($this->_description as $name => $descr) {
                 $params = arr::make($descr[1], true);
-                if (!$params['mandatory']) {
+                if (!($params['mandatory'] ?? null)) {
                     continue;
                 }
                 if (isset($this->_data[$name]) && $this->_data[$name] !== '') {

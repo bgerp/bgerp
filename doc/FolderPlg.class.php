@@ -83,7 +83,7 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterPrepareHistory($mvc, $res, $data)
     {
-        if ($mvc->haveRightFor('viewlogact', $data->rec)) {
+        if ($mvc->haveRightFor('viewlogact', $data->rec ?? null)) {
             $data->TabCaption = 'История';
         }
 
@@ -387,7 +387,7 @@ class doc_FolderPlg extends core_Plugin
             if (is_numeric($rec)) {
                 expect($exRec = $mvc->fetch($rec), $rec);
                 $rec = $exRec;
-            } elseif ($rec->id) {
+            } elseif ($rec->id ?? null) {
                 expect($exRec = $mvc->fetch($rec->id), $rec);
                 $rec = $exRec;
             } else {
@@ -417,7 +417,7 @@ class doc_FolderPlg extends core_Plugin
                 $mvc->save($rec);
             }
             
-            $folderId = $rec->folderId;
+            $folderId = $rec->folderId ?? null;
         }
     }
     

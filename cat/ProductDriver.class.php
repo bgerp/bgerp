@@ -592,7 +592,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $Detail = cls::get($detailClass);
         $Master = cls::get($detailClass)->Master;
         $dRec = $Detail->fetch($detailId);
-        $packQuantity = $dRec->packQuantity;
+        $packQuantity = $dRec->packQuantity ?? null;
         if($Detail instanceof deals_InvoiceDetail){
             $packQuantity = $dRec->quantity;
         }

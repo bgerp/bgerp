@@ -1012,7 +1012,7 @@ class core_Mvc extends core_FieldSet
         
         foreach ($checkFields as $fArr) {
             $fieldSetFlag = true;
-            $cond = $rec->id ? "#id != {$rec->id}" : '';
+            $cond = ($rec->id ?? null) ? "#id != {$rec->id}" : '';
             
             foreach ($fArr as $fName) {
                 if (!isset($rec->{$fName})) {
@@ -1022,7 +1022,7 @@ class core_Mvc extends core_FieldSet
                 
                 $field = $this->getField($fName);
                 
-                $value = $field->type->toMysql($rec->{$fName}, $this->db, $field->notNull, $field->value);
+                $value = $field->type->toMysql($rec->{$fName}, $this->db, $field->notNull ?? null, $field->value ?? null);
                 
                 $cond .= ($cond ? ' AND ' : '') . "#{$fName} = {$value}";
             }

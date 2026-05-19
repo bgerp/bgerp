@@ -397,7 +397,7 @@ class acc_Accounts extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if ($rec->state == 'active') {
+        if (is_object($rec) && $rec->state == 'active') {
             $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' level-' . strlen($rec->num);
         }
         

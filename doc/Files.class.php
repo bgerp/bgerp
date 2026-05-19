@@ -551,7 +551,7 @@ class doc_Files extends core_Manager
         $filter = $data->listFilter->rec;
 
         $data->query->where("#show = 'yes'");
-        if ($filter->search && (preg_match("/(\.|\s|^|\-)+(eml|html)(\.|\s|$)+/i", $filter->search))) {
+        if (($filter->search ?? null) && (preg_match("/(\.|\s|^|\-)+(eml|html)(\.|\s|$)+/i", $filter->search))) {
             $data->query->orWhere("#show = 'isSearch'");
         }
 
@@ -673,7 +673,7 @@ class doc_Files extends core_Manager
     public static function on_BeforeRecToVerbal($mvc, $row, $rec)
     {
         // Определяме датата
-        setIfNot($rec->date, $rec->lastUse, $rec->lastOn, $rec->cModifiedOn);
+        setIfNot($rec->date, $rec->lastUse ?? null, $rec->lastOn ?? null, $rec->cModifiedOn ?? null);
         if (!isset($rec->date)) {
             $fRec = fileman_Files::fetchByFh($rec->fileHnd);
             $rec->date = $fRec->createdOn;

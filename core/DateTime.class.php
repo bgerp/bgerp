@@ -509,6 +509,7 @@ class core_DateTime
             
             $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 1.85));
             
+            $r = $b = $g = 0;
             if ($dist <= 255) {
                 $g = 255 - $dist;
                 $b = $dist;
@@ -586,10 +587,10 @@ class core_DateTime
                 $month = $out[2];
                 $year = $out[3];
                 
-                $hours = $out[5];
-                $minutes = $out[6];
-                $seconds = $out[7];
-                $mode = $out[8];
+                $hours = $out[5] ?? null;
+                $minutes = $out[6] ?? null;
+                $seconds = $out[7] ?? null;
+                $mode = $out[8] ?? '';
                 $found = true;
             } else {
                 $dPtr = '/^([0-2][0-9][0-9][0-9]|[0-9][0-9])-(0?[1-9]|1[0-2]|[1-9])-(0?[1-9]|1[0-9]|2[0-9]|3[0-1])';
@@ -598,9 +599,9 @@ class core_DateTime
                     $month = $out[2];
                     $day = $out[3];
                     
-                    $hours = $out[5];
-                    $minutes = $out[6];
-                    $seconds = $out[7];
+                    $hours = $out[5] ?? null;
+                    $minutes = $out[6] ?? null;
+                    $seconds = $out[7] ?? null;
                     $mode = $out[8] ?? '';
                     $found = true;
                 }

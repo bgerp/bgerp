@@ -116,7 +116,7 @@ class type_User extends type_Key
                 $uQuery->likeKeylist('roles', $roles);
                 
                 $removeClosedGroups = true;
-                if ($this->params['showClosedGroups']) {
+                if ($this->params['showClosedGroups'] ?? null) {
                     $removeClosedGroups = false;
                 }
                 
@@ -133,7 +133,7 @@ class type_User extends type_Key
                 
                 $cuRecArr = array();
                 
-                if (haveRole($this->params['rolesForTeams']) && $this->params['additionalRoles']) {
+                if (haveRole($this->params['rolesForTeams']) && ($this->params['additionalRoles'] ?? null)) {
                     foreach (arr::make($this->params['additionalRoles']) as $rName) {
                         $rId = core_Roles::fetchByName($rName);
                         if (!$rId) {
@@ -160,11 +160,11 @@ class type_User extends type_Key
                     
                     while ($uRec = $uQueryCopy->fetch()) {
                         $key = $t . '_' . $uRec->id;
-                        if (!$this->options[$key]) {
+                        if (!($this->options[$key] ?? null)) {
                             $this->options[$key] = new stdClass();
                         }
                         
-                        if ($part && $this->params['useSelectAsTitle']) {
+                        if ($part && ($this->params['useSelectAsTitle'] ?? null)) {
                             $this->options[$key]->title = $uRec->$part;
                         } else {
                             $this->options[$key]->title = type_Nick::normalize($uRec->nick) . ' (' . $uRec->names . ')';
@@ -327,7 +327,7 @@ class type_User extends type_Key
             $teams = keylist::toArray($teams);
             
             $me = cls::get(get_called_class());
-            if ($me->params['additionalRoles'] && empty($teams)) {
+            if (($me->params['additionalRoles'] ?? null) && empty($teams)) {
                 foreach (arr::make($me->params['additionalRoles']) as $rName) {
                     $rId = core_Roles::fetchByName($rName);
                     if (!$rId) {

@@ -293,12 +293,12 @@ class type_Key extends type_Int
             
             $where = '';
             
-            if ($this->params['where']) {
+            if ($this->params['where'] ?? null) {
                 $where = $this->params['where'];
             }
             
             // Ако е зададено поле group='sysId'
-            if ($this->params['group']) {
+            if ($this->params['group'] ?? null) {
                 $fWhere = $this->filterByGroup($mvc);
                 
                 if ($fWhere) {
@@ -314,7 +314,7 @@ class type_Key extends type_Int
                 if (!is_array($this->options)) {
                     $keyIndex = $this->getKeyField();
                     
-                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy']);
+                    $arrForSelect = (array) $mvc->makeArray4select($field, $where, $keyIndex, $this->params['orderBy'] ?? null);
                     
                     if ($value && !isset($arrForSelect[$value]) && get_class($this) == 'type_Key') {
                         $arrForSelect[$value] = $mvc->gettitleById($value, false);
@@ -355,7 +355,7 @@ class type_Key extends type_Int
                         continue;
                     }
                     
-                    if ($titles[$title]) {
+                    if ($titles[$title] ?? null) {
                         $title = self::getUniqTitle($title, $id);
                     }
                     $titles[$title] = true;
@@ -637,11 +637,11 @@ class type_Key extends type_Int
         if ($this->getSelectFld() || countR($options)) {
             $optionsCnt = countR($options);
             
-            if ($this->params['allowEmpty']) {
+            if ($this->params['allowEmpty'] ?? null) {
                 $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ?? ' ', 'attr' =>
                     array('style' => 'color:#777;')));
                 $options = arr::combine($placeHolder, $options);
-            } elseif ($attr['placeholder'] && $optionsCnt != 1) {
+            } elseif (($attr['placeholder'] ?? null) && $optionsCnt != 1) {
                 $placeHolder = array('' => (object) array('title' => $attr['placeholder'], 'attr' =>
                     array('style' => 'color:#777;', 'disabled' => 'disabled')));
                 $options = arr::combine($placeHolder, $options);
@@ -716,7 +716,7 @@ class type_Key extends type_Int
             } else {
                 $optionsCnt = countR($options);
                 
-                if (($optionsCnt == 0 || ($optionsCnt == 1 && isset($options['']) && $this->params['mandatory']))) {
+                if (($optionsCnt == 0 || ($optionsCnt == 1 && isset($options['']) && ($this->params['mandatory'] ?? null)))) {
                     $msg = tr('Липсва избор за');
                     
                     $title = tr($mvc->title);

@@ -90,7 +90,7 @@ class export_Csv extends core_Mvc
                 $mFieldName = $inst->getExportMasterFieldName($dName);
                 if (!$mFieldName) continue;
 
-                if (!$dInst->fields[$mFieldName]) {
+                if (!($dInst->fields[$mFieldName] ?? null)) {
                     continue;
                 }
                 

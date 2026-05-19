@@ -51,7 +51,7 @@ class doc_plg_TplManager extends core_Plugin
             
             // На всеки детайл от модела му се прикача 'doc_plg_TplManagerDetail' (ако го няма)
             foreach ($details as $Detail) {
-                if ($mvc->$Detail instanceof $Detail) {
+                if (isset($mvc->$Detail) && $mvc->$Detail instanceof $Detail) {
                     $plugins = $mvc->$Detail->getPlugins();
                     if (empty($plugins['doc_plg_TplManagerDetail'])) {
                         $mvc->$Detail->load('doc_plg_TplManagerDetail');
@@ -151,7 +151,7 @@ class doc_plg_TplManager extends core_Plugin
         $mvc->pushTemplateLg($data->rec->template);
         
         // Ако ще се замества целия сингъл, подменяме го елегантно
-        if (!$mvc->templateFld) {
+        if (!($mvc->templateFld ?? null)) {
             if (Request::get('asClient')) {
                 $data->singleLayout = getTplFromFile($mvc->printAsClientLayoutFile);
             } else {
@@ -210,7 +210,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
     {
         // Ако има посочен плейсхолдър където да отива шаблона, то той се използва
-        if ($mvc->templateFld) {
+        if ($mvc->templateFld ?? null) {
             if (Request::get('asClient')) {
                 $content = getTplFromFile($mvc->printAsClientLayoutFile);
             } else {
@@ -528,7 +528,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'asclient') {
-            if (!$mvc->printAsClientLayoutFile || $rec->state == 'rejected') {
+            if (!($mvc->printAsClientLayoutFile ?? null) || $rec->state == 'rejected') {
                 $requiredRoles = 'no_one';
             }
         }

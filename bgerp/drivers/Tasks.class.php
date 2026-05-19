@@ -115,7 +115,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         $todayB = dt::now(false) . ' 00:00:00';
 
-        if ($dRec->showCal != 'yes') {
+        if (($dRec->showCal ?? null) != 'yes') {
             $resData->data->query->where('#timeStart IS NULL');
             $resData->data->query->orWhere(array("#timeStart < '[#1#]'", $todayB));
             $resData->data->query->where('#timeEnd IS NULL');
@@ -135,7 +135,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         if (!$resData->tpl) {
             $resData->data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 WHEN 'stopped' THEN 4 ELSE 5 END)");
 
-            if ($dRec->showCal != 'yes') {
+            if (($dRec->showCal ?? null) != 'yes') {
                 $resData->data->query->XPR('orderTimeEnd', 'datetime', "if(((#state = 'active' || #state = 'wakeup' || #state = 'waiting' || #state = 'pending') && #timeEnd >= '{$todayB}'),-#timeEnd,NULL)");
                 $resData->data->query->orderBy('orderTimeEnd', 'DESC');
             }
@@ -355,7 +355,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $isFromMe = $this->isFromMe($dRec->from);
         
         $cArr = bgerp_Portal::getPortalCacheKey($dRec, $userId);
-        $cArr[] = $dRec->showCal;
+        $cArr[] = $dRec->showCal ?? null;
         $cArr[] = $isFromMe;
 
         $pageVar = $this->getPageVar($dRec->originIdCalc);

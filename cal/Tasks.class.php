@@ -1690,10 +1690,10 @@ class cal_Tasks extends embed_Manager
                 $useDateRange = false;
             }
 
-            $driverId = $filterRec->{$mvc->driverClassField};
+            $driverId = $filterRec->{$mvc->driverClassField} ?? null;
             $taskType = ($driverId == support_TaskType::getClassId()) ? 'сигнали' : 'задачи';
 
-            if ($filterRec->order == 'onStart') {
+            if (($filterRec->order ?? null) == 'onStart') {
                 $data->title = 'Търсене на ' . $taskType . ' по начало на задачата в периода |*<span class="green">"' .
                     $data->listFilter->getFieldType('from')->toVerbal($filterRec->from) . ' -
     			' . $data->listFilter->getFieldType('to')->toVerbal($filterRec->to) . '"</span>';
@@ -1701,10 +1701,10 @@ class cal_Tasks extends embed_Manager
                 $data->title = 'Търсене на задачи по края на задачата в периода |*<span class="green">"' .
                     $data->listFilter->getFieldType('from')->toVerbal($filterRec->from) . ' -
     			' . $data->listFilter->getFieldType('to')->toVerbal($filterRec->to) . '"</span>';
-            } elseif ($filterRec->order == 'noStartEnd') {
+            } elseif (($filterRec->order ?? null) == 'noStartEnd') {
                 $data->title = 'Търсене на ' . $taskType . ' |*<span class="green">"' .
                     'без начало и край"</span>';
-            } elseif ($filterRec->search) {
+            } elseif ($filterRec->search ?? null) {
                 $data->title = 'Търсене на ' . $taskType . ' отговарящи на |*<span class="green">"' .
                     $data->listFilter->getFieldType('search')->toVerbal($filterRec->search) . '"</span>';
             } else {
@@ -1750,11 +1750,11 @@ class cal_Tasks extends embed_Manager
             }
             
             // Да може да се филтрира по вида на документа
-            if ($filterRec && $filterRec->{$mvc->driverClassField}) {
+            if ($filterRec && ($filterRec->{$mvc->driverClassField} ?? null)) {
                 $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $filterRec->{$mvc->driverClassField}));
             }
 
-            if ($filterRec->folder) {
+            if ($filterRec->folder ?? null) {
                 unset($data->listFields['folderId']);
                 $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $filterRec->{$mvc->driverClassField}));
             }

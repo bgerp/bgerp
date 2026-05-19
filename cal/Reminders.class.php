@@ -431,11 +431,11 @@ class cal_Reminders extends core_Master
 
         $data->listFilter->input('selectedUsers', 'silent');
 
-        if (!$data->listFilter->rec->selectedUsers) {
-            $data->listFilter->rec->selectedUsers = keylist::addKey($data->listFilter->rec->selectedUsers, $cu);
+        if (!($data->listFilter->rec->selectedUsers ?? null)) {
+            $data->listFilter->rec->selectedUsers = keylist::addKey($data->listFilter->rec->selectedUsers ?? null, $cu);
         }
 
-        if ($data->listFilter->rec->selectedUsers) {
+        if ($data->listFilter->rec->selectedUsers ?? null) {
             if ($data->listFilter->rec->selectedUsers != 'all_users') {
                 $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
             }
@@ -506,7 +506,7 @@ class cal_Reminders extends core_Master
     {
         $now = dt::now();
 
-        if ($rec->id) {
+        if ($rec->id ?? null) {
             $oRec = $mvc->fetch($rec->id);
 
             if ($action == 'stop') {

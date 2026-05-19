@@ -296,15 +296,15 @@ class cond_Texts extends core_Manager
                 $data->query->orWhere(array("#createdBy = '[#1#]'", $cu));
             }
         }
-        if ($rec->langWithAllSelect) {
+        if ($rec->langWithAllSelect ?? null) {
             $data->query->where(array("#lang = '[#1#]'", $rec->langWithAllSelect));
         }
 
-        if ($rec->group) {
+        if ($rec->group ?? null) {
             $data->query->likeKeylist('group', $rec->group);
         }
 
-        core_Permanent::set("condLastFilter{$cu}", array('group' => $rec->group, 'author' => $rec->author, 'langWithAllSelect' => $rec->langWithAllSelect), 24 * 60 * 100);
+        core_Permanent::set("condLastFilter{$cu}", array('group' => $rec->group ?? null, 'author' => $rec->author ?? null, 'langWithAllSelect' => $rec->langWithAllSelect ?? null), 24 * 60 * 100);
 
         $data->query->orderBy('#createdOn', 'DESC');
     }

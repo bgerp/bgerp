@@ -199,11 +199,11 @@ class hr_Bonuses extends core_Master
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        if ($data->listFilter->rec->personId) {
+        if ($data->listFilter->rec->personId ?? null) {
             $data->query->where("#personId = '{$data->listFilter->rec->personId}'");
         }
-        
-        if ($data->listFilter->rec->date) {
+
+        if ($data->listFilter->rec->date ?? null) {
             $data->query->where("#date = '{$data->listFilter->rec->date}'");
         }
     }

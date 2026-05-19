@@ -299,11 +299,11 @@ class doc_UnsortedFolders extends core_Master
         $data->listFilter->showFields = 'search,selectedUsers';
         $data->listFilter->input('selectedUsers,search', 'silent');
         
-        if (!$data->listFilter->rec->selectedUsers) {
+        if (!($data->listFilter->rec->selectedUsers ?? null)) {
             $data->listFilter->rec->selectedUsers = '|' . $cu . '|';
         }
-        
-        if (!$data->listFilter->rec->search) {
+
+        if (!($data->listFilter->rec->search ?? null)) {
             $data->query->where("'{$data->listFilter->rec->selectedUsers}' LIKE CONCAT('%|', #inCharge, '|%')");
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->selectedUsers);
             $data->title = 'Проектите на |*<span class="green">' .

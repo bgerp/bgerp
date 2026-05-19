@@ -57,7 +57,7 @@ class select2_PluginSmartSelect extends core_Plugin
      */
     public function on_AfterCreateSmartSelect($invoker, $input, $type, $options, $name, $value, &$attr)
     {
-        if ($invoker->params['isReadOnly']) {
+        if ($invoker->params['isReadOnly'] ?? null) {
             
             return ;
         }
@@ -84,25 +84,25 @@ class select2_PluginSmartSelect extends core_Plugin
         }
         
         // Ако ще са радиобутони
-        if ($type->params['maxRadio'] && ($type->params['maxRadio'] >= $optionsCnt)) {
+        if (($type->params['maxRadio'] ?? null) && (($type->params['maxRadio'] ?? null) >= $optionsCnt)) {
             
             return ;
         }
         
-        $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
-        
-        if ($attr['allowEmpty'] || $type->params['allowEmpty'] || isset($options['']) || isset($options[' '])) {
+        $select = ($attr['placeholder'] ?? null) ?: '';
+
+        if (($attr['allowEmpty'] ?? null) || ($type->params['allowEmpty'] ?? null) || isset($options['']) || isset($options[' '])) {
             $allowClear = true;
         } else {
             $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
         }
 
-        setIfNot($invoker->params['forceOpen'], $type->params['forceOpen']);
+        $invoker->params['forceOpen'] ??= $type->params['forceOpen'] ?? null;
 
         $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
         $minimumResultsForSearch = isset($type->params['minimumResultsForSearch']) ? $type->params['minimumResultsForSearch'] : $minimumResultsForSearch;
 
-        $matchOnlyStartsWith = $invoker->params['find'] == 'everywhere' ? false : true;
+        $matchOnlyStartsWith = ($invoker->params['find'] ?? null) == 'everywhere' ? false : true;
 
         // Добавяме необходимите файлове и стартирам select2
         select2_Adapter::appendAndRun($input, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen'], $minimumResultsForSearch, $matchOnlyStartsWith);

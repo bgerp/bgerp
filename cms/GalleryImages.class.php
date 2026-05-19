@@ -242,7 +242,7 @@ class cms_GalleryImages extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако има запис и потребител
-        if ($rec->id && $userId) {
+        if (($rec->id ?? null) && $userId) {
             
             // Ако редактираме, изтриваме, добавяме или разглеждаме сингъла
             if ($action == 'edit' || $action == 'delete') {

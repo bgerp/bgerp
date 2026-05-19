@@ -227,7 +227,7 @@ class hr_HomeOffice extends core_Master
         $data->listFilter->input('employeeId', 'silent');
 
         if ($filterRec = $data->listFilter->rec) {
-            if ($filterRec->employeeId) {
+            if ($filterRec->employeeId ?? null) {
                 $data->query->where(array("#personId = '[#1#]'", $filterRec->employeeId));
             }
         }
@@ -452,7 +452,7 @@ class hr_HomeOffice extends core_Master
         }
 
         if ($action == 'add' || $action == 'reject' || $action == 'decline') {
-            if ($rec->folderId) {
+            if ($rec->folderId ?? null) {
                 $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
 
                 if ($rec->folderId && $folderClass == 'crm_Persons') {

@@ -251,7 +251,7 @@ class log_System extends core_Manager
         // Заявка за филтриране
         $fRec = $data->listFilter->rec;
         
-        if ($fRec->date) {
+        if ($fRec->date ?? null) {
             if ($fRec->date === dt::now(false)) {
                 $query->where("#createdOn >= '{$fRec->date} 00:00:00'");
             } else {
@@ -268,7 +268,7 @@ class log_System extends core_Manager
             }
         }
         
-        $search = trim($fRec->search);
+        $search = trim($fRec->search ?? '');
         if ($search) {
 
             $search = trim(mb_strtolower($fRec->search));

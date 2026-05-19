@@ -352,7 +352,7 @@ class plg_Search extends core_Plugin
                     
                     // Колко е максималната дължина на стринга, гледа се първо в класа на заявката после дефолта за плъгина
                     $maxLen = null;
-                    setIfNot($maxLen, $query->mvc->maxSearchKeywordLen, PLG_SEARCH_MAX_KEYWORD_LEN, 10);
+                    setIfNot($maxLen, $query->mvc->maxSearchKeywordLen ?? null, PLG_SEARCH_MAX_KEYWORD_LEN, 10);
                     $w = substr($w, 0, $maxLen);
                 }
 
@@ -624,6 +624,7 @@ class plg_Search extends core_Plugin
         
         $len = strlen($str);
         
+        $words = [];
         $quote = false;
         $wordId = 0;
         $isWord = true;
@@ -637,7 +638,7 @@ class plg_Search extends core_Plugin
                     $words[$wordId] = '"';
                 }
                 
-                $words[$wordId] .= $c;
+                $words[$wordId] = ($words[$wordId] ?? '') . $c;
                 continue;
             }
             
@@ -742,7 +743,7 @@ class plg_Search extends core_Plugin
      */
     public static function on_AfterGetSearchFields($mvc, &$searchFieldsArr)
     {
-        $searchFieldsArr = arr::make($mvc->searchFields);
+        $searchFieldsArr = arr::make($mvc->searchFields ?? null);
     }
 
 

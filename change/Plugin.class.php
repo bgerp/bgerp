@@ -471,10 +471,10 @@ class change_Plugin extends core_Plugin
         // Вземаме всички полета, които могат да се променят
         $allowedFieldsArr = (array) static::getAllowedFields($form, $mvc->changableFields);
         
-        if ($selVerArr['first'] != $lastVersion) {
-            
+        if (($selVerArr['first'] ?? null) != $lastVersion) {
+
             // Ако има избрана версия
-            if ($selVerArr['first']) {
+            if ($selVerArr['first'] ?? null) {
                 $lastArr = array();
                 
                 // Вземаме стойността за съответното поле, за първата версия
@@ -548,15 +548,15 @@ class change_Plugin extends core_Plugin
         }
         
         // Вербално представяне на избраните версии
-        $firstSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['first']);
+        $firstSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['first'] ?? null);
         $lastVerDocArr = change_Log::getVersionAndDateFromKey($mvc, $lastVersion);
-        $isLastVer = (boolean) ($lastVersionStr && ($selVerArr['last'] == $lastVersion));
+        $isLastVer = (boolean) (($lastVersionStr ?? null) && (($selVerArr['last'] ?? null) == $lastVersion));
         
         if (!$isLastVer) {
-            $lastSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['last']);
-            $lastCreatedOn = $lastSelVerArr['createdOn'];
+            $lastSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['last'] ?? null);
+            $lastCreatedOn = $lastSelVerArr['createdOn'] ?? null;
         } else {
-            $lastCreatedOn = $lastVerDocArr['createdOn'];
+            $lastCreatedOn = $lastVerDocArr['createdOn'] ?? null;
         }
         
         $dateMask = 'd-m-y';
@@ -572,10 +572,10 @@ class change_Plugin extends core_Plugin
         }
         
         // Ако има избрана версия
-        if ($selVerArr['first']) {
-            
+        if ($selVerArr['first'] ?? null) {
+
             // Добавяме в променлива
-            $res->row->LastSavedVersion = $lastVerDocArr['versionStr'];
+            $res->row->LastSavedVersion = $lastVerDocArr['versionStr'] ?? null;
             
             // Ако е върната дата
             if ($lastVerDocArr['createdOn']) {
@@ -593,10 +593,10 @@ class change_Plugin extends core_Plugin
         }
         
         // Първата избрана версия
-        $res->row->FirstSelectedVersion = $firstSelVerArr['versionStr'];
-        
+        $res->row->FirstSelectedVersion = $firstSelVerArr['versionStr'] ?? null;
+
         // Ако е върната дата
-        if ($firstSelVerArr['createdOn']) {
+        if ($firstSelVerArr['createdOn'] ?? null) {
             $res->row->FirstSelectedVersionDate = dt::mysql2verbal($firstSelVerArr['createdOn'], $dateMask);
         }
         
@@ -613,10 +613,10 @@ class change_Plugin extends core_Plugin
         } else {
             
             // Последната избрана версия
-            $res->row->LastSelectedVersion = $lastSelVerArr['versionStr'];
-            
+            $res->row->LastSelectedVersion = $lastSelVerArr['versionStr'] ?? null;
+
             // Ако е върната дата
-            if ($lastSelVerArr['createdOn']) {
+            if ($lastSelVerArr['createdOn'] ?? null) {
                 $res->row->LastSelectedVersionDate = dt::mysql2verbal($lastSelVerArr['createdOn'], $dateMask);
             }
         }
@@ -642,17 +642,17 @@ class change_Plugin extends core_Plugin
         foreach ($form->fields as $field => $filedClass) {
             
             // Ако могат да се променят
-            if (($filedClass->changable && $filedClass->changable != 'no') || in_array($field, $changableFieldsArr)) {
+            if ((($filedClass->changable ?? null) && ($filedClass->changable ?? null) != 'no') || in_array($field, $changableFieldsArr)) {
 
                 // Добавяме в масива
                 $allowedFieldsArr[$field] = $field;
             }
             
-            if ($filedClass->changable == 'ifInput' && $filedClass->input == 'none') {
+            if (($filedClass->changable ?? null) == 'ifInput' && ($filedClass->input ?? null) == 'none') {
                 unset($allowedFieldsArr[$field]);
             }
 
-            if ($filedClass->notChangeableIfHidden && in_array($filedClass->input, array('hidden', 'none'))) {
+            if (($filedClass->notChangeableIfHidden ?? null) && in_array(($filedClass->input ?? null), array('hidden', 'none'))) {
                 unset($allowedFieldsArr[$field]);
             }
         }

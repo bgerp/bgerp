@@ -581,7 +581,7 @@ class change_Log extends core_Manager
         $versionKey = static::getVersionKey($classId, $docId);
         
         // Връщаме масива за съответния ключ
-        return $versionArr[$versionKey];
+        return $versionArr[$versionKey] ?? null;
     }
     
     
@@ -742,6 +742,8 @@ class change_Log extends core_Manager
         // Масив с данните за версията от ключа
         $versionArr = static::getVersionFromString($key);
         
+        $resArr = [];
+
         // Ако има всички необходими данни
         if (isset($versionArr[0], $versionArr[1], $versionArr[2])) {
             
@@ -781,7 +783,7 @@ class change_Log extends core_Manager
         if ($escape) {
             
             // Ескейпваме
-            $resArr['versionStr'] = static::escape($resArr['versionStr']);
+            $resArr['versionStr'] = static::escape($resArr['versionStr'] ?? null);
         }
         
         return $resArr;
@@ -823,7 +825,7 @@ class change_Log extends core_Manager
         
         $str = $docClass . '_' . $docId;
         
-        $res = (array) $allRes[$str];
+        $res = (array) ($allRes[$str] ?? null);
         
         // Ако е генериран преди
         if ($res) {

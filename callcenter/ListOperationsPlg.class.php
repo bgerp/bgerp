@@ -25,10 +25,10 @@ class callcenter_ListOperationsPlg extends core_Plugin
     public static function on_AfterPrepareListTitle($mvc, $res, &$data)
     {
         // Полето, което ще се използва за търсене на номер
-        $numberField = ($mvc->numberField) ? $mvc->numberField : 'number';
-        
+        $numberField = ($mvc->numberField ?? null) ?: 'number';
+
         // Ако не се търси по това поле
-        if (!($number = $data->listFilter->rec->{$numberField})) {
+        if (!($number = ($data->listFilter->rec->{$numberField} ?? null))) {
             
             return ;
         }
@@ -93,10 +93,10 @@ class callcenter_ListOperationsPlg extends core_Plugin
         $buttonTpl = new ET("<div class='listTitleButtons'>[#listTitleParams#]</div>");
         
         // Добавяме бутоните към заглавието
-        $buttonTpl->append($data->callLink, 'listTitleParams');
-        $buttonTpl->append($data->searchLink, 'listTitleParams');
-        $buttonTpl->append($data->faxLink, 'listTitleParams');
-        $buttonTpl->append($data->smsLink, 'listTitleParams');
+        $buttonTpl->append($data->callLink ?? null, 'listTitleParams');
+        $buttonTpl->append($data->searchLink ?? null, 'listTitleParams');
+        $buttonTpl->append($data->faxLink ?? null, 'listTitleParams');
+        $buttonTpl->append($data->smsLink ?? null, 'listTitleParams');
         
         // Добавяме към титлата
         $tpl->append($buttonTpl);
