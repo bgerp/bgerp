@@ -32,10 +32,10 @@ class editwatch_Plugin extends core_Plugin
      */
     public function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        $recId = $data->form->rec->id;
+        $recId = $data->form->rec->id ?? null;
         
         // Съобщението
-        $status = static::renderStatus($data->editedBy);
+        $status = static::renderStatus($data->editedBy ?? null);
         
         // Ако не е бил сетнат
         if (!Mode::get('hitTime')) {

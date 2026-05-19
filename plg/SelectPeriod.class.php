@@ -29,14 +29,14 @@ class plg_SelectPeriod extends core_Plugin
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
-        $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
-        $showFuturePeriods = $mvc->filterFutureOptions ? $mvc->filterFutureOptions : false;
+        $fF = ($mvc->filterDateFrom ?? null) ?: 'from';
+        $fT = ($mvc->filterDateTo ?? null) ?: 'to';
+        $showFuturePeriods = ($mvc->filterFutureOptions ?? null) ?: false;
 
         $form = $data->form;
         $rec = $form->rec;
         
-        if (!$form->fields[$fF] || !$form->fields[$fT] || !$mvc->useFilterDateOnEdit) {
+        if (!($form->fields[$fF] ?? null) || !($form->fields[$fT] ?? null) || !($mvc->useFilterDateOnEdit ?? null)) {
             
             return ;
         }

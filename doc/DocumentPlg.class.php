@@ -2054,7 +2054,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако редактираме запис
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $exRec = $mvc->fetch($rec->id);
             $mvc->threadId = $exRec->threadId;
             
@@ -2066,7 +2066,7 @@ class doc_DocumentPlg extends core_Plugin
                     doc_Threads::requireRightFor('single', $mvc->threadId);
                 }
             }
-        } elseif ($rec->originId) {
+        } elseif ($rec->originId ?? null) {
             
             // Ако имаме $originId
             
@@ -2088,12 +2088,12 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($rec->originId || $rec->foreignId) {
+        if (($rec->originId ?? null) || ($rec->foreignId ?? null)) {
             $fType = 'doc';
-            $oDocId = $rec->originId;
-            
+            $oDocId = $rec->originId ?? null;
+
             if (!$oDocId) {
-                $oDocId = $rec->foreignId;
+                $oDocId = $rec->foreignId ?? null;
             } else {
                 $document = doc_Containers::getDocument($oDocId);
             }
@@ -2131,7 +2131,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($rec->threadId) {
+        if ($rec->threadId ?? null) {
             $threadRec = doc_Threads::fetch($rec->threadId);
             if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')) {
                 colab_Threads::requireRightFor('single', $threadRec);
@@ -2144,11 +2144,11 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $threadRec->folderId;
         }
         
-        if (!$rec->folderId) {
+        if (!($rec->folderId ?? null)) {
             $rec->folderId = $mvc->getDefaultFolder();
         }
-        
-        if (!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
+
+        if (!($rec->threadId ?? null) && ($rec->folderId ?? null) && !doc_Folders::haveRightToFolder($rec->folderId)) {
             if (core_Packs::isInstalled('colab') && haveRole('partner')) {
                 $userId = core_Users::getCurrent();
                 $colabFolders = colab_Folders::getSharedFolders($userId);
@@ -2241,7 +2241,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
 
-        if (!$data->form->rec->id && !$data->form->rec->clonedFromId) {
+        if (empty($data->form->rec->id) && empty($data->form->rec->clonedFromId)) {
             $detId = Request::get('detId', 'int');
             
             $dData = $mvc->getDefaultData($rec, array('detId' => $detId, 'fType' => $fType));
@@ -2254,8 +2254,8 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         // Показваме свързаните документи, ако има такива
-        if ($data->form->rec->id) {
-            $cId = $data->form->rec->containerId;
+        if (!empty($data->form->rec->id)) {
+            $cId = $data->form->rec->containerId ?? null;
             
             if (!$cId) {
                 $cId = $mvc->fetchField($data->form->rec->id, 'containerId');
@@ -2277,7 +2277,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $res = arr::make($res);
         
-        if ($rec->foreignId && $otherParams['fType'] == 'doc') {
+        if (($rec->foreignId ?? null) && $otherParams['fType'] == 'doc') {
             $document = doc_Containers::getDocument($rec->foreignId);
             
             $titleFld = '';
@@ -2367,7 +2367,7 @@ class doc_DocumentPlg extends core_Plugin
         $form = &$data->form;
         $rec = &$form->rec;
         
-        if (empty($rec->id) && $rec->threadId && $rec->originId) {
+        if (empty($rec->id) && !empty($rec->threadId) && !empty($rec->originId)) {
             $folderId = ($rec->folderId) ? $rec->folderId : doc_Threads::fetch($rec->threadId)->folderId;
             
             if (($mvc->canAddToFolder($folderId) !== false) && ($mvc->onlyFirstInThread ?? null) !== false) {
@@ -2378,11 +2378,11 @@ class doc_DocumentPlg extends core_Plugin
         $saveBtnName = (haveRole('powerUser') && !((($mvc->canEditActivated ?? null) === true && in_array($rec->state, array('active', 'waiting', 'wakeup'))))) ? 'Чернова' : 'Запис';
         $form->toolbar->renameBtn('save', $saveBtnName);
         
-        if ($rec->state == 'pending' && isset($rec->id)) {
+        if (isset($rec->state) && $rec->state == 'pending' && isset($rec->id)) {
             $form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
         }
         
-        if ($mvc->haveRightFor('pending', $form->rec) || $rec->state == 'pending') {
+        if ($mvc->haveRightFor('pending', $form->rec) || (isset($rec->state) && $rec->state == 'pending')) {
             $form->toolbar->addSbBtn('Заявка', 'save_pending', 'id=btnPending,order=9.99989', 'ef_icon = img/16/tick-circle-frame.png');
         }
     }
@@ -2408,13 +2408,13 @@ class doc_DocumentPlg extends core_Plugin
         
         $rec = $form->rec;
         
-        if ($form->rec->id) {
+        if (!empty($form->rec->id)) {
             $form->title = 'Редактиране на|* ';
         } else {
             if (Request::get('clone')) {
                 $form->title = 'Копие на|* ';
             } else {
-                if ($rec->threadId) {
+                if (!empty($rec->threadId)) {
                     $form->title = 'Добавяне на|* ';
                 } else {
                     $form->title = 'Създаване на|* ';
@@ -2422,7 +2422,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($rec->threadId) {
+        if (!empty($rec->threadId)) {
             $thRec = doc_Threads::fetch($form->rec->threadId);
             setPartIfNot($data, 'singleTitle', $mvc->singleTitle);
             

@@ -112,7 +112,7 @@ class core_FieldSet extends core_BaseClass
             } elseif (substr($externalClass, -1) == 's') {
                 $key = strToLower(substr($externalClass, 0, strlen($externalClass) - 1)) . 'Id';
                 
-                if ($this->fields[$key]) {
+                if (!empty($this->fields[$key])) {
                     $params['externalKey'] = $key;
                 }
             }

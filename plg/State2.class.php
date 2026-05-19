@@ -76,7 +76,7 @@ class plg_State2 extends core_Plugin
             $this->activeState = $mvc->activeState;
         } else {
             foreach ($this->castToActive as $state) {
-                if ($opt[$state]) {
+                if ($opt[$state] ?? null) {
                     $this->activeState = $state;
                     break;
                 }
@@ -87,7 +87,7 @@ class plg_State2 extends core_Plugin
             $this->closedState = $mvc->closedState;
         } else {
             foreach ($this->castToClosed as $state) {
-                if ($opt[$state]) {
+                if ($opt[$state] ?? null) {
                     $this->closedState = $state;
                     break;
                 }
@@ -298,7 +298,8 @@ class plg_State2 extends core_Plugin
      */
     public static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
     {
-        $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " #state = 'active'";
+        $existing = $type->params['where'] ?? '';
+        $type->params['where'] = $existing . ($existing ? ' AND ' : '') . " #state = 'active'";
     }
     
     

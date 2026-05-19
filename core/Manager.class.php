@@ -536,7 +536,7 @@ class core_Manager extends core_Mvc
     public function prepareEditTitle_($data)
     {
         setPartIfNot($data, 'title', $this->title);
-        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
+        $data->form->title = (!empty($data->form->rec->id) ? 'Редактиране' : 'Добавяне') . ' на запис' .
                 '|*' . ($this->title ? ' |в|* ' . '"' . tr($data->title) . '"' : '');
     }
     
@@ -902,7 +902,7 @@ class core_Manager extends core_Mvc
         $data->form->input(null, 'silent');
         
         // Ако имаме
-        if ($data->form->rec->id && $data->form->cmd != 'refresh') {
+        if (!empty($data->form->rec->id) && $data->form->cmd != 'refresh') {
             
             // Очакваме, че има такъв запис
             expect($rec = $this->fetch($data->form->rec->id));
@@ -936,7 +936,7 @@ class core_Manager extends core_Mvc
         if (getRetUrl()) {
             $data->retUrl = getRetUrl();
         } else {
-            if (method_exists($this, 'act_Single') && $data->form->rec->id && $data->cmd != 'delete') {
+            if (method_exists($this, 'act_Single') && !empty($data->form->rec->id) && $data->cmd != 'delete') {
                 $data->retUrl = array(
                     $this,
                     'single',

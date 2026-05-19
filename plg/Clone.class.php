@@ -274,7 +274,7 @@ class plg_Clone extends core_Plugin
         }
         
         // Определяме в кое поле ще показваме инструментите
-        $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
+        $field = !empty($mvc->rowToolsField) ? $mvc->rowToolsField : 'id';
         
         // Съдържанието на полето
         $rowField = $row->$field;

@@ -766,7 +766,7 @@ class crm_Persons extends core_Master
             }
         }
 
-        $row->nameList = '<div class="namelist">' . $row->nameList . "<span class='icon'>" . $row->folder . '</span></div>';
+        $row->nameList = '<div class="namelist">' . ($row->nameList ?? '') . "<span class='icon'>" . ($row->folder ?? '') . '</span></div>';
 
         $row->title = $mvc->getTitleById($rec);
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";

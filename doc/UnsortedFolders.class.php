@@ -745,8 +745,8 @@ class doc_UnsortedFolders extends core_Master
                 
                 $clsInst = cls::get($clsId);
                 
-                if (!$clsInst->defaultFolder) continue;
-                
+                if (empty($clsInst->defaultFolder)) continue;
+
                 if ($clsInst->defaultFolder != $rec->name) continue;
                 
                 if ($clsInst->haveRightFor('add')) {

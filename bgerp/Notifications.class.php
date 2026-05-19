@@ -227,7 +227,7 @@ class bgerp_Notifications extends core_Manager
             'warning' => 'warning',
             'alert' => 'alert');
         
-        $priority = $priorityMap[$priority];
+        $priority = $priorityMap[$priority] ?? null;
         
         if (!$priority) {
             $priority = 'normal';
@@ -1706,8 +1706,8 @@ class bgerp_Notifications extends core_Manager
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             
             // Ако не е избран потребител по подразбиране
-            if (!$data->listFilter->rec->usersSearch) {
-                if ($data->listFilter->rec->id) {
+            if (empty($data->listFilter->rec->usersSearch)) {
+                if (!empty($data->listFilter->rec->id)) {
                     $f = 'all_users';
                 } else {
                     $uArr = $data->listFilter->getField('usersSearch')->type->getUserFromTeams();

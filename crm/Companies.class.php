@@ -1393,7 +1393,7 @@ class crm_Companies extends core_Master
         
         $query->show('id,searchFieldXpr');
 
-        if ($params['group']) {
+        if (!empty($params['group'])) {
             $gId = crm_Groups::getIdFromSysId($params['group']);
             expect($gId);
             plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $query, $gId);

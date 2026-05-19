@@ -154,7 +154,7 @@ class plg_SaveAndNew extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             
             return;
         }

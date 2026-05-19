@@ -94,7 +94,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
 
         foreach ($fields as $name => $fld) {
             $sets[] = "{$name}={$fld->caption}";
-            if(!$fld->detailField){
+            if(empty($fld->detailField)){
                 if (substr($name, 0, 1) != '_') {
                     $selected[$name] = $name;
                 }

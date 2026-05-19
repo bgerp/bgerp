@@ -72,9 +72,11 @@ class plg_Printing extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        if (Mode::is('forceShowPrint') || !($data->rec->state == 'draft' ||
-            ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') ||
-            ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && ($mvc->printRejected ?? null) === false))) {
+        $recState = $data->rec->state ?? null;
+        $recBrState = $data->rec->brState ?? null;
+        if (Mode::is('forceShowPrint') || !($recState == 'draft' ||
+            ($recState == 'rejected' && $recBrState == 'draft') ||
+            ($recState == 'rejected' && $recBrState != 'draft' && ($mvc->printRejected ?? null) === false))) {
             if (($mvc instanceof core_Manager) && $mvc->haveRightFor('single', $data->rec)) {
                 // Текущото URL
                 $url = null;

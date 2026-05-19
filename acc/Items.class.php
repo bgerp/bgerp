@@ -228,7 +228,7 @@ class acc_Items extends core_Manager
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             // Запомняне на старите номенклатури
             $rec->oldLists = $mvc->fetchField($rec->id, 'lists');
         }
@@ -250,7 +250,7 @@ class acc_Items extends core_Manager
     public static function on_AfterSave($mvc, $id, $rec)
     {
         // Информацията на кои номенклатури трябва да се обнови
-        $lists = keylist::toArray($rec->lists) + keylist::toArray($rec->oldLists);
+        $lists = keylist::toArray($rec->lists) + keylist::toArray($rec->oldLists ?? null);
         
         foreach ($lists as $listId) {
             $mvc->Lists->updateSummary($listId);

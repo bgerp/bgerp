@@ -114,7 +114,7 @@ class import2_Plugin extends core_Plugin
         
         $url = array($mvc, 'import2', 'ret_url' => true);
         $rec = new stdClass();
-        if ($data->masterId) {
+        if (!empty($data->masterId)) {
             $url[$mvc->masterKey] = $data->masterId;
             $rec->{$mvc->masterKey} = $data->masterId;
         }
@@ -139,7 +139,7 @@ class import2_Plugin extends core_Plugin
             }
             
             $masterId = null;
-            if ($masterKey = $mvc->masterKey) {
+            if ($masterKey = ($mvc->masterKey ?? null)) {
                 $masterId = $rec->{$masterKey};
             }
             

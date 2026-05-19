@@ -1321,7 +1321,7 @@ class planning_Tasks extends core_Master
                         $requiredRoles = 'no_one';
                     }
                 }
-            } elseif ($rec->folderId) {
+            } elseif (!empty($rec->folderId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -2206,7 +2206,7 @@ class planning_Tasks extends core_Master
         $data->listFilter->showFields .= ',folders';
 
         // Добавят се за избор само използваните в ПО оборудвания
-        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders);
+        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders ?? null);
 
         if (countR($assetInTasks)) {
             $data->listFilter->setField('assetId', 'caption=Оборудване,silent,autoFilter');
@@ -2276,7 +2276,7 @@ class planning_Tasks extends core_Master
                     }
                 }
 
-                if ($filter->filterDateField == 'dueDate') {
+                if (isset($filter->filterDateField) && $filter->filterDateField == 'dueDate') {
                     if (!isset($filter->assetId)) {
                         $orderByDir = 'ASC';
                         $orderByDateCoalesce = '#dueDate';
