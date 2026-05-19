@@ -595,7 +595,7 @@ class cat_products_Relations extends core_Manager
             $listMvc->FNC('price', 'varchar', 'tdClass=small-field nowrap');
             $listMvc->FNC('btn', 'varchar', 'tdClass=small-field relCol');
             $listMvc->FNC('img', 'varchar', 'tdClass=small-cell relCol relImgCol');
-            $listMvc->FNC('analogs', 'varchar', 'tdClass=small-field leftCol');
+            $listMvc->FNC('analogs', 'varchar', 'tdClass=small-field relProductCol');
 
             $table = cls::get('core_TableView', array('mvc' => $listMvc));
             $tabData = $tab['tabData'];

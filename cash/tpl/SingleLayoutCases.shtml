@@ -2,24 +2,69 @@
     [#SingleToolbar#]
     <div class="folder-cover [#STATE_CLASS#]">
         <div class="inner-folder">
-            <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Каса|* <b style="color:green;">[#name#]</b></div>
+            <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Каса|* <b style="color:green;">[#name#]:</b> <b>[#totalBlAmount#]</b> [#hint#]</div>
+            <div class="no-border-holder"> [#inCashData#]</div>
+
+            <!--ET_END SELECT_FIELD-->
+            [#deals/tpl/AdditionalConditionsBlock.shtml#]
+            [#DETAILS#]
+            <div style="clear:both;"></div>
+
+
             <fieldset class="detail-info">
-                <legend class="groupTitle">|Наличност ОБЩО|*: <b style="color:green;">[#totalBlAmount#]</b> [#hint#]</legend>
+                <legend class="groupTitle">|Кой може да контира документи, в които е избрана касата|*</legend>
                 <div class="groupList">
-                    [#inCashData#]
+                    <table>
+                        <!--ET_BEGIN cashiers-->
+                        <tr>
+                            <td class='dt'>|Потребители|*:</td>
+                            <td>[#cashiers#]</td>
+                        </tr>
+                        <!--ET_END cashiers-->
+                        <!--ET_BEGIN activateRoles-->
+                        <tr>
+                            <td class='dt'>|Екипи|*:</td>
+                            <td>[#activateRoles#]</td>
+                        </tr>
+                        <!--ET_END activateRoles-->
+                    </table>
                 </div>
             </fieldset>
+
+            <!--ET_BEGIN SELECT_FIELD-->
+            [#SELECT_FIELD#]
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Кой може да избира касата в документи и филтри|*</legend>
+                <div class="groupList">
+                    <table>
+                        <!--ET_BEGIN selectUsers-->
+                        <tr>
+                            <td class='dt'>|Потребители|*:</td>
+                            <td>[#selectUsers#]</td>
+                        </tr>
+                        <!--ET_END selectUsers-->
+                        <!--ET_BEGIN selectRoles-->
+                        <tr>
+                            <td class='dt'>|Екипи|*:</td>
+                            <td>[#selectRoles#]</td>
+                        </tr>
+                        <!--ET_END selectRoles-->
+                    </table>
+                </div>
+            </fieldset>
+            <!--ET_END SELECT_FIELD-->
+
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Информация|*</legend>
                 <div class="groupList">
                     <table>
-                    	[#INFO_BLOCK#]
-                    	<!--ET_BEGIN CAPTION_VALUE-->
-                    	<tr>
+                        [#INFO_BLOCK#]
+                        <!--ET_BEGIN CAPTION_VALUE-->
+                        <tr>
                             <td class='dt'>[#CAPTION#]:</td>
                             <td>[#CAPTION_VALUE#]</td>
                         </tr>
-                    	<!--ET_END CAPTION_VALUE-->
+                        <!--ET_END CAPTION_VALUE-->
                         <!--ET_BEGIN creation-->
                         <tr>
                             [#creation#]
@@ -43,52 +88,6 @@
                     </table>
                 </div>
             </fieldset>
-
-            <fieldset class="detail-info">
-                <legend class="groupTitle">|Кой може да контира документи, в които е избрана касата|*</legend>
-                <div class="groupList">
-                    <table>
-                        <!--ET_BEGIN cashiers-->
-                        <tr>
-                            <td class='dt'>|Потребители|*:</td>
-                            <td>[#cashiers#]</td>
-                        </tr>
-                        <!--ET_END cashiers-->
-                        <!--ET_BEGIN activateRoles-->
-                        <tr>
-                            <td class='dt'>|Екипи|*:</td>
-                            <td>[#activateRoles#]</td>
-                        </tr>
-                        <!--ET_END activateRoles-->
-                    </table>
-                </div>
-            </fieldset>
-            
-            <!--ET_BEGIN SELECT_FIELD-->
-            [#SELECT_FIELD#]
-            <fieldset class="detail-info">
-                <legend class="groupTitle">|Кой може да избира касата в документи и филтри|*</legend>
-                <div class="groupList">
-                    <table>
-                    	<!--ET_BEGIN selectUsers-->
-                        <tr>
-                            <td class='dt'>|Потребители|*:</td>
-                            <td>[#selectUsers#]</td>
-                        </tr>
-                        <!--ET_END selectUsers-->
-                        <!--ET_BEGIN selectRoles-->
-                        <tr>
-                            <td class='dt'>|Екипи|*:</td>
-                            <td>[#selectRoles#]</td>
-                        </tr>
-                        <!--ET_END selectRoles-->
-                    </table>
-                </div>
-            </fieldset>
-            <!--ET_END SELECT_FIELD-->
-            [#deals/tpl/AdditionalConditionsBlock.shtml#]
-            [#DETAILS#]
-            <div style="clear:both;"></div>
         </div>
     </div>
 </div>
