@@ -6037,6 +6037,21 @@ div.location.public {
   border-spacing: 5px;
   border-collapse: separate; }
 
+.block_title .frontTooltip,
+.block_title .endTooltip {
+  position: relative;
+  top: -4px !important; }
+
+.no-border-holder table {
+  margin-top: 20px;
+  border: none;
+  border-spacing: 5px; }
+  .no-border-holder table td,
+  .no-border-holder table th {
+    border-right: none !important;
+    border-left: none !important;
+    padding: 5px 15px !important; }
+
 .no-border-table .button {
   float: none !important;
   width: 100%;

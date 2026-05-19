@@ -279,7 +279,7 @@ class cash_Cases extends core_Master
         $fieldset->FLD('posQuantity', 'double');
 
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
-        $tableHtml = $table->get($inCashRows, 'currencyId=Валута,total=В брой,blQuantity=От баланса,posQuantity=От чакащи ПОС бележки');
+        $tableHtml = $table->get($inCashRows, 'currencyId=Валута,total=Наличност,blQuantity=Осчетоводени,posQuantity=От ПОС (чакащи)');
         $row->inCashData = $tableHtml;
     }
 
