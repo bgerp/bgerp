@@ -36,7 +36,7 @@ class bgerp_ExtendedImporter extends core_Manager
      */
     public function init($params = array())
     {
-        $this->mvc = $params['mvc'];
+        $this->mvc = ($params ?? [])['mvc'] ?? null;
     }
     
     
