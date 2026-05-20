@@ -106,7 +106,7 @@ class core_Classes extends core_Manager
         
         $data->listFilter->input();
         
-        if ($interfaceId = $data->listFilter->rec->interface) {
+        if ($interfaceId = ($data->listFilter->rec->interface ?? null)) {
             $data->query->like('interfaces', "|{$interfaceId}|");
         }
     }
@@ -419,7 +419,7 @@ class core_Classes extends core_Manager
                 $rec->state = 'closed';
                 self::save($rec, 'state');
                 $res .= "<li style='color:red;'>Деактивиран беше класа {$rec->name} защото липсва кода му.</li>";
-            } elseif ($inst->deprecated) {
+            } elseif ($inst->deprecated ?? null) {
                 $res .= "<li style='color:green;'>Деактивиран беше класа {$rec->name} защото е пенсиониран.</li>";
                 $rec->state = 'closed';
                 self::save($rec, 'state');
@@ -476,11 +476,11 @@ class core_Classes extends core_Manager
         if (countR($intArray)) {
             foreach ($intArray as $id) {
                 $intName = core_Interfaces::fetchField($id, 'name');
-                if (!self::$interfaceMehods[$intName]) {
+                if (!(self::$interfaceMehods[$intName] ?? null)) {
                     self::$interfaceMehods[$intName] = cls::getAccessibleMethods($intName);
                 }
-                
-                if (!self::$staticInterfaceMehods[$intName]) {
+
+                if (!(self::$staticInterfaceMehods[$intName] ?? null)) {
                     self::$staticInterfaceMehods[$intName] = cls::getAccessibleMethods($intName, true);
                 }
                 
