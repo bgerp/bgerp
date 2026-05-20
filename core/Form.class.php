@@ -528,14 +528,14 @@ class core_Form extends core_FieldSet
         }
         
         if (!empty($result['error'])) {
-            $captions = ($field->noCaption) ? ' ' : "<b>'|" . $captions . "|*'</b>";
+            $captions = (!empty($field->noCaption)) ? ' ' : "<b>'|" . $captions . "|*'</b>";
             $captions = str_replace('» |@', '', $captions);
             
             $haveErr = true;
             $this->setError($name, 'Некоректна стойност на полето|' .
                 "* {$captions}!<br><small style='color:red'>" . '|' .
                 $result['error'] .
-                ($result['warning'] ? ('|*<br>|' .
+                (!empty($result['warning']) ? ('|*<br>|' .
                         $result['warning']) : '') . '|*</small>');
         }
         

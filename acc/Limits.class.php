@@ -195,7 +195,7 @@ class acc_Limits extends core_Manager
         }
         
         // Веднъж създаден записа, не може да се сменя сметката
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $form->setReadOnly('accountId');
         }
     }

@@ -66,8 +66,8 @@ class type_Double extends core_Type
     {
         $value = trim($value);
         
-        $allowOct = (boolean) ($this->params['allowOct'] == 'allowOct');
-        $allowHex = (boolean) ($this->params['allowHex'] == 'allowHex');
+        $allowOct = (boolean) (($this->params['allowOct'] ?? null) == 'allowOct');
+        $allowHex = (boolean) (($this->params['allowHex'] ?? null) == 'allowHex');
         
         
         $originalVal = $value;

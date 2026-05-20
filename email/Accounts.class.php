@@ -372,7 +372,7 @@ class email_Accounts extends core_Master
     {
         $data->form->setDefault('access', 'private');
         
-        if ($data->form->rec->type == 'corporate') {
+        if (($data->form->rec->type ?? null) == 'corporate') {
             $data->form->setField('noRetPathDomains', 'input=input');
         }
     }

@@ -305,7 +305,7 @@ class email_ServiceRules extends embed_Manager
         $data->listFilter->showFields = $driverClassField;
         $data->listFilter->input(null, 'silent');
 
-        if ($data->listFilter->rec->{$driverClassField}) {
+        if (!empty($data->listFilter->rec->{$driverClassField})) {
             $data->query->where(array("#{$driverClassField} = '[#1#]'", $data->listFilter->rec->{$driverClassField}));
         }
     }
