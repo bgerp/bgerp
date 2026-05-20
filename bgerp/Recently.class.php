@@ -512,7 +512,7 @@ class bgerp_Recently extends core_Manager
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             
             // Ако не е избран потребител по подразбиране
-            if (!$data->listFilter->rec->usersSearch) {
+            if (empty($data->listFilter->rec->usersSearch)) {
                 
                 // Да е текущия
                 $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';

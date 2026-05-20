@@ -168,7 +168,7 @@ class core_Debug
         
         self::init();
         
-        if (self::$timers[$name]->start) {
+        if ((self::$timers[$name] ?? null) && self::$timers[$name]->start) {
             $workingTime = core_DateTime::getMicrotime() - self::$timers[$name]->start;
             if(!isset(self::$timers[$name]->workingTime)) {
                 self::$timers[$name]->workingTime = 0;

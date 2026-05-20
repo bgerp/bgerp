@@ -225,7 +225,7 @@ class cash_Cases extends core_Master
         if (isset($fields['-single'])) {
             $row->hint = ht::createHint('', 'Общо от всички валути, преизчислени по централен курс', 'notice', false);
 
-            $row->totalBlAmount = currency_Currencies::decorate($row->totalBlAmount, $row->currencyId, true);
+            $row->totalBlAmount = currency_Currencies::decorate($row->totalBlAmount, $row->currencyId ?? null, true);
             $row->totalBlAmount = ht::styleNumber($row->totalBlAmount, $rec->totalBlAmount);
         }
     }

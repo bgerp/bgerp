@@ -125,7 +125,7 @@ class oembed_Plugin extends core_Plugin
     
     public static function on_AfterExternalUrl($hostObj, &$htmlString, $url)
     {
-        if (($hostObj->params['oembed'] != 'none') && ($html = static::getEmbedHtml($url)) !== false) {
+        if ((($hostObj->params['oembed'] ?? null) != 'none') && ($html = static::getEmbedHtml($url)) !== false) {
             $link = core_Html::createLink($url, $url);
             $link = core_Html::createElement('div', array('class' => 'orig'), $link, true);
             
@@ -169,7 +169,7 @@ class oembed_Plugin extends core_Plugin
         }
         
         // Ако не е зададено да се спира форсирането за https
-        if (!$api['stopForceSecure']) {
+        if (empty($api['stopForceSecure'])) {
             $url = $nUrl;
         }
 
@@ -178,7 +178,7 @@ class oembed_Plugin extends core_Plugin
             return false;
         }
 
-        if ($response['error']) {
+        if (!empty($response['error'])) {
 
             return false;
         }
@@ -192,7 +192,7 @@ class oembed_Plugin extends core_Plugin
         }
         
         if ($response['cache_age'] !== 0) {
-            if ($api['forceSecureSrc']) {
+            if (!empty($api['forceSecureSrc'])) {
                 $response['html'] = preg_replace_callback('/\s+src\s*=\s*(\'|\")(http:\/\/)/', array(get_called_class(), 'replaceHttp'), $response['html']);
             }
             
@@ -237,7 +237,7 @@ class oembed_Plugin extends core_Plugin
         $services = arr::make($conf->OEMBED_SERVICES, true);
         
         foreach (static::$oembedMap as $key => $entry) {
-            if ($services[$key]) {
+            if (!empty($services[$key])) {
                 if (preg_match($entry['regex'], $url)) {
 
                     return $entry;
@@ -282,7 +282,7 @@ class oembed_Plugin extends core_Plugin
         foreach ($api['format'] as $format) {
             $params['format'] = $format;
             
-            if (!$api['func'] || $api['api']) {
+            if (empty($api['func']) || !empty($api['api'])) {
                 $requestUrl = $api['api'] . '?' . http_build_query($params);
 
                 if (($responseStr = static::httpGet($requestUrl)) === false) {

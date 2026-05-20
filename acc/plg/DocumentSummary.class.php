@@ -346,7 +346,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         if($mvc->hasPlugin('doc_plg_TplManager')){
             $templateOptions = doc_TplManager::getTemplates($mvc);
             if(countR($templateOptions)){
-                $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ",template";
+                $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ",template";
                 $data->listFilter->setOptions('template', array('' => '') + $templateOptions);
                 $data->listFilter->setField('template', "caption=Шаблон,formOrder=1002");
                 $data->listFilter->showFields .= ",template";

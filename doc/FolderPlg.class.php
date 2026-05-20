@@ -163,7 +163,7 @@ class doc_FolderPlg extends core_Plugin
             $data->form->setDefault('inCharge', core_Users::getCurrent());
         }
         if (empty($data->form->rec->access)) {
-            $data->form->setDefault('access', $mvc->defaultAccess ? $mvc->defaultAccess : 'team');
+            $data->form->setDefault('access', ($mvc->defaultAccess ?? null) ?: 'team');
         }
         
         // Ако сме в тесен режим
@@ -286,7 +286,7 @@ class doc_FolderPlg extends core_Plugin
             }
         }
         
-        if ($rec && $rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc') && $requiredRoles != 'no_one') {
+        if ($rec && !empty($rec->id) && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc') && $requiredRoles != 'no_one') {
             $rec = $mvc->fetch($rec->id);
             
             // Ако модела е достъпен за всички потребители по подразбиране,
@@ -405,7 +405,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
-            if ($bForce && (!$rec->folderId || !doc_Folders::fetch($rec->folderId))) {
+            if ($bForce && (!($rec->folderId ?? null) || !doc_Folders::fetch($rec->folderId))) {
                 
                 // Очакваме да не е подаден празен stdClass
                 // Така се подсигуряваме да не се създаде празна корица
@@ -513,11 +513,11 @@ class doc_FolderPlg extends core_Plugin
         
         $fArr = arr::make($fields, true);
         
-        if ((!$fields || $fArr['inCharge']) && !$rec->inCharge) {
+        if ((!$fields || !empty($fArr['inCharge'])) && !($rec->inCharge ?? null)) {
             $rec->inCharge = $cu;
         }
-        
-        if ((!$fields || $fArr['state']) && !$rec->state) {
+
+        if ((!$fields || !empty($fArr['state'])) && !($rec->state ?? null)) {
             $rec->state = 'active';
         }
         
@@ -601,7 +601,7 @@ class doc_FolderPlg extends core_Plugin
             return;
         }
         
-        if (!$rec->folderId) {
+        if (empty($rec->folderId)) {
             $rec->folderId = $mvc->fetchField($rec->id, 'folderId');
         }
 

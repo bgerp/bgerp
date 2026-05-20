@@ -572,7 +572,7 @@ class core_Users extends core_Manager
         $data->query->XPR('orderTime', 'datetime', 'if(#lastLoginTime, #lastLoginTime, #createdOn)');
         $data->query->orderBy('orderTime', 'DESC');
         
-        if ($data->listFilter->rec->role) {
+        if (!empty($data->listFilter->rec->role)) {
             $data->query->where("#roles LIKE '%|{$data->listFilter->rec->role}|%'");
         }
     }

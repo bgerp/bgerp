@@ -254,20 +254,20 @@ class sales_Routes extends core_Manager
         
         // Филтриране по дата
         $filterRec = $data->listFilter->rec;
-        if ($filterRec->date) {
+        if (!empty($filterRec->date)) {
             $data->query->where("#nextVisit = '{$filterRec->date}'");
             $data->query->XPR('dif', 'int', "DATEDIFF (#dateFld , '{$filterRec->date}')");
             $data->query->orWhere('MOD(#dif, round(#repeat / 86400 )) = 0');
         }
         
         // Филтриране по продавач
-        if ($filterRec->user) {
+        if (!empty($filterRec->user)) {
             $data->query->where(array('#salesmanId = [#1#]', $filterRec->user));
         }
 
-        if ($filterRec->type == 'mixed') {
+        if (isset($filterRec->type) && $filterRec->type == 'mixed') {
             $data->query->where("#type = 'mixed'");
-        } elseif ($filterRec->type == 'visit') {
+        } elseif (isset($filterRec->type) && $filterRec->type == 'visit') {
             $data->query->where("#type IN ('visit', 'mixed')");
         } elseif ($filterRec->type == 'delivery') {
             $data->query->where("#type IN ('delivery', 'mixed')");
@@ -678,7 +678,7 @@ class sales_Routes extends core_Manager
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $filteredDate = $data->listFilter->rec->date;
+        $filteredDate = $data->listFilter->rec->date ?? null;
         if(!empty($filteredDate)){
             $data->listTableMvc->FLD('plannedDate', 'date', 'smartCenter');
             arr::placeInAssocArray($data->listFields, array('plannedDate' => 'Посещения->Планувано'), 'nextVisit');

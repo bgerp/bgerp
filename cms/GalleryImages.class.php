@@ -170,7 +170,7 @@ class cms_GalleryImages extends core_Manager
         $data->query->orderBy('#createdOn', 'DESC');
         
         // Ако не е избран потребител по подразбиране
-        if (!$data->listFilter->rec->usersSearch) {
+        if (empty($data->listFilter->rec->usersSearch)) {
             
             // Да е текущия
             $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
@@ -196,7 +196,7 @@ class cms_GalleryImages extends core_Manager
             }
             
             // Ако се търси по група
-            if ($filter->groupSearch) {
+            if (!empty($filter->groupSearch)) {
                 
                 // Търсим групата
                 $data->query->where(array("#groupId = '[#1#]'", $filter->groupSearch));

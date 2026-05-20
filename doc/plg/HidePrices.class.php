@@ -188,7 +188,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterHidePriceFields($mvc, $res, &$data)
     {
-        $priceFields = arr::make($mvc->priceFields);
+        $priceFields = arr::make($mvc->priceFields ?? null);
         
         if (countR($data->rows)) {
             foreach ($data->rows as $row) {
@@ -249,7 +249,7 @@ class doc_plg_HidePrices extends core_Plugin
         }
         
         $form = &$data->form;
-        $priceFields = arr::make($mvc->priceFields);
+        $priceFields = arr::make($mvc->priceFields ?? null);
         
         foreach ($priceFields as $fld){
             if($form->getField($fld, false)){
@@ -283,7 +283,7 @@ class doc_plg_HidePrices extends core_Plugin
     {
         if(isset($data->masterMvc)) return;
 
-        $priceFields = arr::make($mvc->priceFields);
+        $priceFields = arr::make($mvc->priceFields ?? null);
 
         // За всеки запис от листа се гледа дали може да му се виждат ценовите полета - ако не скриват се
         foreach ($data->rows as $id => $row) {

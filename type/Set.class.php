@@ -206,10 +206,11 @@ class type_Set extends core_Type
             $value = self::toArray($value);
         }
         
+        $res = null;
         if (is_array($value)) {
             $res = implode(',', array_keys($value));
         }
-        
+
         return $res;
     }
     

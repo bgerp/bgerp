@@ -64,9 +64,9 @@ class type_Datetime extends type_Date
                 $date = $value['d'];
                 $time = $value['t'];
             } elseif (is_scalar($value)) {
-                list($date, $time) = explode(' ', $value);
+                [$date, $time] = explode(' ', $value) + [1 => ''];
                 $date = dt::mysql2verbal($date, 'd.m.Y', null, false);
-                list($h, $m, $s) = explode(':', $time);
+                [$h, $m, $s] = explode(':', $time) + [1 => '00', 2 => '00'];
                 if ($s == '00') {
                     $time = "{$h}:{$m}";
                 }

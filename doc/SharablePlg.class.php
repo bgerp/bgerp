@@ -183,7 +183,7 @@ class doc_SharablePlg extends core_Plugin
             $rec->sharedViews = serialize($viewedBy);
             
             if ($mvc->save_($rec, 'sharedViews')) {
-                core_Cache::remove($mvc->className, $data->cacheKey . '%');
+                core_Cache::remove($mvc->className, ($data->cacheKey ?? '') . '%');
                 
                 doc_DocumentCache::addToInvalidateCId($rec->containerId);
             }

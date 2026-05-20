@@ -277,7 +277,7 @@ class core_Form extends core_FieldSet
                 }
 
                 // Не могат да се селектират неща които не са опции
-                if ((!array_key_exists($valueCompare, $newOptions) && $this->cmd != 'refresh') || (is_object($newOptions[$valueCompare]) && ($newOptions[$valueCompare]->group ?? null))) {
+                if ((!array_key_exists($valueCompare, $newOptions) && $this->cmd != 'refresh') || (isset($newOptions[$valueCompare]) && is_object($newOptions[$valueCompare]) && ($newOptions[$valueCompare]->group ?? null))) {
                     $this->setError($name, 'Невъзможна стойност за полето' .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';
@@ -285,7 +285,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Не могат да се селектират групи!
-                if (is_object($newOptions[$valueCompare]) && ($newOptions[$valueCompare]->group ?? null)) {
+                if (isset($newOptions[$valueCompare]) && is_object($newOptions[$valueCompare]) && ($newOptions[$valueCompare]->group ?? null)) {
                     $this->setError($name, 'Група не може да бъде стойност за полето' .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';
@@ -293,7 +293,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Празна опция се приема според типа. Числата стават NULL
-                if ($newOptions[$valueCompare] === '' && $valueCompare === '') {
+                if (isset($newOptions[$valueCompare]) && $newOptions[$valueCompare] === '' && $valueCompare === '') {
                     $value = $type->fromVerbal($value);
                 }
             } else {

@@ -242,7 +242,7 @@ class type_Keylist extends core_Type
             }
             $groupOpen = 0;
             
-            if (countR($this->suggestions) == 1 && $this->params['mandatory'] && $emptyValue) {
+            if (countR($this->suggestions) == 1 && !empty($this->params['mandatory']) && $emptyValue) {
                 $key = key($this->suggestions);
                 $values[$key] = $key;
             }
@@ -475,7 +475,7 @@ class type_Keylist extends core_Type
         // Ако не е зададен параметъра
         if (!isset($this->params['maxOptForOpenGroups'])) {
             $conf = core_Setup::getConfig();
-            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
+            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'] ?? null;
             if (!isset($maxOpt)) {
                 $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
             }

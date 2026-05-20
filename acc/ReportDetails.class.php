@@ -386,11 +386,13 @@ class acc_ReportDetails extends core_Manager
         $tpl->replace($limitTitle, 'LIMIT_LINK');
         $data->listFields['tools'] = ' ';
         
+        $count = $limitCount = 0;
+
         // Ако има какво да се показва
         if ($data->balanceRows) {
             $Double = cls::get('type_Double');
             $Double->params['decimals'] = 2;
-            
+
             $table = cls::get('core_TableView', array('mvc' => $data->reportTableMvc));
             $count = $limitCount = 0;
             

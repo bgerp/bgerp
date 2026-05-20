@@ -107,7 +107,7 @@ class core_Detail extends core_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        if (is_object($data->pager)) {
+        if (is_object($data->pager ?? null)) {
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
             if (cls::existsMethod($data->masterMvc, 'getHandle')) {
                 $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));

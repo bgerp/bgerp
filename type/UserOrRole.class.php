@@ -115,7 +115,7 @@ class type_UserOrRole extends type_User
         if (!empty($oArr)) {
             setIfNot($this->options, array());
             
-            if ($this->params['showRolesFirst'] && haveRole($this->params['showRolesFirst'])) {
+            if (!empty($this->params['showRolesFirst']) && haveRole($this->params['showRolesFirst'])) {
                 
                 if ($this->options) {
                     $fk = key($this->options);

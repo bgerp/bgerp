@@ -262,7 +262,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $data->listFilter->input(null, 'silent');
         
         if ($rec = $data->listFilter->rec) {
-            if ($rec->invType) {
+            if (!empty($rec->invType)) {
                 if ($rec->invType != 'all') {
                     if ($rec->invType == 'invoice') {
                         $data->query->where("#type = '{$rec->invType}'");
@@ -278,7 +278,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
             
-            if ($rec->payType) {
+            if (!empty($rec->payType)) {
                 if ($rec->payType != 'all') {
                     $data->query->where("#paymentType = '{$rec->payType}' OR (#paymentType IS NULL AND #autoPaymentType = '{$rec->payType}')");
                 }

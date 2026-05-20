@@ -612,9 +612,11 @@ class core_Cron extends core_Manager
             $row->last .= '<p>' . tr('Памет') . ": <b>{$row->lastMaxUsedMemory}</b></p>";
         }
         
+        $row->max = '';
+
         if ($rec->data['maxUsedMemory']) {
             $fType = cls::get('fileman_FileSize');
-            
+
             $row->max .= '<p>' . tr('Памет') . ': <b>' . $fType->toVerbal($rec->data['maxUsedMemory']) . '</b> - ' . dt::mysql2verbal($rec->data['maxUsedMemoryTime'], 'smartTime') . '</p>';
         }
         
@@ -647,6 +649,8 @@ class core_Cron extends core_Manager
         
         $now = dt::mysql2timestamp(dt::verbal2mysql());
         
+        $row->ROW_ATTR['style'] = $row->ROW_ATTR['style'] ?? '';
+
         if ($rec->state == 'locked' ||
             ($rec->lastStart && $rec->state == 'free' && (($now - $mvc->refreshRowsTime / 1000 - 2) < dt::mysql2timestamp($rec->lastStart)))) {
             $row->ROW_ATTR['style'] .= 'background-color:#ffa;';

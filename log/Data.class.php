@@ -541,7 +541,7 @@ class log_Data extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fieldsArr = array())
     {
-        if (empty($fieldsArr) || $fieldsArr['brId']) {
+        if (empty($fieldsArr) || !empty($fieldsArr['brId'])) {
             $row->brId = log_Browsers::getLinkFromId($rec->brId);
         }
         
@@ -560,14 +560,14 @@ class log_Data extends core_Manager
         
         $action = tr($action);
         
-        if (empty($fieldsArr) || $fieldsArr['actionCrc']) {
+        if (empty($fieldsArr) || !empty($fieldsArr['actionCrc'])) {
             $typeVarchar = cls::get('type_Varchar');
             $row->actionCrc = str_replace(self::$objReplaceInAct, '', $action);
             $row->actionCrc = $typeVarchar->toVerbal($row->actionCrc);
         }
         
         $className = log_Classes::getClassFromCrc($rec->classCrc);
-        if (empty($fieldsArr) || $fieldsArr['classCrc']) {
+        if (empty($fieldsArr) || !empty($fieldsArr['classCrc'])) {
             $typeClass = cls::get('type_Class');
             $row->classCrc = $typeClass->toVerbal($className);
         }
@@ -576,7 +576,7 @@ class log_Data extends core_Manager
             $row->text = self::prepareText($action, $className, $rec->objectId);
         }
         
-        if ($fieldsArr['userId']) {
+        if (!empty($fieldsArr['userId'])) {
             if ($rec->userId && $rec->userId > 0) {
                 $row->userId = crm_Profiles::createLink($rec->userId);
             }
@@ -723,7 +723,7 @@ class log_Data extends core_Manager
         }
         
         // Филтрираме по екшъна/съобщението
-        if (trim($rec->message)) {
+        if (trim($rec->message ?? '')) {
             $actQuery = log_Actions::getQuery();
             plg_Search::applySearch($rec->message, $actQuery);
             
@@ -743,7 +743,7 @@ class log_Data extends core_Manager
         }
         
         // Филтрираме по IP
-        if ($ip = $data->listFilter->rec->ip) {
+        if ($ip = ($data->listFilter->rec->ip ?? null)) {
             $ip = str_replace('*', '%', $ip);
             
             $ipArr = array();
@@ -763,14 +763,14 @@ class log_Data extends core_Manager
         }
         
         // Филтрираме по време
-        if ($rec->from || $rec->to) {
+        if (($rec->from ?? null) || ($rec->to ?? null)) {
             $dateRange = array();
-            
-            if ($rec->from) {
+
+            if ($rec->from ?? null) {
                 $dateRange[0] = $rec->from;
             }
-            
-            if ($rec->to) {
+
+            if ($rec->to ?? null) {
                 $dateRange[1] = $rec->to;
             }
             
@@ -778,15 +778,15 @@ class log_Data extends core_Manager
                 sort($dateRange);
             }
             
-            if ($dateRange[0]) {
+            if ($dateRange[0] ?? null) {
                 if (!strpos($dateRange[0], ' ')) {
                     $dateRange[0] .= ' 00:00:00';
                 }
                 $dateRange[0] = dt::mysql2timestamp($dateRange[0]);
                 $query->where(array("#time >= '[#1#]'", $dateRange[0]));
             }
-            
-            if ($dateRange[1]) {
+
+            if ($dateRange[1] ?? null) {
                 if (!strpos($dateRange[1], ' ')) {
                     $dateRange[1] .= ' 23:59:59';
                 }
@@ -814,10 +814,10 @@ class log_Data extends core_Manager
             }
         }
         
-        if (trim($rec->class)) {
+        if (trim($rec->class ?? '')) {
             $classSuggArr[$rec->class] = $rec->class;
         }
-        
+
         if (!empty($classSuggArr)) {
             asort($classSuggArr);
             $classSuggArr = array('' => '') + $classSuggArr;
@@ -825,7 +825,7 @@ class log_Data extends core_Manager
         }
         
         // Филтрираме по клас
-        if (trim($rec->class)) {
+        if (trim($rec->class ?? '')) {
             $crc = log_Classes::getClassCrc($rec->class, false);
             if (isset($crc)) {
                 $query->where("#classCrc = '{$crc}'");
@@ -837,7 +837,7 @@ class log_Data extends core_Manager
         $objSuggArr = array();
         
         // Подготваме данните и филтрираме по обект
-        if (!trim($rec->class)) {
+        if (!trim($rec->class ?? '')) {
             $rec->object = '';
             $data->listFilter->setReadOnly('object');
         } else {
