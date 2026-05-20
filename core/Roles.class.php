@@ -102,7 +102,7 @@ class core_Roles extends core_Manager
         expect($role);
         
         if (is_array($role)) {
-            list($role, $inherit, $type) = $role;
+            list($role, $inherit, $type) = array_pad($role, 3, null);
         }
         
         $rec = new stdClass();
@@ -120,7 +120,7 @@ class core_Roles extends core_Manager
 
         if ($exRec) {
             $rec->id = $exRec->id;
-            $rec->inheritInput = keylist::fromArray(arr::combine(keylist::toArray($rec->inheritInput), keylist::toArray($exRec->inheritInput)));
+            $rec->inheritInput = keylist::fromArray(arr::combine(keylist::toArray($rec->inheritInput ?? null), keylist::toArray($exRec->inheritInput ?? null)));
         }
         
         $Roles->save($rec);
@@ -525,7 +525,7 @@ class core_Roles extends core_Manager
      */
     public static function getVerbal($rec, $fieldName)
     {
-        if (is_object($rec) && $rec->id === 0) {
+        if (is_object($rec) && ($rec->id ?? null) === 0) {
 
             return tr($rec->name);
         }
@@ -553,7 +553,7 @@ class core_Roles extends core_Manager
         
         $rec = $data->listFilter->rec;
         
-        if (!$rec->type) {
+        if (!($rec->type ?? null)) {
             $rec->type = '';
         }
         
