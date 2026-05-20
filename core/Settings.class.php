@@ -744,7 +744,7 @@ class core_Settings extends core_Manager
      */
     public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
     {
-        if (!$data->cClass) {
+        if (!($data->cClass ?? null)) {
             
             return ;
         }
