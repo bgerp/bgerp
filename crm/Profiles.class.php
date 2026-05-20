@@ -1230,6 +1230,7 @@ class crm_Profiles extends core_Master
                     $attr['class'] .= ' no-one';
                 }
                 
+                $before = null;
                 if ($userRec->lastActivityTime) {
                     $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
                 }
