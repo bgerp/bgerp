@@ -472,7 +472,7 @@ class trans_Lines extends core_Master
             }
         }
 
-        $row->destinations = $row->countries;
+        $row->destinations = $row->countries ?? null;
         $countries = keylist::toArray($rec->countries);
         if(countR($countries) == 1){
             $onlyCountryId = key($countries);
