@@ -515,7 +515,7 @@ class core_LoginLog extends core_Manager
             }
             
             // Ако е отбелязано в първо логване, да не се добавя в масива с успешни логвания
-            if ($sRec->status == 'success' && $resArr['first_login'][$sRec->ip]) {
+            if ($sRec->status == 'success' && ($resArr['first_login'][$sRec->ip] ?? null)) {
                 continue;
             }
             
