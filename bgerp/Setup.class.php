@@ -351,7 +351,7 @@ class bgerp_Setup extends core_ProtoSetup
             $pQuery->where("#state = 'active'");
             
             while ($pRec = $pQuery->fetch()) {
-                if (!$packs[$pRec->name]) {
+                if (!isset($packs[$pRec->name])) {
                     $packs[$pRec->name] = $pRec->name;
                 }
             }
