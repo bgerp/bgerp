@@ -88,7 +88,7 @@ class fileman_FileSize extends type_Bigint
             return 0;
         }
         
-        if ((round(trim($value)) . '') == trim($value)) {
+        if (is_numeric(trim($value)) && (round(trim($value)) . '') == trim($value)) {
             $value .= 'b';
         }
         
