@@ -197,10 +197,10 @@ class select2_Plugin extends core_Plugin
             
             // Определяме нивото в зависимост от parentId
             foreach ($dataPup as $id => $pId) {
-                if ($dataL[$pId]) {
+                if (!empty($dataL[$pId])) {
                     $mCnt = 20;
                     while (true) {
-                        if ($dataL[$pId]) {
+                        if (!empty($dataL[$pId])) {
                             $dataL[$id]++;
                             $pId = $dataPup[$pId];
                             if (!--$mCnt) break;
@@ -244,14 +244,14 @@ class select2_Plugin extends core_Plugin
             
             // Добавяме нужните класове
             if ($parentIdName) {
-                if ($dataPup[$key]) {
+                if (!empty($dataPup[$key])) {
                     $optionsAttrArr['data-pup'] = $dataPup[$key];
                     $optionsAttrArr['class'] = "l" . $dataL[$key];
                 } else {
                     $optionsAttrArr['class'] = "l1";
                 }
                 
-                if ($dataNonLeaf[$key]) {
+                if (!empty($dataNonLeaf[$key])) {
                     $optionsAttrArr['class'] .= " non-leaf";
                 }
             }

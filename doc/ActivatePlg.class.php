@@ -57,7 +57,7 @@ class doc_ActivatePlg extends core_Plugin
      */
     public static function on_AfterSave($mvc, &$id, $rec)
     {
-        if ($rec->_isActivated) {
+        if (!empty($rec->_isActivated)) {
             unset($rec->_isActivated);
             $mvc->invoke('AfterActivation', array($rec));
             $mvc->logWrite('Активиране', $rec->id);

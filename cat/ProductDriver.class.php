@@ -278,7 +278,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $rec = $data->rec;
 
         // Ако режима е за показване на сравнения при клониране
-        if($data->_showDiff){
+        if(!empty($data->_showDiff)){
 
             // Подготвя се изгледа на оригиналния артикул и се показват разликите спрямо него
             $clonedRec = $Embedder->fetch($rec->clonedFromId);

@@ -336,7 +336,7 @@ class price_ListRules extends core_Detail
         }
 
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId, null, $discountIncluded)) === null) {
-
+            $price = null;
             $query = self::getQuery();
             $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");

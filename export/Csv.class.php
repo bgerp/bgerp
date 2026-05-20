@@ -94,7 +94,7 @@ class export_Csv extends core_Mvc
                     continue;
                 }
                 
-                if (!$dInst->masterKey) {
+                if (empty($dInst->masterKey)) {
                     continue;
                 }
                 

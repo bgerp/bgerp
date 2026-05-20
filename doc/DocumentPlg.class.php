@@ -818,7 +818,7 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         // Задаваме стойностите на полетата за последно модифициране
-        if (!$rec->_notModified) {
+        if (empty($rec->_notModified)) {
             $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
             $rec->modifiedOn = dt::verbal2Mysql();
         }
@@ -869,7 +869,7 @@ class doc_DocumentPlg extends core_Plugin
                 $updateAll = false;
             }
 
-            doc_Containers::update($containerId, $updateAll, $rec->_notModified);
+            doc_Containers::update($containerId, $updateAll, $rec->_notModified ?? null);
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
@@ -891,7 +891,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($rec->pendingSaved === true) {
+        if (($rec->pendingSaved ?? null) === true) {
             $rec->pendingSaved = false;
             $mvc->pendingQueue[$rec->id] = $rec;
             $mvc->invoke('AfterSavePendingDocument', array($rec));
@@ -4871,7 +4871,7 @@ class doc_DocumentPlg extends core_Plugin
         $rec = $mvc->fetchRec($rec);
         if (!isset($res)) {
             if ($mvc->visibleForPartners ?? null) {
-                if ($rec->visibleForPartners != 'no') {
+                if (($rec->visibleForPartners ?? null) != 'no') {
                     $res = true;
                 }
             }

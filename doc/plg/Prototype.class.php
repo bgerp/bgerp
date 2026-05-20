@@ -280,7 +280,7 @@ class doc_plg_Prototype extends core_Plugin
     {
         if(!$res){
             // Ако е казано, че не трябва да се показват последно видяните - да не се добавят
-            if(!$mvc->showInPrototypesLastVisited) {
+            if(empty($mvc->showInPrototypesLastVisited)) {
                 $res = $prototypes;
                 return;
             }

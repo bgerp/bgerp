@@ -99,7 +99,7 @@ class plg_SaveAndNew extends core_Plugin
                     }
                 }
                 
-                if ($mvc->rememberTpl && $id) {
+                if (!empty($mvc->rememberTpl) && $id) {
                     $rec = $mvc->fetch($id);
                     $row = $mvc->recToVerbal($rec);
                     $tpl = new ET($mvc->rememberTpl);
