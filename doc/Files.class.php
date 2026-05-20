@@ -615,14 +615,14 @@ class doc_Files extends core_Manager
             if (isset($usersArr)) {
                 $data->query = fileman_Files::getQuery();
 
-                if (preg_match('/\.\w+/ui', $filter->search, $m)) {
+                if (isset($filter->search) && preg_match('/\.\w+/ui', $filter->search, $m)) {
                     $data->query->where(array("#name LIKE '%[#1#]'", $m[0]));
                 } else {
                     $data->query->where("#name NOT LIKE '%.html'");
                     $data->query->where("#name NOT LIKE '%.eml'");
                 }
 
-                if ($usersArr[-1]) {
+                if (!empty($usersArr[-1])) {
                     $data->query->isSlowQuery = true;
                     $data->query->useCacheForPager = true;
                 }
@@ -749,7 +749,7 @@ class doc_Files extends core_Manager
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $url = null;
-        if ($rec->containerId) {
+        if (!empty($rec->containerId)) {
             try {
                 // Документа
                 $doc = doc_Containers::getDocument($rec->containerId);

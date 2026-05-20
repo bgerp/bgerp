@@ -119,7 +119,7 @@ class type_Datetime extends type_Date
             sort($sugArr);
             $sugList = implode('|', $sugArr);
             
-            setIfNot($ts, $this->params['timeSuggestions'], $sugList);
+            setIfNot($ts, $this->params['timeSuggestions'] ?? null, $sugList);
             
             if (!is_array($ts)) {
                 $ts = array('' => '') + arr::make(str_replace('|', ',', $ts), true);
