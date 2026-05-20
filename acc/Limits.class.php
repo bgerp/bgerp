@@ -275,11 +275,11 @@ class acc_Limits extends core_Manager
         $form->input();
         
         if (isset($form->rec)) {
-            if ($form->rec->account) {
+            if (!empty($form->rec->account)) {
                 $data->query->where(array('#accountId = [#1#]', $form->rec->account));
             }
-            
-            if ($searchState = $form->rec->state2) {
+
+            if ($searchState = ($form->rec->state2 ?? null)) {
                 if ($searchState != 'all' && $searchState != 'exceeded') {
                     $data->query->where(array("#state = '[#1#]'", $searchState));
                 } elseif ($searchState == 'exceeded') {
