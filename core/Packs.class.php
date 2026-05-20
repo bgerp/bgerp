@@ -735,7 +735,7 @@ class core_Packs extends core_Manager
         $pack = strtolower($pack);
         
         // Предпазване срещу рекурсивно зацикляне
-        if ($this->alreadySetup[$pack . $force]) {
+        if (isset($this->alreadySetup[$pack . $force]) && $this->alreadySetup[$pack . $force]) {
             
             return;
         }
@@ -770,6 +770,8 @@ class core_Packs extends core_Manager
         // Вземаме Setup класа, за дадения пакет
         $setup = cls::get($pack . '_Setup');
         
+        $res = '';
+
         // Ако има зависимости, проследяваме ги
         // Първо инсталираме зависимостите
         if ($setup->depends) {
@@ -812,6 +814,7 @@ class core_Packs extends core_Manager
         //   или този пакет не е инсталиран до сега
         //   или инсталираната версия е различна спрямо тази
         // извършваме инсталационна процедура
+        $rec = null;
         if (!$force) {
             $rec = $this->fetch("#name = '{$pack}'");
         }
@@ -1077,7 +1080,7 @@ class core_Packs extends core_Manager
         
         foreach ($description as $field => $arguments) {
             $type = $arguments[0];
-            $params = arr::combine($arguments[1], $arguments[2]);
+            $params = arr::combine($arguments[1] ?? null, $arguments[2] ?? null);
             
             // Полето ще се въвежда
             $params['input'] = 'input';
@@ -1106,24 +1109,25 @@ class core_Packs extends core_Manager
                 Mode::push('text', 'plain');
                 $defVal = $typeInst->toVerbal(constant($field));
                 Mode::pop('text');
-                if ($params['readOnly']) {
+                if ($params['readOnly'] ?? null) {
                     $params['hint'] = "Тази стойност може да бъде променена във файла \n`" . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php' . '`';
                 } else {
-                    $params['hint'] .= ($params['hint'] ? "\n" : '') . 'Стойност по подразбиране|*: "' . $defVal . '"';
+                    $params['hint'] = ($params['hint'] ?? '') . (($params['hint'] ?? null) ? "\n" : '') . 'Стойност по подразбиране|*: "' . $defVal . '"';
                 }
             }
             
             $form->FNC($field, $type, $params);
 
-            if (($data[$field] || $data[$field] === (double) 0 || $data[$field] === (int) 0) &&
-                            (!defined($field) || ($data[$field] != constant($field)))) {
-                $form->setDefault($field, $data[$field]);
+            $fieldVal = $data[$field] ?? null;
+            if (($fieldVal || $fieldVal === (double) 0 || $fieldVal === (int) 0) &&
+                            (!defined($field) || ($fieldVal != constant($field)))) {
+                $form->setDefault($field, $fieldVal);
             } elseif (defined($field)) {
                 $form->setDefault($field, constant($field));
                 $form->setField($field, array('attr' => array('class' => 'const-default-value')));
             }
             
-            if ($params['readOnly']) {
+            if ($params['readOnly'] ?? null) {
                 $form->setReadOnly($field);
             }
         }
@@ -1213,7 +1217,7 @@ class core_Packs extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'default', 'ef_icon = img/16/disk.png, title=Съхраняване на настройките');
         
         // Добавяне на допълнителни системни действия
-        if (countR($setup->systemActions)) {
+        if (isset($setup->systemActions) && countR($setup->systemActions)) {
             foreach ($setup->systemActions as $sysActArr) {
                 setIfNot($sysActArr['roles'], 'admin');
                 if(haveRole($sysActArr['roles'])){
