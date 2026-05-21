@@ -79,12 +79,13 @@ class bglocal_EgnType extends type_Varchar
             return;
         }
         
+        $err = null;
         try {
             $Egn = new bglocal_BulgarianEGN($value);
         } catch (bglocal_exception_EGN $e) {
             $err = $e->getMessage();
         }
-        
+
         if ($err) {
             $color = 'green';
             $type = 'ЛНЧ';

@@ -795,7 +795,7 @@ class doc_DocumentPlg extends core_Plugin
             // създаваме нов контейнер за документите от този клас
             // и записваме връзка към новия контейнер в този документ
             if (!isset($rec->containerId)) {
-                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy);
+                $rec->containerId = doc_Containers::create($mvc, $rec->threadId ?? null, $rec->folderId ?? null, $rec->createdOn ?? null, $rec->createdBy ?? null);
             }
             
             // Задаваме началното състояние по подразбиране

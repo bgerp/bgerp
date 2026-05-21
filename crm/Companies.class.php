@@ -466,7 +466,7 @@ class crm_Companies extends core_Master
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
                 $alphaArr = explode('-', $data->listFilter->rec->alpha);
-                $cond = array();
+                $cond = array(0 => '');
                 $i = 1;
                 
                 foreach ($alphaArr as $a) {
@@ -1011,7 +1011,7 @@ class crm_Companies extends core_Master
             $country = $currentCountry;
         }
         
-        $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". ($row->folder ?? '') .'</span></div>';
         $row->id = $mvc->getVerbal($rec, 'id');
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : '');
         
@@ -1334,7 +1334,7 @@ class crm_Companies extends core_Master
         $query->orderBy('modifiedOn=DESC');
         
         $viewAccess = true;
-        if ($params['restrictViewAccess'] == 'yes') {
+        if (($params['restrictViewAccess'] ?? null) == 'yes') {
             $viewAccess = false;
         }
         

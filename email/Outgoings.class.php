@@ -2754,7 +2754,7 @@ class email_Outgoings extends core_Master
         }
         
         //Полета До и Към
-        $attn = $data->row->recipient . $data->row->attn;
+        $attn = ($data->row->recipient ?? '') . ($data->row->attn ?? '');
         $attn = trim($attn);
         
         //Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
@@ -3149,8 +3149,8 @@ class email_Outgoings extends core_Master
             $faxAndEmailsArr = static::explodeEmailsAndFax($data->rec->email);
             
             // Броя на факсовете
-            $faxCount = countR($faxAndEmailsArr['fax']);
-            $emailCount = countR($faxAndEmailsArr['email']);
+            $faxCount = countR($faxAndEmailsArr['fax'] ?? []);
+            $emailCount = countR($faxAndEmailsArr['email'] ?? []);
             
             // Ако има факс номер и имаме права за изпращане на факс
             if ((email_FaxSent::haveRightFor('send') && (($faxCount) || ($data->rec->fax && !$emailCount)))) {

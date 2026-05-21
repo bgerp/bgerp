@@ -1312,7 +1312,7 @@ class doc_Containers extends core_Manager
             }
             
             // Ако потребителя, вече е бил нотифициран
-            if ($notifiedUsersArr[$userId]) {
+            if (!empty($notifiedUsersArr[$userId])) {
                 continue;
             }
             
@@ -1444,7 +1444,7 @@ class doc_Containers extends core_Manager
 
             $customUrlNew = $customUrl;
 
-            if ($uActiveMsgArr[$userId]) {
+            if (!empty($uActiveMsgArr[$userId])) {
 
                 $eArr = explode('". ', $uActiveMsgArr[$userId]);
 
@@ -1457,7 +1457,7 @@ class doc_Containers extends core_Manager
                 $messageN = $eArr[0] . $delim . $messageN;
             }
 
-            if ($customUrlArr[$userId]) {
+            if (!empty($customUrlArr[$userId])) {
                 $customUrlNew = $customUrlArr[$userId];
             }
 
@@ -1529,7 +1529,7 @@ class doc_Containers extends core_Manager
         while ($rec = $query->fetch()) {
             
             // Увеличаваме броя на документите за съответния потребител, който е активирал документа
-            $authorArr[$rec->activatedBy]++;
+            $authorArr[$rec->activatedBy] = ($authorArr[$rec->activatedBy] ?? 0) + 1;
         }
         
         return $authorArr;
@@ -3597,7 +3597,7 @@ class doc_Containers extends core_Manager
 
             $showDocument = ht::createLink('', $url, null, $attr);
 
-            $dRow->DocumentSettings = new ET($dRow->DocumentSettings);
+            $dRow->DocumentSettings = new ET($dRow->DocumentSettings ?? '');
             $dRow->DocumentSettings->append($showDocument);
         }
         $dRow->STATE_CLASS .= ' hidden-document';

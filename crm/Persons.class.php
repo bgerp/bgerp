@@ -773,7 +773,7 @@ class crm_Persons extends core_Master
 
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 
-        if ($birthday && $mvc->birthdayFilter) {
+        if ($birthday && !empty($mvc->birthdayFilter)) {
             if (strlen($birthday) == 5) {
                 $dateType = 'Рожден&nbsp;ден';
             } else {

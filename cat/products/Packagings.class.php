@@ -975,7 +975,7 @@ class cat_products_Packagings extends core_Detail
 
                 $resArr = array();
 
-                if (!$mvc->fields['packagingId'] && !$rec->quantityInPack && !$rec->packagingId) {
+                if (empty($mvc->fields['packagingId']) && empty($rec->quantityInPack) && empty($rec->packagingId)) {
                     $dArr = arr::make($mvc->details);
                     foreach ($dArr as $detail) {
                         $Detail = cls::get($detail);
@@ -1152,9 +1152,9 @@ class cat_products_Packagings extends core_Detail
         $mvc = cls::get($mvc);
 
         $notMatchArr = array();
-        if ($mvc->dontCheckQuantityInPack === true) return $notMatchArr;
+        if (($mvc->dontCheckQuantityInPack ?? null) === true) return $notMatchArr;
 
-        if (!$mvc->fields['packagingId'] && !$rec->quantityInPack && !$rec->packagingId) {
+        if (empty($mvc->fields['packagingId']) && empty($rec->quantityInPack) && empty($rec->packagingId)) {
             $dArr = arr::make($mvc->details);
             foreach ($dArr as $detail) {
                 $Detail = cls::get($detail);

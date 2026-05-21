@@ -1106,7 +1106,7 @@ class change_Log extends core_Manager
         
         $str = $docClass . '_' . $docId;
         
-        $recsArr = $allRecsArr[$str];
+        $recsArr = $allRecsArr[$str] ?? null;
         
         // Ако не е сетнат
         if ($recsArr !== false) {

@@ -328,7 +328,7 @@ class doc_FolderPlg extends core_Plugin
         
         // Потребителите само с ранг ексикютив може да променят само корици на които са отговорник
         if (!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
-            if ($rec && $rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
+            if (is_object($rec) && $rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
                 if (!$userId) {
                     $userId = core_Users::getCurrent();
                 }
@@ -752,7 +752,7 @@ class doc_FolderPlg extends core_Plugin
                 }
             } else {
                 if ($mvc->hasPlugin('plg_RowTools2')) {
-                    if ($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
+                    if ($mvc->haveRightFor('createnewfolder', $rec) && empty($currUrl['Rejected'])) {
                         core_RowToolbar::createIfNotExists($row->_rowTools);
                         $row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към|* {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадете папка за документи към|*  \"{$folderTitle}\"?", 'order' => 19));
                     }

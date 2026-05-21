@@ -308,7 +308,7 @@ class crm_Groups extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if(!empty($rec)){
-            if (($rec->sysId || $rec->companiesCnt || $rec->personsCnt) && $action == 'delete') {
+            if ((!empty($rec->sysId) || !empty($rec->companiesCnt) || !empty($rec->personsCnt)) && $action == 'delete') {
                 $requiredRoles = 'no_one';
             }
         }

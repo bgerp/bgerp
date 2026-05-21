@@ -105,7 +105,7 @@ class type_Table extends type_Blob
                 }
 
                 $tpl .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], array('' => '') + $rowOpt, null, $attr[$field]) . '</td>';
-                $row1 .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $rowOpt, strip_tags($value[$field][0]), $attr[$field]) . '</td>';
+                $row1 .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $rowOpt, strip_tags($value[$field][0] ?? ''), $attr[$field]) . '</td>';
             } elseif (!empty($this->params[$suggestOpt])) {
                 if (!is_array($this->params[$suggestOpt])) {
                     $sgt = (strpos($this->params[$suggestOpt], '=') !== false) ? arr::make($this->params[$suggestOpt]) : explode('|', $this->params[$suggestOpt]);

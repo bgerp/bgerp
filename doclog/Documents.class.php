@@ -2308,10 +2308,10 @@ class doclog_Documents extends core_Manager
                     $checkedChangesStr = $changeDataArr['docClass'] . '_' . $changeDataArr['docId'];
                     
                     // Ако ня сме търсили за този клас и документ
-                    if (!$changesArr[$checkedChangesStr]) {
+                    if (empty($changesArr[$checkedChangesStr])) {
                         
                         // Вземаме броя на промените
-                        $data[$rec->containerId]->summary[$change] += change_Log::getCountOfChange($changeDataArr['docClass'], $changeDataArr['docId']);
+                        $data[$rec->containerId]->summary[$change] = (($data[$rec->containerId]->summary ?? [])[$change] ?? 0) + change_Log::getCountOfChange($changeDataArr['docClass'], $changeDataArr['docId']);
                         
                         // Отбелязваме в масива, за да го прескочим
                         $changesArr[$checkedChangesStr] = $checkedChangesStr;
@@ -2383,7 +2383,7 @@ class doclog_Documents extends core_Manager
     {
         $threadHistory = static::prepareThreadHistory($threadId);
         
-        return $threadHistory[$containerId];
+        return $threadHistory[$containerId] ?? null;
     }
     
     

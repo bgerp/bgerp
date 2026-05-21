@@ -1264,8 +1264,9 @@ class doc_Linked extends core_Manager
         $maxTrays = 500;
         $limit = $limit ?? $params['maxSuggestions'] ?? 100;
         $res = array();
-        
-        if ($params['docType']) {
+        $docTypeInst = null;
+
+        if (!empty($params['docType'])) {
             $docTypeInst = cls::get($params['docType']);
         }
 
@@ -1441,11 +1442,11 @@ class doc_Linked extends core_Manager
                 
                 break;
             }
-            
-            if ($res[$rec->id]) {
+
+            if (!empty($res[$rec->id])) {
                 continue;
             }
-            
+
             if ($docTypeInst) {
                 if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($rec->id) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id)))) {
                     continue;

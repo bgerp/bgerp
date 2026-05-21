@@ -158,7 +158,7 @@ class doc_HiddenContainers extends core_Manager
                 
                 // Скриваме само оттеглени, затворение и активни документи
                 // Документи, на които им е зададено да не се скриват автоматично и тя нама да се скриват
-                if (((($cRec->state == 'closed') || ($cRec->state == 'active')) && ($dInst->autoHideDoc !== false)) || (($cRec->state == 'rejected'))) {
+                if (((($cRec->state == 'closed') || ($cRec->state == 'active')) && (($dInst->autoHideDoc ?? null) !== false)) || (($cRec->state == 'rejected'))) {
                     if ($cRec->state != 'rejected') {
                         
                         // Ако следващия документ е създаден от същия потребител

@@ -365,8 +365,8 @@ class core_Settings extends core_Manager
     public static function fetchKeyNoMerge($key, $userOrRole = null)
     {
         $dataVal = array();
-        
-        list(, $objectId) = explode('::', $key);
+
+        list(, $objectId) = explode('::', $key) + [null, null];
         
         $key = self::prepareKey($key);
         

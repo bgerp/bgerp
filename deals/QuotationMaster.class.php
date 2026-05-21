@@ -1172,7 +1172,7 @@ abstract class deals_QuotationMaster extends core_Master
     protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $dData = $data->{$mvc->mainDetail};
-        if ($dData->summary) {
+        if (!empty($dData->summary)) {
             $data->row = (object) ((array)$data->row + (array)$dData->summary);
         }
 
