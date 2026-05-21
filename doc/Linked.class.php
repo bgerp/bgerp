@@ -628,7 +628,7 @@ class doc_Linked extends core_Manager
             }
         }
         
-        $act = trim($form->rec->act);
+        $act = trim($form->rec->act ?? '');
         
         if ($act && !doc_Linked::$actArr[$act]) {
             // Подготвяме формата от интерфейсните методи
@@ -686,7 +686,7 @@ class doc_Linked extends core_Manager
         }
         
         // Показва избрания документ, когато ще се прикача към него
-        if ($act == 'linkDoc' && $form->rec->linkContainerId) {
+        if ($act == 'linkDoc' && !empty($form->rec->linkContainerId)) {
             $form->layout = $form->renderLayout();
             
             $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
@@ -733,10 +733,10 @@ class doc_Linked extends core_Manager
                 $unsetStr = ",unsetId={$originFId}";
             }
             
-            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
+            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . ($form->rec->linkDocType ?? '') . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
             $form->input();
-            
-            $form->FNC('linkContainerId', 'key2(forceAjax, mvc=doc_Search, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . "{$unsetStr})", 'caption=Документ, class=w100, input, mandatory, refreshForm');
+
+            $form->FNC('linkContainerId', 'key2(forceAjax, mvc=doc_Search, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . ($form->rec->linkDocType ?? '') . ', folderId=' . ($form->rec->linkFolderId ?? '') . "{$unsetStr})", 'caption=Документ, class=w100, input, mandatory, refreshForm');
         } elseif ($act == 'linkFile') {
             $form->FNC('linkFileId', 'fileman_FileType(bucket=Linked)', 'caption=Файл, input, mandatory');
         } elseif ($act == 'newDoc') {
@@ -755,14 +755,14 @@ class doc_Linked extends core_Manager
             
             $form->input();
             
-            if ($form->rec->linkDocType) {
+            if (!empty($form->rec->linkDocType)) {
                 $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, class=w100, input, mandatory, removeAndRefreshForm=linkThreadId');
                 $form->input();
                 
                 $dInst = cls::get($form->rec->linkDocType);
                 
                 // Ако документа може да се създаде в съществуваща нишка, показваме избор
-                if ($form->rec->linkFolderId && !$dInst->onlyFirstInThread) {
+                if (!empty($form->rec->linkFolderId) && !$dInst->onlyFirstInThread) {
                     $mandatory = '';
                     
                     if (!$dInst->canAddToFolder($form->rec->linkFolderId) || !$dInst->haveRightFor('add', (object) array('folderId' => $form->rec->linkFolderId))) {
@@ -775,7 +775,7 @@ class doc_Linked extends core_Manager
         }
         
         // При създаване на имейл, по подразбиране да е папката на контрагента
-        if ($form->rec->linkDocType && !$form->rec->linkFolderId && $type == 'doc' && $originFId ) {
+        if (!empty($form->rec->linkDocType) && empty($form->rec->linkFolderId) && $type == 'doc' && $originFId ) {
             $docType = cls::get($form->rec->linkDocType);
             
             if ($docType instanceof email_Outgoings) {
@@ -838,7 +838,7 @@ class doc_Linked extends core_Manager
                 $url = $rUrl;
             }
             
-            if ($form->rec->linkThreadId) {
+            if (!empty($form->rec->linkThreadId)) {
                 $url['threadId'] = $form->rec->linkThreadId;
             }
             

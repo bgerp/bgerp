@@ -44,13 +44,13 @@ class fileman_DialogWrapper extends core_Plugin
             
             $tpl->append('<ul><small><li>' . tr('Макс. размер') . ": {$this->info->maxFileSize}</li></small>");
 
-            if (!$this->info->extensions) {
+            if (empty($this->info->extensions)) {
                 $this->info->extensions = '* (' . tr('всички') . ')';
             }
             
             $tpl->append('<small><li>' . tr('Разширения') . ": {$this->info->extensions}</li></small></ul>");
 
-            if ($this->info->accept) {
+            if (!empty($this->info->accept)) {
                 $tpl->replace("accept=\"{$this->info->accept}\"", 'ACCEPT');
             }
             

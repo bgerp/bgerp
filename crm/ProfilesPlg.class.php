@@ -55,7 +55,7 @@ class crm_ProfilesPlg extends core_Plugin
                     if (cls::isSubclass($type->params['mvc'], 'core_Users')) {
                         $select = isset($type->params['select']) ? $type->params['select'] : null;
                         if ($select == 'nick' || !$select) {
-                            if (($rec->{$name} > 0) && !strpos($row->{$name}, '<')) {
+                            if ((($rec->{$name} ?? 0) > 0) && !strpos(($row->{$name} ?? ''), '<')) {
                                 $row->{$name} = crm_Profiles::createLink($rec->{$name});
                             }
                         }

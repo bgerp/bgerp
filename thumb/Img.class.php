@@ -949,7 +949,7 @@ class thumb_Img
         $imgArr = self::$allowedExtArr;
 
         // Ако е в масива
-        if ($imgArr[$ext]) {
+        if (!empty($imgArr[$ext])) {
 
             return true;
         }

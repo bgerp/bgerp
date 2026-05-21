@@ -897,7 +897,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->invoke('AfterSavePendingDocument', array($rec));
         }
         
-        if ($rec->linkedHashKey) {
+        if (!empty($rec->linkedHashKey)) {
             $lRec = core_Permanent::get($rec->linkedHashKey);
             if ($lRec && is_object($lRec)) {
                 $lRec->inVal = $rec->containerId;

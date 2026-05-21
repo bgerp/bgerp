@@ -374,7 +374,7 @@ class fileman_Log extends core_Manager
         $form->input('search, Protected', 'silent');
         
         // Ако има текст за търсене
-        if ($search = trim($form->rec->search)) {
+        if ($search = trim($form->rec->search ?? '')) {
             $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
             plg_Search::applySearch($search, $data->query, 'searchKeywords');
         } else {

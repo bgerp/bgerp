@@ -123,7 +123,7 @@ class cal_Progresses extends core_Mvc
         }
         
         // При промяна на прогрес
-        if ($rec->__isBeingChanged) {
+        if (!empty($rec->__isBeingChanged)) {
             $lGoodProgress = $Driver->getLastGoodProgress($rec->originId);
             $Driver->updateTaskProgress($rec, $lGoodProgress);
             $Driver->updateTaskWorkingTime($rec);
@@ -189,11 +189,11 @@ class cal_Progresses extends core_Mvc
     {
         $resArr = arr::make($resArr);
         
-        if ($row->progressBar || $row->progress) {
+        if (!empty($row->progressBar) || !empty($row->progress)) {
             $resArr['progressBar'] = array('name' => tr('Прогрес'), 'val' => '[#progressBar#] [#progress#]');
         }
-        
-        if ($row->workingTime) {
+
+        if (!empty($row->workingTime)) {
             $resArr['workingTime'] = array('name' => tr('Отработено време'), 'val' => '[#workingTime#]');
         }
         
@@ -540,7 +540,7 @@ class cal_Progresses extends core_Mvc
             $message = $cRow->body;
             $message = strip_tags($message);
             $message = str::limitLen($message, 150);
-            $data->rows[$cRec->id] = array('ROW_ATTR' => $rowAttr, 'links' => doc_Comments::getLinkToSingle($cRec->id, 'id'), 'progress' => $cRow->progress, 'workingTime' => $cRow->workingTime, 'createdOn' => $cRow->createdOn, 'createdBy' => $cRow->createdBy, 'message' => $message);
+            $data->rows[$cRec->id] = array('ROW_ATTR' => $rowAttr, 'links' => doc_Comments::getLinkToSingle($cRec->id, 'id'), 'progress' => ($cRow->progress ?? null), 'workingTime' => ($cRow->workingTime ?? null), 'createdOn' => ($cRow->createdOn ?? null), 'createdBy' => ($cRow->createdBy ?? null), 'message' => $message);
         }
 
         if(!Mode::is('printing')){
