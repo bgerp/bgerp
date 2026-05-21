@@ -280,8 +280,8 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                 $dpRec = $query->fetch("#docType = $pDpClassId AND #docId = $planningRec->id AND #state = 'active' ");
                 $dpQuery = acc_JournalDetails::getQuery();
                 $dpQuery->where("#journalId = $dpRec->id AND #debitAccId = $debitAccId");
-$c=0;
-                while ($dpRecDet = $dpQuery->fetch()) {$aaa[]=$dpRecDet;$c++;
+
+                while ($dpRecDet = $dpQuery->fetch()) {
                     unset($amount, $quantity, $matRec, $matItemRec, $matClassName);
                     if ($dpRecDet->creditItem2) {
                         $matItemRec = acc_Items::fetch($dpRecDet->creditItem2);
@@ -548,7 +548,7 @@ $c=0;
         }
 
         //Добавяне на колона за теглото
-        if ($rec->seeWeight == 'yes' && $rec->groupBy == 'no' && $rec->accProd == 'no') {
+        if ($rec->seeWeight == 'yes' && $rec->accProd == 'no') {
 
             foreach ($recs as $val) {
 
