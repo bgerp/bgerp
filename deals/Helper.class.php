@@ -1873,7 +1873,8 @@ abstract class deals_Helper
             $dQuery->where("LOCATE('|{$firstDocRec->id}|', #closedDocuments) AND #folderId = {$firstDocRec->folderId}");
 
             // Ако е подменя се треда с този на обединяващата сделка, защото тя ще се използва за основа
-            if ($combinedThread = $dQuery->fetch()->threadId) {
+            $_fetchedRec = $dQuery->fetch();
+            if ($combinedThread = (is_object($_fetchedRec) ? $_fetchedRec->threadId : null)) {
                 $firstDoc = doc_Threads::getFirstDocument($combinedThread);
                 $threadId = $combinedThread;
             }

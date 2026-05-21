@@ -1085,7 +1085,7 @@ class doc_DocumentPlg extends core_Plugin
     public function on_AfterRoute($mvc, &$res, $rec)
     {
         // Ако имаме контейнер, но нямаме тред - определяме треда от контейнера
-        if ($rec->containerId && !$rec->threadId) {
+        if (!empty($rec->containerId) && empty($rec->threadId)) {
             $tdRec = doc_Containers::fetch($rec->containerId);
             $rec->threadId = $tdRec->threadId;
         }
@@ -1103,13 +1103,13 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако нямаме тред - създаваме нов тред в тази папка
         if (!$rec->threadId) {
-            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy, $rec->_notModified);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn ?? null, $rec->createdBy ?? null, $rec->_notModified ?? null);
         }
         
         // Ако нямаме контейнер - създаваме нов контейнер за
         // този клас документи в определения тред
-        if (!$rec->containerId) {
-            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy, $rec->_notModified);
+        if (empty($rec->containerId)) {
+            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn ?? null, $rec->createdBy ?? null, $rec->_notModified ?? null);
         }
     }
     
@@ -2426,9 +2426,9 @@ class doc_DocumentPlg extends core_Plugin
             $thRec = doc_Threads::fetch($form->rec->threadId);
             setPartIfNot($data, 'singleTitle', $mvc->singleTitle);
             
-            if ($thRec->firstContainerId != $form->rec->containerId) {
+            if ($thRec->firstContainerId != ($form->rec->containerId ?? null)) {
                 $firstDoc = doc_Containers::getDocument($thRec->firstContainerId);
-                $form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id, null, 50);
+                $form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id ?? null, null, 50);
                 unset($title);
             }
         }
@@ -2473,9 +2473,9 @@ class doc_DocumentPlg extends core_Plugin
                 $sP->updateOnShutdown = true;
             }
 
-            if (in_array($form->cmd, array('save_pending', 'save_pending_new')) && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
+            if (in_array($form->cmd, array('save_pending', 'save_pending_new')) && ($mvc->haveRightFor('pending', $rec) || ($rec->state ?? null) == 'pending')) {
                 // Преизчисляване на запазените количествата, ако новото състояние е "Заявка"
-                if ($rec->state != 'pending') {
+                if (($rec->state ?? null) != 'pending') {
                     $sP = cls::get('store_Products');
                     $sP->updateOnShutdown = true;
                 }
@@ -3726,7 +3726,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
 
-        $lKeywords = doc_Linked::getKeywordsForLinked($rec->containerId);
+        $lKeywords = doc_Linked::getKeywordsForLinked($rec->containerId ?? null);
         if (strlen(trim($lKeywords ?? ''))) {
             $lKeywords = plg_Search::normalizeText($lKeywords);
             if (strpos($searchKeywords ?? '', $lKeywords) === false) {

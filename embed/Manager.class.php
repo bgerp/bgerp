@@ -222,7 +222,7 @@ abstract class embed_Manager extends core_Master
         if ($fields && (is_array($fields) || $fields != '*')) {
             $fields = arr::make($fields, true);
             foreach ($fields as $f => $dummy) {
-                if ($addFields[$f] && !$this->getField($f, false)) {
+                if (!empty($addFields[$f]) && !$this->getField($f, false)) {
                     unset($fields[$f]);
                 }
             }

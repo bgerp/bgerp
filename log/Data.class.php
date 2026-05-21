@@ -603,6 +603,7 @@ class log_Data extends core_Manager
             if (cls::load($className, true)) {
                 $reflectionClass = new ReflectionClass($className);
                 if ($reflectionClass->isInstantiable()) {
+                    $clsInst = null;
                     try {
                         $clsInst = @cls::get($className);
                     } catch (Exception $e) {

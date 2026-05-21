@@ -213,11 +213,11 @@ class acc_Balances extends core_Master
 
         // Добавяме връзка към последния алтерниращ документ
         if ($rec->lastAlternationDocClass && $rec->lastAlternationDocId) {
-            $row->lastAlternation .= ht::createLink('↗', array($rec->lastAlternationDocClass, 'single', $rec->lastAlternationDocId));
+            $row->lastAlternation = ($row->lastAlternation ?? '') . ht::createLink('↗', array($rec->lastAlternationDocClass, 'single', $rec->lastAlternationDocId));
         }
 
         if ($rec->lastCalculateChange == 'no') {
-            $row->lastCalculate .= ' ' . "<span title='При последното изчисляване не е настъпила промяна'>✓</span>";
+            $row->lastCalculate = ($row->lastCalculate ?? '') . ' ' . "<span title='При последното изчисляване не е настъпила промяна'>✓</span>";
         }
 
         if ($rec->lastAlternation > $rec->lastCalculate) {
@@ -225,7 +225,7 @@ class acc_Balances extends core_Master
         }
 
         if ($mvc->haveRightFor('forcecalc', $rec)) {
-            $row->lastCalculate .= ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
+            $row->lastCalculate = ($row->lastCalculate ?? '') . ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
         }
     }
 

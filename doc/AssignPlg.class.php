@@ -306,7 +306,7 @@ class doc_AssignPlg extends core_Plugin
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         // Ако няма възложено на
-        if (!$data->row->assign) {
+        if (empty($data->row->assign)) {
             
             // Премахваме от и датата
             unset($data->row->assignedOn);
@@ -413,7 +413,7 @@ class doc_AssignPlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             $defUsersArr = $mvc->getDefaultAssignUsers($data->form->rec);
             
             if ($defUsersArr) {

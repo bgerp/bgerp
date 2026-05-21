@@ -51,6 +51,7 @@ class type_AutofillMenu extends type_Varchar
         $res = new ET();
         
         if (is_array($this->menuOpt) && countR($this->menuOpt)) {
+            $opt = '';
             foreach ($this->menuOpt as $fromTo => $verbal) {
                 $opt .= "<option value='${fromTo}'>{$verbal}</options>";
             }

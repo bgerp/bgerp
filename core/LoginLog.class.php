@@ -632,7 +632,7 @@ class core_LoginLog extends core_Manager
         // Инпутваме заявката
         $data->listFilter->input('users, status', 'silent');
 
-        if (!$data->listFilter->rec->users) {
+        if (empty($data->listFilter->rec->users)) {
             $usersId = Request::get('users');
 
             if ($usersId && is_numeric($usersId)) {
@@ -655,7 +655,7 @@ class core_LoginLog extends core_Manager
         }
 
         // Ако не избран потребител
-        if (!$data->listFilter->rec->users) {
+        if (empty($data->listFilter->rec->users)) {
             
             // По подразбиране да е избран текущия
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';

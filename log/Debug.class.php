@@ -270,7 +270,7 @@ class log_Debug extends core_Manager
         $sArr = array();
         $searchArr = $data->listFilter->showFields;
         foreach ($searchArr as $fName) {
-            $sArr[$fName] = $data->listFilter->rec->{$fName};
+            $sArr[$fName] = $data->listFilter->rec->{$fName} ?? null;
         }
         
         // Вземаме файловете, които да се показват
@@ -291,7 +291,7 @@ class log_Debug extends core_Manager
         // Показваме линкове за навигиране
         $aPos = array_search($debugFileName, array_keys($fArr));
         
-        $otherLinkUrl = array($this, 'Default', 'search' => $data->listFilter->rec->search);
+        $otherLinkUrl = array($this, 'Default', 'search' => $data->listFilter->rec->search ?? null);
         
         if ($debugFile) {
             // Ако има следващ дебъг файл
@@ -333,6 +333,7 @@ class log_Debug extends core_Manager
         }
         
         // Показваме всички файлове
+        $mCnt = 0;
         foreach ($fArr as $fNameWithExt => $dummy) {
             list($fName) = explode('.', $fNameWithExt, 2);
             
@@ -346,14 +347,14 @@ class log_Debug extends core_Manager
             $linkUrl = array($this, 'Default', 'debugFile' => $fName);
             $linkUrl += $sArr;
             
-            if ($data->listFilter->rec->search) {
+            if (!empty($data->listFilter->rec->search)) {
                 $linkUrl['search'] = $data->listFilter->rec->search;
             }
             
             if ($fName == $debugFile) {
                 $cls .= ' current';
                 $linkUrl = array();
-            } elseif ($otherFilesFromSameHit[$fNameWithExt]) {
+            } elseif (!empty($otherFilesFromSameHit[$fNameWithExt])) {
                 $cls .= ' same';
             }
             
@@ -995,7 +996,7 @@ class log_Debug extends core_Manager
         $sameFileArr = array();
         
         // Стойността на търсенето
-        $search = trim($searchArr['search']);
+        $search = trim($searchArr['search'] ?? '');
         
         // Ако се филтрира по потребител
         $searchUser = null;

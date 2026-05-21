@@ -236,7 +236,7 @@ class planning_plg_StateManager extends core_Plugin
                 case 'activate':
                     
                     // Само приключените могат да бъдат събудени
-                    if (($rec->state != 'draft' && $rec->state != 'pending' && $rec->state != 'waiting') && isset($rec->state)) {
+                    if (isset($rec->state) && ($rec->state != 'draft' && $rec->state != 'pending' && $rec->state != 'waiting')) {
                         $requiredRoles = 'no_one';
                     }
                     break;
@@ -589,7 +589,7 @@ class planning_plg_StateManager extends core_Plugin
      */
     public static function on_AfterSave($mvc, &$id, $rec)
     {
-        if ($rec->_isActivated === true) {
+        if (($rec->_isActivated ?? null) === true) {
             unset($rec->_isActivated);
             $mvc->invoke('AfterActivation', array($rec));
             $mvc->logWrite('Активиране', $rec->id);

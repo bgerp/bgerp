@@ -553,6 +553,7 @@ class core_DateTime
      */
     public static function verbal2mysql($verbDate = '', $full = true, $useTimeZone = false)
     {
+        $date = null;
         if ($verbDate != '') {
             $verbDate = trim(strtolower($verbDate));
             
@@ -581,7 +582,8 @@ class core_DateTime
             
             $dPtr = '/^(0?[1-9]|1[0-9]|2[0-9]|3[0-1])-(0?[1-9]|1[0-2]|[1-9])(?:-([0-2][0-9][0-9][0-9]|[0-9][0-9]){0,1}){0,1}';
             $tPtr = '(?: ?((0?[0-9]|1[0-9]|2[0-3]):([0-5][0-9])(?:\\:([0-5][0-9])){0,1}(?: ?(pm|am)){0,1})){0,1}$/';
-            
+            $found = false;
+
             if (preg_match($dPtr . $tPtr, $verbDate, $out)) {
                 $day = $out[1];
                 $month = $out[2];

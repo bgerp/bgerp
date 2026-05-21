@@ -145,7 +145,7 @@ class doc_HiddenContainers extends core_Manager
             // Ако е зададено да се показва в модела
             if ($rec || $modeStatus) {
                 self::$haveRecInModeOrDB = true;
-                if ($rec->state == 'opened' || $modeStatus == 'opened') {
+                if ((is_object($rec) && $rec->state == 'opened') || $modeStatus == 'opened') {
                     $hide = false;
                 }
             } else {

@@ -1369,7 +1369,7 @@ class sales_Sales extends deals_DealMaster
         while($dRec = $saleQuery->fetch()){
             $productArr[$dRec->productId] = (object)array('productId' => $dRec->productId, 'code' => $dRec->codeExp);
             if (isset($listId)) {
-                $productArr[$dRec->productId]->reff = cat_Listings::getReffByProductId($listId, $dRec->productId, $dRec->packagingId);
+                $productArr[$dRec->productId]->reff = cat_Listings::getReffByProductId($listId, $dRec->productId, $dRec->packagingId ?? null);
             }
         }
 

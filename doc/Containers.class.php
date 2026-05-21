@@ -1200,7 +1200,7 @@ class doc_Containers extends core_Manager
                 }
                 
                 // Ако ще се нотифицира за съответния документ
-                $settings = $pSettingsNotifyArr[$oUserId]['DOC_NOTIFY_NEW_DOC_TYPE'];
+                $settings = $pSettingsNotifyArr[$oUserId]['DOC_NOTIFY_NEW_DOC_TYPE'] ?? null;
                 if (!isset($settings)) {
                     $settings = $globalNotifyStr;
                 }
@@ -1232,7 +1232,7 @@ class doc_Containers extends core_Manager
                 }
                 
                 // Ако няма да се нотифицира за съответния документ, премахваме потребителя
-                $settingsStop = $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'];
+                $settingsStop = $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'] ?? null;
                 if (!isset($settingsStop)) {
                     $settingsStop = $globalNotifyStrStop;
                 }
@@ -1290,7 +1290,7 @@ class doc_Containers extends core_Manager
         $currUserId = core_Users::getCurrent();
         
         // Ако заглавието на нишката не е определяна преди
-        if (!$threadTitleArr[$rec->threadId]) {
+        if (empty($threadTitleArr[$rec->threadId])) {
             
             // Определяме заглавието и добавяме в масива
             Mode::push('getNotificationRecTitle', true);

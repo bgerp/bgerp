@@ -425,7 +425,7 @@ class type_Key extends type_Int
             return ;
         }
         
-        if (is_object($options[''])) {
+        if (isset($options['']) && is_object($options[''])) {
             $options['']->title = '';
         }
         
@@ -452,7 +452,7 @@ class type_Key extends type_Int
                 }
             }
             
-            if ($titles[$title]) {
+            if (!empty($titles[$title])) {
                 $title = self::getUniqTitle($title, $key);
             }
             

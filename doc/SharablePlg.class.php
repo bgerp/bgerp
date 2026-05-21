@@ -79,7 +79,7 @@ class doc_SharablePlg extends core_Plugin
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
             foreach ((array) $mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
-                    if ($field->type->params['nickToLink'] == 'no') {
+                    if (($field->type->params['nickToLink'] ?? null) == 'no') {
                         continue;
                     }
                     
@@ -362,19 +362,19 @@ class doc_SharablePlg extends core_Plugin
         }
         
         $vals = core_Settings::fetchKey(doc_Folders::getSettingsKey($folderId));
-        if ($vals['shareMaxCnt'] === 0) {
+        if (($vals['shareMaxCnt'] ?? null) === 0) {
             
             return $shareUsers;
         }
         
         setIfNot($vals['shareMaxCnt'], 12);
         
-        if ($formRec->threadId && ($vals['shareFromThread'] != 'no')) {
+        if (!empty($formRec->threadId) && (($vals['shareFromThread'] ?? null) != 'no')) {
             $shareUsers += doc_ThreadUsers::getSubscribed($formRec->threadId);
             $shareUsers += doc_ThreadUsers::getShared($formRec->threadId);
         }
         
-        if ($vals['shareUsers']) {
+        if (!empty($vals['shareUsers'])) {
             $shareUsers += type_Keylist::toArray($vals['shareUsers']);
         } else {
             $fRec = doc_Folders::fetch($folderId);
@@ -488,20 +488,20 @@ class doc_SharablePlg extends core_Plugin
         
         $currUserId = core_Users::getCurrent();
 
-        if (!is_array($res['sharedUsers'])) {
-            $res['sharedUsers'] = type_UserList::toArray($res['sharedUsers']);
+        if (!is_array($res['sharedUsers'] ?? null)) {
+            $res['sharedUsers'] = type_UserList::toArray($res['sharedUsers'] ?? null);
         }
 
         if ($mvc->autoShareCurrentUser) {
             $res['sharedUsers'][$currUserId] = $currUserId;
         }
         
-        $orig = $rec->originId;
-        if (!$orig && $rec->threadId) {
+        $orig = $rec->originId ?? null;
+        if (!$orig && !empty($rec->threadId)) {
             $orig = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
         }
         
-        if ($rec->originId) {
+        if (!empty($rec->originId)) {
             $document = doc_Containers::getDocument($rec->originId);
             
             $shareFieldsArr = arr::make($document->autoShareFields ?? true, true);

@@ -552,7 +552,7 @@ class doc_RichTextPlg extends core_Plugin
             
             foreach ($fields as $name => $fld) {
                 if ($fld->type instanceof type_Richtext) {
-                    if ($fld->type->params['hndToLink'] == 'no') {
+                    if (($fld->type->params['hndToLink'] ?? null) == 'no') {
                         continue;
                     }
                     $all .= $rec->{$name};
