@@ -417,6 +417,7 @@ class doc_Setup extends core_ProtoSetup
             'ceo',
         );
 
+        $lastRole = '';
         foreach ($rangRoles as $role) {
             $inherit = trim('powerUser,' . $lastRole, ',');
             $lastRole = $role;

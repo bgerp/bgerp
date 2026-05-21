@@ -232,6 +232,7 @@ class label_plg_Print extends core_Plugin
         $source = $mvc->getLabelSource($rec);
 
         $res = array();
+        $error = '';
         foreach ($series as $series => $caption){
             $res[$series] = array('url' => null, 'attr' => '', 'caption' => $caption);
             if ($mvc->haveRightFor('printlabel', $rec)) {

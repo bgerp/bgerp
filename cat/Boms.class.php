@@ -598,7 +598,7 @@ class cat_Boms extends core_Master
                 $res = 'no_one';
             } else {
                 $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,threadId');
-                if ($rec->type != 'production' && !doc_Threads::haveRightFor('single', $productRec->threadId)) {
+                if (($rec->type ?? null) != 'production' && !doc_Threads::haveRightFor('single', $productRec->threadId)) {
                     $res = 'no_one';
                 } else {
                     
@@ -628,7 +628,7 @@ class cat_Boms extends core_Master
         }
         
         if (($action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore' || $action == 'changerec') && isset($rec)) {
-            if ($rec->type == 'production') {
+            if (($rec->type ?? null) == 'production') {
                 if (!haveRole('cat,planning,ceo', $userId)) {
                     $res = 'no_one';
                 }

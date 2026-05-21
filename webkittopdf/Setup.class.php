@@ -239,12 +239,13 @@ class webkittopdf_Setup extends core_ProtoSetup
         @exec(escapeshellarg($confWebkit->{$binName}) . ' -V', $resArr, $erroCode);
         
         // От масива с резултата вземаме реда с версията
+        $trimRes = '';
         foreach ((array) $resArr as $res) {
             if (stripos($res, 'wkhtmltopdf') !== false) {
                 $trimRes = trim($resArr[1]);
             }
         }
-        
+
         if (!$trimRes) {
             
             return $versionArr;

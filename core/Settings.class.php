@@ -266,8 +266,8 @@ class core_Settings extends core_Manager
      */
     public static function fetchUsers($key, $property = null, $value = null)
     {
-        list(, $objectId) = explode('::', $key);
-        
+        list(, $objectId) = explode('::', $key) + ['', ''];
+
         // Подготвяме ключа
         $key = self::prepareKey($key);
         
@@ -349,8 +349,8 @@ class core_Settings extends core_Manager
                 }
             }
         }
-        
-        return $resArr[$hashStr];
+
+        return $resArr[$hashStr] ?? null;
     }
     
     

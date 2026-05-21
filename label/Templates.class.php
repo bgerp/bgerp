@@ -755,7 +755,7 @@ class label_Templates extends core_Master
      */
     public static function addDefaultLabelsFromArray($sysId, $array, &$modified, &$skipped)
     {
-        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass'], $array['rendererClassId'], $array['cssPath'], $array['series']);
+        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass'] ?? null, $array['rendererClassId'] ?? null, $array['cssPath'] ?? null, $array['series'] ?? null);
         
         if ($tRec !== false) {
             label_TemplateFormats::delete("#templateId = {$tRec->id}");

@@ -376,7 +376,8 @@ class core_Packs extends core_Manager
         $packsName = $this->getAllPacksNamesArr();
         
         $installedPacksName = self::getInstalledPacksNamesArr();
-        
+        $res = '';
+
         // Изтриваме премахнатите пакети
         $removedPacksArr = array_diff($installedPacksName, $packsName);
         foreach ((array) $removedPacksArr as $packName) {
@@ -1443,13 +1444,7 @@ class core_Packs extends core_Manager
                     }
 
                     if (is_array($r)) {
-                        foreach ($r as $ra) {
-                            if (is_array($ra)) {
-                                $text .= ' ' . implode(' ', $ra);
-                            } else {
-                                $text .= ' ' . $ra;
-                            }
-                        }
+                        $text .= ' ' . implode(' ', array_map('strval', iterator_to_array(new \RecursiveIteratorIterator(new \RecursiveArrayIterator($r)))));
                     } else {
                         $text .= ' ' . $r;
                     }
