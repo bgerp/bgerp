@@ -197,19 +197,19 @@ class core_Type extends core_BaseClass
             }
         }
         
-        if ($this->params['unsigned']) {
+        if ($this->params['unsigned'] ?? null) {
             $res->unsigned = true;
         }
-        
-        if ($this->params['collate']) {
+
+        if ($this->params['collate'] ?? null) {
             $res->collation = $this->params['collate'];
-        } elseif ($this->params['ci']) {
+        } elseif ($this->params['ci'] ?? null) {
             $res->collation = 'ci';
-        } elseif ($this->collation) {
+        } elseif ($this->collation ?? null) {
             $res->collation = $this->collation;
         }
         
-        setIfNot($res->indexPrefix, $this->params['indexPrefix']);
+        setIfNot($res->indexPrefix, $this->params['indexPrefix'] ?? null);
         
         return $res;
     }

@@ -136,7 +136,7 @@ class plg_State2 extends core_Plugin
      */
     public function on_BeforeSave(&$invoker, &$id, &$rec, $fields = null)
     {
-        if (!$rec->state && !$rec->id) {
+        if (!($rec->state ?? null) && !($rec->id ?? null)) {
             $this->getActiveAndClosedState($invoker);
             $rec->state = $this->activeState;
         }

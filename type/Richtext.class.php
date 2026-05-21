@@ -1774,7 +1774,7 @@ class type_Richtext extends type_Blob
         $res = parent::isValid($value);
         $res['value'] = $value;
 
-        if ($this->rolesForTagCheck && haveRole($this->rolesForTagCheck)) {
+        if (!empty($this->rolesForTagCheck) && haveRole($this->rolesForTagCheck)) {
             $tArr = $this->validateBBCode($value);
             if (!empty($tArr)) {
                 $tArr = arr::make($tArr, true);

@@ -40,7 +40,7 @@ class price_interface_ListRulesImport extends core_Manager
      */
     public function init($params = array())
     {
-        $this->mvc = $params['mvc'];
+        $this->mvc = ($params ?? [])['mvc'] ?? null;
     }
 
 

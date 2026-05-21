@@ -988,6 +988,7 @@ class core_Debug
                     'method' => 'POST',
                     'content' => http_build_query($data),
                     'timeout' => 5,
+                    'ignore_errors' => true,
                 ),
                 'ssl' => array(
                     'verify_peer' => false,
@@ -996,7 +997,7 @@ class core_Debug
                 ),
             );
             $context = stream_context_create($options);
-            $result = @file_get_contents($url, false, $context);
+            $result = file_get_contents($url, false, $context);
         }
     }
     

@@ -469,10 +469,13 @@ class bgerp_Menu extends core_Manager
         
         $exRec = self::fetch(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #ctr = '[#3#]' AND #act = '[#4#]'", $menu, $subMenu, $ctr, $act));
         
+        $addCond = '';
         if ($exRec && ($rec->id = $exRec->id)) {
             $addCond = "AND #id != {$rec->id}";
         }
         
+        $res = '';
+
         // Изтриване на направените точки от менюто, които влизат в противоречие с текущата
         $del = self::delete(array("#ctr = '[#1#]' AND #act = '[#2#]' {$addCond}", $ctr, $act));
         

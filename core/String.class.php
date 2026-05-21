@@ -327,7 +327,8 @@ class core_String
     public static function mysqlToPhpName($name)
     {
         $cap = false;
-        
+        $out = '';
+
         for ($i = 0; $i < strlen($name); $i++) {
             $c = $name[$i];
             

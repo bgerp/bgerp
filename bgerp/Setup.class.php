@@ -351,7 +351,7 @@ class bgerp_Setup extends core_ProtoSetup
             $pQuery->where("#state = 'active'");
             
             while ($pRec = $pQuery->fetch()) {
-                if (!$packs[$pRec->name]) {
+                if (!isset($packs[$pRec->name])) {
                     $packs[$pRec->name] = $pRec->name;
                 }
             }
@@ -393,7 +393,7 @@ class bgerp_Setup extends core_ProtoSetup
                 $i++;
                 core_SystemLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
                 
-                if (cls::load($p . '_Setup', true) && !$isSetup[$p]) {
+                if (cls::load($p . '_Setup', true) && !isset($isSetup[$p])) {
                     try {
                         $html .= $Packs->setupPack($p);
                         $isSetup[$p] = true;
@@ -409,7 +409,7 @@ class bgerp_Setup extends core_ProtoSetup
                         
                         //$haveError = TRUE;
                         file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n", FILE_APPEND);
-                        $haveError[$p] .= "<h3 class='debug-error'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage() . ' ' . date('H:i:s') . '</h3>';
+                        $haveError[$p] = ($haveError[$p] ?? '') . "<h3 class='debug-error'>Грешка при инсталиране на пакета {$p}<br>" . $exp->getMessage() . ' ' . date('H:i:s') . '</h3>';
                         reportException($exp);
                     }
                 }
@@ -544,7 +544,7 @@ class bgerp_Setup extends core_ProtoSetup
             $i++;
             core_SystemLock::block("Load Setup Data For {$p} ({$i}/{$packCnt})");
             
-            if (cls::load($p . '_Setup', true) && !$isLoad[$p]) {
+            if (cls::load($p . '_Setup', true) && !isset($isLoad[$p])) {
                 $packsInst[$p] = cls::get($p . '_Setup');
                 
                 if (method_exists($packsInst[$p], 'loadSetupData')) {
@@ -568,7 +568,7 @@ class bgerp_Setup extends core_ProtoSetup
                     } catch (core_exception_Expect $exp) {
                         //$haveError = TRUE;
                         file_put_contents(EF_TEMP_PATH . '/' . date('H-i-s') . '.log.html', ht::mixedToHtml($exp->getTrace()) . "\n\n", FILE_APPEND);
-                        $haveError[$p] .= "<h3 class='debug-error'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . ' ' . date('H:i:s') . '</h3>';
+                        $haveError[$p] = ($haveError[$p] ?? '') . "<h3 class='debug-error'>Грешка при зареждане данните на пакета {$p} <br>" . $exp->getMessage() . ' ' . date('H:i:s') . '</h3>';
                         reportException($exp);
                     }
                     
@@ -633,7 +633,7 @@ class bgerp_Setup extends core_ProtoSetup
         $data = core_Packs::getConfig('core')->_data;
 
         $force = false;
-        if (!$data['migration_bgerp_setNewPortal46193']) {
+        if (empty($data['migration_bgerp_setNewPortal46193'])) {
             $force = true;
         }
 
@@ -724,9 +724,9 @@ class bgerp_Setup extends core_ProtoSetup
         foreach ($uArr as $uId) {
 
             // Ако все още се използва стария портал
-            if ($sArr[$uId]['BGERP_PORTAL_VIEW'] != 'standard') continue;
+            if (($sArr[$uId]['BGERP_PORTAL_VIEW'] ?? '') != 'standard') continue;
 
-            $pArrange = $sArr[$uId]['CORE_PORTAL_ARRANGE'] ? $sArr[$uId]['CORE_PORTAL_ARRANGE'] : 'notifyTaskRecentlyCal';
+            $pArrange = $sArr[$uId]['CORE_PORTAL_ARRANGE'] ?? 'notifyTaskRecentlyCal';
 
             $pQuery = $Portal->getQuery();
             $pQuery->where(array("#createdBy = '[#1#]'", $uId));

@@ -68,7 +68,7 @@ class plg_Clone extends core_Plugin
         // добавяме дефолти ще се запишат на чисто
         $mvc->invoke('AfterPrepareEditForm', array(&$data, &$data));
         
-        if ($data->singleTitle) {
+        if (!empty($data->singleTitle)) {
             $mvc->singleTitle = $data->singleTitle;
         }
         
@@ -349,7 +349,8 @@ class plg_Clone extends core_Plugin
             
             // Добавяме бутон за клониране в сингъл изгледа
             $title = tr('|Клониране на|*' . ' ' . $singleTitle);
-            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2,id=clone{$data->rec->containerId}, order=19.1");
+            $containerId = $data->rec->containerId ?? '';
+            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2,id=clone{$containerId}, order=19.1");
         }
     }
     
@@ -449,7 +450,7 @@ class plg_Clone extends core_Plugin
     public static function on_AfterGetDetailsToClone($mvc, &$res, $rec)
     {
         // Добавяме артикулите към детайлите за клониране
-        $res = arr::make($mvc->cloneDetails, true);
+        $res = arr::make($mvc->cloneDetails ?? null, true);
     }
     
     

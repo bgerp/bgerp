@@ -458,16 +458,16 @@ class core_Lg extends core_Manager
         
         $filterRec = $data->listFilter->input();
         
-        if (!$filterRec->lg) {
+        if (!($filterRec->lg ?? null)) {
             $data->listFilter->rec->lg = $filterRec->lg = core_Lg::getCurrent();
         }
         
         if ($filterRec) {
-            if ($filterRec->lg) {
+            if ($filterRec->lg ?? null) {
                 $data->query->where("#lg = '{$filterRec->lg}'");
             }
-            
-            if ($filterRec->filter) {
+
+            if ($filterRec->filter ?? null) {
                 $data->query->where(array(
                     "#kstring LIKE '%[#1#]%'",
                     $filterRec->filter

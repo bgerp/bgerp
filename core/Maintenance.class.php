@@ -49,7 +49,7 @@ class core_Maintenance extends core_Manager
             $stp = $rec->name . '_Setup';
             if (cls::load($stp, true)) {
                 $setups[$rec->name] = cls::get($stp);
-                if (is_array($setups[$rec->name]->systemActions)) {
+                if (is_array($setups[$rec->name]->systemActions ?? null)) {
                     $str = "\n<div style='margin-top:15px; background-color:#66a; color:white; padding:5px;'><strong>" . $rec->name . '</strong> - ' . $setups[$rec->name]->info . '</div>';
                     $actionsAdded = 0;
                     foreach ($setups[$rec->name]->systemActions as $a) {

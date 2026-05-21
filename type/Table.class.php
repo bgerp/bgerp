@@ -64,6 +64,11 @@ class type_Table extends type_Blob
         
         $columns = $this->getColumns();
         $opt = array();
+        $attr = array();
+        $row0 = '';
+        $tpl = '';
+        $row1 = '';
+        $datalistTpl = null;
         foreach ($columns as $field => $fObj) {
             if (empty($this->params['noCaptions'])) {
                 $row0 .= "<td class='formTypeTable'>{$fObj->caption}</td>";
@@ -82,9 +87,9 @@ class type_Table extends type_Blob
             $suggestOpt = $field . '_sgt';
             $readOnlyFld = $field . '_ro';
             $classFld = $field . '_class';
-            $tdClass = ($this->params[$classFld]) ? "class={$this->params[$classFld]}" : '';
+            $tdClass = (!empty($this->params[$classFld])) ? "class={$this->params[$classFld]}" : '';
 
-            if ($this->params[$selOpt]) {
+            if (!empty($this->params[$selOpt])) {
                 if (is_string($this->params[$selOpt])) {
                     $optArr = explode('|', $this->params[$selOpt]);
                     foreach ($optArr as $o) {
@@ -101,7 +106,7 @@ class type_Table extends type_Blob
 
                 $tpl .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], array('' => '') + $rowOpt, null, $attr[$field]) . '</td>';
                 $row1 .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $rowOpt, strip_tags($value[$field][0]), $attr[$field]) . '</td>';
-            } elseif ($this->params[$suggestOpt]) {
+            } elseif (!empty($this->params[$suggestOpt])) {
                 if (!is_array($this->params[$suggestOpt])) {
                     $sgt = (strpos($this->params[$suggestOpt], '=') !== false) ? arr::make($this->params[$suggestOpt]) : explode('|', $this->params[$suggestOpt]);
                 } else {
@@ -117,7 +122,7 @@ class type_Table extends type_Blob
                 $attr[$field]['list'] = "{$name}List";
                 $tpl .= "<td {$tdClass}>" . ht::createCombo($attr[$field]['name'], null, $attr[$field], $sgt[$field]) . '</td>';
                 
-                if ($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])) {
+                if (isset($this->params[$readOnlyFld]) && $this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])) {
                     $text = strip_tags($value[$field][0]);
                     $row1 .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'text-indent:2px', 'readonly' => 'readonly', 'title' => strlen($text) > 16 ? $text : "", 'value' => $text)) . '</td>';
                 } else {
@@ -125,7 +130,7 @@ class type_Table extends type_Blob
                 }
             } else {
                 $tpl .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field]) . '</td>';
-                if ($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])) {
+                if (isset($this->params[$readOnlyFld]) && $this->params[$readOnlyFld] == 'readonly' && isset($value[$field][0]) && empty($this->errorFields[$field][0])) {
                     $text = strip_tags($value[$field][0]);
                     $row1 .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'title' => strlen($text) > 16 ? $text : "", 'value' => $text)) . '</td>';
                 } else {
@@ -143,7 +148,7 @@ class type_Table extends type_Blob
             
             foreach ($columns as $field => $fObj) {
                 $classFld = $field . '_class';
-                $tdClass = ($this->params[$classFld]) ? "class={$this->params[$classFld]}" : '';
+                $tdClass = (!empty($this->params[$classFld])) ? "class={$this->params[$classFld]}" : '';
                 
                 if (isset($opt[$field])) {
                     $rowOpt = $opt[$field];
@@ -151,19 +156,19 @@ class type_Table extends type_Blob
                         $rowOpt[$value[$field][$i]] = $value[$field][$i];
                     }
 
-                    $row .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $rowOpt, strip_tags($value[$field][$i]), $attr[$field]) . '</td>';
+                    $row .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $rowOpt, strip_tags($value[$field][$i] ?? ''), $attr[$field]) . '</td>';
                 } else {
                     $readOnlyFld = $field . '_ro';
-                    if ($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i]) && empty($this->errorFields[$field][$i])) {
+                    if (isset($this->params[$readOnlyFld]) && $this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i]) && empty($this->errorFields[$field][$i])) {
                         $row .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'value' => strip_tags($value[$field][$i]))) . '</td>';
                     } else {
-                        $row .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('value' => strip_tags($value[$field][$i])) + $this->getErrorArr($field, $i)) . '</td>';
+                        $row .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('value' => strip_tags($value[$field][$i] ?? '')) + $this->getErrorArr($field, $i)) . '</td>';
                     }
                 }
                 if (isset($value[$field][$i])) {
                     $used = true;
                 }
-                if (strlen($value[$field][$i])) {
+                if (strlen($value[$field][$i] ?? '')) {
                     $empty = false;
                 }
             }
@@ -179,13 +184,14 @@ class type_Table extends type_Blob
         $id = 'table_' . $name;
 
         $newRowBtnName = 'dblRow_' . $name;
-        if (!$this->params['btnOff']) {
+        $btn = '';
+        if (empty($this->params['btnOff'])) {
             $btn = ht::createElement('input', array('id' => $newRowBtnName, 'type' => 'button', 'value' => '+ ' . tr('Нов ред||Add row'), 'onclick' => "dblRow(\"{$id}\", \"{$tpl}\")"));
         }
-        $attrTable = array();
+        $attrTable = array('class' => '', 'style' => '');
         $attrTable['class'] = 'listTable typeTable ' . $attrTable['class'];
-        
-        if ($this->params['unit']) {
+
+        if (!empty($this->params['unit'])) {
             $attrTable['style'] .= 'float:left; margin-bottom:5px;';
         } else {
             $attrTable['style'] .= 'margin-bottom:5px;';
@@ -197,7 +203,7 @@ class type_Table extends type_Blob
         $res = ht::createElement('table', $attrTable, "<tr style=\"background-color:rgba(200, 200, 200, 0.3);\">{$row0}</tr><tr>{$row1}</tr>{$rows}");
         $res = "<div class='scrolling-holder'>" . $res ;
         
-        if ($this->params['unit']) {
+        if (!empty($this->params['unit'])) {
             $unit = $this->params['unit'];
             $res .= "<div style='display:inline-block;float:left;padding-top:25px;padding-left: 5px;'>" ."{$unit}\n".'</div>';
         }
@@ -212,7 +218,7 @@ class type_Table extends type_Blob
 
         $maxRows = $this->params['maxRows'];
 
-        if (!$this->params['btnOff']) {
+        if (empty($this->params['btnOff'])) {
             $inputName = 'input[name="newArray[batch][]"]';
             $scripts = "function updateButtonState() {
                         const inputs = document.querySelectorAll('{$inputName}');
@@ -251,7 +257,7 @@ class type_Table extends type_Blob
     private function getErrorArr($column, $i)
     {
         $errorArr = array();
-        if (is_array($this->errorFields[$column]) && array_key_exists($i, $this->errorFields[$column])) {
+        if (isset($this->errorFields[$column]) && is_array($this->errorFields[$column]) && array_key_exists($i, $this->errorFields[$column])) {
             $errorArr['class'] = ' inputError';
             $errorArr['errorClass'] = ' inputError';
         }
@@ -323,6 +329,7 @@ class type_Table extends type_Blob
             return $res;
         }
         
+        $res = null;
         if (is_array($value)) {
             $columns = $this->getColumns();
             $opt = $this->getOptions();
@@ -373,6 +380,7 @@ class type_Table extends type_Blob
      */
     public function fromVerbal($value)
     {
+        $len = 0;
         if (is_string($value)) {
             $len = strlen($value);
             
@@ -478,8 +486,8 @@ class type_Table extends type_Blob
             
             if ($this->params[$selOpt] ?? null) {
                 if (is_string($this->params[$selOpt])) {
-                    $opt = explode('|', $this->params[$selOpt]);
-                    foreach ($opt as $o) {
+                    $optArr = explode('|', $this->params[$selOpt]);
+                    foreach ($optArr as $o) {
                         $opt[$field][$o] = $o;
                     }
                 } else {

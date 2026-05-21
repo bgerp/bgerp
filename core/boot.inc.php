@@ -410,7 +410,7 @@ function logHitState($debugCode = '200', $state = array())
         $state['_debugCode'] = $debugCode;
         $state['_cookie'] = $_COOKIE;
         
-        if ($state['httpStatusCode']) {
+        if (!empty($state['httpStatusCode'])) {
             $state['_info'] .= ' >> Code: ' . $state['httpStatusCode'];
         }
         

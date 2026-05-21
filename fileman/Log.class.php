@@ -593,6 +593,7 @@ class fileman_Log extends core_Manager
         $query->where('#dataId IS NULL');
         
         // Обхождаме резултатите
+        $cnt = 0;
         while ($rec = $query->fetch()) {
             
             // Флаг, дали да се премахне

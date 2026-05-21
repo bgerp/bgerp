@@ -696,7 +696,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         $data->retUrl = (isset($data->retUrl)) ? $data->retUrl : cat_Products::getSingleUrlArray($data->masterId);
-        if ($data->rejected !== true && $this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
+        if (($data->rejected ?? null) !== true && $this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
             $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => $data->retUrl);
         }
 
@@ -714,7 +714,7 @@ class cat_products_Packagings extends core_Detail
      */
     public function renderPackagings($data)
     {
-        if ($data->notStorable === true && !countR($data->recs)) {
+        if (($data->notStorable ?? null) === true && !countR($data->recs)) {
 
             return;
         }
@@ -728,7 +728,7 @@ class cat_products_Packagings extends core_Detail
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
 
-        if ($data->rejected === true) {
+        if (($data->rejected ?? null) === true) {
             unset($data->listFields['_rowTools']);
         }
 
@@ -1577,7 +1577,7 @@ class cat_products_Packagings extends core_Detail
         if(is_object($rec) && $rec->createdOn <= $pastHorizon) return false;
 
         // Ако е създадена в хоризонта, само ако не е използвана никъде
-        if(is_null($rec->usages) || $rec->usages <= 0) return true;
+        if(!is_object($rec) || is_null($rec->usages) || $rec->usages <= 0) return true;
 
         return false;
     }

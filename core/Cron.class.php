@@ -724,6 +724,9 @@ class core_Cron extends core_Manager
         // Описанието с малки букви
         $description = mb_strtolower(mb_substr($rec->description, 0, 1)) . mb_substr($rec->description, 1);
         
+        $mustSave = false;
+        $msg = '';
+
         // Ако има стар запис и е редактиран от потребител
         // - обновяваме записа с изключение на състоянието, отместването, периода и времелимит-а
         if ($exRec) {
@@ -736,8 +739,8 @@ class core_Cron extends core_Manager
             if ($exRec->modifiedBy == -1 || !$exRec->modifiedBy) {
                 // Ако не е редактиран и има промени го обновяваме
                 if ($systemDataChanged || floor($rec->period) != $exRec->period || ((floor($rec->offset) != $exRec->offset) && (!$rec->isRandOffset)) ||
-                      floor($rec->delay) != floor($exRec->delay) ||
-                      $rec->timeLimit != $exRec->timeLimit
+                      floor($rec->delay ?? 0) != floor($exRec->delay ?? 0) ||
+                      ($rec->timeLimit ?? null) != ($exRec->timeLimit ?? null)
                     ) {
                     $mustSave = true;
                     $msg = "<li class=\"debug-update\">Обновено разписание за {$description}</li>";
@@ -792,7 +795,8 @@ class core_Cron extends core_Manager
     public static function cleanRecords()
     {
         $query = self::getQuery();
-        
+        $res = '';
+
         while ($rec = $query->fetch()) {
             if (cls::load($rec->controller, true)) {
                 $ctr = cls::get($rec->controller);

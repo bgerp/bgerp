@@ -188,7 +188,7 @@ class core_UserTranslatePlg extends core_Plugin
             
             $fNameArr = array();
             
-            $uTrFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), 'user', $rec->id);
+            $uTrFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), 'user', $rec->id ?? null);
             foreach ($uTrFields as $fName => $fType) {
                 if ($fieldsArr[$fName]) {
                     $fNameArr[$fName] = $fName;
@@ -199,7 +199,7 @@ class core_UserTranslatePlg extends core_Plugin
             if (!empty($fNameArr)) {
                 $tQuery = core_UserTranslates::getQuery();
                 $tQuery->where(array("#classId = '[#1#]'", $mvc->getClassId()));
-                $tQuery->where(array("#recId = '[#1#]'", $rec->id));
+                $tQuery->where(array("#recId = '[#1#]'", $rec->id ?? null));
                 
                 while ($tRec = $tQuery->fetch()) {
                     foreach ((array) $tRec->data as $fNameStr => $fData) {

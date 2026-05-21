@@ -940,7 +940,7 @@ class doc_Containers extends core_Manager
                 $updateField[$field] = $field;
             }
             
-            if ($rec->{$field} != $docRec->{$field}) {
+            if (($rec->{$field} ?? null) != ($docRec->{$field} ?? null)) {
                 $rec->{$field} = $docRec->{$field};
                 $mustSave = true;
             }
@@ -981,7 +981,7 @@ class doc_Containers extends core_Manager
             
             
             // Нотификации на абонираните и споделените потребители
-            if ($flagJustActived && !Mode::is('isMigrate')) {
+            if (!empty($flagJustActived) && !Mode::is('isMigrate')) {
                 
                 // Масис със споделените потребители
                 $sharedArr = keylist::toArray($shared);
