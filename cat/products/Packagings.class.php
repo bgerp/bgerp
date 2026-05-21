@@ -980,7 +980,7 @@ class cat_products_Packagings extends core_Detail
                     foreach ($dArr as $detail) {
                         $Detail = cls::get($detail);
 
-                        if (!$Detail->fields['packagingId']) {
+                        if (empty($Detail->fields['packagingId'])) {
 
                             continue;
                         }
@@ -1159,7 +1159,7 @@ class cat_products_Packagings extends core_Detail
             foreach ($dArr as $detail) {
                 $Detail = cls::get($detail);
 
-                if (!$Detail->fields['packagingId']) {
+                if (empty($Detail->fields['packagingId'])) {
 
                     continue;
                 }
@@ -1532,7 +1532,7 @@ class cat_products_Packagings extends core_Detail
         if (!$dInst->getField('createdOn', false)) {
             if ($dInst->Master && $dInst->masterKey) {
                 $mInst = cls::get($dInst->Master);
-                if ($mInst->fields['createdOn']) {
+                if (!empty($mInst->fields['createdOn'])) {
                     $dQuery->EXT('createdOn', $dInst->Master->className, "externalName=createdOn,externalKey={$dInst->masterKey}");
                 }
             }

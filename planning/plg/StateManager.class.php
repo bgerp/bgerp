@@ -410,7 +410,7 @@ class planning_plg_StateManager extends core_Plugin
     protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
         $action = strtolower($action);
-        if ($mvc->notifyActionNamesArr && ($caption = $mvc->notifyActionNamesArr[$action])) {
+        if (!empty($mvc->notifyActionNamesArr) && ($caption = ($mvc->notifyActionNamesArr[$action] ?? null))) {
             
             // Абонираните потребители към документа
             $notifyArr = doc_Containers::getSubscribedUsers($rec->containerId, true, true);

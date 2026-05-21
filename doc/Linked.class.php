@@ -1061,7 +1061,7 @@ class doc_Linked extends core_Manager
                 if (!$rec->actType) {
                     continue;
                 }
-                $actTypeArr[$rec->actType]++;
+                $actTypeArr[$rec->actType] = ($actTypeArr[$rec->actType] ?? 0) + 1;
             }
             
             if (empty($actTypeArr)) {
@@ -1152,19 +1152,19 @@ class doc_Linked extends core_Manager
                             continue;
                         }
                         
-                        if ($params['docType']) {
+                        if (!empty($params['docType'])) {
                             if ($cRec->docClass != $params['docType']) {
                                 continue;
                             }
                         }
-                        
-                        if ($params['folderId']) {
+
+                        if (!empty($params['folderId'])) {
                             if ($cRec->folderId != $params['folderId']) {
                                 continue;
                             }
                         }
-                        
-                        if ($params['unsetId']) {
+
+                        if (!empty($params['unsetId'])) {
                             if ($cRec->id == $params['unsetId']) {
                                 continue;
                             }
@@ -1205,17 +1205,17 @@ class doc_Linked extends core_Manager
             }
         }
         
-        if ($params['docType']) {
+        if (!empty($params['docType'])) {
             $cQuery->where(array("#docClass = '[#1#]'", $params['docType']));
         }
-        
-        if ($params['folderId']) {
+
+        if (!empty($params['folderId'])) {
             $cQuery->where(array("#folderId = '[#1#]'", $params['folderId']));
         } else {
             $cQuery->where(array("#modifiedOn >= '[#1#]'", dt::addDays(-730)));
         }
-        
-        if ($params['unsetId']) {
+
+        if (!empty($params['unsetId'])) {
             $cQuery->where(array("#id != '[#1#]'", $params['unsetId']));
         }
         
@@ -1225,7 +1225,7 @@ class doc_Linked extends core_Manager
         $cQuery->orderBy('modifiedOn', 'DESC');
         
         while ($cRec = $cQuery->fetchAndCache()) {
-            if ($sArr[$cRec->id]) {
+            if (!empty($sArr[$cRec->id])) {
                 continue;
             }
             
@@ -1386,7 +1386,7 @@ class doc_Linked extends core_Manager
                 
                 $dQuery->where("#state != 'rejected'");
                 
-                if ($params['unsetId']) {
+                if (!empty($params['unsetId'])) {
                     $dQuery->where(array("#containerId != '[#1#]'", $params['unsetId']));
                 }
                 
@@ -1483,7 +1483,7 @@ class doc_Linked extends core_Manager
         $limit = $limit ?? $params['maxSuggestions'] ?? 100;
         $res = array();
         
-        if ($params['docType']) {
+        if (!empty($params['docType'])) {
             $docTypeInst = cls::get($params['docType']);
         }
         
@@ -1594,7 +1594,7 @@ class doc_Linked extends core_Manager
         $query->orderBy('last', 'DESC');
         
         while ($rec = $query->fetch()) {
-            if ($res[$rec->id]) {
+            if (!empty($res[$rec->id])) {
                 continue;
             }
             
