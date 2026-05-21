@@ -208,6 +208,8 @@ class core_Db
     {
         if (!isset(self::$links[$this->dbHost][$this->dbUser][$this->dbName]) ||
             !($link = self::$links[$this->dbHost][$this->dbUser][$this->dbName])) {
+            // PHP 8.2 се получава exception при грешка, вместо кодът да продължи до if (!$link).
+            mysqli_report(MYSQLI_REPORT_OFF);
             if (strpos($this->dbHost, ':')) {
                 list($host, $port) = explode(':', $this->dbHost);
                 $link = new mysqli($host, $this->dbUser, $this->dbPass, '', $port);
