@@ -2249,7 +2249,7 @@ class doc_Containers extends core_Manager
      */
     public static function repairAll($from = null, $to = null, $delay = 10)
     {
-        $resArr = array();
+        $resArr = array('state' => 0, 'docClass' => 0, 'docId' => 0, 'del_cnt' => 0, 'updateContainers' => 0);
         $query = self::getQuery();
         
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);

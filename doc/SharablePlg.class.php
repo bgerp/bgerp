@@ -280,7 +280,7 @@ class doc_SharablePlg extends core_Plugin
         $users = array();
         
         foreach ($roles as $rId) {
-            if (is_array($allUsers[$rId])) {
+            if (isset($allUsers[$rId]) && is_array($allUsers[$rId])) {
                 $users += $allUsers[$rId];
             }
         }

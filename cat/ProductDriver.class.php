@@ -907,7 +907,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 
         if(!empty($res)){
             if (preg_match('/(\\d{1,6})[xh](\\d{1,6})([xh](\\d{1,6})|) /i', $res, $matches)) {
-                $res .= ' ' . $matches[1] . ' ' . $matches[2] . ' ' . $matches[4];
+                $res .= ' ' . $matches[1] . ' ' . $matches[2] . ' ' . ($matches[4] ?? '');
             }
         }
     }

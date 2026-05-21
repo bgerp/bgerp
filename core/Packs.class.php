@@ -1164,7 +1164,7 @@ class core_Packs extends core_Manager
                 if ($sysDefaultComp != $fieldComp) {
                     // Да може да се зададе автоматичната стойност
                     if ((($fType instanceof type_Class) || ($fType instanceof type_Enum) || ($fType instanceof color_Type))
-                                    && ($fType->params['allowEmpty']) && ($form->rec->{$field} === null)) {
+                                    && (!empty($fType->params['allowEmpty'])) && ($form->rec->{$field} === null)) {
                         $data[$field] = null;
                     } elseif ($form->rec->{$field} !== null) {
                         $data[$field] = $form->rec->{$field};

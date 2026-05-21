@@ -534,6 +534,7 @@ class hr_Schedules extends core_Master
         $sTimes = self::getStartingTimes($id, $from, $to);
  
         $workDays = count($sTimes);
+        $nonWorking = $allDays - $workDays;
 
         $res = (object) array('nonWorking' => $nonWorking, 'workDays' => $workDays, 'allDays' => $allDays);
        

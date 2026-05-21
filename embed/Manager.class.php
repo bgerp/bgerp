@@ -399,7 +399,7 @@ abstract class embed_Manager extends core_Master
                 case 'aftergeticon':
                     if ($args[1]) {
                         $rec = $this->fetchRec($args[1]);
-                        $driverClass = $rec->driverClass;
+                        $driverClass = $rec->driverClass ?? null;
                     }
                     
                     break;

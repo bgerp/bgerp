@@ -441,7 +441,7 @@ class core_UserTranslates extends core_Manager
             $rec->id = null;
         }
         $recArr = (array) $rec;
-        if (!$rec->data) {
+        if (empty($rec->data)) {
             $rec->data = array();
         }
         

@@ -528,6 +528,8 @@ class type_Keylist extends core_Type
             if ($groupBy) {
                 
                 // Броя на групите
+                $openAllGroups = false;
+                $autoOpenGroupsArr = array();
                 $cnt = $query->count();
                 
                 // Ако броя е под максимално допустимите
@@ -538,7 +540,7 @@ class type_Keylist extends core_Type
                 } else {
                     
                     // Ако е зададена, коя група да се отвори
-                    if ($this->params['autoOpenGroups']) {
+                    if (!empty($this->params['autoOpenGroups'])) {
                         
                         // Ако е зададено да се отворят всичките
                         if (trim($this->params['autoOpenGroups']) == '*') {
@@ -554,8 +556,9 @@ class type_Keylist extends core_Type
                 }
             }
             
+            $group = null;
             while ($rec = $query->fetch()) {
-                
+
                 // Ако е групирано
                 if ($groupBy) {
                     
@@ -576,7 +579,7 @@ class type_Keylist extends core_Type
                         } else {
                             
                             // Ако е зададено да се отвори текущата група
-                            if ($autoOpenGroupsArr[$rec->$groupBy]) {
+                            if (!empty($autoOpenGroupsArr[$rec->$groupBy])) {
                                 
                                 // Вдигаме флага
                                 $openGroup = true;

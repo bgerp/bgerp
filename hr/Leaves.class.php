@@ -372,7 +372,7 @@ class hr_Leaves extends core_Master
         
         // Намират се всички служители
         $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
-        unset($employees[$rec->personId]);
+        if (!empty($rec->personId)) unset($employees[$rec->personId]);
         $form->setSuggestions('alternatePersons', $employees);
         
         if (countR($employees)) {

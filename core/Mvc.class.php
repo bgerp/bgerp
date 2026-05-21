@@ -498,9 +498,11 @@ class core_Mvc extends core_FieldSet
         
         // Определяме полетата, които ще записваме
         $fieldsArr = array();
-        $fieldsMvc = $this->selectFields('FLD');
+        $insertFields = '';
+        $updateFields = '';
+        $fieldsMvc = $this->selectFields("#kind == 'FLD'");
         foreach ($fieldsMvc as $name => $fld) {
-            if ($fld->kind == 'FLD' && (!countR($fields) || $fields[$name])) {
+            if ($fld->kind == 'FLD' && (!countR($fields) || !empty($fields[$name]))) {
                 $fieldsArr[$name] = $fld;
                 $mysqlName = str::phpToMysqlName($name);
                 $insertFields .= "`${mysqlName}`,";
