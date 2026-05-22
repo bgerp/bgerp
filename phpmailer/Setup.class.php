@@ -48,7 +48,7 @@ defIfNot('SENDMAIL_PATH', '/usr/sbin/sendmail');
 /**
  * Дефинираме пътя до кода на PHP_Mailer
  */
-defIfNot('PML_VERSION', '7.1.1');
+defIfNot('PML_VERSION', '5.2.27');
 
 
 /**
