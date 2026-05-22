@@ -2792,24 +2792,24 @@ class doc_Threads extends core_Manager
             return ;
         }
 
-        if (!$bestContragentData->countryId && $bestContragentData->country) {
+        if (!($bestContragentData->countryId ?? null) && !empty($bestContragentData->country)) {
             $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
         }
 
-        if (!$bestContragentData->countryId && $bestContragentData->country) {
+        if (!($bestContragentData->countryId ?? null) && !empty($bestContragentData->country)) {
             $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#formalName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
         }
 
-        if (!$bestContragentData->countryId && $bestContragentData->country) {
+        if (!($bestContragentData->countryId ?? null) && !empty($bestContragentData->country)) {
             $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
         }
 
         if (!isset($bestContragentData->countryId) && $contragentData) {
-            if ($contragentData->countryId) {
+            if (!empty($contragentData->countryId)) {
                 $bestContragentData->countryId = $contragentData->countryId;
             }
 
-            if ($contragentData->country) {
+            if (!empty($contragentData->country)) {
                 $bestContragentData->country = $contragentData->country;
             }
         }

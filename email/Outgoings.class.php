@@ -270,7 +270,7 @@ class email_Outgoings extends core_Master
         $retUrl = getRetUrl();
         
         // Очакваме до този момент във формата да няма грешки
-        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
+        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors ?? null);
         
         // Зареждаме формата
         $data->form->input();
@@ -397,7 +397,7 @@ class email_Outgoings extends core_Master
         }
 
         //Вземаме всички избрани файлове
-        $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
+        $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet ?? null);
 
         //Ако имамем прикачени файлове
         if (countR($rec->attachmentsFh)) {
@@ -595,7 +595,7 @@ class email_Outgoings extends core_Master
             }
 
             // Стринга с имейлите, до които е изпратено
-            $allEmailsToStr = ($emailsCc) ? "{$emailTo}, ${emailsCc}" : $emailTo;
+            $allEmailsToStr = ($emailsCc) ? "{$emailTo}, {$emailsCc}" : $emailTo;
 
             // Ако е изпратен успешно
             if ($status) {
@@ -736,7 +736,7 @@ class email_Outgoings extends core_Master
     public static function getAttachedDocuments($rec)
     {
         $docs = array();
-        $docNames = type_Set::toArray($rec->documentsSet);
+        $docNames = type_Set::toArray($rec->documentsSet ?? null);
         
         //Обхождаме избрани документи
         foreach ($docNames as $fileName) {
@@ -910,7 +910,7 @@ class email_Outgoings extends core_Master
         $emailsCcArr = type_Emails::toArray($data->rec->emailCc);
         
         // Всички групови имейли
-        $groupEmailsArr = type_Emails::toArray($contrData->groupEmails);
+        $groupEmailsArr = type_Emails::toArray($contrData->groupEmails ?? null);
         
         // Добавяме и имейлите до които е изпратено в същата нишка
         $sendedToEmails = self::getSentToEmails(null, $data->rec->threadId);
@@ -1055,7 +1055,7 @@ class email_Outgoings extends core_Master
             $rec = $form->rec;
             
             if ($form->rec->encoding != 'utf8' && $form->rec->encoding != 'lat') {
-                $html = (string) $rec->html;
+                $html = (string) ($rec->html ?? '');
                 $converted = iconv('UTF-8', $rec->encoding, $html);
                 $deconverted = iconv($rec->encoding, 'UTF-8', $converted);
                 
@@ -1144,7 +1144,7 @@ class email_Outgoings extends core_Master
             }
             
             // Ако ще се прикачат документи или файлове
-            if (trim($rec->documentsSet) || trim($rec->attachmentsSet)) {
+            if (trim($rec->documentsSet ?? '') || trim($rec->attachmentsSet ?? '')) {
                 
                 // Прикачените документи
                 $checkedDocs = static::getAttachedDocuments($rec);
@@ -1246,7 +1246,7 @@ class email_Outgoings extends core_Master
                 // Проверяваме и дали това не е опит за изпращане към вътрешен потребител
                 list($nick, $domain) = explode('@', $fVal);
 
-                if ($corporateDomains && $corporateDomains[$domain]) {
+                if ($corporateDomains && !empty($corporateDomains[$domain])) {
                     $allow = false;
                     foreach ($allowSendToArr as $allowReg) {
                         $allowReg = "/{$allowReg}/i";
@@ -2150,7 +2150,7 @@ class email_Outgoings extends core_Master
 
                 $contrData = $cover->getContragentData();
                 
-                $contrData->groupEmails = mb_strtolower($contrData->groupEmails);
+                $contrData->groupEmails = mb_strtolower($contrData->groupEmails ?? '');
 
                 if (!empty($rec->originId)) {
                     $oDoc = doc_Containers::getDocument($rec->originId);
@@ -2161,10 +2161,10 @@ class email_Outgoings extends core_Master
 
                     // Ако трябва да е се използва първия имейл от списъка
                     if ($oDoc->forceFirstEmail === true) {
-                        if ($contrData->email) {
+                        if (!empty($contrData->email)) {
                             $eArr = type_Emails::toArray($contrData->email);
                             if ($eArr[0]) {
-                                $contragentData->groupEmails = $contragentData->groupEmails ? $contragentData->email . ', ' . $contragentData->groupEmails : $contragentData->email;
+                                $contragentData->groupEmails = ($contragentData->groupEmails ?? null) ? ($contragentData->email ?? '') . ', ' . $contragentData->groupEmails : ($contragentData->email ?? null);
                                 $contragentData->email = $eArr[0];
                             }
                         }
@@ -2186,13 +2186,13 @@ class email_Outgoings extends core_Master
                 }
 
                 if ($use) {
-                    $contragentData->country = $contrData->country;
-                    $contragentData->countryId = $contrData->countryId;
-                    if ($contrData->person) {
+                    $contragentData->country = $contrData->country ?? null;
+                    $contragentData->countryId = $contrData->countryId ?? null;
+                    if (!empty($contrData->person)) {
                         $contragentData->person = $contrData->person;
                     }
-                    $contragentData->company = $contrData->company;
-                    $contragentData->companyId = $contrData->companyId;
+                    $contragentData->company = $contrData->company ?? null;
+                    $contragentData->companyId = $contrData->companyId ?? null;
                 }
             }
         }
@@ -3062,7 +3062,8 @@ class email_Outgoings extends core_Master
         $contrData->address = $posting->address;
         $contrData->email = $posting->email;
         $contrData->emailCc = $posting->emailCc;
-        
+        $contrData->groupEmails = null;
+
         // Ако има папка
         if ($posting->folderId) {
 
@@ -3073,7 +3074,7 @@ class email_Outgoings extends core_Master
             if (cls::haveInterface('doc_ContragentDataIntf', $cover->className)) {
 
                 // Вземаме груповите имейли
-                $contrData->groupEmails = $cover->getContragentData($date)->groupEmails;
+                $contrData->groupEmails = $cover->getContragentData($date)->groupEmails ?? null;
             }
         }
         
@@ -3084,7 +3085,7 @@ class email_Outgoings extends core_Master
             $originContr = doc_Containers::getContragentData($posting->originId);
             
             // Ако има групови имейли
-            if ($originContr->groupEmails) {
+            if (!empty($originContr->groupEmails)) {
                 
                 // Добавяме ги
                 $contrData->groupEmails .= ($contrData->groupEmails) ? "{$contrData->groupEmails}, {$originContr->groupEmails}" : $originContr->groupEmails;

@@ -39,7 +39,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         // Всички параметри
         $ctr = strtolower($params['Ctr']);
         $act = strtolower($params['Act']);
-        $threadId = $params['threadId'];
+        $threadId = $params['threadId'] ?? null;
         
         if (($act == 'list' || $act == 'default') && $ctr == 'colab_threads') {
             $ctr = 'doc_threads';
@@ -123,7 +123,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             if ($boardRes === false) {
                 $notAccessMsg = null;
                 if(cls::existsMethod($params['Ctr'], 'getNotAccessMsgInRichtext')){
-                    $notAccessMsg = $params['Ctr']::getNotAccessMsgInRichtext($params['id']);
+                    $notAccessMsg = $params['Ctr']::getNotAccessMsgInRichtext($params['id'] ?? null);
                 }
 
                 $boardRes =  !(empty($notAccessMsg)) ? $notAccessMsg : $rt->getNotAccessMsg();
