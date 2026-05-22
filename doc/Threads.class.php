@@ -1515,8 +1515,8 @@ class doc_Threads extends core_Manager
         
         if (!$altFolderId) {
             $cData = self::getContragentData($threadId);
-            
-            if ($cData->email) {
+
+            if ($cData->email ?? null) {
                 $altFolderId = email_Router::getEmailFolder($cData->email);
             }
         }
@@ -1761,6 +1761,7 @@ class doc_Threads extends core_Manager
      */
     public static function getQuestionForMoveRest($threadId)
     {
+        $res = null;
         $threadRec = doc_Threads::fetch($threadId);
         $folderRec = doc_Folders::fetch($threadRec->folderId);
         $folderFromRow = doc_Folders::recToVerbal($folderRec);
@@ -2641,8 +2642,8 @@ class doc_Threads extends core_Manager
     public static function getContragentData($threadId, $field = null)
     {
         static $cache;
-        
-        if (!$bestContragentData = $cache[$threadId]) {
+
+        if (!$bestContragentData = ($cache[$threadId] ?? null)) {
             $query = doc_Containers::getQuery();
             $query->where("#state != 'rejected'");
             $query->where("#threadId = '{$threadId}'");
@@ -2704,7 +2705,7 @@ class doc_Threads extends core_Manager
             }
 
             if ($rate > $bestRate) {
-                if ($bestContragentData->company == $contragentData->company) {
+                if (is_object($bestContragentData) && $bestContragentData->company == $contragentData->company) {
                     foreach (array('tel', 'fax', 'email', 'web', 'address', 'person') as $part) {
                         if ($bestContragentData->{$part}) {
                             setIfNot($contragentData->{$part}, $bestContragentData->{$part});
@@ -2716,35 +2717,37 @@ class doc_Threads extends core_Manager
                 $bestRate = $rate;
             }
 
-            // Попълваме вербалното или индексното представяне на държавата, ако е налично другото
-            if ($bestContragentData->countryId && !$bestContragentData->country) {
-                
-                // Ако езика е на български
-                if (core_Lg::getCurrent() == 'bg') {
-                    $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonNameBg');
-                } else {
-                    $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonName');
+            if (is_object($bestContragentData)) {
+                // Попълваме вербалното или индексното представяне на държавата, ако е налично другото
+                if (($bestContragentData->countryId ?? null) && !($bestContragentData->country ?? null)) {
+
+                    // Ако езика е на български
+                    if (core_Lg::getCurrent() == 'bg') {
+                        $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonNameBg');
+                    } else {
+                        $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonName');
+                    }
+                }
+
+                // Попълваме вербалното или индексното представяне на фирмата, ако е налично другото
+                if (($bestContragentData->companyId ?? null) && !($bestContragentData->company ?? null)) {
+                    $bestContragentData->company = crm_Companies::fetchField($bestContragentData->companyId, 'name');
+                }
+
+                // Попълваме вербалното или индексното представяне на държавата, ако е налично другото
+                if (!($bestContragentData->countryId ?? null) && ($bestContragentData->country ?? null)) {
+                    $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+                }
+
+                if (!($bestContragentData->countryId ?? null) && ($bestContragentData->country ?? null)) {
+                    $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#formalName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
+                }
+
+                if (!($bestContragentData->countryId ?? null) && ($bestContragentData->country ?? null)) {
+                    $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
                 }
             }
 
-            // Попълваме вербалното или индексното представяне на фирмата, ако е налично другото
-            if ($bestContragentData->companyId && !$bestContragentData->company) {
-                $bestContragentData->company = crm_Companies::fetchField($bestContragentData->companyId, 'name');
-            }
-            
-            // Попълваме вербалното или индексното представяне на държавата, ако е налично другото
-            if (!$bestContragentData->countryId && $bestContragentData->country) {
-                $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
-            }
-            
-            if (!$bestContragentData->countryId && $bestContragentData->country) {
-                $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#formalName) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
-            }
-            
-            if (!$bestContragentData->countryId && $bestContragentData->country) {
-                $bestContragentData->countryId = drdata_Countries::fetchField(array("LOWER(#commonNameBg) LIKE '%[#1#]%'", mb_strtolower($bestContragentData->country)), 'id');
-            }
-            
             $cache[$threadId] = $bestContragentData;
         }
 
@@ -2846,11 +2849,11 @@ class doc_Threads extends core_Manager
             $points += $len;
         }
         
-        if ($dataArr['company']) {
+        if ($dataArr['company'] ?? null) {
             $points += 3;
         }
         
-        if ($data->priority) {
+        if ($data->priority ?? null) {
             $points *= $data->priority;
         }
         

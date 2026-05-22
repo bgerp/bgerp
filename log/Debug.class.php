@@ -613,6 +613,8 @@ class log_Debug extends core_Manager
         $rArr = $this->getDebugFileInfoArr($fPath);
         expect($fPath);
         
+        $res = null;
+
         // Рендираме лога
         if (!empty($rArr)) {
             $rArr = (array) $rArr;
@@ -1214,7 +1216,7 @@ class log_Debug extends core_Manager
                 
                 $foundFName = false;
                 
-                if ($fArr[$fName]) {
+                if (!empty($fArr[$fName])) {
                     $foundFName = true;
                 }
                 

@@ -459,6 +459,7 @@ class email_Outgoings extends core_Master
 
         // списъци с изпратени и проблеми получатели
         $success = $failure = array();
+        $successEmailsStr = '';
 
         // Ако е отговор на имейл опитваме се да извлечем In-Reply-To
         if ($rec->originId) {
@@ -1392,7 +1393,7 @@ class email_Outgoings extends core_Master
      */
     public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
-        if ($mvc->flagSendIt || $mvc->flagSendItFax) {
+        if (($mvc->flagSendIt ?? null) || ($mvc->flagSendItFax ?? null)) {
             $options = array();
             
             // Масив с всички документи
@@ -1483,7 +1484,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако препащме имейла
-        if (($rec->forward == 'yes') && $rec->originId) {
+        if (($rec->forward ?? null) == 'yes' && ($rec->originId ?? null)) {
             
             // Записваме в лога, че имейла, който е създаден е препратен
             doclog_Documents::forward($rec);
@@ -1623,7 +1624,7 @@ class email_Outgoings extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Да се цитират документа, ако не се редактира
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             $data->form->fields['body']->type->params['appendQuote'] = 3;
         }
         
@@ -1633,7 +1634,7 @@ class email_Outgoings extends core_Master
         // Ако се препраща
         $isForwarding = (boolean) Request::get('forward');
         $isCloning = (boolean) ($data->action == 'clone');
-        $isEditing = (boolean) $rec->id;
+        $isEditing = (boolean) ($rec->id ?? null);
         
         $faxTo = Request::get('faxto');
         $emailTo = Request::get('emailto');
@@ -1644,7 +1645,7 @@ class email_Outgoings extends core_Master
         $orderVal = 10.000091;
         
         // Бутон за изпращане
-        if ($faxTo || stripos($emailTo, '@fax.man') || (!$rec->email && $rec->fax) || stripos($rec->email, '@fax.man')) {
+        if ($faxTo || stripos($emailTo, '@fax.man') || (!($rec->email ?? null) && ($rec->fax ?? null)) || stripos(($rec->email ?? ''), '@fax.man')) {
             $mvc->singleTitle = 'Факс';
             
             $btnParamsArr = array('order' => $orderVal, 'ef_icon' => 'img/16/fax2.png', 'title' => 'Изпращане на имейла по факс');
@@ -1657,7 +1658,7 @@ class email_Outgoings extends core_Master
         } else {
             $btnParamsArr = array('order' => $orderVal,'ef_icon' => 'img/16/move.png', 'title' => 'Изпращане на имейла');
             
-            $defaultBoxFromId = self::getDefaultInboxId($rec->folderId);
+            $defaultBoxFromId = self::getDefaultInboxId($rec->folderId ?? null);
             if (!isset($defaultBoxFromId)) {
                 $btnParamsArr['error'] = 'Не е настроена сметка за изпращане';
             }
@@ -1709,28 +1710,29 @@ class email_Outgoings extends core_Master
             
             // Ако е отговор, на някой документ
             if (!$isForwarding) {
-                if (!$rec->threadId && $rec->originId) {
+                if (!($rec->threadId ?? null) && ($rec->originId ?? null)) {
                     $rec->threadId = doc_Containers::fetchField($rec->originId, 'threadId');
                 }
-                
-                if (!$rec->folderId && $rec->threadId) {
+
+                if (!($rec->folderId ?? null) && ($rec->threadId ?? null)) {
                     $rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
                 }
                 
-                $emailLg = email_Outgoings::getLanguage($rec->originId, $rec->threadId, $rec->folderId);
+                $emailLg = email_Outgoings::getLanguage($rec->originId ?? null, $rec->threadId ?? null, $rec->folderId ?? null);
                 $rec->forward = 'no';
             } else {
-                $emailLg = email_Outgoings::getLanguage(false, false, $rec->folderId);
+                $emailLg = email_Outgoings::getLanguage(false, false, $rec->folderId ?? null);
                 $rec->forward = 'yes';
             }
-            
-            if ($rec->originId) {
+
+            $oDoc = null;
+            if (!empty($rec->originId)) {
                 $oDoc = doc_Containers::getDocument($rec->originId);
             }
-            
+
             core_Lg::push($emailLg);
-            
-            if ($rec->originId && $oDoc->haveInterface('email_DocumentIntf')) {
+
+            if (!empty($rec->originId) && is_object($oDoc) && $oDoc->haveInterface('email_DocumentIntf')) {
                 $rec->subject = $oDoc->getDefaultEmailSubject($isForwarding);
                 $rec->subject = preg_replace('/\s*[^\s\w]+spam[^\s\w]+\s*/ui', ' ', $rec->subject);
                 $rec->subject = preg_replace('/\s{2,}/ui', ' ', $rec->subject);
@@ -1796,7 +1798,7 @@ class email_Outgoings extends core_Master
                 $rEmailStr = type_Email::removeBadPart($rEmailStr);
             }
 
-            if ($contragentData->replyToEmail) {
+            if ($contragentData->replyToEmail ?? null) {
                 $removeFromGroup = $recEmailsArr;
             } else {
                 if ($recEmailsArr && $recEmailsArr[0]) {
@@ -1808,7 +1810,7 @@ class email_Outgoings extends core_Master
             }
 
             // Ако има имейли в Cc и е избрано да се попълват ги добавяме в полето
-            if ($contragentData->ccEmail) {
+            if ($contragentData->ccEmail ?? null) {
                 $autoFillCnt = email_Setup::get('AUTO_FILL_EMAILS_FROM_CC');
                 if ($autoFillCnt == 'no' || !$autoFillCnt) {
                     $autoFillCnt = 0;
@@ -1817,7 +1819,7 @@ class email_Outgoings extends core_Master
                 }
                 
                 if ($autoFillCnt) {
-                    $ccEmails = $rec->emailCc;
+                    $ccEmails = $rec->emailCc ?? null;
                     $ccEmails .= $ccEmails ? ', ' : '';
                     $ccEmails .= $contragentData->ccEmail;
                     
@@ -1850,7 +1852,7 @@ class email_Outgoings extends core_Master
             }
 
             // Автоматично попълване на To имейлите
-            if ($contragentData->toEmail) {
+            if ($contragentData->toEmail ?? null) {
                 $autoFillCnt = email_Setup::get('AUTO_FILL_EMAILS_FROM_TO');
 
                 if ($autoFillCnt) {
@@ -1889,33 +1891,34 @@ class email_Outgoings extends core_Master
             }
         } else {
             if ($isCloning) {
-                $oId = $rec->originId ? $rec->originId : $rec->containerId;
-                $emailLg = email_Outgoings::getLanguage($oId, $rec->threadId, $rec->folderId);
+                $oId = ($rec->originId ?? null) ?: ($rec->containerId ?? null);
+                $emailLg = email_Outgoings::getLanguage($oId, $rec->threadId ?? null, $rec->folderId ?? null);
             } else {
-                $emailLg = email_Outgoings::getLanguage($rec->containerId, $rec->threadId, $rec->folderId);
+                $emailLg = email_Outgoings::getLanguage($rec->containerId ?? null, $rec->threadId ?? null, $rec->folderId ?? null);
             }
-            
+
+            $contragentData = null;
             core_Lg::push($emailLg);
-            if ($rec->threadId) {
+            if (!empty($rec->threadId)) {
                 $contragentData = doc_Threads::getContragentData($rec->threadId);
-            } elseif ($rec->folderId) {
+            } elseif (!empty($rec->folderId)) {
                 $contragentData = doc_Folders::getContragentData($rec->folderId);
             }
             core_Lg::pop();
-            
-            $recEmailsArr = type_Emails::toArray($rec->email);
+
+            $recEmailsArr = type_Emails::toArray($rec->email ?? null);
             $removeFromGroup = $recEmailsArr;
         }
         
         $rec->email = type_Emails::fromArray($recEmailsArr);
         
         $groupEmailsArr = array();
-        if ($contragentData->groupEmails) {
+        if (is_object($contragentData) && ($contragentData->groupEmails ?? null)) {
             $groupEmailsArr = type_Emails::toArray($contragentData->groupEmails);
         }
-        
+
         // Подготвяме груповите имейли
-        $sentToEmails = self::getSentToEmails(null, $rec->threadId);
+        $sentToEmails = self::getSentToEmails(null, $rec->threadId ?? null);
         if ($sentToEmails) {
             $sentToEmailsArr = type_Emails::toArray($sentToEmails);
             $groupEmailsArr = array_merge($groupEmailsArr, $sentToEmailsArr);
@@ -1943,10 +1946,10 @@ class email_Outgoings extends core_Master
             $data->form->addAttr('subject', $langAttrArr);
         }
 
-        $data->form->rec->emailCc = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->emailCc)));
-        $data->form->rec->email = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->email)));
+        $data->form->rec->emailCc = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->emailCc ?? null)));
+        $data->form->rec->email = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->email ?? null)));
 
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             if ((defined('EMAIL_DEFAULT_CC_EMAILS')) && EMAIL_DEFAULT_CC_EMAILS) {
                 $eArr = type_Emails::toArray($data->form->rec->emailCc);
                 $eArr = arr::make($eArr, true);
@@ -2093,7 +2096,7 @@ class email_Outgoings extends core_Master
 
         if (!$isForwarding) {
 
-            if ($rec->threadId) {
+            if (!empty($rec->threadId)) {
                 $contragentData = doc_Threads::getContragentData($rec->threadId);
             }
 
@@ -2101,62 +2104,58 @@ class email_Outgoings extends core_Master
                 $contragentData = new stdClass();
             }
 
-            if ($rec->originId) {
+            if (!empty($rec->originId)) {
                 $oDoc = doc_Containers::getDocument($rec->originId);
                 $oContragentData = $oDoc->getContragentData();
 
-                if ($oContragentData->person) {
-                    $contragentData->person = ($contragentData->person) ? $contragentData->person : $oContragentData->person;
+                if ($oContragentData->person ?? null) {
+                    $contragentData->person = ($contragentData->person ?? null) ? $contragentData->person : $oContragentData->person;
                 }
-                
-                if ($oContragentData->replyToEmail) {
-                    $contragentData->replyToEmail = ($contragentData->replyToEmail) ? $contragentData->replyToEmail : $oContragentData->replyToEmail;
+
+                if ($oContragentData->replyToEmail ?? null) {
+                    $contragentData->replyToEmail = ($contragentData->replyToEmail ?? null) ? $contragentData->replyToEmail : $oContragentData->replyToEmail;
                 }
-                
+
                 // Добавяме имейла от originId на мястото да другия имейл
-                if ($oContragentData->email) {
-                    if ($contragentData->email) {
-                        $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
-                        $contragentData->groupEmails .= $contragentData->email;
+                if ($oContragentData->email ?? null) {
+                    if ($contragentData->email ?? null) {
+                        $contragentData->groupEmails = ($contragentData->groupEmails ?? '') . (($contragentData->groupEmails ?? '') ? ', ' : '') . $contragentData->email;
                     }
                     $contragentData->email = $oContragentData->email;
                 }
-                
+
                 // Имейлите от полето копие
-                if ($oContragentData->ccEmail) {
-                    $contragentData->ccEmail .= ($contragentData->ccEmail) ? ', ': '';
-                    $contragentData->ccEmail .= $oContragentData->ccEmail;
+                if ($oContragentData->ccEmail ?? null) {
+                    $contragentData->ccEmail = ($contragentData->ccEmail ?? '') . (($contragentData->ccEmail ?? '') ? ', ' : '') . $oContragentData->ccEmail;
                 }
-                
+
                 // Имейлите от полето До
-                if ($oContragentData->toEmail) {
-                    $contragentData->toEmail .= ($contragentData->toEmail) ? ', ': '';
-                    $contragentData->toEmail .= $oContragentData->toEmail;
+                if ($oContragentData->toEmail ?? null) {
+                    $contragentData->toEmail = ($contragentData->toEmail ?? '') . (($contragentData->toEmail ?? '') ? ', ' : '') . $oContragentData->toEmail;
                 }
-                
-                if ($oContragentData->groupEmails) {
-                    $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
-                    $contragentData->groupEmails .= $oContragentData->groupEmails;
+
+                if ($oContragentData->groupEmails ?? null) {
+                    $contragentData->groupEmails = ($contragentData->groupEmails ?? '') . (($contragentData->groupEmails ?? '') ? ', ' : '') . $oContragentData->groupEmails;
                 }
             }
         }
 
         if (!(array) $contragentData) {
-            $contragentData = doc_Folders::getContragentData($rec->folderId);
+            $contragentData = doc_Folders::getContragentData($rec->folderId ?? null);
         } else {
             // Ако е в папка на котрагент, може да се използват името на фирмата, лицето и държавата от там
-            $cover = doc_Folders::getCover($rec->folderId);
-            if (($cover->instance instanceof crm_Companies) || ($cover->instance instanceof crm_Persons)) {
+            $cover = doc_Folders::getCover($rec->folderId ?? null);
+            if (is_object($cover) && (($cover->instance instanceof crm_Companies) || ($cover->instance instanceof crm_Persons))) {
                 $use = true;
 
                 $contrData = $cover->getContragentData();
                 
                 $contrData->groupEmails = mb_strtolower($contrData->groupEmails);
 
-                if ($rec->originId) {
+                if (!empty($rec->originId)) {
                     $oDoc = doc_Containers::getDocument($rec->originId);
 
-                    if ($oContragentData && ($oDoc->useOriginContragentData === true)) {
+                    if (isset($oContragentData) && ($oDoc->useOriginContragentData === true)) {
                         $contragentData = $oContragentData;
                     }
 
@@ -2172,7 +2171,7 @@ class email_Outgoings extends core_Master
                     }
                     
                     $oRec = $oDoc->fetch();
-                    $fromEml = $oRec->fromEml;
+                    $fromEml = is_object($oRec) ? ($oRec->fromEml ?? null) : null;
                     $fromEml = trim($fromEml);
                     $fromEml = mb_strtolower($fromEml);
 
@@ -2181,8 +2180,8 @@ class email_Outgoings extends core_Master
                         $use = false;
                     }
                 } else {
-                    if ($contrData && $contrData->groupEmails) {
-                        $contragentData->groupEmails = $contragentData->groupEmails ? $contrData->groupEmails . ', ' . $contragentData->groupEmails : $contrData->groupEmails;
+                    if ($contrData && ($contrData->groupEmails ?? null)) {
+                        $contragentData->groupEmails = ($contragentData->groupEmails ?? null) ? $contrData->groupEmails . ', ' . $contragentData->groupEmails : $contrData->groupEmails;
                     }
                 }
 
@@ -2200,19 +2199,18 @@ class email_Outgoings extends core_Master
 
         if (!$isForwarding) {
             $contragentDataDoc = null;
-            if ($rec->originId) {
-                $contragentDataDoc = self::getContragentDataForSameDocument($rec->originId, $rec->folderId);
+            if (!empty($rec->originId)) {
+                $contragentDataDoc = self::getContragentDataForSameDocument($rec->originId, $rec->folderId ?? null);
             } else {
-                if ($rec->threadId) {
+                if (!empty($rec->threadId)) {
                     $contragentDataDoc = doc_Threads::getContragentData($rec->threadId);
                 }
             }
 
             if ($contragentDataDoc) {
 
-                if ($contragentData->groupEmails) {
-                    $contragentDataDoc->groupEmails .= ($contragentDataDoc->groupEmails) ? ', ' : '';
-                    $contragentDataDoc->groupEmails .= $contragentData->groupEmails;
+                if ($contragentData->groupEmails ?? null) {
+                    $contragentDataDoc->groupEmails = ($contragentDataDoc->groupEmails ?? '') . (($contragentDataDoc->groupEmails ?? '') ? ', ' : '') . $contragentData->groupEmails;
                 }
 
                 return $contragentDataDoc;
@@ -2238,28 +2236,28 @@ class email_Outgoings extends core_Master
 
         crm_Companies::removeOwnCompanyData($contragentData);
         
-        $rec->recipient = $contragentData->company;
-        $rec->attn = $contragentData->person;
-        $rec->country = $contragentData->country;
-        $rec->pcode = $contragentData->pCode;
-        $rec->place = $contragentData->place;
-        
-        $rec->tel = $contragentData->tel ? $contragentData->tel : $contragentData->pMobile;
+        $rec->recipient = $contragentData->company ?? null;
+        $rec->attn = $contragentData->person ?? null;
+        $rec->country = $contragentData->country ?? null;
+        $rec->pcode = $contragentData->pCode ?? null;
+        $rec->place = $contragentData->place ?? null;
+
+        $rec->tel = ($contragentData->tel ?? null) ?: ($contragentData->pMobile ?? null);
         if (!$rec->tel) {
-            $rec->tel = $contragentData->pTel;
-        }
-        
-        $rec->fax = $contragentData->fax ? $contragentData->fax : $contragentData->pFax;
-        
-        $rec->address = $contragentData->address ? $contragentData->address : $contragentData->pAddress;
-        
-        if (trim($contragentData->replyToEmail)) {
-            $rec->email = email_Mime::getAllEmailsFromStr($contragentData->replyToEmail);
-        } else {
-            $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
+            $rec->tel = $contragentData->pTel ?? null;
         }
 
-        if ($contragentData->sameEmailCc) {
+        $rec->fax = ($contragentData->fax ?? null) ?: ($contragentData->pFax ?? null);
+
+        $rec->address = ($contragentData->address ?? null) ?: ($contragentData->pAddress ?? null);
+
+        if (trim($contragentData->replyToEmail ?? '')) {
+            $rec->email = email_Mime::getAllEmailsFromStr($contragentData->replyToEmail);
+        } else {
+            $rec->email = ($contragentData->email ?? null) ?: ($contragentData->pEmail ?? null);
+        }
+
+        if ($contragentData->sameEmailCc ?? null) {
             $rec->emailCc = $contragentData->sameEmailCc;
         }
     }
@@ -2273,10 +2271,10 @@ class email_Outgoings extends core_Master
         $contragentDataHeader = (array) $contragentData;
         
         //Данни необходими за създаване на хедър-а на съобщението
-        $contragentDataHeader['name'] = $contragentData->person;
+        $contragentDataHeader['name'] = $contragentData->person ?? null;
 
         // Ако има обръщение
-        if ($contragentData->salutationRec) {
+        if ($contragentData->salutationRec ?? null) {
             if ($contragentData->salutationRec == 'mrs' || $contragentData->salutationRec == 'miss') {
                 $contragentDataHeader['hello'] = tr('Уважаема');
             } else {
@@ -2284,8 +2282,8 @@ class email_Outgoings extends core_Master
             }
         }
         
-        if (!$contragentDataHeader['hello']) {
-            if ($contragentData->person) {
+        if (!($contragentDataHeader['hello'] ?? null)) {
+            if ($contragentData->person ?? null) {
                 $contragentDataHeader['hello'] = tr('Здравейте') . ',';
                 if (core_Lg::getCurrent() == 'bg') {
                     $contragentDataHeader['lastChar'] = '!';
@@ -2299,10 +2297,10 @@ class email_Outgoings extends core_Master
         $header = $this->getHeader($contragentDataHeader, $rec);
         
         //Текста между заглавието и подписа
-        $body = $this->getBody($rec->originId, $forward);
+        $body = $this->getBody($rec->originId ?? null, $forward);
         
         //Футър на съобщението
-        $footer = $this->getFooter($contragentDataHeader['countryId']);
+        $footer = $this->getFooter($contragentDataHeader['countryId'] ?? null);
         
         //Текста по подразбиране в "Съобщение"
         $defaultBody = $header . "\n\n" . $body . "\n\n" . $footer;
@@ -2346,22 +2344,22 @@ class email_Outgoings extends core_Master
         
         if ($cu > 0) {
             // Вземаме обръщението
-            $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email, $cu);
-            
+            $salutation = email_Salutations::get($rec->folderId ?? null, $rec->threadId ?? null, $rec->email ?? null, $cu);
+
             // Търсим обръщение и към другите имейли в нишката
             if (!$salutation) {
-                $salutation = email_Salutations::get($rec->folderId, $rec->threadId, null, $cu);
-                
+                $salutation = email_Salutations::get($rec->folderId ?? null, $rec->threadId ?? null, null, $cu);
+
                 // Ако е към друг имейл, трябва да има съвпадение с хедърите
                 $salutation = $this->prepareSalutation($salutation, $headerDataArr['name']);
             }
         }
-        
+
         if (!$salutation && ($cu > 0)) {
-            $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email);
-            
+            $salutation = email_Salutations::get($rec->folderId ?? null, $rec->threadId ?? null, $rec->email ?? null);
+
             if (!$salutation) {
-                $salutation = email_Salutations::get($rec->folderId, $rec->threadId, null);
+                $salutation = email_Salutations::get($rec->folderId ?? null, $rec->threadId ?? null, null);
                 
                 // Ако е към друг имейл, трябва да има съвпадение с хедърите
                 $salutation = $this->prepareSalutation($salutation, $headerDataArr['name']);
@@ -2438,11 +2436,12 @@ class email_Outgoings extends core_Master
         $document = doc_Containers::getDocument($originId);
         
         //Ако класа имплементира интерфейса "doc_ContragentDataIntf", тогава извикваме метода, който ни връща тялото на имейл-а
+        $body = null;
         if (cls::haveInterface('email_DocumentIntf', $document->className)) {
             $intf = cls::getInterface('email_DocumentIntf', $document->className);
             $body = $intf->class->getDefaultEmailBody($document->that, $forward);
         }
-        
+
         return $body;
     }
     
@@ -2513,6 +2512,8 @@ class email_Outgoings extends core_Master
             
             $footerData['pCodeAndCity'] .= ' ' . $footerData['city'];
             
+            $getCountry = false;
+
             // Ако няма държава на контрагента
             if (!$contragentCountryId) {
                 
@@ -2524,7 +2525,7 @@ class email_Outgoings extends core_Master
                 $lg = core_Lg::getCurrent();
                 
                 // Ако текущия език не е на държавата
-                if (!$companyCountryLangArr[$lg]) {
+                if (!($companyCountryLangArr[$lg] ?? null)) {
                     $getCountry = true;
                 }
             } elseif ($companyRec->country != $contragentCountryId) {
@@ -2561,7 +2562,8 @@ class email_Outgoings extends core_Master
         // Премахва празните редове, в които няма никаква стойност
         // Премахва и редовете, в които е имало плейсхолдер, но не е бил заместен
         $contentArr = explode("\n", $content);
-        
+        $nContent = '';
+
         foreach ((array) $contentArr as $key => $line) {
             
             // Ако е празен ред
@@ -2593,13 +2595,12 @@ class email_Outgoings extends core_Master
      */
     public function getDefaultEmailBody($id, $forward = false)
     {
-        // Ако препращаме
+        $text = null;
         if ($forward) {
             $mvc = cls::get('email_Outgoings');
-            
             $text = email_Outgoings::prepareDefaultEmailBodyText($mvc, $id, 'createdOn', $forward);
         }
-        
+
         return $text;
     }
     
@@ -2759,36 +2760,36 @@ class email_Outgoings extends core_Master
         
         //Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
         if (!$attn) {
-            $data->row->recipientEmail = $data->row->email;
-            $data->row->emailCcLeft = $data->row->emailCc;
+            $data->row->recipientEmail = $data->row->email ?? null;
+            $data->row->emailCcLeft = $data->row->emailCc ?? null;
             unset($data->row->email);
             unset($data->row->emailCc);
         }
-        
+
         //Полета Град и Адрес
-        $addr = $data->row->place . $data->row->address;
+        $addr = ($data->row->place ?? '') . ($data->row->address ?? '');
         $addr = trim($addr);
-        
+
         //Ако липсва адреса и града
         if (!$addr) {
             //Не се показва и пощенския код
             unset($data->row->pcode);
-            
+
             //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме държавата след фирмата
-            if ($data->row->recipient) {
-                $data->row->firmCountry = $data->row->country;
+            if ($data->row->recipient ?? null) {
+                $data->row->firmCountry = $data->row->country ?? null;
             }
-            
+
             //Не се показва и държавата
             unset($data->row->country);
-            
-            $telFax = $data->row->tel . $data->row->fax;
+
+            $telFax = ($data->row->tel ?? '') . ($data->row->fax ?? '');
             $telFax = trim($telFax);
-            
+
             //Имейла е само в дясната част, преместваме в ляво
             if (!$telFax) {
-                $data->row->emailLeft = $data->row->email;
-                setIfNot($data->row->emailCcLeft, $data->row->emailCc);
+                $data->row->emailLeft = $data->row->email ?? null;
+                setIfNot($data->row->emailCcLeft, $data->row->emailCc ?? null);
                 unset($data->row->email);
                 unset($data->row->emailCc);
             }
@@ -3255,9 +3256,6 @@ class email_Outgoings extends core_Master
             }
         }
         
-        if (($action == 'activate') && ($rec->state == 'pending')) {
-            $requiredRoles = 'no_one';
-        }
     }
     
     
@@ -3462,9 +3460,11 @@ class email_Outgoings extends core_Master
         
         $companyQuery->where("#state != 'closed'");
         
+        $companiesArr = array();
+
         // Обхождаме всички откити резултати
         while ($companiesRec = $companyQuery->fetch()) {
-            
+
             // Добавяме в масива
             $companiesArr[$companiesRec->id] = $companiesRec->name;
         }
