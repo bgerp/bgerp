@@ -1063,7 +1063,7 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         core_Debug::startTimer('DOCUMENT_SAVE_FILES');
-        foreach ((array)$mvc->saveFileArr as $rec) {
+        foreach ((array)($mvc->saveFileArr ?? null) as $rec) {
             try {
                 // Опитваме се да запишем файловете от документа в модела
                 doc_Files::saveFile($mvc, $rec);

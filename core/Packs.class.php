@@ -967,7 +967,7 @@ class core_Packs extends core_Manager
             $packConfig = static::getConfig($packConfig);
         }
         
-        return $packConfig->_data[$key];
+        return $packConfig->_data[$key] ?? null;
     }
     
     
