@@ -428,7 +428,7 @@ class store_Stores extends core_Master
      */
     protected static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
     {
-        $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
+        $type->params['where'] = ($type->params['where'] ?? '') . (($type->params['where'] ?? '') ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
     }
 
 
@@ -515,7 +515,7 @@ class store_Stores extends core_Master
         foreach ($entries as $d){
 
             // Извличат се артикулите, които се изписват от склад в транзакцията
-            if($d['credit'][0] == '321') {
+            if(!empty($d['credit']) && ($d['credit'][0] ?? null) == '321') {
                 $productId = $d['credit'][2][1];
                 $storeId = $d['credit'][1][1];
                 if(!array_key_exists($productId, $skipArr)){
@@ -523,12 +523,12 @@ class store_Stores extends core_Master
                         if(!array_key_exists($productId, $res)){
                             $res[$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
                         }
-                        $res[$productId]->quantity += $d['credit']['quantity'];
+                        $res[$productId]->quantity += ($d['credit']['quantity'] ?? 0);
                     } else {
-                        if(is_null($res[$storeId]) || !array_key_exists($productId, $res[$storeId])){
+                        if(!isset($res[$storeId]) || !array_key_exists($productId, $res[$storeId])){
                             $res[$storeId][$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
                         }
-                        $res[$storeId][$productId]->quantity += $d['credit']['quantity'];
+                        $res[$storeId][$productId]->quantity += ($d['credit']['quantity'] ?? 0);
                     }
                 }
             }
