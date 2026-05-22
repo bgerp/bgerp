@@ -609,8 +609,8 @@ class core_Debug
         
         if (isset($breakpointPos)) {
             $stack[$breakpointPos] = (array) $stack[$breakpointPos];
-            $breakLine = $stack[$breakpointPos]['line'];
-            $breakFile = $stack[$breakpointPos]['file'];
+            $breakLine = $stack[$breakpointPos]['line'] ?? null;
+            $breakFile = $stack[$breakpointPos]['file'] ?? null;
             $stack = array_slice($stack, $breakpointPos + 1);
         }
         
