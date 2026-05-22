@@ -726,7 +726,7 @@ class type_Key extends type_Int
                         $title = ht::createLink($title, $url, false, 'style=font-weight:bold;');
                     }
                     
-                    $cssClass = $this->params['mandatory'] ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
+                    $cssClass = !empty($this->params['mandatory']) ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
 
                     $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
                 } else {
