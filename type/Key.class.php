@@ -425,7 +425,7 @@ class type_Key extends type_Int
             return ;
         }
         
-        if (is_object($options[''])) {
+        if (isset($options['']) && is_object($options[''])) {
             $options['']->title = '';
         }
         
@@ -452,7 +452,7 @@ class type_Key extends type_Int
                 }
             }
             
-            if ($titles[$title]) {
+            if (!empty($titles[$title])) {
                 $title = self::getUniqTitle($title, $key);
             }
             
@@ -726,7 +726,7 @@ class type_Key extends type_Int
                         $title = ht::createLink($title, $url, false, 'style=font-weight:bold;');
                     }
                     
-                    $cssClass = $this->params['mandatory'] ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
+                    $cssClass = !empty($this->params['mandatory']) ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
 
                     $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
                 } else {

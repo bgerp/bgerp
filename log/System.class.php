@@ -282,7 +282,7 @@ class log_System extends core_Manager
         }
         
         // Филтрираме по тип
-        if (trim($fRec->type)) {
+        if (!empty($fRec->type) && trim($fRec->type)) {
             $query->where(array("#type = '[#1#]'", $fRec->type));
         }
         
@@ -308,7 +308,7 @@ class log_System extends core_Manager
      */
     public static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
-        $type = $data->listFilter->rec->type;
+        $type = $data->listFilter->rec->type ?? null;
         
         if ($type) {
             // Изчистване на нотификации за възникнали грешки

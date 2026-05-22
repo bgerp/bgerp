@@ -130,7 +130,7 @@ class type_Emails extends type_Varchar
             return;
         }
  
-        if (!$this->params['showOriginal']) {
+        if (empty($this->params['showOriginal'])) {
             if (strlen($value)) {
                 //Вземаме всички имейли
                 $emailsArr = self::toArray($value, self::ALL);
@@ -219,7 +219,7 @@ class type_Emails extends type_Varchar
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        if (!$this->params['showOriginal']) {
+        if (empty($this->params['showOriginal'])) {
             if (strlen($value)) {
                 //Вземаме всички имейли
                 $emailsArr = self::toArray($value, self::ALL);

@@ -240,7 +240,7 @@ class hr_Leaves extends core_Master
     {
         $curUrl = getCurrentUrl();
         
-        if ($curUrl['Order'] == 'yes') {
+        if (($curUrl['Order'] ?? null) == 'yes') {
             $mvc->singleLayoutFile = 'hr/tpl/SingleLeaveOrders.shtml';
         }
     }
@@ -372,7 +372,7 @@ class hr_Leaves extends core_Master
         
         // Намират се всички служители
         $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
-        unset($employees[$rec->personId]);
+        if (!empty($rec->personId)) unset($employees[$rec->personId]);
         $form->setSuggestions('alternatePersons', $employees);
         
         if (countR($employees)) {

@@ -131,7 +131,7 @@ class type_Datetime extends type_Date
 
         if(isset($timePlaceholder)){
             if(empty($date)){
-                list($h, $m) = explode(':', $timePlaceholder);
+                list($h, $m) = explode(':', $timePlaceholder) + [null, null];
                 $timePlaceholder = "{$h}:{$m}";
             } else {
                 $timePlaceholder = null;

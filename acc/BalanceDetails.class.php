@@ -168,7 +168,7 @@ class acc_BalanceDetails extends core_Detail
         foreach (array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount') as $fld){
             if(array_key_exists($fld, $data->listFields)){
                 if ($mvc->isDetailed()) {
-                    list($part1, $part2, $part3) = explode('->', $data->listFields[$fld]);
+                    list($part1, $part2, $part3) = explode('->', $data->listFields[$fld]) + [null, null, null];
                     $data->listFields[$fld] = "{$part1}->{$part2}->{$part3}|* <small>({$baseCurrencyCode})</small>";
                 } else {
                     list($part1, $part2) = explode('->', $data->listFields[$fld]);
@@ -185,6 +185,7 @@ class acc_BalanceDetails extends core_Detail
     public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         if ($mvc->isDetailed()) {
+            $by = null;
             if ($data->groupingForm->isSubmitted()) {
                 $by = (array) $data->groupingForm->rec;
                 
@@ -913,7 +914,7 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
         } else {
-            $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' level-' . strlen($rec->accountNum);
             $row->accountId = acc_Balances::getAccountLink($rec->accountId, $masterRec, false, true);
         }
     }

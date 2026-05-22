@@ -74,7 +74,7 @@ class location_Type extends type_Varchar
             $stopGeolocation = true;
         }
         
-        if ($this->params['geolocation'] == 'mobile' && !Mode::is('screenMode', 'narrow')) {
+        if (($this->params['geolocation'] ?? null) == 'mobile' && !Mode::is('screenMode', 'narrow')) {
             $stopGeolocation = true;
         }
         

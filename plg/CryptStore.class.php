@@ -61,9 +61,10 @@ class plg_CryptStore extends core_Plugin
         $rnd = str::getRand('****');
         
         $key = '';
+        $res = '';
         $len = strlen($str);
         for ($i = 0; $i < $len; $i++) {
-            if ($key[$i] === '') {
+            if (!isset($key[$i])) {
                 $key .= md5($rnd . EF_SALT . 'code' . $key, true);
             }
             

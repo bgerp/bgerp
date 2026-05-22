@@ -207,7 +207,7 @@ class drdata_Countries extends core_Manager
             );
         }
         
-        $rec->languages = str_replace('|', ',', self::$countryToLanguages[strtolower($rec->letterCode2)]);
+        $rec->languages = str_replace('|', ',', self::$countryToLanguages[strtolower($rec->letterCode2)] ?? '');
     }
     
     
@@ -241,11 +241,14 @@ class drdata_Countries extends core_Manager
         }
         
         if (is_numeric($mix)) {
-            $country = drdata_Countries::fetch($mix)->{$field};
+            $cRec = drdata_Countries::fetch($mix);
+            $country = is_object($cRec) ? $cRec->{$field} : null;
         } elseif (strlen($mix) == 2) {
-            $country = drdata_Countries::fetch(array("#letterCode2 = '[#1#]'", $mix))->{$field};
+            $cRec = drdata_Countries::fetch(array("#letterCode2 = '[#1#]'", $mix));
+            $country = is_object($cRec) ? $cRec->{$field} : null;
         } elseif(strlen($mix) == 3) {
-            $country = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix))->{$field};
+            $cRec = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix));
+            $country = is_object($cRec) ? $cRec->{$field} : null;
         } 
         
         if(!$country) {
@@ -458,7 +461,7 @@ class drdata_Countries extends core_Manager
             
             foreach ($mis as $w => $c) {
                 expect($id = $commonNamesArr[$c], $c, $commonNamesArr, $mis);
-                expect(!$commonNamesArr[$w], $w, $commonNamesArr);
+                expect(empty($commonNamesArr[$w]), $w, $commonNamesArr);
                 $commonNamesArr[$w] = $id;
             }
         }
@@ -479,12 +482,12 @@ class drdata_Countries extends core_Manager
         }
         
         
-        if ($id = $namesArr[$country]) {
+        if ($id = ($namesArr[$country] ?? null)) {
             
             return $id;
         }
         
-        if ($id = $commonNamesArr[$country]) {
+        if ($id = ($commonNamesArr[$country] ?? null)) {
             
             return $id;
         }

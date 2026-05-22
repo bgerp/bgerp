@@ -1200,7 +1200,7 @@ class doc_Containers extends core_Manager
                 }
                 
                 // Ако ще се нотифицира за съответния документ
-                $settings = $pSettingsNotifyArr[$oUserId]['DOC_NOTIFY_NEW_DOC_TYPE'];
+                $settings = $pSettingsNotifyArr[$oUserId]['DOC_NOTIFY_NEW_DOC_TYPE'] ?? null;
                 if (!isset($settings)) {
                     $settings = $globalNotifyStr;
                 }
@@ -1232,7 +1232,7 @@ class doc_Containers extends core_Manager
                 }
                 
                 // Ако няма да се нотифицира за съответния документ, премахваме потребителя
-                $settingsStop = $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'];
+                $settingsStop = $pSettingsNotifyArr[$oUserId]['DOC_STOP_NOTIFY_NEW_DOC_TYPE'] ?? null;
                 if (!isset($settingsStop)) {
                     $settingsStop = $globalNotifyStrStop;
                 }
@@ -1290,7 +1290,7 @@ class doc_Containers extends core_Manager
         $currUserId = core_Users::getCurrent();
         
         // Ако заглавието на нишката не е определяна преди
-        if (!$threadTitleArr[$rec->threadId]) {
+        if (empty($threadTitleArr[$rec->threadId])) {
             
             // Определяме заглавието и добавяме в масива
             Mode::push('getNotificationRecTitle', true);
@@ -1312,7 +1312,7 @@ class doc_Containers extends core_Manager
             }
             
             // Ако потребителя, вече е бил нотифициран
-            if ($notifiedUsersArr[$userId]) {
+            if (!empty($notifiedUsersArr[$userId])) {
                 continue;
             }
             
@@ -1444,7 +1444,7 @@ class doc_Containers extends core_Manager
 
             $customUrlNew = $customUrl;
 
-            if ($uActiveMsgArr[$userId]) {
+            if (!empty($uActiveMsgArr[$userId])) {
 
                 $eArr = explode('". ', $uActiveMsgArr[$userId]);
 
@@ -1457,7 +1457,7 @@ class doc_Containers extends core_Manager
                 $messageN = $eArr[0] . $delim . $messageN;
             }
 
-            if ($customUrlArr[$userId]) {
+            if (!empty($customUrlArr[$userId])) {
                 $customUrlNew = $customUrlArr[$userId];
             }
 
@@ -1529,7 +1529,7 @@ class doc_Containers extends core_Manager
         while ($rec = $query->fetch()) {
             
             // Увеличаваме броя на документите за съответния потребител, който е активирал документа
-            $authorArr[$rec->activatedBy]++;
+            $authorArr[$rec->activatedBy] = ($authorArr[$rec->activatedBy] ?? 0) + 1;
         }
         
         return $authorArr;
@@ -2249,7 +2249,7 @@ class doc_Containers extends core_Manager
      */
     public static function repairAll($from = null, $to = null, $delay = 10)
     {
-        $resArr = array();
+        $resArr = array('state' => 0, 'docClass' => 0, 'docId' => 0, 'del_cnt' => 0, 'updateContainers' => 0);
         $query = self::getQuery();
         
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
@@ -3597,7 +3597,7 @@ class doc_Containers extends core_Manager
 
             $showDocument = ht::createLink('', $url, null, $attr);
 
-            $dRow->DocumentSettings = new ET($dRow->DocumentSettings);
+            $dRow->DocumentSettings = new ET($dRow->DocumentSettings ?? '');
             $dRow->DocumentSettings->append($showDocument);
         }
         $dRow->STATE_CLASS .= ' hidden-document';

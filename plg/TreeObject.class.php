@@ -70,7 +70,7 @@ class plg_TreeObject extends core_Plugin
     {
         if (!$res) {
             $where = '';
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $where = "#id != {$rec->id}";
             }
             

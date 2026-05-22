@@ -194,7 +194,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
         $quantityNow = store_Products::getQuantities($dRec->articulId, null, $today)->quantity;
         $row = new stdClass();
         
-        $rec->productCount++;
+        $rec->productCount = ($rec->productCount ?? 0) + 1;
         
         $productId = acc_Items::fetch($dRec->articulId)->objectId;
         
@@ -229,8 +229,8 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                 'ent2Id' => $dRec->articulId
             );
             
-            $row->store .= "<div class='nowrap'>" . ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
-            
+            $row->store = ($row->store ?? '') . "<div class='nowrap'>" . ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
+
             $row->store .= store_Stores::getHyperlink($storeId, true) . '</div>';
             
             $color = 'green';
@@ -238,7 +238,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                 $color = 'red';
             }
             
-            $row->quantity .= "<span class= '{$color}'>" . core_Type::getByName('double(decimals=2)')->toVerbal($val) . '</span>' . '</br>';
+            $row->quantity = ($row->quantity ?? '') . "<span class= '{$color}'>" . core_Type::getByName('double(decimals=2)')->toVerbal($val) . '</span>' . '</br>';
             
             if (!is_null($productId)) {
                 $quantityNow = store_Products::getQuantities($productId, $storeId, $today)->quantity;
@@ -248,7 +248,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
                 $colorNow = 'red';
             }
             
-            $row->quantityNow .= "<span class= '{$colorNow}'>" . core_Type::getByName('double(decimals=2)')->toVerbal($quantityNow) . '</span>' . '</br>';
+            $row->quantityNow = ($row->quantityNow ?? '') . "<span class= '{$colorNow}'>" . core_Type::getByName('double(decimals=2)')->toVerbal($quantityNow) . '</span>' . '</br>';
         }
         
         return $row;

@@ -1142,7 +1142,7 @@ class log_Browsers extends core_Master
         
         // Ако има филтър
         if ($filter = $data->listFilter->rec) {
-            if ($filter->brid) {
+            if (!empty($filter->brid)) {
                 $data->query->where(array("#brid = '[#1#]'", $filter->brid));
             }
         }

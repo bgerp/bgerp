@@ -30,7 +30,7 @@ class core_TableView extends core_BaseClass
     {
         parent::init($params);
         
-        if (!$this->mvc) {
+        if (empty($this->mvc)) {
             $this->mvc = new core_Mvc();
         }
         

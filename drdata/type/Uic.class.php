@@ -77,7 +77,7 @@ class drdata_type_Uic extends type_Varchar
 
         if (!empty($value)) {
             $msg = $isError = null;
-            static::checkUicId($value, $this->params['countryId'], $msg, $isError);
+            static::checkUicId($value, $this->params['countryId'] ?? null, $msg, $isError);
 
             if (!empty($msg) && !Mode::isReadOnly()) {
                 $value = "<span class='red'>{$value}</span>";

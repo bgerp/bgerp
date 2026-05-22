@@ -361,6 +361,7 @@ class fileman_Get extends core_Manager
             }
         }
         
+        $add = null;
         if ($form->isSubmitted()) {
             $this->getFile($rec, $add);
         }

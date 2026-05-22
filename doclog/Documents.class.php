@@ -329,7 +329,7 @@ class doclog_Documents extends core_Manager
         }
         
         // Декорираме IP адреса
-        if ($rec->ip) {
+        if (!empty($rec->ip)) {
             $row->ip = ' ' . type_Ip::decorateIp($rec->ip, $rec->time, true);
         }
     }
@@ -497,7 +497,7 @@ class doclog_Documents extends core_Manager
     public function renderForward($data)
     {
         // Ако няма записи
-        if (!$data->rows) {
+        if (empty($data->rows)) {
             
             return ;
         }
@@ -588,7 +588,7 @@ class doclog_Documents extends core_Manager
             $openAction = static::ACTION_OPEN;
             
             // Състоянието
-            $state = ($rec->data->{$openAction}) ? 'state-closed' : 'state-active';
+            $state = !empty($rec->data->{$openAction}) ? 'state-closed' : 'state-active';
             
             // Екшъна за отваряне
             $row->openAction = self::renderOpenActions($rec);
@@ -621,7 +621,7 @@ class doclog_Documents extends core_Manager
     public function renderPrint($data)
     {
         // Ако няма записи
-        if (!$data->rows) {
+        if (empty($data->rows)) {
             
             return ;
         }
@@ -695,7 +695,7 @@ class doclog_Documents extends core_Manager
         
         foreach ($recs as $rec) {
             // Ако не виждан
-            if (!$rec->data->{$action} || !countR($rec->data->{$action})) {
+            if (empty($rec->data->{$action}) || !countR($rec->data->{$action})) {
                 continue;
             }
             
@@ -770,7 +770,7 @@ class doclog_Documents extends core_Manager
     public function renderOpen($data)
     {
         // Ако няма записи
-        if (!$data->rows) {
+        if (empty($data->rows)) {
             
             return ;
         }
@@ -976,7 +976,7 @@ class doclog_Documents extends core_Manager
     public function renderSend($data)
     {
         // Ако няма записи
-        if (!$data->rows) {
+        if (empty($data->rows)) {
             
             return ;
         }
@@ -1095,7 +1095,7 @@ class doclog_Documents extends core_Manager
     public function renderDownload($data)
     {
         // Ако няма записи
-        if (!$data->rows) {
+        if (empty($data->rows)) {
             
             return ;
         }
@@ -1197,7 +1197,7 @@ class doclog_Documents extends core_Manager
     public function renderChanged($data)
     {
         // Ако няма записи
-        if (!$data->rows) {
+        if (empty($data->rows)) {
             
             return ;
         }
@@ -1275,7 +1275,7 @@ class doclog_Documents extends core_Manager
     public static function renderHistory($data)
     {
         // Ако няма записи
-        if (!$data->rows) {
+        if (empty($data->rows)) {
             
             return ;
         }
@@ -2308,10 +2308,10 @@ class doclog_Documents extends core_Manager
                     $checkedChangesStr = $changeDataArr['docClass'] . '_' . $changeDataArr['docId'];
                     
                     // Ако ня сме търсили за този клас и документ
-                    if (!$changesArr[$checkedChangesStr]) {
+                    if (empty($changesArr[$checkedChangesStr])) {
                         
                         // Вземаме броя на промените
-                        $data[$rec->containerId]->summary[$change] += change_Log::getCountOfChange($changeDataArr['docClass'], $changeDataArr['docId']);
+                        $data[$rec->containerId]->summary[$change] = (($data[$rec->containerId]->summary ?? [])[$change] ?? 0) + change_Log::getCountOfChange($changeDataArr['docClass'], $changeDataArr['docId']);
                         
                         // Отбелязваме в масива, за да го прескочим
                         $changesArr[$checkedChangesStr] = $checkedChangesStr;
@@ -2383,7 +2383,7 @@ class doclog_Documents extends core_Manager
     {
         $threadHistory = static::prepareThreadHistory($threadId);
         
-        return $threadHistory[$containerId];
+        return $threadHistory[$containerId] ?? null;
     }
     
     
@@ -2479,7 +2479,7 @@ class doclog_Documents extends core_Manager
             
             $linkArr = array();
             try {
-                if ($data->containerId) {
+                if (!empty($data->containerId)) {
                     $document = doc_Containers::getDocument($data->containerId);
                 }
                 if ($document->haveRightFor('single') && !core_Users::haveRole('partner')) {
@@ -2609,7 +2609,7 @@ class doclog_Documents extends core_Manager
         
         $html = '';
         
-        if ($rec->data->receivedOn && $rec->data->seenFromIp) {
+        if (!empty($rec->data->receivedOn) && !empty($rec->data->seenFromIp)) {
             $firstOpen = array();
             $firstOpen['ip'] = $rec->data->seenFromIp;
             $firstOpen['on'] = $rec->data->receivedOn;
@@ -2619,7 +2619,7 @@ class doclog_Documents extends core_Manager
             $firstOpen = reset($rec->data->{$openActionName});
         }
         
-        $_r = $rec->receivedOn;
+        $_r = $rec->receivedOn ?? null;
         
         if (!empty($firstOpen) && (empty($date) || $firstOpen['on'] < $date)) {
             $rec->receivedOn = $firstOpen['on'];
@@ -2886,7 +2886,7 @@ class doclog_Documents extends core_Manager
     public function renderUsed($data)
     {
         // Ако няма записи
-        if (!$data->rows) {
+        if (empty($data->rows)) {
             
             return ;
         }

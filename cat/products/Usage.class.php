@@ -49,7 +49,7 @@ class cat_products_Usage extends core_Manager
 
         // Промяна на таба взависимост дали артикула е стандартен или не
         if ($data->isPublic === true) {
-            if ((($masterRec->state == 'template') || ($data->jobData->notManifacturable === true)) && !countR($data->jobData->rows) && !countR($data->taskData->rows)) {
+            if ((($masterRec->state == 'template') || (($data->jobData->notManifacturable ?? false) === true)) && !countR($data->jobData->rows) && !countR($data->taskData->rows)) {
 
                 return;
             }
@@ -314,7 +314,7 @@ class cat_products_Usage extends core_Manager
             $data->notManifacturable = true;
         }
         
-        if (!haveRole('ceo,planning,jobSee') || ($data->notManifacturable === true && !countR($data->rows)) || $masterRec->state == 'template' || $masterRec->brState == 'template') {
+        if (!haveRole('ceo,planning,jobSee') || (($data->notManifacturable ?? false) === true && !countR($data->rows)) || $masterRec->state == 'template' || $masterRec->brState == 'template') {
             $data->hide = true;
             
             return;

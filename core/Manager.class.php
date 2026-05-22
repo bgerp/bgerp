@@ -1114,7 +1114,7 @@ class core_Manager extends core_Mvc
             }
         }
 
-        $listFilter->formAttr['data-mvc'] = "listFilter_" . $listFilter->mvc->className;
+        $listFilter->formAttr['data-mvc'] = "listFilter_" . ($listFilter->mvc->className ?? '');
         $listFilter->showFields = isset($listFilter->showFields) ? arr::make($listFilter->showFields, true) : array();
 
         if (countR($listFilter->showFields)) {

@@ -1369,7 +1369,7 @@ class sales_Sales extends deals_DealMaster
         while($dRec = $saleQuery->fetch()){
             $productArr[$dRec->productId] = (object)array('productId' => $dRec->productId, 'code' => $dRec->codeExp);
             if (isset($listId)) {
-                $productArr[$dRec->productId]->reff = cat_Listings::getReffByProductId($listId, $dRec->productId, $dRec->packagingId);
+                $productArr[$dRec->productId]->reff = cat_Listings::getReffByProductId($listId, $dRec->productId, $dRec->packagingId ?? null);
             }
         }
 
@@ -1518,7 +1518,7 @@ class sales_Sales extends deals_DealMaster
                 $row->visiblePricesByAllInThread =  $mvc->getFieldType('visiblePricesByAllInThread')->toVerbal($visiblePrices);
             }
 
-            $row->visiblePricesByAllInThread = mb_strtolower($row->visiblePricesByAllInThread);
+            $row->visiblePricesByAllInThread = mb_strtolower($row->visiblePricesByAllInThread ?? '');
             $row->visiblePricesByAllInThread = ht::createHint("", "Цени и суми в нишката|*: |{$row->visiblePricesByAllInThread}|*");
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);

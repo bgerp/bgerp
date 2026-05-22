@@ -385,7 +385,7 @@ class plg_Search extends core_Plugin
                         }
                     }
 
-                    if (self::isStopWord($w) || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {
+                    if (self::isStopWord($w) || !empty($query->mvc->dbEngine) || $limit > 0 || !empty($query->dontUseFts)) {
                         if ($limit > 0 && $like == 'LIKE') {
                             $field1 = "LEFT(#{$field}, {$limit})";
                         } else {

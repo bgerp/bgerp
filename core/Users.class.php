@@ -1169,7 +1169,7 @@ class core_Users extends core_Manager
         }
         
         if ($addRoles && !Mode::is('screenMode', 'narrow')) {
-            $row->rolesInput .= "<div style='color:#666;'>" . tr('индиректно') . ': ' . $addRoles . '</div>';
+            $row->rolesInput = ($row->rolesInput ?? '') . "<div style='color:#666;'>" . tr('индиректно') . ': ' . $addRoles . '</div>';
         }
         
         $row->rolesInput = "<div style='max-width:400px;'>{$row->rolesInput}</div>";
@@ -1227,7 +1227,7 @@ class core_Users extends core_Manager
                     }
                 }
                 
-                if (!$rec->__updateRoleLogs) {
+                if (empty($rec->__updateRoleLogs)) {
                     if (!$fields || in_array('roles', $fields = arr::make($fields))) {
                         if ($oRec->roles != $rec->roles) {
                             $dArr = type_Keylist::getDiffArr($rec->roles, $oRec->roles);
@@ -1632,7 +1632,7 @@ class core_Users extends core_Manager
                 $url = static::getUrlForLoginLogStatus($userRec->id);
                 
                 // Всички IP-та, от които се е логнало за първи път
-                foreach ((array) $arr['first_login'] as $loginRec) {
+                foreach ((array) ($arr['first_login'] ?? []) as $loginRec) {
                     
                     // Времето, когато се е логнал
                     $time = dt::secsBetween(dt::now(), $loginRec->createdOn);

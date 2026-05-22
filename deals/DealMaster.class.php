@@ -1352,7 +1352,9 @@ abstract class deals_DealMaster extends deals_DealBase
         if(isset($fields['-subTitle'])){
             if($rec->currencyId != acc_Periods::getBaseCurrencyCode()) {
                 foreach (array('amountDelivered', 'amountToDeliver', 'amountInvoiced', 'amountToInvoice', 'amountPaid', 'amountToPay', 'Deal') as $fld){
-                    $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $rec->currencyId, true);
+                    if (isset($row->{$fld})) {
+                        $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $rec->currencyId, true);
+                    }
                 }
             }
         }

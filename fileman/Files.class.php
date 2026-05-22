@@ -341,7 +341,7 @@ class fileman_Files extends core_Master
         $copyPath = $path . '/' . $fileName;
         
         // Копираме файла
-        $copied = @copy($originalPath, $copyPath);
+        $copied = file_exists($originalPath) ? copy($originalPath, $copyPath) : false;
         
         // Ако копирането не премине успешно
         if (!$copied) {

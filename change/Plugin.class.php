@@ -469,7 +469,7 @@ class change_Plugin extends core_Plugin
         $form = $mvc->getForm();
         
         // Вземаме всички полета, които могат да се променят
-        $allowedFieldsArr = (array) static::getAllowedFields($form, $mvc->changableFields);
+        $allowedFieldsArr = (array) static::getAllowedFields($form, $mvc->changableFields ?? null);
         
         if (($selVerArr['first'] ?? null) != $lastVersion) {
 

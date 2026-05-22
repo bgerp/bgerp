@@ -206,7 +206,7 @@ class plg_ExpandInput extends core_Plugin
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
-        if ($mvc->fixExpandFieldOnSetup === false) {
+        if (isset($mvc->fixExpandFieldOnSetup) && $mvc->fixExpandFieldOnSetup === false) {
 
             return ;
         }

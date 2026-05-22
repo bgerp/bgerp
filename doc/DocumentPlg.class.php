@@ -776,7 +776,7 @@ class doc_DocumentPlg extends core_Plugin
     public function on_BeforeSave($mvc, $id, $rec, $fields = null)
     {
         // Ако създаваме нов документ и ...
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             if(($mvc->addLinkedOriginFieldName ?? null) && $rec->{$mvc->addLinkedOriginFieldName} && $mvc->canAddDocumentToOriginAsLink($rec)){
                 $mvc->addDocumentLinks[$rec->id] = $rec;
             }
@@ -795,15 +795,15 @@ class doc_DocumentPlg extends core_Plugin
             // създаваме нов контейнер за документите от този клас
             // и записваме връзка към новия контейнер в този документ
             if (!isset($rec->containerId)) {
-                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy);
+                $rec->containerId = doc_Containers::create($mvc, $rec->threadId ?? null, $rec->folderId ?? null, $rec->createdOn ?? null, $rec->createdBy ?? null);
             }
             
             // Задаваме началното състояние по подразбиране
-            if (!$rec->state) {
+            if (empty($rec->state)) {
                 $rec->state = ($mvc->firstState ?? null) ? $mvc->firstState : 'draft';
             }
 
-            if (($rec->state == 'rejected') && (($mvc->firstState ?? null) != 'rejected') && (!$rec->brState)) {
+            if (($rec->state == 'rejected') && (($mvc->firstState ?? null) != 'rejected') && (empty($rec->brState))) {
                 $rec->brState = ($mvc->firstState ?? null) ? $mvc->firstState : 'draft';
             }
 
@@ -823,7 +823,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec->modifiedOn = dt::verbal2Mysql();
         }
         
-        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
+        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && !empty($rec->brState) && ($rec->brState ?? null) != 'rejected') || $rec->state != 'draft')) {
             if ($rec->id) {
                 $oRec = $mvc->fetch($rec->id);
                 if ($rec->state !== $oRec->state) {
@@ -852,12 +852,13 @@ class doc_DocumentPlg extends core_Plugin
         // core_Cache::remove($mvc->className, $key);
         
         // Намира контейнера на документа
-        $containerId = $rec->containerId ? $rec->containerId : $mvc->fetch($rec->id)->containerId;
+        $_fetchedRec = (!empty($rec->containerId)) ? null : $mvc->fetch($rec->id);
+        $containerId = !empty($rec->containerId) ? $rec->containerId : (is_object($_fetchedRec) ? $_fetchedRec->containerId : null);
         
         // Възстановяваме (ако е необходимо) нишката ПРЕДИ да създадем/обновим контейнера
         // Това гарантира, че абонатите на оттеглени нишки все пак ще получат нотификация за
         // новопристигналия документ
-        if ($rec->threadId && $rec->state != 'rejected') {
+        if (!empty($rec->threadId) && ($rec->state ?? null) != 'rejected') {
             doc_Threads::restoreThread($rec->threadId);
         }
         
@@ -897,7 +898,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->invoke('AfterSavePendingDocument', array($rec));
         }
         
-        if ($rec->linkedHashKey) {
+        if (!empty($rec->linkedHashKey)) {
             $lRec = core_Permanent::get($rec->linkedHashKey);
             if ($lRec && is_object($lRec)) {
                 $lRec->inVal = $rec->containerId;
@@ -1085,7 +1086,7 @@ class doc_DocumentPlg extends core_Plugin
     public function on_AfterRoute($mvc, &$res, $rec)
     {
         // Ако имаме контейнер, но нямаме тред - определяме треда от контейнера
-        if ($rec->containerId && !$rec->threadId) {
+        if (!empty($rec->containerId) && empty($rec->threadId)) {
             $tdRec = doc_Containers::fetch($rec->containerId);
             $rec->threadId = $tdRec->threadId;
         }
@@ -1097,19 +1098,19 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Ако нямаме папка - форсираме папката по подразбиране за този клас
-        if (!$rec->folderId) {
+        if (empty($rec->folderId)) {
             $rec->folderId = $mvc->getDefaultFolder();
         }
-        
+
         // Ако нямаме тред - създаваме нов тред в тази папка
-        if (!$rec->threadId) {
-            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy, $rec->_notModified);
+        if (empty($rec->threadId)) {
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn ?? null, $rec->createdBy ?? null, $rec->_notModified ?? null);
         }
         
         // Ако нямаме контейнер - създаваме нов контейнер за
         // този клас документи в определения тред
-        if (!$rec->containerId) {
-            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy, $rec->_notModified);
+        if (empty($rec->containerId)) {
+            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn ?? null, $rec->createdBy ?? null, $rec->_notModified ?? null);
         }
     }
     
@@ -1718,7 +1719,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $rec = $mvc->fetchRec($recId);
         
-        if ($rec->containerId == $docId) {
+        if (is_object($rec) && ($rec->containerId ?? null) == $docId) {
             $res = true;
         }
     }
@@ -2426,9 +2427,9 @@ class doc_DocumentPlg extends core_Plugin
             $thRec = doc_Threads::fetch($form->rec->threadId);
             setPartIfNot($data, 'singleTitle', $mvc->singleTitle);
             
-            if ($thRec->firstContainerId != $form->rec->containerId) {
+            if ($thRec->firstContainerId != ($form->rec->containerId ?? null)) {
                 $firstDoc = doc_Containers::getDocument($thRec->firstContainerId);
-                $form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id, null, 50);
+                $form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id ?? null, null, 50);
                 unset($title);
             }
         }
@@ -2473,9 +2474,9 @@ class doc_DocumentPlg extends core_Plugin
                 $sP->updateOnShutdown = true;
             }
 
-            if (in_array($form->cmd, array('save_pending', 'save_pending_new')) && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
+            if (in_array($form->cmd, array('save_pending', 'save_pending_new')) && ($mvc->haveRightFor('pending', $rec) || ($rec->state ?? null) == 'pending')) {
                 // Преизчисляване на запазените количествата, ако новото състояние е "Заявка"
-                if ($rec->state != 'pending') {
+                if (($rec->state ?? null) != 'pending') {
                     $sP = cls::get('store_Products');
                     $sP->updateOnShutdown = true;
                 }
@@ -3008,7 +3009,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($action == 'pending' && isset($rec)) {
             if (isset($mvc->mainDetail) && ($mvc->requireDetailForPending ?? null) === true) {
                 $Detail = cls::get($mvc->mainDetail);
-                if (!$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) {
+                if (empty($rec->id) || !$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -3726,7 +3727,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
 
-        $lKeywords = doc_Linked::getKeywordsForLinked($rec->containerId);
+        $lKeywords = doc_Linked::getKeywordsForLinked($rec->containerId ?? null);
         if (strlen(trim($lKeywords ?? ''))) {
             $lKeywords = plg_Search::normalizeText($lKeywords);
             if (strpos($searchKeywords ?? '', $lKeywords) === false) {

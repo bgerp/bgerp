@@ -2046,7 +2046,7 @@ class bgerp_Notifications extends core_Manager
         // Премахва кеша за броя на нотификациите на този потребител
         core_Cache::remove('OpenNtfCnt', $rec->userId);
 
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             if ($fields !== null) {
                 $fields = arr::make($fields, true);
             }

@@ -376,7 +376,8 @@ class core_Packs extends core_Manager
         $packsName = $this->getAllPacksNamesArr();
         
         $installedPacksName = self::getInstalledPacksNamesArr();
-        
+        $res = '';
+
         // Изтриваме премахнатите пакети
         $removedPacksArr = array_diff($installedPacksName, $packsName);
         foreach ((array) $removedPacksArr as $packName) {
@@ -1163,7 +1164,7 @@ class core_Packs extends core_Manager
                 if ($sysDefaultComp != $fieldComp) {
                     // Да може да се зададе автоматичната стойност
                     if ((($fType instanceof type_Class) || ($fType instanceof type_Enum) || ($fType instanceof color_Type))
-                                    && ($fType->params['allowEmpty']) && ($form->rec->{$field} === null)) {
+                                    && (!empty($fType->params['allowEmpty'])) && ($form->rec->{$field} === null)) {
                         $data[$field] = null;
                     } elseif ($form->rec->{$field} !== null) {
                         $data[$field] = $form->rec->{$field};
@@ -1443,13 +1444,7 @@ class core_Packs extends core_Manager
                     }
 
                     if (is_array($r)) {
-                        foreach ($r as $ra) {
-                            if (is_array($ra)) {
-                                $text .= ' ' . implode(' ', $ra);
-                            } else {
-                                $text .= ' ' . $ra;
-                            }
-                        }
+                        $text .= ' ' . implode(' ', array_map('strval', iterator_to_array(new \RecursiveIteratorIterator(new \RecursiveArrayIterator($r)))));
                     } else {
                         $text .= ' ' . $r;
                     }

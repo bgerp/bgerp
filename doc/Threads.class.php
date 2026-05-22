@@ -340,8 +340,8 @@ class doc_Threads extends core_Manager
         // Изкючваме логването
         $isLoging = core_Debug::$isLogging;
         core_Debug::$isLogging = false;
-        
-        $resArr = array();
+
+        $resArr = array('firstContainerId' => 0, 'del_cnt' => 0, 'updateThread' => 0, 'folderId' => 0, 'firstDocClass' => 0, 'firstDocId' => 0, 'allDocCnt' => 0, 'partnerDocCnt' => 0, 'firstContainerIdState' => 0);
         
         // id на папката за несортирани
         $unsortedCoverClassId = core_Classes::getId('doc_UnsortedFolders');
@@ -447,13 +447,13 @@ class doc_Threads extends core_Manager
                     $fields[] = 'partnerDocLast';
                 }
                 $exRec = clone($rec);
-                if (!self::$updateQueue[$rec->id] && countR($fields)) {
+                if (empty(self::$updateQueue[$rec->id]) && countR($fields)) {
                     self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
                     $fieldsList = implode(',', $fields);
                     self::save($rec, $fieldsList);
                     self::logNotice('Поправен/и ' . $fieldsList, $rec->id);
                     foreach ($fields as $f) {
-                        $resArr[$f]++;
+                        $resArr[$f] = ($resArr[$f] ?? 0) + 1;
                     }
                     
                     continue;
@@ -492,7 +492,7 @@ class doc_Threads extends core_Manager
      */
     public static function repairAll($from = null, $to = null, $delay = 10)
     {
-        $resArr = array();
+        $resArr = array('folderId' => 0, 'allDocCnt' => 0, 'partnerDocCnt' => 0, 'firstContainerId' => 0, 'firstDocClass' => 0, 'firstDocId' => 0, 'firstContainerIdState' => 0);
         $query = self::getQuery();
         
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
@@ -528,7 +528,7 @@ class doc_Threads extends core_Manager
                 $prepareDocCnt = false;
                 
                 // Поправка за броя на документите
-                if (!self::$updateQueue[$rec->id]) {
+                if (empty(self::$updateQueue[$rec->id])) {
                     $cQuery = doc_Containers::getQuery();
                     $cQuery->where(array("#threadId = '[#1#]'", $rec->id));
                     $cQuery->where("#state != 'rejected'");
@@ -566,7 +566,7 @@ class doc_Threads extends core_Manager
                 }
                 
                 // Само, ако първият контейнер е видим за партньори, тогава проверяваме за броят на видимите контейнери
-                if ($cRec->visibleForPartners == 'yes' && $cRec->state != 'draft' && $cRec->state != 'rejected' && !self::$updateQueue[$rec->id]) {
+                if ($cRec->visibleForPartners == 'yes' && $cRec->state != 'draft' && $cRec->state != 'rejected' && empty(self::$updateQueue[$rec->id])) {
                     // Ако се различава броя на документите, видими за партньори
                     $pCQuery->where("#visibleForPartners = 'yes' AND #state != 'draft' AND #state != 'rejected'");
                     $pCCnt = $pCQuery->count();
@@ -1126,7 +1126,7 @@ class doc_Threads extends core_Manager
                 $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
             }
             
-            if ($docRow->authorId > 0) {
+            if (($docRow->authorId ?? 0) > 0) {
                 $row->author = crm_Profiles::createLink($docRow->authorId);
             } else {
                 $row->author = $docRow->author;
@@ -2001,7 +2001,8 @@ class doc_Threads extends core_Manager
         $dcQuery = doc_Containers::getQuery();
         $dcQuery->orderBy('#createdOn');
         $dcQuery->orderBy('#id'); // Ако датите съвпадат, гледаме по id
-        
+        $lastDcPartnerRec = null;
+
         while ($dcRec = $dcQuery->fetch("#threadId = {$rec->id}")) {
             if (!$firstDcRec) {
                 $firstDcRec = $dcRec;
@@ -2036,7 +2037,7 @@ class doc_Threads extends core_Manager
             $rec->visibleForPartners = 'yes';
             
             if ($lastDcPartnerRec) {
-                $rec->partnerDocLast = max($lastDcPartnerRec->activatedOn, $lastDcPartnerRec->modifiedOn, $lastDcPartnerRec->createdOn);
+                $rec->partnerDocLast = max($lastDcPartnerRec->activatedOn ?? null, $lastDcPartnerRec->modifiedOn ?? null, $lastDcPartnerRec->createdOn ?? null);
             }
         }
     }

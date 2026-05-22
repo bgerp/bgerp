@@ -558,16 +558,16 @@ class crm_ext_ContragentInfo extends core_manager
                 $data->query->where("#contragentClassId = {$Cover->getClassId()} AND #contragentId = {$Cover->that}");
             }
 
-            if($rec->type != 'all'){
-                if($rec->type == 'haveSale'){
+            if(($rec->type ?? null) != 'all'){
+                if(($rec->type ?? null) == 'haveSale'){
                     $data->query->where("#totalSalesCount > 0");
-                } elseif($rec->type == 'havePurchase'){
+                } elseif(($rec->type ?? null) == 'havePurchase'){
                     $data->query->where("#totalPurchaseCount > 0");
-                } elseif($rec->type == 'overdue'){
+                } elseif(($rec->type ?? null) == 'overdue'){
                     $data->query->where("#haveOverdueSales = 'yes'");
-                } elseif($rec->type == 'empty'){
+                } elseif(($rec->type ?? null) == 'empty'){
                     $data->query->where("#totalSalesCount IS NULL AND #totalPurchaseCount IS NULL");
-                } elseif($rec->type == 'withoutActive'){
+                } elseif(($rec->type ?? null) == 'withoutActive'){
                     $data->query->where("#activeSalesCount IS NULL");
                 }
             }

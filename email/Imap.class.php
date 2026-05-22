@@ -42,10 +42,11 @@ class email_Imap extends core_BaseClass
             $port = $hostArr[1];
         } else {
             $host = $hostArr[0];
+            $port = null;
         }
-        
+
         expect($host);
-        
+
         // Определяне на порта, ако не е зададен в хоста
         if (!$port) {
             if ($accRec->protocol == 'imap') {
@@ -68,11 +69,12 @@ class email_Imap extends core_BaseClass
         
         $portArr = explode('/', $port, 2);
         
+        $params = null;
         if (countR($portArr) == 2) {
             $port = $portArr[0];
             $params = $portArr[1];
         }
-        
+
         if (!$params) {
             $params = $this->getParams($accRec);
         }
@@ -117,8 +119,10 @@ class email_Imap extends core_BaseClass
      */
     public function connect()
     {
-        $this->connection = @imap_open($this->getServerString(), $this->accRec->user, $this->accRec->password);
-        
+        $prevErrorReporting = error_reporting(0);
+        $this->connection = imap_open($this->getServerString(), $this->accRec->user, $this->accRec->password);
+        error_reporting($prevErrorReporting);
+
         return $this->connection;
     }
     

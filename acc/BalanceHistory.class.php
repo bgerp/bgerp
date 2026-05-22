@@ -343,7 +343,7 @@ class acc_BalanceHistory extends core_Manager
         $data->listFilter->setOptions('type', array('' => '') + $docTypeOptions);
         
         foreach (array(3, 2, 1) as $i) {
-            if (is_object($data->accountInfo->groups[$i])) {
+            if (isset($data->accountInfo->groups[$i]) && is_object($data->accountInfo->groups[$i])) {
                 $listRec = $data->accountInfo->groups[$i]->rec;
                 $filter->FNC("ent{$i}Id", "acc_type_Item(lists={$listRec->num},select=titleLink,showAll,allowEmpty)", "input,class=w75,caption={$listRec->name}");
                 $filter->showFields = "ent{$i}Id,{$filter->showFields}";
@@ -377,15 +377,15 @@ class acc_BalanceHistory extends core_Manager
                 $data->isGrouped = $filter->rec->isGrouped;
             }
             
-            if ($filter->rec->from) {
+            if (!empty($filter->rec->from)) {
                 $data->fromDate = $filter->rec->from;
             }
-            
-            if ($filter->rec->to) {
+
+            if (!empty($filter->rec->to)) {
                 $data->toDate = $filter->rec->to;
             }
             
-            if ($filter->rec->type) {
+            if (!empty($filter->rec->type)) {
                 $data->type = $filter->rec->type;
                 $data->isGrouped = $filter->rec->isGrouped;
             }
@@ -491,7 +491,7 @@ class acc_BalanceHistory extends core_Manager
         
         $data->allRecs = $data->recs;
         
-        if ($data->orderField) {
+        if (!empty($data->orderField)) {
             arr::sortObjects($data->recs, $data->orderField, $data->orderBy);
         }
 
@@ -539,7 +539,7 @@ class acc_BalanceHistory extends core_Manager
         }
 
         try {
-            $Class = cls::get($rec['docType']);
+            $Class = cls::get($rec['docType'] ?? null);
             $arr['docId'] = (!Mode::isReadOnly()) ? $Class->getShortHyperLink($rec['docId']) : '#' . $Class->getHandle($rec['docId']);
             $arr['reason'] = $Class->getContoReason($rec['docId'], $rec['reasonCode']);
         } catch (core_exception_Expect $e) {
@@ -645,8 +645,8 @@ class acc_BalanceHistory extends core_Manager
         $Double = core_Type::getByName('double(decimals=2)');
         $data->row->midQuantity = $Double->toVerbal($data->rec->midQuantity);
         $data->row->midAmount = $Double->toVerbal($data->rec->midAmount);
-        $data->row->maxBlQuantity = $Double->toVerbal($data->rec->maxBlQuantity);
-        $data->row->minBlQuantity = $Double->toVerbal($data->rec->minBlQuantity);
+        $data->row->maxBlQuantity = $Double->toVerbal($data->rec->maxBlQuantity ?? null);
+        $data->row->minBlQuantity = $Double->toVerbal($data->rec->minBlQuantity ?? null);
 
         foreach (array('baseAmount', 'blAmount', 'midAmount') as $fld) {
             $data->row->{$fld} = currency_Currencies::decorate($data->row->{$fld}, $currencyCode, true);
@@ -676,7 +676,7 @@ class acc_BalanceHistory extends core_Manager
             $tpl->replace($data->row->toDate, 'toDate');
         }
         
-        if ($data->isReport !== true) {
+        if (($data->isReport ?? null) !== true) {
             unset($data->row->ent1Id,$data->row->ent2Id,$data->row->ent3Id);
         }
         
@@ -720,7 +720,7 @@ class acc_BalanceHistory extends core_Manager
         // Ако сумите на крайното салдо са отрицателни - оцветяваме ги
         $details = $table->get($data->rows, $data->listFields);
         foreach (array('blQuantity', 'blAmount', 'midQuantity', 'midAmount', 'maxBlQuantity', 'minBlQuantity') as $fld) {
-            if ($data->rec->{$fld} < 0) {
+            if (($data->rec->{$fld} ?? 0) < 0) {
                 $data->row->{$fld} = "<span style='color:red'>{$data->row->{$fld}}</span>";
             }
         }

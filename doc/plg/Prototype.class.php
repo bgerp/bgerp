@@ -144,7 +144,7 @@ class doc_plg_Prototype extends core_Plugin
         if (empty($form->rec->id)) {
             
             // И има избран прототип
-            if ($proto = $form->rec->{$mvc->protoFieldName}) {
+            if ($proto = ($form->rec->{$mvc->protoFieldName} ?? null)) {
                 if ($protoRec = $mvc->fetch($proto)) {
                     $isCoreEmbedder = $mvc instanceof core_Embedder;
                     

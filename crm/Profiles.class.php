@@ -822,7 +822,7 @@ class crm_Profiles extends core_Master
     public static function prepareUnusedUserOptions($data, $limit = null)
     {
         $type = 'prepareUnusedUserOptions';
-        $handler = 'unusedUserOptions' . '|' . $limit . '|' . $data->form->rec->id;
+        $handler = 'unusedUserOptions' . '|' . $limit . '|' . (isset($data->form) ? ($data->form->rec->id ?? '') : '');
         $keepMinutes = 10000;
         $depends = 'crm_Profiles';
         
@@ -1431,7 +1431,7 @@ class crm_Profiles extends core_Master
         $data->query->orderBy('lastTime', 'DESC');
         
         // Ако е избран 'Отсъстващи'
-        switch ($fields->leave) {
+        switch ($fields->leave ?? null) {
             
             case 'missing':
                 
@@ -1649,7 +1649,7 @@ class crm_Profiles extends core_Master
                 $type = $arguments[0];
                 
                 // Параметри на полето
-                $params = arr::combine($arguments[1], $arguments[2]);
+                $params = arr::combine($arguments[1], $arguments[2] ?? null);
                 
                 // Ако не е зададено, че може да се конфигурира или не може да се конфигурира за текущия потребител
                 if (empty($params['customizeBy']) || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {

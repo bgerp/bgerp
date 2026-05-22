@@ -138,7 +138,7 @@ class survey_Alternatives extends core_Detail
      */
     public function renderDetail_($data)
     {
-        if ($data->action == 'summarise') {
+        if (($data->action ?? null) == 'summarise') {
             
             // Ако трябва да показваме обобщения изглед го рендираме
             $tpl = $this->renderSummariseDetails($data);

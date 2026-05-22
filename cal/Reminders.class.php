@@ -258,26 +258,26 @@ class cal_Reminders extends core_Master
         						   replicate=Копие на темата)', 'caption=Действие при сработване->Избор, maxRadio=5,autohide,value=notify,notNull,changable,silent');
 
         // Начало на напомнянето
-        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)', 'caption=Време->Начало, silent,changable');
-        $this->FLD('calcTimeStart', 'datetime(format=smartTime)', 'caption=Време->Начало, input=none');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00, format=smartTime)', 'caption=Събитие->Начало, silent,changable');
+        $this->FLD('calcTimeStart', 'datetime(format=smartTime)', 'caption=Събитие->Начало, input=none');
 
         // Предварително напомняне
-        $this->FLD('timePreviously', 'time', 'caption=Време->Предварително,changable');
+        $this->FLD('timePreviously', 'time', 'caption=Напомняния преди събитието->Предварително,changable');
 
-        $this->FLD('notifyCnt', 'int(min=1, max=100)', 'caption=Време->Брой, inlineTo=timePreviously, changable');
+        $this->FLD('notifyCnt', 'int(min=1, max=100)', 'caption=Напомняния преди събитието->Брой, changable');
 
         // Колко пъти ще се повтаря напомнянето?
-        $this->FLD('repetitionEach', 'int(Min=0)', 'caption=Повторение->Всеки,changable,autohide');
+        $this->FLD('repetitionEach', 'int(Min=0)', 'caption=Повторяемо събитие->Период,changable,autohide, placeholder=Еднократно');
 
         // По какво ще се повтаря напомненето - дни, седмици, месеци, години
         $this->FLD(
             'repetitionType',
-            'enum(   days=дена, workDays=работни дни,
+            'enum(,days=дена, workDays=работни дни,
 			                                  weeks=седмици,
 			                                  months=месеца,
 			                                  weekDay=месеца-ден от началото на седмицата,
 			                                  monthDay=месеца-ден от началото на месеца)',
-           'caption=Повторение->Мярка, maxRadio=5,columns=1,notNull,value=days,changable,autohide=any'
+           'caption=Повторяемо събитие->Мярка на периода, maxRadio=5,columns=1,notNull,changable,autohide=any, placeholder=Дни'
         );
 
         // За кой път се среща деня
@@ -373,7 +373,7 @@ class cal_Reminders extends core_Master
             }
 
             if (!empty($form->rec->notifyCnt) && !isset($form->rec->timePreviously)) {
-                $form->setError('timePreviously, notifyCnt', 'Трябва да има въведено време за предварително напомняне');
+                $form->setError('timePreviously, notifyCnt', 'Трябва да се попълни и предварително');
             }
         }
     }
@@ -393,6 +393,10 @@ class cal_Reminders extends core_Master
         $rec->calcTimeStart = $mvc->getNextStartingTime2($cRec, false);
         if (!$rec->calcTimeStart) {
             $rec->calcTimeStart = $rec->timeStart;
+        }
+
+        if (isset($rec->repetitionEach) && !isset($rec->repetitionType)) {
+            $rec->repetitionType = 'days';
         }
     }
 

@@ -337,8 +337,8 @@ class change_Log extends core_Manager
         if ($action == 'unselect') {
             
             // Ако има такава версия
-            if ($dataArr[$versionId]) {
-                
+            if (!empty($dataArr[$versionId])) {
+
                 // Премахваме от масива
                 unset($dataArr[$versionId]);
             }
@@ -491,8 +491,8 @@ class change_Log extends core_Manager
         
         $str = $rec->docClass . '_' . $rec->docId;
         
-        $dataArr = $allDataArr[$str];
-        
+        $dataArr = $allDataArr[$str] ?? null;
+
         // Ако не е генериран
         if (!$dataArr) {
             
@@ -520,7 +520,7 @@ class change_Log extends core_Manager
         if ($dataArr) {
             
             // Ако текущата версия е избрана
-            if ($dataArr[$versionId]) {
+            if (!empty($dataArr[$versionId])) {
                 
                 // Иконата за избрана версия
                 $icon = 'img/16/checkbox_yes.png';
@@ -531,8 +531,9 @@ class change_Log extends core_Manager
         }
         
         // Ако няма избрана версия и генерираме за последната
+        $markLast = false;
         if (!countR($dataArr) && $lastVer) {
-            
+
             // Флаг, да маркираме последната
             $markLast = true;
         }
@@ -858,7 +859,7 @@ class change_Log extends core_Manager
             $lastVer = static::getLastVersionIdFromDoc($docClass, $docId);
             
             // Ако е избрана последна версия
-            if ($versionArr[$lastVer]) {
+            if (!empty($versionArr[$lastVer])) {
                 
                 // Отбелязваме, че е избрана
                 $haveLast = true;
@@ -977,7 +978,7 @@ class change_Log extends core_Manager
         $versionsBetweenArr = static::getSelectedVersionsBetween($docClass, $docId);
         
         // Ако е в избраните, връщаме TRUE
-        if ($versionsBetweenArr[$versionId]) {
+        if (!empty($versionsBetweenArr[$versionId])) {
             
             return true;
         }
@@ -999,7 +1000,7 @@ class change_Log extends core_Manager
         
         $str = $docClass . '_' . $docId;
         
-        $arr = (array) $allVersionsArr[$str];
+        $arr = (array) ($allVersionsArr[$str] ?? null);
         
         // Ако е генерирано преди, връщаме
         if ($arr) {
@@ -1011,8 +1012,8 @@ class change_Log extends core_Manager
         $firstAndLastVerArr = static::getFirstAndLastVersion($docClass, $docId);
         
         // Ако има избрана първа версия
-        if ($firstAndLastVerArr['first']) {
-            
+        if (!empty($firstAndLastVerArr['first'])) {
+
             // Вземаме масива със записа
             $firstRecArr = static::getRecForVersion($docClass, $docId, $firstAndLastVerArr['first']);
             
@@ -1027,7 +1028,7 @@ class change_Log extends core_Manager
         $lastRecArr = false;
         
         // Ако име последна версия
-        if ($firstAndLastVerArr['last']) {
+        if (!empty($firstAndLastVerArr['last'])) {
             
             // Вземаме масива със записа
             $lastRecArr = static::getRecForVersion($docClass, $docId, $firstAndLastVerArr['last']);
@@ -1106,7 +1107,7 @@ class change_Log extends core_Manager
         
         $str = $docClass . '_' . $docId;
         
-        $recsArr = $allRecsArr[$str];
+        $recsArr = $allRecsArr[$str] ?? null;
         
         // Ако не е сетнат
         if ($recsArr !== false) {
@@ -1131,7 +1132,7 @@ class change_Log extends core_Manager
             }
         }
         
-        if ($allRecsArr[$str] === false) {
+        if (($allRecsArr[$str] ?? null) === false) {
             
             return false;
         }
@@ -1152,12 +1153,12 @@ class change_Log extends core_Manager
                 foreach ($field as $f) {
                     
                     // Добавяме в резултата
-                    $resRecArr[$f] = $recsArr[$f];
+                    $resRecArr[$f] = $recsArr[$f] ?? null;
                 }
             } else {
                 
                 // Ако е стринг, връщаме съответното поле
-                $resRecArr = $recsArr[$field];
+                $resRecArr = $recsArr[$field] ?? null;
             }
         } else {
             
@@ -1212,7 +1213,7 @@ class change_Log extends core_Manager
             } else {
                 
                 // Ако подадено поле съществува
-                if ($field[$f]) {
+                if (!empty($field[$f])) {
                     
                     // Добавяме в масива
                     $recArr[$f] = $val;

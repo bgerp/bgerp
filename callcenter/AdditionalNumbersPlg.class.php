@@ -135,7 +135,7 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
             }
             
             // Предпазва от повторно вкарване
-            if ($sNumArr[$nName][$rec->{$fName}]) {
+            if (!empty($sNumArr[$nName][$rec->{$fName}])) {
                 
                 continue;
             }

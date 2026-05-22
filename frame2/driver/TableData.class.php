@@ -312,8 +312,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         // Ако има полета за сумиране
         array_walk($data->recs, function ($a) use (&$summaryRow, $fieldsToSumArr){
             foreach ($fieldsToSumArr as $fld){
-                if(is_numeric($a->{$fld})){
-                    $summaryRow->{$fld} += $a->{$fld};
+                if(isset($a->{$fld}) && is_numeric($a->{$fld})){
+                    $summaryRow->{$fld} = ($summaryRow->{$fld} ?? 0) + $a->{$fld};
                 }
             }
         });

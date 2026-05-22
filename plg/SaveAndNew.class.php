@@ -44,7 +44,7 @@ class plg_SaveAndNew extends core_Plugin
             
             if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
-                    if ($fld->input == 'hidden' || $fld->remember == 'remember' || $fld->type->params['remember'] == 'remember') {
+                    if (($fld->input ?? null) == 'hidden' || ($fld->remember ?? null) == 'remember' || (isset($fld->type) && ($fld->type->params['remember'] ?? null) == 'remember')) {
                         $data->retUrl[$name] = Request::get($name);
                     }
                 }

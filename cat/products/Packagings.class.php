@@ -975,12 +975,12 @@ class cat_products_Packagings extends core_Detail
 
                 $resArr = array();
 
-                if (!$mvc->fields['packagingId'] && !$rec->quantityInPack && !$rec->packagingId) {
+                if (empty($mvc->fields['packagingId']) && empty($rec->quantityInPack) && empty($rec->packagingId)) {
                     $dArr = arr::make($mvc->details);
                     foreach ($dArr as $detail) {
                         $Detail = cls::get($detail);
 
-                        if (!$Detail->fields['packagingId']) {
+                        if (empty($Detail->fields['packagingId'])) {
 
                             continue;
                         }
@@ -1152,14 +1152,14 @@ class cat_products_Packagings extends core_Detail
         $mvc = cls::get($mvc);
 
         $notMatchArr = array();
-        if ($mvc->dontCheckQuantityInPack === true) return $notMatchArr;
+        if (($mvc->dontCheckQuantityInPack ?? null) === true) return $notMatchArr;
 
-        if (!$mvc->fields['packagingId'] && !$rec->quantityInPack && !$rec->packagingId) {
+        if (empty($mvc->fields['packagingId']) && empty($rec->quantityInPack) && empty($rec->packagingId)) {
             $dArr = arr::make($mvc->details);
             foreach ($dArr as $detail) {
                 $Detail = cls::get($detail);
 
-                if (!$Detail->fields['packagingId']) {
+                if (empty($Detail->fields['packagingId'])) {
 
                     continue;
                 }
@@ -1532,7 +1532,7 @@ class cat_products_Packagings extends core_Detail
         if (!$dInst->getField('createdOn', false)) {
             if ($dInst->Master && $dInst->masterKey) {
                 $mInst = cls::get($dInst->Master);
-                if ($mInst->fields['createdOn']) {
+                if (!empty($mInst->fields['createdOn'])) {
                     $dQuery->EXT('createdOn', $dInst->Master->className, "externalName=createdOn,externalKey={$dInst->masterKey}");
                 }
             }

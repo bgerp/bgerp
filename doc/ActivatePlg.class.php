@@ -25,8 +25,9 @@ class doc_ActivatePlg extends core_Plugin
     {
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
         $rec = $data->form->rec;
-        
-        if ($rec->id) {
+        $exRec = null;
+
+        if (!empty($rec->id)) {
             $exRec = $mvc->fetch($rec->id);
             $mvc->threadId = $exRec->threadId;
         }

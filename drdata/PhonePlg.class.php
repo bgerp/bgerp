@@ -39,7 +39,7 @@ class drdata_PhonePlg extends core_Plugin
         $countryField = ($mvc->phoneCountryField ?? null) ?: 'country';
         
         // Ако не е подадена държавата
-        if (!$rec->{$countryField}) {
+        if (!is_object($rec) || !$rec->{$countryField}) {
             
             return ;
         }

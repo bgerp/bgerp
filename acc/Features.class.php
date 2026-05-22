@@ -184,7 +184,7 @@ class acc_Features extends core_Manager
         core_Lg::pop();
         
         // Свойствата на обекта
-        $features = $itemRec->features;
+        $features = $itemRec->features ?? null;
         
         // Ако свойствата не са масив ги пропускаме
         if (!is_array($features)) {

@@ -470,12 +470,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             if (isset($dRec->quantity)) {
 
                 $quantityStr = ht::styleIfNegative($Double->toVerbal($dRec->quantity), $dRec->quantity);
-                $row->quantity .= $quantityStr;
+                $row->quantity = ($row->quantity ?? '') . $quantityStr;
             }
         } else {
 
             $quantityStr = ht::styleIfNegative($Double->toVerbal($dRec->quantity), $dRec->quantity);
-            $row->quantity .= '<table class="no-border full-width"><tr><th style="font-size: 1.05em; border-bottom: 1px solid #ccc !important;">Общо: </th><th style="font-size: 1em;border-bottom: 1px solid #ccc  !important;;">' .$quantityStr . '</th></tr>';
+            $row->quantity = ($row->quantity ?? '') . '<table class="no-border full-width"><tr><th style="font-size: 1.05em; border-bottom: 1px solid #ccc !important;">Общо: </th><th style="font-size: 1em;border-bottom: 1px solid #ccc  !important;;">' .$quantityStr . '</th></tr>';
 
             foreach ($dRec->storesQuatity as $val) {
                 $row->quantity .= "<tr>";
@@ -508,7 +508,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $orderArr = self::getPacksForOrder($dRec, $rec);
 
-        $row->packOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->packOrder);
+        $row->packOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal(is_object($orderArr) ? $orderArr->packOrder : null);
 
         if (isset($dRec->minQuantity)) {
             $t = core_Type::getByName('double(smartRound,decimals=3)');
@@ -562,6 +562,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         if (isset($data->rec->arhGroups)) {
             $marker = 0;
+            $groupVerb = '';
             foreach (keylist::toArray($data->rec->arhGroups) as $group) {
                 $marker++;
 
@@ -578,6 +579,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if (isset($data->rec->storeId)) {
 
             $marker = 0;
+            $storeIdVerb = '';
             foreach (type_Keylist::toArray($data->rec->storeId) as $store) {
                 $marker++;
 
@@ -1046,7 +1048,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $suggQuantity = $dRec->maxQuantity * $rec->orderLimit / 100 - $dRec->quantity;
 
             //Пакети за поръчка
-            $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
+            $_packInfo = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure] ?? null;
+            $quantityInPack = is_object($_packInfo) ? $_packInfo->quantity : null;
 
             if ($quantityInPack) {
                 $packOrder = ceil($suggQuantity / $quantityInPack);
@@ -1066,7 +1069,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $suggQuantity = $dRec->minQuantity * 3 - $dRec->quantity;
 
                 //Пакети за поръчка
-                $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
+                $_packInfo = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure] ?? null;
+                $quantityInPack = is_object($_packInfo) ? $_packInfo->quantity : null;
                 if ($quantityInPack) {
                     $packOrder = ceil($suggQuantity / $quantityInPack);
                     $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
@@ -1085,7 +1089,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                     $suggQuantity = $dRec->quantity * (-1);
 
                     //Пакети за поръчка
-                    $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
+                    $_packInfo = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure] ?? null;
+                    $quantityInPack = is_object($_packInfo) ? $_packInfo->quantity : null;
 
                     if ($quantityInPack) {
                         $packOrder = ceil($suggQuantity / $quantityInPack);
@@ -1103,7 +1108,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         }
 
         //Ако предложението за поръчка е отрицателно, то се нулира
-        if ($orderArr->packOrder < 0 || $orderArr->suggQuantity < 0) {
+        if (is_object($orderArr) && ($orderArr->packOrder < 0 || $orderArr->suggQuantity < 0)) {
             $orderArr->packOrder = $orderArr->suggQuantity = 0;
         }
 

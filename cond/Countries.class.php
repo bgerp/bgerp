@@ -137,7 +137,7 @@ class cond_Countries extends core_Manager
         
         if (isset($fields['-list'])) {
             $row->conditionId = cond_Parameters::getVerbal($paramRec, 'typeExt');
-            $row->ROW_ATTR['class'] .= ' state-active';
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-active';
             
             if (empty($rec->country)) {
                 $row->country = "<span class='quiet'>" . tr('Всички държави') . '</span>';
