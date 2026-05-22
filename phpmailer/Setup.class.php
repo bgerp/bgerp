@@ -48,7 +48,7 @@ defIfNot('SENDMAIL_PATH', '/usr/sbin/sendmail');
 /**
  * Дефинираме пътя до кода на PHP_Mailer
  */
-defIfNot('PML_VERSION', '5.2.27');
+defIfNot('PML_VERSION', '7.1.1');
 
 
 /**
@@ -131,8 +131,8 @@ class phpmailer_Setup extends core_ProtoSetup
         'PML_SMTPAUTH' => array('enum(TRUE=да, FALSE=не)', 'caption=Smtp->Оторизация'),
         'PML_USERNAME' => array('varchar', 'caption=Smtp->Потребител'),
         'PML_PASSWORD' => array('password', 'caption=Smtp->Парола'),
-        'PML_SMTPSECURE' => array('enum(tls=TLS, ssl=SSL, 0=няма)', 'caption=Smtp->Криптиране'),
-        'PML_VERSION' => array('enum(5.2.8, 5.2.22, 5.2.27)', 'caption=PML->Версия'),
+        'PML_SMTPSECURE' => array('enum(tls=TLS, ssl=SSL, =няма)', 'caption=Smtp->Криптиране'),
+        'PML_VERSION' => array('enum(5.2.8, 5.2.22, 5.2.27, 7.1.1)', 'caption=PML->Версия'),
     );
     
     /**
