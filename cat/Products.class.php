@@ -1387,12 +1387,12 @@ class cat_Products extends embed_Manager
      */
     public static function setCodeIfEmpty(&$rec)
     {
-        if ($rec->isPublic == 'no' && empty($rec->code)) {
-            $rec->code = "Art{$rec->id}";
+        if (($rec->isPublic ?? null) == 'no' && empty($rec->code)) {
+            $rec->code = 'Art' . ($rec->id ?? '');
         } else {
             if (empty($rec->code)) {
-                $code = ($rec->id) ? static::fetchField($rec->id, 'code') : null;
-                $rec->code = ($code) ? $code : "Art{$rec->id}";
+                $code = ($rec->id ?? null) ? static::fetchField($rec->id, 'code') : null;
+                $rec->code = ($code) ? $code : 'Art' . ($rec->id ?? '');
             }
         }
     }
@@ -1592,7 +1592,7 @@ class cat_Products extends embed_Manager
         }
 
         if ($rec->groups) {
-            if ($rec->isPublic == 'yes') {
+            if (($rec->isPublic ?? null) == 'yes') {
                 price_Cache::invalidateProduct($rec->id);
             }
         }
@@ -1659,7 +1659,7 @@ class cat_Products extends embed_Manager
         // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
         if (countR($mvc->createdProducts)) {
             foreach ($mvc->createdProducts as $rec) {
-                if ($rec->canManifacture == 'yes') {
+                if (($rec->canManifacture ?? null) == 'yes') {
                     try {
                         if ($bomId = self::createDefaultBom($rec)) {
                             core_Statuses::newStatus('Успешно е създадена нова базова рецепта|* #' . cat_Boms::getHandle($bomId));
@@ -1965,7 +1965,7 @@ class cat_Products extends embed_Manager
                 $favourites[$rec->id] = $title;
             } elseif($rec->state == 'template'){
                 $templates[$rec->id] = $title;
-            } elseif ($rec->isPublic == 'yes') {
+            } elseif (($rec->isPublic ?? null) == 'yes') {
                 $products[$rec->id] = $title;
             } else {
                 $private[$rec->id] = $title;
@@ -2636,7 +2636,7 @@ class cat_Products extends embed_Manager
     public static function getDisplayName($rec)
     {
         // Ако в името имаме '||' го превеждаме
-        $name = $rec->name;
+        $name = $rec->name ?? null;
 
         if (!Mode::is('forSearch')) {
             $lg = core_Lg::getCurrent();
@@ -2660,7 +2660,7 @@ class cat_Products extends embed_Manager
                 $rec = $mvc->fetchRec($rec);
             }
 
-            $originalName = $rec->name;
+            $originalName = $rec->name ?? null;
             $part = self::getDisplayName($rec);
             if (!Mode::is('forSearch')) {
                 if ($originalName == $part) {
@@ -2708,7 +2708,7 @@ class cat_Products extends embed_Manager
      */
     public function getRecTitleTpl($rec)
     {
-        $tpl = ($rec->isPublic != 'yes' || $rec->state == 'template') ? $this->recTitleNonPublicTpl : $this->recTitleTpl;
+        $tpl = (($rec->isPublic ?? null) != 'yes' || ($rec->state ?? null) == 'template') ? $this->recTitleNonPublicTpl : $this->recTitleTpl;
        
         return new core_ET($tpl);
     }
@@ -2768,7 +2768,7 @@ class cat_Products extends embed_Manager
         $subTitle = (is_array($fullTitle)) ? $fullTitle['subTitle'] : null;
         
         if ($showCode === true) {
-            if ($rec->isPublic == 'yes') {
+            if (($rec->isPublic ?? null) == 'yes') {
                 $titleTpl = new core_ET('<!--ET_BEGIN code--><span class=productCode>[#code#]</span> <!--ET_END code-->[#name#]');
             } else {
                 $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> <span class=productCode>[#code#]</span><!--ET_END code-->');
@@ -2785,7 +2785,7 @@ class cat_Products extends embed_Manager
             
             $title = $titleTpl->getContent();
             
-            if ($rec->isPublic == 'no' && empty($rec->code)) {
+            if (($rec->isPublic ?? null) == 'no' && empty($rec->code)) {
                 $count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
                 $title = "{$title} <span class='productCode'>Art{$rec->id}</span>";
                 
@@ -2854,7 +2854,7 @@ class cat_Products extends embed_Manager
         $rec = self::fetchRec($id, 'canManifacture');
         
         // Ако артикула не е производим не търсим рецепта
-        if ($rec->canManifacture == 'no') {
+        if (!is_object($rec) || ($rec->canManifacture ?? null) == 'no') {
             return false;
         }
         
@@ -3006,7 +3006,7 @@ class cat_Products extends embed_Manager
         
         // Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
         if (($action == 'edit' || $action == 'write' || $action == 'clonerec' || $action == 'close') && isset($rec)) {
-            if ($rec->isPublic == 'yes') {
+            if (is_object($rec) && ($rec->isPublic ?? null) == 'yes') {
                 if (!haveRole('ceo,cat,catEdit')) {
                     $res = 'no_one';
                 }
@@ -3796,7 +3796,7 @@ class cat_Products extends embed_Manager
         expect($jobRec = planning_Jobs::fetchRec($jobRec));
         $rec = self::fetch($jobRec->productId);
         
-        if ($rec->canManifacture != 'yes') return $defaultTasks;
+        if (!is_object($rec) || ($rec->canManifacture ?? null) != 'yes') return $defaultTasks;
         
         // Питаме драйвера какви дефолтни задачи да се генерират
         $ProductDriver = cat_Products::getDriver($rec);
@@ -3934,10 +3934,11 @@ class cat_Products extends embed_Manager
         $rec = $this->fetchRec($rec, 'canStore,canConvert');
         
         $accounts = '';
-        if ($rec->canStore == 'yes') {
-            $accounts .= ($rec->canConvert == 'yes') ? '321,323,61101' : '321,323';
+        if (!is_object($rec)) return $accounts;
+        if (($rec->canStore ?? null) == 'yes') {
+            $accounts .= (($rec->canConvert ?? null) == 'yes') ? '321,323,61101' : '321,323';
         } else {
-            $accounts .= ($rec->canConvert == 'yes') ? '61101,60201' : '60201';
+            $accounts .= (($rec->canConvert ?? null) == 'yes') ? '61101,60201' : '60201';
         }
         
         $accounts = arr::make($accounts, true);

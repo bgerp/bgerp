@@ -990,11 +990,11 @@ class log_Data extends core_Manager
 
         // Нишката посещавана ли е
         $oRecs = log_Data::getObjectRecs('doc_Threads', $objectRec->threadId, 'read', null, 1, 'DESC');
-        $lastDate1 = $oRecs[key($oRecs)]->time;
+        $lastDate1 = !empty($oRecs) ? $oRecs[key($oRecs)]->time : null;
 
         // Сингъла посещаван ли е
         $oRecs1 = log_Data::getObjectRecs($Class->className, $objectRec->id, 'read', null, 1, 'DESC');
-        $lastDate2 = $oRecs1[key($oRecs1)]->time;
+        $lastDate2 = !empty($oRecs1) ? $oRecs1[key($oRecs1)]->time : null;
 
         // По-голямата дата от двете
         $maxDate = max($lastDate1, $lastDate2);

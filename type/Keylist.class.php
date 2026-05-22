@@ -92,9 +92,9 @@ class type_Keylist extends core_Type
                         
                         $name = $this->getVerbal($v);
                         if ((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
-                            if ($this->params['makeLinks'] === 'short') {
+                            if (($this->params['makeLinks'] ?? null) === 'short') {
                                 $name = ht::createLinkRef($name, array($mvc, 'Single', $v), false, $attr);
-                            } elseif($this->params['makeLinks'] === 'hyperlink') {
+                            } elseif(($this->params['makeLinks'] ?? null) === 'hyperlink') {
                                 $name = $mvc->getHyperlink($v);
                             } else {
                                 $name = ht::createLink($name, array($mvc, 'Single', $v), false, $attr);
@@ -135,7 +135,7 @@ class type_Keylist extends core_Type
             return '';
         }
         
-        if ($this->params['mvc']) {
+        if (!empty($this->params['mvc'])) {
             
             $mvc = &cls::get($this->params['mvc']);
             
@@ -148,7 +148,7 @@ class type_Keylist extends core_Type
             } else {
                 $value = $mvc->getTitleById($k);
             }
-        } elseif ($this->params['function']) {
+        } elseif (!empty($this->params['function'])) {
         } elseif ($this->suggestions) {
             $value = $this->suggestions[$k];
         }
