@@ -59,7 +59,7 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
     {
         $valior = !empty($rec->{$mvc->valiorFld}) ? $rec->{$mvc->valiorFld} : (isset($rec->id) ? $mvc->fetchField($rec->id, $mvc->valiorFld, '*') : null);
 
-        if($rec->state == 'active' && empty($valior)){
+        if(($rec->state ?? null) == 'active' && empty($valior)){
             $rec->{$mvc->valiorFld} = dt::today();
         }
     }

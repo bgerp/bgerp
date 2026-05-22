@@ -980,11 +980,11 @@ class deals_QuotationDetails extends doc_Detail
 
         $miscMandatory = $masterRec->currencyId . $vatRow;
         $miscOptional = $masterRec->currencyId . $vatRow;
-        if (countR($data->discounts) && $data->hasDiscounts === true) {
+        if (countR($data->discounts ?? null) && ($data->hasDiscounts ?? null) === true) {
             $miscMandatory .= ', ' . tr('без извадени отстъпки');
         }
 
-        if (countR($data->discountsOptional) && $data->hasDiscounts === true) {
+        if (countR($data->discountsOptional ?? null) && ($data->hasDiscounts ?? null) === true) {
             $miscOptional .= ', ' . tr('без извадени отстъпки');
         }
 

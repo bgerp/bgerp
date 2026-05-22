@@ -799,7 +799,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Задаваме началното състояние по подразбиране
-            if (!$rec->state) {
+            if (empty($rec->state)) {
                 $rec->state = ($mvc->firstState ?? null) ? $mvc->firstState : 'draft';
             }
 
@@ -3008,7 +3008,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($action == 'pending' && isset($rec)) {
             if (isset($mvc->mainDetail) && ($mvc->requireDetailForPending ?? null) === true) {
                 $Detail = cls::get($mvc->mainDetail);
-                if (!$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) {
+                if (empty($rec->id) || !$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) {
                     $requiredRoles = 'no_one';
                 }
             }
