@@ -240,7 +240,7 @@ class hr_Leaves extends core_Master
     {
         $curUrl = getCurrentUrl();
         
-        if ($curUrl['Order'] == 'yes') {
+        if (($curUrl['Order'] ?? null) == 'yes') {
             $mvc->singleLayoutFile = 'hr/tpl/SingleLeaveOrders.shtml';
         }
     }

@@ -852,12 +852,13 @@ class doc_DocumentPlg extends core_Plugin
         // core_Cache::remove($mvc->className, $key);
         
         // Намира контейнера на документа
-        $containerId = $rec->containerId ? $rec->containerId : $mvc->fetch($rec->id)->containerId;
+        $_fetchedRec = (!empty($rec->containerId)) ? null : $mvc->fetch($rec->id);
+        $containerId = !empty($rec->containerId) ? $rec->containerId : (is_object($_fetchedRec) ? $_fetchedRec->containerId : null);
         
         // Възстановяваме (ако е необходимо) нишката ПРЕДИ да създадем/обновим контейнера
         // Това гарантира, че абонатите на оттеглени нишки все пак ще получат нотификация за
         // новопристигналия документ
-        if ($rec->threadId && $rec->state != 'rejected') {
+        if (!empty($rec->threadId) && ($rec->state ?? null) != 'rejected') {
             doc_Threads::restoreThread($rec->threadId);
         }
         
@@ -1097,12 +1098,12 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Ако нямаме папка - форсираме папката по подразбиране за този клас
-        if (!$rec->folderId) {
+        if (empty($rec->folderId)) {
             $rec->folderId = $mvc->getDefaultFolder();
         }
-        
+
         // Ако нямаме тред - създаваме нов тред в тази папка
-        if (!$rec->threadId) {
+        if (empty($rec->threadId)) {
             $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn ?? null, $rec->createdBy ?? null, $rec->_notModified ?? null);
         }
         
@@ -1718,7 +1719,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $rec = $mvc->fetchRec($recId);
         
-        if ($rec->containerId == $docId) {
+        if (is_object($rec) && ($rec->containerId ?? null) == $docId) {
             $res = true;
         }
     }
