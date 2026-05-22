@@ -973,11 +973,11 @@ if ($step == 3) {
     $stat = array();
     $texts['body'] = ($texts['body'] ?? '') . logToHtml($log, $stat);
     
-    if ($stat['err']) {
+    if (!empty($stat['err'])) {
         $texts['body'] = "<ul class='msg stats'><li>" .
         "<a href='{$selfUrl}' class='err'>Отстранете грешките и опитайте пак...</a></li><ul><br>" .
         $texts['body'];
-    } elseif ($stat['wrn']) {
+    } elseif (!empty($stat['wrn'])) {
         $texts['body'] = "<ul class='msg stats'><li>" .
         "<a href='{$nextUrl}' class='wrn'>Има предупреждения. Ще продължите ли нататък? »</a></li><ul><br>" .
         $texts['body'];
@@ -1875,7 +1875,7 @@ function addParams($url, $newParams)
     }
     $res .= $purl['host'];
     
-    if ($purl['port']) {
+    if (!empty($purl['port'])) {
         $res .= ':' . $purl['port'];
     }
     
