@@ -224,7 +224,7 @@ class plg_Clone extends core_Plugin
             if ($action == 'clonerec') {
                 
                 // Ако е създаден от системния потребител
-                if ($rec->createdBy == core_Users::SYSTEM_USER) {
+                if (isset($rec) && ($rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
                     
                     // Проверява се дали има права да клонира системните данни
                     if (!$mvc->haveRightFor('clonesysdata', $rec)) {
@@ -277,7 +277,7 @@ class plg_Clone extends core_Plugin
         $field = !empty($mvc->rowToolsField) ? $mvc->rowToolsField : 'id';
         
         // Съдържанието на полето
-        $rowField = $row->$field;
+        $rowField = $row->$field ?? null;
         
         // Ако полето не обект
         if (!is_object($rowField)) {

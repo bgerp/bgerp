@@ -242,7 +242,7 @@ class core_Detail extends core_Manager
         
         $form = $data->form;
         
-        if (!$data->masterMvc) {
+        if (empty($data->masterMvc)) {
             $data->masterMvc = $this->getMasterMvc($data->form->rec);
         }
 
@@ -250,7 +250,7 @@ class core_Detail extends core_Manager
             $this->currentTab = $data->masterMvc;
         }
 
-        if (!$data->masterKey) {
+        if (empty($data->masterKey)) {
             $data->masterKey = $this->getMasterKey($data->form->rec);
         }
         
@@ -280,7 +280,7 @@ class core_Detail extends core_Manager
      */
     public function prepareEditTitle_($data)
     {
-        $data->form->title = static::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id, $this->formTitlePreposition);
+        $data->form->title = static::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id ?? null, $this->formTitlePreposition ?? null);
     }
     
     

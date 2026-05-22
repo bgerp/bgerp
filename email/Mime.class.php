@@ -734,7 +734,7 @@ class email_Mime extends core_BaseClass
             }
         }
         
-        return static::getHeadersFromArr($headersArr, $name, $headerIndex, $decode, $this->parts[1]->charset);
+        return static::getHeadersFromArr($headersArr, $name, $headerIndex, $decode, $this->parts[1]->charset ?? null);
     }
     
     
@@ -753,17 +753,17 @@ class email_Mime extends core_BaseClass
         $name = strtolower($name);
         
         if ($headerIndex == '*') {
-            if (is_array($headersArr[$name])) {
+            if (!empty($headersArr[$name]) && is_array($headersArr[$name])) {
                 $res = implode(' ', $headersArr[$name]);
             }
         } else {
             if ($headerIndex < 0) {
-                $headerIndex = countR($headersArr[$name]) + $headerIndex;
+                $headerIndex = countR($headersArr[$name] ?? []) + $headerIndex;
             }
-            
+
             expect(is_int($headerIndex));
-            
-            $res = $headersArr[$name][$headerIndex];
+
+            $res = ($headersArr[$name] ?? [])[$headerIndex] ?? null;
         }
 
         if ($decode) {
@@ -782,7 +782,8 @@ class email_Mime extends core_BaseClass
         $header = $this->getHeader($headerName, $part);
         
         $hParts = explode(';', $header);
-        
+        $res = array();
+
         foreach ($hParts as $p) {
             if (!trim($p)) {
                 continue;
@@ -886,7 +887,8 @@ class email_Mime extends core_BaseClass
         }
         
         $bestPos = strlen($data);
-        
+        $nl = null;
+
         foreach (array("\r\n", "\r", "\n") as $c) {
             $headerDelim = $c . $c;
             $pos = strpos($data, $headerDelim);
@@ -932,7 +934,7 @@ class email_Mime extends core_BaseClass
         // Парсираме хедър-а 'Content-Type'
         $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
         
-        list($p->type, $p->subType) = explode('/', strtoupper($ctParts[0]), 2);
+        list($p->type, $p->subType) = explode('/', strtoupper($ctParts[0] ?? ''), 2) + ['', ''];
         
         $p->type = trim($p->type);
         $p->subType = trim($p->subType);
@@ -954,7 +956,7 @@ class email_Mime extends core_BaseClass
         
         // Ако по никакъв начин не сме успели да определим типа, приемаме че е 'TEXT'
         if (empty($p->type)) {
-            if (!$p->name) {
+            if (empty($p->name)) {
                 $p->type = 'TEXT';
             } else {
                 $p->type = 'X-UNKNOWN';
@@ -976,12 +978,12 @@ class email_Mime extends core_BaseClass
             }
         }
         
-        $p->charset = i18n_Charset::getCanonical($p->charset);
+        $p->charset = i18n_Charset::getCanonical($p->charset ?? null);
         
         // Парсираме хедър-а 'Content-Transfer-Encoding'
         $cte = $this->extractHeader($p, 'Content-Transfer-Encoding');
         
-        if ($cte[0]) {
+        if (!empty($cte[0])) {
             $p->encoding = i18n_Encoding::getCanonical($cte[0]);
         }
         
@@ -991,7 +993,7 @@ class email_Mime extends core_BaseClass
         // Парсираме хедър-а 'Content-ID'
         $cid = $this->getHeader('Content-ID', $p);
         
-        if ($cd[0]) {
+        if (!empty($cd[0])) {
             $p->attachment = $cd[0];
         } else {
             
@@ -1047,7 +1049,7 @@ class email_Mime extends core_BaseClass
             $data2 = false;
             
             // Декодиране
-            switch ($p->encoding) {
+            switch ($p->encoding ?? null) {
                 case 'BASE64':
                     $data2 = imap_base64($data);
                     break;
@@ -1063,13 +1065,13 @@ class email_Mime extends core_BaseClass
             }
             
             // Ако часта e текстова и не е атачмънт, то по подразбиране, този текст е PLAIN
-            if ($p->attachment != 'attachment' && $p->type == 'TEXT' && !trim($p->subType)) {
+            if (($p->attachment ?? null) != 'attachment' && ($p->type ?? null) == 'TEXT' && !trim($p->subType ?? '')) {
                 $p->subType = 'PLAIN';
             }
             
             // Конвертиране към UTF-8
-            if ($p->type == 'TEXT' && ($p->subType == 'PLAIN' || $p->subType == 'HTML') && ($p->attachment != 'attachment')) {
-                $text = i18n_Charset::convertToUtf8($data, $p->charset, $p->subType == 'HTML');
+            if (($p->type ?? null) == 'TEXT' && (($p->subType ?? null) == 'PLAIN' || ($p->subType ?? null) == 'HTML') && (($p->attachment ?? null) != 'attachment')) {
+                $text = i18n_Charset::convertToUtf8($data, $p->charset ?? null, ($p->subType ?? null) == 'HTML');
                 
                 // Текстовата част, без да се гледа HTML частта
                 if ($p->subType == 'PLAIN') {
@@ -1303,24 +1305,25 @@ class email_Mime extends core_BaseClass
      */
     public static function emailListToVerbal($list)
     {
+        $res = '';
         if (countR($list)) {
             foreach ($list as $item) {
                 $address = $item['address'];
                 
                 if ($address) {
-                    if ($item['isExternal']) {
+                    if (!empty($item['isExternal'])) {
                         $inst = cls::get('type_Email');
                         $address = $inst->toVerbal($address);
                     } else {
                         $address = type_Email::escape($address);
                         
-                        if ($item['isWrong']) {
+                        if (!empty($item['isWrong'])) {
                             $address = "<span style='border-bottom: 1px solid red;'>" . $address . '</span>';
                         }
                     }
                     
                     $res .= '<span>' . $address;
-                    if ($item['name']) {
+                    if (!empty($item['name'])) {
                         $res .= ' (' . $item['name'] . ')';
                     }
                     $res .= '</span>, ';

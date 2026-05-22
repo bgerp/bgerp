@@ -244,15 +244,15 @@ class email_Router extends core_Manager
         
         $toEmail = email_Inboxes::replaceDomains($toEmail);
         
-        if ($type[self::RuleFromTo]) {
+        if (!empty($type[self::RuleFromTo])) {
             $keys[self::RuleFromTo] = str::convertToFixedKey($fromEmail . '|' . $toEmail);
         }
-        
-        if ($type[self::RuleFrom]) {
+
+        if (!empty($type[self::RuleFrom])) {
             $keys[self::RuleFrom] = str::convertToFixedKey($fromEmail);
         }
-        
-        if ($type[self::RuleDomain]) {
+
+        if (!empty($type[self::RuleDomain])) {
             if (!static::isPublicDomain($domain = type_Email::domain($fromEmail))) {
                 $keys[self::RuleDomain] = str::convertToFixedKey($domain);
             }

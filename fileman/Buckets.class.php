@@ -197,12 +197,12 @@ class fileman_Buckets extends core_Manager
                         $extMimeArr['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
                     }
 
-                    $acceptArr = arr::make($info->accept, true);
+                    $acceptArr = arr::make($info->accept ?? null, true);
                     $acceptArr = arr::combine($acceptArr, $extMimeArr);
                     $acceptArr['.' . $ext] = '.' . $ext;
                     $info->accept = implode(',', $acceptArr);
                     
-                    $info->extensions .= ($info->extensions ? ', ' : '') . mb_strtolower(trim($ext));
+                    $info->extensions = ($info->extensions ?? '') . (($info->extensions ?? '') ? ', ' : '') . mb_strtolower(trim($ext));
                 }
             }
         }

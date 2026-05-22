@@ -2561,7 +2561,7 @@ class crm_Companies extends core_Master
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+        $res = drdata_Countries::addCountryInBothLg(is_object($rec) ? ($rec->country ?? null) : null, $res);
         
         // Ако полето е обозначено за оказване
         if (isset($rec->nkid)) {

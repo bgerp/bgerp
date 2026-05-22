@@ -776,7 +776,7 @@ class doc_DocumentPlg extends core_Plugin
     public function on_BeforeSave($mvc, $id, $rec, $fields = null)
     {
         // Ако създаваме нов документ и ...
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             if(($mvc->addLinkedOriginFieldName ?? null) && $rec->{$mvc->addLinkedOriginFieldName} && $mvc->canAddDocumentToOriginAsLink($rec)){
                 $mvc->addDocumentLinks[$rec->id] = $rec;
             }
@@ -803,7 +803,7 @@ class doc_DocumentPlg extends core_Plugin
                 $rec->state = ($mvc->firstState ?? null) ? $mvc->firstState : 'draft';
             }
 
-            if (($rec->state == 'rejected') && (($mvc->firstState ?? null) != 'rejected') && (!$rec->brState)) {
+            if (($rec->state == 'rejected') && (($mvc->firstState ?? null) != 'rejected') && (empty($rec->brState))) {
                 $rec->brState = ($mvc->firstState ?? null) ? $mvc->firstState : 'draft';
             }
 
@@ -823,7 +823,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec->modifiedOn = dt::verbal2Mysql();
         }
         
-        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
+        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && !empty($rec->brState) && ($rec->brState ?? null) != 'rejected') || $rec->state != 'draft')) {
             if ($rec->id) {
                 $oRec = $mvc->fetch($rec->id);
                 if ($rec->state !== $oRec->state) {

@@ -341,7 +341,7 @@ class doc_Threads extends core_Manager
         $isLoging = core_Debug::$isLogging;
         core_Debug::$isLogging = false;
 
-        $resArr = array('firstContainerId' => 0, 'del_cnt' => 0, 'updateThread' => 0);
+        $resArr = array('firstContainerId' => 0, 'del_cnt' => 0, 'updateThread' => 0, 'folderId' => 0, 'firstDocClass' => 0, 'firstDocId' => 0, 'allDocCnt' => 0, 'partnerDocCnt' => 0, 'firstContainerIdState' => 0);
         
         // id на папката за несортирани
         $unsortedCoverClassId = core_Classes::getId('doc_UnsortedFolders');
@@ -453,7 +453,7 @@ class doc_Threads extends core_Manager
                     self::save($rec, $fieldsList);
                     self::logNotice('Поправен/и ' . $fieldsList, $rec->id);
                     foreach ($fields as $f) {
-                        $resArr[$f]++;
+                        $resArr[$f] = ($resArr[$f] ?? 0) + 1;
                     }
                     
                     continue;
@@ -492,7 +492,7 @@ class doc_Threads extends core_Manager
      */
     public static function repairAll($from = null, $to = null, $delay = 10)
     {
-        $resArr = array();
+        $resArr = array('folderId' => 0, 'allDocCnt' => 0, 'partnerDocCnt' => 0, 'firstContainerId' => 0, 'firstDocClass' => 0, 'firstDocId' => 0, 'firstContainerIdState' => 0);
         $query = self::getQuery();
         
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
