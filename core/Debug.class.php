@@ -1029,8 +1029,10 @@ class core_Debug
         }
         
         // Когато сме в режим на маскиране на грешките (@) да не показваме съобщение
-        if (CORE_ENABLE_SUPRESS_ERRORS && error_reporting() == 0) {
-            
+        // PHP 7.x: @op → error_reporting() == 0 inside handler
+        // PHP 8.0+: @op → error_reporting() returns configured level; use bitwise check
+        if (CORE_ENABLE_SUPRESS_ERRORS && (error_reporting() == 0 || !($errno & error_reporting()))) {
+
             return;
         }
         

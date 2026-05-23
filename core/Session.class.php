@@ -271,13 +271,17 @@ class core_Session
         }
         
         if (!$this->_started || $forced) {
-            @session_start();
+            if (!headers_sent() && session_status() !== PHP_SESSION_ACTIVE) {
+                @session_start();
+            }
             $this->_started = true;
             $this->pause = false;
         }
-        
+
         if ($this->pause) {
-            @session_start();
+            if (!headers_sent() && session_status() !== PHP_SESSION_ACTIVE) {
+                @session_start();
+            }
             $this->pause = false;
         }
     }

@@ -18,7 +18,7 @@
  **********************************/
 
 // Ако извикването идва от крон-а го игнорираме
-if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
+if ((($_GET['Ctr'] ?? '') == 'core_Cron' || ($_GET['Act'] ?? '') == 'cron')) {
     return;
 }
       
@@ -54,7 +54,7 @@ if (setupKeyValid() && !setupProcess()) {
 header('X-Accel-Buffering: no');
 
 // На коя стъпка се намираме в момента?
-$step = $_GET['step'] ? $_GET['step'] : 1;
+$step = ($_GET['step'] ?? '') ?: 1;
 $texts['currentStep'] = $step;
 $efSaltGenerated = false;
 
@@ -1297,13 +1297,13 @@ if ($step == 'start') {
     global $setupFlag;
 
     $setupFlag = true;
-    
+
     // Създаваме празен Log файл
     file_put_contents(EF_SETUP_LOG_PATH, '');
-    
+
     // Локал за функции като basename, fgetcsv
     setlocale(LC_ALL, 'en_US.UTF8');
-    
+
     $ef = new core_Setup();
     try {
         try {
@@ -1317,7 +1317,7 @@ if ($step == 'start') {
         file_put_contents(EF_SETUP_LOG_PATH, $e->getMessage());
         reportException($e);
     }
-    
+
     $Packs = cls::get('core_Packs');
 
     $Packs->setupPack('bgerp');
