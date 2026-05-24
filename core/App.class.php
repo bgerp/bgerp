@@ -24,12 +24,13 @@ class core_App
     public static function run()
     {
         $boot = trim(getBoot(), '/\\');
-        $vUrl = trim($_GET['virtual_url'], '/\\');
+        $vUrl = trim($_GET['virtual_url'] ?? '', '/\\');
+        $filename = null;
         if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
 
-        if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,11}$/i', $filename)) {
+        if ($filename !== null && preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,11}$/i', $filename)) {
             
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
             core_Webroot::serve($filename);
@@ -255,7 +256,7 @@ class core_App
     {
         // Вземаме името на приложението от параметрите на URL, ако не е дефинирано
         if (!defined('EF_APP_NAME')) {
-            if (!$_GET['App']) {
+            if (empty($_GET['App'])) {
                 halt('Error: Unable to determinate application name (EF_APP_NAME)</b>');
             }
             
@@ -891,14 +892,15 @@ class core_App
                     foreach ($value as $k => $v) {
                         if (is_array($v)) {
                             wp($v);
+                            continue;
                         }
-                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . @urlencode($v);
+                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . urlencode((string)$v);
                     }
                 } else {
                     if (is_array($value)) {
                         wp($value);
                     }
-                    $url .= ($url ? '/' : '') . "{$key}/" . @urlencode($value);
+                    $url .= ($url ? '/' : '') . "{$key}/" . urlencode((string)$value);
                 }
             }
         } else {
