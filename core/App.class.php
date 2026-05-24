@@ -208,7 +208,7 @@ class core_App
                     continue;
                 }
                 
-                if ((countR($vUrl) - $id) % 2 || floor($prm) > 0) {
+                if ((countR($vUrl) - $id) % 2 || (is_numeric($prm) && floor((float)$prm) > 0)) {
                     if (!isset($q['id']) && empty($name)) {
                         $q['id'] = urldecode($prm);
                     } else {
