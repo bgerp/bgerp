@@ -114,7 +114,7 @@ class eshop_ProductDetails extends core_Detail
         $this->FLD('deliveryTime', 'time', 'caption=Доставка до');
         
         $this->FLD('state', 'enum(active=Активен,closed=Затворен)', 'caption=Състояние,input=none');
-        $this->FLD('action', 'enum(price=Само цена,inquiry=Запитване,buy=Купуване,both=Запитване и купуване)', 'caption=Действия,mandatory');
+        $this->FLD('action', 'enum(price=Само цена,inquiry=Запитване,buy=Купуване,both=Запитване и купуване,stopped=Спрян)', 'caption=Действия,mandatory');
         $this->FLD('moq', 'double(min=0)', 'caption=MKП');
         
         $this->setDbUnique('eshopProductId,title');
@@ -438,8 +438,8 @@ class eshop_ProductDetails extends core_Detail
 
         $productRec = cat_Products::fetch($rec->productId, 'state');
         $row->packagingId = cat_UoM::getShortName($rec->packagingId);
-        
-        $showPrice = !(($productRec->state == 'template'));
+
+        $showPrice = !($productRec->state == 'template' || $rec->action == 'stopped');
         $showCartBtn = in_array($rec->action, array('buy', 'both'));
         
         if($productRec->state != 'template' && $rec->action != 'inquiry'){
@@ -477,6 +477,8 @@ class eshop_ProductDetails extends core_Detail
                     }
                 }
             }
+        } elseif($rec->action == 'stopped'){
+            $row->catalogPrice = "<span class='option-not-in-stock notAvailable'>{$settings->stoppedOptionName}</span><br>";
         }
         
         $row->orderPrice = $catalogPriceInfo->price;
