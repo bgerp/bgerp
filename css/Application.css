@@ -1679,13 +1679,17 @@ a.tUnsighted {
   .documentTags .tags.tagType-personal {
     border-radius: 5px; }
 
+.titleTags.leftCol {
+  white-space: normal !important; }
+
 .titleTags,
 .small.openModal {
   line-height: 1.5em !important; }
 
 .titleTags .documentTags {
   position: relative;
-  top: -2px; }
+  top: -2px;
+  white-space: nowrap; }
 
 .tags.lightBg a {
   color: black !important; }
