@@ -252,7 +252,7 @@ class eshop_ProductDetails extends core_Detail
         	$row->ROW_ATTR['class'] = "state-{$rec->state}";
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
         	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-        	if ($productRec->state != 'template' && !self::getPublicDisplayPrice($rec->productId)) {
+        	if ($productRec->state != 'template' && !self::getPublicDisplayPrice($rec->productId) && $rec->action != 'stopped') {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена', 'warning');
             }
             
@@ -789,7 +789,7 @@ class eshop_ProductDetails extends core_Detail
             }
             
         } else {
-            $data->listFields = arr::make('eshopProductId=Е-артикул,title=Заглавие,packagings=Опаковки/Мерки,domainId=Домейн,deliveryTime=Доставка,created=Създаване');
+            $data->listFields = arr::make('eshopProductId=Е-артикул,title=Заглавие,packagings=Опаковки/Мерки,action=Действие,domainId=Домейн,deliveryTime=Доставка,created=Създаване');
             $data->info = tr('Артикулът може да бъде продаван в Е-маг');
             
             // Извличане и вербализиране на записите
