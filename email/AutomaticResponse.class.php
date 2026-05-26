@@ -121,7 +121,7 @@ class email_AutomaticResponse extends core_Master
         $this->FLD('content', 'richtext(rows=4)', 'caption=Шаблон за получени имейли->Съдържание');
         $this->FLD('titleOfMessage', 'varchar(128)', 'caption=Автоматични отговори->Заглавие, mandatory');
         $this->FLD('text', 'richtext(rows=4)', 'caption=Автоматични отговори->Съдържание, mandatory');
-        $this->FLD('state', 'enum(active=Активна, rejected=Отхвърлена)', 'caption=Автоматични отговори->Състояние');
+        $this->FLD('state', 'enum(active=Активен, rejected=Деактивиран)', 'caption=Автоматични отговори->Състояние');
         $this->FLD('inboxEmail', 'key(mvc=email_inboxes,select=email)', 'caption=Автоматични отговори->Имейл, mandatory');
         if(core_Packs::isInstalled('ai')){
             $this->FLD('aiInstructions', 'text(rows=3)', 'caption=Интелигентен Асистент->Инструкции, input');
