@@ -886,8 +886,7 @@ class core_Packs extends core_Manager
         
         DEBUG::stopTimer("Инициализация на пакет '{$pack}'");
         
-        if ($setupFlag && $pack == 'bgerp') {
-            // в setup-a очакваме резултат
+        if ($setupFlag) {
             return;
         }
         
@@ -967,7 +966,7 @@ class core_Packs extends core_Manager
             $packConfig = static::getConfig($packConfig);
         }
         
-        return $packConfig->_data[$key];
+        return $packConfig->_data[$key] ?? null;
     }
     
     

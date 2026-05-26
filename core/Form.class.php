@@ -1266,7 +1266,7 @@ class core_Form extends core_FieldSet
     public function getMvc()
     {
         if (!($mvc = $this->mvc)) {
-            $ctr = $this->action['Ctr'];
+            $ctr = $this->action['Ctr'] ?? null;
             if (!$ctr) {
                 expect($ctr = $this->action[0]);
             }

@@ -242,7 +242,7 @@ class webkittopdf_Setup extends core_ProtoSetup
         $trimRes = '';
         foreach ((array) $resArr as $res) {
             if (stripos($res, 'wkhtmltopdf') !== false) {
-                $trimRes = trim($resArr[1]);
+                $trimRes = trim($res);
             }
         }
 

@@ -531,8 +531,8 @@ class email_Router extends core_Manager
         static $hostNameArr = array();
         
         // Да не се определя повторно
-        if ($hostNameArr[$boxFrom]) {
-            
+        if (!empty($hostNameArr[$boxFrom])) {
+
             return $hostNameArr[$boxFrom];
         }
         

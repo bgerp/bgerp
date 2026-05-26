@@ -2580,7 +2580,7 @@ class crm_Persons extends core_Master
         $personRec = static::fetch(array("LOWER(#buzEmail) LIKE '%[#1#]%'", $email));
 
         // Ако има бизнес имейл и асоциирана фирма с потребителя
-        if ($companyId = $personRec->buzCompanyId) {
+        if (is_object($personRec) && ($companyId = ($personRec->buzCompanyId ?? null))) {
 
             // Вземаме папката на фирмата
             $folderId = crm_Companies::forceCoverAndFolder($companyId);

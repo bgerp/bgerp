@@ -1388,7 +1388,7 @@ class doclog_Documents extends core_Manager
             expect($rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId'));
         }
         
-        if (!$rec->mid && !in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD, self::ACTION_HISTORY))) {
+        if (!($rec->mid ?? null) && !in_array($rec->action ?? null, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN, self::ACTION_DOWNLOAD, self::ACTION_CHANGE, self::ACTION_FORWARD, self::ACTION_HISTORY))) {
             $rec->mid = static::generateMid();
         }
         
@@ -2137,7 +2137,7 @@ class doclog_Documents extends core_Manager
                 
                 $doc = doc_Containers::getDocument($rec->containerId);
                 
-                if ($doc && ($doc->instance->stopRiskIpNotfications !== true)) {
+                if ($doc && (($doc->instance->stopRiskIpNotfications ?? null) !== true)) {
                     $sendEmailsArr = doclog_Documents::getSendEmails(null, $rec->mid);
                     
                     $emailsTld = type_Emails::getCountryFromTld($sendEmailsArr, 'letterCode2');

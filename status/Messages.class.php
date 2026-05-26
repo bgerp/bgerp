@@ -240,7 +240,7 @@ class status_Messages extends core_Manager
                 // Хеша на стринга
                 $strHash = md5($rec->text . $rec->type);
                 
-                if ($checkedArr[$strHash]) {
+                if (!empty($checkedArr[$strHash])) {
                     $skip = true;
                 }
                 

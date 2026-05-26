@@ -44,13 +44,13 @@ class bgerp_plg_Blank extends core_Plugin
             $blank = new ET(getFileContent('/bgerp/tpl/Blank.shtml'));
 
             //Създаваме и заместваме логото на фирмата
-            $logoPath = self::getCompanyLogoUrl($mvc->blankImage);
+            $logoPath = self::getCompanyLogoUrl($mvc->blankImage ?? null);
             $logo = "<img src='" . $logoPath . "' alt='Logo'  width='750' height='87'>";
             
             $blank->replace($logo, 'blankImage');
             
             // Подготовка на QR кода
-            $qrA = self::getQrCode($data->rec->containerId, $data->__MID__);
+            $qrA = self::getQrCode($data->rec->containerId, $data->__MID__ ?? null);
             
             //Заместваме стойностите в шаблона
             $blank->replace($qrA, 'blankQr');

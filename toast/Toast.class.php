@@ -61,6 +61,7 @@ class toast_Toast extends core_Plugin
         $resStatus = array();
         
         $bStayTime = 0;
+        $timeOut = 0;
         foreach ($notifArr as $val) {
             
             // Всеки следващ статус със закъсенине + 1 секунди

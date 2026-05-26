@@ -512,7 +512,7 @@ class bgerp_Menu extends core_Manager
     public static function on_Shutdown($mvc)
     {
         // Ако имаме добавения по менюто
-        if (countR($mvc->savedItems)) {
+        if (countR($mvc->savedItems ?? null)) {
 
             // Ако е зададено да се изтриват
             if ($mvc->deleteNotInstalledMenu) {

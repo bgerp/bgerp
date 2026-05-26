@@ -961,7 +961,7 @@ class core_Debug
         // Определяме заглавието на грешката в лога
         $ctr = $_GET['Ctr'] ?? 'Index';
         $act = $_GET['Act'] ?? 'default';
-        $title = EF_DB_NAME . '_' . $ctr . '_' . $act . '_' . $state['httpStatusCode'];
+        $title = (defined('EF_DB_NAME') ? EF_DB_NAME : 'unknown') . '_' . $ctr . '_' . $act . '_' . $state['httpStatusCode'];
         $title = preg_replace('/[^A-Za-z0-9_?!]/', '_', $title);
         
         // Ако е необходимо записваме дебъг информацията
@@ -977,7 +977,7 @@ class core_Debug
                 'domain' => $_SERVER['SERVER_NAME'],
                 'errCtr' => $ctr,
                 'errAct' => $act,
-                'dbName' => EF_DB_NAME,
+                'dbName' => defined('EF_DB_NAME') ? EF_DB_NAME : 'unknown',
                 'title' => ltrim($state['errTitle'], '@'),
             );
             
@@ -1029,8 +1029,10 @@ class core_Debug
         }
         
         // Когато сме в режим на маскиране на грешките (@) да не показваме съобщение
-        if (CORE_ENABLE_SUPRESS_ERRORS && error_reporting() == 0) {
-            
+        // PHP 7.x: @op → error_reporting() == 0 inside handler
+        // PHP 8.0+: @op → error_reporting() returns configured level; use bitwise check
+        if (CORE_ENABLE_SUPRESS_ERRORS && (error_reporting() == 0 || !($errno & error_reporting()))) {
+
             return;
         }
         

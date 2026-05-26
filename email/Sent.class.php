@@ -61,7 +61,7 @@ class email_Sent
             'charset' => $options['encoding'],
         );
         
-        if ($body->__inReplyTo) {
+        if (!empty($body->__inReplyTo)) {
             $messageBase['headers']['In-Reply-To'] = $body->__inReplyTo;
         }
         
@@ -74,8 +74,8 @@ class email_Sent
             'boxFrom' => $boxFrom,
             'mid' => $body->__mid,
             'encoding' => $options['encoding'],
-            'attachments' => (is_array($body->attachments)) ? keylist::fromArray($body->attachments) :$body->attachments,
-            'documents' => (is_array($body->documents)) ? keylist::fromArray($body->documents) :$body->documents,
+            'attachments' => (is_array($body->attachments ?? null)) ? keylist::fromArray($body->attachments) : ($body->attachments ?? null),
+            'documents' => (is_array($body->documents ?? null)) ? keylist::fromArray($body->documents) : ($body->documents ?? null),
         );
         
         $message = (object) $messageBase;

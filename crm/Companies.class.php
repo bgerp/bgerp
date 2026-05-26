@@ -2024,24 +2024,24 @@ class crm_Companies extends core_Master
         $ownCompany = static::fetchOwnCompany();
         
         // Ако id' то е в данните на контрагента
-        if ($ownCompany->companyId == $contrData->companyId) {
-            
+        if (($ownCompany->companyId ?? null) == ($contrData->companyId ?? null)) {
+
             // Премахваме id' тото
             $contrData->companyId = null;
-            
+
             // Премахваме името на компанията
             $contrData->company = null;
         }
-        
+
         // Ако името на компанията съвпада
-        if (mb_strtolower($ownCompany->company) == mb_strtolower($contrData->company)) {
-            
+        if (mb_strtolower($ownCompany->company ?? '') == mb_strtolower($contrData->company ?? '')) {
+
             // Премахваме от списъка
             $contrData->company = null;
         }
-        
+
         // Ако има открити телефони
-        if ($ownCompany->tel && $contrData->tel) {
+        if (($ownCompany->tel ?? null) && ($contrData->tel ?? null)) {
             
             // Масив с телефони на нашата компания
             $oTelArr = drdata_PhoneType::toArray($ownCompany->tel);
@@ -2080,7 +2080,7 @@ class crm_Companies extends core_Master
         }
         
         // Ако има открити факсове
-        if ($ownCompany->fax && $contrData->fax) {
+        if (($ownCompany->fax ?? null) && ($contrData->fax ?? null)) {
             
             // Масив с факсове на нашата компания
             $oFaxArr = drdata_PhoneType::toArray($ownCompany->fax);
@@ -2118,14 +2118,14 @@ class crm_Companies extends core_Master
         }
         
         // Ако адреса е същия
-        if (!empty($ownCompany->address) && mb_strtolower($ownCompany->address) == mb_strtolower($contrData->address)) {
+        if (!empty($ownCompany->address) && mb_strtolower($ownCompany->address) == mb_strtolower($contrData->address ?? '')) {
             
             // Премахваме от данните
             $contrData->address = null;
         }
         
         // Ако има имейли
-        if ($ownCompany->email && $contrData->email) {
+        if (($ownCompany->email ?? null) && ($contrData->email ?? null)) {
             
             // Масив с имейлите на нашата компания
             $oEmailArr = type_Emails::toArray($ownCompany->email);
@@ -2157,7 +2157,7 @@ class crm_Companies extends core_Master
         // Ако има групови имейли
         $oEmailArr = null;
         $cGroupEmailArr = array();
-        if ($ownCompany->email && $contrData->groupEmails) {
+        if (($ownCompany->email ?? null) && ($contrData->groupEmails ?? null)) {
             
             // Ако не сме намерили масива преди
             if (!$oEmailArr) {
@@ -2186,7 +2186,7 @@ class crm_Companies extends core_Master
                 foreach ($oEmailArr as $oEmail) {
                     
                     // Ако имейла е в масива премахваме го от груповите
-                    if ($cGroupEmailArr[$oEmail]) {
+                    if (!empty($cGroupEmailArr[$oEmail])) {
                         unset($cGroupEmailArr[$oEmail]);
                     }
                 }
@@ -2197,7 +2197,7 @@ class crm_Companies extends core_Master
         }
         
         // Ако сме премахнали имейлите и има имейли в групите
-        if (!$contrData->email && countR($cGroupEmailArr)) {
+        if (!($contrData->email ?? null) && countR($cGroupEmailArr)) {
             
             // Добавяме първия в имейлите
             $contrData->email = key($cGroupEmailArr);

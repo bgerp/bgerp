@@ -53,7 +53,7 @@ class plg_RemoveCache extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
-        if (is_array($mvc->removeCache)) {
+        if (is_array($mvc->removeCache ?? null)) {
             foreach ($mvc->removeCache as $rem) {
                 core_Cache::remove($rem[0], $rem[1]);
             }
