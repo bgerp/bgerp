@@ -175,7 +175,7 @@ class eshop_Products extends core_Master
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
-        $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,other=Други,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none,notNull,value=empty');
+        $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,other=Други,closed=Стар артикул,empty=Без опции,stopped=Спряно)', 'caption=Тип,input=none,notNull,value=empty');
         $this->FLD('detailActions', 'enum(none=Без действия,onlyRequests=Само запитвания,onlySell=Само купуване, mixed=Запитвания и купуване)', 'caption=Операции с артикули,input=none,notNull,value=none');
         $this->FLD('haveProductsWithPrice', 'enum(no=Не,yes=Да)', 'caption=Има детайли с цени,input=none,notNull,value=no');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,input=none');
@@ -785,6 +785,13 @@ class eshop_Products extends core_Master
                 $pRow->btn = ht::createBtn($settings->addToCartBtn . '...', self::getUrl($pRec->id), false, false, 'title=Избор на артикул,class=productBtn addToCard,ef_icon=img/16/cart_go.png');
             } elseif ($saleState == 'closed' && empty($pRec->coDriver)) {
                 $pRow->saleInfo = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
+            } elseif($saleState == 'stopped'){
+
+                // Ако са други и има само един спрян да излиза инфо
+                $dQuery = eshop_ProductDetails::getQuery();
+                $dQuery->where("#eshopProductId = {$pRec->id} AND #state != 'closed'");
+                $dRow = eshop_ProductDetails::getExternalRow($dQuery->fetch());
+                $pRow->btn = $dRow->catalogPrice;
             }
 
             $commonParams = self::getCommonParams($pRec->id, true);
@@ -1894,15 +1901,18 @@ class eshop_Products extends core_Master
         $details = $dQuery->fetchAll();
 
         // Колко опции има и дали сред тях има затворени
-        $countNotClosed = $countClosed = $countBuyable = $countSellable = $countRequests = 0;
+        $countNotClosed = $countClosed = $countBuyable = $countSellable = $countRequests = $countStopped = 0;
         $count = $dQuery->count();
-        array_walk($details, function ($a) use (&$countClosed, &$countNotClosed, &$countBuyable, &$countSellable, &$countRequests) {
+        array_walk($details, function ($a) use (&$countClosed, &$countNotClosed, &$countBuyable, &$countSellable, &$countRequests, &$countStopped) {
             if ($a->state != 'active' || $a->pState != 'active') {
                 $countClosed++;
             } else {
                 $countNotClosed++;
                 if(in_array($a->action, array('buy', 'both'))){
                     $countBuyable++;
+                }
+                if($a->action == 'stopped'){
+                    $countStopped++;
                 }
             }
 
@@ -1923,13 +1933,16 @@ class eshop_Products extends core_Master
             $res->saleState = 'empty';
         } elseif ($count > 0 && $count == $countClosed) {
             $res->saleState = 'closed';
-        } elseif ($countNotClosed == 1 && $countBuyable == 1) {
+        } elseif ($countNotClosed == 1 && $countStopped == 1) {
+            $res->saleState = 'stopped';
+        }  elseif ($countBuyable == 1 && $countNotClosed >= 1) {
             $res->saleState = 'single';
-        } elseif($countNotClosed > 1 && $countBuyable == $countNotClosed) {
+        } elseif($countNotClosed > 1 && $countBuyable > 1) {
             $res->saleState = 'multi';
         } else {
             $res->saleState = 'other';
         }
+
         $res->detailActions = 'mixed';
         if(!$countRequests && !$countSellable){
             $res->detailActions = 'none';
