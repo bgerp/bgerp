@@ -745,32 +745,42 @@ class cat_Products extends embed_Manager
     /**
      * Рутира публичен артикул в папка на категория
      */
-    private function routePublicProduct($categorySysId, &$rec)
+    private function routeImportedProduct($folder, &$rec)
     {
-        $categoryId = (is_numeric($categorySysId)) ? $categorySysId : null;
-        if (!isset($categoryId)) {
-            $categoryId = cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
+        // Ако е избрана конкретна папка - създава се в нея
+        if(is_numeric($folder)){
+            $folderId = $folder;
+        } else {
+            // Иначе се предполага, че се създава в системна категория
+            $categoryId = cat_Categories::fetchField("#sysId = '{$folder}'", 'id');
             if (!$categoryId) {
                 $categoryId = cat_Categories::fetchField("#sysId = 'goods'", 'id');
             }
+            $folderId = cat_Categories::forceCoverAndFolder($categoryId);
         }
-        
+
+        // Ако има с-ва зададени са те, иначе се пита първо драйвера, после корицата на папката
+        $metas = !empty($rec->meta) ? $rec->meta : null;
+        if(empty($metas)){
+            $defMetas = array();
+            if ($Driver = $this->getDriver($rec)) {
+                $defMetas = $Driver->getDefaultMetas($rec);
+            }
+
+            if (!countR($defMetas)) {
+                $Cover = doc_Folders::getCover($folderId);
+                $defMetas = $Cover->getDefaultMeta();
+            }
+            $metas = $this->getFieldType('meta')->fromVerbal($defMetas);
+        }
+
         // Ако няма такъв артикул създаваме документа
         if (!$this->fetch(array("#code = '[#1#]'", $rec->code))) {
-            $rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
+            $rec->folderId = $folderId;
             $this->route($rec);
         }
-        
-        $defMetas = array();
-        if ($Driver = $this->getDriver($rec)) {
-            $defMetas = $Driver->getDefaultMetas($rec);
-        }
-        
-        if (!countR($defMetas)) {
-            $defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
-        }
-        
-        $rec->meta = ($rec->meta) ? $rec->meta : $this->getFieldType('meta')->fromVerbal($defMetas);
+
+        $rec->meta = $metas;
     }
     
     
@@ -792,20 +802,27 @@ class cat_Products extends embed_Manager
         $fields['meta'] = array('caption' => 'Свойства');
         $fields['info'] = array('caption' => 'Описание');
         
-        $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
+        $folderType = 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)';
         $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
         $sharedType = 'keylist(mvc=doc_Folders,select=title)';
         $metaType = 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)';
-
         $sharedFolderSuggestions = doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf');
 
-        $fields['Category'] = array('caption' => 'Допълнителен избор->Категория', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => $categoryType);
+        $fields['Folder'] = array('caption' => 'Допълнителен избор->Папка', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => $folderType);
         $fields['Groups'] = array('caption' => 'Допълнителен избор->Групи', 'notColumn' => true, 'type' => $groupType);
         $fields['_sharedFolders'] = array('caption' => 'Допълнителен избор->Достъпно в', 'notColumn' => true, 'type' => $sharedType, 'suggestions' => $sharedFolderSuggestions);
         $fields['Meta'] = array('caption' => 'Допълнителен избор->Свойства', 'notColumn' => true, 'type' => $metaType);
-        
-        if (empty($mvc->fields['Category'])) {
-            $mvc->FNC('Category', $categoryType);
+        if(core_Packs::isInstalled('batch')){
+            $batchType = 'key(mvc=batch_Templates, select=name,allowEmpty)';
+            $fields['_Batch'] = array('caption' => 'Допълнителен избор->Партидност', 'notColumn' => true, 'type' => $batchType);
+
+            if (empty($mvc->fields['_Batch'])) {
+                $mvc->FNC('_Batch', $batchType);
+            }
+        }
+
+        if (empty($mvc->fields['Folder'])) {
+            $mvc->FNC('Folder', $folderType);
         }
         
         if (empty($mvc->fields['Groups'])) {
@@ -969,9 +986,8 @@ class cat_Products extends embed_Manager
         $rec->meta = implode(',', $nMetaArr);
 
         $rec->state = !empty($rec->state) ? $rec->state : 'active';
-        $category = !empty($rec->csv_category) ? $rec->csv_category : (!empty($rec->Category) ? $rec->Category : null);
-        
-        $mvc->routePublicProduct($category, $rec);
+        $folder = !empty($rec->csv_category) ? $rec->csv_category : (!empty($rec->Folder) ? $rec->Folder : null);
+        $mvc->routeImportedProduct($folder, $rec);
     }
     
     
