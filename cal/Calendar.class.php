@@ -1808,7 +1808,7 @@ class cal_Calendar extends core_Master
 	     		
 	     		$rec->title = type_Varchar::escape($rec->title);
 	     		
-	     		$dayData[$hourKey][$dayKey] .= $row->event;
+	     		$dayData[$hourKey][$dayKey] = ($dayData[$hourKey][$dayKey] ?? '') . $row->event;
 	     	
 	     	}
         }
