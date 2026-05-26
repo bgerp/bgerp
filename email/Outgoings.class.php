@@ -988,6 +988,8 @@ class email_Outgoings extends core_Master
             $emailOptions = array();
         }
         
+        $boxId = null;
+
         // Ако не е зададена кутия в конфигурацията, използваме първия имейл от масива
         if (!$defaultSentBox) {
             if ($emailOptions) {

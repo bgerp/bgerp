@@ -66,8 +66,12 @@ class phpmailer_Instance extends core_BaseClass
         if (strpos($PML->From, '.') === false) {
             $PML->From .= '.com';
         }
-        
-        if ($params['emailTo']) {
+
+        if (!is_array($params)) {
+            $params = [];
+        }
+
+        if (!empty($params['emailTo'])) {
             list($user, $domain) = explode('@', $params['emailTo']);
             if ($domain && getmxrr($domain, $mxhosts, $mx_weight)) {
                 if (countR($mxhosts) && ! $params['Host']) {
