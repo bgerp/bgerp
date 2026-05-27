@@ -102,6 +102,8 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('receiverPCode', 'varchar', 'caption=Адрес за доставка->Пощ. код,removeAndRefreshForm=service,silent');
         $form->FLD('receiverPlace', 'varchar', 'caption=Адрес за доставка->Нас. място,removeAndRefreshForm=service,silent');
         $form->FLD('receiverAddress', 'varchar', 'caption=Адрес за доставка->Адрес');
+        $form->FLD('receiverAddressNo', 'varchar', 'caption=Адрес за доставка->№');
+
         $form->FLD('receiverBlock', 'varchar', 'caption=Адрес за доставка->Блок');
         $form->FLD('receiverEntrance', 'varchar', 'caption=Адрес за доставка->Вход');
         $form->FLD('receiverFloor', 'int', 'caption=Адрес за доставка->Етаж');
@@ -227,7 +229,6 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
         if($form->rec->receiverCountryId == $logisticCountryId){
             $form->setDefault('receiverPlace', $logisticData['toPlace']);
-            $form->setDefault('receiverAddress', $logisticData['toAddress']);
             $form->setDefault('receiverPCode', $logisticData['toPCode']);
         }
 
@@ -250,7 +251,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         }
 
         if(isset($formRec->receiverSpeedyOffice)){
-            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode', 'receiverBlock', 'receiverEntrance', 'receiverFloor', 'receiverApp', 'receiverNotes') as $addressField){
+            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverAddressNo', 'receiverPCode', 'receiverBlock', 'receiverEntrance', 'receiverFloor', 'receiverApp', 'receiverNotes') as $addressField){
                 $form->setField($addressField, 'input=none');
             }
         } else {
@@ -295,8 +296,16 @@ class speedy_interface_ApiImpl extends core_BaseClass
         if(!isset($formRec->receiverSpeedyOffice)){
             $form->setDefault('receiverCountryId', drdata_Countries::getIdByName($logisticCountryId));
             if($formRec->receiverCountryId == $logisticCountryId){
+                $parsedAddress = str::parseAddress($logisticData['toAddress']);
+                foreach (array('receiverAddress' => $parsedAddress['street'], 'receiverAddressNo' => $parsedAddress['number'], 'receiverBlock' => $parsedAddress['block'], 'receiverEntrance' => $parsedAddress['entrance'], 'receiverFloor' => $parsedAddress['floor'], 'receiverApp' => $parsedAddress['apartment'], 'receiverNotes' => $parsedAddress['notes']) as $fld => $addressField){
+                    if(!empty($addressField)){
+                        $form->setDefault($fld, $addressField);
+                    }
+                }
+                $captionAddress = str_replace(',', ' ', $logisticData['toAddress']);
+                $captionAddress = str_replace('->', ' ', $captionAddress);
+                $form->setField('receiverAddress', "caption=Адрес за доставка->|Пълен адрес|*: <b>{$captionAddress}</b>->Адрес");
                 $form->setDefault('receiverPlace', $logisticData['toPlace']);
-                $form->setDefault('receiverAddress', $logisticData['toAddress']);
                 $form->setDefault('receiverPCode', $logisticData['toPCode']);
             }
         }
@@ -426,15 +435,14 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 $recipientArr['addressLocation'] = array('countryId' => $theirCountryId, 'siteId' => key($sites));
             } else {
                 $recipientAddressArray = array('countryId' => $theirCountryId);
-                foreach (array('postCode' => 'receiverPCode', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'apartmentNo', 'siteName' => 'receiverPlace') as $theirFld => $ourFld){
+                foreach (array('postCode' => 'receiverPCode', 'streetName' => 'receiverAddress', 'streetNo' => 'receiverAddressNo', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'apartmentNo', 'siteName' => 'receiverPlace') as $theirFld => $ourFld){
                     if(!empty($formRec->{$ourFld})){
                         $recipientAddressArray[$theirFld] = $formRec->{$ourFld};
                     }
                 }
 
-                $addressNote = $formRec->receiverAddress . (!empty($formRec->receiverNotes) ? ", {$formRec->receiverNotes}" : "");
-                if(!empty($addressNote)){
-                    $recipientAddressArray['addressNote'] = $addressNote;
+                if(!empty($formRec->receiverNotes)){
+                    $recipientAddressArray['addressNote'] = $formRec->receiverNotes;
                 }
                 $recipientArr['address'] = $recipientAddressArray;
             }
