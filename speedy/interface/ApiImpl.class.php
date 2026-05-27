@@ -98,12 +98,11 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('receiverPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Получател->Телефон,mandatory');
 
         $form->FLD('receiverSpeedyOffice', 'customKey(mvc=speedy_Offices,key=num,select=extName,allowEmpty)', 'caption=Адрес за доставка->Офис на Спиди,removeAndRefreshForm=service|date|receiverCountryId|receiverPlace|receiverAddress|receiverPCode,silent');
-        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress,silent');
+        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress|complexName,complexType,silent');
         $form->FLD('receiverPCode', 'varchar', 'caption=Адрес за доставка->Пощ. код,removeAndRefreshForm=service,silent');
         $form->FLD('receiverPlace', 'varchar', 'caption=Адрес за доставка->Нас. място,removeAndRefreshForm=service,silent');
         $form->FLD('complexType', 'varchar(10)', 'caption=Адрес за доставка->Комплекс,silent');
         $form->FLD('complexName', 'varchar(20)', 'caption=Адрес за доставка->,silent,inlineTo=complexType');
-
 
         $form->FLD('receiverAddress', 'varchar', 'caption=Адрес за доставка->Улица');
         $form->FLD('receiverAddressNo', 'varchar', 'caption=Адрес за доставка->№');
@@ -267,7 +266,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
             }
 
             $form->setOptions('complexType', $complexTypes);
-            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode') as $addressField){
+            foreach (array('receiverCountryId', 'receiverPlace', 'receiverPCode') as $addressField){
                 $form->setField($addressField, 'mandatory');
             }
         }
@@ -395,10 +394,6 @@ class speedy_interface_ApiImpl extends core_BaseClass
     {
         if($form->isSubmitted()) {
             $rec = $form->rec;
-
-            if(empty($rec->receiverSpeedyOffice) && (mb_strlen($rec->receiverAddress) < 5 || is_numeric($rec->receiverAddress))){
-                $form->setError('receiverAddress', 'Адреса трябва да е поне от 5 символа и да съдържа буква');
-            }
 
             if($rec->isFragile == 'yes' && empty($rec->amountInsurance)){
                 $form->setError('amountInsurance,isFragile', 'Чупливата папка, трябва да има обявена стойност');
