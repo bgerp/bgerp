@@ -185,7 +185,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         //Изчисляване на заработките
         $personsProgressInPeriod = self::getProgressInPeriod($personsInGroups, $dates);
 
-
         // 4) По 3 реда на човек: 'shift', 'onsite', 'ops'
         foreach ($personsInGroups as $pId => $pName) {
 
@@ -423,6 +422,25 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         if (!isset($rec->data->periodDates) || !is_array($rec->data->periodDates)) {
             return $row;
         }
+        // Подготовка на кеш за отпуски/болнични/командировки/хоумофис
+        if (!isset($rec->data->dayFlags)) {
+            $personsInGroups = array();
+            if (isset($rec->data->persons) && is_array($rec->data->persons)) {
+                $personsInGroups = $rec->data->persons;
+            } elseif (isset($rec->data->recs) && is_array($rec->data->recs)) {
+                foreach ($rec->data->recs as $r) {
+                    $personsInGroups[$r->personId] = true;
+                }
+            }
+
+            $periodDates = $rec->data->periodDates;
+            $rec->data->dayFlags = array(
+                'leave' => self::getPersonDayFlags($personsInGroups, $periodDates, 'hr_Leaves', 'leaveFrom', 'leaveTo'),
+                'sick'  => self::getPersonDayFlags($personsInGroups, $periodDates, 'hr_Sickdays', 'startDate', 'toDate'),
+                'trip'  => self::getPersonDayFlags($personsInGroups, $periodDates, 'hr_Trips', 'startDate', 'toDate'),
+                'home'  => self::getPersonDayFlags($personsInGroups, $periodDates, 'hr_HomeOffice', 'startDate', 'toDate'),
+            );
+        }
 
         $i = 0;
         foreach ($rec->data->periodDates as $ymd) {
@@ -433,15 +451,14 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 if ($val === '') {
                     $row->{$code} = '-';
                 }
-                //да не се оцветява ако не е на място
-                $isLeaveDay = hr_Leaves::getLeaveDay($ymd, $dRec->personId);
-                $isSickDay = hr_Sickdays::getSickDay($ymd, $dRec->personId);
-                $isTripDay = hr_Trips::getTripDay($ymd, $dRec->personId);
-                $isHomeOfficeDay = hr_HomeOffice::getHomeOfficeDay($ymd, $dRec->personId);
+                // Не правим многократни DB заявки тук — използваме предварително заредения кеш
+                $isLeaveDay = isset($rec->data->dayFlags['leave'][$dRec->personId][$ymd]);
+                $isSickDay  = isset($rec->data->dayFlags['sick'][$dRec->personId][$ymd]);
+                $isTripDay  = isset($rec->data->dayFlags['trip'][$dRec->personId][$ymd]);
+                $isHomeOfficeDay = isset($rec->data->dayFlags['home'][$dRec->personId][$ymd]);
 
-                if($isLeaveDay || $isSickDay || $isTripDay || $isHomeOfficeDay){
-                    $attr = array('style' => "width:100%; padding:2px 3px");
-                    $row->{$code} = ht::createElement('span', $attr, $val);
+                if ($isLeaveDay || $isSickDay || $isTripDay || $isHomeOfficeDay) {
+                    $row->{$code} = $val;
                 } else {
                     $colorHex = null;
                     if ($shiftId = hr_Shifts::getShift($ymd, $dRec->personId)) {
@@ -564,6 +581,66 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
 
     /**
+     * Зарежда бърза матрица с дните за активен запис от таблица с периоди.
+     *
+     * @param array  $personsInGroups [personId => personName]
+     * @param array  $dates           ['Y-m-d', ...]
+     * @param string $mvcClass        MVC class name (hr_Leaves, hr_Sickdays, hr_Trips, hr_HomeOffice)
+     * @param string $fromField       start date field name
+     * @param string $toField         end date field name
+     * @return array                  [personId][Y-m-d] => true
+     */
+    protected static function getPersonDayFlags($personsInGroups, $dates, $mvcClass, $fromField, $toField)
+    {
+        $result = array();
+
+        if (empty($personsInGroups) || empty($dates)) {
+            return $result;
+        }
+
+        $personIds = array_keys($personsInGroups);
+        $normDates = array();
+        $minDate = null;
+        $maxDate = null;
+        foreach ($dates as $d) {
+            $ymd = dt::verbal2mysql($d, false);
+            $normDates[$ymd] = true;
+            if ($minDate === null || $ymd < $minDate) {
+                $minDate = $ymd;
+            }
+            if ($maxDate === null || $ymd > $maxDate) {
+                $maxDate = $ymd;
+            }
+        }
+
+        $q = $mvcClass::getQuery();
+        $q->in('personId', $personIds);
+        //bp($toField,$minDate, $maxDate, $fromField);
+        $q->where("#{$toField} >= '{$minDate}'");
+        $q->where("#{$fromField} <= '{$maxDate}'");
+        $q->where("#state = 'active'");
+        $q->show("personId,{$fromField},{$toField}");
+
+        while ($rec = $q->fetch()) {
+            $personId = (int)$rec->personId;
+            $start = dt::verbal2mysql($rec->{$fromField}, false);
+            $end = dt::verbal2mysql($rec->{$toField}, false);
+
+            for ($d = $start; ; $d = dt::addDays(1, $d, false)) {
+                if (isset($normDates[$d])) {
+                    $result[$personId][$d] = true;
+                }
+                if ($d >= $end) {
+                    break;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
      * Връща времето на място (onSite) за всеки служител по дни от периода.
      *
      * @param array $personsInGroups [personId => personName]
@@ -628,17 +705,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function getPersonsLeavesDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
     {
+        $leaveDays = self::getPersonDayFlags($personsInGroups, $dates, 'hr_Leaves', 'leaveFrom', 'leaveTo');
 
-        // За всеки човек и всяка дата проверяваме дали е бил отпуск на датата
-        foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd) {
-
-                // Взимаме смяната (id) за деня
-                $isLeaveDay = hr_Leaves::getLeaveDay($ymd, $personId);
-
-                if ($isLeaveDay) {
-                    $personsShiftsInPeriod[$personId][$ymd] = 'Отп.';
-                }
+        foreach ($leaveDays as $personId => $days) {
+            foreach ($days as $ymd => $_) {
+                $personsShiftsInPeriod[$personId][$ymd] = 'Отп.';
             }
         }
 
@@ -655,17 +726,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function getPersonsSickDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
     {
+        $sickDays = self::getPersonDayFlags($personsInGroups, $dates, 'hr_Sickdays', 'startDate', 'toDate');
 
-        // За всеки човек и всяка дата проверяваме да ли е бил болничен на датата
-        foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd) {
-
-                // Взимаме смяната (id) за деня
-                $isSickDay = hr_Sickdays::getSickDay($ymd, $personId);
-
-                if ($isSickDay) {
-                    $personsShiftsInPeriod[$personId][$ymd] = 'Б';
-                }
+        foreach ($sickDays as $personId => $days) {
+            foreach ($days as $ymd => $_) {
+                $personsShiftsInPeriod[$personId][$ymd] = 'Б';
             }
         }
 
@@ -682,17 +747,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function getPersonsTripDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
     {
+        $tripDays = self::getPersonDayFlags($personsInGroups, $dates, 'hr_Trips', 'startDate', 'toDate');
 
-        // За всеки човек и всяка дата проверяваме да ли е бил болничен на датата
-        foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd) {
-
-                // Взимаме смяната (id) за деня
-                $isTripDay = hr_Trips::getTripDay($ymd, $personId);
-
-                if ($isTripDay) {
-                    $personsShiftsInPeriod[$personId][$ymd] = 'К';
-                }
+        foreach ($tripDays as $personId => $days) {
+            foreach ($days as $ymd => $_) {
+                $personsShiftsInPeriod[$personId][$ymd] = 'К';
             }
         }
 
@@ -710,16 +769,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function getPersonsHomeOfficeDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
     {
-        // За всеки човек и всяка дата проверяваме да ли е бил болничен на датата
-        foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd) {
+        $homeOfficeDays = self::getPersonDayFlags($personsInGroups, $dates, 'hr_HomeOffice', 'startDate', 'toDate');
 
-                // Взимаме смяната (id) за деня
-                $isHomeOfficeDay = hr_HomeOffice::getHomeOfficeDay($ymd, $personId);
-
-                if ($isHomeOfficeDay) {
-                    $personsShiftsInPeriod[$personId][$ymd] = 'Х';
-                }
+        foreach ($homeOfficeDays as $personId => $days) {
+            foreach ($days as $ymd => $_) {
+                $personsShiftsInPeriod[$personId][$ymd] = 'Х';
             }
         }
 
@@ -748,14 +802,14 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 2) Заявка: само нужните полета, само в периода
         $q = planning_ProductionTaskDetails::getQuery();
-        // $q->show('createdOn,employees,norm');
-        $q->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $fromStart, $toEnd));
+
+        $q->where(array("#createdOn >= '{$fromStart}' AND #createdOn <= '{$toEnd}'"));
 
         // 3) Филтър: поне един employee да е в $personsInGroups
         $ors = array();
-        foreach (array_keys($personsInGroups) as $pid) {
-            $pid = (int)$pid;
-            $ors[] = "LOCATE('|{$pid}|', CONCAT('|', #employees, '|'))";
+        foreach (array_keys($personsInGroups) as $pId) {
+            $pId = (int)$pId;
+            $ors[] = "LOCATE('|{$pId}|', CONCAT('|', #employees, '|'))";
         }
         $q->where($ors ? '(' . implode(' OR ', $ors) . ')' : '1=0');
 
@@ -916,6 +970,15 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         }
 
         $summary = array(0 => clone $obj);
+        $personsInGroups = array();
+        foreach ($rec->data->recs as $dataRec) {
+            $personsInGroups[$dataRec->personId] = true;
+        }
+
+        $leaveDays = self::getPersonDayFlags($personsInGroups, $rec->data->periodDates, 'hr_Leaves', 'leaveFrom', 'leaveTo');
+        $sickDays = self::getPersonDayFlags($personsInGroups, $rec->data->periodDates, 'hr_Sickdays', 'startDate', 'toDate');
+        $tripDays = self::getPersonDayFlags($personsInGroups, $rec->data->periodDates, 'hr_Trips', 'startDate', 'toDate');
+        $homeOfficeDays = self::getPersonDayFlags($personsInGroups, $rec->data->periodDates, 'hr_HomeOffice', 'startDate', 'toDate');
 
         foreach ($rec->data->recs as $dataRec) {
             $personId = $dataRec->personId;
@@ -931,10 +994,10 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
             foreach ($rec->data->periodDates as $ymd) {
                 $shift = trim((string)($dataRec->shiftsInPeriod[$ymd] ?? ''));
-                $isLeaveDay = hr_Leaves::getLeaveDay($ymd, $personId);
-                $isSickDay = hr_Sickdays::getSickDay($ymd, $personId);
-                $isTripDay = hr_Trips::getTripDay($ymd, $personId);
-                $isHomeOfficeDay = hr_HomeOffice::getHomeOfficeDay($ymd, $personId);
+                $isLeaveDay = isset($leaveDays[$personId][$ymd]);
+                $isSickDay = isset($sickDays[$personId][$ymd]);
+                $isTripDay = isset($tripDays[$personId][$ymd]);
+                $isHomeOfficeDay = isset($homeOfficeDays[$personId][$ymd]);
 
                 if ($isLeaveDay) {
                     $summary[$personId]->paidLeave++;
