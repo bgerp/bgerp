@@ -875,21 +875,21 @@ class forum_Postings extends core_Detail
         if ($action == 'read' && isset($rec)) {
             
             // Ако потребителя има достъп до дъската, той има достъп и до темата
-            $board = forum_Boards::fetch($rec->boardId);
+            $board = forum_Boards::fetch($rec->boardId ?? null);
             (forum_Boards::haveRightToObject($board)) ? $res = 'every_one' : $res = 'forum';
         }
         
         if ($action == 'add' && isset($rec)) {
             
             // Намираме ид-то на дъската взависимост дали добавяме нова тема или коментар
-            $id = ($rec->boardId) ? $id = $rec->boardId : $id = $rec->id;
-            
+            $id = $rec->boardId ?? $rec->id ?? null;
+
             // Проверяваме дали потребителя има достъп до дъската
             $board = forum_Boards::fetch($id);
             (forum_Boards::haveRightToObject($board)) ? $res = $mvc->canWrite : $res = 'forum';
-            
+
             // Ако постинга е коментар и темата е заключена
-            if ($rec->status == 'locked' && $rec->id !== null) {
+            if (($rec->status ?? null) == 'locked' && isset($rec->id)) {
                 $res = 'no_one';
             }
         }
@@ -901,7 +901,7 @@ class forum_Postings extends core_Detail
         }
         
         if ($action == 'write' && isset($rec)) {
-            $id = ($rec->boardId) ? $rec->boardId : $rec->id;
+            $id = $rec->boardId ?? $rec->id ?? null;
             if(isset($id)){
                 $board = forum_Boards::fetch($id);
                 (forum_Boards::haveRightToObject($board)) ? $res = $mvc->Master->canWrite : $res = 'forum';
@@ -911,9 +911,9 @@ class forum_Postings extends core_Detail
         if ($action == 'edit' && isset($rec->id)) {
             
             // Само 'forum и автора на темата могат да я редактират, ако има достъп до дъската
-            $board = forum_Boards::fetch($rec->boardId);
+            $board = forum_Boards::fetch($rec->boardId ?? null);
             if (forum_Boards::haveRightToObject($board)) {
-                if (haveRole('forum') || $rec->createdBy == $userId) {
+                if (haveRole('forum') || ($rec->createdBy ?? null) == $userId) {
                     $res = $mvc->canWrite;
                 }
             } else {
@@ -1015,7 +1015,7 @@ class forum_Postings extends core_Detail
                 }
             }
         } else {
-            if (!$mvc->masterMVC) {
+            if (!($mvc->masterMvc ?? null)) {
                 if (isset($fields['-list'])) {
                     $row->type = 'коментар';
                     $commentURL = array($mvc, 'Topic', $rec->themeId, '#' => "C{$rec->id}");
@@ -1037,7 +1037,7 @@ class forum_Postings extends core_Detail
      */
     protected static function on_AfterPrepareListRecs($mvc, $res, $data)
     {
-        if (!$mvc->masterMvc) {
+        if (!($mvc->masterMvc ?? null)) {
             $cu = core_Users::getCurrent();
             if ($data->recs ?? null) {
                 foreach ($data->recs as $rec) {
@@ -1093,18 +1093,18 @@ class forum_Postings extends core_Detail
         $data->title = tr('Показване на всички теми');
         
         if ($filter = $data->listFilter->rec) {
-            if ($filter->board > 0) {
+            if (($filter->board ?? 0) > 0) {
                 $data->query->where("#boardId = {$filter->board}");
                 $verbalBoard = $data->listFilter->getFieldType('board')->toVerbal($filter->board);
                 $data->title .= ' в дъска |*<span style="color:darkblue;">"' . $verbalBoard . '"</font>';
             }
             
-            if ($filter->posting == 'all') {
+            if (($filter->posting ?? null) == 'all') {
                 
                 // Ако търсим по всички постинги добавяме и коментарите
                 $data->query->orWhere('#themeId IS NOT NULL');
                 $data->title = tr('Показване на всички постинги');
-            } elseif ($filter->posting == 'comments') {
+            } elseif (($filter->posting ?? null) == 'comments') {
                 
                 // Ако търсим само в коментари
                 unset($data->query->where);
