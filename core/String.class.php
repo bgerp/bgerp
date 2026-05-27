@@ -1975,7 +1975,7 @@ class core_String
      * Парсира адрес (български или международен) и връща масив с компонентите.
      *
      * Връща: street, number, streetWithNumber, block, entrance, floor, apartment,
-     *        postcode, city, notes
+     *        complexType, complexTypeEn, complexName, postcode, city, notes
      * Полета, които не са открити, остават null.
      */
     function parseAddress(string $address): array
@@ -1988,46 +1988,19 @@ class core_String
             'entrance'         => null,
             'floor'            => null,
             'apartment'        => null,
+            'complexType'      => null,
+            'complexTypeEn'    => null,
+            'complexName'      => null,
             'postcode'         => null,
             'city'             => null,
             'notes'            => null,
         ];
 
-        // 1) Извличаме "улица + номер" от началото на стринга.
-        //    Префиксът (ул./бул./str./...) е опционален.
-        //    След префикса допускаме или "точка + опционален интервал", или само интервали —
-        //    така хващаме и "ул. Витоша", и "ул.Константин" без интервал след точката.
-        $streetRe = '/^\s*(?:(?:ул(?:ица)?|бул(?:евард)?|пл(?:ощад)?|ж\.?к|кв(?:артал)?|str(?:eet)?|st|ave(?:nue)?|rd|road)(?:\.\s*|\s+))?'
-            . '([\p{L}][\p{L}\s\-\']*?[\p{L}])\s+№?\s*#?\s*(\d+[\p{L}]?)\b/iu';
+        $rest = $address;
 
-        if (preg_match($streetRe, $address, $m)) {
-            $result['street'] = trim($m[1]);
-            $result['number'] = $m[2];
-            $rest = mb_substr($address, mb_strlen($m[0]));
-        } else {
-            $rest = $address;
-        }
-
-        // 2) Пощенски код — пробваме по специфичност (UK > NL > US ZIP+4 > 5 цифри > 4 цифри).
-        $postcodePatterns = [
-            '/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/i', // UK: SW1A 1AA
-            '/\b(\d{4}\s?[A-Z]{2})\b/',                   // NL: 1012 LM
-            '/\b(\d{5}-\d{4})\b/',                        // US ZIP+4
-            '/\b(\d{5})\b/',                              // US/DE/FR/IT/ES
-            '/\b(\d{4})\b/',                              // BG/BE/AT/DK/HU
-        ];
-        foreach ($postcodePatterns as $re) {
-            if (preg_match($re, $rest, $m)) {
-                $result['postcode'] = strtoupper($m[1]);
-                $rest = str_replace($m[0], ' ', $rest);
-                break;
-            }
-        }
-
-        // 3) Маркирани компоненти със СТРОГИ стойности
-        //    (стойността трябва да започва с цифра — пази от false positives като "ste na").
-        $strictNum = '(\d+[\p{L}]?(?:[-\/]\d+[\p{L}]?)?)'; // 4, 4B, 4-5
-        $entVal    = '([\p{L}]\b|\d+)';                    // A, Б, 1
+        // 1) Маркери (блок, вход, етаж, апартамент)
+        $strictNum = '(\d+[\p{L}]?(?:[-\/]\d+[\p{L}]?)?)';
+        $entVal    = '([\p{L}]\b|\d+)';
 
         $patterns = [
             'apartment' => '/(?:^|[\s,])(?:апартамент|ап|ap|apt|apartment|appartement|appt|wohnung|whg|apto|unit|suite|ste|flat)\.?\s*#?\s*№?\s*' . $strictNum . '/iu',
@@ -2043,13 +2016,86 @@ class core_String
             }
         }
 
-        // 4) Каквото е останало — третираме като бележки (за куриера и т.н.)
+        // 2) Пощенски код
+        $postcodePatterns = [
+            '/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/i', // UK: SW1A 1AA
+            '/\b(\d{4}\s?[A-Z]{2})\b/',                   // NL: 1012 LM
+            '/\b(\d{5}-\d{4})\b/',                        // US ZIP+4
+            '/\b(\d{5})\b/',                              // US/DE/FR/IT/ES
+            '/\b(\d{4})\b/',                              // BG/BE/AT/DK/HU
+        ];
+        foreach ($postcodePatterns as $re) {
+            if (preg_match($re, $rest, $m)) {
+                $result['postcode'] = strtoupper($m[1]);
+                $rest = str_replace($m[0], ' ', $rest);
+                break;
+            }
+        }
+
+        // 3) Град
+        $cities = [
+            'София', 'Пловдив', 'Варна', 'Бургас', 'Русе', 'Стара Загора',
+            'Плевен', 'Сливен', 'Добрич', 'Шумен', 'Перник', 'Хасково',
+            'Ямбол', 'Пазарджик', 'Благоевград', 'Велико Търново', 'Враца',
+            'Габрово', 'Видин', 'Кърджали', 'Кюстендил', 'Монтана', 'Ловеч',
+            'Разград', 'Силистра', 'Търговище', 'Смолян', 'Дупница',
+            'Казанлък', 'Асеновград', 'Горна Оряховица', 'Гоце Делчев',
+            'Свищов', 'Карлово', 'Севлиево', 'Велинград', 'Димитровград',
+            'Сандански', 'Петрич', 'Самоков', 'Поморие', 'Несебър', 'Созопол',
+        ];
+        usort($cities, fn($a, $b) => mb_strlen($b) - mb_strlen($a));
+
+        foreach ($cities as $city) {
+            $cityRe = '/(?:^|[\s,])(?:гр\.\s*)?(' . preg_quote($city, '/') . ')(?=[\s,]|$)/iu';
+            if (preg_match($cityRe, $rest, $m)) {
+                $result['city'] = $m[1];
+                $rest = preg_replace($cityRe, ' ', $rest, 1);
+                break;
+            }
+        }
+
+        // 4) Комплекс — 7 канонизирани типа.
+        //    За всеки тип имаме списък алтернативни форми (BG пълни/съкратени + EN).
+        //    Порядъкът има значение: по-специфични форми преди по-кратки/двусмислени.
+        $complexTypes = [
+            ['name' => 'жк',   'nameEn' => 'zhk',  'patterns' => ['жилищен\s+комплекс', 'жк', 'ж\.\s*к\.?', 'zhilishten\s+kompleks', 'zhk', 'zh\.\s*k\.?']],
+            ['name' => 'кв.',  'nameEn' => 'kv.',  'patterns' => ['квартал', 'кв\.?', 'kvartal', 'kv\.?']],
+            ['name' => 'мах.', 'nameEn' => 'mah.', 'patterns' => ['махала', 'мах\.?', 'mahala', 'mah\.?']],
+            ['name' => 'в.з.', 'nameEn' => 'v.z.', 'patterns' => ['вилна\s+зона', 'в\.\s*з\.?', 'vilna\s+zona', 'v\.\s*z\.?']],
+            ['name' => 'п.з.', 'nameEn' => 'p.z.', 'patterns' => ['промишлена\s+зона', 'п\.\s*з\.?', 'promishlena\s+zona', 'p\.\s*z\.?']],
+            ['name' => 'парк', 'nameEn' => 'park', 'patterns' => ['парк', 'park']],
+            ['name' => 'м.',   'nameEn' => 'm.',   'patterns' => ['местност', 'м\.', 'mestnost', 'm\.']],
+        ];
+
+        foreach ($complexTypes as $type) {
+            $alternation = implode('|', $type['patterns']);
+            $complexRe = '/(?:^|[\s,])(?:' . $alternation . ')\s+([\p{L}][\p{L}\s\-\'\d]*?)(?=,|\s*$)/iu';
+            if (preg_match($complexRe, $rest, $m)) {
+                $result['complexType']   = $type['name'];
+                $result['complexTypeEn'] = $type['nameEn'];
+                $result['complexName']   = trim($m[1]);
+                $rest = preg_replace($complexRe, ' ', $rest, 1);
+                break;
+            }
+        }
+
+        // 5) Улица + номер
+        $streetRe = '/^[\s,]*(?:(?:ул(?:ица)?|бул(?:евард)?|пл(?:ощад)?|str(?:eet)?|st|ave(?:nue)?|rd|road)(?:\.\s*|\s+))?'
+            . '([\p{L}][\p{L}\s\-\']*?[\p{L}])\s+№?\s*#?\s*(\d+[\p{L}]?)\b/iu';
+
+        if (preg_match($streetRe, $rest, $m)) {
+            $result['street'] = trim($m[1]);
+            $result['number'] = $m[2];
+            $rest = preg_replace($streetRe, ' ', $rest, 1);
+        }
+
+        // 6) Бележки
         $rest = trim(preg_replace('/[\s,!?\-]+/u', ' ', $rest));
         if ($rest !== '' && mb_strlen($rest) > 2) {
             $result['notes'] = $rest;
         }
 
-        // 5) Комбинирано поле "улица + номер"
+        // 7) streetWithNumber
         if ($result['street'] !== null && $result['number'] !== null) {
             $result['streetWithNumber'] = $result['street'] . ' ' . $result['number'];
         } elseif ($result['street'] !== null) {
