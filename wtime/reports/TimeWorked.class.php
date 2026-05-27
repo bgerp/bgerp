@@ -612,7 +612,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             // Филтър само за подадените конкретни дни (ако интервалът е по-широк)
             if (!isset($normDates[$ymd])) continue;
 
-            // Превръщаме в секунди, за да се ползва директно от твоето форматиране
             $result[$pId][$ymd] += (int)$rec->onSiteTime;
         }
 
