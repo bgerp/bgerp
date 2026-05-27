@@ -1970,4 +1970,90 @@ class core_String
         return $s;
     }
 
+
+    /**
+     * Парсира адрес (български или международен) и връща масив с компонентите.
+     *
+     * Връща: street, number, streetWithNumber, block, entrance, floor, apartment,
+     *        postcode, city, notes
+     * Полета, които не са открити, остават null.
+     */
+    function parseAddress(string $address): array
+    {
+        $result = [
+            'street'           => null,
+            'number'           => null,
+            'streetWithNumber' => null,
+            'block'            => null,
+            'entrance'         => null,
+            'floor'            => null,
+            'apartment'        => null,
+            'postcode'         => null,
+            'city'             => null,
+            'notes'            => null,
+        ];
+
+        // 1) Извличаме "улица + номер" от началото на стринга.
+        //    Префиксът (ул./бул./str./...) е опционален.
+        $streetRe = '/^\s*(?:(?:ул|бул|пл|ж\.?к|кв|str|street|st|ave|avenue|rd|road)\.?\s+)?'
+            . '([\p{L}][\p{L}\s\-\']*?[\p{L}])\s+№?\s*#?\s*(\d+[\p{L}]?)\b/iu';
+
+        if (preg_match($streetRe, $address, $m)) {
+            $result['street'] = trim($m[1]);
+            $result['number'] = $m[2];
+            $rest = mb_substr($address, mb_strlen($m[0]));
+        } else {
+            $rest = $address;
+        }
+
+        // 2) Пощенски код — пробваме по специфичност (UK > NL > US ZIP+4 > 5 цифри > 4 цифри).
+        $postcodePatterns = [
+            '/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/i', // UK: SW1A 1AA
+            '/\b(\d{4}\s?[A-Z]{2})\b/',                   // NL: 1012 LM
+            '/\b(\d{5}-\d{4})\b/',                        // US ZIP+4
+            '/\b(\d{5})\b/',                              // US/DE/FR/IT/ES
+            '/\b(\d{4})\b/',                              // BG/BE/AT/DK/HU
+        ];
+        foreach ($postcodePatterns as $re) {
+            if (preg_match($re, $rest, $m)) {
+                $result['postcode'] = strtoupper($m[1]);
+                $rest = str_replace($m[0], ' ', $rest);
+                break;
+            }
+        }
+
+        // 3) Маркирани компоненти със СТРОГИ стойности
+        //    (стойността трябва да започва с цифра — пази от false positives като "ste na").
+        $strictNum = '(\d+[\p{L}]?(?:[-\/]\d+[\p{L}]?)?)'; // 4, 4B, 4-5
+        $entVal    = '([\p{L}]\b|\d+)';                    // A, Б, 1
+
+        $patterns = [
+            'apartment' => '/(?:^|[\s,])(?:ап(?:артамент)?|ap|apt|apartment|appartement|appt|wohnung|whg|apto|unit|suite|ste|flat)\.?\s*#?\s*№?\s*' . $strictNum . '/iu',
+            'floor'     => '/(?:^|[\s,])(?:ет(?:аж)?|et|floor|fl|étage|etage|piano|piso)\.?\s*#?\s*№?\s*(\d+)\b/iu',
+            'entrance'  => '/(?:^|[\s,])(?:вх(?:од)?|vh|entrance|entr|eingang|aufgang|entrée|entree)\.?\s*#?\s*№?\s*' . $entVal . '/iu',
+            'block'     => '/(?:^|[\s,])(?:бл(?:ок)?|bl|block|building|bldg|gebäude)\.?\s*#?\s*№?\s*(\d+[\p{L}]?)\b/iu',
+        ];
+
+        foreach ($patterns as $key => $re) {
+            if (preg_match($re, $rest, $m)) {
+                $result[$key] = $m[1];
+                $rest = preg_replace($re, ' ', $rest, 1);
+            }
+        }
+
+        // 4) Каквото е останало — третираме като бележки (за куриера и т.н.)
+        $rest = trim(preg_replace('/[\s,!?\-]+/u', ' ', $rest));
+        if ($rest !== '' && mb_strlen($rest) > 2) {
+            $result['notes'] = $rest;
+        }
+
+        // 5) Комбинирано поле "улица + номер"
+        if ($result['street'] !== null && $result['number'] !== null) {
+            $result['streetWithNumber'] = $result['street'] . ' ' . $result['number'];
+        } elseif ($result['street'] !== null) {
+            $result['streetWithNumber'] = $result['street'];
+        }
+
+        return $result;
+    }
 }
