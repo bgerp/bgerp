@@ -612,7 +612,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             // Филтър само за подадените конкретни дни (ако интервалът е по-широк)
             if (!isset($normDates[$ymd])) continue;
 
-            $result[$pId][$ymd] += (int)$rec->onSiteTime;
+            $result[$pId][$ymd] = (int)$rec->onSiteTime;
         }
 
         return $result;
