@@ -258,7 +258,7 @@ class forum_Postings extends core_Detail
         $this->prepareTheme($data);
         
         // Ако имаме форма за добавяне на нов постинг към темата
-        if ($data->postForm) {
+        if ($data->postForm ?? null) {
             
             // Зареждаме REQUEST данните във формата за коментар
             $rec = $data->postForm->input();
@@ -370,7 +370,7 @@ class forum_Postings extends core_Detail
         $tpl->replace($this->renderListPager($data), 'PAGER');
         
         // Ако имаме право да добавяме коментар рендираме формата в края на нишката
-        if ($data->postForm) {
+        if ($data->postForm ?? null) {
             $data->postForm->layout = $data->ForumTheme->getPostFormLayout();
             $data->postForm->fieldsLayout = $data->ForumTheme->getPostFormFieldsLayout();
             $tpl->replace($data->postForm->renderHtml(), 'COMMENT_FORM');
@@ -379,11 +379,11 @@ class forum_Postings extends core_Detail
             $tpl->replace('<p>' . tr($msg) . '</p>', 'COMMENT_FORM');
         }
         
-        if ($data->formAnchor) {
+        if ($data->formAnchor ?? null) {
             $tpl->append(ht::createBtn('Нов отговор', $data->formAnchor, '', '', array('class' => 'forumbtn new')), 'ANSWER');
         }
         
-        if ($data->topicUrl) {
+        if ($data->topicUrl ?? null) {
             $tpl->append(ht::createBtn('Работилница', $data->topicUrl, '', '', array('class' => 'forumbtn workshop')), 'ANSWER');
         }
         
@@ -414,7 +414,7 @@ class forum_Postings extends core_Detail
         $this->prepareNew($data);
         
         // Ако имаме форма за започване на нова тема
-        if ($data->form) {
+        if ($data->form ?? null) {
             
             // Зареждаме REQUEST данните във формата за коментар
             $rec = $data->form->input();
@@ -612,7 +612,7 @@ class forum_Postings extends core_Detail
      */
     public function renderTopicToolbar($data, $tpl)
     {
-        if ($data->editUrl) {
+        if ($data->editUrl ?? null) {
             $tpl->append(ht::createBtn('Редакция', $data->editUrl, null, null, 'id=btnEdit'), 'ef_icon = img/16/edit-icon.png', 'TOOLS');
         }
         
@@ -621,13 +621,13 @@ class forum_Postings extends core_Detail
         $tpl->append(ht::createBtn('Преглед', $themeUrl, null, null, 'ef_icon = img/16/star_2.png'), 'TOOLS');
         
         // Бутон за заключване/отключване на темата за коментиране
-        if ($data->lockUrl) {
+        if ($data->lockUrl ?? null) {
             ($data->rec->status == 'unlocked') ?  $str = 'Заключване' : $str = 'Отключване';
             $tpl->append(ht::createBtn(tr($str), $data->lockUrl, null, null, 'ef_icon = img/16/star_2.png'), 'TOOLS');
         }
         
         // Ако имаме право да местим темата, рендираме формата за местене
-        if ($data->moveUrl) {
+        if ($data->moveUrl ?? null) {
             $tpl->append(ht::createBtn('Премести', $data->moveUrl, null, null, 'ef_icon = img/16/move.png'), 'TOOLS');
         }
         
@@ -653,7 +653,7 @@ class forum_Postings extends core_Detail
         
         $this->prepareMove($data);
         
-        if ($data->form) {
+        if ($data->form ?? null) {
             $rec = $data->form->input();
             
             $this->requireRightFor('write', $data->rec);
@@ -718,7 +718,7 @@ class forum_Postings extends core_Detail
     {
         $layout = new ET('');
         $layout->append($this->Master->renderNavigation($data));
-        if ($data->form) {
+        if ($data->form ?? null) {
             $layout->append($data->form->renderHtml());
         }
         $layout = $this->renderWrapping($layout);
@@ -792,7 +792,7 @@ class forum_Postings extends core_Detail
         $data->query->orderBy('type, createdOn', 'DESC');
         
         // Използваме  за филтриране по зададен стринг
-        if ($data->q) {
+        if ($data->q ?? null) {
             plg_Search::applySearch($data->q, $data->query);
         }
         
@@ -1039,7 +1039,7 @@ class forum_Postings extends core_Detail
     {
         if (!$mvc->masterMvc) {
             $cu = core_Users::getCurrent();
-            if ($data->recs) {
+            if ($data->recs ?? null) {
                 foreach ($data->recs as $rec) {
                     
                     // за всяка тема проверяваме достъпа до дъската и, ако не я премахваме
@@ -1058,7 +1058,7 @@ class forum_Postings extends core_Detail
      */
     public static function on_AfterPrepareListFields($mvc, $data)
     {
-        if ($data->masterMvc) {
+        if ($data->masterMvc ?? null) {
             
             // Не показваме 'boardId' в Single-a  на Мастъра
             unset($data->listFields['boardId']);
@@ -1142,7 +1142,7 @@ class forum_Postings extends core_Detail
      */
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-        if (!$data->listFilter) {
+        if (!($data->listFilter ?? null)) {
             
             // Това условие е изпълнено само ако сме в Single на master класа
             $mvc->prepareListFilter($data);
