@@ -296,6 +296,8 @@ class speedy_interface_ApiImpl extends core_BaseClass
         if(!isset($formRec->receiverSpeedyOffice)){
             $form->setDefault('receiverCountryId', drdata_Countries::getIdByName($logisticCountryId));
             if($formRec->receiverCountryId == $logisticCountryId){
+
+                // Ако има адрес за доставка - парсира се и се попълва
                 if(!empty($logisticData['toAddress'])){
                     $parsedAddress = str::parseAddress($logisticData['toAddress']);
                     foreach (array('receiverAddress' => $parsedAddress['street'], 'receiverAddressNo' => $parsedAddress['number'], 'receiverBlock' => $parsedAddress['block'], 'receiverEntrance' => $parsedAddress['entrance'], 'receiverFloor' => $parsedAddress['floor'], 'receiverApp' => $parsedAddress['apartment'], 'receiverNotes' => $parsedAddress['notes']) as $fld => $addressField){
@@ -303,8 +305,6 @@ class speedy_interface_ApiImpl extends core_BaseClass
                             $form->setDefault($fld, $addressField);
                         }
                     }
-                } elseif(haveRole('debug')){
-                    bp($logisticData);
                 }
 
                 $captionAddress = str_replace(',', ' ', $logisticData['toAddress']);
