@@ -1995,7 +1995,9 @@ class core_String
 
         // 1) Извличаме "улица + номер" от началото на стринга.
         //    Префиксът (ул./бул./str./...) е опционален.
-        $streetRe = '/^\s*(?:(?:ул|бул|пл|ж\.?к|кв|str|street|st|ave|avenue|rd|road)\.?\s+)?'
+        //    След префикса допускаме или "точка + опционален интервал", или само интервали —
+        //    така хващаме и "ул. Витоша", и "ул.Константин" без интервал след точката.
+        $streetRe = '/^\s*(?:(?:ул(?:ица)?|бул(?:евард)?|пл(?:ощад)?|ж\.?к|кв(?:артал)?|str(?:eet)?|st|ave(?:nue)?|rd|road)(?:\.\s*|\s+))?'
             . '([\p{L}][\p{L}\s\-\']*?[\p{L}])\s+№?\s*#?\s*(\d+[\p{L}]?)\b/iu';
 
         if (preg_match($streetRe, $address, $m)) {
@@ -2028,10 +2030,10 @@ class core_String
         $entVal    = '([\p{L}]\b|\d+)';                    // A, Б, 1
 
         $patterns = [
-            'apartment' => '/(?:^|[\s,])(?:ап(?:артамент)?|ap|apt|apartment|appartement|appt|wohnung|whg|apto|unit|suite|ste|flat)\.?\s*#?\s*№?\s*' . $strictNum . '/iu',
-            'floor'     => '/(?:^|[\s,])(?:ет(?:аж)?|et|floor|fl|étage|etage|piano|piso)\.?\s*#?\s*№?\s*(\d+)\b/iu',
-            'entrance'  => '/(?:^|[\s,])(?:вх(?:од)?|vh|entrance|entr|eingang|aufgang|entrée|entree)\.?\s*#?\s*№?\s*' . $entVal . '/iu',
-            'block'     => '/(?:^|[\s,])(?:бл(?:ок)?|bl|block|building|bldg|gebäude)\.?\s*#?\s*№?\s*(\d+[\p{L}]?)\b/iu',
+            'apartment' => '/(?:^|[\s,])(?:апартамент|ап|ap|apt|apartment|appartement|appt|wohnung|whg|apto|unit|suite|ste|flat)\.?\s*#?\s*№?\s*' . $strictNum . '/iu',
+            'floor'     => '/(?:^|[\s,])(?:етаж|ет|et|floor|fl|étage|etage|piano|piso)\.?\s*#?\s*№?\s*(\d+)\b/iu',
+            'entrance'  => '/(?:^|[\s,])(?:вход|вх|vh|entrance|entr|eingang|aufgang|entrée|entree)\.?\s*#?\s*№?\s*' . $entVal . '/iu',
+            'block'     => '/(?:^|[\s,])(?:блок|бл|bl|block|building|bldg|gebäude)\.?\s*#?\s*№?\s*(\d+[\p{L}]?)\b/iu',
         ];
 
         foreach ($patterns as $key => $re) {

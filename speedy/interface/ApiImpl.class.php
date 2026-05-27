@@ -101,7 +101,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress,silent');
         $form->FLD('receiverPCode', 'varchar', 'caption=Адрес за доставка->Пощ. код,removeAndRefreshForm=service,silent');
         $form->FLD('receiverPlace', 'varchar', 'caption=Адрес за доставка->Нас. място,removeAndRefreshForm=service,silent');
-        $form->FLD('receiverAddress', 'varchar', 'caption=Адрес за доставка->Адрес');
+        $form->FLD('receiverAddress', 'varchar', 'caption=Адрес за доставка->Улица');
         $form->FLD('receiverAddressNo', 'varchar', 'caption=Адрес за доставка->№');
 
         $form->FLD('receiverBlock', 'varchar', 'caption=Адрес за доставка->Блок');
