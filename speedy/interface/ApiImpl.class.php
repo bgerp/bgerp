@@ -296,12 +296,17 @@ class speedy_interface_ApiImpl extends core_BaseClass
         if(!isset($formRec->receiverSpeedyOffice)){
             $form->setDefault('receiverCountryId', drdata_Countries::getIdByName($logisticCountryId));
             if($formRec->receiverCountryId == $logisticCountryId){
-                $parsedAddress = str::parseAddress($logisticData['toAddress']);
-                foreach (array('receiverAddress' => $parsedAddress['street'], 'receiverAddressNo' => $parsedAddress['number'], 'receiverBlock' => $parsedAddress['block'], 'receiverEntrance' => $parsedAddress['entrance'], 'receiverFloor' => $parsedAddress['floor'], 'receiverApp' => $parsedAddress['apartment'], 'receiverNotes' => $parsedAddress['notes']) as $fld => $addressField){
-                    if(!empty($addressField)){
-                        $form->setDefault($fld, $addressField);
+                if(!empty($logisticData['toAddress'])){
+                    $parsedAddress = str::parseAddress($logisticData['toAddress']);
+                    foreach (array('receiverAddress' => $parsedAddress['street'], 'receiverAddressNo' => $parsedAddress['number'], 'receiverBlock' => $parsedAddress['block'], 'receiverEntrance' => $parsedAddress['entrance'], 'receiverFloor' => $parsedAddress['floor'], 'receiverApp' => $parsedAddress['apartment'], 'receiverNotes' => $parsedAddress['notes']) as $fld => $addressField){
+                        if(!empty($addressField)){
+                            $form->setDefault($fld, $addressField);
+                        }
                     }
+                } elseif(haveRole('debug')){
+                    bp($logisticData);
                 }
+
                 $captionAddress = str_replace(',', ' ', $logisticData['toAddress']);
                 $captionAddress = str_replace('->', ' ', $captionAddress);
                 $form->setField('receiverAddress', "caption=Адрес за доставка->|Пълен адрес|*: <b>{$captionAddress}</b>->Адрес");
