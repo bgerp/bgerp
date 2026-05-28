@@ -126,6 +126,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $recs = array();
         $pRecs = array();
         $arr = array();
+
         $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays =0;
         
         $typeOfAbsent = explode(',', $rec->type);
@@ -133,6 +134,12 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $rec->firstDayOfPeriod = $rec->from;
         
         $rec->periods = dt::mysql2verbal($rec->from, 'dmy');
+
+        //Оттрглените потребители
+        $rejectedPersons = array();
+        $personsQuery = crm_Persons::getQuery();
+        $personsQuery->where("#state = 'rejected'");
+        $rejectedPersons = arr::extractValuesFromArray($personsQuery->fetchAll(), 'id');
         
         $period = 1;
 
@@ -146,23 +153,28 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             $leavesQuery = hr_Leaves::getQuery();
             
             $tripsQuery = hr_Trips::getQuery();
-            
+
+            //Болнични
             $sickdaysQuery->where("(#startDate >= '{$rec->firstDayOfPeriod}' AND #startDate <= '{$rec->to}') OR (#toDate >= '{$rec->firstDayOfPeriod}' AND #toDate <= '{$rec->to}')");
             
             $sickdaysQuery->where("#state != 'rejected'");
-            
+
+            $sickdaysQuery->in('personId', $rejectedPersons, true);
+
+            //Отпуски
             $leavesQuery->where("(#leaveFrom >= '{$rec->firstDayOfPeriod}' AND #leaveFrom <= '{$rec->to}') OR (#leaveTo <= '{$rec->to}' AND #leaveTo >= '{$rec->firstDayOfPeriod}')");
             
             $leavesQuery->where("#state = 'active'");
-            
+
+            $leavesQuery->in('personId', $rejectedPersons, true);
+
+            //Командировки
             $tripsQuery->where("(#startDate >= '{$rec->firstDayOfPeriod}' AND #startDate <= '{$rec->to}') OR (#toDate >= '{$rec->firstDayOfPeriod}' AND #toDate <= '{$rec->to}')");
             
             $tripsQuery->where("#state != 'rejected'");
-            
-            
-            
-            
-            
+
+            $tripsQuery->in('personId', $rejectedPersons, true);
+
             if ($rec->employee) {
                 $employees = type_Keylist::toArray($rec->employee);
                 
