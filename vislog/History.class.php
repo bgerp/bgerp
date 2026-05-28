@@ -211,8 +211,7 @@ class vislog_History extends core_Manager
         // Ако имаме такъв запис в последните 5 минути - връщаме FALSE, за да не продължи обработката
         $conf = core_Packs::getConfig('vislog');
         $last5 = dt::addSecs(0 - $conf->VISLOG_ALLOW_SAME_IP);
-        
-        if ($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId} AND #createdOn > '{$last5}'")) {
+        if ($mvc->fetch(array("#ip = '[#1#]' AND #HistoryResourceId = {$rec->HistoryResourceId} AND #createdOn > '{$last5}'", $rec->ip))) {
             
             return false;
         }
