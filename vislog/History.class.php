@@ -199,11 +199,12 @@ class vislog_History extends core_Manager
             $rec->query = $q;
         }
         
-        $rec->HistoryResourceId = $mvc->HistoryResources->fetchField(array("#query = '[#1#]'", $rec->query), 'id');
-        
+        $resourceQuery = mb_substr($rec->query, 0, 100);
+        $rec->HistoryResourceId = $mvc->HistoryResources->fetchField(array("#query = '[#1#]'", $resourceQuery), 'id');
+
         if (!$rec->HistoryResourceId) {
             $sRec = new stdClass();
-            $sRec->query = $rec->query;
+            $sRec->query = $resourceQuery;
             $rec->HistoryResourceId = $mvc->HistoryResources->save($sRec);
         }
         
