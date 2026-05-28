@@ -574,14 +574,14 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $ymd = dt::verbal2mysql($d, false); // 'Y-m-d'
             $normDates[$ymd] = true;
         }
-
+        
         // За всеки човек и всяка дата намираме смяната чрез hr_Shifts::getShift()
         foreach ($personsInGroups as $personId => $personName) {
             foreach ($dates as $ymd) {
 
                 // Взимаме смяната (id) за деня
                 core_Debug::startTimer('TEST_hr_Shifts::getShift');
-                $shiftId = hr_Shifts::getShift($ymd, $personId);
+                $shiftId = hr_Shifts::getShift($ymd, $personId, $scheduleId);
                 core_Debug::stopTimer('TEST_hr_Shifts::getShift');
                 if (!$shiftId) {
                     // няма смяна за този ден
