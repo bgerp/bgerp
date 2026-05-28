@@ -579,9 +579,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         foreach ($personsInGroups as $personId => $personName) {
             foreach ($dates as $ymd) {
 
-
+                
                 // Взимаме смяната (id) за деня
+                core_Debug::startTimer('TEST_hr_Shifts::getShift');
                 $shiftId = hr_Shifts::getShift($ymd, $personId);
+                core_Debug::stopTimer('TEST_hr_Shifts::getShift');
                 if (!$shiftId) {
                     // няма смяна за този ден
                     $result[$personId][$ymd] = null;
