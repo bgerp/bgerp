@@ -347,31 +347,58 @@ class core_String
         
         return $out;
     }
-    
-    
+
+
     /**
      * Конвертира стринг до уникален стринг с дължина, не по-голяма от указаната
      * Уникалността е много вероятна, но не 100% гарантирана ;)
+     *
+     * @param string $str       Входният стринг
+     * @param int    $length    Максимална дължина на резултата
+     * @param int    $md5Len    Дължина на хеш участъка
+     * @param string $separator Разделител между префикса и хеша
+     * @param bool   $byChars   Ако е FALSE (по подразбиране) - брои в БАЙТОВЕ (старото поведение).
+     *                          Ако е TRUE - брои в СИМВОЛИ (mb_*), напасва коректно
+     *                          дължината еднакво за кирилица и латиница.
      */
-    public static function convertToFixedKey($str, $length = 64, $md5Len = 32, $separator = '_')
+    public static function convertToFixedKey($str, $length = 64, $md5Len = 32, $separator = '_', $byChars = false)
     {
+        // --- Символен режим (mb_*) ---
+        if ($byChars) {
+            if (mb_strlen($str, 'UTF-8') <= $length) {
+
+                return $str;
+            }
+
+            $strLen = $length - $md5Len - mb_strlen($separator, 'UTF-8');
+
+            // Дължината на хеш участъка и разделителя е по-голяма от зададената обща дължина
+            expect($strLen >= 0, $length, $md5Len);
+
+            // mb_substr никога не реже UTF-8 символ наполовина - не е нужна корекция
+            $md5 = substr(md5('_SALT_' . $str), 0, $md5Len);
+
+            return mb_substr($str, 0, $strLen, 'UTF-8') . $separator . $md5;
+        }
+
+        // --- Байтов режим (старото поведение, по подразбиране) ---
         if (strlen($str) <= $length) {
-            
+
             return $str;
         }
-        
+
         $strLen = $length - $md5Len - strlen($separator);
-        
+
         // Дължината на MD5 участъка и разделителя е по-голяма от зададената обща дължина
         expect($strLen >= 0, $length, $md5Len);
-        
+
         if (ord(substr($str, $strLen - 1, 1)) >= 128 + 64) {
             $strLen--;
             $md5Len++;
         }
-        
+
         $md5 = substr(md5('_SALT_' . $str), 0, $md5Len);
-        
+
         return substr($str, 0, $strLen) . $separator . $md5;
     }
     
