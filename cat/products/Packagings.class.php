@@ -1577,7 +1577,7 @@ class cat_products_Packagings extends core_Detail
         if(is_object($rec) && $rec->createdOn <= $pastHorizon) return false;
 
         // Ако е създадена в хоризонта, само ако не е използвана никъде
-        if(!is_object($rec) || is_null($rec->usages) || $rec->usages <= 0) return true;
+        if(is_object($rec) && (is_null($rec->usages) || $rec->usages <= 0)) return true;
 
         return false;
     }
