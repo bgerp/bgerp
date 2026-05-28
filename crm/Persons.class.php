@@ -1489,7 +1489,7 @@ class crm_Persons extends core_Master
             $contrData->personVerb = crm_Persons::getVerbal($person, 'name');
             $contrData->country = crm_Persons::getVerbal($person, 'country');
             $contrData->countryId = $person->country;
-            $contrData->groupList = $company->groupList;
+            $contrData->groupList = $company ? $company->groupList : null;
             $contrData->pCode = $person->pCode;
             $contrData->vatNo = $person->vatId;
             $contrData->eori = $person->eori;
