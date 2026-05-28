@@ -194,8 +194,10 @@ class hr_Trips extends core_Master
         $this->FLD('amountDaily', 'double(decimals=2)', 'caption=Начисления->Дневни');
         $this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни');
         $this->FNC('title', 'varchar', 'column=none');
-        
         $this->FLD('sharedUsers', 'userList(roles=hrTrips|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
+
+        $this->setDbIndex('personId,startDate,toDate');
+        $this->setDbIndex('personId');
     }
     
     

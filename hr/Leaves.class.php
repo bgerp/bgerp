@@ -223,6 +223,9 @@ class hr_Leaves extends core_Master
 
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
+        
+        $this->setDbIndex('personId,leaveFrom,leaveTo');
+        $this->setDbIndex('personId');
     }
 
     
