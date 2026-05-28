@@ -140,7 +140,7 @@ class hr_Shifts extends core_Manager
     {
         // Какъв е графикът на лицето
         core_Debug::startTimer('planning_Hr::getSchedule');
-        $scheduleId = $scheduleId ?? planning_Hr::getSchedule($personId);
+        $scheduleId = planning_Hr::getSchedule($personId);
         core_Debug::stopTimer('planning_Hr::getSchedule');
 
         // Ще се вземе графика от 22 часа на предходния ден до 06 часа на следващия ден
