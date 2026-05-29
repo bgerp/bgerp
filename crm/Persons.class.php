@@ -885,7 +885,7 @@ class crm_Persons extends core_Master
             }
         }
 
-        if ($rec->saveInSessionAfterCreation) {
+        if (!empty($rec->saveInSessionAfterCreation)) {
             Mode::setPermanent('lastAddedPersonId', $rec->id);
         }
     }
@@ -1352,21 +1352,21 @@ class crm_Persons extends core_Master
      */
     public static function updateRoutingRules($rec)
     {
-        if ($rec->state == 'rejected') {
+        if (($rec->state ?? null) == 'rejected') {
             // Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
             email_Router::removeRules('person', $rec->id);
         } else {
-            if ($rec->buzEmail) {
+            if (!empty($rec->buzEmail)) {
                 // Лицето има служебен имейл. Ако има и фирма, регистрираме служебния имейл на
                 // името на фирмата
-                if ($rec->buzCompanyId) {
+                if (!empty($rec->buzCompanyId)) {
                     crm_Companies::createRoutingRules($rec->buzEmail, $rec->buzCompanyId);
                 } else {
                     static::createRoutingRules($rec->buzEmail, $rec->id);
                 }
             }
 
-            if ($rec->email) {
+            if (!empty($rec->email)) {
                 // Регистрираме личния имейл на името на лицето
                 static::createRoutingRules($rec->email, $rec->id);
             }
@@ -3287,7 +3287,7 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+        $res = drdata_Countries::addCountryInBothLg(is_object($rec) ? ($rec->country ?? null) : null, $res);
     }
 
 

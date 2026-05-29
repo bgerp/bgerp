@@ -243,7 +243,7 @@ class email_ServiceRules extends embed_Manager
             }
         }
 
-        $str = trim($rec->email) . '|' . trim($rec->subject) . '|' . trim($rec->body) . '|' . trim($rec->emailTo);
+        $str = trim($rec->email ?? '') . '|' . trim($rec->subject ?? '') . '|' . trim($rec->body ?? '') . '|' . trim($rec->emailTo ?? '');
 
         if (!empty($rec->_systemId)) {
             $str .= '|' . $rec->_systemId;
@@ -370,7 +370,7 @@ class email_ServiceRules extends embed_Manager
     {
         foreach ($subjectData as $filterField => $haystack) {
             // Ако няма въведена стойност или са само * или интервали
-            if (!strlen(trim($filterRec->{$filterField}, '*')) || !strlen(trim($filterRec->{$filterField}))) {
+            if (!strlen(trim($filterRec->{$filterField} ?? '', '*')) || !strlen(trim($filterRec->{$filterField} ?? ''))) {
                 continue ;
             }
 

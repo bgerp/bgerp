@@ -1481,12 +1481,12 @@ class core_Users extends core_Manager
             $userRec->lastHitUT = time();
             $userRec->maxIdleTime = 0;
         } else {
-            $lastLoginIp = self::getOwnIp($userRec->lastLoginIp);
+            $lastLoginIp = self::getOwnIp($userRec->lastLoginIp ?? null);
             $ownIp = self::getOwnIp($Users->getRealIpAddr());
-            
+
             // Дали нямаме дублирано ползване?
             if (($lastLoginIp != $ownIp) &&
-                $userRec->lastLoginTime > $sessUserRec->loginTime &&
+                ($userRec->lastLoginTime ?? null) > $sessUserRec->loginTime &&
                 dt::mysql2timestamp($userRec->lastLoginTime) - dt::mysql2timestamp($sessUserRec->loginTime) < EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
                 
                 // Ако има логвания в съответния период, не блокира
@@ -1503,9 +1503,9 @@ class core_Users extends core_Manager
                 }
             }
             
-            $userRec->loginTime = $sessUserRec->loginTime;
-            $userRec->lastLoginIp = $sessUserRec->lastLoginIp;
-            $userRec->lastLoginTime = $sessUserRec->lastLoginTime;
+            $userRec->loginTime = $sessUserRec->loginTime ?? null;
+            $userRec->lastLoginIp = $sessUserRec->lastLoginIp ?? null;
+            $userRec->lastLoginTime = $sessUserRec->lastLoginTime ?? null;
             
             $userRec->maxIdleTime = max($sessUserRec->maxIdleTime, time() - $sessUserRec->lastHitUT);
             if (!Request::get('ajax_mode')) {
@@ -1516,18 +1516,18 @@ class core_Users extends core_Manager
         }
         
         // Ако потребителя е блокиран - излизаме от сесията и показваме грешка
-        if ($userRec->state == 'blocked') {
+        if (($userRec->state ?? null) == 'blocked') {
             $Users->logout();
             redirect(array('Index'), false, '|Този акаунт е блокиран|*.<BR>|Причината най-вероятно е едновременно използване от две места|*.' .
                 '<BR>|На имейла от регистрацията е изпратена информация и инструкция за отблокиране|*.');
         }
-        
-        if ($userRec->state == 'draft') {
+
+        if (($userRec->state ?? null) == 'draft') {
             redirect(array('Index'), false, '|Този акаунт все още не е активиран|*.<BR>' .
                 '|На имейла от регистрацията е изпратена информация и инструкция за активация|*.');
         }
         
-        if ($userRec->state != 'active' || $userRec->maxIdleTime > EF_USERS_SESS_TIMEOUT) {
+        if (($userRec->state ?? null) != 'active' || ($userRec->maxIdleTime ?? 0) > EF_USERS_SESS_TIMEOUT) {
             $Users->logout();
             redirect(getCurrentUrl());
         }
