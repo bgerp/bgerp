@@ -237,15 +237,15 @@ class email_ServiceRules extends embed_Manager
     public static function getSystemId($rec, $force = false)
     {
         if (!$force) {
-            if ($rec->systemId) {
-                
+            if (!empty($rec->systemId)) {
+
                 return $rec->systemId;
             }
         }
-        
+
         $str = trim($rec->email) . '|' . trim($rec->subject) . '|' . trim($rec->body) . '|' . trim($rec->emailTo);
 
-        if ($rec->_systemId) {
+        if (!empty($rec->_systemId)) {
             $str .= '|' . $rec->_systemId;
         }
 
@@ -268,12 +268,13 @@ class email_ServiceRules extends embed_Manager
         if ($form->isSubmitted()) {
             $systemId = $mvc->getSystemId($form->rec, true);
             $oRec = $mvc->fetch(array("#systemId = '[#1#]'", $systemId));
-            if ($oRec && ($oRec->id != $form->rec->id)) {
+            if ($oRec && ($oRec->id != ($form->rec->id ?? null))) {
                 $form->setError($fArr, 'Вече съществува запис със същите данни');
             }
         }
         
         if ($form->isSubmitted()) {
+            $haveVal = false;
             foreach ($fArr as $fName) {
                 if (strlen(trim($form->rec->{$fName}, '*')) && strlen(trim($form->rec->{$fName}))) {
                     $haveVal = true;
@@ -351,7 +352,7 @@ class email_ServiceRules extends embed_Manager
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
-        if (!$rec->systemId) {
+        if (empty($rec->systemId)) {
             $rec->systemId = $mvc->getSystemId($rec);
         }
     }
@@ -397,7 +398,7 @@ class email_ServiceRules extends embed_Manager
     {
         static $filtersArr = array();
 
-        if ($filtersArr[$str]) {
+        if (!empty($filtersArr[$str])) {
 
             return $filtersArr[$str];
         }

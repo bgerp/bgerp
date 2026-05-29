@@ -715,6 +715,7 @@ class thumb_Img
             $this->getSize();
 
             // Склаираме, само ако имаме пропорция, различна от 1 или ротираме
+            $newGdRes = null;
             if ($this->ratio != 1 || $this->rotation || self::canUseWebP()) {
                 if ($this->rotation) {
                     if ($this->rotation == 180) {
