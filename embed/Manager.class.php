@@ -212,7 +212,7 @@ abstract class embed_Manager extends core_Master
             $addFields = self::getDriverFields($driver);
             
             foreach ($addFields as $name => $caption) {
-                $driverRec[$name] = $rec->{$name};
+                $driverRec[$name] = $rec->{$name} ?? null;
                 $saveDriverRec = true;
             }
             
