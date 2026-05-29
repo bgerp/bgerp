@@ -603,7 +603,7 @@ class cms_Domains extends core_Embedder
      */
     public static function getRecTitle($rec, $escape = true)
     {
-        if (!$rec->domain || !$rec->lang) {
+        if (empty($rec->domain) || empty($rec->lang)) {
             $rec = self::fetch($rec->id);
         }
         
@@ -636,7 +636,7 @@ class cms_Domains extends core_Embedder
         // Инвалидираме сесийния кеш
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, null);
         
-        if (is_array($rec->toRemove) && countR($rec->toRemove)) {
+        if (isset($rec->toRemove) && is_array($rec->toRemove) && countR($rec->toRemove)) {
             foreach($rec->toRemove as $filename) {
                 core_Webroot::remove($filename, $id);
             }
