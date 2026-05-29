@@ -176,7 +176,7 @@ class core_Lg extends core_Manager
     {
         $langArr = arr::make(EF_LANGUAGES, true);
         
-        if ($langArr[$lg] && ($force || !Mode::get('lg'))) {
+        if (isset($langArr[$lg]) && ($force || !Mode::get('lg'))) {
             Mode::setPermanent('lg', $lg);
         }
     }
@@ -484,7 +484,8 @@ class core_Lg extends core_Manager
     public static function getLink($lgArr)
     {
         $tpl = new ET();
-        
+        $div = false;
+
         foreach ($lgArr as $lg => $title) {
             if (core_Lg::getCurrent() != $lg) {
                 if ($div) {
