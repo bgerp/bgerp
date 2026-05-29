@@ -135,9 +135,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         }
 
         // 1) Служителите от групите
-        core_Debug::startTimer('REFRESH_getPersonIdsFromCrmGroups');
         $personsInGroups = crm_Persons::getPersonIdsFromCrmGroups($rec->crmGroup, true);
-        core_Debug::stopTimer('REFRESH_getPersonIdsFromCrmGroups');
         if (empty($personsInGroups)) {
             return $recs;
         }
@@ -165,45 +163,30 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $data->periodDates = $dates;          // списък с дати за периода
             $data->persons = $personsInGroups;  // [personId => name]
         }
-        core_Debug::startTimer('REFRESH_getPersonsShiftsInPeriod');
+        
         // Намираме смените за всеки ден
         $personsShiftsInPeriod = self::getPersonsShiftsInPeriod($personsInGroups, $dates);  // [pId][Y-m-d] => shiftName|null
-        core_Debug::stopTimer('REFRESH_getPersonsShiftsInPeriod');
 
-        core_Debug::startTimer('REFRESH_getPersonsHomeOfficeDaysInPeriod');
         //Отчитане на хоумофис дните
         $personsShiftsInPeriod = self::getPersonsHomeOfficeDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
-        core_Debug::stopTimer('REFRESH_getPersonsHomeOfficeDaysInPeriod');
 
-        core_Debug::startTimer('REFRESH_getPersonsTripDaysInPeriod');
         //Отчитане на командировките
         $personsShiftsInPeriod = self::getPersonsTripDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
-        core_Debug::stopTimer('REFRESH_getPersonsTripDaysInPeriod');
 
-        core_Debug::startTimer('REFRESH_getPersonsLeavesDaysInPeriod');
         //Отчитане на отпуските
         $personsShiftsInPeriod = self::getPersonsLeavesDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
-        core_Debug::stopTimer('REFRESH_getPersonsLeavesDaysInPeriod');
 
     
-        core_Debug::startTimer('REFRESH_getPersonsSickDaysInPeriod');
         //Отчитане на болничните
         $personsShiftsInPeriod = self::getPersonsSickDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
-        core_Debug::stopTimer('REFRESH_getPersonsSickDaysInPeriod');
 
-
-        core_Debug::startTimer('REFRESH_getPersonsTimeInPeriod');
         //Изчисляване на времето за всеки ден
         $personsTimeInPeriod = self::getPersonsTimeInPeriod($personsInGroups, $dates);    // [pId][Y-m-d] => seconds
-        core_Debug::stopTimer('REFRESH_getPersonsTimeInPeriod');
 
-        core_Debug::startTimer('REFRESH_getProgressInPeriod');
         //Изчисляване на заработките
         $personsProgressInPeriod = self::getProgressInPeriod($personsInGroups, $dates);
-        core_Debug::stopTimer('REFRESH_getProgressInPeriod');
 
         // 4) По 3 реда на човек: 'shift', 'onsite', 'ops'
-        core_Debug::startTimer('REFRESH_buildRecsLoop');
         foreach ($personsInGroups as $pId => $pName) {
 
             // a) ред „смяна“
@@ -237,7 +220,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 'opsMinutesByDate' => isset($personsProgressInPeriod[$pId]) ? $personsProgressInPeriod[$pId] : array(),
             );
         }
-        core_Debug::stopTimer('REFRESH_buildRecsLoop');
 
         return $recs;
     }
@@ -582,9 +564,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
             foreach ($dates as $ymd) {
                 // Взимаме смяната (id) за деня
-                core_Debug::startTimer('TEST_hr_Shifts::getShift');
+                core_Debug::startTimer('REFRESH_hr_Shifts::getShift');
                 $shiftId = hr_Shifts::getShift($ymd, $personId, $scheduleId);
-                core_Debug::stopTimer('TEST_hr_Shifts::getShift');
+                core_Debug::stopTimer('REFRESH_hr_Shifts::getShift');
                 if (!$shiftId) {
                     // няма смяна за този ден
                     $result[$personId][$ymd] = null;
@@ -973,11 +955,8 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function renderChart($rec, &$data)
     {
-        core_Debug::startTimer('REFRESH_renderChart');
         $fields = array('workingDays' => 'Работни дни', 'restDays' => 'Почивни дни', 'paidLeave' => 'Отпуска', 'sickDays' => 'Болнични', 'tripDays' => 'Командировка', 'homeOfficeDays' => 'Хоумофис', 'hours' => 'Часове');
-        core_Debug::startTimer('REFRESH_getSummary');
         $summary = $this->getSummary($rec);
-        core_Debug::stopTimer('REFRESH_getSummary');
 
         $fieldset = new core_FieldSet();
         $fieldset->FLD('userId', 'varchar');

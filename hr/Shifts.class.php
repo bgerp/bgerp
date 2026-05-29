@@ -77,6 +77,12 @@ class hr_Shifts extends core_Manager
 
 
     /**
+     * Кеш за активните смени
+     */
+    public static $activeShifts = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -100,14 +106,16 @@ class hr_Shifts extends core_Manager
      */
     public static function getShiftByInterval($date, core_Intervals $Int)
     {
-        // Всички активни смени
-        $query = self::getQuery();
-        $query->where("#state = 'active'");
-        $query->show('name,start,duration');
+        if(empty(static::$activeShifts)){
+            // Всички активни смени
+            $query = self::getQuery();
+            $query->where("#state = 'active'");
+            $query->show('name,start,duration');
+            static::$activeShifts = $query->fetchAll();
+        }
 
         $shifts = array();
-        while($rec = $query->fetch()){
-
+        foreach(static::$activeShifts as $shiftId => $rec){
             // За всяка смяна се гледа колко ѝ е сечението с работния график
             $start = "{$date} {$rec->start}:00";
             $end = dt::addSecs($rec->duration, $start);
@@ -139,20 +147,20 @@ class hr_Shifts extends core_Manager
     public static function getShift($date, $personId, &$scheduleId = null)
     {
         // Какъв е графикът на лицето
-        core_Debug::startTimer('planning_Hr::getSchedule');
+        core_Debug::startTimer('SHIFT_REFRESH_planning_Hr::getSchedule');
         $scheduleId = $scheduleId ?? planning_Hr::getSchedule($personId);
-        core_Debug::stopTimer('planning_Hr::getSchedule');
+        core_Debug::stopTimer('SHIFT_REFRESH_planning_Hr::getSchedule');
 
         // Ще се вземе графика от 22 часа на предходния ден до 06 часа на следващия ден
         $from = dt::addSecs(-2 * 60 * 60, $date);
         $to = dt::addSecs(6 * 60 * 60, "{$date} 23:59:59");
-        core_Debug::startTimer('hr_Schedules::getWorkingIntervals');
+        core_Debug::startTimer('SHIFT_REFRESH_hr_Schedules::getWorkingIntervals');
         $Interval   = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to);
-        core_Debug::stopTimer('hr_Schedules::getWorkingIntervals');
+        core_Debug::stopTimer('SHIFT_REFRESH_hr_Schedules::getWorkingIntervals');
         // Определяне в коя смяна е лицето на тази дата спрямо интервала
-        core_Debug::startTimer('self::getShiftByInterval');
+        core_Debug::startTimer('SHIFT_REFRESH_self::getShiftByInterval');
         $id = self::getShiftByInterval($date, $Interval);
-        core_Debug::stopTimer('self::getShiftByInterval');
+        core_Debug::stopTimer('SHIFT_REFRESH_self::getShiftByInterval');
 
         return $id;
     }
