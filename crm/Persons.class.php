@@ -430,7 +430,7 @@ class crm_Persons extends core_Master
 
         // Според заявката за сортиране, показваме различни полета
         $data->listFilter->rec->order = $data->listFilter->rec->order ?? 'alphabetic';
-        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
+        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2] ?? null;
 
         if ($showColumns) {
             $showColumns = arr::make($showColumns, true);
@@ -453,7 +453,7 @@ class crm_Persons extends core_Master
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
                 $alphaArr = explode('-', $data->listFilter->rec->alpha);
-                $cond = array();
+                $cond = array(0 => '');
                 $i = 1;
 
                 foreach ($alphaArr as $a) {
@@ -515,7 +515,8 @@ class crm_Persons extends core_Master
         if (is_array($data->recs)) {
             $cnt = array();
             foreach ($data->recs as $rec) {
-                $cnt[str::utf2ascii(trim($rec->name))]++;
+                $key = str::utf2ascii(trim($rec->name));
+                $cnt[$key] = ($cnt[$key] ?? 0) + 1;
             }
             foreach ($data->recs as $rec) {
                 if ($cnt[str::utf2ascii(trim($rec->name))] >= 2) {
@@ -719,7 +720,7 @@ class crm_Persons extends core_Master
         if (!$ownCompany) {
             $ownCompany = crm_Companies::fetchOurCompany();
         }
-        if ($ownCompany->country != $rec->country) {
+        if (is_object($ownCompany) && $ownCompany->country != $rec->country) {
             $row->country = $mvc->getVerbal($rec, 'country');
         }
 
@@ -753,9 +754,9 @@ class crm_Persons extends core_Master
                 }
                 $mvcClone->setFieldTypeParams($cFld2, array('maskVerbal' => true));
 
-                $val = $mvc->getVerbal($rec, $rec->{$cFld1} ? $cFld1 : $cFld2);
+                $val = $mvc->getVerbal($rec, ($rec->{$cFld1} ?? null) ? $cFld1 : $cFld2);
                 $valClass = $cFld1 == 'buzTel' ? 'telephone' : $cFld2;
-                $row->phonesBox .= $val ? "<div class='crm-icon {$valClass}'>{$val}</div>" : '';
+                $row->phonesBox = ($row->phonesBox ?? '') . ($val ? "<div class='crm-icon {$valClass}'>{$val}</div>" : '');
             }
 
             $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
@@ -965,7 +966,7 @@ class crm_Persons extends core_Master
     public function flushUpdatePriceLists()
     {
         // Записване на заопашените ЦП за добавяне
-        if (countR($this->updatedListsOnShutdown)) {
+        if (!empty($this->updatedListsOnShutdown) && countR($this->updatedListsOnShutdown)) {
             foreach ($this->updatedListsOnShutdown as $id => $listId) {
                 price_ListToCustomers::add($listId, $this, $id);
                 core_Statuses::newStatus("На лицето е добавена ценовата политика за клиенти на фирмата|*: " . price_Lists::getTitleById($listId));
@@ -2281,7 +2282,8 @@ class crm_Persons extends core_Master
             $organization = mb_strtolower($currVcard['organization']);
 
             // Гледаме дали има такава въведена фирма
-            $companyId = crm_Companies::fetch(array("LOWER(#name) LIKE '%[#1#]%'", $organization), 'id')->id;
+            $companyRec = crm_Companies::fetch(array("LOWER(#name) LIKE '%[#1#]%'", $organization), 'id');
+            $companyId = is_object($companyRec) ? $companyRec->id : null;
 
             // Избираме я по подразбиране
             $form->setDefault('buzCompanyId', $companyId);
@@ -2390,7 +2392,7 @@ class crm_Persons extends core_Master
      */
     public static function prepareBirthday(&$rec)
     {
-        list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
+        list($y, $m, $d) = type_Combodate::toArray($rec->birthday ?? null);
 
         $err = null;
         if (isset($rec->egn) && !($y > 0 || $m > 0 || $d > 0)) {
@@ -2755,7 +2757,7 @@ class crm_Persons extends core_Master
         if (!isset($showCountry)) {
             if ($rec->country) {
                 $ourCompany = crm_Companies::fetchOurCompany();
-                if ($ourCompany->country != $rec->country) {
+                if (is_object($ourCompany) && $ourCompany->country != $rec->country) {
                     $obj->country = $this->getVerbal($rec, 'country');
                 }
             }
@@ -2956,7 +2958,7 @@ class crm_Persons extends core_Master
     {
         crm_Companies::on_AfterPrepareImportFields($mvc, $fields);
 
-        if ($fields[$mvc->expandInputFieldName]) {
+        if (!empty($fields[$mvc->expandInputFieldName])) {
             $fields[$mvc->expandInputFieldName]['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
         }
     }
@@ -3090,7 +3092,7 @@ class crm_Persons extends core_Master
                 return false;
             }
 
-            if ($rec->groupListInput) {
+            if (!empty($rec->groupListInput)) {
                 if (!empty($groupIdArr)) {
                     $rec->groupListInput = type_Keylist::merge($rec->groupListInput, type_Keylist::fromArray($groupIdArr));
                 }
@@ -3209,9 +3211,9 @@ class crm_Persons extends core_Master
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
 
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
 
         if (isset($params['groups'])) {
@@ -3222,6 +3224,7 @@ class crm_Persons extends core_Master
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
 
         if ($q) {
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }
