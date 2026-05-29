@@ -331,9 +331,9 @@ class barcode_Generator extends core_Manager
         // Вземаме изображението
         $im = self::getImg($type, $content, $size, $params);
         
-        // Ако е ресурс
-        if (is_resource($im)) {
-            
+        // PHP 7: GD resource; PHP 8: GdImage object
+        if (is_resource($im) || (is_object($im) && $im instanceof GdImage)) {
+
             // Връщаме png
             imagepng($im);
         }

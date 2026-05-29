@@ -73,7 +73,7 @@ class barcode_Search extends core_Manager
         
         $haveRes = null;
         
-        if ($form->rec->search) {
+        if (!empty($form->rec->search)) {
             // Ако е сканиран баркод към линк към системата
             if (core_Url::isValidUrl2($form->rec->search)) {
                 $cDomain = cms_Domains::getCurrent('domain', false);
@@ -166,7 +166,7 @@ class barcode_Search extends core_Manager
             $tpl->push('barcode/js/html5.js', 'JS');
             $tpl->push('barcode/js/html5-qrcode.min.js', 'JS');
 
-            $h =  $form->rec->search ? ' class="hidden" ' : '';
+            $h = !empty($form->rec->search) ? ' class="hidden" ' : '';
             $img = sbf("img/32/camera.png", "");
 
             $a = "<style> .cameraSource { min-width: 40px;padding-left: 24px !important; padding-right: 7px !important; background: #ddd url({$img}) left center; background-size: 16px; } .narrow .cameraSource { min-width: 50px;padding-left: 25px !important;}.cameraSource.active {background-color: #bbb;}</style> 
