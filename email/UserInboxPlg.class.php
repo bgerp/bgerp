@@ -187,7 +187,8 @@ class email_UserInboxPlg extends core_Plugin
             }
         }
         
-        $data->form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
+        $ownCompany = crm_Companies::fetchOwnCompany();
+        $data->form->setDefault('country', is_object($ownCompany) ? $ownCompany->countryId : null);
         
         
         if (empty($data->form->rec->id)) {
