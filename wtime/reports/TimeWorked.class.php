@@ -109,7 +109,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = $data->form;
-        $rec = $form->rec;
 
         $currentPeriod = acc_Periods::fetchByDate(dt::today());
         if ($currentPeriod) {
@@ -175,7 +174,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         //Отчитане на отпуските
         $personsShiftsInPeriod = self::getPersonsLeavesDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
-
     
         //Отчитане на болничните
         $personsShiftsInPeriod = self::getPersonsSickDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
@@ -324,8 +322,10 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         } elseif ($series == 'summary') {
             $summary = $this->getSummary($rec);
             foreach ($summary as $fldId => $dRec){
+                bp($dRec);
                 $dRec->hours = round($dRec->workingMinutes / 3600);
-                if($fldId ==+ 0){
+                bp($dRec->workingMinutes);
+                if($fldId === 0){
                     $dRec->personName = 'Общо';
                 }
             }
@@ -412,7 +412,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         };
 
         // Форматирания за други редове
-        $fmtPct = function ($minutes) {
+        function ($minutes) {
             if (!is_numeric($minutes) || $minutes <= 0) return '-';
             $pct = round(($minutes / 480) * 100, 1);
             
@@ -824,7 +824,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $taskQuery->show('id,originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
         $tasks = $taskQuery->fetchAll();
         
-        $originIds = $jobProductMap = $uomMap = $$measureIds = [];
+        $originIds = $jobProductMap = $uomMap = $measureIds = [];
         $originIds = arr::extractValuesFromArray($tasks, 'originId');
         
         // Извличане на Заданията
@@ -843,9 +843,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         // Извличане на мерните единици
         $measureIds = arr::extractValuesFromArray($tasks, 'measureId');
 
-        if (!empty($measureIdArr)) {
+        if (!empty($measureIds)) {
             $uomQuery = cat_UoM::getQuery();
-            $uomQuery->in('id', $measureIdArr);
+            $uomQuery->in('id', $measureIds);
             $uomQuery->show('id,type');
             $uoms = $uomQuery->fetchAll();
             foreach ($uoms as $uom) {
