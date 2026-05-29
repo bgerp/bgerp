@@ -47,7 +47,7 @@ class deals_plg_UpdateCurrencyRates extends core_Plugin
             $dQuery->EXT('state', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");
             $dQuery->in("state", array('draft', 'pending'));
             $dQuery->show("{$Detail->masterKey},currencyId,{$Detail->Master->rateFldName},price,{$Detail->priceInCurrencyFieldName},productId");
-            $dQuery->where("#{$Detail->Master->valiorFld} IS NULL AND #currencyId != 'BGN'");
+            $dQuery->where("#{$Detail->Master->valiorFld} IS NULL AND #currencyId != 'BGN' AND #currencyId != 'EUR'");
 
             $res = array();
             $today = dt::today();
@@ -95,7 +95,10 @@ class deals_plg_UpdateCurrencyRates extends core_Plugin
             }
 
             foreach ($saveMasters as $masterRec){
-                $Detail->Master->updateMaster($masterRec->id);
+                // Обновяване на мастъра но без да се модифицира
+                $masterRec1 = $Detail->Master->fetch($masterRec->id);
+                $masterRec1->_notModified = true;
+                $Detail->Master->updateMaster($masterRec1);
             }
         }
     }

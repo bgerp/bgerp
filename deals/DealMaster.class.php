@@ -492,7 +492,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec->productIdWithBiggestAmount = $this->findProductIdWithBiggestAmount($rec);
         
         $this->invoke('BeforeUpdatedMaster', array(&$rec));
-        
+
         return $this->save($rec);
     }
     
