@@ -1068,7 +1068,7 @@ class core_Packs extends core_Manager
             error('@Пакета няма нищо за конфигуриране', $packName);
         }
         
-        if ($rec->configData) {
+        if (!empty($rec->configData)) {
             $data = unserialize($rec->configData);
         } else {
             $data = array();
@@ -1317,7 +1317,7 @@ class core_Packs extends core_Manager
             $rec->name = $name;
         }
         
-        if ($rec->configData) {
+        if (!empty($rec->configData)) {
             $exData = unserialize($rec->configData);
         } else {
             $exData = array();
