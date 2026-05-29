@@ -406,15 +406,15 @@ class core_Packs extends core_Manager
             $rec->startAct = $setup->startAct;
             
             if ($setup->deprecated) {
-                if ($rec->state != 'deprecated' && $rec->id) {
+                if (($rec->state ?? null) != 'deprecated' && !empty($rec->id)) {
                     $res .= $this->deinstall($pack);
                 }
-                
+
                 $rec->state = 'deprecated';
             } elseif ($setup->noInstall) {
                 $rec->state = 'hidden';
             } else {
-                if ($rec->state != 'active') {
+                if (($rec->state ?? null) != 'active') {
                     $rec->state = 'draft';
                 }
             }
