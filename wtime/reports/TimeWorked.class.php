@@ -564,9 +564,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
             foreach ($dates as $ymd) {
                 // Взимаме смяната (id) за деня
-                core_Debug::startTimer('REFRESH_hr_Shifts::getShift');
                 $shiftId = hr_Shifts::getShift($ymd, $personId, $scheduleId);
-                core_Debug::stopTimer('REFRESH_hr_Shifts::getShift');
                 if (!$shiftId) {
                     // няма смяна за този ден
                     $result[$personId][$ymd] = null;
@@ -619,7 +617,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         $q = $mvcClass::getQuery();
         $q->in('personId', $personIds);
-        //bp($toField,$minDate, $maxDate, $fromField);
         $q->where("#{$toField} >= '{$minDate}'");
         $q->where("#{$fromField} <= '{$maxDate}'");
         $q->where("#state = 'active'");
@@ -803,7 +800,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $fromStart = $from . ' 00:00:00';
         $toEnd = $to . ' 23:59:59';
 
-        core_Debug::startTimer('REFRESH_ planning_ProductionTaskDetails::getQuery()');
         // 2) Заявка: само нужните полета, само в периода
         $q = planning_ProductionTaskDetails::getQuery();
 
@@ -819,7 +815,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 4) Акумулация по ключ "<personId>|<Y-m-d>"
         $qArr = $q->fetchAll();
-        core_Debug::stopTimer('REFRESH_ planning_ProductionTaskDetails::getQuery()');
         // Подготовка на данни преди цикъла
 
         //Извличане и индексиране на Задачите
@@ -995,7 +990,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $rows[] = $row;
         }
         $table = $table->get($rows, $fields);
-        core_Debug::stopTimer('REFRESH_renderChart');
 
         return $table;
     }
