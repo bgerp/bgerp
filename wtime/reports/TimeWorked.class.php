@@ -138,6 +138,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         if (empty($personsInGroups)) {
             return $recs;
         }
+        natsort($personsInGroups);
 
         // 2) Дните в периода (включително)
         $perRec = acc_Periods::fetch($rec->periods);
@@ -495,17 +496,16 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-        $Date = cls::get('type_Date');
-        $Time = cls::get('type_Time');
-        $Users = cls::get('type_Users');
-        $Enum = cls::get('type_Enum', array('options' => array('selfPrice' => 'политика"Себестойност"', 'catalog' => 'политика"Каталог"', 'accPrice' => 'Счетоводна')));
-
+        $Date = core_Type::getByName('date');
+        $Time = core_Type::getByName('time');
+        $Groups = core_Type::getByName('keylist(mvc=crm_Groups,select=name)');
+        
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
-                                        <!--ET_BEGIN users--><div>|Избрани потребители|*: [#users#]</div><!--ET_END users-->
+                                        <!--ET_BEGIN groups--><div>|Избрани групи|*: [#groups#]</div><!--ET_END groups-->
                                         <!--ET_BEGIN maxTimeWaiting--><div>|Макс. изчакване|*: [#maxTimeWaiting#]</div><!--ET_END maxTimeWaiting-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
@@ -521,12 +521,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         if (isset($data->rec->maxTimeWaiting)) {
             $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->maxTimeWaiting) . '</b>', 'maxTimeWaiting');
         }
-
-        if (isset($data->rec->users)) {
-
-            $fieldTpl->append('<b>' . $Users->toVerbal($data->rec->users) . '</b>', 'users');
+        
+        if (isset($data->rec->crmGroup)) {
+            $fieldTpl->append('<b>' . $Groups->toVerbal($data->rec->crmGroup) . '</b>', 'groups');
         } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'users');
+            $fieldTpl->append('<b>' . tr('Всички') . '</b>', 'groups');
         }
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
@@ -554,7 +553,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $ymd = dt::verbal2mysql($d, false); // 'Y-m-d'
             $normDates[$ymd] = true;
         }
-        $personsShifts = array();
         
         // За всеки човек и всяка дата намираме смяната чрез hr_Shifts::getShift()
         foreach ($personsInGroups as $personId => $personName) {
