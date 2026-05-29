@@ -943,11 +943,11 @@ class crm_Persons extends core_Master
      */
     public static function on_Shutdown($mvc)
     {
-        if ($mvc->updateGroupsCnt) {
+        if (!empty($mvc->updateGroupsCnt)) {
             crm_Groups::updateGroupsCnt($mvc->className, 'personsCnt');
         }
 
-        if (countR($mvc->updatedRecs)) {
+        if (!empty($mvc->updatedRecs) && countR($mvc->updatedRecs)) {
             // Обновяване на информацията за рожденните дни, за променените лица
             foreach ($mvc->updatedRecs as $id => $rec) {
                 static::updateBirthdaysToCalendar($id);
