@@ -147,20 +147,15 @@ class hr_Shifts extends core_Manager
     public static function getShift($date, $personId, &$scheduleId = null)
     {
         // Какъв е графикът на лицето
-        core_Debug::startTimer('SHIFT_REFRESH_planning_Hr::getSchedule');
         $scheduleId = $scheduleId ?? planning_Hr::getSchedule($personId);
-        core_Debug::stopTimer('SHIFT_REFRESH_planning_Hr::getSchedule');
 
         // Ще се вземе графика от 22 часа на предходния ден до 06 часа на следващия ден
         $from = dt::addSecs(-2 * 60 * 60, $date);
         $to = dt::addSecs(6 * 60 * 60, "{$date} 23:59:59");
-        core_Debug::startTimer('SHIFT_REFRESH_hr_Schedules::getWorkingIntervals');
         $Interval   = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to);
-        core_Debug::stopTimer('SHIFT_REFRESH_hr_Schedules::getWorkingIntervals');
+
         // Определяне в коя смяна е лицето на тази дата спрямо интервала
-        core_Debug::startTimer('SHIFT_REFRESH_self::getShiftByInterval');
         $id = self::getShiftByInterval($date, $Interval);
-        core_Debug::stopTimer('SHIFT_REFRESH_self::getShiftByInterval');
 
         return $id;
     }
