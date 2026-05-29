@@ -381,8 +381,8 @@ class core_Mvc extends core_FieldSet
                 continue;
             }
             
-            $value = $rec->{$name};
-            
+            $value = $rec->{$name} ?? null;
+
             $field = $this->getField($name);
             
             // Правим MySQL представяне на стойността
@@ -526,7 +526,7 @@ class core_Mvc extends core_FieldSet
         foreach ($recs as $rec) {
             $row = '(';
             foreach ($fieldsArr as $key => $field) {
-                $value = $field->type->toMysql($rec->{$key}, $this->db, $field->notNull, $field->value);
+                $value = $field->type->toMysql($rec->{$key} ?? null, $this->db, $field->notNull, $field->value);
                 $row .= $value . ',';
             }
             $row = rtrim($row, ',') . '),';
@@ -905,7 +905,7 @@ class core_Mvc extends core_FieldSet
                 $places = $tpl->getPlaceholders();
                 
                 foreach ($places as $place) {
-                    $cRec->{$place} = type_Varchar::escape($rec->{$place});
+                    $cRec->{$place} = type_Varchar::escape($rec->{$place} ?? null);
                     $cRec->{$place} = str_replace('|', '&#124;', $cRec->{$place});
                 }
             }
