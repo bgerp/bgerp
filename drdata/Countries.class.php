@@ -460,7 +460,7 @@ class drdata_Countries extends core_Manager
             );
             
             foreach ($mis as $w => $c) {
-                expect($id = $commonNamesArr[$c], $c, $commonNamesArr, $mis);
+                expect($id = ($commonNamesArr[$c] ?? null), $c, $commonNamesArr, $mis);
                 expect(empty($commonNamesArr[$w]), $w, $commonNamesArr);
                 $commonNamesArr[$w] = $id;
             }
