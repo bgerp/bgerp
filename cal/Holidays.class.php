@@ -346,9 +346,9 @@ class cal_Holidays extends core_Master
                 
                 $calRec->url = array('cal_Holidays', 'single', $rec->id);
                 
-                $calRec->users = $card[$rec->type];
-                
-                $calRec->priority = self::$priorities[$rec->type];
+                $calRec->users = $card[$rec->type] ?? null;
+
+                $calRec->priority = self::$priorities[$rec->type] ?? null;
                 
                 if (!$calRec->priority) {
                     $calRec->priority = 71;
