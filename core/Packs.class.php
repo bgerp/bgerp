@@ -1429,7 +1429,7 @@ class core_Packs extends core_Manager
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $text = '';
-        if ($rec->startCtr) {
+        if (!empty($rec->startCtr)) {
             list($pack) = explode('_', $rec->startCtr, 2);
             $pack = $pack . '_Setup';
             if (cls::load($pack, true)) {
