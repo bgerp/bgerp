@@ -386,11 +386,11 @@ class core_Mvc extends core_FieldSet
             $field = $this->getField($name);
             
             // Правим MySQL представяне на стойността
-            $value = $field->type->toMysql($value, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
-            
+            $value = $field->type->toMysql($value, $this->db, $field->notNull ?? null, $field->value ?? null);
+
             // Предотвратява двойното записване
             if ($exRec && property_exists($exRec, $name) && is_scalar($exRec->{$name})) {
-                $exValue = $field->type->toMysql($exRec->{$name}, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
+                $exValue = $field->type->toMysql($exRec->{$name}, $this->db, $field->notNull ?? null, $field->value ?? null);
                 if ($exValue === $value) {
                     continue;
                 }
@@ -526,7 +526,7 @@ class core_Mvc extends core_FieldSet
         foreach ($recs as $rec) {
             $row = '(';
             foreach ($fieldsArr as $key => $field) {
-                $value = $field->type->toMysql($rec->{$key} ?? null, $this->db, $field->notNull, $field->value);
+                $value = $field->type->toMysql($rec->{$key} ?? null, $this->db, $field->notNull ?? null, $field->value ?? null);
                 $row .= $value . ',';
             }
             $row = rtrim($row, ',') . '),';
