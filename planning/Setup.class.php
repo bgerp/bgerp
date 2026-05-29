@@ -26,6 +26,12 @@ defIfNot('PLANNING_TASK_WEIGHT_MODE', 'yes');
 
 
 /**
+ * Отчитане на теглото в ПО->Режим
+ */
+defIfNot('PLANNING_TASK_FAST_PROGRESS_BTN', 'no');
+
+
+/**
  * Височина на превюто на артикула в етикета
  */
 defIfNot('PLANNING_TASK_LABEL_PREVIEW_HEIGHT', 170);
@@ -146,7 +152,7 @@ defIfNot('PLANNING_JOB_DEFAULT_INVALIDATE_PRODUCT_CACHE_ON_CHANGE', 'yes');
 
 
 /**
- * Да се показва ли колонка за продажба в листа на ПО
+ * Добавяне на бърз прогрес за оставащото в листа на ПО->Избор
  */
 defIfNot('PLANNING_SHOW_SALE_IN_TASK_LIST', 'no');
 
@@ -350,6 +356,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_ALLOW_STORE_DOCS_IN_JOB' => array('time', array('caption' => 'До кога след приключване на заданието да се контират протоколи за влагане и връщане->Време')),
         'PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Автоматично добавяне на артикули от протокол за влагане в ПО->Избор')),
         'PLANNING_PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'При печат на ПП да се показва изображението на артикула->Избор')),
+        'PLANNING_TASK_FAST_PROGRESS_BTN' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Добавяне на бърз прогрес за оставащото в листа на ПО->Избор')),
     );
 
 
