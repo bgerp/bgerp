@@ -815,13 +815,13 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         if (empty($dates)) {
             return array();
         }
-
         // 1) Период от първата до последната дата (вкл.)
         $from = dt::verbal2mysql(reset($dates), false);
         $to = dt::verbal2mysql(end($dates), false);
         $fromStart = $from . ' 00:00:00';
         $toEnd = $to . ' 23:59:59';
 
+        core_Debug::startTimer('REFRESH_ planning_ProductionTaskDetails::getQuery()');
         // 2) Заявка: само нужните полета, само в периода
         $q = planning_ProductionTaskDetails::getQuery();
 
@@ -837,7 +837,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 4) Акумулация по ключ "<personId>|<Y-m-d>"
         $qArr = $q->fetchAll();
-
+        core_Debug::stopTimer('REFRESH_ planning_ProductionTaskDetails::getQuery()');
         // Подготовка на данни преди цикъла
 
         //Извличане и индексиране на Задачите
@@ -879,7 +879,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         foreach($qArr as $id => $qRec) {
             // Ако задачата липсва в базата данни, пропускаме записа
             if (!isset($tasks[$qRec->taskId])) continue;
-            
+
             $currentTask = $tasks[$qRec->taskId];
             $quantity = $qRec->quantity;
 
