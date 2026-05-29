@@ -798,25 +798,26 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 2) Заявка: само нужните полета, само в периода
         $q = planning_ProductionTaskDetails::getQuery();
-
         $q->where(array("#createdOn >= '{$fromStart}' AND #createdOn <= '{$toEnd}'"));
+        $q->where("#employees IS NOT NULL");
+        $q->show('taskId,quantity,productId,employees,norm,createdOn,type');
 
-        // 3) Филтър: поне един employee да е в $personsInGroups
-        $ors = array();
-        foreach (array_keys($personsInGroups) as $pId) {
-            $pId = (int)$pId;
-            $ors[] = "LOCATE('|{$pId}|', CONCAT('|', #employees, '|'))";
+        $qArr = array();
+        while ($qRec1 = $q->fetch()) {
+            $employee = keylist::toArray($qRec1->employees);
+            if(array_intersect_key($employee, $personsInGroups)) {
+                $qArr[$qRec1->id] = $qRec1;
+            }
         }
-        $q->where($ors ? '(' . implode(' OR ', $ors) . ')' : '1=0');
-
-        // 4) Акумулация по ключ "<personId>|<Y-m-d>"
-        $qArr = $q->fetchAll();
-        // Подготовка на данни преди цикъла
 
         //Извличане и индексиране на Задачите
         $taskIds = arr::extractValuesFromArray($qArr, 'taskId');
         $taskQuery = planning_Tasks::getQuery();
-        $taskQuery->in('id', $taskIds);
+        if(countR($taskIds)){
+            $taskQuery->in('id', $taskIds);
+        } else {
+            $taskQuery->where("1=2");
+        }
         $taskQuery->show('id,originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
         $tasks = $taskQuery->fetchAll();
         
@@ -865,7 +866,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 if (($tasks[$qRec->taskId]->isFinal == 'yes' && $qRec->productId == $jobProductId) || $qRec->productId == $tasks[$qRec->taskId]->productId) {
                     
                     // Проверка дали мерната единица е стандартна (uom)
-                    $measureType = isset($uomMap[$currentTask->measureId]) ? $uomMap[$currentTask->measureId] : null;
+                    $measureType = $uomMap[$currentTask->measureId] ?? null;
                     $isMeasureUom = (isset($currentTask->measureId) && $measureType == 'uom');
                     if ($isMeasureUom) {
                         if ($tasks[$qRec->taskId]->indPackagingId == $tasks[$qRec->taskId]->measureId) {
@@ -885,11 +886,12 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                     }
                 }
             }
-            // Разпределяне на изработената норма поравно между всички служители в екипа
+
             $eArr = keylist::toArray($qRec->employees);
+            $eArr = array_intersect_key($eArr, $personsInGroups);
+
             if (!$eArr) continue;
 
-            // Норма: първата част преди '|'
             $normParts = explode('|', $qRec->norm, 2);
             $norm = (int)($normParts[0] ?? 0);
 
@@ -900,7 +902,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
             foreach ($eArr as $employee) {
                 $key = $employee . '|' . $ymd;
-                $arr[$key] = ($arr[$key] ?? 0) + $perEmp; // избягва Notice при първо натрупване
+                $arr[$key] = ($arr[$key] ?? 0) + $perEmp;
             }
         }
 
