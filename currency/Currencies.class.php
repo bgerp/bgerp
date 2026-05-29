@@ -311,7 +311,7 @@ class currency_Currencies extends core_Master
             // Ако данните идват от csv файл
             $rec->code = $rec->csv_code;
 
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 $rec->lastUpdate = dt::verbal2mysql();
             }
 
