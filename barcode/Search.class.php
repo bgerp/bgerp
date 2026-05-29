@@ -146,11 +146,11 @@ class barcode_Search extends core_Manager
             foreach ($resArr as $r) {
                 $resTpl = new ET('<tr><td>[#title#]</td><td>[#comment#]</td></tr>');
                 
-                if (! $r->title) {
+                if (empty($r->title)) {
                     $r->title = tr('Липсва заглавие');
                 }
-                
-                if ($r->url) {
+
+                if (!empty($r->url)) {
                     $r->title = ht::createLink($r->title, $r->url);
                 }
                 $resTpl->placeObject($r);
