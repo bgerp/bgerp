@@ -322,9 +322,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         } elseif ($series == 'summary') {
             $summary = $this->getSummary($rec);
             foreach ($summary as $fldId => $dRec){
-                bp($dRec);
                 $dRec->hours = round($dRec->workingMinutes / 3600);
-                bp($dRec->workingMinutes);
                 if($fldId === 0){
                     $dRec->personName = 'Общо';
                 }
