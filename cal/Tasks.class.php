@@ -544,7 +544,7 @@ class cal_Tasks extends embed_Manager
      */
     public static function on_BeforePrepareSelectForm($mvc, &$res, $form)
     {
-        if (!$form->rec->{$mvc->driverClassField}) {
+        if (empty($form->rec->{$mvc->driverClassField})) {
             $driverClass = Request::get('driverClass');
             if ($driverClass && cls::load($driverClass, true)) {
                 if (!isset($form->rec)) {
@@ -3011,7 +3011,7 @@ class cal_Tasks extends embed_Manager
     public static function calcTasksMinStartMaxEndTime($data)
     {
         $start = $end = array();
-        if ($data->recs) {
+        if (is_object($data) && !empty($data->recs)) {
             $data = $data->recs;
         }
         

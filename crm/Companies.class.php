@@ -1323,7 +1323,7 @@ class crm_Companies extends core_Master
     public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
         $ourCompanyRec = self::fetchOurCompany();
-        $ownCountry = is_object($ourCompanyRec) ? $ourCompanyRec->country : null;
+        $ownCountry = (int)(is_object($ourCompanyRec) ? $ourCompanyRec->country : 0);
         
         if (core_Lg::getCurrent() == 'bg') {
             $countryNameField = 'commonNameBg';
@@ -1525,7 +1525,7 @@ class crm_Companies extends core_Master
         $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
         $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
         $rec = self::fetch($id);
-        $rec = change_History::getRecOnDate(get_called_class(), $rec->id, $date);
+        $rec = $rec ? change_History::getRecOnDate(get_called_class(), $rec->id, $date) : null;
 
         if ($rec) {
             $rec->classId = core_Classes::getId('crm_Companies');

@@ -829,12 +829,17 @@ class doc_Folders extends core_Master
             $statisticArr[$tRec->visibleForPartners][$tRec->state][$tRec->firstDocClass] = $tRec->cnt;
             
             if ($tRec->state != 'rejected') {
+                $statisticArr[$tRec->visibleForPartners]['_notRejected'][$tRec->firstDocClass] ??= 0;
                 $statisticArr[$tRec->visibleForPartners]['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
+                $statisticArr['_all']['_notRejected'][$tRec->firstDocClass] ??= 0;
                 $statisticArr['_all']['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
             }
-            
+
+            $statisticArr['_all'][$tRec->state][$tRec->firstDocClass] ??= 0;
             $statisticArr['_all'][$tRec->state][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all'][$tRec->firstDocClass] ??= 0;
             $statisticArr['_all']['_all'][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all']['_all'] ??= 0;
             $statisticArr['_all']['_all']['_all'] += $tRec->cnt;
         }
         
