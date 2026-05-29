@@ -139,6 +139,9 @@ class core_Updates extends core_Manager
             git_Lib::fetchTags(EF_APP_PATH);
         }
         
+        $privateRepo = null;
+        $ghPrivateLastCommitLastDate = null;
+        $localPrivateCommitLastDate = null;
         if (defined('EF_PRIVATE_PATH')) {
             $rUrl = git_Lib::getRemoteUrl(EF_PRIVATE_PATH, $log);
             
@@ -177,9 +180,10 @@ class core_Updates extends core_Manager
             }
         }
         
+        $flagNew = false;
         $query = self::getQuery();
         $cQuery = clone $query;
-        
+
         while ($rec = $query->fetch()) {
             $lastState = $rec->state;
             
@@ -241,6 +245,7 @@ class core_Updates extends core_Manager
             }
         }
 
+        $lastDbVersion = null;
         try {
             $lastDbVersion = core_Setup::get('LAST_DB_VERSION');
         } catch (core_exception_Db $e) {
