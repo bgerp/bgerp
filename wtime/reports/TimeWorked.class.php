@@ -574,11 +574,13 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $ymd = dt::verbal2mysql($d, false); // 'Y-m-d'
             $normDates[$ymd] = true;
         }
+        $personsShifts = array();
         
         // За всеки човек и всяка дата намираме смяната чрез hr_Shifts::getShift()
         foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd) {
+            $scheduleId = planning_Hr::getSchedule($personId);
 
+            foreach ($dates as $ymd) {
                 // Взимаме смяната (id) за деня
                 core_Debug::startTimer('TEST_hr_Shifts::getShift');
                 $shiftId = hr_Shifts::getShift($ymd, $personId, $scheduleId);
@@ -823,7 +825,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         // 2) Заявка: само нужните полета, само в периода
         $q = planning_ProductionTaskDetails::getQuery();
 
-        $q->where(array("#createdOn >= '{$fromStart}' AND #createdOn <= '{$toEnd}'"));
+        //$q->where(array("#createdOn >= '{$fromStart}' AND #createdOn <= '{$toEnd}'"));
 
         // 3) Филтър: поне един employee да е в $personsInGroups
         $ors = array();
@@ -831,43 +833,94 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $pId = (int)$pId;
             $ors[] = "LOCATE('|{$pId}|', CONCAT('|', #employees, '|'))";
         }
-        $q->where($ors ? '(' . implode(' OR ', $ors) . ')' : '1=0');
+        //$q->where($ors ? '(' . implode(' OR ', $ors) . ')' : '1=0');
 
         // 4) Акумулация по ключ "<personId>|<Y-m-d>"
+        $qArr = $q->fetchAll();
+
+        // Подготовка на данни преди цикъла
+
+        //Извличане и индексиране на Задачите
+        $taskIdArr = arr::extractValuesFromArray($qArr, 'taskId');
+        $taskQ = planning_Tasks::getQuery();
+        $taskQ->in('id', $taskIdArr);
+        $taskQ->show('id,originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
+        $tasks = $taskQ->fetchAll();
+        
+        $originIds = [];
+        foreach ($tasks as $task) {
+            if (!empty($task->originId)) {
+                $originIds[] = $task->originId;
+            }
+        }
+
+        // Извличане на Заданията
+        $jobsQ = planning_Jobs::getQuery();
+        if(countR($originIds)){
+            $jobsQ->in('containerId', $originIds);
+            $jobsQ->show('containerId,productId');
+        } else{
+            $jobsQ->where('1 = 2');
+        }
+        $jobsList = $jobsQ->fetchAll();
+        $jobProductMap = [];
+        foreach ($jobsList as $jRec) {
+                $jobProductMap[$jRec->containerId] = $jRec->productId;
+            }
+        
+        // Извличане на мерните единици
+        $measureIdArr = [];
+        foreach($tasks as $task){
+            $measureIdArr[] = $task->measureId;
+        }
+        $uomMap = [];
+        if (!empty($measureIdArr)) {
+            $uomQ = cat_UoM::getQuery();
+            $uomQ->in('id', $measureIdArr);
+            $uomQ->show('id,type');
+            $uoms = $uomQ->fetchAll();
+            foreach ($uoms as $uom) {
+                $uomMap[$uom->id] = $uom->type;
+            }
+        }
+
         $arr = array();
-
-        while ($qRec = $q->fetch()) {
-
+        foreach($qArr as $id => $qRec) {
+            // Ако задачата липсва в базата данни, пропускаме записа
+            if (!isset($tasks[$qRec->taskId])) continue;
+            $currentTask = $tasks[$qRec->taskId];
             $quantity = $qRec->quantity;
 
             if (in_array($qRec->type, array('production', 'scrap'))) {
-                $taskRec = planning_Tasks::fetch($qRec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
-                $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
+
+                // Взимаме продуктовото ID на заданието от масив
+                $jobProductId = $jobProductMap[$currentTask->originId] ?? null;
 
                 // Ако артикула е артикула от заданието и операцията е финална или артикула е този от операцията за междинен етап
-                if (($taskRec->isFinal == 'yes' && $qRec->productId == $jobProductId) || $qRec->productId == $taskRec->productId) {
-
-                    $isMeasureUom = (isset($taskRec->measureId) && cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom');
+                if (($tasks[$qRec->taskId]->isFinal == 'yes' && $qRec->productId == $jobProductId) || $qRec->productId == $tasks[$qRec->taskId]->productId) {
+                    
+                    // Проверка дали мерната единица е стандартна (uom)
+                    $measureType = isset($uomMap[$currentTask->measureId]) ? $uomMap[$currentTask->measureId] : null;
+                    $isMeasureUom = (isset($currentTask->measureId) && $measureType == 'uom');
                     if ($isMeasureUom) {
-                        if ($taskRec->indPackagingId == $taskRec->measureId) {
-                            $quantity /= $taskRec->quantityInPack;
+                        if ($tasks[$qRec->taskId]->indPackagingId == $tasks[$qRec->taskId]->measureId) {
+                            $quantity /= $tasks[$qRec->taskId]->quantityInPack;
                         }
                     }
-
-                    if ($taskRec->measureId != $taskRec->indPackagingId) {
-                        if (!empty($taskRec->labelQuantityInPack)) {
-                            $indQuantityInPack = $taskRec->labelQuantityInPack;
+                    if ($tasks[$qRec->taskId]->measureId != $tasks[$qRec->taskId]->indPackagingId) {
+                        if (!empty($currentTask->labelQuantityInPack)) {
+                            $indQuantityInPack = $currentTask->labelQuantityInPack;
                             if ($isMeasureUom) {
-                                $indQuantityInPack = $indQuantityInPack * $taskRec->quantityInPack;
+                                $indQuantityInPack = $indQuantityInPack * $currentTask->quantityInPack;
                             }
                             $quantity = ($quantity / $indQuantityInPack);
-                        } elseif ($indQuantityInPack = cat_products_Packagings::getPack($qRec->productId, $taskRec->indPackagingId, 'quantity')) {
+                        } elseif ($indQuantityInPack = cat_products_Packagings::getPack($qRec->productId, $tasks[$qRec->taskId]->indPackagingId, 'quantity')) {
                             $quantity = ($quantity / $indQuantityInPack);
                         }
                     }
                 }
             }
-
+            // Разпределяне на изработената норма поравно между всички служители в екипа
             $eArr = keylist::toArray($qRec->employees);
             if (!$eArr) continue;
 
