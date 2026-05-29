@@ -2256,4 +2256,19 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         followRetUrl();
     }
+
+
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        if (!empty($data->form->rec->closeIfCompleted)) {
+            $data->form->toolbar->removeBtn('saveAndNew');
+        }
+    }
 }
