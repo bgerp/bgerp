@@ -388,8 +388,8 @@ class plg_TreeObject extends core_Plugin
             unset($descendants[$rec->id]);
 
             foreach ($descendants as $dId => $dRec) {
-                $rec->personsCnt += $dRec->personsCnt;
-                $rec->companiesCnt += $dRec->companiesCnt;
+                $rec->personsCnt = ($rec->personsCnt ?? 0) + ($dRec->personsCnt ?? 0);
+                $rec->companiesCnt = ($rec->companiesCnt ?? 0) + ($dRec->companiesCnt ?? 0);
             }
         }
     }
@@ -489,7 +489,7 @@ class plg_TreeObject extends core_Plugin
                 $features[$keyVerbal] = $nameVerbal;
                 
                 // Ако е последното листо, то да си има стойност себе си
-                if ($rec->parentId) {
+                if (!empty($rec->parentId)) {
                     if ($mvc->fetchField("#{$mvc->parentFieldName} = {$rec->parentId}")) {
                         $keyVerbal .= " » {$nameVerbal}";
                         $features[$keyVerbal] = $nameVerbal;
@@ -533,7 +533,7 @@ class plg_TreeObject extends core_Plugin
     public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
         if ($part == $mvc->nameField) {
-            $id = (is_object($rec)) ? $rec->id : $rec;
+            $id = (is_object($rec)) ? ($rec->id ?? null) : $rec;
             if (!$id) {
                 
                 return ;
