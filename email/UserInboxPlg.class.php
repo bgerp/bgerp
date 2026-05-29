@@ -106,7 +106,7 @@ class email_UserInboxPlg extends core_Plugin
         expect($user->names, $user);
         
         // Създава или обновява профилната визитка на новия потребител.
-        $personId = crm_Profiles::syncPerson($user->personId, $user);
+        $personId = crm_Profiles::syncPerson($user->personId ?? null, $user);
         
         // Ако няма резултат
         if (!$personId) {
