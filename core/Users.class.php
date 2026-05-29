@@ -771,9 +771,9 @@ class core_Users extends core_Manager
         }
         
         $rec = $form->rec;
-        
+
         //id' то на текущия запис
-        $recId = $rec->id;
+        $recId = $rec->id ?? null;
         
         //Проверяваме дали има такъв имейл
         if ($newRecId = $mvc->fetchField("LOWER(#email) = LOWER('{$form->rec->email}')")) {
@@ -817,14 +817,14 @@ class core_Users extends core_Manager
             }
         }
         
-        $rank = core_Roles::fetchById($rec->roleRank);
-        
+        $rank = core_Roles::fetchById($rec->roleRank ?? null);
+
         if (in_Array($rank, array('ceo', 'manager', 'officer', 'executive'))) {
-            if (!$rec->roleTeams) {
+            if (empty($rec->roleTeams)) {
                 $form->setError('roleTeams', 'Вътрешните потребители трябва да имат поне един екип');
             }
         } else {
-            if ($rec->roleTeams) {
+            if (!empty($rec->roleTeams)) {
                 $form->setError('roleTeams', 'Външните потребители не могат да имат роля за екип');
             }
         }
@@ -842,11 +842,11 @@ class core_Users extends core_Manager
                 $mvc->addNewUser = true;
             }
             
-            $rec->rolesInput = keylist::merge($rec->roleRank, $rec->roleTeams, $rec->roleOthers);
+            $rec->rolesInput = keylist::merge($rec->roleRank ?? null, $rec->roleTeams ?? null, $rec->roleOthers ?? null);
         }
         
         // Администратор не може да премахне сам на себе си ролята `administrator`
-        if ($rec->id && $rec->id == core_Users::getCurrent()) {
+        if (!empty($rec->id) && $rec->id == core_Users::getCurrent()) {
             $exRec = self::fetch($rec->id);
             $adminId = core_Roles::fetchByName('admin');
             if (keylist::isIn($adminId, $exRec->rolesInput) && !keylist::isIn($adminId, $rec->rolesInput)) {
@@ -855,12 +855,12 @@ class core_Users extends core_Manager
         }
         
         // Ако регистрираме първия потребител, добавяме му роля `admin`
-        if (!$rec->id && $mvc->isUsersEmpty()) {
-            $rec->rolesInput = keylist::addKey($rec->rolesInput, $mvc->core_Roles->fetchByName('admin'));
+        if (empty($rec->id) && $mvc->isUsersEmpty()) {
+            $rec->rolesInput = keylist::addKey($rec->rolesInput ?? null, $mvc->core_Roles->fetchByName('admin'));
             $rec->state = 'active';
         }
 
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             // При редакция, ако има промяна в състоянието, записваме предишното състояние
             $oldRec = $mvc->fetch($rec->id);
             if ($rec->state != $oldRec->state) {
