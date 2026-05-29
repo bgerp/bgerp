@@ -632,7 +632,7 @@ class core_Users extends core_Manager
         
         self::setUserFormJS($form);
         
-        if ($id = $form->rec->id) {
+        if ($id = ($form->rec->id ?? null)) {
             $exRec = self::fetch($id);
             if ($exRec->state != 'draft') {
                 $stateType = &$mvc->fields['state']->type;
@@ -647,11 +647,11 @@ class core_Users extends core_Manager
         }
         
         if (!self::isUsersEmpty()) {
-            if ($form->cmd == 'refresh' && $form->rec->id && !$form->rec->roles) {
-                $roles = $mvc->fetchField($form->rec->id, 'roles');
+            if ($form->cmd == 'refresh' && ($form->rec->id ?? null) && !($form->rec->roles ?? null)) {
+                $roles = $mvc->fetchField($form->rec->id ?? null, 'roles');
                 $rolesArr = type_Keylist::toArray($roles);
             } else {
-                $rolesArr = type_Keylist::toArray($form->rec->roles);
+                $rolesArr = type_Keylist::toArray($form->rec->roles ?? null);
             }
             $roleTypes = core_Roles::getGroupedOptions($rolesArr);
             
