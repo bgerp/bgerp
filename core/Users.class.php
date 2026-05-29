@@ -674,8 +674,8 @@ class core_Users extends core_Manager
             $form->setOptions('roleRank', $rangs);
             $rec = $form->input(null, 'silent');
 
-            if ($rec->id) {
-                $iRoles = keylist::toArray($rec->rolesInput);
+            if (!empty($rec->id)) {
+                $iRoles = keylist::toArray($rec->rolesInput ?? null);
                 foreach ($roleTypes['rang'] as $i => $r) {
                     if (isset($iRoles[$i])) {
                         $form->setDefault('roleRank', $i);
@@ -689,7 +689,7 @@ class core_Users extends core_Manager
             $partnerRpower = core_Roles::fetchByName('powerPartner');
             $otherRoles = array();
 
-            if ($rec->roleRank == $partnerR || $rec->roleRank == $partnerRpower) {
+            if (($rec->roleRank ?? null) == $partnerR || ($rec->roleRank ?? null) == $partnerRpower) {
                 $otherRoles = arr::combine(
                         array('external' => (object) array('title' => 'Външен достъп', 'group' => true)),
                         $roleTypes['external']
@@ -698,7 +698,7 @@ class core_Users extends core_Manager
                     $form->FNC('roleOthers', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Роли,after=roleTesms,input');
                     $form->setSuggestions('roleOthers', $otherRoles);
                 }
-            } elseif ($rec->roleRank) {
+            } elseif (!empty($rec->roleRank)) {
                 $form->FNC('roleTeams', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Екипи,after=roleRang,input,mandatory');
                 $form->FNC('roleOthers', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Роли,after=roleTesms,input');
                 
@@ -713,7 +713,7 @@ class core_Users extends core_Manager
                 );
                 $form->setSuggestions('roleOthers', $otherRoles);
                 
-                if ($rec->id) {
+                if (!empty($rec->id)) {
                     $teams = array();
                     foreach ($roleTypes['team'] as $i => $r) {
                         if (isset($iRoles[$i])) {
@@ -726,7 +726,7 @@ class core_Users extends core_Manager
                 }
             }
             
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $other = array();
                 if (is_array($otherRoles)) {
                     foreach ($otherRoles as $i => $r) {
