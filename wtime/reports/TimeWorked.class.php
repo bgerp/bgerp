@@ -825,7 +825,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         // 2) Заявка: само нужните полета, само в периода
         $q = planning_ProductionTaskDetails::getQuery();
 
-        //$q->where(array("#createdOn >= '{$fromStart}' AND #createdOn <= '{$toEnd}'"));
+        $q->where(array("#createdOn >= '{$fromStart}' AND #createdOn <= '{$toEnd}'"));
 
         // 3) Филтър: поне един employee да е в $personsInGroups
         $ors = array();
@@ -833,7 +833,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $pId = (int)$pId;
             $ors[] = "LOCATE('|{$pId}|', CONCAT('|', #employees, '|'))";
         }
-        //$q->where($ors ? '(' . implode(' OR ', $ors) . ')' : '1=0');
+        $q->where($ors ? '(' . implode(' OR ', $ors) . ')' : '1=0');
 
         // 4) Акумулация по ключ "<personId>|<Y-m-d>"
         $qArr = $q->fetchAll();
