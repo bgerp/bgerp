@@ -841,53 +841,45 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         // Подготовка на данни преди цикъла
 
         //Извличане и индексиране на Задачите
-        $taskIdArr = arr::extractValuesFromArray($qArr, 'taskId');
-        $taskQ = planning_Tasks::getQuery();
-        $taskQ->in('id', $taskIdArr);
-        $taskQ->show('id,originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
-        $tasks = $taskQ->fetchAll();
+        $taskIds = arr::extractValuesFromArray($qArr, 'taskId');
+        $taskQuery = planning_Tasks::getQuery();
+        $taskQuery->in('id', $taskIds);
+        $taskQuery->show('id,originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
+        $tasks = $taskQuery->fetchAll();
         
-        $originIds = [];
-        foreach ($tasks as $task) {
-            if (!empty($task->originId)) {
-                $originIds[] = $task->originId;
-            }
-        }
-
+        $originIds = $jobProductMap = $uomMap = $$measureIds = [];
+        $originIds = arr::extractValuesFromArray($tasks, 'originId');
+        
         // Извличане на Заданията
-        $jobsQ = planning_Jobs::getQuery();
+        $jobsQuery = planning_Jobs::getQuery();
         if(countR($originIds)){
-            $jobsQ->in('containerId', $originIds);
-            $jobsQ->show('containerId,productId');
+            $jobsQuery->in('containerId', $originIds);
+            $jobsQuery->show('containerId,productId');
         } else{
-            $jobsQ->where('1 = 2');
+            $jobsQuery->where('1 = 2');
         }
-        $jobsList = $jobsQ->fetchAll();
-        $jobProductMap = [];
+        $jobsList = $jobsQuery->fetchAll();
         foreach ($jobsList as $jRec) {
                 $jobProductMap[$jRec->containerId] = $jRec->productId;
-            }
+        }
         
         // Извличане на мерните единици
-        $measureIdArr = [];
-        foreach($tasks as $task){
-            $measureIdArr[] = $task->measureId;
-        }
-        $uomMap = [];
+        $measureIds = arr::extractValuesFromArray($tasks, 'measureId');
+
         if (!empty($measureIdArr)) {
-            $uomQ = cat_UoM::getQuery();
-            $uomQ->in('id', $measureIdArr);
-            $uomQ->show('id,type');
-            $uoms = $uomQ->fetchAll();
+            $uomQuery = cat_UoM::getQuery();
+            $uomQuery->in('id', $measureIdArr);
+            $uomQuery->show('id,type');
+            $uoms = $uomQuery->fetchAll();
             foreach ($uoms as $uom) {
                 $uomMap[$uom->id] = $uom->type;
             }
         }
-
         $arr = array();
         foreach($qArr as $id => $qRec) {
             // Ако задачата липсва в базата данни, пропускаме записа
             if (!isset($tasks[$qRec->taskId])) continue;
+            
             $currentTask = $tasks[$qRec->taskId];
             $quantity = $qRec->quantity;
 
