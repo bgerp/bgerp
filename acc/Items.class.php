@@ -565,7 +565,7 @@ class acc_Items extends core_Manager
             if (!empty($register->autoList)) {
                 // Автоматично добавяне към номенклатурата $autoList
                 expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $register->autoList), 'id'));
-                $itemRec->lists = keylist::addKey($itemRec->lists, $autoListId);
+                $itemRec->lists = keylist::addKey($itemRec->lists ?? null, $autoListId);
             }
         }
         
@@ -606,7 +606,7 @@ class acc_Items extends core_Manager
             
             // Ако перото не е в номенкл. $listId (независимо дали се създава за пръв път или
             // вече го има), добавяме го и записваме на момента.
-            $rec->lists = keylist::addKey($rec->lists, $listId);
+            $rec->lists = keylist::addKey($rec->lists ?? null, $listId);
             $rec->state = 'active';
             $rec->lastUseOn = dt::now();
             
@@ -1079,7 +1079,7 @@ class acc_Items extends core_Manager
         expect($rec = $Items->fetchRec($id));
         
         $colName = str::phpToMysqlName('earliestUsedOn');
-        $query = "UPDATE {$Items->dbTableName} SET {$colName} = IF ({$colName} < '{$dateToCompare}', ${colName}, '{$dateToCompare}') WHERE id = {$rec->id}";
+        $query = "UPDATE {$Items->dbTableName} SET {$colName} = IF ({$colName} < '{$dateToCompare}', {$colName}, '{$dateToCompare}') WHERE id = {$rec->id}";
         
         // Инвалидираме кешираните записи, за да няма обърквания по-нататък
         $Items->_cachedRecords = array();
@@ -1099,18 +1099,19 @@ class acc_Items extends core_Manager
     public static function fetchUsedItems($fromDate = null, $toDate = null, $listId = null)
     {
         $query = self::getQuery();
-        
+        $cond = '';
+
         if (isset($toDate)) {
             $cond = "(#createdOn <= '{$toDate}')";
         }
-        
+
         if (isset($fromDate)) {
-            if (!strpos($toDate, ' ')) {
+            if (!strpos((string) $toDate, ' ')) {
                 $fromDate .= ' 23:59:59';
             }
-            $cond .= ($cond ? ' OR ' : '') . "('${fromDate}' <= #lastUseOn)";
+            $cond .= ($cond ? ' OR ' : '') . "('{$fromDate}' <= #lastUseOn)";
         }
-        
+
         if ($cond) {
             $query->where($cond);
         }
