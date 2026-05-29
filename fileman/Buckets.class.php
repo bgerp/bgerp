@@ -130,7 +130,7 @@ class fileman_Buckets extends core_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             $data->form->setReadOnly('name');
         }
     }
@@ -143,15 +143,15 @@ class fileman_Buckets extends core_Manager
     {
         $Roles = cls::get('core_Roles');
         
-        if (!$rec->rolesForDownload) {
+        if (empty($rec->rolesForDownload)) {
             $rec->rolesForDownload = '|' . $Roles->fetchByName('user') . '|';
         }
-        
-        if (!$rec->rolesForAdding) {
+
+        if (empty($rec->rolesForAdding)) {
             $rec->rolesForAdding = '|' . $Roles->fetchByName('user') . '|';
         }
-        
-        if (!($rec->lifetime > 0)) {
+
+        if (!(($rec->lifetime ?? 0) > 0)) {
             $rec->lifetime = 1000000000;
         }
     }
@@ -289,7 +289,7 @@ class fileman_Buckets extends core_Manager
         $FileSize = cls::get('fileman_FileSize');
         $maxSize = $FileSize->fromVerbal($maxSize);
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $res = "<li> Съществуваща кофа за файлове \"{$name}\"</li>";
             $maxSize = max($maxSize, $rec->maxSize);
             
