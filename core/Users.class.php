@@ -794,10 +794,10 @@ class core_Users extends core_Manager
         self::calcUserForm($form);
         
         // Ако имаме въведена нова парола
-        if ($rec->passNewHash) {
-            if ($rec->isLenOK == -1) {
+        if (!empty($rec->passNewHash)) {
+            if (($rec->isLenOK ?? null) == -1) {
                 $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
-            } elseif ($rec->passNew != $rec->passRe) {
+            } elseif (($rec->passNew ?? null) != ($rec->passRe ?? null)) {
                 $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
             } else {
                 // Ако няма грешки, задаваме да се модифицира хеша в DB
@@ -2335,10 +2335,10 @@ class core_Users extends core_Manager
         
         $nick = strtolower($nick);
         
-        if ($rec->pass) {
+        if (!empty($rec->pass)) {
             $rec->passHash = self::encodePwd($rec->pass, $nick);
             $rec->ps5Enc = $rec->passHash;
-            if ($rec->time) {
+            if (!empty($rec->time)) {
                 $rec->hash = self::applyChallenge($rec->ps5Enc, $rec->time);
             }
         }
@@ -2364,17 +2364,17 @@ class core_Users extends core_Manager
         
         // Калкулиране на хеша на старата парола
         // Стара парола трябва да имаме винаги, когато потребителят е логнат
-        if ($rec->passEx) {
+        if (!empty($rec->passEx)) {
             $rec->passExHash = self::encodePwd($rec->passEx, $nick);
         }
-        
+
         // Калкулиране на хеша на новата парола
-        if ($rec->passNew) {
+        if (!empty($rec->passNew)) {
             $rec->passNewHash = self::encodePwd($rec->passNew, $nick);
             if (mb_strlen($rec->passNew) < EF_USERS_PASS_MIN_LEN) {
                 $rec->isLenOK = -1;
             }
-            if ($rec->passNew != $rec->passRe) {
+            if ($rec->passNew != ($rec->passRe ?? null)) {
                 $rec->isRetypeOK = -1;
             }
         }
