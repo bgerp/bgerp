@@ -150,7 +150,11 @@ class hr_Shifts extends core_Manager
         $Interval   = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to);
         core_Debug::stopTimer('hr_Schedules::getWorkingIntervals');
         // Определяне в коя смяна е лицето на тази дата спрямо интервала
-        return self::getShiftByInterval($date, $Interval);
+        core_Debug::startTimer('self::getShiftByInterval');
+        $id = self::getShiftByInterval($date, $Interval);
+        core_Debug::stopTimer('self::getShiftByInterval');
+
+        return $id;
     }
 
 
