@@ -946,13 +946,17 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function renderChart($rec, &$data)
     {
-        $fields = array('workingDays' => 'Работни дни', 'restDays' => 'Почивни дни', 'paidLeave' => 'Отпуска', 'sickDays' => 'Болнични', 'tripDays' => 'Командировка', 'homeOfficeDays' => 'Хоумофис', 'hours' => 'Часове');
+        $fields = array('workingDays' => 'Работни дни', 'restDays' => 'Почивни дни', 'paidLeave' => 'Отпуска', 'sickDays' => 'Болнични', 'tripDays' => 'Командировка', 'homeOfficeDays' => 'Хоумофис', 'hours' => 'Часове', 'percent' => 'Процент');
         $summary = $this->getSummary($rec);
 
         $fieldset = new core_FieldSet();
         $fieldset->FLD('userId', 'varchar');
         foreach ($fields as $key => $fldName) {
-            $fieldset->FLD($key, 'int', 'smartCenter');
+            if ($key === 'percent') {
+                $fieldset->FLD($key, 'double', 'smartCenter');
+            } else {
+                $fieldset->FLD($key, 'int', 'smartCenter');
+            }
         }
         $fields = array('userId' => 'Служител') + $fields;
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
@@ -978,6 +982,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 } elseif ($fKey == 'hours') {
                     $hours = ($rowData->workingMinutes > 0) ? $Time->toVerbal($rowData->workingMinutes) : '-';
                     $row->{$fKey} = $isTotal ? "<b>{$hours}</b>" : $hours;
+                } elseif ($fKey == 'percent') {
+                    $pct = (isset($rowData->percent) && $rowData->percent > 0) ? $rowData->percent . '%' : '-';
+                    $row->{$fKey} = $isTotal ? "<b>{$pct}</b>" : $pct;
                 } else {
                     $val = $rowData->{$fKey};
                     $row->{$fKey} = $isTotal ? "<b>{$val}</b>" : $val;
@@ -1072,6 +1079,15 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                     $summary[$dataRec->personId]->taskMinutes += (int)$minutes;
                     $summary[0]->taskMinutes += (int)$minutes;
                 }
+            }
+        }
+
+        // Изчисляване на процентите
+        foreach ($summary as $personRecord) {
+            if ($personRecord->workingMinutes > 0) {
+                $personRecord->percent = round(($personRecord->taskMinutes / $personRecord->workingMinutes) * 100, 1);
+            } else {
+                $personRecord->percent = 0;
             }
         }
 
