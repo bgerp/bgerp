@@ -108,6 +108,7 @@ class core_SystemLock
             header('Status: 503 Service Temporarily Unavailable');
             header('Retry-After: ' . ($lockTime + 100));
             
+            $refresh = '';
             if (strtoupper($_SERVER['REQUEST_METHOD']) == 'GET') {
                 $refresh = '<meta http-equiv="refresh" content="1">';
             }

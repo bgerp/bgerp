@@ -476,17 +476,23 @@ abstract class deals_DealMaster extends deals_DealBase
         $recs = $query->fetchAll();
         
         deals_Helper::fillRecs($this, $recs, $rec);
-        
+
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amountDeal = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
-        $amountDeal -= $this->_total->discount;
-        $rec->amountDeal = $amountDeal * $rec->currencyRate;
-        $rec->amountVat = $this->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        if (isset($this->_total)) {
+            $amountDeal = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+            $amountDeal -= $this->_total->discount;
+            $rec->amountDeal = $amountDeal * $rec->currencyRate;
+            $rec->amountVat = $this->_total->vat * $rec->currencyRate;
+            $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        } else {
+            $rec->amountDeal = 0;
+            $rec->amountVat = 0;
+            $rec->amountDiscount = 0;
+        }
         $rec->productIdWithBiggestAmount = $this->findProductIdWithBiggestAmount($rec);
         
         $this->invoke('BeforeUpdatedMaster', array(&$rec));
-        
+
         return $this->save($rec);
     }
     
@@ -888,14 +894,14 @@ abstract class deals_DealMaster extends deals_DealBase
         parent::prepareSingle_($data);
         
         $rec = &$data->rec;
-        if (empty($data->noTotal)) {
+        if (empty($data->noTotal) && isset($this->_total)) {
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
             $data->row = (object) ((array) $data->row + (array) $data->summary);
-            
+
             if ($rec->paymentMethodId) {
                 $total = $this->_total->amount - $this->_total->discount;
                 $total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
-                
+
                 cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
             }
         }  elseif(!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {

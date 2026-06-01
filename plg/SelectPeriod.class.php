@@ -520,7 +520,7 @@ class plg_SelectPeriod extends core_Plugin
         if ($fromSel && $toSel && !$keySel) {
             $keySel = $fromSel . '|' . $toSel;
             $title = self::getPeriod($fromSel, $toSel);
-            if (!$opt[$keySel]) {
+            if (empty($opt[$keySel])) {
                 $opt[$keySel] = $title;
             }
             $val = $fromSel . '|' . $toSel . '=>' . $title;

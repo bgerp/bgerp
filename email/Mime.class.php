@@ -1112,7 +1112,7 @@ class email_Mime extends core_BaseClass
                 }
                 
                 // Ако е прикачен файл, намаляме рейтинга
-                if ($p->attachment) {
+                if ($p->attachment ?? null) {
                     $textRate = $textRate * 0.5;
                 }
                 

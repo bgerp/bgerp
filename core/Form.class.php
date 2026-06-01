@@ -1436,7 +1436,7 @@ class core_Form extends core_FieldSet
 
         $sf = array();
         foreach ($fields as $name => $field) {
-            $sf[$name] = $this->rec->{$name};
+            $sf[$name] = $this->rec->{$name} ?? null;
         }
         
         $getArr = Request::getParams('_GET');
@@ -1522,7 +1522,7 @@ class core_Form extends core_FieldSet
         
         if (countR($arr)) {
             foreach ($arr as $name => $value) {
-                if (!$this->rec->{$name}) {
+                if (empty($this->rec->{$name})) {
                     $this->rec->{$name} = $value;
                 }
             }

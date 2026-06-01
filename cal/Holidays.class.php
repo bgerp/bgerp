@@ -329,7 +329,7 @@ class cal_Holidays extends core_Master
                     $base = dt::firstDayOfMonthTms($month, $year, $rec->weekday);
                     $delta = 0;
                 } else {
-                    $base = mktime(23, 59, 59, $rec->base, 1, $year);
+                    $base = mktime(23, 59, 59, (int) $rec->base, 1, $year);
                     $delta = -1;
                 }
                 
@@ -346,9 +346,9 @@ class cal_Holidays extends core_Master
                 
                 $calRec->url = array('cal_Holidays', 'single', $rec->id);
                 
-                $calRec->users = $card[$rec->type];
-                
-                $calRec->priority = self::$priorities[$rec->type];
+                $calRec->users = $card[$rec->type] ?? null;
+
+                $calRec->priority = self::$priorities[$rec->type] ?? null;
                 
                 if (!$calRec->priority) {
                     $calRec->priority = 71;
@@ -429,7 +429,7 @@ class cal_Holidays extends core_Master
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec, $fileds)
     {
-        if (!trim($rec->nameday)) {
+        if (!trim((string) $rec->nameday)) {
             $row->nameday = null;
         } else {
             $pData = new stdClass();
@@ -499,7 +499,7 @@ class cal_Holidays extends core_Master
         
         while ($rec = $query->fetch()) {
             if ($rec->country) {
-                if ($recCompanies->inCharge) {
+                if (!empty($rec->inCharge)) {
                     $profiles[$rec->country][$rec->inCharge] = true;
                 }
                 
@@ -530,10 +530,12 @@ class cal_Holidays extends core_Master
         
         foreach ($profiles as $id => $profile) {
             $recPerson = drdata_Countries::fetch("#id = '{$id}'");
-            
+
             $a = keylist::fromArray($profile);
-            
-            $inChargePerCountry[$recPerson->letterCode2] = $a;
+
+            if (is_object($recPerson)) {
+                $inChargePerCountry[$recPerson->letterCode2] = $a;
+            }
         }
         
         return $inChargePerCountry;

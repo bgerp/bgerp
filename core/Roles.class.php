@@ -217,7 +217,7 @@ class core_Roles extends core_Manager
     {
         self::loadRoles();
         
-        return self::$rolesArr[$roleId];
+        return self::$rolesArr[$roleId] ?? null;
     }
     
     
@@ -349,7 +349,7 @@ class core_Roles extends core_Manager
                 if ($type) {
                     
                     //За всяко срещане на роля добавяме единица
-                    ++$res[$type] ;
+                    $res[$type] = ($res[$type] ?? 0) + 1;
                 }
             }
         }
@@ -415,7 +415,7 @@ class core_Roles extends core_Manager
                 $expandedRoles = self::expand($form->rec->inheritInput);
                 
                 // Ако има грешки
-                if ($expandedRoles[$rec->id]) {
+                if (!empty($expandedRoles[$rec->id])) {
                     $form->setError('inherit', '|Не може да се наследи роля, която е или наследява текущата роля');
                 } else {
                     $rec->inherit = keylist::fromArray($expandedRoles);

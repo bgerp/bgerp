@@ -347,31 +347,58 @@ class core_String
         
         return $out;
     }
-    
-    
+
+
     /**
      * Конвертира стринг до уникален стринг с дължина, не по-голяма от указаната
      * Уникалността е много вероятна, но не 100% гарантирана ;)
+     *
+     * @param string $str       Входният стринг
+     * @param int    $length    Максимална дължина на резултата
+     * @param int    $md5Len    Дължина на хеш участъка
+     * @param string $separator Разделител между префикса и хеша
+     * @param bool   $byChars   Ако е FALSE (по подразбиране) - брои в БАЙТОВЕ (старото поведение).
+     *                          Ако е TRUE - брои в СИМВОЛИ (mb_*), напасва коректно
+     *                          дължината еднакво за кирилица и латиница.
      */
-    public static function convertToFixedKey($str, $length = 64, $md5Len = 32, $separator = '_')
+    public static function convertToFixedKey($str, $length = 64, $md5Len = 32, $separator = '_', $byChars = false)
     {
+        // --- Символен режим (mb_*) ---
+        if ($byChars) {
+            if (mb_strlen($str, 'UTF-8') <= $length) {
+
+                return $str;
+            }
+
+            $strLen = $length - $md5Len - mb_strlen($separator, 'UTF-8');
+
+            // Дължината на хеш участъка и разделителя е по-голяма от зададената обща дължина
+            expect($strLen >= 0, $length, $md5Len);
+
+            // mb_substr никога не реже UTF-8 символ наполовина - не е нужна корекция
+            $md5 = substr(md5('_SALT_' . $str), 0, $md5Len);
+
+            return mb_substr($str, 0, $strLen, 'UTF-8') . $separator . $md5;
+        }
+
+        // --- Байтов режим (старото поведение, по подразбиране) ---
         if (strlen($str) <= $length) {
-            
+
             return $str;
         }
-        
+
         $strLen = $length - $md5Len - strlen($separator);
-        
+
         // Дължината на MD5 участъка и разделителя е по-голяма от зададената обща дължина
         expect($strLen >= 0, $length, $md5Len);
-        
+
         if (ord(substr($str, $strLen - 1, 1)) >= 128 + 64) {
             $strLen--;
             $md5Len++;
         }
-        
+
         $md5 = substr(md5('_SALT_' . $str), 0, $md5Len);
-        
+
         return substr($str, 0, $strLen) . $separator . $md5;
     }
     
@@ -1970,4 +1997,291 @@ class core_String
         return $s;
     }
 
+
+    /**
+     * Парсира адрес и връща компонентите му.
+     *
+     * Връща:
+     * street, number, streetWithNumber,
+     * block, entrance, floor, apartment,
+     * complexType, complexTypeEn, complexName,
+     * postcode, city, notes
+     */
+    public static function parseAddress(string $address): array
+    {
+        $result = [
+            'street'           => null,
+            'number'           => null,
+            'streetWithNumber' => null,
+            'block'            => null,
+            'entrance'         => null,
+            'floor'            => null,
+            'apartment'        => null,
+            'complexType'      => null,
+            'complexTypeEn'    => null,
+            'complexName'      => null,
+            'postcode'         => null,
+            'city'             => null,
+            'notes'            => null,
+        ];
+
+        // Closure за нормализация на остатъка след изваждане на компонент.
+        $normalize = static function (string $value): string {
+            $value = preg_replace('/\s+/u', ' ', $value);
+            $value = preg_replace('/\s*,\s*/u', ', ', $value);
+            $value = trim($value);
+            $value = trim($value, " \t\n\r\0\x0B,");
+            return $value;
+        };
+
+        $rest = trim($address);
+        $rest = str_replace(["\r", "\n", "\t"], ' ', $rest);
+        // Премахваме кавички, които се ползват като декорация в български адреси
+        // (бул. "Цар Борис III" → бул. Цар Борис III)
+        $rest = str_replace(['"', '“', '”', "'", '‘', '’', '«', '»'], ' ', $rest);
+        $rest = $normalize($rest);
+
+        /*
+         * 1) Ясно маркирани части: блок, вход, етаж, апартамент.
+         */
+        $strictNum = '(\d+[\p{L}]?(?:[-\/]\d+[\p{L}]?)?)';
+        $entVal    = '([\p{L}]|\d+)';
+
+        $patterns = [
+            'apartment' => '/(?:^|[\s,])(?:апартамент|ап|apt|apartment|appt|unit|suite|flat)\.?\s*#?\s*№?\s*' . $strictNum . '(?=$|[\s,])/iu',
+            'floor'     => '/(?:^|[\s,])(?:етаж|ет|floor|fl)\.?\s*#?\s*№?\s*(\d+)(?=$|[\s,])/iu',
+            'entrance'  => '/(?:^|[\s,])(?:вход|вх|vh|entrance|entr)\.?\s*#?\s*№?\s*' . $entVal . '(?=$|[\s,])/iu',
+            'block'     => '/(?:^|[\s,])(?:блок|бл|bl|block|building|bldg)\.?\s*#?\s*№?\s*(\d+[\p{L}]?)(?=$|[\s,])/iu',
+        ];
+
+        foreach ($patterns as $key => $re) {
+            if (preg_match($re, $rest, $m)) {
+                $result[$key] = $m[1];
+                $rest = preg_replace($re, ' ', $rest, 1);
+                $rest = $normalize($rest);
+            }
+        }
+
+        /*
+         * 2) Град — взимаме имената от bglocal_Address::$places.
+         *    Уникализираме (масивът има дубликати като 'alfatar'/'alphatar' → 'Алфатар'),
+         *    сортираме по дължина за да хване "Велико Търново" преди "Търново".
+         */
+        $cities = array_unique(array_values(bglocal_Address::$places));
+
+        usort($cities, static function ($a, $b) {
+            return mb_strlen($b) <=> mb_strlen($a);
+        });
+
+        foreach ($cities as $city) {
+            $cityRe = '/(?:^|[\s,])(?:гр\.?\s*)?(' . preg_quote($city, '/') . ')(?=$|[\s,])/iu';
+
+            if (preg_match($cityRe, $rest, $m)) {
+                $result['city'] = $m[1];
+                $rest = preg_replace($cityRe, ' ', $rest, 1);
+                $rest = $normalize($rest);
+                break;
+            }
+        }
+
+        /*
+         * 3) Пощенски код (след града — намалява двусмислието с номера).
+         */
+        $postcodePatterns = [
+            '/(?:^|[\s,])([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})(?=$|[\s,])/iu', // UK
+            '/(?:^|[\s,])(\d{4}\s?[A-Z]{2})(?=$|[\s,])/u',                  // NL
+            '/(?:^|[\s,])(\d{5}-\d{4})(?=$|[\s,])/u',                       // US ZIP+4
+            '/(?:^|[\s,])(\d{5})(?=$|[\s,])/u',                             // US/DE/FR/IT/ES
+            '/(?:^|[\s,])(\d{4})(?=$|[\s,])/u',                             // BG
+        ];
+
+        foreach ($postcodePatterns as $re) {
+            if (preg_match($re, $rest, $m)) {
+                $result['postcode'] = strtoupper(trim($m[1]));
+                $rest = preg_replace($re, ' ', $rest, 1);
+                $rest = $normalize($rest);
+                break;
+            }
+        }
+
+        /*
+         * 4) Комплекс / квартал / местност.
+         *
+         * Точките във "в.з." и "п.з." са ЗАДЪЛЖИТЕЛНИ в средата,
+         * за да не хващат "вз" / "пз" в случайни думи.
+         */
+        $complexTypes = [
+            [
+                'name' => 'жк',
+                'nameEn' => 'zhk',
+                'patterns' => [
+                    'жилищен\s+комплекс',
+                    'ж\.?\s*к\.?',
+                    'жк',
+                    'zhilishten\s+kompleks',
+                    'zh\.?\s*k\.?',
+                    'zhk',
+                ],
+            ],
+            [
+                'name' => 'кв.',
+                'nameEn' => 'kv.',
+                'patterns' => [
+                    'квартал',
+                    'кв\.?',
+                    'kvartal',
+                    'kv\.?',
+                ],
+            ],
+            [
+                'name' => 'мах.',
+                'nameEn' => 'mah.',
+                'patterns' => [
+                    'махала',
+                    'мах\.?',
+                    'mahala',
+                    'mah\.?',
+                ],
+            ],
+            [
+                'name' => 'в.з.',
+                'nameEn' => 'v.z.',
+                'patterns' => [
+                    'вилна\s+зона',
+                    'в\.\s*з\.?',
+                    'vilna\s+zona',
+                    'v\.\s*z\.?',
+                ],
+            ],
+            [
+                'name' => 'п.з.',
+                'nameEn' => 'p.z.',
+                'patterns' => [
+                    'промишлена\s+зона',
+                    'п\.\s*з\.?',
+                    'promishlena\s+zona',
+                    'p\.\s*z\.?',
+                ],
+            ],
+            [
+                'name' => 'парк',
+                'nameEn' => 'park',
+                'patterns' => [
+                    'парк',
+                    'park',
+                ],
+            ],
+            [
+                'name' => 'м.',
+                'nameEn' => 'm.',
+                'patterns' => [
+                    'местност',
+                    'м\.',
+                    'mestnost',
+                    'm\.',
+                ],
+            ],
+        ];
+
+        $stopWords = [
+            'ул', 'улица', 'бул', 'булевард', 'пл', 'площад',
+            'str', 'street', 'st', 'ave', 'avenue', 'rd', 'road',
+            'бл', 'блок', 'block',
+            'вх', 'вход', 'entrance',
+            'ет', 'етаж', 'floor',
+            'ап', 'апартамент', 'apt', 'apartment',
+        ];
+
+        $stopRe = implode('|', array_map(static function ($word) {
+            return preg_quote($word, '/');
+        }, $stopWords));
+
+        foreach ($complexTypes as $type) {
+            $alternation = implode('|', $type['patterns']);
+
+            // Lookahead приема stop-word последван от точка ИЛИ интервал
+            // (за да хваща и "ул.Константин" без интервал след точката).
+            $complexRe = '/(?:^|[\s,])(?:' . $alternation . ')\s+'
+                . '(.+?)'
+                . '(?=,|\s+(?:' . $stopRe . ')[\.\s]|$)/iu';
+
+            if (preg_match($complexRe, $rest, $m)) {
+                $complexName = trim($m[1], " \t\n\r\0\x0B,.-");
+
+                if ($complexName !== '') {
+                    $result['complexType']   = $type['name'];
+                    $result['complexTypeEn'] = $type['nameEn'];
+                    $result['complexName']   = $complexName;
+
+                    $rest = preg_replace($complexRe, ' ', $rest, 1);
+                    $rest = $normalize($rest);
+                    break;
+                }
+            }
+        }
+
+        /*
+         * 5) Улица + номер. Поддържа имена започващи с цифра ("6-ти септември")
+         *    и римски цифри в края ("Цар Борис III").
+         */
+        $streetRe = '/(?:^|[\s,])'
+            . '(?:(?:ул(?:ица)?|бул(?:евард)?|пл(?:ощад)?|str(?:eet)?|st|ave(?:nue)?|rd|road)\.?\s*)?'
+            . '([0-9\p{L}][0-9\p{L}\s\-\'\.]*?[0-9\p{L}])'
+            . '\s+№?\s*#?\s*'
+            . '(\d+[\p{L}]?(?:[-\/]\d+[\p{L}]?)?)'
+            . '(?=$|[\s,])/iu';
+
+        if (preg_match($streetRe, $rest, $m)) {
+            $street = trim($m[1], " \t\n\r\0\x0B,.-");
+
+            if ($street !== '') {
+                $result['street'] = $street;
+                $result['number'] = $m[2];
+
+                $rest = preg_replace($streetRe, ' ', $rest, 1);
+                $rest = $normalize($rest);
+            }
+        }
+
+        /*
+         * 6) Улица без номер (ако има ясен маркер ул./бул./пл.).
+         */
+        if ($result['street'] === null) {
+            $streetWithoutNumberRe = '/(?:^|[\s,])'
+                . '(?:ул(?:ица)?|бул(?:евард)?|пл(?:ощад)?|str(?:eet)?|st|ave(?:nue)?|rd|road)\.?\s*'
+                . '([0-9\p{L}][0-9\p{L}\s\-\'\.]*?[0-9\p{L}])'
+                . '(?=$|,)/iu';
+
+            if (preg_match($streetWithoutNumberRe, $rest, $m)) {
+                $street = trim($m[1], " \t\n\r\0\x0B,.-");
+
+                if ($street !== '') {
+                    $result['street'] = $street;
+
+                    $rest = preg_replace($streetWithoutNumberRe, ' ', $rest, 1);
+                    $rest = $normalize($rest);
+                }
+            }
+        }
+
+        /*
+         * 7) streetWithNumber
+         */
+        if ($result['street'] !== null && $result['number'] !== null) {
+            $result['streetWithNumber'] = $result['street'] . ' ' . $result['number'];
+        } elseif ($result['street'] !== null) {
+            $result['streetWithNumber'] = $result['street'];
+        }
+
+        /*
+         * 8) Остатъкът → notes.
+         */
+        $rest = $normalize($rest);
+
+        if ($rest !== '' && mb_strlen($rest) > 2) {
+            $result['notes'] = $rest;
+        }
+
+        return $result;
+    }
 }

@@ -109,7 +109,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = $data->form;
-        $rec = $form->rec;
 
         $currentPeriod = acc_Periods::fetchByDate(dt::today());
         if ($currentPeriod) {
@@ -139,6 +138,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         if (empty($personsInGroups)) {
             return $recs;
         }
+        natsort($personsInGroups);
 
         // 2) Дните в периода (включително)
         $perRec = acc_Periods::fetch($rec->periods);
@@ -163,7 +163,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $data->periodDates = $dates;          // списък с дати за периода
             $data->persons = $personsInGroups;  // [personId => name]
         }
-
+        
         // Намираме смените за всеки ден
         $personsShiftsInPeriod = self::getPersonsShiftsInPeriod($personsInGroups, $dates);  // [pId][Y-m-d] => shiftName|null
 
@@ -175,16 +175,15 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         //Отчитане на отпуските
         $personsShiftsInPeriod = self::getPersonsLeavesDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
-
+    
         //Отчитане на болничните
         $personsShiftsInPeriod = self::getPersonsSickDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod);
 
         //Изчисляване на времето за всеки ден
         $personsTimeInPeriod = self::getPersonsTimeInPeriod($personsInGroups, $dates);    // [pId][Y-m-d] => seconds
-       
+
         //Изчисляване на заработките
         $personsProgressInPeriod = self::getProgressInPeriod($personsInGroups, $dates);
-
 
         // 4) По 3 реда на човек: 'shift', 'onsite', 'ops'
         foreach ($personsInGroups as $pId => $pName) {
@@ -325,7 +324,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $summary = $this->getSummary($rec);
             foreach ($summary as $fldId => $dRec){
                 $dRec->hours = round($dRec->workingMinutes / 3600);
-                if($fldId ==+ 0){
+                if($fldId === 0){
                     $dRec->personName = 'Общо';
                 }
             }
@@ -412,7 +411,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         };
 
         // Форматирания за други редове
-        $fmtPct = function ($minutes) {
+        function ($minutes) {
             if (!is_numeric($minutes) || $minutes <= 0) return '-';
             $pct = round(($minutes / 480) * 100, 1);
             
@@ -422,6 +421,25 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         // Попълване на дневните колони
         if (!isset($rec->data->periodDates) || !is_array($rec->data->periodDates)) {
             return $row;
+        }
+        // Подготовка на кеш за отпуски/болнични/командировки/хоумофис
+        if (!isset($rec->data->dayFlags)) {
+            $personsInGroups = array();
+            if (isset($rec->data->persons) && is_array($rec->data->persons)) {
+                $personsInGroups = $rec->data->persons;
+            } elseif (isset($rec->data->recs) && is_array($rec->data->recs)) {
+                foreach ($rec->data->recs as $r) {
+                    $personsInGroups[$r->personId] = true;
+                }
+            }
+
+            $periodDates = $rec->data->periodDates;
+            $rec->data->dayFlags = array(
+                'leave' => self::getPersonDayFlags($personsInGroups, $periodDates, 'hr_Leaves', 'leaveFrom', 'leaveTo'),
+                'sick'  => self::getPersonDayFlags($personsInGroups, $periodDates, 'hr_Sickdays', 'startDate', 'toDate'),
+                'trip'  => self::getPersonDayFlags($personsInGroups, $periodDates, 'hr_Trips', 'startDate', 'toDate'),
+                'home'  => self::getPersonDayFlags($personsInGroups, $periodDates, 'hr_HomeOffice', 'startDate', 'toDate'),
+            );
         }
 
         $i = 0;
@@ -433,15 +451,14 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 if ($val === '') {
                     $row->{$code} = '-';
                 }
-                //да не се оцветява ако не е на място
-                $isLeaveDay = hr_Leaves::getLeaveDay($ymd, $dRec->personId);
-                $isSickDay = hr_Sickdays::getSickDay($ymd, $dRec->personId);
-                $isTripDay = hr_Trips::getTripDay($ymd, $dRec->personId);
-                $isHomeOfficeDay = hr_HomeOffice::getHomeOfficeDay($ymd, $dRec->personId);
+                // Не правим многократни DB заявки тук — използваме предварително заредения кеш
+                $isLeaveDay = isset($rec->data->dayFlags['leave'][$dRec->personId][$ymd]);
+                $isSickDay  = isset($rec->data->dayFlags['sick'][$dRec->personId][$ymd]);
+                $isTripDay  = isset($rec->data->dayFlags['trip'][$dRec->personId][$ymd]);
+                $isHomeOfficeDay = isset($rec->data->dayFlags['home'][$dRec->personId][$ymd]);
 
-                if($isLeaveDay || $isSickDay || $isTripDay || $isHomeOfficeDay){
-                    $attr = array('style' => "width:100%; padding:2px 3px");
-                    $row->{$code} = ht::createElement('span', $attr, $val);
+                if ($isLeaveDay || $isSickDay || $isTripDay || $isHomeOfficeDay) {
+                    $row->{$code} = $val;
                 } else {
                     $colorHex = null;
                     if ($shiftId = hr_Shifts::getShift($ymd, $dRec->personId)) {
@@ -479,17 +496,16 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
-        $Date = cls::get('type_Date');
-        $Time = cls::get('type_Time');
-        $Users = cls::get('type_Users');
-        $Enum = cls::get('type_Enum', array('options' => array('selfPrice' => 'политика"Себестойност"', 'catalog' => 'политика"Каталог"', 'accPrice' => 'Счетоводна')));
-
+        $Date = core_Type::getByName('date');
+        $Time = core_Type::getByName('time');
+        $Groups = core_Type::getByName('keylist(mvc=crm_Groups,select=name)');
+        
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
-                                        <!--ET_BEGIN users--><div>|Избрани потребители|*: [#users#]</div><!--ET_END users-->
+                                        <!--ET_BEGIN groups--><div>|Избрани групи|*: [#groups#]</div><!--ET_END groups-->
                                         <!--ET_BEGIN maxTimeWaiting--><div>|Макс. изчакване|*: [#maxTimeWaiting#]</div><!--ET_END maxTimeWaiting-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
@@ -505,12 +521,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         if (isset($data->rec->maxTimeWaiting)) {
             $fieldTpl->append('<b>' . $Time->toVerbal($data->rec->maxTimeWaiting) . '</b>', 'maxTimeWaiting');
         }
-
-        if (isset($data->rec->users)) {
-
-            $fieldTpl->append('<b>' . $Users->toVerbal($data->rec->users) . '</b>', 'users');
+        
+        if (isset($data->rec->crmGroup)) {
+            $fieldTpl->append('<b>' . $Groups->toVerbal($data->rec->crmGroup) . '</b>', 'groups');
         } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'users');
+            $fieldTpl->append('<b>' . tr('Всички') . '</b>', 'groups');
         }
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
@@ -538,14 +553,14 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $ymd = dt::verbal2mysql($d, false); // 'Y-m-d'
             $normDates[$ymd] = true;
         }
-
+        
         // За всеки човек и всяка дата намираме смяната чрез hr_Shifts::getShift()
         foreach ($personsInGroups as $personId => $personName) {
+            $scheduleId = planning_Hr::getSchedule($personId);
+
             foreach ($dates as $ymd) {
-
-
                 // Взимаме смяната (id) за деня
-                $shiftId = hr_Shifts::getShift($ymd, $personId);
+                $shiftId = hr_Shifts::getShift($ymd, $personId, $scheduleId);
                 if (!$shiftId) {
                     // няма смяна за този ден
                     $result[$personId][$ymd] = null;
@@ -556,6 +571,65 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 $result[$personId][$ymd] = $returnIds
                     ? $shiftId
                     : hr_Shifts::getVerbal($shiftId, 'name');
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Зарежда бърза матрица с дните за активен запис от таблица с периоди.
+     *
+     * @param array  $personsInGroups [personId => personName]
+     * @param array  $dates           ['Y-m-d', ...]
+     * @param string $mvcClass        MVC class name (hr_Leaves, hr_Sickdays, hr_Trips, hr_HomeOffice)
+     * @param string $fromField       start date field name
+     * @param string $toField         end date field name
+     * @return array                  [personId][Y-m-d] => true
+     */
+    protected static function getPersonDayFlags($personsInGroups, $dates, $mvcClass, $fromField, $toField)
+    {
+        $result = array();
+
+        if (empty($personsInGroups) || empty($dates)) {
+            return $result;
+        }
+
+        $personIds = array_keys($personsInGroups);
+        $normDates = array();
+        $minDate = null;
+        $maxDate = null;
+        foreach ($dates as $d) {
+            $ymd = dt::verbal2mysql($d, false);
+            $normDates[$ymd] = true;
+            if ($minDate === null || $ymd < $minDate) {
+                $minDate = $ymd;
+            }
+            if ($maxDate === null || $ymd > $maxDate) {
+                $maxDate = $ymd;
+            }
+        }
+
+        $q = $mvcClass::getQuery();
+        $q->in('personId', $personIds);
+        $q->where("#{$toField} >= '{$minDate}'");
+        $q->where("#{$fromField} <= '{$maxDate}'");
+        $q->where("#state = 'active'");
+        $q->show("personId,{$fromField},{$toField}");
+
+        while ($rec = $q->fetch()) {
+            $personId = (int)$rec->personId;
+            $start = dt::verbal2mysql($rec->{$fromField}, false);
+            $end = dt::verbal2mysql($rec->{$toField}, false);
+
+            for ($d = $start; ; $d = dt::addDays(1, $d, false)) {
+                if (isset($normDates[$d])) {
+                    $result[$personId][$d] = true;
+                }
+                if ($d >= $end) {
+                    break;
+                }
             }
         }
 
@@ -612,8 +686,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             // Филтър само за подадените конкретни дни (ако интервалът е по-широк)
             if (!isset($normDates[$ymd])) continue;
 
-            // Превръщаме в секунди, за да се ползва директно от твоето форматиране
-            $result[$pId][$ymd] += (int)$rec->onSiteTime;
+            $result[$pId][$ymd] = (int)$rec->onSiteTime;
         }
 
         return $result;
@@ -629,17 +702,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function getPersonsLeavesDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
     {
+        $leaveDays = self::getPersonDayFlags($personsInGroups, $dates, 'hr_Leaves', 'leaveFrom', 'leaveTo');
 
-        // За всеки човек и всяка дата проверяваме дали е бил отпуск на датата
-        foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd) {
-
-                // Взимаме смяната (id) за деня
-                $isLeaveDay = hr_Leaves::getLeaveDay($ymd, $personId);
-
-                if ($isLeaveDay) {
-                    $personsShiftsInPeriod[$personId][$ymd] = 'Отп.';
-                }
+        foreach ($leaveDays as $personId => $days) {
+            foreach ($days as $ymd => $_) {
+                $personsShiftsInPeriod[$personId][$ymd] = 'Отп.';
             }
         }
 
@@ -656,17 +723,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function getPersonsSickDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
     {
+        $sickDays = self::getPersonDayFlags($personsInGroups, $dates, 'hr_Sickdays', 'startDate', 'toDate');
 
-        // За всеки човек и всяка дата проверяваме да ли е бил болничен на датата
-        foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd) {
-
-                // Взимаме смяната (id) за деня
-                $isSickDay = hr_Sickdays::getSickDay($ymd, $personId);
-
-                if ($isSickDay) {
-                    $personsShiftsInPeriod[$personId][$ymd] = 'Б';
-                }
+        foreach ($sickDays as $personId => $days) {
+            foreach ($days as $ymd => $_) {
+                $personsShiftsInPeriod[$personId][$ymd] = 'Б';
             }
         }
 
@@ -683,17 +744,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function getPersonsTripDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
     {
+        $tripDays = self::getPersonDayFlags($personsInGroups, $dates, 'hr_Trips', 'startDate', 'toDate');
 
-        // За всеки човек и всяка дата проверяваме да ли е бил болничен на датата
-        foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd) {
-
-                // Взимаме смяната (id) за деня
-                $isTripDay = hr_Trips::getTripDay($ymd, $personId);
-
-                if ($isTripDay) {
-                    $personsShiftsInPeriod[$personId][$ymd] = 'К';
-                }
+        foreach ($tripDays as $personId => $days) {
+            foreach ($days as $ymd => $_) {
+                $personsShiftsInPeriod[$personId][$ymd] = 'К';
             }
         }
 
@@ -711,16 +766,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function getPersonsHomeOfficeDaysInPeriod($personsInGroups, $dates, $personsShiftsInPeriod)
     {
-        // За всеки човек и всяка дата проверяваме да ли е бил болничен на датата
-        foreach ($personsInGroups as $personId => $personName) {
-            foreach ($dates as $ymd) {
+        $homeOfficeDays = self::getPersonDayFlags($personsInGroups, $dates, 'hr_HomeOffice', 'startDate', 'toDate');
 
-                // Взимаме смяната (id) за деня
-                $isHomeOfficeDay = hr_HomeOffice::getHomeOfficeDay($ymd, $personId);
-
-                if ($isHomeOfficeDay) {
-                    $personsShiftsInPeriod[$personId][$ymd] = 'Х';
-                }
+        foreach ($homeOfficeDays as $personId => $days) {
+            foreach ($days as $ymd => $_) {
+                $personsShiftsInPeriod[$personId][$ymd] = 'Х';
             }
         }
 
@@ -740,7 +790,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         if (empty($dates)) {
             return array();
         }
-
         // 1) Период от първата до последната дата (вкл.)
         $from = dt::verbal2mysql(reset($dates), false);
         $to = dt::verbal2mysql(end($dates), false);
@@ -749,46 +798,89 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 2) Заявка: само нужните полета, само в периода
         $q = planning_ProductionTaskDetails::getQuery();
-        // $q->show('createdOn,employees,norm');
-        $q->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'", $fromStart, $toEnd));
+        $q->where(array("#createdOn >= '{$fromStart}' AND #createdOn <= '{$toEnd}'"));
+        $q->where("#employees IS NOT NULL");
+        $q->show('taskId,quantity,productId,employees,norm,createdOn,type');
 
-        // 3) Филтър: поне един employee да е в $personsInGroups
-        $ors = array();
-        foreach (array_keys($personsInGroups) as $pid) {
-            $pid = (int)$pid;
-            $ors[] = "LOCATE('|{$pid}|', CONCAT('|', #employees, '|'))";
+        $qArr = array();
+        while ($qRec1 = $q->fetch()) {
+            $employee = keylist::toArray($qRec1->employees);
+            if(array_intersect_key($employee, $personsInGroups)) {
+                $qArr[$qRec1->id] = $qRec1;
+            }
         }
-        $q->where($ors ? '(' . implode(' OR ', $ors) . ')' : '1=0');
 
-        // 4) Акумулация по ключ "<personId>|<Y-m-d>"
+        //Извличане и индексиране на Задачите
+        $taskIds = arr::extractValuesFromArray($qArr, 'taskId');
+        $taskQuery = planning_Tasks::getQuery();
+        if(countR($taskIds)){
+            $taskQuery->in('id', $taskIds);
+        } else {
+            $taskQuery->where("1=2");
+        }
+        $taskQuery->show('id,originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
+        $tasks = $taskQuery->fetchAll();
+        
+        $originIds = $jobProductMap = $uomMap = $measureIds = [];
+        $originIds = arr::extractValuesFromArray($tasks, 'originId');
+        
+        // Извличане на Заданията
+        $jobsQuery = planning_Jobs::getQuery();
+        if(countR($originIds)){
+            $jobsQuery->in('containerId', $originIds);
+            $jobsQuery->show('containerId,productId');
+        } else{
+            $jobsQuery->where('1 = 2');
+        }
+        $jobsList = $jobsQuery->fetchAll();
+        foreach ($jobsList as $jRec) {
+                $jobProductMap[$jRec->containerId] = $jRec->productId;
+        }
+        
+        // Извличане на мерните единици
+        $measureIds = arr::extractValuesFromArray($tasks, 'measureId');
+
+        if (!empty($measureIds)) {
+            $uomQuery = cat_UoM::getQuery();
+            $uomQuery->in('id', $measureIds);
+            $uomQuery->show('id,type');
+            $uoms = $uomQuery->fetchAll();
+            foreach ($uoms as $uom) {
+                $uomMap[$uom->id] = $uom->type;
+            }
+        }
         $arr = array();
+        foreach($qArr as $id => $qRec) {
+            // Ако задачата липсва в базата данни, пропускаме записа
+            if (!isset($tasks[$qRec->taskId])) continue;
 
-        while ($qRec = $q->fetch()) {
-
+            $currentTask = $tasks[$qRec->taskId];
             $quantity = $qRec->quantity;
 
             if (in_array($qRec->type, array('production', 'scrap'))) {
-                $taskRec = planning_Tasks::fetch($qRec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack,labelQuantityInPack');
-                $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
+
+                // Взимаме продуктовото ID на заданието от масив
+                $jobProductId = $jobProductMap[$currentTask->originId] ?? null;
 
                 // Ако артикула е артикула от заданието и операцията е финална или артикула е този от операцията за междинен етап
-                if (($taskRec->isFinal == 'yes' && $qRec->productId == $jobProductId) || $qRec->productId == $taskRec->productId) {
-
-                    $isMeasureUom = (isset($taskRec->measureId) && cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom');
+                if (($tasks[$qRec->taskId]->isFinal == 'yes' && $qRec->productId == $jobProductId) || $qRec->productId == $tasks[$qRec->taskId]->productId) {
+                    
+                    // Проверка дали мерната единица е стандартна (uom)
+                    $measureType = $uomMap[$currentTask->measureId] ?? null;
+                    $isMeasureUom = (isset($currentTask->measureId) && $measureType == 'uom');
                     if ($isMeasureUom) {
-                        if ($taskRec->indPackagingId == $taskRec->measureId) {
-                            $quantity /= $taskRec->quantityInPack;
+                        if ($tasks[$qRec->taskId]->indPackagingId == $tasks[$qRec->taskId]->measureId) {
+                            $quantity /= $tasks[$qRec->taskId]->quantityInPack;
                         }
                     }
-
-                    if ($taskRec->measureId != $taskRec->indPackagingId) {
-                        if (!empty($taskRec->labelQuantityInPack)) {
-                            $indQuantityInPack = $taskRec->labelQuantityInPack;
+                    if ($tasks[$qRec->taskId]->measureId != $tasks[$qRec->taskId]->indPackagingId) {
+                        if (!empty($currentTask->labelQuantityInPack)) {
+                            $indQuantityInPack = $currentTask->labelQuantityInPack;
                             if ($isMeasureUom) {
-                                $indQuantityInPack = $indQuantityInPack * $taskRec->quantityInPack;
+                                $indQuantityInPack = $indQuantityInPack * $currentTask->quantityInPack;
                             }
                             $quantity = ($quantity / $indQuantityInPack);
-                        } elseif ($indQuantityInPack = cat_products_Packagings::getPack($qRec->productId, $taskRec->indPackagingId, 'quantity')) {
+                        } elseif ($indQuantityInPack = cat_products_Packagings::getPack($qRec->productId, $tasks[$qRec->taskId]->indPackagingId, 'quantity')) {
                             $quantity = ($quantity / $indQuantityInPack);
                         }
                     }
@@ -796,9 +888,10 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             }
 
             $eArr = keylist::toArray($qRec->employees);
+            $eArr = array_intersect_key($eArr, $personsInGroups);
+
             if (!$eArr) continue;
 
-            // Норма: първата част преди '|'
             $normParts = explode('|', $qRec->norm, 2);
             $norm = (int)($normParts[0] ?? 0);
 
@@ -809,7 +902,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
             foreach ($eArr as $employee) {
                 $key = $employee . '|' . $ymd;
-                $arr[$key] = ($arr[$key] ?? 0) + $perEmp; // избягва Notice при първо натрупване
+                $arr[$key] = ($arr[$key] ?? 0) + $perEmp;
             }
         }
 
@@ -855,14 +948,17 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function renderChart($rec, &$data)
     {
-        $fields = array('workingDays' => 'Работни дни', 'restDays' => 'Почивни дни', 'paidLeave' => 'Отпуска', 'sickDays' => 'Болнични', 'tripDays' => 'Командировка', 'homeOfficeDays' => 'Хоумофис', 'hours' => 'Часове');
-
+        $fields = array('workingDays' => 'Работни дни', 'restDays' => 'Почивни дни', 'paidLeave' => 'Отпуска', 'sickDays' => 'Болнични', 'tripDays' => 'Командировка', 'homeOfficeDays' => 'Хоумофис', 'hours' => 'Часове', 'percent' => 'Процент');
         $summary = $this->getSummary($rec);
 
         $fieldset = new core_FieldSet();
         $fieldset->FLD('userId', 'varchar');
         foreach ($fields as $key => $fldName) {
-            $fieldset->FLD($key, 'int', 'smartCenter');
+            if ($key === 'percent') {
+                $fieldset->FLD($key, 'double', 'smartCenter');
+            } else {
+                $fieldset->FLD($key, 'int', 'smartCenter');
+            }
         }
         $fields = array('userId' => 'Служител') + $fields;
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
@@ -888,6 +984,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 } elseif ($fKey == 'hours') {
                     $hours = ($rowData->workingMinutes > 0) ? $Time->toVerbal($rowData->workingMinutes) : '-';
                     $row->{$fKey} = $isTotal ? "<b>{$hours}</b>" : $hours;
+                } elseif ($fKey == 'percent') {
+                    $pct = (isset($rowData->percent) && $rowData->percent > 0) ? $rowData->percent . '%' : '-';
+                    $row->{$fKey} = $isTotal ? "<b>{$pct}</b>" : $pct;
                 } else {
                     $val = $rowData->{$fKey};
                     $row->{$fKey} = $isTotal ? "<b>{$val}</b>" : $val;
@@ -917,6 +1016,15 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         }
 
         $summary = array(0 => clone $obj);
+        $personsInGroups = array();
+        foreach ($rec->data->recs as $dataRec) {
+            $personsInGroups[$dataRec->personId] = true;
+        }
+
+        $leaveDays = self::getPersonDayFlags($personsInGroups, $rec->data->periodDates, 'hr_Leaves', 'leaveFrom', 'leaveTo');
+        $sickDays = self::getPersonDayFlags($personsInGroups, $rec->data->periodDates, 'hr_Sickdays', 'startDate', 'toDate');
+        $tripDays = self::getPersonDayFlags($personsInGroups, $rec->data->periodDates, 'hr_Trips', 'startDate', 'toDate');
+        $homeOfficeDays = self::getPersonDayFlags($personsInGroups, $rec->data->periodDates, 'hr_HomeOffice', 'startDate', 'toDate');
 
         foreach ($rec->data->recs as $dataRec) {
             $personId = $dataRec->personId;
@@ -932,10 +1040,10 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
             foreach ($rec->data->periodDates as $ymd) {
                 $shift = trim((string)($dataRec->shiftsInPeriod[$ymd] ?? ''));
-                $isLeaveDay = hr_Leaves::getLeaveDay($ymd, $personId);
-                $isSickDay = hr_Sickdays::getSickDay($ymd, $personId);
-                $isTripDay = hr_Trips::getTripDay($ymd, $personId);
-                $isHomeOfficeDay = hr_HomeOffice::getHomeOfficeDay($ymd, $personId);
+                $isLeaveDay = isset($leaveDays[$personId][$ymd]);
+                $isSickDay = isset($sickDays[$personId][$ymd]);
+                $isTripDay = isset($tripDays[$personId][$ymd]);
+                $isHomeOfficeDay = isset($homeOfficeDays[$personId][$ymd]);
 
                 if ($isLeaveDay) {
                     $summary[$personId]->paidLeave++;
@@ -973,6 +1081,15 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                     $summary[$dataRec->personId]->taskMinutes += (int)$minutes;
                     $summary[0]->taskMinutes += (int)$minutes;
                 }
+            }
+        }
+
+        // Изчисляване на процентите
+        foreach ($summary as $personRecord) {
+            if ($personRecord->workingMinutes > 0) {
+                $personRecord->percent = round(($personRecord->taskMinutes / $personRecord->workingMinutes) * 100, 1);
+            } else {
+                $personRecord->percent = 0;
             }
         }
 

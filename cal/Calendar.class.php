@@ -250,7 +250,7 @@ class cal_Calendar extends core_Master
                         unset($e->users);
                     }
 
-                    if(($e->id = $exEvents[$e->key]->id) ||
+                    if((isset($exEvents[$e->key]) && ($e->id = $exEvents[$e->key]->id)) ||
                                     ($e->id = self::fetchField(array("#key = '[#1#]'", $e->key), 'id')) ) {
                                         unset($exEvents[$e->key]);
                                         $res['updated']++;
@@ -1808,7 +1808,7 @@ class cal_Calendar extends core_Master
 	     		
 	     		$rec->title = type_Varchar::escape($rec->title);
 	     		
-	     		$dayData[$hourKey][$dayKey] .= $row->event;
+	     		$dayData[$hourKey][$dayKey] = ($dayData[$hourKey][$dayKey] ?? '') . $row->event;
 	     	
 	     	}
         }

@@ -216,7 +216,17 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
         // Генериране на транзакцията за произвеждане на основния артикул
         $equalizePrimeCost = $rec->equalizePrimeCost == 'yes';
-        $entries1 = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $rec->_details, $rec->jobQuantity, $equalizePrimeCost);
+
+        $stockableQuantity = $rec->quantity;
+        $productRec = cat_Products::fetch($rec->productId);
+        if($rec->packagingId == $productRec->measureId){
+            $stockableQuantity = $rec->packQuantity;
+        } else {
+            $round = cat_UoM::fetchField($productRec->measureId, 'round');
+            $stockableQuantity = round($stockableQuantity, $round);
+        }
+
+        $entries1 = self::getProductionEntries($productRec, $stockableQuantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $rec->_details, $rec->jobQuantity, $equalizePrimeCost);
         if (countR($entries1)) {
             $entries = array_merge($entries, $entries1);
         }
@@ -244,8 +254,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
     public static function getProductionEntries($productId, $quantity, $storeId, $debitAmount, $classId, $documentId, $expenseItemId, $valior, $expenses, $details, $jobQuantity = null, $equalizePrimeCost = null)
     {
         $entries = $array = array();
-        $prodRec = cat_Products::fetch($productId, 'fixedAsset,canStore');
-
+        $prodRec = cat_Products::fetchRec($productId);
+        $productId = $prodRec->id;
         $foundConvertedProducedRecs = array_filter($details, function($a) use ($productId){return $a->productId == $productId && $a->type == 'input' && isset($a->storeId);});
         $foundOtherInputedRecs = array_filter($details, function($a) use ($productId){return $a->productId != $productId && $a->type == 'input';});
 

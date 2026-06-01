@@ -242,6 +242,9 @@ class hr_Sickdays extends core_Master
         $this->FNC('title', 'varchar', 'column=none');
         
         $this->FLD('sharedUsers', 'userList(roles=hrSickdays|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
+        
+        $this->setDbIndex('personId,startDate,toDate');
+        $this->setDbIndex('personId');
     }
     
     

@@ -373,11 +373,11 @@ class cms_DefaultTheme extends core_ProtoInner
      */
     public static function on_BeforeSave($mvc, &$innerStateField, &$innerFormField, $rec, $fields = null, $mode = null)
     {
-        if (!trim($innerFormField->title) && !$rec->id && core_Users::isSystemUser()) {
+        if ((!is_object($innerFormField) || !trim($innerFormField->title ?? '')) && !($rec->id ?? null) && core_Users::isSystemUser()) {
             if (!$innerFormField) {
                 $innerFormField = new stdClass();
             }
-            
+
             $innerFormField->title = core_Setup::get('EF_APP_TITLE', true);
         }
     }
@@ -391,7 +391,7 @@ class cms_DefaultTheme extends core_ProtoInner
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('title', core_Setup::get('EF_APP_TITLE', true));
         }
     }

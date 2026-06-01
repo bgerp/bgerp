@@ -319,11 +319,15 @@ class planning_Hr extends core_Master
         if(isset($hrRec->scheduleId)) {
             $scheduleId = $hrRec->scheduleId;
         } else {
+            core_Debug::startTimer('hr_EmployeeContracts::getQuery()_PLANNING_HR');
             $state = hr_EmployeeContracts::getQuery();
+            core_Debug::stopTimer('hr_EmployeeContracts::getQuery()_PLANNING_HR');
             $state->where("#personId='{$personId}' AND #state = 'active'");
             if ($employeeContractDetails = $state->fetch()) {
                 if(isset($employeeContractDetails->departmentId)) {
+                    core_Debug::startTimer('planning_Centers::fetch_PLANNING_HR');
                     $pcRec = planning_Centers::fetch($employeeContractDetails->departmentId);
+                    core_Debug::stopTimer('planning_Centers::fetch_PLANNING_HR');
                     if(isset($pcRec->scheduleId)) {
                         $scheduleId = $pcRec->scheduleId;
                     }
@@ -332,7 +336,9 @@ class planning_Hr extends core_Master
         }
 
         if(empty($scheduleId)){
+            core_Debug::startTimer('hr_Schedules::getDefaultScheduleId_PLANNING_HR');
             $scheduleId = hr_Schedules::getDefaultScheduleId();
+            core_Debug::stopTimer('hr_Schedules::getDefaultScheduleId_PLANNING_HR');
         }
 
         return $scheduleId;

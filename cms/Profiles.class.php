@@ -105,7 +105,10 @@ class cms_Profiles extends core_Master
         $data = new stdClass();
         $userId = core_Users::getCurrent();
         
-        expect($data->rec = $this->Profile->fetch("#userId = {$userId}"));
+        $data->rec = $this->Profile->fetch("#userId = {$userId}");
+        if (!is_object($data->rec)) {
+            return new Redirect(array('bgerp_Portal'), '|Не е намерен профил за текущия потребител');
+        }
         
         // Проверяваме дали потребителя може да вижда списък с тези записи
         $this->requireRightFor('single', $data->rec);

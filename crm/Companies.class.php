@@ -608,7 +608,7 @@ class crm_Companies extends core_Master
 
             // Дефолтната държава е същата, като на "Моята фирма"
             $myCompany = self::fetchOwnCompany();
-            $form->setDefault('country', $myCompany->countryId);
+            $form->setDefault('country', is_object($myCompany) ? $myCompany->countryId : null);
         }
         
         // Ако сме в тесен режим
@@ -1004,7 +1004,7 @@ class crm_Companies extends core_Master
         }
         
         $ownCompany = crm_Companies::fetchOurCompany();
-        if ($ownCompany->country != $rec->country) {
+        if (!is_object($ownCompany) || $ownCompany->country != $rec->country) {
             $country = $row->country;
         } else {
             $currentCountry = $mvc->getVerbal($rec, 'place');
@@ -1322,7 +1322,8 @@ class crm_Companies extends core_Master
      */
     public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        $ownCountry = self::fetchOurCompany()->country;
+        $ourCompanyRec = self::fetchOurCompany();
+        $ownCountry = (int)(is_object($ourCompanyRec) ? $ourCompanyRec->country : 0);
         
         if (core_Lg::getCurrent() == 'bg') {
             $countryNameField = 'commonNameBg';
@@ -1414,11 +1415,11 @@ class crm_Companies extends core_Master
      */
     public static function on_Shutdown($mvc)
     {
-        if ($mvc->updateGroupsCnt) {
+        if (!empty($mvc->updateGroupsCnt)) {
             crm_Groups::updateGroupsCnt($mvc->className, 'companiesCnt');
         }
-        
-        if (countR($mvc->updatedRecs)) {
+
+        if (!empty($mvc->updatedRecs) && countR($mvc->updatedRecs)) {
             foreach ($mvc->updatedRecs as $id => $rec) {
                 $mvc->updateRoutingRules($rec);
             }
@@ -1524,7 +1525,7 @@ class crm_Companies extends core_Master
         $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
         $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
         $rec = self::fetch($id);
-        $rec = change_History::getRecOnDate(get_called_class(), $rec->id, $date);
+        $rec = $rec ? change_History::getRecOnDate(get_called_class(), $rec->id, $date) : null;
 
         if ($rec) {
             $rec->classId = core_Classes::getId('crm_Companies');

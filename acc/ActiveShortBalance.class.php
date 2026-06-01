@@ -459,8 +459,8 @@ class acc_ActiveShortBalance
         // Извличаме записите точно в периода на филтъра
         $jQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($jQuery, $from, $to, $accSysId, null, $item1, $item2, $item3, $strict);
-        $jQuery->orderBy('valior', 'ASC');
-        $jQuery->orderBy('id', 'ASC');
+        $jQuery->EXT('jCreatedOn', 'acc_Journal', 'externalName=createdOn,externalKey=journalId');
+        $jQuery->orderBy('valior=ASC,jCreatedOn=ASC');
 
         $entriesInPeriod = $jQuery->fetchAll();
 

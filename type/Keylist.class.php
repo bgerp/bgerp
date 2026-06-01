@@ -203,10 +203,11 @@ class type_Keylist extends core_Type
             $this->prepareSuggestions();
         }
         
+        $emptyValue = false;
         if ($value === null) {
             $emptyValue = true;
         }
-        
+
         if (!$value) {
             $values = array();
         } else {

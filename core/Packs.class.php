@@ -406,15 +406,15 @@ class core_Packs extends core_Manager
             $rec->startAct = $setup->startAct;
             
             if ($setup->deprecated) {
-                if ($rec->state != 'deprecated' && $rec->id) {
+                if (($rec->state ?? null) != 'deprecated' && !empty($rec->id)) {
                     $res .= $this->deinstall($pack);
                 }
-                
+
                 $rec->state = 'deprecated';
             } elseif ($setup->noInstall) {
                 $rec->state = 'hidden';
             } else {
-                if ($rec->state != 'active') {
+                if (($rec->state ?? null) != 'active') {
                     $rec->state = 'draft';
                 }
             }
@@ -948,7 +948,7 @@ class core_Packs extends core_Manager
         //                                'suggestions' => $suggestions,
         //        'CONSTANT_NAME2' => .....
         
-        $conf = cls::get('core_ObjectConfiguration', array($setup->getConfigDescription(), $rec->configData));
+        $conf = cls::get('core_ObjectConfiguration', array($setup->getConfigDescription(), is_object($rec) ? $rec->configData : null));
         
         return $conf;
     }
@@ -1068,7 +1068,7 @@ class core_Packs extends core_Manager
             error('@Пакета няма нищо за конфигуриране', $packName);
         }
         
-        if ($rec->configData) {
+        if (!empty($rec->configData)) {
             $data = unserialize($rec->configData);
         } else {
             $data = array();
@@ -1317,7 +1317,7 @@ class core_Packs extends core_Manager
             $rec->name = $name;
         }
         
-        if ($rec->configData) {
+        if (!empty($rec->configData)) {
             $exData = unserialize($rec->configData);
         } else {
             $exData = array();
@@ -1429,7 +1429,7 @@ class core_Packs extends core_Manager
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
         $text = '';
-        if ($rec->startCtr) {
+        if (!empty($rec->startCtr)) {
             list($pack) = explode('_', $rec->startCtr, 2);
             $pack = $pack . '_Setup';
             if (cls::load($pack, true)) {

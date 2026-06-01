@@ -229,8 +229,9 @@ class bgerp_Menu extends core_Manager
         $activeArr = explode(':', $active);
         
         if (($menuObj) && (countR($menuObj))) {
+            $lastRec = (object) array('menu' => null, 'ctr' => null, 'act' => null);
             foreach ($menuObj as $key => $rec) {
-                
+
                 // state: 3 - active, 2 - normal, 1 - disabled, 0 - hidden
                 // $mainMenuItems[$pageMenu] = TRUE; Дали това главно меню вече е показано
                 
@@ -419,7 +420,9 @@ class bgerp_Menu extends core_Manager
                     if (countR($plg->tabs)) {
                         foreach ($plg->tabs as $caption => $obj) {
                             if ($obj->roles == 'user') {
-                                if ($obj->url['Ctr'] && ($obj->url['Act'] == 'list' || $obj->url['Act'] == 'default' || $obj->url['Act'] == '')) {
+                                $urlCtr = $obj->url['Ctr'] ?? null;
+                                $urlAct = $obj->url['Act'] ?? '';
+                                if ($urlCtr && ($urlAct == 'list' || $urlAct == 'default' || $urlAct == '')) {
                                     $inst = cls::get($obj->url['Ctr']);
                                     if ($inst->canList) {
                                         $obj->roles = $inst->canList;
@@ -433,8 +436,8 @@ class bgerp_Menu extends core_Manager
                                 }
                             }
                             if ((countR($obj->url) == 1 || countR($obj->url) == 2) && haveRole($obj->roles)) {
-                                $ctr = $obj->url['Ctr'];
-                                $act = $obj->url['Act'];
+                                $ctr = $obj->url['Ctr'] ?? null;
+                                $act = $obj->url['Act'] ?? null;
                                 $roles = $obj->roles;
                                 
                                 return true;
@@ -593,11 +596,12 @@ class bgerp_Menu extends core_Manager
     public function repair()
     {
         $query = $this->getQuery();
-        
+        $res = '';
+
         while ($rec = $query->fetch()) {
             if (!cls::load($rec->ctr, true)) {
                 $this->delete($rec->id);
-                
+
                 $res .= "<li class='debug-error'>Премахнато е {$rec->menu} -> {$rec->menu}</li>";
             }
         }

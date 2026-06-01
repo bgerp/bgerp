@@ -33,7 +33,8 @@ class batch_plg_ProductDetail extends core_Plugin
     public static function on_AfterCreate($mvc, $rec)
     {
         if ($rec->canStore == 'yes') {
-            batch_Defs::force($rec);
+            $forcedTemplateId = !empty($rec->_Batch) ? $rec->_Batch : null;
+            batch_Defs::force($rec, $forcedTemplateId);
         }
     }
 }

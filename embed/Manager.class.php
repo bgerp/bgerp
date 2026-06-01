@@ -212,7 +212,7 @@ abstract class embed_Manager extends core_Master
             $addFields = self::getDriverFields($driver);
             
             foreach ($addFields as $name => $caption) {
-                $driverRec[$name] = $rec->{$name};
+                $driverRec[$name] = $rec->{$name} ?? null;
                 $saveDriverRec = true;
             }
             
@@ -354,7 +354,7 @@ abstract class embed_Manager extends core_Master
                 
                 case 'afterpreparereturl':
                 case 'afterprepareeditform':
-                    $driverClass = $args[0]->form->rec->{$this->driverClassField};
+                    $driverClass = $args[0]->form->rec->{$this->driverClassField} ?? null;
                     break;
                 case 'afterrendersinglelayout':
                 case 'afterrendersingletitle':
@@ -372,10 +372,10 @@ abstract class embed_Manager extends core_Master
                 case 'beforepreparesingletoolbar':
                 case 'afterpreparesingletoolbar':
                 case 'afterprepareselectform':
-                    $driverClass = $args[1]->rec->{$this->driverClassField};
+                    $driverClass = $args[1]->rec->{$this->driverClassField} ?? null;
                     break;
                 case 'afterinputeditform':
-                    $driverClass = $args[0]->rec->{$this->driverClassField};
+                    $driverClass = $args[0]->rec->{$this->driverClassField} ?? null;
                     break;
                 
                 case 'aftergetsearchkeywords':
@@ -393,7 +393,7 @@ abstract class embed_Manager extends core_Master
                 case 'aftergetdefaultdata':
                 case 'aftergetdefaultassignusers':
                     
-                    $driverClass = $args[1]->{$this->driverClassField};
+                    $driverClass = $args[1]->{$this->driverClassField} ?? null;
                     break;
                 case 'aftergetthreadstate':
                 case 'aftergeticon':
@@ -407,7 +407,7 @@ abstract class embed_Manager extends core_Master
                     $rArr = $args[1]->getDeletedRecs();
                     if (!empty($rArr)) {
                         $rObj = array_shift($rArr);
-                        $driverClass = $rObj->{$this->driverClassField};
+                        $driverClass = $rObj->{$this->driverClassField} ?? null;
                     }
                     break;
             }

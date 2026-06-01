@@ -224,7 +224,7 @@ class core_Query extends core_FieldSet
                 $cond = "#id = {$cond}";
             }
             
-            $lastCondKey = countR($this->where) - 1;
+            $lastCondKey = countR($this->where ?? null) - 1;
             
             if ($or && ($lastCondKey >= 0)) {
                 $lastCond = & $this->where[$lastCondKey];

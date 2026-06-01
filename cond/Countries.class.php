@@ -87,11 +87,11 @@ class cond_Countries extends core_Manager
         $form = &$data->form;
         $rec = $form->rec;
 
-        if ($rec->conditionId) {
-            if ($Type = cond_Parameters::getTypeInstance($rec->conditionId, 'drdata_Countries', $rec->country, $rec->value)) {
+        if (!empty($rec->conditionId)) {
+            if ($Type = cond_Parameters::getTypeInstance($rec->conditionId, 'drdata_Countries', $rec->country ?? null, $rec->value ?? null)) {
                 $form->setField('value', 'input');
                 $form->setFieldType('value', $Type);
-                $form->setDefault('value', cond_Parameters::getDefaultValue($rec->conditionId, $rec->cClass, $rec->cId, $rec->value));
+                $form->setDefault('value', cond_Parameters::getDefaultValue($rec->conditionId, $rec->cClass ?? null, $rec->cId ?? null, $rec->value ?? null));
             } else {
                 $form->setError('conditionId', 'Има проблем при зареждането на типа');
             }
@@ -108,7 +108,7 @@ class cond_Countries extends core_Manager
      */
     public function isUnique($rec, &$fields = array(), &$exRec = null)
     {
-        $where = "#id != '{$rec->id}' AND #conditionId = {$rec->conditionId}";
+        $where = "#id != '" . ($rec->id ?? 0) . "' AND #conditionId = {$rec->conditionId}";
         $where .= (!empty($rec->country)) ? " AND #country = {$rec->country}" : " AND (#country IS NULL OR #country = 0 OR #country = '')";
 
         if(!core_Users::isSystemUser()){

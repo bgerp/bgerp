@@ -670,6 +670,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      *          string      ['wasteStart']            - начално количество отпадък
      *          string      ['wastePercent']          - процент отпадък
      *          string      ['calcWeightMode']        - изчисляване на тегло или не
+     *          string      ['fastProgressBtn']       - да се показва ли бутон за бърз прогрес в листа на ПО
      *          string      ['mandatoryDocuments']    - задължителни документи
      *          text        ['description']           - описание на операцията
      *          int         ['supportSystemFolderId'] - папка за поддръжка

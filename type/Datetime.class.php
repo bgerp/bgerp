@@ -151,9 +151,11 @@ class type_Datetime extends type_Date
      */
     public function fromVerbal($valueIn)
     {
+        $value = array('d' => '', 't' => '');
         if (is_scalar($valueIn)) {
-            $value = array();
-            list($value['d'], $value['t']) = explode(' ', $valueIn);
+            $parts = explode(' ', $valueIn, 2);
+            $value['d'] = $parts[0] ?? '';
+            $value['t'] = $parts[1] ?? '';
         } elseif (is_array($valueIn)) {
             $value = $valueIn;
         }

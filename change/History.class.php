@@ -135,13 +135,13 @@ class change_History extends core_Manager
             if(!isset($r1)) continue;
             $data = new stdClass();
             foreach ($loggableFields as $logFld){
-                $data->{$logFld} = $r1->{$logFld};
+                $data->{$logFld} = $r1->{$logFld} ?? null;
             }
             $arr[$k] = (object)array('id' => $k, 'data' => $data, 'classId' => $classId, 'objectId' => $objectId, 'validFrom' => $r1->validFrom, 'state' => 'active');
         }
 
         // Ако текущия запис вече идва от историята - него
-        if(array_key_exists($oldRec->validFrom, $validFromByNow)){
+        if(array_key_exists($oldRec->validFrom ?? null, $validFromByNow)){
             unset($arr['m']);
         }
 

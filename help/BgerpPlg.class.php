@@ -97,6 +97,6 @@ class help_BgerpPlg extends core_Plugin
         $seeUrl = toUrl(array('help_log', 'see', '-1'), 'local');
         $seeUrl = urlencode($seeUrl);
         
-        jquery_Jquery::run($res, "needHelpActions('{$text}', ${inactiveTime}, '{$closeUrl}', '{$seeUrl}');", true);
+        jquery_Jquery::run($res, "needHelpActions('{$text}', {$inactiveTime}, '{$closeUrl}', '{$seeUrl}');", true);
     }
 }
