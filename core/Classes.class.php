@@ -103,9 +103,9 @@ class core_Classes extends core_Manager
         $data->listFilter->showFields = 'search,interface';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-        
+        $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
-        
+
         if ($interfaceId = ($data->listFilter->rec->interface ?? null)) {
             $data->query->like('interfaces', "|{$interfaceId}|");
         }
