@@ -7071,9 +7071,12 @@ div.location.public {
 	transform: scale(1.1);
 }
 
-.narrow .eshop-group-button {
-	width: 100%;
+@media handheld, only screen and (max-width: 760px) {
+	.narrow .eshop-group-button {
+		width: 100%;
+	}
 }
+
 .narrow .eshop-group-button .eshop-group-button-title {
 	height: auto;
 }
