@@ -202,7 +202,7 @@ class speedy_BillOfLadings extends core_Manager
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if ($mvc->haveRightFor('parseaddress')) {
-            $data->toolbar->addBtn('Парсиране на адрес', array($mvc, 'parseaddress', 'ret_url' => true), 'ef_icon=img/16/move.png,title=Парсиране на адрес');
+            $data->toolbar->addBtn('Парсиране на адрес', array($mvc, 'parseaddress', 'ret_url' => true), 'ef_icon=img/16/bug.png,title=Парсиране на адрес');
         }
     }
 
@@ -225,7 +225,7 @@ class speedy_BillOfLadings extends core_Manager
         }
 
         // Добавяне на бутони
-        $form->toolbar->addSbBtn('Парсиране', 'save', 'ef_icon=img/16/move.png,title =Парсиране на адрес');
+        $form->toolbar->addSbBtn('Парсиране', 'save', 'ef_icon=img/16/bug.png,title =Парсиране на адрес');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon=img/16/close-red.png,title=Прекратяване на действията');
 
         return $this->renderWrapping($form->renderHtml());
