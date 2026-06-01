@@ -645,10 +645,10 @@ class cat_Boms extends core_Master
         }
         
         // Кой може да оттегля и възстановява
-        if (($action == 'reject' || $action == 'restore') && isset($rec)) {
-            
-            // Ако не можеш да редактираш записа, не можеш да оттегляш/възстановяваш
-            $res = $mvc->getRequiredRoles('edit', $rec, $userId);
+        if (($action == 'reject' || $action == 'restore')) {
+            if (!haveRole($mvc->getRequiredRoles('edit'))) {
+                $res = 'no_one';
+            }
         }
         
         if($action == 'recalcselfvalue' && isset($rec)){
