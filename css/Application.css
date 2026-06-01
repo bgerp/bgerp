@@ -4025,6 +4025,16 @@ span.sharing-history-title {
   float: right;
   width: 74%; }
 
+.wide .oldView.eshop-product-images {
+  min-width: 120px;
+  float: left;
+  width: 22%; }
+
+.narrow .oldView.eshop-product-images {
+  float: left;
+  max-width: 160px;
+  margin-right: 20px; }
+
 .oldView.eshop-product-images img {
   max-width: 100% !important;
   width: auto;
