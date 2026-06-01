@@ -240,7 +240,7 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
             $line = "{$rec->num}|{$rec->type}|{$rec->invNumber}|{$rec->date}|{$rec->contragentEik}|{$rec->date}|{$static->folder}|{$rec->contragent}|" . "\r\n";
             
             $creditAcc = $static->creditPurchase;
-            if($rec->_isConnectedCompany){
+            if(($rec->_isConnectedCompany ?? false) === true){
                 $creditAcc = $static->creditConnectedPersons;
             }
 
@@ -289,7 +289,7 @@ class bulmar_PurchaseInvoiceExport extends bulmar_InvoiceExport
             
             if ($rec->amountPaid) {
                 $debitPayment = $static->debitPayment;
-                if($rec->_isConnectedCompany){
+                if(($rec->_isConnectedCompany ?? false) === true){
                     $debitPayment = $static->debitConnectedPersons;
                 }
 

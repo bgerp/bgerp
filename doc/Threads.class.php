@@ -2775,8 +2775,7 @@ class doc_Threads extends core_Manager
 
             return $bestContragentData->{$field};
         }
-
-        setIfNot($bestContragentData, new stdClass());
+        $bestContragentData = $bestContragentData ?? new stdClass();
 
         return $bestContragentData;
     }
@@ -2833,8 +2832,7 @@ class doc_Threads extends core_Manager
 
             return ;
         }
-
-        setIfNot($bestContragentData->company, $contragentData->company);
+        $bestContragentData->company = $bestContragentData->company ?? $contragentData->company;
     }
 
     

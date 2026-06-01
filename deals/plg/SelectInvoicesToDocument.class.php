@@ -24,9 +24,9 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     protected static function on_AfterDescription(core_Master &$mvc)
     {
         $mvc->FLD('fromContainerId', 'int', 'caption=Към,input=hidden,silent');
-        setIfNot($mvc->canSelectOnlyOneInvoice, false);
-        setIfNot($mvc->ignoreDetailsToCheckWhenTryingToPost, 'deals_InvoicesToDocuments');
-
+        setPartIfNot($mvc, 'canSelectOnlyOneInvoice', false);
+        setPartIfNot($mvc, 'ignoreDetailsToCheckWhenTryingToPost', 'deals_InvoicesToDocuments');
+        setPartIfNot($mvc, 'recontoWhenChange', false);
         $mvc->setDbIndex('fromContainerId');
     }
 
@@ -53,10 +53,11 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
             $oData = $mvc->getPaymentData($rec->id);
             $nData = $mvc->getPaymentData($rec);
 
-            // Прир едакция се проверява дали е сменяна валутата или сумата на документа
+            // При редакция се проверява дали е сменяна валутата или сумата на документа
             if($oData->amount != $nData->amount){
                 $rec->_amountChange = ($oData->amount > $nData->amount) ? 'decrease' : 'increase';
             }
+
             if($oData->amount != $nData->amount){
                 $rec->_currencyChange = true;
             }
@@ -121,7 +122,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
-        if($rec->_amountChange || $rec->_currencyChange){
+        if(($rec->_amountChange ?? null) || ($rec->_currencyChange ?? null)){
 
             // Какви са разпределените ф-ри
             $iQuery = deals_InvoicesToDocuments::getQuery();

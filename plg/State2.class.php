@@ -56,7 +56,7 @@ class plg_State2 extends core_Plugin
             $this->closedState = 'closed';
         }
         
-        setIfNot($mvc->updateExistingStateOnImport, true);
+        setPartIfNot($mvc, 'updateExistingStateOnImport', true);
     }
     
     

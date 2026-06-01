@@ -24,8 +24,8 @@ class plg_TreeObject extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->parentFieldName, 'parentId');
-        setIfNot($mvc->nameField, 'name');
+        setPartIfNot($mvc, 'parentFieldName', 'parentId');
+        setPartIfNot($mvc, 'nameField', 'name');
         
         // Създаваме поле за име, ако няма такова
         if (!$mvc->getField($mvc->nameField, false)) {

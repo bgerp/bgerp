@@ -74,13 +74,13 @@ class plg_Printing extends core_Plugin
     {
         if (Mode::is('forceShowPrint') || !($data->rec->state == 'draft' ||
             ($data->rec->state == 'rejected' && $data->rec->brState == 'draft') ||
-            ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && $mvc->printRejected === false))) {
+            ($data->rec->state == 'rejected' && $data->rec->brState != 'draft' && ($mvc->printRejected ?? null) === false))) {
             if (($mvc instanceof core_Manager) && $mvc->haveRightFor('single', $data->rec)) {
                 // Текущото URL
                 $currUrl = getCurrentUrl();
                 
                 // Ако името на класа е текущото URL
-                if (strtolower($mvc->className) == strtolower($currUrl['Ctr'])) {
+                if (strtolower($mvc->className) == strtolower($currUrl['Ctr'] ?? '')) {
                     
                     // Екшъна
                     $act = strtolower($currUrl['Act']);
@@ -108,7 +108,7 @@ class plg_Printing extends core_Plugin
                 self::addCmdParams($url);
                 
                 // По подразбиране бутона за принтиране се показва на втория ред на тулбара
-                setIfNot($mvc->printBtnToolbarRow, 2);
+                setPartIfNot($mvc, 'printBtnToolbarRow', 2);
                 $printBtnId = self::getPrintBtnId($mvc, $data->rec->id);
                 
                 // Бутон за отпечатване
@@ -235,7 +235,7 @@ class plg_Printing extends core_Plugin
      */
     protected static function on_AfterRenderListFilter($mvc, &$res, $data)
     {
-        if ($mvc->showPrintListFilter !== false) {
+        if (($mvc->showPrintListFilter ?? null) !== false) {
             $showFieldsArr = arr::make($data->listFilter->showFields, true);
             
             $fFields = '';

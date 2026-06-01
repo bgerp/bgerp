@@ -60,9 +60,41 @@ function render_changeInputWidth()
 	changeInputWidth();
 }
 
+function productGallery() {
+	const $gallery = $(".product-gallery");
+	$(".main-image a").removeClass("fancybox").removeAttr('href');
+
+	$gallery.each(function () {
+		const $thumbs = $(this).find(".thumbnails img");
+		const $mainImage = $(this).find(".main-image img");
+		const $thumbsContainer = $(this).find(".thumbnails");
+
+		// Ако няма снимки → нищо не правим
+		if ($thumbs.length === 0) return;
+
+		// Вземаме първата снимка
+		const firstSrc = $thumbs.first().attr("src");
+
+		// Слагаме active и задаваме main image
+		$thumbs.first().addClass("active");
+		$mainImage.attr("src", firstSrc);
+
+		$thumbs.on("mouseover", function (e) {
+			e.stopPropagation();
+
+			const newSrc = $(this).attr("src");
+			$mainImage.attr("srcset", newSrc);
+
+			$thumbs.removeClass("active");
+			$(this).addClass("active");
+		});
+	});
+}
 
 function eshopActions() {
 	changeInputWidth();
+	if ($(".product-gallery").length) productGallery();
+
 
 	// Добавяне/махане на артикул от любими
 	$(document.body).on("click", '.favouritesBtn', function(event){

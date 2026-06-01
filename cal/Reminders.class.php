@@ -819,8 +819,9 @@ class cal_Reminders extends core_Master
 
                 continue ;
             }
-
-            $mustNotify = $this->shouldSendNotification($rec->notifyCnt,  dt::subtractSecs($rec->timePreviously, $rec->calcTimeStart), $rec->calcTimeStart ?? $rec->timeStart, $now);
+            $ignoreFirst = $rec->action == 'notify' ? true : false;
+            $nArr = array();
+            $mustNotify = $this->shouldSendNotification($rec->notifyCnt,  dt::subtractSecs($rec->timePreviously, $rec->calcTimeStart), $rec->calcTimeStart ?? $rec->timeStart, $now, $nArr, $ignoreFirst);
 
             if ($mustNotify === true) {
                 $subscribedArr = keylist::toArray($rec->sharedUsers);
@@ -848,10 +849,11 @@ class cal_Reminders extends core_Master
      * @param string $endTimeStr
      * @param null|string $now
      * @param array $nArr
+     * @param boolena $ignoreFirst
      *
      * @return bool
      */
-    protected function shouldSendNotification($notifyCnt, $startTimeStr, $endTimeStr, $now = null, &$nArr = array())
+    protected function shouldSendNotification($notifyCnt, $startTimeStr, $endTimeStr, $now = null, &$nArr = array(), $ignoreFirst = false)
     {
         $now = dt::mysql2timestamp($now);
         $start = dt::mysql2timestamp($startTimeStr);
@@ -878,6 +880,10 @@ class cal_Reminders extends core_Master
         $intervals = [];
 
         for ($i = 0; $i < $n; $i++) {
+            if (($ignoreFirst === true) && ($i === 0)) {
+
+                continue ;
+            }
             $interval = $firstInterval * pow($r, $i);
             $currentTimestamp += $interval;
             $intervals[] = (int)$currentTimestamp;
@@ -1220,7 +1226,7 @@ class cal_Reminders extends core_Master
                     // Най-ранния работен ден на всички споделени
                     foreach ($shareUsersArr as $uId) {
                         $nextStartTime = cal_Calendar::nextWorkingDay($timeStart, $uId, $rec->repetitionEach);
-                        setIfNot($bestNextStartTime, $nextStartTime);
+                        $bestNextStartTime = $bestNextStartTime ?? $nextStartTime;
                         if ($nextStartTime < $bestNextStartTime) {
                             $bestNextStartTime = $nextStartTime;
                         }
@@ -1342,17 +1348,26 @@ class cal_Reminders extends core_Master
 
         $now = dt::now();
         if ($rec->notifyCnt) {
-            $mvc->shouldSendNotification($rec->notifyCnt,  dt::subtractSecs($rec->timePreviously, $rec->calcTimeStart), $rec->calcTimeStart ?? $rec->timeStart, $now, $nArr);
+            $ignoreFirst = $rec->action == 'notify' ? true : false;
+            $mvc->shouldSendNotification($rec->notifyCnt,  dt::subtractSecs($rec->timePreviously, $rec->calcTimeStart), $rec->calcTimeStart ?? $rec->timeStart, $now, $nArr, $ignoreFirst);
         }
 
         $nCnt = 0;
+
+        if ($rec->action == 'notify') {
+            $nArr = array_merge(array($rec->nextStartTime), $nArr);
+        }
         foreach ($nArr as $t) {
             $nCnt++;
             if ($t > $now) {
                 $Datetime = cls::get('type_Datetime');
                 $Datetime->params['format'] = 'smartTime';
-                $row->notifyOn = $Datetime->toVerbal($t);
 
+                if (($rec->nextStartTime > $now) && ($rec->calcTimeStart > $rec->nextStartTime) && ($rec->action == 'notify')) {
+                    $t = $rec->nextStartTime;
+                }
+
+                $row->notifyOn = $Datetime->toVerbal($t);
                 if ($rec->notifyCnt) {
                     $row->notifyOn .= " ({$nCnt} " . tr('от') . " {$row->notifyCnt})";
                 }
@@ -1362,7 +1377,6 @@ class cal_Reminders extends core_Master
         }
 
         if (!empty($row->notifyOn) && $rec->action == 'notify') {
-            $nArr = array_merge(array($rec->nextStartTime), $nArr);
             unset($row->nextStartTime);
         }
 

@@ -749,7 +749,7 @@ class trans_plg_LinesPlugin extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if($rec->_fromForm){
+        if($rec->_fromForm ?? null){
             if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
                 if(in_array($rec->state, array('draft', 'pending'))){
                     $mvc->recalcAutoDates[$rec->id] = $rec;
@@ -758,7 +758,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         }
 
         if (isset($rec->lineId)) {
-            if($rec->_changeLine || $rec->_fromForm) {
+            if(($rec->_changeLine ?? null) || ($rec->_fromForm ?? null)) {
                 $mvc->updateLines[$rec->lineId] = $rec->lineId;
                 $mvc->syncLineDetails[$rec->lineId] = $rec->containerId;
             }

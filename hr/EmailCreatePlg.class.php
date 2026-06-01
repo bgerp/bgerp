@@ -27,10 +27,10 @@ class hr_EmailCreatePlg extends core_Plugin
 
         // Добавя интерфейс за генериране на имейл
         $mvc->interfaces = arr::make($mvc->interfaces);
-        setIfNot($mvc->interfaces['email_DocumentIntf'], 'email_DocumentIntf');
-        setIfNot($mvc->useOriginContragentData, true);
-        setIfNot($mvc->getContragentDataFromLastDoc, false);
-        setIfNot($mvc->canSendemail, 'user');
+        $mvc->interfaces['email_DocumentIntf'] = $mvc->interfaces['email_DocumentIntf'] ?? 'email_DocumentIntf';
+        setPartIfNot($mvc, 'useOriginContragentData', true);
+        setPartIfNot($mvc, 'getContragentDataFromLastDoc', false);
+        setPartIfNot($mvc, 'canSendemail', 'user');
     }
 
 

@@ -23,6 +23,18 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
 
     /**
+     * Дефолтен етикет на таба за графиката
+     */
+    protected $chartTabCaption = 'Обобщение';
+
+
+    /**
+     * Активиране на таб с графика
+     */
+    protected $enableChartTab = true;
+    
+
+    /**
      * Кои полета от листовия изглед да може да се сортират
      *
      * @var int
@@ -190,7 +202,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         //Изчисляване на времето за всеки ден
         $personsTimeInPeriod = self::getPersonsTimeInPeriod($personsInGroups, $dates);    // [pId][Y-m-d] => seconds
-
+       
         //Изчисляване на заработките
         $personsProgressInPeriod = self::getProgressInPeriod($personsInGroups, $dates);
 
@@ -246,10 +258,10 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-
+        $series = Mode::get('series');
         if ($export === false) {
 
-            $fld->FLD('personName', 'varchar', 'caption=Потребител,tdClass=leftCol');
+            $fld->FLD('personName', 'varchar', 'caption=Служител,tdClass=leftCol');
             $fld->FLD('metric', 'varchar', 'caption=Показател,tdClass=center');
 
             for ($i = 0; $i < countR($rec->data->periodDates); $i++) {
@@ -259,15 +271,112 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 $fld->FLD($code, 'varchar', "caption={$caption},tdClass=center,smartCenter");
             }
 
-        } else {
-
-
+        } elseif($series == 'summary') {
+            $fld->FLD('personName', 'varchar','caption=Служител,tdClass=leftCol');
+            $fld->FLD('workingDays', 'int','caption=Работни дни');
+            $fld->FLD('restDays', 'int','caption=Почивни дни');
+            $fld->FLD('paidLeave', 'int','caption=Отпуска');
+            $fld->FLD('sickDays', 'int','caption=Болнични');
+            $fld->FLD('tripDays', 'int','caption=Командировка');
+            $fld->FLD('homeOfficeDays', 'int','caption=Хоумофис');
+            $fld->FLD('hours', 'int','caption=Часове');
+        } else{
+            $fld->FLD('personName', 'varchar', 'caption=Служител,tdClass=leftCol');
+            $fld->FLD('date', 'date', 'caption=Дата,tdClass=center');
+            $fld->FLD('shift', 'varchar', 'caption=Смяна,tdClass=center');
+            $fld->FLD('time', 'varchar', 'caption=Време,tdClass=center');
+            $fld->FLD('percent', 'percent', 'caption=Процент,tdClass=center');
         }
 
 
         return $fld;
     }
 
+
+    /**
+     * Връща редовете, които ще се експортират от справката
+     *
+     * @param stdClass       $rec         - запис
+     * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+     *
+     * @return array                      - записите за експорт
+     */
+    protected function getRecsForExport($rec, $ExportClass)
+    {
+        $recsToExport = array();
+        $series = Mode::get('series');
+
+        if($series == 'detailed'){
+            if (empty($rec->data->recs) || empty($rec->data->periodDates)) {
+            return $recsToExport;
+            }
+        
+            // Групиране на записите по personId
+            $recsByPerson = array();
+            foreach ($rec->data->recs as $dataRec) {
+                $personId = $dataRec->personId;
+                if (!isset($recsByPerson[$personId])) {
+                    $recsByPerson[$personId] = array();
+                }
+                $recsByPerson[$personId][$dataRec->rowType] = $dataRec;
+            }
+            
+            // За всеки човек и всяка дата, създава експортен запис
+            foreach ($recsByPerson as $personId => $typeRecs) {
+                $shiftRec = $typeRecs['shift'] ?? null;
+                $onsiteRec = $typeRecs['onsite'] ?? null;
+                $opsRec = $typeRecs['ops'] ?? null;
+                
+                if (!$shiftRec) continue;
+                
+                $personName = $shiftRec->personName; 
+                
+                foreach ($rec->data->periodDates as $ymd) {
+                    $exportRec = new stdClass();
+                    $exportRec->personId = $personId;
+                    $exportRec->personName = $personName;
+                    $exportRec->date = $ymd;
+                    $exportRec->shift = $shiftRec->shiftsInPeriod[$ymd] ?? null;
+                    $exportRec->time = $onsiteRec->onSiteTimeByDate[$ymd] ?? 0;
+                    $exportRec->percent = $opsRec->opsMinutesByDate[$ymd] ?? 0;
+                    $recsToExport[] = $exportRec;
+                }
+            }
+        } elseif ($series == 'summary') {
+            $summary = $this->getSummary($rec);
+            foreach ($summary as $fldId => $dRec){
+                $dRec->hours = round($dRec->workingMinutes / 3600);
+                if($fldId ==+ 0){
+                    $dRec->personName = 'Общо';
+                }
+            }
+            $recsToExport = $summary;
+        }
+        
+        return $recsToExport;
+    }
+
+
+    /**
+     * След подготовка на реда за експорт
+     *
+     * @param frame2_driver_Proto $Driver
+     * @param stdClass $res
+     * @param stdClass $rec
+     * @param stdClass $dRec
+     */
+    protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
+    {
+        // Форматиране на времето като часове вместо като timestamp    
+        if (empty($dRec->time)) {
+            $dRec->time = null;
+        } else {
+            $dRec->time = core_type::getByName('time(noSmart, uom=hours)')->toVerbal($dRec->time);
+        }
+    }
+        
+
+    
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
@@ -287,27 +396,27 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $Time->params['uom'] = 'hours';    // входът е в МИНУТИ, изходът е ч:мм
 
         $row = new stdClass();
-
-        $row->personName = "<div style='text-align:center;font-weight:600;'>{$dRec->personName}</div>";
+        $singleUrl = crm_Persons::getSingleUrlArray($dRec->personId);
+        $personNameTpl = ht::createLink($dRec->personName ,$singleUrl);
+        $row->personName = "<div style='text-align:center;font-weight:600;'>{$personNameTpl}</div>";
 
         // Показател
         $metricByType = ['shift' => 'смяна', 'onsite' => 'време', 'ops' => '%'];
         $row->metric = $metricByType[$dRec->rowType] ?? '';
 
-
         // Нормализира към МИНУТИ; приема сек/ "mm:ss"/"hh:mm"/"hh:mm:ss"
         $toMinutes = function ($val) {
             if ($val === null || $val === '' || $val === 0) return 0;
-
+            
             // Чисто число -> приемаме секунди (както идват от getPersonsTimeInPeriod)
             if (is_int($val) || (is_string($val) && ctype_digit($val))) {
-                return (int)floor(((int)$val) / 60);
+                return (int)floor(((int)$val)); 
             }
 
             $s = trim((string)$val);
             if (strpos($s, ':') === false) {
                 // fallback: опит за секунди
-                if (is_numeric($s)) return (int)floor(((int)$s) / 60);
+                if (is_numeric($s)) return (int)floor(((int)$s));
                 return 0;
             }
 
@@ -328,6 +437,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $fmtPct = function ($minutes) {
             if (!is_numeric($minutes) || $minutes <= 0) return '-';
             $pct = round(($minutes / 480) * 100, 1);
+            
             return ($pct > 0) ? ($pct . '%') : '-';
         };
 
@@ -340,11 +450,32 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         foreach ($rec->data->periodDates as $ymd) {
             $i++;
             $code = sprintf('d%02d', $i);
-
-            if ($dRec->rowType === 'shift') {
+           if ($dRec->rowType === 'shift') {
                 $val = trim((string)($dRec->shiftsInPeriod[$ymd] ?? ''));
-                $row->{$code} = ($val !== '') ? $val : '-';
+                if ($val === '') {
+                    $row->{$code} = '-';
+                }
+                //да не се оцветява ако не е на място
+                $isLeaveDay = hr_Leaves::getLeaveDay($ymd, $dRec->personId);
+                $isSickDay = hr_Sickdays::getSickDay($ymd, $dRec->personId);
+                $isTripDay = hr_Trips::getTripDay($ymd, $dRec->personId);
+                $isHomeOfficeDay = hr_HomeOffice::getHomeOfficeDay($ymd, $dRec->personId);
 
+                if($isLeaveDay || $isSickDay || $isTripDay || $isHomeOfficeDay){
+                    $attr = array('style' => "width:100%; padding:2px 3px");
+                    $row->{$code} = ht::createElement('span', $attr, $val);
+                } else {
+                    $colorHex = null;
+                    if ($shiftId = hr_Shifts::getShift($ymd, $dRec->personId)) {
+                        $colorHex = hr_Shifts::fetchField($shiftId, 'color');
+                    }
+                    if ($colorHex) {
+                        $attr = array('style' => "background-color:{$colorHex}; width:100%; padding:2px 3px");
+                        $row->{$code} = ht::createElement('span', $attr, $val);
+                    } else {
+                        $row->{$code} = $val;
+                    }
+                }
             } elseif ($dRec->rowType === 'onsite') {
                 // Нормализираме към МИНУТИ и използваме type_Time::toVerbal()
                 $raw = $dRec->onSiteTimeByDate[$ymd] ?? 0;     // може да е сек или "mm:ss"
@@ -356,7 +487,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 $row->{$code} = $Double->toVerbal($mins);
             }
         }
-
         return $row;
     }
 
@@ -371,7 +501,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-
 
     }
 
@@ -419,25 +548,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         } else {
             $fieldTpl->append('<b>' . 'Всички' . '</b>', 'users');
         }
-
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 
-
-    /**
-     * След подготовка на реда за експорт
-     *
-     * @param frame2_driver_Proto $Driver
-     * @param stdClass $res
-     * @param stdClass $rec
-     * @param stdClass $dRec
-     */
-    protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
-    {
-
-        $res->name = cat_Products::fetch($dRec->productId)->name;
-        $res->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->productId)->measureId, 'shortName');
-    }
 
     /**
      * Връща смяната за всеки служител по дни от периода.
@@ -469,7 +582,6 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
                 // Взимаме смяната (id) за деня
                 $shiftId = hr_Shifts::getShift($ymd, $personId);
-
                 if (!$shiftId) {
                     // няма смяна за този ден
                     $result[$personId][$ymd] = null;
@@ -485,6 +597,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         return $result;
     }
+
 
     /**
      * Връща времето на място (onSite) за всеки служител по дни от периода.
@@ -536,14 +649,12 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             if (!isset($normDates[$ymd])) continue;
 
             // Превръщаме в секунди, за да се ползва директно от твоето форматиране
-            $minutes = (int)$rec->onSiteTime;
-            $seconds = $minutes * 60;
-
-            $result[$pId][$ymd] = $seconds;
+            $result[$pId][$ymd] = (int)$rec->onSiteTime;
         }
 
         return $result;
     }
+
 
     /**
      * Добавя отпуските за всеки служител по дни от периода.
@@ -572,6 +683,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
     }
 
+
     /**
      * Добавя болничните за всеки служител по дни от периода.
      *
@@ -598,6 +710,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         return $personsShiftsInPeriod;
 
     }
+
 
     /**
      * Добавя командировките за всеки служител по дни от периода.
@@ -626,6 +739,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
     }
 
+
     /**
      * Добавя хоумофис дните за всеки служител по дни от периода.
      *
@@ -652,6 +766,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         return $personsShiftsInPeriod;
 
     }
+    
 
     /**
      * Намира отработените минути ден по ден за подадения период.
@@ -769,5 +884,158 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         }
 
         return array('from' => $rec->fromDate, 'to' => $rec->toDate);
+    }
+
+
+    /**
+     * Рендиране на графиката
+     *
+     * @param stdCLass $rec
+     * @param stdCLass $data
+     * @return core_ET $tpl
+     */
+    protected function renderChart($rec, &$data)
+    {
+        $fields = array('workingDays' => 'Работни дни', 'restDays' => 'Почивни дни', 'paidLeave' => 'Отпуска', 'sickDays' => 'Болнични', 'tripDays' => 'Командировка', 'homeOfficeDays' => 'Хоумофис', 'hours' => 'Часове');
+
+        $summary = $this->getSummary($rec);
+
+        $fieldset = new core_FieldSet();
+        $fieldset->FLD('userId', 'varchar');
+        foreach ($fields as $key => $fldName) {
+            $fieldset->FLD($key, 'int', 'smartCenter');
+        }
+        $fields = array('userId' => 'Служител') + $fields;
+        $table = cls::get('core_TableView', array('mvc' => $fieldset));
+
+        $Time = cls::get('type_Time');
+        $Time->params['noSmart'] = true;
+        $Time->params['uom'] = 'hours';
+
+        $rows = array();
+        $expectedMinutes = count($rec->data->periodDates) * 8 * 60;
+
+        foreach ($summary as $personId => $rowData) {
+            $isTotal = ($personId === 0);
+            $row = new stdClass();
+
+            foreach ($fields as $fKey => $fName) {
+                if ($fKey == 'userId') {
+                    if ($isTotal) {
+                        $row->{$fKey} = "<b>" . tr('Общо') . "</b>";
+                    } else {
+                        $personUrl = crm_Persons::getSingleUrlArray($personId);
+                        $row->{$fKey} = ht::createLink($rowData->personName, $personUrl);
+                    }
+                } elseif ($fKey == 'hours') {
+                    $hours = ($rowData->workingMinutes > 0) ? $Time->toVerbal($rowData->workingMinutes) : '-';
+                    $row->{$fKey} = $isTotal ? "<b>{$hours}</b>" : $hours;
+                } else {
+                    $val = $rowData->{$fKey};
+                    $row->{$fKey} = $isTotal ? "<b>{$val}</b>" : $val;
+                }
+            }
+            $rows[] = $row;
+        }
+        $table = $table->get($rows, $fields);
+
+        return $table;
+    }
+
+
+    /**
+     * Изгражда обобщените данни по служител и общо
+     *
+     * @param stdClass $rec
+     * @return array $summary
+     */
+    protected function getSummary($rec)
+    {
+        $params = array('workingDays', 'restDays', 'paidLeave', 'sickDays', 'tripDays', 'homeOfficeDays', 'hours');
+        $obj = new stdClass;
+        foreach ($params as $paramFld) {
+            $obj->{$paramFld} = 0;
+        }
+
+        $summary = array(0 => clone $obj);
+
+        foreach ($rec->data->recs as $dataRec) {
+            $personId = $dataRec->personId;
+            if (!array_key_exists($personId, $summary)) {
+                $clone = clone $obj;
+                $clone->personName = $dataRec->personName;
+                $summary[$personId] = $clone;
+            }
+
+            if ($dataRec->rowType !== 'shift') {
+                continue;
+            }
+
+            foreach ($rec->data->periodDates as $ymd) {
+                $shift = trim((string)($dataRec->shiftsInPeriod[$ymd] ?? ''));
+                $isLeaveDay = hr_Leaves::getLeaveDay($ymd, $personId);
+                $isSickDay = hr_Sickdays::getSickDay($ymd, $personId);
+                $isTripDay = hr_Trips::getTripDay($ymd, $personId);
+                $isHomeOfficeDay = hr_HomeOffice::getHomeOfficeDay($ymd, $personId);
+
+                if ($isLeaveDay) {
+                    $summary[$personId]->paidLeave++;
+                    $summary[0]->paidLeave++;
+                } elseif ($isSickDay) {
+                    $summary[$personId]->sickDays++;
+                    $summary[0]->sickDays++;
+                } elseif ($isTripDay) {
+                    $summary[$personId]->tripDays++;
+                    $summary[0]->tripDays++;
+                } elseif ($isHomeOfficeDay) {
+                    $summary[$personId]->homeOfficeDays++;
+                    $summary[0]->homeOfficeDays++;
+                } elseif ($shift === '' || $shift === '-') {
+                    $summary[$personId]->restDays++;
+                    $summary[0]->restDays++;
+                } else {
+                    $summary[$personId]->workingDays++;
+                    $summary[0]->workingDays++;
+                }
+            }
+        }
+
+        foreach ($rec->data->recs as $dataRec) {
+            if (!isset($summary[$dataRec->personId])) {
+                continue;
+            }
+
+            if ($dataRec->rowType === 'onsite') {
+                foreach ($dataRec->onSiteTimeByDate as $minutes) {
+                    $summary[$dataRec->personId]->workingMinutes += (int)$minutes;
+                    $summary[0]->workingMinutes += (int)$minutes;
+                }
+            }
+
+            if ($dataRec->rowType === 'ops') {
+                foreach ($dataRec->opsMinutesByDate as $minutes) {
+                    $summary[$dataRec->personId]->taskMinutes += (int)$minutes;
+                    $summary[0]->taskMinutes += (int)$minutes;
+                }
+            }
+        }
+
+        // Преместване на общото накрая
+        $totalData = $summary[0];
+        unset($summary[0]);
+        $summary[0] = $totalData;
+
+        return $summary;
+    }
+
+    /**
+     *  Връща сериите за експорт
+     * 
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getSeriesForExport($rec){
+        
+        return array('detailed' => 'Детайлно', 'summary' => 'Обобщено');
     }
 }

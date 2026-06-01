@@ -214,25 +214,27 @@ class bank_Accounts extends core_Master
         // то ги извличаме от IBAN-a , ако са попълнени изкарваме преудреждение
         // ако те се разминават с тези в системата
         if ($form->isSubmitted()) {
-            if ($form->rec->iban[0] != '#') {
-                $bank = bglocal_Banks::getBankName($form->rec->iban);
+            $iban = $form->rec->iban ?? '';
+            $bank = null;
+            $bic = null;
+
+            if ($iban !== '' && $iban[0] !== '#') {
+                $bank = bglocal_Banks::getBankName($iban);
+                $bic = bglocal_Banks::getBankBic($iban);
             }
-            
-            if (!$form->rec->bank) {
+
+            if (empty($form->rec->bank)) {
                 $form->rec->bank = $bank;
             } else {
-
-                if (trim($bank) && (trim(mb_strtolower($form->rec->bank)) != trim(mb_strtolower($bank)))) {
+                if (!empty($bank) && trim(mb_strtolower($form->rec->bank)) != trim(mb_strtolower($bank))) {
                     $form->setWarning('bank', "|*<b>|Банка|*:</b> |въвели сте |*\"<b>|{$form->rec->bank}|*</b>\", |а IBAN-ът е на банка |*\"<b>|{$bank}|*</b>\". |Сигурни ли сте, че искате да продължите?");
                 }
             }
-            
-            $bic = bglocal_Banks::getBankBic($form->rec->iban);
-            
-            if (!$form->rec->bic) {
+
+            if (empty($form->rec->bic)) {
                 $form->rec->bic = $bic;
             } else {
-                if ($bank && $form->rec->bic != $bic) {
+                if (!empty($bic) && $form->rec->bic != $bic) {
                     $form->setWarning('bic', "|*<b>BIC:</b> |въвели сте |*\"<b>{$form->rec->bic}</b>\", |а IBAN-ът е на BIC |*\"<b>{$bic}</b>\". |Сигурни ли сте, че искате да продължите?");
                 }
             }
@@ -407,7 +409,7 @@ class bank_Accounts extends core_Master
      */
     protected static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
     {
-        if ($rec->ourAccount === true) {
+        if (!empty($rec->ourAccount)) {
             $retUrl = $editUrl['ret_url'];
             $ownAccountId = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'id');
             $editUrl = array('bank_OwnAccounts', 'edit', $ownAccountId, 'fromOurCompany' => true);

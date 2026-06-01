@@ -2407,10 +2407,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     public static function getProductWeight($rec)
     {
         //id на мярката 'килограм'
+
         $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
         
         //Взема единичното тегло на целия продукт
         $singleProductWeight = null;
+
         $singleProductWeight = cat_Products::getParams($rec->id, 'weight');
         
         if ($singleProductWeight) {
@@ -2418,11 +2420,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         } else {
             $singleProductWeight = cat_Products::getParams($rec->id, 'weightKg');
         }
-        
+
+        $isSecondMeasure = cat_products_Packagings::getPack($rec->id, $kgMeasureId)->isSecondMeasure;
+
         if ($rec->measureId == $kgMeasureId) {
             $singleProductWeight = 1;
         }
-        
+
+        if (!$singleProductWeight){
+            $packReck = cat_products_Packagings::getPack($rec->id, $kgMeasureId);
+         if($packReck->isSecondMeasure == 'yes'){
+
+             $singleProductWeight = 1/$packReck->quantity;
+         }
+        }
+
         $singleProductWeight = $singleProductWeight ? $singleProductWeight : 'n.a.';
         
         return $singleProductWeight;

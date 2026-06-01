@@ -141,7 +141,7 @@ class change_plg_History extends core_Plugin
     {
         // Ако има промяна в наблюдаваните полета
         $newFieldHash = self::getNewRecHash($mvc, $rec);
-        if($rec->_oldFieldHash == $newFieldHash) return;
+        if(($rec->_oldFieldHash ?? null) == $newFieldHash) return;
 
         $rec->validFrom = !empty($rec->validFrom) ? $rec->validFrom : dt::now();
         $sync = false;

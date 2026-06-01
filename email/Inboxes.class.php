@@ -211,7 +211,7 @@ class email_Inboxes extends core_Master
             
             $ourCRec = crm_Companies::fetchOurCompany('name');
             
-            if ($cEmailArr[$email]) {
+            if ($cEmailArr[$email] ?? null) {
                 $res = $ourCRec->name;
             } else {
                 if (!email_Accounts::fetch(array("LOWER(#email) = '[#1#]' AND #state = 'active'", $email))) {
@@ -244,10 +244,10 @@ class email_Inboxes extends core_Master
     public function getFolderTitle($id)
     {
         $rec = $this->fetch($id);
-        
-        $title = $rec->email;
-        
-        return strtolower($title);
+
+        if (!$rec) return '';
+
+        return strtolower($rec->email ?? '');
     }
     
     
@@ -297,15 +297,15 @@ class email_Inboxes extends core_Master
         $form->input($form->showFields, 'silent');
         $form->getFieldType('accountId')->params['allowEmpty'] = true;
         
-        if ($form->rec->emailSearch) {
+        if ($form->rec->emailSearch ?? null) {
             $data->query->like('email', $form->rec->emailSearch);
         }
-        
-        if ($form->rec->accountId) {
+
+        if ($form->rec->accountId ?? null) {
             $data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
         }
-        
-        if ($form->rec->userSelect) {
+
+        if ($form->rec->userSelect ?? null) {
             $userIdsArr = type_Users::toArray($form->rec->userSelect);
             $userIdsStr = implode(',', $userIdsArr);
             $data->query->where(array("#inCharge IN ({$userIdsStr})"));
@@ -323,7 +323,7 @@ class email_Inboxes extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Вземам всички акаунти за които може да се създаде имейл
-        if ($data->form->rec->id && $data->form->rec->accountId) {
+        if (($data->form->rec->id ?? null) && ($data->form->rec->accountId ?? null)) {
             $allAccounts = array();
             $allAccounts[$data->form->rec->accountId] = email_Accounts::fetch($data->form->rec->accountId);
         } else {
@@ -354,10 +354,14 @@ class email_Inboxes extends core_Master
         
         $data->form->setDefault('accountId', $defaultAccId);
         
-        if (!$data->form->rec->email) {
-            $accRec = $allAccounts[$data->form->rec->accountId];
-            list(, $domain) = explode('@', $accRec->email);
-            $data->form->setParams('email', array('placeholder' => '...@' . $domain));
+        if (empty($data->form->rec->email ?? null)) {
+            $accId = $data->form->rec->accountId ?? null;
+            $accRec = $accId ? ($allAccounts[$accId] ?? null) : null;
+            if ($accRec) {
+                $accEmailParts = explode('@', $accRec->email);
+                $domain = $accEmailParts[1] ?? '';
+                $data->form->setParams('email', array('placeholder' => '...@' . $domain));
+            }
         }
         
         if ($data->form->rec->id) {
@@ -382,9 +386,11 @@ class email_Inboxes extends core_Master
         if ($form->isSubmitted()) {
             $accRec = email_Accounts::fetch((int) $form->rec->accountId);
             
-            list(, $accDomain) = explode('@', $accRec->email);
-            
-            list(, $emailDomain) = explode('@', $form->rec->email);
+            $accEmailParts = explode('@', $accRec->email);
+            $accDomain = $accEmailParts[1] ?? '';
+
+            $emailParts = explode('@', $form->rec->email ?? '');
+            $emailDomain = $emailParts[1] ?? '';
             
             if ($accDomain != $emailDomain) {
                 $form->setError('email', 'Домейните на сметката и имейла трябва да съвпадат');
@@ -406,7 +412,7 @@ class email_Inboxes extends core_Master
     public static function getAllInboxes($accId = 0, $removeClosed = true, $removeRejected = true)
     {
         $key = $accId . '|' . $removeClosed . '|' . $removeRejected;
-        if (!self::$allBoxes[$key]) {
+        if (empty(self::$allBoxes[$key])) {
             $query = static::getQuery();
             $query->show('id, email, accountId');
             
@@ -475,15 +481,15 @@ class email_Inboxes extends core_Master
         // Търсим във всички съществуващи кутии
         foreach ($emailsArr as  &$eml) {
             // Първия имейл, който отговаря на кутия е $toBox
-            if ($allBoxes[$eml]) {
-                
+            if ($allBoxes[$eml] ?? null) {
+
                 return $eml;
             }
-            
+
             $eml = self::replaceDomains($eml);
-            
-            if ($allBoxes[$eml]) {
-                
+
+            if ($allBoxes[$eml] ?? null) {
+
                 return $eml;
             }
         }
@@ -495,19 +501,22 @@ class email_Inboxes extends core_Master
             // Вземаме масив от PowerUsers, като индекса е ника на потребителя
             $powerUsers = static::getPowerUsers(false);
             
-            list(, $accDomain) = explode('@', $accRec->email);
-			
+            $accEmailParts = explode('@', $accRec->email);
+            $accDomain = $accEmailParts[1] ?? '';
+
             // Ако имейла е съставен от ник на потребител и домейн на корпоративна сметка
             // тогава създаваме кутия за този имейл, вързана към съответния потребител
             foreach ($emailsArr as $eml) {
-                list($nick, $domain) = explode('@', $eml);
+                $emlParts = explode('@', $eml);
+                $nick = $emlParts[0] ?? '';
+                $domain = $emlParts[1] ?? '';
                 
                 if (!$nick || !$domain) {
                     continue;
                 }
                 
                 // Намираме потребител, съответстващ на емейл адреса
-                $userRec = $powerUsers[$nick];
+                $userRec = $powerUsers[$nick] ?? null;
                 
                 // Ако няма такъв потребител
                 if (!$userRec) {
@@ -565,7 +574,9 @@ class email_Inboxes extends core_Master
         }
 
         if ($replaceDomainArr && countR($replaceDomainArr)) {
-            list($toNick, $toDomain) = explode('@', $toEmail);
+            $toEmailParts = explode('@', $toEmail);
+            $toNick = $toEmailParts[0] ?? '';
+            $toDomain = $toEmailParts[1] ?? '';
             foreach ($replaceDomainArr as $fromReplace => $toReplace) {
                 if (strtolower($toDomain) == $fromReplace) {
                     $toEmail = "{$toNick}@{$toReplace}";
@@ -601,21 +612,25 @@ class email_Inboxes extends core_Master
             $allEmailsArr = self::getAllEmailsArr($removeClosed, $removeRejected, $uRole);
             
             foreach ((array) $allEmailsArr as $email) {
-                list($emailL, $domain) = explode('@', $email);
+                $emailParts = explode('@', $email);
+                $emailL = $emailParts[0] ?? '';
+                $domain = $emailParts[1] ?? '';
                 $domain = strtolower($domain);
                 $ourEmailsArr[$domain][$emailL] = $emailL;
             }
         }
         
-        if (!$bestEmailArr[$md] && !$bestPercentArr[$md]) {
+        if (!($bestEmailArr[$md] ?? null) && !($bestPercentArr[$md] ?? null)) {
             // Проверяваме в подадените имейли за съвпадание
             foreach ((array) $emailsArr as $email) {
                 if (isset($checkedEmailsArr[$email])) {
                     continue;
                 }
-                
+
                 $email = trim($email);
-                list($emailL, $domain) = explode('@', $email);
+                $emailParts = explode('@', $email);
+                $emailL = $emailParts[0] ?? '';
+                $domain = $emailParts[1] ?? '';
                 
                 $domain = strtolower($domain);
                 
@@ -623,7 +638,7 @@ class email_Inboxes extends core_Master
                 
                 $closestEmail = str::getClosestWord($ourEmailsArr[$domain], $emailL, $p, true);
                 
-                if ($p >= email_Setup::get('CLOSEST_EMAIL_PERCENT') && ($p >= $bestPercentArr[$md])) {
+                if ($p >= email_Setup::get('CLOSEST_EMAIL_PERCENT') && ($p >= ($bestPercentArr[$md] ?? 0))) {
                     $bestPercentArr[$md] = $p;
                     $bestEmailArr[$md] = $closestEmail . '@' . $domain;
                 }
@@ -632,7 +647,7 @@ class email_Inboxes extends core_Master
             }
         }
         
-        if ($bestEmailArr[$md] && $bestPercentArr[$md]) {
+        if (($bestEmailArr[$md] ?? null) && ($bestPercentArr[$md] ?? null)) {
             
             return $bestEmailArr[$md];
         }
@@ -644,7 +659,7 @@ class email_Inboxes extends core_Master
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-        if (($fields['-list'] || $fields['-single']) && $rec->accountId) {
+        if ((($fields['-list'] ?? null) || ($fields['-single'] ?? null)) && $rec->accountId) {
             $accRec = email_Accounts::fetch($rec->accountId);
             
             $accRow = email_Accounts::recToVerbal($accRec, 'id,email,-list');
@@ -706,8 +721,10 @@ class email_Inboxes extends core_Master
                 return false;
             }
             
-            list($user, $domain) = explode('@', $email);
-            
+            $emailParts = explode('@', $email);
+            $user = $emailParts[0] ?? '';
+            $domain = $emailParts[1] ?? '';
+
             if ($domain == $corpAccRec->domain) {
                 $powerUsers = email_Inboxes::getPowerUsers();
                 
@@ -818,7 +835,7 @@ class email_Inboxes extends core_Master
         $rec = email_Inboxes::fetch(array("#email = '[#1#]'", $email));
         
         //Връщаме inCharge id' то
-        return $rec->inCharge;
+        return $rec ? ($rec->inCharge ?? null) : null;
     }
     
     
@@ -1016,7 +1033,7 @@ class email_Inboxes extends core_Master
      */
     public function on_BeforePrepareKeyOptions($mvc, &$options, $type, $where = '')
     {
-        $folderId = $type->params['folderId'];
+        $folderId = $type->params['folderId'] ?? null;
         
         $options = array();
         
@@ -1028,7 +1045,7 @@ class email_Inboxes extends core_Master
             }
             
             // Ако може да има празен запис
-            if ($type->params['allowEmpty']) {
+            if (!empty($type->params['allowEmpty'])) {
                 $options = array('' => '') + $options;
             }
         }
@@ -1089,7 +1106,7 @@ class email_Inboxes extends core_Master
             $key = doc_Folders::getSettingsKey($folderId);
             if ($userId > 0) {
                 $settings = core_Settings::fetchKey($key, $userId);
-                $defEmailId = (int) $settings['defaultEmail'];
+                $defEmailId = (int) ($settings['defaultEmail'] ?? 0);
                 if ($defEmailId > 0) {
                     $options[$defEmailId] = self::fetchField("#id = '{$defEmailId}' AND #state = 'active'", 'email');
                 }
@@ -1246,9 +1263,9 @@ class email_Inboxes extends core_Master
             core_Cache::set($cacheType, $cacheHandle, $allEmailsArr, $keepMinutes, $depends);
         }
 
-        $allEmailsInCharge = $allEmailsArr['allEmailsInChargeArr'];
+        $allEmailsInCharge = $allEmailsArr['allEmailsInChargeArr'] ?? [];
 
-        return (array) $allEmailsArr['allEmailsArr'];
+        return (array) ($allEmailsArr['allEmailsArr'] ?? []);
     }
     
     
@@ -1287,7 +1304,7 @@ class email_Inboxes extends core_Master
             if ($rEmail != $eStr) {
                 $emailForRemove[] = $eStr;
                 if (isset($emailInChargeArr[$eStr])) {
-                    $emailInChargeArr[$rEmail] = $emailInChargeArr[$er];
+                    $emailInChargeArr[$rEmail] = $emailInChargeArr[$eStr];
                 } elseif (isset($emailInChargeArr[$rEmail])) {
                     $emailInChargeArr[$rEmail] = $emailInChargeArr[$rEmail];
                 }
@@ -1317,13 +1334,15 @@ class email_Inboxes extends core_Master
         foreach ($allEmailsArr as $key => $email) {
 
             // Вземаме домейна на имейла
-            list($nick, $domain) = explode('@', $email);
+            $emailParts = explode('@', $email);
+            $nick = $emailParts[0] ?? '';
+            $domain = $emailParts[1] ?? '';
 
             // Домейна в долен регистър
             $domain = mb_strtolower($domain);
 
             // Ако домейна съществува в нашите домейни
-            if ($domainsArr[$domain]) {
+            if ($domainsArr[$domain] ?? null) {
 
                 // Премахваме от масива
                 unset($allEmailsArr[$key]);

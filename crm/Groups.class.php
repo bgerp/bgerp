@@ -470,7 +470,7 @@ class crm_Groups extends core_Master
                 $rec->personsCnt = 0;
             }
             
-            setIfNot($newRec->allow, 'companies_and_persons');
+            setPartIfNot($newRec, 'allow', 'companies_and_persons');
             
             $rec->name = $newRec->name;
             $rec->sysId = $newRec->sysId;
@@ -533,12 +533,11 @@ class crm_Groups extends core_Master
 
         if (!$rec) {
             $rec = $gRec;
-
-            setIfNot($rec->inCharge, core_Users::getCurrent());
-            setIfNot($rec->allow, 'companies_and_persons');
+            $rec->inCharge = $rec->inCharge ??  core_Users::getCurrent();
+            $rec->allow = $rec->allow ??  'companies_and_persons';
             $rec->companiesCnt = 0;
             $rec->personsCnt = 0;
-            setIfNot($rec->state, 'active');
+            $rec->state = $rec->state ?? 'active';
             $rec->name = str::mbUcfirst($rec->name);
 
             core_Users::forceSystemUser();

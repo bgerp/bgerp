@@ -37,7 +37,14 @@
                     </table>
                 </div>
             </fieldset>
-            
+
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Касова наличност|*: <b style="color:green;">[#totalBlAmount#]</b></legend>
+                <div class="groupList">
+                    [#inCashData#]
+                </div>
+            </fieldset>
+
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Кой може да контира документи, в които е избрана касата|*</legend>
                 <div class="groupList">

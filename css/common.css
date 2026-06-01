@@ -1562,6 +1562,9 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
 .wide .user-profile .remote_Authorizations table.listAction {
   min-width: 0; }
 
+.wide .user-profile .remote_Authorizations {
+  display: block !important; }
+
 /*
  * край на стилове за елемента 'list Table'
  */

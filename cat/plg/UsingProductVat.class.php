@@ -22,8 +22,8 @@ class cat_plg_UsingProductVat extends core_Plugin
     public static function on_AfterDescription(&$mvc)
     {
         $mvc->declareInterface('cat_interface_DocumentVatIntf');
-        setIfNot($mvc->productFld, 'productId');
-        setIfNot($mvc->valiorFld, 'valior');
+        setPartIfNot($mvc, 'productFld', 'productId');
+        setPartIfNot($mvc, 'valiorFld', 'valior');
     }
 
 

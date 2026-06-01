@@ -745,7 +745,7 @@ class cat_products_Packagings extends core_Detail
      * @param int $packagingId - ид на опаковката
      * @param string|null $field - ид на опаковката
      *
-     * @return stdClass
+     * @return mixed
      */
     public static function getPack($productId, $packagingId, $field = null)
     {
@@ -1223,7 +1223,7 @@ class cat_products_Packagings extends core_Detail
 
         // Извличане на най-важната информация за артикула
         $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,nameEn,isPublic,folderId,state,measureId');
-        setIfNot($productData->packagingId, $productRec->measureId);
+        $productData->packagingId = $productData->packagingId ?? $productRec->measureId;
 
         $packagingName = $packagingNameShort = tr(cat_UoM::getTitleById($productData->packagingId));
         $packRec = (cat_products_Packagings::getPack($productData->productId, $productData->packagingId));
@@ -1602,7 +1602,13 @@ class cat_products_Packagings extends core_Detail
             $rec->usages += 1;
         }
 
-        return self::save($rec, 'usages');
+        $me = cls::get(get_called_class());
+
+        Mode::push("stopMasterUpdate{$productId}", true);
+        $res = $me->save_($rec, 'usages');;
+        Mode::pop("stopMasterUpdate{$productId}");
+
+        return $res;
     }
 
 

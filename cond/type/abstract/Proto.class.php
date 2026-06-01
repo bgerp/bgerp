@@ -229,4 +229,21 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     {
         return $value;
     }
+
+
+    /**
+     * Параметри функция за вербализиране
+     *
+     * @param stdClass   $rec    - запис на параметър
+     * @param mixed $domainClass - клас на домейна на параметъра
+     * @param int   $domainId    - ид на домейна на параметъра
+     * @param mixed $newValue    - нова стойност на параметъра
+     * @param mixed $oldValue    - стара стойност
+     *
+     * @return array $res
+     */
+    public function onParamChanged($rec, $domainClass, $domainId, $newValue, $oldValue) : array
+    {
+        return array('msg' => null, 'error' => null);
+    }
 }

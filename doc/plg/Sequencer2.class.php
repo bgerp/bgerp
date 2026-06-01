@@ -26,9 +26,9 @@ class doc_plg_Sequencer2 extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->rangeNumFld, 'numberRange');
-        setIfNot($mvc->numberFld, 'number');
-        setIfNot($mvc->addNumberOnActivation, false);
+        setPartIfNot($mvc, 'rangeNumFld', 'numberRange');
+        setPartIfNot($mvc, 'numberFld', 'number');
+        setPartIfNot($mvc, 'addNumberOnActivation', false);
         
         if (!isset($mvc->fields[$mvc->rangeNumFld])) {
             $mvc->FLD($mvc->rangeNumFld, "key(mvc=cond_Ranges,select=id)", 'caption=Диапазон,input=hidden');
@@ -72,7 +72,6 @@ class doc_plg_Sequencer2 extends core_Plugin
 
                     try{
                         $rec->{$mvc->numberFld} = cond_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld);
-
                         if(isset($rec->id)){
                             $exRec = $mvc->fetch("#id = {$rec->id}", 'state', false);
                             if($exRec->state == 'active'){
@@ -130,11 +129,11 @@ class doc_plg_Sequencer2 extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if($rec->_isNumberGenerated){
-            if($rec->_rollback !== true){
+        if(($rec->_isNumberGenerated ?? false) === true){
+            if(($rec->_rollback ?? false) !== true){
                 
                 // Маркиране на диапазона, като използван
-                cond_Ranges::updateRange($rec->{$mvc->rangeNumFld}, $rec->{$mvc->numberFld});
+                cond_Ranges::updateRange($rec->{$mvc->rangeNumFld});
             
                 // Обновяване на ключовите думи, да се добави номера към тях
                 if($mvc->hasPlugin('plg_Search')){

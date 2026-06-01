@@ -1753,6 +1753,70 @@ a.tUnsighted {
     float: right;
     display: block; }
 
+  .richtext-message.richtext-warning,
+  .richtext-message.richtext-error,
+  .richtext-message.richtext-success,
+  .richtext-message.richtext-question {
+    border: none !important;
+    padding: 0 !important;
+    background: whitesmoke !important;
+    font-family: Arial, sans-serif !important;
+    color: #555555 !important; }
+
+/*
+ * Оранжива горна лента
+ */
+  .richtext-message.richtext-warning::before,
+  .richtext-message.richtext-error::before,
+  .richtext-message.richtext-success::before,
+  .richtext-message.richtext-question::before {
+    display: block !important;
+    text-align: center !important;
+    font-weight: bold !important;
+    padding: 4px 10px !important;
+    font-size: 18px !important;
+    font-style: normal !important;
+    margin: -10px -10px 8px -10px; }
+
+.richtext-message.richtext-warning::before {
+  content: "⚠ WARNING" !important;
+  background: #ff8800 !important;
+  color: #333333 !important; }
+
+.richtext-message.richtext-success::before {
+  content: "⚠ CAUTION" !important;
+  background: #ffe100 !important;
+  color: #333333 !important; }
+
+.richtext-message.richtext-question::before {
+  content: "CAUTION" !important;
+  background: #014487 !important;
+  color: white !important; }
+
+/*
+ * Текстът вътре
+ */
+  .richtext-message.richtext-warning,
+  .richtext-message.richtext-error,
+  .richtext-message.richtext-success,
+  .richtext-message.richtext-question {
+    padding: 10px 12px !important;
+    font-size: 15px !important;
+    line-height: 1.4 !important;
+    font-style: italic !important; }
+
+/*
+ * Подчертаване на опасната част (опция — само ако искаш bold + darker)
+ */
+.richtext-message strong {
+  font-weight: bold !important;
+  color: #333333 !important; }
+
+.richtext-message.richtext-error::before {
+  content: "⚠ DANGER" !important;
+  background: #bc2025 !important;
+  color: white !important; }
+
   .bgerp_drivers_Tasks .rightCol {
     width: 38px; }
     .bgerp_drivers_Tasks .rightCol .progress {
@@ -3886,15 +3950,47 @@ span.sharing-history-title {
   #cart-external-status .count a {
     padding-top: 5px; }
 
+.main-image {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden; }
+
+.main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px; }
+
+.thumbnails {
+  display: flex;
+  gap: 3px;
+  margin-top: 5px;
+  overflow-x: hidden; }
+
+.thumbnails img {
+  width: 53px;
+  height: 53px;
+  object-fit: contain;
+  border: 2px solid rgba(0, 0, 0, 0);
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+  flex-shrink: 0;
+  transition: 0.2s; }
+
+.thumbnails img.active {
+  border-color: #007bff; }
+
+.product-gallery {
+  float: left;
+  width: 300px;
+  margin-right: 20px; }
+
+.product-info {
+  overflow: hidden; }
+
 .eshop-product>table {
   width: 100%; }
-
-  .subgroups .eshop-group-button {
-    margin-right: 1%;
-    margin-left: 1%;
-    width: 48%; }
-    .subgroups .eshop-group-button .eshop-group-button-title a {
-      color: #444444; }
 
 .optionsTable {
   color: #222222;
@@ -3919,6 +4015,27 @@ span.sharing-history-title {
     color: #444444; }
   .optionsTable .paramCol {
     white-space: nowrap; }
+
+.oldView + .productInfo {
+  padding-left: 2%;
+  float: right;
+  width: 74%; }
+
+.product-gallery + .productInfo {
+  overflow: visible;
+  padding-top: 5px; }
+  .product-gallery + .productInfo > * {
+    overflow: hidden; }
+  .product-gallery + .productInfo .richtext ul,
+  .product-gallery + .productInfo .richtext > p {
+    overflow: hidden; }
+  .product-gallery + .productInfo .optionsTable {
+    width: auto !important; }
+  .product-gallery + .productInfo .overflow-scroll {
+    width: auto !important;
+    overflow: hidden !important; }
+  .product-gallery + .productInfo .eshop-product-labels {
+    padding-top: 5px; }
 
 .narrow .optionsTable .productCol {
   white-space: nowrap; }
@@ -4833,6 +4950,9 @@ table .eshop-btn {
 
 .background-holder .cms-row {
   padding: 25px; }
+
+.narrow .cms-row {
+  padding: 5px 0 0 !important; }
 
 .onecol,
 .twocol,
@@ -6035,7 +6155,6 @@ div.location.public {
       color: #004488; }
   .eshop-group-button .eshop-group-button-img {
     width: 100%;
-    height: 170px;
     overflow: hidden;
     border-radius: 15px; }
     .eshop-group-button .eshop-group-button-img a {
@@ -6059,7 +6178,10 @@ div.location.public {
   width: 100%; }
 
 .narrow .eshop-group-button .eshop-group-button-title {
-  height: 30px; }
+  height: auto; }
+
+.eshop-group-button .eshop-group-button-img {
+  height: auto; }
 
 .eshopProduct {
   max-width: 800px; }
@@ -6107,7 +6229,6 @@ div.location.public {
   right: 0; }
 
 .narrow .eshop-group-button {
-  margin-bottom: 10px;
   height: auto; }
 
 .narrow .eshop-group-button-title {
@@ -7722,7 +7843,8 @@ tr.wasteWeightPercent td {
   .treeView .treeLevel4 .leafName {
     text-indent: 100px; }
   .treeView .leafName {
-    min-width: 250px; }
+    min-width: 250px;
+    max-width: 700px !important; }
   .treeView .toggleBtn {
     margin-right: 3px;
     cursor: pointer;

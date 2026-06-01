@@ -26,6 +26,7 @@ class acc_plg_Registry extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('acc_RegisterIntf');
+        setPartIfNot($mvc, 'closeItems', array());
     }
     
     

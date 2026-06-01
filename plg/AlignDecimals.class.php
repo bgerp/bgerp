@@ -50,9 +50,9 @@ class plg_AlignDecimals extends core_Plugin
                     // Пропускаме полета, които имат зададен точен брой цифри след запетаята
                     continue;
                 }
-                
-                setIfNot($field->type->params['minDecimals'], 0);
-                setIfNot($field->type->params['maxDecimals'], 6);
+
+                $field->type->params['minDecimals'] = $field->type->params['minDecimals'] ?? 0;
+                $field->type->params['maxDecimals'] = $field->type->params['maxDecimals'] ?? 6;
                 
                 // Първи пас по стойностите - определяне дължината на най-дългата дробна част.
                 $maxDecimals = $this->calcMaxFracLen($name, $recs, $field->type->params['maxDecimals']);

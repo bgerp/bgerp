@@ -37,11 +37,9 @@ class doc_EmailCreatePlg extends core_Plugin
      */
     public function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        $emailButtonText = $mvc->emailButtonText;
-        
-        setIfNot($emailButtonText, 'Имейл');
-        setIfNot($mvc->canEmailDraft, false);
-        setIfNot($mvc->canSendemail, 'powerUser');
+        $emailButtonText = $mvc->emailButtonText ?? 'Имейл';
+        setPartIfNot($mvc, 'canEmailDraft', false);
+        setPartIfNot($mvc, 'canSendemail', 'powerUser');
         
         if ($mvc->haveRightFor('sendemail', $data->rec)) {
             $retUrl = array($mvc, 'single', $data->rec->id);

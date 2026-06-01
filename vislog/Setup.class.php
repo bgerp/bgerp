@@ -55,6 +55,7 @@ class vislog_Setup extends core_ProtoSetup
         'vislog_History',
         'vislog_Referer',
         'vislog_Adwords',
+        'migrate::addQueryHash2622',
     );
     
     
@@ -97,5 +98,23 @@ class vislog_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Декориране на IP', 'vislog_DecoratePlugin', 'type_Ip', 'private');
         
         return $html;
+    }
+
+
+    /**
+     * Миграция на хеша
+     */
+    public function addQueryHash2622()
+    {
+        $History = cls::get('vislog_HistoryResources');
+        $History->setupMvc();
+        $queryHashColName = str::phpToMysqlName('queryHash');
+        $queryColName = str::phpToMysqlName('query');
+        
+        $updateSql = "UPDATE `{$History->dbTableName}`
+                      SET `{$queryHashColName}` = MD5(`{$queryColName}`)
+                      WHERE `{$queryHashColName}` IS NULL OR `{$queryHashColName}` = ''";
+
+        $History->db->query($updateSql);
     }
 }

@@ -55,7 +55,7 @@ class plg_Vid extends core_Plugin
         
         $recVid = &$rec->{$fieldName};
         
-        setIfNot($this->mvc, $mvc);
+        setPartIfNot($this, 'mvc', $mvc);
         
         if (!$recVid) {
             $recVid = $mvc->getRecTitle($rec);

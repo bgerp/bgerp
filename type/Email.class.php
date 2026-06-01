@@ -60,7 +60,7 @@ class type_Email extends type_Varchar
             return false;
         }
 
-        if (!$this->params['showOriginal']) {
+        if (empty($this->params['showOriginal'])) {
             $value = email_AddressesInfo::getEmail($value);
         }
 
@@ -98,7 +98,7 @@ class type_Email extends type_Varchar
             $attr['type'] = 'email';
         }
 
-        if (!$this->params['showOriginal']) {
+        if (empty($this->params['showOriginal'])) {
             $value = email_AddressesInfo::getEmail($value);
         }
 
@@ -111,7 +111,7 @@ class type_Email extends type_Varchar
      */
     public static function isValidEmail($email)
     {
-        if (!strlen($email)) {
+        if (!strlen($email ?? '')) {
             
             return;
         }
@@ -150,7 +150,7 @@ class type_Email extends type_Varchar
         
         $email = self::removeBadPart($email);
 
-        if (!$this->params['showOriginal']) {
+        if (empty($this->params['showOriginal'])) {
             $emailOrig = $email;
             $email = email_AddressesInfo::getEmail($email);
             if (trim($email) != trim($emailOrig)) {
@@ -167,13 +167,13 @@ class type_Email extends type_Varchar
 
         if (Mode::is('text', 'plain') || Mode::is('htmlEntity', 'none')) {
             $verbal = $email;
-        } elseif ($this->params['link'] != 'no') {
-            if($this->params['maskVerbal']){
+        } elseif (($this->params['link'] ?? null) != 'no') {
+            if (!empty($this->params['maskVerbal'])) {
                 $verbal = str::maskEmail($email);
             }
             $verbal = $this->addHyperlink($email, $verbal);
         } else {
-            if($this->params['maskVerbal']){
+            if (!empty($this->params['maskVerbal'])) {
                 $email = str::maskEmail($email);
             }
             $verbal = str_replace('@', '&#64;', $email);
@@ -206,7 +206,9 @@ class type_Email extends type_Varchar
             return $emailsArr[$email];
         }
         
-        list($emailUser, $domain) = explode('@', $email);
+        $emailParts = explode('@', $email);
+        $emailUser = $emailParts[0];
+        $domain = $emailParts[1] ?? '';
         
         foreach ($removeArr as $r) {
             if (($rPos = mb_strpos($emailUser, $r)) !== false) {
@@ -226,7 +228,9 @@ class type_Email extends type_Varchar
     public function addHyperlink_($email, $verbal)
     {
         if (Mode::is('text', 'html') || !Mode::is('text')) {
-            list($user, $domain) = explode('@', $email);
+            $emailParts = explode('@', $email);
+            $user = $emailParts[0];
+            $domain = $emailParts[1] ?? '';
             $domain = '&#64;' . $domain;
             
             $attr = array();
@@ -251,11 +255,14 @@ class type_Email extends type_Varchar
      */
     public static function domain($value)
     {
-        list(, $domain) = explode('@', $value, 2);
-        
-        $domain = empty($domain) ? false : trim($domain);
-        
-        $domain = rtrim($domain, '\'"<>;,');
+        $valueParts = explode('@', $value, 2);
+        $domain = $valueParts[1] ?? null;
+
+        if (empty($domain)) {
+            return false;
+        }
+
+        $domain = rtrim(trim($domain), '\'"<>;,');
         
         return $domain;
     }

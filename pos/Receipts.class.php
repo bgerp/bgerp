@@ -185,6 +185,12 @@ class pos_Receipts extends core_Master
 
 
     /**
+     * Работен кеш за опашка на касите на които да се обновят сумите по чакащи бележки
+     */
+    protected $updateCaseAmounts = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -1198,6 +1204,9 @@ class pos_Receipts extends core_Master
                     voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id, true);
                 }
             }
+
+            $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
+            $this->updateCaseAmounts[$rec->pointId] = $caseId;
         }
     }
 
@@ -2011,5 +2020,19 @@ class pos_Receipts extends core_Master
         $data->listSummary->mvc->FNC('totalNoDraft', 'varchar', 'caption=Общо (без чернови),input=none,summary=amount');
         $data->listSummary->mvc->FNC('paidNoDraft', 'varchar', 'caption=Платено (без чернови),input=none,summary=amount');
         $data->listSummary->mvc->FNC('changeNoDraft', 'varchar', 'caption=Ресто (без чернови),input=none,summary=amount');
+    }
+
+
+    /**
+     * Афектираните пера, нотифицират мениджърите си
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // Обновяване на наличноста на касите в чакащи бележки
+        if (countR($mvc->updateCaseAmounts)) {
+            foreach ($mvc->updateCaseAmounts as $caseId){
+                cash_Cases::updateAmountInWaitingReceipts($caseId);
+            }
+        }
     }
 }

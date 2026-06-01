@@ -54,9 +54,9 @@ class doc_SharablePlg extends core_Plugin
         }
         
         // Дали да са споделени потребителите от оригиналния документ (ако създателят е един и същи)
-        setIfNot($mvc->autoShareOriginShared, true);
-        setIfNot($mvc->autoShareOriginCreator, false);
-        setIfNot($mvc->autoShareCurrentUser, false);
+        setPartIfNot($mvc, 'autoShareOriginShared', true);
+        setPartIfNot($mvc, 'autoShareOriginCreator', false);
+        setPartIfNot($mvc, 'autoShareCurrentUser', false);
 
         $mvc->autoShareFields = arr::make($mvc->autoShareFields ?? null, true);
         $mvc->autoShareFields['sharedUsers'] = 'sharedUsers';

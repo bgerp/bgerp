@@ -401,33 +401,33 @@ class acc_Accounts extends core_Manager
             $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' level-' . strlen($rec->num);
         }
         
-        if ($rec->groupId1) {
+        if (!empty($rec->groupId1)) {
             $listRec = acc_Lists::fetch($rec->groupId1);
             $row->lists = ($row->lists ?? '') . "<div class='acc-detail'><a href='" .
             toUrl(array('acc_Items', 'listId' => $rec->groupId1)) .
             "'>{$listRec->caption}</a></div>";
         }
         
-        if ($rec->groupId2) {
+        if (!empty($rec->groupId2)) {
             $listRec = acc_Lists::fetch($rec->groupId2);
             $row->lists = ($row->lists ?? '') . "<div class='acc-detail'><a href='" .
             toUrl(array('acc_Items', 'listId' => $rec->groupId2)) .
             "'>{$listRec->caption}</a></div>";
         }
         
-        if ($rec->groupId3) {
+        if (!empty($rec->groupId3)) {
             $listRec = acc_Lists::fetch($rec->groupId3);
             $row->lists = ($row->lists ?? '') . "<div class='acc-detail'><a href='" .
             toUrl(array('acc_Items', 'listId' => $rec->groupId3)) .
             "'>{$listRec->caption}</a></div>";
         }
         
-        if ($rec->type) {
+        if (!empty($rec->type)) {
             $row->type = "<div class='acc-detail'>" .
             ($row->type ?? '') . '</div>';
         }
 
-        if ($rec->strategy) {
+        if (!empty($rec->strategy)) {
             $row->type = ($row->type ?? '') . "<div class='acc-detail'>" .
             $mvc->getVerbal($rec, 'strategy') . '</div>';
         }
@@ -549,9 +549,13 @@ class acc_Accounts extends core_Manager
                 $leafCount[$rec->num] = array(0, $rec->{$index});
             } else {
                 $res[$rec->{$index}] = $title;
-                
+
                 for ($i = 0; $i < strlen($rec->num) - 1; $i++) {
-                    $leafCount[substr($rec->num, 0, $i + 1)][0]++;
+                    $parentNum = substr($rec->num, 0, $i + 1);
+                    if (!isset($leafCount[$parentNum])) {
+                        $leafCount[$parentNum] = array(0, null);
+                    }
+                    $leafCount[$parentNum][0]++;
                 }
             }
         }

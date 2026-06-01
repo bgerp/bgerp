@@ -22,7 +22,7 @@ class plg_GroupByDate extends core_Plugin
      */
     public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
-        setIfNot($data->groupByDateField, $mvc->groupByDateField);
+        $data->groupByDateField = $data->groupByDateField ?? $mvc->groupByDateField;
         
         if (!($field = $data->groupByDateField)) {
             

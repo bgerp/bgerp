@@ -50,8 +50,7 @@ class doc_plg_Prototype extends core_Plugin
     public static function on_AfterDescription(&$mvc)
     {
         $mvc->declareInterface('doc_PrototypeSourceIntf');
-        setIfNot($mvc->protoFieldName, 'prototypeId');
-        setIfNot($mvc->protoFieldName, 'prototypeId');
+        setPartIfNot($mvc, 'protoFieldName', 'prototypeId');
         
         $after = ($mvc instanceof embed_Manager) ? $mvc->driverClassField : (($mvc instanceof core_Embedder) ? $mvc->driverClassField : 'id');
         $mvc->FLD($mvc->protoFieldName, 'int', "caption=Шаблон,forceField,input=none,silent,after={$after}");

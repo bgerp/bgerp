@@ -76,6 +76,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
            
             // Имали дефолтни параметри
             $defaultParams = $Driver->getDefaultParams($rec, $Embedder->getClassId(), $data->action);
+
             if (cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder) && isset($rec->proto)) {
                 $protoState = cat_Products::fetchField($rec->proto, 'state');
                 if($protoState != 'template'){
@@ -83,8 +84,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 }
             }
 
-            foreach ($defaultParams as $id => $value) {
-                
+            foreach ($defaultParams as $id => $defaultArr) {
+
                 // Всеки дефолтен параметър го добавяме към формата
                 $paramRec = cat_Params::fetch($id);
                 if (empty($paramRec)) continue;
@@ -111,13 +112,20 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                     $form->setField("paramcat{$id}", "unit={$suffix}");
                 }
 
+                $value = $defaultArr['value'];
                 if($data->action == 'clone'){
                     $value = cat_Params::getReplacementValueOnClone($id, $Embedder, $rec->id, $value);
                 }
 
                 // Ако има дефолтна стойност, задаваме и нея
-                if (isset($value)) {
+                if (strlen($value)) {
                     $form->setDefault("paramcat{$id}", $value);
+                }
+
+                if($defaultArr['mandatory'] === true){
+                    $form->setField("paramcat{$id}", 'mandatory');
+                } elseif($defaultArr['isReadOnly'] === true){
+                    $form->setReadOnly("paramcat{$id}");
                 }
                 $form->setDefault("paramcat{$id}", cat_Params::getDefaultValue($id, $Embedder, $rec->id));
             }
@@ -167,9 +175,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         if ($action == 'clone' && isset($rec->id)) {
             $originRecId = $rec->id;
         }
-        
+
         // Ако има намерен ордижнин
-        if ($originRecId) {
+        if (isset($originRecId)) {
             
             // Ако артикула е прототипен, взимаме неговите параметри с техните стойностти
             $paramQuery = cat_products_Params::getQuery();
@@ -179,15 +187,23 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             $paramQuery->where("#productId = {$originRecId} AND #classId = {$classId}");
             $paramQuery->orderBy('group,orderEx,id', 'ASC');
             while ($pRec = $paramQuery->fetch()) {
-                $res[$pRec->paramId] = $pRec->paramValue;
+                $res[$pRec->paramId] = array('value' => $pRec->paramValue,
+                                             'mandatory' => ($pRec->type == 'mandatory'),
+                                             'isReadOnly' => ($pRec->type == 'readOnly'),);
             }
+
         } else {
             
             // Иначе взимаме параметрите от корицата му, ако можем
             if (isset($rec->folderId)) {
                 $cover = doc_Folders::getCover($rec->folderId);
                 if ($cover->haveInterface('cat_ProductFolderCoverIntf')) {
-                    $res = $cover->getDefaultProductParams();
+                    $coverParams = $cover->getDefaultProductParams();
+                    foreach ($coverParams as $pId => $pVal) {
+                        $res[$pId] = array('value' => $pVal,
+                                           'mandatory' => false,
+                                           'isReadOnly' => false);
+                    }
                 }
             }
         }
@@ -238,9 +254,18 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $Params = cls::get('cat_products_Params');
         if(countR($syncedArr['insert'])){
             $Params->saveArray($syncedArr['insert']);
+            foreach ($syncedArr['insert'] as $iRec){
+                $res = cat_Params::onParamChanged($iRec->paramId, $iRec->classId, $iRec->productId, $iRec->paramValue, null);
+                if(!empty($res['msg'])){
+                    core_Statuses::newStatus($res['msg']);
+                }
+                if(!empty($res['error'])){
+                    core_Statuses::newStatus($res['error'], 'error');
+                }
+            }
         }
 
-        if(countR($syncedArr['update'])){
+        if(countR($syncedArr['update'])){ core_Statuses::newStatus('UPP', 'warning');
             $Params->saveArray($syncedArr['update'], 'id,paramValue');
         }
 
@@ -296,8 +321,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $classId = cat_Products::getClassId();
         $pQuery = cat_products_Params::getQuery();
         $pQuery->where("#productId = {$id}");
-        $pQuery->where("#classId = {$classId}");
+        $pQuery->where("#classId = {$classId} AND #paramValue != ''");
         $pQuery->show('paramId,paramValue');
+
         while ($pRec = $pQuery->fetch()) {
             if ($verbal === true) {
                 $pRec->paramValue = cat_Params::toVerbal($pRec->paramId, $classId, $id, $pRec->paramValue);
@@ -354,7 +380,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         parent::prepareProductDescription($data);
 
         $showImgInPublic = cat_Setup::get('SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC');
-        if($data->documentType == 'public' && $showImgInPublic != 'yes'){
+        if(($data->documentType ?? null) == 'public' && $showImgInPublic != 'yes'){
             $data->_hidePhoto = true;
         }
 

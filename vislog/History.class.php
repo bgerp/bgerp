@@ -112,7 +112,7 @@ class vislog_History extends core_Manager
         $History = cls::get('vislog_History');
 
         $rec->domainId = cms_Domains::getPublicDomain('id');
-        
+
         $History->save($rec);
         
         if ($returnCnt) {
@@ -198,10 +198,13 @@ class vislog_History extends core_Manager
             }
             $rec->query = $q;
         }
-        
-        $rec->HistoryResourceId = $mvc->HistoryResources->fetchField(array("#query = '[#1#]'", $rec->query), 'id');
-        
-        if (!$rec->HistoryResourceId) {
+
+        // Ако има вече записан ресурс със същия хеш - връща се той
+        $queryHash = md5($rec->query);
+        $rec->HistoryResourceId = $mvc->HistoryResources->fetchField(array("#queryHash = '[#1#]'", $queryHash), 'id');
+
+        // Ако няма добавя се нов
+        if (empty($rec->HistoryResourceId)) {
             $sRec = new stdClass();
             $sRec->query = $rec->query;
             $rec->HistoryResourceId = $mvc->HistoryResources->save($sRec);

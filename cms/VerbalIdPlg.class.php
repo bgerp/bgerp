@@ -111,7 +111,7 @@ class cms_VerbalIdPlg extends core_Plugin
         
         $recVid = &$rec->{$fieldName};
         
-        setIfNot($this->mvc, $mvc);
+        setPartIfNot($this, 'mvc', $mvc);
         
         $recVid = trim(preg_replace('/[^\p{L}0-9]+/iu', '-', " {$recVid} "), '-');
 

@@ -750,7 +750,7 @@ class price_Lists extends core_Master
             price_ListToCustomers::updateStates($rec->cClass, $rec->cId);
         }
 
-        if($rec->_invalidateCache){
+        if($rec->_invalidateCache ?? null){
             price_Cache::callback_InvalidatePriceList($rec->id);
         }
     }

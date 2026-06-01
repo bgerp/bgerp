@@ -146,8 +146,8 @@ class hr_Departments extends core_Master
         $parent = $rec->parentId;
         
         while ($parent && ($pRec = self::fetch($parent))) {
-            setIfNot($rec->nkid, $pRec->nkid);
-            setIfNot($rec->locationId, $pRec->locationId);
+            setPartIfNot($rec, 'nkid', $pRec->nkid);
+            setPartIfNot($rec, 'locationId', $pRec->locationId);
             $parent = $pRec->parentId;
         }
     }

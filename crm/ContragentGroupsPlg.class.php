@@ -24,8 +24,8 @@ class crm_ContragentGroupsPlg extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->countryFieldName, 'country');
-        setIfNot($mvc->groupFieldName, 'groupListInput');
+        setPartIfNot($mvc, 'countryFieldName', 'country');
+        setPartIfNot($mvc, 'groupFieldName', 'groupListInput');
     }
 
 

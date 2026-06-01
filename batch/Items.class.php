@@ -926,4 +926,54 @@ class batch_Items extends core_Master
 
         return arr::extractValuesFromArray($query->fetchAll(), 'batch');
     }
+
+
+    /**
+     * Рекалкулиране на партидните движения на документите
+     */
+    function act_Recalc()
+    {
+        requireRole('debug');
+
+        $form = cls::get('core_Form');
+        $form->title = tr('Рекалкулиране на партидите на документи');
+        $form->FLD('from', 'date', 'caption=От,mandatory');
+        $form->FLD('to', 'date', 'caption=До,mandatory');
+        $form->input();
+
+        if ($form->isSubmitted()) {
+            $rec = &$form->rec;
+
+            if ($rec->from > $rec->to) {
+                $form->setError('from', 'Началната дата трябва да е по-малка от крайната');
+            }
+
+            if (!$form->gotErrors()) {
+                $query = batch_BatchesInDocuments::getQuery();
+                $query->between('date', $rec->from, $rec->to);
+                $query->show('containerId');
+                $containerIds = arr::extractValuesFromArray($query->fetchAll(), 'containerId');
+
+                $count = 0;
+                foreach ($containerIds as $containerId) {
+                    $Cover = doc_Containers::getDocument($containerId);
+                    batch_Movements::removeMovement($Cover->getInstance(), $Cover->that);
+                    Mode::push('recontoMovement', true);
+                    batch_Movements::saveMovement($containerId);
+                    Mode::pop('recontoMovement');
+                    $Cover->getInstance()->savedMovements[$rec->containerId] = true;
+                    $Cover->getInstance()->logWrite("Регенериране на партиди", $Cover->that);
+                    $count++;
+                }
+
+                followRetUrl(null, "|Документи с регенерирани партиди|*: {$count}", 'warning');
+            }
+        }
+
+        $form->toolbar->addSbBtn('Регенериране', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Регенериране');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        $tpl = $this->renderWrapping($form->renderHtml());
+
+        return $tpl;
+    }
 }

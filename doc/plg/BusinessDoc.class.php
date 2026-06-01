@@ -32,7 +32,7 @@ class doc_plg_BusinessDoc extends core_Plugin
     {
         // Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
-        setIfNot($mvc->alwaysForceFolderIfEmpty, false);
+        setPartIfNot($mvc, 'alwaysForceFolderIfEmpty', false);
     }
     
     

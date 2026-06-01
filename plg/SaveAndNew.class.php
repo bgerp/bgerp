@@ -24,7 +24,7 @@ class plg_SaveAndNew extends core_Plugin
      */
     public static function on_AfterDescription(&$mvc)
     {
-        setIfNot($mvc->canSaveandnew, 'every_one');
+        setPartIfNot($mvc, 'canSaveandnew', 'every_one');
     }
 
 

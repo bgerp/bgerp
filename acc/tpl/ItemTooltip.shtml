@@ -12,7 +12,7 @@
 <!--ET_BEGIN title-->
 <tr>
 	<td class='quiet aright'>|Перо|*: </td>
-	<td>[#title#]</td>
+	<td style="min-width: 250px; width: auto; max-width: 550px; white-space: normal;">[#title#]</td>
 </tr>
 <!--ET_END title-->
 
@@ -58,7 +58,7 @@
 
 <tr>
 <td class='quiet aright'>|Обект|*:</td>
-<td>[#link#]</td>
+<td style="min-width: 250px; max-width: 550px; width: auto; white-space: normal">[#link#]</td>
 </tr>
 <tr>
 <td class='quiet aright'>|Последно|*:</td>
@@ -67,7 +67,7 @@
 <!--ET_BEGIN features-->
 <tr>
 <td class='quiet aright' style='vertical-align:top;'>|Свойства|*:</td>
-<td><small>[#features#]</small></td>
+<td style="min-width: 250px; width: auto; max-width: 550px;  white-space: pre-wrap;"><small>[#features#]</small></td>
 </tr>
 <!--ET_END features-->
 

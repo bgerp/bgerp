@@ -1036,25 +1036,37 @@ class eshop_Products extends core_Master
         $fields['-external'] = true;
         
         $data->row = $this->recToVerbal($data->rec, $fields);
-        
-        $hasImage = false;
+        $settings = cms_Domains::getSettings($data->rec->domainId);
+
+        $data->row->imageArray = array();
         foreach (array('image', 'image2', 'image3', 'image4', 'image5') as $i => $imgFld) {
             if (!empty($data->rec->{$imgFld})) {
                 $path = fileman::fetchByFh($data->rec->{$imgFld}, 'path');
                 if (file_exists($path)) {
-                    $data->row->{$imgFld} = fancybox_Fancybox::getImage($data->rec->{$imgFld}, array(160, 160), array(800, 800), $data->row->name . " {$i}", array('class' => 'product-image'));
-                    $hasImage = true;
+                    $data->row->imageArray[] = fancybox_Fancybox::getImage(
+                        $data->rec->{$imgFld},
+                        array(400, 300),
+                        array(1600, 1200),
+                        $data->row->name . " {$i}",
+                        array('class' => 'product-image')
+                    );
+
                 } else {
                     unset($data->row->{$imgFld});
                 }
             }
         }
-        
-        if ($hasImage === false) {
+
+        if (!countR($data->row->imageArray)) {
             $data->row->image = new thumb_Img(getFullPath('eshop/img/noimage' . (cms_Content::getLang() == 'bg' ? 'bg' : 'en') . '.png'), 180, 180, 'path');
             $data->row->image = $data->row->image->createImg(array('width' => 160, 'height' => 160, 'class' => 'product-image'));
         }
-        
+
+        // Подменят се имиджите така, че първия намерен да е по-напред
+        foreach (array('image', 'image2', 'image3', 'image4', 'image5') as $i => $imgFld1) {
+            $data->row->{$imgFld1} = $data->row->imageArray[$i];
+        }
+
         if (self::haveRightFor('single', $data->rec)) {
             $data->row->singleLink = ht::createLink('', array('eshop_Products', 'single', $data->rec->id, 'ret_url' => true), false, "ef_icon={$this->singleIcon},title=Разглеждане на Е-артикула");
         }
@@ -1166,6 +1178,14 @@ class eshop_Products extends core_Master
         } else {
             $tpl = getTplFromFile('eshop/tpl/ProductShowNarrow.shtml');
         }
+
+        $settings = cms_Domains::getSettings($data->rec->domainId);
+        if($settings->imageDisplayType == 'carousel' && countR($data->row->imageArray) > 1){
+            $imgTpl = getTplFromFile('eshop/tpl/ProductImagesCarousel.shtml');
+        } else {
+            $imgTpl = getTplFromFile('eshop/tpl/ProductImagesStandart.shtml');
+        }
+        $tpl->append($imgTpl, 'IMAGES_BLOCK');
         $tpl->placeObject($data->row);
 
         if(eshop_Favourites::haveRightFor('toggle', (object)array('eshopProductId' => $data->productId))){

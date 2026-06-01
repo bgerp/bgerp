@@ -54,6 +54,17 @@ class cond_type_Enum extends cond_type_abstract_Proto
             }
         }
 
+        // Ако параметъра е към прототипен артикул - да се добави и празна опция
+        if(isset($domainClass) && isset($domainId)){
+            $Domain = cls::get($domainClass);
+            if($Domain instanceof cat_Products){
+                $state = $Domain->fetchField($domainId, 'state');
+                if($state == 'template'){
+                    $Type->options = array('' => '') + $Type->options;
+                }
+            }
+        }
+
         $orderBy = isset($this->driverRec->orderBy) ? $this->driverRec->orderBy : 'no';
         switch($orderBy){
             case 'ascKey':

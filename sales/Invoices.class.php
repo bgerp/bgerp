@@ -243,7 +243,6 @@ class sales_Invoices extends deals_InvoiceMaster
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         $this->FLD('template', 'key(mvc=doc_TplManager,select=name)', 'caption=Допълнително->Изглед,notChangeableByContractor,silent,removeAndRefreshForm=additionalInfo');
         $this->FNC('selectInvoiceText', 'enum(,private=Частно,public=Общо,both=Частно и общо)', 'caption=Допълнително->Други условия,removeAndRefreshForm=additionalInfo,silent,before=additionalInfo');
-        $this->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
 
         $this->setDbUnique('number');
     }
@@ -313,6 +312,10 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $form = &$data->form;
         $rec = &$form->rec;
+
+        if($data->action != 'changefields'){
+            $form->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
+        }
 
         $defInfo = '';
 
@@ -811,7 +814,7 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         try{
-            $number = (isset($rec->number)) ? $rec->number : cond_Ranges::getNextNumber($rec->numlimit, $this, 'number');
+            $number = (isset($rec->number)) ? $rec->number : cond_Ranges::getNextNumber($rec->numlimit, $this, 'number', false);
         } catch(core_exception_Expect $e){
             $msg = $e->getMessage();
             

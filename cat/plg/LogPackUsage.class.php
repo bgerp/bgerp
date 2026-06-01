@@ -22,8 +22,8 @@ class cat_plg_LogPackUsage extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->productFld, 'productId');
-        setIfNot($mvc->packagingFld, 'packagingId');
+        setPartIfNot($mvc, 'productFld', 'productId');
+        setPartIfNot($mvc, 'packagingFld', 'packagingId');
 
         // Разширяване на полетата, които да се извличат при изтриване
         $fieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, true);
@@ -113,7 +113,7 @@ class cat_plg_LogPackUsage extends core_Plugin
     protected static function on_AfterSave($mvc, &$id, &$rec, $fields = null)
     {
         // Ако няма опаковки за синхронизиране не се прави нищо
-        if(!$rec->_syncPacks) return;
+        if(empty($rec->_syncPacks)) return;
 
         // След запис за всяко поле на опаковка
         $packagingFields = $mvc->getPackagingFields();

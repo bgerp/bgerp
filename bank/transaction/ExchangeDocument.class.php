@@ -56,24 +56,28 @@ class bank_transaction_ExchangeDocument extends acc_DocumentTransactionSource
             array('bank_OwnAccounts', $rec->peroFrom),
             array('currency_Currencies', $rec->creditCurrency),
             'quantity' => $rec->creditQuantity);
-        
-        if ($rec->debitCurrency == $baseCurrencyId && $rec->creditCurrency != $baseCurrencyId) {
-            $entry = array();
-            $entry[] = array('amount' => $rec->debitQuantity,
-                'debit' => $toBank,
-                'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
-            $entry[] = array('debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
-                'credit' => $fromBank);
+
+        if($rec->debitCurrency == $baseCurrencyId){
+            $amount = $rec->debitQuantity;
+        } elseif($rec->creditCurrency == $baseCurrencyId){
+            $amount = $rec->creditQuantity;
         } else {
-            $entry = array('debit' => $toBank, 'credit' => $fromBank);
-            $entry = array($entry);
+            $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
+            $amount = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode);
         }
-        
+
+        $entries = array();
+        $entries[] = array('amount' => $amount,
+            'debit' => $toBank,
+            'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
+        $entries[] = array('debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
+            'credit' => $fromBank);
+
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
             'reason' => $rec->reason,   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
-            'entries' => $entry
+            'entries' => $entries
         );
         
         return $result;

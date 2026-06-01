@@ -111,8 +111,9 @@ class cat_products_Params extends doc_Detail
         $this->FLD('classId', 'class', 'input=hidden,silent');
         $this->FLD('productId', 'int', 'input=hidden,silent,tdClass=leftCol wrapText');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen,maxRadio=1)', 'input,caption=Параметър,mandatory,silent');
-        $this->FLD('paramValue', 'text', 'input=none,caption=Стойност,mandatory');
-        
+        $this->FLD('paramValue', 'text', 'input=none,caption=Стойност');
+        $this->FLD('type', 'enum(mandatory=Задължителен,optional=Незадължителен,readOnly=Само за четене)', 'input=none,caption=Тип');
+
         $this->setDbUnique('classId,productId,paramId');
         $this->setDbIndex('classId,productId');
         $this->setDbIndex('productId,classId');
@@ -148,14 +149,21 @@ class cat_products_Params extends doc_Detail
         }
 
         try{
-            $row->paramValue = cond_Parameters::toVerbal($paramRec, $rec->classId, $rec->productId, $rec->paramValue);
+            if(trim($rec->paramValue) !== ''){
+                $row->paramValue = cond_Parameters::toVerbal($paramRec, $rec->classId, $rec->productId, $rec->paramValue);
+
+                if (!empty($paramRec->suffix)) {
+                    $suffix = cat_Params::getVerbal($paramRec, 'suffix');
+                    $row->paramValue .= ' ' . tr($suffix);
+                }
+            } else {
+                $row->paramValue = "<span style='color:blue;'>n/a</span>";
+            }
+            if(!empty($rec->type)){
+                $row->paramValue = ht::createHint($row->paramValue, "$row->type", 'notice', false);
+            }
         } catch(core_exception_Expect $e){
             $row->paramValue = "<span class='color'>" . tr("Проблем при показване") . "</span>";
-        }
-
-        if (!empty($paramRec->suffix)) {
-            $suffix = cat_Params::getVerbal($paramRec, 'suffix');
-            $row->paramValue .= ' ' . tr($suffix);
         }
 
         if(isset($fields['-list'])){
@@ -176,7 +184,22 @@ class cat_products_Params extends doc_Detail
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+
+        // Ако параметърът се добавя към прототипен артикул да може да се посочва параметрите му дали да са опционални
+        $isValueMandatory = true;
+        $Master = $mvc->getMasterMvc($rec);
+        if($Master instanceof cat_Products){
+            if($data->masterRec->state == 'template'){
+                $form->setField('type', 'input,mandatory');
+                $form->setDefault('type', 'optional');
+                $isValueMandatory = false;
+            }
+        }
+
+        if($isValueMandatory){
+            $form->setField('paramValue', 'mandatory');
+        }
+
         if (empty($rec->id)) {
             $form->setField('paramId', array('removeAndRefreshForm' => 'paramValue|paramValue[lP]|paramValue[rP]'));
             $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
@@ -265,6 +288,10 @@ class cat_products_Params extends doc_Detail
                         }
                     }
                 }
+            }
+
+            if($rec->type == 'readOnly' && !strlen($rec->paramValue)){
+                $form->setError('type,paramValue', 'При опция "Само за четене" не може стойноста да е празна');
             }
         }
     }
@@ -560,7 +587,13 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if(!isset($rec->id)){
+        if(isset($rec->id)){
+
+            // Кои са старите стойности
+            $exRec = $mvc->fetch($rec->id, '*', 'paramId,paramValue');
+            $rec->_exParamId = $exRec->paramId;
+            $rec->_exParamValue = $exRec->paramValue;
+        } else {
             $rec->_isCreated = true;
         }
     }
@@ -575,7 +608,19 @@ class cat_products_Params extends doc_Detail
         if($Class instanceof cat_Products){
             $mvc->syncWithFeature($rec->paramId, $rec->productId);
         }
-        
+
+        // Има ли промяна на стойноста на параметъра
+        $exValue = $rec->_exParamValue ?? null;
+        if($exValue != $rec->paramValue){
+            $res = cat_Params::onParamChanged($rec->paramId, $Class, $rec->productId, $rec->paramValue, $exValue);
+            if(!empty($res['msg'])){
+                core_Statuses::newStatus($res['msg']);
+            }
+            if(!empty($res['error'])){
+                core_Statuses::newStatus($res['error'], 'error');
+            }
+        }
+
         $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
         $logMsg = ($rec->_isCreated) ? 'Добавяне на параметър' : 'Редактиране на параметър';
 
