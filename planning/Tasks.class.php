@@ -3280,7 +3280,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
+            $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id), "id" => "Opr{$rec->id}");
             $singleUrl = static::getSingleUrlArray($rec->id);
 
             if(Mode::get('isReorder')){

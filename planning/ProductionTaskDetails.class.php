@@ -2238,7 +2238,19 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако има задължителни полета за попълване се минава през стандартната форма
         $productId = ($taskRec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId') : $taskRec->productId;
         $retUrl = getRetUrl();
-        if($taskRec->labelType == 'scan' || $taskRec->showadditionalUom == 'yes' || $taskRec->followBatchesForFinalProduct == 'yes'){
+        $retUrl["#"] = planning_Tasks::getHandle($taskId);
+        $manualAdd = ($taskRec->labelType == 'scan' || $taskRec->showadditionalUom == 'yes' || $taskRec->followBatchesForFinalProduct == 'yes');
+
+        // Ако има избран оператор и текущия потребител не е той - минава се през формата винаги
+        $selectedEmployees = keylist::toArray($taskRec->employees);
+        if(countR($selectedEmployees) == 1){
+            $cProfileRec = crm_Profiles::getProfile();
+            if(key($selectedEmployees) != $cProfileRec->id){
+                $manualAdd = true;
+            }
+        }
+
+        if($manualAdd){
             $redirectUrl = array($this, 'add', 'taskId' => $taskId, 'type' => 'production', 'productId' => $productId,'quantity' => $rest, 'closeIfCompleted' => true, 'ret_url' => $retUrl);
             redirect($redirectUrl);
         }
