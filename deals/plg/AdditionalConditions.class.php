@@ -41,7 +41,7 @@ class deals_plg_AdditionalConditions extends core_Plugin
 
         if(isset($addDocumentFields['store_ShipmentOrders'])){
             $mvc->FLD('conditionExpBg', 'richtext(rows=2)', 'caption=Допълнителни условия към експедиционно нареждане->BG,autohide');
-            $mvc->FLD('conditionExpEn', 'richtext(rows=2)', 'caption=Допълнителни условия към към експедиционно нареждане->EN,autohide');
+            $mvc->FLD('conditionExpEn', 'richtext(rows=2)', 'caption=Допълнителни условия към експедиционно нареждане->EN,autohide');
         }
     }
 
