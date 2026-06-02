@@ -4028,7 +4028,8 @@ span.sharing-history-title {
   margin-top: 3px;
   text-align: center;
   position: relative;
-  top: -2px; }
+  top: -2px;
+  font-weight: normal !important; }
   .option-not-in-stock.waitingDelivery {
     background-color: rgba(41, 86, 222, 0.8) !important; }
   .option-not-in-stock.inStockInRemoteStore {
@@ -4042,10 +4043,6 @@ span.sharing-history-title {
   .option-not-in-stock.requirerReferer {
     background-color: rgba(243, 255, 142, 0.8) !important;
     color: black !important; }
-  .option-not-in-stock.notAvailable {
-    color: white !important;
-    border-color: #333333 !important;
-    opacity: 0.85; }
 
 .eshop-product-list-param {
   font-size: 0.85em;
