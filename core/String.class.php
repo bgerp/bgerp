@@ -2025,7 +2025,6 @@ class core_String
             'notes'            => null,
         ];
 
-        // Closure за нормализация на остатъка след изваждане на компонент.
         $normalize = static function (string $value): string {
             $value = preg_replace('/\s+/u', ' ', $value);
             $value = preg_replace('/\s*,\s*/u', ', ', $value);
@@ -2036,8 +2035,6 @@ class core_String
 
         $rest = trim($address);
         $rest = str_replace(["\r", "\n", "\t"], ' ', $rest);
-        // Премахваме кавички, които се ползват като декорация в български адреси
-        // (бул. "Цар Борис III" → бул. Цар Борис III)
         $rest = str_replace(['"', '“', '”', "'", '‘', '’', '«', '»'], ' ', $rest);
         $rest = $normalize($rest);
 
@@ -2063,29 +2060,7 @@ class core_String
         }
 
         /*
-         * 2) Град — взимаме имената от bglocal_Address::$places.
-         *    Уникализираме (масивът има дубликати като 'alfatar'/'alphatar' → 'Алфатар'),
-         *    сортираме по дължина за да хване "Велико Търново" преди "Търново".
-         */
-        $cities = array_unique(array_values(bglocal_Address::$places));
-
-        usort($cities, static function ($a, $b) {
-            return mb_strlen($b) <=> mb_strlen($a);
-        });
-
-        foreach ($cities as $city) {
-            $cityRe = '/(?:^|[\s,])(?:гр\.?\s*)?(' . preg_quote($city, '/') . ')(?=$|[\s,])/iu';
-
-            if (preg_match($cityRe, $rest, $m)) {
-                $result['city'] = $m[1];
-                $rest = preg_replace($cityRe, ' ', $rest, 1);
-                $rest = $normalize($rest);
-                break;
-            }
-        }
-
-        /*
-         * 3) Пощенски код (след града — намалява двусмислието с номера).
+         * 2) Пощенски код.
          */
         $postcodePatterns = [
             '/(?:^|[\s,])([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})(?=$|[\s,])/iu', // UK
@@ -2105,81 +2080,55 @@ class core_String
         }
 
         /*
-         * 4) Комплекс / квартал / местност.
+         * 3) Комплекс / квартал / местност.
          *
-         * Точките във "в.з." и "п.з." са ЗАДЪЛЖИТЕЛНИ в средата,
-         * за да не хващат "вз" / "пз" в случайни думи.
+         * Всеки тип има 'leftBoundary' — какво трябва да го предхожда.
+         * За повечето типове това е "начало или интервал/запетая". Но "парк"
+         * е твърде общ маркер (срв. "Логистичен парк", "Бизнес парк"), затова
+         * го ограничаваме само на "начало или след запетая" — не след дума.
          */
         $complexTypes = [
             [
                 'name' => 'жк',
                 'nameEn' => 'zhk',
-                'patterns' => [
-                    'жилищен\s+комплекс',
-                    'ж\.?\s*к\.?',
-                    'жк',
-                    'zhilishten\s+kompleks',
-                    'zh\.?\s*k\.?',
-                    'zhk',
-                ],
+                'patterns' => ['жилищен\s+комплекс', 'ж\.?\s*к\.?', 'жк', 'zhilishten\s+kompleks', 'zh\.?\s*k\.?', 'zhk'],
+                'leftBoundary' => '(?:^|[\s,])',
             ],
             [
                 'name' => 'кв.',
                 'nameEn' => 'kv.',
-                'patterns' => [
-                    'квартал',
-                    'кв\.?',
-                    'kvartal',
-                    'kv\.?',
-                ],
+                'patterns' => ['квартал', 'кв\.?', 'kvartal', 'kv\.?'],
+                'leftBoundary' => '(?:^|[\s,])',
             ],
             [
                 'name' => 'мах.',
                 'nameEn' => 'mah.',
-                'patterns' => [
-                    'махала',
-                    'мах\.?',
-                    'mahala',
-                    'mah\.?',
-                ],
+                'patterns' => ['махала', 'мах\.?', 'mahala', 'mah\.?'],
+                'leftBoundary' => '(?:^|[\s,])',
             ],
             [
                 'name' => 'в.з.',
                 'nameEn' => 'v.z.',
-                'patterns' => [
-                    'вилна\s+зона',
-                    'в\.\s*з\.?',
-                    'vilna\s+zona',
-                    'v\.\s*z\.?',
-                ],
+                'patterns' => ['вилна\s+зона', 'в\.\s*з\.?', 'vilna\s+zona', 'v\.\s*z\.?'],
+                'leftBoundary' => '(?:^|[\s,])',
             ],
             [
                 'name' => 'п.з.',
                 'nameEn' => 'p.z.',
-                'patterns' => [
-                    'промишлена\s+зона',
-                    'п\.\s*з\.?',
-                    'promishlena\s+zona',
-                    'p\.\s*z\.?',
-                ],
+                'patterns' => ['промишлена\s+зона', 'п\.\s*з\.?', 'promishlena\s+zona', 'p\.\s*z\.?'],
+                'leftBoundary' => '(?:^|[\s,])',
             ],
             [
                 'name' => 'парк',
                 'nameEn' => 'park',
-                'patterns' => [
-                    'парк',
-                    'park',
-                ],
+                'patterns' => ['парк', 'park'],
+                'leftBoundary' => '(?:^|,\s*)',  // само в началото или след запетая
             ],
             [
                 'name' => 'м.',
                 'nameEn' => 'm.',
-                'patterns' => [
-                    'местност',
-                    'м\.',
-                    'mestnost',
-                    'm\.',
-                ],
+                'patterns' => ['местност', 'м\.', 'mestnost', 'm\.'],
+                'leftBoundary' => '(?:^|[\s,])',
             ],
         ];
 
@@ -2198,10 +2147,9 @@ class core_String
 
         foreach ($complexTypes as $type) {
             $alternation = implode('|', $type['patterns']);
+            $leftBoundary = $type['leftBoundary'];
 
-            // Lookahead приема stop-word последван от точка ИЛИ интервал
-            // (за да хваща и "ул.Константин" без интервал след точката).
-            $complexRe = '/(?:^|[\s,])(?:' . $alternation . ')\s+'
+            $complexRe = '/' . $leftBoundary . '(?:' . $alternation . ')\s+'
                 . '(.+?)'
                 . '(?=,|\s+(?:' . $stopRe . ')[\.\s]|$)/iu';
 
@@ -2221,18 +2169,22 @@ class core_String
         }
 
         /*
-         * 5) Улица + номер. Поддържа имена започващи с цифра ("6-ти септември")
-         *    и римски цифри в края ("Цар Борис III").
+         * 4) Улица + номер. Идва ПРЕДИ град.
+         *
+         * Lookahead-ът сега включва и точка (за "Владайска река 2."),
+         * освен запетая, интервал и маркер за следваща част.
          */
         $streetRe = '/(?:^|[\s,])'
             . '(?:(?:ул(?:ица)?|бул(?:евард)?|пл(?:ощад)?|str(?:eet)?|st|ave(?:nue)?|rd|road)\.?\s*)?'
-            . '([0-9\p{L}][0-9\p{L}\s\-\'\.]*?[0-9\p{L}])'
+            . '([0-9\p{L}][0-9\p{L}\s\-\'\.]*?[0-9\p{L}\.])'
             . '\s+№?\s*#?\s*'
             . '(\d+[\p{L}]?(?:[-\/]\d+[\p{L}]?)?)'
-            . '(?=$|[\s,])/iu';
+            . '(?=$|[\s,\.]|\s+(?:магазин|маг|офис|апартамент|ап|етаж|ет|вход|вх|блок|бл)\b)/iu';
 
         if (preg_match($streetRe, $rest, $m)) {
-            $street = trim($m[1], " \t\n\r\0\x0B,.-");
+            $street = trim($m[1], " \t\n\r\0\x0B,-");
+            $street = rtrim($street, '.');
+            $street = trim($street);
 
             if ($street !== '') {
                 $result['street'] = $street;
@@ -2240,6 +2192,26 @@ class core_String
 
                 $rest = preg_replace($streetRe, ' ', $rest, 1);
                 $rest = $normalize($rest);
+            }
+        }
+
+        /*
+         * 5) Град.
+         */
+        $cities = array_unique(array_values(bglocal_Address::$places));
+
+        usort($cities, static function ($a, $b) {
+            return mb_strlen($b) <=> mb_strlen($a);
+        });
+
+        foreach ($cities as $city) {
+            $cityRe = '/(?:^|[\s,])(?:гр\.?\s*)?(' . preg_quote($city, '/') . ')(?=$|[\s,])/iu';
+
+            if (preg_match($cityRe, $rest, $m)) {
+                $result['city'] = $m[1];
+                $rest = preg_replace($cityRe, ' ', $rest, 1);
+                $rest = $normalize($rest);
+                break;
             }
         }
 
