@@ -430,16 +430,9 @@ class email_AutomaticResponse extends core_Master
                 $params = $Email->getPromptParams($emailRec, $promptRec->fields);
                 core_Lg::pop();
                 $params['lang'] = $mail->lg;
-
-                // Определяне каква трудност да се използва
-                $otherParams = array('useBase64' => true, 'question' => $rule->aiInstructions);
-                foreach (ai_Dialogs::USE_DIFFICULTY_FOR_INSTRUCTION as $difficultyHint => $difficulty){
-                     if (strpos($params['userRequirements'], $difficultyHint) !== false) {
-                        $otherParams['difficulty'] = $otherParams['difficulty'] == 'high' ? $otherParams['difficulty'] : $difficulty;
-                        $params['userRequirements'] = str_replace($difficultyHint, '', $params['userRequirements']);
-                    }
-                }
-
+                
+                $otherParams = [];
+                $otherParams['difficulty'] == 'high';
                 // Извикване на услугата за ИИ
                 $res = ai_Dialogs::get($promptRec->id, $params, array(), $otherParams, $emailRec->_dialogId);
                 
