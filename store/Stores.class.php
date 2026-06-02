@@ -223,7 +223,7 @@ class store_Stores extends core_Master
             $this->FLD('requireZoneInDocuments', 'enum(yes=Да,no=Не)','caption=Палетен склад->Избор на зона в експедиращи документи->Задължително,notNull,value=no');
         }
 
-        $this->FLD('notifyUsers', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Нотифициране при промяна на транспортна линия->Потребители,autohide');
+        $this->FLD('notifyUsers', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Нотифициране при промяна на Транспортна линия->Потребители,autohide');
         $this->setDbUnique('name');
     }
 
