@@ -1961,18 +1961,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     public static function getProductionAmount($id)
     {
+        $res = array('primecost' => 0, 'expenses' => 0, 'date' => dt::now());
         $rec = static::fetchRec($id);
         $journalRec = acc_Journal::fetchByDoc(get_called_class(), $rec->id);
-        $jQuery = acc_JournalDetails::getQuery();
-        $journalId = $journalRec->id ?? null;
-        $jQuery->where("#journalId = '{$journalId}");
+        if(!is_object($journalRec)) return $res;
 
+        $jQuery = acc_JournalDetails::getQuery();
+        $jQuery->where("#journalId = '{$journalRec->id}");
         $productItemId = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
         $debitAccArr = array(acc_Accounts::getRecBySystemId(321)->id, acc_Accounts::getRecBySystemId(60201)->id);
         $reasonCode = acc_Operations::getIdByTitle('Разпределени режийни разходи');
 
         // Смятане на сумата, която ще се натрупва към сб-ст на произведения артикул
-        $res = array('primecost' => 0, 'expenses' => 0, 'date' => dt::now());
         while ($jRec = $jQuery->fetch()) {
             if (in_array($jRec->debitAccId, $debitAccArr) && $jRec->debitItem2 == $productItemId) {
                 $amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $journalRec->valior);
