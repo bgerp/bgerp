@@ -642,6 +642,7 @@ $mime2ext = array(
     "application/x-coreldraw" => "cdr",
     "image/cdr" => "cdr",
     "image/x-cdr" => "cdr",
+    "image/webp" => "webp",
     "zz-application/zz-winassoc-cdr" => "cdr",
     "application/x-httpd-php" => "php",
     "application/dicom" => "dcm",

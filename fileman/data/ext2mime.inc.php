@@ -931,6 +931,7 @@ $ext2mime = array(
     "wcm" => "application/vnd.ms-works",
     "wdb" => "application/vnd.ms-works",
     "web" => "application/vnd.xara",
+    'webp' => 'image/webp',
     "wg" => "application/vnd.pmi.widget",
     "wiz" => "application/msword",
     "wk1" => "application/x-123",
