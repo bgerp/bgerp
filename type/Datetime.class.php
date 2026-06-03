@@ -64,15 +64,25 @@ class type_Datetime extends type_Date
                 $date = $value['d'];
                 $time = $value['t'];
             } elseif (is_scalar($value)) {
-                [$date, $time] = explode(' ', $value) + [1 => ''];
+                // Добавяме null като подразбиране, за да знаем, че час липсва
+                [$date, $time] = explode(' ', $value) + [1 => null];
+
                 $date = dt::mysql2verbal($date, 'd.m.Y', null, false);
-                [$h, $m, $s] = explode(':', $time) + [1 => '00', 2 => '00'];
-                if ($s == '00') {
-                    $time = "{$h}:{$m}";
+
+                // Влизаме тук само ако имаме някакъв час (различен от null или празен низ)
+                if ($time !== null && $time !== '') {
+                    [$h, $m, $s] = explode(':', $time) + [1 => '00', 2 => '00'];
+
+                    if ($s === '00') {
+                        $time = "{$h}:{$m}";
+                    }
+                } else {
+                    // Изрично задаваме null, ако няма час
+                    $time = null;
                 }
             }
         }
-        
+
         if (strlen($time) && strpos($this->params['defaultTime'], $time) === 0 && $this->params['defaultTime'] == '00:00:00') {
             $time = '';
         }
