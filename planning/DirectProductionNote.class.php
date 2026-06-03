@@ -1967,7 +1967,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         if(!is_object($journalRec)) return $res;
 
         $jQuery = acc_JournalDetails::getQuery();
-        $jQuery->where("#journalId = '{$journalRec->id}");
+        $jQuery->where("#journalId = {$journalRec->id}");
         $productItemId = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
         $debitAccArr = array(acc_Accounts::getRecBySystemId(321)->id, acc_Accounts::getRecBySystemId(60201)->id);
         $reasonCode = acc_Operations::getIdByTitle('Разпределени режийни разходи');
