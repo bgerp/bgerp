@@ -341,6 +341,11 @@ class acc_Balances extends core_Master
         expect($rec = $this->fetch($id));
         $this->requireRightFor('forcecalc', $rec);
 
+        // Ако не е разрешена междинната форма, преизчисляваме директно без избрана сметка за дебъг
+        if (acc_Setup::get('FORCE_RECALC_BALANCE_SHOW_FORM') != 'yes') {
+            return $this->doManualForceCalc($rec);
+        }
+
         $form = cls::get('core_Form');
         if(empty($rec->periodId)){
             $periodId = dt::mysql2verbal($rec->fromDate, 'd', null, false) . '-' . dt::mysql2verbal($rec->toDate, 'd F Y', null, false);
@@ -355,49 +360,107 @@ class acc_Balances extends core_Master
         if ($form->isSubmitted()) {
             $accNum = ($form->rec->accountId) ? acc_Accounts::getNumById($form->rec->accountId) : null;
 
-            $checkForLock = true;
-            $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
-            if ($alternateWindow) {
-                $windowStart = dt::addSecs(-1 * $alternateWindow, null, false);
-                if ($rec->toDate < $windowStart) {
-                    $checkForLock = false;
-                }
-            }
-
-            if ($checkForLock) {
-                $lockKey = 'RecalcBalances';
-                if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
-                    $this->logNotice('Изчисляването на баланса е заключено от друг процес');
-                    followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
-                }
-            }
-
-            acc_BalanceDebugger::clear($accNum ?? '');
-            Mode::push('traceBalance', true);
-
-            self::forceCalc($rec, true);
-            self::logWrite('Ръчно преизчисляване на баланса', $rec->id);
-
-            Mode::pop('traceBalance');
-
-            if (isset($lockKey)) {
-                core_Locks::release($lockKey);
-            }
-
-            if(!empty($accNum)) {
-                // download() извиква exit – кодът след тук не се достига
-                acc_BalanceDebugger::download($rec, $accNum);
-            } else {
-                followRetUrl(null, 'Балансът е преизчислен успешно');
-            }
+            return $this->doManualForceCalc($rec, $accNum);
         }
 
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Преизчисляване, class=submitBtn');
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
-        return $this->renderWrapping($form->renderHtml());
+        return $this->renderWrapping($this->addForceCalcDebugDownloadRedirectJs($form->renderHtml()));
     }
 
+
+    /**
+     * Добавя JS, който връща страницата към retUrl след стартиране на CSV download-а
+     *
+     * При download() браузърът получава файл като отговор и PHP кодът след него не се изпълнява.
+     * Затова redirect-ът се прави от текущата форма: ако има избрана сметка за дебъг,
+     * след submit се изчаква download-ът да стартира и страницата се връща към изходния списък.
+     *
+     * @param string|core_ET $html
+     *
+     * @return string
+     */
+    private function addForceCalcDebugDownloadRedirectJs($html)
+    {
+        $retUrl = getRetUrl();
+        if (empty($retUrl)) {
+
+            return (string) $html;
+        }
+
+        $retUrl = toUrl($retUrl);
+        $retUrlJs = json_encode($retUrl);
+
+        $js = <<<JS
+<script>
+(function() {
+    var retUrl = {$retUrlJs};
+    if (!retUrl) return;
+
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        if (!form || !form.querySelector) return;
+
+        var accountField = form.querySelector('[name="accountId"]');
+        if (!accountField || !accountField.value) return;
+
+        window.setTimeout(function() {
+            window.location.href = retUrl;
+        }, 5000);
+    }, true);
+})();
+</script>
+JS;
+
+        return (string) $html . $js;
+    }
+
+
+    /**
+     * Изпълнява ръчното преизчисляване на баланс
+     *
+     * @param stdClass $rec
+     * @param string|null $accNum - номер на сметка за дебъг проследяване или NULL
+     */
+    private function doManualForceCalc($rec, $accNum = null)
+    {
+        $checkForLock = true;
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if ($alternateWindow) {
+            $windowStart = dt::addSecs(-1 * $alternateWindow, null, false);
+            if ($rec->toDate < $windowStart) {
+                $checkForLock = false;
+            }
+        }
+
+        if ($checkForLock) {
+            $lockKey = 'RecalcBalances';
+            if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+                $this->logNotice('Изчисляването на баланса е заключено от друг процес');
+                followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
+            }
+        }
+
+        acc_BalanceDebugger::clear($accNum ?? '');
+        Mode::push('traceBalance', true);
+
+        self::forceCalc($rec, true);
+        self::logWrite('Ръчно преизчисляване на баланса', $rec->id);
+
+        Mode::pop('traceBalance');
+
+        if (isset($lockKey)) {
+            core_Locks::release($lockKey);
+        }
+
+        if(!empty($accNum)) {
+            // download() извиква exit – кодът след тук не се достига
+            acc_BalanceDebugger::download($rec, $accNum);
+        } else {
+            followRetUrl(null, 'Балансът е преизчислен успешно');
+        }
+    }
 
     /**
      * Ако е необходимо записва и изчислява баланса за посочения период
