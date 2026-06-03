@@ -2950,7 +2950,7 @@ class doc_Threads extends core_Manager
      */
     public static function getThreadTitle($id, $verbal = true)
     {
-        $rec = self::fetch($id);
+        $rec = self::fetchRec($id);
         
         // Ако няма първи контейнер
         // При директно активиране на първия документ
