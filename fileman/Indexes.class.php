@@ -1196,7 +1196,7 @@ class fileman_Indexes extends core_Manager
             $strLen = mb_strlen($fileTxtContent);
             if(mb_strlen($fileTxtContent) > $maxLen){
                 $rest = $strLen - $maxLen;
-                $string .= substr($fileTxtContent, 0, $maxLen);
+                $string .= mb_substr($fileTxtContent, 0, $maxLen);
                 $string .= tr("|* (+{$rest} |още символа|* )") . "\n";
             } else {
                 $string .= $fileTxtContent . "\n";
