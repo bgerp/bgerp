@@ -26,7 +26,7 @@ class acc_type_Account extends type_Key
         $params['params']['mvc'] = 'acc_Accounts';
         $params['params']['select'] = $params['params']['select'] ?? 'title';
         $params['params']['root'] = $params['params']['root'] ?? '';
-        $params['params']['regInterfaces'] = ['params']['regInterfaces'] ?? '';
+        $params['params']['regInterfaces'] = $params['params']['regInterfaces'] ?? '';
         
         parent::init($params);
     }
@@ -50,14 +50,13 @@ class acc_type_Account extends type_Key
         $root = $this->params['root'];
         $select = $this->params['select'];
         $regInterfaces = $this->params['regInterfaces'];
-        
         $options = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND #state NOT IN ('closed')", $root));
-        
+
         // Ако има зададени интерфейси на аналитичностите
-        if ($regInterfaces) {
+        if (!empty($regInterfaces)) {
             static::filterSuggestions($regInterfaces, $options);
         }
-        
+
         $this->options = $options;
         
         $this->options = parent::prepareOptions();
