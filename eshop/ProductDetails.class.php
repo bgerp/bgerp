@@ -590,10 +590,13 @@ class eshop_ProductDetails extends core_Detail
                 $quantityExpected = store_Products::getQuantities($rec->productId, $settings->inStockStores, $horizon)->free;
                 if($quantityExpected >= $rec->quantityInPack){
                     $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
-                }else {
+                } else {
                     $notInStock = !empty($settings->notInStockText) ? tr($settings->notInStockText) : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
                     $notInStockVerbal = core_Type::getByName('varchar')->toVerbal($notInStock);
-                    $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$notInStockVerbal}</span>";
+
+                    if($rec->action != 'stopped'){
+                        $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$notInStockVerbal}</span>";
+                    }
                     $row->quantity = 1;
                     unset($row->btn);
                 }

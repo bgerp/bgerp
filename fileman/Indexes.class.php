@@ -1145,6 +1145,34 @@ class fileman_Indexes extends core_Manager
 
 
     /**
+     * Връща текстовото представяне на файла (ако няма кеширано го форсира)
+     *
+     * @param string $fileHnd
+     * @return string|null
+     */
+    public static function forceTextForIndex($fileHnd)
+    {
+        $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
+
+        // Ако все още не е извлечен текста, форсираме извличането му
+        if ($fileTxtContent === false) {
+            $me = cls::get(get_called_class());
+            $fRec = fileman::fetchByFh($fileHnd);
+            if ($fRec && $fRec->dataId) {
+                $fData = fileman_Data::fetch($fRec->dataId);
+                $me->processFile($fData, dt::addSecs(120));
+                $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
+            }
+        }
+
+        // Ако няма извлечено или е извлечен празен стринг няма да се върне нищо
+        if ($fileTxtContent === false || empty(trim($fileTxtContent))) return null;
+
+        return trim($fileTxtContent);
+    }
+
+
+    /**
      * Връща кратко текстово представяне на масива от файлове с ограничение до брой символи
      *
      * @param array $filesArr  - масив от файл хендлъри => име на файл
@@ -1159,20 +1187,8 @@ class fileman_Indexes extends core_Manager
             $fileLenVerbal = core_Type::getByName('fileman_FileSize')->toVerbal($fileLen);
             $fileLenVerbal = str_replace('&nbsp;', ' ', $fileLenVerbal);
 
-            $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
-
-            // Ако все още не е извлечен текста, форсираме извличането му
-            if ($fileTxtContent === false) {
-                $me = cls::get(get_called_class());
-                $fRec = fileman::fetchByFh($fileHnd);
-                if ($fRec && $fRec->dataId) {
-                    $fData = fileman_Data::fetch($fRec->dataId);
-                    $me->processFile($fData, dt::addSecs(120));
-                    $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
-                }
-            }
-
-            if ($fileTxtContent === false || empty(trim($fileTxtContent))) continue;
+            $fileTxtContent = self::forceTextForIndex($fileHnd);
+            if(empty($fileTxtContent)) continue;
 
             $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
             $string .= "\n" . tr("|*& |Прикачен файл|*: {$fileName} ({$fileLenVerbal})") . "\n";
@@ -1180,7 +1196,7 @@ class fileman_Indexes extends core_Manager
             $strLen = mb_strlen($fileTxtContent);
             if(mb_strlen($fileTxtContent) > $maxLen){
                 $rest = $strLen - $maxLen;
-                $string .= substr($fileTxtContent, 0, $maxLen);
+                $string .= mb_substr($fileTxtContent, 0, $maxLen);
                 $string .= tr("|* (+{$rest} |още символа|* )") . "\n";
             } else {
                 $string .= $fileTxtContent . "\n";

@@ -1429,7 +1429,8 @@ class eshop_Products extends core_Master
         $data->listFilter->setField('domainId', 'autoFilter,silent');
         $data->listFilter->setDefault('domainId', cms_Domains::getCurrent());
         $data->listFilter->input(null, 'silent');
-        
+        $mvc->listItemsPerPage = 100;
+
         // Показване на филтър по домейни
         $domains = cms_Domains::getDomainOptions(false, core_Users::getCurrent());
         if (countR($domains) == 1) {
