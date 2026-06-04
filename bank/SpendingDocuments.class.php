@@ -279,6 +279,7 @@ class bank_SpendingDocuments extends bank_Document
         $rec = &$form->rec;
 
         if($form->isSubmitted()){
+            //$rec->earlyPaymentUntil = $rec->earlyPaymentUntil == '0000-00-00' ? null : $rec->earlyPaymentUntil;
             if((!empty($rec->earlyPaymentUntil) && empty($rec->earlyPaymentPercent)) || (empty($rec->earlyPaymentUntil) && !empty($rec->earlyPaymentPercent))){
                 $form->setError('earlyPaymentUntil,earlyPaymentPercent', 'Трябва и двете полета за отстъпка при предсрочно плащане да са попълнени');
             }
@@ -297,6 +298,19 @@ class bank_SpendingDocuments extends bank_Document
             if($valior <= $rec->earlyPaymentUntil){
                 $rec->amount = round($rec->amount * (1 - $rec->earlyPaymentPercent), 2);
             }
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди запис
+     * @todo да се премахне след време
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if($rec->earlyPaymentUntil == '0000-00-00'){
+            wp('ГРЕШЕН СРОК', $rec);
+            $rec->earlyPaymentUntil = null;
         }
     }
 }
