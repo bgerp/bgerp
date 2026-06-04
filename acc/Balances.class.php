@@ -226,6 +226,7 @@ class acc_Balances extends core_Master
 
         if ($mvc->haveRightFor('forcecalc', $rec)) {
             $row->lastCalculate = ($row->lastCalculate ?? '') . ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
+            $row->lastCalculate .= ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'debug' => true, 'ret_url' => true), false, 'ef_icon=img/16/bug.png,select=Ръчно рекалкулиране на баланса с дебъг');
         }
     }
 
@@ -340,6 +341,11 @@ class acc_Balances extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('forcecalc', $rec);
+        $debug = Request::get('debug', 'int');
+
+        if(empty($debug)){
+            $this->doManualForceCalc($rec);
+        }
 
         $form = cls::get('core_Form');
         if(empty($rec->periodId)){
@@ -355,47 +361,58 @@ class acc_Balances extends core_Master
         if ($form->isSubmitted()) {
             $accNum = ($form->rec->accountId) ? acc_Accounts::getNumById($form->rec->accountId) : null;
 
-            $checkForLock = true;
-            $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
-            if ($alternateWindow) {
-                $windowStart = dt::addSecs(-1 * $alternateWindow, null, false);
-                if ($rec->toDate < $windowStart) {
-                    $checkForLock = false;
-                }
-            }
-
-            if ($checkForLock) {
-                $lockKey = 'RecalcBalances';
-                if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
-                    $this->logNotice('Изчисляването на баланса е заключено от друг процес');
-                    followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
-                }
-            }
-
-            acc_BalanceDebugger::clear($accNum ?? '');
-            Mode::push('traceBalance', true);
-
-            self::forceCalc($rec, true);
-            self::logWrite('Ръчно преизчисляване на баланса', $rec->id);
-
-            Mode::pop('traceBalance');
-
-            if (isset($lockKey)) {
-                core_Locks::release($lockKey);
-            }
-
-            if(!empty($accNum)) {
-                // download() извиква exit – кодът след тук не се достига
-                acc_BalanceDebugger::download($rec, $accNum);
-            } else {
-                followRetUrl(null, 'Балансът е преизчислен успешно');
-            }
+            $this->doManualForceCalc($rec, $accNum);
         }
 
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Преизчисляване, class=submitBtn');
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
         return $this->renderWrapping($form->renderHtml());
+    }
+
+
+    /**
+     * Изпълнява ръчното преизчисляване на баланс
+     *
+     * @param stdClass $rec
+     * @param string|null $accNum - номер на сметка за дебъг проследяване или NULL
+     */
+    private function doManualForceCalc($rec, $accNum = null)
+    {
+        $checkForLock = true;
+        $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
+        if ($alternateWindow) {
+            $windowStart = dt::addSecs(-1 * $alternateWindow, null, false);
+            if ($rec->toDate < $windowStart) {
+                $checkForLock = false;
+            }
+        }
+
+        if ($checkForLock) {
+            $lockKey = 'RecalcBalances';
+            if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
+                $this->logNotice('Изчисляването на баланса е заключено от друг процес');
+                followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
+            }
+        }
+
+        acc_BalanceDebugger::clear($accNum ?? '');
+        Mode::push('traceBalance', true);
+
+        self::forceCalc($rec, true);
+        self::logWrite('Ръчно преизчисляване на баланса', $rec->id);
+
+        Mode::pop('traceBalance');
+
+        if (isset($lockKey)) {
+            core_Locks::release($lockKey);
+        }
+
+        if(!empty($accNum)) {
+            acc_BalanceDebugger::download($rec, $accNum);
+        } else {
+            followRetUrl(null, 'Балансът е преизчислен успешно');
+        }
     }
 
 
