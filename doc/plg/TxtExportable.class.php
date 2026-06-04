@@ -89,6 +89,10 @@ class doc_plg_TxtExportable extends core_Plugin
                 }
             }
 
+            if(!empty($params['addAttachedTextFilesAsRichText'])){
+                $string = cms_GalleryRichTextPlg::replaceImageTagsWithFileTag($string);
+            }
+
             $text = $string;
         }
 
