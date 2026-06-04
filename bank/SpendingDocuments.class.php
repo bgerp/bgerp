@@ -279,6 +279,7 @@ class bank_SpendingDocuments extends bank_Document
         $rec = &$form->rec;
 
         if($form->isSubmitted()){
+            $rec->earlyPaymentUntil = $rec->earlyPaymentUntil == '0000-00-00' ? null : $rec->earlyPaymentUntil;
             if((!empty($rec->earlyPaymentUntil) && empty($rec->earlyPaymentPercent)) || (empty($rec->earlyPaymentUntil) && !empty($rec->earlyPaymentPercent))){
                 $form->setError('earlyPaymentUntil,earlyPaymentPercent', 'Трябва и двете полета за отстъпка при предсрочно плащане да са попълнени');
             }
