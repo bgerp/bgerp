@@ -72,8 +72,8 @@ class export_Txt extends core_Mvc
     public function makeExport($form, $clsId, $objId)
     {
         $Cls = cls::get($clsId);
-
-        $params = array('addAttachedTextFiles' => ($form->rec->addAttachedTextFiles == 'yes'));
+        $params = array('addAttachedTextFiles' => ($form->rec->addAttachedTextFiles == 'yes'),
+                        'addAttachedTextFilesAsRichText' => ($form->rec->addAttachedTextFilesAsRichText == 'yes'));
         $Impl = cls::getInterface('export_TxtExportIntf', $Cls);
         $txtContent = $Impl->getTxtContent($objId, $params);
 
@@ -86,6 +86,8 @@ class export_Txt extends core_Mvc
         if ($fileHnd) {
             $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/txt.png, title=Сваляне на документа');
             $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
+            $form->setField('addAttachedTextFiles', "input=hidden");
+            $form->setField('addAttachedTextFilesAsRichText', "input=hidden");
         } else {
             $form->info .= "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
         }
@@ -125,9 +127,15 @@ class export_Txt extends core_Mvc
      */
     public function addParamFields($form, $clsId, $objId)
     {
-        if($form->isSubmitted()) return;
+        $form->FLD('addAttachedTextFilesAsRichText', 'enum(no=Не,yes=Да)', 'caption=Да се експортират и прикачените текстови файлове?->Като ричтекст,silent,removeAndRefreshForm=addAttachedTextFiles');
+        $form->FLD('addAttachedTextFiles', 'enum(no=Не,yes=Да)', 'caption=Да се експортират и прикачените текстови файлове?->Извличане на текст,input=hidden');
 
-        $form->FLD('addAttachedTextFiles', 'enum(no=Не,yes=Да)', 'caption=Да се експортират и прикачените текстови файлове?->Избор,autohide');
-        $form->setDefault('addAttachedTextFiles', 'no');
+        $form->setDefault('addAttachedTextFilesAsRichText', 'no');
+        $form->input(null, 'silent');
+
+        if($form->rec->addAttachedTextFilesAsRichText != 'yes'){
+            $form->setField('addAttachedTextFiles', 'input');
+            $form->setDefault('addAttachedTextFiles', 'no');
+        }
     }
 }
