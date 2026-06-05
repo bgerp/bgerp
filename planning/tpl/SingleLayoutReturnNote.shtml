@@ -55,7 +55,7 @@
                                                 <tr>
                                                     <td class='quiet aright' style='width:1%; nowrap;'>[#calcPrimeCostBtn#]</td>
                                                     <td>
-                                                        <b>[#calcedPrimeCost#]</b> към [#calcedPrimeCostDate#]
+                                                    <!--ET_BEGIN calcedPrimeCost--><b>[#calcedPrimeCost#]</b> |към|* [#calcedPrimeCostDate#]<!--ET_END calcedPrimeCost-->
                                                     </td>
                                                 </tr>
                                                 <!--ET_END calcPrimeCostBtn-->
