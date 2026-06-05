@@ -222,7 +222,12 @@ class core_Form extends core_FieldSet
             expect($this->fields[$name], "Липсващо поле във формата '{$name}'");
 
             $value = Request::get($name, false);
-            
+
+            // За някои типове при редакция, ако полетата им са рийд онли и са празен стринг да се обърне на null
+            if (!empty($field->type->params['isReadOnly']) && $value === '' && ($field->type instanceof type_Date || $field->type instanceof type_Percent)) {
+                $value = null;
+            }
+
             $captions = str_replace('->', '|* » |', $field->caption);
             
             // Ако $silent, не сме критични към празните стойности
