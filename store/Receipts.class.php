@@ -400,7 +400,7 @@ class store_Receipts extends store_DocumentMaster
             // Ако има финална доставка и СР не е коригираща - не може да се пускат нови
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if($firstDoc->isInstanceOf('purchase_Purchases')){
-                $ignoreContainerId =  ($action != 'clonerec') ? $rec->containerId : null;
+                $ignoreContainerId =  ($action != 'clonerec') ? ($rec->containerId ?? null) : null;
                 if(!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)){
                     $requiredRoles = 'no_one';
                 }

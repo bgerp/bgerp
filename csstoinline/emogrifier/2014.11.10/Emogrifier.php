@@ -315,10 +315,13 @@ class Emogrifier {
 
         foreach ($this->caches[self::CACHE_KEY_CSS][$cssKey] as $value) {
             // query the body for the xpath selector
+            $prevLibxmlErrors = libxml_use_internal_errors(true);
             $nodesMatchingCssSelectors = $xpath->query($this->translateCssToXpath($value['selector']));
+            libxml_clear_errors();
+            libxml_use_internal_errors($prevLibxmlErrors);
 
             /** @var $node \DOMNode */
-            foreach ($nodesMatchingCssSelectors as $node) {
+            foreach ($nodesMatchingCssSelectors ?: array() as $node) {
                 // if it has a style attribute, get it, process it, and append (overwrite) new stuff
                 if ($node->hasAttribute('style')) {
                     // break it up into an associative array

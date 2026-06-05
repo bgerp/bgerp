@@ -176,11 +176,11 @@ abstract class deals_QuotationMaster extends core_Master
         $form->setFieldTypeParams('deliveryTime', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
         $rec = &$data->form->rec;
 
-        $folderId = $rec->folderId;
+        $folderId = $rec->folderId ?? null;
         if(empty($rec->folderId)){
             if(isset($rec->originId)){
                 $folderId = doc_Containers::fetchField($rec->originId, 'folderId');
-            } elseif($rec->threadId){
+            } elseif(!empty($rec->threadId)){
                 $folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
             }
         }
@@ -207,7 +207,7 @@ abstract class deals_QuotationMaster extends core_Master
             }
         }
 
-        if (!$rec->person) {
+        if (empty($rec->person)) {
             $form->setSuggestions('person', crm_Companies::getPersonOptions($rec->contragentId, false));
         }
 
@@ -299,7 +299,7 @@ abstract class deals_QuotationMaster extends core_Master
 
                 if (empty($rec->currencyRate) || $calcRate) {
                     $rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
-                    if (!$rec->currencyRate) {
+                    if (empty($rec->currencyRate)) {
                         $form->setError('currencyRate', 'Не може да се изчисли курс');
                     }
                 }
@@ -530,7 +530,7 @@ abstract class deals_QuotationMaster extends core_Master
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
             $cData = $contragent->getContragentData($dateFromWhichToGetName);
 
-            $fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
+            $fld = (($rec->tplLang ?? null) == 'bg') ? 'commonNameBg' : 'commonName';
             $row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
             $row->contragentCountryId = drdata_Countries::getVerbal($cData->countryId, $fld);
 
@@ -546,12 +546,12 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
 
-            if ($rec->currencyRate == 1) {
+            if (($rec->currencyRate ?? null) == 1) {
                 unset($row->currencyRate);
             }
 
             $isPlain = Mode::is('text', 'plain');
-            if ($rec->others) {
+            if (!empty($rec->others)) {
                 $others = explode('<br>', $row->others);
                 $row->others = '';
                 foreach ($others as $other) {
@@ -580,7 +580,7 @@ abstract class deals_QuotationMaster extends core_Master
             if (!empty($rec->deliveryAdress)) {
                 $deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
             } else {
-                $placeId = ($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+                $placeId = (!empty($rec->deliveryPlaceId)) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
                 $deliveryAdress .= cond_DeliveryTerms::addDeliveryTermLocation($rec->deliveryTermId, $rec->contragentClassId, $rec->contragentId, null, $placeId, $rec->deliveryData, doc_Containers::getDocument($rec->containerId));
             }
 
@@ -982,7 +982,7 @@ abstract class deals_QuotationMaster extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($action == 'activate') {
-            if (!$rec->id) {
+            if (!isset($rec) || empty($rec->id)) {
 
                 // Ако документа се създава, то не може да се активира
                 $res = 'no_one';
@@ -1126,10 +1126,10 @@ abstract class deals_QuotationMaster extends core_Master
 
                         // Ако основната валута е сменена - прави се преизчисляване
                         if(dt::today() >= acc_Setup::getEurozoneDate()){
-                            if($rec->currencyId == 'BGN'){
+                            if(($rec->currencyId ?? null) == 'BGN'){
                                 $dRec->price = deals_Helper::getSmartBaseCurrency($dRec->price, $rec->date, $saleRec->valior);
                             } else {
-                                $dRec->price = ($dRec->price / $rec->currencyRate) * $saleRec->currencyRate;
+                                $dRec->price = ($dRec->price / ($rec->currencyRate ?? 1)) * $saleRec->currencyRate;
                             }
                         }
 
@@ -1172,7 +1172,7 @@ abstract class deals_QuotationMaster extends core_Master
     protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $dData = $data->{$mvc->mainDetail};
-        if ($dData->summary) {
+        if (!empty($dData->summary)) {
             $data->row = (object) ((array)$data->row + (array)$dData->summary);
         }
 
@@ -1204,7 +1204,7 @@ abstract class deals_QuotationMaster extends core_Master
     {
         $rec = $data->rec;
 
-        if ($rec->state == 'active') {
+        if (($rec->state ?? null) == 'active') {
 
             if(isset($mvc->dealClass)){
                 $Detail = cls::get($mvc->mainDetail);
@@ -1397,10 +1397,10 @@ abstract class deals_QuotationMaster extends core_Master
         foreach ($items as $item) {
             // Ако основната валута е сменена - прави се преизчисляване
             if(dt::today() >= acc_Setup::getEurozoneDate()){
-                if($rec->currencyId == 'BGN'){
+                if(($rec->currencyId ?? null) == 'BGN'){
                     $item->price = deals_Helper::getSmartBaseCurrency($item->price, $rec->date, $saleRec->valior);
                 } else {
-                    $item->price = ($item->price / $rec->currencyRate) * $saleRec->currencyRate;
+                    $item->price = ($item->price / ($rec->currencyRate ?? 1)) * $saleRec->currencyRate;
                 }
             }
 
@@ -1551,7 +1551,7 @@ abstract class deals_QuotationMaster extends core_Master
         $rec = $mvc->fetch($res->id);
         $date = $rec->date ?? dt::today();
 
-        if($rec->createdOn < acc_Setup::getEurozoneDate() && $date >= acc_Setup::getEurozoneDate()){
+        if(is_object($rec) && ($rec->createdOn ?? null) < acc_Setup::getEurozoneDate() && $date >= acc_Setup::getEurozoneDate()){
             core_Statuses::newStatus('Не може да се активира оферта създадена преди Еврозоната с дата след нея|*!', 'error');
 
             return false;

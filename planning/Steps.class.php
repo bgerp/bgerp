@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,offsetAfter,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent,mandatoryDocuments,supportSystemFolderId';
+    protected $extenderFields = 'centerId,name,canStore,norm,fastProgressBtn,offsetAfter,inputStores,storeIn,calcWeightMode,labelTransferQuantityInPack,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent,mandatoryDocuments,supportSystemFolderId';
 
 
     /**
@@ -107,6 +107,7 @@ class planning_Steps extends core_Extender
         $this->FLD('isFinal', 'enum(no=Междинен етап,yes=Финален етап)', 'caption=Използване в производството->Вид,notNull,value=no');
         $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,no=Скриване,yes=Показване)', 'caption=Използване в производството->Предходно задание,notNull,value=no');
         $this->FLD('calcWeightMode', 'enum(auto=Автоматично,no=Изключено,yes=Включено)', 'caption=Използване в производството->Въвеждане на тегло,notNull,value=auto');
+        $this->FLD('fastProgressBtn', 'enum(auto=Автоматично,no=Изключено,yes=Включено)', 'caption=Използване в производството->Бърз прогрес от листа,notNull,value=auto');
         $this->FLD('supportSystemFolderId', 'key2(mvc=doc_Folders,select=title,coverClasses=support_Systems,allowEmpty)', 'caption=Използване в производството->Система за сигнали,placeholder=Автоматично');
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Складове->Складируем,notNull,value=yes,silent');
         $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Складове->Влагане ОТ');
@@ -494,6 +495,11 @@ class planning_Steps extends core_Extender
             if($rec->calcWeightMode == 'auto'){
                 $row->calcWeightMode = $mvc->getFieldType('calcWeightMode')->toVerbal(planning_Setup::get('TASK_WEIGHT_MODE'));
                 $row->calcWeightMode = ht::createHint($row->calcWeightMode, 'По подразбиране', 'notice', 'false');
+            }
+
+            if($rec->fastProgressBtn == 'auto'){
+                $row->fastProgressBtn = $mvc->getFieldType('fastProgressBtn')->toVerbal(planning_Setup::get('TASK_FAST_PROGRESS_BTN'));
+                $row->fastProgressBtn = ht::createHint($row->fastProgressBtn, 'По подразбиране', 'notice', 'false');
             }
 
             if(empty($rec->labelPackagingId)){

@@ -205,8 +205,8 @@ class crm_Groups extends core_Master
         if ($form->isSubmitted()) {
 
             // Проверка дали бащата и името са уникални
-            $where = ($rec->parentId) ? "#parentId = {$rec->parentId}" : "#parentId IS NULL";
-            if(static::fetchField("{$where} AND #name = '{$rec->name}' AND #id != '{$rec->id}'")){
+            $where = (!empty($rec->parentId)) ? "#parentId = {$rec->parentId}" : "#parentId IS NULL";
+            if(static::fetchField("{$where} AND #name = '{$rec->name}' AND #id != '" . ($rec->id ?? 0) . "'")){
                 $form->setError('parentId,name', 'Вече съществува запис със същите данни');
             }
         }
@@ -308,7 +308,7 @@ class crm_Groups extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if(!empty($rec)){
-            if (($rec->sysId || $rec->companiesCnt || $rec->personsCnt) && $action == 'delete') {
+            if ((!empty($rec->sysId) || !empty($rec->companiesCnt) || !empty($rec->personsCnt)) && $action == 'delete') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -343,11 +343,11 @@ class crm_Groups extends core_Master
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         // Ако няма стойности
-        if (!$rec->companiesCnt) {
+        if (empty($rec->companiesCnt)) {
             $rec->companiesCnt = 0;
         }
-        
-        if (!$rec->personsCnt) {
+
+        if (empty($rec->personsCnt)) {
             $rec->personsCnt = 0;
         }
         
@@ -476,7 +476,7 @@ class crm_Groups extends core_Master
             $rec->sysId = $newRec->sysId;
             $rec->allow = $newRec->allow;
             
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 $nAffected++;
             }
             

@@ -1928,12 +1928,18 @@ a.tUnsighted {
 		border-radius: 5px;
 	}
 }
+.titleTags.leftCol {
+	white-space: normal !important;
+}
+
 .titleTags, .small.openModal {
 	line-height: 1.5em !important;
 }
+
 .titleTags .documentTags {
 	position: relative;
 	top: -2px;
+	white-space: nowrap;
 }
 
 .tags.lightBg a{
@@ -2014,67 +2020,6 @@ a.tUnsighted {
 		display: block;
 	}
 }
-.richtext-message {
-    &.richtext-warning, &.richtext-error, &.richtext-success, &.richtext-question {
-    border: none !important;
-    padding: 0 !important;
-    background: #f5f5f5 !important;
-    font-family: Arial, sans-serif !important;
-    color: #555 !important;
-  }
-}
-
-/* Оранжива горна лента */
-.richtext-message{
-  &.richtext-warning::before, &.richtext-error::before, &.richtext-success::before, &.richtext-question::before {
-    display: block !important;
-    text-align: center !important;
-    font-weight: bold !important;
-    padding: 4px 10px !important;
-    font-size: 18px !important;
-    font-style: normal !important;
-    margin: -10px -10px 8px -10px;
-  }
-}
-
-  .richtext-message.richtext-warning::before {
-    content: "⚠ WARNING" !important;
-    background: #ff8800 !important;
-    color: #333 !important;
-  }
-
-.richtext-message.richtext-success::before {
-  content: "⚠ CAUTION" !important;
-  background: #FFE100 !important;
-  color: #333 !important;
-}
-.richtext-message.richtext-question::before {
-  content: "CAUTION" !important;
-  background: #014487 !important;
-  color: #fff !important;
-}
-
-/* Текстът вътре */
-  .richtext-message {
-    &.richtext-warning, &.richtext-error, &.richtext-success, &.richtext-question {
-      padding: 10px 12px !important;
-      font-size: 15px !important;
-      line-height: 1.4 !important;
-      font-style: italic !important;
-    }
-}
-
-/* Подчертаване на опасната част (опция — само ако искаш bold + darker) */
-.richtext-message strong {
-  font-weight: bold !important;
-  color: #333 !important;
-}
-  .richtext-message.richtext-error::before {
-    content: "⚠ DANGER" !important;
-    background: #BC2025 !important;
-    color: #fff !important;
-  }
-
 
 .bgerp_drivers_Tasks {
 	.rightCol {
@@ -4681,6 +4626,22 @@ fieldset.sharing-history {
 	float:right;
 	width:74%
 }
+.wide .oldView.eshop-product-images {
+	min-width:120px;float:left;width:22%;
+}
+
+.narrow .oldView.eshop-product-images {
+	float:left;
+	max-width: 160px;
+	margin-right: 20px;
+}
+
+.oldView.eshop-product-images img {
+	max-width: 100% !important;
+	width: auto;
+	height: auto !important;
+}
+
 .product-gallery + .productInfo {
 	overflow: visible;
 	padding-top: 5px;
@@ -4745,6 +4706,7 @@ fieldset.sharing-history {
 	text-align: center;
 	position: relative;
 	top: -2px;
+	font-weight: normal !important;
 	&.waitingDelivery {
 		background-color: rgba(41, 86, 222, 0.8) !important;
 	}
@@ -6876,7 +6838,21 @@ div.location.public {
 	border-spacing: 5px;
 	border-collapse: separate;
 }
+.block_title .frontTooltip, .block_title .endTooltip {
+	position: relative;
+	top: -4px !important;
 
+}
+.no-border-holder table {
+	margin-top: 20px;
+	border: none;
+	border-spacing: 5px;
+	td, th {
+		border-right: none !important;
+		border-left: none !important;
+		padding: 5px 15px !important;
+	}
+}
 .no-border-table .button {
 	float: none !important;
 	width: 100%;
@@ -7028,9 +7004,12 @@ div.location.public {
 	transform: scale(1.1);
 }
 
-.narrow .eshop-group-button {
-	width: 100%;
+@media handheld, only screen and (max-width: 760px) {
+	.narrow .eshop-group-button {
+		width: 100%;
+	}
 }
+
 .narrow .eshop-group-button .eshop-group-button-title {
 	height: auto;
 }
@@ -9042,6 +9021,12 @@ tr.wasteWeightPercent td {
 		width: 16px;
 		height: 16px;
 	}
+}
+
+
+legend .frontTooltip, legend .endTooltip {
+	position: relative;
+	top: -1px !important;
 }
 
 .narrow .elem-holder .endTooltip {

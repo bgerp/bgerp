@@ -224,7 +224,7 @@ class core_Query extends core_FieldSet
                 $cond = "#id = {$cond}";
             }
             
-            $lastCondKey = countR($this->where) - 1;
+            $lastCondKey = countR($this->where ?? null) - 1;
             
             if ($or && ($lastCondKey >= 0)) {
                 $lastCond = & $this->where[$lastCondKey];
@@ -480,6 +480,7 @@ class core_Query extends core_FieldSet
     public function getGroupBy()
     {
         if (countR($this->groupBy) > 0) {
+            $groupBy = '';
             foreach ($this->groupBy as $f => $true) {
                 $groupBy .= ($groupBy ? ', ' : '') . $f;
             }
@@ -576,7 +577,7 @@ class core_Query extends core_FieldSet
             // сортирането се използва името на полето записано в orderAs
             // иначе сортиране не се прави
             if ($fieldObj->kind == 'FNC') {
-                if ($fieldObj->orderAs) {
+                if ($fieldObj->orderAs ?? null) {
                     $order->field = $fieldObj->orderAs;
                 } else {
                     continue;
@@ -697,7 +698,7 @@ class core_Query extends core_FieldSet
     {
         if (countR($this->unions)) {
             $count = countR($this->unions);
-
+            $query = '';
             foreach ($this->unions as $cond) {
                 $q = clone($this);
                 $q->unions = null;
@@ -1061,7 +1062,7 @@ class core_Query extends core_FieldSet
                 $externalFieldName = $fieldRec->externalFieldName ?? 'id';
                 $externalFieldName = str::phpToMysqlName($externalFieldName);
                 
-                if ($fieldRec->externalKey && !$isDelete) {
+                if (($fieldRec->externalKey ?? null) && !$isDelete) {
                     $mvc = cls::get($fieldRec->externalClass);
                     $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`{$externalFieldName}`");
                     $this->tables[$mvc->dbTableName] = true;
@@ -1364,7 +1365,7 @@ class core_Query extends core_FieldSet
     {
         //$key = Mode::getProcessKey();
         
-        $exp = $arr[0];
+        $exp = $arr[0] ?? null;
 
         $a = $c = array();
         $cntArr = countR($arr);

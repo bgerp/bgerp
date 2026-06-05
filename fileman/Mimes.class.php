@@ -84,7 +84,7 @@ class fileman_Mimes extends core_Mvc
         
         $ext = trim(strtolower($ext));
         
-        return self::$ext2mime[$ext];
+        return self::$ext2mime[$ext] ?? null;
     }
     
     

@@ -118,7 +118,7 @@ class core_UserTranslatePlg extends core_Plugin
             $rec = $mvc->fetchRec($rec);
         }
         
-        if (!Mode::is('forSearch') && $part && $uTranslateFields[$part] && $rec->{$part}) {
+        if (!Mode::is('forSearch') && $part && ($uTranslateFields[$part] ?? null) && ($rec->{$part} ?? null)) {
             $trArr = explode('|', $uTranslateFields[$part]->translate);
             
             $val = $rec->{$part};
@@ -141,7 +141,7 @@ class core_UserTranslatePlg extends core_Plugin
                 } elseif ($tName == 'field') {
                     $lg = ucfirst(core_Lg::getCurrent());
                     $lgPart = $part . $lg;
-                    if (strlen(trim($rec->{$lgPart})) && ($rec->{$lgPart} != $rec->{$part})) {
+                    if (strlen(trim($rec->{$lgPart} ?? '')) && (($rec->{$lgPart} ?? null) != ($rec->{$part} ?? null))) {
                         $tr = $rec->{$lgPart};
                         break;
                     }
@@ -188,7 +188,7 @@ class core_UserTranslatePlg extends core_Plugin
             
             $fNameArr = array();
             
-            $uTrFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), 'user', $rec->id);
+            $uTrFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), 'user', $rec->id ?? null);
             foreach ($uTrFields as $fName => $fType) {
                 if ($fieldsArr[$fName]) {
                     $fNameArr[$fName] = $fName;
@@ -199,7 +199,7 @@ class core_UserTranslatePlg extends core_Plugin
             if (!empty($fNameArr)) {
                 $tQuery = core_UserTranslates::getQuery();
                 $tQuery->where(array("#classId = '[#1#]'", $mvc->getClassId()));
-                $tQuery->where(array("#recId = '[#1#]'", $rec->id));
+                $tQuery->where(array("#recId = '[#1#]'", $rec->id ?? null));
                 
                 while ($tRec = $tQuery->fetch()) {
                     foreach ((array) $tRec->data as $fNameStr => $fData) {

@@ -102,7 +102,7 @@ class core_Roles extends core_Manager
         expect($role);
         
         if (is_array($role)) {
-            list($role, $inherit, $type) = $role;
+            list($role, $inherit, $type) = array_pad($role, 3, null);
         }
         
         $rec = new stdClass();
@@ -120,7 +120,7 @@ class core_Roles extends core_Manager
 
         if ($exRec) {
             $rec->id = $exRec->id;
-            $rec->inheritInput = keylist::fromArray(arr::combine(keylist::toArray($rec->inheritInput), keylist::toArray($exRec->inheritInput)));
+            $rec->inheritInput = keylist::fromArray(arr::combine(keylist::toArray($rec->inheritInput ?? null), keylist::toArray($exRec->inheritInput ?? null)));
         }
         
         $Roles->save($rec);
@@ -217,7 +217,7 @@ class core_Roles extends core_Manager
     {
         self::loadRoles();
         
-        return self::$rolesArr[$roleId];
+        return self::$rolesArr[$roleId] ?? null;
     }
     
     
@@ -349,7 +349,7 @@ class core_Roles extends core_Manager
                 if ($type) {
                     
                     //За всяко срещане на роля добавяме единица
-                    ++$res[$type] ;
+                    $res[$type] = ($res[$type] ?? 0) + 1;
                 }
             }
         }
@@ -415,7 +415,7 @@ class core_Roles extends core_Manager
                 $expandedRoles = self::expand($form->rec->inheritInput);
                 
                 // Ако има грешки
-                if ($expandedRoles[$rec->id]) {
+                if (!empty($expandedRoles[$rec->id])) {
                     $form->setError('inherit', '|Не може да се наследи роля, която е или наследява текущата роля');
                 } else {
                     $rec->inherit = keylist::fromArray($expandedRoles);
@@ -435,7 +435,7 @@ class core_Roles extends core_Manager
         $addRoles = '';
 
         foreach ($rolesArr as $roleId) {
-            if (!$rolesInputArr[$roleId]) {
+            if (empty($rolesInputArr[$roleId])) {
                 $addRoles .= ($addRoles ? ', ' : '') . $mvc->getVerbal($roleId, 'role');
             }
         }
@@ -525,8 +525,8 @@ class core_Roles extends core_Manager
      */
     public static function getVerbal($rec, $fieldName)
     {
-        if ($rec->id === 0) {
-            
+        if (is_object($rec) && ($rec->id ?? null) === 0) {
+
             return tr($rec->name);
         }
         
@@ -553,7 +553,7 @@ class core_Roles extends core_Manager
         
         $rec = $data->listFilter->rec;
         
-        if (!$rec->type) {
+        if (!($rec->type ?? null)) {
             $rec->type = '';
         }
         

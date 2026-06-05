@@ -218,7 +218,7 @@ class auto_handler_CreateQuotationFromInquiry
                 $form->rec->{$name} = $marketingRec->{$name};
             }
         }
-        
+
         // Определяме мярката за продукта, ако липсва
         if (!$form->rec->measureId) {
             // Ако има дефолтна мярка, избираме я
@@ -231,7 +231,31 @@ class auto_handler_CreateQuotationFromInquiry
         }
         
         $rec = $form->rec;
+        if($Driver instanceof cat_GeneralProductDriver){
+            if(!empty($marketingRec->proto) && empty($rec->meta)){
+                $rec->meta = cat_Products::fetchField($marketingRec->proto, 'meta');
+            }
+            if(empty($rec->meta)){
+                $rec->meta = 'canSell';
+            }
+        }
+
         $productId = $Products->save($rec);
+        if($Driver instanceof cat_GeneralProductDriver){
+
+            // Ако е универсален артикул клонират се и параметрите от запитването
+            if(isset($productId)){
+                $pQuery = cat_products_Params::getQuery();
+                $pQuery->where("#productId = {$marketingRec->id} AND #classId =" . marketing_Inquiries2::getClassId());
+                $pQuery->orderBy('id', 'ASC');
+                while($pRec = $pQuery->fetch()){
+                    $pRec->classId = cat_Products::getClassId();
+                    $pRec->productId = $productId;
+                    cat_products_Params::save($pRec);
+                }
+            }
+        }
+
         $Products->logWrite('Създаване от запитване', $productId);
         doc_HiddenContainers::showOrHideDocument($rec->containerId, true, false, $marketingRec->createdBy);
         

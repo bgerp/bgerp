@@ -341,7 +341,7 @@ class fileman_Files extends core_Master
         $copyPath = $path . '/' . $fileName;
         
         // Копираме файла
-        $copied = @copy($originalPath, $copyPath);
+        $copied = file_exists($originalPath) ? copy($originalPath, $copyPath) : false;
         
         // Ако копирането не премине успешно
         if (!$copied) {
@@ -1221,7 +1221,7 @@ class fileman_Files extends core_Master
         //expect($path = fileman_Download::getDownloadUrl($hnd));
         expect($path = fileman_Files::fetchByFh($hnd, 'path'));
         
-        return @file_get_contents($path);
+        return is_readable($path) ? file_get_contents($path) : false;
     }
     
     
@@ -1582,11 +1582,11 @@ class fileman_Files extends core_Master
                 $link = $linkFileTitlePlain . $name;
             } else {
                 if (!file_exists($path)) {
-                    $attr['style'] .= ' color:red;';
+                    $attr['style'] = ($attr['style'] ?? '') . ' color:red;';
                 }
-                
+
                 //Генерираме името с иконата
-                $link = "<span class='linkWithIcon' style=\"" . $attr['style'] . "\"> {$nameFix} </span>";
+                $link = "<span class='linkWithIcon' style=\"" . ($attr['style'] ?? '') . "\"> {$nameFix} </span>";
             }
         }
         

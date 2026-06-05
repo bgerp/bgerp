@@ -323,6 +323,7 @@ class bank_OwnAccounts extends core_Master
             return;
         }
         
+        $total = 0;
         foreach ($data->recs as $rec) {
             $total += $rec->blAmount;
         }
@@ -538,7 +539,7 @@ class bank_OwnAccounts extends core_Master
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if ($rec->_isSubmitted === true) {
+        if (($rec->_isSubmitted ?? null) === true) {
             $rec->bankAccountId = self::syncWithAccount($rec->bankAccountId, $rec->iban, $rec->currencyId, $rec->bank, $rec->bic, $rec->conditionSaleBg, $rec->conditionSaleEn);
         }
     }
@@ -826,7 +827,7 @@ class bank_OwnAccounts extends core_Master
         $Balance = new acc_ActiveShortBalance(array('from' => $to, 'to' => $to, 'accs' => '503', 'cacheBalance' => true, 'item1' => $bankItem->id, 'item2' => $currencyItem->id));
         $balanceRec = $Balance->getBalance('503', array($accId, $bankItem->id, $currencyItem->id, null));
 
-        return (object)array('quantity' => $balanceRec->blQuantity, 'amount' => $balanceRec->blAmount);
+        return (object)array('quantity' => $balanceRec->blQuantity ?? null, 'amount' => $balanceRec->blAmount ?? null);
     }
 
 

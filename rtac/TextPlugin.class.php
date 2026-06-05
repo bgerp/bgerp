@@ -60,7 +60,7 @@ class rtac_TextPlugin extends core_Plugin
         $tpl->appendOnce('var rtacObj = {};', 'SCRIPTS');
         
         // Ако не са зададени права в параметрите
-        if (!($userRolesForTextComplete = $mvc->params['userRolesForTextComplete'])) {
+        if (!($userRolesForTextComplete = ($mvc->params['userRolesForTextComplete'] ?? null))) {
             $userRolesForTextComplete = $conf->RTAC_DEFAULT_ROLES_FOR_TEXTCOMPLETE;
         }
         

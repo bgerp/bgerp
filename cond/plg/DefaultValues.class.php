@@ -169,7 +169,7 @@ class cond_plg_DefaultValues extends core_Plugin
                     $type = $mvc->fields[$name]->type;
                     if ($type instanceof type_Key) {
                         $vRec = $type->getRecForVal($value);
-                            if ($vRec->state == 'closed') {
+                            if (is_object($vRec) && ($vRec->state ?? null) == 'closed') {
                                 continue;
                             }
                     }
@@ -243,7 +243,8 @@ class cond_plg_DefaultValues extends core_Plugin
         $query->show($name);
         $query->limit(1);
 
-        $val = $query->fetch()->{$name};
+        $_fetchedRec = $query->fetch();
+        $val = is_object($_fetchedRec) ? $_fetchedRec->{$name} : null;
 
         // Ако се взима последната валута и сме след датата за влизане в ЕЗ - ще се подмени с евро
         if($name == 'currencyId' && $val == 'BGN'){
@@ -382,7 +383,7 @@ class cond_plg_DefaultValues extends core_Plugin
             $mvc->_cachedContragentData = $data;
         }
         
-        if ($dataField = $mvc->fields[$name]->contragentDataField) {
+        if (isset($mvc->fields[$name]) && ($dataField = ($mvc->fields[$name]->contragentDataField ?? null))) {
             $name = $dataField;
         }
         
@@ -443,9 +444,9 @@ class cond_plg_DefaultValues extends core_Plugin
             
             return;
         }
-        if ($rec->originId) {
+        if (!empty($rec->originId)) {
             $rec->folderId = doc_Containers::fetchField($rec->originId, 'folderId');
-        } elseif ($rec->threadId) {
+        } elseif (!empty($rec->threadId)) {
             $rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
         }
     }
@@ -474,7 +475,7 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = array())
     {
-        if ($rec->folderId) {
+        if (!empty($rec->folderId)) {
             if (Mode::is('isMigrate')) return;
 
             $updateFields = $mvc->getContragentCoverFieldsToUpdate($rec);
@@ -491,7 +492,7 @@ class cond_plg_DefaultValues extends core_Plugin
                                 continue;
                             }
                             
-                            if (!($inst->fields[$cName])) {
+                            if (empty($inst->fields[$cName])) {
                                 continue;
                             }
                             

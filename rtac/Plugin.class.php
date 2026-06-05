@@ -103,7 +103,7 @@ class rtac_Plugin extends core_Plugin
         $id = trim($id);
         
         // Ако са подадени роли до които може да се споделя
-        if (! ($userRolesForShare = $mvc->params['userRolesForShare'])) {
+        if (! ($userRolesForShare = ($mvc->params['userRolesForShare'] ?? null))) {
             $userRolesForShare = $conf->RTAC_DEFAUL_USER_ROLES_FOR_SHARE;
         }
         
@@ -118,7 +118,7 @@ class rtac_Plugin extends core_Plugin
         if (core_Users::haveRole($userRolesForShareArr)) {
             
             // Ако са подадени роли до които може да се споделя
-            if (! ($shareUsersRoles = $mvc->params['shareUsersRoles'])) {
+            if (! ($shareUsersRoles = ($mvc->params['shareUsersRoles'] ?? null))) {
                 $shareUsersRoles = $conf->RTAC_DEFAUL_SHARE_USER_ROLES;
             }
 
@@ -145,7 +145,7 @@ class rtac_Plugin extends core_Plugin
                         $cRec = $ctr->fetch($rId);
                         if ($cRec && $cRec->folderId) {
                             $folderId = $cRec->folderId;
-                            $threadId = $cRec->threadId;
+                            $threadId = $cRec->threadId ?? null;
                         }
                     }
                 }
@@ -185,7 +185,7 @@ class rtac_Plugin extends core_Plugin
             $localUrl = urlencode($localUrl);
             $tpl->appendOnce("rtacObj.shareUsersURL.{$id} = '{$localUrl}';", 'SCRIPTS');
 
-            setIfNot($maxShowCnt, $mvc->params['maxOptionsShowCount'], rtac_Setup::get('MAX_SHOW_COUNT'));
+            setIfNot($maxShowCnt, ($mvc->params['maxOptionsShowCount'] ?? null), rtac_Setup::get('MAX_SHOW_COUNT'));
 
             // Стартираме autocomplete-a за добавяне на потребител
             $inst->runAutocompleteUsers($tpl, $id, $maxShowCnt);

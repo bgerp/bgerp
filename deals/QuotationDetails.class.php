@@ -431,7 +431,7 @@ class deals_QuotationDetails extends doc_Detail
                 $row->amount = deals_Helper::displayDualAmount($row->amount, $rec->amount, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
             }
 
-            if ($rec->livePrice === true) {
+            if (($rec->livePrice ?? null) === true) {
                 $row->packPrice = "<span style='color:blue'>{$row->packPrice}</span>";
                 $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false);
             }
@@ -688,7 +688,7 @@ class deals_QuotationDetails extends doc_Detail
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
             $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
-            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
+            $row->amount = sales_TransportValues::getAmountHint($row->amount, ($fee->fee ?? null), $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, ($fee->explain ?? null));
 
             if(isset($rec->vatPackPrice) && $data->renderVatPriceInRec){
                 $row->vatPackPrice = $mvc->getFieldType('vatPackPrice')->toVerbal($rec->vatPackPrice);
@@ -800,7 +800,7 @@ class deals_QuotationDetails extends doc_Detail
                 $data->summary->chargeVat = $data->masterData->row->chargeVat;
             }
 
-            if (!$data->summary->discountValue) {
+            if (empty($data->summary->discountValue)) {
                 $data->summary->discountValue = '-';
                 $data->summary->discountTitle = '-';
             } else {
@@ -808,7 +808,7 @@ class deals_QuotationDetails extends doc_Detail
                 $data->summary->discountValue = "- {$data->summary->discountValue}";
             }
 
-            if (!$data->summary->neto) {
+            if (empty($data->summary->neto)) {
                 $data->summary->neto = '-';
                 $data->summary->netTitle = '-';
             } else {
@@ -949,7 +949,7 @@ class deals_QuotationDetails extends doc_Detail
             $oTpl->replace('<tr><td colspan="6">' . tr('Няма записи') . '</td></tr>', 'ROWS');
         }
 
-        if ($summary = $data->summary) {
+        if ($summary = ($data->summary ?? null)) {
             if ($summary->discountTitle != '-') {
                 $summary->discountTitle = tr($summary->discountTitle);
             }
@@ -980,11 +980,11 @@ class deals_QuotationDetails extends doc_Detail
 
         $miscMandatory = $masterRec->currencyId . $vatRow;
         $miscOptional = $masterRec->currencyId . $vatRow;
-        if (countR($data->discounts) && $data->hasDiscounts === true) {
+        if (countR($data->discounts ?? null) && ($data->hasDiscounts ?? null) === true) {
             $miscMandatory .= ', ' . tr('без извадени отстъпки');
         }
 
-        if (countR($data->discountsOptional) && $data->hasDiscounts === true) {
+        if (countR($data->discountsOptional ?? null) && ($data->hasDiscounts ?? null) === true) {
             $miscOptional .= ', ' . tr('без извадени отстъпки');
         }
 

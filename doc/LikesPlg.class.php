@@ -473,7 +473,7 @@ class doc_LikesPlg extends core_Plugin
                         $likesLink = '<span>' . $likesLink . '</span>';
                     }
                     
-                    $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
+                    $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft ?? '');
                     $row->DocumentSettingsLeft->append($likesLink);
                 }
                 

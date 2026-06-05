@@ -233,11 +233,11 @@ class doc_Comments extends embed_Manager
         $data->form->setField($mvc->driverClassField, 'input=hidden');
         
         // Да се цитират документа, ако не се редактира
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             $data->form->fields['body']->type->params['appendQuote'] = 'appendQuote';
         }
-        
-        if (!$data->form->rec->id && !$data->form->rec->clonedFromId) {
+
+        if (empty($data->form->rec->id) && empty($data->form->rec->clonedFromId)) {
             $detId = Request::get('detId', 'int');
             
             $originId = $data->form->rec->originId;

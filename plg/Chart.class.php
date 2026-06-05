@@ -274,7 +274,7 @@ class plg_Chart extends core_Plugin
                 
                 $url = getCurrentUrl();
                 
-                if ($url['Chart'] != $type) {
+                if (($url['Chart'] ?? null) != $type) {
                     $url['Chart'] = $type;
                     $title->append(ht::createLink(tr($caption), $url), 'ListSummary');
                 } else {

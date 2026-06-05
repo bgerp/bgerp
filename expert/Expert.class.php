@@ -284,12 +284,12 @@ class expert_Expert extends core_FieldSet
      */
     public function getLayout($type)
     {
-        if ($this->layouts[$type]) {
-            
+        if ($this->layouts[$type] ?? null) {
+
             return $this->layouts[$type];
         }
-        
-        return $this->layouts['default'];
+
+        return $this->layouts['default'] ?? null;
     }
     
     
@@ -389,7 +389,7 @@ class expert_Expert extends core_FieldSet
         $state = new stdClass();
         
         foreach ($this->vals as $name => $value) {
-            $state->vars[$name] = array('0' => $this->vals[$name], '1' => $this->setInStep[$name], '2' => $this->fromDialog[$name]);
+            $state->vars[$name] = array('0' => $this->vals[$name], '1' => ($this->setInStep[$name] ?? null), '2' => ($this->fromDialog[$name] ?? null));
         }
         
         $state->currentStep = $this->currentStep;
@@ -413,7 +413,7 @@ class expert_Expert extends core_FieldSet
     /**
      * Добавя правило
      */
-    public function RULE($var, $expr, $cond = true)
+    public function RULE($var, $expr, $cond = true, $params = array(), $moreParams = array())
     {
         $this->trimPrefix($var);
         $args = array('vars' => $var, 'expr' => $expr, 'cond' => $cond, 'element' => 'rule');
@@ -425,7 +425,7 @@ class expert_Expert extends core_FieldSet
     /**
      * Добавя опции за променлива
      */
-    public function OPTIONS($var, $expr, $cond = true)
+    public function OPTIONS($var, $expr, $cond = true, $params = array(), $moreParams = array())
     {
         $this->trimPrefix($var);
         $args = array('vars' => $var, 'expr' => $expr, 'cond' => $cond, 'element' => 'options');
@@ -437,7 +437,7 @@ class expert_Expert extends core_FieldSet
     /**
      * Добавя предложения за променлива
      */
-    public function SUGGESTIONS($var, $expr, $cond = true)
+    public function SUGGESTIONS($var, $expr, $cond = true, $params = array(), $moreParams = array())
     {
         $this->trimPrefix($var);
         $args = array('vars' => $var, 'expr' => $expr, 'cond' => $cond, 'element' => 'suggestions');
@@ -449,7 +449,7 @@ class expert_Expert extends core_FieldSet
     /**
      * Добавя предположение за стойност на променлива
      */
-    public function ASSUME($var, $expr, $cond = true)
+    public function ASSUME($var, $expr, $cond = true, $params = array(), $moreParams = array())
     {
         $this->trimPrefix($var);
         $args = array('vars' => $var, 'expr' => $expr, 'cond' => $cond, 'element' => 'assume');
@@ -508,7 +508,7 @@ class expert_Expert extends core_FieldSet
      */
     public function setKnowledge($params)
     {
-        if (is_a($params['expr'], 'core_ET')) {
+        if (!empty($params['expr']) && is_a($params['expr'], 'core_ET')) {
             $params['expr'] = '"' . str_replace('"', '\"', $params['expr']->getContent()) . '"';
         }
         setIfNot($params['label'], $params['element'] . '_' . $this->kInd++);
@@ -586,7 +586,7 @@ class expert_Expert extends core_FieldSet
     {
         $this->trimPrefix($name);
         
-        return $this->fromDialog[$name] || $this->isTrusty($name . '_ASSUME_') ;
+        return ($this->fromDialog[$name] ?? null) || $this->isTrusty($name . '_ASSUME_');
     }
     
     
@@ -642,12 +642,12 @@ class expert_Expert extends core_FieldSet
     {
         $this->trimPrefix($name);
         
-        if (!$this->vals[$name] && !$this->fromDialog[$name] && $this->vals[$name . '_ASSUME_']) {
-            
+        if (!($this->vals[$name] ?? null) && !($this->fromDialog[$name] ?? null) && ($this->vals[$name . '_ASSUME_'] ?? null)) {
+
             return $this->vals[$name . '_ASSUME_'];
         }
-        
-        return $this->vals[$name];
+
+        return $this->vals[$name] ?? null;
     }
     
     
@@ -791,12 +791,12 @@ class expert_Expert extends core_FieldSet
             die;
         }
         
-        if ($this->midRes->RetUrl) {
-            
-            return new Redirect($this->midRes->RetUrl, $this->midRes->alert, $this->getRedirectMsgType());
+        if ($this->midRes->RetUrl ?? null) {
+
+            return new Redirect($this->midRes->RetUrl, $this->midRes->alert ?? null, $this->getRedirectMsgType());
         }
-        
-        if ($this->midRes->form) {
+
+        if ($this->midRes->form ?? null) {
             $form = $this->midRes->form;
             
             $form->FNC('Eid', 'varchar', 'input=hidden');
@@ -804,8 +804,8 @@ class expert_Expert extends core_FieldSet
             $form->setHidden('State', $this->getState());
             
             $tpl = $form->renderHtml();
-            $tpl->append($this->midRes->afterForm);
-            $tpl->prepend($this->midRes->beforeForm);
+            $tpl->append($this->midRes->afterForm ?? null);
+            $tpl->prepend($this->midRes->beforeForm ?? null);
             
             if (Mode::is('screenMode', 'narrow')) {
                 $tpl->appendOnce($this->narrowDialogStyle, 'STYLES');
@@ -955,7 +955,7 @@ class expert_Expert extends core_FieldSet
             // които са дефинирани като fromRequest, и в момента нямат
             // достоверни стойности
             foreach ($this->knowledge as $id => $kRec) {
-                if ($kRec->fromRequest && (Request::get($kRec->name, $kRec->type) !== null)) {
+                if (($kRec->fromRequest ?? null) && (Request::get($kRec->name, $kRec->type) !== null)) {
                     $this->setValue($kRec->name, Request::get($kRec->name, $kRec->type));
                 }
             }
@@ -1374,7 +1374,7 @@ class expert_Expert extends core_FieldSet
             $form->layout = $layout;
         }
         
-        $form->info = $this->getInfo($kRec->element, $kRec->msg, $kRec->layout);
+        $form->info = $this->getInfo($kRec->element ?? null, $kRec->msg ?? null, $kRec->layout ?? null);
         
         // Задаваме полетата, които ще се показват и техните дефолти
         foreach ($kRec->vars as $var) {
@@ -1385,23 +1385,24 @@ class expert_Expert extends core_FieldSet
             // Опит да се зададе полето от CDEF (условните дефиниции)
             if (!$fieldIsSet) {
                 foreach ($this->knowledge as $id => $skRec) {
-                    if ($skRec->element == 'cdef') {
-                        $name = $this->trimPrefix($skRec->name);
-                        
+                    if (($skRec->element ?? null) == 'cdef') {
+                        $name = $skRec->name ?? null;
+                        $this->trimPrefix($name);
+
                         if ($name == $var) {
-                            if (!$this->calcExpr($skRec->cond, $res)) {
+                            if (!$this->calcExpr($skRec->cond ?? null, $res)) {
                                 continue;
                             }
-                            
+
                             if (!$res) {
                                 continue;
                             }
-                            
+
                             unset($skRec->element);
                             $sskRec = $this->calcExprAttr($skRec);
-                            $form->FNC($name, $sskRec->type, $sskRec);
-                            
-                            if ($sskRec->value) {
+                            $form->FNC($name, $sskRec->type ?? null, $sskRec);
+
+                            if ($sskRec->value ?? null) {
                                 $form->setDefault($name, $sskRec->value);
                             }
                             $fieldIsSet = true;
@@ -1414,15 +1415,16 @@ class expert_Expert extends core_FieldSet
             // Опит да се зададе полето от DEF (дефинициите)
             if (!$fieldIsSet) {
                 foreach ($this->knowledge as $id => $skRec) {
-                    if ($skRec->element == 'def') {
-                        $name = $this->trimPrefix($skRec->name);
+                    if (($skRec->element ?? null) == 'def') {
+                        $name = $skRec->name ?? null;
+                        $this->trimPrefix($name);
                         
                         if ($name == $var) {
                             unset($skRec->element);
                             $sskRec = $this->calcExprAttr($skRec);
                             $form->FNC($name, $skRec->type, $sskRec);
-                            
-                            if ($sskRec->value) {
+
+                            if ($sskRec->value ?? null) {
                                 $form->setDefault($name, $sskRec->value);
                             }
                             $fieldIsSet = true;
@@ -1667,11 +1669,13 @@ class expert_Expert extends core_FieldSet
         // Друго - всякакво друго състояние
         
         $state = 'other';
-        
+
         $len = mb_strlen($expr);
         $lastChar = '';
         $start = null;
-        
+        $bc = null;
+        $res = '';
+
         $usedVars = array();
         
         for ($i = 0; $i <= $len; $i++) {

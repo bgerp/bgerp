@@ -822,7 +822,7 @@ class crm_Profiles extends core_Master
     public static function prepareUnusedUserOptions($data, $limit = null)
     {
         $type = 'prepareUnusedUserOptions';
-        $handler = 'unusedUserOptions' . '|' . $limit . '|' . $data->form->rec->id;
+        $handler = 'unusedUserOptions' . '|' . $limit . '|' . (isset($data->form) ? ($data->form->rec->id ?? '') : '');
         $keepMinutes = 10000;
         $depends = 'crm_Profiles';
         
@@ -907,7 +907,7 @@ class crm_Profiles extends core_Master
     
     public static function on_AfterSave(crm_Profiles $mvc, $id, $profile)
     {
-        if ($profile->_syncUser) {
+        if (!empty($profile->_syncUser)) {
             // Флага _sync се вдига само на crm_Profiles::on_AfterInputEditForm().
             $person = crm_Persons::fetch($profile->personId);
             $mvc::syncUser($person);
@@ -950,7 +950,7 @@ class crm_Profiles extends core_Master
      */
     public static function syncPerson($personId, $user)
     {
-        if ($user->_skipPersonUpdate) {
+        if (!empty($user->_skipPersonUpdate)) {
             // След запис на визитка се обновяват данните (имена, имейл) на асоциирания с нея
             // потребител. Ако сме стигнали до тук по този път, не обновяваме отново данните
             // на визитката след промяна на потребителя, защото това води до безкраен цикъл!
@@ -984,23 +984,23 @@ class crm_Profiles extends core_Master
         $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
         $Persons = cls::get('crm_Persons');
         $groupExpandField = $Persons->expandInputFieldName;
-        $exGroupList = $person->{$groupExpandField};
-        if ($user->state == 'rejected') {
-            $person->{$groupExpandField} = keylist::removeKey($person->{$groupExpandField}, $profilesGroup->id);
+        $exGroupList = $person->{$groupExpandField} ?? null;
+        if (($user->state ?? null) == 'rejected') {
+            $person->{$groupExpandField} = keylist::removeKey($person->{$groupExpandField} ?? null, $profilesGroup->id);
         } else {
-            $person->{$groupExpandField} = keylist::addKey($person->{$groupExpandField}, $profilesGroup->id);
+            $person->{$groupExpandField} = keylist::addKey($person->{$groupExpandField} ?? null, $profilesGroup->id);
         }
         if ($person->{$groupExpandField} != $exGroupList) {
             $mustSave = true;
         }
         
-        if (!empty($user->names) && ($person->name != $user->names)) {
+        if (!empty($user->names) && (($person->name ?? null) != $user->names)) {
             $person->name = $user->names;
             $mustSave = true;
         }
         
         // Само ако записа на потребителя има
-        if (!empty($user->email) && (strpos($person->email, $user->email) === false) && (strpos($person->buzEmail, $user->email) === false)) {
+        if (!empty($user->email) && (strpos($person->email ?? '', $user->email) === false) && (strpos($person->buzEmail ?? '', $user->email) === false)) {
             $person->email = type_Emails::prepend($person->email, $user->email);
             
             $mustSave = true;
@@ -1013,7 +1013,7 @@ class crm_Profiles extends core_Master
         }
         
         // Само ако досега визитката не е имала inCharge, променения потребител и става отговорник
-        if (!$person->inCharge) {
+        if (empty($person->inCharge)) {
             
             // Ако създадения потребител е partner
             if (core_Users::haveRole('partner', $user->id)) {
@@ -1230,6 +1230,7 @@ class crm_Profiles extends core_Master
                     $attr['class'] .= ' no-one';
                 }
                 
+                $before = null;
                 if ($userRec->lastActivityTime) {
                     $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
                 }
@@ -1430,7 +1431,7 @@ class crm_Profiles extends core_Master
         $data->query->orderBy('lastTime', 'DESC');
         
         // Ако е избран 'Отсъстващи'
-        switch ($fields->leave) {
+        switch ($fields->leave ?? null) {
             
             case 'missing':
                 
@@ -1648,7 +1649,7 @@ class crm_Profiles extends core_Master
                 $type = $arguments[0];
                 
                 // Параметри на полето
-                $params = arr::combine($arguments[1], $arguments[2]);
+                $params = arr::combine($arguments[1], $arguments[2] ?? null);
                 
                 // Ако не е зададено, че може да се конфигурира или не може да се конфигурира за текущия потребител
                 if (empty($params['customizeBy']) || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {

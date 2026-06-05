@@ -73,6 +73,8 @@ class doc_plg_SelectFolder extends core_Plugin
             return;
         }
         
+        $folderId = null;
+
         if ($_companyId = Request::get('_companyId', 'key2(mvc=crm_Companies)')) {
             $cRec = crm_Companies::fetch($_companyId);
             if ($cRec) {
@@ -307,7 +309,7 @@ class doc_plg_SelectFolder extends core_Plugin
         if ($res !== false) {
             $allowedCovers = self::getAllowedCovers($mvc);
             $fRec = doc_Folders::fetch($folderId);
-            if (!$allowedCovers[$fRec->coverClass]) {
+            if (empty($allowedCovers[$fRec->coverClass])) {
                 $res = false;
                 
                 return false;

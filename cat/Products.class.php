@@ -646,7 +646,7 @@ class cat_Products extends embed_Manager
                 }
             }
             
-            if (isset($rec->id) && $form->_cloneForm !== true) {
+            if (isset($rec->id) && ($form->_cloneForm ?? null) !== true) {
                 $rec->_isEditedFromForm = true;
                
                 // Предупреждение ако артикула е на чернова
@@ -745,32 +745,42 @@ class cat_Products extends embed_Manager
     /**
      * Рутира публичен артикул в папка на категория
      */
-    private function routePublicProduct($categorySysId, &$rec)
+    private function routeImportedProduct($folder, &$rec)
     {
-        $categoryId = (is_numeric($categorySysId)) ? $categorySysId : null;
-        if (!isset($categoryId)) {
-            $categoryId = cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
+        // Ако е избрана конкретна папка - създава се в нея
+        if(is_numeric($folder)){
+            $folderId = $folder;
+        } else {
+            // Иначе се предполага, че се създава в системна категория
+            $categoryId = cat_Categories::fetchField("#sysId = '{$folder}'", 'id');
             if (!$categoryId) {
                 $categoryId = cat_Categories::fetchField("#sysId = 'goods'", 'id');
             }
+            $folderId = cat_Categories::forceCoverAndFolder($categoryId);
         }
-        
+
+        // Ако има с-ва зададени са те, иначе се пита първо драйвера, после корицата на папката
+        $metas = !empty($rec->meta) ? $rec->meta : null;
+        if(empty($metas)){
+            $defMetas = array();
+            if ($Driver = $this->getDriver($rec)) {
+                $defMetas = $Driver->getDefaultMetas($rec);
+            }
+
+            if (!countR($defMetas)) {
+                $Cover = doc_Folders::getCover($folderId);
+                $defMetas = $Cover->getDefaultMeta();
+            }
+            $metas = $this->getFieldType('meta')->fromVerbal($defMetas);
+        }
+
         // Ако няма такъв артикул създаваме документа
         if (!$this->fetch(array("#code = '[#1#]'", $rec->code))) {
-            $rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
+            $rec->folderId = $folderId;
             $this->route($rec);
         }
-        
-        $defMetas = array();
-        if ($Driver = $this->getDriver($rec)) {
-            $defMetas = $Driver->getDefaultMetas($rec);
-        }
-        
-        if (!countR($defMetas)) {
-            $defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
-        }
-        
-        $rec->meta = ($rec->meta) ? $rec->meta : $this->getFieldType('meta')->fromVerbal($defMetas);
+
+        $rec->meta = $metas;
     }
     
     
@@ -792,20 +802,27 @@ class cat_Products extends embed_Manager
         $fields['meta'] = array('caption' => 'Свойства');
         $fields['info'] = array('caption' => 'Описание');
         
-        $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
+        $folderType = 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=cat_ProductFolderCoverIntf)';
         $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
         $sharedType = 'keylist(mvc=doc_Folders,select=title)';
         $metaType = 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)';
-
         $sharedFolderSuggestions = doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf');
 
-        $fields['Category'] = array('caption' => 'Допълнителен избор->Категория', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => $categoryType);
+        $fields['Folder'] = array('caption' => 'Допълнителен избор->Папка', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => $folderType);
         $fields['Groups'] = array('caption' => 'Допълнителен избор->Групи', 'notColumn' => true, 'type' => $groupType);
         $fields['_sharedFolders'] = array('caption' => 'Допълнителен избор->Достъпно в', 'notColumn' => true, 'type' => $sharedType, 'suggestions' => $sharedFolderSuggestions);
         $fields['Meta'] = array('caption' => 'Допълнителен избор->Свойства', 'notColumn' => true, 'type' => $metaType);
-        
-        if (empty($mvc->fields['Category'])) {
-            $mvc->FNC('Category', $categoryType);
+        if(core_Packs::isInstalled('batch')){
+            $batchType = 'key(mvc=batch_Templates, select=name,allowEmpty)';
+            $fields['_Batch'] = array('caption' => 'Допълнителен избор->Партидност', 'notColumn' => true, 'type' => $batchType);
+
+            if (empty($mvc->fields['_Batch'])) {
+                $mvc->FNC('_Batch', $batchType);
+            }
+        }
+
+        if (empty($mvc->fields['Folder'])) {
+            $mvc->FNC('Folder', $folderType);
         }
         
         if (empty($mvc->fields['Groups'])) {
@@ -969,9 +986,8 @@ class cat_Products extends embed_Manager
         $rec->meta = implode(',', $nMetaArr);
 
         $rec->state = !empty($rec->state) ? $rec->state : 'active';
-        $category = !empty($rec->csv_category) ? $rec->csv_category : (!empty($rec->Category) ? $rec->Category : null);
-        
-        $mvc->routePublicProduct($category, $rec);
+        $folder = !empty($rec->csv_category) ? $rec->csv_category : (!empty($rec->Folder) ? $rec->Folder : null);
+        $mvc->routeImportedProduct($folder, $rec);
     }
     
     
@@ -1387,12 +1403,12 @@ class cat_Products extends embed_Manager
      */
     public static function setCodeIfEmpty(&$rec)
     {
-        if ($rec->isPublic == 'no' && empty($rec->code)) {
-            $rec->code = "Art{$rec->id}";
+        if (($rec->isPublic ?? null) == 'no' && empty($rec->code)) {
+            $rec->code = 'Art' . ($rec->id ?? '');
         } else {
             if (empty($rec->code)) {
-                $code = ($rec->id) ? static::fetchField($rec->id, 'code') : null;
-                $rec->code = ($code) ? $code : "Art{$rec->id}";
+                $code = ($rec->id ?? null) ? static::fetchField($rec->id, 'code') : null;
+                $rec->code = ($code) ? $code : 'Art' . ($rec->id ?? '');
             }
         }
     }
@@ -1592,7 +1608,7 @@ class cat_Products extends embed_Manager
         }
 
         if ($rec->groups) {
-            if ($rec->isPublic == 'yes') {
+            if (($rec->isPublic ?? null) == 'yes') {
                 price_Cache::invalidateProduct($rec->id);
             }
         }
@@ -1659,7 +1675,7 @@ class cat_Products extends embed_Manager
         // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
         if (countR($mvc->createdProducts)) {
             foreach ($mvc->createdProducts as $rec) {
-                if ($rec->canManifacture == 'yes') {
+                if (($rec->canManifacture ?? null) == 'yes') {
                     try {
                         if ($bomId = self::createDefaultBom($rec)) {
                             core_Statuses::newStatus('Успешно е създадена нова базова рецепта|* #' . cat_Boms::getHandle($bomId));
@@ -1965,7 +1981,7 @@ class cat_Products extends embed_Manager
                 $favourites[$rec->id] = $title;
             } elseif($rec->state == 'template'){
                 $templates[$rec->id] = $title;
-            } elseif ($rec->isPublic == 'yes') {
+            } elseif (($rec->isPublic ?? null) == 'yes') {
                 $products[$rec->id] = $title;
             } else {
                 $private[$rec->id] = $title;
@@ -2636,7 +2652,7 @@ class cat_Products extends embed_Manager
     public static function getDisplayName($rec)
     {
         // Ако в името имаме '||' го превеждаме
-        $name = $rec->name;
+        $name = $rec->name ?? null;
 
         if (!Mode::is('forSearch')) {
             $lg = core_Lg::getCurrent();
@@ -2660,7 +2676,7 @@ class cat_Products extends embed_Manager
                 $rec = $mvc->fetchRec($rec);
             }
 
-            $originalName = $rec->name;
+            $originalName = $rec->name ?? null;
             $part = self::getDisplayName($rec);
             if (!Mode::is('forSearch')) {
                 if ($originalName == $part) {
@@ -2708,7 +2724,7 @@ class cat_Products extends embed_Manager
      */
     public function getRecTitleTpl($rec)
     {
-        $tpl = ($rec->isPublic != 'yes' || $rec->state == 'template') ? $this->recTitleNonPublicTpl : $this->recTitleTpl;
+        $tpl = (($rec->isPublic ?? null) != 'yes' || ($rec->state ?? null) == 'template') ? $this->recTitleNonPublicTpl : $this->recTitleTpl;
        
         return new core_ET($tpl);
     }
@@ -2768,7 +2784,7 @@ class cat_Products extends embed_Manager
         $subTitle = (is_array($fullTitle)) ? $fullTitle['subTitle'] : null;
         
         if ($showCode === true) {
-            if ($rec->isPublic == 'yes') {
+            if (($rec->isPublic ?? null) == 'yes') {
                 $titleTpl = new core_ET('<!--ET_BEGIN code--><span class=productCode>[#code#]</span> <!--ET_END code-->[#name#]');
             } else {
                 $titleTpl = new core_ET('[#name#]<!--ET_BEGIN code--> <span class=productCode>[#code#]</span><!--ET_END code-->');
@@ -2785,7 +2801,7 @@ class cat_Products extends embed_Manager
             
             $title = $titleTpl->getContent();
             
-            if ($rec->isPublic == 'no' && empty($rec->code)) {
+            if (($rec->isPublic ?? null) == 'no' && empty($rec->code)) {
                 $count = cat_ProductTplCache::count("#productId = {$rec->id} AND #type = 'description' AND #documentType = '{$documentType}'", 2);
                 $title = "{$title} <span class='productCode'>Art{$rec->id}</span>";
                 
@@ -2828,7 +2844,7 @@ class cat_Products extends embed_Manager
         // Връщаме шаблона с подготвените данни
         $tpl = new ET("[#name#]<!--ET_BEGIN additionalTitle--><br>[#additionalTitle#]<!--ET_END additionalTitle--><!--ET_BEGIN desc--><br><div style='font-size:0.85em'>[#desc#]</div><!--ET_END desc-->");
         $tpl->replace($title, 'name');
-        $tpl->replace($descriptionTpl, 'desc');
+        $tpl->replace($descriptionTpl ?? null, 'desc');
         
         if (!empty($subTitle)) {
             $tpl->replace($subTitle, 'additionalTitle');
@@ -2854,7 +2870,7 @@ class cat_Products extends embed_Manager
         $rec = self::fetchRec($id, 'canManifacture');
         
         // Ако артикула не е производим не търсим рецепта
-        if ($rec->canManifacture == 'no') {
+        if (!is_object($rec) || ($rec->canManifacture ?? null) == 'no') {
             return false;
         }
         
@@ -3006,7 +3022,7 @@ class cat_Products extends embed_Manager
         
         // Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
         if (($action == 'edit' || $action == 'write' || $action == 'clonerec' || $action == 'close') && isset($rec)) {
-            if ($rec->isPublic == 'yes') {
+            if (is_object($rec) && ($rec->isPublic ?? null) == 'yes') {
                 if (!haveRole('ceo,cat,catEdit')) {
                     $res = 'no_one';
                 }
@@ -3796,7 +3812,7 @@ class cat_Products extends embed_Manager
         expect($jobRec = planning_Jobs::fetchRec($jobRec));
         $rec = self::fetch($jobRec->productId);
         
-        if ($rec->canManifacture != 'yes') return $defaultTasks;
+        if (!is_object($rec) || ($rec->canManifacture ?? null) != 'yes') return $defaultTasks;
         
         // Питаме драйвера какви дефолтни задачи да се генерират
         $ProductDriver = cat_Products::getDriver($rec);
@@ -3934,10 +3950,11 @@ class cat_Products extends embed_Manager
         $rec = $this->fetchRec($rec, 'canStore,canConvert');
         
         $accounts = '';
-        if ($rec->canStore == 'yes') {
-            $accounts .= ($rec->canConvert == 'yes') ? '321,323,61101' : '321,323';
+        if (!is_object($rec)) return $accounts;
+        if (($rec->canStore ?? null) == 'yes') {
+            $accounts .= (($rec->canConvert ?? null) == 'yes') ? '321,323,61101' : '321,323';
         } else {
-            $accounts .= ($rec->canConvert == 'yes') ? '61101,60201' : '60201';
+            $accounts .= (($rec->canConvert ?? null) == 'yes') ? '61101,60201' : '60201';
         }
         
         $accounts = arr::make($accounts, true);

@@ -336,7 +336,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         // Ако има поле по валута да се филтрира по нея
         if(!empty($mvc->currencyFld) && $mvc->getField($mvc->currencyFld, false)){
-            $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ", {$mvc->currencyFld}";
+            $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ", {$mvc->currencyFld}";
             $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setField($mvc->currencyFld, "caption=Валута,input,formOrder=1000");
             $data->listFilter->showFields .= ",{$mvc->currencyFld}";
@@ -346,7 +346,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         if($mvc->hasPlugin('doc_plg_TplManager')){
             $templateOptions = doc_TplManager::getTemplates($mvc);
             if(countR($templateOptions)){
-                $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ",template";
+                $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ",template";
                 $data->listFilter->setOptions('template', array('' => '') + $templateOptions);
                 $data->listFilter->setField('template', "caption=Шаблон,formOrder=1002");
                 $data->listFilter->showFields .= ",template";
@@ -420,10 +420,10 @@ class acc_plg_DocumentSummary extends core_Plugin
                         $data->query->where("#{$filter->filterDateField} IN ({$userArr})");
                     } else {
                         $map = array('createdOn' => 'createdBy', 'modifiedOn' => 'modifiedBy', 'activatedOn' => 'activatedBy');
-                        $useUserField = $map[$filter->filterDateField] ?? $mvc->filterFieldUsers;
+                        $useUserField = $map[$filter->filterDateField ?? ''] ?? $mvc->filterFieldUsers;
 
                         $data->query->where("#{$useUserField} IN ({$userArr})");
-                        if(!isset($map[$filter->filterDateField]) && $useUserField != $mvc->filterFieldUsers){
+                        if(!isset($map[$filter->filterDateField ?? '']) && $useUserField != $mvc->filterFieldUsers){
                             $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
                         }
                     }
@@ -444,7 +444,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
             
             if ($showFilterDateField) {
-                $fromField = $filter->filterDateField ? $filter->filterDateField : $defaultFilterDateField;
+                $fromField = ($filter->filterDateField ?? null) ?: $defaultFilterDateField;
                 if(in_array($fromField, $userFields)){
                     $fromField = $defaultFilterDateField;
                 }

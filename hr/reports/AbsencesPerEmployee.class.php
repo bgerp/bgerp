@@ -49,11 +49,11 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('days', 'int', 'caption=Период,unit=дни,after=from,single=none,mandatory');
         $fieldset->FLD('numberOfPeriods', 'int', 'caption=Периоди,after=days,single=none');
-        $fieldset->FLD('type', 'set(leave=Отпуска, sick=Болничен, trips=Командировка)', 'notNull,caption=Причина за отсъствието,maxRadio=3,after=periods,single=none');
+        $fieldset->FLD('type', 'set(leave=Отпуска, sick=Болничен, trips=Командировка)', 'notNull,caption=Причина за отсъствието,maxRadio=3,after=periods');
         $fieldset->FLD('employee', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Служител,after=to,single=none');
         
-        $fieldset->FNC('periods', 'date', 'caption=Периоди,input=none,single=none');
-        $fieldset->FNC('to', 'date', 'caption=До,input=none,single=none');
+        $fieldset->FNC('periods', 'date', 'caption=Периоди,input=none,single=none,after=numberOfPeriods');
+        $fieldset->FNC('to', 'date', 'caption=До,input=none,single=none,after=periods');
     }
 
 
@@ -126,6 +126,7 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $recs = array();
         $pRecs = array();
         $arr = array();
+
         $numberOfLeavesDays = $numberOfTripsesDays = $numberOfSickdays =0;
         
         $typeOfAbsent = explode(',', $rec->type);
@@ -133,6 +134,12 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $rec->firstDayOfPeriod = $rec->from;
         
         $rec->periods = dt::mysql2verbal($rec->from, 'dmy');
+
+        //Оттрглените потребители
+        $rejectedPersons = array();
+        $personsQuery = crm_Persons::getQuery();
+        $personsQuery->where("#state = 'rejected'");
+        $rejectedPersons = arr::extractValuesFromArray($personsQuery->fetchAll(), 'id');
         
         $period = 1;
 
@@ -146,23 +153,28 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             $leavesQuery = hr_Leaves::getQuery();
             
             $tripsQuery = hr_Trips::getQuery();
-            
+
+            //Болнични
             $sickdaysQuery->where("(#startDate >= '{$rec->firstDayOfPeriod}' AND #startDate <= '{$rec->to}') OR (#toDate >= '{$rec->firstDayOfPeriod}' AND #toDate <= '{$rec->to}')");
             
             $sickdaysQuery->where("#state != 'rejected'");
-            
+
+            $sickdaysQuery->in('personId', $rejectedPersons, true);
+
+            //Отпуски
             $leavesQuery->where("(#leaveFrom >= '{$rec->firstDayOfPeriod}' AND #leaveFrom <= '{$rec->to}') OR (#leaveTo <= '{$rec->to}' AND #leaveTo >= '{$rec->firstDayOfPeriod}')");
             
             $leavesQuery->where("#state = 'active'");
-            
+
+            $leavesQuery->in('personId', $rejectedPersons, true);
+
+            //Командировки
             $tripsQuery->where("(#startDate >= '{$rec->firstDayOfPeriod}' AND #startDate <= '{$rec->to}') OR (#toDate >= '{$rec->firstDayOfPeriod}' AND #toDate <= '{$rec->to}')");
             
             $tripsQuery->where("#state != 'rejected'");
-            
-            
-            
-            
-            
+
+            $tripsQuery->in('personId', $rejectedPersons, true);
+
             if ($rec->employee) {
                 $employees = type_Keylist::toArray($rec->employee);
                 
@@ -477,6 +489,10 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
         $Date = cls::get('type_Date');
+        $Users = cls::get('type_users');
+
+
+
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
@@ -493,17 +509,14 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         if (isset($data->rec->to)) {
             $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
         }
-        
-        if ((isset($data->rec->employee)) && ((min(array_keys(keylist::toArray($data->rec->employee))) >= 1))) {
-            foreach (type_Keylist::toArray($data->rec->employee) as $employee) {
-                $employeeVerb .= (core_Users::getTitleById($employee) . ', ');
-            }
-            
-            $fieldTpl->append('<b>' . trim($employeeVerb, ',  ') . '</b>', 'employee');
+
+        if (isset($data->rec->employee)) {
+            $fieldTpl->append('<b>' . $Users->toVerbal($data->rec->employee) . '</b>', 'employee');
+
         } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'employee');
+            $fieldTpl->append('<b>' . "Всички" . '</b>', 'employee');
         }
-        
+
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 

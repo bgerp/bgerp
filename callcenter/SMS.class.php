@@ -796,8 +796,8 @@ class callcenter_SMS extends core_Master
         $data->query->orderBy('#createdOn', 'DESC');
         
         // Ако не е избран потребител по подразбиране
-        if (!$data->listFilter->rec->usersSearch) {
-            
+        if (!($data->listFilter->rec->usersSearch ?? null)) {
+
             // Да е текущия
             $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
         }
@@ -806,7 +806,7 @@ class callcenter_SMS extends core_Master
         if ($filter = $data->listFilter->rec) {
             
             // Ако се търси по номера
-            if ($number = $filter->number) {
+            if ($number = ($filter->number ?? null)) {
                 
                 // Премахваме нулите и + от началото на номера
                 $number = ltrim($number, '0+');
@@ -863,7 +863,7 @@ class callcenter_SMS extends core_Master
         }
         
         // Ако искаме да отворим сингъла на документа
-        if ($rec->id && ($action == 'single') && $userId) {
+        if (($rec->id ?? null) && ($action == 'single') && $userId) {
             
             // Ако нямаме роля CEO
             if (!haveRole('ceo')) {

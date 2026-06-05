@@ -62,8 +62,14 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,consumption,store, planningAll';
-    
-    
+
+
+    /**
+     * Кой може да печата движенията?
+     */
+    public $canPrintzonemovements = 'ceo,rack';
+
+
     /**
      * Кой може да разглежда сингъла на документите?
      */

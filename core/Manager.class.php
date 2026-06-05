@@ -465,7 +465,7 @@ class core_Manager extends core_Mvc
         // Очакваме до този момент във формата да няма грешки
         $fieldsH = $this->selectFields("#input == 'hidden'");
         
-        expect(!$data->form->gotErrors(array_keys($fieldsH)), 'Има грешки в silent полетата на формата', $data->form->errors);
+        expect(!$data->form->gotErrors(array_keys($fieldsH)), 'Има грешки в silent полетата на формата', $data->form->errors ?? null);
         
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $data->form->rec, null, $retUrl);
@@ -536,7 +536,7 @@ class core_Manager extends core_Mvc
     public function prepareEditTitle_($data)
     {
         setPartIfNot($data, 'title', $this->title);
-        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
+        $data->form->title = (!empty($data->form->rec->id) ? 'Редактиране' : 'Добавяне') . ' на запис' .
                 '|*' . ($this->title ? ' |в|* ' . '"' . tr($data->title) . '"' : '');
     }
     
@@ -645,7 +645,7 @@ class core_Manager extends core_Mvc
     {
         $data = parent::prepareListFilter($data);
 
-        if ($data && $data->listFields) {
+        if ($data && ($data->listFields ?? null)) {
             $data->listFields = arr::make($data->listFields);
 
             if ($data->query && $data->listFields && isset($data->listFields['id'])) {
@@ -902,7 +902,7 @@ class core_Manager extends core_Mvc
         $data->form->input(null, 'silent');
         
         // Ако имаме
-        if ($data->form->rec->id && $data->form->cmd != 'refresh') {
+        if (!empty($data->form->rec->id) && $data->form->cmd != 'refresh') {
             
             // Очакваме, че има такъв запис
             expect($rec = $this->fetch($data->form->rec->id));
@@ -936,7 +936,7 @@ class core_Manager extends core_Mvc
         if (getRetUrl()) {
             $data->retUrl = getRetUrl();
         } else {
-            if (method_exists($this, 'act_Single') && $data->form->rec->id && $data->cmd != 'delete') {
+            if (method_exists($this, 'act_Single') && !empty($data->form->rec->id) && $data->cmd != 'delete') {
                 $data->retUrl = array(
                     $this,
                     'single',
@@ -1114,7 +1114,7 @@ class core_Manager extends core_Mvc
             }
         }
 
-        $listFilter->formAttr['data-mvc'] = "listFilter_" . $listFilter->mvc->className;
+        $listFilter->formAttr['data-mvc'] = "listFilter_" . ($listFilter->mvc->className ?? '');
         $listFilter->showFields = isset($listFilter->showFields) ? arr::make($listFilter->showFields, true) : array();
 
         if (countR($listFilter->showFields)) {
@@ -1274,7 +1274,7 @@ class core_Manager extends core_Mvc
             self::$cacheRights[$userId] = core_Cache::get('RightsForObject', $userId);
         }
 
-        $key = crc32("{$className}|{$action}") . "|{$id}|" . crc32(serialize($rec));
+        $key = crc32("{$className}|{$action}") . "|" . (is_scalar($id) ? $id : serialize($id)) . "|" . crc32(serialize($rec));
  
         if (!isset(self::$cacheRights[$userId][$key]) || !isset($id)) {
             

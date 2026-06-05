@@ -828,12 +828,17 @@ class doc_Folders extends core_Master
             $statisticArr[$tRec->visibleForPartners][$tRec->state][$tRec->firstDocClass] = $tRec->cnt;
             
             if ($tRec->state != 'rejected') {
+                $statisticArr[$tRec->visibleForPartners]['_notRejected'][$tRec->firstDocClass] ??= 0;
                 $statisticArr[$tRec->visibleForPartners]['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
+                $statisticArr['_all']['_notRejected'][$tRec->firstDocClass] ??= 0;
                 $statisticArr['_all']['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
             }
-            
+
+            $statisticArr['_all'][$tRec->state][$tRec->firstDocClass] ??= 0;
             $statisticArr['_all'][$tRec->state][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all'][$tRec->firstDocClass] ??= 0;
             $statisticArr['_all']['_all'][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all']['_all'] ??= 0;
             $statisticArr['_all']['_all']['_all'] += $tRec->cnt;
         }
         
@@ -1904,7 +1909,7 @@ class doc_Folders extends core_Master
         $searchKeywords .= ' ' . plg_Search::normalizeText($title);
         
         // Добавя ключовии думи за държавата и на bg и на en
-        if (($class->className == 'crm_Companies' || $class->className == 'crm_Persons') && $rec->coverId) {
+        if (($class->className == 'crm_Companies' || $class->className == 'crm_Persons') && !empty($rec->coverId)) {
             $countryId = $class->fetchField($rec->coverId, 'country');
             if ($countryId) {
                 $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
@@ -1913,7 +1918,7 @@ class doc_Folders extends core_Master
 
         if (!empty($rec->coverId)) {
             $plugins = arr::make($class->loadList, true);
-            if ($plugins['plg_Search'] || method_exists($class, 'getSearchKeywords')) {
+            if (($plugins['plg_Search'] ?? null) || method_exists($class, 'getSearchKeywords')) {
                 $searchKeywords .= ' ' . $class->getSearchKeywords($rec->coverId);
             }
         }
@@ -2263,7 +2268,7 @@ class doc_Folders extends core_Master
         }
         
         $viewAccess = true;
-        if ($params['restrictViewAccess'] == 'yes') {
+        if (($params['restrictViewAccess'] ?? null) == 'yes') {
             $viewAccess = false;
         }
 
@@ -2275,7 +2280,7 @@ class doc_Folders extends core_Master
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
         
-        if ($params['where']) {
+        if ($params['where'] ?? null) {
             $query->where($params['where']);
         }
         
@@ -2293,7 +2298,7 @@ class doc_Folders extends core_Master
             $query->where("#id = {$onlyIds}");
         }
         
-        if ($threadId = $params['moveThread']) {
+        if ($threadId = ($params['moveThread'] ?? null)) {
             $tRec = doc_Threads::fetch($threadId);
             expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
             $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query, $viewAccess);

@@ -295,7 +295,7 @@ class webkittopdf_Converter extends core_Manager
     public static function checkForActivateJS($versionArr)
     {
         // Ако версията е над 0,11 (включително)
-        if (($versionArr['version'] > 0) || ($versionArr['subVersion'] >= 11)) {
+        if ((($versionArr['version'] ?? 0) > 0) || (($versionArr['subVersion'] ?? 0) >= 11)) {
             
             return core_Packs::setIfNotConfigKey('webkittopdf', 'WEBKIT_TO_PDF_USE_JS', 'yes');
         }
@@ -310,7 +310,7 @@ class webkittopdf_Converter extends core_Manager
     public static function checkForActivatePrintMediaType($versionArr)
     {
         // Ако версията е над 0,11 (включително)
-        if (($versionArr['version'] > 0) || ($versionArr['subVersion'] >= 11)) {
+        if ((($versionArr['version'] ?? 0) > 0) || (($versionArr['subVersion'] ?? 0) >= 11)) {
             
             return core_Packs::setIfNotConfigKey('webkittopdf', 'WEBKIT_TO_PDF_USE_PRINT_MEDIA_TYPE', 'yes');
         }

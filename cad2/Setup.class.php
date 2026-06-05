@@ -90,6 +90,7 @@ class cad2_Setup extends core_ProtoSetup
             'cad2_ArcTo',
         );
         
+        $res = '';
         foreach ($shapes as $cls) {
             $res .= core_Classes::add($cls);
         }

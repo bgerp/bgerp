@@ -784,8 +784,7 @@ class core_Html
         
         self::addAccessKey($attr, $title);
         
-        $attr['name'] ??= '';
-        $attr['name'] .= "Cmd[{$cmd}]";
+        $attr['name'] = (is_scalar($attr['name'] ?? null) ? ($attr['name'] ?? '') : '') . "Cmd[" . (is_scalar($cmd) ? $cmd : '') . "]";
         
         $attr['onclick'] ??= '';
         if (is_string($newWindow) && ($newWindow != '_blank')) {

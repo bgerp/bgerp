@@ -56,7 +56,7 @@ class tags_plg_Add extends core_Plugin
                 $tags .= $tagArr['span'];
             }
 
-            $data->row->DocumentSettingsLeft = new ET($data->row->DocumentSettingsLeft);
+            $data->row->DocumentSettingsLeft = new ET($data->row->DocumentSettingsLeft ?? '');
             $data->row->DocumentSettingsLeft->prepend("<span class='documentTags'>{$tags}</span>");
         }
     }
@@ -81,7 +81,7 @@ class tags_plg_Add extends core_Plugin
                 $tags .= $tagArr['span'];
             }
 
-            $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
+            $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft ?? '');
             $row->DocumentSettingsLeft->prepend("<span class='documentTags'>{$tags}</span>");
         }
     }
@@ -125,7 +125,7 @@ class tags_plg_Add extends core_Plugin
             $rowObj = new stdClass();
         }
 
-        if ($rec->id) {
+        if (is_object($rec) && $rec->id) {
             $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $id);
 
             $sTitleStr = '';

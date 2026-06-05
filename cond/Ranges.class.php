@@ -404,7 +404,7 @@ class cond_Ranges extends core_Manager
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         // Ако се затваря дефолтен период, да се активира следващия
-        if($rec->state == 'closed' && $rec->isDefault == 'yes'){
+        if(($rec->state ?? null) == 'closed' && ($rec->isDefault ?? null) == 'yes'){
             $rec->isDefault = 'no';
             $mvc->save_($rec, 'isDefault');
             self::setNextDefault($rec->class, $rec->id);

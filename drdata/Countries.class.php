@@ -207,7 +207,7 @@ class drdata_Countries extends core_Manager
             );
         }
         
-        $rec->languages = str_replace('|', ',', self::$countryToLanguages[strtolower($rec->letterCode2)]);
+        $rec->languages = str_replace('|', ',', self::$countryToLanguages[strtolower($rec->letterCode2)] ?? '');
     }
     
     
@@ -241,11 +241,14 @@ class drdata_Countries extends core_Manager
         }
         
         if (is_numeric($mix)) {
-            $country = drdata_Countries::fetch($mix)->{$field};
+            $cRec = drdata_Countries::fetch($mix);
+            $country = is_object($cRec) ? $cRec->{$field} : null;
         } elseif (strlen($mix) == 2) {
-            $country = drdata_Countries::fetch(array("#letterCode2 = '[#1#]'", $mix))->{$field};
+            $cRec = drdata_Countries::fetch(array("#letterCode2 = '[#1#]'", $mix));
+            $country = is_object($cRec) ? $cRec->{$field} : null;
         } elseif(strlen($mix) == 3) {
-            $country = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix))->{$field};
+            $cRec = drdata_Countries::fetch(array("#letterCode3 = '[#1#]'", $mix));
+            $country = is_object($cRec) ? $cRec->{$field} : null;
         } 
         
         if(!$country) {
@@ -457,8 +460,8 @@ class drdata_Countries extends core_Manager
             );
             
             foreach ($mis as $w => $c) {
-                expect($id = $commonNamesArr[$c], $c, $commonNamesArr, $mis);
-                expect(!$commonNamesArr[$w], $w, $commonNamesArr);
+                expect($id = ($commonNamesArr[$c] ?? null), $c, $commonNamesArr, $mis);
+                expect(empty($commonNamesArr[$w]), $w, $commonNamesArr);
                 $commonNamesArr[$w] = $id;
             }
         }
@@ -479,12 +482,12 @@ class drdata_Countries extends core_Manager
         }
         
         
-        if ($id = $namesArr[$country]) {
+        if ($id = ($namesArr[$country] ?? null)) {
             
             return $id;
         }
         
-        if ($id = $commonNamesArr[$country]) {
+        if ($id = ($commonNamesArr[$country] ?? null)) {
             
             return $id;
         }
@@ -597,21 +600,21 @@ class drdata_Countries extends core_Manager
             $groupNameArr = explode('|', $rec->groupName);
             
             foreach ($groupNameArr as $name) {
-                $grRec = $saveArr[$name];
-                
+                $grRec = $saveArr[$name] ?? null;
+
                 if (!$grRec) {
                     $grRecOld = $countryGroupsInst->fetch(array("#name = '[#1#]'", $name));
-                    
+
                     $grRec = new stdClass;
                     $grRec->name = $name;
-                    $grRec->createdOn = $grRecOld->createdOn ? $grRecOld->createdOn : dt::verbal2mysql();
+                    $grRec->createdOn = (is_object($grRecOld) && $grRecOld->createdOn) ? $grRecOld->createdOn : dt::verbal2mysql();
                     $grRec->createdBy = isset($grRecOld->createdBy) ? $grRecOld->createdBy : core_Users::getCurrent();
                     if ($grRecOld) {
                         $grRec->id = $grRecOld->id;
                     }
                 }
-                
-                $grRec->countries = keylist::addKey($grRec->countries, $fRec->id);
+
+                $grRec->countries = keylist::addKey($grRec->countries ?? null, $fRec->id);
                 
                 $saveArr[$name] = $grRec;
             }

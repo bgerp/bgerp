@@ -262,7 +262,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $data->listFilter->input(null, 'silent');
         
         if ($rec = $data->listFilter->rec) {
-            if ($rec->invType) {
+            if (!empty($rec->invType)) {
                 if ($rec->invType != 'all') {
                     if ($rec->invType == 'invoice') {
                         $data->query->where("#type = '{$rec->invType}'");
@@ -278,7 +278,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
             
-            if ($rec->payType) {
+            if (!empty($rec->payType)) {
                 if ($rec->payType != 'all') {
                     $data->query->where("#paymentType = '{$rec->payType}' OR (#paymentType IS NULL AND #autoPaymentType = '{$rec->payType}')");
                 }
@@ -783,7 +783,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rate, $rec->currencyId, $rec->vatRate, true, $rec->tplLang);
 
             $data->row = (object) ((array) $data->row + (array) $data->summary);
-            $data->row->vatAmount = $data->summary->vatAmount;
+            $data->row->vatAmount = $data->summary->vatAmount ?? null;
         } elseif(!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
             $data->row->value = doc_plg_HidePrices::getBuriedElement();
         }
@@ -1641,7 +1641,7 @@ abstract class deals_InvoiceMaster extends core_Master
             // Вербална обработка на данните на моята фирма и името на контрагента
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'MyCompanyEori', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld) {
-                $row->{$fld} = $headerInfo[$fld];
+                $row->{$fld} = $headerInfo[$fld] ?? null;
             }
             
             if ($rec->paymentType == 'factoring') {
@@ -1715,7 +1715,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
 
         if(haveRole('debug')){
-            $row->rate = ht::createHint($row->rate, "Rate: {$rec->rate} / DisplayRate: {$rec->displayRate}", 'img/16/bug.png');
+            $row->rate = ht::createHint($row->rate ?? null, "Rate: {$rec->rate} / DisplayRate: {$rec->displayRate}", 'img/16/bug.png');
         } else {
             if($rec->date >= '2026-01-01' && $rec->currencyId == 'EUR'){
                 unset($row->rate);

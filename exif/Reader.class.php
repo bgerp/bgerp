@@ -45,6 +45,7 @@ class exif_Reader
 
         Mode::push('FILEMAN_STOP_LOG_INFO', true);
 
+        $path = null;
         try {
             // Пътя до файла
             $path = fileman::extract($fileHnd);

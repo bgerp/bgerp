@@ -107,7 +107,7 @@ class bgerp_Portal extends embed_Manager
             $rec = self::fetchRec($rec);
         }
         
-        if ($rec->{$me->driverClassField}) {
+        if ($rec && ($rec->{$me->driverClassField} ?? null)) {
             $driver = $rec->{$me->driverClassField};
         }
         

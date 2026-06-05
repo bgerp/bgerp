@@ -57,7 +57,8 @@ class acc_type_Item extends type_Key
         }
         
         $this->options = array();
-        
+        $where = '';
+
         $cleanQuery = $mvc->getQuery();
         $cleanQuery->show("id, {$select}, state");
         

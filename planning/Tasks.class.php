@@ -874,6 +874,13 @@ class planning_Tasks extends core_Master
             }
         }
 
+        if(isset($fields['-list']) && !Mode::is('isReorder')) {
+            if(planning_ProductionTaskDetails::haveRightFor('fastprogress', (object)array('taskId' => $rec->id))) {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Прогрес', array('planning_ProductionTaskDetails', 'fastprogress', 'taskId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/package.png, title=Добавяне на оставащия прогрес,alwaysShow');
+            }
+        }
+
         if (empty($rec->indTime)) {
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
@@ -1264,12 +1271,25 @@ class planning_Tasks extends core_Master
 
         // Ако има промяна в прогреса (само ако не е приключена операцията)
         $autoActivation = ($rec->state == 'pending' && planning_ProductionTaskDetails::count("#taskId = {$rec->id}"));
+        $autoActivationMsg = null;
 
         // При първо добавяне на прогрес, ако е в заявка - се активира автоматично
         if ($autoActivation) {
             planning_plg_StateManager::changeState($this, $rec, 'activate');
             $this->logWrite('Активиране при прогрес', $rec->id);
-            core_Statuses::newStatus('Операцията е активирана след добавяне на прогрес|*!');
+            $autoActivationMsg = 'Операцията е активирана след добавяне на прогрес|*!';
+        }
+
+        if(Mode::get("autoCloseIfCompleted{$rec->id}")){
+            if(in_array($rec->state, array('wakeup', 'active')) && $rec->progress >= 1){
+                planning_plg_StateManager::changeState($this, $rec, 'close', 'Приключване при бърз прогрес');
+                $autoActivationMsg = "Операцията е приключена";
+            }
+            Mode::setPermanent("autoCloseIfCompleted{$rec->taskId}", null);
+        }
+
+        if(!empty($autoActivationMsg)){
+            core_Statuses::newStatus($autoActivationMsg);
         }
 
         $res = $this->save_($rec, $updateFields);
@@ -1321,7 +1341,7 @@ class planning_Tasks extends core_Master
                         $requiredRoles = 'no_one';
                     }
                 }
-            } elseif ($rec->folderId) {
+            } elseif (!empty($rec->folderId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -2205,7 +2225,7 @@ class planning_Tasks extends core_Master
         $data->listFilter->showFields .= ',folders';
 
         // Добавят се за избор само използваните в ПО оборудвания
-        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders);
+        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders ?? null);
 
         if (countR($assetInTasks)) {
             $data->listFilter->setField('assetId', 'caption=Оборудване,silent,autoFilter');
@@ -2275,7 +2295,7 @@ class planning_Tasks extends core_Master
                     }
                 }
 
-                if ($filter->filterDateField == 'dueDate') {
+                if (isset($filter->filterDateField) && $filter->filterDateField == 'dueDate') {
                     if (!isset($filter->assetId)) {
                         $orderByDir = 'ASC';
                         $orderByDateCoalesce = '#dueDate';
@@ -3259,7 +3279,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
+            $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id), "id" => "Opr{$rec->id}");
             $singleUrl = static::getSingleUrlArray($rec->id);
 
             if(Mode::get('isReorder')){

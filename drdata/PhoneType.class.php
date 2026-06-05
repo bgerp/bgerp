@@ -104,7 +104,7 @@ class drdata_PhoneType extends type_Varchar
      */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        if ($this->params['type'] == 'fax') {
+        if (($this->params['type'] ?? null) == 'fax') {
             $this->maxFieldSize = 14;
         }
         
@@ -189,7 +189,8 @@ class drdata_PhoneType extends type_Varchar
         }
         $res = new ET();
         $value = '';
-        
+        $add = '';
+
         foreach ($parsedTel as $t) {
             $res->append($add);
             
@@ -217,12 +218,12 @@ class drdata_PhoneType extends type_Varchar
             
             $title = $t->original;
 
-            if($this->params['maskVerbal']){
+            if($this->params['maskVerbal'] ?? null){
                 $title = str::maskString($title, 0, 3);
             }
 
             $res->append(self::getLink($title, $value, false, $attr));
-            if ($t->internal) {
+            if ($t->internal ?? null) {
                 $res->append(tr('вътр.') . $t->internal) ;
             }
             
@@ -280,7 +281,7 @@ class drdata_PhoneType extends type_Varchar
         $conf = core_Packs::getConfig('drdata');
         
         // Ако не е подаден телефонния код на държавата, ще се използва от конфигурационната константа
-        if (!($code = $params['countryPhoneCode'])) {
+        if (!($code = ($params['countryPhoneCode'] ?? null))) {
             $code = $conf->COUNTRY_PHONE_CODE;
         }
         $desktop = $conf->TEL_LINK_WIDE;
@@ -296,7 +297,7 @@ class drdata_PhoneType extends type_Varchar
             return $str;
         }
         
-        $result = $Phones->parseTel($str, $code, $params['areaPhoneCode']);
+        $result = $Phones->parseTel($str, $code, $params['areaPhoneCode'] ?? null);
         
         return $result;
     }

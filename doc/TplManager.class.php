@@ -469,7 +469,7 @@ class doc_TplManager extends core_Master
             $object = (object) $object;
 
             // Ако има старо име на шаблона
-            if ($object->oldName) {
+            if (!empty($object->oldName)) {
                 // Извличане на записа на стария шаблон
                 $exRec = static::fetch("#name = '{$object->oldName}'");
             } else {
@@ -488,12 +488,13 @@ class doc_TplManager extends core_Master
             
             // Ако файла на шаблона не е променян, то записа не се обновява
             expect($object->hash = md5_file(getFullPath($object->content)));
-            
-            if ($object->narrowContent) {
+
+            $object->hashNarrow = null;
+            if (!empty($object->narrowContent)) {
                 expect($object->hashNarrow = md5_file(getFullPath($object->narrowContent)));
             }
 
-            if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && (serialize($exRec->toggleFields) == serialize($object->toggleFields)) && ($exRec->path == $object->content)) {
+            if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && (serialize($exRec->toggleFields) == serialize($object->toggleFields ?? null)) && ($exRec->path == $object->content)) {
                 $skipped++;
                 continue;
             }

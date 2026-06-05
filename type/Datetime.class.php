@@ -64,15 +64,25 @@ class type_Datetime extends type_Date
                 $date = $value['d'];
                 $time = $value['t'];
             } elseif (is_scalar($value)) {
-                list($date, $time) = explode(' ', $value);
+                // Добавяме null като подразбиране, за да знаем, че час липсва
+                [$date, $time] = explode(' ', $value) + [1 => null];
+
                 $date = dt::mysql2verbal($date, 'd.m.Y', null, false);
-                list($h, $m, $s) = explode(':', $time);
-                if ($s == '00') {
-                    $time = "{$h}:{$m}";
+
+                // Влизаме тук само ако имаме някакъв час (различен от null или празен низ)
+                if ($time !== null && $time !== '') {
+                    [$h, $m, $s] = explode(':', $time) + [1 => '00', 2 => '00'];
+
+                    if ($s === '00') {
+                        $time = "{$h}:{$m}";
+                    }
+                } else {
+                    // Изрично задаваме null, ако няма час
+                    $time = null;
                 }
             }
         }
-        
+
         if (strlen($time) && strpos($this->params['defaultTime'], $time) === 0 && $this->params['defaultTime'] == '00:00:00') {
             $time = '';
         }
@@ -119,7 +129,7 @@ class type_Datetime extends type_Date
             sort($sugArr);
             $sugList = implode('|', $sugArr);
             
-            setIfNot($ts, $this->params['timeSuggestions'], $sugList);
+            setIfNot($ts, $this->params['timeSuggestions'] ?? null, $sugList);
             
             if (!is_array($ts)) {
                 $ts = array('' => '') + arr::make(str_replace('|', ',', $ts), true);
@@ -131,7 +141,7 @@ class type_Datetime extends type_Date
 
         if(isset($timePlaceholder)){
             if(empty($date)){
-                list($h, $m) = explode(':', $timePlaceholder);
+                list($h, $m) = explode(':', $timePlaceholder) + [null, null];
                 $timePlaceholder = "{$h}:{$m}";
             } else {
                 $timePlaceholder = null;
@@ -151,9 +161,11 @@ class type_Datetime extends type_Date
      */
     public function fromVerbal($valueIn)
     {
+        $value = array('d' => '', 't' => '');
         if (is_scalar($valueIn)) {
-            $value = array();
-            list($value['d'], $value['t']) = explode(' ', $valueIn);
+            $parts = explode(' ', $valueIn, 2);
+            $value['d'] = $parts[0] ?? '';
+            $value['t'] = $parts[1] ?? '';
         } elseif (is_array($valueIn)) {
             $value = $valueIn;
         }
@@ -209,11 +221,11 @@ class type_Datetime extends type_Date
         list($d, $t) = array_pad(explode(' ', $value ?? ''), 2, null);
 
         $stp = $this->timePart;
-        $sf = $this->params['format'];
-        
-        if ($t == $this->params['defaultTime']) {
+        $sf = $this->params['format'] ?? null;
+
+        if ($t == ($this->params['defaultTime'] ?? null)) {
             $this->timePart = '';
-            if ($this->params['format'] == 'smartTime') {
+            if (($this->params['format'] ?? null) == 'smartTime') {
                 $this->params['format'] = 'smartDate';
             }
         }

@@ -572,7 +572,7 @@ class core_Users extends core_Manager
         $data->query->XPR('orderTime', 'datetime', 'if(#lastLoginTime, #lastLoginTime, #createdOn)');
         $data->query->orderBy('orderTime', 'DESC');
         
-        if ($data->listFilter->rec->role) {
+        if (!empty($data->listFilter->rec->role)) {
             $data->query->where("#roles LIKE '%|{$data->listFilter->rec->role}|%'");
         }
     }
@@ -632,7 +632,7 @@ class core_Users extends core_Manager
         
         self::setUserFormJS($form);
         
-        if ($id = $form->rec->id) {
+        if ($id = ($form->rec->id ?? null)) {
             $exRec = self::fetch($id);
             if ($exRec->state != 'draft') {
                 $stateType = &$mvc->fields['state']->type;
@@ -647,11 +647,11 @@ class core_Users extends core_Manager
         }
         
         if (!self::isUsersEmpty()) {
-            if ($form->cmd == 'refresh' && $form->rec->id && !$form->rec->roles) {
-                $roles = $mvc->fetchField($form->rec->id, 'roles');
+            if ($form->cmd == 'refresh' && ($form->rec->id ?? null) && !($form->rec->roles ?? null)) {
+                $roles = $mvc->fetchField($form->rec->id ?? null, 'roles');
                 $rolesArr = type_Keylist::toArray($roles);
             } else {
-                $rolesArr = type_Keylist::toArray($form->rec->roles);
+                $rolesArr = type_Keylist::toArray($form->rec->roles ?? null);
             }
             $roleTypes = core_Roles::getGroupedOptions($rolesArr);
             
@@ -674,8 +674,8 @@ class core_Users extends core_Manager
             $form->setOptions('roleRank', $rangs);
             $rec = $form->input(null, 'silent');
 
-            if ($rec->id) {
-                $iRoles = keylist::toArray($rec->rolesInput);
+            if (!empty($rec->id)) {
+                $iRoles = keylist::toArray($rec->rolesInput ?? null);
                 foreach ($roleTypes['rang'] as $i => $r) {
                     if (isset($iRoles[$i])) {
                         $form->setDefault('roleRank', $i);
@@ -689,7 +689,7 @@ class core_Users extends core_Manager
             $partnerRpower = core_Roles::fetchByName('powerPartner');
             $otherRoles = array();
 
-            if ($rec->roleRank == $partnerR || $rec->roleRank == $partnerRpower) {
+            if (($rec->roleRank ?? null) == $partnerR || ($rec->roleRank ?? null) == $partnerRpower) {
                 $otherRoles = arr::combine(
                         array('external' => (object) array('title' => 'Външен достъп', 'group' => true)),
                         $roleTypes['external']
@@ -698,7 +698,7 @@ class core_Users extends core_Manager
                     $form->FNC('roleOthers', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Роли,after=roleTesms,input');
                     $form->setSuggestions('roleOthers', $otherRoles);
                 }
-            } elseif ($rec->roleRank) {
+            } elseif (!empty($rec->roleRank)) {
                 $form->FNC('roleTeams', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Екипи,after=roleRang,input,mandatory');
                 $form->FNC('roleOthers', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Роли,after=roleTesms,input');
                 
@@ -713,7 +713,7 @@ class core_Users extends core_Manager
                 );
                 $form->setSuggestions('roleOthers', $otherRoles);
                 
-                if ($rec->id) {
+                if (!empty($rec->id)) {
                     $teams = array();
                     foreach ($roleTypes['team'] as $i => $r) {
                         if (isset($iRoles[$i])) {
@@ -726,7 +726,7 @@ class core_Users extends core_Manager
                 }
             }
             
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $other = array();
                 if (is_array($otherRoles)) {
                     foreach ($otherRoles as $i => $r) {
@@ -771,9 +771,9 @@ class core_Users extends core_Manager
         }
         
         $rec = $form->rec;
-        
+
         //id' то на текущия запис
-        $recId = $rec->id;
+        $recId = $rec->id ?? null;
         
         //Проверяваме дали има такъв имейл
         if ($newRecId = $mvc->fetchField("LOWER(#email) = LOWER('{$form->rec->email}')")) {
@@ -794,10 +794,10 @@ class core_Users extends core_Manager
         self::calcUserForm($form);
         
         // Ако имаме въведена нова парола
-        if ($rec->passNewHash) {
-            if ($rec->isLenOK == -1) {
+        if (!empty($rec->passNewHash)) {
+            if (($rec->isLenOK ?? null) == -1) {
                 $form->setError('passNew', 'Паролата трябва да е минимум |* ' . EF_USERS_PASS_MIN_LEN . ' |символа');
-            } elseif ($rec->passNew != $rec->passRe) {
+            } elseif (($rec->passNew ?? null) != ($rec->passRe ?? null)) {
                 $form->setError('passNew,passRe', 'Двете пароли не съвпадат');
             } else {
                 // Ако няма грешки, задаваме да се модифицира хеша в DB
@@ -817,14 +817,14 @@ class core_Users extends core_Manager
             }
         }
         
-        $rank = core_Roles::fetchById($rec->roleRank);
-        
+        $rank = core_Roles::fetchById($rec->roleRank ?? null);
+
         if (in_Array($rank, array('ceo', 'manager', 'officer', 'executive'))) {
-            if (!$rec->roleTeams) {
+            if (empty($rec->roleTeams)) {
                 $form->setError('roleTeams', 'Вътрешните потребители трябва да имат поне един екип');
             }
         } else {
-            if ($rec->roleTeams) {
+            if (!empty($rec->roleTeams)) {
                 $form->setError('roleTeams', 'Външните потребители не могат да имат роля за екип');
             }
         }
@@ -842,11 +842,11 @@ class core_Users extends core_Manager
                 $mvc->addNewUser = true;
             }
             
-            $rec->rolesInput = keylist::merge($rec->roleRank, $rec->roleTeams, $rec->roleOthers);
+            $rec->rolesInput = keylist::merge($rec->roleRank ?? null, $rec->roleTeams ?? null, $rec->roleOthers ?? null);
         }
         
         // Администратор не може да премахне сам на себе си ролята `administrator`
-        if ($rec->id && $rec->id == core_Users::getCurrent()) {
+        if (!empty($rec->id) && $rec->id == core_Users::getCurrent()) {
             $exRec = self::fetch($rec->id);
             $adminId = core_Roles::fetchByName('admin');
             if (keylist::isIn($adminId, $exRec->rolesInput) && !keylist::isIn($adminId, $rec->rolesInput)) {
@@ -855,12 +855,12 @@ class core_Users extends core_Manager
         }
         
         // Ако регистрираме първия потребител, добавяме му роля `admin`
-        if (!$rec->id && $mvc->isUsersEmpty()) {
-            $rec->rolesInput = keylist::addKey($rec->rolesInput, $mvc->core_Roles->fetchByName('admin'));
+        if (empty($rec->id) && $mvc->isUsersEmpty()) {
+            $rec->rolesInput = keylist::addKey($rec->rolesInput ?? null, $mvc->core_Roles->fetchByName('admin'));
             $rec->state = 'active';
         }
 
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             // При редакция, ако има промяна в състоянието, записваме предишното състояние
             $oldRec = $mvc->fetch($rec->id);
             if ($rec->state != $oldRec->state) {
@@ -1169,7 +1169,7 @@ class core_Users extends core_Manager
         }
         
         if ($addRoles && !Mode::is('screenMode', 'narrow')) {
-            $row->rolesInput .= "<div style='color:#666;'>" . tr('индиректно') . ': ' . $addRoles . '</div>';
+            $row->rolesInput = ($row->rolesInput ?? '') . "<div style='color:#666;'>" . tr('индиректно') . ': ' . $addRoles . '</div>';
         }
         
         $row->rolesInput = "<div style='max-width:400px;'>{$row->rolesInput}</div>";
@@ -1227,7 +1227,7 @@ class core_Users extends core_Manager
                     }
                 }
                 
-                if (!$rec->__updateRoleLogs) {
+                if (empty($rec->__updateRoleLogs)) {
                     if (!$fields || in_array('roles', $fields = arr::make($fields))) {
                         if ($oRec->roles != $rec->roles) {
                             $dArr = type_Keylist::getDiffArr($rec->roles, $oRec->roles);
@@ -1481,12 +1481,12 @@ class core_Users extends core_Manager
             $userRec->lastHitUT = time();
             $userRec->maxIdleTime = 0;
         } else {
-            $lastLoginIp = self::getOwnIp($userRec->lastLoginIp);
+            $lastLoginIp = self::getOwnIp($userRec->lastLoginIp ?? null);
             $ownIp = self::getOwnIp($Users->getRealIpAddr());
-            
+
             // Дали нямаме дублирано ползване?
             if (($lastLoginIp != $ownIp) &&
-                $userRec->lastLoginTime > $sessUserRec->loginTime &&
+                ($userRec->lastLoginTime ?? null) > $sessUserRec->loginTime &&
                 dt::mysql2timestamp($userRec->lastLoginTime) - dt::mysql2timestamp($sessUserRec->loginTime) < EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
                 
                 // Ако има логвания в съответния период, не блокира
@@ -1503,9 +1503,9 @@ class core_Users extends core_Manager
                 }
             }
             
-            $userRec->loginTime = $sessUserRec->loginTime;
-            $userRec->lastLoginIp = $sessUserRec->lastLoginIp;
-            $userRec->lastLoginTime = $sessUserRec->lastLoginTime;
+            $userRec->loginTime = $sessUserRec->loginTime ?? null;
+            $userRec->lastLoginIp = $sessUserRec->lastLoginIp ?? null;
+            $userRec->lastLoginTime = $sessUserRec->lastLoginTime ?? null;
             
             $userRec->maxIdleTime = max($sessUserRec->maxIdleTime, time() - $sessUserRec->lastHitUT);
             if (!Request::get('ajax_mode')) {
@@ -1516,18 +1516,18 @@ class core_Users extends core_Manager
         }
         
         // Ако потребителя е блокиран - излизаме от сесията и показваме грешка
-        if ($userRec->state == 'blocked') {
+        if (($userRec->state ?? null) == 'blocked') {
             $Users->logout();
             redirect(array('Index'), false, '|Този акаунт е блокиран|*.<BR>|Причината най-вероятно е едновременно използване от две места|*.' .
                 '<BR>|На имейла от регистрацията е изпратена информация и инструкция за отблокиране|*.');
         }
-        
-        if ($userRec->state == 'draft') {
+
+        if (($userRec->state ?? null) == 'draft') {
             redirect(array('Index'), false, '|Този акаунт все още не е активиран|*.<BR>' .
                 '|На имейла от регистрацията е изпратена информация и инструкция за активация|*.');
         }
         
-        if ($userRec->state != 'active' || $userRec->maxIdleTime > EF_USERS_SESS_TIMEOUT) {
+        if (($userRec->state ?? null) != 'active' || ($userRec->maxIdleTime ?? 0) > EF_USERS_SESS_TIMEOUT) {
             $Users->logout();
             redirect(getCurrentUrl());
         }
@@ -1632,7 +1632,7 @@ class core_Users extends core_Manager
                 $url = static::getUrlForLoginLogStatus($userRec->id);
                 
                 // Всички IP-та, от които се е логнало за първи път
-                foreach ((array) $arr['first_login'] as $loginRec) {
+                foreach ((array) ($arr['first_login'] ?? []) as $loginRec) {
                     
                     // Времето, когато се е логнал
                     $time = dt::secsBetween(dt::now(), $loginRec->createdOn);
@@ -2335,10 +2335,10 @@ class core_Users extends core_Manager
         
         $nick = strtolower($nick);
         
-        if ($rec->pass) {
+        if (!empty($rec->pass)) {
             $rec->passHash = self::encodePwd($rec->pass, $nick);
             $rec->ps5Enc = $rec->passHash;
-            if ($rec->time) {
+            if (!empty($rec->time)) {
                 $rec->hash = self::applyChallenge($rec->ps5Enc, $rec->time);
             }
         }
@@ -2364,17 +2364,17 @@ class core_Users extends core_Manager
         
         // Калкулиране на хеша на старата парола
         // Стара парола трябва да имаме винаги, когато потребителят е логнат
-        if ($rec->passEx) {
+        if (!empty($rec->passEx)) {
             $rec->passExHash = self::encodePwd($rec->passEx, $nick);
         }
-        
+
         // Калкулиране на хеша на новата парола
-        if ($rec->passNew) {
+        if (!empty($rec->passNew)) {
             $rec->passNewHash = self::encodePwd($rec->passNew, $nick);
             if (mb_strlen($rec->passNew) < EF_USERS_PASS_MIN_LEN) {
                 $rec->isLenOK = -1;
             }
-            if ($rec->passNew != $rec->passRe) {
+            if ($rec->passNew != ($rec->passRe ?? null)) {
                 $rec->isRetypeOK = -1;
             }
         }

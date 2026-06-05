@@ -105,7 +105,7 @@ class log_Actions extends core_Manager
         
         $actionCrc = crc32($action);
         
-        if (!self::$actionsArr[$actionCrc]) {
+        if (empty(self::$actionsArr[$actionCrc])) {
             self::$actionsArr[$actionCrc] = $action;
         }
         

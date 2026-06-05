@@ -121,7 +121,7 @@ class email_AutomaticResponse extends core_Master
         $this->FLD('content', 'richtext(rows=4)', 'caption=Шаблон за получени имейли->Съдържание');
         $this->FLD('titleOfMessage', 'varchar(128)', 'caption=Автоматични отговори->Заглавие, mandatory');
         $this->FLD('text', 'richtext(rows=4)', 'caption=Автоматични отговори->Съдържание, mandatory');
-        $this->FLD('state', 'enum(active=Активна, rejected=Отхвърлена)', 'caption=Автоматични отговори->Състояние');
+        $this->FLD('state', 'enum(active=Активен, rejected=Деактивиран)', 'caption=Автоматични отговори->Състояние');
         $this->FLD('inboxEmail', 'key(mvc=email_inboxes,select=email)', 'caption=Автоматични отговори->Имейл, mandatory');
         if(core_Packs::isInstalled('ai')){
             $this->FLD('aiInstructions', 'text(rows=3)', 'caption=Интелигентен Асистент->Инструкции, input');
@@ -430,16 +430,9 @@ class email_AutomaticResponse extends core_Master
                 $params = $Email->getPromptParams($emailRec, $promptRec->fields);
                 core_Lg::pop();
                 $params['lang'] = $mail->lg;
-
-                // Определяне каква трудност да се използва
-                $otherParams = array('useBase64' => true, 'question' => $rule->aiInstructions);
-                foreach (ai_Dialogs::USE_DIFFICULTY_FOR_INSTRUCTION as $difficultyHint => $difficulty){
-                     if (strpos($params['userRequirements'], $difficultyHint) !== false) {
-                        $otherParams['difficulty'] = $otherParams['difficulty'] == 'high' ? $otherParams['difficulty'] : $difficulty;
-                        $params['userRequirements'] = str_replace($difficultyHint, '', $params['userRequirements']);
-                    }
-                }
-
+                
+                $otherParams = [];
+                $otherParams['difficulty'] == 'high';
                 // Извикване на услугата за ИИ
                 $res = ai_Dialogs::get($promptRec->id, $params, array(), $otherParams, $emailRec->_dialogId);
                 

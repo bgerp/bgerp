@@ -381,16 +381,16 @@ class core_Mvc extends core_FieldSet
                 continue;
             }
             
-            $value = $rec->{$name};
-            
+            $value = $rec->{$name} ?? null;
+
             $field = $this->getField($name);
             
             // Правим MySQL представяне на стойността
-            $value = $field->type->toMysql($value, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
-            
+            $value = $field->type->toMysql($value, $this->db, $field->notNull ?? null, $field->value ?? null);
+
             // Предотвратява двойното записване
             if ($exRec && property_exists($exRec, $name) && is_scalar($exRec->{$name})) {
-                $exValue = $field->type->toMysql($exRec->{$name}, $this->db, isset($field->notNull) ? isset($field->notNull) : null, $field->value);
+                $exValue = $field->type->toMysql($exRec->{$name}, $this->db, $field->notNull ?? null, $field->value ?? null);
                 if ($exValue === $value) {
                     continue;
                 }
@@ -498,9 +498,11 @@ class core_Mvc extends core_FieldSet
         
         // Определяме полетата, които ще записваме
         $fieldsArr = array();
-        $fieldsMvc = $this->selectFields('FLD');
+        $insertFields = '';
+        $updateFields = '';
+        $fieldsMvc = $this->selectFields("#kind == 'FLD'");
         foreach ($fieldsMvc as $name => $fld) {
-            if ($fld->kind == 'FLD' && (!countR($fields) || $fields[$name])) {
+            if ($fld->kind == 'FLD' && (!countR($fields) || !empty($fields[$name]))) {
                 $fieldsArr[$name] = $fld;
                 $mysqlName = str::phpToMysqlName($name);
                 $insertFields .= "`${mysqlName}`,";
@@ -524,7 +526,7 @@ class core_Mvc extends core_FieldSet
         foreach ($recs as $rec) {
             $row = '(';
             foreach ($fieldsArr as $key => $field) {
-                $value = $field->type->toMysql($rec->{$key}, $this->db, $field->notNull, $field->value);
+                $value = $field->type->toMysql($rec->{$key} ?? null, $this->db, $field->notNull ?? null, $field->value ?? null);
                 $row .= $value . ',';
             }
             $row = rtrim($row, ',') . '),';
@@ -903,7 +905,7 @@ class core_Mvc extends core_FieldSet
                 $places = $tpl->getPlaceholders();
                 
                 foreach ($places as $place) {
-                    $cRec->{$place} = type_Varchar::escape($rec->{$place});
+                    $cRec->{$place} = type_Varchar::escape($rec->{$place} ?? null);
                     $cRec->{$place} = str_replace('|', '&#124;', $cRec->{$place});
                 }
             }
@@ -1012,7 +1014,7 @@ class core_Mvc extends core_FieldSet
         
         foreach ($checkFields as $fArr) {
             $fieldSetFlag = true;
-            $cond = $rec->id ? "#id != {$rec->id}" : '';
+            $cond = ($rec->id ?? null) ? "#id != {$rec->id}" : '';
             
             foreach ($fArr as $fName) {
                 if (!isset($rec->{$fName})) {
@@ -1022,7 +1024,7 @@ class core_Mvc extends core_FieldSet
                 
                 $field = $this->getField($fName);
                 
-                $value = $field->type->toMysql($rec->{$fName}, $this->db, $field->notNull, $field->value);
+                $value = $field->type->toMysql($rec->{$fName}, $this->db, $field->notNull ?? null, $field->value ?? null);
                 
                 $cond .= ($cond ? ' AND ' : '') . "#{$fName} = {$value}";
             }
@@ -1056,7 +1058,7 @@ class core_Mvc extends core_FieldSet
             return "{$html}</ul>";
         }
         
-        if ($this->oldClassName) {
+        if ($this->oldClassName ?? null) {
             $oldTableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($this->oldClassName);
             
             $newTableName = $this->dbTableName;
@@ -1078,9 +1080,9 @@ class core_Mvc extends core_FieldSet
             $db = $this->db;     // За краткост
             
             // Параметри на таблицата
-            $tableParams = array('ENGINE' => $this->dbEngine,
-                'CHARACTER' => $this->dbCharacter,
-                'COLLATION' => $this->dbCollation);
+            $tableParams = array('ENGINE' => $this->dbEngine ?? null,
+                'CHARACTER' => $this->dbCharacter ?? null,
+                'COLLATION' => $this->dbCollation ?? null);
             
             // Създаваме таблицата, ако не е създадена
             $action = $db->forceTable($tableName, $tableParams, $debugLog) ?
@@ -1107,14 +1109,14 @@ class core_Mvc extends core_FieldSet
                 $fieldsCheckList = $name;
                 
                 // Ако има стари полета, и те влизат в списъка за проверка
-                if ($field->oldFieldName) {
+                if ($field->oldFieldName ?? null) {
                     $fieldsCheckList = $fieldsCheckList . '|' . $field->oldFieldName;
                 }
                 
                 foreach (explode('|', $fieldsCheckList) as $fn) {
                     
                     // Не бива в модела, да има поле като старото
-                    if ($this->fields[$fn] && ($fn != $name)) {
+                    if (($this->fields[$fn] ?? null) && ($fn != $name)) {
                         error('@Дублиране на старо име на поле и съществуващо поле', "'{$fn}'");
                     }
                     
@@ -1130,48 +1132,53 @@ class core_Mvc extends core_FieldSet
                 
                 // Установяваме mfArrt с параметрите на модела
                 $mfAttr = $field->type->getMysqlAttr();
-                
-                if ($mfAttr->collation == 'ci') {
+
+                if (($mfAttr->collation ?? null) == 'ci') {
                     $mfAttr->collation = $this->db->dbCharset . '_general_ci';
                 }
+
+                if (!$dfAttr) {
+                    $dfAttr = new stdClass();
+                }
+
+                $mfAttr->field = $dfAttr->field ?? null;
                 
-                $mfAttr->field = $dfAttr->field;
-                
-                $mfAttr->notNull = $field->notNull ? true : false;
+                $mfAttr->notNull = ($field->notNull ?? null) ? true : false;
                 
                 if (isset($field->value)) {
                     $mfAttr->default = $field->value;
                 }
                 
-                $mfAttr->unsigned = ($mfAttr->unsigned || $field->unsigned) ? true : false;
+                $mfAttr->unsigned = (($mfAttr->unsigned ?? null) || ($field->unsigned ?? null)) ? true : false;
                 
                 $mfAttr->name = $name;
                 
                 $green = " style='color:#007733;'";     // Стил за маркиране
                 $info = '';     // Тук ще записваме текущия ред с информация какво правим
+                $updateName = $updateOptions = $updateSize = $updateUnsigned = $updateCollation = false;
                 // Дали ще създаваме или променяме името на полето
                 if ($mfAttr->name != $mfAttr->field) {
                     $updateName = true;     // Ще се прави UPDATE на името
                 }
                 
                 // Обновяване на типа
-                $updateType = ($mfAttr->type != $dfAttr->type);
+                $updateType = ($mfAttr->type != ($dfAttr->type ?? null));
                 $style = $updateType ? $green : '';
                 $_tt = $mfAttr->type;
                 if ($updateType) {
-                    $_tt .= " ({$dfAttr->type})";
+                    $_tt .= ' (' . ($dfAttr->type ?? '') . ')';
                 }
-                $info .= "<span{$style}>${_tt}</span>";
-                
+                $info .= "<span{$style}>{$_tt}</span>";
+
                 // Обновяване на опциите
                 if ($this->db->isType($mfAttr->type, 'have_options')) {
                     $info .= '(';
-                    
+
                     if (countR($mfAttr->options)) {
                         $comma = '';
-                        
+
                         foreach ($mfAttr->options as $opt) {
-                            if (is_array($dfAttr->options) && in_array($opt, $dfAttr->options)) {
+                            if (is_array($dfAttr->options ?? null) && in_array($opt, $dfAttr->options)) {
                                 $info .= $comma . str_replace("'", "''", $opt);
                             } else {
                                 $updateOptions = true;
@@ -1188,22 +1195,22 @@ class core_Mvc extends core_FieldSet
                 
                 // Ще обновяваме ли размера
                 if ($this->db->isType($mfAttr->type, 'have_len')) {
-                    $updateSize = $mfAttr->size != $dfAttr->size;
+                    $updateSize = $mfAttr->size != ($dfAttr->size ?? null);
                     $style = $updateSize ? $green : '';
                     $info .= "(<span{$style}>{$mfAttr->size}</span>)";
                 }
                 
                 // Ще обновяваме ли notNull
-                $updateNotNull = ($mfAttr->notNull != $dfAttr->notNull);
+                $updateNotNull = ($mfAttr->notNull != ($dfAttr->notNull ?? null));
                 $style = $updateNotNull ? $green : '';
                 $info .= ", <span{$style}>" . ($mfAttr->notNull ?
                     'NOT NULL' : 'NULL') . '</span>';
                 
                 // Ще обновяваме ли default?
-                $updateDefault = ($mfAttr->default != $dfAttr->default);
+                $updateDefault = (($mfAttr->default ?? null) != ($dfAttr->default ?? null));
                 $style = $updateDefault ? $green : '';
-                
-                if ($mfAttr->default) {
+
+                if ($mfAttr->default ?? null) {
                     $info .= ", <span{$style}>{$mfAttr->default}</span>";
                 } elseif ($updateDefault) {
                     if ($mfAttr->notNull) {
@@ -1215,17 +1222,17 @@ class core_Mvc extends core_FieldSet
                 
                 // Ще обновяваме ли с/без знак?
                 if ($this->db->isType($mfAttr->type, 'can_be_unsigned')) {
-                    $updateUnsigned = $mfAttr->unsigned != $dfAttr->unsigned;
+                    $updateUnsigned = ($mfAttr->unsigned ?? null) != ($dfAttr->unsigned ?? null);
                     $style = $updateUnsigned ? $green : '';
                     $info .= ", <span{$style}>" .
-                    ($mfAttr->unsigned ? 'UNSIGNED' : 'SIGNED') . '</span>';
+                    (($mfAttr->unsigned ?? null) ? 'UNSIGNED' : 'SIGNED') . '</span>';
                 }
                 
                 // Ще обновяваме ли колацията?
                 if ($this->db->isType($mfAttr->type, 'have_collation')) {
-                    setIfNot($mfAttr->collation, $field->collation, $this->db->dbCollation);
+                    setIfNot($mfAttr->collation, $field->collation ?? null, $this->db->dbCollation);
                     $mfAttr->collation = strtolower($mfAttr->collation);
-                    $updateCollation = $mfAttr->collation != $dfAttr->collation;
+                    $updateCollation = $mfAttr->collation != ($dfAttr->collation ?? null);
                     $style = $updateCollation ? $green : '';
                     $info .= ", <span{$style}>" .
                     ($mfAttr->collation) . '</span>';
@@ -1237,7 +1244,7 @@ class core_Mvc extends core_FieldSet
                     try {
                         if ($this->db->forceField($tableName, $mfAttr)) {
                             // Преименуване или създаване на полето?
-                            if ($dfAttr->field) {
+                            if ($dfAttr->field ?? null) {
                                 if ($mfAttr->field != $mfAttr->name) {
                                     $title = "<span{$green}>Преименуване <b>{$mfAttr->field}</b> => <b>{$mfAttr->name}</b></span>";
                                 } else {
@@ -1301,7 +1308,7 @@ class core_Mvc extends core_FieldSet
                         $fieldsList .= ($fieldsList ? ',' : '') . $fName . $addLimit;
                     }
                     
-                    if ($indexes[$name]) {
+                    if ($indexes[$name] ?? null) {
                         $exFields = $indexes[$name][$indRec->type];
                         $exFieldsList = '';
                         if (is_array($exFields)) {

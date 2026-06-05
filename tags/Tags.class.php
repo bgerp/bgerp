@@ -332,7 +332,7 @@ class tags_Tags extends core_Manager
 
         $data->listFilter->input(null, 'silent');
 
-        if ($data->listFilter->rec->tagId) {
+        if (!empty($data->listFilter->rec->tagId)) {
             $data->query->where(array("#id = '[#1#]'", $data->listFilter->rec->tagId));
         }
 

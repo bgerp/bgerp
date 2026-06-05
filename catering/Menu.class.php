@@ -257,7 +257,7 @@ class catering_Menu extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             // Ако редактираме запис
             if ($data->form->rec->date === null) {
                 $data->form->setDefault('day', $mvc->getVerbal($data->form->rec, 'repeatDay'));

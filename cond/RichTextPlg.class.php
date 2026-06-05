@@ -32,7 +32,7 @@ class cond_RichTextPlg extends core_Plugin
     public static function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
     {
         // Ако има права за добавяне
-        if (cond_Texts::haveRightFor('list') && $mvc->params['passage']) {
+        if (cond_Texts::haveRightFor('list') && ($mvc->params['passage'] ?? null)) {
             // id
             ht::setUniqId($attr);
             $id = $attr['id'];

@@ -35,7 +35,7 @@ class tnef_EmailPlg extends core_Plugin
             }
             
             // Записваме файла, ако не е записан вече
-            if (!$fileId = $fRec->fmId) {
+            if (!$fileId = ($fRec->fmId ?? null)) {
                 
                 //Вкарваме файла във Fileman
                 $fh = fileman::absorbStr($fRec->data, tnef_Decode::$bucket, $fRec->name);
@@ -55,7 +55,7 @@ class tnef_EmailPlg extends core_Plugin
             // Добавяме информация за файловете в масива
             foreach ($decodedArr as $fh) {
                 $fRecN = fileman_Files::fetchByFh($fh);
-                if (!$fh) {
+                if (!$fRecN) {
                     continue;
                 }
                 $nF = new stdClass();

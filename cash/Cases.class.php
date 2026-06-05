@@ -223,7 +223,9 @@ class cash_Cases extends core_Master
         }
 
         if (isset($fields['-single'])) {
-            $row->totalBlAmount = currency_Currencies::decorate($row->totalBlAmount, $row->currencyId, true);
+            $row->hint = ht::createHint('', 'Общо от всички валути, преизчислени по централен курс', 'notice', false);
+
+            $row->totalBlAmount = currency_Currencies::decorate($row->totalBlAmount, $row->currencyId ?? null, true);
             $row->totalBlAmount = ht::styleNumber($row->totalBlAmount, $rec->totalBlAmount);
         }
     }
@@ -277,7 +279,7 @@ class cash_Cases extends core_Master
         $fieldset->FLD('posQuantity', 'double');
 
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
-        $tableHtml = $table->get($inCashRows, 'currencyId=Валута,total=В брой,blQuantity=От баланса,posQuantity=От чакащи ПОС бележки');
+        $tableHtml = $table->get($inCashRows, 'currencyId=Валута,total=Наличност,blQuantity=Осчетоводени,posQuantity=От ПОС (чакащи)');
         $row->inCashData = $tableHtml;
     }
 
@@ -339,8 +341,10 @@ class cash_Cases extends core_Master
         
         $currencyId = acc_Periods::getBaseCurrencyCode();
         $state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
-        $colspan = countR($data->listFields) - 1;
-        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<span class='cCode'>{$currencyId}</span> <b>[#total#]</b> </td><td>&nbsp;</td></tr>");
+
+        $remainingCols = 5;
+        $colspan = countR($data->listFields) - $remainingCols;
+        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp; <b>[#total#]</b> </td><td colspan='{$remainingCols}'>&nbsp;</td></tr>");
         $lastRow->replace(tr('Общо'), 'caption');
         $lastRow->replace($total, 'total');
         $tpl->append($lastRow, 'ROW_AFTER');

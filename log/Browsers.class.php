@@ -346,7 +346,7 @@ class log_Browsers extends core_Master
             $rec = self::fetch(array("#brid = '[#1#]'", $brid));
         }
         
-        if (!$rec->userAgent) {
+        if (!is_object($rec) || !$rec->userAgent) {
             
             return '';
         }
@@ -363,7 +363,7 @@ class log_Browsers extends core_Master
         }
         
         if (!Mode::is('text', 'plain')) {
-            $title = str::coloring($title, is_object($brid) ? $brid->brind : $brid, array('style' => 'font-size:0.8em; border:solid 1px #ccc; padding: 2px; border-radius:2px;'));
+            $title = str::coloring($title, is_object($brid) ? ($brid->brind ?? null) : $brid, array('style' => 'font-size:0.8em; border:solid 1px #ccc; padding: 2px; border-radius:2px;'));
             if (self::haveRightFor('single', $rec)) {
                 $title = ht::createLink($title, array('log_Browsers', 'single', $rec->id));
             }
@@ -1142,7 +1142,7 @@ class log_Browsers extends core_Master
         
         // Ако има филтър
         if ($filter = $data->listFilter->rec) {
-            if ($filter->brid) {
+            if (!empty($filter->brid)) {
                 $data->query->where(array("#brid = '[#1#]'", $filter->brid));
             }
         }

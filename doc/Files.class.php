@@ -551,7 +551,7 @@ class doc_Files extends core_Manager
         $filter = $data->listFilter->rec;
 
         $data->query->where("#show = 'yes'");
-        if ($filter->search && (preg_match("/(\.|\s|^|\-)+(eml|html)(\.|\s|$)+/i", $filter->search))) {
+        if (($filter->search ?? null) && (preg_match("/(\.|\s|^|\-)+(eml|html)(\.|\s|$)+/i", $filter->search))) {
             $data->query->orWhere("#show = 'isSearch'");
         }
 
@@ -615,14 +615,14 @@ class doc_Files extends core_Manager
             if (isset($usersArr)) {
                 $data->query = fileman_Files::getQuery();
 
-                if (preg_match('/\.\w+/ui', $filter->search, $m)) {
+                if (isset($filter->search) && preg_match('/\.\w+/ui', $filter->search, $m)) {
                     $data->query->where(array("#name LIKE '%[#1#]'", $m[0]));
                 } else {
                     $data->query->where("#name NOT LIKE '%.html'");
                     $data->query->where("#name NOT LIKE '%.eml'");
                 }
 
-                if ($usersArr[-1]) {
+                if (!empty($usersArr[-1])) {
                     $data->query->isSlowQuery = true;
                     $data->query->useCacheForPager = true;
                 }
@@ -673,7 +673,7 @@ class doc_Files extends core_Manager
     public static function on_BeforeRecToVerbal($mvc, $row, $rec)
     {
         // Определяме датата
-        setIfNot($rec->date, $rec->lastUse, $rec->lastOn, $rec->cModifiedOn);
+        setIfNot($rec->date, $rec->lastUse ?? null, $rec->lastOn ?? null, $rec->cModifiedOn ?? null);
         if (!isset($rec->date)) {
             $fRec = fileman_Files::fetchByFh($rec->fileHnd);
             $rec->date = $fRec->createdOn;
@@ -749,7 +749,7 @@ class doc_Files extends core_Manager
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $url = null;
-        if ($rec->containerId) {
+        if (!empty($rec->containerId)) {
             try {
                 // Документа
                 $doc = doc_Containers::getDocument($rec->containerId);

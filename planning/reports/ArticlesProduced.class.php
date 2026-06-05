@@ -548,7 +548,7 @@ $c=0;
         }
 
         //Добавяне на колона за теглото
-        if ($rec->seeWeight == 'yes' && $rec->groupBy == 'no' && $rec->accProd == 'no') {
+        if ($rec->seeWeight == 'yes' && $rec->accProd == 'no') {
 
             foreach ($recs as $val) {
 

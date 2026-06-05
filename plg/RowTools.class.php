@@ -49,7 +49,7 @@ class plg_RowTools extends core_Plugin
             
             $icon = $mvc->getIcon($rec->id);
             
-            if ($singleField = $mvc->rowToolsSingleField) {
+            if ($singleField = ($mvc->rowToolsSingleField ?? null)) {
                 $attr1['class'] = 'linkWithIcon';
                 $attr1['ef_icon'] = $icon;
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);

@@ -177,7 +177,7 @@ class tags_Logs extends core_Manager
             }
         }
 
-        if (!$row->docLink) {
+        if (empty($row->docLink)) {
             $row->docLink = tr('Липсващ документ');
         }
 
@@ -285,7 +285,7 @@ class tags_Logs extends core_Manager
 
         foreach ($tArr as $tId) {
 
-            if (!$oldTagArr[$tId]) {
+            if (empty($oldTagArr[$tId])) {
                 $rec = new stdClass();
                 $rec->docClassId = $docClassId;
                 $rec->docId = $docId;
@@ -382,7 +382,7 @@ class tags_Logs extends core_Manager
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
-        if ($rec->containerId) {
+        if (!empty($rec->containerId)) {
             $mvc->clearCache($rec->containerId);
         }
     }
@@ -423,7 +423,7 @@ class tags_Logs extends core_Manager
 
         $data->listFilter->input(null, 'silent');
 
-        if ($data->listFilter->rec->tagId) {
+        if (!empty($data->listFilter->rec->tagId)) {
             $data->query->where(array("#tagId = '[#1#]'", $data->listFilter->rec->tagId));
         }
 

@@ -710,7 +710,7 @@ class core_ET extends core_BaseClass
         if (is_array($redirectArr) && ($redirectArr[0] ?? null)) {
             $msgArr = Mode::get('redirectMsg');
             
-            redirect($redirectArr[0], false, $msgArr['msg'], $msgArr['type']);
+            redirect($redirectArr[0], false, is_array($msgArr) ? $msgArr['msg'] : null, is_array($msgArr) ? $msgArr['type'] : null);
         }
         
         if (is_array($this->places)) {

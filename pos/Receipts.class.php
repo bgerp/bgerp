@@ -683,7 +683,7 @@ class pos_Receipts extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         pos_Points::addPointFilter($data->listFilter, $data->query);
-        $filterDateFld = $data->listFilter->rec->filterDateField;
+        $filterDateFld = $data->listFilter->rec->filterDateField ?? null;
         $data->listFilter->FLD('revertState', 'enum(,no=Без сторниране,revertId=Сторниращи,isReverted=Сторнирани)', 'caption=Сторно');
 
         // Добавяне на филтър по начините на плащане
@@ -714,7 +714,7 @@ class pos_Receipts extends core_Master
 
         // Скриване на полето за дата, ако се филтрира по конкретно поле
         foreach (array('valior', 'createdOn', 'waitingOn') as $fld) {
-            if ($fld != $data->listFilter->rec->filterDateField) {
+            if ($fld != ($data->listFilter->rec->filterDateField ?? null)) {
                 unset($data->listFields[$fld]);
             }
         }

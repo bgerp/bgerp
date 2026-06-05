@@ -112,6 +112,7 @@ class hr_Schedules extends core_Master
         $this->FLD('sysId', 'varchar', 'caption=Служебно ид,input=none,autohide');
         $this->FNC('makeDescendantsFeatures', 'enum(yes=Да,no=Не)', 'caption=Наследниците да бъдат ли счетоводни признаци?->Избор,notNull,value=yes,input=none');
         $this->setDbUnique('name');
+        $this->setDbIndex('sysId');
     }
 
     /**
@@ -534,6 +535,7 @@ class hr_Schedules extends core_Master
         $sTimes = self::getStartingTimes($id, $from, $to);
  
         $workDays = count($sTimes);
+        $nonWorking = $allDays - $workDays;
 
         $res = (object) array('nonWorking' => $nonWorking, 'workDays' => $workDays, 'allDays' => $allDays);
        

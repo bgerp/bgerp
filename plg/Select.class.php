@@ -99,7 +99,7 @@ class plg_Select extends core_Plugin
             return;
         }
         
-        if (!$data->listClass) {
+        if (!($data->listClass ?? null)) {
             $data->listClass = 'listRows selectRows';
         } else {
             $data->listClass .= ' selectRows';
@@ -133,15 +133,15 @@ class plg_Select extends core_Plugin
             foreach ($row as $id => $on) {
                 foreach ($actArr as $action => $caption) {
                     if ($mvc->haveRightFor($action, $id)) {
-                        $cnt[$action]++;
-                        $listArr[$action] .= ($listArr[$action] ? ',' : '') . $id;
+                        $cnt[$action] = ($cnt[$action] ?? 0) + 1;
+                        $listArr[$action] = ($listArr[$action] ?? '') . (($listArr[$action] ?? '') ? ',' : '') . $id;
                     }
                 }
             }
             
             // Махаме действията, които не са достъпни за нито един избран ред
             foreach ($actArr as $action => $caption) {
-                if (!$cnt[$action]) {
+                if (!($cnt[$action] ?? null)) {
                     unset($actArr[$action]);
                 }
             }
@@ -316,6 +316,7 @@ class plg_Select extends core_Plugin
         
         $tpl->append('</form>');
         
+        $js = '';
         foreach ($data->rows as $id => $row) {
             $js .= "chRwCl('{$id}');";
         }

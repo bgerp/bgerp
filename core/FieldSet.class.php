@@ -104,15 +104,15 @@ class core_FieldSet extends core_BaseClass
         // Установяваме името на полето от външния модел
         setIfNot($params['externalName'], $name);
         
-        if (!$params['externalKey']) {
+        if (!($params['externalKey'] ?? null)) {
             $key = strToLower($externalClass) . 'Id';
-            
-            if ($this->fields[$key]) {
+
+            if ($this->fields[$key] ?? null) {
                 $params['externalKey'] = $key;
             } elseif (substr($externalClass, -1) == 's') {
                 $key = strToLower(substr($externalClass, 0, strlen($externalClass) - 1)) . 'Id';
                 
-                if ($this->fields[$key]) {
+                if (!empty($this->fields[$key])) {
                     $params['externalKey'] = $key;
                 }
             }
@@ -374,7 +374,7 @@ class core_FieldSet extends core_BaseClass
         $newFields = array();
         
         foreach ($this->fields as $name => $field) {
-            if (is_array($field->_insertBefore)) {
+            if (isset($field->_insertBefore) && is_array($field->_insertBefore)) {
                 foreach ($field->_insertBefore as $fName) {
                     if (!isset($newField[$fName])) {
                         $newFields[$fName] = $this->fields[$fName];
@@ -386,7 +386,7 @@ class core_FieldSet extends core_BaseClass
                 $newFields[$name] = $this->fields[$name];
             }
             
-            if (is_array($field->_insertAfter)) {
+            if (isset($field->_insertAfter) && is_array($field->_insertAfter)) {
                 foreach ($field->_insertAfter as $fName) {
                     if (!isset($newField[$fName])) {
                         $newFields[$fName] = $this->fields[$fName];
@@ -519,7 +519,7 @@ class core_FieldSet extends core_BaseClass
      */
     public function getField($name, $strict = true)
     {
-        if ($name[0] == '#') {
+        if ($name && $name[0] == '#') {
             $name = substr($name, 1);
         }
         
@@ -624,7 +624,7 @@ class core_FieldSet extends core_BaseClass
     {
         $field = $this->getField($name);
         
-        return $field->$paramName;
+        return $field->{$paramName} ?? null;
     }
     
     

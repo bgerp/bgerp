@@ -1064,7 +1064,7 @@ class i18n_Charset extends core_MVC
             ini_set('memory_limit', $mLimit);
         }
 
-        list($toCharset, $mode) = explode('//', $toCharset);
+        [$toCharset, $mode] = explode('//', $toCharset) + [1 => null];
         
         if ($mode && strpos($mode, '//') !== 0) {
             $mode = "//{$mode}";

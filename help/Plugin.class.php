@@ -44,13 +44,13 @@ class help_Plugin extends core_Plugin
         
         
         if (($act == 'list') && ($rec = help_Info::fetch(array("#class = '[#1#]' AND #lg = '[#2#]'", $ctr, $lg))) || haveRole('help')) {
+            $mustSeeClass = '';
             if (!$rec) {
                 $rec = new stdClass();
                 $rec->class = $ctr;
                 $rec->lg = $lg;
             } else {
                 // Трябва ли да бъде първоначално отворен хинта и дали въобще да го показваме?
-                $mustSeeClass = '';
                 switch (help_Log::getDisplayMode($rec->id)) {
                     case 'open':
                         $mustSeeClass = 'show-tooltip';

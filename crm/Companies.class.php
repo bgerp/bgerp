@@ -443,7 +443,7 @@ class crm_Companies extends core_Master
         
         // Според заявката за сортиране, показваме различни полета
         setPartIfNot($data->listFilter->rec, 'order', 'alphabetic');
-        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
+        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2] ?? null;
         
         if ($showColumns) {
             $showColumns = arr::make($showColumns, true);
@@ -461,12 +461,12 @@ class crm_Companies extends core_Master
         }
         
         
-        if ($data->listFilter->rec->alpha) {
+        if ($data->listFilter->rec->alpha ?? null) {
             if ($data->listFilter->rec->alpha[0] == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
                 $alphaArr = explode('-', $data->listFilter->rec->alpha);
-                $cond = array();
+                $cond = array(0 => '');
                 $i = 1;
                 
                 foreach ($alphaArr as $a) {
@@ -608,7 +608,7 @@ class crm_Companies extends core_Master
 
             // Дефолтната държава е същата, като на "Моята фирма"
             $myCompany = self::fetchOwnCompany();
-            $form->setDefault('country', $myCompany->countryId);
+            $form->setDefault('country', is_object($myCompany) ? $myCompany->countryId : null);
         }
         
         // Ако сме в тесен режим
@@ -905,14 +905,14 @@ class crm_Companies extends core_Master
      */
     protected static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
-        if ($data->listFilter->rec->groupId) {
+        if ($data->listFilter->rec->groupId ?? null) {
             $data->title = "Фирми в групата|* \"<b style='color:green'>|" .
             $mvc->Groups->getTitleById($data->listFilter->rec->groupId) . '|*</b>"';
-        } elseif ($data->listFilter->rec->search) {
+        } elseif ($data->listFilter->rec->search ?? null) {
             $data->title = "Фирми, отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .
             '</b>"';
-        } elseif ($data->listFilter->rec->alpha) {
+        } elseif ($data->listFilter->rec->alpha ?? null) {
             if ($data->listFilter->rec->alpha[0] == '0') {
                 $data->title = 'Фирми, които започват с не-буквени символи';
             } else {
@@ -981,6 +981,7 @@ class crm_Companies extends core_Master
         $place = $mvc->getVerbal($rec, 'place');
         $address = $mvc->getVerbal($rec, 'address');
         
+        $row->addressBox ??= '';
         $row->addressBox .= $pCode ? "{$pCode} " : '';
         $row->addressBox .= $place;
 
@@ -991,6 +992,7 @@ class crm_Companies extends core_Master
         $eml = $mvc->getVerbal($rec, 'email');
 
         // phonesBox
+        $row->phonesBox ??= '';
         $row->phonesBox .= $tel ? "<div class='crm-icon telephone'>{$tel}</div>" : '';
         $row->phonesBox .= $fax ? "<div class='crm-icon fax'>{$fax}</div>" : '';
         $row->phonesBox .= $eml ? "<div class='crm-icon email'>{$eml}</div>" : '';
@@ -1002,22 +1004,22 @@ class crm_Companies extends core_Master
         }
         
         $ownCompany = crm_Companies::fetchOurCompany();
-        if ($ownCompany->country != $rec->country) {
+        if (!is_object($ownCompany) || $ownCompany->country != $rec->country) {
             $country = $row->country;
         } else {
             $currentCountry = $mvc->getVerbal($rec, 'place');
             $country = $currentCountry;
         }
         
-        $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". $row->folder .'</span></div>';
+        $row->nameList = '<div class="namelist">'. $row->nameList . "<span class='icon'>". ($row->folder ?? '') .'</span></div>';
         $row->id = $mvc->getVerbal($rec, 'id');
         $row->nameList .= ($country ? "<div style='font-size:0.8em;margin-bottom:2px;margin-left: 4px;'>{$country}</div>" : '');
         
-        if (!$row->title) {
-            $row->title .= $mvc->getTitleById($rec);
+        if (!($row->title ?? null)) {
+            $row->title = $mvc->getTitleById($rec);
         }
-        
-        if ($rec->folderName) {
+
+        if ($rec->folderName ?? null) {
             $row->folderName = "<div style='color:blue;'>" . $mvc->getVerbal($rec, 'folderName') . '</div>';
         }
         
@@ -1320,7 +1322,8 @@ class crm_Companies extends core_Master
      */
     public static function getSelectArr($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
     {
-        $ownCountry = self::fetchOurCompany()->country;
+        $ourCompanyRec = self::fetchOurCompany();
+        $ownCountry = (int)(is_object($ourCompanyRec) ? $ourCompanyRec->country : 0);
         
         if (core_Lg::getCurrent() == 'bg') {
             $countryNameField = 'commonNameBg';
@@ -1332,7 +1335,7 @@ class crm_Companies extends core_Master
         $query->orderBy('modifiedOn=DESC');
         
         $viewAccess = true;
-        if ($params['restrictViewAccess'] == 'yes') {
+        if (($params['restrictViewAccess'] ?? null) == 'yes') {
             $viewAccess = false;
         }
         
@@ -1391,7 +1394,7 @@ class crm_Companies extends core_Master
         
         $query->show('id,searchFieldXpr');
 
-        if ($params['group']) {
+        if (!empty($params['group'])) {
             $gId = crm_Groups::getIdFromSysId($params['group']);
             expect($gId);
             plg_ExpandInput::applyExtendedInputSearch('crm_Companies', $query, $gId);
@@ -1412,11 +1415,11 @@ class crm_Companies extends core_Master
      */
     public static function on_Shutdown($mvc)
     {
-        if ($mvc->updateGroupsCnt) {
+        if (!empty($mvc->updateGroupsCnt)) {
             crm_Groups::updateGroupsCnt($mvc->className, 'companiesCnt');
         }
-        
-        if (countR($mvc->updatedRecs)) {
+
+        if (!empty($mvc->updatedRecs) && countR($mvc->updatedRecs)) {
             foreach ($mvc->updatedRecs as $id => $rec) {
                 $mvc->updateRoutingRules($rec);
             }
@@ -1522,7 +1525,7 @@ class crm_Companies extends core_Master
         $id = core_Packs::isInstalled('holding') ? $ownCompanyId : null;
         $id = $id ?? crm_Setup::BGERP_OWN_COMPANY_ID;
         $rec = self::fetch($id);
-        $rec = change_History::getRecOnDate(get_called_class(), $rec->id, $date);
+        $rec = $rec ? change_History::getRecOnDate(get_called_class(), $rec->id, $date) : null;
 
         if ($rec) {
             $rec->classId = core_Classes::getId('crm_Companies');
@@ -2022,24 +2025,24 @@ class crm_Companies extends core_Master
         $ownCompany = static::fetchOwnCompany();
         
         // Ако id' то е в данните на контрагента
-        if ($ownCompany->companyId == $contrData->companyId) {
-            
+        if (($ownCompany->companyId ?? null) == ($contrData->companyId ?? null)) {
+
             // Премахваме id' тото
             $contrData->companyId = null;
-            
+
             // Премахваме името на компанията
             $contrData->company = null;
         }
-        
+
         // Ако името на компанията съвпада
-        if (mb_strtolower($ownCompany->company) == mb_strtolower($contrData->company)) {
-            
+        if (mb_strtolower($ownCompany->company ?? '') == mb_strtolower($contrData->company ?? '')) {
+
             // Премахваме от списъка
             $contrData->company = null;
         }
-        
+
         // Ако има открити телефони
-        if ($ownCompany->tel && $contrData->tel) {
+        if (($ownCompany->tel ?? null) && ($contrData->tel ?? null)) {
             
             // Масив с телефони на нашата компания
             $oTelArr = drdata_PhoneType::toArray($ownCompany->tel);
@@ -2078,7 +2081,7 @@ class crm_Companies extends core_Master
         }
         
         // Ако има открити факсове
-        if ($ownCompany->fax && $contrData->fax) {
+        if (($ownCompany->fax ?? null) && ($contrData->fax ?? null)) {
             
             // Масив с факсове на нашата компания
             $oFaxArr = drdata_PhoneType::toArray($ownCompany->fax);
@@ -2116,14 +2119,14 @@ class crm_Companies extends core_Master
         }
         
         // Ако адреса е същия
-        if (!empty($ownCompany->address) && mb_strtolower($ownCompany->address) == mb_strtolower($contrData->address)) {
+        if (!empty($ownCompany->address) && mb_strtolower($ownCompany->address) == mb_strtolower($contrData->address ?? '')) {
             
             // Премахваме от данните
             $contrData->address = null;
         }
         
         // Ако има имейли
-        if ($ownCompany->email && $contrData->email) {
+        if (($ownCompany->email ?? null) && ($contrData->email ?? null)) {
             
             // Масив с имейлите на нашата компания
             $oEmailArr = type_Emails::toArray($ownCompany->email);
@@ -2155,7 +2158,7 @@ class crm_Companies extends core_Master
         // Ако има групови имейли
         $oEmailArr = null;
         $cGroupEmailArr = array();
-        if ($ownCompany->email && $contrData->groupEmails) {
+        if (($ownCompany->email ?? null) && ($contrData->groupEmails ?? null)) {
             
             // Ако не сме намерили масива преди
             if (!$oEmailArr) {
@@ -2184,7 +2187,7 @@ class crm_Companies extends core_Master
                 foreach ($oEmailArr as $oEmail) {
                     
                     // Ако имейла е в масива премахваме го от груповите
-                    if ($cGroupEmailArr[$oEmail]) {
+                    if (!empty($cGroupEmailArr[$oEmail])) {
                         unset($cGroupEmailArr[$oEmail]);
                     }
                 }
@@ -2195,7 +2198,7 @@ class crm_Companies extends core_Master
         }
         
         // Ако сме премахнали имейлите и има имейли в групите
-        if (!$contrData->email && countR($cGroupEmailArr)) {
+        if (!($contrData->email ?? null) && countR($cGroupEmailArr)) {
             
             // Добавяме първия в имейлите
             $contrData->email = key($cGroupEmailArr);
@@ -2559,7 +2562,7 @@ class crm_Companies extends core_Master
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+        $res = drdata_Countries::addCountryInBothLg(is_object($rec) ? ($rec->country ?? null) : null, $res);
         
         // Ако полето е обозначено за оказване
         if (isset($rec->nkid)) {

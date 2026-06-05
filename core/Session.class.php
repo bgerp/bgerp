@@ -89,11 +89,12 @@ class core_Session
     {
         if(self::$mute) return;
 
-        ini_set('session.gc_maxlifetime', 7200);
-        
+        if(session_status() !== PHP_SESSION_ACTIVE) {
+            ini_set('session.gc_maxlifetime', 7200);
+            session_name($name);
+        }
+
         $this->sid = isset($_COOKIE[session_name()]) ? $_COOKIE[session_name()] : null;
-        
-        session_name($name);
         
         $this->_start();
         
@@ -254,7 +255,7 @@ class core_Session
     public function _start($forced = false)
     {
         if (!$this->_started || $this->pause) {
-            if (!headers_sent()) {
+            if (!headers_sent() && session_status() !== PHP_SESSION_ACTIVE) {
                 @session_cache_limiter('nocache');
                 @session_set_cookie_params(0);
                 ini_set('session.cookie_httponly', 1);
@@ -270,13 +271,17 @@ class core_Session
         }
         
         if (!$this->_started || $forced) {
-            @session_start();
+            if (!headers_sent() && session_status() !== PHP_SESSION_ACTIVE) {
+                @session_start();
+            }
             $this->_started = true;
             $this->pause = false;
         }
-        
+
         if ($this->pause) {
-            @session_start();
+            if (!headers_sent() && session_status() !== PHP_SESSION_ACTIVE) {
+                @session_start();
+            }
             $this->pause = false;
         }
     }

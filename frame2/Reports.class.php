@@ -1415,11 +1415,11 @@ class frame2_Reports extends embed_Manager
         
         $data->listFilter->input();
         $rec = $data->listFilter->rec;
-        if ($rec->driverClass) {
+        if ($rec->driverClass ?? null) {
             $data->query->where(array("#driverClass = '[#1#]'", $rec->driverClass));
         }
-        
-        if ($rec->user) {
+
+        if ($rec->user ?? null) {
             $data->query->like('sharedUsers', '|' . $rec->user . '|');
             $data->query->orWhere(array("#createdBy = '[#1#]'", $rec->user));
         }

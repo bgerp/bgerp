@@ -476,17 +476,23 @@ abstract class deals_DealMaster extends deals_DealBase
         $recs = $query->fetchAll();
         
         deals_Helper::fillRecs($this, $recs, $rec);
-        
+
         // ДДС-то е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
-        $amountDeal = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
-        $amountDeal -= $this->_total->discount;
-        $rec->amountDeal = $amountDeal * $rec->currencyRate;
-        $rec->amountVat = $this->_total->vat * $rec->currencyRate;
-        $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        if (isset($this->_total)) {
+            $amountDeal = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
+            $amountDeal -= $this->_total->discount;
+            $rec->amountDeal = $amountDeal * $rec->currencyRate;
+            $rec->amountVat = $this->_total->vat * $rec->currencyRate;
+            $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
+        } else {
+            $rec->amountDeal = 0;
+            $rec->amountVat = 0;
+            $rec->amountDiscount = 0;
+        }
         $rec->productIdWithBiggestAmount = $this->findProductIdWithBiggestAmount($rec);
         
         $this->invoke('BeforeUpdatedMaster', array(&$rec));
-        
+
         return $this->save($rec);
     }
     
@@ -509,7 +515,7 @@ abstract class deals_DealMaster extends deals_DealBase
             if (isset($rec->contragentClassId, $rec->contragentId)) {
                 $crm = cls::get($rec->contragentClassId);
                 $cRec = $crm->getContragentData($rec->contragentId, $rec->activatedOn);
-                $contragent = str::limitLen($cRec->person ? $cRec->person : $cRec->company, 16);
+                $contragent = str::limitLen(($cRec->person ?? null) ?: ($cRec->company ?? null), 16);
             } else {
                 $contragent = tr('Проблем при показването');
             }
@@ -888,14 +894,14 @@ abstract class deals_DealMaster extends deals_DealBase
         parent::prepareSingle_($data);
         
         $rec = &$data->rec;
-        if (empty($data->noTotal)) {
+        if (empty($data->noTotal) && isset($this->_total)) {
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
             $data->row = (object) ((array) $data->row + (array) $data->summary);
-            
+
             if ($rec->paymentMethodId) {
                 $total = $this->_total->amount - $this->_total->discount;
                 $total = ($rec->chargeVat == 'separate') ? $total + $this->_total->vat : $total;
-                
+
                 cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
             }
         }  elseif(!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
@@ -1337,7 +1343,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $actions = type_Set::toArray($rec->contoActions);
         
         foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct') as $amnt) {
-            if (round($rec->{"amount{$amnt}"}, 2) == 0) {
+            if (round($rec->{"amount{$amnt}"} ?? 0, 2) == 0) {
                 $row->{"amount{$amnt}"} = ht::styleNumber($amountType->toVerbal(0), 0);
             } else {
                 if (!empty($rec->currencyRate)) {
@@ -1352,13 +1358,15 @@ abstract class deals_DealMaster extends deals_DealBase
         if(isset($fields['-subTitle'])){
             if($rec->currencyId != acc_Periods::getBaseCurrencyCode()) {
                 foreach (array('amountDelivered', 'amountToDeliver', 'amountInvoiced', 'amountToInvoice', 'amountPaid', 'amountToPay', 'Deal') as $fld){
-                    $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $rec->currencyId, true);
+                    if (isset($row->{$fld})) {
+                        $row->{$fld} = currency_Currencies::decorate($row->{$fld}, $rec->currencyId, true);
+                    }
                 }
             }
         }
 
         foreach (array('ToPay', 'ToDeliver', 'ToInvoice', 'Bl', 'InvoicedDownpayment', 'InvoicedDownpaymentToDeduct', "Delivered") as $amnt) {
-            $row->{"amount{$amnt}"} = ht::styleNumber($row->{"amount{$amnt}"}, round($rec->{"amount{$amnt}"}, 2), 'green');
+            $row->{"amount{$amnt}"} = ht::styleNumber($row->{"amount{$amnt}"} ?? null, round($rec->{"amount{$amnt}"} ?? 0, 2), 'green');
         }
 
         // Ревербализираме платежното състояние, за да е в езика на системата а не на шаблона
@@ -1532,7 +1540,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $row = (object) ((array) $row + (array) $headerInfo);
             
             if (isset($actions['ship'])) {
-                $row->isDelivered .= mb_strtoupper(tr('доставено'));
+                $row->isDelivered = ($row->isDelivered ?? '') . mb_strtoupper(tr('доставено'));
                 if ($rec->state == 'rejected') {
                     $row->isDelivered = "<span class='quiet'>{$row->isDelivered}</span>";
                 }
@@ -2133,7 +2141,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
-        if ($data->paymentPlan) {
+        if ($data->paymentPlan ?? null) {
             $tpl->placeObject($data->paymentPlan);
         }
         
@@ -3301,7 +3309,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
         // Ако е експедирано с договора, бутон за връщане
         $contoActions = type_Set::toArray($rec->contoActions);
-        if($contoActions['ship']){
+        if($contoActions['ship'] ?? null){
             if($ReverseClass = $mvc->getDocumentReverseClass($data->rec)) {
                 if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
                     $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");

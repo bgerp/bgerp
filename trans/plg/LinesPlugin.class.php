@@ -430,7 +430,7 @@ class trans_plg_LinesPlugin extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        core_Lg::push($rec->tplLang);
+        core_Lg::push($rec->tplLang ?? null);
         $showTransInfo = trans_Setup::get('SHOW_LOG_INFO_IN_DOCUMENTS');
 
         if (isset($rec->lineId)) {

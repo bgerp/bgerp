@@ -176,7 +176,7 @@ class price_ListToCustomers extends core_Manager
         $datetime = (isset($datetime)) ? $datetime : dt::verbal2mysql();
         
         $query = self::getQuery();
-        $query->where("#cClass = {$customerClassId} AND #cId = {$customerId}");
+        $query->where("#cClass = '{$customerClassId}' AND #cId = '{$customerId}'");
         $query->where("#validFrom <= '{$datetime}'");
         $query->where("#listState != 'rejected'");
         

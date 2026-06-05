@@ -68,7 +68,7 @@ class crm_Personalization extends core_Detail
         expect($data->masterId);
         
         // Ако няма
-        if (!$data->Personalization) {
+        if (empty($data->Personalization)) {
             
             // Създаваме клас
             $data->Personalization = new stdClass();

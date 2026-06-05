@@ -50,6 +50,8 @@ class fileman_FileType extends type_Varchar
         $Files = cls::get('fileman_Files');
         $Buckets = cls::get('fileman_Buckets');
         
+        $fileName = null;
+        $html = null;
         if ($value) {
             $fileName = $Files->fetchByFh($value, 'name');
         }
@@ -75,7 +77,7 @@ class fileman_FileType extends type_Varchar
         
         expect($bucketId, 'Очаква се валидна кофа', $bucket);
 
-        $focus = $this->params['focus'] != 'none' ? 'focus' : '';
+        $focus = ($this->params['focus'] ?? null) != 'none' ? 'focus' : '';
 
         $tpl->prepend($Files->makeBtnToAddFile('+', $bucketId, 'setInputFile' . $name, array('class' => 'noicon ' . $focus, 'title' => 'Добавяне или промяна на файл')));
 
@@ -142,7 +144,7 @@ class fileman_FileType extends type_Varchar
     {
         $res = parent::isValid($value);
         
-        if ($this->params['allowedExtensions'] && $value) {
+        if (!empty($this->params['allowedExtensions']) && $value) {
             setIfNot($res, array());
             
             $eArr = explode('|', strtolower($this->params['allowedExtensions']));

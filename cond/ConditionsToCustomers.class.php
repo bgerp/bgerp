@@ -265,7 +265,7 @@ class cond_ConditionsToCustomers extends core_Manager
         $row->cId = cls::get($rec->cClass)->getHyperLink($rec->cId, true);
         
         if (isset($fields['-list'])) {
-            $row->ROW_ATTR['class'] .= ' state-active';
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' state-active';
         }
     }
     
@@ -349,7 +349,8 @@ class cond_ConditionsToCustomers extends core_Manager
             $query->where("#conditionId = {$conditionId}");
             $query->show('value');
             
-            return $query->fetch()->value;
+            $result = $query->fetch();
+            return $result ? $result->value : null;
         }
         $query->show('conditionId,value');
         $recs = array();

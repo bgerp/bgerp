@@ -58,7 +58,7 @@ class core_Detail extends core_Manager
         $mvc->fields[$mvc->masterKey]->silent = 'silent';
         setPartIfNot($mvc, 'fetchFieldsBeforeDelete', $mvc->masterKey);
         
-        if ($mvc->masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']) {
+        if ($mvc->masterClass = ($mvc->fields[$mvc->masterKey]->type->params['mvc'] ?? null)) {
             $mvc->Master = cls::get($mvc->masterClass);
         }
         
@@ -107,7 +107,7 @@ class core_Detail extends core_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        if (is_object($data->pager)) {
+        if (is_object($data->pager ?? null)) {
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
             if (cls::existsMethod($data->masterMvc, 'getHandle')) {
                 $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
@@ -177,7 +177,7 @@ class core_Detail extends core_Manager
         
         // Попълваме таблицата с редовете
         setPartIfNot($data, 'listTableMvc', clone $this);
-        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty ?? null, true);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете
@@ -213,9 +213,9 @@ class core_Detail extends core_Manager
     public function prepareListToolbar_(&$data)
     {
         $data->toolbar = cls::get('core_Toolbar');
-        $masterKey = $data->masterKey;
-        
-        if ($data->masterId) {
+        $masterKey = $data->masterKey ?? null;
+
+        if ($data->masterId ?? null) {
             $rec = new stdClass();
             $rec->{$masterKey} = $data->masterId;
             if ($this->haveRightFor('add', $rec) && $data->masterId && $this->listAddBtn !== false) {
@@ -224,8 +224,8 @@ class core_Detail extends core_Manager
         }
 
         // Бутон за групово изтриване
-        if($this->haveRightFor('selectrowstodelete', (object)array($masterKey => $data->masterId))){
-            $data->toolbar->addBtn('Изтриване', array($this, 'selectRowsToDelete', $masterKey => $data->masterId, 'ret_url' => true,), 'id=btnDellAll', 'ef_icon = img/16/deletered.png,title=Форма за избор на редове за изтриване,order=500,class=selectDeleteRowsBtn');
+        if($this->haveRightFor('selectrowstodelete', (object)array($masterKey => ($data->masterId ?? null)))){
+            $data->toolbar->addBtn('Изтриване', array($this, 'selectRowsToDelete', $masterKey => ($data->masterId ?? null), 'ret_url' => true,), 'id=btnDellAll', 'ef_icon = img/16/deletered.png,title=Форма за избор на редове за изтриване,order=500,class=selectDeleteRowsBtn');
         }
 
         return $data;
@@ -242,7 +242,7 @@ class core_Detail extends core_Manager
         
         $form = $data->form;
         
-        if (!$data->masterMvc) {
+        if (empty($data->masterMvc)) {
             $data->masterMvc = $this->getMasterMvc($data->form->rec);
         }
 
@@ -250,7 +250,7 @@ class core_Detail extends core_Manager
             $this->currentTab = $data->masterMvc;
         }
 
-        if (!$data->masterKey) {
+        if (empty($data->masterKey)) {
             $data->masterKey = $this->getMasterKey($data->form->rec);
         }
         
@@ -280,7 +280,7 @@ class core_Detail extends core_Manager
      */
     public function prepareEditTitle_($data)
     {
-        $data->form->title = static::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id, $this->formTitlePreposition);
+        $data->form->title = static::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id ?? null, $this->formTitlePreposition ?? null);
     }
     
     
@@ -417,14 +417,14 @@ class core_Detail extends core_Manager
         $masters = $this->getMasters($rec);
         
         foreach ($masters as $masterKey => $masterInstance) {
-            if ($rec->{$masterKey}) {
+            if ($rec->{$masterKey} ?? null) {
                 $masterId = $rec->{$masterKey};
             } elseif ($rec->id) {
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
-            
+
             // Ако в сесията е спряно обновяването на мастъра, спира се
-            $stopMasterUpdate = Mode::get("stopMasterUpdate{$rec->{$masterKey}}");
+            $stopMasterUpdate = Mode::get("stopMasterUpdate" . ($rec->{$masterKey} ?? ''));
             if ($stopMasterUpdate === true) {
                 break;
             }
@@ -456,9 +456,10 @@ class core_Detail extends core_Manager
 
         if(countR($masters)){
             foreach ($masters as $masterKey => $masterInstance) {
-                if ($rec->{$masterKey}) {
+                $masterId = null;
+                if ($rec->{$masterKey} ?? null) {
                     $masterId = $rec->{$masterKey};
-                } elseif ($rec->id) {
+                } elseif ($rec->id ?? null) {
                     $masterId = $this->fetchField($rec->id, $masterKey);
                 }
 
@@ -636,7 +637,7 @@ class core_Detail extends core_Manager
 
         $btnAll = "<input type='checkbox' name='checkAllRows' checked class='inline-checkbox' title='Маркиране/размаркирване на всички редове за изтриване'>";
         $data->listFields = array('btn' => "|* {$btnAll}") + $data->listFields;
-        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty ?? null, true);
         $data->listTableMvc->FLD('btn', 'varchar', 'tdClass=centered vtop');
         $docTableTpl = $this->renderListTable($data);
         Mode::pop('selectRows2Delete');

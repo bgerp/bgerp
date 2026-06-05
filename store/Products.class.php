@@ -209,7 +209,7 @@ class store_Products extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {;
-        if($data->masterMvc instanceof cat_Products){
+        if(($data->masterMvc ?? null) instanceof cat_Products){
             $data->query->EXT('storeName', 'store_Stores', 'externalName=name,externalKey=storeId');
             
             if($data->masterData->rec->generic == 'yes'){
@@ -617,7 +617,7 @@ class store_Products extends core_Detail
         $data->listTableMvc->setField('lastUpdated', 'tdClass=small');
         if (!countR($data->rows)) return;
 
-        if(is_array($data->inventoryRecs)){
+        if(is_array($data->inventoryRecs ?? null)){
             $data->listFields['inventory'] = 'Инвентар.';
         }
 
@@ -655,7 +655,7 @@ class store_Products extends core_Detail
             $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
 
             // Ако се показва колонка за последно инвентаризиране - да се покаже последния документ
-            if(is_array($data->inventoryRecs)){
+            if(is_array($data->inventoryRecs ?? null)){
                 $key = "{$rec->productId}|{$rec->storeId}";
                 if(is_array($data->inventoryRecs[$key])){
                     krsort($data->inventoryRecs[$key]);

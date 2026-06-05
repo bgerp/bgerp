@@ -25,19 +25,19 @@ class csv_Lib
         // Дефолт стойностите за форматирането по подразбиране
         setIfNot($format['length'], 0);
         
-        if (!strlen($format['delimiter'])) {
+        if (empty($format['delimiter'])) {
             $format['delimiter'] = ',';
         }
-        
-        if (!strlen($format['enclosure'])) {
+
+        if (empty($format['enclosure'])) {
             $format['enclosure'] = '"';
         }
-        
-        if (!strlen($format['escape'])) {
+
+        if (empty($format['escape'])) {
             $format['escape'] = '\\';
         }
         
-        if (!strlen($format['skip'])) {
+        if (empty($format['skip'])) {
             $format['skip'] = '#';
         }
         
@@ -66,7 +66,7 @@ class csv_Lib
             }
             
             // Пропускаме редовете със знака указан в $skip
-            if ($data[0][0] == $format['skip']) {
+            if (($data[0][0] ?? null) == $format['skip']) {
                 if (strtolower(trim($data[0], ' ' . $format['skip'])) == 'closeonce') {
                     $closeOnce = true;
                 }
@@ -99,7 +99,7 @@ class csv_Lib
                 }
                 
                 foreach ($fields as $i => $f) {
-                    $data[$i] = str_replace($format['escape'], '', $data[$i]);
+                    $data[$i] = str_replace($format['escape'], '', $data[$i] ?? '');
                     
                     $rec->{$f} = $data[$i];
                 }
@@ -125,9 +125,10 @@ class csv_Lib
                 }
                 
                 $conflictFields = array();
-                
-                if ($rec->id || !$mvc->isUnique($rec, $conflictFields, $exRec)) {
-                    if (!$rec->id) {
+                $exRec = null;
+
+                if (!empty($rec->id) || !$mvc->isUnique($rec, $conflictFields, $exRec)) {
+                    if (empty($rec->id)) {
                         $rec->id = $exRec->id;
                     }
                     $flagUpdate = true;
@@ -149,7 +150,7 @@ class csv_Lib
                     $res->skipped++;
                     $rec = $mvc->fetch($rec->id);
                     foreach ($fields as $i => $f) {
-                        if ($rec->{$f} != $exRec->{$f}) {
+                        if (($rec->{$f} ?? null) != ($exRec->{$f} ?? null)) {
                             $res->updated++;
                             $res->skipped--;
                             break;
@@ -626,7 +627,7 @@ class csv_Lib
             }
             
             // Пропускаме редовете със знака указан в $skip
-            if ($data[0][0] == $params['skip']) {
+            if (($data[0][0] ?? null) == $params['skip']) {
                 continue;
             }
             

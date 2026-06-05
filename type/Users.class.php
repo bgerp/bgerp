@@ -412,7 +412,7 @@ class type_Users extends type_Keylist
     {
         $this->prepareOptions();
         
-        if (isset($value) && !$this->options[$value]) {
+        if (isset($value) && empty($this->options[$value])) {
             if (type_Keylist::isKeylist($value)) {
 
                 return $value;
@@ -449,13 +449,14 @@ class type_Users extends type_Keylist
     {
         $this->prepareOptions();
         
+        $exist = false;
         foreach ($this->options as $key => $optObj) {
             if (isset($value) && $value == $optObj->keylist) {
                 $exist = true;
                 break;
             }
         }
-        
+
         if (!$exist) {
             
             return;
