@@ -1149,8 +1149,7 @@ class core_Manager extends core_Mvc
         $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders, 'tableId' => ($data->listTableId ?? null)));
         
         if (($data->action ?? null) == 'list') {
-            $table->tableClass = !empty($data->tableClass) ? $data->tableClass . ' ' : '';
-            $table->tableClass .= 'listTable listAction';
+            $table->tableClass = 'listTable listAction';
         }
         
         // Кои ще са колоните на таблицата
