@@ -56,7 +56,6 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
             'entries' => $entry,
         );
 
-        bp($rec);
         return $result;
     }
 
