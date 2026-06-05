@@ -118,10 +118,10 @@ abstract class deals_ManifactureMaster extends core_Master
         if (isset($fields['-list'])) {
             $row->title = $mvc->getLink($rec->id, 0);
         }
-        
+        $caption = ($mvc instanceof planning_DirectProductionNote) ? "Изчисли сб-ст" : "Изчисли сума";
         // Изчисли сума
         if($mvc->haveRightFor('calcproductionamount', $rec) && !Mode::isReadOnly()){
-            $row->calcPrimeCostBtn = ht::createBtn('Изчисли сума', array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true));
+            $row->calcPrimeCostBtn = ht::createBtn($caption, array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true));
             $calcedPrice = core_Permanent::get("{$mvc->className}_{$rec->id}_calcedPrimeCost");
             if($calcedPrice['primecost'] == 0){
                 if(is_array($calcedPrice)){
