@@ -58,6 +58,17 @@
                                                     <td>[#deadline#]</td>
                                                 </tr>
                                                 <!--ET_END deadline-->
+                                                <!--ET_BEGIN calcPrimeCostBtn-->
+                                                <tr>
+                                                    <td class='quiet aright' style='width:1%; nowrap;'>[#calcPrimeCostBtn#]</td>
+                                                    <td>
+                                                        <b>[#calcedPrimeCost#]</b> към [#calcedPrimeCostDate#]
+                                                    </td>
+                                                </tr>
+                                                <!--ET_END calcPrimeCostBtn-->
+                                                <tr>
+                                                    <td colspan='2'><hr style='border:0; border-top:1px solid #7b7b7b; margin: 8px 0;'></td>
+                                                </tr>
                                                 <!--ET_BEGIN useResourceAccounts-->
                                                 <tr>
                                                     <td colspan='2'>[#useResourceAccounts#]</td>
