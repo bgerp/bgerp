@@ -2776,8 +2776,9 @@ margin: 2px 0 0 0;
 .listRows.fixedHeader  {
 	overflow-y: auto !important;
 	overflow-x: auto !important;
-	height: unquote('calc(100vh - var(--otherElementsHeight))');
+	height: unquote('calc(80vh)');
 }
+
 .listRows.fixedHeader .listTable {
 	border-collapse: collapse !important; /* важно за sticky в много браузъри */
 	border-spacing: 0 !important;

@@ -2411,7 +2411,7 @@ pre.document {
 .listRows.fixedHeader {
   overflow-y: auto !important;
   overflow-x: auto !important;
-  height: calc(100vh - var(--otherElementsHeight)); }
+  height: calc(80vh); }
 
 .listRows.fixedHeader .listTable {
   border-collapse: collapse !important;
