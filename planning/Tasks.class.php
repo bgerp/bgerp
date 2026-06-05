@@ -3041,10 +3041,10 @@ class planning_Tasks extends core_Master
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         unset($data->title);
-
-        // Клас и ид на таблица
         $data->listTableId = 'dragTable';
-        $data->tableClass = 'fixedHeader';
+
+        // Клас за таблицата
+        $data->listTableClass = 'fixedHeader';
 
         core_Debug::startTimer('RENDER_TABLE');
         $rows = &$data->rows;
