@@ -1653,7 +1653,8 @@ class core_Form extends core_FieldSet
             }
             
             unset($field->type->params['allowEmpty']);
-            
+            $field->type->params['isReadOnly'] = true;
+
             Mode::push('text', 'plain');
             if (isset($field->type->options[$value])) {
                 $verbal = $field->type->options[$value];
@@ -1665,8 +1666,6 @@ class core_Form extends core_FieldSet
             $this->setOptions($name, array(
                 "{$value}" => $verbal
             ));
-            
-            $field->type->params['isReadOnly'] = true;
         }
     }
     
