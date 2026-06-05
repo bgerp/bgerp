@@ -3042,6 +3042,10 @@ class planning_Tasks extends core_Master
     {
         unset($data->title);
         $data->listTableId = 'dragTable';
+
+        // Клас за таблицата
+        $data->listTableClass = 'fixedHeader';
+
         core_Debug::startTimer('RENDER_TABLE');
         $rows = &$data->rows;
         if (!countR($rows)) return;
@@ -3706,6 +3710,9 @@ class planning_Tasks extends core_Master
     {
         // Включване на драг и дроп ако има избрано оборудване
         jquery_Jquery::enable($tpl);
+
+        // Функция за вертикален скрол и фиксиран хедър на таблица
+        jquery_Jquery::run($tpl, 'initFixedTableHeader();', true);
 
         if(isset($data->listFilter->rec->assetId)){
             $assetId = $data->listFilter->rec->assetId;

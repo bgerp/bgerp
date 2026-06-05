@@ -2408,6 +2408,24 @@ pre.document {
   padding: 0;
   margin: 2px 0 0 0; }
 
+.listRows.fixedHeader {
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  height: calc(100vh - var(--otherElementsHeight)); }
+
+.listRows.fixedHeader .listTable {
+  border-collapse: collapse !important;
+    /*
+   * важно за sticky в много браузъри
+   */
+  border-spacing: 0 !important; }
+
+.listRows.fixedHeader .listTable th {
+  top: -1px;
+  position: sticky !important;
+  z-index: 200 !important;
+  background: #eeeeee; }
+
 .antetka {
   margin-bottom: 5px;
   padding: 5px;

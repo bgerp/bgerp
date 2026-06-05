@@ -2781,6 +2781,49 @@ function refreshForm(form, removeFields) {
 }
 
 
+/*
+ Вертикален скрол
+ */
+function initFixedTableHeader() {
+    const pageHeader = $(".headerBlock");
+    const menu = $(".tab-row").first();
+    const form = $('.listTopContainer').first();
+    const title = $('.listTitle').first();
+    const tooltip = $('.tooltip-text');
+
+    function getHeight($el) {
+        return $el.length ? $el.outerHeight(true) : 0;
+    }
+
+    // @todo - да се се определи по-добре височина на останалите елементи
+
+    function onScrollOrResize() {
+
+        const otherElementsHeight =
+            getHeight(pageHeader) +
+            getHeight(menu) +
+            getHeight(form) +
+            getHeight(title) +
+            getHeight(tooltip) + 160;
+
+        document.documentElement.style.setProperty(
+            '--otherElementsHeight',
+            otherElementsHeight + 'px'
+        );
+
+        document.documentElement.style.setProperty(
+            '--tableHeight',
+            `calc(100vh - ${otherElementsHeight}px)`
+        );
+    }
+
+    window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize);
+
+    onScrollOrResize();
+}
+
+
 /**
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
