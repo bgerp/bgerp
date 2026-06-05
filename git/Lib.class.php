@@ -29,12 +29,12 @@ class git_Lib
     private static function cmdExec($cmd, &$lines, $path)
     {
         $path = escapeshellarg($path);
-        
-        $c = "git -C ${path} {$cmd} 2>&1";
+
+        $c = "git -c safe.directory={$path} -C {$path} {$cmd} 2>&1";
         
         exec($c, $lines, $returnVar);
         
-        return ($returnVar == 0);
+        return ($returnVar === 0);
     }
     
     
@@ -166,7 +166,7 @@ class git_Lib
         
         $repoName = basename($repoPath);
         
-        $log[] = "[${repoName}]: Неуспешно извличане на последен комит";
+        $log[] = "[{$repoName}]: Неуспешно извличане на последен комит";
         
         return false;
     }
@@ -197,21 +197,21 @@ class git_Lib
         
         if (!self::cmdExec($commandFetch, $arrRes, $repoPath)) {
             foreach ($arrRes as $val) {
-                $log[] = (!empty($val))?("[${repoName}]: грешка при превключване в {$branch} fetch:" . $val):'';
+                $log[] = (!empty($val))?("[{$repoName}]: грешка при превключване в {$branch} fetch:" . $val):'';
             }
             
             return false;
         }
         if (!self::cmdExec($commandCheckOut, $arrRes, $repoPath)) {
             foreach ($arrRes as $val) {
-                $log[] = (!empty($val))?("[${repoName}]: грешка при превключване в {$branch} checkOut:" . $val):'';
+                $log[] = (!empty($val))?("[{$repoName}]: грешка при превключване в {$branch} checkOut:" . $val):'';
             }
             
             return false;
         }
         
         // Ако и двете команди са успешни значи всичко е ОК
-        $log[] = "[${repoName}]: превключен {$branch} бранч.";
+        $log[] = "[{$repoName}]: превключен {$branch} бранч.";
         
         return true;
         
@@ -241,7 +241,7 @@ class git_Lib
         
         if (!self::cmdExec($commandFetch, $lines, $repoPath)) {
             foreach ($lines as $val) {
-                $log[] = (!empty($val))?("[${repoName}]: грешка при fetch: " . $val):'';
+                $log[] = (!empty($val))?("[{$repoName}]: грешка при fetch: " . $val):'';
             }
             
             return false;
@@ -249,7 +249,7 @@ class git_Lib
         
         if (!self::cmdExec($commandMerge, $lines, $repoPath)) {
             foreach ($lines as $val) {
-                $log[] = (!empty($val))?("[${repoName}]: грешка при merge origin/" . $currBranch .': ' . $val):'';
+                $log[] = (!empty($val))?("[{$repoName}]: грешка при merge origin/" . $currBranch .': ' . $val):'';
             }
             
             return false;
@@ -301,7 +301,7 @@ class git_Lib
             
             return false;
         }
-        $log[] = "Бъдещ безпроблемен merge ${branch1} -> ${branch2}";
+        $log[] = "Бъдещ безпроблемен merge {$branch1} -> {$branch2}";
         
         return true;
     }
@@ -343,7 +343,7 @@ class git_Lib
             return false;
         }
         
-        $log[] = "Успешен merge ${branch1} -> ${branch2}";
+        $log[] = "Успешен merge {$branch1} -> {$branch2}";
         
         return true;
     }
@@ -406,6 +406,35 @@ class git_Lib
     }
     
     
+    /**
+     * Връща unified diff-а между два бранча (origin/branch1 -> origin/branch2)
+     *
+     * Сравнява локалните remote-tracking бранчове, БЕЗ да прави fetch.
+     *
+     * @param string  $repoPath - път до git репозитори
+     * @param array() $log      - масив с логове
+     * @param string  $branch1  - име на бранч източник
+     * @param string  $branch2  - име на бранч приемник
+     *
+     * @return string|false - текстът на diff-а или FALSE при грешка
+     */
+    public static function diff($repoPath, &$log, $branch1, $branch2)
+    {
+        $repoName = basename($repoPath);
+
+        $ref1 = escapeshellarg("origin/{$branch1}");
+        $ref2 = escapeshellarg("origin/{$branch2}");
+
+        if (!self::cmdExec("diff -w {$ref1} {$ref2}", $res, $repoPath)) {
+            $log[] = "[{$repoName}]: Неуспешно извличане на diff {$branch1} -> {$branch2}";
+
+            return false;
+        }
+
+        return implode("\n", $res);
+    }
+
+
     /**
      * Връща масив с файловете, които са променени в посоченото репозитори
      *
