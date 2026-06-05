@@ -60,8 +60,8 @@
                                                 <!--ET_END deadline-->
                                                 <!--ET_BEGIN calcPrimeCostBtn-->
                                                 <tr>
-                                                    <td class='quiet aright' style='width:1%; nowrap;'>[#calcPrimeCostBtn#]</td>
-                                                    <td>
+                                                    <td class='quiet aright' style='width:1%; vertical-align: middle'>[#calcPrimeCostBtn#]</td>
+                                                    <td style="vertical-align: middle">
                                                     <!--ET_BEGIN calcedPrimeCost--><b>[#calcedPrimeCost#]</b> |към|* [#calcedPrimeCostDate#]<!--ET_END calcedPrimeCost-->
                                                     </td>
                                                 </tr>
