@@ -309,7 +309,8 @@ class bank_SpendingDocuments extends bank_Document
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
         if($rec->earlyPaymentUntil == '0000-00-00'){
-            wp('ГРЕШЕН СРОК', $rec);
+            $oldRec = isset($rec->id) ? self::fetch($rec->id, '*', false) : null;
+            wp('ГРЕШЕН СРОК', $rec, $oldRec);
             $rec->earlyPaymentUntil = null;
         }
     }

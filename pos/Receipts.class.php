@@ -1983,6 +1983,10 @@ class pos_Receipts extends core_Master
         if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
             voucher_Cards::mark($rec->voucherId, false);
         }
+
+        // След оттегляне да се преизчисли наличноста в касата на точката
+        $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
+        $mvc->updateCaseAmounts[$rec->pointId] = $caseId;
     }
 
 

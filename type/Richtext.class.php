@@ -193,7 +193,12 @@ class type_Richtext extends type_Blob
             
             return;
         }
-        
+
+        // Ако мода е за рендиране като чист ричтекст
+        if (Mode::is('renderPureRichtext')) {
+            return $value;
+        }
+
         if (Mode::is('text', 'plain')) {
             $res = $this->toHtml($value);
             $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');

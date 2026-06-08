@@ -225,7 +225,8 @@ class acc_Balances extends core_Master
         }
 
         if ($mvc->haveRightFor('forcecalc', $rec)) {
-            $row->lastCalculate = ($row->lastCalculate ?? '') . ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
+            $row->lastCalculate = ($row->lastCalculate ?? '') . ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/32/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
+            $row->lastCalculate .= "&nbsp;&nbsp;" . ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'debug' => true, 'ret_url' => true), false, 'ef_icon=img/16/bug.png,select=Ръчно рекалкулиране на баланса с дебъг');
         }
     }
 
@@ -340,10 +341,10 @@ class acc_Balances extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('forcecalc', $rec);
+        $debug = Request::get('debug', 'int');
 
-        // Ако не е разрешена междинната форма, преизчисляваме директно без избрана сметка за дебъг
-        if (acc_Setup::get('FORCE_RECALC_BALANCE_SHOW_FORM') != 'yes') {
-            return $this->doManualForceCalc($rec);
+        if(empty($debug)){
+            $this->doManualForceCalc($rec);
         }
 
         $form = cls::get('core_Form');
@@ -360,60 +361,13 @@ class acc_Balances extends core_Master
         if ($form->isSubmitted()) {
             $accNum = ($form->rec->accountId) ? acc_Accounts::getNumById($form->rec->accountId) : null;
 
-            return $this->doManualForceCalc($rec, $accNum);
+            $this->doManualForceCalc($rec, $accNum);
         }
 
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Преизчисляване, class=submitBtn');
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
-        return $this->renderWrapping($this->addForceCalcDebugDownloadRedirectJs($form->renderHtml()));
-    }
-
-
-    /**
-     * Добавя JS, който връща страницата към retUrl след стартиране на CSV download-а
-     *
-     * При download() браузърът получава файл като отговор и PHP кодът след него не се изпълнява.
-     * Затова redirect-ът се прави от текущата форма: ако има избрана сметка за дебъг,
-     * след submit се изчаква download-ът да стартира и страницата се връща към изходния списък.
-     *
-     * @param string|core_ET $html
-     *
-     * @return string
-     */
-    private function addForceCalcDebugDownloadRedirectJs($html)
-    {
-        $retUrl = getRetUrl();
-        if (empty($retUrl)) {
-
-            return (string) $html;
-        }
-
-        $retUrl = toUrl($retUrl);
-        $retUrlJs = json_encode($retUrl);
-
-        $js = <<<JS
-<script>
-(function() {
-    var retUrl = {$retUrlJs};
-    if (!retUrl) return;
-
-    document.addEventListener('submit', function(e) {
-        var form = e.target;
-        if (!form || !form.querySelector) return;
-
-        var accountField = form.querySelector('[name="accountId"]');
-        if (!accountField || !accountField.value) return;
-
-        window.setTimeout(function() {
-            window.location.href = retUrl;
-        }, 5000);
-    }, true);
-})();
-</script>
-JS;
-
-        return (string) $html . $js;
+        return $this->renderWrapping($form->renderHtml());
     }
 
 
@@ -455,12 +409,12 @@ JS;
         }
 
         if(!empty($accNum)) {
-            // download() извиква exit – кодът след тук не се достига
             acc_BalanceDebugger::download($rec, $accNum);
         } else {
             followRetUrl(null, 'Балансът е преизчислен успешно');
         }
     }
+
 
     /**
      * Ако е необходимо записва и изчислява баланса за посочения период

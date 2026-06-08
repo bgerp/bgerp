@@ -32,6 +32,10 @@ class doc_plg_TxtExportable extends core_Plugin
         if(empty($text)) {
             Mode::set('ONLY_ATTACHED_FILES', true);
 
+            if(!empty($params['addAttachedTextFilesAsRichText'])){
+                Mode::push('renderPureRichtext', true);
+            }
+
             // Рендиране на цялото представяне на документа в текстов вид
             Mode::push('renderForTxtExport', true);
             Mode::push('forceDownload', true);
@@ -53,6 +57,10 @@ class doc_plg_TxtExportable extends core_Plugin
             $row = $mvc->recToVerbal($rec, $selectedFields);
             Mode::pop('text');
 
+            if(!empty($params['addAttachedTextFilesAsRichText'])){
+                Mode::pop('renderPureRichtext');
+            }
+
             // Допълване с антетката на документа
             $singleTitle = tr($mvc->singleTitle);
             $docRow = $mvc->getDocumentRow($rec->id);
@@ -69,15 +77,20 @@ class doc_plg_TxtExportable extends core_Plugin
                 $startStr .= " " . tr('създаден от||created by') . " {$authorName}";
             }
             $startStr .= " " . tr('в състояние') . " {$row->state}" . "\n";
-
             $string = $startStr . $string;
 
             // Кои са прикачените файлове + текстовото им съдържание, ако имат
-            if($params['addAttachedTextFiles']){
-                Mode::push('text', 'plain');
-                $linkedFiles = $mvc->getLinkedFiles($rec);
-                $string .= fileman_Indexes::getShortTextSummary($linkedFiles);
-                Mode::pop('text');
+            if(empty($params['addAttachedTextFilesAsRichText'])){
+                if($params['addAttachedTextFiles']){
+                    Mode::push('text', 'plain');
+                    $linkedFiles = $mvc->getLinkedFiles($rec);
+                    $string .= fileman_Indexes::getShortTextSummary($linkedFiles);
+                    Mode::pop('text');
+                }
+            }
+
+            if(!empty($params['addAttachedTextFilesAsRichText'])){
+                $string = cms_GalleryRichTextPlg::replaceImageTagsWithFileTag($string);
             }
 
             $text = $string;
