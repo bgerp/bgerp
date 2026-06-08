@@ -183,6 +183,19 @@ class status_Messages extends core_Manager
         // Вземаме всички записи за текущия потребител
         // Създадени преди съответното време
         $query = self::getQuery();
+
+        if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
+            $Session = cls::get('core_DbSess');
+        } else {
+            $Session = cls::get('core_Session');
+        }
+
+        $isSessionStarted = $Session->isStarted();
+
+        if (!$isSessionStarted && ($userId <= 0) && empty($hitId)) {
+
+            return $resArr;
+        }
         
         // Ако потребителя е логнат
         if ($userId > 0) {
@@ -191,30 +204,33 @@ class status_Messages extends core_Manager
             $query->where(array("#userId = '[#1#]'", $userId));
         }
 
-        if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
-            $Session = cls::get('core_DbSess');
-        } else {
-            $Session = cls::get('core_Session');
-        }
-
         // Ако сесията е стартирана, тогава вземаме статустите за съответния SID
-        if ($Session->isStarted()) {
+        if ($isSessionStarted) {
             // Статусите за съответния SID
             $sid = self::getSid();
             $query->where(array("#sid = '[#1#]'", $sid));
+
+            // Само логнатите потребители могат да видят статусите без sid
+            if ($userId > 0) {
+                $query->orWhere('#sid IS NULL');
+            }
         } else {
             $sid = null;
+
+            // Само логнатите потребители могат да видят статусите без sid
+            if ($userId > 0) {
+                $query->where('#sid IS NULL');
+            }
         }
 
-        // Само логнатите потребители могат да видят статусите без sid
-        if ($userId > 0) {
-            $query->orWhere('#sid IS NULL');
-        }
-        
         $query->orderBy('createdOn', 'ASC');
-        
+
+        // Записите без hitId - връщат се само в обхвата на потребителя/сесията
+        if ($userId > 0 || $isSessionStarted) {
+            $query->where(array("#hitId IS NULL AND #createdOn >= '[#1#]'", $hitTimeB));
+        }
+
         // Записите със зададено hitId да се връщат, се връщат само за съответното hitId
-        $query->where(array("#hitId IS NULL AND #createdOn >= '[#1#]'", $hitTimeB));
         if (!empty($hitId)) {
             $query->orWhere(array("#hitId = '[#1#]'", $hitId));
         }
