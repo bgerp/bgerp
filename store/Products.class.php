@@ -1047,7 +1047,7 @@ class store_Products extends core_Detail
             $sQuery = store_Stores::getQuery();
             $sQuery->where("#state != 'rejected' AND #state != 'closed'");
             $sQuery->show('id');
-            $storeArr = arr::extractValuesFromArray($sQuery->fetchAll());
+            $storeArr = arr::extractValuesFromArray($sQuery->fetchAll(), 'id');
         }
 
         foreach ($storeArr as $storeId){
