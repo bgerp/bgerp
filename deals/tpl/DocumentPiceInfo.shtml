@@ -43,7 +43,13 @@
       <td class='aright'><b class="lighterBold">[#vat02Amount#]</b></td>
    </tr>
    <!--ET_END vat02-->
-   
+   <!--ET_BEGIN vat021-->
+   <tr class='nowrap'>
+      <td class='aright'>|ДДС|* <b>[#vat021#]</b>:</td>
+      <td class='info-right'><span class='cCode'>[#vat021AmountCurrencyId#]</span></td>
+      <td class='aright'><b class="lighterBold">[#vat021Amount#]</b></td>
+   </tr>
+   <!--ET_END vat021-->
    <!--ET_BEGIN vat009BaseAmount-->
    <tr class='nowrap'>
       <td class='aright'>|Данъчна основа|* <b>[#vat009Base#]</b>:</td>
