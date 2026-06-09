@@ -3935,9 +3935,15 @@ abstract class deals_Helper
     {
         if(!is_array($vats)) return;
 
+        try{
+            $block = $tpl->getBlock('VAT_BLOCK');
+        } catch(core_exception_Expect $e){
+            return;
+        }
+
         foreach (array_keys($vats) as $vatPercent){
             $percentVal = str_replace('.', '', $vatPercent);
-            $block = clone $tpl->getBlock('VAT_BLOCK');
+            $block = clone $block;
 
             $arr = array("vat{$percentVal}" => 'vatPercent', "vat{$percentVal}Amount" => 'vatAmount', "vat{$percentVal}AmountCurrencyId" => 'vatAmountCurrencyId');
             if($mvc instanceof deals_InvoiceMaster){
