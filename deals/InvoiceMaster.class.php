@@ -2346,6 +2346,9 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+
+        // Динамично рендиране на ДДС информацията
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
     }
 
 
