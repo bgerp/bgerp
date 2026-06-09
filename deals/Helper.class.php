@@ -106,7 +106,7 @@ abstract class deals_Helper
     {
         if (countR($recs) === 0) {
             unset($mvc->_total);
-            
+
             return;
         }
 
@@ -222,7 +222,7 @@ abstract class deals_Helper
                 $vats[$vat]->sum += $withoutVatAndDisc;
             }
         }
-        
+
         $mvc->_total = new stdClass();
         $mvc->_total->amount = round($amountRow, 2);
         $mvc->_total->vat = round($amountVat, 2);
@@ -3919,5 +3919,37 @@ abstract class deals_Helper
 
         $Detail->saveArray($save, "id,{$priceFld}");
         $masterMvc->updateMaster($masterRec->id);
+    }
+
+
+    /**
+     * Рендира динамично ддс информацията в шаблона
+     *
+     * @param $tpl
+     * @param $mvc
+     * @param $vats
+     * @param $row
+     * @return void
+     */
+    public static function renderVatDataLayout(&$tpl, $mvc, $vats, $row)
+    {
+        if(!is_array($vats)) return;
+
+        foreach (array_keys($vats) as $vatPercent){
+            $percentVal = str_replace('.', '', $vatPercent);
+            $block = clone $tpl->getBlock('VAT_BLOCK');
+
+            $arr = array("vat{$percentVal}" => 'vatPercent', "vat{$percentVal}Amount" => 'vatAmount', "vat{$percentVal}AmountCurrencyId" => 'vatAmountCurrencyId');
+            if($mvc instanceof deals_InvoiceMaster){
+                $arr["vat{$percentVal}BaseCurrencyId"] = 'vatBaseCurrencyId';
+                $arr["vat{$percentVal}BaseAmount"] = 'vatBaseAmount';
+            }
+
+            foreach ($arr as $fld => $placeholder){
+                $block->replace($row->{$fld}, $placeholder);
+            }
+            $block->removeBlocksAndPlaces();
+            $tpl->append($block, 'VAT_BLOCK');
+        }
     }
 }

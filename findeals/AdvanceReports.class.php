@@ -492,4 +492,14 @@ class findeals_AdvanceReports extends core_Master
     {
         return true;
     }
+
+
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+        // Динамично рендиране на ДДС информацията
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
+    }
 }

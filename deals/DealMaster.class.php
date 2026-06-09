@@ -2151,6 +2151,8 @@ abstract class deals_DealMaster extends deals_DealBase
             $tpl->removeBlock('INVOICE_DOWNPAYMENT_DEDUCTED_TD');
             $tpl->removeBlock('INVOICE_DOWNPAYMENT_DEDUCTED_TH');
         }
+
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
     }
     
     
