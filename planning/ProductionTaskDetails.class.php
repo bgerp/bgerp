@@ -2241,15 +2241,14 @@ class planning_ProductionTaskDetails extends doc_Detail
         $retUrl["#"] = planning_Tasks::getHandle($taskId);
         $manualAdd = ($taskRec->labelType == 'scan' || $taskRec->showadditionalUom == 'yes' || $taskRec->followBatchesForFinalProduct == 'yes');
 
-        // Ако има избран оператор и текущия потребител не е той - минава се през формата винаги
+        // Ако има избрани оператори и текущия потребител не е сред тях - минава се през формата винаги
         $selectedEmployees = keylist::toArray($taskRec->employees);
-        if(countR($selectedEmployees) == 1){
+        if(countR($selectedEmployees)){
             $cProfileRec = crm_Profiles::getProfile();
-            if(key($selectedEmployees) != $cProfileRec->id){
+            if(!array_key_exists($cProfileRec->id, $selectedEmployees)){
                 $manualAdd = true;
             }
         }
-
         if($manualAdd){
             $redirectUrl = array($this, 'add', 'taskId' => $taskId, 'type' => 'production', 'productId' => $productId,'quantity' => $rest, 'closeIfCompleted' => true, 'ret_url' => $retUrl);
             redirect($redirectUrl);
@@ -2263,6 +2262,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                               'employees' => $currentUserPersonId,
                               'closeIfCompleted' => 1,
                               'quantity' => $rest);
+
+        // Добавяне и на заработката за прогреса
+        $info = planning_ProductionTaskProducts::getInfo($taskRec->id, $productId, 'production', $taskRec->fixedAsset);
+        if (!empty($info->indTime)) {
+            $dRec->norm = $info->indTime;
+        }
 
         $this->save($dRec);
 
