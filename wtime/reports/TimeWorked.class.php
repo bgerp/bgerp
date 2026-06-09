@@ -798,10 +798,11 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         // 2) Заявка: само нужните полета, само в периода
         $q = planning_ProductionTaskDetails::getQuery();
-        $q->where(array("#createdOn >= '{$fromStart}' AND #createdOn <= '{$toEnd}'"));
+        $q->XPR('effectiveDate', 'datetime', 'COALESCE(#date, #createdOn)');
+        $q->where(array("#effectiveDate >= '{$fromStart}' AND #effectiveDate <= '{$toEnd}'"));
         $q->where("#employees IS NOT NULL");
-        $q->show('taskId,quantity,productId,employees,norm,createdOn,type');
-
+        $q->show('taskId,quantity,productId,employees,norm,date,createdOn,effectiveDate,type');
+        
         $qArr = array();
         while ($qRec1 = $q->fetch()) {
             $employee = keylist::toArray($qRec1->employees);
@@ -898,7 +899,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             $empCount = countR($eArr);
             $perEmp = ($empCount > 0) ? ($norm * $quantity / $empCount) : 0;
 
-            $ymd = dt::verbal2mysql($qRec->createdOn, false);
+            $ymd = dt::verbal2mysql($qRec->effectiveDate, false);
 
             foreach ($eArr as $employee) {
                 $key = $employee . '|' . $ymd;
