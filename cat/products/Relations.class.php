@@ -214,6 +214,7 @@ class cat_products_Relations extends core_Manager
         if(!$isExternal){
             $row->productId1 = cat_Products::getHyperlink($rec->productId1, true);
             $row->productId2 = cat_Products::getHyperlink($rec->productId2, true);
+
         } else {
             $row->productId1 = cat_Products::getVerbal($rec->productId1, 'name');
             $row->productId2 = cat_Products::getVerbal($rec->productId2, 'name');
@@ -262,8 +263,8 @@ class cat_products_Relations extends core_Manager
         $query->setUnion("#productId1 = {$data->masterId}");
         $query->setUnion("#productId2 = {$data->masterId}");
         $query->orderBy('id', 'ASC');
-        $foundRecs = $query->fetchAll();
 
+        $foundRecs = $query->fetchAll();
         if (!(countR($relationshipTypes) || countR($foundRecs))) {
             $data->hide = true;
             return $data;
@@ -287,6 +288,12 @@ class cat_products_Relations extends core_Manager
         $fields['-list'] = true;
         $fields['-detail'] = true;
 
+        $allProducts = arr::extractValuesFromArray($foundRecs, 'productId1') + arr::extractValuesFromArray($foundRecs, 'productId2');
+        $pQuery = cat_Products::getQuery();
+        $pQuery->in('id', $allProducts);
+        $pQuery->show('state');
+        $pRecs = $pQuery->fetchAll();
+
         foreach ($foundRecs as $rec) {
             $rec->_masterProductId = $data->masterId;
             $data->recs[$rec->id] = $rec;
@@ -301,11 +308,17 @@ class cat_products_Relations extends core_Manager
                 $otherProductId = $rec->productId2;
                 $groupNameInfo = $rec->group2Info;
                 $showInExternal = $rec->show2InExternal;
+
+                // Оттеглените артикули няма да се показват във външната част
+                if($isExternal && $pRecs[$rec->productId2]->state == 'rejected') continue;
             } elseif ($rec->productId2 == $data->masterId) {
                 $otherGroupName = $rec->group1Name;
                 $otherProductId = $rec->productId1;
                 $groupNameInfo = $rec->group1Info;
                 $showInExternal = $rec->show1InExternal;
+
+                // Оттеглените артикули няма да се показват във външната част
+                if($isExternal && $pRecs[$rec->productId1]->state == 'rejected') continue;
             } else {
                 continue;
             }
@@ -383,7 +396,6 @@ class cat_products_Relations extends core_Manager
                 }
                 $pQuery->show('code');
                 $productRecs = $pQuery->fetchAll();
-
                 $domainId = cms_Domains::getPublicDomain()->id;
                 $eQuery = eshop_ProductDetails::getQuery();
                 $eQuery->EXT('domainId', 'eshop_Products', 'externalName=domainId,externalKey=eshopProductId');
@@ -398,6 +410,7 @@ class cat_products_Relations extends core_Manager
                     $eshopProducts[$eRec->productId] = $eRec;
                 }
             }
+
 
             $tabN = 0;
             foreach ($data->groupedRows as $groupKey => $groupData) {
@@ -480,6 +493,12 @@ class cat_products_Relations extends core_Manager
                         $icon = cls::get('cat_Products')->getIcon($tabRec->productId);
                         $pName = cat_Products::getTitleById($tabRec->productId);
                         $tabRow->productId = ht::createLink($pName, $singleUrlArray, false, "ef_icon={$icon}");
+
+                        // Ако артикулът е оттеглен да се визуализира
+                        if($pRecs[$tabRec->productId]->state == 'rejected'){
+                            $tabRow->productId->prepend("<span style='font-size:1em;' class='state-rejected document-handler'>");
+                            $tabRow->productId->append('</span>');
+                        }
 
                         $relQuery = cat_products_Relations::getQuery();
                         $relQuery->EXT('isSymmetric', 'cat_RelationTypes', 'externalName=isSymmetric,externalKey=relTypeId');

@@ -808,16 +808,31 @@ class cat_Products extends embed_Manager
         $metaType = 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)';
         $sharedFolderSuggestions = doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf');
 
-        $fields['Folder'] = array('caption' => 'Допълнителен избор->Папка', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => $folderType);
+        $fields['Folder'] = array('caption' => 'Допълнителен избор->При избрана папка на Категория импортираните артикули ще бъдат стандартни. При избрана папка на Контрагент - нестандартни->Папка', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => $folderType);
         $fields['Groups'] = array('caption' => 'Допълнителен избор->Групи', 'notColumn' => true, 'type' => $groupType);
         $fields['_sharedFolders'] = array('caption' => 'Допълнителен избор->Достъпно в', 'notColumn' => true, 'type' => $sharedType, 'suggestions' => $sharedFolderSuggestions);
         $fields['Meta'] = array('caption' => 'Допълнителен избор->Свойства', 'notColumn' => true, 'type' => $metaType);
         if(core_Packs::isInstalled('batch')){
             $batchType = 'key(mvc=batch_Templates, select=name,allowEmpty)';
-            $fields['_Batch'] = array('caption' => 'Допълнителен избор->Партидност', 'notColumn' => true, 'type' => $batchType);
+            $batchCaptionType = 'varchar';
+            $batchAlwaysRequireType = "enum(auto=По подразбиране,no=Не,yes=Да)";
+            $onlyExistingBatchesType = "enum(auto=По подразбиране,no=Не,yes=Да)";
+            $fields['_Batch'] = array('caption' => 'Партидност->Вид', 'notColumn' => true, 'type' => $batchType);
+            $fields['_BatchCaption'] = array('caption' => 'Партидност->Заглавие', 'notColumn' => true, 'type' => $batchCaptionType);
+            $fields['_AlwaysRequire'] = array('caption' => 'Партидност->Задължително използване', 'notColumn' => true, 'type' => $batchAlwaysRequireType);
+            $fields['_OnlyExistingBatches'] = array('caption' => 'Партидност->Задължителна наличност', 'notColumn' => true, 'type' => $onlyExistingBatchesType);
 
             if (empty($mvc->fields['_Batch'])) {
                 $mvc->FNC('_Batch', $batchType);
+            }
+            if (empty($mvc->fields['_BatchCaption'])) {
+                $mvc->FNC('_BatchCaption', $batchType);
+            }
+            if (empty($mvc->fields['_AlwaysRequire'])) {
+                $mvc->FNC('_AlwaysRequire', $batchAlwaysRequireType);
+            }
+            if (empty($mvc->fields['_OnlyExistingBatches'])) {
+                $mvc->FNC('_OnlyExistingBatches', $onlyExistingBatchesType);
             }
         }
 
