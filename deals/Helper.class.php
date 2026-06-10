@@ -3937,7 +3937,7 @@ abstract class deals_Helper
 
         try{
             $block = $tpl->getBlock('VAT_BLOCK');
-        } catch(core_exception_Expect $e){
+        } catch(core_exception_Expect $e){  bp($percentVal);
             return;
         }
 

@@ -784,15 +784,11 @@ class deals_QuotationDetails extends doc_Detail
             }
             $data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat, false, $masterRec->tplLang, $dualSummaryData);
 
-            if (isset($data->summary->vat009) && !isset($data->summary->vat0) && !isset($data->summary->vat02)) {
-                $data->summary->onlyVat = $data->summary->vat009;
-                unset($data->summary->vat009);
-            } elseif (isset($data->summary->vat0) && !isset($data->summary->vat009) && !isset($data->summary->vat02)) {
-                $data->summary->onlyVat = $data->summary->vat0;
-                unset($data->summary->vat0);
-            } elseif (isset($data->summary->vat02) && !isset($data->summary->vat009) && !isset($data->summary->vat0)) {
-                $data->summary->onlyVat = $data->summary->vat02;
-                unset($data->summary->vat02);
+            if(countR($mvc->_total->vats) == 1){
+                $onlyVatPercent = key($mvc->_total->vats);
+                $percentVal = str_replace('.', '', $onlyVatPercent);
+                $data->summary->onlyVat = $data->summary->{"vat{$percentVal}"};
+                unset($data->summary->{"vat{$percentVal}"});
             }
 
             // Обработваме сумарните данни
@@ -832,6 +828,7 @@ class deals_QuotationDetails extends doc_Detail
                 }
             }
         }
+        $data->_total = clone $mvc->_total;
 
         // Подготовка за показване на опционалните продукти
         deals_Helper::fillRecs($mvc, $optional, $masterRec);
@@ -890,6 +887,10 @@ class deals_QuotationDetails extends doc_Detail
             if ($masterRec->state != 'draft') {
                 $dTpl->replace('display:none;', 'none');
             }
+        }
+
+        if(!empty($data->summary)){
+            deals_Helper::renderVatDataLayout($dTpl, $this, $data->_total->vats, $data->summary);
         }
 
         // Шаблон за опционалните продукти
