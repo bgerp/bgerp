@@ -2420,7 +2420,7 @@ pre.document {
    */
   border-spacing: 0 !important; }
 
-.listRows.fixedHeader .listTable th {
+.listRows.fixedHeader .listTable thead {
   top: -1px;
   position: sticky !important;
   z-index: 200 !important;
