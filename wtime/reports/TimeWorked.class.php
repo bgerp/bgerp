@@ -886,8 +886,10 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                         }
                     }
                 }
+                if ($qRec->type === 'scrap') {
+                    $quantity = -$quantity;
+                }
             }
-
             $eArr = keylist::toArray($qRec->employees);
             $eArr = array_intersect_key($eArr, $personsInGroups);
 
