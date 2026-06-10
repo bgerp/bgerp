@@ -32,6 +32,7 @@
                         </div>
                         <div class='address-block'>
                             |Каса|*<b>: [#peroCase#]</b>
+                            <br />|БПТ|*<b>: [#bankPeripheralDeviceId#]</b>
                         </div>
                     </td>
                 </tr>

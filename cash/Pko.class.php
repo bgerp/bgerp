@@ -252,8 +252,13 @@ class cash_Pko extends cash_Document
     {
         $rec = $data->rec;
 
+        // Показване на избрания БПТ
+        if(!empty($rec->bankPeripheralDeviceId)){
+            $data->row->bankPeripheralDeviceId = cash_NonCashPaymentDetails::getCardPaymentBtnName($rec->bankPeripheralDeviceId);
+        }
+
         if(cash_NonCashPaymentDetails::haveRightFor('list')){
-            if(cash_NonCashPaymentDetails::count("#classId = {$mvc->getClassId()} AND #objectId = {$data->rec->id}")) {
+            if(cash_NonCashPaymentDetails::count("#classId = {$mvc->getClassId()} AND #objectId = {$rec->id}")) {
                 $data->toolbar->addBtn('Безналични', array('cash_NonCashPaymentDetails', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id), "ef_icon=img/16/bug.png,title=Безналичните плащания към документа,row=2");
             }
         }
