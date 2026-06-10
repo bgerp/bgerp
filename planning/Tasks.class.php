@@ -3041,6 +3041,10 @@ class planning_Tasks extends core_Master
     {
         unset($data->title);
         $data->listTableId = 'dragTable';
+
+        // Клас за таблицата
+        $data->listTableClass = 'fixedHeader';
+
         core_Debug::startTimer('RENDER_TABLE');
         $rows = &$data->rows;
         if (!countR($rows)) return;

@@ -222,7 +222,6 @@ class core_Form extends core_FieldSet
             expect($this->fields[$name], "Липсващо поле във формата '{$name}'");
 
             $value = Request::get($name, false);
-            
             $captions = str_replace('->', '|* » |', $field->caption);
             
             // Ако $silent, не сме критични към празните стойности
@@ -291,9 +290,9 @@ class core_Form extends core_FieldSet
                     $this->fields[$name]->input = 'input';
                     continue;
                 }
-                
+
                 // Празна опция се приема според типа. Числата стават NULL
-                if (isset($newOptions[$valueCompare]) && $newOptions[$valueCompare] === '' && $valueCompare === '') {
+                if (array_key_exists($valueCompare, $newOptions) && empty($newOptions[$valueCompare]) && empty($valueCompare)) {
                     $value = $type->fromVerbal($value);
                 }
             } else {
@@ -1653,7 +1652,8 @@ class core_Form extends core_FieldSet
             }
             
             unset($field->type->params['allowEmpty']);
-            
+            $field->type->params['isReadOnly'] = true;
+
             Mode::push('text', 'plain');
             if (isset($field->type->options[$value])) {
                 $verbal = $field->type->options[$value];
@@ -1665,8 +1665,6 @@ class core_Form extends core_FieldSet
             $this->setOptions($name, array(
                 "{$value}" => $verbal
             ));
-            
-            $field->type->params['isReadOnly'] = true;
         }
     }
     

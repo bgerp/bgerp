@@ -119,12 +119,6 @@ defIfNot('ACC_ALTERNATE_WINDOW', '');
 
 
 /**
- * Да се показва ли междинната форма за избор на сметка при ръчно преизчисляване на баланс
- */
-defIfNot('ACC_FORCE_RECALC_BALANCE_SHOW_FORM', 'no');
-
-
-/**
  * Захранване на стратегия с отрицателни крайни салда
  */
 defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'yes');
@@ -305,10 +299,6 @@ class acc_Setup extends core_ProtoSetup
         'ACC_ALTERNATE_WINDOW' => array(
             'time(suggestions=3 месеца|6 месеца|9 месеца|12 месеца|24 месеца)',
             'caption=Балансите да НЕ се преизчисляват при промяна на документи по-стари от->Срок,placeholder=Винаги'
-        ),
-        'ACC_FORCE_RECALC_BALANCE_SHOW_FORM' => array(
-            'enum(yes=Да,no=Не)',
-            'caption=Ръчно преизчисляване на баланс->Показване на форма за дебъг'
         ),
     );
     

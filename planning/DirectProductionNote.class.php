@@ -59,12 +59,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
-     * Кой може да преизчислява сб-ст от журнала?
-     */
-    public $canCalcproductionamount = 'ceo,accJournal';
-
-
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,production,store, planningAll';
@@ -1933,35 +1927,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
-     * Екшън за преизчисляване на сб-ст на артикула
-     */
-    function act_CalcProductionAmount()
-    {
-        $this->requireRightFor('calcproductionamount');
-        expect($id = Request::get('id', 'int'));
-        expect($rec = $this->fetch($id));
-        $this->requireRightFor('calcproductionamount', $rec);
-        $productionAmount = self::getProductionAmount($rec);
-
-        core_Permanent::set("{$this->className}_{$rec->id}_calcedPrimeCost", $productionAmount, 86400);
-        doc_DocumentCache::cacheInvalidation($rec->containerId);
-
-        followRetUrl(null, "Сб-ст е изчислена успешно|*!");
-    }
-
-
-    /**
      * На каква сума е произведеното количество на артикула от ПП
      *
      * @param int $id
      * @return array $res
      *          ['primecost'] - чиста сб без режийни разходи
+     * 
      *          ['expenses']  - сума на режийните разходи
      *          ['date']      - към коя дата
      */
-    public static function getProductionAmount($id)
+    protected static function getProductionAmount($id)
     {
-        $res = array('primecost' => 0, 'expenses' => 0, 'date' => dt::now());
+        $res = array('primecost' => 0, 'expenses' => 0,'cost' => 0, 'date' => dt::now());
         $rec = static::fetchRec($id);
         $journalRec = acc_Journal::fetchByDoc(get_called_class(), $rec->id);
         if(!is_object($journalRec)) return $res;

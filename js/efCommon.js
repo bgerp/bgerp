@@ -7060,12 +7060,6 @@ document.addEventListener("DOMContentLoaded", () => {
             td.dataset.expanded = td.dataset.expanded === "true" ? "false" : "true";
             measureOverflowCollapsed(); // поднови видимостта на „…/↥“
         });
-
-        body.addEventListener("click", () => {
-            td.dataset.expanded = td.dataset.expanded === "true" ? "false" : "true";
-            measureOverflowCollapsed(); // поднови видимостта на „…/↥“
-        });
-
     });
 });
 

@@ -511,7 +511,7 @@ class sales_Quotations extends deals_QuotationMaster
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    protected function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         $hasTransport = !empty($data->row->hiddenTransportCost) || !empty($data->row->expectedTransportCost) || !empty($data->row->visibleTransportCost);
         

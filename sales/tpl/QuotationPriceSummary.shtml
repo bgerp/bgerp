@@ -14,26 +14,15 @@
    <td class='centered dark-gray'>
    	 [#chargeVat#]
       <table class="no-border" style="margin: 0 auto" >
-         <!--ET_BEGIN vat02Amount-->
-         <tr>
-            <td class="aright" style="padding: 0 10px 0 0;"><!--ET_BEGIN vat02--><b>[#vat02#]:</b><!--ET_END vat02--></td>
-            <td class="aright" style="padding: 0">[#vat02Amount#]</td>
-         </tr>
-         <!--ET_END vat02Amount-->
+         [#VAT_BLOCK_PLACE#]
 
-         <!--ET_BEGIN vat009Amount-->
+         <!--ET_BEGIN VAT_BLOCK-->
+         [#VAT_BLOCK#]
          <tr>
-            <td class="aright"  style="padding: 0 10px 0 0;"><!--ET_BEGIN vat009--><b>[#vat009#]:</b><!--ET_END vat009--></td>
-            <td class="aright" style="padding: 0">[#vat009Amount#]</td>
+            <td class="aright" style="padding: 0 10px 0 0;"><!--ET_BEGIN vatPercent--><b>[#vatPercent#]:</b><!--ET_END vatPercent--></td>
+            <td class="aright" style="padding: 0">[#vatAmount#]</td>
          </tr>
-         <!--ET_END vat009Amount-->
-
-         <!--ET_BEGIN vat0Amount-->
-         <tr>
-            <td class="aright" style="padding: 0 10px 0 0;"><!--ET_BEGIN vat0--><b>[#vat0#]:</b><!--ET_END vat0--></td>
-            <td class="aright" style="padding: 0">[#vat0Amount#]</td>
-         </tr>
-         <!--ET_END vat0Amount-->
+         <!--ET_END VAT_BLOCK-->
       </table>
    </td>
    <td class='centered'><div style="display: inline-block;text-align: right">[#total#]</div></td>

@@ -269,12 +269,16 @@ class batch_Defs extends core_Manager
      * 3. Ако артикула е базиран на прототип неговата партидна дефиниция
      * 4. Ако артикула е в папка на категория и тя има избрана дефолтна дефиниция
      *
-     * @param int $productId - ид на артикул
+     * @param int $productId       - ид на артикул
      * @param int|null $templateId - ид на партидна дефиниция или null за дефолтната такава
+     * @param array $params        - параметри на форсираната дефиниция
+     *            [batchCaption]
+     *            [alwaysRequire]
+     *            [onlyExistingBatches]
      *
      * @return int|NULL $id - форсирания запис, или NULL ако няма такъв
      */
-    public static function force($productId, $templateId = null)
+    public static function force($productId, $templateId = null, $params = array())
     {
         // Трябва да е подаден складируем артикул
         expect($productRec = cat_Products::fetchRec($productId));
@@ -289,8 +293,16 @@ class batch_Defs extends core_Manager
 
         // 1. Ако има изрично зададена дефиниция
         if (isset($templateId)) {
+
             expect(batch_Templates::fetch($templateId));
             $nRec = (object) array('productId' => $productRec->id, 'templateId' => $templateId);
+
+            // Ако има допълнителни параметри на дефиницията
+            foreach (array('batchCaption', 'alwaysRequire', 'onlyExistingBatches') as $pFld){
+                if(!empty($params[$pFld])){
+                    $nRec->{$pFld} = $params[$pFld];
+                }
+            }
         } else {
             // 2. От драйвера на артикула, ако върне подходящ клас
             $Driver = cat_Products::getDriver($productRec);
