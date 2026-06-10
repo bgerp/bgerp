@@ -828,7 +828,9 @@ class deals_QuotationDetails extends doc_Detail
                 }
             }
         }
-        $data->_total = clone $mvc->_total;
+        if(is_object($mvc->_total)){
+            $data->_total = clone $mvc->_total;
+        }
 
         // Подготовка за показване на опционалните продукти
         deals_Helper::fillRecs($mvc, $optional, $masterRec);
