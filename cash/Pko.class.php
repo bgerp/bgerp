@@ -443,11 +443,11 @@ class cash_Pko extends cash_Document
 
         if(!empty($rec->bankPeripheralDeviceId)){
             if(!array_key_exists($rec->bankPeripheralDeviceId, $bankPeripherals)){
-                core_Statuses::newStatus('В документа е избран банков паричен терминал, който не е достъпен от това устройство|*!', 'error');
+                core_Statuses::newStatus('В документа е избран банков паричен терминал, който не е достъпен от това устройство|*. |Ако няма реално картово плащане в момента на контирането - потвърдете операцията ръчно|*!', 'error');
                 return false;
             }
         } elseif($countPeripherals){
-            core_Statuses::newStatus('Избрано е картово плащане, без да има избран БПТ. На устройството има налични за избор|*!', 'error');
+            core_Statuses::newStatus('Избрано е картово плащане, без да има избран БПТ. На устройството има налични за избор|*. |Ако няма реално картово плащане в момента на контирането - потвърдете операцията ръчно|*!', 'error');
             return false;
         }
     }
