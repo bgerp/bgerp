@@ -70,7 +70,7 @@ class core_ObjectConfiguration extends core_BaseClass
                 $this->invoke('BeforeGetConfConst', array(&$value, $name));
             }
         }
-        
+
         // Търси константата в данните въведени през уеб-интерфейса
         if (!isset($value) && isset($this->_data[$name]) && !(empty($this->_data[$name]) && $this->_data[$name] !== (double) 0 && $this->_data[$name] !== (int) 0)) {
             $value = $this->_data[$name];
@@ -82,9 +82,9 @@ class core_ObjectConfiguration extends core_BaseClass
         }
         
         if (isset($this->_description[$name])) {
-            expect(isset($value), "Константата ${name} няма стойност", $this->_description, $this->_data);
+            expect(isset($value), "Константата {$name} няма стойност", $this->_description, $this->_data);
         } else {
-            expect(isset($value), "Константата ${name} не е дефинирана", $this->_description, $this->_data);
+            expect(isset($value), "Константата {$name} не е дефинирана", $this->_description, $this->_data);
         }
         
         return $value;
