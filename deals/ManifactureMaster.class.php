@@ -496,32 +496,16 @@ abstract class deals_ManifactureMaster extends core_Master
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->where("#journalId = {$journalRec->id}");
 
-        $accArr = array(acc_Accounts::getRecBySystemId(321)->id, acc_Accounts::getRecBySystemId(60201)->id);
-
         $me = cls::get(get_called_class());
-        $Detail = cls::get($me->mainDetail);
-        $dQuery = $Detail->getQuery();
-        $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-        $dQuery->show('productId');
-        $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+        $accPart = ($me instanceof planning_ReturnNotes) ? 'creditAccId' : 'debitAccId';
+        $accArr = array(acc_Accounts::getRecBySystemId(61101)->id, acc_Accounts::getRecBySystemId(61102)->id);
 
-        $productItemIds = [];
-        foreach ($productIds as $productId) {
-            $itemId = acc_Items::fetchItem('cat_Products', $productId)->id;
-            if ($itemId) {
-                $productItemIds[$itemId] = $itemId;
-            }
-        }
+        $jQuery->in("{$accPart}", $accArr);
        
         // Смятане на сумата, която ще се натрупва към сб-ст на произведения артикул
         while ($jRec = $jQuery->fetch()) {
-            $accPart = ($me instanceof planning_ReturnNotes) ? 'debitAccId' : 'creditAccId';
-            $itemPart = ($me instanceof planning_ReturnNotes) ? 'debitItem2' : 'creditItem2';
-           
-            if (in_array($jRec->{$accPart}, $accArr) && in_array($jRec->{$itemPart}, $productItemIds)) {
-                $amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $journalRec->valior);
-                $res['cost'] += $amount;
-             }
+            $amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $journalRec->valior);
+            $res['cost'] += $amount;
         }
        
         return $res;
