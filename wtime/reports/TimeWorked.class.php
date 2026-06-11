@@ -801,6 +801,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $q->XPR('effectiveDate', 'datetime', 'COALESCE(#date, #createdOn)');
         $q->where(array("#effectiveDate >= '{$fromStart}' AND #effectiveDate <= '{$toEnd}'"));
         $q->where("#employees IS NOT NULL");
+        $q->where("#state = 'active'");
         $q->show('taskId,quantity,productId,employees,norm,date,createdOn,effectiveDate,type');
         
         $qArr = array();
