@@ -171,7 +171,7 @@ class doc_TplManager extends core_Master
         $data->listFilter->setField('docClassId', "placeholder=Всички документи,silent");
         $data->listFilter->showFields = 'docClassId, search';
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'list', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
 
