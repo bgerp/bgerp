@@ -287,7 +287,7 @@ class planning_Tasks extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden,tdClass=small');
-        $this->FLD('productId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation|showadditionalUom|description,silent');
+        $this->FLD('productId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Операция,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation|showadditionalUom|description,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Бруто,input=none');
         $this->FLD('totalNetWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Нето,input=none');
@@ -2223,7 +2223,7 @@ class planning_Tasks extends core_Master
         $data->listFilter->setField('folder', 'input=none');
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input');
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect');
         $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
         $data->listFilter->showFields .= ',folders,productId, saleId';
         $data->listFilter->setField('productId','before=isFinalSelect');
@@ -2274,7 +2274,7 @@ class planning_Tasks extends core_Master
             if(!Mode::is('isReorder')){
                 unset($stateOptions['manualOrder']);
             }
-            $data->listFilter->FNC('isFinalSelect', 'enum(all=Всички,yes=Финален етап,no=Междинен етап)', 'caption=Вид етап,input');
+            $data->listFilter->FNC('isFinalSelect', 'enum(all=Всички,yes=Финални,no=Междинни)', 'caption=Вид,input');
             $data->listFilter->setOptions('state', $stateOptions);
             $data->listFilter->showFields .= ',state,isFinalSelect';
             $data->listFilter->input('state,isFinalSelect');
