@@ -148,6 +148,7 @@ class cond_Colors extends core_Manager
         $query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
        
         if ($q) {
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }

@@ -1303,7 +1303,8 @@ class doc_Linked extends core_Manager
             $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
             
             $show .= ',searchFieldXpr';
-            
+
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }
