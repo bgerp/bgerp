@@ -1183,4 +1183,18 @@ abstract class deals_DealBase extends core_Master
         }
         $Items->flushTouched();
     }
+
+
+    /**
+     * Премахва от резултатите скритите от менютата за избор
+     */
+    public static function on_AfterGetSelectArr($mvc, &$res, $fields = null, &$where = '', $index = 'id')
+    {
+        if(is_array($res)){
+            $ids = array_keys($res);
+            foreach ($ids as $id){
+                $res[$id] = $mvc->getTitleById($id);;
+            }
+        }
+    }
 }

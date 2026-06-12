@@ -2223,10 +2223,9 @@ class planning_Tasks extends core_Master
         $data->listFilter->setField('folder', 'input=none');
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->showFields .= ',folders';
-        $data->listFilter->FNC('taskId', 'key2(mvc=planning_Tasks,select=title,allowEmpty,input,remember, forceAjax)', 'caption=Задача,input');
-        $data->listFilter->showFields .= ',taskId';
-        $data->listFilter->input('taskId');
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax)', 'caption=Продажба,input');
+        $data->listFilter->showFields .= ',folders,productId, saleId';
+        $data->listFilter->input('productId, saleId');
 
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders ?? null);
@@ -2263,9 +2262,8 @@ class planning_Tasks extends core_Master
             if (isset($filter->folders)) {
                 $data->query->in("folderId", $filter->folders);
             }
-            
-            if(isset($filter->taskId)){
-                $data->query->where("#id = {$filter->taskId}");
+            if(isset($filter->productId)){
+                $data->query->where("#productId = {$filter->productId}");
             }
         }
 
@@ -2319,6 +2317,16 @@ class planning_Tasks extends core_Master
         $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
         $data->query->orderBy($orderByField, $orderByDir);
 
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->where("#saleId = {$data->listFilter->rec->saleId}");
+        $jRecs = $jQuery->fetchAll();
+        $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
+
+        if(!empty($containerIds)){
+            $data->query->in("originId", $containerIds);
+        }else{
+            $data->query->where('1=2');
+        }
         if(Mode::get('isReorder')){
             $data->listFilter->hide = true;
             $mvc->cacheAssetDataOnShutdown[$filter->assetId] = $filter->assetId;
@@ -4666,26 +4674,5 @@ class planning_Tasks extends core_Master
     public static function getPackagingFields_()
     {
         return array('labelPackagingId' => 'labelPackagingId', 'indPackagingId' => 'indPackagingId');
-    }
-
-
-    /**
-     * Премахва от резултатите скритите от менютата за избор
-     */
-    public static function on_AfterGetSelectArr($mvc, &$res, $fields = null, &$where = '', $index = 'id')
-    {
-        if(is_array($res)){
-            $taskIds = array_keys($res);
-            $query = self::getQuery();
-            $query->in("id", $taskIds);
-            $query->show('productId');
-            $recs = $query->fetchAll(); 
-            
-            $stepTitle = null;
-            foreach($recs as $id => $rec){
-                $stepTitle = self::getStepTitle($rec->productId);
-                $res[$id] = "{$rec->id} - {$stepTitle}";
-            }
-        }
     }
 }
