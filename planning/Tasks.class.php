@@ -2265,18 +2265,6 @@ class planning_Tasks extends core_Master
             if(isset($filter->productId)){
                 $data->query->where("#productId = {$filter->productId}");
             }
-            if(!empty($data->listFilter->rec->saleId)){
-                $jQuery = planning_Jobs::getQuery();
-                $jQuery->where("#saleId = {$data->listFilter->rec->saleId}");
-                $jRecs = $jQuery->fetchAll();
-                $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
-            }
-
-            if(!empty($containerIds)){
-                $data->query->in("originId", $containerIds);
-            }else{
-                $data->query->where('1=2');
-            }
         }
 
         $orderByDir = 'ASC';
@@ -2341,7 +2329,7 @@ class planning_Tasks extends core_Master
                 $data->query->where('1=2');
             }
         }
-        
+
 
         if(Mode::get('isReorder')){
             $data->listFilter->hide = true;
