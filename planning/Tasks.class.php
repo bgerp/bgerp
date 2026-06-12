@@ -2223,7 +2223,8 @@ class planning_Tasks extends core_Master
         $data->listFilter->setField('folder', 'input=none');
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax)', 'caption=Продажба,input');
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input');
+        $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
         $data->listFilter->showFields .= ',folders,productId, saleId';
         $data->listFilter->setField('productId','before=isFinalSelect');
         $data->listFilter->input('productId, saleId');
