@@ -2258,12 +2258,23 @@ class planning_Tasks extends core_Master
                     $data->listFilter->toolbar->addBtn("Подреждане", $cUrl, 'title=Преподреждане на операциите,ef_icon=img/16/arrow_switch2.png');
                 }
             }
-
             if (isset($filter->folders)) {
                 $data->query->in("folderId", $filter->folders);
             }
             if(isset($filter->productId)){
                 $data->query->where("#productId = {$filter->productId}");
+            }
+            if(!empty($data->listFilter->rec->saleId)){
+                $jQuery = planning_Jobs::getQuery();
+                $jQuery->where("#saleId = {$data->listFilter->rec->saleId}");
+                $jRecs = $jQuery->fetchAll();
+                $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
+            }
+
+            if(!empty($containerIds)){
+                $data->query->in("originId", $containerIds);
+            }else{
+                $data->query->where('1=2');
             }
         }
 
@@ -2317,16 +2328,6 @@ class planning_Tasks extends core_Master
         $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
         $data->query->orderBy($orderByField, $orderByDir);
 
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->where("#saleId = {$data->listFilter->rec->saleId}");
-        $jRecs = $jQuery->fetchAll();
-        $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
-
-        if(!empty($containerIds)){
-            $data->query->in("originId", $containerIds);
-        }else{
-            $data->query->where('1=2');
-        }
         if(Mode::get('isReorder')){
             $data->listFilter->hide = true;
             $mvc->cacheAssetDataOnShutdown[$filter->assetId] = $filter->assetId;
