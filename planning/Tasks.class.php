@@ -2225,6 +2225,7 @@ class planning_Tasks extends core_Master
         $orderByField = 'orderByDate';
         $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax)', 'caption=Продажба,input');
         $data->listFilter->showFields .= ',folders,productId, saleId';
+        $data->listFilter->setField('productId','before=isFinalSelect');
         $data->listFilter->input('productId, saleId');
 
         // Добавят се за избор само използваните в ПО оборудвания
@@ -2327,6 +2328,20 @@ class planning_Tasks extends core_Master
 
         $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
         $data->query->orderBy($orderByField, $orderByDir);
+
+        if(!empty($data->listFilter->rec->saleId)){
+            $jQuery = planning_Jobs::getQuery();
+            $jQuery->where("#saleId = {$data->listFilter->rec->saleId}");
+            $jRecs = $jQuery->fetchAll();
+            $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
+
+            if(!empty($containerIds)){
+                $data->query->in("originId", $containerIds);
+            }else{
+                $data->query->where('1=2');
+            }
+        }
+        
 
         if(Mode::get('isReorder')){
             $data->listFilter->hide = true;
