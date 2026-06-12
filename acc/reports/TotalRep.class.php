@@ -158,11 +158,9 @@ class acc_reports_TotalRep extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
         $row = new stdClass();
-        
-        $row->speed = $Double->toVerbal($dRec->speed);
+        $row->speed = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->speed);
+        $row->speed = ht::styleNumber($row->speed, $dRec->speed);
         $row->period = $dRec->period;
         
         $key = date('m/Y');
