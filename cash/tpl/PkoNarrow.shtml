@@ -39,7 +39,9 @@
                             </div>
                             <div class='address-block'>
                                 |Каса|*<b>: [#peroCase#]</b>
+								<!--ET_BEGIN bankPeripheralDeviceId-->
 								<br />|БПТ|*<b>: [#bankPeripheralDeviceId#]</b>
+								<!--ET_END bankPeripheralDeviceId-->
                             </div>
                         </td>
                     </tr>

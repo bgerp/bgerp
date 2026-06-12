@@ -174,7 +174,7 @@ abstract class cash_Document extends deals_PaymentDocument
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'termDate,valior,issuer';
+    public $fieldsNotToClone = 'termDate,valior,issuer,bankPeripheralDeviceId';
 
 
     /**
@@ -790,7 +790,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Изпълнява се преди контиране на документа
      */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
         $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : $mvc->getDefaultCase($rec);;

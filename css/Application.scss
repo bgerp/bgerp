@@ -9491,3 +9491,16 @@ td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after{ 
 .amountBadge .textHint > span {
 	font-weight: 700;
 }
+
+.amberBadge {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	border-radius: 8px;
+	padding: 3px 9px;
+	font-size: 12px;
+	font-weight: 500;
+	background: #FAEEDA;
+	color: #854F0B;
+	border: 0.9px solid rgba(186,117,23,0.3);
+}
