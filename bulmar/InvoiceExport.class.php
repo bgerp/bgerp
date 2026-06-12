@@ -20,43 +20,49 @@ class bulmar_InvoiceExport extends core_Manager
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'bgerp_ExportIntf';
-    
-    
+
+
     /**
      * Заглавие
      */
     public $title = 'Експортиране на фактури към Bulmar Office';
-    
-    
+
+
     /**
      * Към кои мениджъри да се показва драйвъра
      */
     protected static $applyOnlyTo = 'sales_Invoices';
-    
-    
+
+
     /**
      * Мениджъри за зареждане
      */
     public $loadList = 'Invoices=sales_Invoices';
-    
-    
+
+
     /**
      * Кой номер съответства на типа фактура
      */
     private static $invTypes = array('invoice' => 1, 'debit_note' => 2, 'credit_note' => 3);
-    
-    
+
+
     /**
      * Работен кеш
      */
     private $sales = array();
-    
-    
+
+
     /**
      * Кеш
      */
     private $cache = array();
-    
+
+
+    /**
+     * Статични данни за текущия експорт
+     */
+    private $staticData;
+
 
     public static function getOwnCompanyOptions()
     {
@@ -123,8 +129,8 @@ class bulmar_InvoiceExport extends core_Manager
             $i++;
         }
     }
-    
-    
+
+
     /**
      * Проверява импорт формата
      *
@@ -136,8 +142,8 @@ class bulmar_InvoiceExport extends core_Manager
             $form->setError('from,to', 'Началната дата трябва да е по-малка от голямата');
         }
     }
-    
-    
+
+
     /**
      * Импортиране на csv-файл в даден мениджър
      *
@@ -178,11 +184,11 @@ class bulmar_InvoiceExport extends core_Manager
         $data = $this->prepareExportData($recs, $filter);
         $content = $this->prepareFileContent($data);
         $content = iconv('utf-8', 'CP1251', $content);
-        
+
         return $content;
     }
-    
-    
+
+
     /**
      * Подготвя данните за експорт
      *
@@ -193,19 +199,19 @@ class bulmar_InvoiceExport extends core_Manager
     protected function prepareExportData($recs, $filter)
     {
         $data = new stdClass();
-
         $data->static = $this->getStaticData($filter);
+        $this->staticData = $data->static;
         $data->recs = array();
         $count = 0;
         foreach ($recs as $rec) {
             $count++;
             $data->recs[$rec->id] = $this->prepareRec($rec, $count);
         }
-        
+
         return $data;
     }
-    
-    
+
+
     /**
      * Подготвя записа
      */
@@ -223,7 +229,7 @@ class bulmar_InvoiceExport extends core_Manager
         } else {
             $sign = ($rec->type == 'credit_note') ? -1 : 1;
         }
-        
+
         $nRec->type = self::$invTypes[$rec->type];
         $baseAmount = round($rec->dealValue - $rec->discountAmount, 6);
         if ($rec->dpOperation == 'deducted') {
@@ -231,6 +237,19 @@ class bulmar_InvoiceExport extends core_Manager
         }
 
         $byProducts = $byServices = 0;
+
+        // Индексираме groupOptions по productGroupId
+        $groupMap = array();
+        $hasGroupOptions = !empty($this->staticData->groupOptions);
+        if ($hasGroupOptions) {
+            foreach ((array)$this->staticData->groupOptions as $gOpt) {
+                $groupMap[$gOpt->productGroupId] = $gOpt;
+            }
+        }
+
+        // Кофи за кредити по групи (само при hasGroupOptions)
+        $creditBuckets = array();
+
         if(empty($rec->_isVirtual)){
             $dQuery = sales_InvoiceDetails::getQuery();
             $dQuery->where("#invoiceId = {$rec->id}");
@@ -244,37 +263,137 @@ class bulmar_InvoiceExport extends core_Manager
 
             foreach ($details as $dRec) {
                 if (empty($this->cache[$dRec->productId])) {
-                    $this->cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
+                    $this->cache[$dRec->productId] = cat_Products::fetch($dRec->productId, 'canStore,groups');
                 }
 
                 $pInfo = $this->cache[$dRec->productId];
                 $dRec->amount = round($dRec->packPrice * $dRec->quantity, $vatDecimals);
+                $lineAmount = $dRec->amount * (1 - $dRec->discount);
 
-                if (empty($pInfo->meta['canStore'])) {
-                    $byServices += $dRec->amount * (1 - $dRec->discount);
+                if ($hasGroupOptions) {
+                    // Търсим съвпадение в groupMap по реда на конфигурацията
+                    $matchedGroup = null;
+                    foreach ($groupMap as $groupId => $gOpt) {
+                        if (keylist::isIn($groupId, $pInfo->groups)) {
+                            $matchedGroup = $gOpt;
+                            break;
+                        }
+                    }
+
+                    if ($matchedGroup !== null) {
+                        $accKey = $matchedGroup->accId;
+                        if (!isset($creditBuckets[$accKey])) {
+                            $creditBuckets[$accKey] = array(
+                                'amount'  => 0,
+                                'code'    => $matchedGroup->code,
+                                'anal'    => $matchedGroup->anal,
+                                'reason'  => $matchedGroup->reason,
+                                'isGroup' => true,
+                            );
+                        }
+                        $creditBuckets[$accKey]['amount'] += $lineAmount;
+                    } elseif ($pInfo->canStore == 'yes') {
+                        $byProducts += $lineAmount;
+                    } else {
+                        $byServices += $lineAmount;
+                    }
                 } else {
-                    $byProducts += $dRec->amount * (1 - $dRec->discount);
+                    // Оригинална логика — без групи
+                    if ($pInfo->canStore == 'yes') {
+                        $byProducts += $lineAmount;
+                    } else {
+                        $byServices += $lineAmount;
+                    }
                 }
             }
         } else {
             $byProducts += $rec->dealValue;
         }
 
-        if ($byServices != 0 && $byProducts == 0) {
-            $nRec->reason = 'Приход от продажба на услуги';
-        } elseif ($byServices == 0 && $byProducts != 0) {
-            $nRec->reason = 'Приход от продажба на стоки';
+        if ($hasGroupOptions) {
+            // Добавяме стандартните кофи ако имат сума
+            if ($byProducts != 0) {
+                $creditBuckets[$this->staticData->creditSaleProducts] = array(
+                    'amount'  => $byProducts,
+                    'code'    => null,
+                    'anal'    => '',
+                    'reason'  => 'Приход от продажба на стоки',
+                    'isGroup' => false,
+                );
+            }
+            if ($byServices != 0) {
+                $creditBuckets[$this->staticData->creditSaleServices] = array(
+                    'amount'  => $byServices,
+                    'code'    => null,
+                    'anal'    => '',
+                    'reason'  => 'Приход от продажба на услуги',
+                    'isGroup' => false,
+                );
+            }
+
+            // Определяме доминантната кофа (най-голяма сума)
+            $dominantBucket = null;
+            $dominantKey = null;
+            $dominantAmount = -1;
+            foreach ($creditBuckets as $accKey => $bucket) {
+                if (abs($bucket['amount']) > $dominantAmount) {
+                    $dominantAmount = abs($bucket['amount']);
+                    $dominantBucket = $bucket;
+                    $dominantKey = $accKey;
+                }
+            }
+
+            if ($dominantBucket !== null && $dominantBucket['isGroup']) {
+                $nRec->reason      = $dominantBucket['reason'];
+                $nRec->operationId = $dominantBucket['code'];
+            } elseif ($byServices != 0 && $byProducts == 0) {
+                $nRec->reason      = 'Приход от продажба на услуги';
+                $nRec->operationId = null;
+            } elseif ($byServices == 0 && $byProducts != 0) {
+                $nRec->reason      = 'Приход от продажба на стоки';
+                $nRec->operationId = null;
+            } else {
+                $nRec->reason      = 'Приход от продажба';
+                $nRec->operationId = null;
+            }
+
+            // Прилагаме знака
+            foreach ($creditBuckets as $accKey => &$bucket) {
+                $bucket['amount'] = $sign * round($bucket['amount'], 2);
+            }
+            unset($bucket);
+
+            $nRec->creditBuckets = $creditBuckets;
+
+            // Корекция на закръгляния към доминантната кофа
+            $bucketsTotal = round(array_sum(array_column($creditBuckets, 'amount')), 2);
+            $baseAmountSigned = $sign * round($baseAmount, 2);
+            if ($bucketsTotal != $baseAmountSigned && $dominantKey !== null) {
+                $diff = $baseAmountSigned - $bucketsTotal;
+                $nRec->creditBuckets[$dominantKey]['amount'] = round($nRec->creditBuckets[$dominantKey]['amount'] + $diff, 2);
+            }
+
         } else {
-            $nRec->reason = 'Приход от продажба';
+            // Оригинална логика за reason
+            if ($byServices != 0 && $byProducts == 0) {
+                $nRec->reason = 'Приход от продажба на услуги';
+            } elseif ($byServices == 0 && $byProducts != 0) {
+                $nRec->reason = 'Приход от продажба на стоки';
+            } else {
+                $nRec->reason = 'Приход от продажба';
+            }
+
+            $nRec->creditBuckets = null;
+            $nRec->operationId   = null;
         }
-        
+
         $vat = round($rec->vatAmount, 2);
-        $nRec->vat = $sign * $vat;
+        $nRec->vat            = $sign * $vat;
         $nRec->productsAmount = $sign * round($byProducts, 2);
         $nRec->servicesAmount = $sign * round($byServices, 2);
-        $nRec->amount = $sign * (round($baseAmount, 2) + round($rec->vatAmount, 2));
-        $nRec->baseAmount = $sign * round($baseAmount, 2);
-        
+        $nRec->amount         = $sign * (round($baseAmount, 2) + round($rec->vatAmount, 2));
+        $nRec->baseAmount     = $sign * round($baseAmount, 2);
+
         if ($rec->dpOperation) {
             $nRec->dpOperation = $rec->dpOperation;
             $nRec->dpAmount = round($rec->dpAmount, 2);
@@ -282,17 +401,16 @@ class bulmar_InvoiceExport extends core_Manager
                 $nRec->reason = 'Фактура за аванс';
             }
         }
-        
+
         $nRec->contragentEik = ($rec->contragentVatNo) ? $rec->contragentVatNo : $rec->uicNo;
-        
+
         $Vats = cls::get('drdata_Vats');
         $nRec->contragentEik = $Vats->canonize($nRec->contragentEik);
         $rec->paymentType = ($rec->paymentType) ? $rec->paymentType : $rec->autoPaymentType;
-        
+
         if ($rec->paymentType == 'cash') {
             $nRec->amountPaid = $nRec->amount;
-            
-            // Ако към ф-та има ПКО и ВКТ за инкасиране на банково плащане да не се води като платена в брой
+
             if(empty($rec->_isVirtual)){
                 $pkoQuery = cash_Pko::getQuery();
                 $pkoQuery->where("#state = 'active' AND #fromContainerId = {$rec->containerId}");
@@ -312,22 +430,25 @@ class bulmar_InvoiceExport extends core_Manager
         } elseif($rec->paymentType == 'postal'){
             $nRec->amountPostalPaid = $nRec->amount;
         }
-        
-        if(round($nRec->productsAmount + $nRec->servicesAmount, 2) != round($nRec->baseAmount, 2)){
-            if(empty($nRec->productsAmount) && !empty($nRec->servicesAmount)){
-                $nRec->servicesAmount = $nRec->baseAmount;
-            } elseif(!empty($nRec->productsAmount) && empty($nRec->servicesAmount)){
-                $nRec->productsAmount = $nRec->baseAmount;
-            } elseif(!empty($nRec->productsAmount) && !empty($nRec->servicesAmount)){
-                $nRec->servicesAmount = $nRec->baseAmount - $nRec->productsAmount;
-                $nRec->productsAmount = $nRec->baseAmount - $nRec->servicesAmount;
+
+        if (!$hasGroupOptions) {
+            // Оригинална корекция на закръгляния
+            if(round($nRec->productsAmount + $nRec->servicesAmount, 2) != round($nRec->baseAmount, 2)){
+                if(empty($nRec->productsAmount) && !empty($nRec->servicesAmount)){
+                    $nRec->servicesAmount = $nRec->baseAmount;
+                } elseif(!empty($nRec->productsAmount) && empty($nRec->servicesAmount)){
+                    $nRec->productsAmount = $nRec->baseAmount;
+                } elseif(!empty($nRec->productsAmount) && !empty($nRec->servicesAmount)){
+                    $nRec->servicesAmount = $nRec->baseAmount - $nRec->productsAmount;
+                    $nRec->productsAmount = $nRec->baseAmount - $nRec->servicesAmount;
+                }
             }
         }
 
         return $nRec;
     }
-    
-    
+
+
     /**
      * Подготвя съдържанието на файла
      */
@@ -336,47 +457,65 @@ class bulmar_InvoiceExport extends core_Manager
         $static = $data->static;
         $content = 'Text Export To BMScety V2.0' . "\r\n";
         $content .= "BULSTAT={$static->OWN_COMPANY_BULSTAT}" . "\r\n";
-        
-        // Добавяме информацията за фактурите
+
         foreach ($data->recs as $rec) {
             $operationId = $static->saleProducts;
             if ($rec->dpOperation == 'accrued') {
-                unset($rec->productsAmount);
                 $operationId = $static->advancePayment;
             } elseif ($rec->dpOperation == 'deducted') {
-                
-                // Ако ф-та има приспадане на аванс приспадаме го от общата сума и сумата на платеното
-                $rec->amount += $rec->dpAmount;
-                $operationId = $static->advancePayment;
+                $rec->amount     += $rec->dpAmount;
                 $rec->baseAmount += $rec->dpAmount;
-                
+                $operationId = $static->advancePayment;
                 if (isset($rec->amountPaid)) {
                     $rec->amountPaid += $rec->dpAmount;
                 }
             }
-            
-            $line = "{$rec->num}|{$rec->type}|{$rec->invNumber}|{$rec->date}|{$rec->contragentEik}|{$rec->date}|{$static->folder}|{$rec->contragent}|". "\r\n";
+
+            // Определяме operationId от доминантната група (ако има)
+            if (!empty($rec->operationId)) {
+                $operationId = $rec->operationId;
+            }
+
+            $line = "{$rec->num}|{$rec->type}|{$rec->invNumber}|{$rec->date}|{$rec->contragentEik}|{$rec->date}|{$static->folder}|{$rec->contragent}|" . "\r\n";
             $line .= "{$rec->num}|1|{$operationId}|{$static->debitSale}|AN|$|{$rec->amount}||";
-            if ($rec->dpAmount) {
+
+            if ($rec->dpAmount && $rec->dpOperation == 'deducted') {
                 $line .= "{$static->creditAdvance}|PA|$|{$rec->dpAmount}||";
             }
-            
-            if ($rec->productsAmount) {
-                $line .= "{$static->creditSaleProducts}|||{$rec->productsAmount}||";
+
+            if ($rec->creditBuckets !== null) {
+                // Нова логика — кредити по кофи
+                foreach ($rec->creditBuckets as $accId => $bucket) {
+                    if ($bucket['amount'] == 0) continue;
+                    $analPart = !empty($bucket['anal']) ? $bucket['anal'] : '';
+                    $line .= "{$accId}|{$analPart}||{$bucket['amount']}||";
+                }
+
+                // Fallback ако всички кофи са 0 и не е аванс
+                if ($rec->dpOperation != 'accrued' && empty(array_filter($rec->creditBuckets, function($b) { return $b['amount'] != 0; }))) {
+                    $line .= "{$static->creditSaleProducts}|||{$rec->baseAmount}||";
+                }
+            } else {
+                // Оригинална логика
+                if ($rec->dpOperation != 'accrued') {
+                    if ($rec->productsAmount) {
+                        $line .= "{$static->creditSaleProducts}|||{$rec->productsAmount}||";
+                    }
+
+                    if ($rec->servicesAmount) {
+                        $line .= "{$static->creditSaleServices}|||{$rec->servicesAmount}||";
+                    }
+
+                    if($rec->type != 1 && empty($rec->servicesAmount) && empty($rec->productsAmount)){
+                        $line .= "{$static->creditSaleProducts}|||{$rec->baseAmount}||";
+                    }
+                }
             }
-            
-            if ($rec->servicesAmount) {
-                $line .= "{$static->creditSaleServices}|||{$rec->servicesAmount}||";
-            }
-            
-            if($rec->type != 1 && empty($rec->servicesAmount) && empty($rec->productsAmount)){
-                $line .= "{$static->creditSaleProducts}|||{$rec->baseAmount}||";
-            }
-            
+
             $line .= "{$static->creditSaleVat}|||{$rec->vat}||" . "\r\n";
-            
-            $line .= "{$rec->num}|1|Prod|{$rec->reason}|0|||{$rec->baseAmount}|{$rec->vat}|{$rec->baseAmount}|{$rec->vat}|||||||||||||" . "\r\n";
-            
+
+            $line .= "{$rec->num}|1|Prod|{$rec->reason}|0|||{$rec->baseAmount}|{$rec->vat}|{$rec->baseAmount}|{$rec->vat}|||||||||||||\r\n";
+
             if ($rec->amountPaid) {
                 $line .= "{$rec->num}|2|{$static->paymentOp}|{$static->debitPayment}|||{$rec->amountPaid}||{$static->creditPayment}|AN|$|{$rec->amountPaid}||" . "\r\n";
             }
@@ -391,14 +530,13 @@ class bulmar_InvoiceExport extends core_Manager
 
             $content .= $line;
         }
-        
-        // Няма да се импортира ако не завършва на 0
+
         $content .= "0\r\n";
-        
+
         return $content;
     }
-    
-    
+
+
     /**
      * Извлича статичните данни от настройките
      *
@@ -408,7 +546,7 @@ class bulmar_InvoiceExport extends core_Manager
     protected function getStaticData($filter)
     {
         $staticData = new stdClass();
-        
+
         $conf = core_Packs::getConfig('bulmar');
         $staticData->folder = $conf->BULMAR_INV_CONTR_FOLDER;
         $staticData->saleProducts = $conf->BULMAR_INV_TAX_OPERATION_SALE_PRODUCTS;
@@ -427,14 +565,15 @@ class bulmar_InvoiceExport extends core_Manager
         $staticData->cardAnal = $conf->BULMAR_INV_CARD_PAYMENT_ANAL;
         $staticData->pptAndCardAccount = $conf->BULMAR_INV_PPT_AND_CARD_PAYMENT;
         $staticData->pptAndCardOperation = $conf->BULMAR_INV_PPT_AND_CARD_OPERATION;
+        $staticData->groupOptions = type_Table::toArray($conf->BULMAR_INV_PRODUCT_GROUP_ACC);
 
         list( , $uicId) = explode('|', $filter->ownCompanyId);
         $staticData->OWN_COMPANY_BULSTAT = $uicId;
-        
+
         return $staticData;
     }
-    
-    
+
+
     /**
      * Може ли да се добавя към този мениджър
      */
@@ -442,8 +581,8 @@ class bulmar_InvoiceExport extends core_Manager
     {
         return $mvc->className == static::$applyOnlyTo;
     }
-    
-    
+
+
     /**
      * Връща името на експортирания файл
      *
@@ -453,7 +592,7 @@ class bulmar_InvoiceExport extends core_Manager
     {
         $timestamp = time();
         $name = "invoices{$timestamp}.txt";
-        
+
         return $name;
     }
 
