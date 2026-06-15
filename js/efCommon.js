@@ -7093,7 +7093,13 @@ const bgLog = (() => {
     }
 
     return {
-        setUrl:  (url)                              => { _url = url; },
+        setUrl: (url) => {
+            if (!url) return;
+            if (url.startsWith('http') || url.startsWith('//')) return;
+            if (!url.endsWith('/log_System/JsLog')) return;
+
+            _url = url;
+        },
         info:    (cls, objectId, msg, sendWp = false) => send('info',    cls, objectId, msg, sendWp),
         warning: (cls, objectId, msg, sendWp = false) => send('warning', cls, objectId, msg, sendWp),
         error:   (cls, objectId, msg, sendWp = true)  => send('error',   cls, objectId, msg, sendWp),
