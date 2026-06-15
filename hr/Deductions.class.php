@@ -33,8 +33,14 @@ class hr_Deductions extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Удръжка';
-    
-    
+
+
+    /**
+     * Абривиатура на документа
+     */
+    public $abbr = 'Dct';
+
+
     /**
      * Плъгини за зареждане
      */
