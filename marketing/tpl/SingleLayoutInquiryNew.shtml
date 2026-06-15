@@ -11,11 +11,13 @@
 		     [#inqDescription#]
 	    </fieldset>
 	    <!--ET_END inqDescription-->
-	    
+
+        <!--ET_BEGIN innerState-->
 	    <fieldset class="detail-info">
 		    <legend class="groupTitle">|Описание|*</legend>
 		     [#innerState#]
 	     </fieldset>
+        <!--ET_END innerState-->
     </div>
     [#ADDITIONAL_BLOCK#]
     

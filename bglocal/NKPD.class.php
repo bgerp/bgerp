@@ -109,6 +109,7 @@ class bglocal_NKPD extends core_Master
         $query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
         if ($q) {
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }
