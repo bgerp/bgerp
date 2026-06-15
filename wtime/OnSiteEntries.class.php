@@ -67,7 +67,7 @@ class wtime_OnSiteEntries extends core_Manager
     /**
      * Кои полета да се извличат при изтриване
      */
-    public $fetchFieldsBeforeDelete = 'id,personId';
+    public $fetchFieldsBeforeDelete = 'id,personId,time';
 
 
     /**
