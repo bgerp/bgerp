@@ -692,7 +692,7 @@ class core_Mvc extends core_FieldSet
         }
         
         $titleFld = $params['titleFld'];
-        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
+        $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}, ' ', id))");
         
         if ($q) {
             if ($q[0] == '"') {

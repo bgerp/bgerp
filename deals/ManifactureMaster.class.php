@@ -496,12 +496,18 @@ abstract class deals_ManifactureMaster extends core_Master
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->where("#journalId = {$journalRec->id}");
 
+        $me = cls::get(get_called_class());
+        $accPart = ($me instanceof planning_ReturnNotes) ? 'creditAccId' : 'debitAccId';
+        $accArr = array(acc_Accounts::getRecBySystemId(61101)->id, acc_Accounts::getRecBySystemId(61102)->id);
+
+        $jQuery->in("{$accPart}", $accArr);
+       
         // Смятане на сумата, която ще се натрупва към сб-ст на произведения артикул
         while ($jRec = $jQuery->fetch()) {
             $amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $journalRec->valior);
             $res['cost'] += $amount;
         }
-        
+       
         return $res;
     }
 }
