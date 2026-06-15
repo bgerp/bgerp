@@ -54,6 +54,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Скриваме полето папка
+     */
+    public $showFilterFolderField = false;
+
+
+    /**
      * Скриване на полето за споделени потребители
      */
     public $hideSharedUsersFld = true;
@@ -2219,8 +2225,6 @@ class planning_Tasks extends core_Master
     {
         $data->listFilter->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Центрове');
         $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf'));
-        $data->listFilter->setFieldTypeParams('folder', array('coverClasses' => 'planning_Centers', 'orderBy' => 'title=ASC'));
-        $data->listFilter->setField('folder', 'input=none');
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
         $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect');
