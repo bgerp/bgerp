@@ -219,7 +219,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
                 'opsMinutesByDate' => isset($personsProgressInPeriod[$pId]) ? $personsProgressInPeriod[$pId] : array(),
             );
         }
-
+        
         return $recs;
     }
 
@@ -378,7 +378,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
         $row->personName = "<div style='text-align:center;font-weight:600;'>{$personNameTpl}</div>";
 
         // Показател
-        $metricByType = ['shift' => 'смяна', 'onsite' => 'време', 'ops' => '%'];
+        $metricByType = ['shift' => 'смяна', 'onsite' => 'време', 'ops' => '% по ПО'];
         $row->metric = $metricByType[$dRec->rowType] ?? '';
 
         // Нормализира към МИНУТИ; приема сек/ "mm:ss"/"hh:mm"/"hh:mm:ss"
@@ -677,7 +677,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
 
         $q->in('personId', $personIds);
         $q->where("#date >= '{$minDate}' AND #date <= '{$maxDate}'");
-        $q->show('personId,date,onSiteTime');  // onSiteTime е в МИНУТИ
+        $q->show('personId,date,onSiteTime');  // onSiteTime
 
         while ($rec = $q->fetch()) {
             $pId = (int)$rec->personId;
@@ -998,9 +998,9 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
             }
             $rows[] = $row;
         }
-        $table = $table->get($rows, $fields);
+        $tpl = $table->get($rows, $fields);
 
-        return $table;
+        return $tpl;
     }
 
 
@@ -1013,8 +1013,7 @@ class wtime_reports_TimeWorked extends frame2_driver_TableData
      */
     protected function getSummary($rec)
     {
-        $params = array('workingDays', 'restDays', 'paidLeave', 'sickDays', 'tripDays', 'homeOfficeDays', 'hours');
-        $obj = new stdClass;
+$params = array('workingDays', 'restDays', 'paidLeave', 'sickDays', 'tripDays', 'homeOfficeDays', 'hours', 'workingMinutes', 'taskMinutes');        $obj = new stdClass;
         foreach ($params as $paramFld) {
             $obj->{$paramFld} = 0;
         }
