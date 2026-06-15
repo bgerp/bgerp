@@ -7064,6 +7064,48 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+
+function setLogDebugUrl(url)
+{
+    bgLog.setUrl(url);
+}
+
+
+const bgLog = (() => {
+    let _url = null;
+
+    function send(level, cls, objectId, message, sendWp) {
+        if (!_url) return;
+
+        let resObj = new Object();
+        resObj['url'] = _url;
+
+
+        let params = {
+            cls:      cls,
+            objectId: objectId ?? null,
+            level:    level,
+            message:  message,
+            sendWp:   sendWp ? 1 : 0,
+        };
+
+        getEfae().process(resObj, params);
+    }
+
+    return {
+        setUrl: (url) => {
+            if (!url) return;
+            if (url.startsWith('http') || url.startsWith('//')) return;
+            if (!url.endsWith('/log_System/JsLog')) return;
+
+            _url = url;
+        },
+        info:    (cls, objectId, msg, sendWp = false) => send('info',    cls, objectId, msg, sendWp),
+        warning: (cls, objectId, msg, sendWp = false) => send('warning', cls, objectId, msg, sendWp),
+        error:   (cls, objectId, msg, sendWp = true)  => send('error',   cls, objectId, msg, sendWp),
+    };
+})();
+
 runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);

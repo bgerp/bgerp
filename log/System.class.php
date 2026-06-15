@@ -725,4 +725,27 @@ class log_System extends core_Manager
         $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);
     }
+
+
+    /**
+     * Екшън за логване от джаваскрипта
+     * @return array|null
+     */
+    function act_JsLog()
+    {
+        if (Request::get('ajax_mode')) {
+            $cls      = Request::get('cls', 'varchar');
+            $objectId = Request::get('objectId', 'int');
+            $level    = Request::get('level', 'enum(info,warning,error)', 'info');
+            $message  = Request::get('message', 'varchar');
+            $sendWp   = Request::get('sendWp', 'int');
+            log_System::add($cls, "[JS_WP] " . $message, $objectId, $level);
+
+            if ($sendWp) {
+                wp("[JS_WP] {$cls}" . ($objectId ? "/{$objectId}" : '') . ": {$message}");
+            }
+
+            return array();
+        }
+    }
 }
