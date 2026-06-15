@@ -346,6 +346,12 @@ class cat_Products extends embed_Manager
 
 
     /**
+     * Кеш на ДДС групите в хита
+     */
+    protected static $vatCache = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -1589,18 +1595,19 @@ class cat_Products extends embed_Manager
             $date = dt::today();
         }
 
-        // Ако има валидна ДДС група към датата - нея
-        if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date, $exceptionId)) {
-            return $groupRec->vat;
+        $cacheKey = "{$productId}|{$date}|{$exceptionId}";
+        if(array_key_exists($cacheKey, static::$vatCache)){
+            return static::$vatCache[$cacheKey];
         }
 
-        // Ако няма взема се ДДС групата от периода
+        if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date, $exceptionId)) {
+            return static::$vatCache[$cacheKey] = $groupRec->vat;
+        }
+
         $period = acc_Periods::fetchByDate($date);
+        $vat = (!is_object($period)) ? (string)acc_Setup::get('DEFAULT_VAT_RATE') : $period->vatRate;
 
-        // Ако няма период връща се дефолтната ДДС група
-        if(!is_object($period)) return (string)acc_Setup::get('DEFAULT_VAT_RATE');
-
-        return $period->vatRate;
+        return static::$vatCache[$cacheKey] = $vat;
     }
     
     
