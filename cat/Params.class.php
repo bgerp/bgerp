@@ -441,4 +441,15 @@ class cat_Params extends bgerp_ProtoParam
             }
         }
     }
+
+
+    function act_Test()
+    {
+        $productId = 1;
+        $date = null;
+
+        $r = cat_products_VatGroups::getVats($productId, $date);
+
+        bp($r, $productId, cat_products_VatGroups::$vatCache);
+    }
 }

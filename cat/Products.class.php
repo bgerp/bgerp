@@ -346,12 +346,6 @@ class cat_Products extends embed_Manager
 
 
     /**
-     * Кеш на ДДС групите в хита
-     */
-    protected static $vatCache = array();
-
-
-    /**
      * Описание на модела
      */
     public function description()
@@ -1596,18 +1590,22 @@ class cat_Products extends embed_Manager
         }
 
         $cacheKey = "{$productId}|{$date}|{$exceptionId}";
-        if(array_key_exists($cacheKey, static::$vatCache)){
-            return static::$vatCache[$cacheKey];
+        if(array_key_exists($cacheKey, cat_products_VatGroups::$vatCache)){
+
+            return cat_products_VatGroups::$vatCache[$cacheKey];
         }
 
         if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date, $exceptionId)) {
-            return static::$vatCache[$cacheKey] = $groupRec->vat;
+            cat_products_VatGroups::$vatCache[$cacheKey] = $groupRec->vat;
+
+            return cat_products_VatGroups::$vatCache[$cacheKey];
         }
 
         $period = acc_Periods::fetchByDate($date);
         $vat = (!is_object($period)) ? (string)acc_Setup::get('DEFAULT_VAT_RATE') : $period->vatRate;
+        cat_products_VatGroups::$vatCache[$cacheKey] = $vat;
 
-        return static::$vatCache[$cacheKey] = $vat;
+        return cat_products_VatGroups::$vatCache[$cacheKey];
     }
     
     
