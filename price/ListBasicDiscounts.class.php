@@ -291,16 +291,21 @@ class price_ListBasicDiscounts extends core_Detail
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
         }
 
-        foreach ($groupIds as $groupId){
+        // Еднократно извличане на ддс-та на артикула за посочената дата
+        $vats = array();
+        if($basicDiscountListRec->vat == 'yes'){
+            $vats = cat_products_VatGroups::getVats(arr::extractValuesFromArray($detailsAll, 'productId'), $masterRec->valior, $vatExceptionId);
+        }
 
+        foreach ($groupIds as $groupId){
             // Добавят се и данните за раздадените отстъпки от текущата продажба
             foreach ($detailsAll as $detailRec){
                 if(keylist::isIn($groupId, $detailRec->groups)){
                     $detailsByGroups[$groupId]['autoDiscount'] += 0;
                     if($Detail instanceof sales_SalesDetails){
                         $amount = isset($detailRec->discount) ? ($detailRec->amount * (1 - $detailRec->discount)) : $detailRec->amount;
-                        if($basicDiscountListRec->vat == 'yes'){
-                            $vat = cat_Products::getVat($detailRec->productId, $masterRec->valior, $vatExceptionId);
+                        if(array_key_exists($detailRec->productId, $vats)){
+                            $vat = $vats[$detailRec->productId];
                             $amount *= (1 + $vat);
                         }
                         $detailsByGroups[$groupId]['amount'] += $amount;
@@ -383,13 +388,23 @@ class price_ListBasicDiscounts extends core_Detail
 
 
     /**
-     * Намира предишните продажби(обикновени и POS) на контрагента по групи
+     * Намира предишните продажби (обикновени и POS) на контрагента по групи
      *
-     * @param int $contragentClassId
-     * @param int $contragentId
-     * @param array $groupIds
-     * @param stdClass $listRec
-     * @return array $sumByGroups
+     * За периодите различни от "текуща продажба" сумира оборота на контрагента по
+     * групи артикули - от приключените/активни продажби (sales_PrimeCostByDocument)
+     * и от чакащите/приключени но непрехвърлени ПОС бележки (pos_ReceiptDetails).
+     * Ако ценоразписът е с ДДС, сумите се олихвяват с ддс-то на всеки артикул.
+     *
+     * Преди сумиращите цикли ддс-то на всички артикули се зарежда пакетно в кеша на
+     * хита (cat_products_VatGroups::getVats), групирано по двойка (вальор|изключение),
+     * така че извикванията на cat_Products::getVat в цикъла да са чисти cache hit-ове
+     * без отделна заявка на ред.
+     *
+     * @param int      $contragentClassId - ид на класа на контрагента
+     * @param int      $contragentId      - ид на контрагента
+     * @param array    $groupIds          - групите артикули, за които се смятат сумите
+     * @param stdClass $listRec           - записът на ценоразписа (price_Lists)
+     * @return array   $sumByGroups       - array(groupId => array('amount' => ..., 'autoDiscount' => ...))
      */
     private static function getSalesByNowForContragent($contragentClassId, $contragentId, $groupIds, $listRec)
     {
@@ -422,6 +437,20 @@ class price_ListBasicDiscounts extends core_Detail
             $threadExceptionCache[$threadId] = cond_VatExceptions::getFromThreadId($threadId);
         }
 
+        // Пакетно зареждане на ддс-то в кеша на хита - групирано по (вальор|изключение)
+        // така долният getVat в цикъла става чист cache hit, без отделна заявка на ред
+        if($listRec->vat == 'yes'){
+            $byDateException = array();
+            foreach ($saleRecs as $sRec1){
+                $exId = $threadExceptionCache[$sRec1->threadId];
+                $byDateException["{$sRec1->valior}|{$exId}"][$sRec1->productId] = $sRec1->productId;
+            }
+            foreach ($byDateException as $key => $productIds){
+                list($valior, $exId) = explode('|', $key);
+                cat_products_VatGroups::getVats($productIds, $valior, ($exId === '' ? null : $exId));
+            }
+        }
+
         // Сумира се сумата без оригинална отстъпка и сумата на автоматичните отстъпки от тях
         $sumByGroups = array();
         foreach ($groupIds as $groupId){
@@ -451,7 +480,6 @@ class price_ListBasicDiscounts extends core_Detail
         $pQuery->where("#contragentClass = {$contragentClassId} AND #contragentObjectId = {$contragentId}");
         $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $groupKeylist, 'productId');
-        $pQuery->useIndex('state', 'pos_Receipts');
 
         if($listRec->discountClassPeriod == 'monthly'){
             $firstDay = date('Y-m-01');
