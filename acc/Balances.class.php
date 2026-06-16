@@ -343,12 +343,13 @@ class acc_Balances extends core_Master
         $this->requireRightFor('forcecalc', $rec);
         $debug = Request::get('debug', 'int');
 
-        if(empty($debug)){
+        // Обикновен бутон – без трейс
+        if (empty($debug)) {
             $this->doManualForceCalc($rec);
         }
 
         $form = cls::get('core_Form');
-        if(empty($rec->periodId)){
+        if (empty($rec->periodId)) {
             $periodId = dt::mysql2verbal($rec->fromDate, 'd', null, false) . '-' . dt::mysql2verbal($rec->toDate, 'd F Y', null, false);
         } else {
             $periodId = acc_Periods::getTitleById($rec->periodId);
@@ -361,7 +362,8 @@ class acc_Balances extends core_Master
         if ($form->isSubmitted()) {
             $accNum = ($form->rec->accountId) ? acc_Accounts::getNumById($form->rec->accountId) : null;
 
-            $this->doManualForceCalc($rec, $accNum);
+            // Дебъг бутонът е натиснат → трейсваме винаги, независимо дали има сметка
+            $this->doManualForceCalc($rec, $accNum, true);
         }
 
         $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Преизчисляване, class=submitBtn');
@@ -374,10 +376,11 @@ class acc_Balances extends core_Master
     /**
      * Изпълнява ръчното преизчисляване на баланс
      *
-     * @param stdClass $rec
+     * @param stdClass    $rec
      * @param string|null $accNum - номер на сметка за дебъг проследяване или NULL
+     * @param bool        $trace  - дали да се генерира дебъг трейс (CSV). Не зависи от $accNum
      */
-    private function doManualForceCalc($rec, $accNum = null)
+    private function doManualForceCalc($rec, $accNum = null, $trace = false)
     {
         $checkForLock = true;
         $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
@@ -396,20 +399,26 @@ class acc_Balances extends core_Master
             }
         }
 
-        acc_BalanceDebugger::clear($accNum ?? '');
-        Mode::push('traceBalance', true);
+        // Трейсваме само ако изрично е поискано (дебъг бутон)
+        if ($trace) {
+            acc_BalanceDebugger::clear($accNum ?? '');
+            Mode::push('traceBalance', true);
+        }
 
         self::forceCalc($rec, true);
         self::logWrite('Ръчно преизчисляване на баланса', $rec->id);
 
-        Mode::pop('traceBalance');
+        if ($trace) {
+            Mode::pop('traceBalance');
+        }
 
         if (isset($lockKey)) {
             core_Locks::release($lockKey);
         }
 
-        if(!empty($accNum)) {
-            acc_BalanceDebugger::download($rec, $accNum);
+        if ($trace) {
+            // download() извиква exit – кодът след тук не се достига
+            acc_BalanceDebugger::download($rec, $accNum ?? '');
         } else {
             followRetUrl(null, 'Балансът е преизчислен успешно');
         }
