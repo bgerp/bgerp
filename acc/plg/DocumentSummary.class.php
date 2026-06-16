@@ -113,6 +113,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         setPartIfNot($mvc, 'filterFieldDateFrom', null);
         setPartIfNot($mvc, 'filterDateFrom', null);
         setPartIfNot($mvc, 'filterDateTo', null);
+        setPartIfNot($mvc, 'showFilterFolderField', true);
 
         $mvc->filterRolesForTeam ??= '';
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
@@ -288,9 +289,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             // Филтър по "Наша фирма", ако е инсталиран пакета за многофирменост
             $mvc->invoke('afterGetDocumentSummaryListFields', array(&$data));
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam}, showClosedGroups)", 'caption=Потребители,silent,autoFilter,remember');
-            $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,silent,after=users');
-            $data->listFilter->showFields .= ',folder';
-
+            if(!empty($mvc->showFilterFolderField)){
+                $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,silent,after=users');
+                $data->listFilter->showFields .= ',folder';
+            }
+            
             $haveUsers = false;
             
             if ($lastUsers = core_Permanent::get('userFilter' . $cKey)) {

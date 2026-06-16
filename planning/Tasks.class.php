@@ -54,6 +54,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Скриваме полето папка
+     */
+    public $showFilterFolderField = false;
+
+
+    /**
      * Скриване на полето за споделени потребители
      */
     public $hideSharedUsersFld = true;
@@ -287,7 +293,7 @@ class planning_Tasks extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden,tdClass=small');
-        $this->FLD('productId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation|showadditionalUom|description,silent');
+        $this->FLD('productId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax)', 'mandatory,class=w100,caption=Операция,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation|showadditionalUom|description,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Бруто,input=none');
         $this->FLD('totalNetWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Нето,input=none');
@@ -2218,14 +2224,13 @@ class planning_Tasks extends core_Master
     {
         $data->listFilter->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Центрове');
         $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf'));
-        $data->listFilter->setFieldTypeParams('folder', array('coverClasses' => 'planning_Centers', 'orderBy' => 'title=ASC'));
-        $data->listFilter->setField('folder', 'input=none');
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->showFields .= ',folders';
-        $data->listFilter->FNC('taskId', 'key2(mvc=planning_Tasks,select=title,allowEmpty,input,remember, forceAjax)', 'caption=Задача,input');
-        $data->listFilter->showFields .= ',taskId';
-        $data->listFilter->input('taskId');
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect');
+        $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
+        $data->listFilter->showFields .= ',folders,productId, saleId';
+        $data->listFilter->setField('productId','before=isFinalSelect');
+        $data->listFilter->input('productId, saleId');
 
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders ?? null);
@@ -2258,13 +2263,11 @@ class planning_Tasks extends core_Master
                     $data->listFilter->toolbar->addBtn("Подреждане", $cUrl, 'title=Преподреждане на операциите,ef_icon=img/16/arrow_switch2.png');
                 }
             }
-
             if (isset($filter->folders)) {
                 $data->query->in("folderId", $filter->folders);
             }
-            
-            if(isset($filter->taskId)){
-                $data->query->where("#id = {$filter->taskId}");
+            if(isset($filter->productId)){
+                $data->query->where("#productId = {$filter->productId}");
             }
         }
 
@@ -2274,7 +2277,7 @@ class planning_Tasks extends core_Master
             if(!Mode::is('isReorder')){
                 unset($stateOptions['manualOrder']);
             }
-            $data->listFilter->FNC('isFinalSelect', 'enum(all=Всички,yes=Финален етап,no=Междинен етап)', 'caption=Вид етап,input');
+            $data->listFilter->FNC('isFinalSelect', 'enum(all=Всички,yes=Финални,no=Междинни)', 'caption=Вид,input');
             $data->listFilter->setOptions('state', $stateOptions);
             $data->listFilter->showFields .= ',state,isFinalSelect';
             $data->listFilter->input('state,isFinalSelect');
@@ -2317,6 +2320,20 @@ class planning_Tasks extends core_Master
 
         $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
         $data->query->orderBy($orderByField, $orderByDir);
+
+        if(!empty($data->listFilter->rec->saleId)){
+            $jQuery = planning_Jobs::getQuery();
+            $jQuery->where("#saleId = {$data->listFilter->rec->saleId}");
+            $jRecs = $jQuery->fetchAll();
+            $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
+
+            if(!empty($containerIds)){
+                $data->query->in("originId", $containerIds);
+            }else{
+                $data->query->where('1=2');
+            }
+        }
+
 
         if(Mode::get('isReorder')){
             $data->listFilter->hide = true;
@@ -4665,26 +4682,5 @@ class planning_Tasks extends core_Master
     public static function getPackagingFields_()
     {
         return array('labelPackagingId' => 'labelPackagingId', 'indPackagingId' => 'indPackagingId');
-    }
-
-
-    /**
-     * Премахва от резултатите скритите от менютата за избор
-     */
-    public static function on_AfterGetSelectArr($mvc, &$res, $fields = null, &$where = '', $index = 'id')
-    {
-        if(is_array($res)){
-            $taskIds = array_keys($res);
-            $query = self::getQuery();
-            $query->in("id", $taskIds);
-            $query->show('productId');
-            $recs = $query->fetchAll(); 
-            
-            $stepTitle = null;
-            foreach($recs as $id => $rec){
-                $stepTitle = self::getStepTitle($rec->productId);
-                $res[$id] = "{$rec->id} - {$stepTitle}";
-            }
-        }
     }
 }

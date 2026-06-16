@@ -1183,4 +1183,53 @@ abstract class deals_DealBase extends core_Master
         }
         $Items->flushTouched();
     }
+
+
+    public static function getSelectArr_($params, $limit = null, $q = '', $onlyIds = null, $includeHiddens = false)
+    {
+        $query = self::getQuery();
+
+        if (isset($params['orderBy'])) {
+            $query->orderBy($params['orderBy']);
+        }
+        if (isset($params['state'])) {
+            $params['state'] = arr::make($params['state']);
+            $query->in("state", $params['state']);
+        }
+
+        if (is_array($onlyIds)) {
+            if (!countR($onlyIds)) {
+
+                return array();
+            }
+
+            $ids = implode(',', $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
+            $query->where("#id IN ({$ids})");
+        } elseif (ctype_digit("{$onlyIds}")) {
+            $query->where("#id = {$onlyIds}");
+        } elseif (preg_match("/^[0-9\,]+$/", $onlyIds)) {
+            $query->where("#id IN ({$onlyIds})");
+        }
+
+        if ($q) {
+            $q1 = plg_Search::normalizeText($q);
+            if(is_numeric($q1)) {
+                $query->where(array("#id = '[#1#]'", $q1));
+            } else {
+                plg_Search::applySearch($q1, $query, 'searchKeywords');
+            }
+        }
+
+        if ($limit) {
+            $query->limit($limit);
+        }
+
+        $res = array();
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = self::getTitleById($rec);
+        }
+
+        return $res;
+    }
 }

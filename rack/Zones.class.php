@@ -599,6 +599,7 @@ class rack_Zones extends core_Master
         }
 
         if ($q) {
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }
