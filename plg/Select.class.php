@@ -132,7 +132,8 @@ class plg_Select extends core_Plugin
             $cnt = $listArr = array();
             foreach ($row as $id => $on) {
                 foreach ($actArr as $action => $caption) {
-                    if ($mvc->haveRightFor($action, $id)) {
+                    $rec = $mvc->fetch($id);
+                    if ($mvc->haveRightFor($action, $rec)) {
                         $cnt[$action] = ($cnt[$action] ?? 0) + 1;
                         $listArr[$action] = ($listArr[$action] ?? '') . (($listArr[$action] ?? '') ? ',' : '') . $id;
                     }
