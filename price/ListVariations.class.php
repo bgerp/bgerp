@@ -196,7 +196,7 @@ class price_ListVariations extends core_Detail
     public static function getActiveVariations($listId, $datetime = null, $limit = null)
     {
         $datetime = $datetime ?? dt::now();
-        $datetime = strlen($datetime == 10) ? "{$datetime} 23:59:59" : $datetime;
+        $datetime = (strlen($datetime) == 10) ? "{$datetime} 23:59:59" : $datetime;
 
         $res = array();
         $query = static::getQuery();
