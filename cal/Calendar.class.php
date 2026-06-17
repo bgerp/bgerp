@@ -565,7 +565,7 @@ class cal_Calendar extends core_Master
             }
             $users = trim($users,', ');
             if($seeUserFlag){
-                $row->event = $row->event."</br>"."<span class = fright>".tr('Възложено на').': '.$users."</span>";
+                $row->event = $row->event."<span class = fright>" .$users."</span>";
             }
         
         }
