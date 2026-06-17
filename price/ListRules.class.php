@@ -102,6 +102,18 @@ class price_ListRules extends core_Detail
 
 
     /**
+     * Работен кеш на продуктовите групи
+     */
+    public static $groupsMap = array();
+
+
+    /**
+     * Работен кеш за извлечените ЦП
+     */
+    public static $listRecCache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -342,7 +354,9 @@ class price_ListRules extends core_Detail
             $query->where("#productId = {$productId}");
 
             if ($listId != price_ListRules::PRICE_LIST_COST) {
-                $groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
+                // Ако групите са предварително заредени да се използват от тем иначе да се фечнат
+                $groups = static::$groupsMap[$productId]
+                    ?? keylist::toArray(cat_Products::fetchField($productId, 'groups'));
                 if (countR($groups)) {
                     $query->in('groupId', $groups, false, true);
                 }
@@ -353,7 +367,13 @@ class price_ListRules extends core_Detail
             $query->limit(1);
 
             $rec = $query->fetch();
-            $listRec = price_Lists::fetch($listId, 'title,parent,vat,vatExceptionId,defaultSurcharge,significantDigits,minDecimals,currency');
+
+            // Фечване на ЦП ако вече не е
+            if (!array_key_exists($listId, static::$listRecCache)) {
+                static::$listRecCache[$listId] = price_Lists::fetch($listId);
+            }
+            $listRec = static::$listRecCache[$listId];
+
             $round = true;
 
             if ($rec) {
@@ -441,8 +461,11 @@ class price_ListRules extends core_Detail
     public static function normalizePrice($rec, $vat, $datetime)
     {
         $price = $rec->price;
-        
-        $listRec = price_Lists::fetch($rec->listId, 'currency,createdOn,vat');
+
+        if (!array_key_exists($rec->listId, static::$listRecCache)) {
+            static::$listRecCache[$rec->listId] = price_Lists::fetch($rec->listId);
+        }
+        $listRec = static::$listRecCache[$rec->listId];
         list($date, ) = explode(' ', $datetime);
         
         // В каква цена е този ценоразпис?
@@ -1106,6 +1129,45 @@ class price_ListRules extends core_Detail
                 foreach ($csvRows as $row) {
                     self::addGroupRule(self::PRICE_LIST_CATALOG, $row[1], $row[2]);
                 }
+            }
+        }
+    }
+
+
+    /**
+     * Преди масово ценообразуване — кешира групите на артикулите.
+     *
+     * @param array  $products    - или масив от productId-та (ще се фечнат),
+     *                              или мап productId => stdClass с готово поле за групите
+     * @param string $groupField  - име на полето с групите в подадените обекти
+     * @return void
+     */
+    public static function preloadGroups(array $products, $groupField = 'groups')
+    {
+        $toFetch = array();
+
+        foreach ($products as $key => $val) {
+            if (is_object($val)) {
+                // готов запис — групите се вземат директно, ключът е productId
+                $pid = $key;
+                static::$groupsMap[$pid] = keylist::toArray($val->{$groupField} ?? '');
+            } else {
+                // само ид — събираме за групов фечч
+                $toFetch[$val] = $val;
+            }
+        }
+
+        $missing = array_diff(array_filter($toFetch), array_keys(static::$groupsMap));
+        if (countR($missing)) {
+            $query = cat_Products::getQuery();
+            $query->in('id', $missing);
+            $query->show('id,groups');
+            while ($rec = $query->fetch()) {
+                static::$groupsMap[$rec->id] = keylist::toArray($rec->groups);
+            }
+            // маркираме празните/несъществуващите, за да няма повторен единичен фечч
+            foreach ($missing as $pid) {
+                static::$groupsMap[$pid] = static::$groupsMap[$pid] ?? array();
             }
         }
     }
