@@ -1001,7 +1001,7 @@ class planning_Jobs extends core_Master
             $quantityValue = ($fld == 'quantityFromTasks') ? $rec->quantityFromTasks : $quantityProduced;
             if ($quantityValue < ($rec->packQuantity - $diff)) {
                 $color = 'black';
-            } elseif ($quantityValue >= ($rec->packQuantity - $diff) && $quantityValue <= ($rec->packQuantity + $diff)) {
+            } elseif (round($quantityValue, 3) >= round(($rec->packQuantity - $diff), 3) && round($quantityValue, 3) <= round(($rec->packQuantity + $diff), 3)) {
                 $color = 'green';
             } else {
                 $row->{$fld} = ht::createHint($row->{$fld}, 'Произведено е повече от планираното', 'warning', false);
