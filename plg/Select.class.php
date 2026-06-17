@@ -126,14 +126,15 @@ class plg_Select extends core_Plugin
                 
                 return false;
             }
-            
-            
+
+           // $actArr = array('addbatches' => 'Добави партидност');
+
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
             $cnt = $listArr = array();
             foreach ($row as $id => $on) {
+
                 foreach ($actArr as $action => $caption) {
-                    $rec = $mvc->fetch($id);
-                    if ($mvc->haveRightFor($action, $rec)) {
+                    if ($mvc->haveRightFor($action, $id)) {
                         $cnt[$action] = ($cnt[$action] ?? 0) + 1;
                         $listArr[$action] = ($listArr[$action] ?? '') . (($listArr[$action] ?? '') ? ',' : '') . $id;
                     }
@@ -146,7 +147,7 @@ class plg_Select extends core_Plugin
                     unset($actArr[$action]);
                 }
             }
-
+            //bp();
             if (!countR($actArr)) {
                 $res = new Redirect(getRetUrl(), '|За избраните редове не са достъпни никакви операции');
                 
