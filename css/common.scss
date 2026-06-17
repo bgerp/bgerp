@@ -1680,10 +1680,11 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHo
 }
 
 .formMiddleCaption {
-	margin: 0 15px !important;
+	margin: 0 2px 0 0 !important;
     border: solid 1px #ccc;
     background: #eee;
-    padding: 3px 5px  !important;
+	color: #333;
+    padding: 5px 8px  !important;
 }
 
 .formNotice {

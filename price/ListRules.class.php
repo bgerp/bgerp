@@ -501,14 +501,15 @@ class price_ListRules extends core_Detail
         $rec = &$form->rec;
         
         $masterRec = price_Lists::fetch($rec->listId);
-        $productFiedlParams = array('listId' => $masterRec->id);
+        $productFieldParams = array('listId' => $masterRec->id);
         if($rec->listId != price_ListRules::PRICE_LIST_COST){
-            $productFiedlParams['onlyPublic'] = true;
+            $productFieldParams['onlyPublic'] = true;
         }
-        $form->setFieldTypeParams('productId', $productFiedlParams);
+        $form->setFieldTypeParams('productId', $productFieldParams);
         
         $masterTitle = $masterRec->title;
-        if ($masterRec->parent) {
+        $parentTitle = '';
+        if (!empty($masterRec->parent)) {
             $parentRec = price_Lists::fetch($masterRec->parent);
             $parentTitle = $parentRec->title;
         }
@@ -552,7 +553,7 @@ class price_ListRules extends core_Detail
                 break;
         }
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $defaultUntil = Mode::get('PRICE_VALID_UNTIL');
             $rec->validFrom = Mode::get('PRICE_VALID_FROM');
             if($defaultUntil > $rec->validFrom){
@@ -658,7 +659,7 @@ class price_ListRules extends core_Detail
      */
     protected static function on_AfterSave($mvc, &$id, &$rec, $fields = null)
     {
-        if ($rec->listId) {
+        if (!empty($rec->listId)) {
 
             if ($rec->validFrom <= dt::now() || empty($rec->validFrom)) {
                 $mvc->invalidateListsOnShutdown[$rec->listId] = $rec->listId;
@@ -769,6 +770,7 @@ class price_ListRules extends core_Detail
         }
         
         $masterRec = price_Lists::fetch($rec->listId);
+        $parentTitle = '';
         if (isset($masterRec->parent)) {
             $parentRec = price_Lists::fetch($masterRec->parent);
             $parentTitle = price_Lists::getVerbal($parentRec, 'title');
@@ -862,7 +864,6 @@ class price_ListRules extends core_Detail
             'vat' => $vat,
             'priority' => 1,
             'createdBy' => -1,
-            'priority' => 1,
             'currency' => $currencyCode);
         
         return self::save($obj);

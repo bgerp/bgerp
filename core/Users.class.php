@@ -125,7 +125,7 @@ class core_Users extends core_Manager
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    public $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools2,plg_CryptStore,plg_Search,plg_Rejected,plg_UserReg';
+    public $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools2,plg_CryptStore,plg_Search,plg_Rejected,plg_UserReg,core_UserTranslatePlg';
     
     
     /**
@@ -210,7 +210,7 @@ class core_Users extends core_Manager
             'caption=Състояние,notNull,default=draft'
         );
         
-        $this->FLD('names', 'varchar', 'caption=Лице->Имена,mandatory,width=100%');
+        $this->FLD('names', 'varchar', 'caption=Лице->Имена,mandatory,width=100%, translate=user');
         $this->FLD('email', 'email(64, ci)', 'caption=Лице->Имейл,mandatory,width=100%');
         
         // Поле за съхраняване на хеша на паролата
