@@ -936,7 +936,7 @@ class cal_Tasks extends embed_Manager
             $link = $mvc->prepareQueryForTimeIntersection($rec);
 
             if ($link !== false) {
-                $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
+                $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: <span class='fright'>|Възложено на|*:</span> {$link}");
             }
 
             if(isset($rec->assetResourceId)) {
