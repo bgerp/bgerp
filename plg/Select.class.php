@@ -127,8 +127,6 @@ class plg_Select extends core_Plugin
                 return false;
             }
 
-           // $actArr = array('addbatches' => 'Добави партидност');
-
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
             $cnt = $listArr = array();
             foreach ($row as $id => $on) {
