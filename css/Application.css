@@ -8373,3 +8373,21 @@ td.td-clamp[data-overflow="true"][data-expanded="true"] .clamp-ellipsis::after {
   color: #854f0b;
   border: 0px solid rgba(186, 117, 23, 0.3); }
 
+.block_title .folder-handle {
+  display: inline-block;
+  font-size: 0.7em;
+  font-weight: normal;
+  vertical-align: middle;
+  padding: 1px 6px;
+  margin-left: 2px;
+  border: 1px solid #d9d2c2;
+  border-radius: 3px;
+  background: #fbf8f0;
+  color: #8a8472;
+  cursor: pointer;
+  white-space: nowrap; }
+
+.block_title .folder-handle:hover {
+  background: white;
+  color: #555555; }
+

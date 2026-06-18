@@ -194,8 +194,13 @@ class type_Richtext extends type_Blob
             return;
         }
 
-        // Ако мода е за рендиране като чист ричтекст
-        if (Mode::is('renderPureRichtext')) {
+        // Ако мода е за рендиране за ИИ (чист ричтекст с таговете, без HTML обработка)
+        if (Mode::is('renderForAI')) {
+
+            // Даваме възможност на плъгините да обработят чистия ричтекст за ИИ
+            // (напр. да маркират хендлъри без достъп)
+            $this->invoke('AfterGetRichtextForAI', array(&$value));
+
             return $value;
         }
 
