@@ -61,7 +61,7 @@ abstract class deals_ManifactureMaster extends core_Master
     /**
      * Кой може да преизчислява сб-ст от журнала?
      */
-    public $canCalcProductionAmount = 'ceo,accJournal';
+    public $canCalcproductionamount = 'ceo,accJournal';
 
 
     /**

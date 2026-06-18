@@ -56,13 +56,11 @@ class doc_DialogWrapper extends core_Plugin
         
         // Рендираме
         $res = $tabs->renderHtml($res);
-        
-        // Добавяме икони
-        $res->prepend("<style>
-        		
-            .docLog { background-image:url('" . sbf('img/16/documents16.png', '') . "');}
 
-            </style>");
+        $res->prepend("<style>
+                        .docLog { background-image:url('" . sbf('img/16/documents16.png', '') . "');}
+                        .docLogFolder { background-image:url('" . sbf('img/16/folder-icon.png', '') . "');}
+                      </style>");
         
         // Добавяме css-файла
         $res->push('doc/css/dialogDoc.css', 'CSS');
@@ -84,5 +82,6 @@ class doc_DialogWrapper extends core_Plugin
     public function on_AfterGetGalleryTabsArr($mvc, &$tabs)
     {
         $tabs['docLog'] = array('caption' => 'Документи', 'Ctr' => $mvc, 'Act' => 'addDocDialog');
+        $tabs['docLogFolder'] = array('caption' => 'Папки', 'Ctr' => $mvc, 'Act' => 'addFolderDialog');
     }
 }

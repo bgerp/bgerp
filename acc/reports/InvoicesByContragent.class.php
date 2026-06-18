@@ -384,6 +384,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                                     $pDocRec = $payDocClass->fetch($pDocId);
 
+                                    if ($pDocRec->state != 'active') {
+                                        continue;
+                                    }
+
                                     $paydocs->payout += $pDocRec->amount;
                                     $paydocs->date = $pDocRec->valior;
 
@@ -1166,6 +1170,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 $payDocumentRec = $payDocClass::fetch($Document->that);
 
+                if ($payDocumentRec->state != 'active') {
+                    continue;
+                }
+
                 //if ($dRec->type != 'invoice') continue;
 
                 // При директно насочено плащане се проверява дали сочи към текущия документ.
@@ -1693,6 +1701,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $payDocsClassId = $payDocs::getClassId();
             $payDocQuery = $payDocs::getQuery();
             $payDocQuery->in('threadId', $profomInvArr);
+            $payDocQuery->where("#state = 'active'");
             while ($pDocRec = $payDocQuery->fetch()) {
 
                 // Връзките показват към кои документи е насочено конкретното плащане.

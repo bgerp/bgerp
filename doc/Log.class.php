@@ -39,6 +39,7 @@ class doc_Log extends core_Manager
 
         // Обект с данните
         $data = new stdClass();
+        $data->action = 'addDocDialog';
 
         // Вземаме променливите
         $data->callback = $this->callback = Request::get('callback', 'identifier');
@@ -217,6 +218,101 @@ class doc_Log extends core_Manager
 
 
     /**
+     * Подготвя необходимите данни за рендиране на последните папки
+     *
+     * @param object $data
+     */
+    public function prepareAddFolderDialog(&$data)
+    {
+        // Вземаме последните папки за съответния потребител
+        $folderArr = bgerp_Recently::getLastFolderIds(20);
+
+        // Задаваме броя на папките
+        $data->itemsCnt = countR((array) $folderArr);
+
+        // Зададаваме лимита за странициране
+        $this->setLimitAddDocDialogPager($data);
+
+        // Брояча
+        $c = 0;
+
+        // Масив с всички папки
+        $resArr = array();
+
+        // Обхождаме папките (очаква се folderId да е ключ - аналогично на getLastThreadsId;
+        // ако getLastFolderIds връща id-та като стойности, размени на: foreach (...) as $dummy => $folderId)
+        foreach ((array) $folderArr as $folderId => $dummy) {
+
+            // Ако сме в границита на брояча
+            if (($c >= $data->dialogPager->rangeStart) && ($c < $data->dialogPager->rangeEnd)) {
+
+                // Увеличаваме брояча
+                $c++;
+            } else {
+
+                // Увеличаваме брояча
+                $c++;
+
+                // Ако сме достигнали горната граница, да се прекъсне
+                if ($data->dialogPager->rangeEnd < $c) {
+                    break;
+                }
+
+                // Прескачаме
+                continue;
+            }
+
+            try {
+
+                // Вземаме записа на папката
+                $folderRec = doc_Folders::fetch($folderId);
+
+                // Манипулатор на папката (аналогично на документа се префиксва с #;
+                // ако doc_Folders::getHandle вече връща с #, махни конкатенацията)
+                $handle = doc_Folders::getHandle($folderId);
+
+                // Масив за вземане на уникалното id
+                $attrId = array();
+
+                // Вземаме уникалното id
+                ht::setUniqId($attrId);
+
+                // id на реда
+                $resArr[$folderId]['ROW_ATTR']['id'] = $attrId['id'];
+
+                // Име на папката
+                $resArr[$folderId]['title'] = str::limitLen(doc_Folders::getTitleById($folderId), 55);
+
+                // Данни за създаването на папката
+                $resArr[$folderId]['createdOn'] = doc_Folders::getVerbal($folderRec, 'createdOn');
+                $resArr[$folderId]['createdBy'] = doc_Folders::getVerbal($folderRec, 'createdBy');
+                $resArr[$folderId]['created'] = $resArr[$folderId]['createdOn'] . "\n" . $resArr[$folderId]['createdBy'];
+                $resArr[$folderId]['created'] = "<div class='upload-doc-created'>" . $resArr[$folderId]['created'] . '</div>';
+
+                // Действието при клик върху цялата клетка - добавя хендлъра на папката
+                $onClick = "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$data->callback}('{$handle}') != true) self.close(); else self.focus();";
+
+                // Името на папката - отгоре (както при документа)
+                $titleHtml = "<div class='addDocTitle' style='font-size:1.02em;font-weight:400;color:#333;'>{$resArr[$folderId]['title']}</div>";
+
+                // Хендлъра на папката - отдолу
+                $handleHtml = "<div class='addDocSubTitle'>{$handle}</div>";
+
+                // Цялата клетка става кликаема: име отгоре, хендлър отдолу
+                $resArr[$folderId]['document'] = "<div class='addDocCell file-log-link' style='cursor:pointer;' onclick=\"{$onClick}\">{$titleHtml}{$handleHtml}</div>";
+
+                //bp($resArr);
+            } catch (core_exception_Expect $e) {
+                continue;
+            }
+        }
+
+        // Добавяме резултатите
+        $data->docIdsArr = $resArr;
+    }
+
+
+    /**
      * Задаваме броя на всички елементи
      *
      * @param object $data
@@ -247,7 +343,8 @@ class doc_Log extends core_Manager
         $inst = cls::get('core_TableView');
 
         // Полета в таблицата
-        $tableCaptionArr = array('document' => 'Документ', 'created' => 'Създадено');
+        $caption = $data->action == 'addFolderDialog' ? 'Папка' : 'Документ';
+        $tableCaptionArr = array('document' => $caption, 'created' => 'Създадено');
 
         // Вземаме таблицата с попълнени данни
         $tableTpl = $inst->get($data->docIdsArr, $tableCaptionArr);
@@ -256,7 +353,8 @@ class doc_Log extends core_Manager
         $tpl->append($tableTpl, 'tableContent');
 
         // Добавяме заглавието
-        $tpl->append(tr($this->title), 'title');
+        $title = $data->action == 'addFolderDialog' ? 'Избор на папка' : $this->title;
+        $tpl->append(tr($title), 'title');
 
         // Заместваме страницирането
         $tpl->append($this->RenderDialogAddDocPager($data), 'pager');
@@ -285,5 +383,36 @@ class doc_Log extends core_Manager
         }
 
         return $res;
+    }
+
+    /**
+     * Екшън за добавяне на документ от диалогов прозорец
+     */
+    public function act_AddFolderDialog()
+    {
+        // Очакваме да е логнат потребител
+        requireRole('user');
+
+        // Задаваме врапера
+        Mode::set('wrapper', 'page_Dialog');
+
+        // Обект с данните
+        $data = new stdClass();
+        $data->action = 'addFolderDialog';
+
+        // Вземаме променливите
+        $data->callback = $this->callback = Request::get('callback', 'identifier');
+        $data->PerPage = Request::get('PerPage', 'int');
+
+        // Подготваме страницирането
+        $this->prepareAddDocDialogPager($data);
+
+        // Подготвяме данните
+        $this->prepareAddFolderDialog($data);
+
+        // Рендираме диалоговия прозорец
+        $tpl = $this->renderAddDocDialog($data);
+
+        return $this->renderDialog($tpl);
     }
 }

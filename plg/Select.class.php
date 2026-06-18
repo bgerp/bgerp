@@ -138,7 +138,7 @@ class plg_Select extends core_Plugin
                     }
                 }
             }
-            
+            //bp();
             // Махаме действията, които не са достъпни за нито един избран ред
             foreach ($actArr as $action => $caption) {
                 if (!($cnt[$action] ?? null)) {

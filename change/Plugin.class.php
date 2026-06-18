@@ -94,6 +94,11 @@ class change_Plugin extends core_Plugin
             $btnName = 'Поемане';
             $btnTitle = 'Възлагане на документа към себе си';
             $row = 1;
+
+            if ($data->rec->state != 'active' && $data->rec->state != 'waiting' && $data->rec->state != 'pending' && $data->rec->state != 'wakeup') {
+                $row = 2;
+            }
+
             if (type_Keylist::isIn(core_Users::getCurrent(), $data->rec->assign)) {
                 $btnName = 'Освобождаване';
                 $btnTitle = 'Премахване на възлагането към себе си';

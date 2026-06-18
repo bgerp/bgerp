@@ -1261,6 +1261,13 @@ class core_Manager extends core_Mvc
         $className = get_called_class();
         $self = cls::get($className);
 
+        // Ако вместо $rec е зададено $id - зареждаме $rec ПРЕДИ да сметнем ключа на кеша,
+        // за да участват реалните данни на записа в него. Иначе при подаден id ключът се
+        // базира само на id-то и кешът не се инвалидира, ако данните на записа се сменят.
+        if (!is_object($rec) && $rec > 0) {
+            $rec = $self->fetchRec($rec);
+        }
+
         $id = is_object($rec) ? ($rec->id ?? null) : $rec;
         // Ако нямаме зададен потребите - приемаме, че въпроса се отнася за текущия
         if (!isset($userId)) {
@@ -1275,15 +1282,9 @@ class core_Manager extends core_Mvc
         }
 
         $key = crc32("{$className}|{$action}") . "|" . (is_scalar($id) ? $id : serialize($id)) . "|" . crc32(serialize($rec));
- 
+
         if (!isset(self::$cacheRights[$userId][$key]) || !isset($id)) {
-            
-            
-            // Ако вместо $rec е зададено $id - зареждаме $rec
-            if (!is_object($rec) && $rec > 0) {
-                $rec = $self->fetch($rec);
-            }
-            
+
             $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
 
             $res = Users::haveRole($requiredRoles, $userId);
