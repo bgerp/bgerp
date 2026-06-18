@@ -85,6 +85,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
+        // Задават се началните стойности и видимостта на филтрите във формата.
+
         $form->setDefault('seeProformаs', null);
 
         $form->setDefault('unpaid', 'all');
@@ -111,6 +113,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $form->setDefault('typeOfInvoice', 'out');
 
 
+        // Подготвят се предложенията за контрагенти от продажбите и покупките.
         $salesQuery = sales_Sales::getQuery();
 
         $salesQuery->EXT('folderTitle', 'doc_Folders', 'externalName=title,externalKey=folderId');
@@ -131,16 +134,17 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         while ($purContragent = $purchQuery->fetch()) {
             if (!is_null($purContragent->contragentId)) {
-                $purSuggestions[$purContragent->folderId] = $purContragent->folderTitle;
+                $purSuggestions[$purContragent->folderId] = $purContragent->folderTitle ?? null;
             }
         }
 
         while ($contragent = $salesQuery->fetch()) {
             if (!is_null($contragent->contragentId)) {
-                $suggestions[$contragent->folderId] = $contragent->folderTitle;
+                $suggestions[$contragent->folderId] = $contragent->folderTitle ?? null;
             }
         }
 
+        // Обединяват се предложенията от покупки със списъка от продажби.
         foreach ($purSuggestions as $k => $v) {
             if (!in_array($k, array_keys($suggestions))) {
                 $suggestions[$k] = $v;
@@ -165,6 +169,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     {
         if ($form->isSubmitted()) {
 
+            // Валидира се избраният период.
             if (isset($form->rec->fromDate, $form->rec->checkDate) && ($form->rec->fromDate > $form->rec->checkDate)) {
                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
             }
@@ -182,6 +187,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        // Определя се датата, към която се изчисляват плащанията и остатъците.
         if ($rec->unpaid == 'unpaid' && !$rec->checkDate) {
             $checkDate = dt::now();
         } else {
@@ -193,6 +199,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         // Фактури ПРОДАЖБИ
         if ($rec->typeOfInvoice == 'out') {
 
+            // Работни масиви за изходящите фактури, тоталите и корекциите.
             $sRecs = array();
             $sRecsAll = array();
             $invAdjustmentArr = array();
@@ -207,7 +214,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 array_push($docsArr, 'sales_Proformas');
 
-                $proformWithPayDocArr = array_keys(self::getProformsWithPaymant($rec)); //Масив с всички проформи, към които има насочени плащания
+                $proformsWithPayDocArr = self::getProformsWithPaymant($rec);
+                $proformWithPayDocArr = array_keys($proformsWithPayDocArr); //Масив с всички проформи, към които има насочени плащания
 
             }
 
@@ -360,6 +368,33 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                         $paydocs = $invoicePayments[$salesInvoice->containerId];
 
+                        // За проформите плащанията се взимат от изрично насочените платежни документи.
+                        if ($InvDoc == 'sales_Proformas') {
+                            $paydocs = new stdClass();
+                            // Подготвя се структура, съвместима с данните от getInvoicePayments().
+                            $paydocs->payout = 0;
+                            $paydocs->date = null;
+                            $paydocs->used = array();
+
+                            if (isset($proformsWithPayDocArr[$salesInvoice->id])) {
+                                // Сумират се всички платежни документи, насочени към текущата проформа.
+                                foreach ($proformsWithPayDocArr[$salesInvoice->id]->documents as $pDocId) {
+                                    $payDocClassId = $proformsWithPayDocArr[$salesInvoice->id]->docClassId;
+                                    $payDocClass = cls::get($payDocClassId);
+
+                                    $pDocRec = $payDocClass->fetch($pDocId);
+
+                                    $paydocs->payout += $pDocRec->amount;
+                                    $paydocs->date = $pDocRec->valior;
+
+                                    $paydocs->used[] = (object)array(
+                                        'containerId' => $pDocRec->containerId,
+                                    );
+                                }
+                            }
+                        }
+
+                        // Разделя ключовете на фактури и проформи, за да не се припокриват еднакви id-та.
                         $subKey = ($InvDoc == 'sales_Proformas') ? 'P' : 'S';
                         $key = $salesInvoice->id . $subKey;
 
@@ -471,7 +506,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             );
 
                             // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
-                            if ($rec->unpaid == 'unpaid') {
+                            if (($rec->unpaid ?? null) == 'unpaid') {
                                 if (($invDiff >= (-1) * $rec->sill) &&
                                     ($invDiff <= $rec->sill)) {
                                     continue;
@@ -561,6 +596,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         // ВХОДЯЩИ ФАКТУРИ
         if ($rec->typeOfInvoice == 'in') {
+            // Работни масиви за входящите фактури, тоталите и корекциите.
             $pRecs = $pRecsAll = $invAdjustmentArr = array();
             $isRec = array();
             $totalInvoiceContragent = $totalInvoiceContragentAll = array();
@@ -913,6 +949,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             arr::sortObjects($pRecs, 'invoiceDate', 'asc', 'stri');
         }
 
+        // Избира се крайният масив според типа фактури във филтъра.
         $recs = $rec->typeOfInvoice == 'out' ? $sRecs : $pRecs;
 
         unset(
@@ -1025,6 +1062,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     protected function getTableFieldSet($rec, $export = false)
     {
+        // Дефинира се структурата на колоните за изглед и експорт.
         $fld = cls::get('core_FieldSet');
 
         if ($export === false) {
@@ -1092,6 +1130,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
+        // При стандартни продажби сумата се преизчислява по курса на документа.
         if ($dRec->fastMarker == 1) {
 
             $paidAmount = $dRec->invoicePayout * $dRec->rate;
@@ -1115,6 +1154,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = true)
     {
+        // Обхождат се платежните документи, записани към реда на фактурата/проформата.
         if (is_array($dRec->payDocuments)) {
             foreach ($dRec->payDocuments as $onePayDoc) {
                 if (!is_null($onePayDoc->containerId)) {
@@ -1128,6 +1168,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 //if ($dRec->type != 'invoice') continue;
 
+                // При директно насочено плащане се проверява дали сочи към текущия документ.
                 if ($payDocumentRec->fromContainerId) {
                     if ($dRec->invoiceContainerId != $payDocumentRec->fromContainerId) {
                         continue;
@@ -1135,6 +1176,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                     $paidDatesList .= ',' . $payDocumentRec->valior;
                 } else {
+                    // При разпределено плащане датата се взима от връзката между плащане и документ.
                     if (is_array(deals_InvoicesToDocuments::getInvoiceArr($payDocumentRec->containerId))) {
                         foreach (deals_InvoicesToDocuments::getInvoiceArr($payDocumentRec->containerId) as $val) {
 
@@ -1147,6 +1189,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
         }
 
+        // Форматира се списъкът с дати според режима на показване или експорт.
         if ($verbal === true) {
             $amountsValiors = explode(',', trim($paidDatesList, ','));
 
@@ -1221,6 +1264,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     {
         $isPlain = Mode::is('text', 'plain');
         $Int = cls::get('type_Int');
+        // Подготвят се типовете за вербализиране на датите и сумите.
         $Date = cls::get('type_Date');
         $Double = core_Type::getByName('double(decimals=2)');
 
@@ -1230,6 +1274,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $row = new stdClass();
 
+        // Подготвя се линкът към документа и означението за вида му.
         $invoiceNo = str_pad($dRec->invoiceNo, 10, '0', STR_PAD_LEFT);
 
         $row->invoiceNo = ht::createLinkRef(
@@ -1259,6 +1304,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 }
             }
 
+            // Определя се знакът за дебитни/кредитни документи при експорт.
             $dcMark = $dRec->invoiceValue < 0 ? -1 : 1;
 
             $row->documentType = $type;
@@ -1443,10 +1489,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
 
+        // Подготвя се вербализацията на избрания начин на плащане.
         $Enum = cls::get('type_Enum', array('options' => array('cash' => 'В брой', 'bank' => 'По банков път', 'intercept' => 'С прихващане', 'card' => 'С карта', 'factoring' => 'Факторинг', 'postal' => 'Пощенски паричен превод')));
 
         $baseCurrency = acc_Periods::getBaseCurrencyCode($data->rec->checkDate);
 
+        // Шаблон с обобщение на избраните филтри и тотали над таблицата.
         $fieldTpl = new core_ET(
             tr(
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
@@ -1600,6 +1648,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     public static function getFoldersInGroups($rec)
     {
         $foldersInGroups = array();
+
+        // Търсят се папките както на фирми, така и на лица в избраните CRM групи.
         foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
             $q = $clsName::getQuery();
 
@@ -1625,6 +1675,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     public static function getProformsWithPaymant($rec)
     {
 
+        // Избират се активните проформи според зададените филтри.
         $proformInvQuery = sales_Proformas::getQuery();
         $proformInvQuery->where("#state = 'active'");
 
@@ -1637,12 +1688,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $proformWithPayDocArr = array();
 
+        // Проверяват се касовите и банковите приходни документи за връзка към проформи.
         foreach (array('cash_Pko', 'bank_IncomeDocuments') as $payDocs) {
             $payDocsClassId = $payDocs::getClassId();
             $payDocQuery = $payDocs::getQuery();
             $payDocQuery->in('threadId', $profomInvArr);
             while ($pDocRec = $payDocQuery->fetch()) {
 
+                // Връзките показват към кои документи е насочено конкретното плащане.
                 $invArr = deals_InvoicesToDocuments::getInvoiceArr($pDocRec->containerId);
                 if (!empty($invArr)) {
                     foreach ($invArr as $key => $val) {
@@ -1687,6 +1740,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        // Подготвя се датата за експорт на падежи и плащания.
         $Date = cls::get('type_Date');
 
         if ($rec->unpaid == 'unpaid' && !$rec->checkDate) {
@@ -1730,192 +1784,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $invoiceValue = $rec->unpaid == 'all' ? $dRec->invoiceValue : $dRec->invoiceValue;
         $res->invoiceValueBaseCurr = $invoiceValue * $dRec->rate;
     }
-
-    /**
-     * Връща масив неплатени фактури в активни сделки
-     *
-     * @param stdClass $rec
-     *
-     * @return array
-     */
-    public static function unpaidAktiveInvoices($rec, $checkDate)
-    {
-
-        $isRec = array();
-        $totalInvoiceContragent = array();
-
-        // Масив със записи от изходящи фактури
-        $sRecs = array();
-
-        $salQuery = sales_Sales::getQuery();
-
-        $salQuery->where("#closedOn IS NULL OR #closedOn > '$checkDate'");
-
-        //нишки на активни договори
-        $threadsActivSalesArr = arr::extractValuesFromArray($salQuery->fetchAll(), 'threadId');
-
-        if (is_array($threadsActivSalesArr)) {
-            foreach ($threadsActivSalesArr as $thread) {
-
-                //Договора за продажба
-                $FirstDoc = doc_Threads::getFirstDocument($thread);
-                $fDocRec = $FirstDoc->fetch();                                              // Rec-a на договора
-
-                // масив от фактури в тази нишка към избраната дата
-                $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate, false, false));
-
-                if (is_array($invoicePayments) && !empty($invoicePayments)) {
-
-
-                    // фактура от нишката и масив от платежни документи по тази фактура//
-                    foreach ($invoicePayments as $inv => $paydocs) {
-
-                        $salesInvoiceOverPaid = 0;
-                        $salesInvoiceOverDue = 0;
-
-                        //Проверка дали отчетена вече фактура не се повтаря
-                        /// if (in_array($inv, $checkedSInvoices)) continue;
-
-                        //Разлика между стойност и платено по фактурата
-                        $invDiff = $paydocs->amount - $paydocs->payout;
-
-                        // Ако продажбата е бърза, фактурата се счита за платена
-                        //Когато се коригира функцията за разпределение на плащанията това да се премахне !!!
-                        //  $invDiff = in_array($firstDocumentArr[$thread], array_keys($fastSales)) ? 0 : $invDiff;
-
-                        // $fastMarker = in_array($firstDocumentArr[$thread], array_keys($fastSales)) ? 0 : 1;
-
-                        //Тази фактура
-                        $Invoice = doc_Containers::getDocument($inv);
-
-                        if ($Invoice->className != 'sales_Invoices') {
-                            continue;
-                        }
-
-                        //Данни по тази фактура
-                        $iRec = $Invoice->fetch(
-                            'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,
-                                     currencyId,date,dueDate,contragentName,paymentType,autoPaymentType'
-                        );
-
-                        // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
-                        if ($rec->unpaid == 'unpaid') {
-                            if (($invDiff >= (-1) * $rec->sill) &&
-                                ($invDiff <= $rec->sill)) {
-                                continue;
-                            }
-
-                            //Ако е избран филтър по начин на плащане
-                            $paymentType = ($iRec->paymentType) ?: $iRec->autoPaymentType;
-                            if ($rec->paymentType && $rec->paymentType != $paymentType) continue;
-
-                        }
-
-                        //Ако датата на фактурата е по голяма от избраната "към дата" не влиза в масива
-                        if ($checkDate < $iRec->date) {
-                            continue;
-                        }
-
-                        //Сумират се сумите за доплащане по недоплатените фактури по контрагенти
-                        if (($invDiff) > 0) {
-                            $salesInvoiceNotPaid = $invDiff;
-                        }
-
-                        //Сумират се надплатените суми по контрагенти
-                        if ($invDiff < 0) {
-                            $salesInvoiceOverPaid = $invDiff;
-                        }
-
-                        if ($iRec->dueDate && $invDiff > 0 &&
-                            $iRec->dueDate < $checkDate) {
-                            $salesInvoiceOverDue = $invDiff;
-                        }
-
-                        // Масив с данни за сумите от фактурите  обединени по контрагенти
-                        if (!array_key_exists($iRec->id, $sRecs)) {
-                            if (!array_key_exists($iRec->contragentName, $totalInvoiceContragent)) {
-                                $totalInvoiceContragent[$iRec->contragentName] = (object)array(
-                                    'totalInvoiceValue' => $paydocs->amount * $iRec->rate,                            //общо стойност на фактурите за контрагента
-                                    'totalInvoicePayout' => $paydocs->payout * $iRec->rate,                           //плащания по фактурите за контрагента
-                                    'totalInvoiceNotPaid' => $salesInvoiceNotPaid * $iRec->rate,                      //стойност на НЕДОплатените суми по фактурите за контрагента
-                                    'totalInvoiceOverPaid' => $salesInvoiceOverPaid * $iRec->rate,                    //стойност на НАДплатените суми по фактурите за контрагента
-                                    'totalInvoiceOverDue' => $salesInvoiceOverDue * $iRec->rate,                      //стойност за плащане по просрочените фактури за контрагента
-                                );
-                            } else {
-                                $obj = &$totalInvoiceContragent[$iRec->contragentName];
-
-                                $obj->totalInvoiceValue += $paydocs->amount * $iRec->rate;
-                                $obj->totalInvoicePayout += $paydocs->payout * $iRec->rate;
-                                $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid * $iRec->rate;
-                                $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid * $iRec->rate;
-                                $obj->totalInvoiceOverDue += $salesInvoiceOverDue * $iRec->rate;
-                            }
-                        }
-
-
-                        $invoiceCurrentSumm = 0;
-
-                        $Invoice = doc_Containers::getDocument($inv);
-
-                        if ($Invoice->className != 'sales_Invoices') {
-                            continue;
-                        }
-
-                        $iRec = $Invoice->fetch(
-                            'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,currencyId,date,dueDate,
-                                   contragentId,contragentName,contragentClassId, contragentCountryId'
-                        );
-
-                        $contragentClassName = core_Classes::fetch($iRec->contragentClassId)->name;
-
-                        $contragentRec = $contragentClassName::fetch($iRec->contragentId);
-
-                        $contragentFolderId = $contragentRec->folderId;
-
-                        //Филтър по контрагент
-                        if ($rec->contragent && (!in_array($contragentFolderId, keylist::toArray($rec->contragent)))) continue;
-
-                        //Филтър по дилър
-                        if ($rec->dealer && ($rec->dealer != $fDocRec->dealerId)) continue;
-
-                        //Филтър по група държави
-                        if ($rec->countryGroup) {
-                            $countriesList = drdata_CountryGroups::fetch($rec->countryGroup)->countries;
-
-                            if (!keylist::isIn($iRec->contragentCountryId, $countriesList)) {
-                                continue;
-                            }
-                        }
-
-                        // масива с фактурите за показване
-                        if (!array_key_exists($iRec->id, $sRecs)) {
-                            $sRecs[$iRec->id] = (object)array(
-                                'threadId' => $thread,
-                                'className' => $Invoice->className,
-                                'invoiceId' => $iRec->id,
-                                'invoiceNo' => $iRec->number,
-                                'invoiceDate' => $iRec->date,
-                                'dueDate' => $iRec->dueDate,
-                                'invoiceContainerId' => $iRec->containerId,
-                                'currencyId' => $iRec->currencyId,
-                                'rate' => $iRec->rate,
-                                'invoiceValue' => $paydocs->amount,
-                                'invoiceVAT' => $iRec->vatAmount,
-                                'invoicePayout' => $paydocs->payout,
-                                //'fastMarker' => $fastMarker,
-                                'invoiceCurrentSumm' => $invDiff,
-                                'payDocuments' => $paydocs->used,
-                                'contragent' => $iRec->contragentName
-                            );
-                        }
-                    }
-                }
-            }
-        }
-        bp($sRecs, $totalInvoiceContragent);
-        return $sRecs;
-    }
-
 
 }
 
