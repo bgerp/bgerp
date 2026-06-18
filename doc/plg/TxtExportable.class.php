@@ -33,7 +33,7 @@ class doc_plg_TxtExportable extends core_Plugin
             Mode::set('ONLY_ATTACHED_FILES', true);
 
             if(!empty($params['addAttachedTextFilesAsRichText'])){
-                Mode::push('renderPureRichtext', true);
+                Mode::push('renderForAI', true);
             }
 
             // Рендиране на цялото представяне на документа в текстов вид
@@ -58,7 +58,7 @@ class doc_plg_TxtExportable extends core_Plugin
             Mode::pop('text');
 
             if(!empty($params['addAttachedTextFilesAsRichText'])){
-                Mode::pop('renderPureRichtext');
+                Mode::pop('renderForAI');
             }
 
             // Допълване с антетката на документа
