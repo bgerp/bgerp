@@ -438,11 +438,12 @@ class doc_Search extends core_Manager
         }
 
         // Ако е въведен манипулатор на папка #F123 - редирект към сингъла ѝ
-        if (preg_match('/^#F\d+$/i', $search)) {
-            $folderRec = doc_Folders::getByHandle($search);
+        $folderAbbr = preg_quote(doc_Folders::$folderAbbr, '/');
+        if (preg_match("/^#{$folderAbbr}\d+$/i", $search)) {
+            $folderId = doc_Folders::getByHandle($search);
 
-            if ($folderRec && doc_Folders::haveRightFor('single', $folderRec)) {
-                redirect(doc_Folders::getSingleUrlArray($folderRec->id));
+            if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
+                redirect(doc_Folders::getSingleUrlArray($folderId));
             }
 
             return;
