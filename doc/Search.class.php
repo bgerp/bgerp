@@ -418,48 +418,52 @@ class doc_Search extends core_Manager
         
         $data->query->useCacheForPager = true;
     }
-    
-    
-    /**
-     * Ако се търси манипулатор на файл, да се редиректне към сингъла му
-     *
-     * @param plg_Search $mvc
-     * @param object     $data
-     * @param object     $filtreRec
-     */
+
+
     public static function on_BeforePrepareSearchQuery($mvc, $data, $filtreRec)
     {
         // Тримваме търсенето
         $search = trim($filtreRec->search ?? '');
-        
+
         // Ако няма търсене
         if (!$search) {
-            
+
             return;
         }
-        
-        // Ако не е начало на манипулатор на документ
+
+        // Ако не е начало на манипулатор
         if ($search[0] != '#') {
-            
-            return ;
+
+            return;
         }
-        
+
+        // Ако е въведен манипулатор на папка #F123 - редирект към сингъла ѝ
+        if (preg_match('/^#F\d+$/i', $search)) {
+            $folderRec = doc_Folders::getByHandle($search);
+
+            if ($folderRec && doc_Folders::haveRightFor('single', $folderRec)) {
+                redirect(doc_Folders::getSingleUrlArray($folderRec->id));
+            }
+
+            return;
+        }
+
         // Вземаме информацията за документа
         $info = doc_RichTextPlg::getFileInfo($search);
-        
+
         // Ако няма информация, да не се изпълнява
         if ($info && $info['className'] && $info['id']) {
             $className = $info['className'];
-            
+
             $rec = $className::fetchByHandle($info);
-            
+
             // Ако имаме права за сингъла и ако има такъв документ, да се редиректне там
             redirect($className::getSingleUrlArray($rec->id));
         } else {
             $search = ltrim($search, '#');
-            
+
             $rec = cat_Products::fetch(array("#code = '[#1#]'", $search));
-            
+
             if ($rec && ($singleUrl = cat_Products::getSingleUrlArray($rec->id))) {
                 redirect($singleUrl);
             }
