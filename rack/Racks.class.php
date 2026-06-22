@@ -32,6 +32,12 @@ class rack_Racks extends core_Master
      * Брой елементи на страница
      */
     public $listItemsPerPage = 100;
+
+
+    /**
+     * Кеш на стелажите по склад
+     */
+    private static $racksByStoreCache = array();
     
     
     /**
@@ -129,10 +135,10 @@ class rack_Racks extends core_Master
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,silent,input=hidden');
-        $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,tdClass=leftCol wrapText');
+        $this->FLD('num', 'int(max=999)', 'caption=Номер,mandatory,tdClass=leftCol wrapText');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('firstRowTo', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Първи ред до,notNull,value=A');
-        $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
+        $this->FLD('columns', 'int(max=99)', 'caption=Колони,mandatory,smartCenter');
         $this->FLD('direction', 'enum(leftToRight=Долу / Ляво ,rightToLeft=Долу / Дясно,topToRight=Горе / Ляво,topToLeft=Горе / Дясно)', 'caption=А-1 (Позиция),mandatory,notNull,value=leftToRight');
         $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
         $this->FLD('groups', 'text', 'caption=Приоритетно използване в зони->Групи,input=none');
@@ -294,6 +300,94 @@ class rack_Racks extends core_Master
         }
         
         return true;
+    }
+
+
+    /**
+     * Дали позицията е валидно стелажно място в склада
+     *
+     * @param string $position
+     * @param int    $storeId
+     * @return bool
+     */
+    public static function isRackPosition($position, $storeId)
+    {
+        $positionArr = rack_PositionType::toArray($position);
+        if (!is_array($positionArr)) {
+
+            return false;
+        }
+
+        list($num, $row, $col) = $positionArr;
+        $col = (int) $col;
+
+        if (!($num && $row && $col)) {
+
+            return false;
+        }
+
+        $racks = self::getRacksByStore($storeId);
+        if (!isset($racks[$num])) {
+
+            return false;
+        }
+
+        if ($row < 'A' || $row > $racks[$num]->rows) {
+
+            return false;
+        }
+
+        if ($col < 1 || $col > $racks[$num]->columns) {
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Връща стелажите в склада, индексирани по номер
+     *
+     * @param int $storeId
+     * @return array
+     */
+    private static function getRacksByStore($storeId)
+    {
+        $storeId = (int) $storeId;
+        if(array_key_exists($storeId, self::$racksByStoreCache)) return self::$racksByStoreCache[$storeId];
+
+        $racks = array();
+        $rQuery = self::getQuery();
+        $rQuery->where("#storeId = {$storeId}");
+        $rQuery->show('num,rows,columns');
+        while($rRec = $rQuery->fetch()){
+            $racks[$rRec->num] = $rRec;
+        }
+
+        self::$racksByStoreCache[$storeId] = $racks;
+
+        return self::$racksByStoreCache[$storeId];
+    }
+
+
+    /**
+     * SQL условие за позиции, започващи с номер на реален стелаж в склада
+     *
+     * @param string $field
+     * @param int    $storeId
+     * @return string
+     */
+    public static function getRackPositionSqlCondition($field, $storeId)
+    {
+        $field = ($field[0] == '#') ? $field : "#{$field}";
+
+        $conditions = array();
+        foreach (self::getRacksByStore($storeId) as $num => $rackRec){
+            $conditions[] = "{$field} LIKE '{$num}-%'";
+        }
+
+        return countR($conditions) ? '(' . implode(' OR ', $conditions) . ')' : '1=2';
     }
     
     
