@@ -554,7 +554,19 @@ class rack_Pallets extends core_Manager
             $hasMovementWithZones = rack_Movements::count("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}') AND (#zoneList IS NOT NULL OR #zoneList != '')");
 
             // Изтриване на чакащите движения за този палет
-            rack_Movements::delete("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}')");
+            $mQuery = rack_Movements::getQuery();
+            $mQuery->where("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}')");
+            $mQuery->show('id');
+            while ($mRec = $mQuery->fetch()) {
+                $lockId = "movement{$mRec->id}";
+                if (!core_Locks::obtain($lockId, 120, 0, 0)) {
+                    continue;
+                }
+
+                rack_Movements::delete($mRec->id);
+
+                core_Locks::release($lockId);
+            }
 
             // Ако е изтрито поне едно движение към зона, да се регенерират всички движения в склада
             if($hasMovementWithZones){
