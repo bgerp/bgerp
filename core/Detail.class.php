@@ -693,4 +693,25 @@ class core_Detail extends core_Manager
             $res += $fieldsNotToClone;
         }
     }
+
+
+    /**
+     * Връща вариантите за добавяне на детайл към мастъра.
+     *
+     * @param int             $masterId
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        $title = !empty($this->singleTitle)
+            ? tr($this->singleTitle)
+            : tr('Добавяне на ред');
+
+        return array(
+            'default' => array(
+                'title' => $title,
+                'params' => array(),
+            ),
+        );
+    }
 }

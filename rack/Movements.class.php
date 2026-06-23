@@ -814,7 +814,7 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-        $tpl = new core_ET(tr("|*<div class='formMiddleCaption'><small><!--ET_BEGIN PALLET_BLOCK--><table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN MOVEMENT_BLOCK--><table><tr><th>|Чакащи|*</th></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN LAST--><hr><table>[#LAST#]</table></div><!--ET_END LAST--></small></div>"));
+        $tpl = new core_ET(tr("|*<div class='formMiddleCaption'><small><!--ET_BEGIN PALLET_BLOCK--><table><tr><td><b>|На палети|*</b>:</td></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN MOVEMENT_BLOCK--><table><tr><th>|Чакащи|*</th></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN LAST--><hr><table>[#LAST#]</table></div><!--ET_END LAST--></small></div>"));
         $batchDef = batch_Defs::getBatchDef($productId);
 
         // Показване на позицията от която последно е смъкнат артикула
@@ -857,9 +857,17 @@ class rack_Movements extends rack_MovementAbstract
             }
         }
 
-        if($lastPosition = rack_Pallets::getLastPalletPosition($productId, $storeId)){
-            $positionVerbal = ($lastPosition == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($lastPosition);
-            $tpl->append(tr("|*<tr><td>|Последно смъкнат от|*:</td><td><b>{$positionVerbal}</b></td></tr>"), 'LAST');
+        if(countR($lastPositions = rack_Pallets::getLastPalletPositions($productId, $storeId))){
+            $tpl->append(tr("|*<tr><td colspan='2'><b>|Последно смъкнат от|*</b>:</td></tr>"), 'LAST');
+            $onVerbal = tr('на');
+            foreach($lastPositions as $i => $lastPositionRec){
+                $position = $lastPositionRec->position;
+                $positionVerbal = ($position == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($position);
+                $dateVerbal = dt::mysql2verbal($lastPositionRec->lastOn, 'd.m.Y');
+                $rowStyle = ($i) ? " style='color:#666;'" : '';
+                $tpl->append("<tr{$rowStyle}><td colspan='2'><b style='font-size:1.1em;'>{$positionVerbal}</b> {$onVerbal} {$dateVerbal}</td></tr>", 'LAST');
+            }
+            $tpl->append("<tr><td colspan='2'><hr></td></tr>", 'LAST');
             $haveWhatToShow = true;
         }
 

@@ -77,7 +77,7 @@ class abbyyocr_Converter extends core_Manager
             $btnParams['title'] = 'Разпознаване на текст с abbyyocr';
             
             // Ако вече е извлечена текстовата част
-            $procTextOcr = fileman_Indexes::isProcessStarted(array('type' => 'textOcr', 'dataId' => $fRec->dataId));
+            $procTextOcr = fileman_Indexes::isProcessStarted(array('type' => 'textOcr', 'dataId' => $fRec->dataId ?? null));
             if ($procTextOcr) {
                 $btnParams['warning'] = 'Файлът е преминал през разпознаване на текст';
             } elseif (!self::haveTextForOcr($fRec)) {
@@ -85,7 +85,7 @@ class abbyyocr_Converter extends core_Manager
             }
             
             $arr = array();
-            $arr['abbyyocr']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd, 'ret_url' => true);
+            $arr['abbyyocr']['url'] = array(get_called_class(), 'getTextByOcr', $fRec->fileHnd ?? null, 'ret_url' => true);
             $arr['abbyyocr']['title'] = 'OCR';
             $arr['abbyyocr']['icon'] = 'img/16/scanner.png';
             $arr['abbyyocr']['btnParams'] = $btnParams;
@@ -122,10 +122,10 @@ class abbyyocr_Converter extends core_Manager
         if (empty($retUrl)) {
             
             // URL' то където ще редиректваме
-            $retUrl = array('fileman_Files', 'single', $fRec->fileHnd);
+            $retUrl = array('fileman_Files', 'single', $fRec->fileHnd ?? null);
         }
         
-        if ($fRec->dataId && ($dRec = fileman_Data::fetch((int) $fRec->dataId))) {
+        if (($dataId = $fRec->dataId ?? null) && ($dRec = fileman_Data::fetch((int) $dataId))) {
             fileman_Data::resetProcess($dRec);
         }
         
@@ -155,9 +155,9 @@ class abbyyocr_Converter extends core_Manager
         );
         
         if (is_object($fRec)) {
-            $params['dataId'] = $fRec->dataId;
+            $params['dataId'] = $fRec->dataId ?? null;
             $params['asynch'] = true;
-            $file = $fRec->fileHnd;
+            $file = $fRec->fileHnd ?? null;
         } else {
             $params['asynch'] = false;
             $params['isPath'] = true;
@@ -179,8 +179,8 @@ class abbyyocr_Converter extends core_Manager
             
             // Заключваме процеса за определено време
             if (core_Locks::obtain($params['lockId'], 300, 0, 0,  false)) {
-                fileman_Data::logWrite('OCR обработка на файл с ABBYY', $fRec->dataId);
-                fileman_Files::logWrite('OCR обработка на файл с ABBYY', $fRec->id);
+                fileman_Data::logWrite('OCR обработка на файл с ABBYY', $fRec->dataId ?? null);
+                fileman_Files::logWrite('OCR обработка на файл с ABBYY', $fRec->id ?? null);
                 
                 // Стартираме извличането
                 return static::getText($file, $params);
@@ -197,7 +197,7 @@ class abbyyocr_Converter extends core_Manager
      */
     public static function getText($fileHnd, $params)
     {
-        if (!$params['isPath']) {
+        if (empty($params['isPath'])) {
             // Вземам записа за файла
             $fRec = fileman_Files::fetchByFh($fileHnd);
             
@@ -232,7 +232,7 @@ class abbyyocr_Converter extends core_Manager
         // Скрипта, който ще конвертира
         $Script->lineExec(get_called_class() . '::fconvLineExec', array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
         
-        if (isset($params['asynch'])) {
+        if (isset($params['asynch'], $params['callBack'])) {
             // Функцията, която ще се извика след приключване на операцията
             $Script->callBack($params['callBack']);
         }
@@ -241,7 +241,7 @@ class abbyyocr_Converter extends core_Manager
         
         // Други допълнителни параметри
         $params['outFilePath'] = $textPath;
-        if (!$params['isPath']) {
+        if (empty($params['isPath'])) {
             $params['fh'] = $fileHnd;
         }
         $Script->params = $params;
@@ -249,12 +249,12 @@ class abbyyocr_Converter extends core_Manager
         $Script->setCheckProgramsArr('abbyyocr9');
         
         // Стартираме скрипта асинхронно
-        if ($Script->run($params['asynch']) === false) {
+        if ($Script->run($params['asynch'] ?? false) === false) {
             fileman_Indexes::createError($params);
         }
         
         $text = '';
-        if (!$params['asynch']) {
+        if (empty($params['asynch'])) {
             $text = @file_get_contents($params['outFilePath']);
             $text = i18n_Charset::convertToUtf8($text, 'UTF-8');
             
@@ -282,27 +282,29 @@ class abbyyocr_Converter extends core_Manager
     public function afterGetTextByAbbyyOcr($script)
     {
         // Десериализираме нужните помощни данни
-        $params = $script->params;
+        $params = $script->params ?? array();
+        
+        $outFilePath = $params['outFilePath'] ?? '';
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($params['outFilePath'], $params)) {
+        if (fileman_Indexes::haveErrors($outFilePath, $params)) {
             
             // Отключваме процеса
-            core_Locks::release($params['lockId']);
+            core_Locks::release($params['lockId'] ?? null);
             
             return false;
         }
         
         // Вземаме съдържанието на файла
-        $params['content'] = @file_get_contents($params['outFilePath']);
+        $params['content'] = $outFilePath ? @file_get_contents($outFilePath) : '';
         
-        $params['content'] = trim($params['content']);
+        $params['content'] = trim((string) ($params['content'] ?? ''));
         
         // Записваме данните
         $saveId = fileman_Indexes::saveContent($params);
         
         // Отключваме процеса
-        core_Locks::release($params['lockId']);
+        core_Locks::release($params['lockId'] ?? null);
         
         if ($saveId) {
             
@@ -328,11 +330,11 @@ class abbyyocr_Converter extends core_Manager
     {
         $name = $fRec;
         if (is_object($fRec)) {
-            $name = $fRec->name;
+            $name = $fRec->name ?? '';
         }
         
         //Разширението на файла
-        $ext = strtolower(fileman_Files::getExt($name));
+        $ext = strtolower(fileman_Files::getExt($name) ?? '');
         
         // Ако разширението е в позволените
         if ($ext && in_array($ext, self::$allowedExt)) {
@@ -369,7 +371,7 @@ class abbyyocr_Converter extends core_Manager
         $data = array();
         
         // Ако няма запис в модела
-        if (!$conf->_data['FILEMAN_OCR']) {
+        if (empty($conf->_data['FILEMAN_OCR'])) {
             
             // Да използваме текущия клас
             $data['FILEMAN_OCR'] = core_Classes::getId(get_called_class());

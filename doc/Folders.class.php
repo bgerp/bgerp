@@ -59,7 +59,7 @@ class doc_Folders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
+    public $listFields = 'handle=Хендлър,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
     
     
     /**
@@ -154,7 +154,7 @@ class doc_Folders extends core_Master
         $this->FLD('openThreadsCnt', 'int', 'caption=Нишки->Отворени');
         $this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно');
         $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
-        
+
         $this->setDbUnique('coverId,coverClass');
         $this->setDbIndex('last');
         $this->setDbIndex('createdOn');
@@ -488,6 +488,7 @@ class doc_Folders extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $row->handle = $mvc->getHandle($rec);
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
         if ($rec->openThreadsCnt) {
@@ -2487,5 +2488,14 @@ class doc_Folders extends core_Master
         }
 
         return $rec;
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        $data->listTableMvc->FLD('handle', 'varchar', 'tdClass=centerCol');
     }
 }
