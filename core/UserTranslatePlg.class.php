@@ -110,7 +110,7 @@ class core_UserTranslatePlg extends core_Plugin
      * @param stdClass $rec
      * @param string   $part
      */
-    public static function on_BeforeGetVerbal($mvc, &$res, $rec, $part)
+    public static function on_BeforeGetVerbal($mvc, &$res, &$rec, $part)
     {
         $uTranslateFields = core_UserTranslates::getUserTranslateFields($mvc->getClassId(), '*', $rec->id ?? null);
         

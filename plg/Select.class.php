@@ -126,11 +126,11 @@ class plg_Select extends core_Plugin
                 
                 return false;
             }
-            
-            
+
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
             $cnt = $listArr = array();
             foreach ($row as $id => $on) {
+
                 foreach ($actArr as $action => $caption) {
                     if ($mvc->haveRightFor($action, $id)) {
                         $cnt[$action] = ($cnt[$action] ?? 0) + 1;
@@ -138,14 +138,14 @@ class plg_Select extends core_Plugin
                     }
                 }
             }
-            
+            //bp();
             // Махаме действията, които не са достъпни за нито един избран ред
             foreach ($actArr as $action => $caption) {
                 if (!($cnt[$action] ?? null)) {
                     unset($actArr[$action]);
                 }
             }
-
+            //bp();
             if (!countR($actArr)) {
                 $res = new Redirect(getRetUrl(), '|За избраните редове не са достъпни никакви операции');
                 

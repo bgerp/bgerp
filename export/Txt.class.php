@@ -87,10 +87,10 @@ class export_Txt extends core_Mvc
             $form->toolbar->addBtn('Сваляне', array('fileman_Download', 'download', 'fh' => $fileHnd, 'forceDownload' => true), 'ef_icon = fileman/icons/16/txt.png, title=Сваляне на документа');
             $form->info .= '<b>' . tr('Файл|*: ') . '</b>' . fileman::getLink($fileHnd);
 
-            if(haveRole('debug')){
+            //if(haveRole('debug')){
                 $form->setField('addAttachedTextFiles', "input=hidden");
                 $form->setField('addAttachedTextFilesAsRichText', "input=hidden");
-            }
+            //}
         } else {
             $form->info .= "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
         }
@@ -130,7 +130,7 @@ class export_Txt extends core_Mvc
      */
     public function addParamFields($form, $clsId, $objId)
     {
-        if(!haveRole('debug')) return;
+        //if(!haveRole('debug')) return;
 
         $form->FLD('addAttachedTextFilesAsRichText', 'enum(no=Не,yes=Да)', 'caption=Да се експортират и прикачените текстови файлове (Debug)?->Като ричтекст,silent,removeAndRefreshForm=addAttachedTextFiles,autohide');
         $form->FLD('addAttachedTextFiles', 'enum(no=Не,yes=Да)', 'caption=Да се експортират и прикачените текстови файлове (Debug)?->Извличане на текст,input=hidden,autohide');

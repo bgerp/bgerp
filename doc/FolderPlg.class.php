@@ -784,6 +784,11 @@ class doc_FolderPlg extends core_Plugin
                 }
             }
         }
+
+        if(isset($rec->folderId)){
+            $row->folderHandle = doc_Folders::getHandle($rec->folderId);
+            $row->folderHandle ="</b><span class='folder-handle' onmouseUp='selectInnerText(this);' title='Хендлър на папка'>" . $row->folderHandle . '</span>';
+        }
     }
     
     

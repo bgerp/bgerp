@@ -225,8 +225,8 @@ class acc_Balances extends core_Master
         }
 
         if ($mvc->haveRightFor('forcecalc', $rec)) {
-            $row->lastCalculate = ($row->lastCalculate ?? '') . ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/32/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
-            $row->lastCalculate .= "&nbsp;&nbsp;" . ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'debug' => true, 'ret_url' => true), false, 'ef_icon=img/16/bug.png,select=Ръчно рекалкулиране на баланса с дебъг');
+            $row->lastCalculate = ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'debug' => true, 'ret_url' => true), false, 'ef_icon=img/16/bug.png,select=Ръчно рекалкулиране на баланса с дебъг') . "&nbsp;&nbsp;" . ($row->lastCalculate ?? '');
+            $row->lastCalculate .= "&nbsp;&nbsp;" . ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/32/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
         }
     }
 

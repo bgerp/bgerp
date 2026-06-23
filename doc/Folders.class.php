@@ -129,7 +129,13 @@ class doc_Folders extends core_Master
      * Флаг, че заявките, които са към този модел лимитирани до 1 запис, ще са HIGH_PRIORITY
      */
     public $highPriority = true;
-    
+
+
+    /**
+     * Префикс на хендлъра на папка (#F<id>)
+     */
+    public static $folderAbbr = 'F';
+
 
     /**
      * Описание на модела (таблицата)
@@ -2431,5 +2437,54 @@ class doc_Folders extends core_Master
         while($oldSettingRec = $settingQuery->fetch()){
             core_Settings::setValues($newSettingFolderKey, $oldSettingRec->data, $oldSettingRec->userOrRole);
         }
+    }
+
+
+    /**
+     * Връща хендлъра на папка от вида #F<id>
+     *
+     * @param int|stdClass $id - id на папката или запис
+     * @return string|null     - хендлър (напр. "#F44528") или null ако няма такава папка
+     */
+    public static function getHandle($id)
+    {
+        $id = is_object($id) ? $id->id : $id;
+
+        if (!$id || !static::fetchField($id)) return null;
+
+        return '#' . static::$folderAbbr . $id;
+    }
+
+
+    /**
+     * От хендлър на папка от вида #F<id> връща id на папката
+     *
+     * @param string $handle - хендлър (с или без водещ #, напр. "#FXXXX")
+     * @return stdClass|null - id на папката или null ако хендлърът е невалиден/няма такава папка
+     */
+    public static function getByHandle($handle)
+    {
+        $handle = trim($handle);
+
+        if (!strlen($handle)) {
+
+            return null;
+        }
+
+        // Очакваме (опционален #) + F + цифри, само главно F
+        $pattern = '/^#?' . preg_quote(static::$folderAbbr, '/') . '([0-9]{1,10})$/';
+        if (!preg_match($pattern, $handle, $matches)) {
+
+            return null;
+        }
+        $rec = static::fetch($matches[1]);
+
+        // Проверяваме че реално съществува такава папка
+        if (!is_object($rec)) {
+
+            return null;
+        }
+
+        return $rec;
     }
 }
