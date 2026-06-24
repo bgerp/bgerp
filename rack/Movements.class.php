@@ -731,7 +731,7 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             // Добавяне на предложения за нова позиция
-            $positionSuggestions = array(rack_PositionType::FLOOR => tr('Под'));
+            $positionSuggestions = array(tr('Под') => tr('Под'));
             if ($bestPos = static::getRecommendedPosition($rec->productId, $rec->storeId)) {
                 $positionSuggestions +=  array($bestPos => $bestPos);
             }
