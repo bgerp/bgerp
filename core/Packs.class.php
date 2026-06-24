@@ -1382,7 +1382,7 @@ class core_Packs extends core_Manager
     /**
      * Променяме Списъчния изглед на пакетите
      */
-    public function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if ($data->rows) {
             $res = new ET(getFileContent('core/tpl/ListPack.shtml'));
