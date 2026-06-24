@@ -79,16 +79,6 @@ class doc_plg_TxtExportable extends core_Plugin
             $startStr .= " " . tr('в състояние') . " {$row->state}" . "\n";
             $string = $startStr . $string;
 
-            // Кои са прикачените файлове + текстовото им съдържание, ако имат
-            if(empty($params['addAttachedTextFilesAsRichText'])){
-                if($params['addAttachedTextFiles']){
-                    Mode::push('text', 'plain');
-                    $linkedFiles = $mvc->getLinkedFiles($rec);
-                    $string .= fileman_Indexes::getShortTextSummary($linkedFiles);
-                    Mode::pop('text');
-                }
-            }
-
             if(!empty($params['addAttachedTextFilesAsRichText'])){
                 $string = cms_GalleryRichTextPlg::replaceImageTagsWithFileTag($string);
             }
