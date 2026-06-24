@@ -731,12 +731,9 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             // Добавяне на предложения за нова позиция
-            $positionSuggestions = array(tr('Под') => tr('Под'));
+            $positionSuggestions = array(rack_PositionType::FLOOR => tr('Под'));
             if ($bestPos = static::getRecommendedPosition($rec->productId, $rec->storeId)) {
                 $positionSuggestions +=  array($bestPos => $bestPos);
-                if ($form->rec->positionTo == rack_PositionType::FLOOR) {
-                    $form->rec->positionTo = tr('Под');
-                }
             }
             if ($lastPosition = rack_Pallets::getLastPalletPosition($rec->productId, $rec->storeId)) {
                 if ($lastPosition != rack_PositionType::FLOOR) {
@@ -809,16 +806,19 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         $form->layout = $data->form->renderLayout();
-        if ($form->cmd != 'refresh') {
-            $form->layout->append(new core_ET('[#AFTER_INFO#]'));
-        }
+        $form->layout->append(new core_ET('[#AFTER_INFO#]'));
         if (isset($rec->productId)) {
             if ($middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId)) {
                 $className = Mode::is('screenMode', 'wide') ? ' floatedElement' : '';
-                $tpl = new ET("<div class='preview-holder {$className} palletInfoBlock'><div style='margin-top:10px; margin-bottom:-10px; padding:5px;'><b>" . tr('Налични палети') . "</b></div><div class='scrolling-holder' style='margin-top:10px'>[#PALLET_INFO#]</div></div><div class='clearfix21'></div>");
+                $tpl = new ET("<div class='preview-holder {$className} palletInfoBlock'><div style='margin-top:10px; margin-bottom:-10px; padding:5px;'><b>" . tr('Информация') . "</b></div><div class='scrolling-holder' style='margin-top:10px'>[#PALLET_INFO#]</div></div><div class='clearfix21'></div>");
                 $tpl->replace($middleCaption, 'PALLET_INFO');
                 $form->layout->replace($tpl, 'AFTER_INFO');
             }
+        }
+
+        if ($form->cmd == 'refresh' && Request::get('ajax_mode')) {
+            $formId = $form->formAttr['id'];
+            jquery_Jquery::run($form->layout, "var form = $('#{$formId}'); var info = form.find('.palletInfoBlock').last(); $('.palletInfoBlock').not(info).each(function(){ var block = $(this); var clear = block.next('.clearfix21'); block.remove(); clear.remove(); }); if(info.length){ var infoClear = info.next('.clearfix21'); form.after(info); if(infoClear.length){ info.after(infoClear); } }", false);
         }
     }
 
@@ -835,13 +835,35 @@ class rack_Movements extends rack_MovementAbstract
         $foundRecs = array();
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state = 'active'");
-        $pQuery->orderBy('position');
+        $pQuery->show('position,quantity,batch,createdOn');
+        $pQuery->orderBy('createdOn=ASC,position=ASC');
         while($pRec = $pQuery->fetch()){
-            $foundRecs['PALLET_BLOCK'][] = (object)array('position' => $pRec->position, 'quantity' => $pRec->quantity, 'batch' => $pRec->batch);
+            $foundRecs['PALLET_BLOCK'][] = (object)array('position' => $pRec->position, 'quantity' => $pRec->quantity, 'batch' => $pRec->batch, 'createdOn' => $pRec->createdOn);
+        }
+        if (isset($foundRecs['PALLET_BLOCK'])) {
+            usort($foundRecs['PALLET_BLOCK'], function($a, $b) {
+                $aTime = !empty($a->createdOn) ? @strtotime($a->createdOn) : PHP_INT_MAX;
+                $bTime = !empty($b->createdOn) ? @strtotime($b->createdOn) : PHP_INT_MAX;
+                $aTime = ($aTime !== false && $aTime !== -1) ? (int)$aTime : PHP_INT_MAX;
+                $bTime = ($bTime !== false && $bTime !== -1) ? (int)$bTime : PHP_INT_MAX;
+                if ($aTime != $bTime) {
+                    return ($aTime < $bTime) ? -1 : 1;
+                }
+
+                return strcmp($a->position, $b->position);
+            });
+        }
+        $palletPositionOrder = array();
+        if (isset($foundRecs['PALLET_BLOCK'])) {
+            foreach ($foundRecs['PALLET_BLOCK'] as $pRec) {
+                if (!isset($palletPositionOrder[$pRec->position])) {
+                    $palletPositionOrder[$pRec->position] = countR($palletPositionOrder);
+                }
+            }
         }
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-        $tpl = new core_ET(tr("|*<div class='formMiddleCaption'><small><!--ET_BEGIN PALLET_BLOCK--><table><tr><td><b>|На палети|*</b>:</td></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN MOVEMENT_BLOCK--><table><tr><th>|Чакащи|*</th></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN LAST--><hr><table>[#LAST#]</table></div><!--ET_END LAST--></small></div>"));
+        $tpl = new core_ET(tr("|*<div class='formMiddleCaption'><small><!--ET_BEGIN PALLET_BLOCK--><table style='width:100%'><tr><td colspan='2'><b>|На палети|*</b>:</td></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN MOVEMENT_BLOCK--><table style='width:100%'><tr><td colspan='2'><hr></td></tr><tr><td colspan='2'><b>|Чакащи|*</b>:</td></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN LAST--><hr><table style='width:100%'>[#LAST#]</table></div><!--ET_END LAST--></small></div>"));
         $batchDef = batch_Defs::getBatchDef($productId);
 
         // Показване на позицията от която последно е смъкнат артикула
@@ -851,6 +873,17 @@ class rack_Movements extends rack_MovementAbstract
         while($mRec = $mQuery->fetch()){
             $foundRecs['MOVEMENT_BLOCK'][] = (object)array('position' => $mRec->positionTo, 'quantity' => $mRec->quantity, 'batch' => $mRec->batch);
         }
+        if (isset($foundRecs['MOVEMENT_BLOCK'])) {
+            usort($foundRecs['MOVEMENT_BLOCK'], function($a, $b) use ($palletPositionOrder) {
+                $aOrder = isset($palletPositionOrder[$a->position]) ? $palletPositionOrder[$a->position] : PHP_INT_MAX;
+                $bOrder = isset($palletPositionOrder[$b->position]) ? $palletPositionOrder[$b->position] : PHP_INT_MAX;
+                if ($aOrder != $bOrder) {
+                    return ($aOrder < $bOrder) ? -1 : 1;
+                }
+
+                return strcmp($a->position, $b->position);
+            });
+        }
 
         // Наличните активни палети за този артикул в склада
         if(countR($foundRecs)){
@@ -859,6 +892,7 @@ class rack_Movements extends rack_MovementAbstract
             // Показване на информацията
             foreach ($foundRecs as $placeholder => $pData){
                 $positionArr = array();
+                $fromVerbal = tr('от');
                 foreach($pData as $pRec){
 
                     // Групиране на партидите по позиции
@@ -874,14 +908,22 @@ class rack_Movements extends rack_MovementAbstract
                         $string = "{$batchVerbal} <b>{$quantityVerbal}</b>";
                     }
                     $string .= " {$measureName}";
+                    if ($placeholder == 'PALLET_BLOCK' && !empty($pRec->createdOn)) {
+                        $dateVerbal = static::getPalletInfoDateVerbal($pRec->createdOn);
+                        $string .= " <span style='color:#666;'>{$fromVerbal} {$dateVerbal}</span>";
+                    }
                     $positionArr[$positionVerbal][] = $string;
                 }
 
                 // Показват се на съответното място
                 foreach ($positionArr as $position => $batchArr){
-                    $tpl->append("<tr><td><b>{$position}</b>: </td><td>" . implode(' / ', $batchArr) . "</td></tr>", $placeholder);
+                    $tpl->append("<tr><td style='white-space:nowrap; padding-right:8px; text-align:left; width:1%;'><b>{$position}</b>: </td><td style='text-align:left;'>" . implode(' / ', $batchArr) . "</td></tr>", $placeholder);
                 }
             }
+        }
+        if (!isset($foundRecs['PALLET_BLOCK']) || !countR($foundRecs['PALLET_BLOCK'])) {
+            $tpl->append("<tr><td colspan='2' style='color:#666;'>" . "--- " . tr('няма') . " ---" . "</td></tr>", 'PALLET_BLOCK');
+            $haveWhatToShow = true;
         }
 
         if(countR($lastPositions = rack_Pallets::getLastPalletPositions($productId, $storeId))){
@@ -890,7 +932,7 @@ class rack_Movements extends rack_MovementAbstract
             foreach($lastPositions as $i => $lastPositionRec){
                 $position = $lastPositionRec->position;
                 $positionVerbal = ($position == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($position);
-                $dateVerbal = dt::mysql2verbal($lastPositionRec->lastOn, 'd.m.Y');
+                $dateVerbal = static::getPalletInfoDateVerbal($lastPositionRec->lastOn);
                 $rowStyle = ($i) ? " style='color:#666;'" : '';
                 $tpl->append("<tr{$rowStyle}><td colspan='2'><b style='font-size:1.1em;'>{$positionVerbal}</b> {$onVerbal} {$dateVerbal}</td></tr>", 'LAST');
             }
@@ -901,10 +943,23 @@ class rack_Movements extends rack_MovementAbstract
         if($rackRec = rack_Products::fetch("#productId = $productId AND #storeId = $storeId")){
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rackRec->quantityNotOnPallets);
             $quantityVerbal = "<b>{$quantityVerbal}</b> {$measureName}";
-            $tpl->append(tr("|*<tr><td>|На пода|*:</td><td>{$quantityVerbal}</td></tr>"), 'LAST');
+            $tpl->append(tr("|*<tr><td style='white-space:nowrap; padding-right:8px; text-align:left; width:1%;'>|На пода|*:</td><td style='text-align:left;'>{$quantityVerbal}</td></tr>"), 'LAST');
         }
 
         return ($haveWhatToShow) ? $tpl->getContent() : null;
+    }
+
+
+    /**
+     * Вербализира дата за помощната информация без часа от smartDate формата
+     *
+     * @param string $date
+     *
+     * @return string
+     */
+    private static function getPalletInfoDateVerbal($date)
+    {
+        return dt::mysql2verbal($date, 'smartDate', null, false, false);
     }
 
 
