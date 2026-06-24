@@ -1045,4 +1045,25 @@ class deals_QuotationDetails extends doc_Detail
 
         return $tpl;
     }
+
+
+    /**
+     * Връща вариантите за добавяне на детайл към мастъра.
+     *
+     * @param int             $masterId
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        return array(
+            'default' => array(
+                'title' => 'Добавяне на артикул',
+                'params' => array('optional' => 'no'),
+            ),
+            'optional' => array(
+                'title' => 'Добавяне на опционален артикул',
+                'params' => array('optional' => 'yes'),
+            ),
+        );
+    }
 }

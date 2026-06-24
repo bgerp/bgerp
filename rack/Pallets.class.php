@@ -554,7 +554,19 @@ class rack_Pallets extends core_Manager
             $hasMovementWithZones = rack_Movements::count("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}') AND (#zoneList IS NOT NULL OR #zoneList != '')");
 
             // Изтриване на чакащите движения за този палет
-            rack_Movements::delete("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}')");
+            $mQuery = rack_Movements::getQuery();
+            $mQuery->where("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}')");
+            $mQuery->show('id');
+            while ($mRec = $mQuery->fetch()) {
+                $lockId = "movement{$mRec->id}";
+                if (!core_Locks::obtain($lockId, 120, 0, 0)) {
+                    continue;
+                }
+
+                rack_Movements::delete($mRec->id);
+
+                core_Locks::release($lockId);
+            }
 
             // Ако е изтрито поне едно движение към зона, да се регенерират всички движения в склада
             if($hasMovementWithZones){
@@ -1345,21 +1357,81 @@ class rack_Pallets extends core_Manager
         $key = "{$productId}|{$storeId}|{$direction}";
         if(array_key_exists($key, static::$lastPositionCache)) return static::$lastPositionCache[$key];
 
+        $positions = static::getLastPalletPositions($productId, $storeId, $direction, 1);
+        static::$lastPositionCache[$key] = countR($positions) ? $positions[0]->position : null;
+
+        return static::$lastPositionCache[$key];
+    }
+
+
+    /**
+     * Последните различни позиции, на които артикула е качен/свален
+     *
+     * @param int    $productId
+     * @param int    $storeId
+     * @param string $direction
+     * @param int    $limit
+     * @return array
+     */
+    public static function getLastPalletPositions($productId, $storeId, $direction = 'down', $limit = 3)
+    {
+        $key = "positions|{$productId}|{$storeId}|{$direction}|{$limit}";
+        if(array_key_exists($key, static::$lastPositionCache)) return static::$lastPositionCache[$key];
+
+        $positions = static::getLastPalletPositionsFrom('rack_OldMovements', $productId, $storeId, $direction, $limit);
+        if(!countR($positions)){
+            $positions = static::getLastPalletPositionsFrom('rack_Movements', $productId, $storeId, $direction, $limit);
+        }
+
+        static::$lastPositionCache[$key] = $positions;
+
+        return static::$lastPositionCache[$key];
+    }
+
+
+    /**
+     * Последните различни позиции според модел с движения
+     *
+     * @param string $mvc
+     * @param int    $productId
+     * @param int    $storeId
+     * @param string $direction
+     * @param int    $limit
+     * @return array
+     */
+    private static function getLastPalletPositionsFrom($mvc, $productId, $storeId, $direction, $limit)
+    {
         $floor = rack_PositionType::FLOOR;
-        $mQuery = rack_Movements::getQuery();
+        $mQuery = $mvc::getQuery();
         $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state IN ('active', 'closed')");
         if($direction == 'down'){
             $field = 'position';
-            $mQuery->where("(#positionTo IS NULL OR #positionTo = '{$floor}') AND #position IS NOT NULL");
+            $mQuery->where("#position IS NOT NULL AND #position != '{$floor}'");
+            $mQuery->where(rack_Racks::getRackPositionSqlCondition($field, $storeId));
         } else {
             $field = 'positionTo';
-            $mQuery->where("#position = '{$floor}' AND #positionTo IS NOT NULL");
+            $mQuery->where("#position = '{$floor}' AND #positionTo IS NOT NULL AND #positionTo != '{$floor}'");
+            $mQuery->where(rack_Racks::getRackPositionSqlCondition($field, $storeId));
         }
 
-        $mQuery->orderBy('createdOn', 'DESC');
-        $mQuery->show($field);
-        static::$lastPositionCache[$key] = $mQuery->fetch()->{$field};
+        $mQuery->XPR('lastOn', 'datetime', 'MAX(COALESCE(#modifiedOn, #createdOn))');
+        $mQuery->groupBy($field);
+        $mQuery->orderBy('lastOn', 'DESC');
+        $mQuery->show("{$field},lastOn");
+        $mQuery->limit(max(50, $limit * 10));
 
-        return static::$lastPositionCache[$key];
+        $positions = array();
+        while($mRec = $mQuery->fetch()){
+            if(!rack_Racks::isRackPosition($mRec->{$field}, $storeId)){
+                continue;
+            }
+
+            $positions[] = (object)array('position' => $mRec->{$field}, 'lastOn' => $mRec->lastOn);
+            if(countR($positions) >= $limit){
+                break;
+            }
+        }
+
+        return $positions;
     }
 }

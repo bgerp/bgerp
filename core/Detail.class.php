@@ -693,4 +693,42 @@ class core_Detail extends core_Manager
             $res += $fieldsNotToClone;
         }
     }
+
+
+    /**
+     * Връща вариантите за добавяне на детайл към мастъра.
+     *
+     * @param int             $masterId
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        $title = !empty($this->singleTitle)
+            ? tr($this->singleTitle)
+            : tr('Добавяне на ред');
+
+        return array(
+            'default' => array(
+                'title' => $title,
+                'params' => array(),
+            ),
+        );
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        if (!Mode::is('renderForAI')) return;
+        $data->listFields = array('_detailId' => 'detailId') + $data->listFields;
+
+        $rows = &$data->rows;
+        if (!countR($rows)) return;
+        foreach ($rows as $id => &$row){
+            $rec = &$data->recs[$id];
+            $row->_detailId = $rec->id;
+        }
+    }
 }

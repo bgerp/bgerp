@@ -291,12 +291,13 @@ class doc_Log extends core_Manager
 
                 // Действието при клик върху цялата клетка - добавя хендлъра на папката
                 $onClick = "flashDocInterpolation('{$attrId['id']}'); if(window.opener.{$data->callback}('{$handle}') != true) self.close(); else self.focus();";
+                $type = cls::get($folderRec->coverClass)->singleTitle;
 
                 // Името на папката - отгоре (както при документа)
                 $titleHtml = "<div class='addDocTitle' style='font-size:1.02em;font-weight:400;color:#333;'>{$resArr[$folderId]['title']}</div>";
 
                 // Хендлъра на папката - отдолу
-                $handleHtml = "<div class='addDocSubTitle'>{$handle}</div>";
+                $handleHtml = "<div class='addDocSubTitle'>{$handle} ({$type})</div>";
 
                 // Цялата клетка става кликаема: име отгоре, хендлър отдолу
                 $resArr[$folderId]['document'] = "<div class='addDocCell file-log-link' style='cursor:pointer;' onclick=\"{$onClick}\">{$titleHtml}{$handleHtml}</div>";

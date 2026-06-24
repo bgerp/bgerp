@@ -945,7 +945,7 @@ class distro_Files extends core_Detail
      * @param core_ET      $tpl
      * @param stdClass     $data
      */
-    public function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         // Вземаме таблицата
         $tpl = $mvc->renderReposAndFiles($data);

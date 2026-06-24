@@ -713,7 +713,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
 
             if($mvc->haveRightFor('calcproductionamount', $rec) && !Mode::isReadOnly()){
-                $row->calcPrimeCostBtn = ht::createBtn('Изчисли сб-ст', array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true));
+                $row->calcPrimeCostBtn = ht::createBtn('Изчисли сб-ст', array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/arrow_refresh.png');
                 $calcedPrice = core_Permanent::get("{$mvc->className}_{$rec->id}_calcedPrimeCost");
                 if(is_array($calcedPrice)){
                     $primeCost = $calcedPrice['primecost'];

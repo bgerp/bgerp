@@ -172,6 +172,9 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->load('doc_plg_TxtExportable');
         $mvc->declareInterface('export_TxtExportIntf');
 
+        $mvc->load('doc_plg_LlmExportable');
+        $mvc->declareInterface('export_LlmExportIntf');
+
         $mvc->fetchFieldsBeforeDelete ??= '';
         if ($mvc->fetchFieldsBeforeDelete) {
             $mvc->fetchFieldsBeforeDelete .= ',';

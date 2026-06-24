@@ -823,7 +823,7 @@ class doc_Containers extends core_Manager
     /**
      * При мобилен изглед оставяме само колонката "документ"
      */
-    public function on_BeforeRenderListTable($mvc, $tpl, $data)
+    public static function on_BeforeRenderListTable($mvc, $tpl, $data)
     {
         if (Mode::is('screenMode', 'narrow')) {
             $data->listFields = array('document' => 'Документ');
