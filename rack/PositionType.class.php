@@ -44,6 +44,13 @@ class rack_PositionType extends type_Varchar
             
             return;
         }
+
+        $value = trim($value);
+        $floorVerbal = tr('Под');
+        if (strtolower($value) == self::FLOOR || $value == $floorVerbal || $value == 'Под' || $value == 'под') {
+
+            return self::FLOOR;
+        }
         
         // Ако в позицията няма число, опитваме се да извлечем "Под"
         if (!preg_match('/[0-9]/', $value)) {

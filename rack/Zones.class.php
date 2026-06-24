@@ -308,6 +308,12 @@ class rack_Zones extends core_Master
 
             $terminalLink = ($isTerminal) ? 'single' : 'terminal';
             $num = rack_Zones::getDisplayZone($rec->id, true, $terminalLink);             
+            if($isTerminal){
+                $restoreBtn = static::getRestoreMissingMovementsBtn($rec, true);
+                if($restoreBtn){
+                    $num .= '&nbsp;' . $restoreBtn;
+                }
+            }
             $row->num = ht::createElement("div", array('id' => "zone{$rec->id}"), $num, true);
         }
 
@@ -330,9 +336,57 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
+        $missingMovements = static::getMissingArchiveMovementsCount($data->rec);
+        if($missingMovements){
+            $data->toolbar->addBtn('Движ. (Ремонт)', array('rack_Movements', 'restoremissing', 'containerId' => $data->rec->containerId, 'ret_url' => true), "ef_icon=img/16/arrow_refresh.png,title=Възстановяване на липсващи движения от историята,warning=Ще бъдат възстановени липсващи движения от историята|*: {$missingMovements}. |Сигурни ли сте|*?");
+        }
+
         if ($mvc->haveRightFor('removedocument', $data->rec->id)) {
             $data->toolbar->addBtn('Премахване', array($mvc, 'removeDocument', $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
         }
+    }
+
+
+    /**
+     * Връща бутон за възстановяване на липсващи движения от историята.
+     *
+     * @param stdClass $rec
+     * @param bool $iconOnly
+     * @return string|null
+     */
+    private static function getRestoreMissingMovementsBtn($rec, $iconOnly = false)
+    {
+        $missingMovements = static::getMissingArchiveMovementsCount($rec);
+        if(!$missingMovements) return null;
+
+        $title = 'Открити са липсващи движения, които могат да се възстановят от историята';
+        $warning = "Ще бъдат възстановени липсващи движения от историята|*: {$missingMovements}. |Сигурни ли сте|*?";
+        $url = array('rack_Movements', 'restoremissing', 'containerId' => $rec->containerId, 'ret_url' => true);
+
+        if($iconOnly){
+            return ht::createLink('', $url, $warning, "ef_icon=img/16/exclamation.png,title={$title}");
+        }
+
+        return ht::createLink('Движ. (Ремонт)', $url, $warning, "ef_icon=img/16/arrow_refresh.png,title={$title}");
+    }
+
+
+    /**
+     * Брой липсващи движения за зоната, когато има смисъл да се проверява.
+     *
+     * @param stdClass $rec
+     * @return int
+     */
+    private static function getMissingArchiveMovementsCount($rec)
+    {
+        if(empty($rec->containerId)) return 0;
+        if(!rack_Movements::haveRightFor('restoremissing')) return 0;
+        if(!isset($rec->readiness) || static::isReadinessFull($rec->readiness)) return 0;
+
+        $containerState = doc_Containers::fetchField($rec->containerId, 'state');
+        if(!in_array($containerState, array('draft', 'pending'))) return 0;
+
+        return rack_Movements::countMissingInArchive($rec->containerId);
     }
 
 
@@ -767,7 +821,7 @@ class rack_Zones extends core_Master
         if($remove){
 
             // Ако документа се премахва от зоната, изтриват се чакащите движения към тях
-            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending'");
+            static::deletePendingZoneMovements($zoneId, null);
             rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}' (ALL - incl. MODIFIED BY USER)");
         }
 
@@ -1214,8 +1268,11 @@ class rack_Zones extends core_Master
         $productIds = arr::make($productIds, true);
 
         $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$userId}");
-        if($userId == core_Users::SYSTEM_USER){
+        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL");
+        if(isset($userId)){
+            $mQuery->where("#createdBy = {$userId}");
+        }
+        if(isset($userId) && $userId == core_Users::SYSTEM_USER){
             $mQuery->where("#modifiedBy = {$userId}");
         }
         if(countR($productIds)){
@@ -1234,9 +1291,18 @@ class rack_Zones extends core_Master
         }
 
         $deleted = 0;
+        $skipped = 0;
         while ($mRec = $mQuery->fetch()) {
+            $lockId = "movement{$mRec->id}";
+            if (!core_Locks::obtain($lockId, 120, 0, 0)) {
+                $skipped++;
+                continue;
+            }
+
             rack_Movements::delete($mRec->id);
             $deleted++;
+
+            core_Locks::release($lockId);
         }
 
         if(!$isOriginalSystemUser) {
@@ -1245,7 +1311,7 @@ class rack_Zones extends core_Master
 
         $zoneStringLog = implode('|', $zoneIds);
         $productStringLog = implode('|', $productIds);
-        rack_Movements::logDebug("RACK DELETE PENDING COUNT ({$deleted}) - '{$zoneStringLog}'- PROD -'{$productStringLog}'");
+        rack_Movements::logDebug("RACK DELETE PENDING COUNT ({$deleted}) SKIPPED ({$skipped}) - '{$zoneStringLog}'- PROD -'{$productStringLog}'");
     }
 
 

@@ -714,4 +714,21 @@ class core_Detail extends core_Manager
             ),
         );
     }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        if (!Mode::is('renderForAI')) return;
+        $data->listFields = array('_detailId' => 'detailId') + $data->listFields;
+
+        $rows = &$data->rows;
+        if (!countR($rows)) return;
+        foreach ($rows as $id => &$row){
+            $rec = &$data->recs[$id];
+            $row->_detailId = $rec->id;
+        }
+    }
 }

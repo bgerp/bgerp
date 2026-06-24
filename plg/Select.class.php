@@ -92,7 +92,7 @@ class plg_Select extends core_Plugin
     /**
      * Преди рендиране на таблицата
      */
-    public function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf') || Mode::is('noDoWithSelected')) {
             

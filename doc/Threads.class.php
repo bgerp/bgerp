@@ -3525,21 +3525,24 @@ class doc_Threads extends core_Manager
      * @param array $params - допълнителни параметри
      * @return string $res  - текстовото представяне
      */
-    public static function getAsText($threadId, $params = array())
+    public static function getAsText($threadId, $params = array(), $forLlm = false)
     {
         $res = "";
 
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
         $cQuery->orderBy('createdOn', 'ASC');
-        while($cRec = $cQuery->fetch()){
+        while ($cRec = $cQuery->fetch()) {
             $Document = doc_Containers::getDocument($cRec->id);
-            if($Document->haveInterface('export_TxtExportIntf')){
-                $txtExportIntf = cls::getInterface('export_TxtExportIntf', $Document->getInstance());
-                $res .= !empty($res) ? ("\n" . '======================================================' . "\n") : '';
+            $instance = $Document->getInstance();
 
-                // Генериране на текстовото представяне
-                $res .= $txtExportIntf->getTxtContent($Document->that, $params);
+            $intfName = $forLlm ? 'export_LlmExportIntf' : 'export_TxtExportIntf';
+            $methodName  = $forLlm ? 'getLlmContent' : 'getTxtContent';
+            
+            if ($Document->haveInterface($intfName)) {
+                $intf = cls::getInterface($intfName, $instance);
+                $res .= (!empty($res) ? "\n======================================================\n" : "");
+                $res .= $intf->{$methodName}($Document->that, $params);
             }
         }
 

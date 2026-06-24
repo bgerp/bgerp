@@ -107,6 +107,7 @@ class rack_plg_Shipments extends core_Plugin
             $data->toolbar->addBtn('Движ. (Започв.)', array($mvc, 'doallmovements', 'do' => 'start', 'id' => $rec->id, 'ret_url' => true), 'title=Започване на всички движения,ef_icon=img/16/control_play.png,row=2');
             $data->toolbar->addBtn('Движ. (Прикл.)', array($mvc, 'doallmovements', 'do' => 'close', 'id' => $rec->id, 'ret_url' => true), 'title=Приключване на всички движения,ef_icon=img/16/gray-close.png,row=2');
         }
+
     }
     
     
@@ -424,14 +425,34 @@ class rack_plg_Shipments extends core_Plugin
 
                 // Ако има такива дето може се приключват
                 foreach ($closeRecs as $mRec){
-                    if (!core_Locks::obtain("movement{$mRec->id}", 120, 0, 0)) {
+                    $movementId = $mRec->id;
+                    $lockId = "movement{$movementId}";
+                    if (!core_Locks::obtain($lockId, 120, 0, 0)) {
+                        continue;
+                    }
+
+                    $mRec = rack_Movements::fetch($movementId, '*', false);
+                    if (!$mRec) {
+                        core_Locks::release($lockId);
+                        continue;
+                    }
+
+                    if($do == 'start'){
+                        $transaction = $Movements->getTransaction($mRec);
+                        $transaction = $Movements->validateTransaction($transaction);
+                        if (!empty($transaction->errors) || !rack_Movements::haveRightFor('start', $mRec)) {
+                            core_Locks::release($lockId);
+                            continue;
+                        }
+                    } elseif(!rack_Movements::haveRightFor('done', $mRec)){
+                        core_Locks::release($lockId);
                         continue;
                     }
 
                     $mRec->workerId = core_Users::getCurrent();
 
                     if($do == 'start'){
-                        $mRec->brState = $rec->state;
+                        $mRec->brState = $mRec->state;
                         $mRec->state = 'active';
                     } else {
                         $mRec->state = 'closed';
@@ -441,7 +462,7 @@ class rack_plg_Shipments extends core_Plugin
                     $Movements->save($mRec, 'state,brState,packagings,workerId,modifiedOn,modifiedBy,documents,canceledOn,canceledBy');
                     $ok++;
 
-                    core_Locks::release("movement{$mRec->id}");
+                    core_Locks::release($lockId);
                 }
 
                 $msgType = 'notice';

@@ -218,7 +218,7 @@ class plg_Chart extends core_Plugin
     /**
      * Извиква се след рендирането на таблицата от табличния изглед
      */
-    public function on_BeforeRenderListTable($mvc, &$table, $data)
+    public static function on_BeforeRenderListTable($mvc, &$table, $data)
     {
         if ($chartType = Request::get('Chart')) {
             $chartId = 0;
@@ -229,13 +229,13 @@ class plg_Chart extends core_Plugin
                 
                 foreach ($data->charts as $chartCaption) {
                     $chartName = 'Chart' . $chartId++;
-                    $table->append($this->getChart($data, $chartName, $chartType, $chartCaption, $chartField));
+                    $table->append($mvc->getChart($data, $chartName, $chartType, $chartCaption, $chartField));
                 }
             } else {
                 $chartName = 'Chart' . $chartId;
                 $chartCaption = '';
                 
-                $table = $this->getChart($data, $chartName, $chartType, $chartCaption);
+                $table = $mvc->getChart($data, $chartName, $chartType, $chartCaption);
             }
             
             return false;

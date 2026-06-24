@@ -98,11 +98,73 @@ class core_TableView extends core_BaseClass
     
     
     /**
+     * Рендира таблицата като markdown таблица (за AI режим)
+     */
+    protected function getAsMarkdown($rows, $fields)
+    {
+        $fieldList = array();
+        $i = 0;
+        foreach ($fields as $name => $dummy) {
+            if (!$dummy) continue;
+            $fieldList[$name] = (float) ($this->mvc->fields[$name]->column ?? 0) ?: $i++;
+        }
+        asort($fieldList);
+
+        $headers = array();
+        foreach ($fieldList as $name => $dummy) {
+            $caption = $fields[$name];
+            if (is_array($caption)) {
+                $caption = end($caption);
+            } elseif (is_string($caption)) {
+                $parts = explode('->', $caption);
+                $caption = end($parts);
+            }
+            if (empty($caption) || $caption[0] === '@') continue;
+            if (isset($this->mvc->fields[$name]->singleRow)) continue;
+            $headers[$name] = strip_tags(tr($caption));
+        }
+
+        if (empty($headers)) {
+            return new ET('');
+        }
+
+        $md = '| ' . implode(' | ', $headers) . " |\n";
+
+        if (countR($rows)) {
+            foreach ($rows as $r) {
+                if (is_object($r)) {
+                    $r = get_object_vars($r);
+                }
+                $cells = array();
+                foreach (array_keys($headers) as $name) {
+                    $value = $r[$name] ?? '';
+                    if (is_object($value) && method_exists($value, 'getContent')) {
+                        $value = $value->getContent();
+                    }
+                    $value = strip_tags((string) $value);
+                    $value = html_entity_decode($value, ENT_QUOTES, 'UTF-8');
+                    $value = str_replace(array('|', "\r", "\n", "\xc2\xa0"), array(' ', '', ' ', ' '), $value);
+                    $value = trim(preg_replace('/\s+/', ' ', $value));
+                    $cells[] = $value;
+                }
+                $md .= '| ' . implode(' | ', $cells) . " |\n";
+            }
+        }
+
+        return new ET($md);
+    }
+
+
+    /**
      * Връща шаблон за таблицата
      */
     public function get($rows, $fields)
     {
         $fields = arr::make($fields, true);
+
+        if (Mode::is('renderForAI')) {
+            return $this->getAsMarkdown($rows, $fields);
+        }
         
         $header = array();
         $row = '<tr [#ROW_ATTR#]>';
@@ -417,7 +479,7 @@ class core_TableView extends core_BaseClass
             $rowAfter = new ET('<tr><td style="border:0px; padding-top:5px; " colspan="' . $this->colspan . '">[#1#]</td></tr>', $this->rowAfter);
             $tpl->replace($rowAfter, 'ROW_AFTER');
         }
-        
+
         return $tpl;
     }
 }
