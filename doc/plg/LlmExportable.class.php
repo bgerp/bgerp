@@ -24,14 +24,13 @@ class doc_plg_LlmExportable extends core_Plugin
      * @param null|string $text
      * @param int $id
      * @param array $params
+     * @param bool $forLlm
      * @return string|void
      */
     public static function on_AfterGetLlmContent($mvc, &$text, $id, $params = array(), $forLlm = false)
     {
         if($forLlm){
-            $params = array(
-            'addAttachedTextFiles'           => true,
-            'addAttachedTextFilesAsRichText' => true);
+            $params = array('addAttachedTextFilesAsRichText' => true);
         }
         $Impl = cls::getInterface('export_TxtExportIntf', $mvc);
         $text = $Impl->getTxtContent($id, $params);

@@ -56,7 +56,7 @@ class export_Llm extends core_Mvc
      */
     public function getExportTitle($clsId, $objId)
     {
-        return 'Текстов файл за LLM';
+        return 'Файл за LLM';
     }
 
 
@@ -85,23 +85,16 @@ class export_Llm extends core_Mvc
             $threadName = str_replace('"', '', $threadName);
             $threadText = "Нишка '{$threadName}' с id {$threadRec->id}" . "\n";
         
-            $params = array(
-            'addAttachedTextFiles'           => true,
-            'addAttachedTextFilesAsRichText' => true);
-    
-            $threadText .= doc_Threads::getAsText($threadRec->id, $params);
-
-            $fileName = $Cls->getHandle($threadId) . '_AI_Export.txt';
-            
+            $params = array('addAttachedTextFilesAsRichText' => true);
+            $threadText .= doc_Threads::getAsText($threadRec->id, $params, true);
+            $fileName = $Cls->getHandle($threadId) . '_LLM_Export.txt';
             $fileHnd = fileman::absorbStr($threadText, 'exportFiles', $fileName);
-
         } else{
             $Impl = cls::getInterface('export_LlmExportIntf', $Cls);
             $txtContent = $Impl->getLlmContent($objId, array(), true);   
             $fileHnd = null;
             if (!empty($txtContent)) {
-                $fileName = $Cls->getHandle($objId) . '_AI_Export.txt';
-
+                $fileName = $Cls->getHandle($objId) . '_LLM_Export.txt';
                 $fileHnd = fileman::absorbStr($txtContent, 'exportFiles', $fileName);
             }
         }
@@ -113,7 +106,7 @@ class export_Llm extends core_Mvc
             $form->info .= "<div class='formNotice'>" . tr('Няма данни за експорт|*.') . '</div>';
         }
 
-        $Cls->logWrite('Генериране на AI Txt', $objId);
+        $Cls->logWrite('Генериране на LLM експорт', $objId);
 
         return $fileHnd;
     }

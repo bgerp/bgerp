@@ -63,8 +63,11 @@ class doc_Threads extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'powerUser';
-    
-    
+
+
+    /**
+     * Кой може да пише?
+     */
     public $canWrite = 'no_one';
     
     
@@ -3523,6 +3526,7 @@ class doc_Threads extends core_Manager
      *
      * @param int $threadId - ид на нишка
      * @param array $params - допълнителни параметри
+     * @return string $forLlm  - съдържание за LLM? (false за текстово)
      * @return string $res  - текстовото представяне
      */
     public static function getAsText($threadId, $params = array(), $forLlm = false)
