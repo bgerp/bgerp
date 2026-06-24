@@ -64,7 +64,7 @@ class doc_plg_TxtExportable extends core_Plugin
             // Допълване с антетката на документа
             $singleTitle = tr($mvc->singleTitle);
             $docRow = $mvc->getDocumentRow($rec->id);
-            $startStr = tr('Документ') . ": {$singleTitle} {$mvc->getHandle($id)}";
+            $startStr = tr('Документ') . ": {$singleTitle} #{$mvc->getHandle($id)}";
             if($rec->createdBy != core_Users::SYSTEM_USER){
                 if(!empty($docRow->authorName)){
                     $authorName = $docRow->authorName;
