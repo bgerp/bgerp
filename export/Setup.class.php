@@ -40,6 +40,7 @@ class export_Setup extends core_ProtoSetup
         'export_Doc',
         'export_Xml',
         'export_Txt',
+        'export_Llm',
     );
     
     
