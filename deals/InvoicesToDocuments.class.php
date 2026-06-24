@@ -135,7 +135,7 @@ class deals_InvoicesToDocuments extends core_Manager
             if(!empty($fRec->invoices)){
                 $iData =  @json_decode($fRec->invoices, true);
                 foreach ($iData['amount'] as &$a){
-                    $a = core_Type::getByName('double')->fromVerbal($a);
+                    $a = round(core_Type::getByName('double')->fromVerbal($a), 2);
                 }
 
                 foreach ($iData['containerId'] as $k => $v){
@@ -189,7 +189,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 foreach ($iList as $iContainerId){
                     $iDoc = doc_Containers::getDocument($iContainerId);
                     $iRec = $iDoc->fetch();
-                    $iTotalValue = $iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount;
+                    $iTotalValue = round($iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount, 2);
                     $invArr[] = (object)array('containerId' => $iContainerId, 'amount' => $iTotalValue);
                     $fullRecs[$iRec->containerId] = $iRec;
                 }
@@ -235,9 +235,10 @@ class deals_InvoicesToDocuments extends core_Manager
                 if(isset($paymentData->amount)){
                     if($summed < 0){
                         $form->setError('invoices,fromContainerId,invoicesList', "Общата сума не може да е отрицателна");
-                    } elseif($summed > $paymentData->amount){
+                    } elseif(round($summed, 2) > round($paymentData->amount, 2)){
+                        $summedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($summed);
                         $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($paymentData->amount);
-                        $form->setError('invoices,fromContainerId,invoicesList', "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> {$currencyCode}");
+                        $form->setError('invoices,fromContainerId,invoicesList', "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> (|Общо|*: {$summedVerbal}) {$currencyCode}");
                     }
                 }
 
@@ -460,7 +461,7 @@ class deals_InvoicesToDocuments extends core_Manager
             }
 
             if(!empty($amount)){
-                $Double = core_Type::getByName('double');
+                $Double = core_Type::getByName('double(decimals=2)');
                 $q2 = $Double->fromVerbal($amount);
                 if (empty($q2)) {
                     $error[] = 'Невалидна сума';
