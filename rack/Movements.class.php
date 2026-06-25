@@ -499,9 +499,6 @@ class rack_Movements extends rack_MovementAbstract
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
-        if (Mode::is('screenMode', 'wide')) {
-            $data->form->class .= ' floatedElement ';
-        }
         $rec = &$form->rec;
         
         // Нормализиране на движението за редакция във вер.3 –
@@ -806,19 +803,20 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         $form->layout = $data->form->renderLayout();
-        $form->layout->append(new core_ET('[#AFTER_INFO#]'));
+        $formId = $form->formAttr['id'];
+        jquery_Jquery::run($form->layout, "var form = $('#{$formId}'); var holder = form.children('.vertical'); holder.css({'display':'flex','align-items':'flex-start','gap':'20px','flex-wrap':'wrap'}); holder.children('table.formTable').css({'flex':'0 0 auto'}); holder.children('.palletInfoBlock').css({'flex':'0 0 auto'});", false);
         if (isset($rec->productId)) {
             if ($middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId)) {
-                $className = Mode::is('screenMode', 'wide') ? ' floatedElement' : '';
-                $tpl = new ET("<div class='preview-holder {$className} palletInfoBlock'><div style='margin-top:10px; margin-bottom:-10px; padding:5px;'><b>" . tr('Информация') . "</b></div><div class='scrolling-holder' style='margin-top:10px'>[#PALLET_INFO#]</div></div><div class='clearfix21'></div>");
+                $infoBlockStyle = 'flex:0 0 auto; margin-top:-10px;';
+                $scrollingHolderStyle = 'margin-top:10px; display:block !important; width:auto !important; overflow-x:visible !important;';
+                $tpl = new ET("<div class='palletInfoBlock' style='{$infoBlockStyle}'><div style='margin-top:10px; margin-bottom:-10px; padding:5px;'><b>" . tr('Информация') . "</b></div><div class='scrolling-holder' style='{$scrollingHolderStyle}'>[#PALLET_INFO#]</div></div>");
                 $tpl->replace($middleCaption, 'PALLET_INFO');
-                $form->layout->replace($tpl, 'AFTER_INFO');
+                $form->layout->replace($tpl, 'AFTER_MAIN_TABLE');
             }
         }
 
         if ($form->cmd == 'refresh' && Request::get('ajax_mode')) {
-            $formId = $form->formAttr['id'];
-            jquery_Jquery::run($form->layout, "var form = $('#{$formId}'); var info = form.find('.palletInfoBlock').last(); $('.palletInfoBlock').not(info).each(function(){ var block = $(this); var clear = block.next('.clearfix21'); block.remove(); clear.remove(); }); if(info.length){ var infoClear = info.next('.clearfix21'); form.after(info); if(infoClear.length){ info.after(infoClear); } }", false);
+            jquery_Jquery::run($form->layout, "var form = $('#{$formId}'); $('.palletInfoBlock').not(form.find('.palletInfoBlock')).remove();", false);
         }
     }
 
@@ -863,7 +861,8 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-        $tpl = new core_ET(tr("|*<div class='formMiddleCaption'><small><!--ET_BEGIN PALLET_BLOCK--><table style='width:100%'><tr><td colspan='2'><b>|На палети|*</b>:</td></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN MOVEMENT_BLOCK--><table style='width:100%'><tr><td colspan='2'><hr></td></tr><tr><td colspan='2'><b>|Чакащи|*</b>:</td></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN LAST--><hr><table style='width:100%'>[#LAST#]</table></div><!--ET_END LAST--></small></div>"));
+        $middleCaptionStyle = 'display:inline-table; width:auto;';
+        $tpl = new core_ET(tr("|*<div class='formMiddleCaption' style='{$middleCaptionStyle}'><small><!--ET_BEGIN PALLET_BLOCK--><table><tr><td colspan='2'><b>|На палети|*</b>:</td></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN MOVEMENT_BLOCK--><table><tr><td colspan='2'><hr></td></tr><tr><td colspan='2'><b>|Чакащи|*</b>:</td></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN LAST--><hr><table>[#LAST#]</table></div><!--ET_END LAST--></small></div>"));
         $batchDef = batch_Defs::getBatchDef($productId);
 
         // Показване на позицията от която последно е смъкнат артикула
@@ -2126,7 +2125,7 @@ class rack_Movements extends rack_MovementAbstract
      * @param int $containerId   - ид на контейнер на документ
      * @return double|null
      */
-    public static function getQuantitiesByContainerId($storeId, $productId, $batch = null, $containerId, $states = array())
+    public static function getQuantitiesByContainerId($storeId, $productId, $batch = null, $containerId = null, $states = array())
     {
         $query = rack_Movements::getQuery();
         $query->where("#storeId = {$storeId} AND #productId = {$productId}");
