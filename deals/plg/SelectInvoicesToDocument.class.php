@@ -260,4 +260,36 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
             $res = $mvc->canSelectOnlyOneInvoice;
         }
     }
+
+
+    /**
+     * Добавя разпределението по фактури към LLM текстовия експорт
+     */
+    public static function on_AfterAfterGetLlmExport($mvc, &$text, $rec, $params)
+    {
+        if (empty($text)) return;
+        if (empty($rec->containerId)) return;
+
+        $invRecs = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+        if (!countR($invRecs)) return;
+
+        $paymentData = $mvc->getPaymentData($rec);
+        $currencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
+
+        $text .= "\n\n" . tr('Разпределение по фактури||Distribution by invoices') . ":\n";
+        foreach ($invRecs as $invRec) {
+            $Document = doc_Containers::getDocument($invRec->containerId);
+            $iInst = $Document->getInstance();
+            $iRec = $Document->fetch();
+
+            if ($iInst->getField('number', false)) {
+                $number = $iInst->getVerbal($iRec, 'number');
+            } else {
+                $number = '#' . $Document->getHandle();
+            }
+
+            $amount = core_Type::getByName('double(decimals=2)')->toVerbal($invRec->amount);
+            $text .= "- " . tr($iInst->singleTitle) . " {$number}: {$amount} {$currencyCode}\n";
+        }
+    }
 }
