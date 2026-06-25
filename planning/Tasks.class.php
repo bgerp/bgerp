@@ -3139,15 +3139,13 @@ class planning_Tasks extends core_Master
             $productId = $data->listFilter->rec->productId;
             if($Driver = cat_Products::getDriver($productId)){
                 $productionData = $Driver->getProductionData($productId);
-
                 $centerId = $productionData['centerId'];
-                $center = planning_Centers::fetch($centerId);
-                $showTaskPlanningParams = $center->showTaskPlanningParams;
+                $showTaskPlanningParams = planning_Centers::fetchField($centerId,'showTaskPlanningParams');
 
                 if($showTaskPlanningParams == 'yes'){
-                    $plannedParams = keylist::toArray($center->planningParams);
+                    $plannedParams = keylist::toArray($productionData['planningParams']);
                 } elseif($showTaskPlanningParams == 'yesAdd'){
-                    $plannedParams += keylist::toArray($center->planningParams);
+                    $plannedParams += keylist::toArray($productionData['planningParams']);
                 }
             }
         }
