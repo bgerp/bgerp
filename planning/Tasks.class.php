@@ -2212,7 +2212,7 @@ class planning_Tasks extends core_Master
         } else {
             $tpl = $contentTpl;
         }
-
+ 
         // Връщаме шаблона
         return $tpl;
     }
@@ -3133,7 +3133,23 @@ class planning_Tasks extends core_Master
 
         // Ако има намерени планиращи параметри - показват се в таблицата
         $firstColumnsIfNotSelected = arr::make(array_keys($data->listFields), true);
+    
+        // Параметрите от Етапите да са планиращи
+        if(!empty($data->listFilter->rec->productId)){
+            $productId = $data->listFilter->rec->productId;
+            if($Driver = cat_Products::getDriver($productId)){
+                $productionData = $Driver->getProductionData($productId);
+                $centerId = $productionData['centerId'];
+                $showTaskPlanningParams = planning_Centers::fetchField($centerId,'showTaskPlanningParams');
 
+                if($showTaskPlanningParams == 'yes'){
+                    $plannedParams = keylist::toArray($productionData['planningParams']);
+                } elseif($showTaskPlanningParams == 'yesAdd'){
+                    $plannedParams += keylist::toArray($productionData['planningParams']);
+                }
+            }
+        }
+       
         if (countR($plannedParams)) {
             $pQuery = cat_Params::getQuery();
             $pQuery->in('id', $plannedParams);

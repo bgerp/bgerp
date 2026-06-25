@@ -144,10 +144,15 @@ class export_Llm extends core_Mvc
         $Cls = cls::get($clsId);
         $rec = $Cls->fetch($objId);
         $threadId = $rec->threadId;
-        $firstDocInThread = doc_Threads::getFirstDocument($threadId);
-        if($rec->id == $firstDocInThread->that){
-            $form->FLD('exportWholeThread', 'enum(no=Не,yes=Да)', 'caption=Да се експортира ли цялата нишка?->Избор,autohide,silent');
-            $form->setDefault('exportWholeThread', 'no');
+        $threadRec = doc_Threads::fetch($threadId);
+
+        // Ако е първи документ в нишка, с повече от 1 документ да се появи възможност за избор на цялата нишка
+        if($threadRec->allDocCnt != 1){
+            $firstDocInThread = doc_Threads::getFirstDocument($threadId);
+            if($rec->id == $firstDocInThread->that){
+                $form->FLD('exportWholeThread', 'enum(no=Не,yes=Да)', 'caption=Да се експортира ли цялата нишка?->Избор,autohide,silent');
+                $form->setDefault('exportWholeThread', 'no');
+            }
         }
     }
 }

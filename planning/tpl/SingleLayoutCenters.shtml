@@ -21,6 +21,9 @@
 					<!--ET_BEGIN planningParams-->
 					<div>|Параметри за планиране|*: <b>[#planningParams#]</b></div>
 					<!--ET_END planningParams-->
+					<!--ET_BEGIN showTaskPlanningParams-->
+					<div>|Параметрите от Етапите да са планиращи|*: <b>[#showTaskPlanningParams#]</b></div>
+					<!--ET_END showTaskPlanningParams-->
 					<!--ET_BEGIN mandatoryOperatorsInTasks-->
 					<div>|Оператор в прогрес на ПО|*: <b>[#mandatoryOperatorsInTasks#]</b></div>
 					<!--ET_END mandatoryOperatorsInTasks-->
