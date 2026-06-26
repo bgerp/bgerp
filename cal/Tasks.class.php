@@ -1257,7 +1257,10 @@ class cal_Tasks extends embed_Manager
             $checkActivate = false;
             if ($rec->state != 'rejected' && $rec->state != 'draft' && $oldRec->state != 'rejected' && $oldRec->state != 'draft') {
                 if (isset($rec->assign)) {
-                    if ($rec->assign != $oldRec->assign) {
+                    // Активираме само ако е ДОБАВЕНО ново лице, а не при премахване.
+                    // (assign е keylist - може да е имало няколко и да е махнат само един)
+                    $assignDiff = type_Keylist::getDiffArr($oldRec->assign, $rec->assign);
+                    if (!empty($assignDiff['add'])) {
                         $checkActivate = true;
                     }
                 }
