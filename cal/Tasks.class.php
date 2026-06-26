@@ -1253,9 +1253,20 @@ class cal_Tasks extends embed_Manager
 
         if (!empty($rec->id)) {
             $oldRec = $mvc->fetch($rec->id);
+
+            $checkActivate = false;
+            if ($rec->state != 'rejected' && $rec->state != 'draft' && $oldRec->state != 'rejected' && $oldRec->state != 'draft') {
+                if (isset($rec->assign)) {
+                    if ($rec->assign != $oldRec->assign) {
+                        $checkActivate = true;
+                    }
+                }
+            }
+
             // Ако отговаря на условията да се активира, вместо да е заявка
             if (($oldRec->state == 'waiting' && $rec->state == 'waiting') ||
-                ($oldRec->state == 'active' && $rec->state == 'active')) {
+                ($oldRec->state == 'active' && $rec->state == 'active') ||
+                $checkActivate === true) {
                 $canActivate = $mvc->canActivateTask($rec);
 
                 if ($canActivate !== null) {
