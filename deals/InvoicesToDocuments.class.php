@@ -174,8 +174,6 @@ class deals_InvoicesToDocuments extends core_Manager
                 $fullRecs[$iRec->containerId] = $iRec;
                 $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
 
-                echo "<li>{$expectedAmountToPayData->amount}</li>}";
-
                 $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
                 $vAmount = round($vAmount, 2);
                 $defAmount = min($paymentData->amount, $vAmount);
