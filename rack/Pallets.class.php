@@ -866,6 +866,11 @@ class rack_Pallets extends core_Manager
                     $row->_rowTools->addLink('Хронология', array('rack_OldMovements', 'list', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
                 }
             }
+
+            if(rack_OldMovements::haveRightFor('list')){
+                $historyUrl = array('rack_OldMovements', 'list', 'search' => $rec->position, 'ret_url' => true);
+                $row->label .= '&nbsp;' . ht::createLink('', $historyUrl, null, 'ef_icon=img/16/clock_history.png,title=Хронология на движенията от/към позицията');
+            }
             
             $row->productId = cat_Products::getShortHyperlink($rec->productId, true);
             $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");

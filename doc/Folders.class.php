@@ -2471,14 +2471,18 @@ class doc_Folders extends core_Master
 
             return null;
         }
+        if (type_Int::isInt($handle)) {
 
-        // Очакваме (опционален #) + F + цифри, само главно F
-        $pattern = '/^#?' . preg_quote(static::$folderAbbr, '/') . '([0-9]{1,10})$/';
-        if (!preg_match($pattern, $handle, $matches)) {
+            $id = (int) $handle;
+        } else {
 
-            return null;
+            $pattern = '/^#?' . preg_quote(static::$folderAbbr, '/') . '([0-9]{1,10})$/';
+            if (!preg_match($pattern, $handle, $matches)) {
+                return null;
+            }
+            $id = (int) $matches[1];
         }
-        $rec = static::fetch($matches[1]);
+        $rec = static::fetch($id);
 
         // Проверяваме че реално съществува такава папка
         if (!is_object($rec)) {
