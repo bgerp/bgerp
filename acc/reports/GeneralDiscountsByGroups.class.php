@@ -403,14 +403,14 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
         $Datetime = cls::get('type_Datetime');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-
-        $row = new stdClass();
-
-
-        $d = substr(dt::mysql2verbal($dRec->waitingOn), 0, 8);
-
-        $row->date = $d;
         if ($rec->seeBy == 'kross') {
+
+            $row = new stdClass();
+
+
+            $d = substr(dt::mysql2verbal($dRec->waitingOn), 0, 8);
+
+            $row->date = $d;
             $row->date = '<span class="fright">' . $d . '</span>';
         }
 
