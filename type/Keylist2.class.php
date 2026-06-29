@@ -189,14 +189,12 @@ class type_Keylist2 extends type_Keylist
                 $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1, 'matchOnlyStartsWith' => $matchOnlyStartsWith), 'absolute-force');
             }
 
-            $allowClear = false;
-            if ($this->params['allowEmpty'] ?? null) {
-                $allowClear = true;
-            }
+            $allowClear = true;
 
             $minimumResultsForSearch = $this->params['minimumResultsForSearch'] ?? null;
 
-            select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'] ?? null, $allowClear, null, $ajaxUrl, false, $this->params['forceOpen'] ?? null, $minimumResultsForSearch, $matchOnlyStartsWith);
+            $placeholder = ($attr['placeholder'] ?? null) ?: ' ';
+            select2_Adapter::appendAndRun($tpl, $attr['id'], $placeholder, $allowClear, null, $ajaxUrl, false, $this->params['forceOpen'] ?? null, $minimumResultsForSearch, $matchOnlyStartsWith);
         }
 
         return $tpl;
