@@ -117,7 +117,7 @@ class bulmar_BankDocumentExport extends core_Manager
         }
         
         $content = $this->prepareFileContent($data);
-        $content = iconv('utf-8', 'CP1251', $content);
+        $content = iconv('utf-8', 'CP1251//TRANSLIT//IGNORE', $content);
         
         return $content;
     }
