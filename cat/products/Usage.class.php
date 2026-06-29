@@ -41,15 +41,12 @@ class cat_products_Usage extends core_Manager
         $data->jobData->Jobs = cls::get('planning_Jobs');
         $this->prepareJobs($data->jobData);
 
-        if(haveRole('ceo,planning,jobSee')){
-            $data->taskData = clone $data;
-            $data->taskData->_useMasterField = 'productId';
-            $this->prepareDocuments('planning_Tasks', 'planning_ProductionTaskProducts', $data->taskData);
-        }
+        // Само брой задачи — нужен за tab логиката, без да се зареждат всичките редове
+        $countTasks = haveRole('ceo,planning,jobSee') ? $this->countTaskDocuments($data->masterId) : 0;
 
         // Промяна на таба взависимост дали артикула е стандартен или не
         if ($data->isPublic === true) {
-            if ((($masterRec->state == 'template') || (($data->jobData->notManifacturable ?? false) === true)) && !countR($data->jobData->rows) && !countR($data->taskData->rows)) {
+            if ((($masterRec->state == 'template') || (($data->jobData->notManifacturable ?? false) === true)) && !countR($data->jobData->rows) && !$countTasks) {
 
                 return;
             }
@@ -58,13 +55,12 @@ class cat_products_Usage extends core_Manager
                 return;
             }
 
-            $countTasks = countR($data->taskData->rows);
             if($data->masterData->rec->innerClass == planning_interface_StepProductDriver::getClassId() && !$countTasks){
 
                 return;
             }
             $data->Tab = 'top';
-            $data->TabCaption =  $countTasks ? 'Документи' : 'Задания';
+            $data->TabCaption = $countTasks ? 'Документи' : 'Задания';
 
             if (!$prepareTab || $prepareTab != 'Usage') {
 
@@ -75,19 +71,26 @@ class cat_products_Usage extends core_Manager
             $data->TabCaption = 'Документи';
             $data->Order = 2;
             if ($prepareTab && $prepareTab != 'Usage') {
-                
+
                 return;
             }
+        }
+
+        // Пълното зареждане на задачите — само когато табът реално се рендира
+        if (haveRole('ceo,planning,jobSee')) {
+            $data->taskData = clone $data;
+            $data->taskData->_useMasterField = 'productId';
+            $this->prepareDocuments('planning_Tasks', 'planning_ProductionTaskProducts', $data->taskData);
         }
 
         // Ако артикула е нестандартен тогава се показват и документите, в които се използват
         if ($data->isPublic === false) {
             $data->saleData = clone $data;
             $this->prepareDocuments('sales_Sales', 'sales_SalesDetails', $data->saleData);
-            
+
             $data->purData = clone $data;
             $this->prepareDocuments('purchase_Purchases', 'purchase_PurchasesDetails', $data->purData);
-            
+
             $data->quoteData = clone $data;
             $this->prepareDocuments('sales_Quotations', 'sales_QuotationsDetails', $data->quoteData);
 
@@ -112,12 +115,43 @@ class cat_products_Usage extends core_Manager
             $tpl->append($this->renderDocuments($data->quoteData));
             $tpl->append($this->renderDocuments($data->purQuoteData));
         }
-        $tpl->append($this->renderDocuments($data->taskData));
+        if (!empty($data->taskData)) {
+            $tpl->append($this->renderDocuments($data->taskData));
+        }
 
         return $tpl;
     }
     
     
+    /**
+     * Бърза проверка дали за артикула има поне една задача (без да зарежда всички редове)
+     *
+     * @param int $masterId
+     * @return int
+     */
+    private function countTaskDocuments($masterId)
+    {
+        $Detail = cls::get('planning_ProductionTaskProducts');
+        $dQuery = $Detail->getQuery();
+        $dQuery->EXT('stateMaster', 'planning_Tasks', "externalName=state,externalKey={$Detail->masterKey}");
+        $dQuery->where("#productId = {$masterId} AND #stateMaster != 'rejected'");
+        $dQuery->show($Detail->masterKey);
+        $dQuery->limit(1);
+        $ids = arr::extractValuesFromArray($dQuery->fetchAll(), $Detail->masterKey);
+
+        if (countR($ids)) {
+
+            return 1;
+        }
+
+        $query2 = cls::get('planning_Tasks')->getQuery();
+        $query2->where("#productId = {$masterId} AND #state != 'rejected'");
+        $query2->limit(1);
+
+        return countR($query2->fetchAll());
+    }
+
+
     /**
      * Подготовка на използвания в документ
      *
@@ -149,29 +183,35 @@ class cat_products_Usage extends core_Manager
 
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listOtherDocumentsPerPage));
         $data->Pager->setPageVar('cat_Products', $data->masterId, $Document);
-        
+
         // Ограничаване на заявката
         $query = $data->Document->getQuery();
         $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2  WHEN 'pending' THEN '3' ELSE 4 END)");
         $query->orderBy('#orderByState=ASC,#id=DESC');
-        
+
         if (countR($ids)) {
             $query->in('id', $ids);
         } else {
             $query->where('1=2');
         }
-        
-        $data->Pager->setLimit($query);
-        $fields = $data->Document->selectFields();
-        $fields['-list'] = true;
-        
-        // Вербализиране на записите
+
+        // Зареждаме всички записи за да знае пейджърът total count
         while ($dRec = $query->fetch()) {
             $data->recs[$dRec->id] = $dRec;
-            $row = $data->Document->recToVerbal($dRec, $fields);
-            $row->title = $data->Document->getHyperlink($dRec->id, true);
-            $row->created = "{$row->createdOn} " . tr('от||by') . " {$row->createdBy}";
-            $data->rows[$dRec->id] = $row;
+        }
+        $data->Pager->itemsCount = countR($data->recs);
+
+        $fields = $data->Document->selectFields();
+        $fields['-list'] = true;
+
+        // Вербализираме само записите на текущата страница
+        foreach ($data->recs as $id => $dRec) {
+            if ($data->Pager->isOnPage()) {
+                $row = $data->Document->recToVerbal($dRec, $fields);
+                $row->title = $data->Document->getHyperlink($dRec->id, true);
+                $row->created = "{$row->createdOn} " . tr('от||by') . " {$row->createdBy}";
+                $data->rows[$id] = $row;
+            }
         }
     }
     

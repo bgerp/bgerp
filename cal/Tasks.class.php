@@ -1253,9 +1253,23 @@ class cal_Tasks extends embed_Manager
 
         if (!empty($rec->id)) {
             $oldRec = $mvc->fetch($rec->id);
+
+            $checkActivate = false;
+            if ($rec->state != 'rejected' && $rec->state != 'draft' && $oldRec->state != 'rejected' && $oldRec->state != 'draft') {
+                if (isset($rec->assign)) {
+                    // Активираме само ако е ДОБАВЕНО ново лице, а не при премахване.
+                    // (assign е keylist - може да е имало няколко и да е махнат само един)
+                    $assignDiff = type_Keylist::getDiffArr($oldRec->assign, $rec->assign);
+                    if (!empty($assignDiff['add'])) {
+                        $checkActivate = true;
+                    }
+                }
+            }
+
             // Ако отговаря на условията да се активира, вместо да е заявка
             if (($oldRec->state == 'waiting' && $rec->state == 'waiting') ||
-                ($oldRec->state == 'active' && $rec->state == 'active')) {
+                ($oldRec->state == 'active' && $rec->state == 'active') ||
+                $checkActivate === true) {
                 $canActivate = $mvc->canActivateTask($rec);
 
                 if ($canActivate !== null) {

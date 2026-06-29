@@ -182,8 +182,9 @@ class bulmar_InvoiceExport extends core_Manager
 
         core_App::setTimeLimit(0.4 * countR($recs), false, 300);
         $data = $this->prepareExportData($recs, $filter);
+
         $content = $this->prepareFileContent($data);
-        $content = iconv('utf-8', 'CP1251', $content);
+        $content = iconv('utf-8', 'CP1251//TRANSLIT//IGNORE', $content);
 
         return $content;
     }
@@ -483,7 +484,9 @@ class bulmar_InvoiceExport extends core_Manager
                 $line .= "{$static->creditAdvance}|PA|$|{$rec->dpAmount}||";
             }
 
-            if ($rec->creditBuckets !== null) {
+            if ($rec->dpOperation == 'accrued') {
+                $line .= "{$static->creditAdvance}|PA|$|{$rec->dpAmount}||";
+            } elseif ($rec->creditBuckets !== null) {
                 // Нова логика — кредити по кофи
                 foreach ($rec->creditBuckets as $accId => $bucket) {
                     if ($bucket['amount'] == 0) continue;
@@ -491,24 +494,22 @@ class bulmar_InvoiceExport extends core_Manager
                     $line .= "{$accId}|{$analPart}||{$bucket['amount']}||";
                 }
 
-                // Fallback ако всички кофи са 0 и не е аванс
-                if ($rec->dpOperation != 'accrued' && empty(array_filter($rec->creditBuckets, function($b) { return $b['amount'] != 0; }))) {
+                // Fallback ако всички кофи са 0
+                if (empty(array_filter($rec->creditBuckets, function($b) { return $b['amount'] != 0; }))) {
                     $line .= "{$static->creditSaleProducts}|||{$rec->baseAmount}||";
                 }
             } else {
                 // Оригинална логика
-                if ($rec->dpOperation != 'accrued') {
-                    if ($rec->productsAmount) {
-                        $line .= "{$static->creditSaleProducts}|||{$rec->productsAmount}||";
-                    }
+                if ($rec->productsAmount) {
+                    $line .= "{$static->creditSaleProducts}|||{$rec->productsAmount}||";
+                }
 
-                    if ($rec->servicesAmount) {
-                        $line .= "{$static->creditSaleServices}|||{$rec->servicesAmount}||";
-                    }
+                if ($rec->servicesAmount) {
+                    $line .= "{$static->creditSaleServices}|||{$rec->servicesAmount}||";
+                }
 
-                    if($rec->type != 1 && empty($rec->servicesAmount) && empty($rec->productsAmount)){
-                        $line .= "{$static->creditSaleProducts}|||{$rec->baseAmount}||";
-                    }
+                if($rec->type != 1 && empty($rec->servicesAmount) && empty($rec->productsAmount)){
+                    $line .= "{$static->creditSaleProducts}|||{$rec->baseAmount}||";
                 }
             }
 

@@ -62,15 +62,147 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,to,compare,firstMonth,secondMonth,group,dealers,contragent,crmGroup,articleType,seeDelta,orderBy,order,grouping,updateDays,updateTime,products';
-    
-    
+    protected $changeableFields = 'from,to,compare,firstMonth,secondMonth,group,dealers,dealersTeam,contragent,crmGroup,articleType,seeDelta,orderBy,order,grouping,updateDays,updateTime,products';
+
+
     /**
      * Кои полета са за избор на период
      */
     protected $periodFields = 'from,to';
     
     
+    /**
+     * Връща обхвата на достъп до търговци и екипи за потребителя
+     *
+     * Използва acc настройките SUMMARY_ROLES_FOR_ALL и SUMMARY_ROLES_FOR_TEAMS.
+     * Резултатът се използва едновременно за опциите във формата и за сървърния филтър в prepareRecs().
+     *
+     * @param int|null $userId
+     *
+     * @return array
+     */
+    public static function getDealerAccessScope($userId = null)
+    {
+        $userId = isset($userId) ? $userId : core_Users::getCurrent();
+        $rolesForAll = self::getDealerFilterRoles('SUMMARY_ROLES_FOR_ALL');
+        $rolesForTeams = self::getDealerFilterRoles('SUMMARY_ROLES_FOR_TEAMS');
+
+        $res = array(
+            'canSeeAll' => false,
+            'canSeeTeams' => false,
+            'allowedDealers' => array(),
+            'allowedTeams' => array(),
+        );
+
+        if ($rolesForAll && haveRole($rolesForAll, $userId)) {
+            $res['canSeeAll'] = true;
+            $res['allowedDealers'] = self::getAllDealers();
+            $res['allowedTeams'] = keylist::toArray(core_Roles::getRolesByType('team'));
+
+            return $res;
+        }
+
+        if ($rolesForTeams && haveRole($rolesForTeams, $userId)) {
+            $res['canSeeTeams'] = true;
+            $res['allowedTeams'] = keylist::toArray(core_Users::getUserRolesByType($userId, 'team'));
+
+            if (!empty($res['allowedTeams'])) {
+                $res['allowedDealers'] = self::getUsersByTeams($res['allowedTeams']);
+            }
+
+            return $res;
+        }
+
+        $res['allowedDealers'] = array($userId => $userId);
+
+        return $res;
+    }
+
+
+    /**
+     * Връща всички потребители, които реално се срещат като dealerId в данните на справката
+     *
+     * Списъкът не се базира на роли, а на реални продажбени записи.
+     *
+     * @return array
+     */
+    protected static function getAllDealers()
+    {
+        $res = array();
+
+        $primeCostQuery = sales_PrimeCostByDocument::getQuery();
+        $primeCostQuery->where('#dealerId IS NOT NULL');
+        $primeCostQuery->groupBy('dealerId');
+        $primeCostQuery->show('dealerId');
+        while ($primeCostRec = $primeCostQuery->fetch()) {
+            if ($primeCostRec->dealerId > 0) {
+                $res[$primeCostRec->dealerId] = $primeCostRec->dealerId;
+            }
+        }
+
+        $salesQuery = sales_Sales::getQuery();
+        $salesQuery->where('#dealerId IS NOT NULL');
+        $salesQuery->groupBy('dealerId');
+        $salesQuery->show('dealerId');
+        while ($salesRec = $salesQuery->fetch()) {
+            if ($salesRec->dealerId > 0) {
+                $res[$salesRec->dealerId] = $salesRec->dealerId;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща потребителите от подадените екипи
+     *
+     * Използва се при потребители с достъп само до собствените им екипи.
+     *
+     * @param array|null $teams
+     *
+     * @return array
+     */
+    protected static function getUsersByTeams($teams)
+    {
+        $res = array();
+        if (empty($teams)) {
+
+            return $res;
+        }
+
+        $teamsKeylist = keylist::fromArray($teams);
+
+        $usersQuery = core_Users::getQuery();
+        $usersQuery->where("#state != 'rejected' AND #state != 'draft'");
+        $usersQuery->likeKeylist('roles', $teamsKeylist);
+
+        while ($userRec = $usersQuery->fetch()) {
+            $res[$userRec->id] = $userRec->id;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща ролите за филтриране от acc настройките във формат за haveRole()
+     *
+     * haveRole() очаква списък със запетаи, затова тук не се използва keylist формат.
+     *
+     * @param string $key
+     *
+     * @return string
+     */
+    protected static function getDealerFilterRoles($key)
+    {
+        $roles = trim((string) acc_Setup::get($key));
+        $rolesArr = arr::make($roles, true);
+
+        return implode(',', $rolesArr);
+    }
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -425,35 +557,30 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $form->setSuggestions('contragent', $suggestionContragents);
 
-        $suggestionDealers = [];
+        // Ограничаваме опциите във формата според правата на текущия потребител
+        $dealerAccessScope = self::getDealerAccessScope();
 
-// Взимаме ID на ролята 'powerUser'
-        $powerUserRoleId = core_Roles::fetchByName('powerUser');
-
-        if ($powerUserRoleId) {
-
-            // Обхождаме всички потребители
-            $dealers = core_Users::getQuery();
-            while ($delRec = $dealers->fetch()) {
-                // Добавяме само ако имат точно ролята powerUser
-                if (keylist::isIn($powerUserRoleId, $delRec->roles)) {
-                    $suggestionDealers[$delRec->id] = $delRec->nick;
-                }
-            }
+        $suggestionDealers = array();
+        foreach ($dealerAccessScope['allowedDealers'] as $dealerId) {
+            $suggestionDealers[$dealerId] = core_Users::fetchField($dealerId, 'nick');
         }
+        asort($suggestionDealers);
 
         $form->setSuggestions('dealers', $suggestionDealers);
 
-
         $suggestionTeams = array();
-        $teams = core_Roles::getRolesByType('team');
-        foreach (keylist::toArray($teams) as $team) {
-
-            $teRec = core_Roles::fetch($team);
-            $suggestionTeams[$teRec->id] = $teRec->role;
+        foreach ($dealerAccessScope['allowedTeams'] as $teamId) {
+            $teRec = core_Roles::fetch($teamId);
+            if ($teRec) {
+                $suggestionTeams[$teRec->id] = $teRec->role;
+            }
         }
+        asort($suggestionTeams);
 
         $form->setSuggestions('dealersTeam', $suggestionTeams);
+        if (empty($suggestionTeams)) {
+            $form->setField('dealersTeam', 'input=none');
+        }
 
     }
     
@@ -638,9 +765,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
 
-        // Филтър за ДИЛЪР
+        // Сървърна защита на филтъра за дилър
         if ($rec->quantityType != 'invoiced') {
+            $dealerAccessScope = self::getDealerAccessScope();
             $dealersArr = [];
+            $hasDealerFilter = !empty($rec->dealers) || !empty($rec->dealersTeam);
 
             // Добавяне на потребителите избрани в полето dealers
             if (!empty($rec->dealers)) {
@@ -650,22 +779,30 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             // Добавяне на потребителите от избраните роли (екипи)
             if (!empty($rec->dealersTeam)) {
                 $roleIds = keylist::toArray($rec->dealersTeam);
+                $teamUsers = self::getUsersByTeams($roleIds);
 
-                // Вземаме всички потребители, които имат поне една от ролите
-                $q = core_Users::getQuery();
-                foreach ($roleIds as $roleId) {
-                    $q->orWhere("#roles LIKE '%|{$roleId}|%'");
-                }
-
-                while ($user = $q->fetch()) {
-                    $dealersArr[$user->id] = $user->id;
+                foreach ($teamUsers as $userId) {
+                    $dealersArr[$userId] = $userId;
                 }
             }
 
-            // Ако има натрупани дилъри, филтрираме
+            // Ръчно подадените dealers/dealersTeam се свеждат само до разрешените търговци
+            if ($hasDealerFilter) {
+                $dealersArr = array_intersect_key($dealersArr, $dealerAccessScope['allowedDealers']);
+            } else {
+                $dealersArr = $dealerAccessScope['allowedDealers'];
+            }
+
+            // Ако няма разрешени търговци след пресичането, заявката не трябва да върне чужди данни
+            if (empty($dealersArr)) {
+                $dealersArr = array(-PHP_INT_MAX);
+            }
+
             if (!empty($dealersArr)) {
                 $query->in('dealerId', $dealersArr);
             }
+        } else {
+            // TODO: Да се реши връзката invoice -> dealer, за да се приложи dealer/team ограничението и при фактурирани количества.
         }
         
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
