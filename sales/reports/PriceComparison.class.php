@@ -87,7 +87,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
         $fieldset->FLD('priceListHigh', 'key(mvc=price_Lists,select=title)', 'caption=Висока->Ценова политика,after=priceListLow,removeAndRefreshForm,mandatory,silent,single=none');
 
-        $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=*)', 'caption=Артикули->Артикул,after=priceListHigh,placeholder=Избери,silent,single=none');
+        $fieldset->FLD('products', 'keylist2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,forceAjax)', 'caption=Артикули->Артикул,after=priceListHigh,placeholder=Избери,silent,single=none,class=w100');
 
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=products,placeholder=Избери,silent,single=none');
 
@@ -449,7 +449,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
                 $productsArr[] = cat_Products::getTitleById($productId);
             }
 
-            $fieldTpl->append(static::renderClampedFilterValue($productsArr), 'products');
+            $fieldTpl->append(static::renderClampedFilterValue($productsArr, 3), 'products');
         }
 
         $marker = 0;
@@ -465,7 +465,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
                 }
             }
 
-            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
+            $fieldTpl->append(static::renderClampedFilterValue(array($groupVerb)), 'groups');
         } else {
             $groupVerb = empty($data->rec->products) ? 'Всички' : 'Няма избрани';
             $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
