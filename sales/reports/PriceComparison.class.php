@@ -425,7 +425,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
                                         <!--ET_BEGIN policyClassId--><div>|Ниска цена по|*: [#policyClassId#]</div><!--ET_END policyClassId-->
                                         <!--ET_BEGIN priceListHigh--><div>|Висока цена по|*: [#priceListHigh#]</div><!--ET_END priceListHigh-->
                                         <!--ET_BEGIN products--><div>|Артикули|*: [#products#]</div><!--ET_END products-->
-                                        <!--ET_BEGIN groups--><div>|Групи продукти|*: [#groups#]</div><!--ET_END groups-->
+                                        <!--ET_BEGIN groups--><div>|Групи артикули|*: [#groups#]</div><!--ET_END groups-->
                                         <!--ET_BEGIN withoutPrice--><div>|Без цена|*: [#withoutPrice#]</div><!--ET_END withoutPrice-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));

@@ -862,20 +862,37 @@ class rack_Movements extends rack_MovementAbstract
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $middleCaptionStyle = 'display:inline-table; width:auto;';
-        $tpl = new core_ET(tr("|*<div class='formMiddleCaption' style='{$middleCaptionStyle}'><small><!--ET_BEGIN PALLET_BLOCK--><table><tr><td colspan='2'><b>|На палети|*</b>:</td></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN MOVEMENT_BLOCK--><table><tr><td colspan='2'><hr></td></tr><tr><td colspan='2'><b>|Чакащи|*</b>:</td></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN LAST--><hr><table>[#LAST#]</table></div><!--ET_END LAST--></small></div>"));
+        $sectionTableStyle = 'width:100%;';
+        $noDataRow = "<tr><td colspan='2' style='color:#666;'>" . "--- " . tr('няма') . " ---" . "</td></tr>";
+        $tpl = new core_ET(tr("|*<div class='formMiddleCaption' style='{$middleCaptionStyle}'><small><!--ET_BEGIN PALLET_BLOCK--><table style='{$sectionTableStyle}'><tr><td colspan='2'><b>|На палети|*</b>:</td></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN LAST--><table style='{$sectionTableStyle}'><tr><td colspan='2'><hr></td></tr>[#LAST#]</table><!--ET_END LAST--><!--ET_BEGIN MOVEMENT_BLOCK--><table style='{$sectionTableStyle}'><tr><td colspan='2'><hr></td></tr><tr><td colspan='2'><b>|Чакащи от|*</b>:</td></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN RESERVED_BLOCK--><table style='{$sectionTableStyle}'><tr><td colspan='2'><hr></td></tr><tr><td colspan='2'><b>[#RESERVED_TITLE#]</b>:</td></tr>[#RESERVED_BLOCK#]</table><!--ET_END RESERVED_BLOCK--><!--ET_BEGIN FLOOR_BLOCK--><table style='{$sectionTableStyle}'><tr><td colspan='2'><hr></td></tr>[#FLOOR_BLOCK#]</table><!--ET_END FLOOR_BLOCK--></small></div>"));
+        $reservedTitle = tr('Запаз. "за утре" - "В зони"');
+        $reservedTitleHint = tr('Запазените с хоризонт "Утре" количества, намалени с количествата, които вече са в зони');
+        $reservedTitleHint = str_replace('"', '&quot;', strip_tags($reservedTitleHint));
+        $reservedTitleHint = "<span title=\"{$reservedTitleHint}\" rel=\"tooltip\">{$reservedTitle}</span>";
+        $tpl->replace($reservedTitleHint, 'RESERVED_TITLE');
         $batchDef = batch_Defs::getBatchDef($productId);
 
-        // Показване на позицията от която последно е смъкнат артикула
+        // Показване на чакащите движения от палетмясто или от пода
         $haveWhatToShow = false;
         $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state = 'pending' AND #positionTo IS NOT NULL");
+        $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state = 'pending'");
+        $mQuery->show('position,quantity');
+        $pendingQuantities = array();
         while($mRec = $mQuery->fetch()){
-            $foundRecs['MOVEMENT_BLOCK'][] = (object)array('position' => $mRec->positionTo, 'quantity' => $mRec->quantity, 'batch' => $mRec->batch);
+            if (empty($mRec->quantity)) {
+                continue;
+            }
+
+            $position = empty($mRec->position) ? rack_PositionType::FLOOR : $mRec->position;
+            $pendingQuantities[$position] = ($pendingQuantities[$position] ?? 0) + $mRec->quantity;
+        }
+        foreach ($pendingQuantities as $position => $quantity) {
+            $foundRecs['MOVEMENT_BLOCK'][] = (object)array('position' => $position, 'quantity' => $quantity);
         }
         if (isset($foundRecs['MOVEMENT_BLOCK'])) {
             usort($foundRecs['MOVEMENT_BLOCK'], function($a, $b) use ($palletPositionOrder) {
-                $aOrder = isset($palletPositionOrder[$a->position]) ? $palletPositionOrder[$a->position] : PHP_INT_MAX;
-                $bOrder = isset($palletPositionOrder[$b->position]) ? $palletPositionOrder[$b->position] : PHP_INT_MAX;
+                $aOrder = ($a->position == rack_PositionType::FLOOR) ? PHP_INT_MAX : (isset($palletPositionOrder[$a->position]) ? $palletPositionOrder[$a->position] : PHP_INT_MAX - 1);
+                $bOrder = ($b->position == rack_PositionType::FLOOR) ? PHP_INT_MAX : (isset($palletPositionOrder[$b->position]) ? $palletPositionOrder[$b->position] : PHP_INT_MAX - 1);
                 if ($aOrder != $bOrder) {
                     return ($aOrder < $bOrder) ? -1 : 1;
                 }
@@ -896,9 +913,9 @@ class rack_Movements extends rack_MovementAbstract
 
                     // Групиране на партидите по позиции
                     $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
-                    $positionVerbal = core_Type::getByName('varchar')->toVerbal($pRec->position);
+                    $positionVerbal = ($pRec->position == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($pRec->position);
                     $string = "<b>{$quantityVerbal}</b>";
-                    if ($batchDef) {
+                    if ($batchDef && $placeholder == 'PALLET_BLOCK') {
                         if (!empty($pRec->batch)) {
                             $batchVerbal = $batchDef->toVerbal($pRec->batch);
                         } else {
@@ -921,13 +938,34 @@ class rack_Movements extends rack_MovementAbstract
             }
         }
         if (!isset($foundRecs['PALLET_BLOCK']) || !countR($foundRecs['PALLET_BLOCK'])) {
-            $tpl->append("<tr><td colspan='2' style='color:#666;'>" . "--- " . tr('няма') . " ---" . "</td></tr>", 'PALLET_BLOCK');
+            $tpl->append($noDataRow, 'PALLET_BLOCK');
+            $haveWhatToShow = true;
+        }
+        if (!isset($foundRecs['MOVEMENT_BLOCK']) || !countR($foundRecs['MOVEMENT_BLOCK'])) {
+            $tpl->append($noDataRow, 'MOVEMENT_BLOCK');
             $haveWhatToShow = true;
         }
 
+        $rackRec = rack_Products::fetch("#productId = $productId AND #storeId = $storeId");
+        $tomorrow = dt::addDays(1, dt::today(), false);
+        $plannedQuantities = store_StockPlanning::getPlannedQuantities($tomorrow, array($productId), array($storeId));
+        $reservedTomorrow = $plannedQuantities[$storeId][$productId]->reserved ?? 0;
+        $quantityOnZones = isset($rackRec->quantityOnZones) ? $rackRec->quantityOnZones : 0;
+        $reservedNotInZones = max(0, $reservedTomorrow - $quantityOnZones);
+        if (round($reservedTomorrow, 6) > 0) {
+            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($reservedNotInZones);
+            $quantityVerbal = "<b>{$quantityVerbal}</b> {$measureName}";
+            $reservedInfoIcon = static::getReservedTomorrowInfoIcon($productId, $storeId, $tomorrow);
+            $tpl->append("<tr><td colspan='2'>{$reservedInfoIcon} {$quantityVerbal}</td></tr>", 'RESERVED_BLOCK');
+            $haveWhatToShow = true;
+        } else {
+            $tpl->append($noDataRow, 'RESERVED_BLOCK');
+            $haveWhatToShow = true;
+        }
+
+        $tpl->append(tr("|*<tr><td colspan='2'><b>|Последно смъкнат от|*</b>:</td></tr>"), 'LAST');
+        $onVerbal = tr('на');
         if(countR($lastPositions = rack_Pallets::getLastPalletPositions($productId, $storeId))){
-            $tpl->append(tr("|*<tr><td colspan='2'><b>|Последно смъкнат от|*</b>:</td></tr>"), 'LAST');
-            $onVerbal = tr('на');
             foreach($lastPositions as $i => $lastPositionRec){
                 $position = $lastPositionRec->position;
                 $positionVerbal = ($position == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($position);
@@ -935,14 +973,18 @@ class rack_Movements extends rack_MovementAbstract
                 $rowStyle = ($i) ? " style='color:#666;'" : '';
                 $tpl->append("<tr{$rowStyle}><td colspan='2'><b style='font-size:1.1em;'>{$positionVerbal}</b> {$onVerbal} {$dateVerbal}</td></tr>", 'LAST');
             }
-            $tpl->append("<tr><td colspan='2'><hr></td></tr>", 'LAST');
+            $haveWhatToShow = true;
+        } else {
+            $tpl->append($noDataRow, 'LAST');
             $haveWhatToShow = true;
         }
 
-        if($rackRec = rack_Products::fetch("#productId = $productId AND #storeId = $storeId")){
+        if($rackRec){
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rackRec->quantityNotOnPallets);
             $quantityVerbal = "<b>{$quantityVerbal}</b> {$measureName}";
-            $tpl->append(tr("|*<tr><td style='white-space:nowrap; padding-right:8px; text-align:left; width:1%;'>|На пода|*:</td><td style='text-align:left;'>{$quantityVerbal}</td></tr>"), 'LAST');
+            $tpl->append(tr("|*<tr><td style='white-space:nowrap; padding-right:8px; text-align:left; width:1%;'>|На пода|*:</td><td style='text-align:left;'>{$quantityVerbal}</td></tr>"), 'FLOOR_BLOCK');
+        } else {
+            $tpl->append(tr("|*<tr><td style='white-space:nowrap; padding-right:8px; text-align:left; width:1%;'>|На пода|*:</td><td style='color:#666; text-align:left;'>--- |няма|* ---</td></tr>"), 'FLOOR_BLOCK');
         }
 
         return ($haveWhatToShow) ? $tpl->getContent() : null;
@@ -959,6 +1001,34 @@ class rack_Movements extends rack_MovementAbstract
     private static function getPalletInfoDateVerbal($date)
     {
         return dt::mysql2verbal($date, 'smartDate', null, false, false);
+    }
+
+
+    /**
+     * Връща иконка с документите, формиращи запазеното количество за утре
+     *
+     * @param int    $productId
+     * @param int    $storeId
+     * @param string $date
+     *
+     * @return string
+     */
+    private static function getReservedTomorrowInfoIcon($productId, $storeId, $date)
+    {
+        $replaceField = "rackReservedTomorrow{$productId}_{$storeId}";
+        $tooltipUrl = toUrl(array(
+            'store_Products',
+            'ShowReservedDocs',
+            'productId' => $productId,
+            'stores' => keylist::addKey('', $storeId),
+            'replaceField' => $replaceField,
+            'field' => 'reserved',
+            'date' => $date
+        ), 'local');
+        $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', ''), 'style' => 'vertical-align:middle; position:relative; top:-1px;'));
+        $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'От кои документи е сформирано количеството'), $arrowImg, true);
+
+        return "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$replaceField}' style='white-space:nowrap;'></span>{$arrow}</span>";
     }
 
 
