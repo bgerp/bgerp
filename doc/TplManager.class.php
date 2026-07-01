@@ -520,7 +520,7 @@ class doc_TplManager extends core_Master
             $object->state = $newState;
 
             // Ако ще се обновява съществуващ системен шаблон
-            if($object->id){
+            if(!empty($object->id)){
 
                 // и той вече е клониран в други шаблони
                 $clQuery = static::getQuery();
@@ -538,7 +538,7 @@ class doc_TplManager extends core_Master
 
             static::save($object);
             
-            ($object->id) ? $updated++ : $added++;
+            (!empty($object->id)) ? $updated++ : $added++;
         }
 
         // Нотифициране на потребителите, клонирали променен вече шаблон
