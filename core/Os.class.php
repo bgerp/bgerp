@@ -464,7 +464,7 @@ class core_Os
             $free = shell_exec('free');
             $free = (string) trim($free);
             $freeArr = explode("\n", $free);
-            $mem = explode(' ', $freeArr[1]);
+            $mem = explode(' ', $freeArr[1] ?? '');
             $mem = array_filter($mem);
             $mem = array_merge($mem);
         }
