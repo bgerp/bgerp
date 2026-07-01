@@ -2242,6 +2242,9 @@ class cat_Products extends embed_Manager
      */
     public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null, $primeCostlistId = null)
     {
+        core_Debug::startTimer("GET_PRIME_COST_ALL");
+        core_Debug::startTimer("GET_PRIME_COST_{$productId}");
+
         // Опитваме се да намерим запис в в себестойностти за артикула
         $primeCostlistId = (isset($primeCostlistId)) ? $primeCostlistId : price_ListRules::PRICE_LIST_COST;
 
@@ -2281,6 +2284,9 @@ class cat_Products extends embed_Manager
         }
         
         $primeCost = is_object($primeCost) ? $primeCost->price : $primeCost;
+
+        core_Debug::stopTimer("GET_PRIME_COST_ALL");
+        core_Debug::stopTimer("GET_PRIME_COST_{$productId}");
 
         return $primeCost;
     }
