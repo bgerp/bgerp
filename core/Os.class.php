@@ -406,11 +406,14 @@ class core_Os
      */
     public function getMemoryUsage()
     {
+        $memory_usage = null;
         if (!$this->isWindows()) {
             $mem = $this->getFreeRes();
-            $memory_usage = $mem[2] / $mem[1] * 100;
+            if (!empty($mem[1])) {
+                $memory_usage = $mem[2] / $mem[1] * 100;
+            }
         }
-        
+
         return $memory_usage;
     }
     
@@ -426,13 +429,13 @@ class core_Os
         $memoryLimit = null;
         if (!self::isWindows()) {
             $mem = self::getFreeRes();
-            $memoryLimit = $mem[1];
+            $memoryLimit = $mem[1] ?? null;
         }
-        
+
         return $memoryLimit;
     }
-    
-    
+
+
     /**
      * Връща информация с колко памет разполага ОС
      * За сега работи само под Linux
@@ -444,7 +447,7 @@ class core_Os
         $memoryLimit = null;
         if (!self::isWindows()) {
             $mem = self::getFreeRes();
-            $memoryLimit = $mem[3];
+            $memoryLimit = $mem[3] ?? null;
         }
         
         return $memoryLimit;
