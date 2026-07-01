@@ -155,11 +155,12 @@ class doc_LinkedLast extends core_Mvc
         $lQuery->where(array("#outType = '[#1#]'", $type));
         $lQuery->where(array("#outVal = '[#1#]'", $id));
         
+        $skipArr = array();
         while ($lRec = $lQuery->fetch()) {
             $lStr = $lRec->inType . '|' . $lRec->inVal;
             $skipArr[$lStr] = $lStr;
         }
-        
+
         while ($rec = $query->fetch()) {
             if (($rec->inType == $type) && ($rec->inVal == $id)) {
                 continue;
@@ -167,15 +168,15 @@ class doc_LinkedLast extends core_Mvc
             if (($rec->outType == $type) && ($rec->outVal == $id)) {
                 continue;
             }
-            
+
             $sStr = $rec->inType . '|' . $rec->inVal;
-            if ($skipArr[$sStr]) {
+            if (!empty($skipArr[$sStr])) {
                 continue;
             }
             
             if ($rec->inType == 'file') {
                 $fName = fileman::fetchField($rec->inVal, 'name');
-                if ($resArr['last_file_' . $rec->inVal]) {
+                if (!empty($resArr['last_file_' . $rec->inVal])) {
                     continue;
                 }
                 $resArr['last_file_' . $rec->inVal] = $addTo . tr('файл') . ' ' . str::limitLen($fName, 32);
@@ -186,8 +187,8 @@ class doc_LinkedLast extends core_Mvc
                 }
                 $hnd = '#' . $doc->getHandle();
                 $dRow = $doc->getDocumentRow();
-                $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
-                if ($resArr['last_doc_' . $rec->inVal]) {
+                $title = ($dRow->recTitle ?? null) ?: ($dRow->title ?? '');
+                if (!empty($resArr['last_doc_' . $rec->inVal])) {
                     continue;
                 }
                 $resArr['last_doc_' . $rec->inVal] = $addTo . $hnd . ' - ' . $title;
@@ -236,7 +237,7 @@ class doc_LinkedLast extends core_Mvc
             return ;
         }
         
-        list(, $typeStr, $id) = explode('_', $form->rec->act);
+        list(, $typeStr, $id) = explode('_', $form->rec->act ?? '') + [null, null, null];
         
         if ($typeStr == 'doc') {
             $form->rec->linkContainerId = $id;

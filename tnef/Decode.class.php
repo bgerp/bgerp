@@ -135,7 +135,7 @@ class tnef_Decode extends core_Manager
         
         // Стартираме скрипта синхронно синхронно
         if ($Script->run(false) === false) {
-            fileman_Indexes::createError($params);
+            fileman_Indexes::createError(array());
         } else {
             $fileHndArr = self::uploadResFiles($Script);
             

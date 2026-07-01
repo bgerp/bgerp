@@ -457,7 +457,7 @@ class cal_Tasks extends embed_Manager
             $form->fields['priority']->maxRadio = 2;
         }
 
-        if ($rec->allDay == 'yes') {
+        if (($rec->allDay ?? null) == 'yes') {
             list($rec->timeStart, ) = explode(' ', $rec->timeStart);
         }
         
@@ -514,9 +514,9 @@ class cal_Tasks extends embed_Manager
             }
         }
 
-        if (($form->cmd == 'refresh') || (!$form->cmd && $rec->assetResourceId)) {
+        if (($form->cmd == 'refresh') || (!$form->cmd && !empty($rec->assetResourceId))) {
             // При избор на компонент, да са избрани споделените потребители, които са отговорници
-            if ($rec->assetResourceId) {
+            if (!empty($rec->assetResourceId)) {
                 $assetId = planning_AssetResources::fetchField($rec->assetResourceId, 'id');
 
                 $maintainers = '';
@@ -544,7 +544,7 @@ class cal_Tasks extends embed_Manager
      */
     public static function on_BeforePrepareSelectForm($mvc, &$res, $form)
     {
-        if (!$form->rec->{$mvc->driverClassField}) {
+        if (empty($form->rec->{$mvc->driverClassField})) {
             $driverClass = Request::get('driverClass');
             if ($driverClass && cls::load($driverClass, true)) {
                 if (!isset($form->rec)) {
@@ -936,7 +936,7 @@ class cal_Tasks extends embed_Manager
             $link = $mvc->prepareQueryForTimeIntersection($rec);
 
             if ($link !== false) {
-                $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
+                $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: <span class='fright'>|Възложено на|*:</span> {$link}");
             }
 
             if(isset($rec->assetResourceId)) {
@@ -985,7 +985,7 @@ class cal_Tasks extends embed_Manager
      */
     public static function on_AfterGetDefaultAssignUsers($mvc, &$res, $rec)
     {
-        $res = keylist::merge('', $rec->assign);
+        $res = keylist::merge('', $rec->assign ?? null);
         if (isset($rec->assetResourceId)) {
             $assetUsers = planning_AssetResources::fetchField($rec->assetResourceId, 'systemUsers');
             if (!empty($assetUsers)) {
@@ -1253,9 +1253,23 @@ class cal_Tasks extends embed_Manager
 
         if (!empty($rec->id)) {
             $oldRec = $mvc->fetch($rec->id);
+
+            $checkActivate = false;
+            if ($rec->state != 'rejected' && $rec->state != 'draft' && $oldRec->state != 'rejected' && $oldRec->state != 'draft') {
+                if (isset($rec->assign)) {
+                    // Активираме само ако е ДОБАВЕНО ново лице, а не при премахване.
+                    // (assign е keylist - може да е имало няколко и да е махнат само един)
+                    $assignDiff = type_Keylist::getDiffArr($oldRec->assign, $rec->assign);
+                    if (!empty($assignDiff['add'])) {
+                        $checkActivate = true;
+                    }
+                }
+            }
+
             // Ако отговаря на условията да се активира, вместо да е заявка
             if (($oldRec->state == 'waiting' && $rec->state == 'waiting') ||
-                ($oldRec->state == 'active' && $rec->state == 'active')) {
+                ($oldRec->state == 'active' && $rec->state == 'active') ||
+                $checkActivate === true) {
                 $canActivate = $mvc->canActivateTask($rec);
 
                 if ($canActivate !== null) {
@@ -1368,7 +1382,7 @@ class cal_Tasks extends embed_Manager
         }
         
         if ($action == 'edit') {
-            if ($rec->id) {
+            if (is_object($rec) && $rec->id) {
                 if (!cal_Tasks::haveRightFor('single', $rec)) {
                     $requiredRoles = 'no_one';
                 }
@@ -1376,14 +1390,14 @@ class cal_Tasks extends embed_Manager
         }
         
         if ($action == 'changestate') {
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 if (!$mvc->haveRightFor('single', $rec->id, $userId)) {
                     $requiredRoles = 'no_one';
                 }
             }
         }
         
-        if ($action == 'edit' && $rec->state == 'pending') {
+        if ($action == 'edit' && is_object($rec) && $rec->state == 'pending') {
             $oState = null;
             if ($rec->id) {
                 $oState = $mvc->fetchField($rec->id, 'state');
@@ -1690,10 +1704,10 @@ class cal_Tasks extends embed_Manager
                 $useDateRange = false;
             }
 
-            $driverId = $filterRec->{$mvc->driverClassField};
+            $driverId = $filterRec->{$mvc->driverClassField} ?? null;
             $taskType = ($driverId == support_TaskType::getClassId()) ? 'сигнали' : 'задачи';
 
-            if ($filterRec->order == 'onStart') {
+            if (($filterRec->order ?? null) == 'onStart') {
                 $data->title = 'Търсене на ' . $taskType . ' по начало на задачата в периода |*<span class="green">"' .
                     $data->listFilter->getFieldType('from')->toVerbal($filterRec->from) . ' -
     			' . $data->listFilter->getFieldType('to')->toVerbal($filterRec->to) . '"</span>';
@@ -1701,10 +1715,10 @@ class cal_Tasks extends embed_Manager
                 $data->title = 'Търсене на задачи по края на задачата в периода |*<span class="green">"' .
                     $data->listFilter->getFieldType('from')->toVerbal($filterRec->from) . ' -
     			' . $data->listFilter->getFieldType('to')->toVerbal($filterRec->to) . '"</span>';
-            } elseif ($filterRec->order == 'noStartEnd') {
+            } elseif (($filterRec->order ?? null) == 'noStartEnd') {
                 $data->title = 'Търсене на ' . $taskType . ' |*<span class="green">"' .
                     'без начало и край"</span>';
-            } elseif ($filterRec->search) {
+            } elseif ($filterRec->search ?? null) {
                 $data->title = 'Търсене на ' . $taskType . ' отговарящи на |*<span class="green">"' .
                     $data->listFilter->getFieldType('search')->toVerbal($filterRec->search) . '"</span>';
             } else {
@@ -1750,11 +1764,11 @@ class cal_Tasks extends embed_Manager
             }
             
             // Да може да се филтрира по вида на документа
-            if ($filterRec && $filterRec->{$mvc->driverClassField}) {
+            if ($filterRec && ($filterRec->{$mvc->driverClassField} ?? null)) {
                 $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $filterRec->{$mvc->driverClassField}));
             }
 
-            if ($filterRec->folder) {
+            if ($filterRec->folder ?? null) {
                 unset($data->listFields['folderId']);
                 $data->query->where(array("#{$mvc->driverClassField} = '[#1#]'", $filterRec->{$mvc->driverClassField}));
             }
@@ -3011,7 +3025,7 @@ class cal_Tasks extends embed_Manager
     public static function calcTasksMinStartMaxEndTime($data)
     {
         $start = $end = array();
-        if ($data->recs) {
+        if (is_object($data) && !empty($data->recs)) {
             $data = $data->recs;
         }
         
@@ -3566,14 +3580,14 @@ class cal_Tasks extends embed_Manager
      */
     public function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        if ($rec->assetResourceId) {
+        if (!empty($rec->assetResourceId)) {
             $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
             $sTxt = ' ' . plg_Search::normalizeText($pRec->code . ' ' . $pRec->name);
         } else {
             $sTxt = ' ' . $mvc->withoutResStr;
         }
 
-        if ($rec->stepId) {
+        if (!empty($rec->stepId)) {
             $sTxt .= ' ' . plg_Search::normalizeText(doc_UnsortedFolderSteps::getSaoFullName($rec->stepId));
         }
 
@@ -3609,27 +3623,27 @@ class cal_Tasks extends embed_Manager
             $resArr['assetResourceId'] = array('name' => tr('Поддръжка'), 'val' => tr("<div class='taskWithStepAndResourceTd'><div>|Етап|*: [#stepId#]</div><div>|Ресурс|*: [#assetResourceId#]</div></div>"));
         }
 
-        if ($row->timeStart) {
+        if (!empty($row->timeStart)) {
             $resArr['timeStart'] = array('name' => tr('Начало'), 'val' => '[#timeStart#]');
         }
-        
-        if ($row->timeDuration) {
+
+        if (!empty($row->timeDuration)) {
             $resArr['timeDuration'] = array('name' => tr('Продължителност'), 'val' => '[#timeDuration#]');
         }
         
-        if ($row->timeEnd) {
+        if (!empty($row->timeEnd)) {
             $resArr['timeEnd'] = array('name' => tr('Краен срок'), 'val' => '[#timeEnd#] [#remainingTime#]');
         }
-        
-        if ($row->workingTime) {
+
+        if (!empty($row->workingTime)) {
             $resArr['workingTime'] = array('name' => tr('Отработено време'), 'val' => '[#workingTime#]');
         }
         
-        if ($row->afterTask) {
+        if (!empty($row->afterTask)) {
             $resArr['afterTask'] = array('name' => tr('Започване след задача'), 'val' => '[#afterTask#]');
         }
-        
-        if ($row->afterTaskProgress) {
+
+        if (!empty($row->afterTaskProgress)) {
             $resArr['afterTaskProgress'] = array('name' => tr('Прогрес на задачата'), 'val' => '[#afterTaskProgress#]');
         }
         
@@ -3655,8 +3669,8 @@ class cal_Tasks extends embed_Manager
             unset($resArr['expectationTimeEnd']);
         }
         
-        if ($row->assign) {
-            if ($rec->assign && $rec->assignedBy) {
+        if (!empty($row->assign)) {
+            if (!empty($rec->assign) && !empty($rec->assignedBy)) {
                 $resArr['assign'] = array('name' => tr('Възложено'), 'val' => tr('на') . ' [#assign#] ' . tr('от') . ' [#assignedBy#] ' . tr('в') . ' [#assignedOn#]');
             } else {
                 $resArr['assign'] = array('name' => tr('Възложено'), 'val' => tr('на') . ' [#assign#]');
@@ -3667,7 +3681,7 @@ class cal_Tasks extends embed_Manager
             $resArr['parentId'] = array('name' => tr('Подзадача на'), 'val' => '[#parentId#]');
         }
 
-        if ($rec->srcId || $rec->srcCllass) {
+        if (!empty($rec->srcId) || !empty($rec->srcClass)) {
             $resArr['srcId'] = array('name' => tr('Източник'), 'val' => '[#srcId#]');
         }
     }

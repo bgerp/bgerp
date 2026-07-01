@@ -86,6 +86,12 @@ class cat_products_VatGroups extends core_Detail
 
 
     /**
+     * Кеш на ДДС групите в хита
+     */
+    public static $vatCache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -240,7 +246,7 @@ class cat_products_VatGroups extends core_Detail
         $tpl = $table->get($data->rows, $data->listFields);
         
         $title = 'ДДС';
-        if ($data->addUrl && !Mode::isReadOnly()) {
+        if (!empty($data->addUrl) && !Mode::isReadOnly()) {
             $title .= ht::createLink('<img src=' . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, false, 'title=Избор на ДДС група');
         }
         
@@ -273,19 +279,25 @@ class cat_products_VatGroups extends core_Detail
             }
         }
     }
-    
-    
+
+
     /**
      * Коя е активната данъчна група към дата
      *
-     * @param int       $productId   - ид на артикул
+     * @param int|array $productId   - ид на артикул или масив от ид-та
      * @param date|NULL $date        - към дата
      * @param int|null  $exceptionId - ДДС изключение
-     * @return float|FALSE $value
+     * @return float|FALSE|array     - при единичен артикул запис/FALSE; при масив - array(productId => запис)
      */
     public static function getCurrentGroup($productId, $date = null, $exceptionId = null)
     {
         $date = (!empty($date)) ? dt::verbal2mysql($date, false) : dt::today();
+
+        // Дали се работи в пакетен режим
+        $isBatch = is_array($productId);
+        $productIds = $isBatch ? $productId : array($productId);
+
+        if($isBatch && !countR($productIds)) return array();
 
         // Кои са валидните ДДС изключения към датата
         if(!array_key_exists($date, static::$tempCache)){
@@ -303,17 +315,32 @@ class cat_products_VatGroups extends core_Detail
         // Извличат се активните записи (ако има ддс изключение - само за него, ако няма това без изключения)
         $query = cat_products_VatGroups::getQuery();
         $query->XPR('orderExceptionId', 'int', "COALESCE(#exceptionId, '')");
-        $query->where("#productId = {$productId} AND #validFrom <= '{$date}'");
+        $query->in('productId', $productIds);
+        $query->where("#validFrom <= '{$date}'");
         $query->where("#exceptionId = '{$useExceptionId}' OR #exceptionId IS NULL");
-        $query->orderBy('orderExceptionId,#validFrom', 'DESC');
-        $query->limit(1);
 
-        $value = false;
-        if ($rec = $query->fetch()) {
-            $value = acc_VatGroups::fetch($rec->vatGroup);
+        // Подредбата по продукт е важна - победителят за всеки продукт е първият му ред
+        $query->orderBy('productId', 'ASC');
+        $query->orderBy('orderExceptionId,#validFrom', 'DESC');
+
+        if(!$isBatch){
+            $query->limit(1);
+            $value = false;
+            if ($rec = $query->fetch()) {
+                $value = acc_VatGroups::fetch($rec->vatGroup);
+            }
+
+            return $value;
         }
 
-        return $value;
+        // Пакетен режим - за всеки продукт се взима само първият (най-приоритетен) ред
+        $values = array();
+        while ($rec = $query->fetch()) {
+            if(array_key_exists($rec->productId, $values)) continue;
+            $values[$rec->productId] = acc_VatGroups::fetch($rec->vatGroup);
+        }
+
+        return $values;
     }
     
     
@@ -392,5 +419,61 @@ class cat_products_VatGroups extends core_Detail
                 $data->query->where("#productId = {$filter->productId}");
             }
         }
+    }
+
+
+    /**
+     * Връща ДДС на масив от продукти наведнъж
+     *
+     * @param array      $productIds  - масив от ид-та на артикули
+     * @param null|date  $date        - към коя дата
+     * @param int        $exceptionId - ДДС изключение
+     * @return array                  - array(productId => ддс)
+     */
+    public static function getVats($productIds, $date = null, $exceptionId = null)
+    {
+        if (!$date) {
+            $date = dt::today();
+        }
+
+        $productIds = arr::make($productIds);
+        $res = array();
+        if (!countR($productIds)) return $res;
+
+        // Кои продукти вече ги има в кеша - тях не ги питаме пак
+        $toFetch = array();
+        foreach ($productIds as $productId) {
+            $cacheKey = "{$productId}|{$date}|{$exceptionId}";
+            if (array_key_exists($cacheKey, static::$vatCache)) {
+                $res[$productId] = static::$vatCache[$cacheKey];
+            } else {
+                $toFetch[$productId] = $productId;
+            }
+        }
+
+        if (!countR($toFetch)) return $res;
+
+        // За некешираните - една заявка за ДДС групите
+        $groupRecs = cat_products_VatGroups::getCurrentGroup($toFetch, $date, $exceptionId);
+
+        // Дефолтното ДДС за периода (смята се мързеливо, само ако трябва)
+        $periodVat = null;
+
+        foreach ($toFetch as $productId) {
+            if (isset($groupRecs[$productId])) {
+                $vat = $groupRecs[$productId]->vat;
+            } else {
+                if (!isset($periodVat)) {
+                    $period = acc_Periods::fetchByDate($date);
+                    $periodVat = (!is_object($period)) ? (string)acc_Setup::get('DEFAULT_VAT_RATE') : $period->vatRate;
+                }
+                $vat = $periodVat;
+            }
+
+            $cacheKey = "{$productId}|{$date}|{$exceptionId}";
+            $res[$productId] = static::$vatCache[$cacheKey] = $vat;
+        }
+
+        return $res;
     }
 }

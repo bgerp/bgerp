@@ -438,7 +438,7 @@ class cat_Categories extends core_Master
         if (isset($threadFilter->rec)) {
             
             // Ако търсим по група
-            if ($group = $threadFilter->rec->group) {
+            if ($group = ($threadFilter->rec->group ?? null)) {
                 $catClass = cat_Products::getClassId();
                 
                 // Подготвяме заявката да се филтрират само нишки с начало Артикул

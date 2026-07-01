@@ -65,6 +65,18 @@ class rack_Zones extends core_Master
 
 
     /**
+     * Кой може да прави диагностична проверка на зона?
+     */
+    public $canCheckzone = 'ceo,rackMaster';
+
+
+    /**
+     * Кой може аварийно да освобождава количества без движение от зона?
+     */
+    public $canReleaseorphaned = 'ceo,rackMaster';
+
+
+    /**
      * Работен кеш
      */
     protected static $movementCache = array();
@@ -330,9 +342,309 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
+        if ($mvc->haveRightFor('checkzone', $data->rec)) {
+            $data->toolbar->addBtn('Проверка', array($mvc, 'checkzone', $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/bug.png,title=Проверка за ремонтни ситуации в зоната');
+        }
+
         if ($mvc->haveRightFor('removedocument', $data->rec->id)) {
             $data->toolbar->addBtn('Премахване', array($mvc, 'removeDocument', $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
         }
+    }
+
+
+    /**
+     * Екшън за диагностична проверка на зона
+     */
+    public function act_Checkzone()
+    {
+        $this->requireRightFor('checkzone');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('checkzone', $rec);
+
+        $data = static::getZoneRepairDiagnostics($rec);
+        $zoneTitle = static::getRecTitle($rec);
+
+        $titleStyle = 'background:#b8b8b8;color:#111;padding:6px 8px;min-height:24px;line-height:24px;box-sizing:border-box;font-weight:bold;';
+        $tpl = new core_ET("<div style='display:inline-block;max-width:100%;min-width:520px;margin-top:6px;'>");
+        $tpl->append("<div style='{$titleStyle}'>Проверка на зона <b>{$zoneTitle}</b></div>");
+        $tpl->append(static::renderZoneRepairDiagnostics($data));
+        $tpl->append('</div>');
+
+        return $this->renderWrapping($tpl);
+    }
+
+
+    /**
+     * Аварийно освобождаване на количества в зона, за които липсват движения.
+     */
+    public function act_Releaseorphaned()
+    {
+        $this->requireRightFor('releaseorphaned');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('releaseorphaned', $rec);
+
+        $containerState = !empty($rec->containerId) ? doc_Containers::fetchField($rec->containerId, 'state') : null;
+        if(!in_array($containerState, array('draft', 'pending'))){
+            followRetUrl(array($this, 'checkzone', $rec->id), 'Аварийно освобождаване е позволено само за неконтирани документи', 'error');
+        }
+
+        $res = static::releaseOrphanedZoneQuantities($rec);
+        if($res === false){
+            followRetUrl(null, 'В момента се изпълнява друго аварийно освобождаване за зоната', 'warning');
+        }
+
+        followRetUrl(array($this, 'checkzone', $rec->id), "Аварийно освободени количества|*: {$res->released}");
+    }
+
+
+    /**
+     * Данни за ремонтните проверки на зона
+     *
+     * @param stdClass $rec
+     * @return stdClass
+     */
+    private static function getZoneRepairDiagnostics($rec)
+    {
+        $res = (object) array(
+            'rec' => $rec,
+            'containerState' => null,
+            'missingArchive' => 0,
+            'orphanRows' => array(),
+            'canRepair' => false,
+        );
+
+        if(empty($rec->containerId)){
+            return $res;
+        }
+
+        $containerState = doc_Containers::fetchField($rec->containerId, 'state');
+        $res->containerState = $containerState;
+        $res->canRepair = in_array($containerState, array('draft', 'pending'));
+
+        if($res->canRepair){
+            $res->missingArchive = rack_Movements::countMissingInArchive($rec->containerId);
+            $res->orphanRows = static::getOrphanedZoneQuantityRows($rec);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Рендира резултатите от ремонтните проверки
+     *
+     * @param stdClass $data
+     * @return core_ET
+     */
+    private static function renderZoneRepairDiagnostics($data)
+    {
+        $rec = $data->rec;
+        $tpl = new core_ET('');
+        $titleStyle = 'background:#b8b8b8;color:#111;padding:6px 8px;min-height:24px;line-height:24px;box-sizing:border-box;font-weight:bold;';
+        $tableStyle = "style='width:100%;border-collapse:collapse;margin-top:8px;'";
+        $detailTableStyle = "style='width:100%;border-collapse:collapse;margin-top:6px;'";
+        $thAttr = "style='padding:5px 8px;border:1px solid #c8c8c8;background:#eeeeee;white-space:nowrap;'";
+        $tdAttr = "style='padding:5px 8px;border:1px solid #d4d4d4;vertical-align:middle;'";
+        $problemTdAttr = "style='padding:5px 8px;border:1px solid #d8abab;vertical-align:middle;color:#551111;text-decoration:none;'";
+
+        if(empty($rec->containerId)){
+            $tpl->append("<div class='quiet'>Към зоната няма закачен документ.</div>");
+
+            return $tpl;
+        }
+
+        if(!$data->canRepair){
+            $tpl->append("<div class='state-closed' style='padding:6px;margin:6px 0;'>Ремонтни действия са позволени само за неконтирани документи.</div>");
+
+            return $tpl;
+        }
+
+        $hasProblems = false;
+        $tpl->append("<table class='listTable' {$tableStyle}><tr><th {$thAttr}>Проверка</th><th {$thAttr}>Резултат</th><th {$thAttr}>Действие</th></tr>");
+
+        if($data->missingArchive){
+            $hasProblems = true;
+            $btn = ht::createBtn('Възстановяване', array('rack_Movements', 'restoremissing', 'containerId' => $rec->containerId, 'ret_url' => true), "Ще бъдат възстановени липсващи движения от историята|*: {$data->missingArchive}. |Сигурни ли сте|*?", false, 'ef_icon=img/16/arrow_refresh.png,title=Възстановяване на липсващи движения от историята');
+            $tpl->append("<tr><td {$tdAttr}>Липсващи движения с архив</td><td {$tdAttr}>{$data->missingArchive}</td><td {$tdAttr}>{$btn}</td></tr>");
+        } else {
+            $tpl->append("<tr><td {$tdAttr}>Липсващи движения с архив</td><td {$tdAttr}>Не са открити</td><td {$tdAttr}></td></tr>");
+        }
+
+        if(countR($data->orphanRows)){
+            $hasProblems = true;
+            $btn = ht::createBtn('Аварийно освобождаване', array('rack_Zones', 'releaseorphaned', $rec->id, 'ret_url' => true), 'Ще бъдат освободени количества от зоната, за които липсват движения. Сигурни ли сте|*?', false, 'ef_icon=img/16/red-warning.png,title=Освобождаване на количества без движение от зоната');
+            $tpl->append("<tr style='background:#f1d0d0;color:#551111;text-decoration:none;'><td {$problemTdAttr}>Количество в зона без движение</td><td {$problemTdAttr}>" . countR($data->orphanRows) . " реда</td><td {$problemTdAttr}>{$btn}</td></tr>");
+        } else {
+            $tpl->append("<tr><td {$tdAttr}>Количество в зона без движение</td><td {$tdAttr}>Не е открито</td><td {$tdAttr}></td></tr>");
+        }
+
+        $tpl->append('</table>');
+
+        if(countR($data->orphanRows)){
+            $tpl->append("<div style='{$titleStyle}margin-top:14px;margin-bottom:6px;'>Количества без движение</div>");
+            $tpl->append("<table class='listTable' {$detailTableStyle}><tr><th {$thAttr}>Артикул</th><th {$thAttr}>Партида</th><th {$thAttr}>Количество</th><th {$thAttr}>Мярка</th></tr>");
+            foreach($data->orphanRows as $row){
+                $product = cat_Products::getShortHyperlink($row->productId, true);
+                $batch = type_Varchar::escape($row->batch);
+                $quantity = core_Type::getByName('double(smartRound)')->toVerbal($row->orphanPackQuantity);
+                $uom = cat_UoM::getShortName($row->packagingId);
+                $tpl->append("<tr><td {$tdAttr}>{$product}</td><td {$tdAttr}>{$batch}</td><td {$tdAttr}>{$quantity}</td><td {$tdAttr}>{$uom}</td></tr>");
+            }
+            $tpl->append('</table>');
+        }
+
+        if(!$hasProblems){
+            $tpl->append("<div class='state-active' style='padding:6px;margin-top:8px;'>Не са открити ремонтни ситуации за зоната.</div>");
+        }
+        
+        $backBtn = ht::createBtn('Назад', static::getSingleUrlArray($rec->id), null, false, 'ef_icon=img/16/back.png,title=Назад към зоната');
+        $tpl->append("<div style='margin:8px 0'>{$backBtn}</div>");        
+
+        return $tpl;
+    }
+
+
+    /**
+     * Намира количества в зоната, за които няма доказващо движение.
+     *
+     * @param stdClass $zoneRec
+     * @return array
+     */
+    private static function getOrphanedZoneQuantityRows($zoneRec)
+    {
+        $res = array();
+
+        if(empty($zoneRec->containerId)) return $res;
+
+        $dQuery = rack_ZoneDetails::getQuery();
+        $dQuery->where("#zoneId = {$zoneRec->id}");
+        $dQuery->where("ROUND(COALESCE(#movementQuantity, 0), 4) != 0");
+        $dQuery->show('id,productId,packagingId,batch,movementQuantity,documentQuantity');
+
+        while($dRec = $dQuery->fetch()){
+            $provedBase = static::getProvedZoneMovementBase($zoneRec, $dRec, 'rack_Movements');
+            $provedBase += static::getProvedZoneMovementBase($zoneRec, $dRec, 'rack_OldMovements');
+
+            $orphanBase = round((float)$dRec->movementQuantity - (float)$provedBase, 4);
+            if($orphanBase <= 0) continue;
+
+            $qip = static::getQuantityInPack($dRec->productId, $dRec->packagingId);
+
+            $res[$dRec->id] = (object) array(
+                'detailId' => $dRec->id,
+                'productId' => $dRec->productId,
+                'packagingId' => $dRec->packagingId,
+                'batch' => $dRec->batch,
+                'movementQuantity' => $dRec->movementQuantity,
+                'provedBase' => $provedBase,
+                'orphanBase' => $orphanBase,
+                'orphanPackQuantity' => $orphanBase / $qip,
+            );
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Количество от движенията към реда, доказано в активни/архивни движения.
+     *
+     * @param stdClass $zoneRec
+     * @param stdClass $detRec
+     * @param string $movementClass
+     * @return float
+     */
+    private static function getProvedZoneMovementBase($zoneRec, $detRec, $movementClass)
+    {
+        $query = cls::get($movementClass)->getQuery();
+        $query->where("#productId = {$detRec->productId}");
+        $query->in('state', array('active', 'closed'));
+        $query->where(array("LOCATE('|[#1#]|', #documents)", (int)$zoneRec->containerId));
+
+        if ($detRec->batch !== null && $detRec->batch !== '') {
+            $query->where(array("#batch = '[#1#]'", $detRec->batch));
+        } else {
+            $query->where("#batch IS NULL OR #batch = ''");
+        }
+
+        $query->show('zones,quantityInPack');
+
+        $res = 0;
+        while($mRec = $query->fetch()){
+            $zones = type_Table::toArray($mRec->zones);
+            if(!is_array($zones)) continue;
+
+            foreach($zones as $zRec){
+                if((int)$zRec->zone == (int)$zoneRec->id){
+                    $res += (float)$zRec->quantity * (float)$mRec->quantityInPack;
+                }
+            }
+        }
+
+        return round($res, 4);
+    }
+
+
+    /**
+     * Аварийно освобождава количества от зоната, за които липсват движения.
+     *
+     * @param stdClass $zoneRec
+     * @return stdClass|false
+     */
+    private static function releaseOrphanedZoneQuantities($zoneRec)
+    {
+        if(!core_Locks::obtain("rackReleaseOrphaned{$zoneRec->id}", 120, 0, 0)){
+            return false;
+        }
+
+        $res = (object) array('released' => 0, 'rows' => 0);
+        $orphanRows = static::getOrphanedZoneQuantityRows($zoneRec);
+
+        foreach($orphanRows as $row){
+            $dRec = rack_ZoneDetails::fetch($row->detailId);
+            if(!$dRec) continue;
+
+            $releaseBase = min((float)$dRec->movementQuantity, (float)$row->orphanBase);
+            $dRec->movementQuantity = round((float)$dRec->movementQuantity - $releaseBase, 4);
+            if(abs($dRec->movementQuantity) < 0.0001){
+                $dRec->movementQuantity = 0;
+            }
+
+            rack_ZoneDetails::save($dRec, 'movementQuantity');
+
+            $res->released += $releaseBase;
+            $res->rows++;
+
+            rack_Logs::add($zoneRec->storeId, $dRec->productId, 'revision', rack_PositionType::FLOOR, null, "Аварийно освобождаване на количество от зона " . static::getRecTitle($zoneRec, false));
+        }
+
+        cls::get('rack_Zones')->updateMaster($zoneRec);
+
+        if(!empty($zoneRec->containerId)){
+            $Document = doc_Containers::getDocument($zoneRec->containerId);
+            $Document->getInstance()->logWrite("Аварийно освобождаване на количества без движение от зона", $Document->that);
+        }
+
+        core_Locks::release("rackReleaseOrphaned{$zoneRec->id}");
+
+        return $res;
+    }
+
+
+    /**
+     * Количество в опаковка
+     *
+     * @param int $productId
+     * @param int $packagingId
+     * @return float
+     */
+    private static function getQuantityInPack($productId, $packagingId)
+    {
+        $packRec = cat_products_Packagings::fetch(array("#productId = {$productId} AND #packagingId = {$packagingId}"));
+
+        return is_object($packRec) ? (float)$packRec->quantity : 1;
     }
 
 
@@ -599,6 +911,7 @@ class rack_Zones extends core_Master
         }
 
         if ($q) {
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }
@@ -766,7 +1079,7 @@ class rack_Zones extends core_Master
         if($remove){
 
             // Ако документа се премахва от зоната, изтриват се чакащите движения към тях
-            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending'");
+            static::deletePendingZoneMovements($zoneId, null);
             rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}' (ALL - incl. MODIFIED BY USER)");
         }
 
@@ -828,6 +1141,12 @@ class rack_Zones extends core_Master
                 if (rack_ZoneDetails::fetchField("#zoneId = {$rec->id} AND (#movementQuantity IS NOT NULL AND #movementQuantity != 0)")) {
                    $requiredRoles = 'no_one';
                 }
+            }
+        }
+
+        if($action == 'releaseorphaned' && isset($rec)){
+            if(empty($rec->containerId) || !in_array(doc_Containers::fetchField($rec->containerId, 'state'), array('draft', 'pending'))){
+                $requiredRoles = 'no_one';
             }
         }
 
@@ -1213,8 +1532,11 @@ class rack_Zones extends core_Master
         $productIds = arr::make($productIds, true);
 
         $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$userId}");
-        if($userId == core_Users::SYSTEM_USER){
+        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL");
+        if(isset($userId)){
+            $mQuery->where("#createdBy = {$userId}");
+        }
+        if(isset($userId) && $userId == core_Users::SYSTEM_USER){
             $mQuery->where("#modifiedBy = {$userId}");
         }
         if(countR($productIds)){
@@ -1233,9 +1555,18 @@ class rack_Zones extends core_Master
         }
 
         $deleted = 0;
+        $skipped = 0;
         while ($mRec = $mQuery->fetch()) {
+            $lockId = "movement{$mRec->id}";
+            if (!core_Locks::obtain($lockId, 120, 0, 0)) {
+                $skipped++;
+                continue;
+            }
+
             rack_Movements::delete($mRec->id);
             $deleted++;
+
+            core_Locks::release($lockId);
         }
 
         if(!$isOriginalSystemUser) {
@@ -1244,7 +1575,7 @@ class rack_Zones extends core_Master
 
         $zoneStringLog = implode('|', $zoneIds);
         $productStringLog = implode('|', $productIds);
-        rack_Movements::logDebug("RACK DELETE PENDING COUNT ({$deleted}) - '{$zoneStringLog}'- PROD -'{$productStringLog}'");
+        rack_Movements::logDebug("RACK DELETE PENDING COUNT ({$deleted}) SKIPPED ({$skipped}) - '{$zoneStringLog}'- PROD -'{$productStringLog}'");
     }
 
 

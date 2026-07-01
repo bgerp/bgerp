@@ -113,6 +113,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         setPartIfNot($mvc, 'filterFieldDateFrom', null);
         setPartIfNot($mvc, 'filterDateFrom', null);
         setPartIfNot($mvc, 'filterDateTo', null);
+        setPartIfNot($mvc, 'showFilterFolderField', true);
 
         $mvc->filterRolesForTeam ??= '';
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
@@ -288,9 +289,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             // Филтър по "Наша фирма", ако е инсталиран пакета за многофирменост
             $mvc->invoke('afterGetDocumentSummaryListFields', array(&$data));
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam}, showClosedGroups)", 'caption=Потребители,silent,autoFilter,remember');
-            $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,silent,after=users');
-            $data->listFilter->showFields .= ',folder';
-
+            if(!empty($mvc->showFilterFolderField)){
+                $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,silent,after=users');
+                $data->listFilter->showFields .= ',folder';
+            }
+            
             $haveUsers = false;
             
             if ($lastUsers = core_Permanent::get('userFilter' . $cKey)) {
@@ -336,7 +339,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         // Ако има поле по валута да се филтрира по нея
         if(!empty($mvc->currencyFld) && $mvc->getField($mvc->currencyFld, false)){
-            $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ", {$mvc->currencyFld}";
+            $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ", {$mvc->currencyFld}";
             $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setField($mvc->currencyFld, "caption=Валута,input,formOrder=1000");
             $data->listFilter->showFields .= ",{$mvc->currencyFld}";
@@ -346,7 +349,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         if($mvc->hasPlugin('doc_plg_TplManager')){
             $templateOptions = doc_TplManager::getTemplates($mvc);
             if(countR($templateOptions)){
-                $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ",template";
+                $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ",template";
                 $data->listFilter->setOptions('template', array('' => '') + $templateOptions);
                 $data->listFilter->setField('template', "caption=Шаблон,formOrder=1002");
                 $data->listFilter->showFields .= ",template";
@@ -420,10 +423,10 @@ class acc_plg_DocumentSummary extends core_Plugin
                         $data->query->where("#{$filter->filterDateField} IN ({$userArr})");
                     } else {
                         $map = array('createdOn' => 'createdBy', 'modifiedOn' => 'modifiedBy', 'activatedOn' => 'activatedBy');
-                        $useUserField = $map[$filter->filterDateField] ?? $mvc->filterFieldUsers;
+                        $useUserField = $map[$filter->filterDateField ?? ''] ?? $mvc->filterFieldUsers;
 
                         $data->query->where("#{$useUserField} IN ({$userArr})");
-                        if(!isset($map[$filter->filterDateField]) && $useUserField != $mvc->filterFieldUsers){
+                        if(!isset($map[$filter->filterDateField ?? '']) && $useUserField != $mvc->filterFieldUsers){
                             $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
                         }
                     }
@@ -444,7 +447,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
             
             if ($showFilterDateField) {
-                $fromField = $filter->filterDateField ? $filter->filterDateField : $defaultFilterDateField;
+                $fromField = ($filter->filterDateField ?? null) ?: $defaultFilterDateField;
                 if(in_array($fromField, $userFields)){
                     $fromField = $defaultFilterDateField;
                 }

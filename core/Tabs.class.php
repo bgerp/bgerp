@@ -157,7 +157,7 @@ class core_Tabs extends core_BaseClass
         
             if ($url) {
                 $url = ht::escapeAttr($url);
-                if ($this->htmlId && defined('EF_AJAX_TAB')) {
+                if (($this->htmlId ?? null) && defined('EF_AJAX_TAB')) {
                     $head .= "<div onclick=\"updateTab('{$this->htmlId}', '{$url}'); return false;\" style='cursor:pointer;' class='tab {$selected}'>";
                     $head .= "<a onclick=\"return; updateTab('{$this->htmlId}', '{$url}');  preventDefault(); return false;\"  class='tab-title {$tabClass}'>{$title}</a>";
                 } else {
@@ -176,7 +176,7 @@ class core_Tabs extends core_BaseClass
         }
 
         $idAttr = "";
-        if ($this->htmlId) {
+        if ($this->htmlId ?? null) {
             $idAttr .= " id=\"head-{$this->htmlId}\"";
         }
         if($this->htmlIdClass ?? null){
@@ -190,7 +190,7 @@ class core_Tabs extends core_BaseClass
         $html .= "</div>\n";
      
         
-        if ($this->htmlId) {
+        if ($this->htmlId ?? null) {
             $idAttr = " id=\"{$this->htmlId}\"";
         }
         $html .= "<div class=\"tab-page clearfix21\"{$idAttr}>{$hint}[#2#]</div>\n";
@@ -254,8 +254,9 @@ class core_Tabs extends core_BaseClass
      */
     public function getFirstTab()
     {
+        $selectedTab = null;
         // Ако има запазена информация, кой е таба по подразбиране за този потребител, вадим него
-        if ($this->tabGroup) {
+        if ($this->tabGroup ?? null) {
             // $storedTab = core_Settings::fetchPersonalConfig('DEFAULT_TABS', 'TABS::' . $this->tabGroup);
            // $selectedTab = array_pop($storedTab);
         }

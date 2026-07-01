@@ -165,7 +165,7 @@ class bgerp_Menu extends core_Manager
             $ctr = cls::getClassName($ctr);
             $mvc = cls::get($ctr);
             
-            if ($mvc->menuPage && $menuObj[$mvc->menuPage]) {
+            if (($mvc->menuPage ?? null) && ($menuObj[$mvc->menuPage] ?? null)) {
                 return $mvc->menuPage;
             }
         }
@@ -229,8 +229,9 @@ class bgerp_Menu extends core_Manager
         $activeArr = explode(':', $active);
         
         if (($menuObj) && (countR($menuObj))) {
+            $lastRec = (object) array('menu' => null, 'ctr' => null, 'act' => null);
             foreach ($menuObj as $key => $rec) {
-                
+
                 // state: 3 - active, 2 - normal, 1 - disabled, 0 - hidden
                 // $mainMenuItems[$pageMenu] = TRUE; Дали това главно меню вече е показано
                 
@@ -419,7 +420,9 @@ class bgerp_Menu extends core_Manager
                     if (countR($plg->tabs)) {
                         foreach ($plg->tabs as $caption => $obj) {
                             if ($obj->roles == 'user') {
-                                if ($obj->url['Ctr'] && ($obj->url['Act'] == 'list' || $obj->url['Act'] == 'default' || $obj->url['Act'] == '')) {
+                                $urlCtr = $obj->url['Ctr'] ?? null;
+                                $urlAct = $obj->url['Act'] ?? '';
+                                if ($urlCtr && ($urlAct == 'list' || $urlAct == 'default' || $urlAct == '')) {
                                     $inst = cls::get($obj->url['Ctr']);
                                     if ($inst->canList) {
                                         $obj->roles = $inst->canList;
@@ -433,8 +436,8 @@ class bgerp_Menu extends core_Manager
                                 }
                             }
                             if ((countR($obj->url) == 1 || countR($obj->url) == 2) && haveRole($obj->roles)) {
-                                $ctr = $obj->url['Ctr'];
-                                $act = $obj->url['Act'];
+                                $ctr = $obj->url['Ctr'] ?? null;
+                                $act = $obj->url['Act'] ?? null;
                                 $roles = $obj->roles;
                                 
                                 return true;
@@ -469,10 +472,13 @@ class bgerp_Menu extends core_Manager
         
         $exRec = self::fetch(array("#menu = '[#1#]' AND #subMenu = '[#2#]' AND #ctr = '[#3#]' AND #act = '[#4#]'", $menu, $subMenu, $ctr, $act));
         
+        $addCond = '';
         if ($exRec && ($rec->id = $exRec->id)) {
             $addCond = "AND #id != {$rec->id}";
         }
         
+        $res = '';
+
         // Изтриване на направените точки от менюто, които влизат в противоречие с текущата
         $del = self::delete(array("#ctr = '[#1#]' AND #act = '[#2#]' {$addCond}", $ctr, $act));
         
@@ -509,7 +515,7 @@ class bgerp_Menu extends core_Manager
     public static function on_Shutdown($mvc)
     {
         // Ако имаме добавения по менюто
-        if (countR($mvc->savedItems)) {
+        if (countR($mvc->savedItems ?? null)) {
 
             // Ако е зададено да се изтриват
             if ($mvc->deleteNotInstalledMenu) {
@@ -590,11 +596,12 @@ class bgerp_Menu extends core_Manager
     public function repair()
     {
         $query = $this->getQuery();
-        
+        $res = '';
+
         while ($rec = $query->fetch()) {
             if (!cls::load($rec->ctr, true)) {
                 $this->delete($rec->id);
-                
+
                 $res .= "<li class='debug-error'>Премахнато е {$rec->menu} -> {$rec->menu}</li>";
             }
         }

@@ -261,17 +261,17 @@ class currency_CurrencyRates extends core_Detail
         if ($filter = $data->listFilter->rec) {
             
             // Филтрираме по валута
-            if ($filter->currencySearch) {
+            if (!empty($filter->currencySearch)) {
                 $data->query->where(array("#currencyId = '[#1#]'", $filter->currencySearch));
             }
             
             // Филтрираме по От и до
             $dateRange = array();
-            if ($filter->from) {
+            if (!empty($filter->from)) {
                 $dateRange[0] = $filter->from;
             }
-            
-            if ($filter->to) {
+
+            if (!empty($filter->to)) {
                 $dateRange[1] = $filter->to;
             }
             
@@ -279,11 +279,11 @@ class currency_CurrencyRates extends core_Detail
                 sort($dateRange);
             }
             
-            if ($dateRange[0]) {
+            if (!empty($dateRange[0])) {
                 $data->query->where(array("#date >= '[#1#]'", $dateRange[0]));
             }
-            
-            if ($dateRange[1]) {
+
+            if (!empty($dateRange[1])) {
                 $data->query->where(array("#date <= '[#1#]'", $dateRange[1]));
             }
         }

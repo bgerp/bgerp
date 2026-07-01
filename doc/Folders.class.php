@@ -59,7 +59,7 @@ class doc_Folders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
+    public $listFields = 'handle=Хендлър,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
     
     
     /**
@@ -129,7 +129,13 @@ class doc_Folders extends core_Master
      * Флаг, че заявките, които са към този модел лимитирани до 1 запис, ще са HIGH_PRIORITY
      */
     public $highPriority = true;
-    
+
+
+    /**
+     * Префикс на хендлъра на папка (#F<id>)
+     */
+    public static $folderAbbr = 'F';
+
 
     /**
      * Описание на модела (таблицата)
@@ -148,7 +154,7 @@ class doc_Folders extends core_Master
         $this->FLD('openThreadsCnt', 'int', 'caption=Нишки->Отворени');
         $this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно');
         $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
-        
+
         $this->setDbUnique('coverId,coverClass');
         $this->setDbIndex('last');
         $this->setDbIndex('createdOn');
@@ -481,6 +487,7 @@ class doc_Folders extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $row->handle = $mvc->getHandle($rec);
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
         if ($rec->openThreadsCnt) {
@@ -828,12 +835,17 @@ class doc_Folders extends core_Master
             $statisticArr[$tRec->visibleForPartners][$tRec->state][$tRec->firstDocClass] = $tRec->cnt;
             
             if ($tRec->state != 'rejected') {
+                $statisticArr[$tRec->visibleForPartners]['_notRejected'][$tRec->firstDocClass] ??= 0;
                 $statisticArr[$tRec->visibleForPartners]['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
+                $statisticArr['_all']['_notRejected'][$tRec->firstDocClass] ??= 0;
                 $statisticArr['_all']['_notRejected'][$tRec->firstDocClass] += $tRec->cnt;
             }
-            
+
+            $statisticArr['_all'][$tRec->state][$tRec->firstDocClass] ??= 0;
             $statisticArr['_all'][$tRec->state][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all'][$tRec->firstDocClass] ??= 0;
             $statisticArr['_all']['_all'][$tRec->firstDocClass] += $tRec->cnt;
+            $statisticArr['_all']['_all']['_all'] ??= 0;
             $statisticArr['_all']['_all']['_all'] += $tRec->cnt;
         }
         
@@ -1904,7 +1916,7 @@ class doc_Folders extends core_Master
         $searchKeywords .= ' ' . plg_Search::normalizeText($title);
         
         // Добавя ключовии думи за държавата и на bg и на en
-        if (($class->className == 'crm_Companies' || $class->className == 'crm_Persons') && $rec->coverId) {
+        if (($class->className == 'crm_Companies' || $class->className == 'crm_Persons') && !empty($rec->coverId)) {
             $countryId = $class->fetchField($rec->coverId, 'country');
             if ($countryId) {
                 $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
@@ -1913,7 +1925,7 @@ class doc_Folders extends core_Master
 
         if (!empty($rec->coverId)) {
             $plugins = arr::make($class->loadList, true);
-            if ($plugins['plg_Search'] || method_exists($class, 'getSearchKeywords')) {
+            if (($plugins['plg_Search'] ?? null) || method_exists($class, 'getSearchKeywords')) {
                 $searchKeywords .= ' ' . $class->getSearchKeywords($rec->coverId);
             }
         }
@@ -2263,7 +2275,7 @@ class doc_Folders extends core_Master
         }
         
         $viewAccess = true;
-        if ($params['restrictViewAccess'] == 'yes') {
+        if (($params['restrictViewAccess'] ?? null) == 'yes') {
             $viewAccess = false;
         }
 
@@ -2275,7 +2287,7 @@ class doc_Folders extends core_Master
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
         
-        if ($params['where']) {
+        if ($params['where'] ?? null) {
             $query->where($params['where']);
         }
         
@@ -2293,7 +2305,7 @@ class doc_Folders extends core_Master
             $query->where("#id = {$onlyIds}");
         }
         
-        if ($threadId = $params['moveThread']) {
+        if ($threadId = ($params['moveThread'] ?? null)) {
             $tRec = doc_Threads::fetch($threadId);
             expect($doc = doc_Containers::getDocument($tRec->firstContainerId));
             $doc->getInstance()->restrictQueryOnlyFolderForDocuments($query, $viewAccess);
@@ -2426,5 +2438,67 @@ class doc_Folders extends core_Master
         while($oldSettingRec = $settingQuery->fetch()){
             core_Settings::setValues($newSettingFolderKey, $oldSettingRec->data, $oldSettingRec->userOrRole);
         }
+    }
+
+
+    /**
+     * Връща хендлъра на папка от вида #F<id>
+     *
+     * @param int|stdClass $id - id на папката или запис
+     * @return string|null     - хендлър (напр. "#F44528") или null ако няма такава папка
+     */
+    public static function getHandle($id)
+    {
+        $id = is_object($id) ? $id->id : $id;
+
+        if (!$id || !static::fetchField($id)) return null;
+
+        return '#' . static::$folderAbbr . $id;
+    }
+
+
+    /**
+     * От хендлър на папка от вида #F<id> връща id на папката
+     *
+     * @param string $handle - хендлър (с или без водещ #, напр. "#FXXXX")
+     * @return stdClass|null - id на папката или null ако хендлърът е невалиден/няма такава папка
+     */
+    public static function getByHandle($handle)
+    {
+        $handle = trim($handle);
+
+        if (!strlen($handle)) {
+
+            return null;
+        }
+        if (type_Int::isInt($handle)) {
+
+            $id = (int) $handle;
+        } else {
+
+            $pattern = '/^#?' . preg_quote(static::$folderAbbr, '/') . '([0-9]{1,10})$/';
+            if (!preg_match($pattern, $handle, $matches)) {
+                return null;
+            }
+            $id = (int) $matches[1];
+        }
+        $rec = static::fetch($id);
+
+        // Проверяваме че реално съществува такава папка
+        if (!is_object($rec)) {
+
+            return null;
+        }
+
+        return $rec;
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        $data->listTableMvc->FLD('handle', 'varchar', 'tdClass=centerCol');
     }
 }

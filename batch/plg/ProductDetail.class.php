@@ -32,8 +32,19 @@ class batch_plg_ProductDetail extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        if ($rec->canStore == 'yes') {
-            batch_Defs::force($rec);
+        if ($rec->canStore != 'yes') return;
+
+        $forcedTemplateId = null;
+        $forcedTemplateParams = array();
+        if(!empty($rec->_Batch)){
+
+            // Ако се създава с партидност се гледа има ли допълнителни настройки
+            $forcedTemplateId = $rec->_Batch;
+            $forcedTemplateParams['batchCaption'] = !empty($rec->_BatchCaption) ? $rec->_BatchCaption : null;
+            $forcedTemplateParams['alwaysRequire'] = !empty($rec->_AlwaysRequire) ? $rec->_AlwaysRequire : null;
+            $forcedTemplateParams['onlyExistingBatches'] = !empty($rec->_OnlyExistingBatches) ? $rec->_OnlyExistingBatches : null;
         }
+
+        batch_Defs::force($rec, $forcedTemplateId, $forcedTemplateParams);
     }
 }

@@ -172,6 +172,9 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->load('doc_plg_TxtExportable');
         $mvc->declareInterface('export_TxtExportIntf');
 
+        $mvc->load('doc_plg_LlmExportable');
+        $mvc->declareInterface('export_LlmExportIntf');
+
         $mvc->fetchFieldsBeforeDelete ??= '';
         if ($mvc->fetchFieldsBeforeDelete) {
             $mvc->fetchFieldsBeforeDelete .= ',';
@@ -667,15 +670,15 @@ class doc_DocumentPlg extends core_Plugin
         $row->createdDate = dt::mysql2verbal($rec->createdOn ?? null, 'd.m.Y');
         
         if (isset($fields['-single'])) {
-            if (!$row->ident) {
+            if (!($row->ident ?? null)) {
                 $row->ident = '#' . $invoker->getHandle($rec->id);
             }
-            
-            if (!$row->singleTitle) {
+
+            if (!($row->singleTitle ?? null)) {
                 $row->singleTitle = tr($invoker->singleTitle);
             }
 
-            if ($rec->priority) {
+            if ($rec->priority ?? null) {
                 $row->DOCUMENT_PRIORITY_CLASS = 'priority-' . $rec->priority;
             }
             
@@ -776,7 +779,7 @@ class doc_DocumentPlg extends core_Plugin
     public function on_BeforeSave($mvc, $id, $rec, $fields = null)
     {
         // Ако създаваме нов документ и ...
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             if(($mvc->addLinkedOriginFieldName ?? null) && $rec->{$mvc->addLinkedOriginFieldName} && $mvc->canAddDocumentToOriginAsLink($rec)){
                 $mvc->addDocumentLinks[$rec->id] = $rec;
             }
@@ -795,15 +798,15 @@ class doc_DocumentPlg extends core_Plugin
             // създаваме нов контейнер за документите от този клас
             // и записваме връзка към новия контейнер в този документ
             if (!isset($rec->containerId)) {
-                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy);
+                $rec->containerId = doc_Containers::create($mvc, $rec->threadId ?? null, $rec->folderId ?? null, $rec->createdOn ?? null, $rec->createdBy ?? null);
             }
             
             // Задаваме началното състояние по подразбиране
-            if (!$rec->state) {
+            if (empty($rec->state)) {
                 $rec->state = ($mvc->firstState ?? null) ? $mvc->firstState : 'draft';
             }
 
-            if (($rec->state == 'rejected') && (($mvc->firstState ?? null) != 'rejected') && (!$rec->brState)) {
+            if (($rec->state == 'rejected') && (($mvc->firstState ?? null) != 'rejected') && (empty($rec->brState))) {
                 $rec->brState = ($mvc->firstState ?? null) ? $mvc->firstState : 'draft';
             }
 
@@ -818,12 +821,12 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         // Задаваме стойностите на полетата за последно модифициране
-        if (!$rec->_notModified) {
+        if (empty($rec->_notModified)) {
             $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
             $rec->modifiedOn = dt::verbal2Mysql();
         }
         
-        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && $rec->brState && $rec->brState != 'rejected') || $rec->state != 'draft')) {
+        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && !empty($rec->brState) && ($rec->brState ?? null) != 'rejected') || $rec->state != 'draft')) {
             if ($rec->id) {
                 $oRec = $mvc->fetch($rec->id);
                 if ($rec->state !== $oRec->state) {
@@ -852,12 +855,13 @@ class doc_DocumentPlg extends core_Plugin
         // core_Cache::remove($mvc->className, $key);
         
         // Намира контейнера на документа
-        $containerId = $rec->containerId ? $rec->containerId : $mvc->fetch($rec->id)->containerId;
+        $_fetchedRec = (!empty($rec->containerId)) ? null : $mvc->fetch($rec->id);
+        $containerId = !empty($rec->containerId) ? $rec->containerId : (is_object($_fetchedRec) ? $_fetchedRec->containerId : null);
         
         // Възстановяваме (ако е необходимо) нишката ПРЕДИ да създадем/обновим контейнера
         // Това гарантира, че абонатите на оттеглени нишки все пак ще получат нотификация за
         // новопристигналия документ
-        if ($rec->threadId && $rec->state != 'rejected') {
+        if (!empty($rec->threadId) && ($rec->state ?? null) != 'rejected') {
             doc_Threads::restoreThread($rec->threadId);
         }
         
@@ -869,7 +873,7 @@ class doc_DocumentPlg extends core_Plugin
                 $updateAll = false;
             }
 
-            doc_Containers::update($containerId, $updateAll, $rec->_notModified);
+            doc_Containers::update($containerId, $updateAll, $rec->_notModified ?? null);
         }
         
         // Само при активиране и оттегляне, се обновяват използванията на документи в документа
@@ -891,13 +895,13 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($rec->pendingSaved === true) {
+        if (($rec->pendingSaved ?? null) === true) {
             $rec->pendingSaved = false;
             $mvc->pendingQueue[$rec->id] = $rec;
             $mvc->invoke('AfterSavePendingDocument', array($rec));
         }
         
-        if ($rec->linkedHashKey) {
+        if (!empty($rec->linkedHashKey)) {
             $lRec = core_Permanent::get($rec->linkedHashKey);
             if ($lRec && is_object($lRec)) {
                 $lRec->inVal = $rec->containerId;
@@ -1062,7 +1066,7 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         core_Debug::startTimer('DOCUMENT_SAVE_FILES');
-        foreach ((array)$mvc->saveFileArr as $rec) {
+        foreach ((array)($mvc->saveFileArr ?? null) as $rec) {
             try {
                 // Опитваме се да запишем файловете от документа в модела
                 doc_Files::saveFile($mvc, $rec);
@@ -1085,7 +1089,7 @@ class doc_DocumentPlg extends core_Plugin
     public function on_AfterRoute($mvc, &$res, $rec)
     {
         // Ако имаме контейнер, но нямаме тред - определяме треда от контейнера
-        if ($rec->containerId && !$rec->threadId) {
+        if (!empty($rec->containerId) && empty($rec->threadId)) {
             $tdRec = doc_Containers::fetch($rec->containerId);
             $rec->threadId = $tdRec->threadId;
         }
@@ -1097,19 +1101,19 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Ако нямаме папка - форсираме папката по подразбиране за този клас
-        if (!$rec->folderId) {
+        if (empty($rec->folderId)) {
             $rec->folderId = $mvc->getDefaultFolder();
         }
-        
+
         // Ако нямаме тред - създаваме нов тред в тази папка
-        if (!$rec->threadId) {
-            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy, $rec->_notModified);
+        if (empty($rec->threadId)) {
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn ?? null, $rec->createdBy ?? null, $rec->_notModified ?? null);
         }
         
         // Ако нямаме контейнер - създаваме нов контейнер за
         // този клас документи в определения тред
-        if (!$rec->containerId) {
-            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy, $rec->_notModified);
+        if (empty($rec->containerId)) {
+            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn ?? null, $rec->createdBy ?? null, $rec->_notModified ?? null);
         }
     }
     
@@ -1718,7 +1722,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $rec = $mvc->fetchRec($recId);
         
-        if ($rec->containerId == $docId) {
+        if (is_object($rec) && ($rec->containerId ?? null) == $docId) {
             $res = true;
         }
     }
@@ -2054,7 +2058,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако редактираме запис
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $exRec = $mvc->fetch($rec->id);
             $mvc->threadId = $exRec->threadId;
             
@@ -2066,7 +2070,7 @@ class doc_DocumentPlg extends core_Plugin
                     doc_Threads::requireRightFor('single', $mvc->threadId);
                 }
             }
-        } elseif ($rec->originId) {
+        } elseif ($rec->originId ?? null) {
             
             // Ако имаме $originId
             
@@ -2088,12 +2092,12 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($rec->originId || $rec->foreignId) {
+        if (($rec->originId ?? null) || ($rec->foreignId ?? null)) {
             $fType = 'doc';
-            $oDocId = $rec->originId;
-            
+            $oDocId = $rec->originId ?? null;
+
             if (!$oDocId) {
-                $oDocId = $rec->foreignId;
+                $oDocId = $rec->foreignId ?? null;
             } else {
                 $document = doc_Containers::getDocument($oDocId);
             }
@@ -2131,7 +2135,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($rec->threadId) {
+        if ($rec->threadId ?? null) {
             $threadRec = doc_Threads::fetch($rec->threadId);
             if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')) {
                 colab_Threads::requireRightFor('single', $threadRec);
@@ -2144,11 +2148,11 @@ class doc_DocumentPlg extends core_Plugin
             $rec->folderId = $threadRec->folderId;
         }
         
-        if (!$rec->folderId) {
+        if (!($rec->folderId ?? null)) {
             $rec->folderId = $mvc->getDefaultFolder();
         }
-        
-        if (!$rec->threadId && $rec->folderId && !doc_Folders::haveRightToFolder($rec->folderId)) {
+
+        if (!($rec->threadId ?? null) && ($rec->folderId ?? null) && !doc_Folders::haveRightToFolder($rec->folderId)) {
             if (core_Packs::isInstalled('colab') && haveRole('partner')) {
                 $userId = core_Users::getCurrent();
                 $colabFolders = colab_Folders::getSharedFolders($userId);
@@ -2241,7 +2245,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
 
-        if (!$data->form->rec->id && !$data->form->rec->clonedFromId) {
+        if (empty($data->form->rec->id) && empty($data->form->rec->clonedFromId)) {
             $detId = Request::get('detId', 'int');
             
             $dData = $mvc->getDefaultData($rec, array('detId' => $detId, 'fType' => $fType));
@@ -2254,8 +2258,8 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         // Показваме свързаните документи, ако има такива
-        if ($data->form->rec->id) {
-            $cId = $data->form->rec->containerId;
+        if (!empty($data->form->rec->id)) {
+            $cId = $data->form->rec->containerId ?? null;
             
             if (!$cId) {
                 $cId = $mvc->fetchField($data->form->rec->id, 'containerId');
@@ -2277,7 +2281,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $res = arr::make($res);
         
-        if ($rec->foreignId && $otherParams['fType'] == 'doc') {
+        if (($rec->foreignId ?? null) && $otherParams['fType'] == 'doc') {
             $document = doc_Containers::getDocument($rec->foreignId);
             
             $titleFld = '';
@@ -2299,9 +2303,9 @@ class doc_DocumentPlg extends core_Plugin
 
             $originId = null;
 
-            if ($rec->originId) {
+            if (!empty($rec->originId)) {
                 $originId = $rec->originId;
-            } elseif ($rec->linkedHashKey) {
+            } elseif (!empty($rec->linkedHashKey)) {
                 $lRec = core_Permanent::get($rec->linkedHashKey);
                 if (($lRec->outType == 'doc') && $lRec->outVal) {
                     $originId = $lRec->outVal;
@@ -2367,7 +2371,7 @@ class doc_DocumentPlg extends core_Plugin
         $form = &$data->form;
         $rec = &$form->rec;
         
-        if (empty($rec->id) && $rec->threadId && $rec->originId) {
+        if (empty($rec->id) && !empty($rec->threadId) && !empty($rec->originId)) {
             $folderId = ($rec->folderId) ? $rec->folderId : doc_Threads::fetch($rec->threadId)->folderId;
             
             if (($mvc->canAddToFolder($folderId) !== false) && ($mvc->onlyFirstInThread ?? null) !== false) {
@@ -2378,11 +2382,11 @@ class doc_DocumentPlg extends core_Plugin
         $saveBtnName = (haveRole('powerUser') && !((($mvc->canEditActivated ?? null) === true && in_array($rec->state, array('active', 'waiting', 'wakeup'))))) ? 'Чернова' : 'Запис';
         $form->toolbar->renameBtn('save', $saveBtnName);
         
-        if ($rec->state == 'pending' && isset($rec->id)) {
+        if (isset($rec->state) && $rec->state == 'pending' && isset($rec->id)) {
             $form->toolbar->setWarning('save', 'Наистина ли искате да направите документа чернова|*?');
         }
         
-        if ($mvc->haveRightFor('pending', $form->rec) || $rec->state == 'pending') {
+        if ($mvc->haveRightFor('pending', $form->rec) || (isset($rec->state) && $rec->state == 'pending')) {
             $form->toolbar->addSbBtn('Заявка', 'save_pending', 'id=btnPending,order=9.99989', 'ef_icon = img/16/tick-circle-frame.png');
         }
     }
@@ -2408,13 +2412,13 @@ class doc_DocumentPlg extends core_Plugin
         
         $rec = $form->rec;
         
-        if ($form->rec->id) {
+        if (!empty($form->rec->id)) {
             $form->title = 'Редактиране на|* ';
         } else {
             if (Request::get('clone')) {
                 $form->title = 'Копие на|* ';
             } else {
-                if ($rec->threadId) {
+                if (!empty($rec->threadId)) {
                     $form->title = 'Добавяне на|* ';
                 } else {
                     $form->title = 'Създаване на|* ';
@@ -2422,13 +2426,13 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        if ($rec->threadId) {
+        if (!empty($rec->threadId)) {
             $thRec = doc_Threads::fetch($form->rec->threadId);
             setPartIfNot($data, 'singleTitle', $mvc->singleTitle);
             
-            if ($thRec->firstContainerId != $form->rec->containerId) {
+            if ($thRec->firstContainerId != ($form->rec->containerId ?? null)) {
                 $firstDoc = doc_Containers::getDocument($thRec->firstContainerId);
-                $form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id, null, 50);
+                $form->title = core_Detail::getEditTitle($firstDoc->getInstance(), $firstDoc->that, $data->singleTitle, $rec->id ?? null, null, 50);
                 unset($title);
             }
         }
@@ -2473,9 +2477,9 @@ class doc_DocumentPlg extends core_Plugin
                 $sP->updateOnShutdown = true;
             }
 
-            if (in_array($form->cmd, array('save_pending', 'save_pending_new')) && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
+            if (in_array($form->cmd, array('save_pending', 'save_pending_new')) && ($mvc->haveRightFor('pending', $rec) || ($rec->state ?? null) == 'pending')) {
                 // Преизчисляване на запазените количествата, ако новото състояние е "Заявка"
-                if ($rec->state != 'pending') {
+                if (($rec->state ?? null) != 'pending') {
                     $sP = cls::get('store_Products');
                     $sP->updateOnShutdown = true;
                 }
@@ -2685,7 +2689,7 @@ class doc_DocumentPlg extends core_Plugin
                 } else {
                     
                     // Ако папката на нишката е затворена, не може да се добавят документи
-                    $folderId = $rec->folderId ? $rec->folderId : doc_Threads::fetch($rec->threadId)->folderId;
+                    $folderId = ($rec->folderId ?? null) ?: doc_Threads::fetch($rec->threadId)->folderId;
                     if (doc_Folders::fetch($folderId)->state == 'closed') {
                         $requiredRoles = 'no_one';
                     }
@@ -2994,9 +2998,9 @@ class doc_DocumentPlg extends core_Plugin
             $modeAllowedContainerIdName = $mvc->getAllowedContainerName();
             $allowedCidArr = Mode::get($modeAllowedContainerIdName);
             
-            $cId = $rec->containerId;
-            
-            if (!$cId && $rec->id) {
+            $cId = $rec->containerId ?? null;
+
+            if (!$cId && ($rec->id ?? null)) {
                 $cId = $mvc->fetchField($rec->id, 'containerId');
             }
             
@@ -3008,7 +3012,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($action == 'pending' && isset($rec)) {
             if (isset($mvc->mainDetail) && ($mvc->requireDetailForPending ?? null) === true) {
                 $Detail = cls::get($mvc->mainDetail);
-                if (!$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) {
+                if (empty($rec->id) || !$Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -3172,7 +3176,7 @@ class doc_DocumentPlg extends core_Plugin
             $tpl->removeBlock('header');
         }
 
-        if ($data->rec->_resending) {
+        if ($data->rec->_resending ?? null) {
             $tpl->append(tr($data->rec->_resending), '_resending');
         }
         $tpl->removeBlocks();
@@ -3726,7 +3730,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
 
-        $lKeywords = doc_Linked::getKeywordsForLinked($rec->containerId);
+        $lKeywords = doc_Linked::getKeywordsForLinked($rec->containerId ?? null);
         if (strlen(trim($lKeywords ?? ''))) {
             $lKeywords = plg_Search::normalizeText($lKeywords);
             if (strpos($searchKeywords ?? '', $lKeywords) === false) {
@@ -4408,7 +4412,7 @@ class doc_DocumentPlg extends core_Plugin
         $rec = $mvc->fetchRec($id);
         if ($rec) {
             // Задаваме стойностите на полетата за последно модифициране
-            if (!$rec->_notModified) {
+            if (!($rec->_notModified ?? null)) {
                 $dKey = $mvc->className . '|' . $rec->id;
                 $mvc->pendingUpdateModifiedArr[$dKey] = array('id' => $rec->id, 'mvc' => $mvc, 'modifiedOn' => dt::now(), 'modifiedBy' => core_Users::getCurrent());
 
@@ -4462,7 +4466,7 @@ class doc_DocumentPlg extends core_Plugin
         $res = arr::make($res);
         
         // Ако няма избрана версия, да не се показва във вътрешната част
-        if (!$row->FirstSelectedVersion) {
+        if (!($row->FirstSelectedVersion ?? null)) {
             $res['internal']['versionAndDate'] = true;
             $res['internal']['date'] = true;
             $res['internal']['version'] = true;
@@ -4871,7 +4875,7 @@ class doc_DocumentPlg extends core_Plugin
         $rec = $mvc->fetchRec($rec);
         if (!isset($res)) {
             if ($mvc->visibleForPartners ?? null) {
-                if ($rec->visibleForPartners != 'no') {
+                if (($rec->visibleForPartners ?? null) != 'no') {
                     $res = true;
                 }
             }

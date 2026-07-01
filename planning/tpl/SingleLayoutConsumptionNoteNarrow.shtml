@@ -54,7 +54,14 @@
                                                 <tr>
                                                     <td colspan='2'>[#useResourceAccounts#]</td>
                                                 </tr>
-                                                <!--ET_END useResourceAccounts-->
+                                                <!--ET_BEGIN calcPrimeCostBtn-->
+                                                <tr>
+                                                    <td class='quiet aright' style='width:1%; vertical-align: middle;'>[#calcPrimeCostBtn#]</td>
+                                                    <td>
+                                                    <!--ET_BEGIN calcedPrimeCost--><b>[#calcedPrimeCost#]</b> |към|* [#calcedPrimeCostDate#]<!--ET_END calcedPrimeCost-->
+                                                    </td>
+                                                </tr>
+                                                <!--ET_END calcPrimeCostBtn-->
                                             </table>
                                             <!--ET_BEGIN description-->
                                             <hr>

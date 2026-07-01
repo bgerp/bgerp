@@ -2335,7 +2335,12 @@ class pos_Terminal extends peripheral_Terminal
             $packs[$packRec->productId][$packRec->packagingId] = $packRec;
         }
 
-        $now = dt::now();
+        // Кеширане в хита на ддс групите на артикулите за по-лесно извличане
+        $now = date('Y-m-d H:i:00');
+        cat_products_VatGroups::getVats(array_keys($products), $now, $settings->vatExceptionId);
+
+        // Задаване в кеша на ЦП групите на артикулите за по-бързо извличане
+        price_ListRules::preloadGroups($products);
 
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){
@@ -2349,6 +2354,8 @@ class pos_Terminal extends peripheral_Terminal
                     $packId = $pRec->measureId;
                 }
             }
+
+
             $perPack = isset($packs[$id][$packId]) ? $packs[$id][$packId]->quantity : 1;
             core_Debug::startTimer('TERMINAL_RESULT_GET_LOWER_PRICE');
             $priceRes = pos_ReceiptDetails::getLowerPriceObj($rec->_policy1, $rec->_policy2, $id, $packId, 1, $now);
@@ -2380,10 +2387,10 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);
             $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
             $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
-            $res[$id]->productId = mb_subStr(cat_Products::getVerbal($productRec, 'name'), 0, 80);
+            $res[$id]->productId = mb_subStr(cat_Products::getDisplayName($productRec, 'name'), 0, 80);
 
             if($settings->showProductCode == 'yes'){
-                $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($productRec, 'code') : "Art{$obj->productId}";
+                $res[$id]->code = !empty($pRec->code) ? $productRec->code : "Art{$obj->productId}";
             }
 
             $res[$id]->photo = $this->getPosProductPreview($obj->productId, 140, 140, $settings);

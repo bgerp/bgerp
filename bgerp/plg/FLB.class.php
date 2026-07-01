@@ -247,7 +247,7 @@ class bgerp_plg_FLB extends core_Plugin
         // Скриване на записите до които няма достъп
         $filterRec = $data->listFilter->rec;
         if(!empty($filterRec->users)){
-            if($filterRec->state == 'closed'){
+            if(($filterRec->state ?? null) == 'closed'){
                 $data->query->where("#state = 'closed'");
             } else {
                 self::addUserFilterToQuery($mvc, $data->query, $filterRec->users);

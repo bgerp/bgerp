@@ -102,9 +102,9 @@ class core_Embedder extends core_Master
     public function getDriver_($id)
     {
         $rec = $this->fetchRec($id);
-        $rec->{$this->innerClassField} = ($rec->{$this->innerClassField}) ? $rec->{$this->innerClassField} : $this->fetchField($rec->id, $this->innerClassField);
-        
-        if ($rec->id) {
+        $rec->{$this->innerClassField} = (!empty($rec->{$this->innerClassField})) ? $rec->{$this->innerClassField} : $this->fetchField($rec->id ?? null, $this->innerClassField);
+
+        if (!empty($rec->id)) {
             $innerForm = (isset($rec->{$this->innerFormField})) ? $rec->{$this->innerFormField} : $this->fetchField($rec->id, $this->innerFormField);
             $innerState = (isset($rec->{$this->innerStateField})) ? $rec->{$this->innerStateField} : $this->fetchField($rec->id, $this->innerStateField);
         }
@@ -280,10 +280,10 @@ class core_Embedder extends core_Master
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        $innerClass = (!empty($rec->{$mvc->innerClassField})) ? $rec->{$mvc->innerClassField} : $mvc->fetchField($rec->id, $mvc->innerClassField);
-        
+        $innerClass = (!empty($rec->{$mvc->innerClassField})) ? $rec->{$mvc->innerClassField} : $mvc->fetchField($rec->id ?? null, $mvc->innerClassField);
+
         // Подсигуряваме се, че няма по погрешка да забършим полетата за вътрешното състояние
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $rec->{$mvc->innerStateField} = (!empty($rec->{$mvc->innerStateField})) ? $rec->{$mvc->innerStateField} : $mvc->fetchField($rec->id, $mvc->innerStateField);
             $rec->{$mvc->innerFormField} = (!empty($rec->{$mvc->innerFormField})) ? $rec->{$mvc->innerFormField} : $mvc->fetchField($rec->id, $mvc->innerFormField);
         }
@@ -317,8 +317,8 @@ class core_Embedder extends core_Master
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        $innerClass = (!empty($rec->{$mvc->innerClassField})) ? $rec->{$mvc->innerClassField} : $mvc->fetchField($rec->id, $mvc->innerClassField);
-        
+        $innerClass = (!empty($rec->{$mvc->innerClassField})) ? $rec->{$mvc->innerClassField} : $mvc->fetchField($rec->id ?? null, $mvc->innerClassField);
+
         $innerDrv = cls::get($innerClass);
         
         return $innerDrv->invoke('AfterSave', array(&$rec->{$mvc->innerStateField}, $rec->{$mvc->innerFormField}, &$rec, $fields, $mode));

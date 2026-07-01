@@ -53,7 +53,7 @@ class crm_ContragentGroupsPlg extends core_Plugin
     {
         $oCountryId = null;
 
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $oCountryId = $mvc->fetchField($rec->id, $mvc->countryFieldName);
 
             if ($oCountryId != $rec->{$mvc->countryFieldName}) {

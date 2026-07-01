@@ -618,7 +618,9 @@ class cat_BomDetails extends doc_Detail
         $scope = cat_Boms::getScope($params);
         $scope['$T'] = 1;
         $scope['$Начално='] = '$Начално=';
-        $scope['$тираж_задание'] = '$тираж_задание';
+
+        $masterRec = cat_Boms::fetch($rec->bomId, 'threadId,quantityForPrice');
+        $scope['$тираж_задание'] = !empty($masterRec->quantityForPrice) ? $masterRec->quantityForPrice : '$тираж_задание';
         $threadId = cat_Boms::fetchField($rec->bomId, 'threadId');
         if($firstDoc = doc_Threads::getFirstDocument($threadId)){
             if($firstDoc->isInstanceOf('planning_Jobs')) {

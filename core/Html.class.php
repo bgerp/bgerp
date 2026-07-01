@@ -783,10 +783,14 @@ class core_Html
         $title = tr($title);
         
         self::addAccessKey($attr, $title);
-        
-        $attr['name'] ??= '';
-        $attr['name'] .= "Cmd[{$cmd}]";
-        
+
+        if (is_array($cmd) && !isset($attr['name'])) {
+            wp('За CMD се подава масив: ', $cmd);
+            $cmd = $cmd[1] ?? $cmd[0] ?? '';
+        }
+
+        $attr['name'] = (is_scalar($attr['name'] ?? null) ? ($attr['name'] ?? '') : '') . "Cmd[" . (is_scalar($cmd) ? $cmd : '') . "]";
+
         $attr['onclick'] ??= '';
         if (is_string($newWindow) && ($newWindow != '_blank')) {
             $attr['onclick'] .= "  this.form.target = '{$newWindow}';";

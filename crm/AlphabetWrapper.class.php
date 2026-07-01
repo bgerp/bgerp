@@ -28,7 +28,7 @@ class crm_AlphabetWrapper extends core_Plugin
      */
     public function on_AfterRenderWrapping($mvc, &$tpl, $content, $data = null)
     {
-        if ($data->action != 'list') {
+        if (($data->action ?? null) != 'list') {
             
             return;
         }

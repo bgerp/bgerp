@@ -47,7 +47,7 @@ class type_UserOrRole extends type_User
         setIfNot($this->params['rolesForAllRoles'], 'ceo, admin');
         $this->params['rolesForAllRoles'] = str_replace('|', ',', $this->params['rolesForAllRoles']);
         
-        if ($this->params['rolesType']) {
+        if ($this->params['rolesType'] ?? null) {
             $this->params['rolesType'] = str_replace('|', ',', $this->params['rolesType']);
         }
         
@@ -98,7 +98,7 @@ class type_UserOrRole extends type_User
 
 //             $rQuery->where("#state != 'closed'");
             
-            if ($this->params['rolesType']) {
+            if ($this->params['rolesType'] ?? null) {
                 $this->params['rolesType'] = arr::make($this->params['rolesType']);
                 $rQuery->orWhereArr('type', $this->params['rolesType']);
             }
@@ -115,7 +115,7 @@ class type_UserOrRole extends type_User
         if (!empty($oArr)) {
             setIfNot($this->options, array());
             
-            if ($this->params['showRolesFirst'] && haveRole($this->params['showRolesFirst'])) {
+            if (!empty($this->params['showRolesFirst']) && haveRole($this->params['showRolesFirst'])) {
                 
                 if ($this->options) {
                     $fk = key($this->options);

@@ -409,6 +409,7 @@ class help_Info extends core_Master
         if (cls::load($class, true) === true) {
             $manager = cls::get($class);
             
+            $menu = $subMenu = '';
             $plugins = arr::make($manager->loadList, true);
             if (countR($plugins)) {
                 foreach ($plugins as $plg) {
@@ -469,7 +470,7 @@ class help_Info extends core_Master
     protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         setIfNot($data->_infoTitlebgERPName, 'bgERP');
-        if (!$data->_infoTitleVersionName) {
+        if (empty($data->_infoTitleVersionName)) {
             $cVersion = core_setup::CURRENT_VERSION;
             $cVersionArr = explode('-', $cVersion, 2);
             if (Mode::is('screenMode', 'narrow')) {

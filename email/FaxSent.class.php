@@ -549,7 +549,7 @@ class email_FaxSent extends core_Manager
             }
             
             // Ако все още има права и има запис
-            if (!$requiredRoles != 'no_one' && $rec->threadId) {
+            if (!$requiredRoles != 'no_one' && is_object($rec) && $rec->threadId) {
                 
                 // Ако няма права за сингъла към нишката
                 if (!doc_Threads::haveRightFor('single', $rec->threadId)) {

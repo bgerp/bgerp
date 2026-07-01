@@ -417,6 +417,7 @@ class doc_Setup extends core_ProtoSetup
             'ceo',
         );
 
+        $lastRole = '';
         foreach ($rangRoles as $role) {
             $inherit = trim('powerUser,' . $lastRole, ',');
             $lastRole = $role;
@@ -537,7 +538,7 @@ class doc_Setup extends core_ProtoSetup
         $data = core_Packs::getConfig('core')->_data;
 
         $force = false;
-        if (!$data['migration_doc_addBlockToPortal46193']) {
+        if (empty($data['migration_doc_addBlockToPortal46193'])) {
             $force = true;
         }
 

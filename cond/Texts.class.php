@@ -90,8 +90,12 @@ class cond_Texts extends core_Manager
         $this->FLD('view', 'text', 'caption=Оформление->Изглед, autohide, placeholder={{CONTENT}}' .
         "\n{{IMAGE_1}}" .
         "\n{{IMAGE_2}}" .
-        "\n{{IMAGE_3}}" . ', rows=7, hint=Използвайте {{CONTENT}} за съдържанието на пасажа' .
-        "\n{{IMAGE_1}} {{IMAGE_2}} и {{IMAGE_3}} за позициониране на изображенията в текста");
+        "\n{{IMAGE_3}}" .
+        "\n{{IMAGE_1_BASE}}" .
+        "\n{{IMAGE_2_BASE}}" .
+        "\n{{IMAGE_3_BASE}}" . ', rows=7, hint=Използвайте {{CONTENT}} за съдържанието на пасажа' .
+        "\n{{IMAGE_1}} {{IMAGE_2}} и {{IMAGE_3}} за позициониране на изображенията в текста" .
+        "\n{{IMAGE_1_BASE}} {{IMAGE_2_BASE}} и {{IMAGE_3_BASE}} за base64 версия на изображенията");
         $this->FLD('img1', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение 1, autohide');
         $this->FLD('img2', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение 2, autohide');
         $this->FLD('img3', 'fileman_FileType(bucket=pictures)', 'caption=Оформление->Изображение 3, autohide');
@@ -230,7 +234,7 @@ class cond_Texts extends core_Manager
             unset($data->form->fields['access']->type->options['public']);
         }
 
-        $data->form->setSuggestions('view', array('{{CONTENT}}' => '{{CONTENT}}', '{{IMAGE_1}}' => '{{IMAGE_1}}', '{{IMAGE_2}}' => '{{IMAGE_2}}', '{{IMAGE_3}}' => '{{IMAGE_3}}'));
+        $data->form->setSuggestions('view', array('{{CONTENT}}' => '{{CONTENT}}', '{{IMAGE_1}}' => '{{IMAGE_1}}', '{{IMAGE_2}}' => '{{IMAGE_2}}', '{{IMAGE_3}}' => '{{IMAGE_3}}', '{{IMAGE_1_BASE}}' => '{{IMAGE_1_BASE}}', '{{IMAGE_2_BASE}}' => '{{IMAGE_2_BASE}}', '{{IMAGE_3_BASE}}' => '{{IMAGE_3_BASE}}'));
     }
 
     
@@ -296,15 +300,15 @@ class cond_Texts extends core_Manager
                 $data->query->orWhere(array("#createdBy = '[#1#]'", $cu));
             }
         }
-        if ($rec->langWithAllSelect) {
+        if ($rec->langWithAllSelect ?? null) {
             $data->query->where(array("#lang = '[#1#]'", $rec->langWithAllSelect));
         }
 
-        if ($rec->group) {
+        if ($rec->group ?? null) {
             $data->query->likeKeylist('group', $rec->group);
         }
 
-        core_Permanent::set("condLastFilter{$cu}", array('group' => $rec->group, 'author' => $rec->author, 'langWithAllSelect' => $rec->langWithAllSelect), 24 * 60 * 100);
+        core_Permanent::set("condLastFilter{$cu}", array('group' => $rec->group ?? null, 'author' => $rec->author ?? null, 'langWithAllSelect' => $rec->langWithAllSelect ?? null), 24 * 60 * 100);
 
         $data->query->orderBy('#createdOn', 'DESC');
     }
@@ -376,10 +380,13 @@ class cond_Texts extends core_Manager
             for ($i=1; $i<=3; $i++) {
                 $imgField = 'img' . $i;
                 $imgUrl = '';
+                $imgBase = '';
                 if ($rec->{$imgField}) {
                     $imgUrl = fileman_Download::getDownloadUrl($rec->{$imgField}, 1000000);
+                    $imgBase = 'data:' . fileman::getType(fileman::fetchByFh($rec->{$imgField}, 'name')) . ';base64,' . base64_encode(fileman::extractStr($rec->{$imgField}));
                 }
                 $res = str_replace('{{IMAGE_' . $i . '}}', $imgUrl, $res);
+                $res = str_replace('{{IMAGE_' . $i . '_BASE}}', $imgBase, $res);
             }
         }
 

@@ -100,7 +100,7 @@ class log_Classes extends core_Manager
         
         $classCrc = crc32($className);
         
-        if (!self::$classArr[$classCrc] && $autoSave) {
+        if (!(self::$classArr[$classCrc] ?? null) && $autoSave) {
             self::$classArr[$classCrc] = $className;
         }
         

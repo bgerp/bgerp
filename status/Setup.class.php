@@ -80,7 +80,8 @@ class status_Setup extends core_ProtoSetup
         );
         
         $instances = array();
-        
+        $html = '';
+
         foreach ($managers as $manager) {
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();

@@ -193,7 +193,17 @@ class type_Richtext extends type_Blob
             
             return;
         }
-        
+
+        // Ако мода е за рендиране за ИИ (чист ричтекст с таговете, без HTML обработка)
+        if (Mode::is('renderForAI')) {
+
+            // Даваме възможност на плъгините да обработят чистия ричтекст за ИИ
+            // (напр. да маркират хендлъри без достъп)
+            $this->invoke('AfterGetRichtextForAI', array(&$value));
+
+            return $value;
+        }
+
         if (Mode::is('text', 'plain')) {
             $res = $this->toHtml($value);
             $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');
@@ -648,11 +658,11 @@ class type_Richtext extends type_Blob
 
         // '[table>', '[/table>', '[tr>', '[/tr>', '[td>', '[/td>', '[th>', '[/th>');
         } elseif (Mode::is('ClearFormat')) {
-            $to = array("\n",   "\n",   "\n",  "\n", '    ', $nbspUtf8, '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", '', '');
+            $to = array("\n",   "\n",   "\n",  "\n", '    ', $nbspUtf8, '',  '',  '',  '',  '',  '',  '',  '', "\n", '', '', '', '', "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", '', '', '', '', '', '', '', '', '', '', '', '');
         
         // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         } else {
-            $to = array("\n",   "\n",   "\n",  "\n", '    ', $nbspUtf8, '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", '', '');
+            $to = array("\n",   "\n",   "\n",  "\n", '    ', $nbspUtf8, '',  '',  '*',  '*',  '',  '',  '',  '', str_repeat('_', 84), '', '', '', '', "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", "\n", '', '', '', '', '', '', '', '', '', '', '', '');
             
             // "", "", "\n", "\n", "\t", ' ', "\t", ' ');
         }
@@ -1014,7 +1024,7 @@ class type_Richtext extends type_Blob
 
         if (core_Url::isLocal($url, $rest, $dArr)) {
             $link = $this->internalLink($url, $title, $place, $rest);
-            list($url1, $url2) = explode('#', $url, 2);
+            [$url1, $url2] = explode('#', $url, 2) + [1 => null];
             if ($url2) {
                 $url2 = str::canonize($url2);
                 $url = $url1 . '#' . $url2;
@@ -1353,7 +1363,7 @@ class type_Richtext extends type_Blob
         $out = '';
         
         foreach ($lines as $l) {
-            if ($l[0] == '|') {
+            if (isset($l[0]) && $l[0] == '|') {
                 if (!$table) {
                     $out .= "\n<div class='overflow-scroll'><table class='inlineRichTable listTable'>";
                     $table = true;
@@ -1774,7 +1784,7 @@ class type_Richtext extends type_Blob
         $res = parent::isValid($value);
         $res['value'] = $value;
 
-        if ($this->rolesForTagCheck && haveRole($this->rolesForTagCheck)) {
+        if (!empty($this->rolesForTagCheck) && haveRole($this->rolesForTagCheck)) {
             $tArr = $this->validateBBCode($value);
             if (!empty($tArr)) {
                 $tArr = arr::make($tArr, true);

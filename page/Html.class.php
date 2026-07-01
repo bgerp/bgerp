@@ -169,7 +169,10 @@ class page_Html extends core_ET
         jquery_Jquery::run($tpl, 'smartCenter();');
         jquery_Jquery::run($tpl, 'showTooltip();');
         jquery_Jquery::run($tpl, 'makeTooltipFromTitle();');
-        
+
+        $logAjaxDebugUrl = toUrl(array('log_System', 'JsLog'), 'local');
+        jquery_Jquery::run($tpl, "setLogDebugUrl('{$logAjaxDebugUrl}');", true);
+
         $url = json_encode(toUrl(array('bgerp_A', 'wp'), 'local'));
         $tpl->appendOnce("var wpUrl = {$url};", 'SCRIPTS');
         

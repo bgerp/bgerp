@@ -185,7 +185,8 @@ class core_CallOnTime extends core_Manager
         $query->orderBy('callOn', 'ASC');
         $query->show('callOn');
         
-        $callOn = $query->fetch()->callOn;
+        $fetchRec = $query->fetch();
+        $callOn = is_object($fetchRec) ? $fetchRec->callOn : null;
         
         return ($callOn) ? $callOn : null;
     }

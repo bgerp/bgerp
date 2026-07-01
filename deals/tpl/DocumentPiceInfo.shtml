@@ -27,55 +27,27 @@
          <hr>
       </td>
    </tr>
-   
-   <!--ET_BEGIN vat02BaseAmount-->
+
+   [#VAT_BLOCK_PLACE#]
+   <!--ET_BEGIN VAT_BLOCK-->
+   [#VAT_BLOCK#]
+      <!--ET_BEGIN vatBaseAmount-->
+      <tr class='nowrap'>
+         <td class='aright'>|Данъчна основа|* <b>[#vatBase#]</b>:</td>
+         <td class='info-right'><span class='cCode'>[#vatBaseCurrencyId#]</span></td>
+         <td class='aright'><b class="lighterBold">[#vatBaseAmount#]</b></td>
+      </tr>
+      <!--ET_END vatBaseAmount-->
+   <!--ET_BEGIN vatPercent-->
    <tr class='nowrap'>
-      <td class='aright'>|Данъчна основа|* <b>[#vat02Base#]</b>:</td>
-      <td class='info-right'><span class='cCode'>[#vat02BaseCurrencyId#]</span></td>
-      <td class='aright'><b class="lighterBold">[#vat02BaseAmount#]</b></td>
+      <td class='aright'>|ДДС|* <b>[#vatPercent#]</b>:</td>
+      <td class='info-right'><span class='cCode'>[#vatAmountCurrencyId#]</span></td>
+      <td class='aright'><b class="lighterBold">[#vatAmount#]</b></td>
    </tr>
-   <!--ET_END vat02BaseAmount-->
-   
-   <!--ET_BEGIN vat02-->
-   <tr class='nowrap'>
-      <td class='aright'>|ДДС|* <b>[#vat02#]</b>:</td>
-      <td class='info-right'><span class='cCode'>[#vat02AmountCurrencyId#]</span></td>
-      <td class='aright'><b class="lighterBold">[#vat02Amount#]</b></td>
-   </tr>
-   <!--ET_END vat02-->
-   
-   <!--ET_BEGIN vat009BaseAmount-->
-   <tr class='nowrap'>
-      <td class='aright'>|Данъчна основа|* <b>[#vat009Base#]</b>:</td>
-      <td class='info-right'><span class='cCode'>[#vat009BaseCurrencyId#]</span></td>
-      <td class='aright'><b class="lighterBold">[#vat009BaseAmount#]</b></td>
-   </tr>
-   <!--ET_END vat009BaseAmount-->
-   
-   <!--ET_BEGIN vat009-->
-   <tr class='nowrap'>
-      <td class='aright'>|ДДС|* <b>[#vat009#]</b>:</td>
-      <td class='info-right'><span class='cCode'>[#vat009AmountCurrencyId#]</span></td>
-      <td class='aright'><b class="lighterBold">[#vat009Amount#]</b></td>
-   </tr>
-   <!--ET_END vat009-->
-   
-   <!--ET_BEGIN vat0BaseAmount-->
-   <tr class='nowrap'>
-      <td class='aright'>|Данъчна основа|* <b>[#vat0Base#]</b>:</td>
-      <td class='info-right'><span class='cCode'>[#vat0BaseCurrencyId#]</span></td>
-      <td class='aright'><b class="lighterBold">[#vat0BaseAmount#]</b></td>
-   </tr>
-   <!--ET_END vat0BaseAmount-->
-   
-   <!--ET_BEGIN vat0-->
-   <tr class='nowrap'>
-      <td class='aright'>|ДДС|* <b>[#vat0#]</b>:</td>
-      <td class='info-right'><span class='cCode'>[#vat0AmountCurrencyId#]</span></td>
-      <td class='aright'><b class="lighterBold">[#vat0Amount#]</b></td>
-   </tr>
-   <!--ET_END vat0-->
-   
+   <!--ET_END vatPercent-->
+   <!--ET_END VAT_BLOCK-->
+
+
    <!--ET_END VAT_INFO-->
    <tr>
       <td colspan='3' style='padding:0px'>

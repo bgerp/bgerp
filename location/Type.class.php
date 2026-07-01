@@ -56,8 +56,8 @@ class location_Type extends type_Varchar
     {
         $attr['class'] .= ' lnglat';
         
-        if (!$attr['id']) {
-            if (!$attr['name']) {
+        if (empty($attr['id'])) {
+            if (empty($attr['name'])) {
                 $attr['name'] = 'lnglat';
             }
             ht::setUniqId($attr);
@@ -66,7 +66,7 @@ class location_Type extends type_Varchar
         $stopGeolocation = false;
         
         if (!$value) {
-            if (!($value = $this->params['default'])) {
+            if (!($value = ($this->params['default'] ?? null))) {
                 $conf = core_Packs::getConfig('location');
                 $value = $conf->LOCATION_DEFAULT_REGION;
             }
@@ -74,7 +74,7 @@ class location_Type extends type_Varchar
             $stopGeolocation = true;
         }
         
-        if ($this->params['geolocation'] == 'mobile' && !Mode::is('screenMode', 'narrow')) {
+        if (($this->params['geolocation'] ?? null) == 'mobile' && !Mode::is('screenMode', 'narrow')) {
             $stopGeolocation = true;
         }
         
@@ -82,11 +82,12 @@ class location_Type extends type_Varchar
         
         $conf = core_Packs::getConfig('google');
         $apiKey = $conf->GOOGLE_API_KEY;
-        
+
+        $keyString = '';
         if (isset($apiKey) && $apiKey != '') {
             $keyString = "key={$apiKey}&";
         }
-        
+
         $tpl->appendOnce("\n<script type=\"text/javascript\" src=\"https://maps.google.com/maps/api/js?" . $keyString . 'language=' . core_Lg::getCurrent() . '"></script>', 'HEAD', true);
         
         $Lg = cls::get('core_Lg');

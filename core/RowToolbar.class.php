@@ -125,7 +125,7 @@ class core_RowToolbar extends core_BaseClass
         $remains = arr::make($remains, true);
         $cnt = 0;
         foreach ($this->links as $id => $btn) {
-            if (($ids['*'] || $ids[$id]) && !$remains[$id]) {
+            if ((($ids['*'] ?? null) || ($ids[$id] ?? null)) && !($remains[$id] ?? null)) {
                 unset($this->links[$id]);
                 $cnt++;
             }

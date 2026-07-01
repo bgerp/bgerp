@@ -185,8 +185,8 @@ class callcenter_Setup extends core_ProtoSetup
         $conf = core_Packs::getConfig('callcenter');
         
         // Ако не е зададена услуга или изпращач
-        if ((!$conf->CALLCENTER_SMS_SERVICE) || (!$conf->CALLCENTER_SMS_SENDER)) {
-            
+        if (empty($conf->CALLCENTER_SMS_SERVICE) || empty($conf->CALLCENTER_SMS_SENDER)) {
+
             return ;
         }
         
@@ -202,13 +202,13 @@ class callcenter_Setup extends core_ProtoSetup
         $paramsArr = $inst->getParams();
         
         // Ако не са зададени позволение имена за изпращач
-        if (!$paramsArr['allowedUserNames']) {
-            
+        if (empty($paramsArr['allowedUserNames'])) {
+
             return ;
         }
-        
+
         // Ако изпращача не е в допустимите
-        if (!$paramsArr['allowedUserNames'][$conf->CALLCENTER_SMS_SENDER]) {
+        if (empty($paramsArr['allowedUserNames'][$conf->CALLCENTER_SMS_SENDER])) {
             
             // Стринг с позволените
             $allowedUsers = implode(', ', $paramsArr['allowedUserNames']);

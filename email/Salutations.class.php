@@ -385,6 +385,8 @@ class email_Salutations extends core_Manager
             // Разбиваме текстовете на масив
             $salutationsArr = type_Set::toArray(EMAIL_SALUTATIONS_BEGIN);
             
+            $salutationPatter = '';
+
             // Обхождаме масива
             foreach ($salutationsArr as $salutation) {
                 

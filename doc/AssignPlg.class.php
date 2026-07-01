@@ -224,13 +224,14 @@ class doc_AssignPlg extends core_Plugin
         if ($rec->assign) {
             if (!isset($rec->assignedOn) && !isset($rec->assignedBy)) {
                 $update = false;
+                $oRec = null;
                 if ($rec->id) {
                     $oRec = $mvc->fetch($rec->id, null, false);
                 } else {
                     $update = true;
                 }
-                
-                if ($rec->assign != $oRec->assign) {
+
+                if (is_object($oRec) && $rec->assign != $oRec->assign) {
                     $update = true;
                 }
                 
@@ -306,7 +307,7 @@ class doc_AssignPlg extends core_Plugin
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         // Ако няма възложено на
-        if (!$data->row->assign) {
+        if (empty($data->row->assign)) {
             
             // Премахваме от и датата
             unset($data->row->assignedOn);
@@ -413,7 +414,7 @@ class doc_AssignPlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if (!$data->form->rec->id) {
+        if (empty($data->form->rec->id)) {
             $defUsersArr = $mvc->getDefaultAssignUsers($data->form->rec);
             
             if ($defUsersArr) {

@@ -313,7 +313,7 @@ class price_ProductCosts extends core_Manager
             }
         }
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'list', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         $data->listFields['price'] .= "|* <small>(" . acc_Periods::getBaseCurrencyCode() . ")</small>";
     }

@@ -603,7 +603,7 @@ class cms_Domains extends core_Embedder
      */
     public static function getRecTitle($rec, $escape = true)
     {
-        if (!$rec->domain || !$rec->lang) {
+        if (empty($rec->domain) || empty($rec->lang)) {
             $rec = self::fetch($rec->id);
         }
         
@@ -636,7 +636,7 @@ class cms_Domains extends core_Embedder
         // Инвалидираме сесийния кеш
         Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, null);
         
-        if (is_array($rec->toRemove) && countR($rec->toRemove)) {
+        if (isset($rec->toRemove) && is_array($rec->toRemove) && countR($rec->toRemove)) {
             foreach($rec->toRemove as $filename) {
                 core_Webroot::remove($filename, $id);
             }
@@ -650,8 +650,8 @@ class cms_Domains extends core_Embedder
         // robots.txt
         $fiContent = $mvc->getRobotsTxt($rec);
         
-        if($rec->sitemap) {
-            
+        if(!empty($rec->sitemap)) {
+
             if($rec->sitemap == self::CMS_PUBLIC_SITEMAP_NAME) {
                 $fiContent .= "\nSitemap: " . rtrim(toURL(array(self::CMS_PUBLIC_SITEMAP_NAME), 'absolute'), '/');
             }
@@ -668,7 +668,7 @@ class cms_Domains extends core_Embedder
         $rec->toRemove['robots.txt'] = 'robots.txt';
         
         // Всички останали файлове
-        if($rec->wrFiles) {
+        if(!empty($rec->wrFiles)) {
             
             $inst = cls::get('archive_Adapter', array('fileHnd' => $rec->wrFiles));
             
@@ -692,7 +692,7 @@ class cms_Domains extends core_Embedder
         $fiContent = $iconContent = null;
 
         // favicon.ico
-        if ($rec->favicon) {
+        if (!empty($rec->favicon)) {
             $iconContent = $fiContent = fileman_Files::getContent($rec->favicon);
             $fName = fileman::fetchByFh($rec->favicon, 'name');
             $fExt = fileman::getExt($fName);

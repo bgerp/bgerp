@@ -113,7 +113,7 @@ class core_ObjectReference
     
     public function __get($property)
     {
-        return $this->instance->{$property};
+        return $this->instance->{$property} ?? null;
     }
     
     

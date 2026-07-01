@@ -137,16 +137,16 @@ class doc_Search extends core_Manager
         !empty($filterRec->state) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->toDate) ||
-        $filterRec->author != 'all_users' || (Mode::is('colabSearch') && $colabIsInstalled);
+        ($filterRec->author ?? null) != 'all_users' || (Mode::is('colabSearch') && $colabIsInstalled);
 
         // Флаг, указващ дали се филтрира
         $mvc->isFiltered = $isFiltered;
         
         // Ако формата е субмитната
-        if ($isFiltered && ($filterRec->fromDate || $filterRec->toDate)) {
+        if ($isFiltered && (!empty($filterRec->fromDate) || !empty($filterRec->toDate))) {
 
             // Ако са попълнени полетата От и До
-            if ($filterRec->fromDate && $filterRec->toDate) {
+            if (!empty($filterRec->fromDate) && !empty($filterRec->toDate)) {
                 
                 // Ако До е след От
                 if ($filterRec->toDate < $filterRec->fromDate) {
@@ -164,7 +164,7 @@ class doc_Search extends core_Manager
             $now = dt::now(false);
             
             // Ако се търси в бъдеще
-            if ($filterRec->fromDate && $filterRec->fromDate > $now) {
+            if (!empty($filterRec->fromDate) && $filterRec->fromDate > $now) {
                 
                 // Сетваме грешката
                 $data->listFilter->setError('fromDate', 'Не може да се търси в бъдеще');
@@ -173,15 +173,15 @@ class doc_Search extends core_Manager
 
         // Дали има препочитан индекс?
         $useIndex = null;
-        $aArr = type_UserList::toArray($filterRec->author); 
+        $aArr = type_UserList::toArray($filterRec->author ?? null);
         if (countR($aArr) == 1 && is_numeric(reset($aArr))) {
             $useIndex = 'created_by';
-        } elseif ($filterRec->scopeFolderId) {
+        } elseif ($filterRec->scopeFolderId ?? null) {
             $useIndex = 'folder_id';
         }
         
         // Ако се търси по документите на някой потребител, без да се гледа много 
-        if ($isFiltered && !$filterRec->fromDate && !$filterRec->toDate && !$data->listFilter->ignore && !$data->query->isSlowQuery) {
+        if ($isFiltered && !($filterRec->fromDate ?? null) && !($filterRec->toDate ?? null) && !($data->listFilter->ignore ?? null) && !($data->query->isSlowQuery ?? null)) {
             if (empty($filterRec->search) && empty($filterRec->scopeFolderId)) {
                 if (!empty($filterRec->docClass) && (!strpos($filterRec->author, '-1')) && plg_Search::isBigTable($data->query)) {
                     $data->query->isSlowQuery = true;
@@ -189,8 +189,8 @@ class doc_Search extends core_Manager
             }
         }
 
-        if ($data->query->isSlowQuery && !$data->listFilter->ignore && !$useIndex) {
-            if (!$filterRec->fromDate && !$filterRec->toDate) {
+        if (($data->query->isSlowQuery ?? null) && !($data->listFilter->ignore ?? null) && !$useIndex) {
+            if (!($filterRec->fromDate ?? null) && !($filterRec->toDate ?? null)) {
                 $data->listFilter->setWarning('search, fromDate, toDate', 'Заявката за търсене е много обща и вероятно ще се изпълни бавно. Добавете още думи или я ограничете по дати');
                 $dFrom = dt::addMonths(-1, null, false);
                 $dFrom = cls::get('type_Date')->toVerbal($dFrom);
@@ -263,7 +263,7 @@ class doc_Search extends core_Manager
                 $data->query->where(array($where, $filterRec->toDate));
             }
             
-            if ($filterRec->scopeFolderId) {
+            if (!empty($filterRec->scopeFolderId)) {
                 $data->query->where(array("#folderId = '[#1#]'", $filterRec->scopeFolderId));
             }
             
@@ -303,7 +303,7 @@ class doc_Search extends core_Manager
             }
             
             // Ако не търсим оттеглените документи, тогава да не се показват
-            if ($filterRec->state != 'rejected') {
+            if (($filterRec->state ?? null) != 'rejected') {
                 
                 // Избягваме търсенето в оттеглените документи
                 $data->query->where("#state != 'rejected'");
@@ -313,7 +313,7 @@ class doc_Search extends core_Manager
             // id на текущия потребител
             $currUserId = core_Users::getCurrent();
             
-            if ($filterRec->withMe && ($currUserId > 0)) {
+            if (!empty($filterRec->withMe) && ($currUserId > 0)) {
 
                 // Ако ще се показват само харесаните от текущия потребител
                 if ($filterRec->withMe == 'liked_from_me') {
@@ -328,14 +328,14 @@ class doc_Search extends core_Manager
                 }
             }
 
-            if ($filterRec->tags || ($filterRec->withMe == 'tag_from_me')) {
+            if (!empty($filterRec->tags) || (($filterRec->withMe ?? null) == 'tag_from_me')) {
                 $data->query->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
 
-                $tagsArr = type_Keylist::toArray($filterRec->tags);
+                $tagsArr = type_Keylist::toArray($filterRec->tags ?? null);
 
                 $personalTags = tags_Tags::getPersonalTags();
 
-                if ($filterRec->withMe == 'tag_from_me') {
+                if (($filterRec->withMe ?? null) == 'tag_from_me') {
                     if (empty($tagsArr)) {
                         $pTags = array_keys($tOptArr['all']);
                     } else {
@@ -382,24 +382,24 @@ class doc_Search extends core_Manager
              */
 
             // Ако ще се филтира по състояни и текущия потребител (автор)
-            if ($filterRec->state) {
+            if (!empty($filterRec->state)) {
                 $url = array($mvc, 'state' => $filterRec->state);
                 
                 $url2 = array($mvc);
-                if ($filterRec->docClass) {
+                if (!empty($filterRec->docClass)) {
                     $url2['docClass'] = $filterRec->docClass;
                 }
                 $url2['state'] = $filterRec->state;
                 
-                if ($filterRec->author) {
+                if (!empty($filterRec->author)) {
                     $url2['author'] = Request::get('author');
                 }
-                
+
                 // Ако се филтрира по текущия автор
-                if ($filterRec->author && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
+                if (!empty($filterRec->author) && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
                     $url['author'] = core_Users::getCurrent();
                 }
-                $url2['fromDate'] = $filterRec->fromDate;
+                $url2['fromDate'] = $filterRec->fromDate ?? null;
 
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние
                 bgerp_Notifications::clear($url);
@@ -407,7 +407,7 @@ class doc_Search extends core_Manager
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
                 bgerp_Notifications::clear($url2);
 
-                $url3 = array($mvc, 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDateHorizon' => Request::get('toDateHorizon', 'time'));
+                $url3 = array($mvc, 'list', 'docClass' => $filterRec->docClass ?? null, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDateHorizon' => Request::get('toDateHorizon', 'time'));
 
                 bgerp_Notifications::clear($url3);
             }
@@ -418,48 +418,53 @@ class doc_Search extends core_Manager
         
         $data->query->useCacheForPager = true;
     }
-    
-    
-    /**
-     * Ако се търси манипулатор на файл, да се редиректне към сингъла му
-     *
-     * @param plg_Search $mvc
-     * @param object     $data
-     * @param object     $filtreRec
-     */
+
+
     public static function on_BeforePrepareSearchQuery($mvc, $data, $filtreRec)
     {
         // Тримваме търсенето
-        $search = trim($filtreRec->search);
-        
+        $search = trim($filtreRec->search ?? '');
+
         // Ако няма търсене
         if (!$search) {
-            
+
             return;
         }
-        
-        // Ако не е начало на манипулатор на документ
+
+        // Ако не е начало на манипулатор
         if ($search[0] != '#') {
-            
-            return ;
+
+            return;
         }
-        
+
+        // Ако е въведен манипулатор на папка #F123 - редирект към сингъла ѝ
+        $folderAbbr = preg_quote(doc_Folders::$folderAbbr, '/');
+        if (preg_match("/^#{$folderAbbr}\d+$/i", $search)) {
+            $folderId = doc_Folders::getByHandle($search);
+
+            if ($folderId && doc_Folders::haveRightFor('single', $folderId)) {
+                redirect(doc_Folders::getSingleUrlArray($folderId));
+            }
+
+            return;
+        }
+
         // Вземаме информацията за документа
         $info = doc_RichTextPlg::getFileInfo($search);
-        
+
         // Ако няма информация, да не се изпълнява
         if ($info && $info['className'] && $info['id']) {
             $className = $info['className'];
-            
+
             $rec = $className::fetchByHandle($info);
-            
+
             // Ако имаме права за сингъла и ако има такъв документ, да се редиректне там
             redirect($className::getSingleUrlArray($rec->id));
         } else {
             $search = ltrim($search, '#');
-            
+
             $rec = cat_Products::fetch(array("#code = '[#1#]'", $search));
-            
+
             if ($rec && ($singleUrl = cat_Products::getSingleUrlArray($rec->id))) {
                 redirect($singleUrl);
             }
@@ -507,7 +512,7 @@ class doc_Search extends core_Manager
             
             try {
                 $doc = doc_Containers::getDocument($rec->id);
-                $row->docLink = $doc->getLink(64, array('Q' => $data->listFilter->rec->search));
+                $row->docLink = $doc->getLink(64, array('Q' => $data->listFilter->rec->search ?? null));
             } catch (core_exception_Expect $exp) {
                 $row->docLink = $row->title = "<b style='color:red;'>" . tr('Грешка') . '</b>';
             }
@@ -561,7 +566,7 @@ class doc_Search extends core_Manager
         $attr = array();
         $attr['ef_icon'] = $docProxy->getIcon();
         
-        $handle = $rec->handle ? substr($rec->handle, 0, strlen($rec->handle) - 3) : $docProxy->getHandle();
+        $handle = ($rec->handle ?? null) ? substr($rec->handle, 0, strlen($rec->handle) - 3) : $docProxy->getHandle();
         
         if (mb_strlen($docRow->title) > doc_Threads::maxLenTitle) {
             $attr['title'] = '|*' . $docRow->title;
@@ -576,19 +581,19 @@ class doc_Search extends core_Manager
         
         // Удебеляване на документи, променени след последното виждане
         if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->id)) {
-            $attr['class'] .= " tUnsighted";
+            $attr['class'] = ($attr['class'] ?? '') . " tUnsighted";
         }
         
         $row->title = ht::createLink(str::limitLen($docRow->title, doc_Threads::maxLenTitle), $linkUrl, null, $attr);
         
-        if ($docRow->authorId > 0) {
+        if (($docRow->authorId ?? 0) > 0) {
             $row->author = crm_Profiles::createLink($docRow->authorId);
         } else {
             $row->author = $docRow->author;
         }
 
-        if ($docRow->subTitle) {
-            $noTagsClass = ($docRow->_haveTags && !$docRow->_haveSubtitle) ? ' onlyTags' : '';
+        if ($docRow->subTitle ?? null) {
+            $noTagsClass = (($docRow->_haveTags ?? null) && !($docRow->_haveSubtitle ?? null)) ? ' onlyTags' : '';
             $row->title .= "\n<div class='threadSubTitle{$noTagsClass}'>{$docRow->subTitle}</div>";
         }
 

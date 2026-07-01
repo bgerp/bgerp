@@ -133,14 +133,14 @@ class barcode_Generator extends core_Manager
         if (strtolower($type) == 'qr') {
             
             // Ако не се зададени параметрите, използваме по подразбиране
-            $pixelPerPoint = $params['pixelPerPoint'] ? $params['pixelPerPoint'] : 3;
-            $outFileName = $params['outFileName'] ? $params['outFileName'] : false;
-            $quality = $params['quality'] ? $params['quality'] : 'l';
-            $outerFrame = $params['outerFrame'] ? $params['outerFrame'] : 0;
-            $params['saveAndPrint'] = $outFileName ? $params['saveAndPrint'] : false;
+            $pixelPerPoint = !empty($params['pixelPerPoint']) ? $params['pixelPerPoint'] : 3;
+            $outFileName = !empty($params['outFileName']) ? $params['outFileName'] : false;
+            $quality = !empty($params['quality']) ? $params['quality'] : 'l';
+            $outerFrame = isset($params['outerFrame']) ? $params['outerFrame'] : 0;
+            $params['saveAndPrint'] = $outFileName ? ($params['saveAndPrint'] ?? false) : false;
 
             // Генерира QR изображение
-            $im = QRcode::png($content, $outFileName, $quality, $pixelPerPoint, $outerFrame, $params['saveAndPrint'], $params['colorArr']);
+            $im = QRcode::png($content, $outFileName, $quality, $pixelPerPoint, $outerFrame, $params['saveAndPrint'], $params['colorArr'] ?? array());
             
             return $im;
         }
@@ -159,8 +159,8 @@ class barcode_Generator extends core_Manager
         }
         
         // Вземаем размерите в зависимост от съотношението
-        $size['width'] = self::getNewSize($size['width'], $params['ratio']);
-        $size['height'] = self::getNewSize($size['height'], $params['ratio']);
+        $size['width'] = self::getNewSize($size['width'], $params['ratio'] ?? null);
+        $size['height'] = self::getNewSize($size['height'], $params['ratio'] ?? null);
         
         // Проверява размерите дали са въведени коректно
         self::checkSizes($type, $size, $minWidthAndHeightArr);
@@ -175,7 +175,7 @@ class barcode_Generator extends core_Manager
         // Създаваме GD изображението
         $im = imagecreatetruecolor($width, $height);
 
-        $colorArr = $params['colorArr'];
+        $colorArr = $params['colorArr'] ?? array();
 
         setIfNot($colorArr['opacity'], 0);
         setIfNot($colorArr['color'], '0|0|0');
@@ -214,7 +214,7 @@ class barcode_Generator extends core_Manager
         if (isset($params['addText']) && $type != 'qr' && $type != 'datamatrix') {
             
             // Ако не е зададен размер на шрифта
-            if (!($fontSize = $params['addText']['fontSize'])) {
+            if (!($fontSize = ($params['addText']['fontSize'] ?? null))) {
                 
                 // Задава стойността
                 $fontSize = self::$fontSize;
@@ -224,7 +224,7 @@ class barcode_Generator extends core_Manager
             $fontSize = self::getNewSize($fontSize, $params['ratio']);
             
             // Ако не е зададен фонт
-            if (!($font = $params['addText']['font'])) {
+            if (!($font = ($params['addText']['font'] ?? null))) {
                 
                 // Задаваме стойността
                 $font = self::$font;
@@ -252,7 +252,7 @@ class barcode_Generator extends core_Manager
             $y2 = $height + $f;
             
             // Ако е зададено да се отрязва само колкото е дълъг текста
-            if ($params['addText']['bgOnlyText']) {
+            if (!empty($params['addText']['bgOnlyText'])) {
                 
                 // Тези отрязват квадрат, колкото е големината на текста
                 $x1 = $width / 2 - abs($box[2]) / 2;
@@ -271,7 +271,7 @@ class barcode_Generator extends core_Manager
         }
         
         // Ъгъл на завъртане на баркода
-        if ($params['angle']) {
+        if (!empty($params['angle'])) {
             
             // Завъртаме избображението
             $im = imagerotate($im, $params['angle'], $white);
@@ -331,9 +331,9 @@ class barcode_Generator extends core_Manager
         // Вземаме изображението
         $im = self::getImg($type, $content, $size, $params);
         
-        // Ако е ресурс
-        if (is_resource($im)) {
-            
+        // PHP 7: GD resource; PHP 8: GdImage object
+        if (is_resource($im) || (is_object($im) && $im instanceof GdImage)) {
+
             // Връщаме png
             imagepng($im);
         }
@@ -361,10 +361,10 @@ class barcode_Generator extends core_Manager
         
         // Задаваме аттрибутите на тага
         $attr['alt'] = $content;
-        $attr['class'] = $params['class'];
-        
+        $attr['class'] = $params['class'] ?? null;
+
         // Ако е зададен определен ъгъл
-        switch ($params['angle']) {
+        switch ($params['angle'] ?? null) {
             
             // Ако е 0 или 180
             case 0:
@@ -404,7 +404,7 @@ class barcode_Generator extends core_Manager
     public static function getUrl($type, $content, $size = null, $params = array())
     {
         // Ако е зададен да е абсолют
-        if ($params['absolute']) {
+        if (!empty($params['absolute'])) {
             
             // Линка да е абсолютен
             $linkType = 'absolute';

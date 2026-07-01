@@ -66,8 +66,8 @@ class type_Double extends core_Type
     {
         $value = trim($value);
         
-        $allowOct = (boolean) ($this->params['allowOct'] == 'allowOct');
-        $allowHex = (boolean) ($this->params['allowHex'] == 'allowHex');
+        $allowOct = (boolean) (($this->params['allowOct'] ?? null) == 'allowOct');
+        $allowHex = (boolean) (($this->params['allowHex'] ?? null) == 'allowHex');
         
         
         $originalVal = $value;
@@ -164,8 +164,8 @@ class type_Double extends core_Type
             }
         }
 
-        if ($this->params[0] + $this->params[1] > 0) {
-            $attr['size'] = $this->params[0] + $this->params[1] + 1;
+        if (($this->params[0] ?? 0) + ($this->params[1] ?? 0) > 0) {
+            $attr['size'] = ($this->params[0] ?? 0) + ($this->params[1] ?? 0) + 1;
         }
 
         $tpl = $this->createInput($name, $value, $attr);
@@ -218,7 +218,7 @@ class type_Double extends core_Type
         }
 
         // Закръгляме числото преди да го обърнем в нормален вид
-        $value = round($value, $decimals);
+        $value = round((float)$value, $decimals);
         
         // ако е умно показване и стойноста е 0, да не се закръгля до 0.000
         if (($this->params['smartRound'] ?? null) && $value == 0) {

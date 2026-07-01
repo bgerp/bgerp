@@ -232,6 +232,7 @@ class label_plg_Print extends core_Plugin
         $source = $mvc->getLabelSource($rec);
 
         $res = array();
+        $error = '';
         foreach ($series as $series => $caption){
             $res[$series] = array('url' => null, 'attr' => '', 'caption' => $caption);
             if ($mvc->haveRightFor('printlabel', $rec)) {
@@ -405,7 +406,7 @@ class label_plg_Print extends core_Plugin
     public function on_AfterRenderWrapping($invoker, &$tpl)
     {
         $prevSavedId = Mode::get("{$invoker->className}_PREV_SAVED_ID");
-        if($invoker->_isSaveAndNew && isset($prevSavedId)){
+        if(($invoker->_isSaveAndNew ?? null) && isset($prevSavedId)){
             $autoLabelMode = $invoker->getModeAutoLabelPrint($prevSavedId);
             if(in_array($autoLabelMode, array('afterSaveAndNew', 'both'))){
                 if ($invoker->haveRightFor('printperipherallabel', $prevSavedId)) {

@@ -33,8 +33,14 @@ class hr_Deductions extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Удръжка';
-    
-    
+
+
+    /**
+     * Абривиатура на документа
+     */
+    public $abbr = 'Dct';
+
+
     /**
      * Плъгини за зареждане
      */
@@ -199,11 +205,11 @@ class hr_Deductions extends core_Master
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         
-        if ($data->listFilter->rec->personId) {
+        if (!empty($data->listFilter->rec->personId)) {
             $data->query->where("#personId = '{$data->listFilter->rec->personId}'");
         }
-        
-        if ($data->listFilter->rec->date) {
+
+        if (!empty($data->listFilter->rec->date)) {
             $data->query->where("#date = '{$data->listFilter->rec->date}'");
         }
     }

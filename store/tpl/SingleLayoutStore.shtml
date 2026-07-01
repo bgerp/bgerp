@@ -62,7 +62,7 @@
                             </tr>
                             <!--ET_BEGIN notifyUsers-->
                             <tr>
-                                <td class='dt'>|Нотифициране при промяна на транспортна линия|*:</td>
+                                <td class='dt'>|Нотифициране при промяна на Транспортна линия|*:</td>
                                 <td>[#notifyUsers#]</td>
                             </tr>
                             <!--ET_END notifyUsers-->

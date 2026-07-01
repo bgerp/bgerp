@@ -243,6 +243,7 @@ class blast_Lists extends core_Master
         //Заместваме празните редове
         $fields = str_ireplace(array("\n", "\r\n", "\n\r"), $delimiter, $rec);
         $fieldsArr = explode($delimiter, $fields);
+        $newFields = null;
         
         //Премахва редове, които започват с #
         foreach ($fieldsArr as $value) {
@@ -331,7 +332,7 @@ class blast_Lists extends core_Master
         }
 
         if (($action == 'add') && $roles != 'no_one') {
-            if (!$rec->folderId) {
+            if (!($rec->folderId ?? null)) {
                 $defFolderId = $mvc->getDefaultFolder($userId);
                 if (!blast_Lists::haveRightFor('add', (object)array('folderId' => $defFolderId), $userId)) {
                     $roles = 'no_one';
@@ -844,7 +845,7 @@ class blast_Lists extends core_Master
             'lastUsedOn' => 'Последна употреба'
         );
         foreach ($allFieldsArr as $fieldName => $val) {
-            if ($row->{$fieldName}) {
+            if ($row->{$fieldName} ?? null) {
                 $resArr[$fieldName] = array('name' => tr($val), 'val' => "[#{$fieldName}#]");
             }
         }

@@ -141,7 +141,8 @@ class bgerp_plg_Export extends core_Plugin
             $form->input(null, 'silent');
             
             // Ако е избран драйвър, той добавя полета към формата
-            if ($form->rec->driver) {
+            $Driver = null;
+            if (!empty($form->rec->driver)) {
                 $Driver = cls::get($form->rec->driver);
                 $Driver->mvc = $mvc;
                 $Driver->prepareExportForm($form);

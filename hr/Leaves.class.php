@@ -223,6 +223,9 @@ class hr_Leaves extends core_Master
 
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
+        
+        $this->setDbIndex('personId,leaveFrom,leaveTo');
+        $this->setDbIndex('personId');
     }
 
     
@@ -240,7 +243,7 @@ class hr_Leaves extends core_Master
     {
         $curUrl = getCurrentUrl();
         
-        if ($curUrl['Order'] == 'yes') {
+        if (($curUrl['Order'] ?? null) == 'yes') {
             $mvc->singleLayoutFile = 'hr/tpl/SingleLeaveOrders.shtml';
         }
     }
@@ -276,11 +279,11 @@ class hr_Leaves extends core_Master
         
         $data->listFilter->input('employeeId, paid', 'silent');
         
-        if ($data->listFilter->rec->paid) {
+        if ($data->listFilter->rec->paid ?? null) {
             $data->query->where("#paid = '{$data->listFilter->rec->paid}'");
         }
-        
-        if ($data->listFilter->rec->employeeId) {
+
+        if ($data->listFilter->rec->employeeId ?? null) {
             $data->query->where("#personId = '{$data->listFilter->rec->employeeId}'");
         }
     }
@@ -372,7 +375,7 @@ class hr_Leaves extends core_Master
         
         // Намират се всички служители
         $employees = crm_Persons::getEmployeesOptions(false, null, false, 'active');
-        unset($employees[$rec->personId]);
+        if (!empty($rec->personId)) unset($employees[$rec->personId]);
         $form->setSuggestions('alternatePersons', $employees);
         
         if (countR($employees)) {
@@ -518,7 +521,7 @@ class hr_Leaves extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($rec->id) {
+        if ($rec->id ?? null) {
             
             if ($action == 'order') {
                 // и нямаме нужните права
@@ -530,7 +533,7 @@ class hr_Leaves extends core_Master
         }
         
         if ($action == 'add' || $action == 'reject' || $action == 'decline') {
-            if ($rec->folderId) {
+            if ($rec->folderId ?? null) {
                 $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
                 
                 if ($rec->folderId && $folderClass == 'crm_Persons') {

@@ -51,7 +51,7 @@ class cms_GalleryTitlePlg extends core_Plugin
 //        $mvc->setDbUnique($this->galleryTitleFieldName);
         
         // @todo - да се премахне след като се прмахне добавката в on_AfterSetupMvc
-        if (!$mvc->fields['vid']) {
+        if (!($mvc->fields['vid'] ?? null)) {
             $mvc->FLD('vid', 'varchar(128)', 'caption=Вербално ID, width=100%, input=none');
         }
     }

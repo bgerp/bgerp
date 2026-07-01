@@ -30,7 +30,7 @@ class email_UserInboxPlg extends core_Plugin
     public function on_BeforeSave($mvc, $id, &$rec)
     {
         //Ако добавяме нов потребител
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             if (!core_Users::fetch('1=1')) {
                 $rec->First = true;
             }
@@ -40,9 +40,9 @@ class email_UserInboxPlg extends core_Plugin
         }
         
         // При добавяне или при редакция на ник да се създава корпоративен имейл, ако има такъв акаунт
-        if (isset($rec->nick) && ($rec->state == 'active')) {
+        if (isset($rec->nick) && (($rec->state ?? null) == 'active')) {
             if ($corpAccRec = email_Accounts::getCorporateAcc()) {
-                if (!$rec->id) {
+                if (empty($rec->id)) {
                     if ($rec->state == 'active') {
                         $rec->CorporateAccId = $corpAccRec->id;
                     }
@@ -106,7 +106,7 @@ class email_UserInboxPlg extends core_Plugin
         expect($user->names, $user);
         
         // Създава или обновява профилната визитка на новия потребител.
-        $personId = crm_Profiles::syncPerson($user->personId, $user);
+        $personId = crm_Profiles::syncPerson($user->personId ?? null, $user);
         
         // Ако няма резултат
         if (!$personId) {
@@ -160,7 +160,7 @@ class email_UserInboxPlg extends core_Plugin
             //Ако имаме inCharge
             if ($inCharge !== false) {
                 //Ако потребителя не е собственик на новата папка показваме грешка
-                if (core_Users::isPowerUser($form->rec) && ($form->rec->id != $inCharge)) {
+                if (core_Users::isPowerUser($form->rec) && (($form->rec->id ?? null) != $inCharge)) {
                     $form->setError('nick', "Моля въведете друг|* '{$form->fields['nick']->caption}'. |Тази имейл кутия към този потребител вече се използва от друг потребител.");
                 }
             }
@@ -175,7 +175,7 @@ class email_UserInboxPlg extends core_Plugin
     {
         $data->form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Лице->Държава,mandatory,after=email');
         
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             $profRec = crm_Profiles::fetch("#userId = {$data->form->rec->id}");
             
             if ($profRec) {
@@ -187,7 +187,8 @@ class email_UserInboxPlg extends core_Plugin
             }
         }
         
-        $data->form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
+        $ownCompany = crm_Companies::fetchOwnCompany();
+        $data->form->setDefault('country', is_object($ownCompany) ? $ownCompany->countryId : null);
         
         
         if (empty($data->form->rec->id)) {
@@ -281,7 +282,7 @@ class email_UserInboxPlg extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $uRec, $user = null)
     {
         if ($action == 'delete') {
-            if (is_object($uRec) && (($uRec->state != 'draft') || $uRec->lastLoginTime || doc_Folders::fetch("#inCharge = {$uRec->id}"))) {
+            if (is_object($uRec) && ((($uRec->state ?? null) != 'draft') || !empty($uRec->lastLoginTime) || doc_Folders::fetch("#inCharge = {$uRec->id}"))) {
                 $roles = 'no_one';
             }
         }

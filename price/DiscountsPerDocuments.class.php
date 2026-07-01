@@ -156,9 +156,11 @@ class price_DiscountsPerDocuments extends core_Detail
         }
 
         if(in_array($action, array('add', 'delete', 'edit')) && isset($rec)){
-            $Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
-            if(!$Document->haveRightFor('edit')){
-                $requiredRoles = 'no_one';
+            if(isset($rec->documentClassId) && isset($rec->documentId)){
+                $Document = new core_ObjectReference($rec->documentClassId, $rec->documentId);
+                if(!$Document->haveRightFor('edit')){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }

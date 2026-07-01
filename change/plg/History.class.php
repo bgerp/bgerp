@@ -148,10 +148,11 @@ class change_plg_History extends core_Plugin
         if(!empty($rec->newValidFrom)){
             $sync = true;
         } else {
-            $modifiedBy = $rec->modifiedBy ?? $rec->_oldRec->modifiedBy;
+            $oldRec = $rec->_oldRec ?? null;
+            $modifiedBy = $rec->modifiedBy ?? ($oldRec ? $oldRec->modifiedBy : null);
             $time = change_Setup::get('LOG_VERSION_AFTER_LAST');
             $before2hours = dt::addSecs(-1 * $time);
-            if($rec->_oldRec->modifiedOn < $before2hours || $modifiedBy != core_Users::getCurrent()){
+            if(($oldRec ? $oldRec->modifiedOn : null) < $before2hours || $modifiedBy != core_Users::getCurrent()){
                 $sync = true;
             }
         }
@@ -161,7 +162,7 @@ class change_plg_History extends core_Plugin
         $rec->validFrom = "{$rec->validFrom} 00:00:00";
 
         $updateFields = array();
-        $currentRecData = change_History::getCurrentRec($mvc->getClassId(), $rec->id, $rec->_oldRec, $rec, $updateFields);
+        $currentRecData = change_History::getCurrentRec($mvc->getClassId(), $rec->id, $rec->_oldRec ?? null, $rec, $updateFields);
 
         if(countR($updateFields)){
             foreach ((array)$currentRecData as $cFld => $cVal){
@@ -259,7 +260,7 @@ class change_plg_History extends core_Plugin
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        if($data->skip) return;
+        if($data->skip ?? null) return;
 
         $rec = &$data->rec;
         $row = &$data->row;

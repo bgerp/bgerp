@@ -113,11 +113,12 @@ class survey_Options extends core_Manager
     {
         $query = static::getQuery();
         $query->where("#alternativeId = {$id}");
-        
+
+        $options = '';
         while ($rec = $query->fetch()) {
             $options .= static::getVerbalOptions($rec);
         }
-        
+
         return $options;
     }
     
@@ -150,7 +151,7 @@ class survey_Options extends core_Manager
         $tpl->replace($row->tools, 'tools');
         
         // Ако потребителя вече е гласувал, чекваме радио бутона
-        if ($rec->id == $lastVote->rate) {
+        if (is_object($lastVote) && $rec->id == $lastVote->rate) {
             $tpl->replace('checked', 'checked');
         }
         

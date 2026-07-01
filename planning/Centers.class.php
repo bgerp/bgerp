@@ -166,6 +166,7 @@ class planning_Centers extends core_Master
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри за планиране->Списък');
+        $this->FLD('showTaskPlanningParams', 'enum(yes=Само те, yesAdd=Допълват останалите, no=Не)', 'caption=Параметрите от Етапите да са планиращи->Избор,notNull,value=no');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', 'caption=Служители->Щат, input=none');
         $this->FLD('employmentOccupied', 'int', 'caption=Служители->Назначени, input=none');

@@ -54,6 +54,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Скриваме полето папка
+     */
+    public $showFilterFolderField = false;
+
+
+    /**
      * Скриване на полето за споделени потребители
      */
     public $hideSharedUsersFld = true;
@@ -287,7 +293,7 @@ class planning_Tasks extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden,tdClass=small');
-        $this->FLD('productId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax,forceOpen)', 'mandatory,class=w100,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation|showadditionalUom|description,silent');
+        $this->FLD('productId', 'key2(mvc=cat_ProductsProxy,select=name,selectSourceArr=planning_Steps::getSelectableSteps,allowEmpty,forceAjax)', 'mandatory,class=w100,caption=Операция,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent|indTimeAllocation|showadditionalUom|description,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Бруто,input=none');
         $this->FLD('totalNetWeight', 'cat_type_Weight(smartRound=no)', 'caption=Общо Нето,input=none');
@@ -874,6 +880,13 @@ class planning_Tasks extends core_Master
             }
         }
 
+        if(isset($fields['-list']) && !Mode::is('isReorder')) {
+            if(planning_ProductionTaskDetails::haveRightFor('fastprogress', (object)array('taskId' => $rec->id))) {
+                core_RowToolbar::createIfNotExists($row->_rowTools);
+                $row->_rowTools->addLink('Прогрес', array('planning_ProductionTaskDetails', 'fastprogress', 'taskId' => $rec->id, 'ret_url' => true), 'ef_icon=img/16/package.png, title=Добавяне на оставащия прогрес,alwaysShow');
+            }
+        }
+
         if (empty($rec->indTime)) {
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
@@ -1264,12 +1277,25 @@ class planning_Tasks extends core_Master
 
         // Ако има промяна в прогреса (само ако не е приключена операцията)
         $autoActivation = ($rec->state == 'pending' && planning_ProductionTaskDetails::count("#taskId = {$rec->id}"));
+        $autoActivationMsg = null;
 
         // При първо добавяне на прогрес, ако е в заявка - се активира автоматично
         if ($autoActivation) {
             planning_plg_StateManager::changeState($this, $rec, 'activate');
             $this->logWrite('Активиране при прогрес', $rec->id);
-            core_Statuses::newStatus('Операцията е активирана след добавяне на прогрес|*!');
+            $autoActivationMsg = 'Операцията е активирана след добавяне на прогрес|*!';
+        }
+
+        if(Mode::get("autoCloseIfCompleted{$rec->id}")){
+            if(in_array($rec->state, array('wakeup', 'active')) && $rec->progress >= 1){
+                planning_plg_StateManager::changeState($this, $rec, 'close', 'Приключване при бърз прогрес');
+                $autoActivationMsg = "Операцията е приключена";
+            }
+            Mode::setPermanent("autoCloseIfCompleted{$rec->taskId}", null);
+        }
+
+        if(!empty($autoActivationMsg)){
+            core_Statuses::newStatus($autoActivationMsg);
         }
 
         $res = $this->save_($rec, $updateFields);
@@ -1321,7 +1347,7 @@ class planning_Tasks extends core_Master
                         $requiredRoles = 'no_one';
                     }
                 }
-            } elseif ($rec->folderId) {
+            } elseif (!empty($rec->folderId)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -2185,7 +2211,7 @@ class planning_Tasks extends core_Master
         } else {
             $tpl = $contentTpl;
         }
-
+ 
         // Връщаме шаблона
         return $tpl;
     }
@@ -2198,14 +2224,16 @@ class planning_Tasks extends core_Master
     {
         $data->listFilter->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Центрове');
         $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf'));
-        $data->listFilter->setFieldTypeParams('folder', array('coverClasses' => 'planning_Centers', 'orderBy' => 'title=ASC'));
-        $data->listFilter->setField('folder', 'input=none');
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->showFields .= ',folders';
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect');
+        $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
+        $data->listFilter->showFields .= ',folders,productId, saleId';
+        $data->listFilter->setField('productId','before=isFinalSelect');
+        $data->listFilter->input('productId, saleId');
 
         // Добавят се за избор само използваните в ПО оборудвания
-        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders);
+        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders ?? null);
 
         if (countR($assetInTasks)) {
             $data->listFilter->setField('assetId', 'caption=Оборудване,silent,autoFilter');
@@ -2235,9 +2263,11 @@ class planning_Tasks extends core_Master
                     $data->listFilter->toolbar->addBtn("Подреждане", $cUrl, 'title=Преподреждане на операциите,ef_icon=img/16/arrow_switch2.png');
                 }
             }
-
             if (isset($filter->folders)) {
                 $data->query->in("folderId", $filter->folders);
+            }
+            if(isset($filter->productId)){
+                $data->query->where("#productId = {$filter->productId}");
             }
         }
 
@@ -2247,7 +2277,7 @@ class planning_Tasks extends core_Master
             if(!Mode::is('isReorder')){
                 unset($stateOptions['manualOrder']);
             }
-            $data->listFilter->FNC('isFinalSelect', 'enum(all=Всички,yes=Финален етап,no=Междинен етап)', 'caption=Вид етап,input');
+            $data->listFilter->FNC('isFinalSelect', 'enum(all=Всички,yes=Финални,no=Междинни)', 'caption=Вид,input');
             $data->listFilter->setOptions('state', $stateOptions);
             $data->listFilter->showFields .= ',state,isFinalSelect';
             $data->listFilter->input('state,isFinalSelect');
@@ -2275,7 +2305,7 @@ class planning_Tasks extends core_Master
                     }
                 }
 
-                if ($filter->filterDateField == 'dueDate') {
+                if (isset($filter->filterDateField) && $filter->filterDateField == 'dueDate') {
                     if (!isset($filter->assetId)) {
                         $orderByDir = 'ASC';
                         $orderByDateCoalesce = '#dueDate';
@@ -2290,6 +2320,20 @@ class planning_Tasks extends core_Master
 
         $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
         $data->query->orderBy($orderByField, $orderByDir);
+
+        if(!empty($data->listFilter->rec->saleId)){
+            $jQuery = planning_Jobs::getQuery();
+            $jQuery->where("#saleId = {$data->listFilter->rec->saleId}");
+            $jRecs = $jQuery->fetchAll();
+            $containerIds = arr::extractValuesFromArray($jRecs,'containerId');
+
+            if(!empty($containerIds)){
+                $data->query->in("originId", $containerIds);
+            }else{
+                $data->query->where('1=2');
+            }
+        }
+
 
         if(Mode::get('isReorder')){
             $data->listFilter->hide = true;
@@ -3021,6 +3065,10 @@ class planning_Tasks extends core_Master
     {
         unset($data->title);
         $data->listTableId = 'dragTable';
+
+        // Клас за таблицата
+        $data->listTableClass = 'fixedHeader';
+
         core_Debug::startTimer('RENDER_TABLE');
         $rows = &$data->rows;
         if (!countR($rows)) return;
@@ -3084,7 +3132,23 @@ class planning_Tasks extends core_Master
 
         // Ако има намерени планиращи параметри - показват се в таблицата
         $firstColumnsIfNotSelected = arr::make(array_keys($data->listFields), true);
+    
+        // Параметрите от Етапите да са планиращи
+        if(!empty($data->listFilter->rec->productId)){
+            $productId = $data->listFilter->rec->productId;
+            if($Driver = cat_Products::getDriver($productId)){
+                $productionData = $Driver->getProductionData($productId);
+                $centerId = $productionData['centerId'];
+                $showTaskPlanningParams = planning_Centers::fetchField($centerId,'showTaskPlanningParams');
 
+                if($showTaskPlanningParams == 'yes'){
+                    $plannedParams = keylist::toArray($productionData['planningParams']);
+                } elseif($showTaskPlanningParams == 'yesAdd'){
+                    $plannedParams += keylist::toArray($productionData['planningParams']);
+                }
+            }
+        }
+       
         if (countR($plannedParams)) {
             $pQuery = cat_Params::getQuery();
             $pQuery->in('id', $plannedParams);
@@ -3259,7 +3323,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id));
+            $titleAttr = array('title' => "#" . $mvc->getTitleById($rec->id), "id" => "Opr{$rec->id}");
             $singleUrl = static::getSingleUrlArray($rec->id);
 
             if(Mode::get('isReorder')){

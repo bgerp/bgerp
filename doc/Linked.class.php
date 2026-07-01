@@ -628,7 +628,7 @@ class doc_Linked extends core_Manager
             }
         }
         
-        $act = trim($form->rec->act);
+        $act = trim($form->rec->act ?? '');
         
         if ($act && !doc_Linked::$actArr[$act]) {
             // Подготвяме формата от интерфейсните методи
@@ -686,7 +686,7 @@ class doc_Linked extends core_Manager
         }
         
         // Показва избрания документ, когато ще се прикача към него
-        if ($act == 'linkDoc' && $form->rec->linkContainerId) {
+        if ($act == 'linkDoc' && !empty($form->rec->linkContainerId)) {
             $form->layout = $form->renderLayout();
             
             $tpl = new ET("<div class='preview-holder'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
@@ -733,10 +733,10 @@ class doc_Linked extends core_Manager
                 $unsetStr = ",unsetId={$originFId}";
             }
             
-            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
+            $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . ($form->rec->linkDocType ?? '') . ", showWithDocs{$unsetStr})", 'caption=Папка, class=w100, input, removeAndRefreshForm=linkContainerId');
             $form->input();
-            
-            $form->FNC('linkContainerId', 'key2(forceAjax, mvc=doc_Search, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . $form->rec->linkDocType . ', folderId=' . $form->rec->linkFolderId . "{$unsetStr})", 'caption=Документ, class=w100, input, mandatory, refreshForm');
+
+            $form->FNC('linkContainerId', 'key2(forceAjax, mvc=doc_Search, titleFld=id, maxSuggestions=100, selectSourceArr=doc_Linked::prepareLinkDocId, allowEmpty, docType=' . ($form->rec->linkDocType ?? '') . ', folderId=' . ($form->rec->linkFolderId ?? '') . "{$unsetStr})", 'caption=Документ, class=w100, input, mandatory, refreshForm');
         } elseif ($act == 'linkFile') {
             $form->FNC('linkFileId', 'fileman_FileType(bucket=Linked)', 'caption=Файл, input, mandatory');
         } elseif ($act == 'newDoc') {
@@ -755,14 +755,14 @@ class doc_Linked extends core_Manager
             
             $form->input();
             
-            if ($form->rec->linkDocType) {
+            if (!empty($form->rec->linkDocType)) {
                 $form->FNC('linkFolderId', 'key2(forceAjax, mvc=doc_FoldersProxy, titleFld=title, maxSuggestions=100, selectSourceArr=doc_Linked::prepareFoldersForDoc, allowEmpty, docType=' . $form->rec->linkDocType . ')', 'caption=Папка, class=w100, input, mandatory, removeAndRefreshForm=linkThreadId');
                 $form->input();
                 
                 $dInst = cls::get($form->rec->linkDocType);
                 
                 // Ако документа може да се създаде в съществуваща нишка, показваме избор
-                if ($form->rec->linkFolderId && !$dInst->onlyFirstInThread) {
+                if (!empty($form->rec->linkFolderId) && !$dInst->onlyFirstInThread) {
                     $mandatory = '';
                     
                     if (!$dInst->canAddToFolder($form->rec->linkFolderId) || !$dInst->haveRightFor('add', (object) array('folderId' => $form->rec->linkFolderId))) {
@@ -775,7 +775,7 @@ class doc_Linked extends core_Manager
         }
         
         // При създаване на имейл, по подразбиране да е папката на контрагента
-        if ($form->rec->linkDocType && !$form->rec->linkFolderId && $type == 'doc' && $originFId ) {
+        if (!empty($form->rec->linkDocType) && empty($form->rec->linkFolderId) && $type == 'doc' && $originFId ) {
             $docType = cls::get($form->rec->linkDocType);
             
             if ($docType instanceof email_Outgoings) {
@@ -838,7 +838,7 @@ class doc_Linked extends core_Manager
                 $url = $rUrl;
             }
             
-            if ($form->rec->linkThreadId) {
+            if (!empty($form->rec->linkThreadId)) {
                 $url['threadId'] = $form->rec->linkThreadId;
             }
             
@@ -1061,7 +1061,7 @@ class doc_Linked extends core_Manager
                 if (!$rec->actType) {
                     continue;
                 }
-                $actTypeArr[$rec->actType]++;
+                $actTypeArr[$rec->actType] = ($actTypeArr[$rec->actType] ?? 0) + 1;
             }
             
             if (empty($actTypeArr)) {
@@ -1152,19 +1152,19 @@ class doc_Linked extends core_Manager
                             continue;
                         }
                         
-                        if ($params['docType']) {
+                        if (!empty($params['docType'])) {
                             if ($cRec->docClass != $params['docType']) {
                                 continue;
                             }
                         }
-                        
-                        if ($params['folderId']) {
+
+                        if (!empty($params['folderId'])) {
                             if ($cRec->folderId != $params['folderId']) {
                                 continue;
                             }
                         }
-                        
-                        if ($params['unsetId']) {
+
+                        if (!empty($params['unsetId'])) {
                             if ($cRec->id == $params['unsetId']) {
                                 continue;
                             }
@@ -1205,17 +1205,17 @@ class doc_Linked extends core_Manager
             }
         }
         
-        if ($params['docType']) {
+        if (!empty($params['docType'])) {
             $cQuery->where(array("#docClass = '[#1#]'", $params['docType']));
         }
-        
-        if ($params['folderId']) {
+
+        if (!empty($params['folderId'])) {
             $cQuery->where(array("#folderId = '[#1#]'", $params['folderId']));
         } else {
             $cQuery->where(array("#modifiedOn >= '[#1#]'", dt::addDays(-730)));
         }
-        
-        if ($params['unsetId']) {
+
+        if (!empty($params['unsetId'])) {
             $cQuery->where(array("#id != '[#1#]'", $params['unsetId']));
         }
         
@@ -1225,7 +1225,7 @@ class doc_Linked extends core_Manager
         $cQuery->orderBy('modifiedOn', 'DESC');
         
         while ($cRec = $cQuery->fetchAndCache()) {
-            if ($sArr[$cRec->id]) {
+            if (!empty($sArr[$cRec->id])) {
                 continue;
             }
             
@@ -1264,8 +1264,9 @@ class doc_Linked extends core_Manager
         $maxTrays = 500;
         $limit = $limit ?? $params['maxSuggestions'] ?? 100;
         $res = array();
-        
-        if ($params['docType']) {
+        $docTypeInst = null;
+
+        if (!empty($params['docType'])) {
             $docTypeInst = cls::get($params['docType']);
         }
 
@@ -1302,7 +1303,8 @@ class doc_Linked extends core_Manager
             $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
             
             $show .= ',searchFieldXpr';
-            
+
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }
@@ -1385,7 +1387,7 @@ class doc_Linked extends core_Manager
                 
                 $dQuery->where("#state != 'rejected'");
                 
-                if ($params['unsetId']) {
+                if (!empty($params['unsetId'])) {
                     $dQuery->where(array("#containerId != '[#1#]'", $params['unsetId']));
                 }
                 
@@ -1441,11 +1443,11 @@ class doc_Linked extends core_Manager
                 
                 break;
             }
-            
-            if ($res[$rec->id]) {
+
+            if (!empty($res[$rec->id])) {
                 continue;
             }
-            
+
             if ($docTypeInst) {
                 if ($docTypeInst->onlyFirstInThread && (!$docTypeInst->canAddToFolder($rec->id) || !$docTypeInst->haveRightFor('add', (object) array('folderId' => $rec->id)))) {
                     continue;
@@ -1482,7 +1484,7 @@ class doc_Linked extends core_Manager
         $limit = $limit ?? $params['maxSuggestions'] ?? 100;
         $res = array();
         
-        if ($params['docType']) {
+        if (!empty($params['docType'])) {
             $docTypeInst = cls::get($params['docType']);
         }
         
@@ -1593,7 +1595,7 @@ class doc_Linked extends core_Manager
         $query->orderBy('last', 'DESC');
         
         while ($rec = $query->fetch()) {
-            if ($res[$rec->id]) {
+            if (!empty($res[$rec->id])) {
                 continue;
             }
             

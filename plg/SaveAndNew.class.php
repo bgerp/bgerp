@@ -44,7 +44,7 @@ class plg_SaveAndNew extends core_Plugin
             
             if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
-                    if ($fld->input == 'hidden' || $fld->remember == 'remember' || $fld->type->params['remember'] == 'remember') {
+                    if (($fld->input ?? null) == 'hidden' || ($fld->remember ?? null) == 'remember' || (isset($fld->type) && ($fld->type->params['remember'] ?? null) == 'remember')) {
                         $data->retUrl[$name] = Request::get($name);
                     }
                 }
@@ -99,7 +99,7 @@ class plg_SaveAndNew extends core_Plugin
                     }
                 }
                 
-                if ($mvc->rememberTpl && $id) {
+                if (!empty($mvc->rememberTpl) && $id) {
                     $rec = $mvc->fetch($id);
                     $row = $mvc->recToVerbal($rec);
                     $tpl = new ET($mvc->rememberTpl);
@@ -154,7 +154,7 @@ class plg_SaveAndNew extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             
             return;
         }

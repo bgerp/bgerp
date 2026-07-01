@@ -48,7 +48,7 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
     {
         $hint = $mvc->hasPlugin('acc_plg_Contable') ? 'Вальорът ще бъде записан при контиране|*!' : 'Вальорът ще бъде записан при активиране|*!';
         $valiorToBe = $mvc->getFieldType($mvc->valiorFld)->toVerbal(dt::today());
-        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? $row->{$mvc->valiorFld} : ((Mode::is('printing') || Mode::is('text', 'xhtml')) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", $hint));
+        $row->{$mvc->valiorFld} = (isset($rec->{$mvc->valiorFld})) ? ($row->{$mvc->valiorFld} ?? null) : ((Mode::is('printing') || Mode::is('text', 'xhtml')) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", $hint));
     }
 
 
@@ -59,7 +59,7 @@ class deals_plg_SaveValiorOnActivation extends core_Plugin
     {
         $valior = !empty($rec->{$mvc->valiorFld}) ? $rec->{$mvc->valiorFld} : (isset($rec->id) ? $mvc->fetchField($rec->id, $mvc->valiorFld, '*') : null);
 
-        if($rec->state == 'active' && empty($valior)){
+        if(($rec->state ?? null) == 'active' && empty($valior)){
             $rec->{$mvc->valiorFld} = dt::today();
         }
     }

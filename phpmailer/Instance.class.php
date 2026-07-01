@@ -24,10 +24,18 @@ class phpmailer_Instance extends core_BaseClass
         $conf = core_Packs::getConfig('phpmailer');
         
         // Зареждаме phpmailer-а за избраната версия
-        require_once $conf->PML_VERSION . '/PHPMailerAutoload.php';
-        
-        // Създаваме инстанция на PHPMailerLite
-        $PML = new PHPMailer();
+        $pmlVersion = $conf->PML_VERSION;
+        if (version_compare($pmlVersion, '6.0.0', '>=')) {
+            // PHPMailer 6.x/7.x — без PHPMailerAutoload.php
+            require_once $pmlVersion . '/Exception.php';
+            require_once $pmlVersion . '/PHPMailer.php';
+            require_once $pmlVersion . '/SMTP.php';
+            $PML = new PHPMailer\PHPMailer\PHPMailer();
+        } else {
+            // PHPMailer 5.x — стария начин
+            require_once $pmlVersion . '/PHPMailerAutoload.php';
+            $PML = new PHPMailer();
+        }
         
         // Да не проверява сертификата на SMTP-то
         $PML->SMTPOptions = array(
@@ -58,8 +66,12 @@ class phpmailer_Instance extends core_BaseClass
         if (strpos($PML->From, '.') === false) {
             $PML->From .= '.com';
         }
-        
-        if ($params['emailTo']) {
+
+        if (!is_array($params)) {
+            $params = [];
+        }
+
+        if (!empty($params['emailTo'])) {
             list($user, $domain) = explode('@', $params['emailTo']);
             if ($domain && getmxrr($domain, $mxhosts, $mx_weight)) {
                 if (countR($mxhosts) && ! $params['Host']) {

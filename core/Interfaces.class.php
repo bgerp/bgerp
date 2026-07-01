@@ -78,7 +78,7 @@ class core_Interfaces extends core_Manager
             $rec->id = $exRec->id;
         } else {
             $inst = cls::get($interface);
-            if ($inst->oldClassName) {
+            if ($inst->oldClassName ?? null) {
                 $exRec = self::fetch("#name = '{$inst->oldClassName}'");
                 if ($exRec) {
                     $rec->id = $exRec->id;

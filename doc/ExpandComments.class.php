@@ -97,7 +97,7 @@ class doc_ExpandComments extends core_Mvc
             $oDoc = doc_Containers::getDocument($cid);
             $for = tr('|За|*: ');
             if ($haveOrigin) {
-                $res['body'] = $for . '#' .$oDoc->getHandle() . "\n" . $rec->body;
+                $res['body'] = $for . '#' .$oDoc->getHandle() . "\n" . ($rec->body ?? '');
             }
         }
     }

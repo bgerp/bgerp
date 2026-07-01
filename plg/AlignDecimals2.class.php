@@ -53,7 +53,7 @@ class plg_AlignDecimals2 extends core_Plugin
         foreach ($recs as $id => &$rec) {
             foreach ($decFields as $fName) {
 
-                if (isset($rec->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName}) && preg_match("/<[^<]+>/",$rows[$id]->{$fName}) == 0) {
+                if (isset($rec->{$fName}) && isset($rows[$id]->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName}) && preg_match("/<[^<]+>/",$rows[$id]->{$fName}) == 0) {
                     $Type = clone $mvc->fields[$fName]->type;
                     
                     if(empty($Type->params['decimals'])) {

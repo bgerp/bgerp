@@ -52,7 +52,7 @@ class doc_plg_Prototype extends core_Plugin
         $mvc->declareInterface('doc_PrototypeSourceIntf');
         setPartIfNot($mvc, 'protoFieldName', 'prototypeId');
         
-        $after = ($mvc instanceof embed_Manager) ? $mvc->driverClassField : (($mvc instanceof core_Embedder) ? $mvc->driverClassField : 'id');
+        $after = ($mvc instanceof embed_Manager) ? ($mvc->driverClassField ?? 'id') : (($mvc instanceof core_Embedder) ? ($mvc->driverClassField ?? 'id') : 'id');
         $mvc->FLD($mvc->protoFieldName, 'int', "caption=Шаблон,forceField,input=none,silent,after={$after}");
     }
     
@@ -144,7 +144,7 @@ class doc_plg_Prototype extends core_Plugin
         if (empty($form->rec->id)) {
             
             // И има избран прототип
-            if ($proto = $form->rec->{$mvc->protoFieldName}) {
+            if ($proto = ($form->rec->{$mvc->protoFieldName} ?? null)) {
                 if ($protoRec = $mvc->fetch($proto)) {
                     $isCoreEmbedder = $mvc instanceof core_Embedder;
                     
@@ -280,7 +280,7 @@ class doc_plg_Prototype extends core_Plugin
     {
         if(!$res){
             // Ако е казано, че не трябва да се показват последно видяните - да не се добавят
-            if(!$mvc->showInPrototypesLastVisited) {
+            if(empty($mvc->showInPrototypesLastVisited)) {
                 $res = $prototypes;
                 return;
             }

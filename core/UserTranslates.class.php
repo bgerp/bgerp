@@ -180,7 +180,7 @@ class core_UserTranslates extends core_Manager
             $fRec = $clsInst->fetch($recId);
             
             foreach ($tFields as $k => $f) {
-                if (!trim($fRec->{$k})) {
+                if (!trim($fRec->{$k} ?? '')) {
                     unset($tFields[$k]);
                 }
             }
@@ -230,7 +230,7 @@ class core_UserTranslates extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add') && $rec->classId && $rec->recId && !$rec->id && ($requiredRoles != 'no_one')) {
+        if (($action == 'add') && ($rec->classId ?? null) && ($rec->recId ?? null) && !($rec->id ?? null) && ($requiredRoles != 'no_one')) {
             $tFields = $mvc->getUserTranslateFields($rec->classId, 'user', $rec->recId);
             if (empty($tFields)) {
                 $requiredRoles = 'no_one';
@@ -255,8 +255,8 @@ class core_UserTranslates extends core_Manager
         $form->FNC('Selected', 'text', 'input=hidden, silent');
         
         $form->input(null, true);
-        
-        if (!$rec->id) {
+
+        if (empty($rec->id)) {
             $clsId = Request::get('classId', 'int');
             $recId = Request::get('recId', 'int');
             
@@ -274,8 +274,8 @@ class core_UserTranslates extends core_Manager
         expect($oRec = $clsInst->fetch($recId));
         
         expect($mvc->haveRightFor($actName, (object) array('classId' => $clsId, 'recId' => $recId)));
-        
-        if (!$rec->id) {
+
+        if (empty($rec->id)) {
             cls::get('core_Lg');
             $form->setOptions('lang', arr::make(EF_LANGUAGES, true));
             $form->setDefault('lang', core_Lg::getCurrent());
@@ -308,13 +308,13 @@ class core_UserTranslates extends core_Manager
             
             $form->FNC($tFldName, 'varchar', array('input', 'caption' => $fName . '->Превод'));
             
-            $form->fields['lang']->removeAndRefreshForm .= $tFldName . '|';
+            $form->fields['lang']->removeAndRefreshForm = ($form->fields['lang']->removeAndRefreshForm ?? '') . $tFldName . '|';
         }
         
         $form->input($inpFields);
         
         if ($rec->lang) {
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 $cRec = $mvc->fetch(array("#classId = '[#1#]' AND #recId = '[#2#]' AND #lang = '[#3#]'", $clsId, $rec->recId, $rec->lang));
             } else {
                 $cRec = $rec;
@@ -441,7 +441,7 @@ class core_UserTranslates extends core_Manager
             $rec->id = null;
         }
         $recArr = (array) $rec;
-        if (!$rec->data) {
+        if (empty($rec->data)) {
             $rec->data = array();
         }
         

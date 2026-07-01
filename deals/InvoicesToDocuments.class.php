@@ -135,9 +135,10 @@ class deals_InvoicesToDocuments extends core_Manager
             if(!empty($fRec->invoices)){
                 $iData =  @json_decode($fRec->invoices, true);
                 foreach ($iData['amount'] as &$a){
-                    $a = core_Type::getByName('double')->fromVerbal($a);
+                    $a = round(core_Type::getByName('double')->fromVerbal($a), 2);
                 }
 
+                $remainingAmount = $paymentData->amount - array_sum(array_filter($iData['amount']));
                 foreach ($iData['containerId'] as $k => $v){
                     $iDoc = doc_Containers::getDocument($iData['containerId'][$k]);
                     $iRec = $iDoc->fetch();
@@ -156,10 +157,11 @@ class deals_InvoicesToDocuments extends core_Manager
                         if($iDoc->getInstance()->fetch("#type = 'dc_note' AND #originId = {$iData['containerId'][$k]} AND #dealValue < 0 AND #state = 'active'")){
                             $defAmount = $vAmount;
                         } else {
-                            $defAmount = min($paymentData->amount, $vAmount);
+                            $defAmount = min($remainingAmount, $vAmount);
                         }
 
                         $iData['amount'][$k] = $defAmount;
+                        $remainingAmount -= $defAmount;
                     }
                 }
 
@@ -171,6 +173,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 $iRec = doc_Containers::getDocument($fRec->fromContainerId)->fetch();
                 $fullRecs[$iRec->containerId] = $iRec;
                 $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+
                 $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
                 $vAmount = round($vAmount, 2);
                 $defAmount = min($paymentData->amount, $vAmount);
@@ -189,13 +192,13 @@ class deals_InvoicesToDocuments extends core_Manager
                 foreach ($iList as $iContainerId){
                     $iDoc = doc_Containers::getDocument($iContainerId);
                     $iRec = $iDoc->fetch();
-                    $iTotalValue = $iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount;
+                    $iTotalValue = round($iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount, 2);
                     $invArr[] = (object)array('containerId' => $iContainerId, 'amount' => $iTotalValue);
                     $fullRecs[$iRec->containerId] = $iRec;
                 }
             }
             $currencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
-
+           
             // Ако е към платежен документ проверка дали са допустими
             if($Document instanceof deals_PaymentDocument){
                 $amountWarnings = $amountErrors = array();
@@ -231,13 +234,15 @@ class deals_InvoicesToDocuments extends core_Manager
                     $form->setError('invoices,fromContainerId,invoicesList', implode("<li>", $amountErrors));
                 }
 
+
                 $summed = arr::sumValuesArray($invArr, 'amount');
                 if(isset($paymentData->amount)){
                     if($summed < 0){
                         $form->setError('invoices,fromContainerId,invoicesList', "Общата сума не може да е отрицателна");
-                    } elseif($summed > $paymentData->amount){
+                    } elseif(round($summed, 2) > round($paymentData->amount, 2)){
+                        $summedVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($summed);
                         $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($paymentData->amount);
-                        $form->setError('invoices,fromContainerId,invoicesList', "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> {$currencyCode}");
+                        $form->setError('invoices,fromContainerId,invoicesList', "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> (|Избрани са фактури за|*: {$summedVerbal}) {$currencyCode}");
                     }
                 }
 
@@ -291,6 +296,7 @@ class deals_InvoicesToDocuments extends core_Manager
             if(!$form->gotErrors()){
                 $newArr = array();
                 foreach ($invArr as $obj){
+                    if(!$obj->amount) continue;
                     $newArr[] = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $obj->containerId, 'amount' => $obj->amount);
                 }
 
@@ -460,7 +466,7 @@ class deals_InvoicesToDocuments extends core_Manager
             }
 
             if(!empty($amount)){
-                $Double = core_Type::getByName('double');
+                $Double = core_Type::getByName('double(decimals=2)');
                 $q2 = $Double->fromVerbal($amount);
                 if (empty($q2)) {
                     $error[] = 'Невалидна сума';

@@ -83,7 +83,7 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterPrepareHistory($mvc, $res, $data)
     {
-        if ($mvc->haveRightFor('viewlogact', $data->rec)) {
+        if ($mvc->haveRightFor('viewlogact', $data->rec ?? null)) {
             $data->TabCaption = 'История';
         }
 
@@ -163,7 +163,7 @@ class doc_FolderPlg extends core_Plugin
             $data->form->setDefault('inCharge', core_Users::getCurrent());
         }
         if (empty($data->form->rec->access)) {
-            $data->form->setDefault('access', $mvc->defaultAccess ? $mvc->defaultAccess : 'team');
+            $data->form->setDefault('access', ($mvc->defaultAccess ?? null) ?: 'team');
         }
         
         // Ако сме в тесен режим
@@ -286,7 +286,7 @@ class doc_FolderPlg extends core_Plugin
             }
         }
         
-        if ($rec && $rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc') && $requiredRoles != 'no_one') {
+        if ($rec && !empty($rec->id) && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc') && $requiredRoles != 'no_one') {
             $rec = $mvc->fetch($rec->id);
             
             // Ако модела е достъпен за всички потребители по подразбиране,
@@ -328,7 +328,7 @@ class doc_FolderPlg extends core_Plugin
         
         // Потребителите само с ранг ексикютив може да променят само корици на които са отговорник
         if (!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
-            if ($rec && $rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
+            if (is_object($rec) && $rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
                 if (!$userId) {
                     $userId = core_Users::getCurrent();
                 }
@@ -387,7 +387,7 @@ class doc_FolderPlg extends core_Plugin
             if (is_numeric($rec)) {
                 expect($exRec = $mvc->fetch($rec), $rec);
                 $rec = $exRec;
-            } elseif ($rec->id) {
+            } elseif ($rec->id ?? null) {
                 expect($exRec = $mvc->fetch($rec->id), $rec);
                 $rec = $exRec;
             } else {
@@ -405,7 +405,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
-            if ($bForce && (!$rec->folderId || !doc_Folders::fetch($rec->folderId))) {
+            if ($bForce && (!($rec->folderId ?? null) || !doc_Folders::fetch($rec->folderId))) {
                 
                 // Очакваме да не е подаден празен stdClass
                 // Така се подсигуряваме да не се създаде празна корица
@@ -417,7 +417,7 @@ class doc_FolderPlg extends core_Plugin
                 $mvc->save($rec);
             }
             
-            $folderId = $rec->folderId;
+            $folderId = $rec->folderId ?? null;
         }
     }
     
@@ -513,11 +513,11 @@ class doc_FolderPlg extends core_Plugin
         
         $fArr = arr::make($fields, true);
         
-        if ((!$fields || $fArr['inCharge']) && !$rec->inCharge) {
+        if ((!$fields || !empty($fArr['inCharge'])) && !($rec->inCharge ?? null)) {
             $rec->inCharge = $cu;
         }
-        
-        if ((!$fields || $fArr['state']) && !$rec->state) {
+
+        if ((!$fields || !empty($fArr['state'])) && !($rec->state ?? null)) {
             $rec->state = 'active';
         }
         
@@ -601,7 +601,7 @@ class doc_FolderPlg extends core_Plugin
             return;
         }
         
-        if (!$rec->folderId) {
+        if (empty($rec->folderId)) {
             $rec->folderId = $mvc->fetchField($rec->id, 'folderId');
         }
 
@@ -752,7 +752,7 @@ class doc_FolderPlg extends core_Plugin
                 }
             } else {
                 if ($mvc->hasPlugin('plg_RowTools2')) {
-                    if ($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
+                    if ($mvc->haveRightFor('createnewfolder', $rec) && empty($currUrl['Rejected'])) {
                         core_RowToolbar::createIfNotExists($row->_rowTools);
                         $row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към|* {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадете папка за документи към|*  \"{$folderTitle}\"?", 'order' => 19));
                     }
@@ -783,6 +783,11 @@ class doc_FolderPlg extends core_Plugin
                     }
                 }
             }
+        }
+
+        if(isset($rec->folderId)){
+            $row->folderHandle = doc_Folders::getHandle($rec->folderId);
+            $row->folderHandle ="</b><span class='folder-handle' onmouseUp='selectInnerText(this);' title='Хендлър на папка'>" . $row->folderHandle . '</span>';
         }
     }
     

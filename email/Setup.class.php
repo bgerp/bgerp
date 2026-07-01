@@ -633,12 +633,13 @@ class email_Setup extends core_ProtoSetup
             
             $fName = 'companyLogo' . ucfirst(strtolower($lg)) . '.' . $ext;
             
-            $data = @file_get_contents($logoPath);
-            
+            $data = $logoPath && file_exists($logoPath) ? file_get_contents($logoPath) : false;
+            $fh = null;
+
             if ($data) {
                 $fh = fileman::absorbStr($data, 'Email', $fName);
             }
-            
+
             if ($fh) {
                 $dataId = fileman::fetchByFh($fh, 'dataId');
                 $oImgDataIdArr[$dataId] = $dataId;

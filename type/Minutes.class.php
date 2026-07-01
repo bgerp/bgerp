@@ -159,6 +159,8 @@ class type_Minutes extends type_Int
         $hours = floor(($v - $weeks * (7 * 24 * 60) - $days * (24 * 60)) / 60);
         $minutes = floor(($v - $weeks * (7 * 24 * 60) - $days * (24 * 60) - $hours * 60));
         
+        $res = '';
+
         if ($weeks > 0) {
             if ($days == 0) {
                 $res .= "{$weeks} седм.";

@@ -18,7 +18,7 @@
  **********************************/
 
 // Ако извикването идва от крон-а го игнорираме
-if (($_GET['Ctr'] == 'core_Cron' || $_GET['Act'] == 'cron')) {
+if ((($_GET['Ctr'] ?? '') == 'core_Cron' || ($_GET['Act'] ?? '') == 'cron')) {
     return;
 }
       
@@ -54,8 +54,9 @@ if (setupKeyValid() && !setupProcess()) {
 header('X-Accel-Buffering: no');
 
 // На коя стъпка се намираме в момента?
-$step = $_GET['step'] ? $_GET['step'] : 1;
+$step = ($_GET['step'] ?? '') ?: 1;
 $texts['currentStep'] = $step;
+$efSaltGenerated = false;
 
 $flagOK = MD5($_GET['SetupKey'] . 'flagOK');
 if ($step == 'testSelfUrl') {
@@ -73,8 +74,8 @@ if (isset($_SERVER['HTTPS']) &&
     $protocol = 'http://';
 }
 
-if ($username = $_SERVER['PHP_AUTH_USER']) {
-    $password = $_SERVER['PHP_AUTH_PW'];
+if (isset($_SERVER['PHP_AUTH_USER']) && ($username = $_SERVER['PHP_AUTH_USER'])) {
+    $password = isset($_SERVER['PHP_AUTH_PW']) ? $_SERVER['PHP_AUTH_PW'] : '';
     $auth = $username . ':' . $password . '@';
 } else {
     $auth = '';
@@ -107,7 +108,7 @@ if (defined('BGERP_ABSOLUTE_HTTP_HOST')) {
 
 // URL на следващата стъпка
 $selfUrl = addParams($selfUri, array('step' => $step));
-$nextUrl = addParams($selfUri, array('step' => round($step) + 1));
+$nextUrl = addParams($selfUri, array('step' => round((float) $step) + 1));
  
 // Определяме линка към приложението
 $appUri = $selfUrl;
@@ -528,7 +529,7 @@ if ($step == 1) {
         "\n<a href='{$nextUrl}'>&#9746; Ако приемате лиценза по-долу, може да продължите »</a></li></ul><br>";
     $texts['body'] .= "\n<div id='license'>" . $licenseText . '</div>';
     $texts['body'] .= "\n<br><ul class='msg stats'><li>" .
-        "\n<a href='${nextUrl}'>&#9746; Ако приемате лиценза по-горе, може да продължите »</a></li></ul>";
+        "\n<a href='{$nextUrl}'>&#9746; Ако приемате лиценза по-горе, може да продължите »</a></li></ul>";
 }
 
 
@@ -549,6 +550,7 @@ if ($step == 2) {
     $checkUpdate = $doUpdate || $doRevert || $doCheckout;
 
     $repos = core_App::getRepos();
+    $reposLastDate = '';
 
     switch ($checkUpdate) {
         // Не се изисква сетъп
@@ -672,7 +674,7 @@ if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
                 }
             }
             if ($newVer > 1 && !$changed && $phpVersionOkForUpdate) {
-                $links[] = "new|${selfUrl}&amp;update=all|Обновете едновременно цялата система »";
+                $links[] = "new|{$selfUrl}&amp;update=all|Обновете едновременно цялата система »";
             }
             
             if ($newVer || $changed) {
@@ -689,8 +691,8 @@ if (!$phpVersionOkForUpdate && $wantsCodeUpdate) {
     // Статистика за различните класове съобщения
     $stat = array();
     
-    $texts['body'] .= logToHtml($log, $stat);
-    $texts['body'] .= "<div style='font-size:14px;margin-top: 10px; clear:both;'> ${reposLastDate}</div>";
+    $texts['body'] = ($texts['body'] ?? '') . logToHtml($log, $stat);
+    $texts['body'] .= "<div style='font-size:14px;margin-top: 10px; clear:both;'> {$reposLastDate}</div>";
 }
 
 
@@ -745,9 +747,9 @@ if ($step == 3) {
     
     foreach ($requiredPhpModules as $module) {
         if (in_array($module, $activePhpModules)) {
-            $log[] = "inf:Наличен PHP модул: <b>`${module}`</b>";
+            $log[] = "inf:Наличен PHP модул: <b>`{$module}`</b>";
         } else {
-            $log[] = "err:Липсващ PHP модул: <b>`${module}`</b>";
+            $log[] = "err:Липсващ PHP модул: <b>`{$module}`</b>";
         }
     }
 
@@ -763,9 +765,9 @@ if ($step == 3) {
         
         foreach ($requiredApacheModules as $module) {
             if (in_array($module, $activeApacheModules)) {
-                $log[] = "inf:Наличен Apache модул: <b>`${module}`</b>";
+                $log[] = "inf:Наличен Apache модул: <b>`{$module}`</b>";
             } else {
-                $log[] = "err:Липсващ Apache модул: <b>`${module}`</b>";
+                $log[] = "err:Липсващ Apache модул: <b>`{$module}`</b>";
             }
         }
     } else {
@@ -782,9 +784,9 @@ if ($step == 3) {
         
         foreach ($requiredPrograms as $program) {
             if (@exec('which ' . escapeshellcmd($program))) {
-                $log[] = "inf:Налична програма: <b>`${program}`</b>";
+                $log[] = "inf:Налична програма: <b>`{$program}`</b>";
             } else {
-                $log[] = "wrn:Липсваща програма: <b>`${program}`</b>";
+                $log[] = "wrn:Липсваща програма: <b>`{$program}`</b>";
             }
         }
         
@@ -914,6 +916,7 @@ if ($step == 3) {
         $src = file_get_contents($paths['config']);
         // В конфигурационния файл задаваме незададените константи
         if (!empty($consts)) {
+            $constsLog = '';
             foreach ($consts as $name => $value) {
                 $src .= "\n";
                 $src .= "// Добавено от setup.inc.php \n";
@@ -968,19 +971,19 @@ if ($step == 3) {
 
     // Статистика за различните класове съобщения
     $stat = array();
-    $texts['body'] .= logToHtml($log, $stat);
+    $texts['body'] = ($texts['body'] ?? '') . logToHtml($log, $stat);
     
-    if ($stat['err']) {
+    if (!empty($stat['err'])) {
         $texts['body'] = "<ul class='msg stats'><li>" .
-        "<a href='${selfUrl}' class='err'>Отстранете грешките и опитайте пак...</a></li><ul><br>" .
+        "<a href='{$selfUrl}' class='err'>Отстранете грешките и опитайте пак...</a></li><ul><br>" .
         $texts['body'];
-    } elseif ($stat['wrn']) {
+    } elseif (!empty($stat['wrn'])) {
         $texts['body'] = "<ul class='msg stats'><li>" .
-        "<a href='${nextUrl}' class='wrn'>Има предупреждения. Ще продължите ли нататък? »</a></li><ul><br>" .
+        "<a href='{$nextUrl}' class='wrn'>Има предупреждения. Ще продължите ли нататък? »</a></li><ul><br>" .
         $texts['body'];
     } else {
         $texts['body'] = "<ul class='msg stats'><li>" .
-        "<a href='${nextUrl}'>&#10003; Всичко е наред. Продължете с инициализирането »</a></li><ul><br>" .
+        "<a href='{$nextUrl}'>&#10003; Всичко е наред. Продължете с инициализирането »</a></li><ul><br>" .
         $texts['body'];
     }
 }
@@ -988,7 +991,7 @@ if ($step == 3) {
 // Ако се намираме на етапа на инициализиране, по-долу стартираме setup-а
 if ($step == 4) {
     $stat = $log = array();
-    $texts['body'] .= linksToHtml(array("new|{$selfUrl}&step=5| Стартиране инициализация »"));
+    $texts['body'] = ($texts['body'] ?? '') . linksToHtml(array("new|{$selfUrl}&step=5| Стартиране инициализация »"));
 
     // Ако базата не е празна и се намираме в dev бранча - даваме възможност за директно стартиране
     if(getDbRows() > 0) {
@@ -1013,7 +1016,7 @@ if ($step == 4) {
 
     // Статистика за различните класове съобщения
     
-    $texts['body'] .= logToHtml($log, $stat);
+    $texts['body'] = ($texts['body'] ?? '') . logToHtml($log, $stat);
 }
 
 if(substr($step, 0, 7) == 'restore') {
@@ -1027,14 +1030,14 @@ if(substr($step, 0, 7) == 'restore') {
 
     // Статистика за различните класове съобщения
     $stat = array();
-    $texts['body'] .= logToHtml($log, $stat);
+    $texts['body'] = ($texts['body'] ?? '') . logToHtml($log, $stat);
 
 }
 
 if ($step == 5) {
     // Първоначално изтриване на Log-a
     file_put_contents(EF_SETUP_LOG_PATH, '');
-    $texts['body'] .= "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
+    $texts['body'] = ($texts['body'] ?? '') . "<iframe src='{$selfUrl}&step=setup' name='init' id='init'></iframe>";
     
     // Слагаме кода за стартиране на сетъп процеса
     $pURL = parse_url($localUrl);
@@ -1294,13 +1297,13 @@ if ($step == 'start') {
     global $setupFlag;
 
     $setupFlag = true;
-    
+
     // Създаваме празен Log файл
     file_put_contents(EF_SETUP_LOG_PATH, '');
-    
+
     // Локал за функции като basename, fgetcsv
     setlocale(LC_ALL, 'en_US.UTF8');
-    
+
     $ef = new core_Setup();
     try {
         try {
@@ -1314,7 +1317,7 @@ if ($step == 'start') {
         file_put_contents(EF_SETUP_LOG_PATH, $e->getMessage());
         reportException($e);
     }
-    
+
     $Packs = cls::get('core_Packs');
 
     $Packs->setupPack('bgerp');
@@ -1350,9 +1353,14 @@ die;
  */
 function logToHtml($log, &$stat)
 {
+    $html = '';
+
     foreach ($log as $line) {
         list($class, $text) = explode(':', $line, 2);
         $html .= "\n<div class='{$class}'>{$text}</div>";
+        if (!isset($stat[$class])) {
+            $stat[$class] = 0;
+        }
         $stat[$class]++;
     }
 
@@ -1473,20 +1481,20 @@ function gitSetBranch($repoPath, &$log, $branch = null)
  
     if (!gitExec($commandFetch, $arrRes)) {
         foreach ($arrRes as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при превключване в {$requiredBranch} fetch:" . $val):'';
+            $log[] = (!empty($val))?("err: [<b>{$repoName}</b>] грешка при превключване в {$requiredBranch} fetch:" . $val):'';
         }
         
         return false;
     }
     if (!gitExec($commandCheckOut, $arrRes)) {
         foreach ($arrRes as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при превключване в {$requiredBranch} checkOut:" . $val):'';
+            $log[] = (!empty($val))?("err: [<b>{$repoName}</b>] грешка при превключване в {$requiredBranch} checkOut:" . $val):'';
         }
             
         return false;
     }
     // Ако и двете команди са успешни значи всичко е ОК
-    $log[] = "new: [<b>${repoName}</b>] превключен {$requiredBranch} бранч.";
+    $log[] = "new: [<b>{$repoName}</b>] превключен {$requiredBranch} бранч.";
             
     return true;
         
@@ -1516,7 +1524,7 @@ function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
     $commandFetch = " --git-dir=\"{$repoPath}/.git\" fetch origin {$branch} 2>&1";
     if (!gitExec($commandFetch, $arrFetch)) {
         foreach ($arrFetch as $val) {
-            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при fetch : " . $val) : '';
+            $log[] = (!empty($val)) ? ("err: [<b>{$repoName}</b>] грешка при fetch : " . $val) : '';
         }
 
         return false;
@@ -1528,7 +1536,7 @@ function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
         $commandLocal = " --git-dir=\"{$repoPath}/.git\" rev-parse HEAD 2>&1";
         if (!gitExec($commandLocal, $arrResLocal)) {
             foreach ($arrResLocal as $val) {
-                $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-parse : " . $val) : '';
+                $log[] = (!empty($val)) ? ("err: [<b>{$repoName}</b>] грешка при rev-parse : " . $val) : '';
             }
 
             return false;
@@ -1541,7 +1549,7 @@ function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
     $commandRemote = " --git-dir=\"{$repoPath}/.git\" rev-parse FETCH_HEAD 2>&1";
     if (!gitExec($commandRemote, $arrResRemote)) {
         foreach ($arrResRemote as $val) {
-            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-parse FETCH_HEAD : " . $val) : '';
+            $log[] = (!empty($val)) ? ("err: [<b>{$repoName}</b>] грешка при rev-parse FETCH_HEAD : " . $val) : '';
         }
 
         return false;
@@ -1552,7 +1560,7 @@ function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
     $commandBehind = " --git-dir=\"{$repoPath}/.git\" rev-list --count {$localRef}..{$remoteSha} 2>&1";
     if (!gitExec($commandBehind, $arrBehind)) {
         foreach ($arrBehind as $val) {
-            $log[] = (!empty($val)) ? ("err: [<b>${repoName}</b>] грешка при rev-list (behind) : " . $val) : '';
+            $log[] = (!empty($val)) ? ("err: [<b>{$repoName}</b>] грешка при rev-list (behind) : " . $val) : '';
         }
 
         return false;
@@ -1560,7 +1568,7 @@ function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
     $behind = (int) trim($arrBehind[0]);
 
     if ($behind > 0) {
-        $log[] = "new:[<b>${repoName}</b>] Има нова версия ({$behind} commit(а) напред).";
+        $log[] = "new:[<b>{$repoName}</b>] Има нова версия ({$behind} commit(а) напред).";
         return true;
     }
 
@@ -1569,7 +1577,7 @@ function gitHasNewVersion($repoPath, &$log, $branch = BGERP_GIT_BRANCH)
     if (gitExec($commandAhead, $arrAhead)) {
         $ahead = (int) trim($arrAhead[0]);
         if ($ahead > 0) {
-            $log[] = "wrn:[<b>${repoName}</b>] Локалното копие е {$ahead} commit(а) напред спрямо origin/{$branch}.";
+            $log[] = "wrn:[<b>{$repoName}</b>] Локалното копие е {$ahead} commit(а) напред спрямо origin/{$branch}.";
         }
     }
 
@@ -1593,7 +1601,7 @@ function gitHasChanges($repoPath, &$log)
 
     if (!gitExec($command, $arrRes)) {
         foreach ($arrRes as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при status: " . $val):'';
+            $log[] = (!empty($val))?("err: [<b>{$repoName}</b>] грешка при status: " . $val):'';
         }
         
         return false;
@@ -1638,7 +1646,7 @@ function gitPullRepo($repoPath, &$log, $branch)
     
     if (!gitExec($commandFetch, $arrResFetch)) {
         foreach ($arrResFetch as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] ($branch) грешка при fetch: " . $val):'';
+            $log[] = (!empty($val))?("err: [<b>{$repoName}</b>] ($branch) грешка при fetch: " . $val):'';
         }
         
         return false;
@@ -1646,7 +1654,7 @@ function gitPullRepo($repoPath, &$log, $branch)
   
     if (!gitExec($commandMerge, $arrResMerge)) {
         foreach ($arrResMerge as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при merge origin/" . $branch.': ' . $val):'';
+            $log[] = (!empty($val))?("err: [<b>{$repoName}</b>] грешка при merge origin/" . $branch.': ' . $val):'';
         }
         
         return false;
@@ -1670,7 +1678,7 @@ function gitRevertRepo($repoPath, &$log)
     
     if (!gitExec($command, $arrRes)) {
         foreach ($arrRes as $val) {
-            $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при reset --hard :" . $val):'';
+            $log[] = (!empty($val))?("err: [<b>{$repoName}</b>] грешка при reset --hard :" . $val):'';
         }
         
         return false;
@@ -1867,7 +1875,7 @@ function addParams($url, $newParams)
     }
     $res .= $purl['host'];
     
-    if ($purl['port']) {
+    if (!empty($purl['port'])) {
         $res .= ':' . $purl['port'];
     }
     
@@ -1926,14 +1934,14 @@ function gitSetTag($repoPath, &$log, $tag)
         
         if (gitExec($commandCheckOut, $arrRes)) {
             // Ако и двете команди са успешни значи всичко е ОК
-            $log[] = "new: [<b>${repoName}</b>] превключен {$tag} таг.";
+            $log[] = "new: [<b>{$repoName}</b>] превключен {$tag} таг.";
             
             return true;
         }
     }
 
     foreach ($arrRes as $val) {
-        $log[] = (!empty($val))?("err: [<b>${repoName}</b>] грешка при превключване в {$tag} {$comm}:" . $val):'';
+        $log[] = (!empty($val))?("err: [<b>{$repoName}</b>] грешка при превключване в {$tag} {$comm}:" . $val):'';
     }
 
     return false;

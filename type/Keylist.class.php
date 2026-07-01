@@ -60,7 +60,7 @@ class type_Keylist extends core_Type
         
         $value = trim($value);
 
-        $minSignRegex = $this->params['allowMinus'] ? $minSignRegex = '\-' : '';
+        $minSignRegex = ($this->params['allowMinus'] ?? null) ? '\-' : '';
 
         // Очакваме валиден keylist
         if (preg_match("/^[0-9{$minSignRegex}\\|]*$/", $value)) {
@@ -82,7 +82,7 @@ class type_Keylist extends core_Type
         if ($ids) {
             $idsKey = md5($ids . '|' . json_encode($this->params) . '|' . Mode::get('text-export') . '|' . Mode::get('text'));
             
-            if (($res = $cache[$mvc->className][$idsKey]) === null) {
+            if (($res = ($cache[$mvc->className][$idsKey] ?? null)) === null) {
                 foreach ($vals as $v) {
                     if ($v) {
                         $attr = array();
@@ -92,15 +92,15 @@ class type_Keylist extends core_Type
                         
                         $name = $this->getVerbal($v);
                         if ((!Mode::is('text', 'xhtml')) && (!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
-                            if ($this->params['makeLinks'] === 'short') {
+                            if (($this->params['makeLinks'] ?? null) === 'short') {
                                 $name = ht::createLinkRef($name, array($mvc, 'Single', $v), false, $attr);
-                            } elseif($this->params['makeLinks'] === 'hyperlink') {
+                            } elseif(($this->params['makeLinks'] ?? null) === 'hyperlink') {
                                 $name = $mvc->getHyperlink($v);
                             } else {
                                 $name = ht::createLink($name, array($mvc, 'Single', $v), false, $attr);
                             }
                         } else {
-                            if($this->params['makeLinks'] === 'hyperlink' && ($mvc instanceof core_Master)){
+                            if(($this->params['makeLinks'] ?? null) === 'hyperlink' && ($mvc instanceof core_Master)){
                                 $name = $mvc->getTitleById($v);
                             }
                             if (!Mode::is('text-export', 'csv') && !Mode::is('printLabel')) {
@@ -135,7 +135,7 @@ class type_Keylist extends core_Type
             return '';
         }
         
-        if ($this->params['mvc']) {
+        if (!empty($this->params['mvc'])) {
             
             $mvc = &cls::get($this->params['mvc']);
             
@@ -148,12 +148,12 @@ class type_Keylist extends core_Type
             } else {
                 $value = $mvc->getTitleById($k);
             }
-        } elseif ($this->params['function']) {
+        } elseif (!empty($this->params['function'])) {
         } elseif ($this->suggestions) {
             $value = $this->suggestions[$k];
         }
  
-        if(($parentIdName = $this->params['parentId']) && isset($this->params['pathDivider'])) {
+        if(($parentIdName = ($this->params['parentId'] ?? null)) && isset($this->params['pathDivider'])) {
             $rec = $mvc->fetch($k);
             if(isset($rec) && ($parentId = $rec->{$parentIdName})) {
                 $value = $this->getVerbal($parentId) . $this->params['pathDivider'] . $value;
@@ -203,10 +203,11 @@ class type_Keylist extends core_Type
             $this->prepareSuggestions();
         }
         
+        $emptyValue = false;
         if ($value === null) {
             $emptyValue = true;
         }
-        
+
         if (!$value) {
             $values = array();
         } else {
@@ -242,7 +243,7 @@ class type_Keylist extends core_Type
             }
             $groupOpen = 0;
             
-            if (countR($this->suggestions) == 1 && $this->params['mandatory'] && $emptyValue) {
+            if (countR($this->suggestions) == 1 && !empty($this->params['mandatory']) && $emptyValue) {
                 $key = key($this->suggestions);
                 $values[$key] = $key;
             }
@@ -255,7 +256,7 @@ class type_Keylist extends core_Type
             foreach ($this->suggestions as $key => $v) {
                 
                 // Ако имаме група, правим ред и пишем името на групата
-                if (is_object($v) && $v->group) {
+                if (is_object($v) && ($v->group ?? null)) {
                     $j++;
                     
                     if ($trOpen) {
@@ -283,7 +284,7 @@ class type_Keylist extends core_Type
                     $class = 'keylistCategory';
                     
                     // Ако е вдигнат флага, за отваряне на група
-                    if ($v->autoOpen) {
+                    if ($v->autoOpen ?? null) {
                         
                         // Добавяме класа за отворена група
                         $class .= ' group-autoOpen';
@@ -312,15 +313,15 @@ class type_Keylist extends core_Type
 
                     $labelStyle = $insideLabel = $insideLabelEnd = '';
                     if (is_object($v)) {
-                        if ($v->labelStyle) {
+                        if ($v->labelStyle ?? null) {
                             $labelStyle = $v->labelStyle;
                         }
 
-                        if ($v->insideLabel) {
+                        if ($v->insideLabel ?? null) {
                             $insideLabel = $v->insideLabel;
                         }
 
-                        if ($v->insideLabelEnd) {
+                        if ($v->insideLabelEnd ?? null) {
                             $insideLabelEnd = $v->insideLabelEnd;
                         }
                     }
@@ -341,8 +342,8 @@ class type_Keylist extends core_Type
                     
                     $v = type_Varchar::escape($v);
 
-                    list(, $uId) = explode('_', $key);  
-                    if ($this->profileInfo[$uId]) {
+                    $uId = explode('_', $key)[1] ?? null;
+                    if ($this->profileInfo[$uId] ?? null) {
                         $class = $this->profileInfo[$uId]['class'];
                         $v = "<span class='{$class}'>" . $v . $this->profileInfo[$uId]['emoji'] . '</span>';
                     }
@@ -418,14 +419,15 @@ class type_Keylist extends core_Type
         }
         
         // Разпределяме опциите в 2,3 и 4 групи и гледаме при всяко разпределение, колко е максималния брой опции
+        $max = [];
         $i = 0;
         foreach ($options as $key => $v) {
-            if ($v->group) {
+            if ($v->group ?? null) {
                 $i = 0;
                 continue;
             }
             for ($j = 2; $j <= 4; $j++) {
-                $max[$j][$i % $j] = max($max[$j][$i % $j], min($maxChars * 0.9, mb_strlen(type_Key::getOptionTitle($v))));
+                $max[$j][$i % $j] = max($max[$j][$i % $j] ?? 0, min($maxChars * 0.9, mb_strlen(type_Key::getOptionTitle($v))));
                 $res[] = type_Key::getOptionTitle($v);
             }
             $i++;
@@ -474,7 +476,7 @@ class type_Keylist extends core_Type
         // Ако не е зададен параметъра
         if (!isset($this->params['maxOptForOpenGroups'])) {
             $conf = core_Setup::getConfig();
-            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
+            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'] ?? null;
             if (!isset($maxOpt)) {
                 $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
             }
@@ -527,6 +529,8 @@ class type_Keylist extends core_Type
             if ($groupBy) {
                 
                 // Броя на групите
+                $openAllGroups = false;
+                $autoOpenGroupsArr = array();
                 $cnt = $query->count();
                 
                 // Ако броя е под максимално допустимите
@@ -537,7 +541,7 @@ class type_Keylist extends core_Type
                 } else {
                     
                     // Ако е зададена, коя група да се отвори
-                    if ($this->params['autoOpenGroups']) {
+                    if (!empty($this->params['autoOpenGroups'])) {
                         
                         // Ако е зададено да се отворят всичките
                         if (trim($this->params['autoOpenGroups']) == '*') {
@@ -553,8 +557,9 @@ class type_Keylist extends core_Type
                 }
             }
             
+            $group = null;
             while ($rec = $query->fetch()) {
-                
+
                 // Ако е групирано
                 if ($groupBy) {
                     
@@ -575,7 +580,7 @@ class type_Keylist extends core_Type
                         } else {
                             
                             // Ако е зададено да се отвори текущата група
-                            if ($autoOpenGroupsArr[$rec->$groupBy]) {
+                            if (!empty($autoOpenGroupsArr[$rec->$groupBy])) {
                                 
                                 // Вдигаме флага
                                 $openGroup = true;

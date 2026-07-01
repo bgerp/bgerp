@@ -58,10 +58,7 @@ class type_UserList extends type_Keylist
         // Ако не е зададен параметъра
         if (!isset($this->params['maxOptForOpenGroups'])) {
             $conf = core_Setup::getConfig();
-            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'];
-            if (!isset($maxOpt)) {
-                $maxOpt = CORE_MAX_OPT_FOR_OPEN_GROUPS;
-            }
+            $maxOpt = $conf->_data['CORE_MAX_OPT_FOR_OPEN_GROUPS'] ?? CORE_MAX_OPT_FOR_OPEN_GROUPS;
             setIfNot($this->params['maxOptForOpenGroups'], $maxOpt);
         }
         
@@ -84,6 +81,7 @@ class type_UserList extends type_Keylist
         }
         
         // Ако може да вижда всички екипи - показват се. Иначе вижда само своя екип
+        $ownRoles = null;
         if (!haveRole($this->params['rolesForAll'])) {
             $ownRoles = core_Users::getCurrent('roles');
             $ownRoles = self::toArray($ownRoles);
@@ -120,7 +118,7 @@ class type_UserList extends type_Keylist
         
         $openAllGroups = false;
         // Ако броя е под максимално допустимите или са избрани всичките
-        if ((trim($this->params['autoOpenGroups']) == '*') || ($cnt < $this->params['maxOptForOpenGroups'])) {
+        if ((trim($this->params['autoOpenGroups'] ?? '') == '*') || ($cnt < ($this->params['maxOptForOpenGroups'] ?? PHP_INT_MAX))) {
             
             // Отваряме всички групи
             $openAllGroups = true;
@@ -169,7 +167,7 @@ class type_UserList extends type_Keylist
         }
         
         foreach ($teams as $t) {
-            if (countR($ownRoles) && !$ownRoles[$t]) {
+            if (countR($ownRoles) && !($ownRoles[$t] ?? null)) {
                 continue;
             }
             $group = new stdClass();
@@ -528,7 +526,7 @@ class type_UserList extends type_Keylist
      */
     protected function getUserIdFromKey($key)
     {
-        list($roleId, $userId) = explode($this->keySep, $key);
+        list($roleId, $userId) = array_pad(explode($this->keySep, $key), 2, null);
         
         if (!isset($userId)) {
             $userId = $roleId;

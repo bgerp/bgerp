@@ -79,7 +79,9 @@ class core_SystemData
      */
     public static function remove($name)
     {
-        return @unlink(self::getPath($name));
+        $path = self::getPath($name);
+
+        return file_exists($path) && unlink($path);
     }
     
     

@@ -143,10 +143,11 @@ class core_ProtoSetup
         
         // Създаване моделите в базата данни
         $instances = array();
-        
+        $html = '';
+
         // Масив с класовете, които имат интерфейси
         $this->defClasses = arr::make($this->defClasses, true);
-        
+
         foreach (arr::make($this->managers) as $manager) {
             
             // Ако мениджърът е миграция - изпълняваме я еднократно
@@ -198,6 +199,7 @@ class core_ProtoSetup
         // Ключ в настойките на пакета `core` под който се пази изпълнението на миграцията
         $key = "migration_{$packName}_{$method}";
         
+        $html = '';
         if (!core_Packs::getConfigKey('core', $key)) {
             try {
                 if (core_ProtoSetup::$dbInit == 'update') {
@@ -232,7 +234,7 @@ class core_ProtoSetup
         $htmlRes = '';
         
         // Инсталираме декларираните плъгини, ако има такива
-        if (is_array($this->plugins)) {
+        if (is_array($this->plugins ?? null)) {
             $Plugins = cls::get('core_Plugins');
             foreach ($this->plugins as $plg) {
                 $htmlRes .= $Plugins->installPlugin(
@@ -516,18 +518,18 @@ class core_ProtoSetup
      */
     protected function setCron()
     {
+        $res = '';
+
         if (is_array($this->cronSettings) && countR($this->cronSettings)) {
             if (!is_array($this->cronSettings[0])) {
                 $this->cronSettings = array($this->cronSettings);
             }
-            
-            $res = '';
-            
+
             foreach ($this->cronSettings as $setting) {
                 $res .= core_Cron::addOnce($setting);
             }
         }
-        
+
         return $res;
     }
     
@@ -555,9 +557,9 @@ class core_ProtoSetup
                 
                 // задаваме позицията в менюто
                 // с приоритет е от конфига
-                if ($item['row']) {
+                if ($item['row'] ?? null) {
                     $row = $item['row'];
-                } elseif ($item[0]) {
+                } elseif ($item[0] ?? null) {
                     $row = $item[0];
                 } else {
                     expect(false);
@@ -565,25 +567,25 @@ class core_ProtoSetup
                 
                 // задаваме името на менюто
                 // с приоритет е от конфига
-                if ($item['menu']) {
+                if ($item['menu'] ?? null) {
                     $menu = $item['menu'];
-                } elseif ($item[1]) {
+                } elseif ($item[1] ?? null) {
                     $menu = $item[1];
                 } else {
                     expect(false);
                 }
-                
+
                 // задаваме името на подменюто
                 // с приоритет е от конфига
-                if ($item['subMenu']) {
+                if ($item['subMenu'] ?? null) {
                     $subMenu = $item['subMenu'];
-                } elseif ($item[2]) {
+                } elseif ($item[2] ?? null) {
                     $subMenu = $item[2];
                 }
-                
-                $ctr = $item['ctr'] ? $item['ctr'] : $item[3];
-                $act = $item['act'] ? $item['act'] : $item[4];
-                $roles = $item['roles'] ? $item['roles'] : $item[5];
+
+                $ctr = ($item['ctr'] ?? null) ? $item['ctr'] : ($item[3] ?? null);
+                $act = ($item['act'] ?? null) ? $item['act'] : ($item[4] ?? null);
+                $roles = ($item['roles'] ?? null) ? $item['roles'] : ($item[5] ?? null);
                 
                 // Добавя елемента на менюто
                 $res .= bgerp_Menu::addOnce($row, $menu, $subMenu, $ctr, $act, $roles);

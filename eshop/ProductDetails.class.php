@@ -114,7 +114,7 @@ class eshop_ProductDetails extends core_Detail
         $this->FLD('deliveryTime', 'time', 'caption=Доставка до');
         
         $this->FLD('state', 'enum(active=Активен,closed=Затворен)', 'caption=Състояние,input=none');
-        $this->FLD('action', 'enum(price=Само цена,inquiry=Запитване,buy=Купуване,both=Запитване и купуване)', 'caption=Действия,mandatory');
+        $this->FLD('action', 'enum(price=Само цена,inquiry=Запитване,buy=Купуване,both=Запитване и купуване,stopped=Спрян)', 'caption=Действия,mandatory');
         $this->FLD('moq', 'double(min=0)', 'caption=MKП');
         
         $this->setDbUnique('eshopProductId,title');
@@ -252,7 +252,7 @@ class eshop_ProductDetails extends core_Detail
         	$row->ROW_ATTR['class'] = "state-{$rec->state}";
         	$row->eshopProductId = eshop_Products::getHyperlink($rec->eshopProductId, TRUE);
         	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-        	if ($productRec->state != 'template' && !self::getPublicDisplayPrice($rec->productId)) {
+        	if ($productRec->state != 'template' && !self::getPublicDisplayPrice($rec->productId) && $rec->action != 'stopped') {
                 $row->productId = ht::createHint($row->productId, 'Артикулът няма цена', 'warning');
             }
             
@@ -438,8 +438,8 @@ class eshop_ProductDetails extends core_Detail
 
         $productRec = cat_Products::fetch($rec->productId, 'state');
         $row->packagingId = cat_UoM::getShortName($rec->packagingId);
-        
-        $showPrice = !(($productRec->state == 'template'));
+
+        $showPrice = !($productRec->state == 'template' || $rec->action == 'stopped');
         $showCartBtn = in_array($rec->action, array('buy', 'both'));
         
         if($productRec->state != 'template' && $rec->action != 'inquiry'){
@@ -477,6 +477,8 @@ class eshop_ProductDetails extends core_Detail
                     }
                 }
             }
+        } elseif($rec->action == 'stopped'){
+            $row->catalogPrice = "<span class='option-not-in-stock notAvailable'>{$settings->stoppedOptionName}</span><br>";
         }
         
         $row->orderPrice = $catalogPriceInfo->price;
@@ -588,10 +590,13 @@ class eshop_ProductDetails extends core_Detail
                 $quantityExpected = store_Products::getQuantities($rec->productId, $settings->inStockStores, $horizon)->free;
                 if($quantityExpected >= $rec->quantityInPack){
                     $row->saleInfo = "<span class='{$class} option-not-in-stock waitingDelivery'>" . tr('Очаква се доставка') . '</span>';
-                }else {
+                } else {
                     $notInStock = !empty($settings->notInStockText) ? tr($settings->notInStockText) : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
                     $notInStockVerbal = core_Type::getByName('varchar')->toVerbal($notInStock);
-                    $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$notInStockVerbal}</span>";
+
+                    if($rec->action != 'stopped'){
+                        $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$notInStockVerbal}</span>";
+                    }
                     $row->quantity = 1;
                     unset($row->btn);
                 }
@@ -787,7 +792,7 @@ class eshop_ProductDetails extends core_Detail
             }
             
         } else {
-            $data->listFields = arr::make('eshopProductId=Е-артикул,title=Заглавие,packagings=Опаковки/Мерки,domainId=Домейн,deliveryTime=Доставка,created=Създаване');
+            $data->listFields = arr::make('eshopProductId=Е-артикул,title=Заглавие,packagings=Опаковки/Мерки,action=Действие,domainId=Домейн,deliveryTime=Доставка,created=Създаване');
             $data->info = tr('Артикулът може да бъде продаван в Е-маг');
             
             // Извличане и вербализиране на записите

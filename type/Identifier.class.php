@@ -33,7 +33,7 @@ class type_Identifier extends type_Varchar
         $res = $this->isValid($value);
         
         // Ако има грешка, показваме нея
-        if ($res['error']) {
+        if ($res['error'] ?? null) {
             
             // Сетваме грешката
             $this->error = $res['error'];
@@ -56,18 +56,18 @@ class type_Identifier extends type_Varchar
         $res = parent::isValid($value);
         
         //Ако има грешки връщаме резултата
-        if ($res['error']) {
+        if ($res['error'] ?? null) {
             
             return $res;
         }
         
         $pattern = '/^[a-zA-Z_]{1}[a-zA-Z0-9_]*$/i';
         
-        if ($this->params['utf8']) {
+        if ($this->params['utf8'] ?? null) {
             $pattern = "/^[\p{L}a-zA-Z_]{1}[\p{L}a-zA-Z0-9_]*$/iu";
         }
-        
-        if ($this->params['allowed']) {
+
+        if ($this->params['allowed'] ?? null) {
             $pattern = str_replace('_]', preg_quote($this->params['allowed']) . '_]', $pattern);
         }
         

@@ -258,70 +258,92 @@ class batch_Defs extends core_Manager
         
         return $array;
     }
-    
-    
+
+
     /**
      * Форсира партидна дефиниция на артикула ако може
      * Партидната дефиниция се намира по следния приоритет:
      *
-     * 1. От драйвера на артикула, ако върне подходящ клас
-     * 2. Ако артикула е базиран на прототип неговата партидна дефиниция
-     * 3. Ако артикула е в папка на категория и тя има избрана дефолтна дефиниция
+     * 1. От зададената конкретна дефиниция за форсиране
+     * 2. От драйвера на артикула, ако върне подходящ клас
+     * 3. Ако артикула е базиран на прототип неговата партидна дефиниция
+     * 4. Ако артикула е в папка на категория и тя има избрана дефолтна дефиниция
      *
-     * @param int $productId - ид на артикул
+     * @param int $productId       - ид на артикул
+     * @param int|null $templateId - ид на партидна дефиниция или null за дефолтната такава
+     * @param array $params        - параметри на форсираната дефиниция
+     *            [batchCaption]
+     *            [alwaysRequire]
+     *            [onlyExistingBatches]
      *
      * @return int|NULL $id - форсирания запис, или NULL ако няма такъв
      */
-    public static function force($productId, $defaultDef = null)
+    public static function force($productId, $templateId = null, $params = array())
     {
         // Трябва да е подаден складируем артикул
         expect($productRec = cat_Products::fetchRec($productId));
         expect($productRec->canStore == 'yes');
-        
+
         // Ако има съществуваща дефиниция, не създаваме нова
         if ($id = static::fetchField("#productId = {$productRec->id}", 'id')) {
-            
             return $id;
         }
-        
-        // Ако горните условия не са изпълнени, питаме драйвера дали може да върне дефиниция
-        $Driver = cat_Products::getDriver($productRec);
-        if ($Driver !== false) {
-            $templateId = $Driver->getDefaultBatchTemplate($productRec);
-        } else {
-            $templateId = null;
-        }
-        
+
+        $nRec = null;
+
+        // 1. Ако има изрично зададена дефиниция
         if (isset($templateId)) {
+
+            expect(batch_Templates::fetch($templateId));
             $nRec = (object) array('productId' => $productRec->id, 'templateId' => $templateId);
+
+            // Ако има допълнителни параметри на дефиницията
+            foreach (array('batchCaption', 'alwaysRequire', 'onlyExistingBatches') as $pFld){
+                if(!empty($params[$pFld])){
+                    $nRec->{$pFld} = $params[$pFld];
+                }
+            }
         } else {
-            
-            // Ако артикула е базиран на прототип, който има партида копираме му я
-            if (isset($productRec->proto)) {
-                if ($nRec = static::fetch("#productId = {$productRec->proto}")) {
-                    unset($nRec->id, $nRec->modifiedOn, $nRec->modifiedBy);
-                    $nRec->productId = $productRec->id;
+            // 2. От драйвера на артикула, ако върне подходящ клас
+            $Driver = cat_Products::getDriver($productRec);
+
+            if (!empty($Driver)) {
+                $templateId = $Driver->getDefaultBatchTemplate($productRec);
+
+                if (isset($templateId)) {
+                    expect(batch_Templates::fetch($templateId));
+                    $nRec = (object) array('productId' => $productRec->id, 'templateId' => $templateId);
                 }
             }
         }
-        
+
+        // 3. Ако артикула е базиран на прототип неговата партидна дефиниция
+        if (!isset($nRec) && isset($productRec->proto)) {
+            if ($nRec = static::fetch("#productId = {$productRec->proto}")) {
+                unset($nRec->id, $nRec->modifiedOn, $nRec->modifiedBy);
+                $nRec->productId = $productRec->id;
+            }
+        }
+
+        // 4. Ако артикулът е в папка на категория с избрана партида, вземаме нея
         if (!isset($nRec)) {
-            
-            // Ако артикула е в папка на категория, с избрана партида връщаме нея
             $folderClassName = doc_Folders::fetchCoverClassName($productRec->folderId);
+
             if ($folderClassName == 'cat_Categories') {
                 $folderObjectId = doc_Folders::fetchCoverId($productRec->folderId);
+
                 if ($categoryTemplateId = batch_CategoryDefinitions::fetchField("#categoryId = {$folderObjectId}", 'templateId')) {
                     $nRec = (object) array('productId' => $productRec->id, 'templateId' => $categoryTemplateId);
                 }
             }
         }
-        
+
         // Ако има запис, записва се
         if (is_object($nRec)) {
-            
             return self::save($nRec);
         }
+
+        return null;
     }
     
     

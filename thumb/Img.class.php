@@ -482,7 +482,7 @@ class thumb_Img
                 }
             }
 
-            list($this->scaledWidth, $this->scaledHeight, $this->ratio, $this->rotation) = self::scaleSize($this->width, $this->height, $this->boxWidth, $this->boxHeight, $this->mode, (boolean) $this->possibleRotation);
+            list($this->scaledWidth, $this->scaledHeight, $this->ratio, $this->rotation) = self::scaleSize($this->width, $this->height, $this->boxWidth, $this->boxHeight, $this->mode, (boolean) $this->possibleRotation) + [null, null, null, null];
             if (isset($rotation)) {
                 $this->rotation = $rotation;
             }
@@ -715,6 +715,7 @@ class thumb_Img
             $this->getSize();
 
             // Склаираме, само ако имаме пропорция, различна от 1 или ротираме
+            $newGdRes = null;
             if ($this->ratio != 1 || $this->rotation || self::canUseWebP()) {
                 if ($this->rotation) {
                     if ($this->rotation == 180) {
@@ -949,7 +950,7 @@ class thumb_Img
         $imgArr = self::$allowedExtArr;
 
         // Ако е в масива
-        if ($imgArr[$ext]) {
+        if (!empty($imgArr[$ext])) {
 
             return true;
         }

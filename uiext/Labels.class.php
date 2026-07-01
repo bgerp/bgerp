@@ -119,7 +119,7 @@ class uiext_Labels extends core_Manager
      */
     private static function getLabelOptions($classId)
     {
-        if (!self::$cache[$classId]) {
+        if (empty(self::$cache[$classId])) {
             $options = array();
             $opt = new stdClass();
             $opt->title = '';

@@ -1,5 +1,5 @@
 <div class='cms-row'>
-    <div class='twelvecol cms-last searchContent' style='padding: 0 2%; box-sizing: border-box'>
+    <div class='twelvecol searchContent'>
         [#TOP_CONTENT#]
         [#PAGE_CONTENT#] 
         <!--ET_BEGIN SOCIAL-->

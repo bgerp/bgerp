@@ -192,6 +192,8 @@ class callcenter_Talks extends core_Master
             $row->externalNum = core_Type::escape($rec->externalNum);
         }
         
+        $haveExternalData = false;
+
         // Ако има данни за търсещия
         if ($rec->externalData) {
             
@@ -225,6 +227,8 @@ class callcenter_Talks extends core_Master
             }
         }
         
+        $haveInternalData = false;
+
         // Ако има данни за търсения
         if ($rec->internalData) {
             
@@ -273,7 +277,7 @@ class callcenter_Talks extends core_Master
             
             // Ако не сме в сингъла
             // Добавяме данните към номера
-            if (!$fields['-single']) {
+            if (empty($fields['-single'])) {
                 
                 // Дива за разстояние
                 $div = "<div style='margin-top:5px;'>";
@@ -299,6 +303,7 @@ class callcenter_Talks extends core_Master
         }
         
         // В зависмост от състоянието на разгоравя, опделяме клас за реда в таблицата
+        $row->DialStatusClass = '';
         if (!$rec->dialStatus) {
             $row->DialStatusClass .= ' dialStatus-opened';
         } elseif ($rec->dialStatus == 'ANSWERED') {
@@ -581,14 +586,14 @@ class callcenter_Talks extends core_Master
         }
         
         foreach ((array) $dRecArr as $dRec) {
-            $nRec->internalData = type_Keylist::addKey($nRec->internalData, $dRec->id);
+            $nRec->internalData = type_Keylist::addKey($nRec->internalData ?? null, $dRec->id);
         }
         
         $cRecArr = callcenter_Numbers::getRecForNum($externalNum);
-        if ($cRecArr[0]) {
+        if (!empty($cRecArr[0])) {
             $nRec->externalData = $cRecArr[0]->id;
         }
-        
+
         $nRec->externalNum = drdata_PhoneType::getNumberStr($externalNum, 0);
         $nRec->internalNum = drdata_PhoneType::getNumberStr($internalNum, 0);
         $nRec->uniqId = $uniqId;
@@ -605,7 +610,7 @@ class callcenter_Talks extends core_Master
                 $oRec = self::fetch(array("#internalNum = '[#1#]' AND #uniqId='[#2#]'", $nRec->internalNum, $nRec->uniqId));
                 
                 // Предпазване от дублиране
-                if ($nRec->startTime == $oRec->startTime) {
+                if (is_object($oRec) && $nRec->startTime == $oRec->startTime) {
                     break;
                 }
                 
@@ -624,7 +629,7 @@ class callcenter_Talks extends core_Master
         
         // Нотифицираме потребителя, за входящото обаждане
         if (!$isOutgoing) {
-            if (!$cRecArr[0]) {
+            if (empty($cRecArr[0])) {
                 $externalData = $externalNum;
             } else {
                 $externalData = $cRecArr;
@@ -686,8 +691,8 @@ class callcenter_Talks extends core_Master
         
         $lUniqStr = $lUniqStr . self::$callUniqIdDelimiter;
         
-        if (strpos($rec->linkedUniqId, $lUniqStr) === false) {
-            $rec->linkedUniqId .= $lUniqStr;
+        if (strpos($rec->linkedUniqId ?? '', $lUniqStr) === false) {
+            $rec->linkedUniqId = ($rec->linkedUniqId ?? '') . $lUniqStr;
             
             self::save($rec, 'linkedUniqId');
         }
@@ -878,7 +883,7 @@ class callcenter_Talks extends core_Master
             $deviationSecs = abs(dt::secsBetween($now, $startTime));
             
             // Ако разликата е над допустимите
-            if (($deviationSecs) && ($deviationSecs > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
+            if (($deviationSecs) && ($deviationSecs > ($conf->CALLCENTER_DEVIATION_BETWEEN_TIMES ?? 0))) {
                 
                 // Инстанция на класа
                 $TimeInst = cls::get('type_Time');
@@ -944,8 +949,8 @@ class callcenter_Talks extends core_Master
         $cRecArr = callcenter_Numbers::getRecForNum($externalNum);
         
         // Ако има такъв запис
-        if ($cRecArr[0]) {
-            
+        if (!empty($cRecArr[0])) {
+
             // Вземаме данните за контрагента
             $nRec->externalData = $cRecArr[0]->id;
         }
@@ -1014,8 +1019,8 @@ class callcenter_Talks extends core_Master
             if (!$outgoing) {
                 
                 // Ако няма данни
-                if (!$cRecArr[0]) {
-                    
+                if (empty($cRecArr[0])) {
+
                     // Да се използва номера
                     $externalData = $externalNum;
                 } else {
@@ -1062,9 +1067,10 @@ class callcenter_Talks extends core_Master
         
         // Вземаме последния запис
         $rec = self::getLastTalksRec($uniqId);
-        
+        $savedId = null;
+
         // Ако има такъв запис
-        if ($rec->id) {
+        if (is_object($rec) && $rec->id) {
             
             // Типа на обаждането
             $outgoing = Request::get('outgoing');
@@ -1129,7 +1135,7 @@ class callcenter_Talks extends core_Master
                 $deviationsSecAnswEnd = dt::secsBetween($endTime, $answerTime);
                 
                 // Ако разликата е над допустимите
-                if (($deviationsSecAnswEnd) && ($deviationsSecAnswEnd > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
+                if (($deviationsSecAnswEnd) && ($deviationsSecAnswEnd > ($conf->CALLCENTER_DEVIATION_BETWEEN_TIMES ?? 0))) {
                     
                     // Разликата във вербален вид
                     $deviationAnswEndVerbal = $TimeInst->toVerbal($deviationsSecAnswEnd);
@@ -1164,7 +1170,7 @@ class callcenter_Talks extends core_Master
                 $deviationSecsAnsw = abs(dt::secsBetween($now, $answerTime));
                 
                 // Ако разликата е над допустимите
-                if (($deviationSecsAnsw) && ($deviationSecsAnsw > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
+                if (($deviationSecsAnsw) && ($deviationSecsAnsw > ($conf->CALLCENTER_DEVIATION_BETWEEN_TIMES ?? 0))) {
                     
                     // Разликата във вербален вид
                     $deviationAnswVerbal = $TimeInst->toVerbal($deviationSecsAnsw);
@@ -1184,7 +1190,7 @@ class callcenter_Talks extends core_Master
                 $deviationSecsEnd = abs(dt::secsBetween($now, $endTime));
                 
                 // Ако разликата е над допустимите
-                if (($deviationSecsEnd) && ($deviationSecsEnd > $conf->CALLCENTER_DEVIATION_BETWEEN_TIMES)) {
+                if (($deviationSecsEnd) && ($deviationSecsEnd > ($conf->CALLCENTER_DEVIATION_BETWEEN_TIMES ?? 0))) {
                     
                     // Разликата във вербален вид
                     $deviationEndVerbal = $TimeInst->toVerbal($deviationSecsEnd);
@@ -1455,13 +1461,14 @@ class callcenter_Talks extends core_Master
     protected static function getChildRecForUniqId($uniqId)
     {
         $uniqIdArr = explode(self::$callUniqIdDelimiter, $uniqId);
-        
+        $id = null;
+
         if (countR($uniqIdArr) > 1) {
             $id = array_pop($uniqIdArr);
         }
-        
+
         $uniqId = implode(self::$callUniqIdDelimiter, $uniqIdArr);
-        
+
         if (!$id) {
             $id = 0;
         }
@@ -1650,7 +1657,7 @@ class callcenter_Talks extends core_Master
         $conf = core_Packs::getConfig('callcenter');
         
         // Ако не отговаря на посочения от нас
-        if ($protectKey != $conf->CALLCENTER_PROTECT_KEY) {
+        if ($protectKey != (($conf->CALLCENTER_PROTECT_KEY ?? null) ?? null)) {
             $errMsg = 'Невалиден публичен ключ за обаждането';
             
             // Записваме в лога
@@ -1676,7 +1683,7 @@ class callcenter_Talks extends core_Master
         $conf = core_Packs::getConfig('callcenter');
         
         // Масив с разрешените IP' та
-        $allowedIpArr = arr::make($conf->CALLCENTER_ALLOWED_IP_ADDRESS, true);
+        $allowedIpArr = arr::make($conf->CALLCENTER_ALLOWED_IP_ADDRESS ?? null, true);
         
         // Ако е зададено
         if (countR($allowedIpArr)) {
@@ -1685,7 +1692,7 @@ class callcenter_Talks extends core_Master
             $ip = core_Users::getRealIpAddr();
             
             // Ако не е в листата на разрешените IP' та
-            if (!$allowedIpArr[$ip]) {
+            if (empty($allowedIpArr[$ip])) {
                 
                 // Записваме в лога
                 self::logErr('Недопустим IP адрес в конфигурацията');
@@ -1917,7 +1924,7 @@ class callcenter_Talks extends core_Master
         $data->listFilter->input('number, usersSearch, dialStatusType, from, to', 'silent');
         
         // Ако не е избран потребител по подразбиране
-        if (!$data->listFilter->rec->usersSearch) {
+        if (!($data->listFilter->rec->usersSearch ?? null)) {
             
             // Да е текущия
             $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';
@@ -1931,7 +1938,7 @@ class callcenter_Talks extends core_Master
         if ($filter = $data->listFilter->rec) {
             
             // Ако се търси по номера
-            if ($number = $filter->number) {
+            if ($number = ($filter->number ?? null)) {
                 
                 // Премахваме нулите и + от началото на номера
                 $number = ltrim($number, '0+');
@@ -1973,7 +1980,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Ако се търси по статус или вид
-            if ($filter->dialStatusType) {
+            if ($filter->dialStatusType ?? null) {
                 $dialStatusType = $filter->dialStatusType;
                 
                 // Разделяме статуса от типа
@@ -2007,14 +2014,14 @@ class callcenter_Talks extends core_Master
             $dateRange = array();
             
             // Ако е зададено от
-            if ($filter->from) {
-                
+            if ($filter->from ?? null) {
+
                 // Добавяме в масива
                 $dateRange[0] = $filter->from;
             }
-            
+
             // Ако е зададено до
-            if ($filter->to) {
+            if ($filter->to ?? null) {
                 
                 // Добавяме в масива
                 $dateRange[1] = $filter->to;
@@ -2028,14 +2035,14 @@ class callcenter_Talks extends core_Master
             }
             
             // Ако има от
-            if ($dateRange[0]) {
-                
+            if ($dateRange[0] ?? null) {
+
                 // Разговори приети От дата
                 $data->query->where(array("#startTime >= '[#1#]'", $dateRange[0]));
             }
-            
+
             // Ако има до
-            if ($dateRange[1]) {
+            if ($dateRange[1] ?? null) {
                 
                 // Разговори До дата
                 $data->query->where(array("#startTime <= '[#1#] 23:59:59'", $dateRange[1]));
@@ -2058,8 +2065,8 @@ class callcenter_Talks extends core_Master
             
             return ;
         }
-        $stat = array();
-        
+        $stat = array('duration' => 0, 'dialStatus' => array());
+
         // Обхождаме всички клонирани записи
         while ($rec = $data->listSummary->query->fetch()) {
             
@@ -2076,20 +2083,20 @@ class callcenter_Talks extends core_Master
             }
             
             // Добавяме продължителността
-            $stat['duration'] += $rec->duration;
-            
+            $stat['duration'] += ($rec->duration ?? 0);
+
             // Увеличаваме броя на съответния статус
-            $stat['dialStatus'][$dialStatus]++;
-            
+            $stat['dialStatus'][$dialStatus] = ($stat['dialStatus'][$dialStatus] ?? 0) + 1;
+
             // Увеличаваме броя на всички състояния
-            $stat['dialStatus']['TOTAL']++;
+            $stat['dialStatus']['TOTAL'] = ($stat['dialStatus']['TOTAL'] ?? 0) + 1;
         }
         
         // Статистика за разговорите
         $data->listSummary->stat = $stat;
         
         // Ако има продължителност
-        if ($stat['duration']) {
+        if ($stat['duration'] ?? null) {
             
             // Инстанция на класа
             $Time = cls::get('type_Time');
@@ -2117,7 +2124,7 @@ class callcenter_Talks extends core_Master
     public static function on_AfterRenderListSummary($mvc, &$tpl, &$data)
     {
         // Ако няма данни, няма да се показва нищо
-        if (!$data->listSummary->statVerb) {
+        if (empty($data->listSummary->statVerb)) {
             
             return ;
         }
@@ -2149,7 +2156,7 @@ class callcenter_Talks extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако искаме да отворим сингъла на документа
-        if ($rec->id && $action == 'single' && $userId) {
+        if (($rec->id ?? null) && $action == 'single' && $userId) {
             
             // Ако нямаме роля CEO
             if (!haveRole('ceo, callcenter', $userId)) {
@@ -2435,7 +2442,7 @@ class callcenter_Talks extends core_Master
         $conf = core_Packs::getConfig('callcenter');
         
         // Вземаме секундите
-        $secs = $conf->CALLCENTER_DRAFT_TO_NOANSWER;
+        $secs = ($conf->CALLCENTER_DRAFT_TO_NOANSWER ?? 0);
         
         // Изваждаме секундите
         $secsBefore = -1 * $secs;
@@ -2491,16 +2498,16 @@ class callcenter_Talks extends core_Master
         $conf = core_Packs::getConfig('callcenter');
         
         // Ако има зададена стойност
-        if ($conf->CALLCENTER_MAX_CALL_DURATION > 0) {
+        if (($conf->CALLCENTER_MAX_CALL_DURATION ?? 0) > 0) {
             
             // Всички разговори, които са над допостимата дължината
             $query = static::getQuery();
-            $query->where(array('ADDDATE(#answerTime, INTERVAL [#1#] SECOND) < #endTime', $conf->CALLCENTER_MAX_CALL_DURATION));
+            $query->where(array('ADDDATE(#answerTime, INTERVAL [#1#] SECOND) < #endTime', ($conf->CALLCENTER_MAX_CALL_DURATION ?? 0)));
             
             while ($rec = $query->fetch()) {
                 
                 // Променяме края на разговора, да е в допустимите граници
-                $rec->endTime = dt::addSecs($conf->CALLCENTER_MAX_CALL_DURATION, $rec->answerTime);
+                $rec->endTime = dt::addSecs(($conf->CALLCENTER_MAX_CALL_DURATION ?? 0), $rec->answerTime);
                 
                 // Записваме промените
                 static::save($rec, 'endTime');
@@ -2549,7 +2556,7 @@ class callcenter_Talks extends core_Master
                 if ($nRec->endTime > $unixNull) {
                     
                     // От крайното време определяме началото
-                    $nRec->answerTime = dt::subtractSecs($conf->CALLCENTER_MAX_CALL_DURATION, $nRec->endTime);
+                    $nRec->answerTime = dt::subtractSecs(($conf->CALLCENTER_MAX_CALL_DURATION ?? 0), $nRec->endTime);
                     
                     // Вдигаме флага
                     $save = true;
@@ -2567,7 +2574,7 @@ class callcenter_Talks extends core_Master
                 if ($nRec->answerTime > $unixNull) {
                     
                     // Определяме времето за край на разговора
-                    $nRec->endTime = dt::addSecs($conf->CALLCENTER_MAX_CALL_DURATION, $nRec->answerTime);
+                    $nRec->endTime = dt::addSecs(($conf->CALLCENTER_MAX_CALL_DURATION ?? 0), $nRec->answerTime);
                     
                     // Вдигаме флага
                     $save = true;
@@ -2627,6 +2634,9 @@ class callcenter_Talks extends core_Master
             $status = $staturArr[rand(0, 10)];
         }
         
+        $myAnswerTime = null;
+        $myEndTime = null;
+
         // Ако е отговорен
         if ($status == 'ANSWERED') {
             
@@ -2661,7 +2671,7 @@ class callcenter_Talks extends core_Master
         $urlArr = array(
             'Ctr' => 'callcenter_Talks',
             'Act' => 'RegisterCall',
-            'p' => $conf->CALLCENTER_PROTECT_KEY,
+            'p' => ($conf->CALLCENTER_PROTECT_KEY ?? null),
             'starttime' => $startTime,
             'extension' => $extension, // Вътрешен номер
             'callerId' => $callerId, // Позвъняващ
@@ -2689,7 +2699,7 @@ class callcenter_Talks extends core_Master
         $urlArr = array(
             'Ctr' => 'callcenter_Talks',
             'Act' => 'RegisterEndCall',
-            'p' => $conf->CALLCENTER_PROTECT_KEY,
+            'p' => ($conf->CALLCENTER_PROTECT_KEY ?? null),
             'answertime' => $myAnswerTime,
             'endtime' => $myEndTime,
             'dialstatus' => $status,

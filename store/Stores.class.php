@@ -201,7 +201,7 @@ class store_Stores extends core_Master
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('displayStockMeasure', 'enum(productMeasureId=От артикула,basePack=Избраната за "основна")', 'caption=Мярка,notNull,value=productMeasureId', "unit= (|за показване на наличностите|*)");
-        $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди Експедиция->Време');
+        $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди експедиция->Време');
 
         $this->FLD('chiefs', 'userList(roles=store|ceo|production,showClosedUsers=no)', 'caption=Контиране на документи->Потребители');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
@@ -223,7 +223,7 @@ class store_Stores extends core_Master
             $this->FLD('requireZoneInDocuments', 'enum(yes=Да,no=Не)','caption=Палетен склад->Избор на зона в експедиращи документи->Задължително,notNull,value=no');
         }
 
-        $this->FLD('notifyUsers', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Нотифициране при промяна на транспортна линия->Потребители,autohide');
+        $this->FLD('notifyUsers', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Нотифициране при промяна на Транспортна линия->Потребители,autohide');
         $this->setDbUnique('name');
     }
 
@@ -428,7 +428,7 @@ class store_Stores extends core_Master
      */
     protected static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
     {
-        $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
+        $type->params['where'] = ($type->params['where'] ?? '') . (($type->params['where'] ?? '') ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
     }
 
 
@@ -515,7 +515,7 @@ class store_Stores extends core_Master
         foreach ($entries as $d){
 
             // Извличат се артикулите, които се изписват от склад в транзакцията
-            if($d['credit'][0] == '321') {
+            if(!empty($d['credit']) && ($d['credit'][0] ?? null) == '321') {
                 $productId = $d['credit'][2][1];
                 $storeId = $d['credit'][1][1];
                 if(!array_key_exists($productId, $skipArr)){
@@ -523,12 +523,12 @@ class store_Stores extends core_Master
                         if(!array_key_exists($productId, $res)){
                             $res[$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
                         }
-                        $res[$productId]->quantity += $d['credit']['quantity'];
+                        $res[$productId]->quantity += ($d['credit']['quantity'] ?? 0);
                     } else {
-                        if(is_null($res[$storeId]) || !array_key_exists($productId, $res[$storeId])){
+                        if(!isset($res[$storeId]) || !array_key_exists($productId, $res[$storeId])){
                             $res[$storeId][$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
                         }
-                        $res[$storeId][$productId]->quantity += $d['credit']['quantity'];
+                        $res[$storeId][$productId]->quantity += ($d['credit']['quantity'] ?? 0);
                     }
                 }
             }

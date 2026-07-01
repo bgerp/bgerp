@@ -55,6 +55,13 @@
 		</tr>
 		<!--ET_END planning_Steps_calcWeightMode-->
 
+		<!--ET_BEGIN planning_Steps_fastProgressBtn-->
+		<tr>
+			<td class='quiet nowrap'>|Бутон за бърз прогрес от листа|*:</td>
+			<td>[#planning_Steps_fastProgressBtn#]</td>
+		</tr>
+		<!--ET_END planning_Steps_fastProgressBtn-->
+
 		<!--ET_BEGIN PARAMS-->
 		<tr>
 			<td colspan = 2>[#PARAMS#]</td>

@@ -92,14 +92,14 @@ class plg_Select extends core_Plugin
     /**
      * Преди рендиране на таблицата
      */
-    public function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf') || Mode::is('noDoWithSelected')) {
             
             return;
         }
         
-        if (!$data->listClass) {
+        if (!($data->listClass ?? null)) {
             $data->listClass = 'listRows selectRows';
         } else {
             $data->listClass .= ' selectRows';
@@ -126,26 +126,26 @@ class plg_Select extends core_Plugin
                 
                 return false;
             }
-            
-            
+
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
             $cnt = $listArr = array();
             foreach ($row as $id => $on) {
+
                 foreach ($actArr as $action => $caption) {
                     if ($mvc->haveRightFor($action, $id)) {
-                        $cnt[$action]++;
-                        $listArr[$action] .= ($listArr[$action] ? ',' : '') . $id;
+                        $cnt[$action] = ($cnt[$action] ?? 0) + 1;
+                        $listArr[$action] = ($listArr[$action] ?? '') . (($listArr[$action] ?? '') ? ',' : '') . $id;
                     }
                 }
             }
-            
+            //bp();
             // Махаме действията, които не са достъпни за нито един избран ред
             foreach ($actArr as $action => $caption) {
-                if (!$cnt[$action]) {
+                if (!($cnt[$action] ?? null)) {
                     unset($actArr[$action]);
                 }
             }
-
+            //bp();
             if (!countR($actArr)) {
                 $res = new Redirect(getRetUrl(), '|За избраните редове не са достъпни никакви операции');
                 
@@ -316,6 +316,7 @@ class plg_Select extends core_Plugin
         
         $tpl->append('</form>');
         
+        $js = '';
         foreach ($data->rows as $id => $row) {
             $js .= "chRwCl('{$id}');";
         }
