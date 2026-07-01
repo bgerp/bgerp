@@ -409,7 +409,7 @@ class cat_Groups extends core_Master
 
         $parentIdNumb = (int)$parentId;
 
-        if (!($res = $groups[$parentIdNumb][$name])) {
+        if (!($res = $groups[$parentIdNumb][$name] ?? null)) {
             if (strpos($name, '»')) {
                 $gArr = explode('»', $name);
                 foreach ($gArr as $gName) {
@@ -620,11 +620,13 @@ class cat_Groups extends core_Master
 
                 // Ако в самата група има ръчно въведен процент - взима се той
                 $groupRec = static::fetch("#id = {$groupId}", "id,parentId,defaultOverheadCostsPercent");
-                if (isset($groupRec->defaultOverheadCostsPercent)) {
-                    $groupsToCheck[$groupRec->id] = $groupRec->defaultOverheadCostsPercent;
-                } else {
-                    if ($overheadCostArr = $me->getDefaultOverheadCostFromParent($groupRec)) {
-                        $groupsToCheck[$groupRec->id] = $overheadCostArr['overheadCost'];
+                if ($groupRec) {
+                    if (isset($groupRec->defaultOverheadCostsPercent)) {
+                        $groupsToCheck[$groupRec->id] = $groupRec->defaultOverheadCostsPercent;
+                    } else {
+                        if ($overheadCostArr = $me->getDefaultOverheadCostFromParent($groupRec)) {
+                            $groupsToCheck[$groupRec->id] = $overheadCostArr['overheadCost'];
+                        }
                     }
                 }
             }

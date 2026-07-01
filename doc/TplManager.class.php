@@ -311,7 +311,7 @@ class doc_TplManager extends core_Master
             
             // Ако шаблона е клонинг
             if ($originId = $rec->originId) {
-                $origin = static::fetch($originId);
+                expect($origin = static::fetch($originId));
                 $new = preg_replace("/\s+/", '', $form->rec->content);
                 $old = preg_replace("/\s+/", '', $origin->content);
                 
@@ -506,7 +506,7 @@ class doc_TplManager extends core_Master
 
             $object->path = $object->content;
             $object->content = getFileContent($object->content);
-            if ($object->narrowContent) {
+            if (!empty($object->narrowContent)) {
                 $object->narrowContent = getFileContent($object->narrowContent);
             }
             
@@ -520,7 +520,7 @@ class doc_TplManager extends core_Master
             $object->state = $newState;
 
             // Ако ще се обновява съществуващ системен шаблон
-            if($object->id){
+            if(!empty($object->id)){
 
                 // и той вече е клониран в други шаблони
                 $clQuery = static::getQuery();
@@ -538,7 +538,7 @@ class doc_TplManager extends core_Master
 
             static::save($object);
             
-            ($object->id) ? $updated++ : $added++;
+            (!empty($object->id)) ? $updated++ : $added++;
         }
 
         // Нотифициране на потребителите, клонирали променен вече шаблон
@@ -621,6 +621,7 @@ class doc_TplManager extends core_Master
         
         // Намираме пътя на файла генерирал шаблона
         $templateRec = doc_TplManager::fetch($templateId);
+        if (!$templateRec) return false;
         $date = isset($date) ? $date : dt::now();
 
         // Ако има ръчно избран обработвач - зарежда се той
