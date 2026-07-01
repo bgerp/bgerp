@@ -666,8 +666,8 @@ class price_ListRules extends core_Detail
             } else {
                 core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validFrom);
             }
-            if ($rec->validTo > dt::now()) {
-                core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validTo);
+            if ($rec->validUntil > dt::now()) {
+                core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validUntil);
             }
         }
     }

@@ -289,15 +289,15 @@ class csv_Lib
     {
         $params = arr::make($params, true);
         
-        setIfNot($newLine, $params['newLineDelimiter'], "\n");
-        
+        setIfNot($newLine, $params['newLineDelimiter'] ?? null, "\n");
+
         $mandatory = array();
-        if ($params['mandatory']) {
+        if (!empty($params['mandatory'])) {
             $mandatory = explode('|', $params['mandatory']);
         }
-        
+
         // Редиректваме, ако сме надвишили бройката
-        setIfNot($exportCnt, $params['maxExportCnt'], core_Setup::get('EF_MAX_EXPORT_CNT', true));
+        setIfNot($exportCnt, $params['maxExportCnt'] ?? null, core_Setup::get('EF_MAX_EXPORT_CNT', true));
         if (countR($recs) > $exportCnt) {
             $retUrl = getRetUrl();
             if (empty($retUrl)) {
@@ -331,16 +331,16 @@ class csv_Lib
             $delimiter = html_entity_decode($delimiter, ENT_COMPAT | ENT_HTML401, 'UTF-8');
         }
         
-        setIfNot($csvDelimiter, $params['delimiter'], $delimiter);
+        setIfNot($csvDelimiter, $params['delimiter'] ?? null, $delimiter);
         setIfNot($decPoint, html_entity_decode(csv_Setup::get('DEC_POINT'), ENT_COMPAT | ENT_HTML401, 'UTF-8'), html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', true), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
         setIfNot($dateFormat, csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', true));
         setIfNot($datetimeFormat, csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
         setIfNot($thousandsSep, '');
-        setIfNot($enclosure, $params['enclosure'], '"');
+        setIfNot($enclosure, $params['enclosure'] ?? null, '"');
         setIfNot($decimals, csv_Setup::get('DECIMALS'));
 
         // Вземаме колоните, ако са зададени
-        if ($params['columns'] != 'none') {
+        if (($params['columns'] ?? null) != 'none') {
             foreach ($listFields as $fld => $caption) {
                 if (!$caption) {
                     $listFields[$fld] = $fld;
@@ -596,7 +596,7 @@ class csv_Lib
      */
     public static function getCsvRowsFromFile($csvData, $params = array())
     {
-        list($handle, $params['delimiter'], $params['enclosure'], $autoFirstRow) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
+        list($handle, $params['delimiter'], $params['enclosure'], $autoFirstRow) = self::analyze($csvData, $params['delimiter'] ?? null, $params['enclosure'] ?? null);
 
         if ($params['delimiter'] === null) {
             $params['delimiter'] = chr(0);

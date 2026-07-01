@@ -223,10 +223,12 @@ class price_Lists extends core_Master
 
         if(isset($rec->id)){
             $exRec = $mvc->fetch($rec->id, '*', false);
-            $checkExFields = md5("{$exRec->parent}|{$exRec->currency}|{$exRec->vat}|{$exRec->discountCompared}|{$exRec->discountComparedShowAbove}|{$exRec->defaultSurcharge}|{$exRec->defaultSurcharge}|{$exRec->minSurcharge}|{$exRec->maxSurcharge}");
-            $checkCurrentFields = md5("{$rec->parent}|{$rec->currency}|{$rec->vat}|{$rec->discountCompared}|{$rec->discountComparedShowAbove}|{$rec->defaultSurcharge}|{$rec->defaultSurcharge}|{$rec->minSurcharge}|{$rec->maxSurcharge}");
-            if($checkExFields != $checkCurrentFields){
-                $rec->_invalidateCache = true;
+            if ($exRec) {
+                $checkExFields = md5("{$exRec->parent}|{$exRec->currency}|{$exRec->vat}|{$exRec->discountCompared}|{$exRec->discountComparedShowAbove}|{$exRec->defaultSurcharge}|{$exRec->defaultSurcharge}|{$exRec->minSurcharge}|{$exRec->maxSurcharge}");
+                $checkCurrentFields = md5("{$rec->parent}|{$rec->currency}|{$rec->vat}|{$rec->discountCompared}|{$rec->discountComparedShowAbove}|{$rec->defaultSurcharge}|{$rec->defaultSurcharge}|{$rec->minSurcharge}|{$rec->maxSurcharge}");
+                if($checkExFields != $checkCurrentFields){
+                    $rec->_invalidateCache = true;
+                }
             }
         }
     }

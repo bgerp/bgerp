@@ -220,8 +220,16 @@ class speedy_BillOfLadings extends core_Manager
         $form->input();
 
         if ($form->isSubmitted()) {
-            $parsed = str::parseAddress($form->rec->string);
-            $form->info = ht::mixedToHtml($parsed);
+            $cData = new stdClass();
+            $summary = ai_ExtractAddressInfo::extractAddressFromText($form->rec->string, null, $cData);
+            
+            if ($summary !== false) {
+                $form->info = ht::mixedToHtml((array) $cData);
+            } else {
+                // Fallback към стария не-ИИ парсер, ако AI не е конфигуриран/гръмне
+                $parsed = str::parseAddress($form->rec->string);
+                $form->info = ht::mixedToHtml($parsed);
+            }
         }
 
         // Добавяне на бутони
