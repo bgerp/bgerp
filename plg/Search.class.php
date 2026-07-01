@@ -102,9 +102,11 @@ class plg_Search extends core_Plugin
                 $cRec = clone $rec;
                 if (!empty($cRec->id)) {
                     $fullRec = $mvc->fetch($cRec->id);
-                    foreach ($fieldsArr as $fieldName => $dummy) {
-                        if (!isset($cRec->{$fieldName})) {
-                            $cRec->{$fieldName} = $fullRec->{$fieldName};
+                    if ($fullRec) {
+                        foreach ($fieldsArr as $fieldName => $dummy) {
+                            if (!isset($cRec->{$fieldName})) {
+                                $cRec->{$fieldName} = $fullRec->{$fieldName} ?? null;
+                            }
                         }
                     }
                 }
