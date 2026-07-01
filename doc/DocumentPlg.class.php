@@ -339,8 +339,8 @@ class doc_DocumentPlg extends core_Plugin
         if ($data->rec->state != 'rejected') {
             $tRec = doc_Threads::fetch($data->rec->threadId);
             $info = tr('Счетоводното отразяване на тази стопанска операция е спряно');
-            
-            if ($tRec->firstContainerId == $data->rec->containerId) {
+
+            if ($tRec && $tRec->firstContainerId == $data->rec->containerId) {
                 if (doc_Threads::haveRightFor('startthread', $tRec)) {
                     $info = tr('Счетоводното отразяване на стопанските операции в тази нишка е спряно');
                     $info .= '. ' .tr('За да го включите, натиснете') . ' ';
@@ -700,10 +700,12 @@ class doc_DocumentPlg extends core_Plugin
                         core_RowToolbar::createIfNotExists($row->_rowTools);
                         
                         $folderRec = doc_Folders::fetch($rec->folderId, 'title,openThreadsCnt');
-                        $folderTitle = doc_Folders::getVerbal($folderRec, 'title');
-                        $icon = ($folderRec->openThreadsCnt) ? 'img/16/folder-g.png' : 'img/16/folder-y.png';
-                        
-                        $row->_rowTools->addLink(tr('Папка'), array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('order' => 19, 'ef_icon' => $icon, 'title' => "Отваряне на папка|* \"{$folderTitle}\""));
+                        if ($folderRec) {
+                            $folderTitle = doc_Folders::getVerbal($folderRec, 'title');
+                            $icon = ($folderRec->openThreadsCnt) ? 'img/16/folder-g.png' : 'img/16/folder-y.png';
+
+                            $row->_rowTools->addLink(tr('Папка'), array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('order' => 19, 'ef_icon' => $icon, 'title' => "Отваряне на папка|* \"{$folderTitle}\""));
+                        }
                     }
                 }
             }
@@ -829,7 +831,7 @@ class doc_DocumentPlg extends core_Plugin
         if (!Mode::is('MassImporting') && (($rec->state == 'draft' && !empty($rec->brState) && ($rec->brState ?? null) != 'rejected') || $rec->state != 'draft')) {
             if (!empty($rec->id)) {
                 $oRec = $mvc->fetch($rec->id);
-                if ($rec->state !== $oRec->state) {
+                if (!$oRec || $rec->state !== $oRec->state) {
                     $mvc->mustUpdateUsed = true;
                 }
             } else {
@@ -957,10 +959,9 @@ class doc_DocumentPlg extends core_Plugin
                     $notifyArr = array();
                     
                     // Подготвяме потребителите, които ще получат нотификация за заявката
-                    if ($rec->folderId) {
-                        $fRec = doc_Folders::fetch($rec->folderId);
+                    if ($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
                         $notifyArr = array($fRec->inCharge => $fRec->inCharge);
-                        
+
                         // Настройките на пакета
                         $stopInvoke = core_ObjectConfiguration::$stopInvoke;
                         core_ObjectConfiguration::$stopInvoke = true;
@@ -971,13 +972,13 @@ class doc_DocumentPlg extends core_Plugin
                         } elseif ($notifyPendingConf == 'yes') {
                             $notifyArr += keylist::toArray($fRec->shared);
                         }
-                        
+
                         // Персоналните настройки на потребителите
                         $pKey = crm_Profiles::getSettingsKey();
                         $pName = 'DOC_NOTIFY_PENDING_DOC';
-                        
+
                         $settingsNotifyArr = core_Settings::fetchUsers($pKey, $pName);
-                        
+
                         if ($settingsNotifyArr) {
                             foreach ($settingsNotifyArr as $userId => $uConfArr) {
                                 if ($uConfArr[$pName] == 'no') {
@@ -989,7 +990,7 @@ class doc_DocumentPlg extends core_Plugin
                                 }
                             }
                         }
-                        
+
                         // Възможност за спиране/пускане на нотификациите за заявка в папка
                         $fKey = doc_Folders::getSettingsKey($rec->folderId);
                         $newPendingNotifications = core_Settings::fetchUsers($fKey, 'newPending');
@@ -1043,6 +1044,9 @@ class doc_DocumentPlg extends core_Plugin
                 $pId = $pArr['id'];
                 $m = $pArr['mvc'];
                 $pRec = $m->fetchRec($pId);
+                if (!$pRec) {
+                    continue;
+                }
                 $pRec->modifiedBy = $pArr['modifiedBy'];
                 $pRec->modifiedOn = $pArr['modifiedOn'];
                 $m->save_($pRec, 'modifiedOn, modifiedBy', 'LOW_PRIORITY');
@@ -1091,13 +1095,13 @@ class doc_DocumentPlg extends core_Plugin
         // Ако имаме контейнер, но нямаме тред - определяме треда от контейнера
         if (!empty($rec->containerId) && empty($rec->threadId)) {
             $tdRec = doc_Containers::fetch($rec->containerId);
-            $rec->threadId = $tdRec->threadId;
+            $rec->threadId = $tdRec->threadId ?? null;
         }
-        
+
         // Ако имаме тред, но нямаме папка - определяме папката от контейнера
         if (!empty($rec->threadId) && empty($rec->folderId)) {
             $thRec = doc_Threads::fetch($rec->threadId);
-            $rec->folderId = $thRec->folderId;
+            $rec->folderId = $thRec->folderId ?? null;
         }
         
         // Ако нямаме папка - форсираме папката по подразбиране за този клас
@@ -1288,7 +1292,7 @@ class doc_DocumentPlg extends core_Plugin
         // Екшън за избор на действие при оттегляне
         if ($action == 'selectaction') {
             $id = Request::get('id', 'int');
-            $rec = $mvc->fetch($id);
+            expect($rec = $mvc->fetch($id), $id);
             $mvc->requireRightFor('selectaction', $rec);
             
             // Подготовка на формата
@@ -1325,9 +1329,9 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($action == 'reject') {
             $id = Request::get('id', 'int');
-            $rec = $mvc->fetch($id);
-            $tRec = doc_Threads::fetch($rec->threadId);
-            
+            expect($rec = $mvc->fetch($id), $id);
+            expect($tRec = doc_Threads::fetch($rec->threadId), $rec->threadId);
+
             // Ако документа е първи в нишката, проверка може ли потребителя да оттегля всички документи в нишката
             if ($tRec->firstContainerId == $rec->containerId) {
                 if (!doc_Threads::haveRightForAllDocs('reject', $rec->threadId, $errorHandlers)) {
@@ -1395,9 +1399,9 @@ class doc_DocumentPlg extends core_Plugin
         
         if ($action == 'restore') {
             $id = Request::get('id', 'int');
-            $rec = $mvc->fetch($id);
-            $tRec = doc_Threads::fetch($rec->threadId);
-            
+            expect($rec = $mvc->fetch($id), $id);
+            expect($tRec = doc_Threads::fetch($rec->threadId), $rec->threadId);
+
             // Ако документа е първи в нишката, проверка може ли потребителя да оттегля всички документи в нишката
             if ($tRec->firstContainerId == $rec->containerId) {
                 if (!doc_Threads::haveRightForAllDocs('restore', $rec->threadId, $errorHandlers)) {
@@ -4045,8 +4049,9 @@ class doc_DocumentPlg extends core_Plugin
         $query = doc_Containers::getQuery();
         
         // Извличане на треда и контейнера на документа
-        $threadId = $mvc->fetch($originDocId)->threadId;
-        $containerId = $mvc->fetch($originDocId)->containerId;
+        $originRec = $mvc->fetch($originDocId);
+        $threadId = $originRec->threadId ?? null;
+        $containerId = $originRec->containerId ?? null;
         
         // Намиране на последващите документи в треда (различни от текущия)
         $chainContainers = $query->fetchAll("
