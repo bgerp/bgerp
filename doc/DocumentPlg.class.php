@@ -3720,9 +3720,9 @@ class doc_DocumentPlg extends core_Plugin
             $searchKeywords = plg_Search::getKeywords($mvc, $rec);
         }
         
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             $handle = $mvc->getHandle($rec->id);
-            
+
             $handleNormalized = plg_Search::normalizeText($handle);
             
             if (strpos($searchKeywords ?? '', $handleNormalized) === false) {
