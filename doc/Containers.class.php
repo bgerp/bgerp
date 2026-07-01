@@ -987,7 +987,7 @@ class doc_Containers extends core_Manager
                 $sharedArr = keylist::toArray($shared);
                 
                 // Вземаме, ако има приоритета от документа
-                $priority = ($docRec && $docRec->priority) ? $docRec->priority : 'normal';
+                $priority = ($docRec && !empty($docRec->priority)) ? $docRec->priority : 'normal';
                 
                 // Нотифицираме споделените
                 self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', false, $priority);
@@ -1805,7 +1805,7 @@ class doc_Containers extends core_Manager
     public static function getNewDocMenu($rec)
     {
         // Определяме заглавието на нишката или папката
-        if ($rec->threadId) {
+        if (!empty($rec->threadId)) {
             $thRec = doc_Threads::fetch($rec->threadId);
             $title = doc_Threads::recToVerbal($thRec)->onlyTitle;
         } else {
@@ -1853,7 +1853,7 @@ class doc_Containers extends core_Manager
             $tpl = new ET();
             
             // Ако сме в нишка
-            if ($rec->threadId) {
+            if (!empty($rec->threadId)) {
                 $text = tr('Нов документ в') . ' ' . $title;
             } else {
                 $text = tr('Нова тема в') . ' ' . $title;
