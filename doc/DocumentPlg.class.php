@@ -925,7 +925,7 @@ class doc_DocumentPlg extends core_Plugin
                 $sharedArr = arr::make($sharedArr, true);
             }
             
-            doc_ThreadUsers::syncContainerRelations($rec->containerId, $sharedArr, $rec->threadId);
+            doc_ThreadUsers::syncContainerRelations($rec->containerId ?? null, $sharedArr, $rec->threadId ?? null);
         }
 
         core_Locks::obtain("{$mvc->className}_UpdateMaster_" . $id, 4, 0, 0, true);
