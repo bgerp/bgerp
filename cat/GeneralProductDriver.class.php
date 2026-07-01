@@ -610,6 +610,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
      */
     public function getPrice($productId, $quantity, $minDelta, $maxDelta, $datetime = null, $rate = 1, $chargeVat = 'no')
     {
+        core_Debug::startTimer("GET_PRICE_FROM_BOM");
+
         // Ако има рецепта връщаме по нея
         $priceFound = null;
         if ($bomRec = $this->getBomForPrice($productId)) {
@@ -621,9 +623,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 $priceFound = $price;
             }
         }
+        core_Debug::stopTimer("GET_PRICE_FROM_BOM");
 
         if(empty($priceFound)){
+            core_Debug::startTimer("GET_PRICE_FROM_PRIME_COST");
             $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId, null, $datetime);
+            core_Debug::startTimer("GET_PRICE_FROM_PRIME_COST");
             if(isset($price)){
                 $priceFound = $price;
             }

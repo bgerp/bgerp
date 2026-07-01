@@ -2266,6 +2266,7 @@ class cat_Products extends embed_Manager
 
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
         $date = price_ListToCustomers::canonizeTime($date);
+        core_Debug::startTimer("GET_PRIME_COST_FROM_LIST");
         if($isPublic == 'yes'){
 
             // Ако е стандартен първо се търси цената по политика "Себестойност", ако няма от драйвера
@@ -2282,7 +2283,8 @@ class cat_Products extends embed_Manager
                 $primeCost = price_ListRules::getPrice($primeCostlistId, $proto, $packagingId, $date);
             }
         }
-        
+        core_Debug::stopTimer("GET_PRIME_COST_FROM_LIST");
+
         $primeCost = is_object($primeCost) ? $primeCost->price : $primeCost;
 
         core_Debug::stopTimer("GET_PRIME_COST_ALL");
