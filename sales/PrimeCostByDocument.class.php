@@ -1218,7 +1218,7 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     public static function comparePriceWithPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior, $Mvc, $recId)
     {
-        core_Debug::startTimer("CALC_COMPARE_PRICE");
+        core_Debug::startTimer("CALC_COMPARE_PRICE_{$containerId}");
         $threadId = doc_Containers::fetchField($containerId, 'threadId');
         $firstDoc = doc_Threads::getFirstDocument($threadId);
         $firstDocState = $firstDoc->fetchField('state');
@@ -1228,7 +1228,7 @@ class sales_PrimeCostByDocument extends core_Manager
 
             // Кешира се моментната стойност дали цената е под сб-ст
             $resObj = core_Permanent::get("bCost|{$threadId}|{$Mvc->getClassId()}|{$recId}");
-            core_Debug::stopTimer("CALC_COMPARE_PRICE");
+            core_Debug::stopTimer("CALC_COMPARE_PRICE_{$containerId}");
 
             if(is_object($resObj)) return $resObj;
         }
@@ -1251,7 +1251,7 @@ class sales_PrimeCostByDocument extends core_Manager
             core_Permanent::set("bCost|{$threadId}|{$Mvc->getClassId()}|{$recId}", $resObj, core_Permanent::FOREVER_VALUE);
         }
 
-        core_Debug::stopTimer("CALC_COMPARE_PRICE");
+        core_Debug::stopTimer("CALC_COMPARE_PRICE_{$containerId}");
 
         return $resObj;
     }

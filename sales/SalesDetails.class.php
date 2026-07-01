@@ -251,9 +251,11 @@ class sales_SalesDetails extends deals_DealDetail
                    $useQuotationPrice = isset($masterRec->originId);
                    $discountPercent = ($rec->autoDiscount) ? round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4) : $rec->discount;
                    $transportFeeRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
+                   core_Debug::startTimer('CALC_COMPARE_CONTRAGENT_PRICE');
                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discountPercent, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
                         $row->{$hintField} = ht::createHint($row->{$hintField}, $checkedObject['hint'], $checkedObject['hintType'], false);
                    }
+                   core_Debug::stopTimer('CALC_COMPARE_CONTRAGENT_PRICE');
                }
             }
             
