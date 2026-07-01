@@ -82,14 +82,18 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     {
 
         $fieldset->FLD('priceListLow', 'key(mvc=price_Lists,allowEmpty,select=title)', 'caption=Ниска->Ценова политика,after=title,removeAndRefreshForm,placeholder=Избери,silent,single=none');
-        $fieldset->FLD('policyClassId', 'class(interface=price_CostPolicyIntf,allowEmpty,select=title)', 'caption=Ниска->Себестойност,placeholder=Избери,removeAndRefreshForm,silent,after=priceListLow');
+        $fieldset->FLD('policyClassId', 'class(interface=price_CostPolicyIntf,allowEmpty,select=title)', 'caption=Ниска->Себестойност,placeholder=Избери,removeAndRefreshForm,silent,after=priceListLow,single=none');
 
 
         $fieldset->FLD('priceListHigh', 'key(mvc=price_Lists,select=title)', 'caption=Висока->Ценова политика,after=priceListLow,removeAndRefreshForm,mandatory,silent,single=none');
 
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=priceListHigh,placeholder=Избери,silent,single=none');
+        $fieldset->FLD('products', 'keylist2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,maxSuggestions=100,forceAjax)', 'caption=Артикули->Артикул,after=priceListHigh,placeholder=Избери,silent,single=none,class=w100');
 
-        $fieldset->FLD('orderBy', 'enum(name=Име,code=Код,diffPrice=Разлика ст.,diffPercent=Разлика %)', 'caption=Сортиране по,maxRadio=4,columns=4,after=groups');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=products,placeholder=Избери,silent,single=none');
+
+        $fieldset->FLD('withoutPrice', 'enum(show=Показване,hide=Скриване)', 'caption=Артикули->Без цена,maxRadio=2,columns=2,after=groups,single=none');
+
+        $fieldset->FLD('orderBy', 'enum(name=Име,code=Код,diffPrice=Разлика ст.,diffPercent=Разлика %)', 'caption=Сортиране по,maxRadio=4,columns=4,after=withoutPrice');
 
         $fieldset->FLD('typePercent', 'enum(none=Без,up=Надценка,down=Отстъпка)', 'caption=Тип отчитане в %,maxRadio=3,columns=3,after=orderBy');
     }
@@ -110,6 +114,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
         $form->setDefault('orderBy', 'diffPrice');
         $form->setDefault('typePercent', 'none');
+        $form->setDefault('withoutPrice', 'show');
 
         if ($rec->priceListLow) {
             $form->setReadOnly('policyClassId');
@@ -153,63 +158,86 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
         $recs = array();
 
-        $pQuery = store_Products::getQuery();
-
-        $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
-        $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-        $pQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
+        $pQuery = cat_Products::getQuery();
 
         //$pQuery->where("#state != 'closed'");
         $pQuery->where("#isPublic = 'yes'");
 
-        //Филтър по групи артикули
-        if ($rec->groups) {
-            plg_ExpandInput::applyExtendedInputSearch('cat_Products', $pQuery, $rec->groups, 'productId');
+        //Филтър по конкретни артикули и групи артикули
+        if (!empty($rec->products) || !empty($rec->groups)) {
+            $productIds = array();
+
+            if (!empty($rec->groups)) {
+                $gQuery = cat_Products::getQuery();
+                $gQuery->where("#isPublic = 'yes'");
+                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $gQuery, $rec->groups);
+                $gQuery->show('id');
+                while ($gRec = $gQuery->fetch()) {
+                    $productIds[$gRec->id] = $gRec->id;
+                }
+            }
+
+            if (!empty($rec->products)) {
+                foreach (type_Keylist::toArray($rec->products) as $productId) {
+                    $productIds[$productId] = $productId;
+                }
+            }
+
+            if (countR($productIds)) {
+                $pQuery->in('id', $productIds);
+            } else {
+                $pQuery->where('1 = 0');
+            }
         }
 
 
         while ($pRec = $pQuery->fetch()) {
-            $diffPrice = $lowPrice = $hiPrice = $diffPercent = 0;
+            $diffPrice = $lowPrice = $hiPrice = $diffPercent = null;
+            $productId = $pRec->id;
 
             //Намиране на ниската цена
             //Ако е избрана някаква себестойност
             if ($rec->policyClassId) {
-                $lowPrice = price_ProductCosts::getPrice($pRec->productId, core_Classes::fetch($rec->policyClassId)->name);
+                $lowPrice = price_ProductCosts::getPrice($productId, core_Classes::fetch($rec->policyClassId)->name);
             }
             if ($rec->priceListLow) {
-                $lowPrice = price_ListRules::getPrice($rec->priceListLow, $pRec->productId, null, dt::today());
+                $lowPrice = price_ListRules::getPrice($rec->priceListLow, $productId, null, dt::today());
 
             }
 
             //Намиране на високата цена
-            $hiPrice = price_ListRules::getPrice($rec->priceListHigh, $pRec->productId, null, dt::today());
+            $hiPrice = price_ListRules::getPrice($rec->priceListHigh, $productId, null, dt::today());
 
-            //Изчисляване на разликата в стойност
-            $diffPrice = $hiPrice - $lowPrice;
-            if (!$hiPrice && !$lowPrice) {
-                $diffPrice = '';
+            $hasLowPrice = static::isPriceAvailable($lowPrice);
+            $hasHiPrice = static::isPriceAvailable($hiPrice);
+            $showWithoutPrice = empty($rec->withoutPrice) || $rec->withoutPrice == 'show';
+
+            if ((!$hasLowPrice || !$hasHiPrice) && !$showWithoutPrice) {
+                continue;
             }
 
-            //Изчисляване на разликата в процент
+            //Изчисляване на разликата в стойност и процент
+            if ($hasLowPrice && $hasHiPrice) {
+                $diffPrice = $hiPrice - $lowPrice;
 
-            $d = ($rec->typePercent == 'up') ? $lowPrice : $hiPrice;
+                $d = ($rec->typePercent == 'up') ? $lowPrice : $hiPrice;
 
-            $epsilon = 1e-6; // минимална стойност, различна от нула
+                $epsilon = 1e-6; // минимална стойност, различна от нула
 
-            if ($hiPrice && $lowPrice && abs($d) > $epsilon) {
-                $diffPercent = $diffPrice / $d;
-            } else {
-                $diffPercent = 0; // или null, или каквото има смисъл
+                if (abs($d) > $epsilon) {
+                    $diffPercent = $diffPrice / $d;
+                } else {
+                    $diffPercent = 0;
+                }
             }
 
-            $id = $pRec->productId;
+            $id = $productId;
 
             //САМО ЗА ТЕСТ
             //if (!$hiPrice || !$lowPrice) continue;
 
             $recs[$id] = (object)array(
-                'productId' => $pRec->productId,
+                'productId' => $productId,
                 'code' => $pRec->code,
                 'name' => $pRec->name,
                 'lowPrice' => $lowPrice,
@@ -231,6 +259,35 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         }
 
         return $recs;
+    }
+
+
+    /**
+     * Има ли намерена цена
+     *
+     * @param mixed $price
+     *
+     * @return bool
+     */
+    protected static function isPriceAvailable($price)
+    {
+        return isset($price) && $price !== false && $price !== '';
+    }
+
+
+    /**
+     * Рендира стойност от филтъра със сгъване при много редове
+     *
+     * @param array $values
+     * @param int $viewRows
+     *
+     * @return string
+     */
+    protected static function renderClampedFilterValue($values, $viewRows = 2)
+    {
+        $content = '<b>' . implode('<br>', $values) . '</b>';
+
+        return "<table style='display:inline-table;vertical-align:top;border-collapse:collapse;max-width:85%;'><tr><td class='td-clamp' data-viewrows='{$viewRows}' style='padding:0;border:0;background:#fff;'>{$content}</td></tr></table>";
     }
 
 
@@ -296,12 +353,16 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         if (isset($dRec->productId)) {
             $row->productId = cat_Products::getHyperlink($dRec->productId);
         }
-        if (isset($dRec->lowPrice)) {
+        if (static::isPriceAvailable($dRec->lowPrice)) {
             $row->lowPrice = $Double->toVerbal($dRec->lowPrice);
+        } else {
+            $row->lowPrice = "<span class='red'>н.д.</span>";
         }
 
-        if (isset($dRec->hiPrice)) {
+        if (static::isPriceAvailable($dRec->hiPrice)) {
             $row->hiPrice = $Double->toVerbal($dRec->hiPrice);
+        } else {
+            $row->hiPrice = "<span class='red'>н.д.</span>";
         }
 
         if (isset($dRec->diffPrice)) {
@@ -363,7 +424,9 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
                                         <!--ET_BEGIN priceListLow--><div>|Ниска цена по|*: [#priceListLow#]</div><!--ET_END priceListLow-->
                                         <!--ET_BEGIN policyClassId--><div>|Ниска цена по|*: [#policyClassId#]</div><!--ET_END policyClassId-->
                                         <!--ET_BEGIN priceListHigh--><div>|Висока цена по|*: [#priceListHigh#]</div><!--ET_END priceListHigh-->
-                                        <!--ET_BEGIN groups--><div>|Групи продукти|*: [#groups#]</div><!--ET_END groups-->
+                                        <!--ET_BEGIN products--><div>|Артикули|*: [#products#]</div><!--ET_END products-->
+                                        <!--ET_BEGIN groups--><div>|Групи артикули|*: [#groups#]</div><!--ET_END groups-->
+                                        <!--ET_BEGIN withoutPrice--><div>|Без цена|*: [#withoutPrice#]</div><!--ET_END withoutPrice-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         if (isset($data->rec->priceListLow)) {
@@ -380,8 +443,18 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $priceListHighName . '</b>', 'priceListHigh');
         }
 
+        if (!empty($data->rec->products)) {
+            $productsArr = array();
+            foreach (type_Keylist::toArray($data->rec->products) as $productId) {
+                $productsArr[] = cat_Products::getTitleById($productId);
+            }
+
+            $fieldTpl->append(static::renderClampedFilterValue($productsArr, 3), 'products');
+        }
+
         $marker = 0;
-        if (isset($data->rec->groups)) {
+        if (!empty($data->rec->groups)) {
+            $groupVerb = '';
             foreach (type_Keylist::toArray($data->rec->groups) as $group) {
                 $marker++;
 
@@ -392,10 +465,14 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
                 }
             }
 
-            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
+            $fieldTpl->append(static::renderClampedFilterValue(array($groupVerb)), 'groups');
         } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groups');
+            $groupVerb = empty($data->rec->products) ? 'Всички' : 'Няма избрани';
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
         }
+
+        $withoutPrice = (empty($data->rec->withoutPrice) || $data->rec->withoutPrice == 'show') ? 'Показване' : 'Скриване';
+        $fieldTpl->append('<b>' . $withoutPrice . '</b>', 'withoutPrice');
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }

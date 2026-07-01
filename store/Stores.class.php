@@ -536,4 +536,34 @@ class store_Stores extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Тестов екшън за проверка на type_Keylist2
+     */
+    public function act_Test()
+    {
+        requireRole('debug');
+
+        $form = cls::get('core_Form');
+        $form->title = "Тест на кейлист2";
+        $form->FLD('folders', 'keylist2(mvc=doc_Folders,select=name,maxSuggestions=100)', 'caption=Папки,class=w100');//,
+
+        $form->FLD('products2Id', 'keylist2(mvc=cat_Products,select=name,maxSuggestions=100,selectSourceArr=cat_Products::getProductOptions)', 'caption=Артикули,class=w100');//,
+        //$form->setFieldTypeParams('products2Id', array('hasProperties' => 'canStore'));
+        //$wasteSysId = cat_Groups::getKeylistBySysIds('waste');
+        //$form->setFieldTypeParams("products2Id", array('hasnotProperties' => 'canStore'));
+
+        $form->input();
+
+        if ($form->isSubmitted()) {
+            bp($form->rec);
+
+            return $tpl;
+        }
+
+        $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save,class=btn-primary');
+
+        return $this->renderWrapping($form->renderHtml());
+    }
 }
