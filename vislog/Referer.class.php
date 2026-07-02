@@ -145,7 +145,7 @@ class vislog_Referer extends core_Manager
         $domainsCnt = cms_Domains::count();
  
         // Ако е ясен домейна, махаме колонката
-        if($data->listFilter->rec->domainId || $domainsCnt == 1) {
+        if(($data->listFilter->rec->domainId ?? null) || $domainsCnt == 1) {
             unset($data->listFields['domainId']);
         }
 
@@ -153,7 +153,7 @@ class vislog_Referer extends core_Manager
             $data->listFilter->showFields = 'search';   
         }
 
-        if ($domainId = $data->listFilter->rec->domainId) {
+        if ($domainId = ($data->listFilter->rec->domainId ?? null)) {
             $data->query->where(array("#domainId = '[#1#]'", $domainId));
         }
 
@@ -167,7 +167,7 @@ class vislog_Referer extends core_Manager
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true, true);
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true);
 
         $query = type_Varchar::escape($rec->query);
 

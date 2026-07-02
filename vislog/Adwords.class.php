@@ -112,7 +112,7 @@ class vislog_Adwords extends core_Manager
         $data->listFilter->showFields = 'search,domainId';
         $data->listFilter->input($data->listFilter->showFields, 'silent');
         
-        if ($domainId = $data->listFilter->rec->domainId) {
+        if ($domainId = ($data->listFilter->rec->domainId ?? null)) {
             $data->query->where(array("#domainId = '[#1#]'", $domainId));
         }
 
@@ -127,7 +127,7 @@ class vislog_Adwords extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true, true);
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true);
         if ($rec->keywords) {
             $dkw = urldecode($rec->keywords);
             if ($dkw && mb_strlen($dkw) * 2 < mb_strlen($rec->keywords)) {

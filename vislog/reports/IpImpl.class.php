@@ -160,9 +160,9 @@ class vislog_reports_IpImpl extends frame_BaseDriver
             $row = new stdClass();
             
             if ($this->innerState->fRec->to) {
-                $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->to, true, true);
+                $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->to, true);
             } else {
-                $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->createdOn, true, true);
+                $row->ip = $Ip->decorateIp($ip, $this->innerState->fRec->createdOn, true);
             }
             
             $row->cnt = $Int->toVerbal($createdCnt);
