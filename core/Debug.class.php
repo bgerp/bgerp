@@ -230,7 +230,7 @@ class core_Debug
     {
         self::init();
         
-        return number_format((core_DateTime::getMicrotime() - self::$startMicroTime), 5);
+        return number_format((core_DateTime::getMicrotime() - self::$startMicroTime), 5, '.', '');
     }
     
     
