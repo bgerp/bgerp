@@ -2304,7 +2304,7 @@ class planning_Jobs extends core_Master
         $query->limit(1);
 
         // Ако има връща се тя
-        $folderId = $query->fetch()->folderId;
+        $folderId = $query->fetch()->folderId ?? null;
         if(!empty($folderId))  return $folderId;
 
         // Ако потребителя не е създавал, гледам папката в чиято нишка на задание, потребителя е променял документи

@@ -725,7 +725,7 @@ class acc_plg_Contable extends core_Plugin
                 $haveDetailsToAdd = false;
 
                 // Ако класа има поне един запис в детаил, той може да се активира
-                $ignoreDetailsToCheckWhenTryingToPost = arr::make($mvc->ignoreDetailsToCheckWhenTryingToPost, true);
+                $ignoreDetailsToCheckWhenTryingToPost = arr::make($mvc->ignoreDetailsToCheckWhenTryingToPost ?? null, true);
                 foreach ($mvc->details as $name) {
                     if(in_array($name, $ignoreDetailsToCheckWhenTryingToPost)) continue;
                     $haveDetailsToAdd = true;
