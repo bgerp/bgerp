@@ -221,7 +221,7 @@ class speedy_BillOfLadings extends core_Manager
 
         if ($form->isSubmitted()) {
             $cData = new stdClass();
-            $this->invoke('ParseAddressSpeedy', array(&$cData, $form->rec->string, array()));
+            cls::get(get_called_class())->invoke('ParseAddressSpeedy', array($cData, $form->rec->string, array()));
 
             if (!empty((array) $cData)) {
                 $form->info = ht::mixedToHtml((array) $cData);
