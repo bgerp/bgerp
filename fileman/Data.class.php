@@ -436,7 +436,7 @@ class fileman_Data extends core_Manager
             return false;
         }
         
-        if ($rec->processed == 'yes') {
+        if (($rec->processed ?? null) == 'yes') {
             $rec->processed = 'no';
             fileman_Data::save($rec, 'processed');
         }
