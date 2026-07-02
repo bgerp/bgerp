@@ -540,7 +540,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setSuggestions('contragent', $suggestionContragents);
 
         // Ограничаваме опциите във формата според правата на текущия потребител
-        $dealerAccessScope = self::getDealerAccessScope();
+        $dealerAccessScope = self::getDealerAccessScope(core_Users::getCurrent());
 
         $suggestionDealers = array();
         foreach ($dealerAccessScope['allowedDealers'] as $dealerId) {
@@ -749,7 +749,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         // Сървърна защита на филтъра за дилър
         if ($rec->quantityType != 'invoiced') {
-            $dealerAccessScope = self::getDealerAccessScope();
+            // Данните се ограничават по правата на създателя на справката, не на текущия потребител
+            $dealerAccessScope = self::getDealerAccessScope($rec->createdBy ?? core_Users::getCurrent());
             $dealersArr = [];
             $hasDealerFilter = !empty($rec->dealers) || !empty($rec->dealersTeam);
 
