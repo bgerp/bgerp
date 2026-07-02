@@ -218,24 +218,27 @@ class speedy_BillOfLadings extends core_Manager
         $form->title = "Парсиране на адрес";
         $form->FLD('string', 'varchar(255)', 'caption=Адрес,mandatory');
         $form->input();
-
-        if ($form->isSubmitted()) {
-            $cData = new stdClass();
-            cls::get(get_called_class())->invoke('ParseAddressSpeedy', array($cData, $form->rec->string, array()));
-
-            if (!empty((array) $cData)) {
-                $form->info = ht::mixedToHtml((array) $cData);
-            } else {
-                // Fallback към регуларния парсер, ако AI плъгинът не е инсталиран/не е конфигуриран
-                $parsed = str::parseAddress($form->rec->string);
-                $form->info = ht::mixedToHtml($parsed);
-            }
+        
+        if($form->isSubmitted()){
+            $parsedAddress = $this->parseAddressSpeedy($form->rec->string);
+            $form->info = ht::mixedToHtml($parsedAddress); 
         }
-
+            
         // Добавяне на бутони
         $form->toolbar->addSbBtn('Парсиране', 'save', 'ef_icon=img/16/bug.png,title =Парсиране на адрес');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon=img/16/close-red.png,title=Прекратяване на действията');
 
         return $this->renderWrapping($form->renderHtml());
+    }
+
+
+    /**
+     * Евент за парсиране на адрес
+     */
+    public function on_AfterParseAddressSpeedy(&$mvc, &$res, $address)
+    {
+        if(!isset($res)){
+            $res = str::parseAddress($address);
+        }
     }
 }
