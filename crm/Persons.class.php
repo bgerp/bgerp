@@ -1514,6 +1514,8 @@ class crm_Persons extends core_Master
             $contrData->validFrom = $person->validFrom;
             $contrData->validTo = $person->validTo;
 
+            $contrData->groupEmails = '';
+
             // Ако е свързан с фирма
             if ($person->buzCompanyId) {
 

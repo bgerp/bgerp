@@ -1822,12 +1822,12 @@ class doc_Containers extends core_Manager
                 if(!cls::load($class, true)) continue;
                 $mvc = cls::get($class);
                 
-                if ($mvc->newBtnGroup === false) {
+                if (($mvc->newBtnGroup ?? null) === false) {
                     continue;
                 }
 
                 if ($mvc->haveRightFor('add', $rec)) {
-                    if($mvc->newBtnGroup){
+                    if($mvc->newBtnGroup ?? null){
                         list($order, $group) = explode('|', $mvc->newBtnGroup);
                     } else {
                         $order = 0;
