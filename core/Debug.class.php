@@ -800,7 +800,7 @@ class core_Debug
         $state['date'] = dt::now();
         $state['uri'] = str::limitLen($_SERVER['REQUEST_URI'], 255);
         
-        if ((EF_DEBUG || log_Debug::haveRightFor('report')) && $state['_debugFileName']) {
+        if ((EF_DEBUG || log_Debug::haveRightFor('report')) && !empty($state['_debugFileName'])) {
             $bName = basename($state['_debugFileName'], '.debug');
             $state['signal'] = log_Debug::getReportLink($bName, 'Сигнал', 'img/16/headset.png', 'signalLink');
         }
