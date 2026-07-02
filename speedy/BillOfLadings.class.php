@@ -221,12 +221,12 @@ class speedy_BillOfLadings extends core_Manager
 
         if ($form->isSubmitted()) {
             $cData = new stdClass();
-            $summary = ai_ExtractAddressInfo::extractAddressFromText($form->rec->string, null, $cData);
-            
-            if ($summary !== false) {
+            $this->invoke('ParseAddressSpeedy', array(&$cData, $form->rec->string, array()));
+
+            if (!empty((array) $cData)) {
                 $form->info = ht::mixedToHtml((array) $cData);
             } else {
-                // Fallback към стария не-ИИ парсер, ако AI не е конфигуриран/гръмне
+                // Fallback към регуларния парсер, ако AI плъгинът не е инсталиран/не е конфигуриран
                 $parsed = str::parseAddress($form->rec->string);
                 $form->info = ht::mixedToHtml($parsed);
             }
