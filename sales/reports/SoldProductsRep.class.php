@@ -92,7 +92,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             'allowedTeams' => array(),
         );
 
-        if (haveRole('salesAllGlobal', $userId)) {
+        if (haveRole('saleAllGlobal', $userId)) {
             $res['canSeeAll'] = true;
             $res['allowedDealers'] = self::getAllDealers();
             $res['allowedTeams'] = keylist::toArray(core_Roles::getRolesByType('team'));
@@ -100,7 +100,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             return $res;
         }
 
-        if (haveRole('salesAll', $userId)) {
+        if (haveRole('saleAll', $userId)) {
             $res['canSeeTeams'] = true;
             $res['allowedTeams'] = keylist::toArray(core_Users::getUserRolesByType($userId, 'team'));
 
