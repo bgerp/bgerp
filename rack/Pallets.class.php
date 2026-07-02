@@ -186,54 +186,6 @@ class rack_Pallets extends core_Manager
 
 
     /**
-     * Връща количествата от движения по зони, групирани по палет и състояние
-     *
-     * @param array $palletIds
-     * @param array $states
-     * @return array
-     */
-    private static function getSumInZoneMovementsByPallets($palletIds, $states)
-    {
-        $res = array();
-        $palletIds = arr::make($palletIds, true);
-        $states = arr::make($states, true);
-
-        if (!countR($palletIds) || !countR($states)) {
-
-            return $res;
-        }
-
-        $mQuery = rack_Movements::getQuery();
-        $mQuery->in('palletId', $palletIds);
-        $mQuery->in('state', $states);
-        $mQuery->show('palletId,state,zones,quantityInPack');
-
-        while ($mRec = $mQuery->fetch()) {
-            $zones = type_Table::toArray($mRec->zones);
-            if (!countR($zones)) {
-                continue;
-            }
-
-            $palletId = $mRec->palletId;
-            $state = $mRec->state;
-
-            if (!isset($res[$palletId])) {
-                $res[$palletId] = array();
-            }
-            if (!isset($res[$palletId][$state])) {
-                $res[$palletId][$state] = 0;
-            }
-
-            foreach ($zones as $zRec) {
-                $res[$palletId][$state] += $zRec->quantity * $mRec->quantityInPack;
-            }
-        }
-
-        return $res;
-    }
-
-
-    /**
      * Връща наличните палети за артикула
      *
      * @param int  $productId               - ид на артикул
@@ -247,27 +199,15 @@ class rack_Pallets extends core_Manager
     public static function getAvailablePallets($productId, $storeId, $batch = null, $withoutPendingMovements = false, $deductWaitingMovements = false)
     {
         $pallets = array();
-        $palletRecs = array();
-        $palletIds = array();
         $query = self::getQuery();
         $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
-        $query->show('id,quantity,position,batch,createdOn');
+        $query->show('quantity,position,createdOn');
         if(!is_null($batch)){
             $query->where(array("#batch = '[#1#]'", $batch));
         }
        
         $query->orderBy('createdOn', 'ASC');
         while ($rec = $query->fetch()) {
-            $palletRecs[$rec->id] = $rec;
-            $palletIds[$rec->id] = $rec->id;
-        }
-
-        $movementSums = array();
-        if ($withoutPendingMovements === true) {
-            $movementSums = self::getSumInZoneMovementsByPallets($palletIds, array('pending', 'waiting'));
-        }
-
-        foreach ($palletRecs as $rec) {
             $rest = $rec->quantity;
             
             // Ако се изискват само палети, към които няма чакащи движения, другите се пропускат
@@ -276,15 +216,14 @@ class rack_Pallets extends core_Manager
                 // Палет, от който има неприключено движение не се изключва автоматично от подаваните, а се сумират количествата
                 // на всички неприключени движения насочени от него, и ако въпросната сума е по-малка от наличното на палета
                 // количество, той се подава на функцията, с остатъчното количество.
-                $sumPending = $movementSums[$rec->id]['pending'] ?? 0;
+                $sumPending = static::getSumInZoneMovements($productId, $rec->batch, $rec->id, 'pending');
                 if($sumPending >= $rec->quantity) continue;
                 $rest = $rec->quantity - $sumPending;
             }
 
             // Ако ще се приспадат и запазените движения тяхното к-во да се изважда от наличното на палета
-            // Запазваме досегашното поведение: waiting се приспада, когато се приспада и pending.
             if ($withoutPendingMovements === true) {
-                $sumWaiting = $movementSums[$rec->id]['waiting'] ?? 0;
+                $sumWaiting = static::getSumInZoneMovements($productId, $rec->batch, $rec->id, 'waiting');
                 if($sumWaiting >= $rest) continue;
                 $rest = $rest - $sumWaiting;
             }

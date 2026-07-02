@@ -772,13 +772,13 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_Shutdown($mvc)
     {
         // Обновяване на линиите
-        if (is_array($mvc->syncLineDetails)) {
+        if (is_array($mvc->syncLineDetails ?? null)) {
             foreach ($mvc->syncLineDetails as $lineId => $containerId) {
                 trans_LineDetails::sync($lineId, $containerId);
             }
         }
 
-        if (is_array($mvc->updateLines)) {
+        if (is_array($mvc->updateLines ?? null)) {
             $Lines = cls::get('trans_Lines');
             foreach ($mvc->updateLines as $lineId) {
                 $Lines->updateMaster($lineId);

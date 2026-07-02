@@ -454,7 +454,7 @@ class plg_RefreshRows extends core_Plugin
     public static function on_AfterCheckTimeForRefresh($mvc, &$res, $hitTime, $refreshUrl)
     {
         // Ако е зададено поле
-        if (!$mvc->refreshRowsCheckField) {
+        if (!($mvc->refreshRowsCheckField ?? null)) {
             
             return ;
         }

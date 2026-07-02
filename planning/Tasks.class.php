@@ -3701,7 +3701,7 @@ class planning_Tasks extends core_Master
             core_Debug::stopTimer('REORDER_BY_JOB');
         }
 
-        if (countR($mvc->cacheAssetDataOnShutdown)) {
+        if (countR($mvc->cacheAssetDataOnShutdown ?? null)) {
             core_Debug::startTimer('CACHE_ON_SHUTDOWN');
             foreach ($mvc->cacheAssetDataOnShutdown as $assetId) {
                 $cacheData = array('assetId' => planning_AssetResources::fetch($assetId), 'tasks' => planning_AssetResources::getAssetTaskOptions($assetId, true));
