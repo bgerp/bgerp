@@ -221,7 +221,7 @@ class cat_Categories extends core_Master
                 $row->useAsProto = "<span class='quiet'>{$row->useAsProto}</span>";
             }
 
-            $row->name .= " {$row->folder}";
+            $row->name .= " " . ($row->folder ?? '');
             $count = cat_Products::count("#folderId = '{$rec->folderId}'");
             $row->count = cls::get('type_Int')->toVerbal($count);
             $row->count = "<span style='float:right'>{$row->count}</span>";

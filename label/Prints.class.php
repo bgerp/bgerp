@@ -980,7 +980,7 @@ class label_Prints extends core_Master
             }
         }
         
-        if ($action == 'edit' && $rec && $requiredRoles != 'no_one') {
+        if (in_array($action, array('edit', 'clonerec', 'regenerate')) && $rec && $requiredRoles != 'no_one') {
             if ($rec->objectId && $rec->classId) {
                 if (cls::load($rec->classId, true)) {
                     if (!cls::haveInterface('label_SequenceIntf', $rec->classId)) {
