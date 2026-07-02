@@ -481,7 +481,7 @@ class callcenter_Numbers extends core_Manager
         }
         
         // Ако имаме изтрити номера
-        if (countR((array) $mvc->deletedItems)) {
+        if (countR((array) ($mvc->deletedItems ?? null))) {
             
             // Обхождаме масива
             foreach ((array) $mvc->deletedItems as $id => $rec) {
