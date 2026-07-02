@@ -2133,7 +2133,7 @@ class callcenter_Talks extends core_Master
         $tpl = getTplFromFile(('callcenter/tpl/CallSummary.shtml'));
         
         // Заместваме продължителността на разговора
-        $tpl->append($data->listSummary->statVerb['duration'], 'duration');
+        $tpl->append($data->listSummary->statVerb['duration'] ?? null, 'duration');
         
         // Заместваме статусите на обажданията
         $tpl->placeArray($data->listSummary->statVerb['dialStatus']);
