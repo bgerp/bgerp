@@ -616,13 +616,13 @@ class core_Cron extends core_Manager
 
         $rData = (array) $rec->data;
 
-        if ($rData['maxUsedMemory']) {
+        if ($rData['maxUsedMemory'] ?? null) {
             $fType = cls::get('fileman_FileSize');
 
             $row->max .= '<p>' . tr('Памет') . ': <b>' . $fType->toVerbal($rData['maxUsedMemory']) . '</b> - ' . dt::mysql2verbal($rData['maxUsedMemoryTime'], 'smartTime') . '</p>';
         }
 
-        if ($rData['maxDuration']) {
+        if ($rData['maxDuration'] ?? null) {
             $tTime = cls::get('type_Time');
             
             $row->max .= '<p>' . tr('Прод.') . ': <b>' . $tTime->toVerbal($rData['maxDuration']) . '</b> - ' . dt::mysql2verbal($rData['maxDurationTime'], 'smartTime') . '</p>';

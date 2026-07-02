@@ -778,7 +778,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
         }
 
-        if (is_array($mvc->updateLines)) {
+        if (is_array($mvc->updateLines ?? null)) {
             $Lines = cls::get('trans_Lines');
             foreach ($mvc->updateLines as $lineId) {
                 $Lines->updateMaster($lineId);
