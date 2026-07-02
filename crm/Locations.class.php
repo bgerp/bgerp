@@ -637,7 +637,12 @@ class crm_Locations extends core_Master
     private static function getContragentLocations($contragentClassId, $contragentId, $countries = array(), $onlyWithRoutesInNextNdays = null)
     {
         expect($contragentClassId = core_Classes::getId($contragentClassId));
-        
+
+        if (empty($contragentId)) {
+
+            return array();
+        }
+
         $query = static::getQuery();
         $query->where("#contragentCls = {$contragentClassId} AND #contragentId = {$contragentId}");
         $query->where("#state != 'rejected'");

@@ -182,7 +182,7 @@ class planning_AssetSparePartsDetail extends core_Detail
         if(isset($data->masterMvc)){
             unset($data->listFields['assetId']);
         } else {
-            unset($mvc->listItemsPerPage);
+            $mvc->listItemsPerPage = 1000;
         }
 
         $plural = str::getPlural($horizonMonthNumber, 'месец', true);

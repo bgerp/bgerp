@@ -614,16 +614,18 @@ class core_Cron extends core_Manager
         
         $row->max = '';
 
-        if ($rec->data['maxUsedMemory']) {
+        $rData = (array) $rec->data;
+
+        if ($rData['maxUsedMemory']) {
             $fType = cls::get('fileman_FileSize');
 
-            $row->max .= '<p>' . tr('Памет') . ': <b>' . $fType->toVerbal($rec->data['maxUsedMemory']) . '</b> - ' . dt::mysql2verbal($rec->data['maxUsedMemoryTime'], 'smartTime') . '</p>';
+            $row->max .= '<p>' . tr('Памет') . ': <b>' . $fType->toVerbal($rData['maxUsedMemory']) . '</b> - ' . dt::mysql2verbal($rData['maxUsedMemoryTime'], 'smartTime') . '</p>';
         }
-        
-        if ($rec->data['maxDuration']) {
+
+        if ($rData['maxDuration']) {
             $tTime = cls::get('type_Time');
             
-            $row->max .= '<p>' . tr('Прод.') . ': <b>' . $tTime->toVerbal($rec->data['maxDuration']) . '</b> - ' . dt::mysql2verbal($rec->data['maxDurationTime'], 'smartTime') . '</p>';
+            $row->max .= '<p>' . tr('Прод.') . ': <b>' . $tTime->toVerbal($rData['maxDuration']) . '</b> - ' . dt::mysql2verbal($rData['maxDurationTime'], 'smartTime') . '</p>';
         }
         
         $url = toUrl(array(

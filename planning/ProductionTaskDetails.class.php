@@ -1191,11 +1191,14 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         if (!isset($data->masterData)) {
-            $data->masterData = (object) array('rec' => planning_Tasks::fetch($data->masterId));
+            $data->masterData = (object) array('rec' => ($data->masterId ?? null) ? planning_Tasks::fetch($data->masterId) : null);
         }
+        $masterTaskRec = is_object($data->masterData->rec) ? $data->masterData->rec : null;
+        $masterFolderId = $masterTaskRec->folderId ?? null;
 
-        $data->listTableId = "taskProgressTable{$data->masterData->rec->id}";
-        $data->isMeasureKg = ($data->masterData->rec->measureId == cat_UoM::fetchBySinonim('kg')->id);
+        $masterTaskId = $masterTaskRec->id ?? '';
+        $data->listTableId = "taskProgressTable{$masterTaskId}";
+        $data->isMeasureKg = ($masterTaskRec && $masterTaskRec->measureId == cat_UoM::fetchBySinonim('kg')->id);
         $lastRecId = $masterCenterRec = null;
 
         if (isset($data->masterMvc)) {
@@ -1207,7 +1210,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listTableMvc->setField('weight', 'smartCenter');
 
             // Ако няма настройка за приспадане на тарата да не се показва колонката за нето
-            $masterCenterRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetMeasureId');
+            $masterCenterRec = planning_Centers::fetch("#folderId = {$masterFolderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetMeasureId');
             if(empty($masterCenterRec->useTareFromParamId) && empty($masterCenterRec->useTareFromPackagings) && !planning_ProductionTaskProducts::count("#taskId = {$data->masterId} AND #tareWeight IS NOT NULL")){
                 unset($data->listFields['netWeight']);
             }
@@ -1219,7 +1222,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (!countR($rows)) return;
 
         $recsBySerials = $producedSerials = array();
-        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$data->masterData->rec->folderId}'", 'showSerialWarningOnDuplication');
+        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$masterFolderId}'", 'showSerialWarningOnDuplication');
         $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
         array_walk($data->recs, function($a) use (&$recsBySerials, &$producedSerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}if($a->type == 'production' && !empty($a->serial)) {$producedSerials[$a->serial] = $a->serial;};});
 

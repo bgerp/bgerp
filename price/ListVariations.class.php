@@ -228,7 +228,7 @@ class price_ListVariations extends core_Detail
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->TabCaption = tr('Вариация');
-        $activeVariations = static::getActiveVariations($data->masterId);
+        $activeVariations = static::getActiveVariations($data->masterId ?? null);
         foreach ($data->rows as $id => &$row){
             if(array_key_exists($id, $activeVariations)){
                 $row->ROW_ATTR['class'] .= ' state-active';

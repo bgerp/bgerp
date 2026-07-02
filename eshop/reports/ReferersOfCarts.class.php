@@ -240,7 +240,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         $row->totalNoVat = $Double->toVerbal($dRec->totalNoVat);
 
-        $row->ip = type_Ip::decorateIp($dRec->ip, $dRec->dt, true, true);
+        $row->ip = type_Ip::decorateIp($dRec->ip, $dRec->dt, true);
         $row->brid = log_Browsers::getLink($dRec->brid);
 
         // row->userId .= type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>" .log_Browsers::getLink($rec->brid);

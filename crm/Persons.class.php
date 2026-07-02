@@ -736,7 +736,7 @@ class crm_Persons extends core_Master
 
             $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
 
-            if ($row->country) {
+            if ($row->country ?? null) {
                 $row->addressBox = $row->country;
                 $row->addressBox .= ($pCode || $place) ? '<br>' : '';
             }
