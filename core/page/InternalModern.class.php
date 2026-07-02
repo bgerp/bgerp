@@ -361,6 +361,7 @@ class core_page_InternalModern extends core_page_Active
             $mode = ht::createLink(tr('Десктоп'), array('log_Browsers', 'setWideScreen', 'ret_url' => true), null, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
         }
         
+        $debug = '';
         if (isDebug()) {
             if (log_Debug::haveRightFor('list') && defined('DEBUG_FATAL_ERRORS_FILE')) {
                 $fileName = pathinfo(DEBUG_FATAL_ERRORS_FILE, PATHINFO_FILENAME);
