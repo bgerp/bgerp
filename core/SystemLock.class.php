@@ -45,7 +45,8 @@ class core_SystemLock
         $startTime = time();
         
         if (file_exists($setupLockFile) && ($str = file_get_contents($setupLockFile))) {
-            list($startTimeEx, $lockTimeEx, $msgEx) = explode("\n", $str, 3);
+            $lockParts = explode("\n", $str, 3);
+            $startTimeEx = $lockParts[0] ?? null;
             if ($startTimeEx > 0 && ($startTime - $startTimeEx) < $time * 1.2) {
                 // $startTime = $startTimeEx;
             }
@@ -80,7 +81,10 @@ class core_SystemLock
             clearstatcache($setupLockFile);
             $at = time() - filemtime($setupLockFile);
 
-            list($startTime, $lockTime, $msg) = explode("\n", file_get_contents($setupLockFile), 3);
+            $lockParts = explode("\n", (string) file_get_contents($setupLockFile), 3);
+            $startTime = $lockParts[0] ?? null;
+            $lockTime = $lockParts[1] ?? null;
+            $msg = $lockParts[2] ?? null;
             
             if (!$lockTime > 0) {
                 $lockTime = BGERP_SYSTEM_LOCK_TIME;
@@ -103,7 +107,10 @@ class core_SystemLock
     {
         if (self::isBlocked()) {
             $setupLockFile = self::getPath();
-            list($startTime, $lockTime, $msg) = explode("\n", (string) file_get_contents($setupLockFile), 3);
+            $lockParts = explode("\n", (string) file_get_contents($setupLockFile), 3);
+            $startTime = $lockParts[0] ?? null;
+            $lockTime = $lockParts[1] ?? null;
+            $msg = $lockParts[2] ?? null;
             header('HTTP/1.1 503 Service Temporarily Unavailable');
             header('Status: 503 Service Temporarily Unavailable');
             header('Retry-After: ' . ($lockTime + 100));

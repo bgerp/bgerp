@@ -456,7 +456,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             $row->productId = ht::createHint($row->productId, "Артикулът е нестандартен|*!", 'warning', false);
         }
         if($rec->templateType == 'foods'){
-            $showDualPrice = $date <= '2026-06-30' && in_array($rec->currencyId, array('BGN', 'EUR'));
+            $showDualPrice = $date <= '2026-08-08' && in_array($rec->currencyId, array('BGN', 'EUR'));
             if($showDualPrice){
                 if($rec->currencyId == 'BGN'){
                     $priceInBg = $row->price;

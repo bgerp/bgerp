@@ -448,7 +448,7 @@ class crm_Persons extends core_Master
         if ($data->listFilter->rec->order == 'birthday') {
             $mvc->birthdayFilter = true;
         }
-        if ($data->listFilter->rec->alpha) {
+        if (!empty($data->listFilter->rec->alpha)) {
             if ($data->listFilter->rec->alpha[0] == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
@@ -2894,7 +2894,7 @@ class crm_Persons extends core_Master
         $rec = $this->fetch($id);
 
         if (email_Outgoings::haveRightFor('add', array('folderId' => $rec->folderId))) {
-            $res[] = 'email_Outgoings';
+            $res[] = (object)array('class' => 'email_Outgoings');
         }
 
         static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;

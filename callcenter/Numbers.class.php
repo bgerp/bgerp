@@ -454,8 +454,8 @@ class callcenter_Numbers extends core_Manager
     public static function on_Shutdown($mvc)
     {
         // Ако имаме променини или добавени номера
-        if (countR((array) $mvc->savedItems)) {
-            
+        if (countR((array) ($mvc->savedItems ?? null))) {
+
             // Обхождаме масива
             foreach ((array) $mvc->savedItems as $id) {
                 
