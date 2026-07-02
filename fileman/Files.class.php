@@ -2143,7 +2143,7 @@ class fileman_Files extends core_Master
     public static function on_BeforeSave(&$mvc, &$id, &$rec)
     {
         // Ако липсва, създаваме нов уникален номер-държател
-        if (!$rec->fileHnd) {
+        if (!($rec->fileHnd ?? null)) {
             do {
                 if (16 < $i++) {
                     error('@Unable to generate random file handler', $rec);
