@@ -101,7 +101,7 @@ class planning_AssetGroupIssueTemplates extends core_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-        if ($data->masterMvc) {
+        if ($data->masterMvc ?? null) {
             unset($data->listFields['groupId']);
         }
     }

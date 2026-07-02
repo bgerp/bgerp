@@ -145,7 +145,7 @@ class vislog_Referer extends core_Manager
         $domainsCnt = cms_Domains::count();
  
         // Ако е ясен домейна, махаме колонката
-        if($data->listFilter->rec->domainId || $domainsCnt == 1) {
+        if(($data->listFilter->rec->domainId ?? null) || $domainsCnt == 1) {
             unset($data->listFields['domainId']);
         }
 

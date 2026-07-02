@@ -112,7 +112,7 @@ class vislog_Adwords extends core_Manager
         $data->listFilter->showFields = 'search,domainId';
         $data->listFilter->input($data->listFilter->showFields, 'silent');
         
-        if ($domainId = $data->listFilter->rec->domainId) {
+        if ($domainId = ($data->listFilter->rec->domainId ?? null)) {
             $data->query->where(array("#domainId = '[#1#]'", $domainId));
         }
 

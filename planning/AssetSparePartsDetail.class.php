@@ -302,7 +302,7 @@ class planning_AssetSparePartsDetail extends core_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        if($data->masterMvc) return;
+        if($data->masterMvc ?? null) return;
 
         $data->listFilter->showFields = 'assetId,productId';
         $data->listFilter->view = 'horizontal';

@@ -1190,6 +1190,10 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        if (!isset($data->masterData)) {
+            $data->masterData = (object) array('rec' => planning_Tasks::fetch($data->masterId));
+        }
+
         $data->listTableId = "taskProgressTable{$data->masterData->rec->id}";
         $data->isMeasureKg = ($data->masterData->rec->measureId == cat_UoM::fetchBySinonim('kg')->id);
         $lastRecId = $masterCenterRec = null;
