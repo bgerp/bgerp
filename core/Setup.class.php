@@ -667,8 +667,7 @@ class core_Setup extends core_ProtoSetup
         $html .= core_Classes::add('core_page_InternalModern');
         
         $html .= static::addCronToDelOldTempFiles();
-        $html .= static::addCronToDeleteExpiredLocks();
-        
+         
         try {
             $this->setBGERPUniqId();
         } catch (Exception $e) {
@@ -709,27 +708,6 @@ class core_Setup extends core_ProtoSetup
         return core_Cron::addOnce($rec);
     }
 
-
-    /**
-     * Добавя в крон таблицата функция за изтриване на изтеклите заключвания
-     *
-     * @return string
-     */
-    public static function addCronToDeleteExpiredLocks()
-    {
-        $rec = new stdClass();
-        $rec->systemId = 'deleteExpiredLocks';
-        $rec->description = 'Изтриване на изтеклите заключвания';
-        $rec->controller = 'core_Locks';
-        $rec->action = 'DeleteExpired';
-        $rec->period = 60;
-        $rec->offset = mt_rand(0, 40);
-        $rec->isRandOffset = true;
-        $rec->delay = 0;
-        $rec->timeLimit = 30;
-
-        return core_Cron::addOnce($rec);
-    }
 
 
     /**
