@@ -431,7 +431,7 @@ class fileman_Indexes extends core_Manager
             $content = fileman_Indexes::decodeContent($rec->content);
             
             // Ако в индекса е записана грешка
-            if (($content->errorProc) && (dt::mysql2timestamp($rec->createdOn) < $time)) {
+            if ((is_object($content) && $content->errorProc) && (dt::mysql2timestamp($rec->createdOn) < $time)) {
                 
                 // Изтрива съответния запис
                 fileman_Indexes::delete($rec->id);
