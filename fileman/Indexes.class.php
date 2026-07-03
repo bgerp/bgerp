@@ -145,7 +145,10 @@ class fileman_Indexes extends core_Manager
         
         // Вземаме уеб-драйверите за това файлово разширение
         $webdrvArr = self::getDriver($ext, $data->fRec->name);
-        
+
+        // Масив с всички табове
+        $data->tabs = array();
+
         // Обикаляме всички открити драйвери
         foreach ($webdrvArr as $drv) {
             
