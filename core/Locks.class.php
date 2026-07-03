@@ -303,4 +303,14 @@ class core_Locks extends core_Manager
     {
         $data->query->orderBy('lockExpire', 'DESC');
     }
+
+    /**
+     * Изтриване на старите заключвания
+     */
+    public function cron_DeleteExpiredLocks()
+    {
+        $query = self::getQuery();
+        $befor1minute = time() - 60;
+        $query->delete("#lockExpire < {$befor1minute}");
+    }
 }
