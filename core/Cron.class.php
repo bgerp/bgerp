@@ -545,7 +545,9 @@ class core_Cron extends core_Manager
             $mPeriod *= 60;
             
             $data = &$rec->data;
-            
+            if (!is_array($data)) {
+                $data = [];
+            }
             if (($rec->lastMaxUsedMemory >= $data['maxUsedMemory']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxUsedMemoryTime'])) {
                 $data['maxUsedMemory'] = $rec->lastMaxUsedMemory;
                 $data['maxUsedMemoryTime'] = $rec->lastDone;

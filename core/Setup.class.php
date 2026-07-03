@@ -591,6 +591,20 @@ class core_Setup extends core_ProtoSetup
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
 
+
+        // Нагласяване на задача да почиства изтеклите заключвания
+        $rec = new stdClass();
+        $rec->systemId = 'DeleteExpiredLocks';
+        $rec->description = 'Изтриване на старите заключвания';
+        $rec->controller = 'core_Locks';
+        $rec->action = 'DeleteExpiredLocks';
+        $rec->period = 60;
+        $rec->offset = mt_rand(0, 59);
+        $rec->isRandOffset = true;
+        $rec->delay = 0;
+        $rec->timeLimit = 120;
+        $html .= core_Cron::addOnce($rec);
+  
         
         if(defined('BGERP_MYSQL_SESSION') && BGERP_MYSQL_SESSION === true) {
             // Нагласяване на Крон да почиства кеша
@@ -636,6 +650,7 @@ class core_Setup extends core_ProtoSetup
             $rec->delay = 2;
             $rec->timeLimit = 20;
             $html .= core_Cron::addOnce($rec);
+
             core_SystemData::set('flagDoSqlLog');
         } else {
             core_Cron::delete("#systemId = 'Backup_Create'");
@@ -652,8 +667,7 @@ class core_Setup extends core_ProtoSetup
         $html .= core_Classes::add('core_page_InternalModern');
         
         $html .= static::addCronToDelOldTempFiles();
-        $html .= static::addCronToDeleteExpiredLocks();
-        
+         
         try {
             $this->setBGERPUniqId();
         } catch (Exception $e) {
@@ -694,27 +708,6 @@ class core_Setup extends core_ProtoSetup
         return core_Cron::addOnce($rec);
     }
 
-
-    /**
-     * Добавя в крон таблицата функция за изтриване на изтеклите заключвания
-     *
-     * @return string
-     */
-    public static function addCronToDeleteExpiredLocks()
-    {
-        $rec = new stdClass();
-        $rec->systemId = 'deleteExpiredLocks';
-        $rec->description = 'Изтриване на изтеклите заключвания';
-        $rec->controller = 'core_Locks';
-        $rec->action = 'DeleteExpired';
-        $rec->period = 60;
-        $rec->offset = mt_rand(0, 40);
-        $rec->isRandOffset = true;
-        $rec->delay = 0;
-        $rec->timeLimit = 30;
-
-        return core_Cron::addOnce($rec);
-    }
 
 
     /**

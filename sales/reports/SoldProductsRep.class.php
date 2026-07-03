@@ -20,7 +20,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, sales, debug';
+    public $canSelectDriver = 'ceo, planning, sales, debug';
 
 
     /**
@@ -74,7 +74,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Връща обхвата на достъп до търговци и екипи за потребителя
      *
-     * Използва acc настройките SUMMARY_ROLES_FOR_ALL и SUMMARY_ROLES_FOR_TEAMS.
+     * Използва salesAllGlobal за всички търговци и salesAll за екипите на потребителя.
      * Резултатът се използва едновременно за опциите във формата и за сървърния филтър в prepareRecs().
      *
      * @param int|null $userId
@@ -84,8 +84,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     public static function getDealerAccessScope($userId = null)
     {
         $userId = isset($userId) ? $userId : core_Users::getCurrent();
-        $rolesForAll = self::getDealerFilterRoles('SUMMARY_ROLES_FOR_ALL');
-        $rolesForTeams = self::getDealerFilterRoles('SUMMARY_ROLES_FOR_TEAMS');
 
         $res = array(
             'canSeeAll' => false,
@@ -94,7 +92,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             'allowedTeams' => array(),
         );
 
-        if ($rolesForAll && haveRole($rolesForAll, $userId)) {
+        if (haveRole('saleAllGlobal', $userId)) {
             $res['canSeeAll'] = true;
             $res['allowedDealers'] = self::getAllDealers();
             $res['allowedTeams'] = keylist::toArray(core_Roles::getRolesByType('team'));
@@ -102,7 +100,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             return $res;
         }
 
-        if ($rolesForTeams && haveRole($rolesForTeams, $userId)) {
+        if (haveRole('saleAll', $userId)) {
             $res['canSeeTeams'] = true;
             $res['allowedTeams'] = keylist::toArray(core_Users::getUserRolesByType($userId, 'team'));
 
@@ -182,24 +180,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
         return $res;
-    }
-
-
-    /**
-     * Връща ролите за филтриране от acc настройките във формат за haveRole()
-     *
-     * haveRole() очаква списък със запетаи, затова тук не се използва keylist формат.
-     *
-     * @param string $key
-     *
-     * @return string
-     */
-    protected static function getDealerFilterRoles($key)
-    {
-        $roles = trim((string) acc_Setup::get($key));
-        $rolesArr = arr::make($roles, true);
-
-        return implode(',', $rolesArr);
     }
 
 
@@ -560,7 +540,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setSuggestions('contragent', $suggestionContragents);
 
         // Ограничаваме опциите във формата според правата на текущия потребител
-        $dealerAccessScope = self::getDealerAccessScope();
+        $dealerAccessScope = self::getDealerAccessScope(core_Users::getCurrent());
 
         $suggestionDealers = array();
         foreach ($dealerAccessScope['allowedDealers'] as $dealerId) {
@@ -769,7 +749,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         // Сървърна защита на филтъра за дилър
         if ($rec->quantityType != 'invoiced') {
-            $dealerAccessScope = self::getDealerAccessScope();
+            // Данните се ограничават по правата на създателя на справката, не на текущия потребител
+            $dealerAccessScope = self::getDealerAccessScope($rec->createdBy ?? core_Users::getCurrent());
             $dealersArr = [];
             $hasDealerFilter = !empty($rec->dealers) || !empty($rec->dealersTeam);
 
