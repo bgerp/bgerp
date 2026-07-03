@@ -1356,7 +1356,7 @@ class fileman_Files extends core_Master
             // Разширение на файла
             $ext = mb_substr($fileName, $dotPos + 1);
 
-            return $ext2mime["{$ext}"];
+            return $ext2mime["{$ext}"] ?? null;
         }
     }
     
@@ -1368,7 +1368,9 @@ class fileman_Files extends core_Master
     {
         // Масив с всички версии на файла
         $fileVersionsArr = fileman_FileDetails::getFileVersionsArr($id);
-        
+
+        $text = '';
+
         foreach ($fileVersionsArr as $fileHnd => $fileInfo) {
             
             // Линк към single' а на файла
@@ -1531,7 +1533,7 @@ class fileman_Files extends core_Master
             if (Mode::is('text', 'plain')) {
                 
                 //Добаваме линка към файла
-                $link = "{$linkFileTitlePlain}$name ( ${url} )";
+                $link = "{$linkFileTitlePlain}$name ( {$url} )";
             } else {
                 if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
                     
@@ -2297,7 +2299,7 @@ class fileman_Files extends core_Master
         fileman_Indexes::prepare($data, $fh);
         
         // Задаваме екшъна
-        if (!$data->action) {
+        if (empty($data->action)) {
             $data->action = 'single';
         }
     }
@@ -2890,8 +2892,10 @@ class fileman_Files extends core_Master
         $Buckets = cls::get('fileman_Buckets');
         
         $bucketId = $Buckets->fetchByName($bucket);
-        
-        if ($dataId = $this->Data->absorbFile($path, false)) {
+
+        $fh = null;
+
+        if ($dataId = cls::get('fileman_Data')->absorbFile($path, false)) {
             
             // Проверяваме името на файла
             $fh = $this->checkFileName($dataId, $bucketId, $fname);
@@ -2927,14 +2931,16 @@ class fileman_Files extends core_Master
         $me = cls::get('fileman_Files');
         
         if ($fname === null) {
-            $fname = basename($path);
+            $fname = '';
         }
-        
+
         $Buckets = cls::get('fileman_Buckets');
-        
+
         $bucketId = $Buckets->fetchByName($bucket);
-        
-        if ($dataId = $this->Data->absorbString($string, false)) {
+
+        $fh = null;
+
+        if ($dataId = cls::get('fileman_Data')->absorbString($string, false)) {
             
             // Проверяваме името на файла
             $fh = $this->checkFileName($dataId, $bucketId, $fname);
@@ -2989,7 +2995,7 @@ class fileman_Files extends core_Master
     {
         wp('deprecated');
         
-        $dataId = $this->Data->absorbFile($osFile);
+        $dataId = cls::get('fileman_Data')->absorbFile($osFile);
         
         return $this->setData($fileHnd, $dataId);
     }
@@ -3004,7 +3010,7 @@ class fileman_Files extends core_Master
     {
         wp('deprecated');
         
-        $dataId = $this->Data->absorbString($string);
+        $dataId = cls::get('fileman_Data')->absorbString($string);
         
         return $this->setData($fileHnd, $dataId);
     }
@@ -3032,14 +3038,15 @@ class fileman_Files extends core_Master
         
         // Ако имаме стари данни, изпращаме ги в историята
         if ($rec->dataId) {
+            $verRec = new stdClass();
             $verRec->fileHnd = $fileHnd;
             $verRec->dataId = $rec->dataId;
             $verRec->from = $rec->modifiedOn;
             $verRec->to = dt::verbal2mysql();
-            $this->Versions->save($verRec);
-            
+            cls::get('fileman_Versions')->save($verRec);
+
             // Намаляваме с 1 броя на линковете към старите данни
-            $this->Data->decreaseLinks($rec->dataId);
+            cls::get('fileman_Data')->decreaseLinks($rec->dataId);
         }
         
         // Записваме новите данни
@@ -3059,7 +3066,7 @@ class fileman_Files extends core_Master
         }
         
         // Увеличаваме с 1 броя на линковете към новите данни
-        $this->Data->increaseLinks($newDataId);
+        cls::get('fileman_Data')->increaseLinks($newDataId);
         
         return $rec->dataId;
     }
@@ -3110,7 +3117,7 @@ class fileman_Files extends core_Master
         $inputFileNameArr = static::getNameAndExt($inputFileName);
         
         // Обикаляме всички открити съвпадения
-        while ($rec = $query->fetch($where)) {
+        while ($rec = $query->fetch()) {
             
             // Ако имената са еднакви
             if ($rec->name == $inputFileName) {
