@@ -465,7 +465,7 @@ class hr_HomeOffice extends core_Master
                     //$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
 
                     if ($inCharge != $userId) {
-                        if (!Users::haveRole('ceo') && !Users::haveRole('hrHomeOffice')) {
+                        if (!Users::haveRole('ceo', $userId) && !Users::haveRole('hrHomeOffice', $userId)) {
                             // то не може да я направим
                             $requiredRoles = 'no_one';
                         }

@@ -525,7 +525,7 @@ class hr_Leaves extends core_Master
             
             if ($action == 'order') {
                 // и нямаме нужните права
-                if (!Users::haveRole('ceo') || !Users::haveRole('hrLeaves')) {
+                if (!Users::haveRole('ceo', $userId) && !Users::haveRole('hrLeaves', $userId)) {
                     // то не може да я направим
                     $requiredRoles = 'no_one';
                 }
@@ -543,7 +543,7 @@ class hr_Leaves extends core_Master
                     //$inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
                     
                     if ($inCharge != $userId) {
-                        if (!Users::haveRole('ceo') && !Users::haveRole('hrLeaves')) {
+                        if (!Users::haveRole('ceo', $userId) && !Users::haveRole('hrLeaves', $userId)) {
                             // то не може да я направим
                             $requiredRoles = 'no_one';
                         }
@@ -552,7 +552,7 @@ class hr_Leaves extends core_Master
             }
 
             if ($action == 'reject' && $rec && $rec->state == 'active' && $rec->leaveFrom <= dt::now()) {
-                if (!haveRole('hrLeaves, ceo')) {
+                if (!haveRole('hrLeaves, ceo', $userId)) {
                     $requiredRoles = 'no_one';
                 }
             }
