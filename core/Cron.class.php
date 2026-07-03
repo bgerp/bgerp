@@ -631,6 +631,7 @@ class core_Cron extends core_Manager
         }
         
         $url = toUrl(array(
+            'Ctr' => 'core_Cron',
             'Act' => 'ProcessRun',
             'id' => str::addHash($rec->id),
             'forced' => 'yes'
