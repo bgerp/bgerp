@@ -304,7 +304,8 @@ class fileman_Data extends core_Manager
         
         // Резултата
         $res = new stdClass();
-        
+        $res->new = false;
+
         // В зависимост от типа
         switch ($type) {
             case 'file':
@@ -436,7 +437,7 @@ class fileman_Data extends core_Manager
             return false;
         }
         
-        if ($rec->processed == 'yes') {
+        if (($rec->processed ?? null) == 'yes') {
             $rec->processed = 'no';
             fileman_Data::save($rec, 'processed');
         }

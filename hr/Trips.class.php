@@ -511,8 +511,26 @@ class hr_Trips extends core_Master
     {
         if ($rec->id ?? null) {
             if ($action == 'reject' && $rec && $rec->state == 'active' && $rec->startDate <= dt::now()) {
-                if (!haveRole('hrTrips, ceo')) {
+                if (!haveRole('hrTrips, ceo', $userId)) {
                     $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        if ($action == 'add' || $action == 'reject' || $action == 'decline') {
+            if ($rec->folderId ?? null) {
+                $folderClass = doc_Folders::fetchCoverClassName($rec->folderId);
+
+                if ($rec->folderId && $folderClass == 'crm_Persons') {
+                    $personId = doc_Folders::fetchCoverId($rec->folderId);
+                    $inCharge = crm_Profiles::fetchField("#personId = '{$personId}'", 'userId');
+
+                    if ($inCharge != $userId) {
+                        if (!haveRole('ceo', $userId) && !haveRole('hrTrips', $userId)) {
+                            // то не може да я направим
+                            $requiredRoles = 'no_one';
+                        }
+                    }
                 }
             }
         }

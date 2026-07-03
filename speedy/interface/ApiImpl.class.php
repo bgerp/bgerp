@@ -310,7 +310,7 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
                 // Ако има адрес за доставка - парсира се и се попълва
                 if(!empty($logisticData['toAddress'])){
-                    $parsedAddress = str::parseAddress($logisticData['toAddress']);
+                    $parsedAddress = cls::get('speedy_BillOfLadings')->parseAddressSpeedy($logisticData['toAddress']);
                     foreach (array('receiverAddress' => $parsedAddress['street'], 'receiverAddressNo' => $parsedAddress['number'], 'receiverBlock' => $parsedAddress['block'], 'receiverEntrance' => $parsedAddress['entrance'], 'receiverFloor' => $parsedAddress['floor'], 'receiverApp' => $parsedAddress['apartment'], 'receiverNotes' => $parsedAddress['notes'], 'complexName' => $parsedAddress['complexName']) as $fld => $addressField){
                         if(!empty($addressField)){
                             $form->setDefault($fld, $addressField);

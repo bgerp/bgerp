@@ -2226,11 +2226,12 @@ class planning_Tasks extends core_Master
         $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf'));
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect');
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect,class=w100');
         $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
         $data->listFilter->showFields .= ',folders,productId, saleId';
         $data->listFilter->setField('productId','before=isFinalSelect');
         $data->listFilter->input('productId, saleId');
+        $data->query->isSlowQuery = true;
 
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders ?? null);

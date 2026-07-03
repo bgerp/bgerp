@@ -312,7 +312,7 @@ class fconv_Script
         
         $cmdArr = explode(' ', $cmdLine);
         $program = $cmdArr[0];
-        $binPath = $this->programs[$program] ? $this->programs[$program] : $program;
+        $binPath = ($this->programs[$program] ?? null) ? $this->programs[$program] : $program;
         $cmdArr[0] = $binPath;
         $cmdLine = implode(' ', $cmdArr);
         
@@ -330,19 +330,19 @@ class fconv_Script
         }
         
         // Възможност за логване на грешките при изпълняване на скрипт
-        if ($params['errFilePath'] && !stristr(PHP_OS, 'WIN')) {
+        if (($params['errFilePath'] ?? null) && !stristr(PHP_OS, 'WIN')) {
             $cmdLine .= ' 2> ' . escapeshellarg($params['errFilePath']);
         }
         
         $this->script .= $this->nl($cmdLine);
         
         // Ако е подаден параметър език, тогава се добавя в началото на скрипта
-        if ($params['LANG']) {
+        if ($params['LANG'] ?? null) {
             $this->script = "LANG='{$params['LANG']}' " . $this->script;
         }
-        
+
         // Ако е подаден параметър език, тогава се добавя в началото на скрипта
-        if ($params['HOME']) {
+        if ($params['HOME'] ?? null) {
             $this->script = "HOME='{$params['HOME']}' " . $this->script;
         }
     }
@@ -488,7 +488,7 @@ class fconv_Script
         }
         if (!empty($checkProgramsArr)) {
             foreach ($checkProgramsArr as $program) {
-                if($missing[$program]) return false;
+                if($missing[$program] ?? null) return false; // Това се изпълнява винаги
                 if (isset($this->programs[$program])) {
                     $path = $this->programs[$program];
                 } else {

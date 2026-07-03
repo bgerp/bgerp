@@ -295,21 +295,6 @@ class core_Locks extends core_Manager
         }
     }
     
-    
-    /**
-     * Изтрива изтеклите заключвания - извиква се периодично от cron (веднъж на час)
-     * Регистрацията е в core_Setup::addCronToDeleteExpiredLocks()
-     */
-    public static function cron_DeleteExpired()
-    {
-        $Locks = cls::get('core_Locks');
-        $now = time();
-
-        $count = $Locks->delete("#lockExpire < '{$now}'");
-
-        return "Изтрити изтекли заключвания: {$count}";
-    }
-
 
     /**
      * Изпълнява се преди подготовката на показваните редове
@@ -317,5 +302,15 @@ class core_Locks extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('lockExpire', 'DESC');
+    }
+
+    /**
+     * Изтриване на старите заключвания
+     */
+    public function cron_DeleteExpiredLocks()
+    {
+        $query = self::getQuery();
+        $befor1minute = time() - 60;
+        $query->delete("#lockExpire < {$befor1minute}");
     }
 }

@@ -785,7 +785,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
         }
 
-        if (is_array($mvc->recalcAutoDates)) {
+        if (is_array($mvc->recalcAutoDates ?? null)) {
             foreach ($mvc->recalcAutoDates as $rec) {
                 $mvc->recalcShipmentDateFields($rec, true);
             }

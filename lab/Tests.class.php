@@ -572,7 +572,7 @@ class lab_Tests extends core_Master
                 $haveDetail = false;
             }
             
-            if (! $rec->id || $rec->state != 'pending' || ! $haveDetail) {
+            if (! is_object($rec) || ! $rec->id || $rec->state != 'pending' || ! $haveDetail) {
                 $requiredRoles = 'no_one';
                 
                 return;

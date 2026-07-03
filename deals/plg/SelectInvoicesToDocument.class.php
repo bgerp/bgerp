@@ -73,7 +73,8 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     private static function saveIfFromContainer($mvc, $rec)
     {
         // След създаване синхронизиране на модела
-        $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId);
+        $subtractPayedByNow = !(($mvc instanceof store_DocumentMaster) || ($mvc instanceof deals_ServiceMaster));
+        $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId, $subtractPayedByNow);
         $paymentCurrencyCode = currency_Currencies::getCodeById($mvc->getPaymentData($rec)->currencyId);
 
         $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
