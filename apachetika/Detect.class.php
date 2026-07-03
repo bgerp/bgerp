@@ -98,7 +98,7 @@ class apachetika_Detect
         $Script->outFilePath = $textPath;
         $Script->params = serialize($params);
         
-        if (!$params['isPath']) {
+        if (!($params['isPath'] ?? null)) {
             $Script->fh = $fileHnd;
         }
         

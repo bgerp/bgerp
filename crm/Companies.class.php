@@ -2744,7 +2744,7 @@ class crm_Companies extends core_Master
     {
         if(empty($ownCompanyId)){
             $myCompany = crm_Companies::fetchOurCompany();
-            $myCompanyVatId = $myCompany->vatId;
+            $myCompanyVatId = $myCompany->vatId ?? null;
         } else {
             $myCompanyVatId = crm_Companies::fetchField($ownCompanyId, 'vatId');
         }

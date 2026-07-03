@@ -145,7 +145,10 @@ class fileman_Indexes extends core_Manager
         
         // Вземаме уеб-драйверите за това файлово разширение
         $webdrvArr = self::getDriver($ext, $data->fRec->name);
-        
+
+        // Масив с всички табове
+        $data->tabs = array();
+
         // Обикаляме всички открити драйвери
         foreach ($webdrvArr as $drv) {
             
@@ -177,11 +180,11 @@ class fileman_Indexes extends core_Manager
         $tabsArr = static::orderTabs($tabsArr);
         
         // Ако е избран някой таб
-        if ($tabsArr[$data->currentTab]) {
-            
+        if (!empty($tabsArr[$data->currentTab])) {
+
             // Задаваме той да е текущия
             $currentTab = $data->currentTab;
-        } elseif ($tabsArr['__defaultTab'] && $tabsArr['__defaultTab']->name && $tabsArr[$tabsArr['__defaultTab']->name]) {
+        } elseif (!empty($tabsArr['__defaultTab']) && $tabsArr['__defaultTab']->name && !empty($tabsArr[$tabsArr['__defaultTab']->name])) {
             
             // Ако не е избран таб, избираме таба по подразбиране зададен от класа
             $currentTab = $tabsArr['__defaultTab']->name;
@@ -203,14 +206,14 @@ class fileman_Indexes extends core_Manager
                 continue;
             }
             
-            if ($data->localUrl) {
+            if (!empty($data->localUrl)) {
                 $urlArr = core_App::parseLocalUrl($data->localUrl);
                 $urlArr['currentTab'] = $name;
                 $urlArr['#'] = 'fileDetail';
             } else {
                 $urlArr = array($data->fhName => $data->rec->fileHnd, 'currentTab' => $name, '#' => 'fileDetail');
-                
-                if ($data->retUrl) {
+
+                if (!empty($data->retUrl)) {
                     $urlArr['ret_url'] = $data->retUrl;
                 }
             }
@@ -232,7 +235,7 @@ class fileman_Indexes extends core_Manager
         $tpl = $tabs->renderHtml($body, $currentTab);
         
         // Ако има подаден шаблон
-        if ($tabsArr[$currentTab]->tpl) {
+        if (!empty($tabsArr[$currentTab]->tpl)) {
             
             // Добавяме чакащите елементи от шаблона
             $tpl->processContent($tabsArr[$currentTab]->tpl); // TODO вероятно ще се промени
@@ -260,7 +263,7 @@ class fileman_Indexes extends core_Manager
         
         // Ако тово разширение трябва да се игнорира
         $ignoreExtArr = arr::make(self::$ignoreExtArr, true);
-        if ($ignoreExtArr[$ext]) {
+        if ($ignoreExtArr[$ext] ?? null) {
             $fArr = fileman_Files::getNameAndExt($fName);
             
             $nExt = fileman_Files::getExt($fArr['name']);
@@ -410,7 +413,7 @@ class fileman_Indexes extends core_Manager
     public static function isProcessStarted($params, $trim = false)
     {
         // Ако няма lockId
-        if (!$params['lockId']) {
+        if (empty($params['lockId'])) {
             $params['lockId'] = fileman_webdrv_Generic::getLockId($params['type'], $params['dataId']);
         }
         
@@ -431,7 +434,7 @@ class fileman_Indexes extends core_Manager
             $content = fileman_Indexes::decodeContent($rec->content);
             
             // Ако в индекса е записана грешка
-            if (($content->errorProc) && (dt::mysql2timestamp($rec->createdOn) < $time)) {
+            if ((is_object($content) && $content->errorProc) && (dt::mysql2timestamp($rec->createdOn) < $time)) {
                 
                 // Изтрива съответния запис
                 fileman_Indexes::delete($rec->id);
@@ -547,7 +550,7 @@ class fileman_Indexes extends core_Manager
             // Ако е валиден файл
             $isValid = is_file($file);
             
-            if (($errFilePath = $params['errFilePath']) && is_file($errFilePath)) {
+            if (($errFilePath = $params['errFilePath'] ?? null) && is_file($errFilePath)) {
                 $errContent = @file_get_contents($errFilePath);
                 
                 $errContent = trim($errContent);
@@ -781,18 +784,18 @@ class fileman_Indexes extends core_Manager
             $ext = fileman_Files::getExt($fName);
             
             // Игнорираме файлове, не трябва да индексираме
-            if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId])) {
-                if ($ignoreExtArr['*']) {
+            if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId] ?? null)) {
+                if ($ignoreExtArr['*'] ?? null) {
                     continue;
                 }
-                
-                if ($ignoreExtArr[$ext]) {
+
+                if ($ignoreExtArr[$ext] ?? null) {
                     continue;
                 }
             }
             
             // Няма нужда за същото разширение да се прави обработка
-            if ($extArr[$ext]) {
+            if (!empty($extArr[$ext])) {
                 continue;
             }
             $extArr[$ext] = $ext;
@@ -803,7 +806,9 @@ class fileman_Indexes extends core_Manager
                 
                 // Намираме драйвера
                 $drvInst = self::getDrvForMethod($ext, 'extractText', $fName);
-                
+
+                $dId = fileman_webdrv_Generic::prepareLockId($fRec);
+
                 if ($drvInst) {
                     try {
                         // Извличаме текстовата част от драйвера
@@ -811,9 +816,7 @@ class fileman_Indexes extends core_Manager
                     } catch (ErrorException $e) {
                         reportException($e);
                     }
-                    
-                    $dId = fileman_webdrv_Generic::prepareLockId($fRec);
-                    
+
                     // Заключваме процеса и изчакваме докато се отключи
                     $lockId = fileman_webdrv_Generic::getLockId('text', $dId);
                     while (core_Locks::isLocked($lockId)) {
@@ -828,7 +831,7 @@ class fileman_Indexes extends core_Manager
                 // Ако не може да се определи текстова част
                 // И ако отговора на условията, извличаме текстовата част с OCR
                 $content = self::getTextForIndex($hnd);
-                $minSize = self::$ocrIndexArr[$ext];
+                $minSize = self::$ocrIndexArr[$ext] ?? null;
                 
                 $ocrText = fileman_Indexes::getInfoContentByFh($hnd, 'textOcr');
                 if ($ocrText === false) {

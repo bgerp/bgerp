@@ -220,8 +220,8 @@ class label_Prints extends core_Master
         $rec = $form->rec;
 
         // Ако е подаден клас и обект
-        $classId = $rec->classId;
-        $objId = $rec->objectId;
+        $classId = $rec->classId ?? null;
+        $objId = $rec->objectId ?? null;
         
         $labelDataArr = array();
         

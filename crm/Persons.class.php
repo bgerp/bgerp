@@ -583,14 +583,14 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
-        if ($data->listFilter->rec->groupId) {
+        if ($data->listFilter->rec->groupId ?? null) {
             $data->title = "Лица в групата|* \"<b style='color:green'>|" .
                 crm_Groups::getTitleById($data->listFilter->rec->groupId) . '|*</b>"';
-        } elseif ($data->listFilter->rec->search) {
+        } elseif ($data->listFilter->rec->search ?? null) {
             $data->title = "Лица отговарящи на филтъра|* \"<b style='color:green'>" .
                 type_Varchar::escape($data->listFilter->rec->search) .
                 '</b>"';
-        } elseif ($data->listFilter->rec->alpha) {
+        } elseif ($data->listFilter->rec->alpha ?? null) {
             if ($data->listFilter->rec->alpha[0] == '0') {
                 $data->title = 'Лица, които започват с не-буквени символи';
             } else {
@@ -1513,6 +1513,8 @@ class crm_Persons extends core_Master
             $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');
             $contrData->validFrom = $person->validFrom;
             $contrData->validTo = $person->validTo;
+
+            $contrData->groupEmails = '';
 
             // Ако е свързан с фирма
             if ($person->buzCompanyId) {

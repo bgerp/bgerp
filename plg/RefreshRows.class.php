@@ -185,7 +185,7 @@ class plg_RefreshRows extends core_Plugin
         if ($statusHash != $savedHash) {
             
             // Ако ще се обновява ръчно
-            if ($mvc->manualRefreshCnt) {
+            if ($mvc->manualRefreshCnt ?? null) {
                 $refeshCnt = (int) core_Cache::get(get_called_class(), $manualNameHash);
                 $refeshCnt++;
                 
@@ -326,8 +326,8 @@ class plg_RefreshRows extends core_Plugin
      */
     public static function on_AfterStopManualRefresh($mvc, &$res, $nameHash)
     {
-        if (!$mvc->manualRefreshCnt) {
-            
+        if (!($mvc->manualRefreshCnt ?? null)) {
+
             return ;
         }
         
