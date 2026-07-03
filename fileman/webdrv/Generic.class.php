@@ -47,10 +47,10 @@ class fileman_webdrv_Generic extends core_Manager
     public static function getArrows($fRec){
         $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
 
-        $prevUrl = $fileNavArr[$fRec->fileHnd]['prev'];
-        $nextUrl = $fileNavArr[$fRec->fileHnd]['next'];
+        $prevUrl = $fileNavArr[$fRec->fileHnd]['prev'] ?? null;
+        $nextUrl = $fileNavArr[$fRec->fileHnd]['next'] ?? null;
 
-        $resArr = array();
+        $resArr = array('prevLink' => '', 'nextLink' => '');
 
         if ($prevUrl) {
             $resArr['prevLink'] = ht::createLink('', $prevUrl, false, 'ef_icon=img/prev.png,class=prevLink');
@@ -321,6 +321,8 @@ class fileman_webdrv_Generic extends core_Manager
 
             $style = Mode::is('screenMode', 'wide') ? "display: table-cell; vertical-align: middle;" : "";
 
+            $jqRun = '';
+
             // Създаваме шаблон за preview на изображението
             $preview = new ET("<div id='imgBg' style='background-image:url(" . $bgImg . "); padding: 8px 0 0px; height: 598px; display: table;width: 100%;'><div  style='margin: 0 auto;" . $style . "'>[#THUMB_IMAGE#]</div></div>");
             
@@ -407,9 +409,11 @@ class fileman_webdrv_Generic extends core_Manager
             return tr($barcodes->errorProc);
         }
         
+        $barcodeStr = '';
+
         // Ако е масив
         if (is_array($barcodes)) {
-            
+
             // Обхождаме масива
             foreach ($barcodes as $barcode) {
                 
@@ -813,7 +817,7 @@ class fileman_webdrv_Generic extends core_Manager
         unset($excludeExtArr[' ']);
         if (!empty($excludeExtArr)) {
             $ext = mb_strtolower($ext);
-            if ($excludeExtArr[$ext]) {
+            if (!empty($excludeExtArr[$ext])) {
                 
                 return false;
             }
@@ -1015,7 +1019,7 @@ class fileman_webdrv_Generic extends core_Manager
             $sbfIcon = sbf('/img/16/back16.png', '');
             
             // Добавяме към стринга линк с икона
-            $dirsAndFilesStr = "<span class='linkWithIcon' style='background-image:url(${sbfIcon});'>{$link}</span>";
+            $dirsAndFilesStr = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'>{$link}</span>";
         }
         
         // Броя на всички документи в архива
@@ -1277,13 +1281,13 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Обхождаме всики директории и файлове
         foreach ($filesArr as $index => $file) {
-            
+
+            // Дали да прескочи
+            $continue = false;
+
             // В зависимост от дълбочината обхождаме файловете
             for ($i = 0; $i < $depth; $i++) {
-                
-                // Дали да прескочи
-                $continue = false;
-                
+
                 // Ако пътя до файла е различен от директорията
                 if ($file[$i] != $pathArr[$i]) {
                     
@@ -1347,6 +1351,8 @@ class fileman_webdrv_Generic extends core_Manager
      */
     public static function prepareDirsInArchive($filesArr, $path)
     {
+        $text = '';
+
         // Обхождаме всики директории
         foreach ($filesArr as $file => $index) {
             
@@ -1371,7 +1377,7 @@ class fileman_webdrv_Generic extends core_Manager
             $sbfIcon = sbf($icon, '');
             
             // Създаваме стринга
-            $foldersStr = "<span class='linkWithIcon' style='background-image:url(${sbfIcon});'>{$link}</span>";
+            $foldersStr = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'>{$link}</span>";
             $text .= ($text) ? "\n" . $foldersStr : $foldersStr;
         }
         
@@ -1388,6 +1394,8 @@ class fileman_webdrv_Generic extends core_Manager
      */
     public static function prepareFilesInArchive($filesArr, $fileHnd, $sizeContentArr = null)
     {
+        $text = '';
+
         // Обхождаме вски файлове в текущата директория
         foreach ($filesArr as $file => $index) {
             
@@ -1416,7 +1424,7 @@ class fileman_webdrv_Generic extends core_Manager
             $link = ht::createLink($file, $url, null, array('target' => '_blank'));
             
             // Създаваме стринга
-            $fileStr = "<span class='linkWithIcon' style='background-image:url(${sbfIcon});'>{$link}</span>";
+            $fileStr = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'>{$link}</span>";
             $text .= ($text) ? "\n" . $fileStr : $fileStr;
         }
         
@@ -1461,7 +1469,7 @@ class fileman_webdrv_Generic extends core_Manager
     public static function getArchiveInst($fRec)
     {
         // Ако не сме създали инстанция преди
-        if (!self::$archiveInst[$fRec->fileHnd]) {
+        if (empty(self::$archiveInst[$fRec->fileHnd])) {
             
             // Проверяваме големината на архива
             self::checkArchiveLen($fRec->dataId);
@@ -1612,12 +1620,13 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Ако има двуеточние с интервал
             if (strripos($contentLine, ': ') !== false) {
-                
+
                 // Разделяме реда на тагове и стойност
                 list($tag, $value) = explode(': ', $contentLine, 2);
             } else {
-                
+
                 // Стойността е цялото поле
+                $tag = null;
                 $value = $contentLine;
             }
             
