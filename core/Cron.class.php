@@ -548,15 +548,15 @@ class core_Cron extends core_Manager
             if (!is_array($data)) {
                 $data = [];
             }
-            if (($rec->lastMaxUsedMemory >= $data['maxUsedMemory']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxUsedMemoryTime'])) {
+            if (($rec->lastMaxUsedMemory >= ($data['maxUsedMemory'] ?? 0)) || (dt::subtractSecs($mPeriod, $rec->lastDone) > ($data['maxUsedMemoryTime'] ?? 0))) {
                 $data['maxUsedMemory'] = $rec->lastMaxUsedMemory;
                 $data['maxUsedMemoryTime'] = $rec->lastDone;
                 $saveArr['data'] = 'data';
             }
-            
+
             $duration = dt::secsBetween($rec->lastDone, $rec->lastStart);
             $duration -= $rec->delay;
-            if (($duration >= $data['maxDuration']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxDurationTime'])) {
+            if (($duration >= ($data['maxDuration'] ?? 0)) || (dt::subtractSecs($mPeriod, $rec->lastDone) > ($data['maxDurationTime'] ?? 0))) {
                 $data['maxDuration'] = $duration;
                 $data['maxDurationTime'] = $rec->lastDone;
                 $saveArr['data'] = 'data';
