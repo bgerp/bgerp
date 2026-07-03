@@ -390,7 +390,7 @@ class doc_Files extends core_Manager
             }
             
             // Ако файла е бил записан
-            if ($savedFh[$fh]) {
+            if ($savedFh[$fh] ?? null) {
                 
                 // Премахваме от масива
                 unset($savedFh[$fh]);

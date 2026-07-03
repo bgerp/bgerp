@@ -260,7 +260,7 @@ class fileman_Indexes extends core_Manager
         
         // Ако тово разширение трябва да се игнорира
         $ignoreExtArr = arr::make(self::$ignoreExtArr, true);
-        if ($ignoreExtArr[$ext]) {
+        if ($ignoreExtArr[$ext] ?? null) {
             $fArr = fileman_Files::getNameAndExt($fName);
             
             $nExt = fileman_Files::getExt($fArr['name']);
@@ -781,12 +781,12 @@ class fileman_Indexes extends core_Manager
             $ext = fileman_Files::getExt($fName);
             
             // Игнорираме файлове, не трябва да индексираме
-            if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId])) {
-                if ($ignoreExtArr['*']) {
+            if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId] ?? null)) {
+                if ($ignoreExtArr['*'] ?? null) {
                     continue;
                 }
-                
-                if ($ignoreExtArr[$ext]) {
+
+                if ($ignoreExtArr[$ext] ?? null) {
                     continue;
                 }
             }
