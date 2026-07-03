@@ -488,7 +488,7 @@ class fconv_Script
         }
         if (!empty($checkProgramsArr)) {
             foreach ($checkProgramsArr as $program) {
-                if($missing[$program]) return false;
+                if($missing[$program] ?? null) return false; // Това се изпълнява винаги
                 if (isset($this->programs[$program])) {
                     $path = $this->programs[$program];
                 } else {
