@@ -2232,6 +2232,7 @@ class planning_Tasks extends core_Master
         $data->listFilter->showFields .= ',folders,productId, saleId';
         $data->listFilter->setField('productId','before=isFinalSelect');
         $data->listFilter->input('productId, saleId');
+        $data->query->isSlowQuery = true;
 
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders ?? null);
