@@ -706,15 +706,19 @@ class acc_plg_DocumentSummary extends core_Plugin
 
                 $row->colspan = 1;
                 if (isset($rec->amount)) {
-                    $row->amount = $Double->toVerbal($rec->amount);
-                    $row->amount = currency_Currencies::decorate($row->amount,  $rec->measure, true);
-                    $row->amount = ht::styleNumber($row->amount, $rec->amount);
+                    if(!doc_plg_HidePrices::canSeePriceFields($data->query->mvc, $rec)){
+                        $row->amount = doc_plg_HidePrices::getBuriedElement();
+                    } else{
+                        $row->amount = $Double->toVerbal($rec->amount);
+                        $row->amount = currency_Currencies::decorate($row->amount,  $rec->measure, true);
+                        $row->amount = ht::styleNumber($row->amount, $rec->amount);
 
-                    if(!empty($data->hasDocumentBeforeEu)){
-                        $amountBgn = currency_CurrencyRates::convertAmount($rec->amount, null, 'EUR', 'BGN');
-                        $row->amountBgn = $Double->toVerbal($amountBgn);
-                        $row->amountBgn = currency_Currencies::decorate($row->amountBgn,  'BGN');
-                        $row->amountBgn = ht::styleNumber($row->amountBgn, $amountBgn);
+                        if(!empty($data->hasDocumentBeforeEu)){
+                            $amountBgn = currency_CurrencyRates::convertAmount($rec->amount, null, 'EUR', 'BGN');
+                            $row->amountBgn = $Double->toVerbal($amountBgn);
+                            $row->amountBgn = currency_Currencies::decorate($row->amountBgn, 'BGN');
+                            $row->amountBgn = ht::styleNumber($row->amountBgn, $amountBgn);
+                        }
                     }
                 } elseif (isset($rec->quantity)) {
                     $row->measure = $rec->measure;
