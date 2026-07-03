@@ -2227,7 +2227,7 @@ class planning_Tasks extends core_Master
         $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf'));
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect');
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect,class=w100');
         $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
         $data->listFilter->showFields .= ',folders,productId, saleId';
         $data->listFilter->setField('productId','before=isFinalSelect');
