@@ -321,9 +321,9 @@ class doc_Files extends core_Manager
     {
         // Вземаме данните
         $id = $rec->id;
-        $containerId = $rec->containerId;
-        $folderId = $rec->folderId;
-        $threadId = $rec->threadId;
+        $containerId = $rec->containerId ?? null;
+        $folderId = $rec->folderId ?? null;
+        $threadId = $rec->threadId ?? null;
         
         $show = 'yes';
         if ($rec->state == 'rejected') {

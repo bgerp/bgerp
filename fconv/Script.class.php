@@ -312,7 +312,7 @@ class fconv_Script
         
         $cmdArr = explode(' ', $cmdLine);
         $program = $cmdArr[0];
-        $binPath = $this->programs[$program] ? $this->programs[$program] : $program;
+        $binPath = ($this->programs[$program] ?? null) ? $this->programs[$program] : $program;
         $cmdArr[0] = $binPath;
         $cmdLine = implode(' ', $cmdArr);
         
