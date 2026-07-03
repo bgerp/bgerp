@@ -146,9 +146,9 @@ class type_Key2 extends type_Int
             }
         }
 
-        $haveSelectSourceArr = $this->params['selectSourceArr'];
-        if (!$this->params['selectSourceArr']) {
-            if ($this->params['selectSource']) {
+        $haveSelectSourceArr = $this->params['selectSourceArr'] ?? null;
+        if (!($this->params['selectSourceArr'] ?? null)) {
+            if ($this->params['selectSource'] ?? null) {
                 $this->params['selectSourceArr'] = explode('::', $this->params['selectSource']);
             } else {
                 $this->params['selectSourceArr'] = array($this->params['mvc'], 'getSelectArr');
@@ -164,7 +164,7 @@ class type_Key2 extends type_Int
 
         core_Debug::startTimer($debugKey);
 
-        if (!$this->params['titleFld']) {
+        if (!($this->params['titleFld'] ?? null)) {
             $mvc = cls::get($this->params['mvc']);
             if ($mvc->getField('name', false)) {
                 $this->params['titleFld'] = 'name';
@@ -174,7 +174,9 @@ class type_Key2 extends type_Int
             }
         }
 
-        if(!$haveSelectSourceArr){
+        $this->params['titleFld'] = $this->params['titleFld'] ?? $this->params['select'] ?? null;
+
+        if (!$haveSelectSourceArr) {
             expect($this->params['titleFld'], $this);
         }
 
@@ -255,7 +257,7 @@ class type_Key2 extends type_Int
             $this->params['maxSuggestions'] = 100000;
         }
         
-        if (!$this->params['maxSuggestions']) {
+        if (!($this->params['maxSuggestions'] ?? null)) {
             $maxSuggestions = $this->params['maxSuggestions'] = core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', true);
         } else {
             $maxSuggestions = $this->params['maxSuggestions'];
@@ -270,7 +272,7 @@ class type_Key2 extends type_Int
             $this->params['forceAjax'] = false;
         }
         
-        if (!$this->params['forceAjax']) {
+        if (!($this->params['forceAjax'] ?? null)) {
             $options = $this->getOptions($maxSuggestions);
         }
         if (ctype_digit("{$value}")) {
@@ -286,11 +288,11 @@ class type_Key2 extends type_Int
         
         $optionsCnt = countR($options);
         
-        if ($this->params['allowEmpty']) {
-            $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' =>
+        if ($this->params['allowEmpty'] ?? null) {
+            $placeHolder = array('' => (object) array('title' => ($attr['placeholder'] ?? null) ?: ' ', 'attr' =>
                 array('style' => 'color:#777;')));
             $options = arr::combine($placeHolder, $options);
-        } elseif ($attr['placeholder'] && $optionsCnt != 1) {
+        } elseif (($attr['placeholder'] ?? null) && $optionsCnt != 1) {
             $placeHolder = array('' => (object) array('title' => $attr['placeholder'], 'attr' =>
                 array('style' => 'color:#777;', 'disabled' => 'disabled')));
             $options = arr::combine($placeHolder, $options);
@@ -304,24 +306,24 @@ class type_Key2 extends type_Int
             ht::setUniqId($attr);
             $tpl = ht::createSelect($name, $options, $value, $attr);
 
-            $matchOnlyStartsWith = $this->params['find'] == 'everywhere' ? false : true;
+            $matchOnlyStartsWith = ($this->params['find'] ?? null) == 'everywhere' ? false : true;
 
             $ajaxUrl = '';
             $handler = $this->getHandler();
-            if ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions - 1)) {
+            if (($this->params['forceAjax'] ?? null) || ($optionsCnt >= $maxSuggestions - 1)) {
                 $ajaxUrl = toUrl(array($this, 'getOptions', 'hnd' => $handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1, 'matchOnlyStartsWith' => $matchOnlyStartsWith), 'absolute-force');
             }
             
             $allowClear = false;
-            if ($this->params['allowEmpty'] || isset($options[''])) {
+            if (($this->params['allowEmpty'] ?? null) || isset($options[''])) {
                 $allowClear = true;
             }
 
             $minimumResultsForSearch = isset($this->params['minimumResultsForSearch']) ? $this->params['minimumResultsForSearch'] : null;
 
             // Добавяме необходимите файлове и стартирам select2
-            select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl, false, $this->params['forceOpen'], $minimumResultsForSearch, $matchOnlyStartsWith);
-        } elseif ((!defined('TEST_MODE') && !TEST_MODE) && ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')))) {
+            select2_Adapter::appendAndRun($tpl, $attr['id'] ?? null, $attr['placeholder'] ?? null, $allowClear, null, $ajaxUrl, false, $this->params['forceOpen'] ?? null, $minimumResultsForSearch, $matchOnlyStartsWith);
+        } elseif ((defined('TEST_MODE') && TEST_MODE) === false && ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')))) {
             // Показваме Combobox
             
             $this->params['inputType'] = 'combo';

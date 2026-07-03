@@ -278,7 +278,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $rec = $data->rec;
 
         // Ако режима е за показване на сравнения при клониране
-        if($data->_showDiff){
+        if(!empty($data->_showDiff)){
 
             // Подготвя се изгледа на оригиналния артикул и се показват разликите спрямо него
             $clonedRec = $Embedder->fetch($rec->clonedFromId);
@@ -592,7 +592,7 @@ abstract class cat_ProductDriver extends core_BaseClass
         $Detail = cls::get($detailClass);
         $Master = cls::get($detailClass)->Master;
         $dRec = $Detail->fetch($detailId);
-        $packQuantity = $dRec->packQuantity;
+        $packQuantity = $dRec->packQuantity ?? null;
         if($Detail instanceof deals_InvoiceDetail){
             $packQuantity = $dRec->quantity;
         }
@@ -795,7 +795,9 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function assignSerial($id, $serial, $sourceClassId = null, $sourceObjectId = null)
     {
-        return cat_Serials::assignSerial($serial, $sourceClassId, $sourceObjectId);
+        cat_Serials::assignSerial($serial, $sourceClassId, $sourceObjectId);
+
+        return $serial;
     }
     
     
@@ -812,10 +814,22 @@ abstract class cat_ProductDriver extends core_BaseClass
             if (cls::load($sRec->sourceClassId, true)) {
                 $Source = cls::get($sRec->sourceClassId);
                 if ($Source->getField('productId', false)) {
-                    if ($productId = $Source->fetchField($sRec->sourceObjectId, 'productId')) {
-                        
-                        return cat_Products::fetch($productId);
+                    $sourceRec = $Source->fetch($sRec->sourceObjectId);
+                    $productId = $sourceRec->productId;
+                    if($Source instanceof planning_Tasks){
+                        if($sourceRec->isFinal == 'yes'){
+                            $productId = planning_Jobs::fetchField("#containerId = {$sourceRec->originId}", 'productId');
+                        }
+
+                        // Ако серийния номер е от оттеглен прогрес - все едно го няма
+                        $dRec = planning_ProductionTaskDetails::getQuery();
+                        $dRec->where(array("#serial = '[#1#]' AND #taskId = {$sourceRec->id} AND #productId = {$productId} AND #state != 'rejected'", $serial));
+                        if(!$dRec->count()){
+                            $productId = null;
+                        }
                     }
+
+                    if ($productId) return cat_Products::fetch($productId);
                 }
             }
         }
@@ -893,7 +907,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 
         if(!empty($res)){
             if (preg_match('/(\\d{1,6})[xh](\\d{1,6})([xh](\\d{1,6})|) /i', $res, $matches)) {
-                $res .= ' ' . $matches[1] . ' ' . $matches[2] . ' ' . $matches[4];
+                $res .= ' ' . $matches[1] . ' ' . $matches[2] . ' ' . ($matches[4] ?? '');
             }
         }
     }
@@ -1021,6 +1035,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      *          string      ['wasteStart']            - начално количество отпадък
      *          string      ['wastePercent']          - процент отпадък
      *          string      ['calcWeightMode']        - изчисляване на тегло или не
+     *          string      ['fastProgressBtn']       - да се показва ли бутон за бърз прогрес в листа на ПО
      *          string      ['mandatoryDocuments']    - задължителни документи
      *          text        ['description']           - описание на операцията
      *          int         ['supportSystemFolderId'] - папка за поддръжка

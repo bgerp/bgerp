@@ -36,12 +36,13 @@ class cat_Wrapper extends plg_ProtoWrapper
         $this->TAB('cat_Params', 'Параметри->Списък', 'cat,ceo,sales,purchase');
         $this->TAB('cat_ParamFormulaVersions', 'Параметри->Версии на формулите', 'cat,ceo,sales,purchase');
 
+        $this->TAB('cat_RelationTypes', 'Релации->Видове', 'cat,admin');
+        $this->TAB('cat_products_Relations', 'Релации->Списък', 'catEdit,ceo');
+
         $this->TAB('cat_ProductTplCache', 'Дебъг->Кеш', 'ceo, debug, cat');
         $this->TAB('cat_Serials', 'Дебъг->Генерирани номера', 'debug');
         $this->TAB('cat_products_Params', 'Дебъг->Продуктови параметри', 'debug');
         $this->TAB('cat_products_VatGroups', 'Дебъг->ДДС групи', 'debug');
-
-
 
         $this->title = 'Продукти';
     }

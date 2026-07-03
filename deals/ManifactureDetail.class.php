@@ -63,11 +63,11 @@ abstract class deals_ManifactureDetail extends doc_Detail
     public static function on_AfterDescription(&$mvc)
     {
         // Дефолтни имена на полетата от модела
-        setIfNot($mvc->packQuantityFld, 'packQuantity');
-        setIfNot($mvc->quantityInPackFld, 'quantityInPack');
-        setIfNot($mvc->quantityFld, 'quantity');
-        setIfNot($mvc->productFld, 'productId');
-        setIfNot($mvc->packagingFld, 'packagingId');
+        setPartIfNot($mvc, 'packQuantityFld', 'packQuantity');
+        setPartIfNot($mvc, 'quantityInPackFld', 'quantityInPack');
+        setPartIfNot($mvc, 'quantityFld', 'quantity');
+        setPartIfNot($mvc, 'productFld', 'productId');
+        setPartIfNot($mvc, 'packagingFld', 'packagingId');
     }
     
     
@@ -124,8 +124,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        setIfNot($data->defaultMeta, $mvc->defaultMeta);
-        setIfNot($data->defaultNotHaveMeta, $mvc->defaultNotHaveMeta);
+        setPartIfNot($data, 'defaultMeta', $mvc->defaultMeta);
+        setPartIfNot($data, 'defaultNotHaveMeta', $mvc->defaultNotHaveMeta);
 
         if (!$data->defaultMeta && !$data->defaultNotHaveMeta) return;
 
@@ -151,11 +151,11 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         $rec = &$form->rec;
         
-        if ($rec->productId) {
+        if (isset($rec->productId)) {
             $measureId = cat_Products::fetchField($rec->productId, 'measureId');
             $form->setDefault('measureId', $measureId);
             
-            if($form->_replaceProduct !== true){
+            if(empty($form->_replaceProduct)){
                 $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
 
                 // Ако е само една разрешената мярка да се зареди тя
@@ -173,14 +173,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
         
         if ($form->isSubmitted()) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-            
-            if ($rec->productId) {
-                if ($rec->productId) {
-                    $rec->measureId = $productInfo->productRec->measureId;
-                }
-            }
-            
+            $rec->quantityInPack = isset($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->measureId = $productInfo->productRec->measureId;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
         }
     }
@@ -242,7 +236,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
             $row->ROW_ATTR['style'] = ' background-color:#f1f1f1;color:#777';
         }
     }
-    
+
+
     /**
      * Импортиране на артикул генериран от ред на csv файл
      *
@@ -263,11 +258,11 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
 
         $productInfo = cat_Products::getProductInfo($pRec->productId);
-        $quantityInPack = ($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
+        $quantityInPack = isset($productInfo->packagings[$pRec->packagingId]) ? $productInfo->packagings[$pRec->packagingId]->quantity : 1;
         $packQuantity = $row->quantity;
         $batch = is_array($row->batches) ? $row->batches : $row->batch;
 
-        $isSubProduct = $row->_type == 'subProduct' ? true : false;
+        $isSubProduct = $row->_type == 'subProduct';
 
         return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId, $packQuantity, $quantityInPack, false, null, $isSubProduct, $batch);
     }
@@ -283,9 +278,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
     {
         $me = cls::get(get_called_class());
         $dQuery = $me->getQuery();
-
-        $dQuery->where("#{$me->masterKey} = {$masterId} AND #canStore = 'yes'");
         $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $dQuery->where("#{$me->masterKey} = {$masterId} AND #canStore = 'yes'");
 
         return $dQuery->count();
     }

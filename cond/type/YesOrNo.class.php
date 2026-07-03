@@ -29,7 +29,19 @@ class cond_type_YesOrNo extends cond_type_abstract_Proto
      */
     public function getType($rec, $domainClass = null, $domainId = null, $value = null)
     {
-        $Type = core_Type::getByName('enum(yes=Да,no=Не)');
+        // Ако параметъра е към прототипен артикул - да се добави и празна опция
+        $enum = 'enum(yes=Да,no=Не)';
+        if(isset($domainClass) && isset($domainId)){
+            $Domain = cls::get($domainClass);
+            if($Domain instanceof cat_Products){
+                $state = $Domain->fetchField($domainId, 'state');
+                if($state == 'template'){
+                    $enum = 'enum(,yes=Да,no=Не)';
+                }
+            }
+        }
+
+        $Type = core_Type::getByName($enum);
         $Type->params['maxRadio'] = 2;
 
         return $Type;

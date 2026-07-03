@@ -77,6 +77,12 @@ class hr_Shifts extends core_Manager
 
 
     /**
+     * Кеш за активните смени
+     */
+    public static $activeShifts = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -100,14 +106,16 @@ class hr_Shifts extends core_Manager
      */
     public static function getShiftByInterval($date, core_Intervals $Int)
     {
-        // Всички активни смени
-        $query = self::getQuery();
-        $query->where("#state = 'active'");
-        $query->show('name,start,duration');
+        if(empty(static::$activeShifts)){
+            // Всички активни смени
+            $query = self::getQuery();
+            $query->where("#state = 'active'");
+            $query->show('name,start,duration');
+            static::$activeShifts = $query->fetchAll();
+        }
 
         $shifts = array();
-        while($rec = $query->fetch()){
-
+        foreach(static::$activeShifts as $shiftId => $rec){
             // За всяка смяна се гледа колко ѝ е сечението с работния график
             $start = "{$date} {$rec->start}:00";
             $end = dt::addSecs($rec->duration, $start);
@@ -139,7 +147,7 @@ class hr_Shifts extends core_Manager
     public static function getShift($date, $personId, &$scheduleId = null)
     {
         // Какъв е графикът на лицето
-        $scheduleId = planning_Hr::getSchedule($personId);
+        $scheduleId = $scheduleId ?? planning_Hr::getSchedule($personId);
 
         // Ще се вземе графика от 22 часа на предходния ден до 06 часа на следващия ден
         $from = dt::addSecs(-2 * 60 * 60, $date);
@@ -147,7 +155,9 @@ class hr_Shifts extends core_Manager
         $Interval   = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to);
 
         // Определяне в коя смяна е лицето на тази дата спрямо интервала
-        return self::getShiftByInterval($date, $Interval);
+        $id = self::getShiftByInterval($date, $Interval);
+
+        return $id;
     }
 
 

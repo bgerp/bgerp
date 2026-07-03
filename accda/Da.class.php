@@ -234,7 +234,7 @@ class accda_Da extends core_Master
         
         // Показваме само локациите на нашата фирма за ибзор
         $ownCompany = crm_Companies::fetchOurCompany();
-        $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
+        $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id ?? null);
         if (countR($ourLocations)) {
             $form->setOptions('location', array('' => '') + $ourLocations);
         } else {
@@ -244,7 +244,7 @@ class accda_Da extends core_Master
         if ($form->cmd == 'refresh') {
             
             // Опитваме се да определим координатите от локацията
-            if ($form->rec->location && !$form->rec->gpsCoords) {
+            if (($form->rec->location ?? null) && !($form->rec->gpsCoords ?? null)) {
                 $lRec = crm_Locations::fetch($form->rec->location);
                 if ($lRec && $lRec->gpsCoords) {
                     $form->rec->gpsCoords = $lRec->gpsCoords;
@@ -252,7 +252,7 @@ class accda_Da extends core_Master
             }
             
             // Добавяме снимка от артикула
-            if ($form->rec->productId && !$form->rec->image) {
+            if (($form->rec->productId ?? null) && !($form->rec->image ?? null)) {
                 $pRec = cat_Products::fetch($form->rec->productId);
                 if ($pRec && $pRec->photo) {
                     $form->rec->image = $pRec->photo;
@@ -312,7 +312,7 @@ class accda_Da extends core_Master
     {
         $rec = &$form->rec;
 
-        if (!$rec->gpsCoords && $rec->image) {
+        if (empty($rec->gpsCoords) && !empty($rec->image)) {
             if ($gps = exif_Reader::getGps($rec->image)) {
                 // Ако има GPS коодинати в снимката ги извличаме
                 $rec->gpsCoords = $gps['lat'] . ', ' . $gps['lon'];
@@ -387,7 +387,7 @@ class accda_Da extends core_Master
     public function on_AfterPrepareRetUrl($mvc, $data)
     {
         // След натискане на бутона контиране във формата - да прави съответното действие
-        if ($data->form->rec->id && $data->form->rec->_conto) {
+        if (!empty($data->form->rec->id) && !empty($data->form->rec->_conto)) {
             
             $contoUrl = $mvc->getContoUrl($data->form->rec->id);
             
@@ -425,7 +425,7 @@ class accda_Da extends core_Master
     {
         $data->listFilter->setField('location', 'caption=Локация');
         $ownCompany = crm_Companies::fetchOurCompany();
-        $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
+        $ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id ?? null);
         if (countR($ourLocations)) {
             $data->listFilter->addAttr('location', array('formOrder' => 11));
             $data->listFilter->fields['location']->formOrder = 11;
@@ -433,7 +433,7 @@ class accda_Da extends core_Master
             $data->listFilter->showFields .= ',location';
             $data->listFilter->input('location');
             
-            if ($data->listFilter->rec->location) {
+            if ($data->listFilter->rec->location ?? null) {
                 $data->query->where(array("#location = '[#1#]'", $data->listFilter->rec->location));
             }
         }

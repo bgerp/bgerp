@@ -28,7 +28,7 @@ class doc_SharablePlg extends core_Plugin
         // Поле за потребителите, с които е споделен документа (ако няма)
         if (!$mvc->getField('sharedUsers', false)) {
             $mvc->FLD('sharedUsers', 'userList(showClosedUsers=no)', 'caption=Споделяне->Потребители,notChangeableIfHidden');
-            if($mvc->hideSharedUsersFld){
+            if (!empty($mvc->hideSharedUsersFld)) {
                 $mvc->setField('sharedUsers', 'input=hidden');
             }
         }
@@ -54,11 +54,11 @@ class doc_SharablePlg extends core_Plugin
         }
         
         // Дали да са споделени потребителите от оригиналния документ (ако създателят е един и същи)
-        setIfNot($mvc->autoShareOriginShared, true);
-        setIfNot($mvc->autoShareOriginCreator, false);
-        setIfNot($mvc->autoShareCurrentUser, false);
+        setPartIfNot($mvc, 'autoShareOriginShared', true);
+        setPartIfNot($mvc, 'autoShareOriginCreator', false);
+        setPartIfNot($mvc, 'autoShareCurrentUser', false);
 
-        $mvc->autoShareFields = arr::make($mvc->autoShareFields, true);
+        $mvc->autoShareFields = arr::make($mvc->autoShareFields ?? null, true);
         $mvc->autoShareFields['sharedUsers'] = 'sharedUsers';
     }
     
@@ -79,7 +79,7 @@ class doc_SharablePlg extends core_Plugin
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
             foreach ((array) $mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
-                    if ($field->type->params['nickToLink'] == 'no') {
+                    if (($field->type->params['nickToLink'] ?? null) == 'no') {
                         continue;
                     }
                     
@@ -183,7 +183,7 @@ class doc_SharablePlg extends core_Plugin
             $rec->sharedViews = serialize($viewedBy);
             
             if ($mvc->save_($rec, 'sharedViews')) {
-                core_Cache::remove($mvc->className, $data->cacheKey . '%');
+                core_Cache::remove($mvc->className, ($data->cacheKey ?? '') . '%');
                 
                 doc_DocumentCache::addToInvalidateCId($rec->containerId);
             }
@@ -239,7 +239,7 @@ class doc_SharablePlg extends core_Plugin
         
         $htmlStr = implode(', ', $html);
         
-        $htmlStr = "${htmlStr}";
+        $htmlStr = "{$htmlStr}";
         
         return $htmlStr;
     }
@@ -280,7 +280,7 @@ class doc_SharablePlg extends core_Plugin
         $users = array();
         
         foreach ($roles as $rId) {
-            if (is_array($allUsers[$rId])) {
+            if (isset($allUsers[$rId]) && is_array($allUsers[$rId])) {
                 $users += $allUsers[$rId];
             }
         }
@@ -362,19 +362,19 @@ class doc_SharablePlg extends core_Plugin
         }
         
         $vals = core_Settings::fetchKey(doc_Folders::getSettingsKey($folderId));
-        if ($vals['shareMaxCnt'] === 0) {
+        if (($vals['shareMaxCnt'] ?? null) === 0) {
             
             return $shareUsers;
         }
         
         setIfNot($vals['shareMaxCnt'], 12);
         
-        if ($formRec->threadId && ($vals['shareFromThread'] != 'no')) {
+        if (!empty($formRec->threadId) && (($vals['shareFromThread'] ?? null) != 'no')) {
             $shareUsers += doc_ThreadUsers::getSubscribed($formRec->threadId);
             $shareUsers += doc_ThreadUsers::getShared($formRec->threadId);
         }
         
-        if ($vals['shareUsers']) {
+        if (!empty($vals['shareUsers'])) {
             $shareUsers += type_Keylist::toArray($vals['shareUsers']);
         } else {
             $fRec = doc_Folders::fetch($folderId);
@@ -488,23 +488,23 @@ class doc_SharablePlg extends core_Plugin
         
         $currUserId = core_Users::getCurrent();
 
-        if (!is_array($res['sharedUsers'])) {
-            $res['sharedUsers'] = type_UserList::toArray($res['sharedUsers']);
+        if (!is_array($res['sharedUsers'] ?? null)) {
+            $res['sharedUsers'] = type_UserList::toArray($res['sharedUsers'] ?? null);
         }
 
         if ($mvc->autoShareCurrentUser) {
             $res['sharedUsers'][$currUserId] = $currUserId;
         }
         
-        $orig = $rec->originId;
-        if (!$orig && $rec->threadId) {
+        $orig = $rec->originId ?? null;
+        if (!$orig && !empty($rec->threadId)) {
             $orig = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
         }
         
-        if ($rec->originId) {
+        if (!empty($rec->originId)) {
             $document = doc_Containers::getDocument($rec->originId);
             
-            $shareFieldsArr = arr::make($document->autoShareFields, true);
+            $shareFieldsArr = arr::make($document->autoShareFields ?? true, true);
             
             $dRec = $document->fetch();
             

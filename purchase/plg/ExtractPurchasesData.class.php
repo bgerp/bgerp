@@ -184,7 +184,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 }
                 
                 purchase_PurchasesData::save($dRec);
-                
+
                 self::setUpdateOnShutdown($mvc, $rec);
             }
         }
@@ -198,7 +198,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     {
         $threadsArr = self::getTrhreadsForUpdate($mvc, $rec);
         
-        if (!is_array($mvc->allocateThreadsOnShutdown)) {
+        if (!is_array($mvc->allocateThreadsOnShutdown ?? null)) {
             $mvc->allocateThreadsOnShutdown = $threadsArr;
         } else {
             $mvc->allocateThreadsOnShutdown += $threadsArr;
@@ -243,7 +243,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
-       if (is_array($mvc->allocateThreadsOnShutdown)) {
+       if (is_array($mvc->allocateThreadsOnShutdown ?? null)) {
             foreach ($mvc->allocateThreadsOnShutdown as $threadId) {
                 self::getAllocatedCostsByProduct($threadId);
             }

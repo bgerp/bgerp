@@ -224,7 +224,7 @@ class cash_Pko extends cash_Document
         // Оставяме само тези операции, в които се дебитира основната сметка на документа
         foreach ($operations as $sysId => $op) {
             if ($op['debit'] == static::$baseAccountSysId) {
-                $options[$sysId] = $op['title'];
+                $options[$sysId] = tr($op['title']);
             }
         }
         
@@ -252,18 +252,45 @@ class cash_Pko extends cash_Document
     {
         $rec = $data->rec;
 
+        // Ако има направено безналично плащане с карта
+        $cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id);
+        $hasMismatchedPeripherals = false;
+        if(Mode::isReadOnly()){
+            unset($data->row->bankPeripheralDeviceId);
+        } else {
+
+            // Кои са наличните БПТ на устройството
+            $bankPeripherals = peripheral_Devices::getDevices('bank_interface_POS');
+            $countPeripherals = countR($bankPeripherals);
+            if(is_object($cardPaymentRec)){
+
+                // Ако има избран БПТ и има картово плащане и БПТ НЕ Е сред достъпните - показва се нотификация
+                if(!empty($rec->bankPeripheralDeviceId)){
+                    $data->row->bankPeripheralDeviceId = cash_NonCashPaymentDetails::getCardPaymentBtnName($rec->bankPeripheralDeviceId);
+                    if(!array_key_exists($rec->bankPeripheralDeviceId, $bankPeripherals)){
+                        $data->row->bankPeripheralDeviceId = ht::createHint($data->row->bankPeripheralDeviceId, "В документа е избран банков паричен терминал, който не е достъпен от това устройство!", 'warning', false);
+                        $data->row->bankPeripheralDeviceId = ht::createElement("span", array('class' => 'amberBadge'), $data->row->bankPeripheralDeviceId, true);
+                        $hasMismatchedPeripherals = true;
+                    }
+                } elseif($countPeripherals){
+
+                    // Ако няма БПТ, но има достъпни и има картово плащане - показва се нотификация
+                    $data->row->bankPeripheralDeviceId = ht::createHint("Не е избран", "Избрано е картово плащане, без да има избран БПТ. На устройството има налични за избор|*: {$countPeripherals}", 'warning', false);
+                    $data->row->bankPeripheralDeviceId = ht::createElement("span", array('class' => 'amberBadge'), $data->row->bankPeripheralDeviceId, true);
+                    $hasMismatchedPeripherals = true;
+                }
+            }
+        }
+
         if(cash_NonCashPaymentDetails::haveRightFor('list')){
-            if(cash_NonCashPaymentDetails::count("#classId = {$mvc->getClassId()} AND #objectId = {$data->rec->id}")) {
+            if(cash_NonCashPaymentDetails::count("#classId = {$mvc->getClassId()} AND #objectId = {$rec->id}")) {
                 $data->toolbar->addBtn('Безналични', array('cash_NonCashPaymentDetails', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id), "ef_icon=img/16/bug.png,title=Безналичните плащания към документа,row=2");
             }
         }
 
         if(isset($data->toolbar->buttons['btnConto'])){
-
-            // Ако има направено безналично плащане с карта и има периферия за банковия терминал
-            $cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id);
-
-            if(!is_object($cardPaymentRec)) return;
+            // Ако няма картово плащане или има разминаване при избраните БПТ няма да се подменя бутона
+            if(!is_object($cardPaymentRec) || $hasMismatchedPeripherals) return;
             $amount = round($cardPaymentRec->amount * $rec->rate, 2);
 
             // Има ли избрано устройство
@@ -367,7 +394,7 @@ class cash_Pko extends cash_Document
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         if (Mode::isReadOnly()) return;
-        if(!$data->_deviceRec) return;
+        if(empty($data->_deviceRec)) return;
 
         $intf = cls::getInterface('bank_interface_POS', $data->_deviceRec->driverClass);
         $tpl->append($intf->getJS($data->_deviceRec), 'SCRIPTS');
@@ -378,7 +405,7 @@ class cash_Pko extends cash_Document
         $manualConfirmBtn = ht::createFnBtn('Ръчно потвърждение', '', '', array('class' => 'modalBtn confirmPayment disabledBtn'));
         $manualCancelBtn = ht::createFnBtn('Назад', '', '', array('class' => 'closePaymentModal modalBtn disabledBtn'));
 
-        $deviceName = isset($deviceId) ? $intf->getBtnName($data->_deviceRec) : '';
+        $deviceName = is_object($data->_deviceRec) ? $intf->getBtnName($data->_deviceRec) : '';
         $modalTpl =  new core_ET('<div class="fullScreenCardPayment" style="position: fixed; top: 0; z-index: 1002; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9);display: none;"><div style="position: absolute; top: 30%; width: 100%"><h3 style="color: #fff; font-size: 56px; text-align: center;">' . tr('Плащане с банковия терминал') . " {$deviceName}...<br> " . tr('Моля, изчакайте') .'!</h3><div class="flexBtns">' . $manualConfirmBtn->getContent() . ' ' . $manualCancelBtn->getContent() . '</div></div></div>');
         $tpl->append($modalTpl);
     }
@@ -396,6 +423,32 @@ class cash_Pko extends cash_Document
 
                 return false;
             }
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        // Ако няма картово плащане не се прави нищо
+        $cardPaymentRec = cash_NonCashPaymentDetails::getCardPaymentRec($rec->id);
+        if(!is_object($cardPaymentRec)) return;
+
+        $bankPeripherals = peripheral_Devices::getDevices('bank_interface_POS');
+        $countPeripherals = countR($bankPeripherals);
+
+        if(!empty($rec->bankPeripheralDeviceId)){
+            if(!array_key_exists($rec->bankPeripheralDeviceId, $bankPeripherals)){
+                core_Statuses::newStatus('В документа е избран банков паричен терминал, който не е достъпен от това устройство|*. |Ако няма реално картово плащане в момента на контирането - потвърдете операцията ръчно|*!', 'error');
+                return false;
+            }
+        } elseif($countPeripherals){
+            core_Statuses::newStatus('Избрано е картово плащане, без да има избран БПТ. На устройството има налични за избор|*. |Ако няма реално картово плащане в момента на контирането - потвърдете операцията ръчно|*!', 'error');
+            return false;
         }
     }
 }

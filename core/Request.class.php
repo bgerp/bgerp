@@ -390,7 +390,7 @@ class core_Request
         
         // Проверяваме за криптиран линк
         if (!$Request::get('Act') &&
-            strlen($ctr) == core_Forwards::CORE_FORWARD_SYSID_LEN &&
+            strlen($ctr ?? '') == core_Forwards::CORE_FORWARD_SYSID_LEN &&
             preg_match('/^[a-z]+$/', $ctr)) {
             
             return core_Forwards::go($ctr);

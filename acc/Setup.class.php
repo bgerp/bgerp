@@ -462,18 +462,33 @@ class acc_Setup extends core_ProtoSetup
             'roles' => 'debug',
         ),
         array(
-            'title' => 'Прикл. сделки с активни пера',
+            'title' => 'Прикл. сделки с акт. пера',
             'url' => array(
                 'acc_Journal',
                 'findDeals',
+                'type' => 'closed',
                 'ret_url' => true
             ),
             'params' => array(
-                'title' => 'Има ли неактивни сделки с приключени пера',
+                'title' => 'Има ли неактивни сделки с активни пера',
+                'ef_icon' => 'img/16/arrow_refresh.png'
+            ),
+            'roles' => 'debug',
+        ),  array(
+            'title' => 'Акт. сделки с затв. пера',
+            'url' => array(
+                'acc_Journal',
+                'findDeals',
+                'type' => 'active',
+                'ret_url' => true
+            ),
+            'params' => array(
+                'title' => 'Има ли активни сделки с приключени пера',
                 'ef_icon' => 'img/16/arrow_refresh.png'
             ),
             'roles' => 'debug',
         )
+
     );
 
 
@@ -482,13 +497,13 @@ class acc_Setup extends core_ProtoSetup
      */
     public $cronSettings = array(
         array(
-            'systemId' => 'Delete Items',
-            'description' => 'Изтриване на неизползвани затворени пера',
+            'systemId' => 'Fix Items And Docs',
+            'description' => 'Поправка на пера и документи',
             'controller' => 'acc_Items',
-            'action' => 'DeleteUnusedItems',
+            'action' => 'FixItemsAndDocs',
             'period' => 1440,
             'offset' => 60,
-            'timeLimit' => 100
+            'timeLimit' => 300
         ),
         array(
             'systemId' => 'Create Periods',
@@ -523,15 +538,6 @@ class acc_Setup extends core_ProtoSetup
             'period' => 480,
             'offset' => 1,
             'timeLimit' => 60
-        ),
-        array(
-            'systemId' => 'RecontoRateDiffs',
-            'description' => 'Рекалкулиране на курсовите разлики',
-            'controller' => 'acc_RatesDifferences',
-            'action' => 'RecontoActive',
-            'period' => 30,
-            'offset' => 1,
-            'timeLimit' => 300
         ), array(
             'systemId' => 'UpdateStockPricesPerPeriod',
             'description' => 'Кеширане на складовите себестойности по периоди',

@@ -176,7 +176,7 @@ class core_Lg extends core_Manager
     {
         $langArr = arr::make(EF_LANGUAGES, true);
         
-        if ($langArr[$lg] && ($force || !Mode::get('lg'))) {
+        if (isset($langArr[$lg]) && ($force || !Mode::get('lg'))) {
             Mode::setPermanent('lg', $lg);
         }
     }
@@ -206,7 +206,7 @@ class core_Lg extends core_Manager
     public function translate($kstring, $key = false, $lg = null)
     {
         // Празните стрингове и обектите не се превеждат
-        if (is_object($kstring) || !trim($kstring)) {
+        if (is_object($kstring) || !trim($kstring ?? '')) {
             
             return $kstring;
         }
@@ -355,6 +355,7 @@ class core_Lg extends core_Manager
             $this->dict[$lg] = core_Cache::get('translationLG', $lg, 2 * 60 * 24, array('core_Lg'));
             
             if (!$this->dict[$lg]) {
+                $this->dict[$lg] = [];
                 $query = self::getQuery();
                 
                 while ($rec = $query->fetch(array("#lg = '[#1#]'", $lg))) {
@@ -457,16 +458,16 @@ class core_Lg extends core_Manager
         
         $filterRec = $data->listFilter->input();
         
-        if (!$filterRec->lg) {
+        if (!($filterRec->lg ?? null)) {
             $data->listFilter->rec->lg = $filterRec->lg = core_Lg::getCurrent();
         }
         
         if ($filterRec) {
-            if ($filterRec->lg) {
+            if ($filterRec->lg ?? null) {
                 $data->query->where("#lg = '{$filterRec->lg}'");
             }
-            
-            if ($filterRec->filter) {
+
+            if ($filterRec->filter ?? null) {
                 $data->query->where(array(
                     "#kstring LIKE '%[#1#]%'",
                     $filterRec->filter
@@ -483,7 +484,8 @@ class core_Lg extends core_Manager
     public static function getLink($lgArr)
     {
         $tpl = new ET();
-        
+        $div = false;
+
         foreach ($lgArr as $lg => $title) {
             if (core_Lg::getCurrent() != $lg) {
                 if ($div) {

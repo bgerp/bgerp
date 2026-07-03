@@ -25,11 +25,12 @@ class rack_plg_Shipments extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->storeFieldName, 'storeId');
-        setIfNot($mvc->rackStoreFieldName, $mvc->storeFieldName);
-        setIfNot($mvc->detailToPlaceInZones, $mvc->mainDetail);
-        setIfNot($mvc->canPrintzonemovements, 'no_one');
-        setIfNot($mvc->canDoallmovements, 'no_one');
+        setPartIfNot($mvc, 'storeFieldName', 'storeId');
+        setPartIfNot($mvc, 'rackStoreFieldName', $mvc->storeFieldName);
+        setPartIfNot($mvc, 'detailToPlaceInZones', $mvc->mainDetail);
+        setPartIfNot($mvc, 'canPrintzonemovements', 'no_one');
+        setPartIfNot($mvc, 'canDoallmovements', 'no_one');
+        setPartIfNot($mvc, 'syncWithZone', array());
     }
     
     
@@ -106,6 +107,7 @@ class rack_plg_Shipments extends core_Plugin
             $data->toolbar->addBtn('Движ. (Започв.)', array($mvc, 'doallmovements', 'do' => 'start', 'id' => $rec->id, 'ret_url' => true), 'title=Започване на всички движения,ef_icon=img/16/control_play.png,row=2');
             $data->toolbar->addBtn('Движ. (Прикл.)', array($mvc, 'doallmovements', 'do' => 'close', 'id' => $rec->id, 'ret_url' => true), 'title=Приключване на всички движения,ef_icon=img/16/gray-close.png,row=2');
         }
+
     }
     
     
@@ -147,7 +149,7 @@ class rack_plg_Shipments extends core_Plugin
                             foreach ($batches as $k => $b) {
                                 $key2 = "{$key}|{$k}";
                                 if(!array_key_exists($key2, $res)){
-                                    $res[$key2] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => $k);
+                                    $res[$key2] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => $k, 'quantity' => 0);
                                 }
                                 $res[$key2]->quantity += $quantity;
                                 $rest -= $quantity;
@@ -158,7 +160,7 @@ class rack_plg_Shipments extends core_Plugin
                     if(round($rest, 5) > 0){
                         $key3 = "{$key}|||";
                         if(!array_key_exists($key3, $res)){
-                            $res[$key3] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => '');
+                            $res[$key3] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => '', 'quantity' => 0);
                         }
                         $res[$key3]->quantity += $rest;
                     }
@@ -207,11 +209,14 @@ class rack_plg_Shipments extends core_Plugin
     public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
+
+        // Към коя зона е закачен документа
         $zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}", 'id,readiness');
         if(is_object($zoneRec)){
+
+            // Ако има зона, проверява се дали са готови движенията
             $dQuery = rack_ZoneDetails::getQuery();
             $dQuery->where("#zoneId = {$zoneRec->id} AND #movementQuantity IS NOT NULL");
-
             if($dQuery->count()){
                 if (!rack_Zones::isReadinessFull($zoneRec->readiness)) {
 					core_Statuses::newStatus('Документът не може да се контира. Не е нагласен в зоните на палетния склад|*!', 'error');
@@ -223,6 +228,19 @@ class rack_plg_Shipments extends core_Plugin
                 core_Statuses::newStatus('Документът не може да се контира. Има започнати и/или запазени движения към зоната в която е закачен|*!', 'error');
 
                 return false;
+            }
+        } elseif(!empty($rec->{$mvc->rackStoreFieldName})){
+
+            // Ако не е закачен към зона, но има зони в склада - проверява се дали използването в зона е задължително
+            if(rack_Zones::count("#storeId = {$rec->{$mvc->rackStoreFieldName}} AND #state = 'active'")){
+                $requireZoneInDocuments = store_Stores::fetchField($rec->{$mvc->rackStoreFieldName}, 'requireZoneInDocuments');
+
+                // Ако е се сетва грешка
+                if($requireZoneInDocuments == 'yes'){
+                    core_Statuses::newStatus('Документът не може да се контира, без да е закачен към зона|*!', 'error');
+
+                    return false;
+                }
             }
         }
     }
@@ -351,7 +369,7 @@ class rack_plg_Shipments extends core_Plugin
                 $res->append($documentRow->logisticInfo, 'logisticInfo');
             }
 
-            if($mvc->lineFieldName){
+            if(!empty($mvc->lineFieldName)){
                 if($rec->{$mvc->lineFieldName}){
                     $lineRow = trans_Lines::recToVerbal($rec->{$mvc->lineFieldName});
                     $res->append(trans_Lines::getTitleById($rec->{$mvc->lineFieldName}), 'lineId');
@@ -407,14 +425,34 @@ class rack_plg_Shipments extends core_Plugin
 
                 // Ако има такива дето може се приключват
                 foreach ($closeRecs as $mRec){
-                    if (!core_Locks::obtain("movement{$mRec->id}", 120, 0, 0)) {
+                    $movementId = $mRec->id;
+                    $lockId = "movement{$movementId}";
+                    if (!core_Locks::obtain($lockId, 120, 0, 0)) {
+                        continue;
+                    }
+
+                    $mRec = rack_Movements::fetch($movementId, '*', false);
+                    if (!$mRec) {
+                        core_Locks::release($lockId);
+                        continue;
+                    }
+
+                    if($do == 'start'){
+                        $transaction = $Movements->getTransaction($mRec);
+                        $transaction = $Movements->validateTransaction($transaction);
+                        if (!empty($transaction->errors) || !rack_Movements::haveRightFor('start', $mRec)) {
+                            core_Locks::release($lockId);
+                            continue;
+                        }
+                    } elseif(!rack_Movements::haveRightFor('done', $mRec)){
+                        core_Locks::release($lockId);
                         continue;
                     }
 
                     $mRec->workerId = core_Users::getCurrent();
 
                     if($do == 'start'){
-                        $mRec->brState = $rec->state;
+                        $mRec->brState = $mRec->state;
                         $mRec->state = 'active';
                     } else {
                         $mRec->state = 'closed';
@@ -424,7 +462,7 @@ class rack_plg_Shipments extends core_Plugin
                     $Movements->save($mRec, 'state,brState,packagings,workerId,modifiedOn,modifiedBy,documents,canceledOn,canceledBy');
                     $ok++;
 
-                    core_Locks::release("movement{$mRec->id}");
+                    core_Locks::release($lockId);
                 }
 
                 $msgType = 'notice';
@@ -474,7 +512,7 @@ class rack_plg_Shipments extends core_Plugin
 
             foreach ($movementRecs as $mRec){
                 if($mRec->productId == $zRec->productId && $mRec->packagingId == $zRec->packagingId && $mRec->batch == $zRec->batch){
-                    $data->recs[$zRec->id]->positions[$mRec->position] += $mRec->quantity;
+                    $data->recs[$zRec->id]->positions[$mRec->position] = ($data->recs[$zRec->id]->positions[$mRec->position] ?? 0) + $mRec->quantity;
                 }
             }
         }

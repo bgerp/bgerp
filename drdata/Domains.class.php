@@ -126,7 +126,7 @@ class drdata_Domains extends core_Manager
         }
 
         // Проверяваме дали няма маска
-        $key = "{$mask}|{$type}";
+        $key = "mask|{$type}";
         $mDomains = core_Cache::get('drdata_Domains', $key, 1000, array(get_called_class()));
         if (!$mDomains) {
             $q = self::getQuery();
@@ -142,7 +142,7 @@ class drdata_Domains extends core_Manager
 
             $mDomains = $q->fetchAll();
 
-            core_Cache::set('drdata_Domains', $key, $res, 1000, array(get_called_class()));
+            core_Cache::set('drdata_Domains', $key, $mDomains, 1000, array(get_called_class()));
         }
 
         foreach ((array) $mDomains as $dRec) {

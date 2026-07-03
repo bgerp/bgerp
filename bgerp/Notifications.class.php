@@ -151,7 +151,8 @@ class bgerp_Notifications extends core_Manager
         $this->setDbIndex('activatedOn');
         $this->setDbIndex('modifiedOn');
         $this->setDbIndex('lastTime');
-
+//        $this->setDbIndex('customUrl');
+        $this->setDbIndex('url');
 //        $this->setDbIndex('customUrlId');
 //        $this->setDbIndex('urlId');
     }
@@ -226,7 +227,7 @@ class bgerp_Notifications extends core_Manager
             'warning' => 'warning',
             'alert' => 'alert');
         
-        $priority = $priorityMap[$priority];
+        $priority = $priorityMap[$priority] ?? null;
         
         if (!$priority) {
             $priority = 'normal';
@@ -302,7 +303,7 @@ class bgerp_Notifications extends core_Manager
             $rec->customUrl = null;
         }
         
-        bgerp_Notifications::save($rec);
+        bgerp_Notifications::save($rec, null, 'low_priority');
         
         // Инвалидиране на кеша
         bgerp_Portal::invalidateCache($userId, 'bgerp_drivers_Notifications');
@@ -759,6 +760,9 @@ class bgerp_Notifications extends core_Manager
         
         
         if (!Mode::isReadOnly() && ($rec->userId == core_Users::getCurrent())) {
+            if (!isset($attr['class'])) {
+                $attr['class'] = '';
+            }
             $attr['class'] .= ' ajaxContext';
             $attr['name'] = 'context-holder';
             ht::setUniqId($attr);
@@ -892,15 +896,15 @@ class bgerp_Notifications extends core_Manager
         
         $ctr = $url['Ctr'];
         $act = $url['Act'];
-        $dId = $url['id'];
-        
+        $dId = $url['id'] ?? null;
+
         if (cls::load($ctr, true)) {
             $clsInst = cls::get($ctr);
 
             if (($clsInst instanceof core_Manager) && ($clsInst->haveRightFor($act, $dId))) {
-                $folderId = $url['folderId'];
-                $threadId = $url['threadId'];
-                $containerId = $url['containerId'];
+                $folderId = $url['folderId'] ?? null;
+                $threadId = $url['threadId'] ?? null;
+                $containerId = $url['containerId'] ?? null;
                 
                 if ($dId) {
                     if (is_numeric($dId) && $dRec = $clsInst->fetch($dId)) {
@@ -1232,18 +1236,18 @@ class bgerp_Notifications extends core_Manager
         
         $ctr = $url['Ctr'];
         $act = $url['Act'];
-        $dId = $url['id'];
-        
+        $dId = $url['id'] ?? null;
+
         $retUrl = getRetUrl();
-        
+
         if (!cls::load($ctr, true) || !$ctr::haveRightFor($act, $dId)) {
-            
+
             return new Redirect($retUrl, '|Не може да се настройва', 'warning');
         }
-        
-        $folderId = $url['folderId'];
-        $threadId = $url['threadId'];
-        $containerId = $url['containerId'];
+
+        $folderId = $url['folderId'] ?? null;
+        $threadId = $url['threadId'] ?? null;
+        $containerId = $url['containerId'] ?? null;
         
         if ($dId) {
             expect($dRec = $ctr::fetch($dId));
@@ -1702,8 +1706,8 @@ class bgerp_Notifications extends core_Manager
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             
             // Ако не е избран потребител по подразбиране
-            if (!$data->listFilter->rec->usersSearch) {
-                if ($data->listFilter->rec->id) {
+            if (empty($data->listFilter->rec->usersSearch)) {
+                if (!empty($data->listFilter->rec->id)) {
                     $f = 'all_users';
                 } else {
                     $uArr = $data->listFilter->getField('usersSearch')->type->getUserFromTeams();
@@ -2042,13 +2046,13 @@ class bgerp_Notifications extends core_Manager
         // Премахва кеша за броя на нотификациите на този потребител
         core_Cache::remove('OpenNtfCnt', $rec->userId);
 
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             if ($fields !== null) {
                 $fields = arr::make($fields, true);
             }
             
             // Ако няма да се записва само 'lastTime', сетваме стойността от modifiedOn
-            if (!isset($fields) || (!$fields['lastTime'] && $fields['modifiedOn'])) {
+            if (!isset($fields) || (!($fields['lastTime'] ?? null) && ($fields['modifiedOn'] ?? null))) {
                 $modifiedOn = self::fetchField($rec->id, 'modifiedOn', false);
                 $rec->lastTime = $modifiedOn;
                 

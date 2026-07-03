@@ -46,13 +46,13 @@ class plg_AlignDecimals extends core_Plugin
         
         foreach ($mvc->fields as $name => $field) {
             if (is_a($field->type, 'type_Double')) {
-                if ($field->type->params['decimals']) {
+                if ($field->type->params['decimals'] ?? null) {
                     // Пропускаме полета, които имат зададен точен брой цифри след запетаята
                     continue;
                 }
-                
-                setIfNot($field->type->params['minDecimals'], 0);
-                setIfNot($field->type->params['maxDecimals'], 6);
+
+                $field->type->params['minDecimals'] = $field->type->params['minDecimals'] ?? 0;
+                $field->type->params['maxDecimals'] = $field->type->params['maxDecimals'] ?? 6;
                 
                 // Първи пас по стойностите - определяне дължината на най-дългата дробна част.
                 $maxDecimals = $this->calcMaxFracLen($name, $recs, $field->type->params['maxDecimals']);
@@ -72,7 +72,7 @@ class plg_AlignDecimals extends core_Plugin
                 unset($type->params['smartRound']);
                 
                 foreach ($recs as $i => $rec) {
-                    $rows[$i]->{$name} = str_replace(strip_tags($rows[$i]->{$name}), $type->toVerbal($rec->{$name}), $rows[$i]->{$name});
+                    $rows[$i]->{$name} = str_replace(strip_tags($rows[$i]->{$name} ?? ''), $type->toVerbal($rec->{$name} ?? null), $rows[$i]->{$name} ?? '');
                 }
             }
         }
@@ -114,8 +114,8 @@ class plg_AlignDecimals extends core_Plugin
      */
     private function getFractionLen($number)
     {
-        list($floor, $frac) = explode('.', (string) $number);
-        
-        return strlen($frac);
+        $parts = explode('.', (string) $number);
+
+        return strlen($parts[1] ?? '');
     }
 }

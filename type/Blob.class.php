@@ -92,7 +92,7 @@ class type_Blob extends core_Type
 
         $value = $this->fromMysql($value);
         
-        if ($value && !$this->params['binary']) {
+        if ($value && empty($this->params['binary'])) {
             $value = ht::wrapMixedToHtml(ht::mixedToHtml(
                 $value,
                 isset($this->params['hideLevel']) ? $this->params['hideLevel'] : 1,

@@ -251,11 +251,11 @@ class log_System extends core_Manager
         // Заявка за филтриране
         $fRec = $data->listFilter->rec;
         
-        if ($fRec->date) {
-            if ($fRec->date == dt::now(false)) {
-                $query->where("#createdOn >= '{$fRec->date}'");
+        if ($fRec->date ?? null) {
+            if ($fRec->date === dt::now(false)) {
+                $query->where("#createdOn >= '{$fRec->date} 00:00:00'");
             } else {
-                $query->where("#createdOn >= '{$fRec->date}' AND #createdOn <= '{$fRec->date} 23:59:59'");
+                $query->where("#createdOn >= '{$fRec->date} 00:00:00' AND #createdOn <= '{$fRec->date} 23:59:59'");
             }
         }
         
@@ -268,19 +268,21 @@ class log_System extends core_Manager
             }
         }
         
-        $search = trim($fRec->search);
+        $search = trim($fRec->search ?? '');
         if ($search) {
+
             $search = trim(mb_strtolower($fRec->search));
- 
+
+            $or = false;
             if(preg_match("/[a-z][a-z0-9]*_[a-z0-9_]+/i", $search) && ($cls = cls::getClassName($search, true))) {
                 $query->where(array("#className = '[#1#]'", $cls));
-            } else {
-                $query->orWhere(array("#detail LIKE '%[#1#]%'", $search));
+                $or = true;
             }
+            $query->where(array("#detail LIKE '%[#1#]%'", $search), $or);
         }
         
         // Филтрираме по тип
-        if (trim($fRec->type)) {
+        if (!empty($fRec->type) && trim($fRec->type)) {
             $query->where(array("#type = '[#1#]'", $fRec->type));
         }
         
@@ -306,7 +308,7 @@ class log_System extends core_Manager
      */
     public static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
-        $type = $data->listFilter->rec->type;
+        $type = $data->listFilter->rec->type ?? null;
         
         if ($type) {
             // Изчистване на нотификации за възникнали грешки
@@ -722,5 +724,28 @@ class log_System extends core_Manager
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);
+    }
+
+
+    /**
+     * Екшън за логване от джаваскрипта
+     * @return array|null
+     */
+    function act_JsLog()
+    {
+        if (Request::get('ajax_mode')) {
+            $cls      = Request::get('cls', 'varchar');
+            $objectId = Request::get('objectId', 'int');
+            $level    = Request::get('level', 'enum(info,warning,error)', 'info');
+            $message  = Request::get('message', 'varchar');
+            $sendWp   = Request::get('sendWp', 'int');
+            log_System::add($cls, "[JS_WP] " . $message, $objectId, $level);
+
+            if ($sendWp) {
+                wp("[JS_WP] {$cls}" . ($objectId ? "/{$objectId}" : '') . ": {$message}");
+            }
+
+            return array();
+        }
     }
 }

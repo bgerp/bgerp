@@ -57,13 +57,13 @@ class type_Text extends core_Type
         $size = $this->params['size'] ??  $this->params[0] ?? $this->dbFieldLen;
         
         if (isset($this->params['noTrim'])) {
-            $attr['onblur'] .= 'this.value = this.value.trim();';
+            $attr['onblur'] = ($attr['onblur'] ?? '') . 'this.value = this.value.trim();';
         }
-        
+
         if ($size > 0) {
-            $attr['onblur'] .= "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" .
-                 tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " ${size} " . tr('символа') . "');";
-            $attr['onkeyup'] .= "colorByLen(this, {$size});";
+            $attr['onblur'] = ($attr['onblur'] ?? '') . "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" .
+                 tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " {$size} " . tr('символа') . "');";
+            $attr['onkeyup'] = ($attr['onkeyup'] ?? '') . "colorByLen(this, {$size});";
         }
         
         $attr['name'] = $name;
@@ -103,7 +103,7 @@ class type_Text extends core_Type
     public function toVerbal_($value)
     {
         if (!Mode::is('text', 'plain')) {
-            $value = str_replace(array('&', '<', "\n"), array('&amp;', '&lt;', '<br>'), $value) ;
+            $value = str_replace(array('&', '<', "\n"), array('&amp;', '&lt;', '<br>'), $value ?? '') ;
         }
         
         return $value;
@@ -211,7 +211,7 @@ class type_Text extends core_Type
         }
         
         // Добавяме
-        $suggestionsStr = str_replace('|', ',', $this->params['suggestions']);
+        $suggestionsStr = str_replace('|', ',', $this->params['suggestions'] ?? '');
         $this->suggestions = arr::make($suggestionsStr, true);
         
         $this->invoke('AfterPrepareSuggestions', array(&$this->suggestions, $this));

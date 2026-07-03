@@ -138,8 +138,8 @@ class cms_Content extends core_Manager
         core_Lg::set($lang, $force);
         cms_Domains::getPublicDomain(null, $lang);
         
-        $langsArr = arr::make(core_Lg::getLangs());
-        if ($langsArr[$lang]) {
+        $langArr = arr::make(core_Lg::getLangs());
+        if ($langArr[$lang]) {
             core_Lg::push($lang);
         }
     }
@@ -387,12 +387,12 @@ class cms_Content extends core_Manager
         }
         
         // За да не влезе в безкраен цикъл, да не вика себе си
-        if (strtolower($cUrl['Ctr']) == 'cms_content') {
+        if (strtolower($cUrl['Ctr'] ?? '') == 'cms_content') {
             
             return $cUrl;
         }
         
-        if (!$cUrl['Ctr']) {
+        if (!($cUrl['Ctr'] ?? null)) {
             $query = self::getQuery();
             $domainId = cms_Domains::getPublicDomain('id');
             $query->where("#state = 'active' AND #domainId = {$domainId}");
@@ -646,8 +646,9 @@ class cms_Content extends core_Manager
             $cd = cms_Domains::getCurrent();
             
             $typeOrder = cls::get('type_Order');
-            if ($lastOrder = $query->fetch("#state = 'active' AND #domainId = {$cd}")->order) {
-                list($lastOrder, ) = explode('.', $typeOrder->toVerbal_($lastOrder));
+            $lastRec = $query->fetch("#state = 'active' AND #domainId = {$cd}");
+            if ($lastRec && $lastRec->order) {
+                list($lastOrder, ) = explode('.', $typeOrder->toVerbal_($lastRec->order));
             }
             $rec->order = $typeOrder->fromVerbal($lastOrder + 10);
         }
@@ -673,17 +674,22 @@ class cms_Content extends core_Manager
     public static function prepareSeo_($rec, $suggestions = array())
     {
         expect(is_object($rec), $rec);
-        
+
+        $rec->seoDescription = $rec->seoDescription ?? null;
+        $rec->seoTitle = $rec->seoTitle ?? null;
+        $rec->seoKeywords = $rec->seoKeywords ?? null;
+        $rec->seoThumb = $rec->seoThumb ?? null;
+
         // seoTitle
         if (!$rec->seoTitle) {
-            $rec->seoTitle = $suggestions['seoTitle'];
+            $rec->seoTitle = $suggestions['seoTitle'] ?? null;
         }
         if ($rec->seoTitle) {
             $rec->seoTitle = type_Varchar::escape(trim(html_entity_decode(strip_tags($rec->seoTitle))));
         }
         
         // seoDescription
-        if (!$rec->seoDescription && $suggestions['seoDescription']) {
+        if (empty($rec->seoDescription) && !empty($suggestions['seoDescription'])) {
             $rec->seoDescription = self::getSeoDescription($suggestions['seoDescription']);
         }
         if (!$rec->seoDescription) {
@@ -708,7 +714,7 @@ class cms_Content extends core_Manager
         if (!$rec->seoThumb) {
             $rec->seoThumb = $suggestions['seoThumb'] ?? null;
         }
-        if (!$rec->seoThumb && $suggestions['seoDescription']) {
+        if (!$rec->seoThumb && !empty($suggestions['seoDescription'])) {
             $rec->seoThumb = cms_Content::getSeoThumb($suggestions['seoDescription']);
         }
         
@@ -791,10 +797,10 @@ class cms_Content extends core_Manager
         $pattern = cms_GalleryRichTextPlg::IMG_PATTERN;
         $matches = null;
         preg_match($pattern, $text, $matches);
-        
         $fileSrc = null;
-        
-        if ($iHnd = $matches[1]) {
+
+        if (!empty($matches[1])) {
+            $iHnd = $matches[1];
             $iRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $iHnd));
             $fileSrc = $iRec->src;
         }
@@ -810,7 +816,8 @@ class cms_Content extends core_Manager
     {
         $query = self::getQuery();
         $query->orderBy('order');
-        
+        $rec = null;
+
         if ($menuId) {
             $rec = self::fetch($menuId);
             $domainId = $rec->domainId;
@@ -821,16 +828,21 @@ class cms_Content extends core_Manager
         $query->where("(#domainId = {$domainId} OR #sharedDomains LIKE '%|{$domainId}|%') AND #id != {$menuId} AND #source IS NOT NULL");
         $query->orderBy('id', 'ASC');
         $html = '';
-        
-        do {
+
+        $recs = $query->fetchAll();
+        if(isset($rec)){
+            $recs = array($rec->id => $rec) + $recs;
+        }
+
+        foreach ($recs as $rec) {
             if (!cls::load($rec->source, true)) {
                 continue;
             }
-            
+
             $cls = cls::get($rec->source);
             if (cls::existsMethod($cls, 'getSearchResults')) {
                 $res = $cls->getSearchResults($rec->id, $q);
-                
+
                 if (countR($res)) {
                     $domainName = '';
                     if ($rec->domainId != $domainId) {
@@ -841,42 +853,42 @@ class cms_Content extends core_Manager
                             $domainName = ' (' . $domainTitle . ')';
                         }
                     }
-                    
+
                     $html .= "<h2><strong style='color:green'>" . type_Varchar::escape($rec->title ? $rec->title : $rec->menu) . $domainName . '</strong></h2>';
                     $itemsInTable = $itemsInUl = '';
-                    
+
                     foreach ($res as $o) {
                         if (isset($o->img) && $o->img instanceof thumb_Img) {
                             $img = $o->img->createImg(array('class' => 'eshop-product-image'));
-                            $titleLink = ht::createLink($o->title, $o->url, false, array('class'=>"searchName"));
-                            if(haveRole('debug') && isset($o->rating)){
+                            $titleLink = ht::createLink($o->title, $o->url, false, array('class' => "searchName"));
+                            if (haveRole('debug') && isset($o->rating)) {
                                 $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
                             }
-                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . $titleLink . '</td> </tr>';
+                            $itemsInTable .= "<tr><td class='searchImg'>" . ht::createLink($img, $o->url) . "</td><td class='searchName'>" . $titleLink . '</td></tr>';
                         } else {
                             $titleLink = ht::createLink($o->title, $o->url);
-                            if(haveRole('debug') && isset($o->rating)){
+                            if (haveRole('debug') && isset($o->rating)) {
                                 $titleLink = ht::createHint($titleLink, "Рейтинг|*: {$o->rating}");
                             }
-                            
-                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;' >" . $titleLink . '</li>';
+
+                            $itemsInUl .= "<li style='font-size:1.2em; margin:5px;'>" . $titleLink . '</li>';
                         }
                     }
-                    
-                    if(!empty($itemsInUl)){
+
+                    if (!empty($itemsInUl)) {
                         $html .= "<ul>{$itemsInUl}</ul>";
                     }
-                    
-                    if(!empty($itemsInTable)){
+
+                    if (!empty($itemsInTable)) {
                         $html .= "<table class='searchResult'>{$itemsInTable}</table>";
                     }
-                    
+
                     if ($rec->domainId != $domainId) {
                         Mode::pop('BGERP_CURRENT_DOMAIN');
                     }
                 }
             }
-        } while ($rec = $query->fetch());
+        }
         
         if ($html) {
             if (!isset($oQ)) {
@@ -1105,12 +1117,12 @@ class cms_Content extends core_Manager
                     
                     $res .= "\n<loc>" . str_replace('&', '&amp;', toUrl($eRec->loc, 'absolute')) . '</loc>';
                     $res .= "\n<lastmod>" . $eRec->lastmod . '</lastmod>';
-                    
-                    if ($eRec->changefreq) {
+
+                    if (!empty($eRec->changefreq)) {
                         $res .= "\n<changefreq>" . $eRec->changefreq . '</changefreq>';
                     }
-                    
-                    if ($eRec->priority) {
+
+                    if (!empty($eRec->priority)) {
                         $res .= "\n<priority>" . $eRec->priority . '</priority>';
                     }
                     

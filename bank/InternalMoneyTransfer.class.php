@@ -354,7 +354,7 @@ class bank_InternalMoneyTransfer extends core_Master
             }
 
             if($rec->currencyId != $defaultDebitId){
-                $form->setError('debitBank', "Входящата сметка не е в избраната валута към този вальор|* <b>{$dateVerbal}!");
+                $form->setError('debitBank', "Входящата сметка не е в избраната валута към този вальор|* <b>{$dateVerbal}</b>!");
             }
         } elseif ($rec->operationSysId == 'bank2case') {
             $caseRec = cash_Cases::fetch($rec->debitCase);
@@ -377,7 +377,7 @@ class bank_InternalMoneyTransfer extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->currency = currency_Currencies::getCodeById($rec->currencyId);
             
             // Изчисляваме равностойността на сумата в основната валута

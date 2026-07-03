@@ -4,7 +4,7 @@
         <div class="folder-cover [#STATE_CLASS#] [#OWN_COMPANY_CLASS#]">
             <div class="inner-folder">
                 <div class="block_title [#STATE_CLASS#] special-title">
-                    [#SingleIcon#] [#title#] [#titleNumber#] <!--ET_BEGIN VERSION_STRING--><div class="versionBlock" title="[#VERSION_STRING_HINT#]"><small>|v|* </small>[#VERSION_STRING#]</div><!--ET_END VERSION_STRING--> <!--ET_BEGIN VALID_TO_HINT--><div style="float:right">[#VALID_TO_HINT#]</div><!--ET_END VALID_TO_HINT--></div>
+                    [#SingleIcon#] [#title#] [#titleNumber#]<!--ET_BEGIN folderHandle-->[#folderHandle#]<!--ET_END folderHandle--><!--ET_BEGIN VERSION_STRING--><div class="versionBlock" title="[#VERSION_STRING_HINT#]"><small>|v|* </small>[#VERSION_STRING#]</div><!--ET_END VERSION_STRING--> <!--ET_BEGIN VALID_TO_HINT--><div style="float:right">[#VALID_TO_HINT#]</div><!--ET_END VALID_TO_HINT--></div>
                 </div>
                 <!--ET_BEGIN image-->
                 <div class="crmImage">
@@ -84,7 +84,10 @@
 
                 <fieldset class="detail-info">
                     <legend class="groupTitle">|Друга информация|*</legend>
-                    <div> <!--ET_BEGIN validFrom--><span class="quiet">|Валидност|*</span> <i>[#validFrom#]</i><!--ET_END validFrom--> <!--ET_BEGIN validTo--><span class="quiet">-</span> <i>[#validTo#]</i><!--ET_END validTo--></div>
+                    <div>
+                    <!--ET_BEGIN validFrom--><div><span class="quiet">|Валидно от|*</span> <i>[#validFrom#]</i></div><!--ET_END validFrom-->
+                    <!--ET_BEGIN validTo--><div><span class="quiet">|Валидно до|*</span> <i>[#validTo#]</i></div><!--ET_END validTo-->
+                    </div>
                     <!--ET_BEGIN info-->
                     <div class="groupList">
                         [#info#]

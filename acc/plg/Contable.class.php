@@ -362,12 +362,12 @@ class acc_plg_Contable extends core_Plugin
         if ($action == 'conto') {
             
             // Не може да се контира в състояние, което не е чернова
-            if ($rec->id && ($rec->state != 'draft' && $rec->state != 'pending')) {
+            if (!empty($rec->id) && ($rec->state != 'draft' && $rec->state != 'pending')) {
                 $requiredRoles = 'no_one';
             }
             
             // Не може да се контира, ако документа не генерира валидна транзакция
-            if (isset($rec) && $rec->isContable == 'no') {
+            if (isset($rec->isContable) && $rec->isContable == 'no') {
                 $requiredRoles = 'no_one';
             }
             
@@ -396,7 +396,7 @@ class acc_plg_Contable extends core_Plugin
                 
                 // Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
                 $jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
-                $valior = isset($jRec) ? $jRec->valior : $mvc->getValiorValue($rec);
+                $valior = is_object($jRec) ? $jRec->valior : $mvc->getValiorValue($rec);
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
                 // Само активни документи с транзакция и в незатворен период могат да се сторнират
@@ -503,7 +503,7 @@ class acc_plg_Contable extends core_Plugin
         
         // Проверка за права за частния сингъл
         if ($action == 'viewpsingle') {
-            $rolesAll = acc_plg_DocumentSummary::$rolesAllMap[$mvc->className];
+            $rolesAll = acc_plg_DocumentSummary::$rolesAllMap[$mvc->className] ?? null;
             if (!$rolesAll || !haveRole($rolesAll, $userId)) {
                 $requiredRoles = 'no_one';
             }
@@ -518,7 +518,7 @@ class acc_plg_Contable extends core_Plugin
         }
 
         // Ако документа е в нишка на затворена продажба и се прави опит за Заявка или възстановяване на заявка да не може
-        if((($action == 'pending' && $rec->state == 'draft') || ($action == 'restore' && $rec->brState == 'pending')) && isset($rec)){
+        if(isset($rec) && (($action == 'pending' && isset($rec->state) && $rec->state == 'draft') || ($action == 'restore' && isset($rec->brState) && $rec->brState == 'pending'))){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 if($firstDocument->isInstanceOf('deals_DealMaster')){
                     if($firstDocument->fetchField('state') == 'closed'){
@@ -589,6 +589,7 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
+        core_Locks::release("conto_{$mvc->getClassId()}_{$rec->id}");
 
         // Ако документа се контира при обединяване със сделка да не се try/catch
         if(Mode::is('isBeingClosedWithDeal')){
@@ -599,6 +600,7 @@ class acc_plg_Contable extends core_Plugin
         try {
             self::conto($mvc, $rec);
         } catch (acc_journal_RejectRedirect $e) {
+
             $mvc->invoke('beforeContoRedirectError', array($rec));
             $url = $mvc->getSingleUrlArray($rec->id);
             redirect($url, false, '|' . $e->getMessage(), 'error');
@@ -723,7 +725,7 @@ class acc_plg_Contable extends core_Plugin
                 $haveDetailsToAdd = false;
 
                 // Ако класа има поне един запис в детаил, той може да се активира
-                $ignoreDetailsToCheckWhenTryingToPost = arr::make($mvc->ignoreDetailsToCheckWhenTryingToPost, true);
+                $ignoreDetailsToCheckWhenTryingToPost = arr::make($mvc->ignoreDetailsToCheckWhenTryingToPost ?? null, true);
                 foreach ($mvc->details as $name) {
                     if(in_array($name, $ignoreDetailsToCheckWhenTryingToPost)) continue;
                     $haveDetailsToAdd = true;
@@ -1037,14 +1039,18 @@ class acc_plg_Contable extends core_Plugin
                     }
                 }
 
-                redirect(array($mvc, 'single', $rec->id), false, $currencyError, 'error');
+                core_Statuses::newStatus($currencyError, 'error');
+
+                return false;
             }
 
             // Забрана да не може да се контират определени документи ако са създадени преди ЕЗ, но вальора им е след нея
             if($mvc->currencyFld && isset($rec->{$mvc->currencyFld}) && !($mvc instanceof deals_PaymentDocument)){
                 $valior = $rec->{$mvc->valiorFld} ?? dt::today();
                 if($rec->createdOn < acc_Setup::getEurozoneDate() && $valior >= acc_Setup::getEurozoneDate()){
-                    redirect(array($mvc, 'single', $rec->id), false, 'Не може да се контира документ създаден преди Еврозоната с вальор след нея|*!', 'error');
+                    core_Statuses::newStatus('Не може да се контира документ създаден преди Еврозоната с вальор след нея|*!', 'error');
+
+                    return false;
                 }
             }
         }

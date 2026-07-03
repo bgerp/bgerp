@@ -144,7 +144,7 @@ class bgerp_Recently extends core_Manager
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
-        if (!$rec->threadId && $rec->objectId && ($rec->type == 'document')) {
+        if (!($rec->threadId ?? null) && ($rec->objectId ?? null) && (($rec->type ?? null) == 'document')) {
             $rec->threadId = doc_Containers::fetchField($rec->objectId, 'threadId');
         }
     }
@@ -158,7 +158,7 @@ class bgerp_Recently extends core_Manager
     {
         $query = self::getQuery();
         
-        $query->where("#type = '{$type}'  AND #objectId = ${objectId}");
+        $query->where("#type = '{$type}'  AND #objectId = {$objectId}");
         
         if ($userId) {
             $query->where("#userId = '{$userId}'");
@@ -188,7 +188,7 @@ class bgerp_Recently extends core_Manager
                 
                 $attr = array();
                 if ($folderRec->last > $mvc->getLastFolderSee($folderRec->id, null, false)) {
-                    $attr['class'] .= " tUnsighted";
+                    $attr['class'] = ($attr['class'] ?? '') . " tUnsighted";
                 }
                 
                 $row->title = doc_Folders::getFolderTitle($folderRec, null, $attr);
@@ -213,6 +213,9 @@ class bgerp_Recently extends core_Manager
                 $state = $threadRec->state;
                 
                 $attr = array();
+                if (!isset($attr['class'])) {
+                    $attr['class'] = '';
+                }
                 $attr['class'] .= "state-{$state}";
                 
                 $modOn = $docRec->modifiedOn;
@@ -380,7 +383,7 @@ class bgerp_Recently extends core_Manager
         
         // Намираме времето на последния запис
         $query = $Recently->getQuery();
-        $query->where("#userId = ${userId}");
+        $query->where("#userId = {$userId}");
         $query->limit(1);
         $query->orderBy('#last', 'DESC');
         $lastRec = $query->fetch();
@@ -509,7 +512,7 @@ class bgerp_Recently extends core_Manager
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             
             // Ако не е избран потребител по подразбиране
-            if (!$data->listFilter->rec->usersSearch) {
+            if (empty($data->listFilter->rec->usersSearch)) {
                 
                 // Да е текущия
                 $data->listFilter->rec->usersSearch = '|' . core_Users::getCurrent() . '|';

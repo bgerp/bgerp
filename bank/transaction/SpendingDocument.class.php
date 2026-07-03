@@ -21,8 +21,8 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
      * @var bank_SpendingDocuments
      */
     public $class;
-    
-    
+
+
     /**
      * Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      * Създава транзакция която се записва в Журнала, при контирането
@@ -44,22 +44,22 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
             // Ако документа е обратен, правим контировката на ПБД-то но с отрицателен знак
             $entry = bank_transaction_IncomeDocument::getReverseEntries($rec, $origin);
         } else {
-            
+
             // Ако документа не е обратен, правим нормална контировка на РБД
             $entry = $this->getEntry($rec, $origin);
         }
-        
+
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
             'reason' => (!empty($rec->reason)) ? $rec->reason : deals_Helper::getPaymentOperationText($rec->operationSysId),   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
             'entries' => $entry,
         );
-        
+
         return $result;
     }
-    
-    
+
+
     /**
      * Връща записа на транзакцията
      */
@@ -125,19 +125,64 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                 'credit' => $transAccArr
             );
         } else {
+            $hasEarlierPayment = (!empty($rec->earlyPaymentUntil) && ($rec->valior <= $rec->earlyPaymentUntil));
+
             if((($rec->currencyId == $rec->dealCurrencyId && in_array($rec->dealCurrencyId, array($bgnCurrencyId, $euroCurrencyId)))) || ($baseCurrencyId == $euroCurrencyId && $rec->currencyId == $euroCurrencyId && $rec->dealCurrencyId != $bgnCurrencyId)) {
 
-                $entry[] = array('amount' => $sign * round($amount, 2),
+                // Ако има отстъпка за предсрочно плащане попълва се
+                $amountEntry =  $amount;
+                $debitQuantity = $rec->amountDeal;
+                $creditQuantity = $rec->amount;
+                $amountDiscount = $debitDiscount = 0;
+                if($hasEarlierPayment){
+                    $amountDiscount = $amountEntry * $rec->earlyPaymentPercent;
+                    $debitDiscount = $debitQuantity * $rec->earlyPaymentPercent;
+                    $amountEntry = $amountEntry * (1 - $rec->earlyPaymentPercent);
+                    $debitQuantity = $debitQuantity * (1 - $rec->earlyPaymentPercent);
+                    $creditQuantity = $creditQuantity * (1 - $rec->earlyPaymentPercent);
+                }
+
+                $entry[] = array('amount' => $sign * round($amountEntry, 2),
                     'debit' => array($rec->debitAccId,
                         array($rec->contragentClassId, $rec->contragentId),
                         array($origin->className, $origin->that),
                         array('currency_Currencies', $rec->dealCurrencyId),
-                        'quantity' => $sign * round($rec->amountDeal, 2)),
+                        'quantity' => $sign * round($debitQuantity, 2)),
                     'credit' => array($rec->creditAccId,
                         array('bank_OwnAccounts', $rec->ownAccount),
                         array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $sign * round($rec->amount, 2)));
+                        'quantity' => $sign * round($creditQuantity, 2)));
+
+                if($hasEarlierPayment){
+
+                    // Ако има разпределени кредитни приспадат се от сумата за сконто
+                    $invoices = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+                    $creditAmount = 0;
+                    array_walk($invoices, function(&$iRec) use (&$creditAmount){
+                        if($iRec->amount <= 0){
+                            $creditAmount += abs($iRec->amount);
+                        }
+                    });
+
+                    $amountDiscount -= $creditAmount;
+                    $debitDiscount -= $creditAmount;
+                    if(round($amountDiscount, 2) >= 0){
+                        $entry[] = array('amount' => $sign * round($amountDiscount, 2),
+                            'debit' => array($rec->debitAccId,
+                                array($rec->contragentClassId, $rec->contragentId),
+                                array($origin->className, $origin->that),
+                                array('currency_Currencies', $rec->dealCurrencyId),
+                                'quantity' => $sign * round($debitDiscount, 2)),
+                            'credit' => array(729), 'reason' => "Сконто (отстъпка) за ранно плащане");
+                    }
+                }
             } else {
+
+                // Ако има отстъпка за предсрочно плащане попълва се
+                $mainAmount481 = $amount;
+                $creditQuantity481 = $rec->amount;
+                $originalAmount481 = $amount481;
+
                 $entry[] = array('amount' => $sign * round($amountE, 2),
                     'debit' => array($rec->debitAccId,
                         array($rec->contragentClassId, $rec->contragentId),
@@ -148,29 +193,46 @@ class bank_transaction_SpendingDocument extends acc_DocumentTransactionSource
                         array('currency_Currencies', $currencyId481),
                         'quantity' => $sign * round($amount481, 2)));
 
-                $entry[] = array('amount' => $sign * round($amount, 2),
+                if($hasEarlierPayment){
+                    $mainAmount481 = $mainAmount481 * (1 - $rec->earlyPaymentPercent);
+                    $amount481 = $amount481 * (1 - $rec->earlyPaymentPercent);
+                    $creditQuantity481 = $creditQuantity481 * (1 - $rec->earlyPaymentPercent);
+                }
+
+                $entry[] = array('amount' => $sign * round($mainAmount481, 2),
                     'debit' => array(481,
                         array('currency_Currencies', $currencyId481),
                         'quantity' => $sign * round($amount481, 2)),
                     'credit' => array($rec->creditAccId,
                         array('bank_OwnAccounts', $rec->ownAccount),
                         array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $sign * round($rec->amount, 2))
+                        'quantity' => $sign * round($creditQuantity481, 2))
                 );
+
+                if($hasEarlierPayment){
+                    $amountDiscount = $originalAmount481 * $rec->earlyPaymentPercent;
+                    $amountDiscount729 = currency_CurrencyRates::convertAmount($amountDiscount, $rec->valior, currency_Currencies::getCodeById($rec->currencyId));
+                    $entry[] = array('amount' => $sign * round($amountDiscount729, 2),
+                        'debit' => array(481,
+                            array('currency_Currencies', $currencyId481),
+                            'quantity' => $sign * round($amountDiscount, 2)),
+                        'credit' => array(729), 'reason' => "Сконто (отстъпка) за ранно плащане");
+
+                }
             }
         }
 
         return $entry;
     }
-    
-    
+
+
     /**
      * Връща обратна контировка на стандартната
      */
     public static function getReverseEntries($rec, $origin)
     {
         $self = cls::get(get_called_class());
-        
+
         return $self->getEntry($rec, $origin, true);
     }
 }

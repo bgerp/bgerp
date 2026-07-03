@@ -1,5 +1,4 @@
-<tr class="nowrap no-border">
-    <td><span class="quiet">[#documentName#]</span>: [#containerId#]</td>
-    <td class='amount' style = 'font-size:0.8em;'><!--ET_BEGIN currencyId--><span class="cCode">[#currencyId#]</span><!--ET_END currencyId--> <!--ET_BEGIN amount--><b>[#amount#]</b><!--ET_END amount--></td>
-    <td>[#invoiceBtn#]</td>
+<tr class="nowrap [#INV_CLASS#]">
+    <td><span class="quiet4">[#documentName#]</span>: [#containerId#]</td>
+    <td class='amount' style = 'font-size:0.8em;'><!--ET_BEGIN currencyId--><span class="cCode">[#currencyId#]</span><!--ET_END currencyId--> <!--ET_BEGIN amount--><b>[#amount#]</b><!--ET_END amount-->[#invoiceBtn#]</td>
 </tr>

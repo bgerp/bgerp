@@ -71,7 +71,20 @@ class vislog_HistoryResources extends core_Manager
     public function description()
     {
         $this->FLD('query', 'varchar(255)', 'caption=Ресурс');
-        
-        $this->setDbUnique('query');
+        $this->FLD('queryHash', 'varchar(32)', 'input=none,caption=Хеш');
+
+        $this->setDbUnique('queryHash');
+    }
+
+
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $rec
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        $rec->queryHash = md5($rec->query);
     }
 }

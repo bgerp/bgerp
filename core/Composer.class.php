@@ -105,12 +105,12 @@ class core_Composer extends core_Mvc
                 }
             }
             $composerCmd = $vPath . '/composer.phar';
-                        
+            $setupPath = $vPath . '/composer-setup.php';
+
             if (!file_exists($composerCmd)) {
-                
+
                 $sig = trim(file_get_contents('https://composer.github.io/installer.sig'));
-                
-                $setupPath = $vPath . '/composer-setup.php';
+
                 
                 file_put_contents($setupPath, file_get_contents('https://getcomposer.org/installer'));
                 
@@ -292,7 +292,7 @@ class core_Composer extends core_Mvc
         
         $wd = '--working-dir=' . $vPath;
         $composerHome = 'COMPOSER_HOME=' . $vPath . '/.composer';
-        $cmd = "{$composerHome} \"{$phpCmd}\" \"${bowerphp}\" install {$pack} {$wd}";
+        $cmd = "{$composerHome} \"{$phpCmd}\" \"{$bowerphp}\" install {$pack} {$wd}";
         putenv('COMPOSER_HOME=' . $vPath . '/.composer');
         exec($cmd, $lines, $result);
         

@@ -155,8 +155,8 @@ abstract class frame2_driver_Proto extends core_BaseClass
         $fields = (is_array($form->fields)) ? $form->fields : array();
         
         foreach ($fields as $name => $fld) {
-            if (isset($rec->{$name}) && $fld->single !== 'none') {
-                if($fld->single == 'internal' && (Mode::is('text', 'xhtml') || Mode::is('printing'))) continue;
+            if (isset($rec->{$name}) && ($fld->single ?? null) !== 'none') {
+                if(($fld->single ?? null) == 'internal' && (Mode::is('text', 'xhtml') || Mode::is('printing'))) continue;
                 $captionArr = explode('->', $fld->caption);
                 $caption = (countR($captionArr) == 1) ? $captionArr[0] : $captionArr[1];
                 $resArr[$name] = array('name' => tr($caption), 'val' => $row->{$name});
@@ -164,7 +164,7 @@ abstract class frame2_driver_Proto extends core_BaseClass
         }
 
         if(Mode::is('text', 'xhtml') || Mode::is('printing')){
-            if($rec->showLetterHeadWhenSending == 'no'){
+            if(($rec->showLetterHeadWhenSending ?? null) == 'no'){
                 $resArr = array();
             }
         }
@@ -360,5 +360,17 @@ abstract class frame2_driver_Proto extends core_BaseClass
     public function getLog($rec)
     {
        return $this->log;
+    }
+
+
+    /**
+     *  Връща сериите за експорт
+     * 
+     * @param stdClass $rec
+     * @return array
+     */
+    public function getSeriesForExport($rec){
+        
+        return array();
     }
 }

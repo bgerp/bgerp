@@ -169,7 +169,7 @@ class teracom_TCW121 extends sens2_ProtoDriver
         
         // Превключваме релетата
         foreach ($res as $out => $cmd) {
-            $ch = curl_init("${cmd}");
+            $ch = curl_init("{$cmd}");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 3);
             if(curl_exec($ch) !== false) {

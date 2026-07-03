@@ -220,8 +220,8 @@ class label_Prints extends core_Master
         $rec = $form->rec;
 
         // Ако е подаден клас и обект
-        $classId = $rec->classId;
-        $objId = $rec->objectId;
+        $classId = $rec->classId ?? null;
+        $objId = $rec->objectId ?? null;
         
         $labelDataArr = array();
         
@@ -441,8 +441,7 @@ class label_Prints extends core_Master
                 $estCnt = label_Media::getCountInPage($rec->mediaId);
             }
         }
-        
-        setIfNot($estCnt, 1);
+        $estCnt = $estCnt ?? 1;
         
         $form->setDefault('labelsCnt', $estCnt);
         $form->setDefault('copiesCnt', 1);
@@ -839,7 +838,7 @@ class label_Prints extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Ако не е избран потребител по подразбиране
-        if (!$data->listFilter->rec->author) {
+        if (!($data->listFilter->rec->author ?? null)) {
             
             // Да е текущия
             $data->listFilter->rec->author = '|' . core_Users::getCurrent() . '|';
@@ -857,11 +856,11 @@ class label_Prints extends core_Master
                 $data->query->orWhereArr('modifiedBy', $usersArr, true);
             }
             
-            if ($filter->templateId) {
+            if ($filter->templateId ?? null) {
                 $data->query->where(array("#templateId = '[#1#]'", $filter->templateId));
             }
-            
-            if ($filter->mediaId) {
+
+            if ($filter->mediaId ?? null) {
                 $data->query->where(array("#mediaId = '[#1#]'", $filter->mediaId));
             }
         }
@@ -981,7 +980,7 @@ class label_Prints extends core_Master
             }
         }
         
-        if ($action == 'edit' && $rec && $requiredRoles != 'no_one') {
+        if (in_array($action, array('edit', 'clonerec', 'regenerate')) && $rec && $requiredRoles != 'no_one') {
             if ($rec->objectId && $rec->classId) {
                 if (cls::load($rec->classId, true)) {
                     if (!cls::haveInterface('label_SequenceIntf', $rec->classId)) {
@@ -1124,8 +1123,9 @@ class label_Prints extends core_Master
         }
         
         // Ако не е сетната бройката
-        setIfNot($data->cnt, 1);
-        setIfNot($data->copyCnt, 1);
+        $data->cnt = $data->cnt ?? 1;
+        $data->copyCnt = $data->copyCnt ?? 1;
+        setPartIfNot($data, 'cnt', 1);
         
         if (!$data->allCnt) {
             $data->allCnt = $data->cnt * $data->copyCnt;
@@ -1165,11 +1165,11 @@ class label_Prints extends core_Master
             if (!$params[$currPageCntField]) {
                 $updatePageCnt = true;
                 $params[$currPageCntField] = $currPageCnt;
-                setIfNot($placesArr[$currPageCntField], $currPageCntField);
+                $placesArr[$currPageCntField] = $placesArr[$currPageCntField] ?? $currPageCntField;
             }
             
             // Ако не е зададена стойност за брой отпечатвания
-            setIfNot($params[$printCntField], $data->printCnt, $data->cnt, 1);
+            $params[$printCntField] = $params[$printCntField] ?? $data->printCnt ?? $data->cnt ?? 1;
             
             if ($updatePrintCnt) {
                 $params[$currPrintCntField] = $currPrintCnt++;
@@ -1241,7 +1241,7 @@ class label_Prints extends core_Master
         $allTpl = new core_ET();
         
         // Брой записи на страница
-        setIfNot($itemsPerPage, $data->pageLayout->itemsPerPage, 1);
+        $itemsPerPage = $data->pageLayout->itemsPerPage ?? 1;
         
         // Обхождаме резултатите
         foreach ((array) $data->rows as $rowId => $row) {

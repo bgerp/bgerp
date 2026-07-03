@@ -150,6 +150,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          string      ['wasteStart']            - начално количество отпадък
      *          string      ['wastePercent']          - процент отпадък
      *          string      ['calcWeightMode']        - изчисляване на тегло или не
+     *          string      ['fastProgressBtn']       - да се показва ли бутон за бърз прогрес в листа на ПО
      *          string      ['mandatoryDocuments']    - задължителни документи
      *          text        ['description']           - описание на операцията
      *          int         ['supportSystemFolderId'] - папка за поддръжка
@@ -186,6 +187,8 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
         $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : array();
         $res['calcWeightMode'] = ($rec->calcWeightMode == 'auto') ? planning_Setup::get('TASK_WEIGHT_MODE') : $rec->calcWeightMode;
+        $res['fastProgressBtn'] = ($rec->fastProgressBtn == 'auto') ? planning_Setup::get('TASK_FAST_PROGRESS_BTN') : $rec->fastProgressBtn;
+
         $res['supportSystemFolderId'] = $rec->supportSystemFolderId ?? planning_Centers::fetchField($rec->centerId, 'supportSystemFolderId');
 
         if($rec->showPreviousJobField == 'auto'){

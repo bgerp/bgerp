@@ -261,17 +261,17 @@ class currency_CurrencyRates extends core_Detail
         if ($filter = $data->listFilter->rec) {
             
             // Филтрираме по валута
-            if ($filter->currencySearch) {
+            if (!empty($filter->currencySearch)) {
                 $data->query->where(array("#currencyId = '[#1#]'", $filter->currencySearch));
             }
             
             // Филтрираме по От и до
             $dateRange = array();
-            if ($filter->from) {
+            if (!empty($filter->from)) {
                 $dateRange[0] = $filter->from;
             }
-            
-            if ($filter->to) {
+
+            if (!empty($filter->to)) {
                 $dateRange[1] = $filter->to;
             }
             
@@ -279,11 +279,11 @@ class currency_CurrencyRates extends core_Detail
                 sort($dateRange);
             }
             
-            if ($dateRange[0]) {
+            if (!empty($dateRange[0])) {
                 $data->query->where(array("#date >= '[#1#]'", $dateRange[0]));
             }
-            
-            if ($dateRange[1]) {
+
+            if (!empty($dateRange[1])) {
                 $data->query->where(array("#date <= '[#1#]'", $dateRange[1]));
             }
         }
@@ -314,9 +314,15 @@ class currency_CurrencyRates extends core_Detail
         $fromId = is_null($from) ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($from);
         $toId = is_null($to)   ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($to);
 
-        // Ако от лева се обръща в евро се дели на 1.95583 а не да се умножава по 0.51129 защото се получават разлики спрямо очакваното
-        if($fromId == currency_Currencies::getIdByCode('BGN') && $toId == currency_Currencies::getIdByCode('EUR')) {
-            return $amount / static::getRate($date, $to, $from);
+        $bgnId = currency_Currencies::getIdByCode('BGN');
+        $euroId = currency_Currencies::getIdByCode('EUR');
+
+        // От Евро в Лева (и обратно) се минава винаги през официалния курс 1.95593, за да не се получат разлики
+        // в нови системи няма курс на лева и се чупи логиката, ако гледаме от моделите
+        if($fromId == $bgnId && $toId == $euroId) {
+            return round($amount / 1.95583, 5);
+        } elseif($fromId == $euroId && $toId == $bgnId) {
+            return round($amount * 1.95583, 5);
         }
 
         return $amount * static::getRate($date, $from, $to);
@@ -325,10 +331,8 @@ class currency_CurrencyRates extends core_Detail
     
     /**
      *  Обменният курс на една валута спрямо друга към дата
+     *  Закръгля резултата до 5-тата цифра след дес. точка
      *
-     *  Закръгля резултата до 4-тата цифра след дес. точка
-     *
-     *  @param float      $amount Сума която ще обърнем
      *  @param datetime        $date   NULL = текущата дата
      *  @param string|null $from   Код на валутата от която ще обръщаме
      *                             NULL = базова валута към $date
@@ -379,6 +383,16 @@ class currency_CurrencyRates extends core_Detail
                 return round($rate, 5);
             }
         }
+
+        // Ако няма намерен курс и търсим BGN->EUR или EUR->BGN да е винаги по исторически курс
+        // в нови системи лева няма валутен курс и тази ф-я нямаше да връща нищо
+        $bgnId = currency_Currencies::getIdByCode('BGN');
+        $euroId = currency_Currencies::getIdByCode('EUR');
+        if($fromId == $bgnId && $toId == $euroId) {
+            return 0.51129;
+        } elseif($fromId == $euroId && $toId == $bgnId){
+            return 1.95583;
+        }
     }
     
     
@@ -418,7 +432,6 @@ class currency_CurrencyRates extends core_Detail
     protected static function getDirectRate($date, $fromId, $toId)
     {
         $rate = static::getStoredRate($date, $fromId, $toId);
-
         if (is_null($rate)) {
             if (!is_null($rate = static::getStoredRate($date, $toId, $fromId))) {
                 $rate = 1 / $rate;

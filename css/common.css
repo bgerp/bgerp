@@ -454,8 +454,7 @@ textarea:hover {
   position: relative;
   height: 1.5em;
   margin-bottom: 20px;
-  border-radius: 5px;
-  box-shadow: 1px 1px 0 rgba(60, 60, 60, 0.1); }
+  border-radius: 5px; }
 
 .wide  #all #simpleSearch {
   padding: 3px 2px 2px; }
@@ -1178,7 +1177,8 @@ th .rowtools .l {
  */
 a.profile {
   padding: 2px;
-  border-radius: 3px; }
+  border-radius: 3px;
+  white-space: nowrap; }
   a.profile.ceo {
     color: #0000cc; }
     a.profile.ceo.inactive {
@@ -1562,6 +1562,9 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
 .wide .user-profile .remote_Authorizations table.listAction {
   min-width: 0; }
 
+.wide .user-profile .remote_Authorizations {
+  display: block !important; }
+
 /*
  * край на стилове за елемента 'list Table'
  */
@@ -1589,10 +1592,11 @@ table.listTable:not(.noHoverTable) > tbody.rowBlock:hover > tr {
   color: #666666; }
 
 .formMiddleCaption {
-  margin: 0 15px !important;
+  margin: 0 2px 0 0 !important;
   border: solid 1px #cccccc;
   background: #eeeeee;
-  padding: 3px 5px !important; }
+  color: #333333;
+  padding: 5px 8px !important; }
 
 .formNotice {
   background-color: #ffff66;
@@ -2010,9 +2014,6 @@ input:focus[type=button] {
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
   border-radius: 5px;
-  -moz-box-shadow: 2px 2px 8px 3px #aaaabb;
-  -webkit-box-shadow: 2px 2px 8px 3px #aaaabb;
-  box-shadow: 2px 2px 8px 3px #aaaabb;
   margin-bottom: 20px;
   border-collapse: separate;
   max-width: 48em; }
@@ -2630,7 +2631,8 @@ div.richEdit {
   min-height: 100px; }
 
 .wide .richEdit textarea {
-  min-width: 310px; }
+  min-width: 310px;
+  overflow-y: auto !important; }
 
 .richedit-toolbar {
   position: relative;

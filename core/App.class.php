@@ -24,12 +24,13 @@ class core_App
     public static function run()
     {
         $boot = trim(getBoot(), '/\\');
-        $vUrl = trim($_GET['virtual_url'], '/\\');
+        $vUrl = trim($_GET['virtual_url'] ?? '', '/\\');
+        $filename = null;
         if (!strlen($boot) || strlen($boot) && strpos($vUrl, $boot) === 0) {
             $filename = strtolower(trim(substr($vUrl, strlen($boot)), '/\\'));
         }
 
-        if (preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,11}$/i', $filename)) {
+        if ($filename !== null && preg_match('/^[a-z0-9_\\-]+\\.[a-z0-9]{2,11}$/i', $filename)) {
             
             // Ако имаме заявка за статичен файл от коренната директория на уеб-сървъра
             core_Webroot::serve($filename);
@@ -208,7 +209,7 @@ class core_App
                     continue;
                 }
                 
-                if ((countR($vUrl) - $id) % 2 || floor($prm) > 0) {
+                if ((countR($vUrl) - $id) % 2 || (is_numeric($prm) && floor((float)$prm) > 0)) {
                     if (!isset($q['id']) && empty($name)) {
                         $q['id'] = urldecode($prm);
                     } else {
@@ -255,7 +256,7 @@ class core_App
     {
         // Вземаме името на приложението от параметрите на URL, ако не е дефинирано
         if (!defined('EF_APP_NAME')) {
-            if (!$_GET['App']) {
+            if (empty($_GET['App'])) {
                 halt('Error: Unable to determinate application name (EF_APP_NAME)</b>');
             }
             
@@ -538,7 +539,7 @@ class core_App
                     header('Content-Encoding: gzip');
                 }
                 $len = strlen($content);
-                header("Content-Length: ${len}");
+                header("Content-Length: {$len}");
             } else {
                 if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
                     header('Content-Length: 2');
@@ -673,7 +674,7 @@ class core_App
         header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
         header('Expires: 0'); // Proxies.
         
-        header("Location: ${url}", true, $permanent ? 301 : 302);
+        header("Location: {$url}", true, $permanent ? 301 : 302);
         
         static::shutdown(false);
     }
@@ -873,7 +874,7 @@ class core_App
     public static function toLocalUrl($arr)
     {
         if (is_array($arr)) {
-            if (!$arr['Act']) {
+            if (!($arr['Act'] ?? null)) {
                 $arr['Act'] = 'default';
             }
 
@@ -891,14 +892,15 @@ class core_App
                     foreach ($value as $k => $v) {
                         if (is_array($v)) {
                             wp($v);
+                            continue;
                         }
-                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . @urlencode($v);
+                        $url .= ($url ? '/' : '') . "{$key},{$k}/" . urlencode((string)$v);
                     }
                 } else {
                     if (is_array($value)) {
                         wp($value);
                     }
-                    $url .= ($url ? '/' : '') . "{$key}/" . @urlencode($value);
+                    $url .= ($url ? '/' : '') . "{$key}/" . urlencode((string)$value);
                 }
             }
         } else {
@@ -1248,21 +1250,26 @@ class core_App
     /**
      * При зададени списъци с пътища и бранчове, връща масив в който ключове са пътищата, а стойности - бранчовета
      */
-    private static function getReposByPathAndBranch($paths, $branches)
+    private static function getReposByPathAndBranch($paths, $branches = null)
     {
         $pathArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $paths));
         $pathArr = array_filter($pathArr, function ($value) {
             
             return trim($value) !== '';
         });
-        $branchArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $branches));
-        
-        $branchArr = array_filter($branchArr, function ($value) {
-            
-            return trim($value) !== '';
-        });
+
+        $branchArr = array();
+        if (!is_null($branches)) {
+            $branchArr = explode(',', str_replace(array('\\', ';'), array('/', ','), $branches));
+
+            $branchArr = array_filter($branchArr, function ($value) {
+
+                return trim($value) !== '';
+            });
+        }
+
         $cntBranches = countR($branchArr);
-        
+
         $res = array();
         foreach ($pathArr as $i => $line) {
             if (strpos($line, '=')) {

@@ -218,7 +218,7 @@ class doc_Likes extends core_Manager
             }
         }
         
-        return (array) self::$likedArr[$key][$cid];
+        return (array) ((self::$likedArr[$key] ?? [])[$cid] ?? []);
     }
     
     

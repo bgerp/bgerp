@@ -70,18 +70,6 @@ class bank_IncomeDocuments extends bank_Document
     
     
     /**
-     * Полета, които ще се показват в листов изглед
-     */
-    public $listFields = 'termDate,valior=Вальор, title=Документ, reason, invoices=Фактури, folderId, currencyId, amount, state, createdOn, createdBy';
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, termDate,valior,modifiedOn';
-    
-    
-    /**
      * Права за плъгин-а bgerp_plg_Export
      */
     public $canExport = 'ceo, invoicerSale, invoicerPurchase, invoicerFindeal';
@@ -137,11 +125,11 @@ class bank_IncomeDocuments extends bank_Document
     protected static function getOperations($operations)
     {
         $options = array();
-        
+
         // Оставяме само тези операции, в които се дебитира основната сметка на документа
         foreach ($operations as $sysId => $op) {
             if ($op['debit'] == static::$baseAccountSysId) {
-                $options[$sysId] = $op['title'];
+                $options[$sysId] = tr($op['title']);
             }
         }
         

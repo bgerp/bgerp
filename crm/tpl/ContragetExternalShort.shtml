@@ -1,6 +1,6 @@
 <div class='logoBox'>
 	<!--ET_BEGIN CONTRAGENT-->
-		<a href='[#link#]' class='logo' target="_blank" title="[#name#]">
+		<a <!--ET_BEGIN link--> href='[#link#]'<!--ET_END link--> class='logo' target="_blank" title="[#name#]">
 			[#logo#]
 		</a>
 	<!--ET_END CONTRAGENT-->

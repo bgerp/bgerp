@@ -163,7 +163,8 @@ abstract class deals_ServiceMaster extends core_Master
         $aggregatedDealInfo = $origin->getAggregateDealInfo();
         $agreedProducts = $aggregatedDealInfo->get('products');
         $shippedProducts = $aggregatedDealInfo->get('shippedProducts');
-        
+        $normalizedProducts = array();
+
         if (countR($shippedProducts)) {
             $normalizedProducts = deals_Helper::normalizeProducts(array($agreedProducts), array($shippedProducts));
         } else {
@@ -506,7 +507,7 @@ abstract class deals_ServiceMaster extends core_Master
         $rec = is_object($id) ? $id : $this->fetchRec($id, '*', false);
         $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'), 'cashDiscount' => null);
     }
 
     /**
@@ -551,7 +552,7 @@ abstract class deals_ServiceMaster extends core_Master
 
                 $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
             } elseif(acc_Periods::getBaseCurrencyCode($rec->valior) != acc_Periods::getBaseCurrencyCode($dealInfo->get('agreedValior'))){
-                $valior = $valior ?? dt::today();
+                $valior = $rec->valior ?? dt::today();
                 if(!in_array($rec->currencyId, array('BGN', 'EUR')) && $valior >= acc_Setup::getEurozoneDate()){
                     $rec->currencyRate = round($dealInfo->get('rate') / 1.95583, 6);
                 } else {
@@ -559,6 +560,16 @@ abstract class deals_ServiceMaster extends core_Master
                 }
             }
         }
+    }
+
+
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+        // Динамично рендиране на ДДС информацията
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
     }
 }
 

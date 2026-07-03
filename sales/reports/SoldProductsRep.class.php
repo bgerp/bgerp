@@ -20,7 +20,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, acc, repAll, repAllGlobal, sales, debug';
+    public $canSelectDriver = 'ceo, planning, sales, debug';
 
 
     /**
@@ -62,13 +62,125 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,to,compare,firstMonth,secondMonth,group,dealers,contragent,crmGroup,articleType,seeDelta,orderBy,order,grouping,updateDays,updateTime,products';
+    protected $changeableFields = 'from,to,compare,firstMonth,secondMonth,group,dealers,dealersTeam,contragent,crmGroup,articleType,seeDelta,orderBy,order,grouping,updateDays,updateTime,products';
 
 
     /**
      * Кои полета са за избор на период
      */
     protected $periodFields = 'from,to';
+
+
+    /**
+     * Връща обхвата на достъп до търговци и екипи за потребителя
+     *
+     * Използва salesAllGlobal за всички търговци и salesAll за екипите на потребителя.
+     * Резултатът се използва едновременно за опциите във формата и за сървърния филтър в prepareRecs().
+     *
+     * @param int|null $userId
+     *
+     * @return array
+     */
+    public static function getDealerAccessScope($userId = null)
+    {
+        $userId = isset($userId) ? $userId : core_Users::getCurrent();
+
+        $res = array(
+            'canSeeAll' => false,
+            'canSeeTeams' => false,
+            'allowedDealers' => array(),
+            'allowedTeams' => array(),
+        );
+
+        if (haveRole('saleAllGlobal', $userId)) {
+            $res['canSeeAll'] = true;
+            $res['allowedDealers'] = self::getAllDealers();
+            $res['allowedTeams'] = keylist::toArray(core_Roles::getRolesByType('team'));
+
+            return $res;
+        }
+
+        if (haveRole('saleAll', $userId)) {
+            $res['canSeeTeams'] = true;
+            $res['allowedTeams'] = keylist::toArray(core_Users::getUserRolesByType($userId, 'team'));
+
+            if (!empty($res['allowedTeams'])) {
+                $res['allowedDealers'] = self::getUsersByTeams($res['allowedTeams']);
+            }
+
+            return $res;
+        }
+
+        $res['allowedDealers'] = array($userId => $userId);
+
+        return $res;
+    }
+
+
+    /**
+     * Връща всички потребители, които реално се срещат като dealerId в данните на справката
+     *
+     * Списъкът не се базира на роли, а на реални продажбени записи.
+     *
+     * @return array
+     */
+    protected static function getAllDealers()
+    {
+        $res = array();
+
+        $primeCostQuery = sales_PrimeCostByDocument::getQuery();
+        $primeCostQuery->where('#dealerId IS NOT NULL');
+        $primeCostQuery->groupBy('dealerId');
+        $primeCostQuery->show('dealerId');
+        while ($primeCostRec = $primeCostQuery->fetch()) {
+            if ($primeCostRec->dealerId > 0) {
+                $res[$primeCostRec->dealerId] = $primeCostRec->dealerId;
+            }
+        }
+
+        $salesQuery = sales_Sales::getQuery();
+        $salesQuery->where('#dealerId IS NOT NULL');
+        $salesQuery->groupBy('dealerId');
+        $salesQuery->show('dealerId');
+        while ($salesRec = $salesQuery->fetch()) {
+            if ($salesRec->dealerId > 0) {
+                $res[$salesRec->dealerId] = $salesRec->dealerId;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща потребителите от подадените екипи
+     *
+     * Използва се при потребители с достъп само до собствените им екипи.
+     *
+     * @param array|null $teams
+     *
+     * @return array
+     */
+    protected static function getUsersByTeams($teams)
+    {
+        $res = array();
+        if (empty($teams)) {
+
+            return $res;
+        }
+
+        $teamsKeylist = keylist::fromArray($teams);
+
+        $usersQuery = core_Users::getQuery();
+        $usersQuery->where("#state != 'rejected' AND #state != 'draft'");
+        $usersQuery->likeKeylist('roles', $teamsKeylist);
+
+        while ($userRec = $usersQuery->fetch()) {
+            $res[$userRec->id] = $userRec->id;
+        }
+
+        return $res;
+    }
 
 
     /**
@@ -94,7 +206,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealersTeam');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
 
-        $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
+        $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули, nogrp=Без групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
         $fieldset->FLD('category', 'keylist(mvc=cat_Categories,select=name)', 'caption=Артикули->Категории артикули,after=typeOfGroups,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=category,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,placeholder=Всички,after=group,single=none,input=none,class=w100');
@@ -223,7 +335,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->input('typeOfGroups');
         if ($rec->typeOfGroups == 'category') {
             $form->setField('group', 'input=hidden');
-        } elseif ($rec->typeOfGroups == 'art') {
+        } elseif (($rec->typeOfGroups == 'art') || ($rec->typeOfGroups == 'nogrp')) {
             $form->setField('category', 'input=hidden');
         } elseif ($rec->typeOfGroups == 'no') {
             $form->setField('category', 'input=hidden');
@@ -427,35 +539,30 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $form->setSuggestions('contragent', $suggestionContragents);
 
-        $suggestionDealers = [];
+        // Ограничаваме опциите във формата според правата на текущия потребител
+        $dealerAccessScope = self::getDealerAccessScope(core_Users::getCurrent());
 
-// Взимаме ID на ролята 'powerUser'
-        $powerUserRoleId = core_Roles::fetchByName('powerUser');
-
-        if ($powerUserRoleId) {
-
-            // Обхождаме всички потребители
-            $dealers = core_Users::getQuery();
-            while ($delRec = $dealers->fetch()) {
-                // Добавяме само ако имат точно ролята powerUser
-                if (keylist::isIn($powerUserRoleId, $delRec->roles)) {
-                    $suggestionDealers[$delRec->id] = $delRec->nick;
-                }
-            }
+        $suggestionDealers = array();
+        foreach ($dealerAccessScope['allowedDealers'] as $dealerId) {
+            $suggestionDealers[$dealerId] = core_Users::fetchField($dealerId, 'nick');
         }
+        asort($suggestionDealers);
 
         $form->setSuggestions('dealers', $suggestionDealers);
 
-
         $suggestionTeams = array();
-        $teams = core_Roles::getRolesByType('team');
-        foreach (keylist::toArray($teams) as $team) {
-
-            $teRec = core_Roles::fetch($team);
-            $suggestionTeams[$teRec->id] = $teRec->role;
+        foreach ($dealerAccessScope['allowedTeams'] as $teamId) {
+            $teRec = core_Roles::fetch($teamId);
+            if ($teRec) {
+                $suggestionTeams[$teRec->id] = $teRec->role;
+            }
         }
+        asort($suggestionTeams);
 
         $form->setSuggestions('dealersTeam', $suggestionTeams);
+        if (empty($suggestionTeams)) {
+            $form->setField('dealersTeam', 'input=none');
+        }
 
     }
 
@@ -475,7 +582,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $baseCurrencyId = currency_Currencies::getIdByCode($baseCurrency);
 
         //При групиране по кои групи да работи: групи артикули или категории артикули
-        if ($rec->typeOfGroups == 'art') {
+        if ($rec->typeOfGroups == 'art' || $rec->typeOfGroups == 'nogrp') {
             $checkForGruping = 'group';
         } elseif (($rec->typeOfGroups == 'category')) {
             $checkForGruping = 'category';
@@ -490,7 +597,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         //Показването да бъде ли ГРУПИРАНО
         if (($rec->grouping == 'no') && ($rec->group || $rec->category)) {
-            if ($rec->typeOfGroups == 'art') {
+            if ($rec->typeOfGroups == 'art' || $rec->typeOfGroups == 'nogrp') {
                 $groupByField = 'group';
             } elseif (($rec->typeOfGroups == 'category')) {
                 $groupByField = 'category';
@@ -640,9 +747,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
 
-        // Филтър за ДИЛЪР
+        // Сървърна защита на филтъра за дилър
         if ($rec->quantityType != 'invoiced') {
+            // Данните се ограничават по правата на създателя на справката, не на текущия потребител
+            $dealerAccessScope = self::getDealerAccessScope($rec->createdBy ?? core_Users::getCurrent());
             $dealersArr = [];
+            $hasDealerFilter = !empty($rec->dealers) || !empty($rec->dealersTeam);
 
             // Добавяне на потребителите избрани в полето dealers
             if (!empty($rec->dealers)) {
@@ -652,22 +762,30 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             // Добавяне на потребителите от избраните роли (екипи)
             if (!empty($rec->dealersTeam)) {
                 $roleIds = keylist::toArray($rec->dealersTeam);
+                $teamUsers = self::getUsersByTeams($roleIds);
 
-                // Вземаме всички потребители, които имат поне една от ролите
-                $q = core_Users::getQuery();
-                foreach ($roleIds as $roleId) {
-                    $q->orWhere("#roles LIKE '%|{$roleId}|%'");
-                }
-
-                while ($user = $q->fetch()) {
-                    $dealersArr[$user->id] = $user->id;
+                foreach ($teamUsers as $userId) {
+                    $dealersArr[$userId] = $userId;
                 }
             }
 
-            // Ако има натрупани дилъри, филтрираме
+            // Ръчно подадените dealers/dealersTeam се свеждат само до разрешените търговци
+            if ($hasDealerFilter) {
+                $dealersArr = array_intersect_key($dealersArr, $dealerAccessScope['allowedDealers']);
+            } else {
+                $dealersArr = $dealerAccessScope['allowedDealers'];
+            }
+
+            // Ако няма разрешени търговци след пресичането, заявката не трябва да върне чужди данни
+            if (empty($dealersArr)) {
+                $dealersArr = array(-PHP_INT_MAX);
+            }
+
             if (!empty($dealersArr)) {
                 $query->in('dealerId', $dealersArr);
             }
+        } else {
+            // TODO: Да се реши връзката invoice -> dealer, за да се приложи dealer/team ограничението и при фактурирани количества.
         }
 
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
@@ -751,7 +869,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         //Филтър за АРТИКУЛ и ГРУПИ АРТИКУЛИ
 
-        if ($rec->typeOfGroups == 'art') {
+        if ($rec->typeOfGroups == 'art' || $rec->typeOfGroups == 'nogrp') {
             $filterGroupsType = 'group';
         } elseif ($rec->typeOfGroups == 'category') {
             $filterGroupsType = 'category';
@@ -859,7 +977,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
 
                         //Превалутиране
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
                         $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
 
                         $quantityPrevious = (-1) * $recPrime->quantity;
@@ -872,8 +990,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $quantityPrevious = $recPrime->quantity;
 
                         //Превалутиране
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
-                        $primeCostPrevious = $pricePr * $recPrime->quantity * 1.95583;
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
+                        $primeCostPrevious = $pricePr * $recPrime->quantity;
 
 
                         //Ако е избрана Дилърска себестойност, и делтата е отрицателна,
@@ -889,7 +1007,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                             //Превалутиране
                             $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
 
-                            $deltaPrevious = $recPrime->delta * 1.95583;
+                            $deltaPrevious = $recPrime->delta ;
                         }
 
 
@@ -930,7 +1048,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails ) {
 
                         //Превалутиране
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
                         $recPrime->delta = deals_Helper::getSmartBaseCurrency($recPrime->delta, $recPrime->valior, $rec->to);
 
                         $quantityLastYear = (-1) * $recPrime->quantity;
@@ -940,7 +1058,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails || $DetClass instanceof pos_Reports) {
 
                         //Превалутиране
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
 
                         $quantityLastYear = $recPrime->quantity;
                         $primeCostLastYear = $pricePr * $recPrime->quantity ;
@@ -995,9 +1113,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                     //Превалутиране
                     if($rec->quantityType != 'shipped'){
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
                     }else{
-                        $pricePr = $recPrime->{"${price}"};
+                        $pricePr = $recPrime->{"{$price}"};
                     }
                     if($rec->quantityType != 'shipped'){
 
@@ -1014,9 +1132,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     //Превалутиране
                     if($rec->quantityType != 'shipped'){
 
-                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"${price}"}, $recPrime->valior, $rec->to);
+                        $pricePr = deals_Helper::getSmartBaseCurrency($recPrime->{"{$price}"}, $recPrime->valior, $rec->to);
                     }else{
-                        $pricePr = $recPrime->{"${price}"};
+                        $pricePr = $recPrime->{"{$price}"};
                     }
 
                     $primeCost = $pricePr * $recPrime->quantity;
@@ -1474,6 +1592,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $orderBy = $changePrimeCost;
             }
 
+            if ($rec->orderBy == 'quantity') {
+              //  $orderBy = $changePrimeCost;
+            }
+
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
         }
 
@@ -1543,18 +1665,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     public static function dcNoteCorrection($dcRec, $rec)
     {
+
         $originQuantity = $changeQuatity = $changePrice = $invQuantity = $invAmount = 0;
 
         $res = array();
 
         $originId = doc_Containers::getDocument($dcRec->originId)->that;
 
+
         $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = $originId AND #productId = '$dcRec->productId' AND
-                                                           #packagingId = '$dcRec->packagingId'
+                                                           #packagingId = '$dcRec->packagingId' AND
+                                                           #id = '$dcRec->clonedFromDetailId' 
                                                            AND (#quantity != '$dcRec->quantity' OR #price != '$dcRec->price')");
 
-
         $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
+
         $changeQuatity = $dcRec->quantity * $dcRec->quantityInPack - $originQuantity;
         $changePrice = $dcRec->price - $originDetRec->price;
 
@@ -1709,6 +1834,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             if ($rec->seeDelta == 'yes') {
                 $fld->FLD('delta', 'double(decimals=2)', "smartCenter,caption={$name1} Делта");
+            }
+
+            if ($rec->seeWeight == 'yes') {
+                $fld->FLD('weight', 'double(smartRound,decimals=2)', 'smartCenter,caption=Тегло->[кг]');
             }
 
 
@@ -2399,10 +2528,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     public static function getProductWeight($rec)
     {
         //id на мярката 'килограм'
+
         $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
 
         //Взема единичното тегло на целия продукт
         $singleProductWeight = null;
+
         $singleProductWeight = cat_Products::getParams($rec->id, 'weight');
 
         if ($singleProductWeight) {
@@ -2411,8 +2542,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $singleProductWeight = cat_Products::getParams($rec->id, 'weightKg');
         }
 
+        $isSecondMeasure = cat_products_Packagings::getPack($rec->id, $kgMeasureId)->isSecondMeasure;
+
         if ($rec->measureId == $kgMeasureId) {
             $singleProductWeight = 1;
+        }
+
+        if (!$singleProductWeight){
+            $packReck = cat_products_Packagings::getPack($rec->id, $kgMeasureId);
+         if($packReck->isSecondMeasure == 'yes'){
+
+             $singleProductWeight = 1/$packReck->quantity;
+         }
         }
 
         $singleProductWeight = $singleProductWeight ? $singleProductWeight : 'n.a.';

@@ -131,12 +131,20 @@ class sens2_Controllers extends core_Master
     /**
      * Връща инстанция на драйвера за посочения контролер
      */
-    public static function getDriver($controllerId)
+    public static function getDriver($controllerId, $silent = false)
     {
         static $drivers = array();
         
         if (!isset($drivers[$controllerId])) {
             $rec = self::fetch($controllerId);
+
+            if ($silent === true) {
+                if (!cls::load($rec->driver, true)) {
+
+                    return false;
+                }
+            }
+
             $drivers[$controllerId] = cls::get($rec->driver);
             $drivers[$controllerId]->driverRec = $rec;
         }
@@ -225,7 +233,7 @@ class sens2_Controllers extends core_Master
                 }
                 $partUom = $port . '_uom';
                 $res = (object) array('caption' => $caption, 'uom' => $config->{$partUom}, 'title' => $title);
-                setIfNot($res->uom, $params->uom);
+                $res->uom = $res->uom ?? $params->uom;
                 
                 $ap[$controllerId . '_' . $type][$port] = $res;
             }
@@ -661,7 +669,7 @@ class sens2_Controllers extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $Driver = cls::get($rec->driver);
             $path = $Driver->getPicture($rec->config);
             if (!$path) {
@@ -693,8 +701,8 @@ class sens2_Controllers extends core_Master
         }
         
         $sleepNanoSec = round(min(0.5, 35 / $cnt) * 1000000000); // 1000_000_000
-        
-        
+
+        $res = '';
         while ($rec = $query->fetch("#state = 'active'")) {
             if ($mustSleep) {
                 time_nanosleep(0, $sleepNanoSec);
@@ -710,13 +718,16 @@ class sens2_Controllers extends core_Master
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($curl, CURLOPT_HTTPHEADER, array('Connection: close'));
-            $data = curl_exec($curl);
-            curl_close($curl);
+            $data = @curl_exec($curl);
+            @curl_close($curl);
             
             // $data = file_get_contents($url);
-            
-            $res .= '<li>' . $data . '</li>';
-            
+            if ($data !== false) {
+                $res .= '<li>' . $data . '</li>';
+            } else {
+                $res .= '<li style="color: red;">Грешка при обновяване на контролер #' . $rec->id . '</li>';
+            }
+
             $mustSleep = true;
         }
         

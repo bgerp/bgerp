@@ -278,6 +278,12 @@ defIfNot('BULMAR_PURINV_OTHER_SERVICE_ANAL', 6);
 
 
 /**
+ * Експорт на ИЗХОДЯЩИ фактури->Разделяне на артикулите по групи
+ */
+defIfNot('BULMAR_INV_PRODUCT_GROUP_ACC', '');
+
+
+/**
  * class bulmar_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -345,6 +351,7 @@ class bulmar_Setup extends core_ProtoSetup
         'BULMAR_INV_CARD_PAYMENT_ANAL' => array('int', 'caption=Експорт на ИЗХОДЯЩИ фактури->Аналитичност за плащане с карта'),
         'BULMAR_INV_PPT_AND_CARD_OPERATION' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Операция за картови и ППП плащания'),
         'BULMAR_INV_PPT_AND_CARD_PAYMENT' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Дебитна сметка за картови и ППП плащания'),
+        'BULMAR_INV_PRODUCT_GROUP_ACC' => array('table(columns=productGroupId|accId|code|reason|anal,captions=Група|Сметка|Код|Основание|Анал.)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Разделяне на артикулите по групи'),
 
         'BULMAR_PURINV_CONTR_FOLDER' => array('double', 'caption=Експорт на ВХОДЯЩИ фактури->Папка'),
         'BULMAR_PURINV_PURCHASE_PRODUCTS_OPER' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Сч. Операция на покупка на стока №'),
@@ -398,6 +405,11 @@ class bulmar_Setup extends core_ProtoSetup
 
         if($configForm->getField('BULMAR_SELECTED_ACCOUNTS', false)){
             $configForm->setSuggestions('BULMAR_SELECTED_ACCOUNTS', $ownAccounts);
+        }
+
+        if($configForm->getField('BULMAR_INV_PRODUCT_GROUP_ACC', false)){
+            $groupOptions = array('' => '') + cls::get('cat_Groups')->makeArray4Select('name');
+            $configForm->setFieldTypeParams('BULMAR_INV_PRODUCT_GROUP_ACC', array('productGroupId_opt' => $groupOptions));
         }
     }
 }

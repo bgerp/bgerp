@@ -32,7 +32,7 @@ class cond_RichTextPlg extends core_Plugin
     public static function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
     {
         // Ако има права за добавяне
-        if (cond_Texts::haveRightFor('list') && $mvc->params['passage']) {
+        if (cond_Texts::haveRightFor('list') && ($mvc->params['passage'] ?? null)) {
             // id
             ht::setUniqId($attr);
             $id = $attr['id'];
@@ -100,8 +100,17 @@ class cond_RichTextPlg extends core_Plugin
         }
 
         $place = $this->mvc->getPlace();
+
+        // 1. Запазваме текущото състояние на масива
+        $backupBoard = (array) $this->mvc->_htmlBoard;
+
+        // 2. Викаме toVerbal, което потенциално зачиства масива вътрешно
         $pText = $this->mvc->toVerbal($pText);
 
+        // 3. Възстановяваме предишните записи и добавяме новите, ако има такива
+        $this->mvc->_htmlBoard = $backupBoard + (array) $this->mvc->_htmlBoard;
+
+        // 4. Добавяме конкретния нов елемент
         $this->mvc->_htmlBoard[$place] = cond_Texts::replaceView($pText, $recId);
 
         return "[#{$place}#]";

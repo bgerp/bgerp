@@ -89,12 +89,6 @@ class cat_Categories extends core_Master
     
     
     /**
-     * Кой може да чете
-     */
-    public $canRead = 'cat,ceo,sales,purchase';
-    
-    
-    /**
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'cat,ceo';
@@ -216,35 +210,18 @@ class cat_Categories extends core_Master
         $data->query->orderBy('createdOn', 'DESC');
     }
     
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string   $requiredRoles
-     * @param string   $action
-     * @param stdClass $rec
-     * @param int      $userId
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
-    {
-        // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
-        if ($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
-            $requiredRoles = 'no_one';
-        }
-    }
-    
     
     /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             if ($rec->useAsProto == 'no') {
                 $row->useAsProto = "<span class='quiet'>{$row->useAsProto}</span>";
             }
 
-            $row->name .= " {$row->folder}";
+            $row->name .= " " . ($row->folder ?? '');
             $count = cat_Products::count("#folderId = '{$rec->folderId}'");
             $row->count = cls::get('type_Int')->toVerbal($count);
             $row->count = "<span style='float:right'>{$row->count}</span>";
@@ -262,7 +239,8 @@ class cat_Categories extends core_Master
     public static function getKeylistBySysIds($list, $strict = false)
     {
         $sysArr = arr::make($list);
-        
+        $keylist = '';
+
         foreach ($sysArr as $sysId) {
             $id = static::fetchField("#sysId = '{$sysId}'", 'id');
             
@@ -270,12 +248,12 @@ class cat_Categories extends core_Master
                 expect($id, $sysId, $list);
             }
             
-            if ($id) {
+            if (!empty($id)) {
                 $keylist .= '|' . $id;
             }
         }
         
-        if ($keylist) {
+        if (!empty($keylist)) {
             $keylist .= '|';
         }
         
@@ -288,24 +266,23 @@ class cat_Categories extends core_Master
      */
     protected static function on_BeforeImportRec($mvc, &$rec)
     {
-        if ($rec->csv_measures) {
+        if (!empty($rec->csv_measures)) {
             $measures = arr::make($rec->csv_measures, true);
             $rec->measures = '';
             foreach ($measures  as $m) {
-                $rec->measures = keylist::addKey($rec->measures, cat_UoM::fetchBySinonim($m)->id);
+                $measureRec = cat_UoM::fetchBySinonim($m);
+                $rec->measures = keylist::addKey($rec->measures, $measureRec->id ?? null);
             }
         }
 
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $conflictFields = array();
+            $exRec = null;
             $mvc->isUnique($rec, $conflictFields, $exRec);
-
-            if ($exRec->id) {
+            if (!empty($exRec->id)) {
                 $rec->id = $exRec->id;
             }
-        }
-
-        if ($rec->id) {
+        } else {
             $oRec = $mvc->fetch($rec->id);
             if (!isset($rec->inCharge)) {
                 $rec->inCharge = $oRec->inCharge;
@@ -367,7 +344,7 @@ class cat_Categories extends core_Master
         $rec = $this->fetchRec($id);
         
         // Ако има представка
-        if(!isset($rec->prefix)) return null;
+        if(empty($rec->prefix)) return null;
 
         $minCodeLen = !empty($rec->minCodePad) ? $rec->minCodePad : static::MIN_CODE_PADDING;
         $startCode = str_pad('1', $minCodeLen, '0', STR_PAD_LEFT);
@@ -461,7 +438,7 @@ class cat_Categories extends core_Master
         if (isset($threadFilter->rec)) {
             
             // Ако търсим по група
-            if ($group = $threadFilter->rec->group) {
+            if ($group = ($threadFilter->rec->group ?? null)) {
                 $catClass = cat_Products::getClassId();
                 
                 // Подготвяме заявката да се филтрират само нишки с начало Артикул
@@ -522,25 +499,26 @@ class cat_Categories extends core_Master
         $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
         $exMeta = (isset($productId)) ? type_Set::toArray(cat_Products::fetchField($productId, 'meta')) : array();
 
-        $Driver = cls::get($driverId);
-        if($Driver instanceof planning_interface_StepProductDriver){
-            if(!isset($metasArr['canManifacture'])){
-                $error = "Артикулът е етап от производство и трябва да остане производим|*!";
-            } elseif(isset($metasArr['canSell'])){
-                $error = "Артикулът е етап от производство и не може да е продаваем|*!";
-            } elseif(isset($metasArr['canBuy'])){
-                $error = "Артикулът е етап от производство и не може да е купуваем|*!";
-            } elseif(!isset($metasArr['canConvert'])){
-                $error = "Артикулът е етап от производство и трябва да остане вложим|*!";
-            } elseif(isset($productId)) {
-                $pRec = cat_Products::fetch($productId);
-                if($pRec->planning_Steps_canStore == 'yes' && !isset($metasArr['canStore'])){
-                    $error = "Артикулът е складируем етап от производство и трябва да остане складируем|*!";
-                } elseif($pRec->planning_Steps_canStore != 'yes' && isset($metasArr['canStore'])){
-                    $error = "Артикулът е нескладируем етап от производство и не може да стане складируем|*!";
-                }
+        if($Driver = cls::get($driverId)){
+            if($Driver instanceof planning_interface_StepProductDriver){
+                if(!isset($metasArr['canManifacture'])){
+                    $error = "Артикулът е етап от производство и трябва да остане производим|*!";
+                } elseif(isset($metasArr['canSell'])){
+                    $error = "Артикулът е етап от производство и не може да е продаваем|*!";
+                } elseif(isset($metasArr['canBuy'])){
+                    $error = "Артикулът е етап от производство и не може да е купуваем|*!";
+                } elseif(!isset($metasArr['canConvert'])){
+                    $error = "Артикулът е етап от производство и трябва да остане вложим|*!";
+                } elseif(isset($productId)) {
+                    $pRec = cat_Products::fetch($productId);
+                    if($pRec->planning_Steps_canStore == 'yes' && !isset($metasArr['canStore'])){
+                        $error = "Артикулът е складируем етап от производство и трябва да остане складируем|*!";
+                    } elseif($pRec->planning_Steps_canStore != 'yes' && isset($metasArr['canStore'])){
+                        $error = "Артикулът е нескладируем етап от производство и не може да стане складируем|*!";
+                    }
 
-                if(!empty($error)) return false;
+                    if(!empty($error)) return false;
+                }
             }
         }
 
@@ -581,7 +559,7 @@ class cat_Categories extends core_Master
             }
 
             if(!isset($metasArr['canManifacture']) && planning_Jobs::fetchField("#productId = {$productId} AND #state IN ('active', 'wakeup', 'stopped')")){
-                $error = "Артикулът се използва в активни/спрени/приключени задания. Трябва да остане производим|*!";
+                $error = "Артикулът се използва в активни/спрени/събудени задания. Трябва да остане производим|*!";
             }
 
             if(!isset($metasArr['canStore'])){

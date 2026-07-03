@@ -56,10 +56,9 @@ class core_Detail extends core_Manager
         expect($mvc->masterKey);
         
         $mvc->fields[$mvc->masterKey]->silent = 'silent';
+        setPartIfNot($mvc, 'fetchFieldsBeforeDelete', $mvc->masterKey);
         
-        setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
-        
-        if ($mvc->masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']) {
+        if ($mvc->masterClass = ($mvc->fields[$mvc->masterKey]->type->params['mvc'] ?? null)) {
             $mvc->Master = cls::get($mvc->masterClass);
         }
         
@@ -71,9 +70,9 @@ class core_Detail extends core_Manager
             $mvc->setDbIndex($mvc->masterKey);
         }
 
-        setIfNot($mvc->requireMasterBeInstanceOfCoreMaster, true);
-        setIfNot($mvc->addDeleteSelectRows, true);
-        setIfNot($mvc->addDeleteSelectedRowsMinCount, 2);
+        setPartIfNot($mvc, 'requireMasterBeInstanceOfCoreMaster', true);
+        setPartIfNot($mvc, 'addDeleteSelectRows', true);
+        setPartIfNot($mvc, 'addDeleteSelectedRowsMinCount', 2);
     }
     
     
@@ -82,8 +81,8 @@ class core_Detail extends core_Manager
      */
     public function prepareDetail_($data)
     {
-        setIfNot($data->masterKey, $this->masterKey);
-        setIfNot($data->masterMvc, $this->Master);
+        setPartIfNot($data, 'masterKey', $this->masterKey);
+        setPartIfNot($data, 'masterMvc', $this->Master);
         
         // Очакваме да masterKey да е зададен
         expect($data->masterKey);
@@ -108,7 +107,7 @@ class core_Detail extends core_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        if (is_object($data->pager)) {
+        if (is_object($data->pager ?? null)) {
             $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
             if (cls::existsMethod($data->masterMvc, 'getHandle')) {
                 $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
@@ -177,8 +176,8 @@ class core_Detail extends core_Manager
         $tpl->append($this->renderListSummary($data), 'ListSummary');
         
         // Попълваме таблицата с редовете
-        setIfNot($data->listTableMvc, clone $this);
-        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
+        setPartIfNot($data, 'listTableMvc', clone $this);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty ?? null, true);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете
@@ -214,9 +213,9 @@ class core_Detail extends core_Manager
     public function prepareListToolbar_(&$data)
     {
         $data->toolbar = cls::get('core_Toolbar');
-        $masterKey = $data->masterKey;
-        
-        if ($data->masterId) {
+        $masterKey = $data->masterKey ?? null;
+
+        if ($data->masterId ?? null) {
             $rec = new stdClass();
             $rec->{$masterKey} = $data->masterId;
             if ($this->haveRightFor('add', $rec) && $data->masterId && $this->listAddBtn !== false) {
@@ -225,8 +224,8 @@ class core_Detail extends core_Manager
         }
 
         // Бутон за групово изтриване
-        if($this->haveRightFor('selectrowstodelete', (object)array($masterKey => $data->masterId))){
-            $data->toolbar->addBtn('Изтриване', array($this, 'selectRowsToDelete', $masterKey => $data->masterId, 'ret_url' => true,), 'id=btnDellAll', 'ef_icon = img/16/deletered.png,title=Форма за избор на редове за изтриване,order=500,class=selectDeleteRowsBtn');
+        if($this->haveRightFor('selectrowstodelete', (object)array($masterKey => ($data->masterId ?? null)))){
+            $data->toolbar->addBtn('Изтриване', array($this, 'selectRowsToDelete', $masterKey => ($data->masterId ?? null), 'ret_url' => true,), 'id=btnDellAll', 'ef_icon = img/16/deletered.png,title=Форма за избор на редове за изтриване,order=500,class=selectDeleteRowsBtn');
         }
 
         return $data;
@@ -238,13 +237,12 @@ class core_Detail extends core_Manager
      */
     public function prepareEditForm_($data)
     {
-        setIfNot($data->singleTitle, $this->singleTitle);
-        
+        setPartIfNot($data, 'singleTitle', $this->singleTitle);
         parent::prepareEditForm_($data);
         
         $form = $data->form;
         
-        if (!$data->masterMvc) {
+        if (empty($data->masterMvc)) {
             $data->masterMvc = $this->getMasterMvc($data->form->rec);
         }
 
@@ -252,7 +250,7 @@ class core_Detail extends core_Manager
             $this->currentTab = $data->masterMvc;
         }
 
-        if (!$data->masterKey) {
+        if (empty($data->masterKey)) {
             $data->masterKey = $this->getMasterKey($data->form->rec);
         }
         
@@ -282,7 +280,7 @@ class core_Detail extends core_Manager
      */
     public function prepareEditTitle_($data)
     {
-        $data->form->title = static::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id, $this->formTitlePreposition);
+        $data->form->title = static::getEditTitle($data->masterMvc, $data->masterId, $data->singleTitle, $data->form->rec->id ?? null, $this->formTitlePreposition ?? null);
     }
     
     
@@ -347,11 +345,11 @@ class core_Detail extends core_Manager
         if ($action == 'write' && isset($rec) && $this->Master instanceof core_Master) {
             expect($masterKey = $this->masterKey);
             
-            if ($rec->{$masterKey}) {
+            if (isset($rec->{$masterKey})) {
                 $masterRec = $this->Master->fetch($rec->{$masterKey});
             }
             
-            if ($masterRec) {
+            if (isset($masterRec)) {
                 
                 return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
             }
@@ -419,14 +417,14 @@ class core_Detail extends core_Manager
         $masters = $this->getMasters($rec);
         
         foreach ($masters as $masterKey => $masterInstance) {
-            if ($rec->{$masterKey}) {
+            if ($rec->{$masterKey} ?? null) {
                 $masterId = $rec->{$masterKey};
             } elseif ($rec->id) {
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
-            
+
             // Ако в сесията е спряно обновяването на мастъра, спира се
-            $stopMasterUpdate = Mode::get("stopMasterUpdate{$rec->{$masterKey}}");
+            $stopMasterUpdate = Mode::get("stopMasterUpdate" . ($rec->{$masterKey} ?? ''));
             if ($stopMasterUpdate === true) {
                 break;
             }
@@ -458,9 +456,10 @@ class core_Detail extends core_Manager
 
         if(countR($masters)){
             foreach ($masters as $masterKey => $masterInstance) {
-                if ($rec->{$masterKey}) {
+                $masterId = null;
+                if ($rec->{$masterKey} ?? null) {
                     $masterId = $rec->{$masterKey};
-                } elseif ($rec->id) {
+                } elseif ($rec->id ?? null) {
                     $masterId = $this->fetchField($rec->id, $masterKey);
                 }
 
@@ -506,17 +505,18 @@ class core_Detail extends core_Manager
         $rec = $this->fetch($id);
         
         $masterKey = $this->masterKey;
-        
         $masters = $this->getMasters($rec);
         
         foreach ($masters as $masterKey => $masterInstance) {
-            if ($rec->{$masterKey}) {
+            if (isset($rec->{$masterKey})) {
                 $masterId = $rec->{$masterKey};
-            } elseif ($rec->id) {
+            } elseif (isset($rec->id)) {
                 $masterId = $this->fetchField($rec->id, $masterKey);
             }
-            
-            $masterInstance->logInfo('Изтриване на детайл', $masterId);
+
+            if(isset($masterId)){
+                $masterInstance->logInfo('Изтриване на детайл', $masterId);
+            }
         }
         
         return parent::act_Delete();
@@ -637,7 +637,7 @@ class core_Detail extends core_Manager
 
         $btnAll = "<input type='checkbox' name='checkAllRows' checked class='inline-checkbox' title='Маркиране/размаркирване на всички редове за изтриване'>";
         $data->listFields = array('btn' => "|* {$btnAll}") + $data->listFields;
-        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty ?? null, true);
         $data->listTableMvc->FLD('btn', 'varchar', 'tdClass=centered vtop');
         $docTableTpl = $this->renderListTable($data);
         Mode::pop('selectRows2Delete');
@@ -646,7 +646,7 @@ class core_Detail extends core_Manager
         $form->input();
 
         // Ако има събмитнати редове за изтриване - да се изтрият
-        if($form->rec->selected){
+        if(!empty($form->rec->selected)){
             $selectedArr = explode('|', $form->rec->selected);
             if(countR($selectedArr)){
                 $idArr = array();
@@ -691,6 +691,44 @@ class core_Detail extends core_Manager
             $res = $fieldsNotToClone;
         } else {
             $res += $fieldsNotToClone;
+        }
+    }
+
+
+    /**
+     * Връща вариантите за добавяне на детайл към мастъра.
+     *
+     * @param int             $masterId
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        $title = !empty($this->singleTitle)
+            ? tr($this->singleTitle)
+            : tr('Добавяне на ред');
+
+        return array(
+            'default' => array(
+                'title' => $title,
+                'params' => array(),
+            ),
+        );
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        if (!Mode::is('renderForAI')) return;
+        $data->listFields = array('_detailId' => 'detailId') + $data->listFields;
+
+        $rows = &$data->rows;
+        if (!countR($rows)) return;
+        foreach ($rows as $id => &$row){
+            $rec = &$data->recs[$id];
+            $row->_detailId = $rec->id;
         }
     }
 }

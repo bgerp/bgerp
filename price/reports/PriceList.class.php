@@ -21,20 +21,20 @@ class price_reports_PriceList extends frame2_driver_TableData
      * Закръгляне на цените по подразбиране
      */
     const DEFAULT_ROUND = 5;
-    
-    
+
+
     /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'frame2_ReportIntf,label_SequenceIntf=price_interface_LabelImpl';
-    
-    
+
+
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'sales, priceDealer, ceo';
-    
-    
+
+
     /**
      * Полета за хеширане на таговете
      *
@@ -43,14 +43,14 @@ class price_reports_PriceList extends frame2_driver_TableData
      * @var string
      */
     protected $hashField = 'productId';
-    
-    
+
+
     /**
      * По-кое поле да се групират листовите данни
      */
     protected $groupByField = 'groupName';
-    
-    
+
+
     /**
      * Какъв да е класа на групирания ред
      */
@@ -109,11 +109,11 @@ class price_reports_PriceList extends frame2_driver_TableData
             $policyName = price_Lists::getTitleById($rec->policyId);
             $title = "Ценоразпис \"{$policyName}\"";
         }
-        
+
         return $title;
     }
-    
-    
+
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -134,12 +134,12 @@ class price_reports_PriceList extends frame2_driver_TableData
         $form->setDefault('packType', 'yes');
         $form->setDefault('showUiextLabels', 'no');
         if(!core_Packs::isInstalled('uiext')){
-            $form->setFiedl('showUiextLabels', 'input=none');
+            $form->setField('showUiextLabels', 'input=none');
         }
 
         $suggestions = cat_UoM::getPackagingOptions();
         $form->setSuggestions('packagings', $suggestions);
-        
+
         // Ако е в папка на контрагент
         $defaultListId = price_ListRules::PRICE_LIST_CATALOG;
         $Cover = doc_Folders::getCover($form->rec->folderId);
@@ -147,12 +147,12 @@ class price_reports_PriceList extends frame2_driver_TableData
             $defaultListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
             $form->setDefault('vat', deals_Helper::getDefaultChargeVat($Embedder, $form->rec));
             $form->setDefault('currencyId', $Cover->getDefaultCurrencyId());
-            
+
             $listOptions = price_Lists::getAccessibleOptions($Cover->className, $Cover->that);
         } else {
             $listOptions = price_Lists::getAccessibleOptions(null, null, false);
         }
-        
+
         $form->setOptions('policyId', $listOptions);
         $form->setDefault('policyId', $defaultListId);
 
@@ -163,7 +163,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             $lang = (!empty($cData->countryId) && $cData->countryId != $bgId) ? 'en' : 'bg';
             $form->setDefault('lang', $lang);
         }
-        
+
         if ($form->rec->packType != 'yes') {
             $form->setField('packagings', 'input=none');
         }
@@ -181,7 +181,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 // Ако справката не е в папка на клиент, проверява се дали политиката е частна
                 // ако е частна, взима се списъка от листваните артикули на клиента
                 $listRec = price_Lists::fetch($rec->policyId);
-                if($listRec->isPublic = 'no'){
+                if($listRec->isPublic == 'no'){
                     if($foundRec = price_ListToCustomers::fetch("#listId = {$rec->policyId}")){
                         $listingId = cond_Parameters::getParameter($foundRec->cClass, $foundRec->cId, 'salesList');
                     }
@@ -192,11 +192,11 @@ class price_reports_PriceList extends frame2_driver_TableData
             if(isset($listingId)){
                 $form->setField('listingId', 'input');
                 $form->setOptions('listingId', array('' => '') + array("{$listingId}" => cat_Listings::getTitleById($listingId, false)));
-             }
+            }
         }
     }
-    
-    
+
+
     /**
      * Кои записи ще се показват в таблицата
      *
@@ -213,6 +213,17 @@ class price_reports_PriceList extends frame2_driver_TableData
         $dateBefore = (!empty($rec->period)) ? (dt::addSecs(-1 * $rec->period, $date, false) . ' 23:59:59') : null;
         $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
         $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, $rec->notInGroups, 'yes');
+
+        // Ако се показват за себестойност излизат и активните нестандартни със сб-ст
+        if($rec->policyId == price_ListRules::PRICE_LIST_COST){
+            $ruleQuery = price_ListRules::getQuery();
+            $ruleQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+            $ruleQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
+            $ruleQuery->where("#listId = {$rec->policyId} AND #productId IS NOT NULL AND #isPublic = 'no' AND #pState = 'active'");
+            $ruleQuery->groupBy('productId');
+
+            $sellableProducts += arr::extractValuesFromArray($ruleQuery->fetchAll(), 'productId');
+        }
 
         $sellableProducts = array_keys($sellableProducts);
         unset($sellableProducts[0]);
@@ -234,24 +245,66 @@ class price_reports_PriceList extends frame2_driver_TableData
         if ($rec->packType == 'yes') {
             $packArr = (!empty($rec->packagings)) ? keylist::toArray($rec->packagings) : arr::make(array_keys(cat_UoM::getPackagingOptions(), true));
         }
-
         $data->variationId = price_ListVariations::getActiveVariationId($rec->policyId, $date);
 
-        // За всеки продаваем стандартен артикул
-        foreach ($sellableProducts as $id) {
-            $productRec = cat_Products::fetch($id, 'groups,code,measureId,name,isPublic,nameEn');
+        // Нормализиран lookup за избраните опаковки (за филтриране в PHP)
+        $packLookup = array();
+        foreach ($packArr as $pId) {
+            $packLookup[$pId] = $pId;
+        }
 
+        $basePackagings = array();
+        $pQuery = cat_Products::getQuery();
+        if(countR($sellableProducts)){
+            $pQuery->in('id', $sellableProducts);
+
+            if ($rec->packType == 'base') {
+                $packQuery = cat_products_Packagings::getQuery();
+                $packQuery->in('productId', $sellableProducts);
+                $packQuery->where("#isBase = 'yes'");
+                while($packRec = $packQuery->fetch()){
+                    $basePackagings[$packRec->productId] = $packRec;
+                }
+            }
+        } else {
+            $pQuery->where("1=2");
+        }
+        $pQuery->show('groups,code,measureId,name,isPublic,nameEn');
+        $pRecs = $pQuery->fetchAll();
+
+        // Предварително зареждане в хита на ддс-то и групите на артикулите за по-лесно ползване
+        cat_products_VatGroups::getVats(array_keys($pRecs), $date, $rec->vatExceptionId);
+        price_ListRules::preloadGroups($pRecs);
+
+        // Batch зареждане на опаковките и ЕАН-кодовете за всички артикули с една заявка (вместо N+1)
+        // Зарежда се при нужда от опаковки (packType=yes) и/или показване на ЕАН на основната мярка
+        $loadPacks = countR($packArr) > 0;
+        $loadEan = ($rec->showEan == 'yes');
+        $packsByProduct = array();
+        if (($loadPacks || $loadEan) && countR($sellableProducts)) {
+            $allPackQuery = cat_products_Packagings::getQuery();
+            $allPackQuery->in('productId', $sellableProducts);
+            $allPackQuery->where("#state != 'closed'");
+            $allPackQuery->show('eanCode,quantity,packagingId,productId');
+            while ($allPackRec = $allPackQuery->fetch()) {
+                $packsByProduct[$allPackRec->productId][$allPackRec->packagingId] = $allPackRec;
+            }
+        }
+
+        // За всеки продаваем стандартен артикул
+        foreach ($pRecs as $productRec) {
             $quantity = 1;
             $obj = (object) array('productId' => $productRec->id,
                 'code' => (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}",
                 'measureId' => $productRec->measureId,
+                'isPublic' => $productRec->isPublic,
                 'vat' => cat_Products::getVat($productRec->id, $date, $rec->vatExceptionId),
                 'packs' => array(),
                 'groups' => $productRec->groups);
 
             if ($rec->packType == 'base') {
-                $basePack = cat_products_Packagings::fetch("#productId = {$productRec->id} AND #isBase = 'yes'");
-                if (is_object($basePack)) {
+                if(array_key_exists($productRec->id, $basePackagings)){
+                    $basePack = $basePackagings[$productRec->id];
                     $obj->measureId = $basePack->packagingId;
                     $quantity = $basePack->quantity;
                 }
@@ -259,7 +312,7 @@ class price_reports_PriceList extends frame2_driver_TableData
 
             // Изчислява се цената по избраната политика
             $priceByPolicy = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $date);
-            $obj->name = cat_Products::getVerbal($productRec, 'name');
+            $obj->name = cat_Products::getDisplayName($productRec);
             $obj->price = deals_Helper::getDisplayPrice($priceByPolicy, $obj->vat, $currencyRate, $rec->vat);
 
             // Ако има избран период в който да се гледа променена ли е цената
@@ -273,7 +326,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 if (empty($oldPrice)) {
                     $obj->type = 'new';
                     $difference = 1;
-                } elseif (!empty($oldPrice) && empty($priceByPolicy)) {
+                } elseif (empty($priceByPolicy)) {
                     $obj->type = 'removed';
                     $difference = -1;
                 } else {
@@ -294,16 +347,18 @@ class price_reports_PriceList extends frame2_driver_TableData
 
             $obj->price *= $quantity;
 
-            // Ако има цена, показват се и избраните опаковки с техните цени
+            // Ако има цена, показват се и избраните опаковки с техните цени (от batch-а, без отделна заявка)
             if (!empty($priceByPolicy) && countR($packArr)) {
-                $packQuery = cat_products_Packagings::getQuery();
-                $packQuery->where("#productId = {$productRec->id} AND #state != 'closed'");
-                $packQuery->in('packagingId', $packArr);
-                $packQuery->show('eanCode,quantity,packagingId');
-                while ($packRec = $packQuery->fetch()) {
-                    $packRec->price = $packRec->quantity * $priceByPolicy;
-                    $packRec->price = deals_Helper::getDisplayPrice($packRec->price, $obj->vat, $currencyRate, $rec->vat);
-                    $obj->packs[$packRec->packagingId] = $packRec;
+                if (isset($packsByProduct[$productRec->id])) {
+                    foreach ($packsByProduct[$productRec->id] as $packagingId => $srcPackRec) {
+                        if (!isset($packLookup[$packagingId])) {
+                            continue;
+                        }
+                        $packRec = clone $srcPackRec;
+                        $packRec->price = $packRec->quantity * $priceByPolicy;
+                        $packRec->price = deals_Helper::getDisplayPrice($packRec->price, $obj->vat, $currencyRate, $rec->vat);
+                        $obj->packs[$packRec->packagingId] = $packRec;
+                    }
                 }
 
                 // Ако ще се скрива мярката и няма опаковки, няма какво да се показва, освен ако артикула не е бил премахнат
@@ -317,32 +372,32 @@ class price_reports_PriceList extends frame2_driver_TableData
             }
 
             if($rec->showEan == 'yes'){
-                if($ean = cat_products_Packagings::getPack($obj->productId, $obj->measureId, 'eanCode')){
-                    $obj->eanCode = $ean;
+                if(isset($packsByProduct[$obj->productId][$obj->measureId]) && !empty($packsByProduct[$obj->productId][$obj->measureId]->eanCode)){
+                    $obj->eanCode = $packsByProduct[$obj->productId][$obj->measureId]->eanCode;
                 }
             }
 
-            $recs[$id] = $obj;
+            $recs[$productRec->id] = $obj;
         }
-        
+
         // Ако има подговени записи
         if (countR($recs)) {
-           
-           // Ако няма избрани групи, търсят се всички
+
+            // Ако няма избрани групи, търсят се всички
             $productGroups = $rec->productGroups;
             if (empty($productGroups)) {
                 $productGroups = arr::extractValuesFromArray(cat_Groups::getQuery()->fetchAll(), 'id');
                 $productGroups = keylist::fromArray($productGroups);
             }
-            
+
             // Филтриране на артикулите според избраните групи
             if ($rec->lang != 'auto') {
                 core_Lg::push($rec->lang);
             }
-            
+
             $expand = $rec->expandGroups === 'yes';
             store_InventoryNoteSummary::filterRecs($productGroups, $recs, 'code', 'name', 'groups', $expand);
-            
+
             if ($rec->lang != 'auto') {
                 core_Lg::pop();
             }
@@ -350,8 +405,8 @@ class price_reports_PriceList extends frame2_driver_TableData
 
         return $recs;
     }
-    
-    
+
+
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
@@ -397,8 +452,11 @@ class price_reports_PriceList extends frame2_driver_TableData
         $row->price = $Double->toVerbal($dRec->price);
         $row->price = currency_Currencies::decorate($row->price, $rec->currencyId, true);
 
+        if($dRec->isPublic != 'yes'){
+            $row->productId = ht::createHint($row->productId, "Артикулът е нестандартен|*!", 'warning', false);
+        }
         if($rec->templateType == 'foods'){
-            $showDualPrice = $date <= '2026-06-30' && in_array($rec->currencyId, array('BGN', 'EUR'));
+            $showDualPrice = $date <= '2026-08-08' && in_array($rec->currencyId, array('BGN', 'EUR'));
             if($showDualPrice){
                 if($rec->currencyId == 'BGN'){
                     $priceInBg = $row->price;
@@ -420,11 +478,11 @@ class price_reports_PriceList extends frame2_driver_TableData
         if (countR($dRec->packs)) {
             $row->packs = $this->getPackTable($rec, $dRec);
         }
-        
+
         if (!Mode::isReadOnly()) {
             $row->ROW_ATTR['class'] = 'state-active';
         }
-        
+
         // Показване на процента промяна
         if (!empty($rec->period)) {
             if ($dRec->type == 'new') {
@@ -444,7 +502,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 }
             }
         }
-        
+
         // Ако има баркод на основната мярка да се показва и той
         if(!empty($dRec->eanCode)){
             $eanCode = core_Type::getByName('varchar')->toVerbal($dRec->eanCode);
@@ -453,11 +511,11 @@ class price_reports_PriceList extends frame2_driver_TableData
             }
             $row->measureId = "{$eanCode} {$row->measureId}";
         }
-        
+
         return $row;
     }
-    
-    
+
+
     /**
      * Рендиране на таблицата с опаковките
      *
@@ -469,7 +527,7 @@ class price_reports_PriceList extends frame2_driver_TableData
     private function getPackTable($rec, $dRec)
     {
         $rows = array();
-        
+
         // Вербализиране на опаковките ако има
         foreach ($dRec->packs as $packRec) {
             $packName = cat_UoM::getVerbal($packRec->packagingId, 'name');
@@ -484,11 +542,11 @@ class price_reports_PriceList extends frame2_driver_TableData
                 $rows[$packRec->packagingId]->eanCode = $eanCode;
             }
         }
-        
+
         $fieldset = new core_FieldSet();
         $fieldset->FLD('eanCode', 'varchar', 'tdClass=small');
         $fieldset->FLD('price', 'varchar', 'smartCenter');
-        
+
         // Рендиране на таблицата, в която ще се показват опаковките
         $table = cls::get('core_TableView', array('mvc' => $fieldset));
         $table->tableClass = 'pricelist-report-pack-table';
@@ -497,14 +555,14 @@ class price_reports_PriceList extends frame2_driver_TableData
         if ($rec->showEan != 'yes') {
             unset($listFields['eanCode']);
         }
-        
+
         $tpl = $table->get($rows, $listFields);
         $tpl->removeBlocksAndPlaces();
-        
+
         return $tpl;
     }
-    
-    
+
+
     /**
      * Връща фийлдсета на таблицата, която ще се рендира
      *
@@ -541,11 +599,11 @@ class price_reports_PriceList extends frame2_driver_TableData
                 $fld->FLD('difference', 'percent', 'caption=Промяна');
             }
         }
-        
+
         return $fld;
     }
-    
-    
+
+
     /**
      * Какъв ще е езика с който ще се рендират данните на шаблона
      *
@@ -557,8 +615,8 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         return ($rec->lang == 'auto') ? null : $rec->lang;
     }
-    
-    
+
+
     /**
      * рендиране на таблицата
      *
@@ -582,8 +640,8 @@ class price_reports_PriceList extends frame2_driver_TableData
 
         return $tpl;
     }
-    
-    
+
+
     /**
      * След вербализирането на данните
      *
@@ -604,7 +662,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         if(!empty($rec->notInGroups)){
             $row->notInGroups = implode(', ', cat_Groups::getLinks($rec->notInGroups));
         }
-        
+
         if ($rec->packType == 'yes') {
             $row->packagings = (!empty($rec->packagings)) ? core_Type::getByName('keylist(mvc=cat_UoM,select=name)')->toVerbal($rec->packagings): tr('Всички');
         } elseif ($rec->packType == 'no') {
@@ -612,7 +670,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         } else {
             $row->packagings = tr('Само основна опаковка');
         }
-        
+
         if (!empty($rec->period)) {
             $row->period = core_Type::getByName('time')->toVerbal($rec->period);
             $row->periodDate = dt::mysql2verbal(dt::addSecs(-1 * $rec->period, $rec->date, false), 'd.m.Y');
@@ -693,14 +751,14 @@ class price_reports_PriceList extends frame2_driver_TableData
             if (cat_Groups::checkForNestedGroups($form->rec->productGroups)) {
                 $form->setError('productGroups', 'Избрани са вложени групи');
             }
-            
+
             if ($form->rec->packType != 'yes') {
                 $form->rec->packagings = null;
             }
         }
     }
-    
-    
+
+
     /**
      * Връща редовете, които ще се експортират от справката
      *
@@ -715,7 +773,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         foreach ($rec->data->recs as $dRec) {
             $clone = clone $dRec;
             $clone->currencyId = $rec->currencyId;
-            
+
             $exportRecs[] = $clone;
             if (countR($dRec->packs)) {
                 foreach ($dRec->packs as $packRec) {
@@ -724,16 +782,16 @@ class price_reports_PriceList extends frame2_driver_TableData
                     $clone1->price = $packRec->price;
                     $clone1->eanCode = $packRec->eanCode;
                     $clone1->measureId = $packRec->packagingId;
-                    
+
                     $exportRecs[] = $clone1;
                 }
             }
         }
-        
+
         return $exportRecs;
     }
-    
-    
+
+
     /**
      * Заглавие от източника на етикета
      *
@@ -745,8 +803,8 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         return frame2_Reports::getLabelSourceLink($id);
     }
-    
-    
+
+
     /**
      * Може ли справката да бъде изпращана по имейл
      *
@@ -758,8 +816,8 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         return true;
     }
-    
-    
+
+
     /**
      * Да се изпраща ли нова нотификация на споделените потребители, при опресняване на отчета
      *
@@ -771,8 +829,8 @@ class price_reports_PriceList extends frame2_driver_TableData
     {
         return true;
     }
-    
-    
+
+
     /**
      * Изборът на потребители които да бъдат нотифицирани при обновяване дали са задължителни
      *

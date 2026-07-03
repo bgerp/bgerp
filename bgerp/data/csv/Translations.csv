@@ -1362,6 +1362,8 @@ en,ПОЛ,URP
 en,Падеж,Due date
 en,Пакет,Pack
 en,Пакети,Packs
+en,Пакета,Packs
+en,пакета,Packs
 en,Палет,Pallet
 en,Палети в СКЛАД,Pallets in Warehouse
 en,Палети,Pallets
@@ -3279,3 +3281,39 @@ en,Към сайта,Go to site
 en,Липсваща страница,Missing page
 en,Недостъпен ресурс,Inaccessible resource
 en,Страна на произход,Country of Origin
+en,Още филтри,More filters
+en,По-малко филтри,Less filters
+en,Базова мярка,Base measure
+en,Дефолтно к-во,Default q-ty
+en,Продуктов марж,Product margin
+en,Групов марж,Group margin
+en,размер,size
+en,дебелина,thickness
+en,Дебелина,Thickness
+en,предназначение,intended use
+en,"Мин. дебелина","Min. thickness"
+en,Транспортно тегло,Transport weight
+en,Транспортен обем,Transport volume
+en,Митнически код,Customs Code
+en,Грамаж,Grammage
+en,Информация за фактура,Invoice info
+en,Партидност,Batches
+en,Нова партидност,Add Batch
+en,Платени по сделката,Paid under the deal
+en,отстъпка при плащане до,discount for payment by
+en,Засклаждане,Stock In
+en,Авансово плащане към Доставчик,Advance payment to Supplier
+en,Авансово плащане към Доставчик,Advance payment to Supplier
+en,Плащане към Доставчик,Payment to Supplier
+en,Плащане към Доставчик,Payment to Supplier
+en,Прихващане на плащане,Offsetting of payment
+en,Прихващане на плащане,Offsetting of payment
+en,Връщане от Доставчик,Refund from Supplier
+en,Връщане от Доставчик,Refund from Supplier
+en,Прихванат аванс от Доставчик,Offset advance from Supplier
+en,Прихванат аванс от Доставчик,Offset advance from Supplier
+en,Връщане на аванс от Доставчик,Refund of advance from Supplier
+en,Връщане на аванс от Доставчик,Refund of advance from Supplier
+en,Прихващане на вземания,Offsetting of receivables
+en,Прихващане на задължение,Offsetting of liability
+

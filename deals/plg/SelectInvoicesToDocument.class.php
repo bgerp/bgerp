@@ -24,9 +24,9 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     protected static function on_AfterDescription(core_Master &$mvc)
     {
         $mvc->FLD('fromContainerId', 'int', 'caption=Към,input=hidden,silent');
-        setIfNot($mvc->canSelectOnlyOneInvoice, false);
-        setIfNot($mvc->ignoreDetailsToCheckWhenTryingToPost, 'deals_InvoicesToDocuments');
-
+        setPartIfNot($mvc, 'canSelectOnlyOneInvoice', false);
+        setPartIfNot($mvc, 'ignoreDetailsToCheckWhenTryingToPost', 'deals_InvoicesToDocuments');
+        setPartIfNot($mvc, 'recontoWhenChange', false);
         $mvc->setDbIndex('fromContainerId');
     }
 
@@ -53,10 +53,11 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
             $oData = $mvc->getPaymentData($rec->id);
             $nData = $mvc->getPaymentData($rec);
 
-            // Прир едакция се проверява дали е сменяна валутата или сумата на документа
+            // При редакция се проверява дали е сменяна валутата или сумата на документа
             if($oData->amount != $nData->amount){
                 $rec->_amountChange = ($oData->amount > $nData->amount) ? 'decrease' : 'increase';
             }
+
             if($oData->amount != $nData->amount){
                 $rec->_currencyChange = true;
             }
@@ -72,7 +73,8 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     private static function saveIfFromContainer($mvc, $rec)
     {
         // След създаване синхронизиране на модела
-        $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId);
+        $subtractPayedByNow = !(($mvc instanceof store_DocumentMaster) || ($mvc instanceof deals_ServiceMaster));
+        $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId, $subtractPayedByNow);
         $paymentCurrencyCode = currency_Currencies::getCodeById($mvc->getPaymentData($rec)->currencyId);
 
         $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
@@ -120,7 +122,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
-        if($rec->_amountChange || $rec->_currencyChange){
+        if(($rec->_amountChange ?? null) || ($rec->_currencyChange ?? null)){
 
             // Какви са разпределените ф-ри
             $iQuery = deals_InvoicesToDocuments::getQuery();
@@ -257,6 +259,38 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     {
         if(!$res){
             $res = $mvc->canSelectOnlyOneInvoice;
+        }
+    }
+
+
+    /**
+     * Добавя разпределението по фактури към LLM текстовия експорт
+     */
+    public static function on_AfterAfterGetLlmExport($mvc, &$text, $rec, $params)
+    {
+        if (empty($text)) return;
+        if (empty($rec->containerId)) return;
+
+        $invRecs = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+        if (!countR($invRecs)) return;
+
+        $paymentData = $mvc->getPaymentData($rec);
+        $currencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
+
+        $text .= "\n\n" . tr('Разпределение по фактури||Distribution by invoices') . ":\n";
+        foreach ($invRecs as $invRec) {
+            $Document = doc_Containers::getDocument($invRec->containerId);
+            $iInst = $Document->getInstance();
+            $iRec = $Document->fetch();
+
+            if ($iInst->getField('number', false)) {
+                $number = $iInst->getVerbal($iRec, 'number');
+            } else {
+                $number = '#' . $Document->getHandle();
+            }
+
+            $amount = core_Type::getByName('double(decimals=2)')->toVerbal($invRec->amount);
+            $text .= "- " . tr($iInst->singleTitle) . " {$number}: {$amount} {$currencyCode}\n";
         }
     }
 }

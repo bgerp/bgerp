@@ -61,7 +61,7 @@ class recently_Plugin extends core_Plugin
             if (!$recCnt || !$form->isSubmitted() || $silent == 'silent') return;
         }
 
-        setIfNot($prefix, $form->mvc->dbTableName, $form->name, '_');
+        setIfNot($prefix, is_object($form->mvc) ? $form->mvc->dbTableName : null, $form->name, '_');
         
         $flds = $form->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none')");
 

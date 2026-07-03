@@ -32,8 +32,8 @@ class plg_Created extends core_Plugin
         }
 
         // По подразбиране никой не може да редактира данни, записани от системата
-        setIfNot($invoker->canEditsysdata, 'no_one');
-        setIfNot($invoker->canDeletesysdata, 'no_one');
+        setPartIfNot($invoker, 'canEditsysdata', 'no_one');
+        setPartIfNot($invoker, 'canDeletesysdata', 'no_one');
     }
     
     
@@ -48,7 +48,7 @@ class plg_Created extends core_Plugin
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles != 'no_one' && is_object($rec) && $rec->id && $rec->createdBy == core_Users::SYSTEM_USER) {
+        if ($requiredRoles != 'no_one' && is_object($rec) && ($rec->id ?? null) && ($rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
             if ($action == 'edit') {
                 $requiredRoles = $mvc->getRequiredRoles('editsysdata', $rec, $userId);
             }
@@ -65,7 +65,7 @@ class plg_Created extends core_Plugin
     public static function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = null, &$mode = null)
     {
         // Записваме полетата, ако записът е нов и дали трябва да има createdOn и createdBy
-        if (!($rec->id ?? null) || strtolower($mode) == 'replace') {
+        if (!($rec->id ?? null) || strtolower($mode ?? '') == 'replace') {
             if ($fields) {
                 $fieldsArr = arr::make($fields, true);
                 $mustHaveCreatedBy = isset($fieldsArr['createdBy']);
@@ -97,7 +97,7 @@ class plg_Created extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if ($data->form->rec->createdBy == core_Users::SYSTEM_USER && $mvc->protectedSystemFields) {
+        if (($data->form->rec->createdBy ?? null) == core_Users::SYSTEM_USER && ($mvc->protectedSystemFields ?? null)) {
             $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, true);
             
             foreach ($data->form->fields as &$f) {

@@ -225,7 +225,7 @@ class acc_Periods extends core_Manager
         
         $lastDayOfMonth = dt::getLastdayOfMonth($date);
         
-        if (!$periods[$lastDayOfMonth]) {
+        if (!($periods[$lastDayOfMonth] ?? null)) {
             $periods[$lastDayOfMonth] = self::fetch("#end = '{$lastDayOfMonth}'");
         }
         
@@ -359,8 +359,8 @@ class acc_Periods extends core_Manager
         }
         
         // Вземаме последните
-        setIfnot($rec->vatRate, $prevRec->vatRate, ACC_DEFAULT_VAT_RATE);
-        
+        $rec->vatRate = isset($rec->vatRate) ? $rec->vatRate : (isset($prevRec->vatRate) ? $prevRec->vatRate : ACC_DEFAULT_VAT_RATE);
+
         if ($prevRec->baseCurrencyId) {
             $rec->baseCurrencyId = $prevRec->baseCurrencyId;
         } else {
@@ -716,7 +716,9 @@ class acc_Periods extends core_Manager
      */
     public static function getPeriodEnd($date = null)
     {
-        return acc_Periods::fetchByDate($date)->end;
+        $rec = acc_Periods::fetchByDate($date);
+
+        return $rec ? $rec->end : null;
     }
     
     

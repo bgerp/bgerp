@@ -86,10 +86,10 @@ class crm_Persons extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, change_plg_History,  plg_LastUsedKeys,plg_Rejected, plg_Select,
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg,
+                     bgerp_plg_Import, change_plg_History, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg,
                      callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg';
 
 
@@ -330,7 +330,7 @@ class crm_Persons extends core_Master
     {
         // Име на лицето
         $this->FLD('salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение,export=Csv');
-        $this->FLD('name', 'varchar(255,ci,autocomplete=off)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv, translate=transliterate, class=focus, translate=user');
+        $this->FLD('name', 'varchar(255,ci,autocomplete=off)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv, class=focus, translate=user|transliterate');
         $this->FNC('nameList', 'varchar(autocomplete=off)', 'sortingLike=name, translate=transliterate');
 
         // Единен Граждански Номер
@@ -429,7 +429,8 @@ class crm_Persons extends core_Master
         $data->listFilter->input('users,alpha,search,order,groupId', 'silent');
 
         // Според заявката за сортиране, показваме различни полета
-        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2];
+        $data->listFilter->rec->order = $data->listFilter->rec->order ?? 'alphabetic';
+        $showColumns = $mvc->listOrderBy[$data->listFilter->rec->order][2] ?? null;
 
         if ($showColumns) {
             $showColumns = arr::make($showColumns, true);
@@ -439,7 +440,7 @@ class crm_Persons extends core_Master
         }
 
         // Подредба
-        setIfNot($data->listFilter->rec->order, 'alphabetic');
+
         $orderCond = $mvc->listOrderBy[$data->listFilter->rec->order][1];
         if ($orderCond) {
             $data->query->orderBy($orderCond);
@@ -447,12 +448,12 @@ class crm_Persons extends core_Master
         if ($data->listFilter->rec->order == 'birthday') {
             $mvc->birthdayFilter = true;
         }
-        if ($data->listFilter->rec->alpha) {
+        if (!empty($data->listFilter->rec->alpha)) {
             if ($data->listFilter->rec->alpha[0] == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
                 $alphaArr = explode('-', $data->listFilter->rec->alpha);
-                $cond = array();
+                $cond = array(0 => '');
                 $i = 1;
 
                 foreach ($alphaArr as $a) {
@@ -514,7 +515,8 @@ class crm_Persons extends core_Master
         if (is_array($data->recs)) {
             $cnt = array();
             foreach ($data->recs as $rec) {
-                $cnt[str::utf2ascii(trim($rec->name))]++;
+                $key = str::utf2ascii(trim($rec->name));
+                $cnt[$key] = ($cnt[$key] ?? 0) + 1;
             }
             foreach ($data->recs as $rec) {
                 if ($cnt[str::utf2ascii(trim($rec->name))] >= 2) {
@@ -551,10 +553,10 @@ class crm_Persons extends core_Master
     public static function addNewPersonBtn2Toolbar(core_Toolbar &$toolbar, core_Form $listFilter)
     {
         $addPersonUrl = array('crm_Persons', 'add', 'ret_url' => true);
-        if ($groupId = $listFilter->rec->groupId) {
+        if ($groupId = ($listFilter->rec->groupId ?? null)) {
             $addPersonUrl["groupList"] = $groupId;
         }
-        $searchString = $listFilter->rec->search;
+        $searchString = $listFilter->rec->search ?? null;
 
         // Ако има въведен стринг за търсене
         if (!empty($searchString)) {
@@ -581,14 +583,14 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
-        if ($data->listFilter->rec->groupId) {
+        if ($data->listFilter->rec->groupId ?? null) {
             $data->title = "Лица в групата|* \"<b style='color:green'>|" .
                 crm_Groups::getTitleById($data->listFilter->rec->groupId) . '|*</b>"';
-        } elseif ($data->listFilter->rec->search) {
+        } elseif ($data->listFilter->rec->search ?? null) {
             $data->title = "Лица отговарящи на филтъра|* \"<b style='color:green'>" .
                 type_Varchar::escape($data->listFilter->rec->search) .
                 '</b>"';
-        } elseif ($data->listFilter->rec->alpha) {
+        } elseif ($data->listFilter->rec->alpha ?? null) {
             if ($data->listFilter->rec->alpha[0] == '0') {
                 $data->title = 'Лица, които започват с не-буквени символи';
             } else {
@@ -631,7 +633,7 @@ class crm_Persons extends core_Master
                 if (!empty($exRec->buzCompanyId) && $exRec->buzCompanyId != $rec->buzCompanyId) {
                     $warningFields = array();
                     foreach (array('buzLocationId', 'buzPosition', 'buzEmail', 'buzTel', 'buzFax', 'buzAddress') as $buzFld) {
-                        if ($rec->{$buzFld} = $exRec->{$buzFld}) {
+                        if ($rec->{$buzFld} == $exRec->{$buzFld}) {
                             $warningFields[] = $buzFld;
                         }
                     }
@@ -654,7 +656,9 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = null)
     {
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
+            $haveAvatar = false;
+            $imgUrl = null;
 
             // Fancy ефект за картинката
             $Fancybox = cls::get('fancybox_Fancybox');
@@ -716,7 +720,7 @@ class crm_Persons extends core_Master
         if (!$ownCompany) {
             $ownCompany = crm_Companies::fetchOurCompany();
         }
-        if ($ownCompany->country != $rec->country) {
+        if (is_object($ownCompany) && $ownCompany->country != $rec->country) {
             $row->country = $mvc->getVerbal($rec, 'country');
         }
 
@@ -725,14 +729,16 @@ class crm_Persons extends core_Master
         $address = $mvc->getVerbal($rec, 'address');
 
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
 
             // Дали има права single' а на този потребител
             $canSingle = static::haveRightFor('single', $rec);
 
             $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
 
-            if ($row->country) {
+            $row->addressBox = '';
+
+            if ($row->country ?? null) {
                 $row->addressBox = $row->country;
                 $row->addressBox .= ($pCode || $place) ? '<br>' : '';
             }
@@ -750,9 +756,9 @@ class crm_Persons extends core_Master
                 }
                 $mvcClone->setFieldTypeParams($cFld2, array('maskVerbal' => true));
 
-                $val = $mvc->getVerbal($rec, $rec->{$cFld1} ? $cFld1 : $cFld2);
+                $val = $mvc->getVerbal($rec, ($rec->{$cFld1} ?? null) ? $cFld1 : $cFld2);
                 $valClass = $cFld1 == 'buzTel' ? 'telephone' : $cFld2;
-                $row->phonesBox .= $val ? "<div class='crm-icon {$valClass}'>{$val}</div>" : '';
+                $row->phonesBox = ($row->phonesBox ?? '') . ($val ? "<div class='crm-icon {$valClass}'>{$val}</div>" : '');
             }
 
             $row->phonesBox = "<div style='max-width:400px;'>{$row->phonesBox}</div>";
@@ -763,14 +769,14 @@ class crm_Persons extends core_Master
             }
         }
 
-        $row->nameList = '<div class="namelist">' . $row->nameList . "<span class='icon'>" . $row->folder . '</span></div>';
+        $row->nameList = '<div class="namelist">' . ($row->nameList ?? '') . "<span class='icon'>" . ($row->folder ?? '') . '</span></div>';
 
         $row->title = $mvc->getTitleById($rec);
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
 
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 
-        if ($birthday && $mvc->birthdayFilter) {
+        if ($birthday && !empty($mvc->birthdayFilter)) {
             if (strlen($birthday) == 5) {
                 $dateType = 'Рожден&nbsp;ден';
             } else {
@@ -809,6 +815,7 @@ class crm_Persons extends core_Master
     {
         // Конфигурационните данните
         $conf = core_Packs::getConfig('crm');
+        $commonName = $country = null;
 
         // Заглавието
         $title = $rec->name;
@@ -880,7 +887,7 @@ class crm_Persons extends core_Master
             }
         }
 
-        if ($rec->saveInSessionAfterCreation) {
+        if (!empty($rec->saveInSessionAfterCreation)) {
             Mode::setPermanent('lastAddedPersonId', $rec->id);
         }
     }
@@ -900,7 +907,7 @@ class crm_Persons extends core_Master
             $query = $mvc->getQuery();
 
             $viewAccess = true;
-            if ($typeKey->params['restrictViewAccess'] == 'yes') {
+            if (($typeKey->params['restrictViewAccess'] ?? null) == 'yes') {
                 $viewAccess = false;
             }
 
@@ -939,11 +946,11 @@ class crm_Persons extends core_Master
      */
     public static function on_Shutdown($mvc)
     {
-        if ($mvc->updateGroupsCnt) {
+        if (!empty($mvc->updateGroupsCnt)) {
             crm_Groups::updateGroupsCnt($mvc->className, 'personsCnt');
         }
 
-        if (countR($mvc->updatedRecs)) {
+        if (!empty($mvc->updatedRecs) && countR($mvc->updatedRecs)) {
             // Обновяване на информацията за рожденните дни, за променените лица
             foreach ($mvc->updatedRecs as $id => $rec) {
                 static::updateBirthdaysToCalendar($id);
@@ -961,7 +968,7 @@ class crm_Persons extends core_Master
     public function flushUpdatePriceLists()
     {
         // Записване на заопашените ЦП за добавяне
-        if (countR($this->updatedListsOnShutdown)) {
+        if (!empty($this->updatedListsOnShutdown) && countR($this->updatedListsOnShutdown)) {
             foreach ($this->updatedListsOnShutdown as $id => $listId) {
                 price_ListToCustomers::add($listId, $this, $id);
                 core_Statuses::newStatus("На лицето е добавена ценовата политика за клиенти на фирмата|*: " . price_Lists::getTitleById($listId));
@@ -979,6 +986,7 @@ class crm_Persons extends core_Master
     {
         $query = self::getQuery();
 
+        $new = $deleted = $updated = 0;
         while ($rec = $query->fetch()) {
             $res = static::updateBirthdaysToCalendar($rec->id);
             $new += $res['new'];
@@ -1157,7 +1165,7 @@ class crm_Persons extends core_Master
      */
     public function prepareCompanyExpandData(&$data)
     {
-        if (!$data->query) {
+        if (!($data->query ?? null)) {
             $query = $this->getQuery();
             $query->where("#buzCompanyId = {$data->masterId}");
             $query->where("#state != 'rejected'");
@@ -1211,13 +1219,13 @@ class crm_Persons extends core_Master
                             <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt-->
                          </fieldset>");
 
-        if ($data->addBtn) {
+        if ($data->addBtn ?? null) {
             $tpl->replace($data->addBtn, 'BTN');
         }
-        if ($data->companiesCnt) {
+        if ($data->companiesCnt ?? null) {
             $tpl->replace($data->companiesCnt, 'CNT');
         }
-        if (countR($data->rows)) {
+        if (countR($data->rows ?? null)) {
             $i = 0;
             foreach ($data->rows as $id => $row) {
                 $tpl->append("<div style='margin-bottom:10px'>", 'persons');
@@ -1286,7 +1294,7 @@ class crm_Persons extends core_Master
         $query->where("#state != 'rejected' AND #state != 'closed'");
         $query->show('name,buzTel,tel,buzEmail,email');
 
-        $or = '';
+        $or = $where = '';
         foreach ($data->namesArr as $name) {
             $where .= "{$or}#trimmedSarchKeywords LIKE '{$name} %'";
             $or = ' OR ';
@@ -1310,7 +1318,7 @@ class crm_Persons extends core_Master
      */
     public static function renderNamedays($data)
     {
-        if (!countR($data->rows)) {
+        if (!countR($data->rows ?? null)) {
 
             return '';
         }
@@ -1328,9 +1336,8 @@ class crm_Persons extends core_Master
                             </div>
                          </fieldset>");
 
-        $block = $tpl->getBlock('person');
         foreach ($data->rows as $row) {
-            $clone = clone $block;
+            $block = clone $tpl->getBlock('person');
             $block->placeObject($row);
             $block->removeBlocks();
             $block->append2Master();
@@ -1347,21 +1354,21 @@ class crm_Persons extends core_Master
      */
     public static function updateRoutingRules($rec)
     {
-        if ($rec->state == 'rejected') {
+        if (($rec->state ?? null) == 'rejected') {
             // Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
             email_Router::removeRules('person', $rec->id);
         } else {
-            if ($rec->buzEmail) {
+            if (!empty($rec->buzEmail)) {
                 // Лицето има служебен имейл. Ако има и фирма, регистрираме служебния имейл на
                 // името на фирмата
-                if ($rec->buzCompanyId) {
+                if (!empty($rec->buzCompanyId)) {
                     crm_Companies::createRoutingRules($rec->buzEmail, $rec->buzCompanyId);
                 } else {
                     static::createRoutingRules($rec->buzEmail, $rec->id);
                 }
             }
 
-            if ($rec->email) {
+            if (!empty($rec->email)) {
                 // Регистрираме личния имейл на името на лицето
                 static::createRoutingRules($rec->email, $rec->id);
             }
@@ -1485,7 +1492,7 @@ class crm_Persons extends core_Master
             $contrData->personVerb = crm_Persons::getVerbal($person, 'name');
             $contrData->country = crm_Persons::getVerbal($person, 'country');
             $contrData->countryId = $person->country;
-            $contrData->groupList = $company->groupList;
+            $contrData->groupList = $company ? $company->groupList : null;
             $contrData->pCode = $person->pCode;
             $contrData->vatNo = $person->vatId;
             $contrData->eori = $person->eori;
@@ -1506,6 +1513,8 @@ class crm_Persons extends core_Master
             $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');
             $contrData->validFrom = $person->validFrom;
             $contrData->validTo = $person->validTo;
+
+            $contrData->groupEmails = '';
 
             // Ако е свързан с фирма
             if ($person->buzCompanyId) {
@@ -1545,6 +1554,7 @@ class crm_Persons extends core_Master
     {
         // Имейла на фирмата
         $companyEmail = crm_Companies::fetchField($companyId, 'email');
+        $res = '';
 
         // Ако има имейл
         if ($companyEmail) {
@@ -1635,7 +1645,7 @@ class crm_Persons extends core_Master
                     //
                     // Край с държавата }}}
                     //
-                    $rec->pcode = $address['code'];
+                    $rec->pCode = $address['code'];
                     $rec->address = $address['street'];
                 }
 
@@ -1829,7 +1839,7 @@ class crm_Persons extends core_Master
         );
 
         $vcard->addAddressLabel(
-            $rec->bizAddress,
+            $rec->buzAddress,
             array(
                 'TYPE' => 'WORK'
             )
@@ -1841,10 +1851,10 @@ class crm_Persons extends core_Master
         static::addTelsToVcard($vcard, $rec->buzTel, array('TYPE' => 'WORK'));
         static::addTelsToVcard($vcard, $rec->buzFax, array('TYPE' => 'WORK,FAX'));
 
-        static::addEmailsToVcard($vcard, $rec->emails, array('TYPE' => 'HOME'));
-        static::addEmailsToVcard($vcard, $rec->buzEmails, array('TYPE' => 'WORK'));
+        static::addEmailsToVcard($vcard, $rec->email, array('TYPE' => 'HOME'));
+        static::addEmailsToVcard($vcard, $rec->buzEmail, array('TYPE' => 'WORK'));
 
-        $vcard->setOrganisation($row->bizCompanyId);
+        $vcard->setOrganisation($row->buzCompanyId);
 
         if ($rec->photo) {
             $vcard->setPhotoUrl(fileman_Download::getDownloadUrl($rec->photo));
@@ -2086,7 +2096,7 @@ class crm_Persons extends core_Master
         // Въвеждаме съдържанието на полетата
         $form->input();
 
-        static::prepareBirthday($rec);
+        static::prepareBirthday($form->rec);
 
         // Ако формата е субмитната
         if ($form->isSubmitted()) {
@@ -2106,8 +2116,8 @@ class crm_Persons extends core_Master
         if ($form->isSubmitted()) {
 
             // Опитваме се да форматираме населеното място
-            if ($rec->place) {
-                $rec->place = bglocal_Address::canonizePlace($rec->place);
+            if ($form->rec->place) {
+                $form->rec->place = bglocal_Address::canonizePlace($form->rec->place);
             }
 
             // Записваме данните
@@ -2180,18 +2190,8 @@ class crm_Persons extends core_Master
             // Задаваме рожденния ден
             $form->setDefault('birthday', $currVcard['bDay']);
         }
-
-        // TODO не работи с линкове, а само с fileHnd
-        // Вземаме първия линк от масива URL'та
-//        $photoKey = key($currVcard['photoUrl']);
-        // Ако има въведено URL
-//        if ($photoKey !== NULL) {
-
-        // Задаваме да е избран по подразбиране
-//            $form->setDefault('photo', $currVcard['photoUrl'][$photoKey]);
-//        }
-
         $phonesStrArr = array();
+        $personePhone = '';
 
         // Вземаме всички телефонни номера и ги групираме в масив в зависимост от вида им
         $phonesStrArr['work'] = core_Array::extractMultidimensionArray($currVcard['tel'], 'work');
@@ -2203,7 +2203,7 @@ class crm_Persons extends core_Master
 
         // Добавяме номерата, които са pref в стринга
         if ($phonesStrArr['pref']) {
-            $personePhone .= ($personePhone) ? ', ' . $phonesStrArr['pref'] : $phonesStrArr['pref'];
+            $personePhone .= $phonesStrArr['pref'];
         }
 
         // Добавяме номерата, които са home в стринга
@@ -2218,8 +2218,6 @@ class crm_Persons extends core_Master
 
         // Задаваме съответните стойности да са избрани по подразбиране
         $form->setDefault('buzTel', $phonesStrArr['work']);
-
-//        $form->setDefault('buzFax', $phonesStrArr['fax']);
         $form->setDefault('fax', $phonesStrArr['fax']);
         $form->setDefault('mobile', $phonesStrArr['cell']);
         $form->setDefault('tel', $personePhone);
@@ -2243,14 +2241,15 @@ class crm_Persons extends core_Master
             // Премахваме го от масива
             unset($addressLabel['work']);
 
-            // Създаваме нов масив, където на първо място са домашните
             $newAddLabel = array();
-            $newAddLabel['home'] = $addressLabel['home'];
-            $newAddLabel['dom'] = $addressLabel['dom'];
+            if (isset($addressLabel['home'])) {
+                $newAddLabel['home'] = $addressLabel['home'];
+            }
+            if (isset($addressLabel['dom'])) {
+                $newAddLabel['dom'] = $addressLabel['dom'];
+            }
             $newAddLabel += (array)$addressLabel;
-
-            // Вземаме всички адреси, без служебния, като на първо място е домашния
-            $homeAddr = core_Array::extractMultidimensionArray($addressLabel, false, ' | ');
+            $homeAddr = core_Array::extractMultidimensionArray($newAddLabel, false, ' | ');
         } else {
 
             // Създавме масив за всички адреси
@@ -2261,10 +2260,13 @@ class crm_Persons extends core_Master
 
             // Премахваме го от масива
             unset($addressArr['work']);
-
-            // Създаваме нов масив, където на първо място са домашните
-            $newAddrArr['home'] = $addressArr['home'];
-            $newAddrArr['dom'] = $addressArr['dom'];
+            $newAddrArr = array();
+            if (isset($addressArr['home'])) {
+                $newAddrArr['home'] = $addressArr['home'];
+            }
+            if (isset($addressArr['dom'])) {
+                $newAddrArr['dom'] = $addressArr['dom'];
+            }
             $newAddrArr += (array)$addressArr;
 
             // Вземаме всички адреси, без служебния, като на първо място е домашния
@@ -2284,7 +2286,8 @@ class crm_Persons extends core_Master
             $organization = mb_strtolower($currVcard['organization']);
 
             // Гледаме дали има такава въведена фирма
-            $companyId = crm_Companies::fetch(array("LOWER(#name) LIKE '%[#1#]%'", $organization), 'id')->id;
+            $companyRec = crm_Companies::fetch(array("LOWER(#name) LIKE '%[#1#]%'", $organization), 'id');
+            $companyId = is_object($companyRec) ? $companyRec->id : null;
 
             // Избираме я по подразбиране
             $form->setDefault('buzCompanyId', $companyId);
@@ -2297,7 +2300,7 @@ class crm_Persons extends core_Master
         $role = tr($currVcard['role']);
 
         // Съединяваме името на работата с ролята
-        $buzPosition = ($role) ? "${jobTitle} - ${role}" : $jobTitle;
+        $buzPosition = ($role) ? "{$jobTitle} - {$role}" : $jobTitle;
 
         // Задаваме позицията на работата
         $form->setDefault('buzPosition', $buzPosition);
@@ -2393,8 +2396,9 @@ class crm_Persons extends core_Master
      */
     public static function prepareBirthday(&$rec)
     {
-        list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
+        list($y, $m, $d) = type_Combodate::toArray($rec->birthday ?? null);
 
+        $err = null;
         if (isset($rec->egn) && !($y > 0 || $m > 0 || $d > 0)) {
             try {
                 $Egn = new bglocal_BulgarianEGN($rec->egn);
@@ -2582,7 +2586,7 @@ class crm_Persons extends core_Master
         $personRec = static::fetch(array("LOWER(#buzEmail) LIKE '%[#1#]%'", $email));
 
         // Ако има бизнес имейл и асоциирана фирма с потребителя
-        if ($companyId = $personRec->buzCompanyId) {
+        if (is_object($personRec) && ($companyId = ($personRec->buzCompanyId ?? null))) {
 
             // Вземаме папката на фирмата
             $folderId = crm_Companies::forceCoverAndFolder($companyId);
@@ -2757,7 +2761,7 @@ class crm_Persons extends core_Master
         if (!isset($showCountry)) {
             if ($rec->country) {
                 $ourCompany = crm_Companies::fetchOurCompany();
-                if ($ourCompany->country != $rec->country) {
+                if (is_object($ourCompany) && $ourCompany->country != $rec->country) {
                     $obj->country = $this->getVerbal($rec, 'country');
                 }
             }
@@ -2894,7 +2898,7 @@ class crm_Persons extends core_Master
         $rec = $this->fetch($id);
 
         if (email_Outgoings::haveRightFor('add', array('folderId' => $rec->folderId))) {
-            $res[] = 'email_Outgoings';
+            $res[] = (object)array('class' => 'email_Outgoings');
         }
 
         static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;
@@ -2958,7 +2962,7 @@ class crm_Persons extends core_Master
     {
         crm_Companies::on_AfterPrepareImportFields($mvc, $fields);
 
-        if ($fields[$mvc->expandInputFieldName]) {
+        if (!empty($fields[$mvc->expandInputFieldName])) {
             $fields[$mvc->expandInputFieldName]['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\')';
         }
     }
@@ -3092,7 +3096,7 @@ class crm_Persons extends core_Master
                 return false;
             }
 
-            if ($rec->groupListInput) {
+            if (!empty($rec->groupListInput)) {
                 if (!empty($groupIdArr)) {
                     $rec->groupListInput = type_Keylist::merge($rec->groupListInput, type_Keylist::fromArray($groupIdArr));
                 }
@@ -3187,7 +3191,7 @@ class crm_Persons extends core_Master
 
 
         $viewAccess = true;
-        if ($params['restrictViewAccess'] == 'yes') {
+        if (($params['restrictViewAccess'] ?? null) == 'yes') {
             $viewAccess = false;
         }
 
@@ -3198,7 +3202,7 @@ class crm_Persons extends core_Master
             $query->where("#state != 'rejected' AND #state != 'closed'");
         }
 
-        if ($params['where']) {
+        if ($params['where'] ?? null) {
             $query->where($params['where']);
         }
 
@@ -3209,11 +3213,11 @@ class crm_Persons extends core_Master
             }
 
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
 
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
 
         if (isset($params['groups'])) {
@@ -3224,6 +3228,7 @@ class crm_Persons extends core_Master
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
 
         if ($q) {
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }
@@ -3252,7 +3257,7 @@ class crm_Persons extends core_Master
 
         $res = array();
 
-        if ($params['group']) {
+        if ($params['group'] ?? null) {
             $gId = crm_Groups::getIdFromSysId($params['group']);
             expect($gId);
             plg_ExpandInput::applyExtendedInputSearch('crm_Persons', $query, $gId);
@@ -3286,7 +3291,7 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        $res = drdata_Countries::addCountryInBothLg($rec->country, $res);
+        $res = drdata_Countries::addCountryInBothLg(is_object($rec) ? ($rec->country ?? null) : null, $res);
     }
 
 

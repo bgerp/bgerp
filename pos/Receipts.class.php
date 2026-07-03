@@ -185,6 +185,12 @@ class pos_Receipts extends core_Master
 
 
     /**
+     * Работен кеш за опашка на касите на които да се обновят сумите по чакащи бележки
+     */
+    protected $updateCaseAmounts = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -236,6 +242,48 @@ class pos_Receipts extends core_Master
 
         pos_Points::requireRightFor('select', $pointId);
         $forced = Request::get('forced', 'int');
+
+        // Ако е избрано "Не" - да не се допуска натрупване на чернови.
+        // 1) Изтриват се всички празни чернови (без детайли)
+        // 2) Ако има непразни чернови - зарежда се най-новата
+        // 3) Ако няма - създава се нова чернова
+        $disallowWaitingDrafts = (pos_Setup::get('ALLOW_DRAFT_RECEIPTS') == 'no');
+        if ($disallowWaitingDrafts) {
+            // Изтриване на всички празни чернови
+            $dQuery = $this->getQuery();
+            $dQuery->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
+            $dQuery->show('id');
+            while ($dRec = $dQuery->fetch()) {
+                if (static::isDraftReceiptEmpty($dRec->id)) {
+                    if ($this->haveRightFor('delete', $dRec->id)) {
+                        $this->delete($dRec->id);
+                    }
+                }
+            }
+
+            // Намиране на най-новата непразна чернова (ако има)
+            $lastDraftQ = $this->getQuery();
+            $lastDraftQ->where("#pointId = {$pointId} AND #state = 'draft' AND #revertId IS NULL");
+            $lastDraftQ->orderBy('id', 'DESC');
+            $lastDraftQ->show('id');
+            $lastDraft = $lastDraftQ->fetch();
+
+            if (is_object($lastDraft)) {
+                $id = $lastDraft->id;
+            } else {
+                // Няма чернови -> създаваме нова
+                $id = $this->createNew();
+                $this->logWrite('Създаване на нова бележка', $id);
+            }
+
+            // Записваме, че потребителя е разглеждал този списък
+            $foundRec = self::fetch($id);
+            $operation = (empty($foundRec->paid)) ? 'add' : 'payment';
+            Mode::setPermanent("currentOperation{$id}", $operation);
+            Mode::setPermanent("currentSearchString{$id}", null);
+
+            return new Redirect(array('pos_Terminal', 'open', 'receiptId' => $id));
+        }
 
         // Ако форсираме, винаги създаваме нова бележка
         if ($forced) {
@@ -344,9 +392,9 @@ class pos_Receipts extends core_Master
             $row->voucherId = voucher_Cards::getVerbal($rec->voucherId, 'number');
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = $mvc->getHyperlink($rec->id, true);
-        } elseif ($fields['-single']) {
+        } elseif (isset($fields['-single'])) {
             $row->title = self::getRecTitle($rec);
             $row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
             $row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), true);
@@ -635,7 +683,7 @@ class pos_Receipts extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         pos_Points::addPointFilter($data->listFilter, $data->query);
-        $filterDateFld = $data->listFilter->rec->filterDateField;
+        $filterDateFld = $data->listFilter->rec->filterDateField ?? null;
         $data->listFilter->FLD('revertState', 'enum(,no=Без сторниране,revertId=Сторниращи,isReverted=Сторнирани)', 'caption=Сторно');
 
         // Добавяне на филтър по начините на плащане
@@ -666,7 +714,7 @@ class pos_Receipts extends core_Master
 
         // Скриване на полето за дата, ако се филтрира по конкретно поле
         foreach (array('valior', 'createdOn', 'waitingOn') as $fld) {
-            if ($fld != $data->listFilter->rec->filterDateField) {
+            if ($fld != ($data->listFilter->rec->filterDateField ?? null)) {
                 unset($data->listFields[$fld]);
             }
         }
@@ -1156,6 +1204,9 @@ class pos_Receipts extends core_Master
                     voucher_Cards::mark($rec->voucherId, true, $this->getClassId(), $rec->id, true);
                 }
             }
+
+            $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
+            $this->updateCaseAmounts[$rec->pointId] = $caseId;
         }
     }
 
@@ -1779,6 +1830,41 @@ class pos_Receipts extends core_Master
 
 
     /**
+     * Има ли бележката детайли
+     *
+     * @param int $receiptId
+     * @return bool
+     */
+    public static function hasReceiptDetails($receiptId)
+    {
+        $receiptId = (int) $receiptId;
+        if (!$receiptId) return false;
+
+        // По-бързо от count() при голям брой редове
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->where("#receiptId = {$receiptId}");
+        $dQuery->limit(1);
+
+        return (bool) $dQuery->fetch();
+    }
+
+
+    /**
+     * Дали бележката е "празна" чернова (само без детайли)
+     *
+     * @param mixed $rec
+     * @return bool
+     */
+    public static function isDraftReceiptEmpty($rec)
+    {
+        $rec = static::fetchRec($rec);
+        if (!$rec || $rec->state != 'draft') return false;
+
+        return !static::hasReceiptDetails($rec->id);
+    }
+
+
+    /**
      * Дали бележката е за дефолтния контрагент за ПОС-а
      *
      * @param $rec
@@ -1897,6 +1983,10 @@ class pos_Receipts extends core_Master
         if(isset($rec->voucherId) && core_Packs::isInstalled('voucher')){
             voucher_Cards::mark($rec->voucherId, false);
         }
+
+        // След оттегляне да се преизчисли наличноста в касата на точката
+        $caseId = pos_Points::fetchField($rec->pointId, 'caseId');
+        $mvc->updateCaseAmounts[$rec->pointId] = $caseId;
     }
 
 
@@ -1934,5 +2024,19 @@ class pos_Receipts extends core_Master
         $data->listSummary->mvc->FNC('totalNoDraft', 'varchar', 'caption=Общо (без чернови),input=none,summary=amount');
         $data->listSummary->mvc->FNC('paidNoDraft', 'varchar', 'caption=Платено (без чернови),input=none,summary=amount');
         $data->listSummary->mvc->FNC('changeNoDraft', 'varchar', 'caption=Ресто (без чернови),input=none,summary=amount');
+    }
+
+
+    /**
+     * Афектираните пера, нотифицират мениджърите си
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // Обновяване на наличноста на касите в чакащи бележки
+        if (countR($mvc->updateCaseAmounts)) {
+            foreach ($mvc->updateCaseAmounts as $caseId){
+                cash_Cases::updateAmountInWaitingReceipts($caseId);
+            }
+        }
     }
 }

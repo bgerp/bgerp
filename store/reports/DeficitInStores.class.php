@@ -244,7 +244,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                             $groupName = cat_Products::getTitleById($rec->groupId);
                             $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
                             
-                            $form->setWarning('groupId', "${countUnset} артикула от група ${groupName} няма да  бъдат добавени.
+                            $form->setWarning('groupId', "{$countUnset} артикула от група {$groupName} няма да  бъдат добавени.
             						Максимален брой артикули за еднократно добавяне - ${maxArt}.
             						Може да добавите още артикули от групата при следваща редакция.");
                         }

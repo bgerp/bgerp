@@ -24,12 +24,12 @@ class sales_plg_CalcPriceDelta extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->detailSellPriceFld, 'price');
-        setIfNot($mvc->detailDiscountPriceFld, 'discount');
-        setIfNot($mvc->detailAutoDiscountFld, 'autoDiscount');
-        setIfNot($mvc->detailQuantityFld, 'quantity');
-        setIfNot($mvc->detailProductFld, 'productId');
-        setIfNot($mvc->detailPackagingFld, 'packagingId');
+        setPartIfNot($mvc, 'detailSellPriceFld', 'price');
+        setPartIfNot($mvc, 'detailDiscountPriceFld', 'discount');
+        setPartIfNot($mvc, 'detailAutoDiscountFld', 'autoDiscount');
+        setPartIfNot($mvc, 'detailQuantityFld', 'quantity');
+        setPartIfNot($mvc, 'detailProductFld', 'productId');
+        setPartIfNot($mvc, 'detailPackagingFld', 'packagingId');
     }
     
     
@@ -127,7 +127,7 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                         array_walk($allDetails, function($a) use (&$totalWeight, &$totalVolume){$totalWeight += $a->weight; $totalVolume += $a->volume;});
 
                         $logisticData = $mvc->getLogisticData($rec);
-                        setIfNot($logisticData['toPCode'], '');
+                        $logisticData['toPCode'] = $logisticData['toPCode'] ?? '';
                         $saleRec->deliveryData = is_array($saleRec->deliveryData) ? $saleRec->deliveryData : array();
                         $deliveryData = $saleRec->deliveryData + array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
 

@@ -27,8 +27,8 @@ class doc_LikesPlg extends core_Plugin
     public function on_AfterDescription(&$mvc)
     {
         // Дали мжое да се редактират активирани документи
-        setIfNot($mvc->canLike, 'user');
-        setIfNot($mvc->canDislike, 'user');
+        setPartIfNot($mvc, 'canLike', 'user');
+        setPartIfNot($mvc, 'canDislike', 'user');
     }
     
     
@@ -399,7 +399,7 @@ class doc_LikesPlg extends core_Plugin
             return ;
         }
         
-        if ($fields && $fields['-single']) {
+        if (isset($fields['-single'])) {
             if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf')) {
                 if ($rec->state != 'draft' && $rec->state != 'rejected') {
                     $likesCnt = doc_Likes::getLikesCnt($rec->containerId, $rec->threadId);
@@ -473,7 +473,7 @@ class doc_LikesPlg extends core_Plugin
                         $likesLink = '<span>' . $likesLink . '</span>';
                     }
                     
-                    $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
+                    $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft ?? '');
                     $row->DocumentSettingsLeft->append($likesLink);
                 }
                 

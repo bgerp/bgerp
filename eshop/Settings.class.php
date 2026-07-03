@@ -136,11 +136,24 @@ class eshop_Settings extends core_Master
     
     
     /**
-     * Заглавие на бутона за добавяне в количката на бг
+     * Заглавие на бутона за добавяне в количката на BG
      */
     const DEFAULT_ADD_TO_CART_LABEL_BG = 'Купи';
-    
-    
+
+
+    /**
+     * Заглавие на опцията ако е спряна на BG
+     */
+    const DEFAULT_STOPPED_OPTION_NAME_BG = 'Спрян';
+
+
+    /**
+     * Заглавие на опцията ако е спряна на EN
+     */
+    const DEFAULT_STOPPED_OPTION_NAME_EN = 'Спрян';
+
+
+
     /**
      * Заглавие на бутона за добавяне в количката на ен
      */
@@ -262,8 +275,10 @@ class eshop_Settings extends core_Master
         $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Изглед),optionsFunc=cat_Params::getPublic');
         $this->FLD('showProductsWithoutPrices', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на е-артикулите във външната част->Без цени,notNull,value=yes');
         $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Списък),optionsFunc=cat_Params::getPublic');
-
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Показване на е-артикулите във външната част->Опаковки/Мерки');
+        $this->FLD('imageDisplayType', 'enum(standart=Дефолтен,carousel=Карусел)', 'caption=Показване на е-артикулите във външната част->Изображения (преглед),notNull,value=standart');
+        $this->FLD('stoppedOptionName', 'varchar(16)', 'caption=Показване на е-артикулите във външната част->Надпис при спрян артикул');
+
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа артикули)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
         $this->FLD('locationIsMandatory', 'enum(no=Опционална,yes=Задължителна)', 'caption=Настройки на партньори за онлайн магазина->Локация,notNull,value=no');
@@ -289,7 +304,7 @@ class eshop_Settings extends core_Master
         $this->FLD('defaultStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Склад');
         $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Каса');
 
-        $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми,both=Фирми и лица)', 'caption=Онлайн поръчки->Допускат се за,notNull,value=auto');
+        $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми (задължително фактуриране),both=Фирми и лица (опционално фактуриране))', 'caption=Онлайн поръчки->Допускат се за,notNull,value=auto');
         $this->FLD('inputCardBtn', 'enum(yes=Включено,no=Изключено)', 'caption=Онлайн поръчки->Въвеждане на карта/ваучер,notNull,value=no');
         $this->FLD('mandatoryInquiryContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допускат се за,notNull,value=auto');
         $this->FLD('mandatoryEGN', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕГН');
@@ -402,7 +417,7 @@ class eshop_Settings extends core_Master
                 }
                 $form->setDefault('objectId', key($options));
             } else {
-                $form->info = "<div class='formError'>" . tr("Всички налични домейни имат вече настройки|*!") . "</info>";
+                $form->info = "<div class='formError'>" . tr("Всички налични домейни имат вече настройки|*!") . "</div>";
                 $form->setReadOnly('objectId');
             }
         }
@@ -438,6 +453,7 @@ class eshop_Settings extends core_Master
         }
         
         // Добавяне на плейсхолдъри на някои полета
+        $lang = 'bg';
         if (isset($rec->objectId)) {
             $lang = cls::get($rec->classId)->fetchField($rec->objectId, 'lang');
             
@@ -456,7 +472,10 @@ class eshop_Settings extends core_Master
         
         $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_LABEL_BG : self::DEFAULT_ADD_TO_CART_LABEL_EN;
         $form->setField('addToCartBtn', array('placeholder' => $btnPlaceholder));
-    
+
+        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_STOPPED_OPTION_NAME_BG : self::DEFAULT_STOPPED_OPTION_NAME_EN;
+        $form->setField('stoppedOptionName', array('placeholder' => $btnPlaceholder));
+
         $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_EXPECTED_DELIVERY_TEXT_BG : self::DEFAULT_EXPECTED_DELIVERY_TEXT_EN;
         $form->setField('expectedDeliveryText', array('placeholder' => $btnPlaceholder));
         
@@ -503,7 +522,7 @@ class eshop_Settings extends core_Master
 
         $form->setDefault('mandatoryEcartContactFields', 'auto');
         $form->setDefault('mandatoryInquiryContactFields', 'auto');
-        $form->setDefault('showProductsWithoutPrices', 'auto');
+        $form->setDefault('showProductsWithoutPrices', 'yes');
     }
     
     
@@ -568,7 +587,11 @@ class eshop_Settings extends core_Master
             if (empty($settingRec->emailBodyFooter)) {
                 $settingRec->emailBodyFooter = ($lang == 'bg') ? self::DEFAULT_EMAIL_FOOTER_BG : self::DEFAULT_EMAIL_FOOTER_EN;
             }
-            
+
+            if (empty($settingRec->stoppedOptionName)) {
+                $settingRec->stoppedOptionName = ($lang == 'bg') ? self::DEFAULT_STOPPED_OPTION_NAME_BG : self::DEFAULT_STOPPED_OPTION_NAME_EN;
+            }
+
             if (empty($settingRec->addProductText)) {
                 $settingRec->addProductText = ($lang == 'bg') ? self::DEFAULT_ADD_TO_CART_TEXT_BG : self::DEFAULT_ADD_TO_CART_TEXT_EN;
             }

@@ -15,13 +15,20 @@
  * @since     v 0.1
  * @link
  */
+#[\AllowDynamicProperties]
 class core_BaseClass
 {
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
     public $loadList;
-    
+
+
+    /**
+     *
+     */
+    public $name;
+
     
     /**
      * Масив с плъгини, които ще работят съвместно с класа

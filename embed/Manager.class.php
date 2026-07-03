@@ -80,7 +80,7 @@ abstract class embed_Manager extends core_Master
         $interfaces = static::getAvailableDriverOptions();
         
         // Ако има избран вече драйвер, но го няма в опциите добавя се
-        if ($rec->{$this->driverClassField} && !array_key_exists($rec->{$this->driverClassField}, $interfaces)) {
+        if (($rec->{$this->driverClassField} ?? null) && !array_key_exists($rec->{$this->driverClassField}, $interfaces)) {
             $name = core_Classes::fetchField($rec->{$this->driverClassField}, 'title');
             $interfaces[$rec->{$this->driverClassField}] = core_Classes::translateClassName($name);
         }
@@ -111,7 +111,7 @@ abstract class embed_Manager extends core_Master
         }
         
         // Ако има източник инстанцираме го
-        if ($rec->{$this->driverClassField}) {
+        if ($rec->{$this->driverClassField} ?? null) {
             
             // Ако има съществуващ запис и той е с избран драйвер - полето не може да се сменя
             if (isset($rec->id)) {
@@ -182,8 +182,8 @@ abstract class embed_Manager extends core_Master
     public static function on_AfterRead($mvc, $rec)
     {
         try {
-            if (cls::load($rec->{$mvc->driverClassField}, true)) {
-                $driverRec = $rec->driverRec;
+            if (!empty($rec->{$mvc->driverClassField}) && cls::load($rec->{$mvc->driverClassField}, true)) {
+                $driverRec = $rec->driverRec ?? null;
                 
                 if (is_array($driverRec)) {
                     foreach ($driverRec as $field => $value) {
@@ -212,7 +212,7 @@ abstract class embed_Manager extends core_Master
             $addFields = self::getDriverFields($driver);
             
             foreach ($addFields as $name => $caption) {
-                $driverRec[$name] = $rec->{$name};
+                $driverRec[$name] = $rec->{$name} ?? null;
                 $saveDriverRec = true;
             }
             
@@ -222,7 +222,7 @@ abstract class embed_Manager extends core_Master
         if ($fields && (is_array($fields) || $fields != '*')) {
             $fields = arr::make($fields, true);
             foreach ($fields as $f => $dummy) {
-                if ($addFields[$f] && !$this->getField($f, false)) {
+                if (!empty($addFields[$f]) && !$this->getField($f, false)) {
                     unset($fields[$f]);
                 }
             }
@@ -276,7 +276,7 @@ abstract class embed_Manager extends core_Master
                 $driver->invoke('AfterAddFields', array($mvc, &$fieldset));
                 
                 foreach ($fieldset->fields as $name => $field) {
-                    if (!isset($row->{$name}) && $fields[$name] && isset($rec->{$name})) {
+                    if (!isset($row->{$name}) && ($fields[$name] ?? null) && isset($rec->{$name})) {
                         $row->{$name} = $field->type->toVerbal($rec->{$name});
                     }
                 }
@@ -284,7 +284,7 @@ abstract class embed_Manager extends core_Master
         }
         
         $me = cls::get(get_called_class());
-        $row->{$me->driverClassField} = tr($row->{$me->driverClassField});
+        $row->{$me->driverClassField} = tr($row->{$me->driverClassField} ?? null);
         
         return $row;
     }
@@ -309,7 +309,7 @@ abstract class embed_Manager extends core_Master
         $res = array();
         if (is_array($fieldset->fields)) {
             foreach ($fieldset->fields as $name => $f) {
-                if ($onlySingleFields === true && $f->single == 'none') {
+                if ($onlySingleFields === true && ($f->single ?? null) == 'none') {
                     continue;
                 }
                 
@@ -339,7 +339,7 @@ abstract class embed_Manager extends core_Master
                 case 'afterlabelisprinted':
                 case 'afteractivation':
 
-                    $driverClass = $args[0]->{$this->driverClassField};
+                    $driverClass = $args[0]->{$this->driverClassField} ?? null;
                     break;
                 case 'beforeaction':
                     if($id = Request::get('id', 'int')){
@@ -348,13 +348,13 @@ abstract class embed_Manager extends core_Master
                     break;
                 case 'aftergetrequiredroles':
                     if (is_object($args[2])) {
-                        $driverClass = $args[2]->{$this->driverClassField};
+                        $driverClass = $args[2]->{$this->driverClassField} ?? null;
                     }
                     break;
                 
                 case 'afterpreparereturl':
                 case 'afterprepareeditform':
-                    $driverClass = $args[0]->form->rec->{$this->driverClassField};
+                    $driverClass = $args[0]->form->rec->{$this->driverClassField} ?? null;
                     break;
                 case 'afterrendersinglelayout':
                 case 'afterrendersingletitle':
@@ -372,10 +372,10 @@ abstract class embed_Manager extends core_Master
                 case 'beforepreparesingletoolbar':
                 case 'afterpreparesingletoolbar':
                 case 'afterprepareselectform':
-                    $driverClass = $args[1]->rec->{$this->driverClassField};
+                    $driverClass = $args[1]->rec->{$this->driverClassField} ?? null;
                     break;
                 case 'afterinputeditform':
-                    $driverClass = $args[0]->rec->{$this->driverClassField};
+                    $driverClass = $args[0]->rec->{$this->driverClassField} ?? null;
                     break;
                 
                 case 'aftergetsearchkeywords':
@@ -393,13 +393,13 @@ abstract class embed_Manager extends core_Master
                 case 'aftergetdefaultdata':
                 case 'aftergetdefaultassignusers':
                     
-                    $driverClass = $args[1]->{$this->driverClassField};
+                    $driverClass = $args[1]->{$this->driverClassField} ?? null;
                     break;
                 case 'aftergetthreadstate':
                 case 'aftergeticon':
                     if ($args[1]) {
                         $rec = $this->fetchRec($args[1]);
-                        $driverClass = $rec->driverClass;
+                        $driverClass = $rec->driverClass ?? null;
                     }
                     
                     break;
@@ -407,7 +407,7 @@ abstract class embed_Manager extends core_Master
                     $rArr = $args[1]->getDeletedRecs();
                     if (!empty($rArr)) {
                         $rObj = array_shift($rArr);
-                        $driverClass = $rObj->{$this->driverClassField};
+                        $driverClass = $rObj->{$this->driverClassField} ?? null;
                     }
                     break;
             }

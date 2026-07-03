@@ -91,6 +91,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички които имат издавани ПОП,single=none,after=typeOfReport');
         $fieldset->FLD('seeZeroRows', 'set(yes = )', 'caption=Контрагенти->Без текуща наличност,after=contragent,single=none,silent');
+
     }
 
 
@@ -328,7 +329,6 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
 
         }
 
-
         return $fld;
     }
 
@@ -464,7 +464,8 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-                                        <!--ET_BEGIN date--><div>|Към дата|*: [#date#]</div><!--ET_END date-->
+                                        <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
+                                        <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN storeId--><div>|Склад|*: [#storeId#]</div><!--ET_END storeId-->
                                         <!--ET_BEGIN group--><div>|Групи|*: [#group#]</div><!--ET_END group-->
                                         <!--ET_BEGIN products--><div>|Артикули|*: [#products#]</div><!--ET_END products-->
@@ -475,11 +476,11 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                                 </fieldset><!--ET_END BLOCK-->"));
 
         if (isset($data->rec->from)) {
-            $fieldTpl->append('<b>' . $data->row->from . '</b>', 'from');
+            $fieldTpl->append('<b>' . $data->rec->from . '</b>', 'from');
         }
 
         if (isset($data->rec->to)) {
-            $fieldTpl->append('<b>' . $data->row->to . '</b>', 'to');
+            $fieldTpl->append('<b>' . $data->rec->to . '</b>', 'to');
         }
 
 

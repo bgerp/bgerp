@@ -152,8 +152,8 @@ class barcode_Qr extends core_Manager
     {
         $imgWidth = imagesx($image);
         $imgHeight = imagesy($image);
-        
-        $html .= '<table border="0" cellpadding="0" cellspacing="0">';
+
+        $html = '<table border="0" cellpadding="0" cellspacing="0">';
         
         for ($y = 0; $y < $imgHeight; $y++) {
             $html .= '<tr>';

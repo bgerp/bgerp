@@ -65,8 +65,8 @@ class type_Ip extends type_Varchar
             return;
         }
         
-        $time = $this->params['time'];
-        $coloring = $this->params['coloring'] != 'no';
+        $time = $this->params['time'] ?? null;
+        $coloring = ($this->params['coloring'] ?? null) != 'no';
         
         $value = self::decorateIp($value, $time, $coloring);
         

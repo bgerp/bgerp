@@ -228,7 +228,7 @@ class acc_Items extends core_Manager
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-        if ($rec->id) {
+        if (!empty($rec->id)) {
             // Запомняне на старите номенклатури
             $rec->oldLists = $mvc->fetchField($rec->id, 'lists');
         }
@@ -250,7 +250,7 @@ class acc_Items extends core_Manager
     public static function on_AfterSave($mvc, $id, $rec)
     {
         // Информацията на кои номенклатури трябва да се обнови
-        $lists = keylist::toArray($rec->lists) + keylist::toArray($rec->oldLists);
+        $lists = keylist::toArray($rec->lists) + keylist::toArray($rec->oldLists ?? null);
         
         foreach ($lists as $listId) {
             $mvc->Lists->updateSummary($listId);
@@ -559,13 +559,13 @@ class acc_Items extends core_Manager
         if ($regRec) {
             $itemRec->num = $regRec->num;
             $itemRec->title = $regRec->title;
-            $itemRec->uomId = $regRec->uomId;
-            $itemRec->features = $regRec->features;
+            $itemRec->uomId = $regRec->uomId ?? null;
+            $itemRec->features = $regRec->features ?? null;
             
             if (!empty($register->autoList)) {
                 // Автоматично добавяне към номенклатурата $autoList
                 expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $register->autoList), 'id'));
-                $itemRec->lists = keylist::addKey($itemRec->lists, $autoListId);
+                $itemRec->lists = keylist::addKey($itemRec->lists ?? null, $autoListId);
             }
         }
         
@@ -606,7 +606,7 @@ class acc_Items extends core_Manager
             
             // Ако перото не е в номенкл. $listId (независимо дали се създава за пръв път или
             // вече го има), добавяме го и записваме на момента.
-            $rec->lists = keylist::addKey($rec->lists, $listId);
+            $rec->lists = keylist::addKey($rec->lists ?? null, $listId);
             $rec->state = 'active';
             $rec->lastUseOn = dt::now();
             
@@ -908,14 +908,74 @@ class acc_Items extends core_Manager
     /**
      * Изтрива всички затворени и неизползвани пера
      */
-    public function cron_DeleteUnusedItems()
+    public function cron_FixItemsAndDocs()
     {
+        // Изтриват се неизползваните пера
         $numRows = $this->delete("#state = 'closed' AND #lastUseOn IS NULL");
-        
         if ($numRows) {
             $this->logWrite('Изтрити неизползвани, затворени пера');
             $this->logInfo("Изтрити са {$numRows} неизползвани, затворени пера");
         }
+
+        // Взимат се перата на всички сделки
+        $saveRecs = $logMsg = array();
+        foreach (array('purchase_Purchases', 'sales_Sales', 'findeals_Deals') as $class){
+            $Class = cls::get($class);
+            $classId = $Class->getClassId();
+
+            $iRecs = $ids = array();
+            $iQuery = $this->getQuery();
+            $iQuery->where("#classId = {$classId}");
+            while($iRec = $iQuery->fetch()){
+                $ids[$iRec->objectId] = $iRec->objectId;
+                $iRecs[$classId][$iRec->objectId] = $iRec;
+            }
+
+            $countItems = countR($ids);
+            core_App::setTimeLimit($countItems * 0.8, false, 300);
+
+            // После се извличат и самите сделки
+            $query = $Class->getQuery();
+            $query->in('id', $ids);
+            $query->in('state', array('active', 'closed', 'stopped'));
+            $query->show('id,state');
+            while($rec = $query->fetch()){
+                $iRec = $iRecs[$classId][$rec->id];
+
+                // Проверка дали има несъответствие между перата
+                if($rec->state == 'active') {
+                    if($iRec->state == 'closed') {
+                        $iRec->state = 'active';
+                        $iRec->_oldState = 'closed';
+                        $saveRecs[$iRec->id] = $iRec;
+                        $logMsg[$classId][$rec->id] = 'Отваряне на грешно затворено перо';
+                    }
+                } elseif($iRec->state == 'active') {
+                    $iRec->state = 'closed';
+                    $iRec->_oldState = 'active';
+                    $saveRecs[$iRec->id] = $iRec;
+                    $logMsg[$classId][$rec->id] = 'Затваряне на грешно активно перо';
+                }
+            }
+        }
+
+        // Ако има обновяват се
+        $count = countR($saveRecs);
+        if($count) {
+            $this->saveArray($saveRecs, 'id,state');
+        }
+
+        // и се логва
+        foreach ($logMsg as $clsId => $recs) {
+            $Class = cls::get($clsId);
+            foreach ($recs as $id => $msg) {
+                $Class->logWrite($id, $msg);
+            }
+        }
+
+        $this->logWrite("Поправени пера {$count}");
+
+        acc_Journal::fixPostedDocsWithoutValior();
     }
     
     
@@ -1019,7 +1079,7 @@ class acc_Items extends core_Manager
         expect($rec = $Items->fetchRec($id));
         
         $colName = str::phpToMysqlName('earliestUsedOn');
-        $query = "UPDATE {$Items->dbTableName} SET {$colName} = IF ({$colName} < '{$dateToCompare}', ${colName}, '{$dateToCompare}') WHERE id = {$rec->id}";
+        $query = "UPDATE {$Items->dbTableName} SET {$colName} = IF ({$colName} < '{$dateToCompare}', {$colName}, '{$dateToCompare}') WHERE id = {$rec->id}";
         
         // Инвалидираме кешираните записи, за да няма обърквания по-нататък
         $Items->_cachedRecords = array();
@@ -1039,18 +1099,19 @@ class acc_Items extends core_Manager
     public static function fetchUsedItems($fromDate = null, $toDate = null, $listId = null)
     {
         $query = self::getQuery();
-        
+        $cond = '';
+
         if (isset($toDate)) {
             $cond = "(#createdOn <= '{$toDate}')";
         }
-        
+
         if (isset($fromDate)) {
-            if (!strpos($toDate, ' ')) {
+            if (!strpos((string) $toDate, ' ')) {
                 $fromDate .= ' 23:59:59';
             }
-            $cond .= ($cond ? ' OR ' : '') . "('${fromDate}' <= #lastUseOn)";
+            $cond .= ($cond ? ' OR ' : '') . "('{$fromDate}' <= #lastUseOn)";
         }
-        
+
         if ($cond) {
             $query->where($cond);
         }

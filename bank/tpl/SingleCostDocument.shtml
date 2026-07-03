@@ -63,6 +63,11 @@
                                  <td>[#termDate#]</td>
                             </tr>
                             <!--ET_END termDate-->
+                            <!--ET_BEGIN earlyPaymentInfo-->
+                            <tr>
+                                <td colspan="2" class="[#earlyPaymentClass#]">[#earlyPaymentInfo#]</td>
+                            </tr>
+                            <!--ET_END earlyPaymentInfo-->
                         </table>
                         <!--ET_BEGIN InvoicesToDocuments-->
                         <hr>

@@ -211,7 +211,7 @@ class survey_Votes extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             
             // Кой го е отговорил
             $row->userUid = $mvc->verbalUserUid($rec->userUid);

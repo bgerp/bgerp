@@ -247,6 +247,12 @@ class planning_Jobs extends core_Master
 
 
     /**
+     * Какъв да е дефолтния избор за печат на фирмена бланка
+     */
+    public $routeDocumentAfterCreation = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function  description()
@@ -995,7 +1001,7 @@ class planning_Jobs extends core_Master
             $quantityValue = ($fld == 'quantityFromTasks') ? $rec->quantityFromTasks : $quantityProduced;
             if ($quantityValue < ($rec->packQuantity - $diff)) {
                 $color = 'black';
-            } elseif ($quantityValue >= ($rec->packQuantity - $diff) && $quantityValue <= ($rec->packQuantity + $diff)) {
+            } elseif (round($quantityValue, 3) >= round(($rec->packQuantity - $diff), 3) && round($quantityValue, 3) <= round(($rec->packQuantity + $diff), 3)) {
                 $color = 'green';
             } else {
                 $row->{$fld} = ht::createHint($row->{$fld}, 'Произведено е повече от планираното', 'warning', false);
@@ -1342,7 +1348,7 @@ class planning_Jobs extends core_Master
     protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
         $updateFields = array('history');
-        if($rec->_updateProductParams == 'yes'){
+        if(($rec->_updateProductParams ?? 'no') == 'yes'){
             $rec->productViewCacheDate = dt::now();
             $updateFields[] = 'productViewCacheDate';
         }
@@ -1697,8 +1703,8 @@ class planning_Jobs extends core_Master
 
             $personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
             $classId = planning_Jobs::getClassId();
-            
-            setIfNot($rec->activatedOn, $rec->modifiedOn);
+
+            $rec->activatedOn = $rec->activatedOn ?? $rec->modifiedOn;
             $date = dt::verbal2mysql($rec->activatedOn, false);
             
             $isRejected = ($rec->state == 'rejected');
@@ -2298,7 +2304,7 @@ class planning_Jobs extends core_Master
         $query->limit(1);
 
         // Ако има връща се тя
-        $folderId = $query->fetch()->folderId;
+        $folderId = $query->fetch()->folderId ?? null;
         if(!empty($folderId))  return $folderId;
 
         // Ако потребителя не е създавал, гледам папката в чиято нишка на задание, потребителя е променял документи
@@ -2465,7 +2471,7 @@ class planning_Jobs extends core_Master
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // При местене на заданието да се подменя и центъра на дейност
-        if($rec->_isBeingMoved && isset($rec->department)){
+        if(($rec->_isBeingMoved ?? false) && isset($rec->department)){
             $folderCover = doc_Folders::getCover($rec->folderId);
             if($folderCover->isInstanceOf('planning_Centers')){
                 if($rec->department != $folderCover->that){
@@ -2475,12 +2481,12 @@ class planning_Jobs extends core_Master
             }
         }
 
-        if($rec->__isBeingChanged && $rec->allowSecondMeasure == 'no'){
+        if(($rec->__isBeingChanged ?? null) && $rec->allowSecondMeasure == 'no'){
             $rec->secondMeasureId = null;
             $mvc->save_($rec, 'secondMeasureId');
         }
 
-        if($rec->_dueDateChanged){
+        if($rec->_dueDateChanged ?? null){
             static::recalcExpectedDueDates($rec->containerId);
         }
     }

@@ -38,10 +38,10 @@ class type_Class extends type_Key
         Mode::push('text', 'plain');
         
         expect($this->params['mvc'], $this);
-        
+
         $mvc = cls::get($this->params['mvc']);
-        
-        $interface = $this->params['interface'];
+
+        $interface = $this->params['interface'] ?? null;
         
         if (is_array($this->options)) {
             $options = $this->options;
@@ -105,7 +105,7 @@ class type_Class extends type_Key
     public function renderInput_($name, $value = '', &$attr = array())
     {
         if (!$value) {
-            $value = $attr['value'];
+            $value = $attr['value'] ?? null;
         }
         
         if (!is_numeric($value)) {

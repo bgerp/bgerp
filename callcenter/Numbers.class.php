@@ -426,7 +426,7 @@ class callcenter_Numbers extends core_Manager
         
         // Ако има филтър
         if ($filter = $data->listFilter->rec) {
-            if ($type = $filter->type) {
+            if ($type = ($filter->type ?? null)) {
                 $data->query->where(array("#type = '[#1#]'", $type));
             }
         }
@@ -454,8 +454,8 @@ class callcenter_Numbers extends core_Manager
     public static function on_Shutdown($mvc)
     {
         // Ако имаме променини или добавени номера
-        if (countR((array) $mvc->savedItems)) {
-            
+        if (countR((array) ($mvc->savedItems ?? null))) {
+
             // Обхождаме масива
             foreach ((array) $mvc->savedItems as $id) {
                 
@@ -481,7 +481,7 @@ class callcenter_Numbers extends core_Manager
         }
         
         // Ако имаме изтрити номера
-        if (countR((array) $mvc->deletedItems)) {
+        if (countR((array) ($mvc->deletedItems ?? null))) {
             
             // Обхождаме масива
             foreach ((array) $mvc->deletedItems as $id => $rec) {

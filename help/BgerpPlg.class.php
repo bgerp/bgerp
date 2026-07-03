@@ -55,7 +55,7 @@ class help_BgerpPlg extends core_Plugin
     public static function on_AfterRenderWrapping($mvc, &$res, $tpl, $data = null)
     {
         // Ако е зададено да не се показва
-        if (!$data || !$data->__needHelp) {
+        if (!$data || !($data->__needHelp ?? null)) {
             
             return ;
         }
@@ -97,6 +97,6 @@ class help_BgerpPlg extends core_Plugin
         $seeUrl = toUrl(array('help_log', 'see', '-1'), 'local');
         $seeUrl = urlencode($seeUrl);
         
-        jquery_Jquery::run($res, "needHelpActions('{$text}', ${inactiveTime}, '{$closeUrl}', '{$seeUrl}');", true);
+        jquery_Jquery::run($res, "needHelpActions('{$text}', {$inactiveTime}, '{$closeUrl}', '{$seeUrl}');", true);
     }
 }

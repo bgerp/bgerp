@@ -182,7 +182,7 @@ class cms_Articles extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        if ($id = $data->form->rec->id) {
+        if ($id = ($data->form->rec->id ?? null)) {
             $rec = self::fetch($id);
             $cRec = cms_Content::fetch($rec->menuId);
             cms_Domains::selectCurrent($cRec->domainId);
@@ -243,7 +243,9 @@ class cms_Articles extends core_Master
         }
         
         $id = Request::get('id', 'int');
-        
+        $rec = $menuId = $content = null;
+        $lArr = array();
+
         if (!$id || !is_numeric($id)) {
             $menuId = Mode::get('cMenuId');
             
@@ -262,8 +264,8 @@ class cms_Articles extends core_Master
         if (is_object($rec) && $rec->state != 'active' && !haveRole('admin,ceo,cms')) {
             error('404 Липсваща страница');
         }
-        
-        if ($rec && !trim($rec->body)) {
+
+        if ($rec && !trim((string)$rec->body)) {
             $nextRec = self::getPrevOrNext($rec);
             
             if ($nextRec) {
@@ -289,7 +291,7 @@ class cms_Articles extends core_Master
         }
         
         if (!$content) {
-            $content = new ET();
+            $content = new ET("");
         }
         
         $navData = $this->prepareNavigation($rec, $menuId, $content, $lArr);
@@ -360,7 +362,8 @@ class cms_Articles extends core_Master
         $navData->cnt = 0;
         $navData->showCnt = 0;
 
-        if (($q = Request::get('q', 'varchar')) && $menuId > 0 && !$rec) {
+        $q = Request::get('q', 'varchar');
+        if ($q && $menuId > 0 && !$rec) {
             $rec = new stdClass();
             $navData->q = $q;
             $rec->menuId = $menuId;
@@ -405,13 +408,13 @@ class cms_Articles extends core_Master
                 $menuId = $rec->menuId;
                 $lArr = explode('.', self::getVerbal($rec, 'level'));
                 $content = new ET('[#1#]', self::getVerbal($rec, 'body'));
-                $ptitle = self::getVerbal($rec, 'title') . ' » ';
-                $content->prepend($ptitle, 'PAGE_TITLE');
+                $pTitle = self::getVerbal($rec, 'title') . ' » ';
+                $content->prepend($pTitle, 'PAGE_TITLE');
             }
             
             $l = new stdClass();
-            
-            $l->selected = ($rec->id == $rec1->id);
+
+            $l->selected = (is_object($rec) && isset($rec->id) && $rec->id == $rec1->id);
             
             if ($lArr1[2]) {
                 $l->level = 3;
@@ -480,8 +483,9 @@ class cms_Articles extends core_Master
      */
     public function renderNavigation_($data)
     {
-        $navTpl = new ET();
+        $navTpl = new ET("");
         $noRootClass = ($data->hasRootNavigation) ? '' : 'noRoot';
+        $currentPage = '';
 
         if(is_array($data->links)){
             foreach ($data->links as $l) {
@@ -551,10 +555,12 @@ class cms_Articles extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = null, $userId = null)
     {
-        if ($rec->state == 'active' && $action == 'delete') {
-            $roles = 'no_one';
-        } elseif ($rec->createdBy != core_Users::getCurrent() && $action == 'delete') {
-            $roles = 'admin';
+        if($action == 'delete' && isset($rec)){
+            if ($rec->state == 'active') {
+                $roles = 'no_one';
+            } elseif ($rec->createdBy != core_Users::getCurrent()) {
+                $roles = 'admin';
+            }
         }
         
         if ($action == 'show' && is_object($rec) && $rec->state != 'active') {
@@ -795,9 +801,8 @@ class cms_Articles extends core_Master
         $form->FNC('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $form->FNC('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Статии,columns=1,input');
         $form->FNC('divider', 'richtext(rows=3,bucket=Notes)', 'caption=Разделител,input');
-        
+        $selected = '';
         $form->input(null, 'silent');
-//        $form->method = 'GET';
         
         if ($form->rec->menuId) {
             $query = self::getQuery();

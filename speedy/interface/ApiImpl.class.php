@@ -98,10 +98,15 @@ class speedy_interface_ApiImpl extends core_BaseClass
         $form->FLD('receiverPhone', 'drdata_PhoneType(type=tel,unrecognized=error)', 'caption=Получател->Телефон,mandatory');
 
         $form->FLD('receiverSpeedyOffice', 'customKey(mvc=speedy_Offices,key=num,select=extName,allowEmpty)', 'caption=Адрес за доставка->Офис на Спиди,removeAndRefreshForm=service|date|receiverCountryId|receiverPlace|receiverAddress|receiverPCode,silent');
-        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress,silent');
+        $form->FLD('receiverCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава,removeAndRefreshForm=service|date|receiverPlace|receiverPCode|receiverAddress|complexName,complexType,silent');
         $form->FLD('receiverPCode', 'varchar', 'caption=Адрес за доставка->Пощ. код,removeAndRefreshForm=service,silent');
         $form->FLD('receiverPlace', 'varchar', 'caption=Адрес за доставка->Нас. място,removeAndRefreshForm=service,silent');
-        $form->FLD('receiverAddress', 'varchar', 'caption=Адрес за доставка->Адрес');
+        $form->FLD('complexType', 'varchar(10)', 'caption=Адрес за доставка->Комплекс,silent');
+        $form->FLD('complexName', 'varchar(20)', 'caption=Адрес за доставка->,silent,inlineTo=complexType');
+
+        $form->FLD('receiverAddress', 'varchar', 'caption=Адрес за доставка->Улица');
+        $form->FLD('receiverAddressNo', 'varchar', 'caption=Адрес за доставка->№');
+
         $form->FLD('receiverBlock', 'varchar', 'caption=Адрес за доставка->Блок');
         $form->FLD('receiverEntrance', 'varchar', 'caption=Адрес за доставка->Вход');
         $form->FLD('receiverFloor', 'int', 'caption=Адрес за доставка->Етаж');
@@ -227,7 +232,6 @@ class speedy_interface_ApiImpl extends core_BaseClass
 
         if($form->rec->receiverCountryId == $logisticCountryId){
             $form->setDefault('receiverPlace', $logisticData['toPlace']);
-            $form->setDefault('receiverAddress', $logisticData['toAddress']);
             $form->setDefault('receiverPCode', $logisticData['toPCode']);
         }
 
@@ -249,12 +253,20 @@ class speedy_interface_ApiImpl extends core_BaseClass
             $form->setDefault('receiverPerson', $toPerson);
         }
 
+        $allComplexTypes = array();
         if(isset($formRec->receiverSpeedyOffice)){
-            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode', 'receiverBlock', 'receiverEntrance', 'receiverFloor', 'receiverApp', 'receiverNotes') as $addressField){
+            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverAddressNo', 'receiverPCode', 'receiverBlock', 'receiverEntrance', 'receiverFloor', 'receiverApp', 'receiverNotes') as $addressField){
                 $form->setField($addressField, 'input=none');
             }
         } else {
-            foreach (array('receiverCountryId', 'receiverPlace', 'receiverAddress', 'receiverPCode') as $addressField){
+            try{
+                $complexTypes = speedy_Adapter::getComplexTypes($formRec->receiverCountryId, $allComplexTypes);
+            } catch(core_exception_Expect $e){
+                $complexTypes = array();
+            }
+
+            $form->setOptions('complexType', $complexTypes);
+            foreach (array('receiverCountryId', 'receiverPlace', 'receiverPCode') as $addressField){
                 $form->setField($addressField, 'mandatory');
             }
         }
@@ -295,8 +307,34 @@ class speedy_interface_ApiImpl extends core_BaseClass
         if(!isset($formRec->receiverSpeedyOffice)){
             $form->setDefault('receiverCountryId', drdata_Countries::getIdByName($logisticCountryId));
             if($formRec->receiverCountryId == $logisticCountryId){
+
+                // Ако има адрес за доставка - парсира се и се попълва
+                if(!empty($logisticData['toAddress'])){
+                    $parsedAddress = cls::get('speedy_BillOfLadings')->parseAddressSpeedy($logisticData['toAddress']);
+                    foreach (array('receiverAddress' => $parsedAddress['street'], 'receiverAddressNo' => $parsedAddress['number'], 'receiverBlock' => $parsedAddress['block'], 'receiverEntrance' => $parsedAddress['entrance'], 'receiverFloor' => $parsedAddress['floor'], 'receiverApp' => $parsedAddress['apartment'], 'receiverNotes' => $parsedAddress['notes'], 'complexName' => $parsedAddress['complexName']) as $fld => $addressField){
+                        if(!empty($addressField)){
+                            $form->setDefault($fld, $addressField);
+                        }
+                    }
+
+                    if(!empty($parsedAddress['complexType'])){
+                        $complexTypeKey = null;
+                        foreach ($allComplexTypes as $k => $rec) {
+                            if (trim($rec->name ?? '') === $parsedAddress['complexType'] || trim($rec->nameEn ?? '') === $parsedAddress['complexType']) {
+                                $complexTypeKey = $k;
+                                break;
+                            }
+                        }
+                        if(isset($complexTypeKey)){
+                            $form->setDefault('complexType', $complexTypeKey);
+                        }
+                    }
+                    $captionAddress = str_replace(',', ' ', $logisticData['toAddress']);
+                    $captionAddress = str_replace('->', ' ', $captionAddress);
+                    $form->setField('complexType', "caption=Адрес за доставка->|Пълен адрес|*: <b>{$captionAddress}</b>->Комплекс");
+                }
+
                 $form->setDefault('receiverPlace', $logisticData['toPlace']);
-                $form->setDefault('receiverAddress', $logisticData['toAddress']);
                 $form->setDefault('receiverPCode', $logisticData['toPCode']);
             }
         }
@@ -357,10 +395,6 @@ class speedy_interface_ApiImpl extends core_BaseClass
         if($form->isSubmitted()) {
             $rec = $form->rec;
 
-            if(empty($rec->receiverSpeedyOffice) && (mb_strlen($rec->receiverAddress) < 5 || is_numeric($rec->receiverAddress))){
-                $form->setError('receiverAddress', 'Адреса трябва да е поне от 5 символа и да съдържа буква');
-            }
-
             if($rec->isFragile == 'yes' && empty($rec->amountInsurance)){
                 $form->setError('amountInsurance,isFragile', 'Чупливата папка, трябва да има обявена стойност');
             }
@@ -379,10 +413,17 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 $form->setError('amountInsurance,totalWeight', 'Не може да има обявена стойност, на пратки с тегло над 32 кг');
             }
 
+            if(!empty($rec->complexName) && empty($rec->complexType)){
+                $form->setError('complexType', 'При въведен комплекс, трябва да е посочен типа му');
+            }
+
+            if(empty($rec->complexName) && !empty($rec->complexType)){
+                $form->setError('complexName', 'При избран тип комплекс трябва да е посочен');
+            }
+
             $parcelInfo = type_Table::toArray($rec->parcelInfo);
             $parcelCount = countR($parcelInfo);
             $parcelCalcWeight = arr::sumValuesArray($parcelInfo, 'weight');
-
             if($parcelCount && !empty($rec->palletCount)){
                 if($parcelCount != $rec->palletCount){
                     $form->setError('parcelInfo,palletCount', 'Има разминаване между броя на палетите');
@@ -426,15 +467,14 @@ class speedy_interface_ApiImpl extends core_BaseClass
                 $recipientArr['addressLocation'] = array('countryId' => $theirCountryId, 'siteId' => key($sites));
             } else {
                 $recipientAddressArray = array('countryId' => $theirCountryId);
-                foreach (array('postCode' => 'receiverPCode', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'apartmentNo', 'siteName' => 'receiverPlace') as $theirFld => $ourFld){
+                foreach (array('postCode' => 'receiverPCode', 'streetName' => 'receiverAddress', 'streetNo' => 'receiverAddressNo', 'blockNo' => 'receiverBlock', 'entranceNo' => 'receiverEntrance', 'floorNo' => 'receiverFloor', 'apartmentNo' => 'apartmentNo', 'siteName' => 'receiverPlace') as $theirFld => $ourFld){
                     if(!empty($formRec->{$ourFld})){
                         $recipientAddressArray[$theirFld] = $formRec->{$ourFld};
                     }
                 }
 
-                $addressNote = $formRec->receiverAddress . (!empty($formRec->receiverNotes) ? ", {$formRec->receiverNotes}" : "");
-                if(!empty($addressNote)){
-                    $recipientAddressArray['addressNote'] = $addressNote;
+                if(!empty($formRec->receiverNotes)){
+                    $recipientAddressArray['addressNote'] = $formRec->receiverNotes;
                 }
                 $recipientArr['address'] = $recipientAddressArray;
             }

@@ -38,16 +38,18 @@ class plg_RowTools extends core_Plugin
             
             return;
         }
-        
+
+        $singleLink = $editLink = $deleteLink = $restoreLink = $changeLink = '';
+
         // Определяме в кое поле ще показваме инструментите
-        $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
-        
+        $field = $mvc->rowToolsField ?? 'id';
+
         if (method_exists($mvc, 'act_Single')) {
             $singleUrl = $mvc->getSingleUrlArray($rec->id);
             
             $icon = $mvc->getIcon($rec->id);
             
-            if ($singleField = $mvc->rowToolsSingleField) {
+            if ($singleField = ($mvc->rowToolsSingleField ?? null)) {
                 $attr1['class'] = 'linkWithIcon';
                 $attr1['ef_icon'] = $icon;
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
@@ -145,8 +147,10 @@ class plg_RowTools extends core_Plugin
         }
         
         $tpl = new ET(static::$rowToolsTpl);
-        $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
-        
+        if (!empty($row->{$field})) {
+            $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
+        }
+
         if ($singleLink || $editLink || $deleteLink || $restoreLink || $changeLink) {
             // Вземаме съдържанието на полето, като шаблон
             $tpl->append($singleLink, 'TOOLS');
@@ -242,7 +246,7 @@ class plg_RowTools extends core_Plugin
         
         
         // Определяме в кое поле ще показваме инструментите
-        $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
+        $field = $mvc->rowToolsField ?? 'id';
         
         if (countR($data->rows)) {
             $rowToolsTpl = new ET(static::$rowToolsTpl);

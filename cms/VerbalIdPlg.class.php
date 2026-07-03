@@ -29,6 +29,14 @@ defIfNot('EF_VID_LEN', 100);
  */
 class cms_VerbalIdPlg extends core_Plugin
 {
+
+
+    /**
+     *
+     */
+    protected $fieldName;
+
+
     /**
      * Извиква се след описанието на модела
      */
@@ -36,23 +44,23 @@ class cms_VerbalIdPlg extends core_Plugin
     {
         // Добавяне на необходимите полета
         $this->fieldName = isset($mvc->vidFieldName) ? $mvc->vidFieldName : 'vid';
-        
+
         $mvc->FLD($this->fieldName, 'varchar(' . EF_VID_LEN . ')', 'caption=SEO->Вербално ID, column=none, width=100%,autohide=any');
-        
+
         // SEO Заглавие
         $mvc->FLD('seoTitle', 'varchar(128)', 'caption=SEO->Title,column=none, width=100%,autohide');
-        
+
         // SEO Описание
         $mvc->FLD('seoDescription', 'text(500,rows=3)', 'caption=SEO->Description,column=none, width=100%,autohide');
-        
+
         // SEO Ключови думи
         $mvc->FLD('seoKeywords', 'text(500,rows=3)', 'caption=SEO->Keywords,column=none, width=100%,autohide');
-        
+
         // SEO Илюстрация
         $mvc->FLD('seoThumb', 'fileman_FileType(bucket=cmsFiles)', 'caption=SEO->Илюстрация,column=none, width=100%,autohide');
-        
+
         $mvc->setDbUnique($this->fieldName);
-        
+
         $mvc->searchFields = arr::make($mvc->searchFields);
         $mvc->searchFields[] = $this->fieldName;
         $mvc->searchFields[] = 'seoTitle';
@@ -85,6 +93,54 @@ class cms_VerbalIdPlg extends core_Plugin
 
 
     /**
+     * Генерира уникална вербална стойност (vid) с дължина до $maxLen символа
+     *
+     * Логиката е инкрементална - ако подадената база е заета, добавя наставка
+     * '-1', '-2', ... докато открие свободна, като реже базата при нужда, за
+     * да се събере резултатът в $maxLen символа.
+     *
+     * @param core_Mvc $mvc     Мениджърът, в който се търси уникалност
+     * @param string   $baseVid Базовата (вече нормализирана) стойност
+     * @param string   $cond    Условието за търсене на съвпадение (с плейсхолдър [#1#])
+     * @param int      $maxLen  Максимална дължина на резултата в символи
+     *
+     * @return string Уникалната вербална стойност
+     */
+    public static function makeUniqueVid($mvc, $baseVid, $cond, $maxLen = EF_VID_LEN)
+    {
+        // Базата, отрязана до допустимата дължина
+        if (mb_strlen($baseVid) > $maxLen) {
+            $baseVid = mb_substr($baseVid, 0, $maxLen);
+        }
+
+        $recVid = $baseVid;
+        $i = 0;
+
+        // Докато стойността е заета, чисто число или празна - генерираме нова
+        while ($mvc->fetchField(array($cond, $recVid), 'id') || is_numeric($recVid) || empty($recVid)) {
+
+            $i++;
+            $suffix = '-' . $i;
+
+            // Колко символа от базата може да останат, за да се събере наставката
+            $maxBaseLen = $maxLen - mb_strlen($suffix);
+
+            // Кандидатът се строи ВИНАГИ от базата, а не от предишния кандидат
+            $recVid = mb_substr($baseVid, 0, max(0, $maxBaseLen)) . $suffix;
+
+            // Ако стане чисто число - добавяме разделител, за да не е numeric
+            if (is_numeric($recVid)) {
+                $recVid .= '_';
+            }
+
+            expect($i <= 3000, $recVid, $i);
+        }
+
+        return $recVid;
+    }
+
+
+    /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     public function on_BeforeSave(&$mvc, &$id, &$rec, &$fields = null)
@@ -93,18 +149,18 @@ class cms_VerbalIdPlg extends core_Plugin
 
         if ($fields) {
             $fArr = arr::make($fields, true);
-            
+
             // Ако полето не участва - не правим нищо
             if (!$fArr[$fieldName]) {
-                
+
                 return;
             }
         }
-        
+
         $recVid = &$rec->{$fieldName};
-        
-        setIfNot($this->mvc, $mvc);
-        
+
+        setPartIfNot($this, 'mvc', $mvc);
+
         $recVid = trim(preg_replace('/[^\p{L}0-9]+/iu', '-', " {$recVid} "), '-');
 
         if (!$recVid) {
@@ -117,52 +173,22 @@ class cms_VerbalIdPlg extends core_Plugin
         }
 
         expect(strlen($recVid), $recVid);
-        
+
         $cond = "#{$this->fieldName} LIKE '[#1#]'";
-        
+
         if ($rec->id) {
             $cond .= " AND #id != {$rec->id}";
         }
-        
-        $i = 0;
 
-        // Дали вербалното ид е над допустимото
-        if(mb_strlen($recVid) > EF_VID_LEN){
-
-            // Ако е намаля се до допустимата дължина
-            $recVid = mb_substr($recVid, 0, EF_VID_LEN);
-        }
-
-        // Докато има същото вербално ид - генерираме ново, докато стане уникално
-        while ($mvc->fetchField(array($cond, $recVid), 'id') || is_numeric($recVid) || empty($recVid)) {
-
-            $i++;
-            $suffix = '-' . $i;
-
-            // Проверява се колко ще стане дължината на новия уникален стринг
-            $newLen = mb_strlen($recVid) + mb_strlen($suffix);
-            if($newLen > EF_VID_LEN){
-
-                // Ако е над допустимото, съкращаваме го до допустимата дължина като запазваме наставката
-                $recVid = mb_substr($recVid, 0, mb_strlen($recVid) - mb_strlen($suffix));
-            }
-
-            $recVid = $recVid . $suffix;
-            if (is_numeric($recVid)) {
-                $recVid .= '_';
-            }
-
-            if ($i > 3000) {
-                expect(false, $recVid, $rec, $i);
-            }
-        }
+        // Генерираме уникална вербална стойност в рамките на допустимата дължина
+        $recVid = self::makeUniqueVid($mvc, $recVid, $cond);
 
         expect($rec->{$fieldName});
-        
+
         cms_VerbalId::saveVid($recVid, $mvc, $rec->id);
     }
-    
-    
+
+
     /**
      * Преди екшън, ако id-то не е цифрово го приема, че е vid и извлича id
      * Поставя, коректното id в Request
@@ -170,31 +196,31 @@ class cms_VerbalIdPlg extends core_Plugin
     public function on_BeforeAction($mvc, $action)
     {
         $vid = Request::get('id');
-        
+
         if ($vid && !is_numeric($vid)) {
             $vid = urldecode($vid);
-            
+
             $id = $mvc->fetchField(array("#vid COLLATE {$mvc->db->dbCharset}_general_ci LIKE '[#1#]'", $vid), 'id');
-            
+
             if (!$id) {
                 $id = cms_VerbalId::fetchId($vid, $mvc);
             }
-            
+
             Request::push(array('id' => $id));
         }
     }
-    
-    
+
+
     /**
      * След извличане на ключовите думи
      */
     public static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
         $syn = cms_Setup::get('SEO_SYNONYMS');
-        
+
         if ($syn) {
             $cKey = md5($syn);
-            
+
             if (!($synArr = core_Cache::get('SEO-SYN', $cKey))) {
                 $syn = json_decode($syn);
                 $i = 0;
@@ -217,13 +243,13 @@ class cms_VerbalIdPlg extends core_Plugin
                 }
                 core_Cache::set('SEO-SYN', $cKey, $synArr, 24 * 60);
             }
-            
+
             $rec = $mvc->fetchRec($rec);
-            
+
             if (!isset($searchKeywords)) {
                 $searchKeywords = plg_Search::getKeywords($mvc, $rec);
             }
-            
+
             if ($searchKeywords && countR($synArr)) {
                 foreach ($synArr as $group) {
                     foreach ($group as $word) {
@@ -235,8 +261,8 @@ class cms_VerbalIdPlg extends core_Plugin
             }
         }
     }
-    
-    
+
+
     /**
      * Добавя без повторение масив от думи към стринг с ключови думи
      */

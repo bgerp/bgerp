@@ -289,7 +289,7 @@ class blogm_Comments extends core_Detail
         // Има ли от същото IP
         $query = self::getQuery();
         $query->limit(28);
-        $cnt = $query->count("#state != 'active' AND #state != 'closed' AND #ip = '{$rec->ip}'" . $idCond);
+        $cnt = $query->count(array("#state != 'active' AND #state != 'closed' AND #ip = '[#1#]'" . $idCond, $rec->ip));
         if ($cnt > 1) {
             $sr += pow($cnt, 1 / 3);
         }
@@ -297,7 +297,7 @@ class blogm_Comments extends core_Detail
         // Има ли от същия brid?
         $query = self::getQuery();
         $query->limit(28);
-        $cnt = $query->count("#state != 'active' AND #state != 'closed' AND #brid = '{$rec->brid}'" . $idCond);
+        $cnt = $query->count(array("#state != 'active' AND #state != 'closed' AND #brid = '[#1#]'" . $idCond, $rec->brid));
         if ($cnt > 1) {
             $sr += pow($cnt, 1 / 3);
         }

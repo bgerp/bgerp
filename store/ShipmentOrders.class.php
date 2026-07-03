@@ -562,7 +562,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             // Ако има финална доставка и ЕН не е коригираща - не може да се пускат нови
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if ($firstDoc->isInstanceOf('sales_Sales')) {
-                $ignoreContainerId = ($action != 'clonerec') ? $rec->containerId : null;
+                $ignoreContainerId = ($action != 'clonerec') ? ($rec->containerId ?? null) : null;
                 if (!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)) {
                     $requiredRoles = 'no_one';
                 }
@@ -917,7 +917,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
                     // Какви са логистичните данни на документа
                     $logisticData = $this->getLogisticData($rec);
-                    setIfNot($logisticData['toPCode'], '');
+                    $logisticData['toPCode'] = $logisticData['toPCode'] ?? '';
                     $firstRec->deliveryData = is_array($firstRec->deliveryData) ? $firstRec->deliveryData : array();
                     $deliveryData = $firstRec->deliveryData + array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
 

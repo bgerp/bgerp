@@ -67,7 +67,7 @@ class plg_State extends core_Plugin
     public static function on_BeforeSave($mvc, &$id, &$rec, &$fields = null)
     {
         if (empty($rec->state) && empty($rec->id)) {
-            $rec->state = $mvc->defaultState ? $mvc->defaultState : 'draft';
+            $rec->state = ($mvc->defaultState ?? null) ?: 'draft';
         }
     }
     
@@ -77,8 +77,14 @@ class plg_State extends core_Plugin
      */
     public static function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
     {
-        if ($invoker->addRowClass !== false) {
+        if (($invoker->addRowClass ?? null) !== false) {
+            if (!isset($row->ROW_ATTR['class'])) {
+                $row->ROW_ATTR['class'] = '';
+            }
             $row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        }
+        if (!isset($row->STATE_CLASS)) {
+            $row->STATE_CLASS = '';
         }
         $row->STATE_CLASS .= " state-{$rec->state}";
     }

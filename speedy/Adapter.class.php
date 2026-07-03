@@ -192,6 +192,7 @@ class speedy_Adapter extends core_BaseClass
 
         $res = array();
         $clientRes = static::call('location/country/', $jsonData);
+
         foreach ((array)$clientRes->countries as $country) {
             $res[$country->id] = array();
             $res[$country->id]['id'] = $country->id;
@@ -200,6 +201,7 @@ class speedy_Adapter extends core_BaseClass
             $res[$country->id]['isoAlpha2'] = $country->isoAlpha2;
             $res[$country->id]['isoAlpha3'] = $country->isoAlpha3;
             $res[$country->id]['currencyCode'] = $country->currencyCode;
+            $res[$country->id]['complexTypes'] = $country->complexTypes;
         }
 
         return $res;
@@ -240,6 +242,31 @@ class speedy_Adapter extends core_BaseClass
 
         return $options;
     }
+
+
+    /**
+     * Връща опции за избор на видове жилищни комплекси
+     *
+     * @param int $ourCountryId
+     * @param array $all
+     * @param $lg
+     * @return array $res
+     */
+    public static function getComplexTypes($ourCountryId, &$all = null, $lg = null)
+    {
+        $lg = $lg ?? core_Lg::getCurrent();
+
+        $res = array();
+        $country = static::getCountries($ourCountryId);
+        $complexTypes = $country[key($country)]['complexTypes'];
+        $all = $complexTypes;
+        foreach ($complexTypes as $complexId => $complexRec) {
+            $res[$complexId] = $lg == 'bg' ? $complexRec->name : $complexRec->nameEn;
+        }
+
+        return $res;
+    }
+
 
     /**
      * Списък с офисите в подадената държава

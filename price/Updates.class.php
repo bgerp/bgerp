@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,14 +31,15 @@ class price_Updates extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_Sorting';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_Sorting, plg_Select';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'type=За,name=Наименование,sourceClass1,sourceClass2,sourceClass3,costAdd,costAddAmount,costValue=Сб-ст,appliedOn,createdOn,createdBy,updateMode=Обновяване';
-    
+
+
     /**
      * Кой може да го промени?
      */
@@ -279,7 +280,7 @@ class price_Updates extends core_Manager
                 $pRec = cat_Products::fetch($rec->objectId);
                 
                 // Ако добавяме правило за артикул трябва да е активен,публичен,складируем и купуваем или производим
-                if ($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes' || !($pRec->canBuy = 'yes' || $pRec->canManifacture = 'yes')) {
+                if ($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes' || !($pRec->canBuy == 'yes' || $pRec->canManifacture == 'yes')) {
                     $requiredRoles = 'no_one';
                 }
             } elseif($rec->type == 'group'){
@@ -461,6 +462,7 @@ class price_Updates extends core_Manager
     private function getValidFromDate($updateMode)
     {
         // Според избрания начин на обновление
+        $date = null;
         switch ($updateMode) {
             case 'manual':
             case 'now':
@@ -731,7 +733,7 @@ class price_Updates extends core_Manager
      */
     public function renderDetail($data)
     {
-        if($data->hide) return new core_ET("");
+        if(!empty($data->hide)) return new core_ET("");
 
         $tpl = new core_ET("<div><div>[#title#]</div>[#RULES#]<!--ET_BEGIN RULE--><div style='margin:5px;text-align:center;'>[#RULE#]</div><!--ET_END RULE--></div>");
         $isFromProduct = $data->masterMvc instanceof cat_Products;
@@ -793,7 +795,7 @@ class price_Updates extends core_Manager
         core_RowToolbar::createIfNotExists($uRow->_rowTools);
 
         $source = $fromCategoryStr = '';
-        if($rec->_fromProduct){
+        if(!empty($rec->_fromProduct)){
             if($rec->type == 'group'){
                 $fromCategoryStr = 'От група|* "<b>' . cat_Groups::getHyperlink($rec->objectId) . '</b>": ';
                 $uRow->_rowTools = new core_RowToolbar();
@@ -834,7 +836,7 @@ class price_Updates extends core_Manager
         }
 
         $tpl->append($source, 'type');
-        if($rec->_fromProduct && $rec->type != 'product'){
+        if(!empty($rec->_fromProduct) && $rec->type != 'product'){
             $tpl->prepend("<span class='quiet'>");
             $tpl->append("</span>");
         }
@@ -861,7 +863,7 @@ class price_Updates extends core_Manager
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         $action = 'edit';
-        if($rec->_isCreated){
+        if(!empty($rec->_isCreated)){
             $action = 'add';
             if ($rec->updateMode == 'manual') {
                 $mvc->savePrimeCost($rec);

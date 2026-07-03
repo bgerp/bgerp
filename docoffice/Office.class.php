@@ -313,7 +313,7 @@ class docoffice_Office
         expect(is_file($docFile));
         
         if (isset($bucket)) {
-            $res = fileman::absorb($docFile, 'exportCsv');
+            $res = fileman::absorb($docFile, $bucket);
         } else {
             $res = @file_get_contents($docFile);
         }

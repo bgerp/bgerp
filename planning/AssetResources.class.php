@@ -402,7 +402,7 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_CalcShortName($mvc, &$rec)
     {
-        if (!$rec->shortName) {
+        if (!($rec->shortName ?? null)) {
             $rec->shortName = '[' . $rec->code . '] ' . $rec->name;
         }
     }
@@ -471,7 +471,7 @@ class planning_AssetResources extends core_Master
         $data->listFilter->input('type,folderId,state', true);
 
         if($filterRec = $data->listFilter->rec){
-            if ($filterRec->groupId) {
+            if (!empty($filterRec->groupId)) {
                 $data->query->where("#groupId = {$filterRec->groupId}");
             }
 
@@ -480,7 +480,7 @@ class planning_AssetResources extends core_Master
                 $data->query->where(array("#type = '[#1#]'", $filterRec->type));
             }
 
-            if ($filterRec->folderId) {
+            if (!empty($filterRec->folderId)) {
                 $data->query->likeKeylist('assetFolders', $filterRec->folderId);
                 $data->query->orLikeKeylist('systemFolderId', $filterRec->folderId);
                 $data->query->orLikeKeylist('unsortedFolders', $filterRec->folderId);

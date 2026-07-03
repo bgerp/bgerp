@@ -197,6 +197,7 @@ class crm_Locations extends core_Master
         );
         
         // Ако има локация, ъпдейт
+        $exLocationRec = null;
         if (isset($locationId)) {
             $exLocationRec = self::fetch($locationId);
             $newRec->id = $locationId;
@@ -359,7 +360,8 @@ class crm_Locations extends core_Master
                 $lQuery = crm_Locations::getQuery();
                 $lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
                 $lQuery->XPR('count', 'int', 'COUNT(#id)');
-                $count = $lQuery->fetch()->count + 1;
+                $lRec = $lQuery->fetch();
+                $count = ($lRec->count ?? 0) + 1;
                 
                 $rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
             }
@@ -404,7 +406,7 @@ class crm_Locations extends core_Master
         }
         
         if ($rec->state == 'rejected') {
-            if ($fields['-single']) {
+            if (isset($fields['-single'])) {
                 $row->headerRejected = ' state-rejected';
             } else {
                 $row->ROW_ATTR['class'] .= ' state-rejected';
@@ -416,7 +418,7 @@ class crm_Locations extends core_Master
         }
 
         if(!empty($rec->regularDelivery)){
-            $row->address .= tr("|*<br>|Посещения|*: ") . $row->regularDelivery;
+            $row->address .= (!empty($row->address) ? ', ' : '') . tr("|*<br>|Доставка|*: ") . $row->regularDelivery;
         }
     }
     
@@ -537,7 +539,7 @@ class crm_Locations extends core_Master
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
         $tpl->append(tr('Локации'), 'title');
-        $count = countR($data->rows);
+        $count = countR($data->rows ?? null);
         if ($count) {
             $divider = ($count == 1) ? '' : "<hr>";
             foreach ($data->rows as $id => $row) {
@@ -579,7 +581,7 @@ class crm_Locations extends core_Master
             return;
         }
         
-        if ($rec->contragentCls) {
+        if (isset($rec->contragentCls)) {
             $contragent = cls::get($rec->contragentCls);
             $requiredRoles = $contragent->getRequiredRoles($action, $rec->contragentId, $userId);
         }
@@ -635,7 +637,12 @@ class crm_Locations extends core_Master
     private static function getContragentLocations($contragentClassId, $contragentId, $countries = array(), $onlyWithRoutesInNextNdays = null)
     {
         expect($contragentClassId = core_Classes::getId($contragentClassId));
-        
+
+        if (empty($contragentId)) {
+
+            return array();
+        }
+
         $query = static::getQuery();
         $query->where("#contragentCls = {$contragentClassId} AND #contragentId = {$contragentId}");
         $query->where("#state != 'rejected'");
@@ -716,10 +723,11 @@ class crm_Locations extends core_Master
      * @param mixed $id
      * @param bool $transliterate
      * @param bool $showFeatures
+     * @param bool $showSpecifics
      * @return string
      * @throws core_exception_Expect
      */
-    public static function getAddress($id, $transliterate = false, $showFeatures = true)
+    public static function getAddress($id, $transliterate = false, $showFeatures = true, $showSpecifics = true)
     {
         expect($rec = static::fetchRec($id));
         $row = static::recToVerbal($rec);
@@ -736,17 +744,28 @@ class crm_Locations extends core_Master
             $row->place = transliterate($row->place);
             $row->address = transliterate($row->address);
         }
-        
-        $string .= "{$row->pCode} {$row->place}, {$row->address}";
-        $string = trim($string, ',  ');
+
+        $parts = array();
+
+        $placePart = trim(($row->pCode ?? '') . ' ' . ($row->place ?? ''));
+        if ($placePart !== '') {
+            $parts[] = $placePart;
+        }
+        if (!empty($row->address)) {
+            $parts[] = $row->address;
+        }
+        $string .= implode(', ', $parts);
+        $string = trim($string, ', ');
 
         if($showFeatures && !empty($rec->features)){
             $string .= "; " . trans_Features::getVerbalFeatures($rec->features, $transliterate);
         }
 
-        if(!empty($rec->specifics)){
-            $specifics = core_Type::getByName('richtext')->toVerbal($rec->specifics);
-            $string .= ", {$specifics}";
+        if($showSpecifics){
+            if(!empty($rec->specifics)){
+                $specifics = core_Type::getByName('richtext')->toVerbal($rec->specifics);
+                $string .= ", {$specifics}";
+            }
         }
 
         return $string;

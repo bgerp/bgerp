@@ -301,7 +301,7 @@ class frame2_Reports extends embed_Manager
         $data = parent::prepareEditForm_($data);
         
         $rec = $data->form->rec;
-        if ($rec->id && $rec->changeFields) {
+        if (isset($rec->id) && $rec->changeFields) {
             $cu = core_Users::getCurrent();
             // И потребителя не е създател на документа
             if ($rec->createdBy != $cu) {
@@ -408,7 +408,7 @@ class frame2_Reports extends embed_Manager
                 }
                 
                 $refresh = true;
-                if (isset($rec->id) && $form->_cloneForm !== true) {
+                if (isset($rec->id) && empty($form->_cloneForm)) {
                     $refresh = false;
                     $oldRec = self::fetch($rec->id);
                     
@@ -433,7 +433,7 @@ class frame2_Reports extends embed_Manager
                     }
                     
                     // Ако са променени данните за обновяване ъпдейтват се
-                    if ($rec->removeSetUpdateTimes !== true) {
+                    if (($rec->removeSetUpdateTimes ?? false) !== true) {
                         if ($oldRec->updateDays != $rec->updateDays || $oldRec->updateTime != $rec->updateTime) {
                             $rec->updateRefreshTimes = true;
                         }
@@ -720,14 +720,13 @@ class frame2_Reports extends embed_Manager
         if ($Driver = self::getDriver($rec)) {
 
             // Ако се обновява ръчно или се обновява по-крон и не е спряно ръчното обновяване
-            if(!$rec->_refreshByCron || $Driver->tryToAutoRefresh($rec)){
+            if(empty($rec->_refreshByCron) || $Driver->tryToAutoRefresh($rec)){
                 $sendNotificationOnlyAfterDataIsChanged = $Driver->sendNotificationOnlyAfterDataIsChanged;
+                core_Debug::startTimer("PREPARE_DATA_TIMER_{$rec->id}");
 
                 try {
                     // Опресняват се данните му
-                    core_Debug::startTimer("PREPARE_DATA_TIMER_{$rec->id}");
                     $rec->data = $Driver->prepareData($rec);
-                    core_Debug::stopTimer("PREPARE_DATA_TIMER_{$rec->id}");
                 } catch (core_exception_Expect $e) {
                     // Ако потребителя е дебъг няма да се замаскирва грешката
                     if(haveRole('debug')){
@@ -737,13 +736,13 @@ class frame2_Reports extends embed_Manager
                     // Ако е имало грешка, се записва че данните са грешни
                     $rec->data = static::DATA_ERROR_STATE;
                     reportException($e);
-
                     if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
                         core_Statuses::newStatus('Грешка при обновяване на справката|*!', 'error');
                     }
 
                     self::logErr('Грешка при обновяване на справката', $rec->id);
                 }
+                core_Debug::stopTimer("PREPARE_DATA_TIMER_{$rec->id}");
 
                 $rec->lastRefreshed = dt::now();
                 $rec->lastRefreshDuration = round(core_Debug::$timers["PREPARE_DATA_TIMER_{$rec->id}"]->workingTime, 6);
@@ -790,7 +789,7 @@ class frame2_Reports extends embed_Manager
             $me->setNewUpdateTimes[$rec->id] = $rec;
             
             // Ако справката сега е създадена да не се обновява
-            if ($rec->__isCreated === true) return;
+            if (($rec->__isCreated ?? false) === true) return;
 
             if ($Driver->canCloseAfterRefresh($rec)) {
 
@@ -869,22 +868,22 @@ class frame2_Reports extends embed_Manager
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if ($rec->refreshData === true) {
+        if (($rec->refreshData ?? false) === true) {
             self::refresh($rec);
         }
         
         // Ако е променен броя на поддържаните версии, ъпдейтват се
-        if ($rec->updateVersionHistory === true) {
+        if (($rec->updateVersionHistory ?? false) === true) {
             frame2_ReportVersions::keepInCheck($rec->id);
         }
         
         // Ако ще се махнат зададените времена за обновяване, махат се
-        if ($rec->removeSetUpdateTimes === true) {
+        if (($rec->removeSetUpdateTimes ?? false) === true) {
             self::removeAllSetUpdateTimes($rec->id);
         }
         
         // Ако ще се ъпдейтват времената за обновяване
-        if ($rec->updateRefreshTimes === true) {
+        if (($rec->updateRefreshTimes ?? false) === true) {
             $mvc->setNewUpdateTimes[$rec->id] = $rec;
         }
     }
@@ -1055,14 +1054,15 @@ class frame2_Reports extends embed_Manager
      * Коя е последната избрана версия от потребителя
      *
      * @param int $id - ид
-     *
      * @return int - ид на последната версия
      */
     public static function getSelectedVersionId($id)
     {
         $versionArr = Mode::get(frame2_ReportVersions::PERMANENT_SAVE_NAME);
-        
-        return $versionArr[$id];
+
+        if (!is_array($versionArr)) return null;
+
+        return $versionArr[$id] ?? null;
     }
     
     
@@ -1224,13 +1224,13 @@ class frame2_Reports extends embed_Manager
 
         if(isset(static::$nextRefreshTimesCache[$rec->id])) return static::$nextRefreshTimesCache[$rec->id];
 
-        $fromDate = $rec->lastRefreshed;
+        $fromDate = $rec->lastRefreshed ?? dt::today();
         $dayKeys = array(1 => 'monday', 2 => 'tuesday', 3 => 'wednesday', 4 => 'thursday', 5 => 'friday', 6 => 'saturday', 7 => 'sunday');
         $date = new DateTime($fromDate);
         
         // Кой ден от седмицата е (1 за Понеделник до 7 за Неделя)
         $todayKey = $date->format('N');
-        $days = type_Set::toArray($rec->updateDays);
+        $days = type_Set::toArray($rec->updateDays ?? null);
         $daysArr = array();
         
         // Ако има зададени дати
@@ -1280,7 +1280,7 @@ class frame2_Reports extends embed_Manager
         }
         
         // Намират се зададените времена, ако няма това е началото на работния ден
-        $timesArr = type_Set::toArray($rec->updateTime);
+        $timesArr = type_Set::toArray($rec->updateTime ?? null);
         if (!countR($timesArr)) {
             $startTime = bgerp_Setup::get('START_OF_WORKING_DAY');
             $timesArr[$startTime] = $startTime;
@@ -1301,7 +1301,7 @@ class frame2_Reports extends embed_Manager
         
         // Фикс за и на часовете от текущия ден
         $td = strtolower(date('l'));
-        if ($days[$td]) {
+        if (!empty($days[$td])) {
             $n = dt::now(false);
             $nF = dt::now();
             foreach ($timesArr as $time) {
@@ -1315,9 +1315,7 @@ class frame2_Reports extends embed_Manager
         
         // Сортират се
         sort($res);
-
-        // Връщат се най близките 3 дати
-        static::$nextRefreshTimesCache[$rec->id] = array($res[0], $res[1], $res[2]);
+        static::$nextRefreshTimesCache[$rec->id] = array_slice($res, 0, 3);
 
         return static::$nextRefreshTimesCache[$rec->id];
     }
@@ -1417,11 +1415,11 @@ class frame2_Reports extends embed_Manager
         
         $data->listFilter->input();
         $rec = $data->listFilter->rec;
-        if ($rec->driverClass) {
+        if ($rec->driverClass ?? null) {
             $data->query->where(array("#driverClass = '[#1#]'", $rec->driverClass));
         }
-        
-        if ($rec->user) {
+
+        if ($rec->user ?? null) {
             $data->query->like('sharedUsers', '|' . $rec->user . '|');
             $data->query->orWhere(array("#createdBy = '[#1#]'", $rec->user));
         }
@@ -1481,9 +1479,9 @@ class frame2_Reports extends embed_Manager
                 $data->logRows = array();
                 foreach ($rec->log as $logArr) {
                     if (!$data->logPager->isOnPage()) continue;
-                    $data->logRows[] = (object)array('time' => core_Type::getByName('date(format=smartTime)')->toVerbal($logArr['time']),
-                                                     'msg' => core_Type::getByName('varchar')->toVerbal($logArr['msg']),
-                                                     'ROW_ATTR' => array('style' => 'background-color:#fefec2;'));
+                    $data->logRows[] = (object)array('time' => core_Type::getByName('date(format=smartTime)')->toVerbal($logArr['time'] ?? null),
+                                                      'msg' => core_Type::getByName('varchar')->toVerbal($logArr['msg'] ?? ''),
+                                                      'ROW_ATTR' => array('style' => 'background-color:#fefec2;'));
                 }
             }
         }

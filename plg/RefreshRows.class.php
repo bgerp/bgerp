@@ -35,7 +35,7 @@ class plg_RefreshRows extends core_Plugin
             return;
         }
 
-        if($data->stopListRefresh) return;
+        if($data->stopListRefresh ?? null) return;
 
         // Ако не се тегли по AJAX
         if (!Request::get('ajax_mode')) {
@@ -62,13 +62,13 @@ class plg_RefreshRows extends core_Plugin
             $url = array($mvc, 'ajaxRefreshRows', 'divId' => $attr['id'], 'refreshUrl' => $refreshUrlLocal);
             
             // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
-            $time = $mvc->refreshRowsTime ? $mvc->refreshRowsTime : 60000;
+            $time = ($mvc->refreshRowsTime ?? null) ?: 60000;
             
             // Името с което ще се добави в масива
             $name = $mvc->className . '_RefreshRows';
             
             // Ако страницата ще се обновява ръчно по AJAX
-            if ($mvc->manualRefreshCnt) {
+            if ($mvc->manualRefreshCnt ?? null) {
                 $hitId = Request::get('hit_id');
                 if (!$hitId) {
                     $hitId = str::getRand('######');
@@ -185,7 +185,7 @@ class plg_RefreshRows extends core_Plugin
         if ($statusHash != $savedHash) {
             
             // Ако ще се обновява ръчно
-            if ($mvc->manualRefreshCnt) {
+            if ($mvc->manualRefreshCnt ?? null) {
                 $refeshCnt = (int) core_Cache::get(get_called_class(), $manualNameHash);
                 $refeshCnt++;
                 
@@ -326,8 +326,8 @@ class plg_RefreshRows extends core_Plugin
      */
     public static function on_AfterStopManualRefresh($mvc, &$res, $nameHash)
     {
-        if (!$mvc->manualRefreshCnt) {
-            
+        if (!($mvc->manualRefreshCnt ?? null)) {
+
             return ;
         }
         
@@ -414,8 +414,8 @@ class plg_RefreshRows extends core_Plugin
             
             // Рендираме общия лейаут
             $tpl = $mvc->renderListLayout($data);
-            
-            setIfNot($data->listTableMvc, clone $mvc);
+
+            setPartIfNot($data, 'listTableMvc', clone $mvc);
             
             // Попълваме таблицата с редовете
             $tpl->append($mvc->renderListTable($data), 'ListTable');
@@ -454,7 +454,7 @@ class plg_RefreshRows extends core_Plugin
     public static function on_AfterCheckTimeForRefresh($mvc, &$res, $hitTime, $refreshUrl)
     {
         // Ако е зададено поле
-        if (!$mvc->refreshRowsCheckField) {
+        if (!($mvc->refreshRowsCheckField ?? null)) {
             
             return ;
         }

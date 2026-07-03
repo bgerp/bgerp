@@ -87,7 +87,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'titleLink=Сделка,currencyId=Валута,folderId,state,createdOn,createdBy';
+    public $listFields = 'titleLink=Сделка,amountDeal=Салдо,currencyId=Валута,folderId,state,createdOn,createdBy';
     
     
     /**
@@ -166,8 +166,8 @@ class findeals_Deals extends deals_DealBase
      * Кой може да превалутира документите в нишката
      */
     public $canChangerate = 'debug';
-    
-    
+
+
     /**
      * Позволени операции на последващите платежни документи
      */
@@ -523,7 +523,7 @@ class findeals_Deals extends deals_DealBase
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->titleLink = $mvc->getHyperlink($rec->id, true);
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->contragentName = cls::get($rec->contragentClassId)->getHyperLink($rec->contragentId, true);
             
             if ($rec->secondContragentClassId) {
@@ -535,7 +535,11 @@ class findeals_Deals extends deals_DealBase
                 $row->contragentCaption = tr('Контрагент');
             }
         }
-        
+
+        if(isset($fields['-list'])){
+            $row->amountDeal =  ht::styleNumber($row->amountDeal, $rec->amountDeal);
+        }
+
         $row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         
         if (isset($rec->baseAccountId)) {
@@ -547,7 +551,7 @@ class findeals_Deals extends deals_DealBase
 
         $rate = $rec->currencyRate;
         if (empty($rec->currencyRate)) {
-            setIfNot($valior, $rec->valior, dt::today());
+            $valior = $rec->valior ?? dt::today();
             $rate = currency_CurrencyRates::getRate($valior, $rec->currencyId, null);
             if($rec->state == 'draft'){
                 $row->currencyRate = $mvc->getFieldType('currencyRate')->toVerbal($rate);
@@ -630,6 +634,8 @@ class findeals_Deals extends deals_DealBase
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
+        $data->canSeePrices = doc_plg_HidePrices::canSeePriceFields($mvc, $data->rec);
+
         $mvc->getHistory($data);
     }
     
@@ -649,7 +655,7 @@ class findeals_Deals extends deals_DealBase
         
         $entries = acc_Journal::getEntries(array(get_called_class(), $rec->id), $item);
         $data->history = array();
-        
+
         if (countR($entries)) {
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
             $Pager->itemsCount = countR($entries);
@@ -657,7 +663,8 @@ class findeals_Deals extends deals_DealBase
             $data->pager = $Pager;
             
             $recs = array();
-            
+            $rec->valior = $rec->valior ?? $rec->activatedOn ?? $rec->createdOn;
+
             // Групираме записите по документ
             foreach ($entries as $jRec) {
                 $index = $jRec->docType . '|' . $jRec->docId;
@@ -691,8 +698,11 @@ class findeals_Deals extends deals_DealBase
                     if (empty($data->pager) || ($count >= $start && $count <= $end)) {
                         $data->rec->curDebitAmount += $rec->debitA;
                         $data->rec->curCreditAmount += $rec->creditA;
-
-                        $data->history[] = $this->getHistoryRow($rec);
+                        $dRow = $this->getHistoryRow($rec);
+                        if(!$data->canSeePrices) {
+                            $dRow->debitA = $dRow->creditA =doc_plg_HidePrices::getBuriedElement();
+                        }
+                        $data->history[] = $dRow;
                     }
                     $count++;
                 }
@@ -700,12 +710,20 @@ class findeals_Deals extends deals_DealBase
         }
 
         foreach (array('amountDeal', 'debitAmount', 'creditAmount', 'curDebitAmount', 'curCreditAmount') as $fld) {
-            if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
-                @$data->rec->{$fld} /= $rate;
+            if($data->canSeePrices){
+                if ($fld == 'amountDeal' && !empty($data->rec->{$fld})) {
+                    @$data->rec->{$fld} /= $rate;
+                }
+                $roundedVal = round($data->rec->{$fld}, 2);
+                $data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($roundedVal);
+                $data->row->{$fld} =  ht::styleNumber($data->row->{$fld}, $roundedVal);
+            } else {
+                $data->row->{$fld} = doc_plg_HidePrices::getBuriedElement();
             }
-            $roundedVal = round($data->rec->{$fld}, 2);
-            $data->row->{$fld} = $this->getFieldType('amountDeal')->toVerbal($roundedVal);
-            $data->row->{$fld} =  ht::styleNumber($data->row->{$fld}, $roundedVal);
+        }
+
+        if(!$data->canSeePrices){
+            $data->row->baseAmount = doc_plg_HidePrices::getBuriedElement();
         }
 
         if(round($data->rec->debitAmount, 4) == round($data->rec->curDebitAmount, 4)){
@@ -849,7 +867,8 @@ class findeals_Deals extends deals_DealBase
         $accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
         $cItemId = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId)->id;
         $curItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
-        
+
+        $rec->valior = $rec->valior ?? $rec->activatedOn ?? $rec->createdOn;
         $blAmount = acc_Balances::getBlAmounts($entries, $accSysId, null, null, array($cItemId, $itemId, $curItemId), array(), $rec->valior)->amount;
         if(isset($rec->oldCurrencyId)){
             $oItemId = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->oldCurrencyId))->id;
@@ -1020,8 +1039,25 @@ class findeals_Deals extends deals_DealBase
         
         return $options;
     }
-    
-    
+
+
+    /**
+     * След ръчно реконтиране на документа
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterDebugReconto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
+            $mvc->invoke('AfterJournalItemAffect', array($rec, $itemRec));
+        }
+    }
+
+
     /**
      * След промяна в журнала със свързаното перо
      */
@@ -1029,7 +1065,6 @@ class findeals_Deals extends deals_DealBase
     {
         $aggregateDealInfo = $mvc->getAggregateDealInfo($rec->id);
         $rec->amountDeal = $aggregateDealInfo->get('blAmount');
-        
         $mvc->save($rec);
     }
     

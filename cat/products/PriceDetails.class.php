@@ -76,7 +76,7 @@ class cat_products_PriceDetails extends core_Manager
      */
     public function renderPrices($data)
     {
-        if ($data->hide === true) return;
+        if (isset($data->hide) && $data->hide === true) return;
         
         $tpl = getTplFromFile('cat/tpl/PriceDetails.shtml');
         $tpl->append($this->renderPriceInfo($data->listsData), 'PriceList');
@@ -137,9 +137,7 @@ class cat_products_PriceDetails extends core_Manager
         if ($catalogCost == 0 && !isset($rec->primeCost)) {
             $catalogCost = null;
         }
-        if (isset($catalogCost)) {
-            $catalogCostDate = $validFrom;
-        }
+        $catalogCostDate = (isset($catalogCost)) ? $validFrom : null;
 
         $futurePrimeCostDate = null;
         $lQuery = price_ListRules::getQuery();
@@ -166,12 +164,7 @@ class cat_products_PriceDetails extends core_Manager
         
         if (haveRole('priceDealer,ceo')) {
             if (price_ListRules::haveRightFor('add', (object) array('productId' => $data->masterId, 'listId' => $primeCostListId))) {
-                $newCost = null;
-
-                if (isset($uRec->costValue)) {
-                    $newCost = $uRec->costValue;
-                }
-                if ($newCost != $rec->primeCost) {
+                if (isset($newCost) && $newCost != ($rec->primeCost ?? null)) {
                     $data->addPriceUrl['price'] = $newCost;
                 }
                 
@@ -263,7 +256,6 @@ class cat_products_PriceDetails extends core_Manager
             $buttons = '';
             if ($catalogPriceCanBeAdded) {
                 $addCatalogPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => price_ListRules::PRICE_LIST_CATALOG, 'productId' => $data->masterId, 'priority' => 1, 'ret_url' => true);
-
                 $buttons .= "<div style='text-align:left'>" . ht::createLink('Нова каталожна цена', $addCatalogPriceUrl, false, 'title=Добавяне на нова цена в каталога') . '</div>';
             }
 
@@ -287,6 +279,35 @@ class cat_products_PriceDetails extends core_Manager
                 $primeCostRows[] = (object) array('type' => $type,
                                                   'updatedOn' => $DateTime->toVerbal($minPriceValidFrom),
                                                   'price' => '<b>' . $verbPrice . "</b>",
+                                                  'ROW_ATTR' => array('class' => 'state-active'));
+            }
+        }
+
+        // Ако е инсталиран пакета ЕШОП да се показват и ешоп политиките
+        if(core_Packs::isInstalled('eshop')){
+            $eQuery = eshop_Settings::getQuery();
+            $eQuery->where("#state = 'active' AND #listId IS NOT NULL AND #listId != {$catalogListId}");
+            $eshopLists = arr::extractValuesFromArray($eQuery->fetchAll(), 'listId');
+            foreach ($eshopLists as $eshopListId){
+                $type = tr('Политика|* "' . price_Lists::getTitleById($eshopListId) . '"');
+                $threadId = price_Lists::fetchField($eshopListId, 'threadId');
+                if (doc_Threads::haveRightFor('single', $threadId)) {
+                    $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId, 'ret_url' => true));
+                }
+
+                $eshopPriceCanBeAdded = price_ListRules::haveRightFor('add', (object) array('productId' => $data->masterId, 'listId' => $eshopListId));
+                $buttons = '';
+                if ($eshopPriceCanBeAdded) {
+                    $addEshopPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => $eshopListId, 'productId' => $data->masterId, 'priority' => 1, 'ret_url' => true);
+                    $buttons .= "<div style='text-align:left'>" . ht::createLink('Нова е-маг цена', $addEshopPriceUrl, false, 'title=Добавяне на нова цена в каталога') . '</div>';
+                }
+                $eshopPriceDate = null;
+                $eshopPrice = price_ListRules::getPrice($eshopListId, $data->masterId, null, $now, $eshopPriceDate);
+                $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($eshopPrice);
+                $primeCostRows[] = (object) array('type' => $type,
+                                                  'updatedOn' => $DateTime->toVerbal($eshopPriceDate),
+                                                  'price' => '<b>' . $verbPrice . "</b>",
+                                                  'buttons' => $buttons,
                                                   'ROW_ATTR' => array('class' => 'state-active'));
             }
         }

@@ -117,7 +117,7 @@ class bulmar_BankDocumentExport extends core_Manager
         }
         
         $content = $this->prepareFileContent($data);
-        $content = iconv('utf-8', 'CP1251', $content);
+        $content = iconv('utf-8', 'CP1251//TRANSLIT//IGNORE', $content);
         
         return $content;
     }
@@ -289,7 +289,7 @@ class bulmar_BankDocumentExport extends core_Manager
             switch($rec->type){
                 case 'debitSupplier';
                     $debitAcc = $static->debitSupplier;
-                    if($rec->_isConnectedCompany){
+                    if(($rec->_isConnectedCompany ?? false) === true){
                         $debitAcc = $static->debitConnectedPersons;
                     }
 
@@ -298,7 +298,7 @@ class bulmar_BankDocumentExport extends core_Manager
                 break;
                 case 'creditSupplier';
                     $creditAcc = $static->creditSupplier;
-                    if($rec->_isConnectedCompany){
+                    if(($rec->_isConnectedCompany ?? false) === true){
                         $creditAcc = $static->creditConnectedPersons;
                     }
                     $line .= "{$num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$creditAcc}|PN|{$rec->reason}|{$rec->amount}||" . "\r\n";

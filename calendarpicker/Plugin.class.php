@@ -35,11 +35,11 @@ class calendarpicker_Plugin extends core_Plugin
         
         $options = array();
         
-        if ($invoker->params['min']) {
+        if (!empty($invoker->params['min'])) {
             $options['min'] = dt::mysql2verbal($invoker->params['min'], 'Ymd');
         }
-        
-        if ($this->caller->params['max']) {
+
+        if (!empty($this->caller->params['max'])) {
             $options['min'] = dt::mysql2verbal($invoker->params['max'], 'Ymd');
         }
         

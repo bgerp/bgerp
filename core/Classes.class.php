@@ -103,10 +103,10 @@ class core_Classes extends core_Manager
         $data->listFilter->showFields = 'search,interface';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-        
+        $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
-        
-        if ($interfaceId = $data->listFilter->rec->interface) {
+
+        if ($interfaceId = ($data->listFilter->rec->interface ?? null)) {
             $data->query->like('interfaces', "|{$interfaceId}|");
         }
     }
@@ -419,7 +419,7 @@ class core_Classes extends core_Manager
                 $rec->state = 'closed';
                 self::save($rec, 'state');
                 $res .= "<li style='color:red;'>Деактивиран беше класа {$rec->name} защото липсва кода му.</li>";
-            } elseif ($inst->deprecated) {
+            } elseif ($inst->deprecated ?? null) {
                 $res .= "<li style='color:green;'>Деактивиран беше класа {$rec->name} защото е пенсиониран.</li>";
                 $rec->state = 'closed';
                 self::save($rec, 'state');
@@ -439,7 +439,7 @@ class core_Classes extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = tr($row->title);
             
             if ($rec->state == 'active') {
@@ -476,11 +476,11 @@ class core_Classes extends core_Manager
         if (countR($intArray)) {
             foreach ($intArray as $id) {
                 $intName = core_Interfaces::fetchField($id, 'name');
-                if (!self::$interfaceMehods[$intName]) {
+                if (!(self::$interfaceMehods[$intName] ?? null)) {
                     self::$interfaceMehods[$intName] = cls::getAccessibleMethods($intName);
                 }
-                
-                if (!self::$staticInterfaceMehods[$intName]) {
+
+                if (!(self::$staticInterfaceMehods[$intName] ?? null)) {
                     self::$staticInterfaceMehods[$intName] = cls::getAccessibleMethods($intName, true);
                 }
                 

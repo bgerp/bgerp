@@ -225,7 +225,6 @@ class wtime_Summary extends core_Manager
             $form->toolbar->addSbBtn('Изчистване', 'truncate', 'warning=Наистина ли желаете да изпразните таблицата,ef_icon = img/16/arrow_refresh.png, title = Преизчисляване на обобщенията');
         }
 
-        $form->toolbar->addSbBtn('Преизчисляване', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Преизчисляване на обобщенията');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
         // Записваме, че потребителя е разглеждал този списък
@@ -449,7 +448,7 @@ class wtime_Summary extends core_Manager
         $exQuery = self::getQuery();
         $exQuery->where("#date >= '{$from}'");
         if(isset($personId)){
-            $pQuery->where("#personId = {$personId}");
+            $exQuery->where("#personId = {$personId}");
         }
 
         $now = dt::now();
@@ -536,7 +535,7 @@ class wtime_Summary extends core_Manager
                 }
 
                 core_Debug::startTimer('ON_SITE_OFF_SCHEDULE');
-                $offSchedule =+ wtime_OnSiteEntries::getOffScheduleTime($personId, $day, dt::timestamp2Mysql($ts), $addedSec, $Schedule);
+                $offSchedule += wtime_OnSiteEntries::getOffScheduleTime($personId, $day, dt::timestamp2Mysql($ts), $addedSec, $Schedule);
                 core_Debug::stopTimer('ON_SITE_OFF_SCHEDULE');
                 $online += $addedSec;
 

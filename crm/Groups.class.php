@@ -205,8 +205,8 @@ class crm_Groups extends core_Master
         if ($form->isSubmitted()) {
 
             // Проверка дали бащата и името са уникални
-            $where = ($rec->parentId) ? "#parentId = {$rec->parentId}" : "#parentId IS NULL";
-            if(static::fetchField("{$where} AND #name = '{$rec->name}' AND #id != '{$rec->id}'")){
+            $where = (!empty($rec->parentId)) ? "#parentId = {$rec->parentId}" : "#parentId IS NULL";
+            if(static::fetchField("{$where} AND #name = '{$rec->name}' AND #id != '" . ($rec->id ?? 0) . "'")){
                 $form->setError('parentId,name', 'Вече съществува запис със същите данни');
             }
         }
@@ -221,10 +221,7 @@ class crm_Groups extends core_Master
      */
     public static function updateGroupsCnt($clsName, $fieldName)
     {
-        if (!$clsName) {
-            
-            return ;
-        }
+        if (empty($clsName)) return; 
 
         $query = $clsName::getQuery();
         $query->where("#state != 'rejected'");
@@ -236,7 +233,7 @@ class crm_Groups extends core_Master
         
         foreach ($gCntArr as $gId => $cCnt) {
             $gRec = crm_Groups::fetch($gId);
-            if ($gRec->parentId) {
+            if (isset($gRec->parentId)) {
                 $gCntArr[$gRec->parentId] -= $cCnt;
             }
         }
@@ -310,8 +307,10 @@ class crm_Groups extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($rec->sysId || $rec->companiesCnt || $rec->personsCnt) && $action == 'delete') {
-            $requiredRoles = 'no_one';
+        if(!empty($rec)){
+            if ((!empty($rec->sysId) || !empty($rec->companiesCnt) || !empty($rec->personsCnt)) && $action == 'delete') {
+                $requiredRoles = 'no_one';
+            }
         }
         
         if ($rec) {
@@ -344,11 +343,11 @@ class crm_Groups extends core_Master
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         // Ако няма стойности
-        if (!$rec->companiesCnt) {
+        if (empty($rec->companiesCnt)) {
             $rec->companiesCnt = 0;
         }
-        
-        if (!$rec->personsCnt) {
+
+        if (empty($rec->personsCnt)) {
             $rec->personsCnt = 0;
         }
         
@@ -356,7 +355,7 @@ class crm_Groups extends core_Master
         $row->personsCnt = $mvc->getVerbal($rec, 'personsCnt');
         $row->name = "<b>{$row->name}</b>";
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->personsCnt = str_pad($row->personsCnt, '6', '0', STR_PAD_LEFT);
             $row->companiesCnt = str_pad($row->companiesCnt, '6', '0', STR_PAD_LEFT);
         }
@@ -415,7 +414,7 @@ class crm_Groups extends core_Master
             ),
             array(
                 'name' => 'Управители',
-                'sysId' => 'managers ',
+                'sysId' => 'managers',
                 'exName' => 'Управители',
                 'allow' => 'persons',
             ),
@@ -471,13 +470,13 @@ class crm_Groups extends core_Master
                 $rec->personsCnt = 0;
             }
             
-            setIfNot($newRec->allow, 'companies_and_persons');
+            setPartIfNot($newRec, 'allow', 'companies_and_persons');
             
             $rec->name = $newRec->name;
             $rec->sysId = $newRec->sysId;
             $rec->allow = $newRec->allow;
             
-            if (!$rec->id) {
+            if (empty($rec->id)) {
                 $nAffected++;
             }
             
@@ -494,7 +493,7 @@ class crm_Groups extends core_Master
             $res .= "<li class='debug-new'>Добавени са {$nAffected} групи.</li>";
         }
         
-        if ($flagChange) {
+        if ($nUpdated) {
             $res .= "<li class='debug-new'>Обновени са {$nUpdated} групи.</li>";
         }
 
@@ -534,12 +533,11 @@ class crm_Groups extends core_Master
 
         if (!$rec) {
             $rec = $gRec;
-
-            setIfNot($rec->inCharge, core_Users::getCurrent());
-            setIfNot($rec->allow, 'companies_and_persons');
+            $rec->inCharge = $rec->inCharge ??  core_Users::getCurrent();
+            $rec->allow = $rec->allow ??  'companies_and_persons';
             $rec->companiesCnt = 0;
             $rec->personsCnt = 0;
-            setIfNot($rec->state, 'active');
+            $rec->state = $rec->state ?? 'active';
             $rec->name = str::mbUcfirst($rec->name);
 
             core_Users::forceSystemUser();
@@ -571,9 +569,13 @@ class crm_Groups extends core_Master
     {
         static $groups = array();
         $parentIdNumb = (int) $parentId;
-        
-        if (!($res = $groups[$parentIdNumb][$name])) {
-            if (strpos($name, '»')) {
+
+        $name = trim($name ?? '');
+        if($name === '') return null;
+
+        $res = $groups[$parentIdNumb][$name] ?? null;
+        if (empty($res)) {
+            if (strpos($name, '»') !== false) {
                 $gArr = explode('»', $name);
                 foreach ($gArr as $gName) {
                     $gName = trim($gName);
@@ -769,6 +771,7 @@ class crm_Groups extends core_Master
      */
     public function getPersonalizationDescr($id)
     {
+        if(strpos($id, '_') === false) return array();
         list(, $p) = explode('_', $id);
         
         $filedsArr = (array) $this->getFieldsFor($p);

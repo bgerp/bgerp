@@ -82,7 +82,7 @@ class cms_DefaultTheme extends core_ProtoInner
         $title = $this->innerForm->title;
         
         $style = '';
-        if ($this->innerForm->titleColor) {
+        if (!empty($this->innerForm->titleColor)) {
             $style = " style='color:{$this->innerForm->titleColor};'";
         }
 
@@ -91,17 +91,17 @@ class cms_DefaultTheme extends core_ProtoInner
             $tpl->replace($title, 'CORE_APP_NAME');
         }
 
-        $subtitle = $this->innerForm->subtitle;
+        $subtitle = $this->innerForm->subtitle ?? null;
         if ($subtitle) {
             $subtitle = "<span{$style}>" . $subtitle . '</span>';
             $tpl->replace($subtitle, 'CORE_APP_SUBTITLE');
         }
 
-        if ($this->innerForm->headerColor) {
+        if (!empty($this->innerForm->headerColor)) {
             $css .= "\n    #all #cmsTop {background-color:{$this->innerForm->headerColor} !important;}";
         }
-        
-        if ($this->innerForm->baseColor) {
+
+        if (!empty($this->innerForm->baseColor)) {
             $baseColor = ltrim($this->innerForm->baseColor, '#');
         } else {
             $baseColor = '334';
@@ -121,7 +121,7 @@ class cms_DefaultTheme extends core_ProtoInner
             $css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical .formMiddleCaption, .vertical form[method=post] input[type=submit], form[method=post] .formTable input[type=submit] {color:#000 !important;}";
         }
         
-        if ($this->innerForm->activeColor) {
+        if (!empty($this->innerForm->activeColor)) {
             $activeColor = ltrim($this->innerForm->activeColor, '#');
         } else {
             $colorObj = new color_Object($baseColor);
@@ -153,7 +153,7 @@ class cms_DefaultTheme extends core_ProtoInner
         }
         
         
-        if ($this->innerForm->bgColor) {
+        if (!empty($this->innerForm->bgColor)) {
             $background = ltrim($this->innerForm->bgColor, '#');
         } else {
             $background = phpcolor_Adapter::changeColor($baseColor, 'lighten', 30);
@@ -242,13 +242,13 @@ class cms_DefaultTheme extends core_ProtoInner
     {
         $imgs = array();
         if (!Mode::is('screenMode', 'narrow')) {
-            if ((core_Users::isContractor() || (!core_Users::getCurrent('id', false) && Request::get('Act') == 'login')) && $this->innerForm->colabImg) {
+            if ((core_Users::isContractor() || (!core_Users::getCurrent('id', false) && Request::get('Act') == 'login')) && !empty($this->innerForm->colabImg)) {
                 $img = new thumb_Img(array($this->innerForm->colabImg, 1000, 150, 'fileman', 'isAbsolute' => true,'mode' => 'large-no-change'));
                 $imageURL = $img->getUrl('forced');
             } else {
                 for ($i = 1; $i <= 8; $i++) {
                     $imgName = 'wImg' . $i;
-                    if ($this->innerForm->{$imgName}) {
+                    if (!empty($this->innerForm->{$imgName})) {
                         $imgs[$i] = $this->innerForm->{$imgName};
                     }
                 }
@@ -313,7 +313,7 @@ class cms_DefaultTheme extends core_ProtoInner
         }
         
         // Да покаже дефолт картинките, ако няма зададени
-        if (!$imageURL) {
+        if (empty($imageURL)) {
             $imageURL = sbf($this->getDefaultHeaderImagePath(), '');
         }
         
@@ -373,11 +373,11 @@ class cms_DefaultTheme extends core_ProtoInner
      */
     public static function on_BeforeSave($mvc, &$innerStateField, &$innerFormField, $rec, $fields = null, $mode = null)
     {
-        if (!trim($innerFormField->title) && !$rec->id && core_Users::isSystemUser()) {
+        if ((!is_object($innerFormField) || !trim($innerFormField->title ?? '')) && !($rec->id ?? null) && core_Users::isSystemUser()) {
             if (!$innerFormField) {
                 $innerFormField = new stdClass();
             }
-            
+
             $innerFormField->title = core_Setup::get('EF_APP_TITLE', true);
         }
     }
@@ -391,7 +391,7 @@ class cms_DefaultTheme extends core_ProtoInner
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('title', core_Setup::get('EF_APP_TITLE', true));
         }
     }

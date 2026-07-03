@@ -9,7 +9,7 @@
  * @package   acc
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -150,7 +150,7 @@ class acc_Journal extends core_Master
         if ($rec = $data->listFilter->rec) {
             
             // Ако се търси по стринг
-            if ($rec->search) {
+            if (!empty($rec->search)) {
                 
                 // и този стринг отговаря на хендлър на документ в системата
                 $doc = doc_Containers::getDocumentByHandle($rec->search);
@@ -171,12 +171,12 @@ class acc_Journal extends core_Master
             }
             
             // Филтер по начална дата
-            if ($rec->dateFrom) {
+            if (!empty($rec->dateFrom)) {
                 $data->query->where(array("#valior >= '[#1#]'", $rec->dateFrom));
             }
             
             // Филтър по крайна дата
-            if ($rec->dateTo) {
+            if (!empty($rec->dateTo)) {
                 $data->query->where(array("#valior <= '[#1#] 23:59:59'", $rec->dateTo));
             }
             
@@ -262,21 +262,17 @@ class acc_Journal extends core_Master
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
-        
         if ($rec->docType && cls::load($rec->docType, true)) {
-            $mvc = cls::get($rec->docType);
             $doc = new core_ObjectReference($rec->docType, $rec->docId);
-            
-            if ($doc) {
-                try {
-                    $row->docType = $doc->getLink();
-                } catch (core_exception_Expect $e) {
-                    $row->docType = "{$rec->docType}:{$rec->docId}";
-                }
+
+            try {
+                $row->docType = $doc->getLink();
+            } catch (core_exception_Expect $e) {
+                $row->docType = "{$rec->docType}:{$rec->docId}";
             }
         }
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $dQuery = acc_JournalDetails::getQuery();
             $dQuery->where("#journalId = {$rec->id}");
             $details = $dQuery->fetchAll();
@@ -309,10 +305,6 @@ class acc_Journal extends core_Master
      *
      * Документа се задава чрез двойката параметри в URL `docId` и `docType`. Класът, зададен
      * в `docType` трябва да поддържа интерфейса `acc_TransactionSourceIntf`
-     *
-     * @param int   $docId   (от URL)
-     * @param mixed $docType (от URL) ид или име на клас поддържащ интерфейса
-     *                       `acc_TransactionSourceIntf`
      */
     public function act_Conto()
     {
@@ -320,14 +312,21 @@ class acc_Journal extends core_Master
         expect($docClassId = Request::get('docType', 'class(interface=acc_TransactionSourceIntf)'));
         $mvc = cls::get($docClassId);
         $mvc->requireRightFor('conto', $docId);
-        
-        // Контиране на документа
-        $mvc->conto($docId);
-        
+
         // Редирект към сингъла
         $retUrl = getRetUrl();
         $redirectUrl = !empty($retUrl) ? $retUrl : $mvc->getSingleUrlArray($docId);
-        
+
+        if (!core_Locks::obtain("conto_{$docClassId}_{$docId}", 60, 0, 0)) {
+            core_Statuses::newStatus('Документът се контира в момента|*!', 'warning');
+
+            return new Redirect($redirectUrl);
+        }
+
+        // Контиране на документа
+        $mvc->conto($docId);
+        core_Locks::release("conto_{$docClassId}_{$docId}");
+
         return new Redirect($redirectUrl);
     }
     
@@ -337,10 +336,6 @@ class acc_Journal extends core_Master
      *
      * Документа се задава чрез двойката параметри в URL `docId` и `docType`. Класът, зададен
      * в `docType` трябва да поддържа интерфейса `acc_TransactionSourceIntf`
-     *
-     * @param int   $docId   (от URL)
-     * @param mixed $docType (от URL) ид или име на клас поддържащ интерфейса
-     *                       `acc_TransactionSourceIntf`
      */
     public function act_Revert()
     {
@@ -376,7 +371,7 @@ class acc_Journal extends core_Master
      *
      * @param mixed      $docClassId     - класа на документа
      * @param int|object $docId          - ид на документа
-     * @param bool       $notifyDocument - да нотифицира ли документа, че транзакцията е приключена
+     * @param boolean       $notifyDocument - да нотифицира ли документа, че транзакцията е приключена
      */
     public static function saveTransaction($docClassId, $docId, $notifyDocument = true)
     {
@@ -736,24 +731,23 @@ class acc_Journal extends core_Master
      * и се записват на ново
      *
      * @param mixed $accSysIds - списък от систем ид-та на сметки
-     * @param datetime  $from      - от коя дата
-     * @param datetime  $to        - до коя дата
+     * @param datetime|null  $from - от коя дата
+     * @param datetime|null  $to   - до коя дата
+     * @param array  $types        - видове
      *
      * @return int - колко документа са били реконтирани
      */
     private function recontoAll($accSysIds, $from = null, $to = null, $types = array())
     {
-        // Дигаме времето за изпълнение на скрипта
-        core_App::setTimeLimit(1500);
-        
         // Филтрираме записите в журнала по подадените параметри
+        $this->logDebug('Начало на реконтиране');
         $to = (!$to) ? dt::today() : $to;
         $query = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($query, $from, $to);
         
         $accSysIds = array_values($accSysIds);
         foreach ($accSysIds as $index => $sysId) {
-            $or = ($index == 0) ? false : true;
+            $or = !(($index == 0));
             $acc = acc_Accounts::getRecBySystemId($sysId);
             $query->where("#debitAccId = {$acc->id} OR #creditAccId = {$acc->id}", $or);
         }
@@ -766,8 +760,13 @@ class acc_Journal extends core_Master
         $query->show('docId,docType,valior');
         $query->groupBy('docId,docType');
         $recs = $query->fetchAll();
+        $countRecs = countR($recs);
+
+        // Дигаме времето за изпълнение на скрипта
+        core_App::setTimeLimit($countRecs * 30, false, 2000);
 
         // За всеки запис ако има
+        $this->logDebug('Изтриване на журнали');
         $count = 0;
         $deletedRecs = array();
         if (countR($recs)) {
@@ -786,12 +785,14 @@ class acc_Journal extends core_Master
             }
 
             // Преизчисляване на балансите
+            $this->logDebug('Рекалкулиране на баланси');
             cls::get('acc_Balances')->recalc();
             foreach ($recs as $rec) {
                 try{
                     if(is_object($deletedRecs[$rec->docType][$rec->docId])){
                         Mode::push('recontoWithCreatedOnDate', $deletedRecs[$rec->docType][$rec->docId]->createdOn);
                     }
+                    $this->logDebug("Реконтиране на документ {$rec->id}");
                     $this->recalcDoc($rec->docType, $rec->docId, $rec->valior);
                     $count++;
                     if(is_object($deletedRecs[$rec->docType][$rec->docId])){
@@ -822,10 +823,16 @@ class acc_Journal extends core_Master
                 $query->where("#journalId IS NULL AND (#state = 'active' || #state = 'closed')");
                 $query->where("#{$Doc->valiorFld} BETWEEN '{$from}' AND '{$to}'");
                 $query->show("id,{$Doc->valiorFld},state,journalId");
+                $dRecs = $query->fetchAll();
+                $dRecsCount = count($dRecs);
+
+                // Дигаме времето за изпълнение на скрипта
+                core_App::setTimeLimit($dRecsCount * 30, false, 2000);
 
                 // Да се реконтират и те
                 while($dRec = $query->fetch()){
                     try{
+                        $this->logDebug("Реконтиране на документ {$dRec->id}");
                         $this->recalcDoc($Doc, $dRec->id, $dRec->{$Doc->valiorFld});
                         $count++;
                     } catch(core_exception_Expect $e){
@@ -836,6 +843,7 @@ class acc_Journal extends core_Master
         }
 
         // Реконтираните документи
+        $this->logDebug('Край на реконтиране');
         return $count;
     }
 
@@ -893,7 +901,7 @@ class acc_Journal extends core_Master
             // Трябва баланса да е преизчислен за да продължим
             if (core_Locks::isLocked(acc_Balances::saveLockKey)) {
                 
-                return followRetUrl(null, tr('|Балансът се преизчислява в момента. Моля, изчакайте!'));
+                followRetUrl(null, tr('|Балансът се преизчислява в момента. Моля, изчакайте!'));
             }
             
             if ($rec->from > $rec->to) {
@@ -916,7 +924,7 @@ class acc_Journal extends core_Master
                 Mode::setPermanent('recontoJournalLastDateFrom', $rec->from);
                 Mode::setPermanent('recontoJournalLastDateTo', $rec->to);
 
-                return followRetUrl(null, tr("|Реконтирани са|* {$res} |документа|*"), 'warning');
+                followRetUrl(null, tr("|Реконтирани са|* {$res} |документа|*"), 'warning');
             }
         }
         
@@ -926,7 +934,7 @@ class acc_Journal extends core_Master
         $tpl = $this->renderWrapping($form->renderHtml());
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->logRead('Разглеждане на реконтиране на документ', $form->rec->id);
+        $this->logRead('Разглеждане на реконтиране на документ');
         
         return $tpl;
     }
@@ -952,12 +960,12 @@ class acc_Journal extends core_Master
         $dQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($dQuery, $from, $to);
         
-        if ($debitSysId) {
+        if (isset($debitSysId)) {
             expect($debitAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $debitSysId), 'id'), "Няма сметка със систем ид {$debitAccId}");
             $dQuery->where("#debitAccId = {$debitAccId}");
         }
         
-        if ($creditSysId) {
+        if (isset($creditSysId)) {
             expect($creditAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $creditSysId), 'id'), "Няма сметка със систем ид {$creditSysId}");
             $dQuery->where("#creditAccId = {$creditAccId}");
         }
@@ -1010,10 +1018,7 @@ class acc_Journal extends core_Master
     {
         // Оригиналния документ трябва да не е в затворен период
         $origin = doc_Containers::getDocument($containerId);
-        if (acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) {
-            
-            return;
-        }
+        if (acc_Periods::isClosed($origin->fetchField($origin->valiorFld))) return;
         
         // Изтриване на старата транзакция на документа
         acc_Journal::deleteTransaction($origin->getClassId(), $origin->that);
@@ -1199,7 +1204,6 @@ class acc_Journal extends core_Master
                     if(array_key_exists($rec->id, $detailCount)){
                         if(empty($detailCount[$rec->id])) continue;
                     }
-
                     if(!array_key_exists($Class->className, $res)){
                         $res[$Class->className] = array();
                     }
@@ -1218,29 +1222,56 @@ class acc_Journal extends core_Master
     function act_findDeals()
     {
         requireRole('debug');
+        $type = Request::get('type', 'enum(active,closed)');
 
         $listId = acc_Lists::fetchBySystemId('deals')->id;
-        $tpl = new core_ET("");
+        $tpl = new core_ET("<table>");
         foreach (array('purchase_Purchases', 'sales_Sales', 'findeals_Deals') as $class){
             $Class = cls::get($class);
             $classId = $Class->getClassId();
 
+            $fields = cls::get('acc_Items')->selectFields();
+            $fields['-list'] = true;
+
+            $Items = cls::get('acc_Items');
+            $iRecs = $ids = array();
             $iQuery = acc_Items::getQuery();
-            $iQuery->where("#state = 'active' AND #classId = {$classId}");
-            $ids = arr::extractValuesFromArray($iQuery->fetchAll(), 'objectId');
+            if($type == 'closed'){
+                $iQuery->where("#state = 'active' AND #classId = {$classId}");
+            } else {
+                $iQuery->where("#state = 'closed' AND #classId = {$classId}");
+            }
+            while($iRec = $iQuery->fetch()){
+                $ids[$iRec->objectId] = $iRec->objectId;
+                $iRecs[$iRec->objectId] = $iRec;
+            }
 
             $query = $Class->getQuery();
             $query->in('id', $ids);
-            $query->where("#state != 'active'");
-            while($rec = $query->fetch()){
-                $tpl->append("<li>");
-                $tpl->append($Class->getLink($rec->id, 0));
+            if($type == 'closed'){
+                $query->where("#state != 'active'");
+            } else {
+                $query->where("#state = 'active'");
+            }
 
+            while($rec = $query->fetch()){
+                $blockTpl = new core_ET("<tr><td style='min-width:100px;'>[#handle#]</td><td style='min-width:50px;'>[#item#]</td><td style='min-width:50px;'>[#state#]</td></tr>");
+
+                $handleLink = $Class->getLink($rec->id, 0);
+                $handleLink = "<span class= 'state-{$rec->state} document-handler' >" . $handleLink . '</span>';
+                $blockTpl->replace($handleLink, 'handle');
+
+                $iRow = $Items->recToVerbal($iRecs[$rec->id], $fields);
                 $handle = "#" . $Class->getHandle($rec->id);
                 $itemLink = array('acc_Items', 'list', 'listId' => $listId, 'search' => $handle);
-                $tpl->append(" -> " . ht::createLink('Перо', $itemLink));
+                $blockTpl->replace(ht::createLink('Перо', $itemLink), 'item');
+                $blockTpl->replace($iRow->state, 'state');
+                $blockTpl->removeBlocksAndPlaces();
+                $tpl->append($blockTpl);
             }
         }
+
+        $tpl->append("</table>");
 
         return $tpl;
     }
@@ -1256,9 +1287,12 @@ class acc_Journal extends core_Master
     {
         // Взимат се записите от документа с вальор след последния затворен период
         $lastClosedPeriod = acc_Periods::getLastClosed();
+
         $Class = cls::get($data->class);
         $query = $Class->getQuery();
-        if(is_object($lastClosedPeriod)){
+        if(!empty($data->from)){
+            $query->where("#{$Class->valiorFld} >= '{$data->from}'");
+        } elseif(is_object($lastClosedPeriod)){
             $query->where("#{$Class->valiorFld} > '{$lastClosedPeriod->end}'");
         }
 
@@ -1295,6 +1329,35 @@ class acc_Journal extends core_Master
         if(isset($data->lastId)){
             $callOn = dt::addSecs(120);
             core_CallOnTime::setCall('acc_Journal', 'recontoActiveDocuments', $data, $callOn);
+        }
+    }
+
+
+    /**
+     * Поправка на документи останали без вальор
+     */
+    public static function fixPostedDocsWithoutValior()
+    {
+        $i = 0;
+        $docs = core_Classes::getOptionsByInterface('deals_SaveValiorOnActivationIntf');
+        foreach ($docs as $doc){
+            $update = array();
+            $Cls = cls::get($doc);
+
+            $query = $Cls->getQuery();
+            $query->where("#state IN ('active', 'closed') AND #{$Cls->valiorFld} IS NULL");
+            while($rec = $query->fetch()){
+                $activatedOn = $rec->activatedOn ?? $rec->modifiedOn;
+                $rec->{$Cls->valiorFld} = $activatedOn;
+                $update[$rec->id] = $rec;
+                $i++;
+            }
+
+            if(countR($update)){
+                $Cls->saveArray($update, "id,{$Cls->valiorFld}");
+            }
+
+            core_Debug::log("CHECK {$Cls->className} : FIXED {$i};");
         }
     }
 }

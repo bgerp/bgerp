@@ -174,7 +174,7 @@ abstract class cash_Document extends deals_PaymentDocument
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'termDate,valior,issuer';
+    public $fieldsNotToClone = 'termDate,valior,issuer,bankPeripheralDeviceId';
 
 
     /**
@@ -232,14 +232,27 @@ abstract class cash_Document extends deals_PaymentDocument
         $Document = doc_Containers::getDocument($fromContainerId);
         $documentRec = $Document->fetch();
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $firstRec = $firstDoc->fetch('currencyRate,currencyId');
+        $firstRec = $firstDoc->fetch();
         $willConvert = ($firstRec->currencyId != $documentRec->currencyId);
 
-        if($Document->isInstanceOf('deals_InvoiceMaster')){ 
-            $minus = ($documentRec->type == 'dc_note' || $willConvert) ? 0 : 0.005;
-            $amount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount - $minus;
-            $amount /= ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
-        } elseif($Document->isInstanceOf('store_DocumentMaster')){
+        if ($Document->isInstanceOf('deals_InvoiceMaster')) {
+            $rate = ($documentRec->displayRate) ? $documentRec->displayRate : $documentRec->rate;
+            $rawAmount = ($documentRec->dealValue - $documentRec->discountAmount) + $documentRec->vatAmount;
+
+            $minus = 0;
+            if ($documentRec->type != 'dc_note') {
+                $testAmount = $rate ? ($rawAmount / $rate) : $rawAmount;
+
+                // Ако резултатът и без това е практически точен до 2 знака,
+                // не прилагаме хака, защото само ще развали сумата
+                if (abs($testAmount - round($testAmount, 2)) > 0.000001) {
+                    $minus = 0.005;
+                }
+            }
+
+            $amount = ($rawAmount - $minus);
+            $amount /= $rate;
+        } elseif ($Document->isInstanceOf('store_DocumentMaster')) {
             $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
         }
 
@@ -306,7 +319,7 @@ abstract class cash_Document extends deals_PaymentDocument
         }
 
         $expectedPayment = null;
-        $realOriginId = $form->rec->fromContainerId ?? $form->rec->originId;
+        $realOriginId = !empty($form->rec->fromContainerId) ? $form->rec->fromContainerId : $form->rec->originId;
         $realOriginId = $realOriginId ?? doc_Threads::getFirstContainerId($form->rec->threadId);
         if($expectedPayment1 = $mvc->getExpectedAmount($realOriginId, $form->rec)){
             $expectedPayment = $expectedPayment1 * $dealInfo->get('rate');
@@ -315,7 +328,7 @@ abstract class cash_Document extends deals_PaymentDocument
         if(!isset($expectedPayment)){
             $expectedPayment = $dealInfo->get('expectedPayment');
         }
-
+        $amount = 0;
         if ($expectedPayment > 0) {
             $amount = round($expectedPayment / $dealInfo->get('rate'), 2);
             
@@ -424,8 +437,8 @@ abstract class cash_Document extends deals_PaymentDocument
             }
             
             $mvc->invoke('AfterSubmitInputEditForm', array($form));
-            if (isset($rec->amountGiven) && $rec->amountGiven <= $rec->amount) {
-                $form->setError('amountGiven', 'Сумата трябва да е над сумата по документа');
+            if (isset($rec->amountGiven) && $rec->amountGiven < $rec->amount) {
+                $form->setError('amountGiven', 'Платеното в брой е под сумата на документа');
             }
         }
     }
@@ -493,7 +506,7 @@ abstract class cash_Document extends deals_PaymentDocument
             $operations = $firstDoc->getPaymentOperations();
             $options = static::getOperations($operations);
             
-            return countR($options) ? true : false;
+            return (bool)countR($options);
         }
         
         return false;
@@ -542,7 +555,7 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $row->title = $mvc->getLink($rec->id, 0);
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $currencyCode = currency_Currencies::getCodeById($rec->currencyId);
 
             if ($rec->dealCurrencyId != $rec->currencyId) {
@@ -607,8 +620,13 @@ abstract class cash_Document extends deals_PaymentDocument
 
             // Ако има посочено колко е платено - показва се и рестото
             if(isset($rec->amountGiven)){
-                $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
-                $row->change = self::renderChange($rec);
+                $change = round($rec->amountGiven - $rec->amount, 2);
+                if($change != 0){
+                    $row->amountGiven = currency_Currencies::decorate($row->amountGiven, $currencyCode, true);
+                    $row->change = self::renderChange($rec);
+                } else {
+                    unset($row->amountGiven);
+                }
             }
         }
     }
@@ -626,7 +644,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $change = $rec->amountGiven - $rec->amount;
         if($change <= 0) return;
 
-        setIfNot($date, $rec->activatedOn, $rec->modifiedOn);
+        $date = $rec->activatedOn ?? $rec->modifiedOn;
         if(in_array($currencyCode, array('BGN', 'EUR')) && $date <= acc_Setup::getBgnDeprecationDate()){
             $changeBgn = $currencyCode == 'BGN' ? $change : round($change * 1.95583, 2);
             $changeEur = $currencyCode == 'EUR' ? $change : round($change / 1.95583, 2);
@@ -642,8 +660,10 @@ abstract class cash_Document extends deals_PaymentDocument
 
             return "{$changeEuroRow}/ {$changeBgnRow}";
         }
+        $change = core_Type::getByName("double(decimals=2)")->toVerbal($change);
+        $change = currency_Currencies::decorate($change, $currencyCode, true);
 
-        return core_Type::getByName("double(decimals=2)")->toVerbal($change);
+        return $change;
     }
 
 
@@ -652,10 +672,8 @@ abstract class cash_Document extends deals_PaymentDocument
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($requiredRoles == 'no_one') {
-            
-            return;
-        }
+        if ($requiredRoles == 'no_one') return;
+
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'peroCase')) {
             if(($action == 'reject' && $rec->state == 'pending') || ($action == 'restore' && $rec->brState == 'pending')) return;
             $requiredRoles = 'no_one';
@@ -666,7 +684,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Информацията на документа, за показване в транспортната линия
      *
-     * @param mixed $id
+     * @param mixed $rec
      * @param int $lineId
      *
      * @return array
@@ -751,9 +769,12 @@ abstract class cash_Document extends deals_PaymentDocument
             }
         } else {
             if(!empty($rec->amountGiven)){
-                $change = $this->renderChange($rec);
-                $info['amountVerbal'] = "<b class='quiet'>{$info['amountVerbal']}</b>";
-                $info['amountVerbal'] .= tr("|*<div class='small'><span class='quiet'>|Ресто|*</span>: {$change}</div>");
+                $change = round($rec->amountGiven - $rec->amount, 2);
+                if($change != 0){
+                    $change = $this->renderChange($rec);
+                    $info['amountVerbal'] = "<b class='quiet'>{$info['amountVerbal']}</b>";
+                    $info['amountVerbal'] .= tr("|*<div class='small'><span class='quiet'>|Ресто|*</span>: {$change}</div>");
+                }
             }
 
             $info['amountVerbal'] = "<div id={$this->getHandle($rec->id)}>{$info['amountVerbal']}</div>";
@@ -769,7 +790,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Изпълнява се преди контиране на документа
      */
-    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
         $rec->peroCase = (isset($rec->peroCase)) ? $rec->peroCase : $mvc->getDefaultCase($rec);;

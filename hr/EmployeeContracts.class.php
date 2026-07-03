@@ -210,6 +210,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('sharedUsers', 'userList(roles=hr|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
         
         $this->setDbUnique('numId');
+        $this->setDbIndex('personId,state');
     }
     
     

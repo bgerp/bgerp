@@ -90,8 +90,9 @@ class cond_type_Key extends cond_type_abstract_Proto
         $select = !empty($rec->select) ? $rec->select : 'id';
 
         // Ако е посочен модел с големи записи, се показва с key2
-        if(in_array($rec->class, array('crm_Companies', 'crm_Persons', 'cat_Products', 'doc_Folders', 'bglocal_HScode'))){
-            $Type = core_Type::getByName("key2(mvc={$rec->class},select={$select})");
+        $Mvc = cls::get($rec->class);
+        if(in_array($rec->class, array('crm_Companies', 'crm_Persons', 'cat_Products', 'doc_Folders')) || cls::existsMethod($Mvc,'getSelectArr')){
+            $Type = core_Type::getByName("key2(mvc={$rec->class},select={$select},allowEmpty,titleFld={$select})");
         } else {
             $typeParams = "mvc={$rec->class}";
             $typeParams .= ",select={$select}";
@@ -129,14 +130,13 @@ class cond_type_Key extends cond_type_abstract_Proto
     {
         $Class = cls::get($rec->class);
         $select = $rec->select;
-        if(isset($rec->displayVerbal)){
+        if(!empty($rec->displayVerbal)){
             $select = $rec->displayVerbal;
         } else {
-            if ($rec->selectBg && core_Lg::getCurrent() == 'bg') {
+            if (!empty($rec->selectBg) && core_Lg::getCurrent() == 'bg') {
                 $select = $rec->selectBg;
             }
         }
-
         $verbal = $Class->getVerbal($value, $select);
 
         // Обръщане в линк, ако може

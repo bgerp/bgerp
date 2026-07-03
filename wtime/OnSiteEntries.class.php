@@ -67,7 +67,7 @@ class wtime_OnSiteEntries extends core_Manager
     /**
      * Кои полета да се извличат при изтриване
      */
-    public $fetchFieldsBeforeDelete = 'id,personId';
+    public $fetchFieldsBeforeDelete = 'id,personId,time';
 
 
     /**
@@ -133,7 +133,7 @@ class wtime_OnSiteEntries extends core_Manager
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if($rec->_fromForm){
+        if($rec->_fromForm ?? null){
             $mvc->recalcOnShutdown[] = $rec;
         }
     }
@@ -481,12 +481,8 @@ class wtime_OnSiteEntries extends core_Manager
         // Началото и края на интервала, който ще засичаме
         $begin =  strtotime($startOn);
         $end = $begin + $duration;
-
-        $workingTimeInFrames = $Schedule->getFrame($begin, $end);
-        $workTimeOnSchedule = 0;
-        foreach($workingTimeInFrames as $t) {
-            $workTimeOnSchedule += $t[1] - $t[0];
-        }
+        
+        $workTimeOnSchedule = $Schedule->frameDuration($begin, $end);
 
         // От цялата продължителност се вади прекараното работно време по график - остатъка е извън графика
         $offTimeSchedule = $duration - $workTimeOnSchedule;

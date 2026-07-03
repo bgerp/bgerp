@@ -412,7 +412,7 @@ class i18n_Charset extends core_MVC
                 }
             }
         }
-        
+
         $assumedCharsets = $newAssumedCharsets;
         
         // Ако е даден HTML опитваме се да извлечем charset и и след това махаме HTML елементите
@@ -424,15 +424,31 @@ class i18n_Charset extends core_MVC
                     $assumedCharsets[$cs] += $step * 0.7;
                 }
             }
-            
-            $text = preg_replace('/<script.*?<\/script>/u', ' ', $text);
-            $text = preg_replace('/<style.*?<\/style>/u', ' ', $text);
-            $text = strip_tags($text);
+
+            // Махаме script/style/коментари заедно със съдържанието им, после и останалите тагове.
+            // Флагове: s - за многоредови блокове, i - за <SCRIPT>/<STYLE>.
+            // Без 'u', защото текстът тук често не е валиден UTF-8 (тъкмо разпознаваме кодировката) -
+            // /u би върнал null. С '?? $text' пазим текста, ако preg се провали.
+            $text = preg_replace('/<script\b[^>]*>.*?<\/script>/is', ' ', $text) ?? $text;
+            $text = preg_replace('/<style\b[^>]*>.*?<\/style>/is', ' ', $text) ?? $text;
+            $text = preg_replace('/<!--.*?-->/s', ' ', $text) ?? $text;
+            // Умишлено НЕ ползваме strip_tags: при незатворен таг/коментар (самотен '<')
+            // той поглъща текста до края на документа. '<[^>]*>' изисква затварящо '>',
+            // затова маха само истински тагове, без да яде съдържание.
+            $text = preg_replace('/<[^>]*>/', ' ', $text) ?? $text;
             $text = str_replace('&nbsp;', ' ', $text);
-            $text = preg_replace('/&#?[a-z0-9]{2,8};/i', '', $text);
+            $text = preg_replace('/&#?[a-z0-9]{2,8};/i', '', $text) ?? $text;
+
+            // Махаме нулевоширочинни/невидими форматиращи знаци (напр. preheader спам в имейлите:
+            // CGJ, ZWNJ/ZWJ, ZWSP, BOM, LRM/RLM и др.). С '?? $text' - ако текстът не е валиден UTF-8.
+            $text = preg_replace('/[\x{00AD}\x{034F}\x{061C}\x{180E}\x{200B}-\x{200F}\x{202A}-\x{202E}\x{2060}-\x{2064}\x{206A}-\x{206F}\x{FEFF}]/u', '', $text) ?? $text;
+
+            // Свиваме излишните празнини: 2+ интервала -> 1; 2+ последователни нови реда -> 1
+            $text = preg_replace('/ {2,}/', ' ', $text) ?? $text;
+            $text = preg_replace('/(\r?\n){2,}/', "\n", $text) ?? $text;
+            $text = preg_replace('/[^\S\r\n]{2,}/', ' ', $text) ?? $text;
         }
-        
-        
+
         // Ако текста е 7-битов
         if (self::is7bit($text)) {
             if (countR($assumedCharsets)) {
@@ -534,7 +550,7 @@ class i18n_Charset extends core_MVC
         if (!$charset) {
             $charset = 'UTF-8';
         }
-        
+
         return $charset;
     }
     
@@ -1064,7 +1080,7 @@ class i18n_Charset extends core_MVC
             ini_set('memory_limit', $mLimit);
         }
 
-        list($toCharset, $mode) = explode('//', $toCharset);
+        [$toCharset, $mode] = explode('//', $toCharset) + [1 => null];
         
         if ($mode && strpos($mode, '//') !== 0) {
             $mode = "//{$mode}";

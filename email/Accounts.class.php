@@ -145,7 +145,7 @@ class email_Accounts extends core_Master
     {
         //  protocol, server, user, smtpServer, smtpUser,
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->retreiving = $mvc->getVerbal($rec, 'protocol');
             $row->retreiving .= ' / ' . $mvc->getVerbal($rec, 'server');
             $row->retreiving .= '<br>' . $mvc->getVerbal($rec, 'user');
@@ -154,9 +154,9 @@ class email_Accounts extends core_Master
             $row->sending .= '<br>' . $mvc->getVerbal($rec, 'smtpUser');
         }
         
-        if ($fields['-single']) {
-            if (!$rec->deleteAfterPeriod) {
-                $row->deleteAfterPeriod .= tr('Никога');
+        if (isset($fields['-single'])) {
+            if (!($rec->deleteAfterPeriod ?? null)) {
+                $row->deleteAfterPeriod = ($row->deleteAfterPeriod ?? '') . tr('Никога');
             }
         }
     }
@@ -372,7 +372,7 @@ class email_Accounts extends core_Master
     {
         $data->form->setDefault('access', 'private');
         
-        if ($data->form->rec->type == 'corporate') {
+        if (($data->form->rec->type ?? null) == 'corporate') {
             $data->form->setField('noRetPathDomains', 'input=input');
         }
     }
@@ -568,14 +568,14 @@ class email_Accounts extends core_Master
         
         $userId = core_Users::getCurrent();
         
-        setIfNot($boxRec->inCharge, $rec->inCharge, $userId);
+        setIfNot($boxRec->inCharge, $rec->inCharge ?? null, $userId);
         
-        setIfNot($boxRec->shared, $rec->shared);
-        
+        setIfNot($boxRec->shared, $rec->shared ?? null);
+
         // @todo: Да се махне долния участък, след повсеместния ъпдейт
-        setIfNot($boxRec->folderId, $rec->folderId);
+        setIfNot($boxRec->folderId, $rec->folderId ?? null);
         
-        if ($boxRec->id = $rec->oldInboxId) {
+        if ($boxRec->id = $rec->oldInboxId ?? null) {
             $boxRec->createdOn = dt::verbal2mysql();
             $boxRec->createdBy = core_Users::getCurrent();
             email_Inboxes::save($boxRec, null, 'REPLACE');
@@ -583,7 +583,7 @@ class email_Accounts extends core_Master
         
         email_Inboxes::forceCoverAndFolder($boxRec);
         
-        if ($rec->AddCorporateEmail) {
+        if ($rec->AddCorporateEmail ?? null) {
             $uArr = core_Users::getByRole(email_Setup::get('ROLE_FOR_CORPORATE_EMAIL'));
             
             foreach ($uArr as $uId) {

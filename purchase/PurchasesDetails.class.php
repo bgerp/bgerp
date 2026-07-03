@@ -252,5 +252,10 @@ class purchase_PurchasesDetails extends deals_DealDetail
     protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
     {
         $rec->discount = $oldRec->inputDiscount;
+
+        // Подсигуряване, че цената няма да се развали при промяна на курса (понеже е записано в основна валута)
+        $oldRate = purchase_Purchases::fetchField($oldRec->requestId, 'currencyRate');
+        $newRate = purchase_Purchases::fetchField($rec->requestId, 'currencyRate');
+        $rec->price = ($rec->price / $oldRate) * $newRate;
     }
 }

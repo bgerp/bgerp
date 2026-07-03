@@ -131,7 +131,7 @@ class acc_Features extends core_Manager
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
-        if ($rec->feature && !isset($rec->featureTitleId)) {
+        if (!empty($rec->feature) && !isset($rec->featureTitleId)) {
             $rec->featureTitleId = acc_FeatureTitles::fetchIdByTitle($rec->feature);
         }
     }
@@ -184,7 +184,7 @@ class acc_Features extends core_Manager
         core_Lg::pop();
         
         // Свойствата на обекта
-        $features = $itemRec->features;
+        $features = $itemRec->features ?? null;
         
         // Ако свойствата не са масив ги пропускаме
         if (!is_array($features)) {
@@ -228,7 +228,7 @@ class acc_Features extends core_Manager
                 
                 // Обновяване при нужда
                 if ($update) {
-                    $mode = $rec->id ? null : 'REPLACE';
+                    $mode = !empty($rec->id) ? null : 'REPLACE';
                     $self->save($rec, null, $mode);
                 }
                 

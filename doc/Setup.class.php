@@ -306,7 +306,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE' => array('enum(no=Не,yes=Да)', 'caption=Разбиване на цитиран текст на параграфи->Избор, customizeBy=user'),
         'DOC_SELECT_ALL_PERIOD_IN_LIST_MIN_HORIZON' => array('time(unit=years, suggestions=Без ограничение|6 месеца|1 год.|2 год.|3 год.|5 год.)', 'caption=До колко време назад да се показват филтрираните документи при избор на период "Всички" в списъка->Време,customizeBy=officer'),
         'DOC_SHOW_LAST_VISITED_AS_PROTOTYPES' => array('int(Min=0)', 'caption=Показване на последно посетените документи за избор на Шаблони->Брой, customizeBy=powerUser'),
-        'DOC_OPEN_FOLDER_AFTER_REJECT' => array('enum(yes=Да,no=Не)', 'canView=no_one, caption=Пренасочване към папката|*&#44; | след оттегляне на първия документ в нишката->Избор, customizeBy=debug'),
+        'DOC_OPEN_FOLDER_AFTER_REJECT' => array('enum(yes=Да,no=Не)', 'caption=Пренасочване към папката|*&#44; | след оттегляне на първия документ в нишката->Избор, customizeBy=debug'),
         'DOC_SHOW_LIST_SUMMARY_VAT' => array('enum(yes=С ДДС,no=Без ДДС)', 'caption=Показване на статистиката в лист изгледите->ДДС, customizeBy=powerUser'),
 
         'DOC_ORDER_BY_DEFAULT_DEAL_DOCS' => array('enum(creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Дефолт за "Подреждане по" в документи->Сделки, customizeBy=powerUser'),
@@ -417,6 +417,7 @@ class doc_Setup extends core_ProtoSetup
             'ceo',
         );
 
+        $lastRole = '';
         foreach ($rangRoles as $role) {
             $inherit = trim('powerUser,' . $lastRole, ',');
             $lastRole = $role;
@@ -537,7 +538,7 @@ class doc_Setup extends core_ProtoSetup
         $data = core_Packs::getConfig('core')->_data;
 
         $force = false;
-        if (!$data['migration_doc_addBlockToPortal46193']) {
+        if (empty($data['migration_doc_addBlockToPortal46193'])) {
             $force = true;
         }
 

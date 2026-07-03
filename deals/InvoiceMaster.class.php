@@ -127,7 +127,7 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Кои полета да могат да се променят след активация
      */
-    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template,detailOrderBy,deliveryId';
+    public $changableFields = 'responsible,contragentName,contragentVatNo,contragentEori,uicNo,contragent,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template,detailOrderBy,deliveryId';
 
 
     /**
@@ -208,7 +208,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterDescription(core_Master &$mvc)
     {
         // Ако е указано да се кешират допълни данни
-        setIfNot($mvc->cacheAdditionalConditions, false);
+        setPartIfNot($mvc, 'cacheAdditionalConditions', false);
         if($mvc->cacheAdditionalConditions){
             $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
         }
@@ -262,7 +262,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $data->listFilter->input(null, 'silent');
         
         if ($rec = $data->listFilter->rec) {
-            if ($rec->invType) {
+            if (!empty($rec->invType)) {
                 if ($rec->invType != 'all') {
                     if ($rec->invType == 'invoice') {
                         $data->query->where("#type = '{$rec->invType}'");
@@ -278,7 +278,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
             
-            if ($rec->payType) {
+            if (!empty($rec->payType)) {
                 if ($rec->payType != 'all') {
                     $data->query->where("#paymentType = '{$rec->payType}' OR (#paymentType IS NULL AND #autoPaymentType = '{$rec->payType}')");
                 }
@@ -450,7 +450,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $form->setField('changeAmount', "unit={$displayCurrencyId} без ДДС");
                 $form->setField('changeAmount', 'input,caption=Задаване на увеличение/намаление на фактура->Промяна');
 
-                $invArr['dealValue'] = deals_Helper::getSmartBaseCurrency($invArr['dealValue'], $invArr['dealValue'], $form->rec->date);
+                $invArr['dealValue'] = deals_Helper::getSmartBaseCurrency($invArr['dealValue'], $invArr['date'], $form->rec->date);
                 $min = $invArr['dealValue'] / (($invArr['displayRate']) ? $invArr['displayRate'] : $invArr['rate']);
                 $min = round($min, 2);
 
@@ -479,7 +479,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        $dateFromWhichToGetName = !empty($docRec->date) ? $docRec->date : dt::now();
+        $dateFromWhichToGetName = !empty($form->rec->date) ? $form->rec->date : dt::now();
         $dateFromWhichToGetName = dt::mysql2verbal($dateFromWhichToGetName, 'Y-m-d 00:00:00');
         $cData = cls::get($form->rec->contragentClassId)->getContragentData($form->rec->contragentId, $dateFromWhichToGetName);
         $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
@@ -657,11 +657,15 @@ abstract class deals_InvoiceMaster extends core_Master
             doc_DocumentCache::threadCacheInvalidation($rec->threadId);
         }
 
-        if($rec->_changedCondition){
+        if(isset($rec->_changedCondition) && $rec->_changedCondition){
             $mvc->logWrite('Променено условие от сметка', $rec->id);
         }
 
-        if($rec->_oldValior){
+        if(isset($rec->_changedContragentData) && $rec->_changedContragentData){
+            $mvc->logWrite('Променяна на клиентски данни', $rec->id);
+        }
+
+        if(!empty($rec->_oldValior)){
             // Ако вальора е сменен и основната валута към стария вальор е различна от тази към новия
             if(acc_Periods::getBaseCurrencyCode($rec->_oldValior) != acc_Periods::getBaseCurrencyCode($rec->date)){
                 $valiorVerbal = dt::mysql2verbal($rec->date, 'd.m.Y');
@@ -678,12 +682,12 @@ abstract class deals_InvoiceMaster extends core_Master
             return;
         }
 
-        if ($rec->_isClone === true) {
+        if (isset($rec->_isClone) && $rec->_isClone === true) {
             return;
         }
 
         // Само ако записа е след редакция
-        if ($rec->_edited !== true) {
+        if (isset($rec->_isClone) && $rec->_edited !== true) {
             return;
         }
 
@@ -714,7 +718,7 @@ abstract class deals_InvoiceMaster extends core_Master
             return;
         }
 
-        if($rec->importProducts){
+        if(!empty($rec->importProducts)){
             if($rec->importProducts == 'fromSource'){
                 $Source = doc_Containers::getDocument($rec->sourceContainerId);
                 $handle = "#" . $Source->getHandle();
@@ -727,11 +731,12 @@ abstract class deals_InvoiceMaster extends core_Master
             } else {
                 $Source = static::getOrigin($rec);
             }
+        } else {
+            return;
         }
 
-        if ($Source && $Source->haveInterface('deals_InvoiceSourceIntf')) {
+        if (isset($Source) && $Source->haveInterface('deals_InvoiceSourceIntf')) {
             $detailsToSave = $Source->getDetailsFromSource($mvc, $rec->importProducts);
-
             $SourceRec = $Source->fetch("currencyId,{$Source->valiorFld}");
             if (is_array($detailsToSave)) {
                 foreach ($detailsToSave as $det) {
@@ -778,7 +783,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rate, $rec->currencyId, $rec->vatRate, true, $rec->tplLang);
 
             $data->row = (object) ((array) $data->row + (array) $data->summary);
-            $data->row->vatAmount = $data->summary->vatAmount;
+            $data->row->vatAmount = $data->summary->vatAmount ?? null;
         } elseif(!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
             $data->row->value = doc_plg_HidePrices::getBuriedElement();
         }
@@ -830,6 +835,21 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+
+        if($data->action == 'changefields'){
+
+            // При промяна да има бутон за бърза смяна на контрагентските данни
+            $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId, null);
+            $cArr = array();
+            $nameField = ($rec->contragentClassId == crm_Companies::getClassId()) ? 'company' : 'person';
+            foreach (array('contragentName' => $nameField, 'contragentCountryId' => 'countryId', 'contragentVatNo' => 'vatNo', 'uicNo' => 'uicId', 'contragentPCode' => 'pCode', 'contragentPlace' => 'place', 'contragentAddress' => 'address') as $k => $v) {
+                $cArr[$k] = $cData->{$v};
+            }
+            $cDataJson = base64_encode(json_encode($cArr, JSON_HEX_APOS));
+            $btn = ht::createFnBtn('Обновяване с данни към|*: ' . core_Type::getByName('date')->toVerbal(dt::today()), 'swapContragentData("swapContragentBtn");', null, array('id' => 'swapContragentBtn', 'data-contragent' => $cDataJson, 'data-toggle-title' => tr('Възстановяване на оригиналните данни'), 'style' => 'display:block; margin-left:auto; margin-right:0; width:fit-content;'));
+            $caption = "Контрагент->|*{$btn->getContent()}->Име";
+            $form->setField('contragentName', array('caption' => $caption));
+        }
 
         if (empty($form->rec->id)) {
             $form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
@@ -939,7 +959,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             if(acc_Periods::getBaseCurrencyCode($aggregateInfo->get('agreedValior')) != acc_Periods::getBaseCurrencyCode($rec->date)){
-                $form->setDefault('rate', currency_CurrencyRates::getRate($rec->data, $rec->currencyId, null));
+                $form->setDefault('rate', currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null));
             } else {
                 $form->setDefault('rate', $aggregateInfo->get('rate'));
                 $form->setSuggestions('displayRate', array('' => '', $aggregateInfo->get('rate') => $aggregateInfo->get('rate')));
@@ -1050,6 +1070,15 @@ abstract class deals_InvoiceMaster extends core_Master
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
             $rec->_dealCurrencyId = $form->aggregateInfo->get('currency');
+            $oldRec = null;
+
+            if(isset($rec->id)){
+                if($rec->state == 'active'){
+                    $oldRec = $mvc->fetch($rec->id, '*', false);
+                    $haveChange = (trim($oldRec->contragentName) != trim($rec->contragentName)) || (trim($oldRec->contragentCountryId) != trim($rec->contragentCountryId)) || (trim($oldRec->contragentVatNo) != trim($rec->contragentVatNo)) || (trim($oldRec->uicNo) != trim($rec->uicNo));
+                    $rec->_changedContragentData = true;
+                }
+            }
 
             // Ако валутата на документа не е разрешена ще се подмени след запис
             if($form->aggregateInfo->get('currency') == 'BGN'){
@@ -1069,7 +1098,8 @@ abstract class deals_InvoiceMaster extends core_Master
                     $rec->_oldRate = $oldRec->rate;
                 }
 
-                if(acc_Periods::getBaseCurrencyCode($rec->date) != acc_Periods::getBaseCurrencyCode($oldRec->date)){
+                $compareDate = is_object($oldRec) ? $oldRec->date : null;
+                if(acc_Periods::getBaseCurrencyCode($rec->date) != acc_Periods::getBaseCurrencyCode($compareDate)){
                     $displayRate = currency_CurrencyRates::getRate($form->rec->date, $form->rec->currencyId, null);
                     $rec->displayRate = $displayRate;
                     $rec->rate = $displayRate;
@@ -1091,12 +1121,12 @@ abstract class deals_InvoiceMaster extends core_Master
                 $form->setError('date,dueDate', 'Крайната дата за плащане трябва да е след вальора');
             }
 
-            if (!$rec->displayRate) {
+            if (empty($rec->displayRate)) {
                 $rec->displayRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if (!$rec->displayRate) {
                     $form->setError('rate', 'Не може да се изчисли курс');
                 }
-            } elseif(!$rec->_recalcBaseCurrency) {
+            } elseif(empty($rec->_recalcBaseCurrency)) {
                 if ($msg = currency_CurrencyRates::hasDeviation($rec->displayRate, $rec->date, $rec->currencyId, null)) {
                     $form->setWarning('displayRate', $msg);
                 }
@@ -1122,7 +1152,9 @@ abstract class deals_InvoiceMaster extends core_Master
                 $rec->uicNo = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
             } elseif (!strlen($rec->contragentVatNo) && !strlen($rec->uicNo)) {
                 if ($rec->contragentClassId != crm_Persons::getClassId()) {
-                    $form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
+                    if(!($mvc instanceof sales_Proformas)){
+                        $form->setError('contragentVatNo,uicNo', 'Трябва да е въведен поне един от номерата');
+                    }
                 } else {
                     $form->setWarning('contragentVatNo,uicNo', 'Сигурни ли сте, че не трябва да въведете поне един от номерата|*?');
                 }
@@ -1319,7 +1351,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
 
         // Ако ще се подменя валутата да се подмени
-        if($rec->_changeCurrency){
+        if (isset($rec->_changeCurrency) && $rec->_changeCurrency) {
             core_Statuses::newStatus("Валутата е сменена за да отговаря на съответната за документа към вальора", 'warning');
         }
 
@@ -1386,7 +1418,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
         // Ако е променено условието от банковата сметка - записва се
         if($mvc->cacheAdditionalConditions){
-            if($rec->__isBeingChanged){
+            if(isset($rec->__isBeingChanged) && $rec->__isBeingChanged){
                 if(md5(str::removeWhiteSpace($rec->additionalConditions[0])) != md5(str::removeWhiteSpace($rec->additionalConditionsInput))){
                     $rec->_changedCondition = true;
                 }
@@ -1431,7 +1463,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $payments = $invoicePayments[$containerId]->payments;
         
-        if (countR($payments) && isset($payments)) {
+        if (isset($payments) && countR($payments)) {
             $hasCash = array_key_exists('cash', $payments);
             $hasBank = array_key_exists('bank', $payments);
             $hasIntercept = array_key_exists('intercept', $payments);
@@ -1488,7 +1520,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $row->paymentType = $mvc->getFieldType('paymentType')->toVerbal($rec->autoPaymentType);
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
 
             if(!in_array($rec->vatRate, array('yes', 'separate'))){
@@ -1609,7 +1641,7 @@ abstract class deals_InvoiceMaster extends core_Master
             // Вербална обработка на данните на моята фирма и името на контрагента
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->containerId, $rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'MyCompanyEori', 'MyCompanyVatNo', 'uicId', 'contragentName') as $fld) {
-                $row->{$fld} = $headerInfo[$fld];
+                $row->{$fld} = $headerInfo[$fld] ?? null;
             }
             
             if ($rec->paymentType == 'factoring') {
@@ -1683,7 +1715,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
 
         if(haveRole('debug')){
-            $row->rate = ht::createHint($row->rate, "Rate: {$rec->rate} / DisplayRate: {$rec->displayRate}", 'img/16/bug.png');
+            $row->rate = ht::createHint($row->rate ?? null, "Rate: {$rec->rate} / DisplayRate: {$rec->displayRate}", 'img/16/bug.png');
         } else {
             if($rec->date >= '2026-01-01' && $rec->currencyId == 'EUR'){
                 unset($row->rate);
@@ -1736,8 +1768,7 @@ abstract class deals_InvoiceMaster extends core_Master
             $totalInDealBaseCurrency = ($total / $displayRate) * $aggregator->get('rate');
         }
 
-        $dueDate = null;
-        setIfNot($dueDate, $rec->dueDate, $rec->date);
+        $dueDate = $rec->dueDate ?? $rec->date;
         $aggregator->push('invoices', array('dueDate' => $dueDate, 'total' => $totalInDealBaseCurrency, 'type' => $rec->type));
         $aggregator->sum('invoicedAmount', $totalInDealBaseCurrency);
         $aggregator->setIfNot('invoicedValior', $rec->date);
@@ -2105,7 +2136,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_BeforeExportCsv($mvc, &$recs)
     {
-        if (!$recs) return ;
+        if (empty($recs)) return;
         
         $fields = $mvc->selectFields();
         $fields['-list'] = true;
@@ -2315,6 +2346,9 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
+
+        // Динамично рендиране на ДДС информацията
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
     }
 
 
@@ -2346,7 +2380,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
         $amount = core_Math::roundNumber($rec->dealValue - $rec->discountAmount);
         $res = (object)array('rate' => $rec->rate,
-            'valior'     => $rec->valior,
+            'valior'     => $rec->date,
             'currencyId' => $rec->currencyId,
             'chargeVat'  => 'separate',
             'amount'     => $amount,

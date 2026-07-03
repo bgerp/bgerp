@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за доставка До Офис на фирмата
+ * Драйвер за транспорт "Безплатна доставка до офис"
  *
  *
  * @category  bgerp
@@ -25,7 +25,7 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
     /**
      * Заглавие
      */
-    public $title = 'Доставка до офис на фирмата';
+    public $title = 'Безплатна доставка до офис';
 
 
     /**
@@ -78,14 +78,19 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
             foreach ($ourLocations as $locationId => $locationName){
                 $locationRec = crm_Locations::fetch($locationId);
                 $ourLocations[$locationId] = !empty($locationRec->eshopName) ? $locationRec->eshopName : $locationRec->title;
+                Mode::push('text', 'plain');
+                $locationAddress = strip_tags(crm_Locations::getAddress($locationId, false, false, false));
+                Mode::pop('text');
+                $ourLocations[$locationId] .= " [{$locationAddress}]";
             }
         }
 
-        $form->FLD('ourLocationId', "int", 'silent,mandatory,caption=Доставка->Офис на фирмата');
+        $form->FLD('ourLocationId', "int", 'silent,mandatory,caption=Доставка->Офис');
         $form->setOptions('ourLocationId', array('' => '') + $ourLocations);
 
         if ($Document instanceof eshop_Carts) {
-            unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress);
+            $form->setField('locationId', 'input=hidden');
+            unset($form->rec->deliveryCountry, $form->rec->deliveryPCode, $form->rec->deliveryPlace, $form->rec->deliveryAddress, $form->rec->locationId);
             $form->setField('deliveryCountry', 'input=hidden');
             $form->setField('deliveryPCode', 'input=hidden');
             $form->setField('deliveryPlace', 'input=hidden');
@@ -133,26 +138,38 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
     public function getVerbalDeliveryData($termRec, $deliveryData, $document)
     {
         $res = array();
-
         $officeName = $deliveryFrom = null;
         if($deliveryData['ourLocationId']){
             $locationRec = crm_Locations::fetch($deliveryData['ourLocationId']);
             $officeName = !empty($locationRec->eshopName) ? $locationRec->eshopName : $locationRec->title;
+            $officeName .= ((Mode::is('text', 'plain')) ? ", " : "<br>") . crm_Locations::getAddress($locationRec, false, false,false);
 
             if(!empty($locationRec->regularDelivery)){
+
+                // Изчисляване на следващото регулярно посещение
+                $days = type_Set::toArray($locationRec->regularDelivery);
                 $now = new DateTime();
                 $dates = array_map(function ($day) use ($now) {
                     $d = clone $now;
                     $d->modify('next ' . trim($day));
                     return $d;
-                }, explode(',', strtolower($locationRec->regularDelivery)));
+                }, $days);
 
                 usort($dates, function ($a, $b) {
                     return $a <=> $b;
                 });
 
-                $nextVisit = $dates[0]->format('Y-m-d');
-                $deliveryFrom = dt::mysql2verbal($nextVisit, 'd M');
+                $tomorrow = (clone $now)->modify('+1 day')->format('Y-m-d');
+                $currentHour = (int)$now->format('H');
+                $nextDate = $dates[0];
+
+                // ако е утре и сме след 16:00 → взимаме следващата
+                if ($nextDate->format('Y-m-d') === $tomorrow && $currentHour >= 16) {
+                    $nextDate = $dates[1] ?? $nextDate->modify('+7 days');
+                }
+
+                $nextVisit = $nextDate->format('Y-m-d');
+                $deliveryFrom = dt::mysql2verbal($nextVisit, 'd.m.Y');
             }
         } else {
             if(!Mode::is('text', 'plain')){
@@ -160,9 +177,10 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
             }
         }
 
-        $res['ourLocationId'] = (object)array('caption' => tr('Офис на фирмата'), 'value' => $officeName);
+        $res['ourLocationId'] = (object)array('caption' => tr('Офис'), 'value' => $officeName);
+
         if($deliveryFrom){
-            $res['deliveryFrom'] = (object)array('caption' => tr('До'), 'value' => $deliveryFrom);
+            $res['deliveryFrom'] = (object)array('caption' => tr('Получаване'), 'value' => $deliveryFrom);
         }
 
         return $res;
@@ -181,7 +199,7 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
-        $block = new core_ET(tr("|*<div>|Безплатна доставка при вземане от офис на фирмата|*|*</div>"));
+        $block = new core_ET(tr("|*<div>|Безплатна доставка при вземане от офис|*</div>"));
         $tpl->append($block, 'CART_FOOTER');
     }
 
@@ -213,7 +231,6 @@ class sales_interface_TakeFromOurOffice extends core_BaseClass
     {
         if($cartRec->deliveryData['ourLocationId']){
             $cartRec->freeDelivery = 'yes';
-            core_Statuses::newStatus("hahaha - {$cartRec->id}", 'warning');
         }
     }
 

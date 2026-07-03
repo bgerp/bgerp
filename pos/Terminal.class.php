@@ -196,6 +196,33 @@ class pos_Terminal extends peripheral_Terminal
 
         return $tpl;
     }
+
+
+    /**
+     * Изход от терминала (лог-аут), като при включена настройка за забрана на
+     * изчакващи чернови не позволява изход ако текущата чернова има детайли.
+     */
+    public function act_exit()
+    {
+        $Receipts = cls::get('pos_Receipts');
+        $Receipts->requireRightFor('terminal');
+
+        $receiptId = Request::get('receiptId', 'int');
+        if ($receiptId) {
+            $Receipts->requireRightFor('terminal', $receiptId);
+            $rec = $Receipts->fetch($receiptId);
+
+            if ($rec && pos_Setup::get('ALLOW_DRAFT_RECEIPTS') == 'no' && $rec->state == 'draft') {
+                if (pos_Receipts::hasReceiptDetails($rec->id)) {
+                    return new Redirect(array('pos_Terminal', 'open', 'receiptId' => $rec->id), '|Не може да излезете от POS терминала, докато има започната бележка на "Чернова" с артикули/редове.|*', 'error');
+                }
+            }
+        }
+
+        $portalUrl = toUrl(array('Portal', 'Show'), 'local');
+
+        return new Redirect(array('Index','default'));
+    }
     
     
     /**
@@ -653,7 +680,7 @@ class pos_Terminal extends peripheral_Terminal
         $buttons["help"] = (object)array('body' => $img, 'attr' => array('title' => 'Отваряне на прозорец с информация', 'data-url' => toUrl(array('pos_Terminal', 'Help',  'pointId' => $rec->pointId), 'local'), 'class' => "helpBtn", 'data-modal-title' => tr('Информация')));
         
         $logoutImg = ht::createImg(array('path' => 'pos/img/exit.png'));
-        $buttons["exit"] = (object)array('body' => $logoutImg, 'attr' => array('class' => 'logout', 'title' => 'Излизане от системата'), 'linkUrl' => array('core_Users', 'logout', 'ret_url' => true));
+        $buttons["exit"] = (object)array('body' => $logoutImg, 'attr' => array('class' => 'logout', 'title' => 'Излизане от системата'), 'linkUrl' => array('pos_Terminal', 'exit', 'receiptId' => $rec->id, 'ret_url' => true));
        
         // Добавяне на бутоните за операции + шорткътите към тях
         foreach ($buttons as $key => $btnObj){
@@ -1835,6 +1862,10 @@ class pos_Terminal extends peripheral_Terminal
             jquery_Jquery::run($tpl, 'afterload();');
             jquery_Jquery::run($tpl, 'scrollToHighlight();');
             jquery_Jquery::run($tpl, 'openCurrentPosTab();');
+
+            // Предупреждение при затваряне/напускане при започната чернова (ако е забранено натрупването на чернови)
+            $guardEnabled = (pos_Setup::get('ALLOW_DRAFT_RECEIPTS') == 'no' && $rec->state == 'draft') ? 'true' : 'false';
+            jquery_Jquery::run($tpl, "posInitDraftCloseGuard({$guardEnabled});");
             
             $searchDelayTerminal = pos_Points::getSettings($rec->pointId, 'searchDelayTerminal');
             jquery_Jquery::run($tpl, "setSearchTimeout({$searchDelayTerminal});");
@@ -2120,7 +2151,7 @@ class pos_Terminal extends peripheral_Terminal
         // Ако не е посочен стринг се показват най-продаваните артикули
         if(empty($searchString)){
             $defaultOrder = true;
-            if($rec->_selectedGroupId == 'similar'){
+            if(($rec->_selectedGroupId ?? null) == 'similar'){
                 if(countR($similarProducts)){
                     $pQuery->in('productId', $similarProducts);
                 } else {
@@ -2161,7 +2192,7 @@ class pos_Terminal extends peripheral_Terminal
                 $cloneQuery = clone $pQuery;
                 $cloneQuery->where("#productId = {$foundRec->productId}");
 
-                if($rec->_selectedGroupId == 'similar'){
+                if(($rec->_selectedGroupId ?? null) == 'similar'){
                     if(countR($cloneQuery)){
                         $pQuery->in('productId', $similarProducts);
                     } else {
@@ -2188,7 +2219,7 @@ class pos_Terminal extends peripheral_Terminal
             $pQuery1->where("LOCATE (' {$searchString}', #string)");
             plg_Search::applySearch($searchString, $pQuery1);
 
-            if($rec->_selectedGroupId == 'similar'){
+            if(($rec->_selectedGroupId ?? null) == 'similar'){
                 if(countR($similarProducts)){
                     $pQuery1->in('productId', $similarProducts);
                 } else {
@@ -2210,7 +2241,7 @@ class pos_Terminal extends peripheral_Terminal
                 $notInKeys = array_keys($sellable);
                 $pQuery2 = clone $pQuery;
                 $pQuery2->limit($settings->maxSearchProducts);
-                if($rec->_selectedGroupId == 'similar'){
+                if(($rec->_selectedGroupId ?? null) == 'similar'){
                     if(countR($similarProducts)){
                         $pQuery2->in('productId', $similarProducts);
                     } else {
@@ -2304,7 +2335,12 @@ class pos_Terminal extends peripheral_Terminal
             $packs[$packRec->productId][$packRec->packagingId] = $packRec;
         }
 
-        $now = dt::now();
+        // Кеширане в хита на ддс групите на артикулите за по-лесно извличане
+        $now = date('Y-m-d H:i:00');
+        cat_products_VatGroups::getVats(array_keys($products), $now, $settings->vatExceptionId);
+
+        // Задаване в кеша на ЦП групите на артикулите за по-бързо извличане
+        price_ListRules::preloadGroups($products);
 
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){
@@ -2318,6 +2354,8 @@ class pos_Terminal extends peripheral_Terminal
                     $packId = $pRec->measureId;
                 }
             }
+
+
             $perPack = isset($packs[$id][$packId]) ? $packs[$id][$packId]->quantity : 1;
             core_Debug::startTimer('TERMINAL_RESULT_GET_LOWER_PRICE');
             $priceRes = pos_ReceiptDetails::getLowerPriceObj($rec->_policy1, $rec->_policy2, $id, $packId, 1, $now);
@@ -2349,10 +2387,10 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);
             $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
             $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
-            $res[$id]->productId = mb_subStr(cat_Products::getVerbal($productRec, 'name'), 0, 80);
+            $res[$id]->productId = mb_subStr(cat_Products::getDisplayName($productRec, 'name'), 0, 80);
 
             if($settings->showProductCode == 'yes'){
-                $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($productRec, 'code') : "Art{$obj->productId}";
+                $res[$id]->code = !empty($pRec->code) ? $productRec->code : "Art{$obj->productId}";
             }
 
             $res[$id]->photo = $this->getPosProductPreview($obj->productId, 140, 140, $settings);
@@ -2473,9 +2511,9 @@ class pos_Terminal extends peripheral_Terminal
         
         if(in_array($rec->_selectedReceiptFilter, array('draft', 'waiting', 'closed', 'rejected'))){
             $query->where("#state = '{$rec->_selectedReceiptFilter}'");
-        } elseif($rec->_selectedReceiptFilter == 'transfered'){
+        } elseif(($rec->_selectedReceiptFilter ?? null) == 'transfered'){
             $query->where("#transferredIn IS NOT NULL");
-        } elseif($rec->_selectedReceiptFilter == 'paid'){
+        } elseif(($rec->_selectedReceiptFilter ?? null) == 'paid'){
             $query->where("#paid IS NOT NULL AND #paid != 0 AND (#state != 'closed' && #state != 'rejected')");
         }
         
@@ -2507,13 +2545,31 @@ class pos_Terminal extends peripheral_Terminal
         }
 
         $contragentName = cls::get($rec->contragentClass)->getVerbal($rec->contragentObjectId, 'name');
-        if($rec->_selectedReceiptFilter == 'draft'){
-            $rows[$pointId] = array('-1' => ht::createLink('+ Нова бележка', $addUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка'))) + $rows[$pointId];
+        if(($rec->_selectedReceiptFilter ?? null) == 'draft'){
+            $allowDraftReceipts = (pos_Setup::get('ALLOW_DRAFT_RECEIPTS') != 'no');
+
+            // Бутоните за 'нова бележка' се виждат винаги, но при забранени чернови са неактивни
+            $newBtnUrl = ($allowDraftReceipts) ? $addUrl : array();
+            $newBtnClass = ($allowDraftReceipts) ? $disabledClass : 'disabledBtn';
+            $newBtnTitle = ($allowDraftReceipts) ? 'Създаване на нова бележка' : 'Нова бележка се създава автоматично САМО след приключване/изтриване на текущата ("чакащи" чернови са забранени в пакета "pos")';
+            $rows[$pointId] = array('-1' => ht::createLink('+ Нова бележка', $newBtnUrl, null, array('id' => "receiptnew", 'class' => "pos-notes posBtns {$newBtnClass}", 'title' => $newBtnTitle))) + $rows[$pointId];
+
             if(countR($otherContragentReceipts)){
-                $addUrl['contragentClass'] = $rec->contragentClass;
-                $addUrl['contragentObjectId'] = $rec->contragentObjectId;
-                $addUrl['forced'] = true;
-                $otherContragentReceipts = array(ht::createLink("+ {$contragentName}", $addUrl, null, array('id' => "receiptnewSame", 'class' => "pos-notes posBtns {$disabledClass}", 'title' => 'Създаване на нова бележка на същия клиент'))) + $otherContragentReceipts;
+                if($allowDraftReceipts){
+                    $addUrlSame = $addUrl;
+                    $addUrlSame['contragentClass'] = $rec->contragentClass;
+                    $addUrlSame['contragentObjectId'] = $rec->contragentObjectId;
+                    $addUrlSame['forced'] = true;
+                    $sameUrl = $addUrlSame;
+                    $sameClass = $disabledClass;
+                    $sameTitle = 'Създаване на нова бележка на същия клиент';
+                } else {
+                    $sameUrl = array();
+                    $sameClass = 'disabledBtn';
+                    $sameTitle = 'Не се допуска при забранени "Изчакващи" (Чернови) бележки в пакета "pos"';
+                }
+
+                $otherContragentReceipts = array(ht::createLink("+ {$contragentName}", $sameUrl, null, array('id' => "receiptnewSame", 'class' => "pos-notes posBtns {$sameClass}", 'title' => $sameTitle))) + $otherContragentReceipts;
             }
         }
 

@@ -136,7 +136,7 @@ class cond_Colors extends core_Manager
             }
             
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
@@ -148,6 +148,7 @@ class cond_Colors extends core_Manager
         $query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
        
         if ($q) {
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }

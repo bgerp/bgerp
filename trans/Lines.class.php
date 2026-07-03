@@ -472,7 +472,7 @@ class trans_Lines extends core_Master
             }
         }
 
-        $row->destinations = $row->countries;
+        $row->destinations = $row->countries ?? null;
         $countries = keylist::toArray($rec->countries);
         if(countR($countries) == 1){
             $onlyCountryId = key($countries);
@@ -987,7 +987,7 @@ class trans_Lines extends core_Master
         $tQuery->orderBy('modifiedOn', 'DESC');
 
         // Ако няма е тази, в която последно е създавал линия
-        $folderId = $tQuery->fetch()->folderId;
+        $folderId = $tQuery->fetch()->folderId ?? null;
         if(empty($folderId)){
             $query = trans_Lines::getQuery();
             $query->where("#createdBy = {$cu} AND #state != 'rejected'");

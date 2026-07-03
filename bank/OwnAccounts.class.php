@@ -309,7 +309,7 @@ class bank_OwnAccounts extends core_Master
      */
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
-        $data->listFields['blAmount'] .= ', ' . acc_Periods::getBaseCurrencyCode();
+        $data->listFields['blAmount'] .= '|*, ' . acc_Periods::getBaseCurrencyCode();
     }
     
     
@@ -323,6 +323,7 @@ class bank_OwnAccounts extends core_Master
             return;
         }
         
+        $total = 0;
         foreach ($data->recs as $rec) {
             $total += $rec->blAmount;
         }
@@ -368,7 +369,7 @@ class bank_OwnAccounts extends core_Master
         }
         
         // При редакция се допълват полетата с тези от сметката
-        if ($form->rec->id) {
+        if ($form->rec->id ?? null) {
             if (isset($form->rec->bankAccountId)) {
                 $ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
                 $form->setDefault('iban', $ibanRec->iban);
@@ -538,7 +539,7 @@ class bank_OwnAccounts extends core_Master
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if ($rec->_isSubmitted === true) {
+        if (($rec->_isSubmitted ?? null) === true) {
             $rec->bankAccountId = self::syncWithAccount($rec->bankAccountId, $rec->iban, $rec->currencyId, $rec->bank, $rec->bic, $rec->conditionSaleBg, $rec->conditionSaleEn);
         }
     }
@@ -633,10 +634,11 @@ class bank_OwnAccounts extends core_Master
      * @param bool        $selectIban
      * @param string|null $currencyCode
      * @param mixed|null  $onlyIds
+     * @param bool  $showCurrency
      *
      * @return array $accounts
      */
-    public static function getOwnAccounts($selectIban = true, $currencyCode = null, $onlyIds = null)
+    public static function getOwnAccounts($selectIban = true, $currencyCode = null, $onlyIds = null, $showCurrency = true)
     {
         $Varchar = cls::get('type_Varchar');
         $accounts = array();
@@ -660,8 +662,12 @@ class bank_OwnAccounts extends core_Master
                 if (isset($currencyCode) && strtoupper($currencyCode) != $cCode) continue;
 
                 $verbal = ($selectIban === true) ? $Varchar->toVerbal($accountRec->iban) : $rec->title;
-                
-                $accounts[$rec->id] = "{$cCode} - {$verbal}";
+
+                if($showCurrency){
+                    $accounts[$rec->id] = "{$cCode} - {$verbal}";
+                } else {
+                    $accounts[$rec->id] = $verbal;
+                }
             }
         }
         
@@ -821,7 +827,7 @@ class bank_OwnAccounts extends core_Master
         $Balance = new acc_ActiveShortBalance(array('from' => $to, 'to' => $to, 'accs' => '503', 'cacheBalance' => true, 'item1' => $bankItem->id, 'item2' => $currencyItem->id));
         $balanceRec = $Balance->getBalance('503', array($accId, $bankItem->id, $currencyItem->id, null));
 
-        return (object)array('quantity' => $balanceRec->blQuantity, 'amount' => $balanceRec->blAmount);
+        return (object)array('quantity' => $balanceRec->blQuantity ?? null, 'amount' => $balanceRec->blAmount ?? null);
     }
 
 

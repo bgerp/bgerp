@@ -119,8 +119,8 @@ class doc_HiddenContainers extends core_Manager
         foreach ((array) $containerRecsArr as $cId => $cRec) {
             $i++;
             
-            $nextKey = $cKeys[++$kId];
-            $nextRec = $containerRecsArr[$nextKey];
+            $nextKey = $cKeys[++$kId] ?? null;
+            $nextRec = $containerRecsArr[$nextKey] ?? null;
             
             if (!$firstCid && $cRec->threadId) {
                 $firstCid = doc_Threads::getFirstContainerId($cRec->threadId);
@@ -145,7 +145,7 @@ class doc_HiddenContainers extends core_Manager
             // Ако е зададено да се показва в модела
             if ($rec || $modeStatus) {
                 self::$haveRecInModeOrDB = true;
-                if ($rec->state == 'opened' || $modeStatus == 'opened') {
+                if ((is_object($rec) && $rec->state == 'opened') || $modeStatus == 'opened') {
                     $hide = false;
                 }
             } else {
@@ -158,7 +158,7 @@ class doc_HiddenContainers extends core_Manager
                 
                 // Скриваме само оттеглени, затворение и активни документи
                 // Документи, на които им е зададено да не се скриват автоматично и тя нама да се скриват
-                if (((($cRec->state == 'closed') || ($cRec->state == 'active')) && ($dInst->autoHideDoc !== false)) || (($cRec->state == 'rejected'))) {
+                if (((($cRec->state == 'closed') || ($cRec->state == 'active')) && (($dInst->autoHideDoc ?? null) !== false)) || (($cRec->state == 'rejected'))) {
                     if ($cRec->state != 'rejected') {
                         
                         // Ако следващия документ е създаден от същия потребител
@@ -229,7 +229,7 @@ class doc_HiddenContainers extends core_Manager
             return false;
         }
         
-        return self::$hiddenDocsArr[$cId];
+        return self::$hiddenDocsArr[$cId] ?? null;
     }
     
     

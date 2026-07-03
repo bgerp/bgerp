@@ -19,8 +19,6 @@
         .priceListFoodImage {
             width: 100%;
             height: auto;
-            max-width: 162px;
-            max-height: 162px;
         }
 
         .product {

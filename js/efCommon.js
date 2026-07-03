@@ -6269,7 +6269,9 @@ $.fn.isInViewport = function () {
  * Фокусира еднократно върху посоченото id пи зададения rand
  */
 function focusOnce(id) {
-    if($('body').hasClass('narrow') && (window.innerWidth < 600 || window.innerHeight < 600)) return;
+
+    if($('body').hasClass('narrow') && isRealMobile() && $(id).data('focus') !== 'forceFocus') return;
+
     var state = getHitState();
 
     if (state && (state == 'firstTime') && $(id).isInViewport && $(id).isInViewport()) {
@@ -6278,6 +6280,16 @@ function focusOnce(id) {
 }
 
 
+/**
+ * По-добра проверка за мобилни устройства
+ */
+function isRealMobile() {
+    return (
+        navigator.userAgentData?.mobile === true ||
+        (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+            navigator.maxTouchPoints > 0)
+    );
+}
 /**
  * Изчистване на статусите от посочен тип
  */
@@ -6645,14 +6657,8 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
 
 
 
-
-/**
- * smartresize - намалява събитията на on resize
- */
 (function ($, sr) {
 
-    // debouncing function from John Hann
-    // http://unscriptable.com/index.php/2009/03/20/debouncing-javascript-methods/
     var debounce = function (func, threshold, execAsap) {
         var timeout;
 
@@ -6672,10 +6678,29 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
 
             timeout = setTimeout(delayed, threshold || 100);
         };
-    }
-    // smartresize
+    };
+
+    let lastZoom = window.devicePixelRatio;
+
     jQuery.fn[sr] = function (fn) {
-        return fn ? this.bind('resize', debounce(fn)) : this.trigger(sr);
+        if (!fn) return this.trigger(sr);
+
+        const handler = debounce(function (e) {
+            fn.call(this, e);
+        });
+
+        // resize
+        this.on('resize', handler);
+
+        // zoom detection
+        window.addEventListener('resize', function () {
+            if (window.devicePixelRatio !== lastZoom) {
+                lastZoom = window.devicePixelRatio;
+                handler();
+            }
+        });
+
+        return this;
     };
 
 })(jQuery, 'smartresize');
@@ -6920,6 +6945,71 @@ function selectAllCheckboxes() {
     });
 }
 
+var swapContragentDataRunning = false;
+
+function swapContragentData(btnId) {
+    if (swapContragentDataRunning) {
+        console.log("БЛОКИРАНО - вече се изпълнява");
+        return;
+    }
+    swapContragentDataRunning = true;
+
+    var $btn = $("#" + btnId);
+    var isRestore = !!$btn.data("savedData");
+
+    console.log("=== swapContragentData ===");
+    console.log("Бутон ID:", btnId);
+    console.log("Режим:", isRestore ? "ВЪЗСТАНОВЯВАНЕ" : "ЗАРЕЖДАНЕ");
+
+    if (isRestore) {
+        var original = $btn.data("savedData");
+        console.log("Възстановявам:", JSON.stringify(original));
+
+        $("[name='contragentCountryId']").val(original.contragentCountryId).trigger("change");
+
+        setTimeout(function() {
+            $.each(original, function(key, value) {
+                if (key !== "contragentCountryId") {
+                    $("[name='" + key + "']").val(value);
+                }
+            });
+            $btn.data("savedData", null);
+            $btn.val($btn.data("originalTitle"));
+            swapContragentDataRunning = false;
+            console.log("=== ВЪЗСТАНОВЯВАНЕТО ПРИКЛЮЧИ ===");
+        }, 500);
+
+    } else {
+        var base64 = $btn.data("contragent");
+        var newData = JSON.parse(decodeURIComponent(atob(base64).split("").map(function(c) {
+            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join("")));
+
+        console.log("Нови данни:", JSON.stringify(newData));
+
+        var original = {};
+        $.each(newData, function(key) {
+            original[key] = $("[name='" + key + "']").val();
+        });
+        console.log("Запазвам оригинални:", JSON.stringify(original));
+        $btn.data("savedData", original);
+        $btn.data("originalTitle", $btn.val());
+
+        $("[name='contragentCountryId']").val(newData.contragentCountryId).trigger("change");
+
+        setTimeout(function() {
+            $.each(newData, function(key, value) {
+                if (key !== "contragentCountryId") {
+                    $("[name='" + key + "']").val(value);
+                }
+            });
+            $btn.val($btn.data("toggleTitle"));
+            swapContragentDataRunning = false;
+            console.log("=== ЗАРЕЖДАНЕТО ПРИКЛЮЧИ ===");
+        }, 500);
+    }
+}
+
 /**
 Възможност за скрива на част от редовете в дълги листови таблици
  */
@@ -6971,14 +7061,50 @@ document.addEventListener("DOMContentLoaded", () => {
             td.dataset.expanded = td.dataset.expanded === "true" ? "false" : "true";
             measureOverflowCollapsed(); // поднови видимостта на „…/↥“
         });
-
-        body.addEventListener("click", () => {
-            td.dataset.expanded = td.dataset.expanded === "true" ? "false" : "true";
-            measureOverflowCollapsed(); // поднови видимостта на „…/↥“
-        });
-
     });
 });
+
+
+function setLogDebugUrl(url)
+{
+    bgLog.setUrl(url);
+}
+
+
+const bgLog = (() => {
+    let _url = null;
+
+    function send(level, cls, objectId, message, sendWp) {
+        if (!_url) return;
+
+        let resObj = new Object();
+        resObj['url'] = _url;
+
+
+        let params = {
+            cls:      cls,
+            objectId: objectId ?? null,
+            level:    level,
+            message:  message,
+            sendWp:   sendWp ? 1 : 0,
+        };
+
+        getEfae().process(resObj, params);
+    }
+
+    return {
+        setUrl: (url) => {
+            if (!url) return;
+            if (url.startsWith('http') || url.startsWith('//')) return;
+            if (!url.endsWith('/log_System/JsLog')) return;
+
+            _url = url;
+        },
+        info:    (cls, objectId, msg, sendWp = false) => send('info',    cls, objectId, msg, sendWp),
+        warning: (cls, objectId, msg, sendWp = false) => send('warning', cls, objectId, msg, sendWp),
+        error:   (cls, objectId, msg, sendWp = true)  => send('error',   cls, objectId, msg, sendWp),
+    };
+})();
 
 runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);

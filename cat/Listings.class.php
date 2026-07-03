@@ -323,7 +323,7 @@ class cat_Listings extends core_Master
     public static function getReffByProductId($listId, $productId, $packagingId = null)
     {
         $all = self::getAll($listId);
-        $res = array_filter($all, function (&$e) use ($productId, $packagingId) {
+        $res = array_filter($all, function ($e) use ($productId, $packagingId) {
             if (isset($packagingId)) {
                 if ($e->productId == $productId && $e->packagingId == $packagingId) return true;
             } else {

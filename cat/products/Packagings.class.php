@@ -233,10 +233,13 @@ class cat_products_Packagings extends core_Detail
                 }
             }
 
-            if (!$form->gotErrors() && cat_UoM::fetch($rec->packagingId)->type == 'packaging') {
-                $warning = null;
-                if (!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)) {
-                    $form->setError('quantity', $warning);
+            if (!$form->gotErrors()) {
+                $uomType =  cat_UoM::fetchField($rec->packagingId, 'type');
+                if($uomType  == 'packaging'){
+                    $warning = null;
+                    if (!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)) {
+                        $form->setError('quantity', $warning);
+                    }
                 }
             }
 
@@ -650,7 +653,7 @@ class cat_products_Packagings extends core_Detail
             }
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
             if($rec->createdOn >= self::getPastHorizon()){
                 $row->user = ht::createHint($row->user, "Използвания|*: {$rec->usages}");
@@ -693,7 +696,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         $data->retUrl = (isset($data->retUrl)) ? $data->retUrl : cat_Products::getSingleUrlArray($data->masterId);
-        if ($data->rejected !== true && $this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
+        if (($data->rejected ?? null) !== true && $this->haveRightFor('add', (object)array('productId' => $data->masterId))) {
             $data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => $data->retUrl);
         }
 
@@ -711,7 +714,7 @@ class cat_products_Packagings extends core_Detail
      */
     public function renderPackagings($data)
     {
-        if ($data->notStorable === true && !countR($data->recs)) {
+        if (($data->notStorable ?? null) === true && !countR($data->recs)) {
 
             return;
         }
@@ -725,7 +728,7 @@ class cat_products_Packagings extends core_Detail
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
 
-        if ($data->rejected === true) {
+        if (($data->rejected ?? null) === true) {
             unset($data->listFields['_rowTools']);
         }
 
@@ -742,7 +745,7 @@ class cat_products_Packagings extends core_Detail
      * @param int $packagingId - ид на опаковката
      * @param string|null $field - ид на опаковката
      *
-     * @return stdClass
+     * @return mixed
      */
     public static function getPack($productId, $packagingId, $field = null)
     {
@@ -848,11 +851,7 @@ class cat_products_Packagings extends core_Detail
         $inClsName = false;
         foreach ($allClsArr as $cls) {
             $cls = cls::get($cls);
-
-            if (!$cls->fields['packagingId']) {
-
-                continue;
-            }
+            if (!$cls->getField('packagingId', false)) continue;
 
             $allClsName[$cls->className] = $cls->className;
             $productIdFld = $packagingIdFld = false;
@@ -878,7 +877,7 @@ class cat_products_Packagings extends core_Detail
 
         if ($inClsName === false) {
             foreach ($mDetailsArr as $dName) {
-                if ($allClsName[$dName]) {
+                if (isset($allClsName[$dName])) {
                     wp('Използван пакет, който е прескочен', $mDetailsArr, $dName);
                 }
             }
@@ -976,12 +975,12 @@ class cat_products_Packagings extends core_Detail
 
                 $resArr = array();
 
-                if (!$mvc->fields['packagingId'] && !$rec->quantityInPack && !$rec->packagingId) {
+                if (empty($mvc->fields['packagingId']) && empty($rec->quantityInPack) && empty($rec->packagingId)) {
                     $dArr = arr::make($mvc->details);
                     foreach ($dArr as $detail) {
                         $Detail = cls::get($detail);
 
-                        if (!$Detail->fields['packagingId']) {
+                        if (empty($Detail->fields['packagingId'])) {
 
                             continue;
                         }
@@ -1070,7 +1069,7 @@ class cat_products_Packagings extends core_Detail
                         }
                     }
                 } else {
-                    wp($dArr, $data);
+                    wp('Няма отговор', $dArr, $data);
                 }
             }
         }
@@ -1091,6 +1090,7 @@ class cat_products_Packagings extends core_Detail
     {
         sync_Helper::requireRight('export');
         expect($ids = Request::get('exportIds'));
+        $resArr = array();
 
         try {
             $dArr = explode('|', $ids);
@@ -1152,14 +1152,14 @@ class cat_products_Packagings extends core_Detail
         $mvc = cls::get($mvc);
 
         $notMatchArr = array();
-        if ($mvc->dontCheckQuantityInPack === true) return $notMatchArr;
+        if (($mvc->dontCheckQuantityInPack ?? null) === true) return $notMatchArr;
 
-        if (!$mvc->fields['packagingId'] && !$rec->quantityInPack && !$rec->packagingId) {
+        if (empty($mvc->fields['packagingId']) && empty($rec->quantityInPack) && empty($rec->packagingId)) {
             $dArr = arr::make($mvc->details);
             foreach ($dArr as $detail) {
                 $Detail = cls::get($detail);
 
-                if (!$Detail->fields['packagingId']) {
+                if (empty($Detail->fields['packagingId'])) {
 
                     continue;
                 }
@@ -1223,7 +1223,7 @@ class cat_products_Packagings extends core_Detail
 
         // Извличане на най-важната информация за артикула
         $productRec = cat_Products::fetch($productData->productId, 'canSell,canBuy,canStore,canConvert,nameEn,isPublic,folderId,state,measureId');
-        setIfNot($productData->packagingId, $productRec->measureId);
+        $productData->packagingId = $productData->packagingId ?? $productRec->measureId;
 
         $packagingName = $packagingNameShort = tr(cat_UoM::getTitleById($productData->packagingId));
         $packRec = (cat_products_Packagings::getPack($productData->productId, $productData->packagingId));
@@ -1532,13 +1532,13 @@ class cat_products_Packagings extends core_Detail
         if (!$dInst->getField('createdOn', false)) {
             if ($dInst->Master && $dInst->masterKey) {
                 $mInst = cls::get($dInst->Master);
-                if ($mInst->fields['createdOn']) {
+                if (!empty($mInst->fields['createdOn'])) {
                     $dQuery->EXT('createdOn', $dInst->Master->className, "externalName=createdOn,externalKey={$dInst->masterKey}");
                 }
             }
         }
 
-        setIfNot($dInst->productFld, 'productId');
+        setPartIfNot($dInst, 'productFld', 'productId');
         list($productFld, $packagingFld) = array($dInst->productFld, $packagingFld);
         if ($Detail == 'pos_ReceiptDetails') {
             $dQuery->where("#action = 'sale|code'");
@@ -1574,10 +1574,10 @@ class cat_products_Packagings extends core_Detail
 
         // Ако е създадена повече от зададеното време - НЕ
         $pastHorizon = self::getPastHorizon();
-        if($rec->createdOn <= $pastHorizon) return false;
+        if(is_object($rec) && $rec->createdOn <= $pastHorizon) return false;
 
         // Ако е създадена в хоризонта, само ако не е използвана никъде
-        if(is_null($rec->usages) || $rec->usages <= 0) return true;
+        if(is_object($rec) && (is_null($rec->usages) || $rec->usages <= 0)) return true;
 
         return false;
     }
@@ -1602,7 +1602,13 @@ class cat_products_Packagings extends core_Detail
             $rec->usages += 1;
         }
 
-        return self::save($rec, 'usages');
+        $me = cls::get(get_called_class());
+
+        Mode::push("stopMasterUpdate{$productId}", true);
+        $res = $me->save_($rec, 'usages');;
+        Mode::pop("stopMasterUpdate{$productId}");
+
+        return $res;
     }
 
 
@@ -1629,5 +1635,60 @@ class cat_products_Packagings extends core_Detail
                 $data->query->where("#packagingId = {$filter->packagingId}");
             }
         }
+    }
+
+
+    /**
+     * Връща текущата опаковка и следващата по-голяма опаковка за артикул.
+     *
+     * Функцията зарежда всички опаковки на посочения артикул от тип `packaging`,
+     * подредени във възходящ ред по количество. За подадената опаковка намира:
+     *
+     * @param int $productId   ид на артикула
+     * @param int $packagingId ид на текущата опаковка
+     *
+     * @return array Масив със следните ключове:
+     *               - `currentPackagingId` — ид на подадената опаковка
+     *               - `currentQty`         — количеството в текущата опаковка
+     *               - `nextPackagingId`    — ид на следващата по-голяма опаковка или `null`
+     *               - `nextQty`            — колко текущи опаковки се съдържат в следващата или `null`
+     *               - `nextQtyVerbal`      — вербално представяне на `nextQty` или `null`
+     *               - `nextPackName`       — име на следващата опаковка или `null`
+     */
+    public static function getCurrentAndNextBiggerPack($productId, $packagingId)
+    {
+        $packs = array();
+        $pQuery = cat_products_Packagings::getQuery();
+        $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
+        $pQuery->orderBy('quantity', 'ASC');
+        while($pRec = $pQuery->fetch()) {
+            $packs[$pRec->packagingId] = $pRec->quantity;
+        }
+
+        $currentQty = $packs[$packagingId] ?? 1;
+        $nextPackagingId = $nextQty = $nextQtyVerbal = $nextPackName = null;
+        foreach ($packs as $packId => $qty) {
+            if ($qty > $currentQty && ($nextQty === null || $qty < $nextQty)) {
+                $nextQty = $qty;
+                $nextPackagingId = $packId;
+            }
+        }
+
+        if(isset($nextPackagingId)){
+            $nextQty = round($nextQty / $currentQty, 4);
+            $nextQtyVerbal = core_Type::getByName('double(smartRound)')->toVerbal($nextQty);
+            $nextPackName = cat_UoM::getTitleById($nextPackagingId);
+        }
+
+        $res = array('currentPackagingId' => $packagingId,
+                            'currentQty' => $currentQty,
+                            'nextPackagingId' => $nextPackagingId,
+                            'nextQty' => $nextQty,
+                            'nextQtyVerbal' => $nextQtyVerbal,
+                            'nextPackName' => $nextPackName,
+        );
+
+        return $res;
     }
 }

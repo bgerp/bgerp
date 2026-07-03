@@ -199,7 +199,7 @@ class deals_OpenDeals extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->ROW_ATTR['class'] = "state-{$rec->state}";
             
             // Извличане на записа на документа и папката

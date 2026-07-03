@@ -30,7 +30,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->FLD('cashRegNum', 'varchar(nullIfEmpty,maxRadio=1)', 'caption=Фискално устройство->Избор,after=name,input=none');
-        setIfNot($mvc->canHardconto, 'salesMaster,ceo');
+        setPartIfNot($mvc, 'canHardconto', 'salesMaster,ceo');
     }
     
     
@@ -494,7 +494,7 @@ class bgfisc_plg_CashDocument extends core_Plugin
             foreach ($dRecs as $dRec) {
                 if (in_array($originRec->vatRate, array('yes', 'separate', 'no'))) {
                     $vatSysId = cat_products_VatGroups::getCurrentGroup($dRec->productId)->sysId;
-                    setIfNot($vatSysId, 'B');
+                    $vatSysId = $vatSysId ?? 'B';
                 } else {
                     $vatSysId = 'A';
                 }

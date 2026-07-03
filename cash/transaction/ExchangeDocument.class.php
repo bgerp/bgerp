@@ -56,25 +56,30 @@ class cash_transaction_ExchangeDocument extends acc_DocumentTransactionSource
             array('cash_Cases', $rec->peroFrom),
             array('currency_Currencies', $rec->creditCurrency),
             'quantity' => $rec->creditQuantity);
-        if ($rec->debitCurrency == $baseCurrencyId && $rec->creditCurrency != $baseCurrencyId) {
-            $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
-            $entry = array();
-            $entry[] = array('amount' => $rec->debitQuantity,
-                'debit' => $toCase,
-                'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
-            $entry[] = array(
-                'debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
-                'credit' => $fromCase);
+
+        if($rec->debitCurrency == $baseCurrencyId){
+            $amount = $rec->debitQuantity;
+        } elseif($rec->creditCurrency == $baseCurrencyId){
+            $amount = $rec->creditQuantity;
         } else {
-            $entry = array('debit' => $toCase, 'credit' => $fromCase);
-            $entry = array($entry);
+            $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
+            $amount = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode);
         }
-        
+
+        $entries = array();
+        $entries[] = array('amount' => $amount,
+            'debit' => $toCase,
+            'credit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity));
+        $entries[] = array(
+            'debit' => array('481', array('currency_Currencies', $rec->creditCurrency), 'quantity' => $rec->creditQuantity),
+            'credit' => $fromCase);
+
+
         // Подготвяме информацията която ще записваме в Журнала
         $result = (object) array(
             'reason' => $rec->reason,   // основанието за ордера
             'valior' => $rec->valior,   // датата на ордера
-            'entries' => $entry,
+            'entries' => $entries,
         );
         
         return $result;

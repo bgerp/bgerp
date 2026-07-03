@@ -23,14 +23,26 @@ class core_Type extends core_BaseClass
      * @var array
      */
     public $params;
-    
-    
+
+
+    /**
+     *
+     */
+    public $viewrows;
+
+
+    /**
+     *
+     */
+    public $maxFieldSize;
+
+
     /**
      * Опциите на типа
      *
      * @var array
      */
-    // public $options;
+     public $options;
     
     
     /**
@@ -185,19 +197,19 @@ class core_Type extends core_BaseClass
             }
         }
         
-        if ($this->params['unsigned']) {
+        if ($this->params['unsigned'] ?? null) {
             $res->unsigned = true;
         }
-        
-        if ($this->params['collate']) {
+
+        if ($this->params['collate'] ?? null) {
             $res->collation = $this->params['collate'];
-        } elseif ($this->params['ci']) {
+        } elseif ($this->params['ci'] ?? null) {
             $res->collation = 'ci';
-        } elseif ($this->collation) {
+        } elseif ($this->collation ?? null) {
             $res->collation = $this->collation;
         }
         
-        setIfNot($res->indexPrefix, $this->params['indexPrefix']);
+        setIfNot($res->indexPrefix, $this->params['indexPrefix'] ?? null);
         
         return $res;
     }
@@ -597,7 +609,7 @@ class core_Type extends core_BaseClass
                     break;
                 }
             }
-            $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder']));
+            $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($attr['placeholder'] ?? ''));
         }
         
         // Определяме размера на най-дългия възможен стринг, като най-дългата опция

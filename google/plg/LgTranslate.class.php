@@ -18,7 +18,7 @@ class google_plg_LgTranslate extends core_Plugin
     public static function on_AfterRenderWrapping($mvc, $res, &$tpl, $data = null)
     {
         // Ако има шаблон
-        if ($data->form->tpl) {
+        if (is_object($data) && is_object($data->form ?? null) && ($data->form->tpl ?? null)) {
             
             // Добавяме го
             $res->append($data->form->tpl);

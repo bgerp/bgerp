@@ -42,10 +42,11 @@ class type_Set extends core_Type
         }
         
         $vals = explode(',', $value);
-        
+        $res = '';
+
         foreach ($vals as $v) {
             if (isset($v)) {
-                if ($this->params['translate'] != 'none') {
+                if (($this->params['translate'] ?? null) != 'none') {
                     $verb = tr($this->getVerbal($v));
                 } else {
                     $verb = $this->getVerbal($v);
@@ -66,7 +67,7 @@ class type_Set extends core_Type
      */
     public function getVerbal($k)
     {
-        return $this->suggestions[$k];
+        return $this->suggestions[$k] ?? null;
     }
     
     
@@ -89,8 +90,8 @@ class type_Set extends core_Type
         $attr['class'] .= ' checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
-        $maxChars = $this->params['maxChars'];
-        $displayHtml = $this->params['displayHtml'];
+        $maxChars = $this->params['maxChars'] ?? null;
+        $displayHtml = $this->params['displayHtml'] ?? null;
         $col = type_Keylist::getCol($this->suggestions, $maxChars);
 
         $className = '';
@@ -157,7 +158,7 @@ class type_Set extends core_Type
                     
                     $cb = ht::createElement('input', $attr);
 
-                    if ($this->params['translate'] != 'none') {
+                    if (($this->params['translate'] ?? null) != 'none') {
                         $v = tr($v);
                     }
 
@@ -205,10 +206,11 @@ class type_Set extends core_Type
             $value = self::toArray($value);
         }
         
+        $res = null;
         if (is_array($value)) {
             $res = implode(',', array_keys($value));
         }
-        
+
         return $res;
     }
     

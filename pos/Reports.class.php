@@ -222,21 +222,21 @@ class pos_Reports extends core_Master
             $row->to = dt::mysql2verbal($toDate, 'd.m.Y H:i');
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $valiorToBe = $mvc->getFieldType('valior')->toVerbal(dt::today());
             $row->valior = (isset($rec->valior)) ? $row->valior : ((Mode::is('printing') || Mode::is('text', 'xhtml') || !in_array($rec->state, array('draft', 'pending'))) ? $valiorToBe : ht::createHint("<span style='color:blue'>{$valiorToBe}</span>", 'Вальорът ще бъде записан при контиране|*!'));
 
             $pointRec = pos_Points::fetch($rec->pointId);
             $row->caseId = cash_Cases::getHyperLink($pointRec->caseId, true);
             $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
-            setIfNot($row->dealerId, $row->createdBy);
+            $row->dealerId = $row->dealerId ?? $row->createdBy;
 
             if(empty($rec->operators)){
                 $row->operators = "<i>" . tr("Всички") . "</i>";
             }
         }
 
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->paid = ht::styleNumber($row->paid, $rec->paid);
             $row->total = ht::styleNumber($row->total, $rec->total);
         }
@@ -735,6 +735,10 @@ class pos_Reports extends core_Master
             if ($count) {
                 core_Statuses::newStatus("|{$msg} бележки за продажба|*: {$count}");
             }
+
+            // Обновяване на чакащото по бележки на касата на точката
+            $pointRec = pos_Points::fetch($rec->pointId);
+            cash_Cases::updateAmountInWaitingReceipts($pointRec->caseId);
         }
     }
     
@@ -995,8 +999,8 @@ class pos_Reports extends core_Master
                     $r->sellCost = 0;
                     wp($r, $rec);
                 }
-                
-                setIfNot($userId, $rec->createdBy);
+
+                $userId = $userId ?? $rec->createdBy;
                 $r->dealerId = $userId;
                 
                 // Изчисляване на себестойността на артикула
@@ -1023,12 +1027,12 @@ class pos_Reports extends core_Master
      * Помощна ф-я в кой пос отчет е включена въпросната бележка
      *
      * @param $receiptId
-     * @return void
+     * @return int
      */
     public static function getReportReceiptIsIn($receiptId)
     {
         $reportQuery = pos_Reports::getQuery();
-        $reportQuery->where("#state = 'active' || #state = 'closed'");
+        $reportQuery->where("#state IN ('active', 'closed')");
         $reportQuery->show('details');
 
         // Опитваме се да намерим репорта в който е приключена бележката

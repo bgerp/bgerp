@@ -319,11 +319,15 @@ class planning_Hr extends core_Master
         if(isset($hrRec->scheduleId)) {
             $scheduleId = $hrRec->scheduleId;
         } else {
+            core_Debug::startTimer('hr_EmployeeContracts::getQuery()_PLANNING_HR');
             $state = hr_EmployeeContracts::getQuery();
+            core_Debug::stopTimer('hr_EmployeeContracts::getQuery()_PLANNING_HR');
             $state->where("#personId='{$personId}' AND #state = 'active'");
             if ($employeeContractDetails = $state->fetch()) {
                 if(isset($employeeContractDetails->departmentId)) {
+                    core_Debug::startTimer('planning_Centers::fetch_PLANNING_HR');
                     $pcRec = planning_Centers::fetch($employeeContractDetails->departmentId);
+                    core_Debug::stopTimer('planning_Centers::fetch_PLANNING_HR');
                     if(isset($pcRec->scheduleId)) {
                         $scheduleId = $pcRec->scheduleId;
                     }
@@ -332,7 +336,9 @@ class planning_Hr extends core_Master
         }
 
         if(empty($scheduleId)){
+            core_Debug::startTimer('hr_Schedules::getDefaultScheduleId_PLANNING_HR');
             $scheduleId = hr_Schedules::getDefaultScheduleId();
+            core_Debug::stopTimer('hr_Schedules::getDefaultScheduleId_PLANNING_HR');
         }
 
         return $scheduleId;
@@ -382,9 +388,6 @@ class planning_Hr extends core_Master
 
         if(!$noOptions){
 
-
-
-
             // Ако има съществуващи ид-та и тях ги няма в опциите да се добавят
             if(isset($exIds)) {
                 $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
@@ -409,10 +412,12 @@ class planning_Hr extends core_Master
             $query = static::getQuery();
             $query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
             $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
+            $query->EXT('name', 'crm_Persons', 'externalName=name,externalKey=personId');
             $query->like('groupList', "|{$employeeGroupId}|");
             $query->where("#state != 'rejected' && #state != 'closed'");
+
             $query->show('personId,code');
-            $query->orderBy('id', 'ASC');
+            $query->orderBy('name', 'ASC');
             if (countR($objectIds)) {
                 $query->in('id', $objectIds);
             } else {
@@ -566,6 +571,7 @@ class planning_Hr extends core_Master
     public static function getPersonsCodesArr($arr, $withLinks = false, $codesAsKeys = false)
     {
         $res = $tempKeys = $codes = array();
+        $res = $tempKeys = $codes = array();
         $arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : arr::make($arr, true);
         if (empty($arr)) return $res;
 
@@ -579,6 +585,7 @@ class planning_Hr extends core_Master
             $codes[$id] = $code;
         }
 
+        natcasesort($tempKeys);
         foreach ($tempKeys as $k => $v) {
             $key = ($codesAsKeys) ? $codes[$k] : $k;
             $res[$key] = "{$codes[$k]} - {$v}";

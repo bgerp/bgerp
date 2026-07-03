@@ -62,7 +62,7 @@
                             </tr>
                             <!--ET_BEGIN notifyUsers-->
                             <tr>
-                                <td class='dt'>|Нотифициране при промяна на транспортна линия|*:</td>
+                                <td class='dt'>|Нотифициране при промяна на Транспортна линия|*:</td>
                                 <td>[#notifyUsers#]</td>
                             </tr>
                             <!--ET_END notifyUsers-->
@@ -124,6 +124,12 @@
                                 <td>[#minKeepPct#] |от палет|*</td>
                             </tr>
                             <!--ET_END minKeepPct-->
+                            <!--ET_BEGIN requireZoneInDocuments-->
+                            <tr>
+                                <td class='dt'>|Задължителен избор на зона в експедиращи документи|*:</td>
+                                <td>[#requireZoneInDocuments#]</td>
+                            </tr>
+                            <!--ET_END requireZoneInDocuments-->
                         </table>
                     </div>
                 </fieldset>

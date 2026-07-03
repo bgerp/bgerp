@@ -87,7 +87,7 @@ class select2_Plugin extends core_Plugin
         $maxSuggestions = $invoker->getMaxSuggestions();
         
         // Ако няма да се показват всички възможност стойности, а ще се извличат по AJAX
-        if (!$invoker->params['parentId'] && (self::$suggCnt > $maxSuggestions)) {
+        if (empty($invoker->params['parentId']) && (self::$suggCnt > $maxSuggestions)) {
             
             // Подготвяме опциите за кеширане
             self::setHandler($invoker, $value);
@@ -138,7 +138,7 @@ class select2_Plugin extends core_Plugin
      */
     public function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
-        if ($invoker->params['isReadOnly']) {
+        if (!empty($invoker->params['isReadOnly'])) {
             
             return ;
         }
@@ -172,7 +172,7 @@ class select2_Plugin extends core_Plugin
         $mustCloseGroup = false;
         
         // Ако е дървовидна структура
-        $parentIdName = $invoker->params['parentId'];
+        $parentIdName = $invoker->params['parentId'] ?? null;
         
         if ($parentIdName) {
             // Подготовка на данните
@@ -197,10 +197,10 @@ class select2_Plugin extends core_Plugin
             
             // Определяме нивото в зависимост от parentId
             foreach ($dataPup as $id => $pId) {
-                if ($dataL[$pId]) {
+                if (!empty($dataL[$pId])) {
                     $mCnt = 20;
                     while (true) {
-                        if ($dataL[$pId]) {
+                        if (!empty($dataL[$pId])) {
                             $dataL[$id]++;
                             $pId = $dataPup[$pId];
                             if (!--$mCnt) break;
@@ -217,7 +217,7 @@ class select2_Plugin extends core_Plugin
             $optionsAttrArr = array();
             
             if (is_object($val)) {
-                if ($val->group) {
+                if ($val->group ?? null) {
                     if ($mustCloseGroup) {
                         $options->append("</optgroup>\n");
                     }
@@ -244,14 +244,14 @@ class select2_Plugin extends core_Plugin
             
             // Добавяме нужните класове
             if ($parentIdName) {
-                if ($dataPup[$key]) {
+                if (!empty($dataPup[$key])) {
                     $optionsAttrArr['data-pup'] = $dataPup[$key];
                     $optionsAttrArr['class'] = "l" . $dataL[$key];
                 } else {
                     $optionsAttrArr['class'] = "l1";
                 }
                 
-                if ($dataNonLeaf[$key]) {
+                if (!empty($dataNonLeaf[$key])) {
                     $optionsAttrArr['class'] .= " non-leaf";
                 }
             }
@@ -283,12 +283,12 @@ class select2_Plugin extends core_Plugin
         
         $tpl->append("<input type='hidden' name='{$name}[" . self::$hiddenName . "]' value=1>");
         
-        $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
-        
-        if ($invoker->params['allowEmpty']) {
+        $select = ($attr['placeholder'] ?? null) ?: '';
+
+        if ($invoker->params['allowEmpty'] ?? null) {
             $allowClear = true;
         } else {
-            if ($selectAttrArray['multiple']) {
+            if ($selectAttrArray['multiple'] ?? null) {
                 $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
             } else {
                 $allowClear = false;
@@ -299,9 +299,9 @@ class select2_Plugin extends core_Plugin
         
         $ajaxUrl = '';
 
-        $matchOnlyStartsWith = $invoker->params['find'] == 'everywhere' ? false : true;
+        $matchOnlyStartsWith = ($invoker->params['find'] ?? null) == 'everywhere' ? false : true;
 
-        if (!$invoker->params['parentId'] && $cnt > $maxSuggestions) {
+        if (!($invoker->params['parentId'] ?? null) && $cnt > $maxSuggestions) {
             self::setHandler($invoker, $value);
             
             $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1, 'matchOnlyStartsWith' => $matchOnlyStartsWith));
@@ -310,7 +310,7 @@ class select2_Plugin extends core_Plugin
         $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
 
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl, (boolean)$invoker->params['parentId'], $invoker->params['forceOpen'], $minimumResultsForSearch, $matchOnlyStartsWith);
+        select2_Adapter::appendAndRun($tpl, $attr['id'] ?? null, $select, $allowClear, null, $ajaxUrl, (boolean)($invoker->params['parentId'] ?? null), $invoker->params['forceOpen'] ?? null, $minimumResultsForSearch, $matchOnlyStartsWith);
 
         return false;
     }
@@ -419,7 +419,7 @@ class select2_Plugin extends core_Plugin
      */
     public function on_AfterGetMaxSuggestions($invoker, &$res)
     {
-        setIfNot($res, $invoker->params['maxSuggestions'], core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', true), 1000);
+        $res = $res ?? $invoker->params['maxSuggestions'] ?? core_Setup::get('TYPE_KEY_MAX_SUGGESTIONS', true) ?? 1000;
     }
     
     

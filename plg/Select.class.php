@@ -17,6 +17,16 @@
 class plg_Select extends core_Plugin
 {
     /**
+     * Иконки за действията с избраните
+     */
+    protected static $doWithSelectedIconsMap = array('printsinglesfromlist' => 'img/16/printer.png',
+                                                     'browse' => 'img/16/view.png',
+                                                     'changemeta' => 'img/16/view.png',
+                                                     'grouping' => 'img/16/category-icon.png',
+                                                     'groupconto' => 'img/16/tick-circle-frame.png');
+
+
+    /**
      * Изпълнява се след инициализиране на мениджъра
      */
     public function on_AfterDescription($mvc)
@@ -82,20 +92,20 @@ class plg_Select extends core_Plugin
     /**
      * Преди рендиране на таблицата
      */
-    public function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf') || Mode::is('noDoWithSelected')) {
             
             return;
         }
         
-        if (!$data->listClass) {
+        if (!($data->listClass ?? null)) {
             $data->listClass = 'listRows selectRows';
         } else {
             $data->listClass .= ' selectRows';
         }
-        
-        $mvc->FNC('_checkboxes', 'html', 'tdClass=centered');
+
+        $mvc->FNC('_checkboxes', 'html', 'tdClass=centered,forceField');
     }
     
     
@@ -105,7 +115,7 @@ class plg_Select extends core_Plugin
     public function on_BeforeAction($mvc, &$res, $act)
     {
         $actArr = arr::make($mvc->doWithSelected, true);
-        
+
         if ($act == 'dowithselected') {
             $mvc->requireRightFor('list');
             
@@ -116,25 +126,26 @@ class plg_Select extends core_Plugin
                 
                 return false;
             }
-            
-            
+
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
+            $cnt = $listArr = array();
             foreach ($row as $id => $on) {
+
                 foreach ($actArr as $action => $caption) {
                     if ($mvc->haveRightFor($action, $id)) {
-                        $cnt[$action]++;
-                        $listArr[$action] .= ($listArr[$action] ? ',' : '') . $id;
+                        $cnt[$action] = ($cnt[$action] ?? 0) + 1;
+                        $listArr[$action] = ($listArr[$action] ?? '') . (($listArr[$action] ?? '') ? ',' : '') . $id;
                     }
                 }
             }
-            
+            //bp();
             // Махаме действията, които не са достъпни за нито един избран ред
             foreach ($actArr as $action => $caption) {
-                if (!$cnt[$action]) {
+                if (!($cnt[$action] ?? null)) {
                     unset($actArr[$action]);
                 }
             }
-            
+            //bp();
             if (!countR($actArr)) {
                 $res = new Redirect(getRetUrl(), '|За избраните редове не са достъпни никакви операции');
                 
@@ -147,6 +158,8 @@ class plg_Select extends core_Plugin
             $res->append("\n<table class='no-border-table'>");
             
             foreach ($actArr as $action => $caption) {
+                $icon = self::$doWithSelectedIconsMap[$action] ?? "img/16/{$action}.png";
+
                 $res->append("\n<tr><td>");
                 $res->append(ht::createBtn(
                     ltrim($caption, '*') . '|* (' . $cnt[$action] . ')',
@@ -157,7 +170,7 @@ class plg_Select extends core_Plugin
                         'ret_url' => Request::get('ret_url')),
                         null,
                         null,
-                        "ef_icon=img/16/{$action}.png"
+                        "ef_icon={$icon}"
                 ));
                 $res->append('</td></tr>');
             }
@@ -165,9 +178,9 @@ class plg_Select extends core_Plugin
             $res->append("\n</table>");
             
             $res = $mvc->renderWrapping($res);
-            
+
             return false;
-        } elseif ($actArr[$act][0] == '*') {
+        } elseif (!empty($actArr[$act]) && $actArr[$act][0] === '*') {
             if (Request::get('id')) {
                 
                 return;
@@ -303,6 +316,7 @@ class plg_Select extends core_Plugin
         
         $tpl->append('</form>');
         
+        $js = '';
         foreach ($data->rows as $id => $row) {
             $js .= "chRwCl('{$id}');";
         }

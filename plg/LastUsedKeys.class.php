@@ -53,7 +53,7 @@ class plg_LastUsedKeys extends core_Plugin
                     $field
                 );
             }
-            if ($mvc->noCheckLastUsedField !== false) {
+            if (($mvc->noCheckLastUsedField ?? null) !== false) {
                 $noCheckLastUsedField = true;
             } else {
                 $noCheckLastUsedField = false;
@@ -61,7 +61,7 @@ class plg_LastUsedKeys extends core_Plugin
         }
         
         foreach ($mvc->lastUsedKeys as $field) {
-            if ($rec->{$field}) {
+            if ($rec->{$field} ?? null) {
                 if (($mvc->fields[$field]->type instanceof type_Key) || ($mvc->fields[$field]->type instanceof type_Key2)) {
                     $usedClass = cls::get($mvc->fields[$field]->type->params['mvc']);
                     

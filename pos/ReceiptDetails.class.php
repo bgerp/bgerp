@@ -193,7 +193,10 @@ class pos_ReceiptDetails extends core_Detail
                 $countProducts = pos_ReceiptDetails::count("#receiptId = {$receiptRec->id} AND #action LIKE '%sale%'");
                 if($countProducts && $receiptRec->total != 0){
                     expect($amount, 'Невалидна сума за плащане|*!');
-                    expect($amount > 0, 'Сумата трябва да е положителна');
+                    expect($amount > 0, 'Сумата трябва да е положителна|*!');
+                    $maxAllowed = $receiptRec->total + 500;
+                    $maxAllowedVerbal = core_Type::getByName('double(decimals=2)')->fromVerbal($maxAllowed);
+                    expect($amount <= $maxAllowed, "Въведената сума на плащане е несъразмерна спрямо дължимата!");
                 } else {
                     expect(!$paymentCount, 'Има вече направено плащане|*!');
                     expect($type == -1, 'На бележките с нулева сума е позволено само плащане в брой|*!');
@@ -748,7 +751,7 @@ class pos_ReceiptDetails extends core_Detail
                 expect($rec->quantity > 0, 'При добавяне количеството трябва да е положително');
             }
 
-            if($rec->_canStore == 'yes'){
+            if(($rec->_canStore ?? 'no') == 'yes'){
                 $rec->storeId = $rec->storeId ?? $defaultStoreId;
                 if(empty($rec->storeId)){
                     $pName = cat_Products::getTitleById($rec->productId);
@@ -907,7 +910,7 @@ class pos_ReceiptDetails extends core_Detail
         switch ($action->type) {
             case 'sale':
                 $mvc->renderSale($rec, $row, $receiptRec, $fields);
-                if ($fields['-list']) {
+                if (isset($fields['-list'])) {
                     $row->productId = cat_Products::getHyperlink($rec->productId, true);
                 }
 
@@ -939,7 +942,7 @@ class pos_ReceiptDetails extends core_Detail
                     }
                 }
 
-                if ($fields['-list']) {
+                if (isset($fields['-list'])) {
                     $row->productId = tr('Плащане') . ': ' . $row->actionValue;
                     unset($row->quantity, $row->value);
                 }
@@ -1275,8 +1278,7 @@ class pos_ReceiptDetails extends core_Detail
                 $obj->pack = null;
                 $obj->caseId = $caseId;
             }
-
-            setIfNot($obj->userId, $rec->waitingBy, $rec->receiptCreatedBy);
+            $obj->userId = $obj->userId ?? $rec->waitingBy ?? $rec->receiptCreatedBy;
             $obj->contragentClassId = $rec->contragentClsId;
             $obj->contragentId = $rec->contragentId;
             $obj->quantity = $rec->quantity;

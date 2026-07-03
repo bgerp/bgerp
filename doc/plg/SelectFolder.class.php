@@ -24,7 +24,8 @@ class doc_plg_SelectFolder extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->alwaysForceFolderIfEmpty, false);
+        setPartIfNot($mvc, 'alwaysForceFolderIfEmpty', false);
+        setPartIfNot($mvc, 'routeDocumentAfterCreation', false);
     }
     
     
@@ -49,24 +50,31 @@ class doc_plg_SelectFolder extends core_Plugin
             // Няма права за този екшън - не правим нищо - оставяме реакцията на мениджъра.
             return;
         }
-        
+
+        // Ако документа ще се рутира след създаване няма да се правят такива проверки
+
         if (Request::get('folderId', 'key(mvc=doc_Folders)') ||
             Request::get('threadId', 'key(mvc=doc_Threads)') ||
             Request::get('cloneId', 'key(mvc=doc_Containers)') ||
             ($mvc->alwaysForceFolderIfEmpty === false && Request::get('originId', 'key(mvc=doc_Containers)'))) {
             // Има основание - не правим нищо
-            
+
+            if($mvc->routeDocumentAfterCreation === true) return;
+
             $fId = Request::get('folderId', 'key(mvc=doc_Folders)');
+            $tId = Request::get('threadId', 'key(mvc=doc_Threads)');
             if (!empty($fId)) {
-                if (!$mvc->haveRightFor('add', (object) array('folderId' => $fId))) {
+                if (!$mvc->haveRightFor('add', (object) array('folderId' => $fId, 'threadId' => $tId))) {
                     $folderTitle = doc_Folders::getTitleById($fId);
                     followRetUrl(array($mvc, 'list'), "|Документът не може да бъде създаден в папката|*: {$folderTitle}", 'error');
-                }
+               }
             }
             
             return;
         }
         
+        $folderId = null;
+
         if ($_companyId = Request::get('_companyId', 'key2(mvc=crm_Companies)')) {
             $cRec = crm_Companies::fetch($_companyId);
             if ($cRec) {
@@ -129,8 +137,8 @@ class doc_plg_SelectFolder extends core_Plugin
         // ВАЖНО: спираме изпълнението на евентуални други плъгини
         return false;
     }
-    
-    
+
+
     /**
      * Подготвя формата за избор на папка, за новия документ от клас $mvc
      */
@@ -301,7 +309,7 @@ class doc_plg_SelectFolder extends core_Plugin
         if ($res !== false) {
             $allowedCovers = self::getAllowedCovers($mvc);
             $fRec = doc_Folders::fetch($folderId);
-            if (!$allowedCovers[$fRec->coverClass]) {
+            if (empty($allowedCovers[$fRec->coverClass])) {
                 $res = false;
                 
                 return false;

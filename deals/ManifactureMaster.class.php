@@ -59,6 +59,12 @@ abstract class deals_ManifactureMaster extends core_Master
 
 
     /**
+     * Кой може да преизчислява сб-ст от журнала?
+     */
+    public $canCalcproductionamount = 'ceo,accJournal';
+
+
+    /**
      * Кои са задължителните полета за модела
      */
     protected static function setDocumentFields($mvc)
@@ -95,8 +101,8 @@ abstract class deals_ManifactureMaster extends core_Master
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
         }
-        
-        if ($fields['-single']) {
+
+        if (isset($fields['-single'])) {
             if (isset($rec->storeId)) {
                 $storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
                 if ($storeLocation) {
@@ -109,8 +115,24 @@ abstract class deals_ManifactureMaster extends core_Master
             }
         }
         
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $row->title = $mvc->getLink($rec->id, 0);
+        }
+        $caption = ($mvc instanceof planning_DirectProductionNote) ? "Изчисли сб-ст" : "Изчисли сума";
+        // Изчисли сума
+        if($mvc->haveRightFor('calcproductionamount', $rec) && !Mode::isReadOnly()){
+            $row->calcPrimeCostBtn = ht::createBtn($caption, array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/arrow_refresh.png');
+            $calcedPrice = core_Permanent::get("{$mvc->className}_{$rec->id}_calcedPrimeCost");
+            if($calcedPrice['primecost'] == 0){
+                if(is_array($calcedPrice)){
+                    $cost = $calcedPrice['cost']; 
+                    $row->calcedPrimeCost = core_Type::getByName('double(decimals=2)')->toVerbal($cost);
+                    $row->calcedPrimeCost = currency_Currencies::decorate($row->calcedPrimeCost, null, true);
+                    $row->calcedPrimeCost = ht::styleNumber($row->calcedPrimeCost, $cost);
+                    $row->calcedPrimeCostDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($calcedPrice['date']);
+                }
+            }
+            
         }
     }
 
@@ -126,7 +148,7 @@ abstract class deals_ManifactureMaster extends core_Master
         $rec = static::fetchRec($rec);
         $threadId = isset($rec->originId) ? doc_Containers::fetchField($rec->originId, 'threadId') : $rec->threadId;
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if(isset($firstDoc) && $firstDoc->isInstanceOf('deals_ManifactureMaster')) return;
+        if(isset($firstDoc) && $firstDoc->isInstanceOf('deals_ManifactureMaster')) return null;
 
         $Origin = isset($rec->originId) ? doc_Containers::getDocument($rec->originId) : $firstDoc;
         if($Origin){
@@ -433,5 +455,59 @@ abstract class deals_ManifactureMaster extends core_Master
         if($jobRec = static::getJobRec($rec)){
             $res .= ' ' . plg_Search::normalizeText(planning_Jobs::getRecTitle($jobRec));
         }
+    }
+
+
+    /**
+     * Екшън за преизчисляване на сумата на артикула
+     */
+    function act_CalcProductionAmount()
+    {   
+        $this->requireRightFor('calcproductionamount');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('calcproductionamount', $rec);
+        $productionAmount = static::getProductionAmount($rec);
+        
+        core_Permanent::set("{$this->className}_{$rec->id}_calcedPrimeCost", $productionAmount, 86400);
+        doc_DocumentCache::cacheInvalidation($rec->containerId);
+
+        followRetUrl(null, "Сумата е изчислена успешно|*!");
+    }
+
+
+    /**
+     * На каква сума е произведеното количество
+     *
+     * @param int $id
+     * @return array $res
+     *          ['primecost'] - чиста сб без режийни разходи
+     *          ['cost']      - единична цена
+     *          ['expenses']  - сума на режийните разходи
+     *          ['date']      - към коя дата
+     */
+    protected static function getProductionAmount($id)
+    {
+        $res = array('primecost' => 0, 'expenses' => 0, 'cost' => 0, 'date' => dt::now());
+        $rec = static::fetchRec($id);
+        $journalRec = acc_Journal::fetchByDoc(get_called_class(), $rec->id);
+        if(!is_object($journalRec)) return $res;
+
+        $jQuery = acc_JournalDetails::getQuery();
+        $jQuery->where("#journalId = {$journalRec->id}");
+
+        $me = cls::get(get_called_class());
+        $accPart = ($me instanceof planning_ReturnNotes) ? 'creditAccId' : 'debitAccId';
+        $accArr = array(acc_Accounts::getRecBySystemId(61101)->id, acc_Accounts::getRecBySystemId(61102)->id);
+
+        $jQuery->in("{$accPart}", $accArr);
+       
+        // Смятане на сумата, която ще се натрупва към сб-ст на произведения артикул
+        while ($jRec = $jQuery->fetch()) {
+            $amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $journalRec->valior);
+            $res['cost'] += $amount;
+        }
+       
+        return $res;
     }
 }

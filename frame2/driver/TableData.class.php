@@ -177,13 +177,21 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
      */
     protected function getPeriodRange($rec)
     {
-        if(!isset($this->periodFields)) return array();
+        if (empty($this->periodFields)) return array();
 
-        $periods = explode(',', $this->periodFields);
+        $periods = arr::make($this->periodFields, true);
+        $periods = array_values($periods);
+
+        if (countR($periods) < 2) return array();
+
         $oldestAvailableDate = plg_SelectPeriod::getOldestAvailableDate();
-        $fromDate = $rec->{$periods[0]} ? $rec->{$periods[0]} : (($oldestAvailableDate) ? $oldestAvailableDate : null);
 
-        return array('from' => $fromDate, 'to' => $rec->{$periods[1]});
+        $fromFld = $periods[0];
+        $toFld = $periods[1];
+        $fromDate = !empty($rec->{$fromFld}) ? $rec->{$fromFld} : ($oldestAvailableDate ?: null);
+        $toDate = $rec->{$toFld} ?? null;
+
+        return array('from' => $fromDate, 'to' => $toDate);
     }
 
 
@@ -198,11 +206,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
     {
         $data = new stdClass();
         $data->recs = $this->prepareRecs($rec, $data);
-        setIfNot($data->groupByField, $this->groupByField);
-        setIfNot($data->subGroupFieldOrder, $this->subGroupFieldOrder);
-        setIfNot($data->groupedFieldOnNewRow, $this->groupedFieldOnNewRow);
-        setIfNot($data->summaryListFields, $this->summaryListFields);
-        setIfNot($data->summaryRowCaption, $this->summaryRowCaption);
+        $data->groupByField = $data->groupByField ?? $this->groupByField;
+        $data->subGroupFieldOrder = $data->subGroupFieldOrder ?? $this->subGroupFieldOrder;
+        $data->groupedFieldOnNewRow = $data->groupedFieldOnNewRow ?? $this->groupedFieldOnNewRow;
+        $data->summaryListFields = $data->summaryListFields ?? $this->summaryListFields;
+        $data->summaryRowCaption = $data->summaryRowCaption ?? $this->summaryRowCaption;
         
         return $data;
     }
@@ -223,8 +231,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         setIfNot($data->chartTabCaption, $this->chartTabCaption);
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
-
-        if(!$rec->data->recs['values']){
+        
+        if (!countR($data->recs)) {
             $this->enableChartTab = false;
             $this->chartTabDefault = false;
         }
@@ -304,8 +312,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         // Ако има полета за сумиране
         array_walk($data->recs, function ($a) use (&$summaryRow, $fieldsToSumArr){
             foreach ($fieldsToSumArr as $fld){
-                if(is_numeric($a->{$fld})){
-                    $summaryRow->{$fld} += $a->{$fld};
+                if(isset($a->{$fld}) && is_numeric($a->{$fld})){
+                    $summaryRow->{$fld} = ($summaryRow->{$fld} ?? 0) + $a->{$fld};
                 }
             }
         });
@@ -378,9 +386,9 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             // Ако е указано сортиране, сортират се записите, ако има сумарен ред той не участва в сортирането
             $sortDirection = Request::get("Sort{$rec->containerId}");
-            $sortDirectionArr  = explode('|', $sortDirection);
-            $sortFld = !empty($sortDirectionArr[0]) ? $sortDirectionArr[0] : null;
-            $sortDirection = !empty($sortDirectionArr[1]) ? $sortDirectionArr[1] : null;
+            $sortDirectionArr = !empty($sortDirection) ? explode('|', $sortDirection) : array();
+            $sortFld = $sortDirectionArr[0] ?? null;
+            $sortDirection = $sortDirectionArr[1] ?? null;
 
             // Ако има поле за групиране, предварително се групират записите
             if (!empty($data->groupByField)) {
@@ -400,10 +408,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             foreach ($data->recs as $index => $dRec) {
                 if (isset($data->Pager) && !$data->Pager->isOnPage()) continue;
-                $data->rows[$index] = ($dRec->_isSummary !== true) ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
+                $isSummary = (($dRec->_isSummary ?? false) === true);
+                $data->rows[$index] = !$isSummary ? $this->detailRecToVerbal($rec, $dRec) : $dRec;
                 
                 // Ако реда е обобщаващ вербализира се отделно
-                if($dRec->_isSummary === true && countR($fieldsToSumArr)){
+                if($isSummary && countR($fieldsToSumArr)){
                     foreach ($fieldsToSumArr as $fld){
                         $data->rows[$index]->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->{$fld});
                         $data->rows[$index]->{$fld} = ht::styleNumber($data->rows[$index]->{$fld}, $dRec->{$fld});
@@ -425,7 +434,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
 
         // Ако има поле за групиране
         if (isset($data->groupByField)) {
-            $totalRow = $data->rows['_total'];
+            $totalRow = $data->rows['_total'] ?? null;
             unset($data->rows['_total']);
             $found = false;
             
@@ -497,11 +506,11 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
             
             // Извличане на тези записи от със същата стойност за групиране
             $groupedArr = array($i => $r);
-            $subArr = array_filter($recs, function ($a) use ($r, $groupField) {
-                return ($a->{$groupField} == $r->{$groupField});
+
+            $groupValue = $r->{$groupField} ?? null;
+            $subArr = array_filter($recs, function ($a) use ($groupValue, $groupField) {
+                return (($a->{$groupField} ?? null) == $groupValue);
             });
-
-
 
             // Сортират се допълнително ако е указано
             $groupedArr += $subArr;
@@ -840,7 +849,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $result = array_values(array_map(function ($obj) use ($fieldsToCheckArr) {
             $value = array();
             foreach ($fieldsToCheckArr as $fld){
-                $value[] = (is_object($obj)) ? $obj->{$fld} : $obj[$fld];
+                $value[] = is_object($obj) ? ($obj->{$fld} ?? '') : ($obj[$fld] ?? '');
             }
             return implode('|', $value);
         }, $arr));

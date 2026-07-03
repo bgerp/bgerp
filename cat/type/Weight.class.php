@@ -38,7 +38,7 @@ class cat_type_Weight extends cat_type_Uom
     public function toVerbal_($value)
     {
         if(!empty($value)){
-            if($this->params['smartRound'] == 'yes'){
+            if(($this->params['smartRound'] ?? null) == 'yes'){
                 if($value > 10){
                     $value = round($value);
                 } elseif($value >= 1){

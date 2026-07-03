@@ -290,8 +290,8 @@ class bgerp_drivers_Notifications extends core_BaseClass
         $query->XPR('modifiedOnTop', 'datetime', 'IF((#modifiedOn > #lastTime), #modifiedOn, #lastTime)');
         $query->orderBy('#modifiedOnTop', 'DESC');
         
-        $lastRec = $query->fetch();
-        $lRecModifiedOnTop = $lastRec->modifiedOnTop;
+        $lastRec = $query->fetch() ?: null;
+        $lRecModifiedOnTop = $lastRec->modifiedOnTop ?? null;
         
         $now = dt::now();
         
@@ -301,7 +301,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
         }
         
         $lastModifiedOnKey = $lRecModifiedOnTop;
-        $lastModifiedOnKey .= '|' . $lastRec->id;
+        $lastModifiedOnKey .= '|' . ($lastRec->id ?? null);
         
         // Инвалидиране на кеша след 5 минути
         $lastModifiedOnKey .= '|' . (int) (dt::mysql2timestamp($lRecModifiedOnTop) / 300);

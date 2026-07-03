@@ -82,14 +82,14 @@ class core_Master extends core_Manager
             $title = $inst->className;
         }
 
-        if (!trim($title)) {
+        if (!trim($title ?? '')) {
             $title = $inst->singleTitle ? $inst->singleTitle : $inst->title;
             if ($objId) {
                 $title .= ' №' . $objId;
             }
         }
 
-        if (!trim($title)) {
+        if (!trim($title ?? '')) {
             $title = '????????';
         }
 
@@ -110,7 +110,7 @@ class core_Master extends core_Manager
         $doubleClickUrl = $inst->getUrlForDblClick($objId, $linkArr);
         if(isset($doubleClickUrl)){
             $doubleClickDataUrl = toUrl($doubleClickUrl);
-            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+            $attr['data-doubleclick'] = $doubleClickDataUrl;
         }
 
         $link = ht::createLink($title, $linkArr, false, $attr);
@@ -309,8 +309,8 @@ class core_Master extends core_Manager
         $show = $this->selectFields("#single == 'show'");
 
         foreach($data->singleFields as $field => $_) {
-            if((is_scalar($data->rec->{$field}) && strlen($data->rec->{$field}) == 0) || $data->rec->{$field} === null) {
-                if(!$show[$field]) {
+            if((is_scalar($data->rec->{$field} ?? null) && strlen($data->rec->{$field} ?? '') == 0) || ($data->rec->{$field} ?? null) === null) {
+                if(!($show[$field] ?? null)) {
                     unset($data->singleFields[$field]);
                 }
             }
@@ -320,7 +320,7 @@ class core_Master extends core_Manager
             
             // Ако титлата съвпада с името на полето, вадим името от caption
             foreach ($data->singleFields as $field => $caption) {
-                if (($field == $caption) && $this->fields[$field]->caption) {
+                if (($field == $caption) && ($this->fields[$field]->caption ?? null)) {
                     $data->singleFields[$field] = $this->fields[$field]->caption;
                 }
             }
@@ -338,7 +338,7 @@ class core_Master extends core_Manager
         $title = $this->getTitleById($data->rec->id);
         
         // Ако в името има '||' се предполага че трябва да се преведе
-        if (strpos($title, '||') !== false) {
+        if (strpos($title ?? '', '||') !== false) {
             $title = tr($title);
         }
         
@@ -401,7 +401,7 @@ class core_Master extends core_Manager
         $data->row->SingleTitle = $this->renderSingleTitle($data);
         
         // Ако е зададено да се рендира
-        if (!$data->noToolbar) {
+        if (!($data->noToolbar ?? null)) {
             
             // Рендираме лентата с инструменти
             $data->row->SingleToolbar = $this->renderSingleToolbar($data);
@@ -411,16 +411,18 @@ class core_Master extends core_Manager
         $tpl->placeObject($data->row);
         
         // Поставяме детайлите
-        if (countR($data->details) && $data->noDetails !== true) {
+        if (countR($data->details) && ($data->noDetails ?? null) !== true) {
+            $detailInline = array();
+            $detailTabbed = array();
             foreach ($data->details as $var => $class) {
-                $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (countR($detailInline) + countR($detailTabbed) + 1);
+                $order = ($data->{$var}->Order ?? null) ? $data->{$var}->Order : 10 * (countR($detailInline) + countR($detailTabbed) + 1);
                 
                 // Стойност -1 в подредбата има смисъл на отказ, детайла да се покаже в този матер
                 if ($order === -1) {
                     continue;
                 }
                 
-                if ($data->{$var}->TabCaption) {
+                if ($data->{$var}->TabCaption ?? null) {
                     $detailTabbed[$var] = $order;
                 } else {
                     $detailInline[$var] = $order;
@@ -460,7 +462,7 @@ class core_Master extends core_Manager
                     $url = getCurrentUrl();
                     
                     // Ако е зададено детайла да е в горния таб, добавяме го, иначе е в долния
-                    if ($data->{$var}->Tab == 'top') {
+                    if (($data->{$var}->Tab ?? null) == 'top') {
                         $tab = &$tabTop;
                         
                         // Да се погрижим да се затвори долния таб ако е бил отворен
@@ -470,10 +472,10 @@ class core_Master extends core_Manager
                     }
                     
                     $url[$tab->getUrlParam()] = $var;
-                    $url['#'] = ($data->{$var}->Tab == 'top') ? "detail{$data->tabTopParam}" : 'detailTabs';
+                    $url['#'] = (($data->{$var}->Tab ?? null) == 'top') ? "detail{$data->tabTopParam}" : 'detailTabs';
                     
-                    if (!$data->{$var}->disabled) {
-                        $tab->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, toUrl($url));
+                    if (!($data->{$var}->disabled ?? null)) {
+                        $tab->TAB($var, ($data->{$var}->TabCaption ?? null) ? $data->{$var}->TabCaption : $var, toUrl($url));
                     }
                 }
                 
@@ -572,6 +574,7 @@ class core_Master extends core_Manager
         } else {
             if (countR($data->singleFields)) {
                 $lastGroup = '';
+                $fieldsHtml = '';
                 foreach ($data->singleFields as $field => $caption) {
                     if (strpos($caption, '->')) {
                         list($group, $caption) = explode('->', $caption);
@@ -587,20 +590,20 @@ class core_Master extends core_Manager
                     
                     $caption = tr($caption);
                     
-                    $unit = $this->fields[$field]->unit;
+                    $unit = $this->fields[$field]->unit ?? null;
                     if ($unit) {
                         $unit = ' ' . tr($unit);
                     }
                     
-                    if ($field->inlineTo) {
-                        $fieldsHtml = str_replace("[#{$field->inlineTo}_inline#]", " {$caption} [#{$field}#]{$unit}", $fieldsHtml);
+                    if ($this->fields[$field]->inlineTo ?? null) {
+                        $fieldsHtml = str_replace("[#{$this->fields[$field]->inlineTo}_inline#]", " {$caption} [#{$field}#]{$unit}", $fieldsHtml);
                     } else {
                         $fieldsHtml .= "\n<tr><td>" . tr($caption) . "</td><td>[#{$field}#]{$unit}[#{$field}_inline#]</td></tr><!--ET_END {$field}-->";
                     }
                 }
             }
             
-            $class = $this->cssClass ? $this->cssClass : $this->className;
+            $class = ($this->cssClass ?? null) ? $this->cssClass : $this->className;
             
             $layoutText = str_replace(array('{{class}}', '{{fieldsHtml}}'), array($class, $fieldsHtml), $this->singleLayoutStr);
         }
@@ -640,7 +643,7 @@ class core_Master extends core_Manager
     public function getRequiredRoles_(&$action, $rec = null, $userId = null)
     {
         if ($action == 'single') {
-            if (!($requiredRoles = $this->canSingle)) {
+            if (!($requiredRoles = ($this->canSingle ?? null))) {
                 $requiredRoles = $this->getRequiredRoles('read', $rec, $userId);
             }
         } else {
@@ -806,10 +809,10 @@ class core_Master extends core_Manager
         $doubleClickUrl = $me->getUrlForDblClick($id, $url);
         if(isset($doubleClickUrl)){
             $doubleClickDataUrl = toUrl($doubleClickUrl);
-            $attr['data-doubleclick'] .= $doubleClickDataUrl;
+            $attr['data-doubleclick'] = $doubleClickDataUrl;
         }
 
-        if ($attr['name']) {
+        if ($attr['name'] ?? null) {
             $attr['title'] = $name;
             $name = $attr['name'];
             unset($attr['name']);
@@ -892,7 +895,7 @@ class core_Master extends core_Manager
             $doubleClickUrl = $me->getUrlForDblClick($id, $url);
             if(isset($doubleClickUrl)){
                 $doubleClickDataUrl = toUrl($doubleClickUrl);
-                $attr['data-doubleclick'] .= $doubleClickDataUrl;
+                $attr['data-doubleclick'] = $doubleClickDataUrl;
             }
         }
 
@@ -925,17 +928,17 @@ class core_Master extends core_Manager
         $rec = $this->fetchRec($id);
         if(!$forFolder) {
             if($this->haveRightFor('edit', $rec)) {
-                $resUrl = array($this, 'edit', $rec->id);
+                $resUrl = array($this, 'edit', $rec->id ?? null);
             }
         }
 
         // Дефолтното урл ще е към сингъла, ако основното урл не е също за него
         if(empty($resUrl)){
-            $resUrl = static::getSingleUrlArray($rec->id);
+            $resUrl = static::getSingleUrlArray($rec->id ?? null);
         }
 
         if($url){
-            if($url[1] == $resUrl[1] && $url[2] == $resUrl[2]){
+            if(($url[1] ?? null) == ($resUrl[1] ?? null) && ($url[2] ?? null) == ($resUrl[2] ?? null)){
                 if(cls::getClassName($url[0]) == cls::getClassName($resUrl[0])){
                     return null;
                 }
@@ -1023,7 +1026,7 @@ class core_Master extends core_Manager
      */
     public function flushUpdateQueue($id)
     {
-        $id = is_object($id->id) ? $id->id : $id;
+        $id = is_object($id) ? $id->id : $id;
         unset($this->updateQueue[$id]);
         $this->updateMaster($id);
     }

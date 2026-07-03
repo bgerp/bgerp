@@ -58,7 +58,7 @@ class ssh_Actions
         // Проверяваме дали е достъпен
         $timeoutInSeconds = 1;
         if (!($fp = @fsockopen($this->host, $this->port, $errCode, $errStr, $timeoutInSeconds))) {
-            throw new core_exception_Expect("@{$this->host}: не може да бъде достигнат");
+            throw new core_exception_Expect("@{$this->host}: не може да бъде достигнат. ERR CODE: {$errCode}. ERR: {$errStr}");
         }
         fclose($fp);
         

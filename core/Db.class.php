@@ -100,7 +100,37 @@ class core_Db
      * @var string
      */
     public $dbHost;
-    
+
+
+    /**
+     *
+     */
+    public $dbCharset;
+
+
+    /**
+     *
+     */
+    public $dbCollation;
+
+
+    /**
+     *
+     */
+    public $dbCharsetClient;
+
+
+    /**
+     *
+     */
+    public $varcharIndexPrefix;
+
+
+    /**
+     *
+     */
+    public $query;
+
     
     /**
      * @var string
@@ -178,6 +208,8 @@ class core_Db
     {
         if (!isset(self::$links[$this->dbHost][$this->dbUser][$this->dbName]) ||
             !($link = self::$links[$this->dbHost][$this->dbUser][$this->dbName])) {
+            // PHP 8.2 се получава exception при грешка, вместо кодът да продължи до if (!$link).
+            mysqli_report(MYSQLI_REPORT_OFF);
             if (strpos($this->dbHost, ':')) {
                 list($host, $port) = explode(':', $this->dbHost);
                 $link = new mysqli($host, $this->dbUser, $this->dbPass, '', $port);
@@ -261,7 +293,7 @@ class core_Db
         }
         
         DEBUG::startTimer('DB::query()');
-        DEBUG::log("${sqlQuery}");
+        DEBUG::log("{$sqlQuery}");
 
         $link = $this->connect();
         $this->query = $sqlQuery;
@@ -409,7 +441,7 @@ class core_Db
      */
     public function getLMT($table)
     {
-        $dbRes = $this->query("SHOW TABLE STATUS LIKE \"${table}\"");
+        $dbRes = $this->query("SHOW TABLE STATUS LIKE \"{$table}\"");
         $lmt = 0;
         
         if ($this->numRows($dbRes) == 1) {
@@ -617,7 +649,8 @@ class core_Db
                 $part = 'out';
                 $optInd = 0;
                 $len = strlen($rest);
-                
+                $res->options = [];
+
                 for ($i = 0; $i < $len; $i++) {
                     $c = $rest[$i];
                     
@@ -629,15 +662,15 @@ class core_Db
                         }
                     } elseif ($part == 'in') {
                         if ($c == "'") {
-                            if ($rest[$i + 1] == "'") {
+                            if (isset($rest[$i + 1]) && $rest[$i + 1] == "'") {
                                 $i = $i + 1;
-                                $res->options[$optInd] .= $c;
+                                $res->options[$optInd] = ($res->options[$optInd] ?? '') . $c;
                             } else {
-                                $res->options[$optInd] .= '';
+                                $res->options[$optInd] ??= '';
                                 $part = 'out';
                             }
                         } else {
-                            $res->options[$optInd] .= $c;
+                            $res->options[$optInd] = ($res->options[$optInd] ?? '') . $c;
                         }
                     }
                 }
@@ -646,7 +679,7 @@ class core_Db
                 
                 $res->size = trim($rest[0]);
                 
-                if ($rest[1]) {
+                if ($rest[1] ?? null) {
                     $res->unsigned = (strpos(strtolower($rest[1]), 'unsigned') !== false);
                 }
             }
@@ -686,31 +719,32 @@ class core_Db
         // всички параметри на полето, трябва да са с големи букви
         
         
+        $typeInfo = '';
         if ($this->isType($field->type, 'have_options')) {
             foreach ($field->options as $opt) {
                 $typeInfo .= ($typeInfo ? ',' : '') . "'" . str_replace("'", '\\' . "'", $opt) . "'";
             }
-            $typeInfo = "(${typeInfo})";
+            $typeInfo = "({$typeInfo})";
         } elseif ($this->isType($field->type, 'have_len')) {
             $typeInfo = "({$field->size})";
         }
         
-        $default = $notNull = $unsigned = $collation = '';
+        $default = $notNull = $unsigned = $collation = $autoIncrement = '';
         
-        if ($field->collation) {
+        if (!empty($field->collation)) {
             $collation = " COLLATE {$field->collation}";
         }
-        
-        if ($field->unsigned) {
+
+        if (!empty($field->unsigned)) {
             $unsigned = ' UNSIGNED';
         }
         
         
-        if ($field->notNull) {
+        if (!empty($field->notNull)) {
             $notNull = ' NOT NULL';
         }
-        
-        if ($field->default !== null) {
+
+        if (isset($field->default) && $field->default !== null) {
             $default = " DEFAULT '{$field->default}'";
         }
         
@@ -745,7 +779,7 @@ class core_Db
         // Ако вече имаме индекс с подобно име, дропим го
         $indexes = $this->getIndexes($tableName);
         
-        if ($indexes[$indexName]) {
+        if ($indexes[$indexName] ?? null) {
             $this->query("ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`", false, true);
             $res = true;
         }
@@ -756,9 +790,10 @@ class core_Db
             return;
         }
         
+        $fields = '';
         if (countR($fieldsList)) {
             foreach ($fieldsList as $f) {
-                list($name, $len) = explode('(', $f);
+                list($name, $len) = explode('(', $f) + [1 => null];
                 
                 $name = str::phpToMysqlName($name);
                 

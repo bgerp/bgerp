@@ -145,6 +145,12 @@ defIfNot('CAT_SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC', 'yes');
 
 
 /**
+ *
+ */
+defIfNot('CAT_EXPORTABLE_FIELDS', '');
+
+
+/**
  * Колко назад да се броят използванията на продуктовите опаковки->Месеци
  */
 defIfNot('CAT_LAST_PACK_USAGES', 12);
@@ -219,9 +225,12 @@ class cat_Setup extends core_ProtoSetup
         'cat_ListingDetails',
         'cat_PackParams',
         'cat_ParamFormulaVersions',
+        'cat_products_Relations',
+        'cat_RelationTypes',
         'migrate::repairSearchKeywords2536',
         'migrate::calcExpand36Field2445v2',
         'migrate::updateFiltersCreatedBy2625',
+        'migrate::deleteHsCode2609',
     );
     
     
@@ -250,7 +259,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'cat_GeneralProductDriver,cat_ImportedProductDriver,cat_interface_BomDetailImport,cat_interface_AllergensParamAggregateImpl,cat_interface_EnergyValueAggregateImpl';
+    public $defClasses = 'cat_GeneralProductDriver,cat_ImportedProductDriver,cat_interface_BomDetailImport,cat_interface_AllergensParamAggregateImpl,cat_interface_EnergyValueAggregateImpl, cat_RepairProductDriver';
     
     
     /**
@@ -282,6 +291,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_PACKAGINGS_NOT_TO_USE_FOR_VOLUME_CALC' => array('keylist(mvc=cat_UoM,select=name)', array('caption' => 'Кои опаковки да се пропускат, при избор на опаковка за транспортен обем->Избор')),
         'CAT_SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC' => array('enum(yes=Да,no=Не)', array('caption' => 'Показване на изображението на универсалния артикул във външните документи->Избор')),
         'CAT_LAST_PACK_USAGES' => array('int(Min=1)', array('caption' => 'Колко назад да се броят използванията на продуктовите опаковки->Месеци')),
+        'CAT_EXPORTABLE_FIELDS' => array('keylist(mvc=cat_Params, select=typeExt)', array('caption' => 'Полета|*&nbsp; |коието мога да се експортират->Избор')),
     );
     
     
@@ -490,5 +500,17 @@ class cat_Setup extends core_ProtoSetup
         $systemUserId = core_Users::SYSTEM_USER;
         $query = "UPDATE {$Filters->dbTableName} SET {$createdByColName} = {$systemUserId} WHERE {$createdByColName} IS NULL OR {$createdByColName} = 0";
         $Filters->db->query($query);
+    }
+
+
+    /**
+     * Изтриване на премахнат продуктов параметър
+     */
+    public function deleteHsCode2609()
+    {
+        $hsCodeId = cat_Params::fetchIdBySysId('hsCode');
+        if(!empty($hsCodeId)){
+            cat_products_Params::delete("#paramId = {$hsCodeId}");
+        }
     }
 }

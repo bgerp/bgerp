@@ -338,8 +338,8 @@ function getRandomString($length = 14)
  */
 function logHitState($debugCode = '200', $state = array())
 {
-    if (defined('DEBUG_FATAL_ERRORS_FILE') && core_Debug::$stopLoggingDebug) {
-        
+    if (defined('DEBUG_FATAL_ERRORS_FILE') && !core_Debug::$stopLoggingDebug) {
+
         // Максимална стойност за дебъг времената
         $maxDebugTimeCnt = 3000;
         
@@ -410,7 +410,7 @@ function logHitState($debugCode = '200', $state = array())
         $state['_debugCode'] = $debugCode;
         $state['_cookie'] = $_COOKIE;
         
-        if ($state['httpStatusCode']) {
+        if (!empty($state['httpStatusCode'])) {
             $state['_info'] .= ' >> Code: ' . $state['httpStatusCode'];
         }
         

@@ -201,7 +201,7 @@ class acc_Balances extends core_Master
         if (empty($rec->periodId)) {
             $row->periodId = dt::mysql2verbal($rec->fromDate, 'd', null, false) . '-' . dt::mysql2verbal($rec->toDate, 'd F Y', null, false);
 
-            if ($fields['-list']) {
+            if (isset($fields['-list'])) {
                 if ($mvc->haveRightFor('single', $rec)) {
                     $row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), null, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост|* {$row->periodId}");
                 }
@@ -213,11 +213,11 @@ class acc_Balances extends core_Master
 
         // Добавяме връзка към последния алтерниращ документ
         if ($rec->lastAlternationDocClass && $rec->lastAlternationDocId) {
-            $row->lastAlternation .= ht::createLink('↗', array($rec->lastAlternationDocClass, 'single', $rec->lastAlternationDocId));
+            $row->lastAlternation = ($row->lastAlternation ?? '') . ht::createLink('↗', array($rec->lastAlternationDocClass, 'single', $rec->lastAlternationDocId));
         }
 
         if ($rec->lastCalculateChange == 'no') {
-            $row->lastCalculate .= ' ' . "<span title='При последното изчисляване не е настъпила промяна'>✓</span>";
+            $row->lastCalculate = ($row->lastCalculate ?? '') . ' ' . "<span title='При последното изчисляване не е настъпила промяна'>✓</span>";
         }
 
         if ($rec->lastAlternation > $rec->lastCalculate) {
@@ -225,7 +225,8 @@ class acc_Balances extends core_Master
         }
 
         if ($mvc->haveRightFor('forcecalc', $rec)) {
-            $row->lastCalculate .= ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
+            $row->lastCalculate = ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'debug' => true, 'ret_url' => true), false, 'ef_icon=img/16/bug.png,select=Ръчно рекалкулиране на баланса с дебъг') . "&nbsp;&nbsp;" . ($row->lastCalculate ?? '');
+            $row->lastCalculate .= "&nbsp;&nbsp;" . ht::createLink('', array($mvc, 'forceCalc', $rec->id, 'ret_url' => true), false, 'ef_icon=img/32/arrow_refresh.png,select=Ръчно рекалкулиране на баланса');
         }
     }
 
@@ -340,32 +341,87 @@ class acc_Balances extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('forcecalc', $rec);
+        $debug = Request::get('debug', 'int');
 
-        // Дали ще се изчаква преизчисляването на балансите преди да се форсира друго
+        // Обикновен бутон – без трейс
+        if (empty($debug)) {
+            $this->doManualForceCalc($rec);
+        }
+
+        $form = cls::get('core_Form');
+        if (empty($rec->periodId)) {
+            $periodId = dt::mysql2verbal($rec->fromDate, 'd', null, false) . '-' . dt::mysql2verbal($rec->toDate, 'd F Y', null, false);
+        } else {
+            $periodId = acc_Periods::getTitleById($rec->periodId);
+        }
+
+        $form->title = 'Преизчисляване на баланса за|* <b>' . $periodId . "</b>";
+        $form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Дебъг проследяване на сметка->Избор');
+        $form->input();
+
+        if ($form->isSubmitted()) {
+            $accNum = ($form->rec->accountId) ? acc_Accounts::getNumById($form->rec->accountId) : null;
+
+            // Дебъг бутонът е натиснат → трейсваме винаги, независимо дали има сметка
+            $this->doManualForceCalc($rec, $accNum, true);
+        }
+
+        $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Преизчисляване, class=submitBtn');
+        $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+        return $this->renderWrapping($form->renderHtml());
+    }
+
+
+    /**
+     * Изпълнява ръчното преизчисляване на баланс
+     *
+     * @param stdClass    $rec
+     * @param string|null $accNum - номер на сметка за дебъг проследяване или NULL
+     * @param bool        $trace  - дали да се генерира дебъг трейс (CSV). Не зависи от $accNum
+     */
+    private function doManualForceCalc($rec, $accNum = null, $trace = false)
+    {
         $checkForLock = true;
         $alternateWindow = acc_setup::get('ALTERNATE_WINDOW');
         if ($alternateWindow) {
             $windowStart = dt::addSecs(-1 * $alternateWindow, null, false);
-            if($rec->toDate < $windowStart) {
+            if ($rec->toDate < $windowStart) {
                 $checkForLock = false;
             }
         }
 
-        if($checkForLock){
-            // Ако изчисляването е заключено не го изпълняваме
+        if ($checkForLock) {
             $lockKey = 'RecalcBalances';
             if (!core_Locks::obtain($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
                 $this->logNotice('Изчисляването на баланса е заключено от друг процес');
-
                 followRetUrl(null, "|Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
             }
         }
 
+        // Трейсваме само ако изрично е поискано (дебъг бутон)
+        if ($trace) {
+            acc_BalanceDebugger::clear($accNum ?? '');
+            Mode::push('traceBalance', true);
+        }
+
         self::forceCalc($rec, true);
         self::logWrite('Ръчно преизчисляване на баланса', $rec->id);
-        core_Locks::release($lockKey);
 
-        followRetUrl(null, "|Балансът е успешно рекалкулиран|*!");
+        if ($trace) {
+            Mode::pop('traceBalance');
+        }
+
+        if (isset($lockKey)) {
+            core_Locks::release($lockKey);
+        }
+
+        if ($trace) {
+            // download() извиква exit – кодът след тук не се достига
+            acc_BalanceDebugger::download($rec, $accNum ?? '');
+        } else {
+            followRetUrl(null, 'Балансът е преизчислен успешно');
+        }
     }
 
 
@@ -444,40 +500,70 @@ class acc_Balances extends core_Master
      */
     public static function calc($rec)
     {
-        // Вземаме инстанция на детайлите на баланса
-        $bD = cls::get('acc_BalanceDetails');
-
-        // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
-        $lastRec = self::getBalanceBefore($rec->toDate);
+        $bD                 = cls::get('acc_BalanceDetails');
+        $lastRec            = self::getBalanceBefore($rec->toDate);
         $periodCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->toDate);
 
+        if (Mode::is('traceBalance')) {
+            acc_BalanceDebugger::log('calc_start', [
+                'balance_from'    => $rec->fromDate,
+                'balance_to'      => $rec->toDate,
+                'period_currency' => $periodCurrencyCode,
+            ]);
+        }
+
         if ($lastRec) {
+            $isMiddleBalance  = !!empty($lastRec->periodId);
+            $lastCurrencyCode = acc_Periods::getBaseCurrencyCode($lastRec->toDate);
+            $convertToDate    = ($lastCurrencyCode != $periodCurrencyCode) ? $rec->toDate : null;
 
-            // Ако има зададен период не е междинен баланса, иначе е $convertToDate
-            $isMiddleBalance = !!empty($lastRec->periodId);
-            $lastCurrencyCode =  acc_Periods::getBaseCurrencyCode($lastRec->toDate);
-            $convertToDate = $lastCurrencyCode != $periodCurrencyCode ? $rec->toDate : null;
+            if (Mode::is('traceBalance')) {
+                acc_BalanceDebugger::log('prev_balance_found', [
+                    'prev_balance_id'   => $lastRec->id,
+                    'prev_from'         => $lastRec->fromDate,
+                    'prev_to'           => $lastRec->toDate,
+                    'prev_period_id'    => $lastRec->periodId,
+                    'is_middle_balance' => $isMiddleBalance ? 'да (без период)' : 'не (нормален)',
+                    'prev_currency'     => $lastCurrencyCode,
+                    'convert_to_date'   => $convertToDate ?? '(няма конвертиране)',
+                ]);
+            }
 
-            // Зареждаме баланса
             $bD->loadBalance($lastRec->id, $isMiddleBalance, null, null, null, null, null, $convertToDate);
             $firstDay = dt::addDays(1, $lastRec->toDate);
             $firstDay = dt::verbal2mysql($firstDay, false);
         } else {
+            if (Mode::is('traceBalance')) {
+                acc_BalanceDebugger::log('prev_balance_found', [
+                    'prev_balance_id' => null,
+                    'note'            => 'Няма предходен баланс – старт от TIME_BEGIN',
+                ]);
+            }
             $firstDay = self::TIME_BEGIN;
         }
 
-        // Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
+        if (Mode::is('traceBalance')) {
+            acc_BalanceDebugger::log('journal_range', [
+                'journal_from' => $firstDay,
+                'journal_to'   => $rec->toDate,
+            ]);
+        }
+
         $isMiddleBalance = !$rec->periodId;
         $bD->calcBalanceForPeriod($firstDay, $rec->toDate, $isMiddleBalance);
 
-        // Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
         if ($bD->saveBalance($rec->id)) {
             $rec->lastCalculateChange = 'yes';
         } else {
             $rec->lastCalculateChange = 'no';
         }
 
-        // Отбелязваме, кога за последно е калкулиран този баланс
+        if (Mode::is('traceBalance')) {
+            acc_BalanceDebugger::log('save_result', [
+                'changed' => $rec->lastCalculateChange === 'yes' ? 'да – имаше промяна' : 'не – без промяна',
+            ]);
+        }
+
         $rec->lastCalculate = dt::now();
         self::save($rec, 'lastCalculate,lastCalculateChange');
     }
@@ -727,11 +813,12 @@ class acc_Balances extends core_Master
      * @param string|NULL $type    - кредното, дебитното или крайното салдо
      * @param string      $accFrom - сметки с които може да кореспондира
      * @param string|null $toBaseCurrencyDate - към основната валута за коя дата
+     * @params array      $ignoreClassIds - записите от кои класове да се игнорират
      * @params array $items - масив с пера, които трябва да са на посочените позиции
      *
      * @return stdClass $res - К-та групирани по размерната номенклатура
      */
-    public static function getBlQuantities($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $toBaseCurrencyDate = null)
+    public static function getBlQuantities($jRecs, $accs, $type = null, $accFrom = null, $items = array(), $toBaseCurrencyDate = null, $ignoreClassIds = array())
     {
         $res = array();
         
@@ -769,7 +856,11 @@ class acc_Balances extends core_Master
             if (countR($corespondingAccArr) && (!in_array($rec->debitAccId, $corespondingAccArr) && !in_array($rec->creditAccId, $corespondingAccArr))) {
                 continue;
             }
-            
+
+            if (countR($ignoreClassIds)) {
+                if (in_array($rec->docType, $ignoreClassIds)) continue;
+            }
+
             // Ако има посочени задължителни пера
             if (countR($items) > 0) {
                 $skip = false;

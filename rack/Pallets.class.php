@@ -186,6 +186,54 @@ class rack_Pallets extends core_Manager
 
 
     /**
+     * Връща количествата от движения по зони, групирани по палет и състояние
+     *
+     * @param array $palletIds
+     * @param array $states
+     * @return array
+     */
+    private static function getSumInZoneMovementsByPallets($palletIds, $states)
+    {
+        $res = array();
+        $palletIds = arr::make($palletIds, true);
+        $states = arr::make($states, true);
+
+        if (!countR($palletIds) || !countR($states)) {
+
+            return $res;
+        }
+
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->in('palletId', $palletIds);
+        $mQuery->in('state', $states);
+        $mQuery->show('palletId,state,zones,quantityInPack');
+
+        while ($mRec = $mQuery->fetch()) {
+            $zones = type_Table::toArray($mRec->zones);
+            if (!countR($zones)) {
+                continue;
+            }
+
+            $palletId = $mRec->palletId;
+            $state = $mRec->state;
+
+            if (!isset($res[$palletId])) {
+                $res[$palletId] = array();
+            }
+            if (!isset($res[$palletId][$state])) {
+                $res[$palletId][$state] = 0;
+            }
+
+            foreach ($zones as $zRec) {
+                $res[$palletId][$state] += $zRec->quantity * $mRec->quantityInPack;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Връща наличните палети за артикула
      *
      * @param int  $productId               - ид на артикул
@@ -199,15 +247,27 @@ class rack_Pallets extends core_Manager
     public static function getAvailablePallets($productId, $storeId, $batch = null, $withoutPendingMovements = false, $deductWaitingMovements = false)
     {
         $pallets = array();
+        $palletRecs = array();
+        $palletIds = array();
         $query = self::getQuery();
         $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
-        $query->show('quantity,position,createdOn');
+        $query->show('id,quantity,position,batch,createdOn');
         if(!is_null($batch)){
             $query->where(array("#batch = '[#1#]'", $batch));
         }
        
         $query->orderBy('createdOn', 'ASC');
         while ($rec = $query->fetch()) {
+            $palletRecs[$rec->id] = $rec;
+            $palletIds[$rec->id] = $rec->id;
+        }
+
+        $movementSums = array();
+        if ($withoutPendingMovements === true) {
+            $movementSums = self::getSumInZoneMovementsByPallets($palletIds, array('pending', 'waiting'));
+        }
+
+        foreach ($palletRecs as $rec) {
             $rest = $rec->quantity;
             
             // Ако се изискват само палети, към които няма чакащи движения, другите се пропускат
@@ -216,14 +276,15 @@ class rack_Pallets extends core_Manager
                 // Палет, от който има неприключено движение не се изключва автоматично от подаваните, а се сумират количествата
                 // на всички неприключени движения насочени от него, и ако въпросната сума е по-малка от наличното на палета
                 // количество, той се подава на функцията, с остатъчното количество.
-                $sumPending = static::getSumInZoneMovements($productId, $rec->batch, $rec->id, 'pending');
+                $sumPending = $movementSums[$rec->id]['pending'] ?? 0;
                 if($sumPending >= $rec->quantity) continue;
                 $rest = $rec->quantity - $sumPending;
             }
 
             // Ако ще се приспадат и запазените движения тяхното к-во да се изважда от наличното на палета
+            // Запазваме досегашното поведение: waiting се приспада, когато се приспада и pending.
             if ($withoutPendingMovements === true) {
-                $sumWaiting = static::getSumInZoneMovements($productId, $rec->batch, $rec->id, 'waiting');
+                $sumWaiting = $movementSums[$rec->id]['waiting'] ?? 0;
                 if($sumWaiting >= $rest) continue;
                 $rest = $rest - $sumWaiting;
             }
@@ -545,7 +606,7 @@ class rack_Pallets extends core_Manager
         core_Cache::removeByType($cacheType);
 
         // Ако е ревизирано движението
-        if($rec->_isRevisioned){
+        if($rec->_isRevisioned ?? null){
 
             // Лог на ревизията и изтриване на чакащите движения
             rack_Logs::add($rec->storeId, $rec->productId, 'revision', $rec->position, null, $rec->_logMsg);
@@ -554,7 +615,19 @@ class rack_Pallets extends core_Manager
             $hasMovementWithZones = rack_Movements::count("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}') AND (#zoneList IS NOT NULL OR #zoneList != '')");
 
             // Изтриване на чакащите движения за този палет
-            rack_Movements::delete("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}')");
+            $mQuery = rack_Movements::getQuery();
+            $mQuery->where("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}')");
+            $mQuery->show('id');
+            while ($mRec = $mQuery->fetch()) {
+                $lockId = "movement{$mRec->id}";
+                if (!core_Locks::obtain($lockId, 120, 0, 0)) {
+                    continue;
+                }
+
+                rack_Movements::delete($mRec->id);
+
+                core_Locks::release($lockId);
+            }
 
             // Ако е изтрито поне едно движение към зона, да се регенерират всички движения в склада
             if($hasMovementWithZones){
@@ -839,7 +912,7 @@ class rack_Pallets extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             $uomId = cat_Products::fetch($rec->productId)->measureId;
             if (rack_Movements::haveRightFor('add', (object) array('productId' => $rec->productId)) && $rec->state != 'closed') {
                 $addUrl = array('rack_Movements', 'add', 'productId' => $rec->productId, 'palletId' => $rec->id,  'ret_url' => true);
@@ -853,6 +926,11 @@ class rack_Pallets extends core_Manager
                 if(rack_OldMovements::haveRightFor('list')){
                     $row->_rowTools->addLink('Хронология', array('rack_OldMovements', 'list', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
                 }
+            }
+
+            if(rack_OldMovements::haveRightFor('list')){
+                $historyUrl = array('rack_OldMovements', 'list', 'search' => $rec->position, 'ret_url' => true);
+                $row->label .= '&nbsp;' . ht::createLink('', $historyUrl, null, 'ef_icon=img/16/clock_history.png,title=Хронология на движенията от/към позицията');
             }
             
             $row->productId = cat_Products::getShortHyperlink($rec->productId, true);
@@ -1345,21 +1423,81 @@ class rack_Pallets extends core_Manager
         $key = "{$productId}|{$storeId}|{$direction}";
         if(array_key_exists($key, static::$lastPositionCache)) return static::$lastPositionCache[$key];
 
+        $positions = static::getLastPalletPositions($productId, $storeId, $direction, 1);
+        static::$lastPositionCache[$key] = countR($positions) ? $positions[0]->position : null;
+
+        return static::$lastPositionCache[$key];
+    }
+
+
+    /**
+     * Последните различни позиции, на които артикула е качен/свален
+     *
+     * @param int    $productId
+     * @param int    $storeId
+     * @param string $direction
+     * @param int    $limit
+     * @return array
+     */
+    public static function getLastPalletPositions($productId, $storeId, $direction = 'down', $limit = 3)
+    {
+        $key = "positions|{$productId}|{$storeId}|{$direction}|{$limit}";
+        if(array_key_exists($key, static::$lastPositionCache)) return static::$lastPositionCache[$key];
+
+        $positions = static::getLastPalletPositionsFrom('rack_OldMovements', $productId, $storeId, $direction, $limit);
+        if(!countR($positions)){
+            $positions = static::getLastPalletPositionsFrom('rack_Movements', $productId, $storeId, $direction, $limit);
+        }
+
+        static::$lastPositionCache[$key] = $positions;
+
+        return static::$lastPositionCache[$key];
+    }
+
+
+    /**
+     * Последните различни позиции според модел с движения
+     *
+     * @param string $mvc
+     * @param int    $productId
+     * @param int    $storeId
+     * @param string $direction
+     * @param int    $limit
+     * @return array
+     */
+    private static function getLastPalletPositionsFrom($mvc, $productId, $storeId, $direction, $limit)
+    {
         $floor = rack_PositionType::FLOOR;
-        $mQuery = rack_Movements::getQuery();
+        $mQuery = $mvc::getQuery();
         $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state IN ('active', 'closed')");
         if($direction == 'down'){
             $field = 'position';
-            $mQuery->where("(#positionTo IS NULL OR #positionTo = '{$floor}') AND #position IS NOT NULL");
+            $mQuery->where("#position IS NOT NULL AND #position != '{$floor}'");
+            $mQuery->where(rack_Racks::getRackPositionSqlCondition($field, $storeId));
         } else {
             $field = 'positionTo';
-            $mQuery->where("#position = '{$floor}' AND #positionTo IS NOT NULL");
+            $mQuery->where("#position = '{$floor}' AND #positionTo IS NOT NULL AND #positionTo != '{$floor}'");
+            $mQuery->where(rack_Racks::getRackPositionSqlCondition($field, $storeId));
         }
 
-        $mQuery->orderBy('createdOn', 'DESC');
-        $mQuery->show($field);
-        static::$lastPositionCache[$key] = $mQuery->fetch()->{$field};
+        $mQuery->XPR('lastOn', 'datetime', 'MAX(COALESCE(#modifiedOn, #createdOn))');
+        $mQuery->groupBy($field);
+        $mQuery->orderBy('lastOn', 'DESC');
+        $mQuery->show("{$field},lastOn");
+        $mQuery->limit(max(50, $limit * 10));
 
-        return static::$lastPositionCache[$key];
+        $positions = array();
+        while($mRec = $mQuery->fetch()){
+            if(!rack_Racks::isRackPosition($mRec->{$field}, $storeId)){
+                continue;
+            }
+
+            $positions[] = (object)array('position' => $mRec->{$field}, 'lastOn' => $mRec->lastOn);
+            if(countR($positions) >= $limit){
+                break;
+            }
+        }
+
+        return $positions;
     }
 }

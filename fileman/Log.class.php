@@ -374,7 +374,7 @@ class fileman_Log extends core_Manager
         $form->input('search, Protected', 'silent');
         
         // Ако има текст за търсене
-        if ($search = trim($form->rec->search)) {
+        if ($search = trim($form->rec->search ?? '')) {
             $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
             plg_Search::applySearch($search, $data->query, 'searchKeywords');
         } else {
@@ -593,6 +593,7 @@ class fileman_Log extends core_Manager
         $query->where('#dataId IS NULL');
         
         // Обхождаме резултатите
+        $cnt = 0;
         while ($rec = $query->fetch()) {
             
             // Флаг, дали да се премахне

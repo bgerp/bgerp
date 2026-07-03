@@ -41,7 +41,7 @@ class embed_Detail extends core_Detail
         
         // Добавяме задължителните полета само ако не е дефинирано, че вече съществуват
         if (!isset($mvc->fields[$mvc->driverClassField])) {
-            $caption = $mvc->driverClassCaption ? $mvc->driverClassCaption : 'Вид';
+            $caption = $mvc->driverClassCaption ?? 'Вид';
             $mvc->FLD($mvc->driverClassField, "class(interface={$mvc->driverInterface}, allowEmpty, select=title)", "caption={$caption},mandatory,silent,smartCenter,refreshForm,after=id");
         }
         
@@ -80,7 +80,7 @@ class embed_Detail extends core_Detail
         // Ако няма достъпни драйвери редирект със съобщение
         if (!countR($interfaces)) {
             $intf = cls::get($this->driverInterface);
-             $msg = '|Липсват опции за|* |' . ($intf->driversCommonName ? $intf->driversCommonName : $this->title);
+             $msg = '|Липсват опции за|* |' . ($intf->driversCommonName ?? $this->title);
             if (haveRole('admin')) {
                 redirect(array('core_Packs'), false, $msg, 'error');
             } else {

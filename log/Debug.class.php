@@ -270,7 +270,7 @@ class log_Debug extends core_Manager
         $sArr = array();
         $searchArr = $data->listFilter->showFields;
         foreach ($searchArr as $fName) {
-            $sArr[$fName] = $data->listFilter->rec->{$fName};
+            $sArr[$fName] = $data->listFilter->rec->{$fName} ?? null;
         }
         
         // Вземаме файловете, които да се показват
@@ -291,7 +291,7 @@ class log_Debug extends core_Manager
         // Показваме линкове за навигиране
         $aPos = array_search($debugFileName, array_keys($fArr));
         
-        $otherLinkUrl = array($this, 'Default', 'search' => $data->listFilter->rec->search);
+        $otherLinkUrl = array($this, 'Default', 'search' => $data->listFilter->rec->search ?? null);
         
         if ($debugFile) {
             // Ако има следващ дебъг файл
@@ -333,6 +333,7 @@ class log_Debug extends core_Manager
         }
         
         // Показваме всички файлове
+        $mCnt = 0;
         foreach ($fArr as $fNameWithExt => $dummy) {
             list($fName) = explode('.', $fNameWithExt, 2);
             
@@ -346,14 +347,14 @@ class log_Debug extends core_Manager
             $linkUrl = array($this, 'Default', 'debugFile' => $fName);
             $linkUrl += $sArr;
             
-            if ($data->listFilter->rec->search) {
+            if (!empty($data->listFilter->rec->search)) {
                 $linkUrl['search'] = $data->listFilter->rec->search;
             }
             
             if ($fName == $debugFile) {
                 $cls .= ' current';
                 $linkUrl = array();
-            } elseif ($otherFilesFromSameHit[$fNameWithExt]) {
+            } elseif (!empty($otherFilesFromSameHit[$fNameWithExt])) {
                 $cls .= ' same';
             }
             
@@ -385,7 +386,7 @@ class log_Debug extends core_Manager
                 $tpl->replace("<iframe class='debugIframe' style='width:100%; height: 100%;'  src='" . toUrl(array($this, 'ShowDebug', 'debugFile' => $debugFile)). "'>" . '</iframe>', 'ERR_FILE');
                 
                 $rArr = $this->getDebugFileInfoArr($fPath);
-                $tpl->replace($rArr['_info'], 'SHOW_DEBUG_INFO');
+                $tpl->replace($rArr['_info'] ?? '', 'SHOW_DEBUG_INFO');
                 
                 if (is_file($fPath) && is_readable($fPath)) {
                     $date = @filemtime($fPath);
@@ -612,17 +613,19 @@ class log_Debug extends core_Manager
         $rArr = $this->getDebugFileInfoArr($fPath);
         expect($fPath);
         
+        $res = null;
+
         // Рендираме лога
         if (!empty($rArr)) {
             $rArr = (array) $rArr;
             
             $rArr['update'] = false;
             
-            if (!$rArr['contex']) {
-                $rArr['contex'] = (object) $rArr['SERVER'];
+            if (empty($rArr['contex'])) {
+                $rArr['contex'] = (object) ($rArr['SERVER'] ?? []);
             } else {
                 $rArr['contex'] = (object) $rArr['contex'];
-                if ($rArr['SERVER']) {
+                if (!empty($rArr['SERVER'])) {
                     $rArr['contex']->_SERVER = $rArr['SERVER'];
                 }
             }
@@ -635,8 +638,8 @@ class log_Debug extends core_Manager
                 $rArr['contex']->_POST = $rArr['POST'];
             }
             
-            if (!$rArr['errType']) {
-                if ($rArr['_debugCode']) {
+            if (empty($rArr['errType'])) {
+                if (!empty($rArr['_debugCode'])) {
                     $rArr['header'] .= $rArr['_debugCode'];
                 }
                 
@@ -708,7 +711,7 @@ class log_Debug extends core_Manager
             $data['tabContent'] .= '<div class="simpleTabsContent">' . core_Debug::getTraceAsHtml($state['_stack']) . '</div>';
         }
         
-        if ($state['_code']) {
+        if (!empty($state['_code'])) {
             $data['code'] = $state['_code'];
         }
         
@@ -745,7 +748,7 @@ class log_Debug extends core_Manager
         $lineHtml = core_Debug::getEditLink($state['_breakFile'], $state['_breakLine'], $state['_breakLine']);
         $fileHtml = core_Debug::getEditLink($state['_breakFile']);
         
-        if (!$state['headerCls']) {
+        if (empty($state['headerCls'])) {
             $data['headerCls'] = 'errorMsg';
         } else {
             $data['headerCls'] = $state['headerCls'];
@@ -768,7 +771,7 @@ class log_Debug extends core_Manager
         }
         
         // Показваме линковете за работа със сигнала
-        if ($state['_debugFileName']) {
+        if (!empty($state['_debugFileName'])) {
             $bName = basename($state['_debugFileName'], '.debug');
             
             if ($bName) {
@@ -995,7 +998,7 @@ class log_Debug extends core_Manager
         $sameFileArr = array();
         
         // Стойността на търсенето
-        $search = trim($searchArr['search']);
+        $search = trim($searchArr['search'] ?? '');
         
         // Ако се филтрира по потребител
         $searchUser = null;
@@ -1213,7 +1216,7 @@ class log_Debug extends core_Manager
                 
                 $foundFName = false;
                 
-                if ($fArr[$fName]) {
+                if (!empty($fArr[$fName])) {
                     $foundFName = true;
                 }
                 

@@ -104,7 +104,7 @@ class select2_PluginSelect extends core_Plugin
      */
     public static function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
-        if ($invoker->params['isReadOnly']) {
+        if (!empty($invoker->params['isReadOnly'])) {
             
             return ;
         }
@@ -133,9 +133,9 @@ class select2_PluginSelect extends core_Plugin
             return;
         }
         
-        $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
+        $select = ($attr['placeholder'] ?? null) ?: '';
         
-        if ($invoker->params['allowEmpty'] || isset($invoker->options['']) || isset($invoker->options[' '])) {
+        if (($invoker->params['allowEmpty'] ?? null) || isset($invoker->options['']) || isset($invoker->options[' '])) {
             $allowClear = true;
         } else {
             $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
@@ -145,7 +145,7 @@ class select2_PluginSelect extends core_Plugin
         
         $ajaxUrl = '';
 
-        $matchOnlyStartsWith = $invoker->params['find'] == 'everywhere' ? false : true;
+        $matchOnlyStartsWith = ($invoker->params['find'] ?? null) == 'everywhere' ? false : true;
 
         if ($optionsCnt > $maxSuggestions) {
             $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1, 'matchOnlyStartsWith' => $matchOnlyStartsWith));
@@ -154,7 +154,7 @@ class select2_PluginSelect extends core_Plugin
         $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
         
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl, false, $invoker->params['forceOpen'], $minimumResultsForSearch, $matchOnlyStartsWith);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl, false, $invoker->params['forceOpen'] ?? null, $minimumResultsForSearch, $matchOnlyStartsWith);
     }
     
     

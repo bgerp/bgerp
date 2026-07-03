@@ -150,19 +150,19 @@ class hr_Indicators extends core_Manager
             
             $this->logWrite("Преизчисляване на индикаторите");
             $sources = !empty($rec->sources) ? keylist::toArray($rec->sources) : null;
-            core_App::setTimeLimit(900);
-            $timeline = (empty($rec->timeline)) ? '0000-00-00' : $rec->timeline;
+            core_App::setTimeLimit(1200);
+            $timeline = (empty($rec->timeline)) ? '0000-00-00 00:00:00' : $rec->timeline;
 
             Mode::push('manualRecalc', true);
             self::recalc($timeline, $sources);
             Mode::pop('manualRecalc');
 
-            followRetUrl(null, '|Индикаторите са преизчислени');
+            followRetUrl(null, '|Индикаторите са преизчислени|*!');
         }
         
         // Добавяне на бутони
         $form->title = 'Преизчисляване на индикаторите';
-        $form->toolbar->addSbBtn('Преизчисляване', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Запис на документа');
+        $form->toolbar->addSbBtn('Преизчисляване', 'save', 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на индикаторите');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         return $this->renderWrapping($form->renderHtml());
@@ -246,6 +246,8 @@ class hr_Indicators extends core_Manager
         }
 
         // Зареждаме всеки един такъв клас
+        $keyBySource = countR($sources);
+
         foreach ($docArr as $class) {
             $sMvc = cls::get($class);
 
@@ -275,7 +277,12 @@ class hr_Indicators extends core_Manager
                 // По id-то на служителя, намираме от договора му
                 // в кой отдел и на каква позиция работи
                 foreach ($data as $rec) {
-                    $key = $rec->docClass . '::' . $rec->docId;
+                    $rec->sourceClass = core_Classes::getId($class);
+                    if($keyBySource){
+                        $key = $rec->docClass . '::' . $rec->docId . '::' . $rec->sourceClass;
+                    } else {
+                        $key = $rec->docClass . '::' . $rec->docId;
+                    }
                     
                     if (!isset($forClean[$key])) {
                         $forClean[$key] = array();
@@ -292,7 +299,7 @@ class hr_Indicators extends core_Manager
                         continue;
                     }
                     
-                    $rec->sourceClass = core_Classes::getId($class);
+
                     
                     $exRec = self::fetch(array("#date = '{$rec->date}' AND
                                                 #docId = {$rec->docId} AND #docClass = {$rec->docClass} AND
@@ -321,12 +328,19 @@ class hr_Indicators extends core_Manager
                 }
             }
         }
-        
+
         // Почистване на непотвърдените записи
         foreach ($forClean as $doc => $ids) {
-            list($docClass, $docId) = explode('::', $doc);
             $query = self::getQuery();
-            $query->where("#docClass = {$docClass} AND #docId = {$docId}");
+
+            if($keyBySource){
+                list($docClass, $docId, $sourceClass) = explode('::', $doc);
+                $query->where("#docClass = {$docClass} AND #docId = {$docId} AND #sourceClass = {$sourceClass}");
+            } else {
+                list($docClass, $docId) = explode('::', $doc);
+                $query->where("#docClass = {$docClass} AND #docId = {$docId}");
+            }
+
             if (countR($ids)) {
                 $query->where('#id NOT IN (' . implode(',', $ids) . ')');
             }

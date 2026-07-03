@@ -691,7 +691,7 @@ class core_Array
         $arr = arr::make($arr);
         
         array_walk($arr, function ($a) use (&$sum, $field, $emptyAsZero) {
-            $value = is_array($a) ? $a[$field] : $a->{$field};
+            $value = is_array($a) ? ($a[$field] ?? null) : ($a->{$field} ?? null);
             
             if($emptyAsZero === false){
                 expect(isset($value), "Няма поле: {$field}", $a);

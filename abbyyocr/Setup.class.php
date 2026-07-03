@@ -82,7 +82,7 @@ class abbyyocr_Setup extends core_ProtoSetup
         $data = array();
         
         // Ако текущия клас е избран по подразбиране
-        if ($conf->_data['FILEMAN_OCR'] && ($conf->_data['FILEMAN_OCR'] == core_Classes::getId('abbyyocr_Converter', true))) {
+        if (!empty($conf->_data['FILEMAN_OCR']) && ($conf->_data['FILEMAN_OCR'] == core_Classes::getId('abbyyocr_Converter', true))) {
 
             // Премахваме го
             $data['FILEMAN_OCR'] = null;
@@ -111,7 +111,8 @@ class abbyyocr_Setup extends core_ProtoSetup
         
         $conf = core_Packs::getConfig('abbyyocr');
         
-        $abbyocr = escapeshellcmd($conf->ABBYYOCR_PATH);
+        $abbyocr = escapeshellcmd($conf->ABBYYOCR_PATH ?? '');
+        $haveError = false;
         
         if (core_Os::isWindows()) {
             $res = @exec($abbyocr . ' --help', $output, $code);
@@ -127,7 +128,7 @@ class abbyyocr_Setup extends core_ProtoSetup
         
         if ($haveError) {
             
-            return 'Програмата ' . type_Varchar::escape($conf->ABBYYOCR_PATH) . ' не е инсталирана.';
+            return 'Програмата ' . type_Varchar::escape($conf->ABBYYOCR_PATH ?? '') . ' не е инсталирана.';
         }
     }
 }

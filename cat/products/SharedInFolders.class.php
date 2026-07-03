@@ -203,7 +203,7 @@ class cat_products_SharedInFolders extends core_Manager
         foreach ($data->recs as $id => $rec) {
             $row = static::recToVerbal($rec);
             $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
-            if($rec->_isLive){
+            if(($rec->_isLive ?? false) === true){
                 $row->folderId = ht::createHint($row->folderId, 'Артикулът е създаден в папката и по подразбиране е споделен в нея');
                 unset($row->tools);
             }

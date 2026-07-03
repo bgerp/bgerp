@@ -20,38 +20,38 @@ class acc_ActiveShortBalance
      * Променлива в която ще се помни баланса
      */
     private $balance = array();
-    
-    
+
+
     /**
      * Извлечените записи
      */
     private $params = array();
-    
-    
+
+
     /**
      * Извлечените записи
      */
     private $recs;
-    
-    
+
+
     /**
      * От дата
      */
     private $from;
-    
-    
+
+
     /**
      * До дата
      */
     private $to;
-    
-    
+
+
     /**
      * @var acc_Balances
      */
     private $acc_Balances;
-    
-    
+
+
     /**
      * Конструктор на обекта
      *
@@ -67,31 +67,41 @@ class acc_ActiveShortBalance
      */
     public function __construct($params = array())
     {
-        $this->from = $params['from'];
-        $this->to = $params['to'];
+        $this->from = $params['from'] ?? null;
+        $this->to = $params['to'] ?? null;
         $strict = (isset($params['strict']) ? true : false);
         $this->params = $params;
-        
+
         core_App::setTimeLimit(600);
-        
+
         // Изчисления баланс се кешира, само ако е указано
         if (isset($params['cacheBalance']) && $params['cacheBalance'] !== false) {
-            
+
             // Подготвяме заявката към базата данни
             $jQuery = acc_JournalDetails::getQuery();
-            acc_JournalDetails::filterQuery($jQuery, $params['from'], $params['to'], $params['accs'], $params['itemsAll'], $params['item1'], $params['item2'], $params['item3'], $strict);
+            acc_JournalDetails::filterQuery(
+                $jQuery,
+                $params['from'] ?? null,
+                $params['to'] ?? null,
+                $params['accs'] ?? null,
+                $params['itemsAll'] ?? null,
+                $params['item1'] ?? null,
+                $params['item2'] ?? null,
+                $params['item3'] ?? null,
+                $strict
+            );
 
             // Изчисляваме мини баланса
             $this->recs = $jQuery->fetchAll();
-            
+
             // Изчисляваме и кешираме баланса
             $this->calcBalance($this->recs, $this->balance);
         }
-        
+
         $this->acc_Balances = cls::get('acc_Balances');
     }
-    
-    
+
+
     /**
      * Изчислява мини баланса
      */
@@ -103,7 +113,7 @@ class acc_ActiveShortBalance
             // За всеки запис
             foreach ($recs as &$rec) {
                 $lastDayValior = dt::getLastDayOfMonth($rec->valior);
-                foreach (array('creditPrice', 'debitPrice', 'amount') as &$v){
+                foreach (array('creditPrice', 'debitPrice', 'amount') as $v) {
                     $rec->{$v} = deals_Helper::getSmartBaseCurrency($rec->{$v}, $lastDayValior, $this->to);
                 }
 
@@ -113,8 +123,8 @@ class acc_ActiveShortBalance
                     $item1 = $rec->{"{$type}Item1"};
                     $item2 = $rec->{"{$type}Item2"};
                     $item3 = $rec->{"{$type}Item3"};
-                    
-                    if (is_array($this->params) && $this->params['keepUnique'] !== true) {
+
+                    if (is_array($this->params) && (($this->params['keepUnique'] ?? null) !== true)) {
                         if (empty($this->params['item1'])) {
                             $item1 = '';
                         }
@@ -125,33 +135,49 @@ class acc_ActiveShortBalance
                             $item3 = '';
                         }
                     }
-                    
+
                     // За всяка уникална комбинация от сметка и пера, сумираме количествата и сумите
                     $sign = ($type == 'debit') ? 1 : -1;
                     $index = $accId . '|' . $item1 . '|' . $item2 . '|' . $item3;
-                    
+
+                    if (!isset($balance[$index])) {
+                        $balance[$index] = array(
+                            'accountId' => $accId,
+                            'accountSysId' => null,
+                            'ent1Id' => $item1,
+                            'ent2Id' => $item2,
+                            'ent3Id' => $item3,
+                            'debitQuantity' => 0,
+                            'debitAmount' => 0,
+                            'creditQuantity' => 0,
+                            'creditAmount' => 0,
+                            'blQuantity' => 0,
+                            'blAmount' => 0,
+                        );
+                    }
+
                     $b = &$balance[$index];
-                    
+
                     if (!isset($sysIds[$accId])) {
                         $sysIds[$accId] = acc_Accounts::fetchField($accId, 'systemId');
                     }
-                    
+
                     $b['accountId'] = $accId;
                     $b['accountSysId'] = $sysIds[$accId];
                     $b['ent1Id'] = $item1;
                     $b['ent2Id'] = $item2;
                     $b['ent3Id'] = $item3;
-                    
-                    $b["{$type}Quantity"] += $rec->{"{$type}Quantity"};
-                    $b["{$type}Amount"] += $rec->amount;
-                    $b['blQuantity'] += round($rec->{"{$type}Quantity"} * $sign, 6);
-                    $b['blAmount'] += round($rec->amount * $sign, 6);
+
+                    $b["{$type}Quantity"] += (float) ($rec->{"{$type}Quantity"} ?? 0);
+                    $b["{$type}Amount"] += (float) ($rec->amount ?? 0);
+                    $b['blQuantity'] += round((float) ($rec->{"{$type}Quantity"} ?? 0) * $sign, 6);
+                    $b['blAmount'] += round((float) ($rec->amount ?? 0) * $sign, 6);
                 }
             }
         }
     }
-    
-    
+
+
     /**
      * Връща крайното салдо на няколко сметки
      *
@@ -163,33 +189,33 @@ class acc_ActiveShortBalance
     public function getAmount($accs, $itemId = false)
     {
         $arr = arr::make($accs);
-        
+
         expect(countR($arr));
-        
+
         $res = 0;
-        
+
         foreach ($arr as $accSysId) {
             foreach ($this->balance as $index => $b) {
-                
+
                 // Ако филтрираме и по перо, пропускаме тези записи, в които то не участва
                 if ($itemId) {
                     $indexArr = explode('|', $index);
-                    
+
                     if (!in_array($itemId, $indexArr)) {
                         continue;
                     }
                 }
-                
+
                 if ($b['accountSysId'] == $accSysId) {
                     $res += $b['blAmount'];
                 }
             }
         }
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Изчислява баланса преди зададените дати в '$this->from' и '$this->to'
      */
@@ -197,28 +223,36 @@ class acc_ActiveShortBalance
     {
         $newBalance = array();
         $accInfos = array();
-        
+
         // Намираме последния изчислен баланс преди началната дата
         $balanceRec = $this->acc_Balances->getBalanceBefore($this->from);
 
         // Обръщаме сис ид-та на сметките в техните ид-та
         $accArr = arr::make($accs);
-        
+
         if (countR($accArr)) {
             foreach ($accArr as &$acc) {
-                $acc = acc_Accounts::fetchField("#systemId = {$acc}");
+                $acc = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $acc));
             }
         }
-        
+
         $newFrom = null;
-        
+
         // Ако има такъв баланс
         if ($balanceRec) {
-            
+
             // Извличаме неговите записи
             $bQuery = acc_BalanceDetails::getQuery();
             $bQuery->show('accountId,ent1Id,ent2Id,ent3Id,blAmount,blQuantity');
-            acc_BalanceDetails::filterQuery($bQuery, $balanceRec->id, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3']);
+            acc_BalanceDetails::filterQuery(
+                $bQuery,
+                $balanceRec->id,
+                $accs,
+                $this->params['itemsAll'] ?? null,
+                $this->params['item1'] ?? null,
+                $this->params['item2'] ?? null,
+                $this->params['item3'] ?? null
+            );
             $bQuery->where('ABS(#blQuantity) > 0.001 OR ABS(#blAmount) > 0.01');
             while ($bRec = $bQuery->fetch()) {
                 $bRec->blAmount = deals_Helper::getSmartBaseCurrency($bRec->blAmount, $balanceRec->toDate, $this->to);
@@ -227,21 +261,21 @@ class acc_ActiveShortBalance
                 if (!isset($accInfos[$bRec->accountId])) {
                     $accInfos[$bRec->accountId] = acc_Accounts::getAccountInfo($bRec->accountId);
                 }
-                
+
                 if (countR($accInfos[$bRec->accountId]->groups)) {
-                    
+
                     // Ако е за синтетична сметка, пропускаме го
                     if (empty($bRec->ent1Id) && empty($bRec->ent2Id) && empty($bRec->ent3Id)) {
                         continue;
                     }
                 }
-                
+
                 // Ако има подадени сметки и сметката на записа не е в масива пропускаме
                 if (countR($accArr) && !in_array($bRec->accountId, $accArr)) {
                     continue;
                 }
-                
-                if (is_array($this->params) && $this->params['keepUnique'] !== true) {
+
+                if (is_array($this->params) && (($this->params['keepUnique'] ?? null) !== true)) {
                     if (empty($this->params['item1'])) {
                         $bRec->ent1Id = '';
                     }
@@ -252,11 +286,11 @@ class acc_ActiveShortBalance
                         $bRec->ent3Id = '';
                     }
                 }
-                
+
                 // Натруваме в $newBalance
                 $index = $bRec->accountId . '|' . $bRec->ent1Id . '|' . $bRec->ent2Id . '|' . $bRec->ent3Id;
                 $bRec = (array) $bRec;
-                
+
                 if (!array_key_exists($index, $newBalance)) {
                     $newBalance[$index] = $bRec;
                 } else {
@@ -264,15 +298,25 @@ class acc_ActiveShortBalance
                     $newBalance[$index]['blQuantity'] += $bRec['blQuantity'];
                 }
             }
-            
+
             $newFrom = dt::addDays(1, $balanceRec->toDate, false);
         }
-        
+
         $newTo = dt::addDays(-1, $this->from, false);
 
         // Извличаме всички записи които са между последния баланс и избраната дата за начало на търсенето
         $jQuery = acc_JournalDetails::getQuery();
-        acc_JournalDetails::filterQuery($jQuery, $newFrom, $newTo, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3'], false);
+        acc_JournalDetails::filterQuery(
+            $jQuery,
+            $newFrom,
+            $newTo,
+            $accs,
+            $this->params['itemsAll'] ?? null,
+            $this->params['item1'] ?? null,
+            $this->params['item2'] ?? null,
+            $this->params['item3'] ?? null,
+            false
+        );
 
         // Натрупваме им сумите към началния баланс
         $this->calcBalance($jQuery->fetchAll(), $newBalance);
@@ -285,11 +329,11 @@ class acc_ActiveShortBalance
                 unset($r['debitAmount'], $r['creditAmount'], $r['debitQuantity'], $r['creditQuantity']);
             }
         }
-        
+
         return $newBalance;
     }
-    
-    
+
+
     /**
      * Връща изчислен баланс за няколко сметки
      * взима началните салда от последния изчислен баланс и към тях натрупва записите от журнала
@@ -299,39 +343,51 @@ class acc_ActiveShortBalance
     {
         $accArr = array();
         $newBalance = $this->getBalanceBefore($accs, $accArr, $beforeBalanceRec);
-        foreach ($newBalance as &$b1) {
-            foreach (array('blAmount', 'baseAmount') as &$v) {
-                $b1[$v] = deals_Helper::getSmartBaseCurrency($b1[$v], $beforeBalanceRec->toDate, $this->to);
+
+        if ($beforeBalanceRec && acc_Periods::getBaseCurrencyCode($beforeBalanceRec->toDate) == acc_Periods::getBaseCurrencyCode($this->to)) {
+            foreach ($newBalance as &$b1) {
+                foreach (array('blAmount', 'baseAmount') as $v) {
+                    $b1[$v] = deals_Helper::getSmartBaseCurrency((float) ($b1[$v] ?? 0), $beforeBalanceRec->toDate, $this->to);
+                }
             }
         }
 
         // Извличаме записите, направени в избрания период на търсене
         $jQuery = acc_JournalDetails::getQuery();
-        acc_JournalDetails::filterQuery($jQuery, $this->from, $this->to, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3']);
+        acc_JournalDetails::filterQuery(
+            $jQuery,
+            $this->from,
+            $this->to,
+            $accs,
+            $this->params['itemsAll'] ?? null,
+            $this->params['item1'] ?? null,
+            $this->params['item2'] ?? null,
+            $this->params['item3'] ?? null
+        );
         $all = $jQuery->fetchAll();
         $this->calcBalance($all, $newBalance);
-        
+
         // Оставяме само тези, които са на избраната сметка
         if (countR($newBalance)) {
             foreach ($newBalance as $index => &$r) {
                 $r = (object) $r;
-                
+
                 if (countR($accArr) && !in_array($r->accountId, $accArr)) {
                     unset($newBalance[$index]);
                 }
             }
         }
 
-        if(countR($items)){
+        if (countR($items)) {
             $itemKey = implode('|', $items);
 
-            return $newBalance[$itemKey];
+            return $newBalance[$itemKey] ?? null;
         }
 
         return $newBalance;
     }
-    
-    
+
+
     /**
      * Връща хронологията на движенията на посочената сметка
      *
@@ -360,68 +416,84 @@ class acc_ActiveShortBalance
      *               [blQuantity]     - крайно к-во
      *               [blAmount]       - крайна сума
      *
-     *		   [summary] - обобщената информация за всички движенията
-     *				[baseQuantity]   - начално к-во
-     * 				[baseAmount]     - начална сума
-     * 				[debitQuantity]  - дебит к-во
-     * 				[debitAmount]    - дебит сума
-     * 				[creditQuantity] - кредит к-во
-     * 				[creditAmount]   - кредит сума
-     * 				[blQuantity]     - крайно к-во
-     * 				[blAmount]       - крайна сума
+     *         [summary] - обобщената информация за всички движенията
+     *                [baseQuantity]   - начално к-во
+     *                 [baseAmount]     - начална сума
+     *                 [debitQuantity]  - дебит к-во
+     *                 [debitAmount]    - дебит сума
+     *                 [creditQuantity] - кредит к-во
+     *                 [creditAmount]   - кредит сума
+     *                 [blQuantity]     - крайно к-во
+     *                 [blAmount]       - крайна сума
      */
     public static function getBalanceHistory($accSysId, $from = null, $to = null, $item1 = null, $item2 = null, $item3 = null, $groupByDocument = true, $strict = true)
     {
         $accId = acc_Accounts::getRecBySystemId($accSysId)->id;
-        
+
         // Изчисляваме крайното салдо за аналитичната сметка в периода преди избраните дати
-        $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => $accSysId, 'item1' => $item1, 'item2' => $item2, 'item3' => $item3, 'strict' => $strict, 'cacheBalance' => false));
+        $Balance = new acc_ActiveShortBalance(array(
+            'from' => $from,
+            'to' => $to,
+            'accs' => $accSysId,
+            'item1' => $item1,
+            'item2' => $item2,
+            'item3' => $item3,
+            'strict' => $strict,
+            'cacheBalance' => false
+        ));
         $balanceBeforeRec = null;
         $accArr = array();
         $calcedBalance = $Balance->getBalanceBefore($accSysId, $accArr, $balanceBeforeRec);
         $indexArr = $accId . '|' . $item1 . '|' . $item2 . '|' . $item3;
-        
+
         // Ако няма данни досега, започваме с нулеви крайни салда
         if (!isset($calcedBalance[$indexArr])) {
-            $calcedBalance[$indexArr] = array('blAmount' => 0, 'blQuantity' => 0);
+            $calcedBalance[$indexArr] = array(
+                'baseAmount' => 0,
+                'baseQuantity' => 0,
+                'blAmount' => 0,
+                'blQuantity' => 0,
+            );
         }
 
         // Извличаме записите точно в периода на филтъра
         $jQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($jQuery, $from, $to, $accSysId, null, $item1, $item2, $item3, $strict);
-        $jQuery->orderBy('valior', 'ASC');
-        $jQuery->orderBy('id', 'ASC');
-        
+        $jQuery->EXT('jCreatedOn', 'acc_Journal', 'externalName=createdOn,externalKey=journalId');
+        $jQuery->orderBy('valior=ASC,jCreatedOn=ASC');
+
         $entriesInPeriod = $jQuery->fetchAll();
-        
+
         $history = array();
-        
+
         // Обхождаме всички записи и натрупваме сумите им към крайното салдо
         if (countR($entriesInPeriod)) {
             foreach ($entriesInPeriod as $jRec) {
                 $valDate = dt::getLastDayOfMonth($jRec->valior);
-                foreach (array('amount', 'debitPrice', 'creditPrice') as $v){
+                foreach (array('amount', 'debitPrice', 'creditPrice') as $v) {
                     $jRec->{$v} = deals_Helper::getSmartBaseCurrency($jRec->{$v}, $valDate, $to);
                 }
 
-                $entry = array('id' => $jRec->id,
+                $entry = array(
+                    'id' => $jRec->id,
                     'docType' => $jRec->docType,
                     'docId' => $jRec->docId,
                     'reason' => $jRec->reason,
                     'valior' => $jRec->valior,
-                    'reasonCode' => $jRec->reasonCode);
-                
+                    'reasonCode' => $jRec->reasonCode
+                );
+
                 $add = false;
-                
+
                 foreach (array('debit', 'credit') as $type) {
                     $sign = ($type == 'debit') ? 1 : -1;
                     $quantityField = "{$type}Quantity";
                     $accId = $jRec->{"{$type}AccId"};
-                    
+
                     $ent1Id = !empty($jRec->{"{$type}Item1"}) ? $jRec->{"{$type}Item1"} : null;
                     $ent2Id = !empty($jRec->{"{$type}Item2"}) ? $jRec->{"{$type}Item2"} : null;
                     $ent3Id = !empty($jRec->{"{$type}Item3"}) ? $jRec->{"{$type}Item3"} : null;
-                    
+
                     if (empty($item1)) {
                         $ent1Id = '';
                     }
@@ -431,36 +503,34 @@ class acc_ActiveShortBalance
                     if (empty($item3)) {
                         $ent3Id = '';
                     }
-                    
+
                     $index = "{$accId}|{$ent1Id}|{$ent2Id}|{$ent3Id}";
-                    
+
                     if ($indexArr != $index) {
                         continue;
                     }
-                    
+
                     // Оставяме само записите за тази аналитична сметка
                     if (isset($calcedBalance[$index])) {
                         if ($groupByDocument !== true) {
-                            $entry['baseQuantity'] = $calcedBalance[$index]['blQuantity'];
-                            $entry['baseAmount'] = $calcedBalance[$index]['blAmount'];
+                            $entry['baseQuantity'] = $calcedBalance[$index]['blQuantity'] ?? 0;
+                            $entry['baseAmount'] = $calcedBalance[$index]['blAmount'] ?? 0;
                         }
-                        
+
                         if (!is_null($jRec->{$quantityField})) {
                             $add = true;
                             $entry[$quantityField] = $jRec->{$quantityField};
-                            ${"{$type}Quantity"} += $entry[$quantityField];
-                            
+
                             if ($groupByDocument !== true) {
                                 $calcedBalance[$index]['blQuantity'] += $jRec->{$quantityField} * $sign;
                                 $entry['blQuantity'] = $calcedBalance[$index]['blQuantity'];
                             }
                         }
-                        
+
                         if (!is_null($jRec->amount)) {
                             $add = true;
                             $entry["{$type}Amount"] = $jRec->amount;
-                            ${"{$type}Amount"} += $entry["{$type}Amount"];
-                            
+
                             if ($groupByDocument !== true) {
                                 $calcedBalance[$index]['blAmount'] += $jRec->amount * $sign;
                                 $entry['blAmount'] = $calcedBalance[$index]['blAmount'];
@@ -468,54 +538,54 @@ class acc_ActiveShortBalance
                         }
                     }
                 }
-                
+
                 if ($add) {
-                    foreach (array('debitItem1', 'debitItem2', 'debitItem2', 'creditItem1', 'creditItem2', 'creditItem3') as $field) {
-                        $entry[$field] = $jRec->{$field};
+                    foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $field) {
+                        $entry[$field] = $jRec->{$field} ?? null;
                     }
 
                     $history[$jRec->id] = $entry;
                 }
             }
-            
+
             // Правим групиране на записите
             if (countR($history) && $groupByDocument === true) {
                 $groupedRecs = array();
-                
+
                 // Групираме всички записи от журнала по документи
                 foreach ($history as $dRec) {
                     $index = $dRec['docType'] . '|' . $dRec['docId'] . '|' . $dRec['reasonCode'];
-                    
+
                     if (!isset($groupedRecs[$index])) {
                         $groupedRecs[$index] = $dRec;
                     } else {
                         foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount') as $key) {
                             if (!empty($dRec[$key])) {
-                                $groupedRecs[$index][$key] += $dRec[$key];
+                                $groupedRecs[$index][$key] = ($groupedRecs[$index][$key] ?? 0) + $dRec[$key];
                             }
                         }
                     }
                 }
-                
+
                 // За всеки от групираните записи, изчисляваме му крайното салдо
                 foreach ($groupedRecs as &$dRec2) {
-                    $dRec2['baseQuantity'] = $calcedBalance[$indexArr]['blQuantity'];
-                    $dRec2['baseAmount'] = $calcedBalance[$indexArr]['blAmount'];
+                    $dRec2['baseQuantity'] = $calcedBalance[$indexArr]['blQuantity'] ?? 0;
+                    $dRec2['baseAmount'] = $calcedBalance[$indexArr]['blAmount'] ?? 0;
 
-                    $blAmount = $dRec2['debitAmount'] - $dRec2['creditAmount'];
-                    $blQuantity = $dRec2['debitQuantity'] - $dRec2['creditQuantity'];
-                    
+                    $blAmount = ($dRec2['debitAmount'] ?? 0) - ($dRec2['creditAmount'] ?? 0);
+                    $blQuantity = ($dRec2['debitQuantity'] ?? 0) - ($dRec2['creditQuantity'] ?? 0);
+
                     $calcedBalance[$indexArr]['blAmount'] += $blAmount;
                     $calcedBalance[$indexArr]['blQuantity'] += $blQuantity;
-                    
+
                     $dRec2['blAmount'] = $calcedBalance[$indexArr]['blAmount'];
                     $dRec2['blQuantity'] = $calcedBalance[$indexArr]['blQuantity'];
                 }
-                
+
                 $history = $groupedRecs;
             }
         }
-        
+
         $debitQuantity = $debitAmount = $creditQuantity = $creditAmount = 0;
         if (countR($history)) {
             foreach ($history as $arr) {
@@ -526,20 +596,22 @@ class acc_ActiveShortBalance
                 }
             }
         }
-        
+
         $lastArr = end($history);
-        $blQuantity = (countR($history)) ? $lastArr['blQuantity'] : $calcedBalance[$indexArr]['blQuantity'];
-        $blAmount = (countR($history)) ? $lastArr['blAmount'] : $calcedBalance[$indexArr]['blAmount'];
-        
-        $summary = array('baseQuantity' => $calcedBalance[$indexArr]['baseQuantity'],
-            'baseAmount' => $calcedBalance[$indexArr]['baseAmount'],
+        $blQuantity = (countR($history)) ? $lastArr['blQuantity'] : ($calcedBalance[$indexArr]['blQuantity'] ?? 0);
+        $blAmount = (countR($history)) ? $lastArr['blAmount'] : ($calcedBalance[$indexArr]['blAmount'] ?? 0);
+
+        $summary = array(
+            'baseQuantity' => $calcedBalance[$indexArr]['baseQuantity'] ?? 0,
+            'baseAmount' => $calcedBalance[$indexArr]['baseAmount'] ?? 0,
             'creditQuantity' => $creditQuantity,
             'creditAmount' => $creditAmount,
             'debitQuantity' => $debitQuantity,
             'debitAmount' => $debitAmount,
             'blQuantity' => $blQuantity,
-            'blAmount' => $blAmount);
-        
+            'blAmount' => $blAmount
+        );
+
         return array('history' => array_values($history), 'summary' => $summary);
     }
 }

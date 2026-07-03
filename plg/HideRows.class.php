@@ -28,7 +28,7 @@ class plg_HideRows extends core_Plugin
      */
     public static function on_BeforeRenderSingle($mvc, &$res, $data)
     {
-        setIfNot($mvc->hideRows, 'ip=debug, brid=debug');
+        setPartIfNot($mvc, 'hideRows', 'ip=debug, brid=debug');
         $hideRowsArr = arr::make($mvc->hideRows, true);
         foreach ($hideRowsArr as $field => $role) {
             if (!is_array($role)) {

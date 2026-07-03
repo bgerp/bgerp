@@ -466,7 +466,6 @@ input, textarea, select,input:focus, textarea:focus, select:focus, input:hover, 
 	height:1.5em;
 	margin-bottom: 20px;
 	border-radius: 5px;
-	box-shadow: 1px 1px 0 rgba(60,60,60,0.1);
 }
 
 .wide  #all #simpleSearch {
@@ -1232,6 +1231,7 @@ a {
 a.profile {
 	padding: 2px;
     border-radius:3px;
+	white-space: nowrap;
 	&.ceo {
 		color: #0000cc;
 		&.inactive {
@@ -1657,6 +1657,10 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHo
 
 .wide .user-profile .remote_Authorizations table.listAction {
 	min-width: 0;
+
+}
+.wide .user-profile .remote_Authorizations {
+	display: block !important;
 }
 /* край на стилове за елемента 'list Table' */
 
@@ -1676,10 +1680,11 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover, table.listTable:not(.noHo
 }
 
 .formMiddleCaption {
-	margin: 0 15px !important;
+	margin: 0 2px 0 0 !important;
     border: solid 1px #ccc;
     background: #eee;
-    padding: 3px 5px  !important;
+	color: #333;
+    padding: 5px 8px  !important;
 }
 
 .formNotice {
@@ -2192,7 +2197,6 @@ td.formElement {
 
 .wide .vertical .formTable {
 	@include border-radius(5px);
-    @include shadow4(2px,2px,8px,3px,#aab);
     margin-bottom: 20px;
     border-collapse: separate;
     max-width: 48em;
@@ -2899,6 +2903,7 @@ div.richEdit {
 
 .wide .richEdit textarea {
 	min-width: 310px;
+	overflow-y: auto !important;
 }
 
 .richedit-toolbar {

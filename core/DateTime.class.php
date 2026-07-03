@@ -412,7 +412,7 @@ class core_DateTime
             $title = dt::mysql2verbal($mysqlDate, 'd.m.Y H:i:s (l)', $lg, false, false);
             $title = "  title='{$title}'";
             
-            $verbDate = "<span class='timeSpan' style=\"color:#{$color}\" ${title}>{$verbDate}</span>";
+            $verbDate = "<span class='timeSpan' style=\"color:#{$color}\" {$title}>{$verbDate}</span>";
         }
         
         if ($callRecursive && $timeZoneDiff &&
@@ -492,8 +492,12 @@ class core_DateTime
             $baseDatetime = self::now(true, true);
         }
         
+        if (!$datetime) return '';
+
         $dist = strtotime($baseDatetime) - strtotime($datetime);
-        
+
+        $color = '';
+
         if ($dist < 0) {
             $dist = 1 - $dist / (24 * 60 * 60);
             $g = round(max(4, 9 - $dist * $dist));
@@ -505,6 +509,7 @@ class core_DateTime
             
             $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 1.85));
             
+            $r = $b = $g = 0;
             if ($dist <= 255) {
                 $g = 255 - $dist;
                 $b = $dist;
@@ -528,10 +533,10 @@ class core_DateTime
             $r = $g1;
             
             if (!$color) {
-                $r = dechex($r < 0 ? 0 : ($r > 255 ? 255 : $r));
-                $g = dechex($g < 0 ? 0 : ($g > 255 ? 255 : $g));
-                $b = dechex($b < 0 ? 0 : ($b > 255 ? 255 : $b));
-                
+                $r = dechex((int) round($r < 0 ? 0 : ($r > 255 ? 255 : $r)));
+                $g = dechex((int) round($g < 0 ? 0 : ($g > 255 ? 255 : $g)));
+                $b = dechex((int) round($b < 0 ? 0 : ($b > 255 ? 255 : $b)));
+
                 $color = (strlen($r) < 2 ? '0' : '') . $r;
                 $color .= (strlen($g) < 2 ? '0' : '') . $g;
                 $color .= (strlen($b) < 2 ? '0' : '') . $b;
@@ -548,6 +553,7 @@ class core_DateTime
      */
     public static function verbal2mysql($verbDate = '', $full = true, $useTimeZone = false)
     {
+        $date = null;
         if ($verbDate != '') {
             $verbDate = trim(strtolower($verbDate));
             
@@ -576,16 +582,17 @@ class core_DateTime
             
             $dPtr = '/^(0?[1-9]|1[0-9]|2[0-9]|3[0-1])-(0?[1-9]|1[0-2]|[1-9])(?:-([0-2][0-9][0-9][0-9]|[0-9][0-9]){0,1}){0,1}';
             $tPtr = '(?: ?((0?[0-9]|1[0-9]|2[0-3]):([0-5][0-9])(?:\\:([0-5][0-9])){0,1}(?: ?(pm|am)){0,1})){0,1}$/';
-            
+            $found = false;
+
             if (preg_match($dPtr . $tPtr, $verbDate, $out)) {
                 $day = $out[1];
                 $month = $out[2];
                 $year = $out[3];
                 
-                $hours = $out[5];
-                $minutes = $out[6];
-                $seconds = $out[7];
-                $mode = $out[8];
+                $hours = $out[5] ?? null;
+                $minutes = $out[6] ?? null;
+                $seconds = $out[7] ?? null;
+                $mode = $out[8] ?? '';
                 $found = true;
             } else {
                 $dPtr = '/^([0-2][0-9][0-9][0-9]|[0-9][0-9])-(0?[1-9]|1[0-2]|[1-9])-(0?[1-9]|1[0-9]|2[0-9]|3[0-1])';
@@ -594,10 +601,10 @@ class core_DateTime
                     $month = $out[2];
                     $day = $out[3];
                     
-                    $hours = $out[5];
-                    $minutes = $out[6];
-                    $seconds = $out[7];
-                    $mode = $out[8];
+                    $hours = $out[5] ?? null;
+                    $minutes = $out[6] ?? null;
+                    $seconds = $out[7] ?? null;
+                    $mode = $out[8] ?? '';
                     $found = true;
                 }
             }
@@ -859,7 +866,7 @@ class core_DateTime
         $rc = $r4 + $r5;
         
         // Православния Великден за тази година се пада $rc дни след 3-ти Април
-        return strtotime("3 April ${year} + ${rc} days");
+        return strtotime("3 April {$year} + {$rc} days");
     }
     
     

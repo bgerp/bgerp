@@ -171,7 +171,7 @@ class doc_TplManager extends core_Master
         $data->listFilter->setField('docClassId', "placeholder=Всички документи,silent");
         $data->listFilter->showFields = 'docClassId, search';
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'list', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
 
@@ -311,7 +311,7 @@ class doc_TplManager extends core_Master
             
             // Ако шаблона е клонинг
             if ($originId = $rec->originId) {
-                $origin = static::fetch($originId);
+                expect($origin = static::fetch($originId));
                 $new = preg_replace("/\s+/", '', $form->rec->content);
                 $old = preg_replace("/\s+/", '', $origin->content);
                 
@@ -469,7 +469,7 @@ class doc_TplManager extends core_Master
             $object = (object) $object;
 
             // Ако има старо име на шаблона
-            if ($object->oldName) {
+            if (!empty($object->oldName)) {
                 // Извличане на записа на стария шаблон
                 $exRec = static::fetch("#name = '{$object->oldName}'");
             } else {
@@ -488,12 +488,13 @@ class doc_TplManager extends core_Master
             
             // Ако файла на шаблона не е променян, то записа не се обновява
             expect($object->hash = md5_file(getFullPath($object->content)));
-            
-            if ($object->narrowContent) {
+
+            $object->hashNarrow = null;
+            if (!empty($object->narrowContent)) {
                 expect($object->hashNarrow = md5_file(getFullPath($object->narrowContent)));
             }
 
-            if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && (serialize($exRec->toggleFields) == serialize($object->toggleFields)) && ($exRec->path == $object->content)) {
+            if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && (serialize($exRec->toggleFields) == serialize($object->toggleFields ?? null)) && ($exRec->path == $object->content)) {
                 $skipped++;
                 continue;
             }
@@ -505,7 +506,7 @@ class doc_TplManager extends core_Master
 
             $object->path = $object->content;
             $object->content = getFileContent($object->content);
-            if ($object->narrowContent) {
+            if (!empty($object->narrowContent)) {
                 $object->narrowContent = getFileContent($object->narrowContent);
             }
             
@@ -519,7 +520,7 @@ class doc_TplManager extends core_Master
             $object->state = $newState;
 
             // Ако ще се обновява съществуващ системен шаблон
-            if($object->id){
+            if(!empty($object->id)){
 
                 // и той вече е клониран в други шаблони
                 $clQuery = static::getQuery();
@@ -537,7 +538,7 @@ class doc_TplManager extends core_Master
 
             static::save($object);
             
-            ($object->id) ? $updated++ : $added++;
+            (!empty($object->id)) ? $updated++ : $added++;
         }
 
         // Нотифициране на потребителите, клонирали променен вече шаблон
@@ -620,6 +621,7 @@ class doc_TplManager extends core_Master
         
         // Намираме пътя на файла генерирал шаблона
         $templateRec = doc_TplManager::fetch($templateId);
+        if (!$templateRec) return false;
         $date = isset($date) ? $date : dt::now();
 
         // Ако има ръчно избран обработвач - зарежда се той

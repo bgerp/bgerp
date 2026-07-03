@@ -24,8 +24,8 @@ class plg_TreeObject extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->parentFieldName, 'parentId');
-        setIfNot($mvc->nameField, 'name');
+        setPartIfNot($mvc, 'parentFieldName', 'parentId');
+        setPartIfNot($mvc, 'nameField', 'name');
         
         // Създаваме поле за име, ако няма такова
         if (!$mvc->getField($mvc->nameField, false)) {
@@ -70,7 +70,7 @@ class plg_TreeObject extends core_Plugin
     {
         if (!$res) {
             $where = '';
-            if ($rec->id) {
+            if (!empty($rec->id)) {
                 $where = "#id != {$rec->id}";
             }
             
@@ -312,10 +312,10 @@ class plg_TreeObject extends core_Plugin
         
         foreach ($array as $key => $value) {
             $return[$value->id] = $value;
-            if (countR($value->children)) {
+            if (countR($value->children ?? null)) {
                 $return = $return + self::flattenTree($value->children);
             }
-            $value->_childrenCount = countR($value->children);
+            $value->_childrenCount = countR($value->children ?? null);
             unset($value->children);
         }
         
@@ -347,10 +347,11 @@ class plg_TreeObject extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-list'])) {
-            $row->ROW_ATTR['data-parentid'] .= $rec->{$mvc->parentFieldName};
-            $row->ROW_ATTR['data-id'] .= $rec->id;
+            $row->ROW_ATTR ??= [];
+            $row->ROW_ATTR['data-parentid'] = ($row->ROW_ATTR['data-parentid'] ?? '') . $rec->{$mvc->parentFieldName};
+            $row->ROW_ATTR['data-id'] = ($row->ROW_ATTR['data-id'] ?? '') . $rec->id;
             $row->ROW_ATTR['data-manager'] = $mvc->className;
-            $row->ROW_ATTR['class'] .= ' treeLevel' . $rec->_level;
+            $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' treeLevel' . $rec->_level;
             
             // Ако може да се добавя поделемент, показваме бутон за добавяне
             if ($mvc->haveRightFor('add', (object) array($mvc->parentFieldName => $rec->id))) {
@@ -367,12 +368,12 @@ class plg_TreeObject extends core_Plugin
             }
             
             // Ако записа е намерен при търсене добавяме му клас
-            if ($rec->show === true) {
-                $row->ROW_ATTR['class'] .= ' searchResult';
+            if (($rec->show ?? null) === true) {
+                $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . ' searchResult';
             }
         }
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
 
             $mQuery = $mvc->getQuery();
 
@@ -387,8 +388,8 @@ class plg_TreeObject extends core_Plugin
             unset($descendants[$rec->id]);
 
             foreach ($descendants as $dId => $dRec) {
-                $rec->personsCnt += $dRec->personsCnt;
-                $rec->companiesCnt += $dRec->companiesCnt;
+                $rec->personsCnt = ($rec->personsCnt ?? 0) + ($dRec->personsCnt ?? 0);
+                $rec->companiesCnt = ($rec->companiesCnt ?? 0) + ($dRec->companiesCnt ?? 0);
             }
         }
     }
@@ -488,7 +489,7 @@ class plg_TreeObject extends core_Plugin
                 $features[$keyVerbal] = $nameVerbal;
                 
                 // Ако е последното листо, то да си има стойност себе си
-                if ($rec->parentId) {
+                if (!empty($rec->parentId)) {
                     if ($mvc->fetchField("#{$mvc->parentFieldName} = {$rec->parentId}")) {
                         $keyVerbal .= " » {$nameVerbal}";
                         $features[$keyVerbal] = $nameVerbal;
@@ -532,7 +533,7 @@ class plg_TreeObject extends core_Plugin
     public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
         if ($part == $mvc->nameField) {
-            $id = (is_object($rec)) ? $rec->id : $rec;
+            $id = (is_object($rec)) ? ($rec->id ?? null) : $rec;
             if (!$id) {
                 
                 return ;
@@ -553,8 +554,11 @@ class plg_TreeObject extends core_Plugin
             $i = 0;
             
             if(!Mode::is('treeShortName')){
+                Mode::push('treeShortName', true);
                 while ($parent && ($pRec = $mvc->fetch($parent))) {
-                    $pName = type_Varchar::escape($pRec->{$mvc->nameField});
+//                    $pName = type_Varchar::escape($pRec->{$mvc->nameField});
+//                    $pName = type_Varchar::escape($mvc->getVerbal($pRec, $mvc->nameField));
+                    $pName = $mvc->getVerbal($pRec, $mvc->nameField);
                     $title = $pName . ' » ' . $title;
                     $parent = $pRec->{$mvc->parentFieldName};
                     $i++;
@@ -563,6 +567,7 @@ class plg_TreeObject extends core_Plugin
                         break;
                     }
                 }
+                Mode::pop('treeShortName');
             }
             
             $num = $title;

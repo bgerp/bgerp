@@ -545,7 +545,9 @@ class core_Cron extends core_Manager
             $mPeriod *= 60;
             
             $data = &$rec->data;
-            
+            if (!is_array($data)) {
+                $data = [];
+            }
             if (($rec->lastMaxUsedMemory >= $data['maxUsedMemory']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxUsedMemoryTime'])) {
                 $data['maxUsedMemory'] = $rec->lastMaxUsedMemory;
                 $data['maxUsedMemoryTime'] = $rec->lastDone;
@@ -612,16 +614,20 @@ class core_Cron extends core_Manager
             $row->last .= '<p>' . tr('Памет') . ": <b>{$row->lastMaxUsedMemory}</b></p>";
         }
         
-        if ($rec->data['maxUsedMemory']) {
+        $row->max = '';
+
+        $rData = (array) $rec->data;
+
+        if ($rData['maxUsedMemory'] ?? null) {
             $fType = cls::get('fileman_FileSize');
-            
-            $row->max .= '<p>' . tr('Памет') . ': <b>' . $fType->toVerbal($rec->data['maxUsedMemory']) . '</b> - ' . dt::mysql2verbal($rec->data['maxUsedMemoryTime'], 'smartTime') . '</p>';
+
+            $row->max .= '<p>' . tr('Памет') . ': <b>' . $fType->toVerbal($rData['maxUsedMemory']) . '</b> - ' . dt::mysql2verbal($rData['maxUsedMemoryTime'], 'smartTime') . '</p>';
         }
-        
-        if ($rec->data['maxDuration']) {
+
+        if ($rData['maxDuration'] ?? null) {
             $tTime = cls::get('type_Time');
             
-            $row->max .= '<p>' . tr('Прод.') . ': <b>' . $tTime->toVerbal($rec->data['maxDuration']) . '</b> - ' . dt::mysql2verbal($rec->data['maxDurationTime'], 'smartTime') . '</p>';
+            $row->max .= '<p>' . tr('Прод.') . ': <b>' . $tTime->toVerbal($rData['maxDuration']) . '</b> - ' . dt::mysql2verbal($rData['maxDurationTime'], 'smartTime') . '</p>';
         }
         
         $url = toUrl(array(
@@ -647,6 +653,8 @@ class core_Cron extends core_Manager
         
         $now = dt::mysql2timestamp(dt::verbal2mysql());
         
+        $row->ROW_ATTR['style'] = $row->ROW_ATTR['style'] ?? '';
+
         if ($rec->state == 'locked' ||
             ($rec->lastStart && $rec->state == 'free' && (($now - $mvc->refreshRowsTime / 1000 - 2) < dt::mysql2timestamp($rec->lastStart)))) {
             $row->ROW_ATTR['style'] .= 'background-color:#ffa;';
@@ -720,6 +728,9 @@ class core_Cron extends core_Manager
         // Описанието с малки букви
         $description = mb_strtolower(mb_substr($rec->description, 0, 1)) . mb_substr($rec->description, 1);
         
+        $mustSave = false;
+        $msg = '';
+
         // Ако има стар запис и е редактиран от потребител
         // - обновяваме записа с изключение на състоянието, отместването, периода и времелимит-а
         if ($exRec) {
@@ -732,8 +743,8 @@ class core_Cron extends core_Manager
             if ($exRec->modifiedBy == -1 || !$exRec->modifiedBy) {
                 // Ако не е редактиран и има промени го обновяваме
                 if ($systemDataChanged || floor($rec->period) != $exRec->period || ((floor($rec->offset) != $exRec->offset) && (!$rec->isRandOffset)) ||
-                      floor($rec->delay) != floor($exRec->delay) ||
-                      $rec->timeLimit != $exRec->timeLimit
+                      floor($rec->delay ?? 0) != floor($exRec->delay ?? 0) ||
+                      ($rec->timeLimit ?? null) != ($exRec->timeLimit ?? null)
                     ) {
                     $mustSave = true;
                     $msg = "<li class=\"debug-update\">Обновено разписание за {$description}</li>";
@@ -788,7 +799,8 @@ class core_Cron extends core_Manager
     public static function cleanRecords()
     {
         $query = self::getQuery();
-        
+        $res = '';
+
         while ($rec = $query->fetch()) {
             if (cls::load($rec->controller, true)) {
                 $ctr = cls::get($rec->controller);

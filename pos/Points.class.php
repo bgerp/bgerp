@@ -375,9 +375,10 @@ class pos_Points extends core_Master
      */
     public static function defaultContragent($id = null)
     {
-        ($id) ? $pos = $id : $pos = pos_Points::getCurrent();
+        $pos = $id ?? pos_Points::getCurrent();
         $query = crm_Persons::getQuery();
-        $query->where("#name LIKE '%POS:{$pos}%'");
+        $query->where("#name LIKE '%POS:{$pos}-%'");
+
         if ($rec = $query->fetch()) {
 
             return $rec->id;
@@ -443,7 +444,7 @@ class pos_Points extends core_Master
             $row->prototypeId = pos_Points::getHyperlink($rec->prototypeId, true);
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
             if(!empty($rec->discountPolicyId)){
                 $row->discountPolicyId = price_Lists::getHyperlink($rec->discountPolicyId, true);
@@ -543,9 +544,10 @@ class pos_Points extends core_Master
                     $res->{$field} = pos_Setup::get($const);
                     $inherited->{$field} = $field;
                 }
-            }
-            if($field == 'discountPolicyId'){
-                $res->{$field} = empty($res->{$field}) ? null : $res->{$field};
+
+                if($field == 'discountPolicyId'){
+                    $res->{$field} = empty($res->{$field}) ? null : $res->{$field};
+                }
             }
         }
     }

@@ -81,7 +81,7 @@ class planning_plg_StateManager extends core_Plugin
 
         $mvc->setDbIndex('timeClosed');
 
-        setIfNot($mvc->statesCanClose, array('active', 'wakeup', 'stopped'));
+        setPartIfNot($mvc, 'statesCanClose', array('active', 'wakeup', 'stopped'));
     }
     
     
@@ -236,7 +236,7 @@ class planning_plg_StateManager extends core_Plugin
                 case 'activate':
                     
                     // Само приключените могат да бъдат събудени
-                    if (($rec->state != 'draft' && $rec->state != 'pending' && $rec->state != 'waiting') && isset($rec->state)) {
+                    if (isset($rec->state) && ($rec->state != 'draft' && $rec->state != 'pending' && $rec->state != 'waiting')) {
                         $requiredRoles = 'no_one';
                     }
                     break;
@@ -410,7 +410,7 @@ class planning_plg_StateManager extends core_Plugin
     protected static function on_AfterChangeState($mvc, &$rec, $action)
     {
         $action = strtolower($action);
-        if ($mvc->notifyActionNamesArr && ($caption = $mvc->notifyActionNamesArr[$action])) {
+        if (!empty($mvc->notifyActionNamesArr) && ($caption = ($mvc->notifyActionNamesArr[$action] ?? null))) {
             
             // Абонираните потребители към документа
             $notifyArr = doc_Containers::getSubscribedUsers($rec->containerId, true, true);
@@ -536,7 +536,7 @@ class planning_plg_StateManager extends core_Plugin
             $tpl = new ET(' ' . tr('от|* [#user#] |на|* [#date#]'));
             
             $dateChanged = ($rec->state == 'closed') ? $rec->timeClosed : $rec->modifiedOn;
-            setIfNot($dateChanged, $rec->modifiedOn);
+            $dateChanged = $dateChanged ?? $rec->modifiedOn;
             $row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($dateChanged)));
         }
     }
@@ -589,7 +589,7 @@ class planning_plg_StateManager extends core_Plugin
      */
     public static function on_AfterSave($mvc, &$id, $rec)
     {
-        if ($rec->_isActivated === true) {
+        if (($rec->_isActivated ?? null) === true) {
             unset($rec->_isActivated);
             $mvc->invoke('AfterActivation', array($rec));
             $mvc->logWrite('Активиране', $rec->id);

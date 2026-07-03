@@ -305,7 +305,7 @@ class rack_MovementGenerator extends core_Manager
                 foreach ($zR as $j => $zQ) {
                     if ($zQ >= $pQ) {
                         $moves["get=>{$i}"] = $pQ;
-                        $moves["${i}=>{$j}"] = $pQ;
+                        $moves["{$i}=>{$j}"] = $pQ;
                         $z[$j] -= $p[$i];
                         unset($p[$i]);
                         if ($z[$j] == 0) {

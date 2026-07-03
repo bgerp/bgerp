@@ -25,19 +25,19 @@ class csv_Lib
         // Дефолт стойностите за форматирането по подразбиране
         setIfNot($format['length'], 0);
         
-        if (!strlen($format['delimiter'])) {
+        if (empty($format['delimiter'])) {
             $format['delimiter'] = ',';
         }
-        
-        if (!strlen($format['enclosure'])) {
+
+        if (empty($format['enclosure'])) {
             $format['enclosure'] = '"';
         }
-        
-        if (!strlen($format['escape'])) {
+
+        if (empty($format['escape'])) {
             $format['escape'] = '\\';
         }
         
-        if (!strlen($format['skip'])) {
+        if (empty($format['skip'])) {
             $format['skip'] = '#';
         }
         
@@ -66,7 +66,7 @@ class csv_Lib
             }
             
             // Пропускаме редовете със знака указан в $skip
-            if ($data[0][0] == $format['skip']) {
+            if (($data[0][0] ?? null) == $format['skip']) {
                 if (strtolower(trim($data[0], ' ' . $format['skip'])) == 'closeonce') {
                     $closeOnce = true;
                 }
@@ -99,7 +99,7 @@ class csv_Lib
                 }
                 
                 foreach ($fields as $i => $f) {
-                    $data[$i] = str_replace($format['escape'], '', $data[$i]);
+                    $data[$i] = str_replace($format['escape'], '', $data[$i] ?? '');
                     
                     $rec->{$f} = $data[$i];
                 }
@@ -125,9 +125,10 @@ class csv_Lib
                 }
                 
                 $conflictFields = array();
-                
-                if ($rec->id || !$mvc->isUnique($rec, $conflictFields, $exRec)) {
-                    if (!$rec->id) {
+                $exRec = null;
+
+                if (!empty($rec->id) || !$mvc->isUnique($rec, $conflictFields, $exRec)) {
+                    if (empty($rec->id)) {
                         $rec->id = $exRec->id;
                     }
                     $flagUpdate = true;
@@ -149,7 +150,7 @@ class csv_Lib
                     $res->skipped++;
                     $rec = $mvc->fetch($rec->id);
                     foreach ($fields as $i => $f) {
-                        if ($rec->{$f} != $exRec->{$f}) {
+                        if (($rec->{$f} ?? null) != ($exRec->{$f} ?? null)) {
                             $res->updated++;
                             $res->skipped--;
                             break;
@@ -235,6 +236,16 @@ class csv_Lib
     {
         return self::importOnce($mvc, $file, $fields, $defaults, $format, true, true);
     }
+
+
+    /**
+     * Импортира съдържанието на посочения CSV файл, когато той е променян
+     */
+    public static function largeImportOnce($mvc, $file, $fields = array(), $defaults = array(), $format = array())
+    {
+
+        return self::importOnce($mvc, $file, $fields, $defaults, $format, false, true);
+    }
     
     
     /**
@@ -278,15 +289,15 @@ class csv_Lib
     {
         $params = arr::make($params, true);
         
-        setIfNot($newLine, $params['newLineDelimiter'], "\n");
-        
+        setIfNot($newLine, $params['newLineDelimiter'] ?? null, "\n");
+
         $mandatory = array();
-        if ($params['mandatory']) {
+        if (!empty($params['mandatory'])) {
             $mandatory = explode('|', $params['mandatory']);
         }
-        
+
         // Редиректваме, ако сме надвишили бройката
-        setIfNot($exportCnt, $params['maxExportCnt'], core_Setup::get('EF_MAX_EXPORT_CNT', true));
+        setIfNot($exportCnt, $params['maxExportCnt'] ?? null, core_Setup::get('EF_MAX_EXPORT_CNT', true));
         if (countR($recs) > $exportCnt) {
             $retUrl = getRetUrl();
             if (empty($retUrl)) {
@@ -320,16 +331,16 @@ class csv_Lib
             $delimiter = html_entity_decode($delimiter, ENT_COMPAT | ENT_HTML401, 'UTF-8');
         }
         
-        setIfNot($csvDelimiter, $params['delimiter'], $delimiter);
+        setIfNot($csvDelimiter, $params['delimiter'] ?? null, $delimiter);
         setIfNot($decPoint, html_entity_decode(csv_Setup::get('DEC_POINT'), ENT_COMPAT | ENT_HTML401, 'UTF-8'), html_entity_decode(core_Setup::get('EF_NUMBER_DEC_POINT', true), ENT_COMPAT | ENT_HTML401, 'UTF-8'));
         setIfNot($dateFormat, csv_Setup::get('DATE_MASK'), core_Setup::get('EF_DATE_FORMAT', true));
         setIfNot($datetimeFormat, csv_Setup::get('DATE_TIME_MASK'), 'd.m.y H:i');
         setIfNot($thousandsSep, '');
-        setIfNot($enclosure, $params['enclosure'], '"');
+        setIfNot($enclosure, $params['enclosure'] ?? null, '"');
         setIfNot($decimals, csv_Setup::get('DECIMALS'));
 
         // Вземаме колоните, ако са зададени
-        if ($params['columns'] != 'none') {
+        if (($params['columns'] ?? null) != 'none') {
             foreach ($listFields as $fld => $caption) {
                 if (!$caption) {
                     $listFields[$fld] = $fld;
@@ -585,7 +596,7 @@ class csv_Lib
      */
     public static function getCsvRowsFromFile($csvData, $params = array())
     {
-        list($handle, $params['delimiter'], $params['enclosure'], $autoFirstRow) = self::analyze($csvData, $params['delimiter'], $params['enclosure']);
+        list($handle, $params['delimiter'], $params['enclosure'], $autoFirstRow) = self::analyze($csvData, $params['delimiter'] ?? null, $params['enclosure'] ?? null);
 
         if ($params['delimiter'] === null) {
             $params['delimiter'] = chr(0);
@@ -616,7 +627,7 @@ class csv_Lib
             }
             
             // Пропускаме редовете със знака указан в $skip
-            if ($data[0][0] == $params['skip']) {
+            if (($data[0][0] ?? null) == $params['skip']) {
                 continue;
             }
             

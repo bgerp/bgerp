@@ -102,8 +102,50 @@ class core_Manager extends core_Mvc
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = true;
-    
-    
+
+
+    /**
+     *
+     */
+    public $canEditsysdata;
+
+
+    /**
+     *
+     */
+    public $canDeletesysdata;
+
+
+    /**
+     *
+     */
+    public $searchInputField;
+
+
+    /**
+     *
+     */
+    public $doWithSelected;
+
+
+    /**
+     *
+     */
+    public $lastFetchedRec;
+
+
+    /**
+     *
+     */
+    public $canUsertranslate;
+
+
+    /**
+     *
+     */
+    public $updateExistingStateOnImport;
+
+
     /**
      * Дали в листовия изглед да се показват заглавията на колоните на таблицата
      */
@@ -226,14 +268,14 @@ class core_Manager extends core_Mvc
             $title = $inst->className;
         }
 
-        if (!trim($title)) {
+        if (!trim($title ?? '')) {
             $title = $inst->title;
             if ($objId) {
                 $title .= ' №' . $objId;
             }
         }
 
-        if (!trim($title)) {
+        if (!trim($title ?? '')) {
             $title = '????????';
         }
         
@@ -423,7 +465,7 @@ class core_Manager extends core_Mvc
         // Очакваме до този момент във формата да няма грешки
         $fieldsH = $this->selectFields("#input == 'hidden'");
         
-        expect(!$data->form->gotErrors(array_keys($fieldsH)), 'Има грешки в silent полетата на формата', $data->form->errors);
+        expect(!$data->form->gotErrors(array_keys($fieldsH)), 'Има грешки в silent полетата на формата', $data->form->errors ?? null);
         
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $data->form->rec, null, $retUrl);
@@ -435,6 +477,7 @@ class core_Manager extends core_Mvc
         
         // Проверка дали входните данни са уникални
         if ($rec) {
+            $fields = null;
             if ($data->form->isSubmitted() && !$this->isUnique($rec, $fields)) {
                 $data->form->setError($fields, 'Вече съществува запис със същите данни');
             }
@@ -492,8 +535,8 @@ class core_Manager extends core_Mvc
      */
     public function prepareEditTitle_($data)
     {
-        setIfNot($data->title, $this->title);
-        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
+        setPartIfNot($data, 'title', $this->title);
+        $data->form->title = (!empty($data->form->rec->id) ? 'Редактиране' : 'Добавяне') . ' на запис' .
                 '|*' . ($this->title ? ' |в|* ' . '"' . tr($data->title) . '"' : '');
     }
     
@@ -585,7 +628,7 @@ class core_Manager extends core_Mvc
 
             // Ако титлата съвпада с името на полето, вадим името от caption
             foreach ($data->listFields as $field => $caption) {
-                if (($field == $caption) && $this->fields[$field]->caption) {
+                if (($field == $caption) && !empty($this->fields[$field]) && ($this->fields[$field]->caption ?? null)) {
                     $data->listFields[$field] = $this->fields[$field]->caption;
                 }
             }
@@ -602,10 +645,10 @@ class core_Manager extends core_Mvc
     {
         $data = parent::prepareListFilter($data);
 
-        if ($data && $data->listFields) {
+        if ($data && ($data->listFields ?? null)) {
             $data->listFields = arr::make($data->listFields);
 
-            if ($data->query && $data->listFields && $data->listFields['id']) {
+            if ($data->query && $data->listFields && isset($data->listFields['id'])) {
                 $data->query->orderBy('id', 'ASC');
             }
         }
@@ -657,7 +700,7 @@ class core_Manager extends core_Mvc
                 $Type = $data->listFilter->getField($name);
                 $options = array();
 
-                if (in_array($Type->input, array('hidden', 'none')) || $Type->alwaysShowInListFilter) continue;
+                if (in_array($Type->input ?? null, array('hidden', 'none')) || ($Type->alwaysShowInListFilter ?? null)) continue;
 
                 try {
                     // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
@@ -714,20 +757,20 @@ class core_Manager extends core_Mvc
         if ($data->query) {
             
             // Ако няма обощени
-            if (!$data->listSummary) {
+            if (!($data->listSummary ?? null)) {
                 
                 // Създаваме обекта
                 $data->listSummary = new stdClass();
             }
             
             // Ако няма заявка за резюме
-            if (!$data->listSummary->query) {
+            if (!($data->listSummary->query ?? null)) {
                 
                 // Клонираме заявката
                 $data->listSummary->query = clone $data->query;
             }
 
-            setIfNot($data->listSummary->mvc, clone $this);
+            setPartIfNot($data->listSummary, 'mvc', clone $this);
         }
     }
     
@@ -782,8 +825,8 @@ class core_Manager extends core_Mvc
      */
     public function prepareListTitle_(&$data)
     {
-        setIfNot($data->title, $this->title);
-        
+        setPartIfNot($data, 'title', $this->title);
+
         if ($data->ListId) {
             $data->title = "Резултати за запис номер|* {$data->ListId}: |" . $data->title;
         }
@@ -859,7 +902,7 @@ class core_Manager extends core_Mvc
         $data->form->input(null, 'silent');
         
         // Ако имаме
-        if ($data->form->rec->id && $data->form->cmd != 'refresh') {
+        if (!empty($data->form->rec->id) && $data->form->cmd != 'refresh') {
             
             // Очакваме, че има такъв запис
             expect($rec = $this->fetch($data->form->rec->id));
@@ -893,7 +936,7 @@ class core_Manager extends core_Mvc
         if (getRetUrl()) {
             $data->retUrl = getRetUrl();
         } else {
-            if (method_exists($this, 'act_Single') && $data->form->rec->id && $data->cmd != 'delete') {
+            if (method_exists($this, 'act_Single') && !empty($data->form->rec->id) && $data->cmd != 'delete') {
                 $data->retUrl = array(
                     $this,
                     'single',
@@ -901,8 +944,8 @@ class core_Manager extends core_Mvc
                 );
             } else {
                 if (is_a($this, 'core_Detail')) {
-                    if (($masterKey = $this->masterKey) && ($masterId = $data->form->rec->{$masterKey})) {
-                        $master = $this->masterClass;
+                    if (($masterKey = ($this->masterKey ?? null)) && ($masterId = $data->form->rec->{$masterKey})) {
+                        $master = $this->masterClass ?? null;
                         if (!$master) {
                             $master = $this->getFieldTypeParam($masterKey, 'mvc');
                         }
@@ -912,7 +955,7 @@ class core_Manager extends core_Mvc
                     }
                 }
                 
-                if (!$data->retUrl) {
+                if (empty($data->retUrl)) {
                     $data->retUrl = array($this, 'list');
                 }
             }
@@ -974,8 +1017,8 @@ class core_Manager extends core_Mvc
         $tpl->append($this->renderListPager($data), 'ListPagerBottom');
         
         // Попълваме таблицата с редовете
-        setIfNot($data->listTableMvc, clone $this);
-        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty, true);
+        setPartIfNot($data, 'listTableMvc', clone $this);
+        $data->hideListFieldsIfEmpty = arr::make($this->hideListFieldsIfEmpty ?? null, true);
         $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме долния тулбар
@@ -1013,7 +1056,7 @@ class core_Manager extends core_Mvc
             </div>
           ");
         
-        if ($data->listScroll) {
+        if ($data->listScroll ?? null) {
             $listLayout->replace('narrow-scroll', 'NARROWSCROLL');
         }
         jquery_Jquery::run( $listLayout, 'toggleListFilter();', true);
@@ -1042,13 +1085,13 @@ class core_Manager extends core_Mvc
         if (!isset($listFilter)) return;
 
         // Ако лист филтъра не е хоризонтален
-        if($listFilter->view != 'horizontal'){
+        if(($listFilter->view ?? null) != 'horizontal'){
 
             // И има посочени полета за скриване да им се добавя клас, че може да се скриват
             $toggableFieldsCount = 0;
-            setIfNot($data->toggableFieldsInVerticalListFilter, $this->toggableFieldsInVerticalListFilter);
+            setPartIfNot($data, 'toggableFieldsInVerticalListFilter', $this->toggableFieldsInVerticalListFilter ?? null);
 
-            $toggableFields = arr::make($listFilter->mvc->toggableFieldsInVerticalListFilter, true);
+            $toggableFields = arr::make($listFilter->mvc->toggableFieldsInVerticalListFilter ?? null, true);
             foreach ($toggableFields as $toggableField){
                 if($listFilter->getField($toggableField, false)){
 
@@ -1071,11 +1114,11 @@ class core_Manager extends core_Mvc
             }
         }
 
-        $listFilter->formAttr['data-mvc'] = "listFilter_" . $listFilter->mvc->className;
+        $listFilter->formAttr['data-mvc'] = "listFilter_" . ($listFilter->mvc->className ?? '');
         $listFilter->showFields = isset($listFilter->showFields) ? arr::make($listFilter->showFields, true) : array();
 
         if (countR($listFilter->showFields)) {
-            if($listFilter->hide === true) return new core_ET("");
+            if(($listFilter->hide ?? null) === true) return new core_ET("");
 
             $tpl = new ET("<div class='listFilter'>[#1#]</div>", $listFilter->renderHtml(null, $listFilter->rec));
             core_Form::preventDoubleSubmission($tpl, $listFilter);
@@ -1090,7 +1133,7 @@ class core_Manager extends core_Mvc
      */
     public function renderListPager_($data)
     {
-        if ($data->pager) {
+        if (!empty($data->pager)) {
             return $data->pager->getHtml();
         }
     }
@@ -1101,11 +1144,11 @@ class core_Manager extends core_Mvc
      */
     public function renderListTable_($data)
     {
-        setIfNot($data->listTableMvc, $this);
-        setIfNot($data->listTableHideHeaders, $this->listTableHideHeaders);
-        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders, 'tableId' => $data->listTableId));
+        setPartIfNot($data, 'listTableMvc', $this);
+        setPartIfNot($data, 'listTableHideHeaders', $this->listTableHideHeaders);
+        $table = cls::get('core_TableView', array('mvc' => $data->listTableMvc, 'thHide' => $data->listTableHideHeaders, 'tableId' => ($data->listTableId ?? null)));
         
-        if ($data->action == 'list') {
+        if (($data->action ?? null) == 'list') {
             $table->tableClass = 'listTable listAction';
         }
         
@@ -1113,7 +1156,7 @@ class core_Manager extends core_Mvc
         $data->listFields = arr::make($data->listFields, true);
         
         // Ако има колони за филтриране, филтрираме ги
-        if (countR($data->hideListFieldsIfEmpty)) {
+        if (!empty($data->hideListFieldsIfEmpty) && countR($data->hideListFieldsIfEmpty)) {
             $data->listFields = core_TableView::filterEmptyColumns($data->rows, $data->listFields, $data->hideListFieldsIfEmpty);
         }
         
@@ -1122,12 +1165,11 @@ class core_Manager extends core_Mvc
 
         // Рендираме таблицата
         $tpl = $table->get($data->rows, $data->listFields);
-        
-        if (!$class = $data->listClass) {
-            $class = 'listRows';
-        }
-        
-        return new ET("<div class='{$class} {$data->listTableClass}'>[#1#]</div>", $tpl);
+
+        $class = $data->listClass ?? 'listRows';
+        $listTable = $data->listTableClass ?? '';
+
+        return new ET("<div class='{$class} {$listTable}'>[#1#]</div>", $tpl);
     }
     
     
@@ -1147,10 +1189,11 @@ class core_Manager extends core_Mvc
      */
     public function renderListToolbar_($data)
     {
+        $res = null;
         if (isset($data->toolbar) && cls::isSubclass($data->toolbar, 'core_Toolbar') && !Mode::is('printing') && $data->toolbar->count()) {
             $res = new ET("<div class='listToolbar'>[#1#]</div>", $data->toolbar->renderHtml());
         }
-        
+
         return $res;
     }
     
@@ -1218,7 +1261,14 @@ class core_Manager extends core_Mvc
         $className = get_called_class();
         $self = cls::get($className);
 
-        $id = is_object($rec) ? $rec->id : $rec;
+        // Ако вместо $rec е зададено $id - зареждаме $rec ПРЕДИ да сметнем ключа на кеша,
+        // за да участват реалните данни на записа в него. Иначе при подаден id ключът се
+        // базира само на id-то и кешът не се инвалидира, ако данните на записа се сменят.
+        if (!is_object($rec) && $rec > 0) {
+            $rec = $self->fetchRec($rec);
+        }
+
+        $id = is_object($rec) ? ($rec->id ?? null) : $rec;
         // Ако нямаме зададен потребите - приемаме, че въпроса се отнася за текущия
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -1231,16 +1281,10 @@ class core_Manager extends core_Mvc
             self::$cacheRights[$userId] = core_Cache::get('RightsForObject', $userId);
         }
 
-        $key = crc32("{$className}|{$action}") . "|{$id}|" . crc32(serialize($rec));
- 
+        $key = crc32("{$className}|{$action}") . "|" . (is_scalar($id) ? $id : serialize($id)) . "|" . crc32(serialize($rec));
+
         if (!isset(self::$cacheRights[$userId][$key]) || !isset($id)) {
-            
-            
-            // Ако вместо $rec е зададено $id - зареждаме $rec
-            if (!is_object($rec) && $rec > 0) {
-                $rec = $self->fetch($rec);
-            }
-            
+
             $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
 
             $res = Users::haveRole($requiredRoles, $userId);
@@ -1275,7 +1319,7 @@ class core_Manager extends core_Mvc
                 }
                 if (is_array($rights)) {
                     foreach ($rights as $key => $d) {
-                        if (isset($exRights) && abs($exRights[$key]) >= abs($d)) {
+                        if (isset($exRights) && abs($exRights[$key] ?? 0) >= abs($d)) {
                             continue;
                         }
                         if (abs($d) < $time) {
@@ -1360,13 +1404,15 @@ class core_Manager extends core_Mvc
         $options = $this->fetchOptions($q);
         
         if (is_array($options)) {
+            $openGroup = false;
+            $selected = null;
             foreach ($options as $id => $title) {
                 $attr = array();
-                
+
                 $element = 'option';
-                
+
                 if (is_object($title)) {
-                    if ($title->group) {
+                    if (!empty($title->group)) {
                         if ($openGroup) {
                             // затваряме групата
                             $select->append('</optgroup>');
@@ -1410,6 +1456,8 @@ class core_Manager extends core_Mvc
         $query = $this->getQuery();
         
         // Подготовка на полетата по които ще се търси
+        $concat = '';
+        $show = '';
         foreach ($this->fields as $name => $field) {
             if ($field->searchable || $name == 'id') {
                 $concat .= ", LOWER(#{$name}), ' '";
@@ -1426,7 +1474,7 @@ class core_Manager extends core_Mvc
             $str = ltrim(trim($str), '0');
             
             if ($str) {
-                $query->where("CONCAT(' '{$concat})  LIKE  '% ${str}%'");
+                $query->where("CONCAT(' '{$concat})  LIKE  '% {$str}%'");
             }
         }
         

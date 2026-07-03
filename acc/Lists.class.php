@@ -129,11 +129,11 @@ class acc_Lists extends core_Manager
      */
     protected static function on_CalcCaption($mvc, $rec)
     {
-        if (!$rec->name) {
+        if (empty($rec->name)) {
             $rec->name = $mvc::fetchField($rec->id, 'name');
         }
-        
-        if (!$rec->num) {
+
+        if (empty($rec->num)) {
             $rec->num = $mvc::fetchField($rec->id, 'num');
         }
         $rec->caption = $mvc->getVerbal($rec, 'name') . ' (' . $mvc->getVerbal($rec, 'num') . ')';
@@ -199,7 +199,7 @@ class acc_Lists extends core_Manager
      */
     protected static function on_BeforeSave($mvc, $id, $rec)
     {
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $rec->itemCount = 0;
         }
     }
@@ -218,11 +218,11 @@ class acc_Lists extends core_Manager
                 return;
             }
             
-            if ($rec->id && ! isset($rec->itemsCnt)) {
+            if (!empty($rec->id) && !isset($rec->itemsCnt)) {
                 $rec = $mvc->fetch($rec->id);
             }
-            
-            if ($rec->itemsCnt || $rec->lastUseOn) {
+
+            if (is_object($rec) && ($rec->itemsCnt || !empty($rec->lastUseOn))) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -234,7 +234,7 @@ class acc_Lists extends core_Manager
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if (($data->form->rec->id && $data->form->rec->itemsCnt) || $data->form->rec->systemId) {
+        if ((!empty($data->form->rec->id) && !empty($data->form->rec->itemsCnt)) || !empty($data->form->rec->systemId)) {
             
             // Забрана за промяна на интерфейса на непразните номенклатури
             $data->form->setReadonly('regInterfaceId');
@@ -675,7 +675,8 @@ class acc_Lists extends core_Manager
     public static function getItemsCountInList($listId, $systemId = true)
     {
         if ($systemId === true) {
-            $listId = self::fetchBySystemId($listId)->id;
+            $rec = self::fetchBySystemId($listId);
+            $listId = is_object($rec) ? $rec->id : null;
         }
         
         // Опит за преброяване на перата в номенклатурата

@@ -135,7 +135,7 @@ class cond_DeliveryTerms extends core_Master
         $this->FLD('forSeller', 'text(rows=3)', 'caption=За продавача');
         $this->FLD('forBuyer', 'text(rows=3)', 'caption=За купувача');
         $this->FLD('transport', 'text(rows=3)', 'caption=Транспорт');
-        $this->FLD('costCalc', 'class(interface=cond_TransportCalc,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор');
+        $this->FLD('costCalc', 'class(interface=cond_TransportCalc,allowEmpty,select=title)', 'caption=Изчисляване на транспортна себестойност->Калкулатор,silent,removeAndRefreshForm=address');
         $this->FLD('calcCost', 'enum(yes=Включено,no=Изключено)', 'caption=Изчисляване на транспортна себестойност->Скрито,notNull,value=no');
         $this->FLD('courierApi', 'class(interface=cond_CourierApiIntf,allowEmpty,select=title)', 'caption=Куриерско API->Избор');
         $this->FLD('address', 'enum(none=Не се показва,receiver=Локацията на получателя,supplier=Локацията на доставчика)', 'caption=Показване на мястото на доставка->Избор,notNull,value=none,default=none');
@@ -323,7 +323,6 @@ class cond_DeliveryTerms extends core_Master
      */
     public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $deliveryData, $document, $ownCompanyId = null)
     {
-
         $address = null;
         $isSale = ($document->isInstanceOf('sales_Sales') || $document->isInstanceOf('sales_Quotations'));
         if(empty($deliveryCode)){
@@ -335,6 +334,21 @@ class cond_DeliveryTerms extends core_Master
         }
         
         expect($rec = self::fetch(array('[#1#]', $deliveryCode)));
+
+        if ($document->isInstanceOf('sales_Sales')) {
+            $saleId = $document->that;
+            if(core_Packs::isInstalled('eshop')){
+                $cartRec = eshop_Carts::fetch(array("#saleId = '[#1#]'", $saleId));
+                if (!empty($cartRec) && $rec->address == 'receiver') {
+                    if(!empty($cartRec->deliveryPCode) || !empty($cartRec->deliveryPlace) || !empty($cartRec->deliveryAddress)){
+                        $address = $cartRec->deliveryPCode . " " . $cartRec->deliveryPlace . ", " . $cartRec->deliveryAddress;
+                        $address = trim($address, ", ");
+
+                        return $address;
+                    }
+                }
+            }
+        }
 
         $activatedOn = $document->fetchField('activatedOn');
         if (($rec->address == 'supplier' && $isSale === true) || ($rec->address == 'receiver' && $isSale === false)) {

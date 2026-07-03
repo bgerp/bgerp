@@ -68,7 +68,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $form = &$data->form;
         $rec = $form->rec;
 
-        setIfNot($mvc->autoAddDetailsToChange, false);
+        setPartIfNot($mvc, 'autoAddDetailsToChange', false);
         if ($data->action != 'clone' && !$mvc->autoAddDetailsToChange) return;
         if ($data->action != 'clone' && $mvc->autoAddDetailsToChange && isset($rec->id)) return;
 
@@ -79,8 +79,9 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $Detail = $detailsToCloneArr['detailMvc'];
 
         if (!countR($detailsToClone)) return;
-        setIfNot($Detail->productFld, 'productId');
-        setIfNot($Detail->quantityFld, 'quantity');
+
+        setPartIfNot($Detail, 'productFld', 'productId');
+        setPartIfNot($Detail, 'quantityFld', 'quantity');
         $rec->details = array();
 
         // Ако ориджина има артикули

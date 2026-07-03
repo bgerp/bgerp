@@ -135,7 +135,7 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
             }
             
             // Предпазва от повторно вкарване
-            if ($sNumArr[$nName][$rec->{$fName}]) {
+            if (!empty($sNumArr[$nName][$rec->{$fName}])) {
                 
                 continue;
             }
@@ -184,7 +184,7 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = null)
     {
-        if ($fields['-single'] && haveRole('debug') && Request::get('showDebug')) {
+        if (isset($fields['-single']) && haveRole('debug') && Request::get('showDebug')) {
             $numStrArr = array();
             foreach (array('mobile', 'tel', 'fax') as $fName) {
                 $val = ${$fName};

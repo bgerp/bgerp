@@ -56,7 +56,7 @@ class plg_State2 extends core_Plugin
             $this->closedState = 'closed';
         }
         
-        setIfNot($mvc->updateExistingStateOnImport, true);
+        setPartIfNot($mvc, 'updateExistingStateOnImport', true);
     }
     
     
@@ -76,7 +76,7 @@ class plg_State2 extends core_Plugin
             $this->activeState = $mvc->activeState;
         } else {
             foreach ($this->castToActive as $state) {
-                if ($opt[$state]) {
+                if ($opt[$state] ?? null) {
                     $this->activeState = $state;
                     break;
                 }
@@ -87,7 +87,7 @@ class plg_State2 extends core_Plugin
             $this->closedState = $mvc->closedState;
         } else {
             foreach ($this->castToClosed as $state) {
-                if ($opt[$state]) {
+                if ($opt[$state] ?? null) {
                     $this->closedState = $state;
                     break;
                 }
@@ -103,7 +103,7 @@ class plg_State2 extends core_Plugin
      */
     public static function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
-        if (!$mvc->state2PreventOrderingByState) {
+        if (!($mvc->state2PreventOrderingByState ?? null)) {
             $data->query->orderBy('#state');
         }
     }
@@ -136,7 +136,7 @@ class plg_State2 extends core_Plugin
      */
     public function on_BeforeSave(&$invoker, &$id, &$rec, $fields = null)
     {
-        if (!$rec->state && !$rec->id) {
+        if (!($rec->state ?? null) && !($rec->id ?? null)) {
             $this->getActiveAndClosedState($invoker);
             $rec->state = $this->activeState;
         }
@@ -168,12 +168,13 @@ class plg_State2 extends core_Plugin
      */
     public function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->STATE_CLASS = "state-{$rec->state}";
-        $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-{$rec->state}";
+        $recState = is_object($rec) ? ($rec->state ?? null) : null;
+        $row->STATE_CLASS = "state-{$recState}";
+        $row->ROW_ATTR['class'] = ($row->ROW_ATTR['class'] ?? '') . " state-{$recState}";
 
         if (isset($fields['-list']) && (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf') || Mode::is('noToolbar'))) return;
 
-        if ($mvc->haveRightFor('changeState', $rec)) {
+        if (is_object($rec) && $mvc->haveRightFor('changeState', $rec)) {
             $this->getActiveAndClosedState($mvc);
 
             if ($rec->state == $this->activeState || $rec->state == $this->closedState) {
@@ -297,7 +298,8 @@ class plg_State2 extends core_Plugin
      */
     public static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
     {
-        $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " #state = 'active'";
+        $existing = $type->params['where'] ?? '';
+        $type->params['where'] = $existing . ($existing ? ' AND ' : '') . " #state = 'active'";
     }
     
     
@@ -325,7 +327,7 @@ class plg_State2 extends core_Plugin
             
             $requiredRoles = $mvc->getRequiredRoles('edit', $rec, $userId);
             
-            if(isset($rec) && $rec->state == 'rejected'){
+            if(is_object($rec) && ($rec->state ?? null) == 'rejected'){
                 $requiredRoles = 'no_one';
             }
         }

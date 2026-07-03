@@ -615,7 +615,7 @@ abstract class deals_ClosedDeals extends core_Master
         if ($docClassId) {
             $data->query->where("#docClassId = {$docClassId}");
             
-            if (!$data->rejQuery) {
+            if (!($data->rejQuery ?? null)) {
                 $data->rejQuery = clone $data->query;
                 $data->rejQuery->where("#state = 'rejected'");
             }
@@ -659,8 +659,8 @@ abstract class deals_ClosedDeals extends core_Master
 
         return $id;
     }
-    
-    
+
+
     /**
      * Дали документа има приключени пера в транзакцията му
      */

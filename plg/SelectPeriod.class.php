@@ -29,14 +29,14 @@ class plg_SelectPeriod extends core_Plugin
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
-        $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
-        $showFuturePeriods = $mvc->filterFutureOptions ? $mvc->filterFutureOptions : false;
+        $fF = ($mvc->filterDateFrom ?? null) ?: 'from';
+        $fT = ($mvc->filterDateTo ?? null) ?: 'to';
+        $showFuturePeriods = ($mvc->filterFutureOptions ?? null) ?: false;
 
         $form = $data->form;
         $rec = $form->rec;
         
-        if (!$form->fields[$fF] || !$form->fields[$fT] || !$mvc->useFilterDateOnEdit) {
+        if (!($form->fields[$fF] ?? null) || !($form->fields[$fT] ?? null) || !($mvc->useFilterDateOnEdit ?? null)) {
             
             return ;
         }
@@ -165,14 +165,14 @@ class plg_SelectPeriod extends core_Plugin
      */
     public static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        if ($mvc->useFilterDateOnFilter === false) {
+        if (($mvc->useFilterDateOnFilter ?? null) === false) {
             
             return ;
         }
         
-        $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
-        $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
-        $showFuturePeriods = $mvc->filterFutureOptions ? $mvc->filterFutureOptions : false;
+        $fF = $mvc->filterDateFrom ?? 'from';
+        $fT = $mvc->filterDateTo ?? 'to';
+        $showFuturePeriods = $mvc->filterFutureOptions ?? false;
 
         $form = $data->listFilter;
         
@@ -180,7 +180,7 @@ class plg_SelectPeriod extends core_Plugin
         $fTEsc = json_encode($fT);
         
         $form->FLD('selectPeriod', 'varchar', 'caption=Период,input,before=from,silent,printListFilter=none', array('attr' => array('onchange' => "spr(this, true, {$fFEsc}, {$fTEsc});")));
-        if (strpos($form->showFields, $fF) !== false) {
+        if (strpos($form->showFields ?? '', $fF) !== false) {
             $form->showFields = trim(str_replace(",{$fF},", ",selectPeriod,{$fF},", ',' . $form->showFields . ','), ',');
         } else {
             $form->showFields .= ($form->showFields ? ',' : '') . 'selectPeriod';
@@ -188,22 +188,22 @@ class plg_SelectPeriod extends core_Plugin
         
         $form->input($data->listFilter->showFields, 'silent');
         $rec = $form->rec;
-        
-        if ($rec->selectPeriod == 'select') {
+
+        if (($rec->selectPeriod ?? null) === 'select') {
             $form->showFields .= ",{$fF}, {$fT}";
         }
         
         $keySel = null;
-        if ($rec->selectPeriod && $rec->selectPeriod != 'select') {
-            list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
+        if (!empty($rec->selectPeriod) && $rec->selectPeriod !== 'select') {
+            list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod ?? '');
             Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
         }
-        if ($mvc->showSelectPeriod === false) {
+        if (($mvc->showSelectPeriod ?? null) === false) {
             $showSelect = false;
         } else {
             $showSelect = true;
         }
-        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}, $showFuturePeriods, $showSelect));
+        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF} ?? null, $rec->{$fT} ?? null, $showFuturePeriods, $showSelect));
         
         if ($keySel) {
             $form->setDefault('selectPeriod', $keySel);
@@ -218,25 +218,24 @@ class plg_SelectPeriod extends core_Plugin
      */
     public static function on_BeforePrepareListSummary($mvc, &$res, $data)
     {
-        if ($mvc->useFilterDateOnFilter === false) {
+        if (($mvc->useFilterDateOnFilter ?? null) === false) {
             
             return ;
         }
         
         $form = $data->listFilter;
         if (empty($form)) return;
-        $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
-        $fT = $mvc->filterDateTo ? $mvc->filterDateFrom : 'to';
-        
-        if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
+        $fF = ($mvc->filterDateFrom ?? null) ?: 'from';
+        $fT = ($mvc->filterDateTo ?? null) ?: 'to';
+
+        if (($form->fields[$fF] ?? null) && (($form->rec->selectPeriod ?? null) != 'select')) {
             $form->setField($fF, array('rowStyle' => 'display:none'));
         }
-            
-        if ($form->fields[$fF] && ($form->rec->selectPeriod != 'select')) {
+
+        if (($form->fields[$fF] ?? null) && (($form->rec->selectPeriod ?? null) != 'select')) {
             $form->setField($fT, array('rowStyle' => 'display:none'));
         }
-
-        setIfNot($form->defOrder, $data->defOrder, true);
+        $form->defOrder = $form->defOrder ?? $data->defOrder ?? true;
     }
     
     
@@ -250,7 +249,9 @@ class plg_SelectPeriod extends core_Plugin
         } else {
             $now = dt::mysql2timestamp(dt::addDays(0));
         }
-        
+
+        $from = $to = '';
+
         switch ($sel) {
             
             // Ден
@@ -489,7 +490,7 @@ class plg_SelectPeriod extends core_Plugin
                     continue;
                 }
                 list($key, $title) = explode('=>', $val);
-                if (!$opt[$key]) {
+                if (empty($opt[$key])) {
                     $opt[$key] = $title;
                 }
             }
@@ -519,7 +520,7 @@ class plg_SelectPeriod extends core_Plugin
         if ($fromSel && $toSel && !$keySel) {
             $keySel = $fromSel . '|' . $toSel;
             $title = self::getPeriod($fromSel, $toSel);
-            if (!$opt[$keySel]) {
+            if (empty($opt[$keySel])) {
                 $opt[$keySel] = $title;
             }
             $val = $fromSel . '|' . $toSel . '=>' . $title;

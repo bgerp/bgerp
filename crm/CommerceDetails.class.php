@@ -25,13 +25,10 @@ class crm_CommerceDetails extends core_Manager
             $data->TabCaption = 'Търговия';
         } else {
 
-            return ;
-        }
-        
-        if ($data->isCurrent === false) {
-            
             return;
         }
+        
+        if ($data->isCurrent === false) return;
         
         $data->Lists = cls::get('price_ListToCustomers');
         $data->Conditions = cls::get('cond_ConditionsToCustomers');
@@ -66,7 +63,7 @@ class crm_CommerceDetails extends core_Manager
      */
     public function renderCommerceDetails($data)
     {
-        if ($data->prepareTab === false || $data->renderTab === false) return;
+        if (($data->prepareTab ?? true) === false || ($data->renderTab ?? true) === false) return;
 
         if (empty($data->Lists) && empty($data->Conditions) && empty($data->Cards) && empty($data->Vouchers)) return;
 

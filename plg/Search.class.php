@@ -48,7 +48,7 @@ class plg_Search extends core_Plugin
         }
         
         // Как ще се казва полето за търсене, по подразбиране  е 'search'
-        setIfNot($mvc->searchInputField, 'search');
+        setPartIfNot($mvc, 'searchInputField', 'search');
     }
     
     
@@ -67,7 +67,7 @@ class plg_Search extends core_Plugin
                 $fields['searchKeywords'] = 'searchKeywords';
             }
             
-            $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
+            $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords ?? null);
             
             $rec->searchKeywords = $mvc->getSearchKeywords($rec);
         }
@@ -100,11 +100,13 @@ class plg_Search extends core_Plugin
             
             if (is_object($rec)) {
                 $cRec = clone $rec;
-                if ($cRec->id) {
+                if (!empty($cRec->id)) {
                     $fullRec = $mvc->fetch($cRec->id);
-                    foreach ($fieldsArr as $fieldName => $dummy) {
-                        if (!isset($cRec->{$fieldName})) {
-                            $cRec->{$fieldName} = $fullRec->{$fieldName};
+                    if ($fullRec) {
+                        foreach ($fieldsArr as $fieldName => $dummy) {
+                            if (!isset($cRec->{$fieldName})) {
+                                $cRec->{$fieldName} = $fullRec->{$fieldName} ?? null;
+                            }
                         }
                     }
                 }
@@ -116,7 +118,7 @@ class plg_Search extends core_Plugin
                 // Дали това поле даващо ключови думи е дефинирано?
                 expect(is_object($fieldObj), $field);
                 if (get_class($fieldObj->type) == 'type_Text') {
-                    $searchKeywords .= ' ' . static::normalizeText($cRec->{$field});
+                    $searchKeywords .= ' ' . static::normalizeText($cRec->{$field} ?? null);
                 } else {
                     Mode::push('text', 'plain');
                     Mode::push('htmlEntity', 'none');
@@ -352,7 +354,7 @@ class plg_Search extends core_Plugin
                     
                     // Колко е максималната дължина на стринга, гледа се първо в класа на заявката после дефолта за плъгина
                     $maxLen = null;
-                    setIfNot($maxLen, $query->mvc->maxSearchKeywordLen, PLG_SEARCH_MAX_KEYWORD_LEN, 10);
+                    setIfNot($maxLen, $query->mvc->maxSearchKeywordLen ?? null, PLG_SEARCH_MAX_KEYWORD_LEN, 10);
                     $w = substr($w, 0, $maxLen);
                 }
 
@@ -385,7 +387,7 @@ class plg_Search extends core_Plugin
                         }
                     }
 
-                    if (self::isStopWord($w) || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {
+                    if (self::isStopWord($w) || !empty($query->mvc->dbEngine) || $limit > 0 || !empty($query->dontUseFts)) {
                         if ($limit > 0 && $like == 'LIKE') {
                             $field1 = "LEFT(#{$field}, {$limit})";
                         } else {
@@ -624,6 +626,7 @@ class plg_Search extends core_Plugin
         
         $len = strlen($str);
         
+        $words = [];
         $quote = false;
         $wordId = 0;
         $isWord = true;
@@ -637,13 +640,13 @@ class plg_Search extends core_Plugin
                     $words[$wordId] = '"';
                 }
                 
-                $words[$wordId] .= $c;
+                $words[$wordId] = ($words[$wordId] ?? '') . $c;
                 continue;
             }
             
             // Кога трябва да се пробваме да започнем нова дума
             if ($c == ' ' && !$quote) {
-                if (strlen($words[$wordId])) {
+                if (strlen($words[$wordId] ?? '')) {
                     $wordId++;
                     continue;
                 }
@@ -694,7 +697,7 @@ class plg_Search extends core_Plugin
     public static function on_AfterSetupMVC($mvc, &$res)
     {
         $i = 0;
-        setIfNot($mvc->fillSearchKeywordsOnSetup, true);
+        setPartIfNot($mvc, 'fillSearchKeywordsOnSetup', true);
 
         if ($mvc->fillSearchKeywordsOnSetup !== false && !$mvc->fetchField("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
 
@@ -742,7 +745,7 @@ class plg_Search extends core_Plugin
      */
     public static function on_AfterGetSearchFields($mvc, &$searchFieldsArr)
     {
-        $searchFieldsArr = arr::make($mvc->searchFields);
+        $searchFieldsArr = arr::make($mvc->searchFields ?? null);
     }
 
 
@@ -937,7 +940,9 @@ class plg_Search extends core_Plugin
         $rec = $mvc->fetchRec($rec);
 
         $fRec = $mvc->fetch("id = {$rec->id}", '*', false);
-        $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
+        if ($fRec) {
+            $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
+        }
         $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
 
         if ($mvc->hasPlugin('plg_Search')){

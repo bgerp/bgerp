@@ -157,7 +157,7 @@ class acc_ArticleDetails extends doc_Detail
                         $ent = "{$type}Ent{$i}";
                         
                         if ($rec->{$ent}) {
-                            $ents .= "<tr><td> <span style='margin-left:10px; font-size: 11px; color: #747474;'>{$i}.</span> <span>{$row->{$ent}}</span></td</tr>";
+                            $ents .= "<tr><td> <span style='margin-left:10px; font-size: 11px; color: #747474;'>{$i}.</span> <span>{$row->{$ent}}</span></td></tr>";
                         }
                     }
                     
@@ -198,16 +198,12 @@ class acc_ArticleDetails extends doc_Detail
         }
         
         if ($data->form->cmd == 'save_n_new') {
-            $rec = $data->form->rec;
-
-
             unset($data->retUrl['id']);
             unset($data->retUrl['packagingId']);
             unset($data->retUrl['editSummary']);
             unset($data->retUrl['editBatch']);
             unset($data->retUrl['editQuantity']);
-                                    
-      }
+        }
     }
     
     
@@ -226,7 +222,8 @@ class acc_ArticleDetails extends doc_Detail
             $form->setReadOnly('debitAccId');
             $form->setReadOnly('creditAccId');
         }
-        
+
+        $debitAcc = $creditAcc = null;
         if (isset($rec->debitAccId)) {
             $debitAcc = acc_Accounts::getAccountInfo($rec->debitAccId);
         } else {
@@ -243,10 +240,10 @@ class acc_ArticleDetails extends doc_Detail
             $form->setField('amount', 'input=none');
         }
         
-        $dimensional = $debitAcc->isDimensional || $creditAcc->isDimensional;
-        
-        $quantityOnly = ($debitAcc->rec->type == 'passive' && $debitAcc->rec->strategy) ||
-        ($creditAcc->rec->type == 'active' && $creditAcc->rec->strategy);
+        $dimensional = (is_object($debitAcc) && $debitAcc->isDimensional) || (is_object($creditAcc) && $creditAcc->isDimensional);
+
+        $quantityOnly = (is_object($debitAcc) && $debitAcc->rec->type == 'passive' && $debitAcc->rec->strategy) ||
+            (is_object($creditAcc) && $creditAcc->rec->type == 'active' && $creditAcc->rec->strategy);
         
         $masterRec = $mvc->Master->fetch($form->rec->articleId);
         
@@ -282,17 +279,18 @@ class acc_ArticleDetails extends doc_Detail
                     // Ако корицата има итнерфейса на номенклатурата и е перо, слагаме я по дефолт
                     if ($cover->haveInterface($list->rec->regInterfaceId)) {
                         if ($coverClassId = $cover->getInstance()->getClassId()) {
-                            if ($itemId = acc_Items::fetchItem($coverClassId, $cover->that)->id) {
-                                $form->setDefault("{$type}Ent{$i}", $itemId);
+                            if($itemRec = acc_Items::fetchItem($coverClassId, $cover->that)){
+                                $form->setDefault("{$type}Ent{$i}", $itemRec->id);
                             }
+
                         }
                     }
                     
                     // Ако първия документ има итнерфейса на номенклатурата и е перо, слагаме го по дефолт
                     if ($firstDoc->haveInterface($list->rec->regInterfaceId)) {
                         if ($docClassId = $firstDoc->getInstance()->getClassId()) {
-                            if ($itemId = acc_Items::fetchItem($docClassId, $firstDoc->that)->id) {
-                                $form->setDefault("{$type}Ent{$i}", $itemId);
+                            if($itemRec = acc_Items::fetchItem($docClassId, $firstDoc->that)){
+                                $form->setDefault("{$type}Ent{$i}", $itemRec->id);
                             }
                         }
                     }
@@ -307,20 +305,21 @@ class acc_ArticleDetails extends doc_Detail
                     
                     // И перото е попълнено и е от номенклатура валута
                     if (isset($rec->{"{$type}Ent{$i}"})) {
-                        $itemRec = acc_Items::fetch($rec->{"{$type}Ent{$i}"});
-                        
-                        // Ако перото е на валута
-                        if ($itemRec->classId == currency_Currencies::getClassId()) {
-                            $form->setField("{$type}Ent{$i}", "removeAndRefreshForm={{$type}Price}");
-                            
-                            // Задаваме курса към основната валута за дефолт цена
-                            $currencyCode = currency_Currencies::getCodeById($itemRec->objectId);
-                            $rate = currency_CurrencyRates::getRate($masterRec->valior, $currencyCode, null);
-                            $form->setDefault("{$type}Price", $rate);
-                            $form->setField("{$type}Ent{$i}", "removeAndRefreshForm={$type}Price");
-                            if($currencyCode == acc_Periods::getBaseCurrencyCode($masterRec->valior)){
-                                $form->setReadOnly("{$type}Price");
-                                $form->setField("{$type}Price", array('hint' => 'Цената на основната валута за периода, трябва да е винаги фиксирана|*!'));
+                        if($itemRec = acc_Items::fetch($rec->{"{$type}Ent{$i}"})){
+
+                            // Ако перото е на валута
+                            if ($itemRec->classId == currency_Currencies::getClassId()) {
+                                $form->setField("{$type}Ent{$i}", "removeAndRefreshForm={$type}Price");
+
+                                // Задаваме курса към основната валута за дефолт цена
+                                $currencyCode = currency_Currencies::getCodeById($itemRec->objectId);
+                                $rate = currency_CurrencyRates::getRate($masterRec->valior, $currencyCode, null);
+                                $form->setDefault("{$type}Price", $rate);
+                                $form->setField("{$type}Ent{$i}", "removeAndRefreshForm={$type}Price");
+                                if($currencyCode == acc_Periods::getBaseCurrencyCode($masterRec->valior)){
+                                    $form->setReadOnly("{$type}Price");
+                                    $form->setField("{$type}Price", array('hint' => 'Цената на основната валута за периода, трябва да е винаги фиксирана|*!'));
+                                }
                             }
                         }
                     }
@@ -436,8 +435,9 @@ class acc_ArticleDetails extends doc_Detail
                         
                         $rec->{"{$type}Amount"} = $rec->amount;
                     }
-                    
-                    if (!empty($rec->{"{$type}Price"}) && !empty($rec->{"{$type}Quantity"}) && trim($rec->amount) != trim($rec->{"{$type}Price"} * $rec->{"{$type}Quantity"})) {
+
+                    $calcedAmount = $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"};
+                    if (!empty($rec->{"{$type}Price"}) && !empty($rec->{"{$type}Quantity"}) && abs($rec->amount - $calcedAmount) > 0.0001) {
                         $form->setError("{$type}Quantity, {$type}Price, amount", 'Невъзможни стойности на оборотите');
                     }
                 } else {
@@ -449,7 +449,7 @@ class acc_ArticleDetails extends doc_Detail
             /**
              * Проверка дали debitAmount == debitAmount
              */
-            if ($rec->debitAmount != $rec->creditAmount) {
+            if (abs($rec->debitAmount - $rec->creditAmount) > 0.0001) {
                 $form->setError('debitQuantity, debitPrice, creditQuantity, creditPrice, amount', 'Дебит и кредит страните са различни');
             }
         }
@@ -512,7 +512,7 @@ class acc_ArticleDetails extends doc_Detail
         $row->creditAccId = static::$cache['accs'][$rec->creditAccId];
         
         if ($rec->reason) {
-            $row->reason = "<span style='color:#444;font-size:0.9em;margin-left:5px'>{$row->reason}<span>";
+            $row->reason = "<span style='color:#444;font-size:0.9em;margin-left:5px'>{$row->reason}</span>";
         }
     }
 

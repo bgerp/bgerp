@@ -21,9 +21,9 @@ class plg_Clone extends core_Plugin
     public static function on_AfterDescription(&$invoker)
     {
         // Правата по подразбиране за екшъните
-        setIfNot($invoker->canClonesysdata, 'admin, ceo');
-        setIfNot($invoker->canCloneuserdata, 'user');
-        setIfNot($invoker->canClonerec, 'user');
+        setPartIfNot($invoker, 'canClonesysdata', 'admin, ceo');
+        setPartIfNot($invoker, 'canCloneuserdata', 'user');
+        setPartIfNot($invoker, 'canClonerec', 'user');
         
         $invoker->FLD('clonedFromId', "key(mvc={$invoker->className})", 'caption=Клонирано,input=hidden,forceField,single=none,column=none');
     }
@@ -68,7 +68,7 @@ class plg_Clone extends core_Plugin
         // добавяме дефолти ще се запишат на чисто
         $mvc->invoke('AfterPrepareEditForm', array(&$data, &$data));
         
-        if ($data->singleTitle) {
+        if (!empty($data->singleTitle)) {
             $mvc->singleTitle = $data->singleTitle;
         }
         
@@ -210,11 +210,11 @@ class plg_Clone extends core_Plugin
         if ($rec && $requiredRoles != 'no_one') {
             
             // Ако записа е на системен потребител
-            if ($rec->createdBy == core_Users::SYSTEM_USER) {
+            if (($rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
                 if ($action == 'edit') {
                     $requiredRoles = $mvc->getRequiredRoles('editsysdata', $rec, $userId);
                 }
-                
+
                 if ($action == 'delete') {
                     $requiredRoles = $mvc->getRequiredRoles('deletesysdata', $rec, $userId);
                 }
@@ -224,7 +224,7 @@ class plg_Clone extends core_Plugin
             if ($action == 'clonerec') {
                 
                 // Ако е създаден от системния потребител
-                if ($rec->createdBy == core_Users::SYSTEM_USER) {
+                if (isset($rec) && ($rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
                     
                     // Проверява се дали има права да клонира системните данни
                     if (!$mvc->haveRightFor('clonesysdata', $rec)) {
@@ -274,10 +274,10 @@ class plg_Clone extends core_Plugin
         }
         
         // Определяме в кое поле ще показваме инструментите
-        $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
+        $field = !empty($mvc->rowToolsField) ? $mvc->rowToolsField : 'id';
         
         // Съдържанието на полето
-        $rowField = $row->$field;
+        $rowField = $row->$field ?? null;
         
         // Ако полето не обект
         if (!is_object($rowField)) {
@@ -349,7 +349,8 @@ class plg_Clone extends core_Plugin
             
             // Добавяме бутон за клониране в сингъл изгледа
             $title = tr('|Клониране на|*' . ' ' . $singleTitle);
-            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2,id=clone{$data->rec->containerId}, order=19.1");
+            $containerId = $data->rec->containerId ?? '';
+            $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2,id=clone{$containerId}, order=19.1");
         }
     }
     
@@ -449,7 +450,7 @@ class plg_Clone extends core_Plugin
     public static function on_AfterGetDetailsToClone($mvc, &$res, $rec)
     {
         // Добавяме артикулите към детайлите за клониране
-        $res = arr::make($mvc->cloneDetails, true);
+        $res = arr::make($mvc->cloneDetails ?? null, true);
     }
     
     

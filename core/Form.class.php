@@ -28,7 +28,25 @@ class core_Form extends core_FieldSet
      * ET шаблон за формата
      */
     public $tpl;
-    
+
+
+    /**
+     *
+     */
+    public $mvc;
+
+
+    /**
+     *
+     */
+    public $renderVars;
+
+
+    /**
+     *
+     */
+    public $InputFields;
+
     
     /**
      * Заглавие на формата
@@ -64,6 +82,12 @@ class core_Form extends core_FieldSet
      * Атрибути на елемента <FORM ... >
      */
     public $formAttr = array();
+
+
+    /**
+     *
+     */
+    public $method;
 
 
     /**
@@ -198,7 +222,6 @@ class core_Form extends core_FieldSet
             expect($this->fields[$name], "Липсващо поле във формата '{$name}'");
 
             $value = Request::get($name, false);
-            
             $captions = str_replace('->', '|* » |', $field->caption);
             
             // Ако $silent, не сме критични към празните стойности
@@ -208,7 +231,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Когато полето е скрито и няма стойност, гледаме да не е NULL
-                if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === null)) {
+                if (($field->input ?? null) == 'hidden' && !$value && ($field->type->toVerbal($value) === null)) {
                     continue;
                 }
             }
@@ -253,7 +276,7 @@ class core_Form extends core_FieldSet
                 }
 
                 // Не могат да се селектират неща които не са опции
-                if ((!array_key_exists($valueCompare, $newOptions) && $this->cmd != 'refresh') || (is_object($newOptions[$valueCompare]) && $newOptions[$valueCompare]->group)) {
+                if ((!array_key_exists($valueCompare, $newOptions) && $this->cmd != 'refresh') || (isset($newOptions[$valueCompare]) && is_object($newOptions[$valueCompare]) && ($newOptions[$valueCompare]->group ?? null))) {
                     $this->setError($name, 'Невъзможна стойност за полето' .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';
@@ -261,15 +284,15 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Не могат да се селектират групи!
-                if (is_object($newOptions[$valueCompare]) && $newOptions[$valueCompare]->group) {
+                if (isset($newOptions[$valueCompare]) && is_object($newOptions[$valueCompare]) && ($newOptions[$valueCompare]->group ?? null)) {
                     $this->setError($name, 'Група не може да бъде стойност за полето' .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';
                     continue;
                 }
-                
+
                 // Празна опция се приема според типа. Числата стават NULL
-                if ($newOptions[$valueCompare] === '' && $valueCompare === '') {
+                if (array_key_exists($valueCompare, $newOptions) && empty($newOptions[$valueCompare]) && empty($valueCompare)) {
                     $value = $type->fromVerbal($value);
                 }
             } else {
@@ -370,7 +393,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Когато полето е скрито и няма стойност, гледаме да не е NULL
-                if ($field->input == 'hidden' && !$value && ($field->type->toVerbal($value) === null)) {
+                if (($field->input ?? null) == 'hidden' && !$value && ($field->type->toVerbal($value) === null)) {
                     continue;
                 }
             }
@@ -422,7 +445,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Не могат да се селектират групи!
-                if (is_object($newOptions[$valueCompare]) && $newOptions[$valueCompare]->group) {
+                if (is_object($newOptions[$valueCompare]) && ($newOptions[$valueCompare]->group ?? null)) {
                     $this->setError($name, 'Група не може да бъде стойност за полето' .
                         "|* <b>|{$captions}|*</b>!");
                     $this->fields[$name]->input = 'input';
@@ -504,14 +527,14 @@ class core_Form extends core_FieldSet
         }
         
         if (!empty($result['error'])) {
-            $captions = ($field->noCaption) ? ' ' : "<b>'|" . $captions . "|*'</b>";
+            $captions = (!empty($field->noCaption)) ? ' ' : "<b>'|" . $captions . "|*'</b>";
             $captions = str_replace('» |@', '', $captions);
             
             $haveErr = true;
             $this->setError($name, 'Некоректна стойност на полето|' .
                 "* {$captions}!<br><small style='color:red'>" . '|' .
                 $result['error'] .
-                ($result['warning'] ? ('|*<br>|' .
+                (!empty($result['warning']) ? ('|*<br>|' .
                         $result['warning']) : '') . '|*</small>');
         }
         
@@ -706,7 +729,7 @@ class core_Form extends core_FieldSet
             $fields = $this->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none' && #input != 'hidden')");
         }
 
-        $isHorizontal = ($this->view == 'horizontal');
+        $isHorizontal = (($this->view ?? null) == 'horizontal');
         if (countR($fields)) {
             if (!empty($this->defOrder)) {
                 $this->orderField();
@@ -928,7 +951,7 @@ class core_Form extends core_FieldSet
                         }
                     }
 
-                    $maxRadio = $type->params['maxRadio'];
+                    $maxRadio = $type->params['maxRadio'] ?? null;
                     if (empty($attr['_isRefresh'])) {
                         if (!strlen($maxRadio) && $maxRadio !== 0 && $maxRadio !== '0' && empty($type->params['isHorizontal'])){
                             if(arr::isOptionsTotalLenBellowAllowed($options)){
@@ -939,7 +962,7 @@ class core_Form extends core_FieldSet
 
                         // ако ще се рендират опциите като радио-бутони маха се празната опция
                         if(isset($maxRadio) && countR($options) <= $maxRadio){
-                            if($type->params['allowEmpty']){
+                            if($type->params['allowEmpty'] ?? null){
                                 if(isset($options['']) && (empty($options['']) || (is_object($options['']) && empty(trim($options['']->title)))) && countR($options) >= 2) {
                                     unset($options['']);
                                 }
@@ -953,8 +976,8 @@ class core_Form extends core_FieldSet
                         $value,
                         $attr,
                         $maxRadio,
-                        $type->params['maxColumns'],
-                        $type->params['columns']
+                        $type->params['maxColumns'] ?? null,
+                        $type->params['columns'] ?? null
                     );
                     $this->invoke('AfterCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                 } else {
@@ -1012,16 +1035,24 @@ class core_Form extends core_FieldSet
         if ($this->fieldsLayout) {
             return new ET($this->fieldsLayout);
         }
-        
-        if ($this->view == 'horizontal') {
+
+        if (($this->view ?? null) == 'horizontal') {
             $tpl = new ET('[#FIELDS#]');
 
             $firstRowFields = $secondRowFields = array();
-            array_walk($fields, function($a) use (&$firstRowFields, &$secondRowFields) {if($a->row == 2) {$secondRowFields[] = $a;} else {$firstRowFields[] = $a;}});
+            array_walk($fields, function($a) use (&$firstRowFields, &$secondRowFields) {
+                $row = $a->row ?? 1;
+                if ($row == 2) {
+                    $secondRowFields[] = $a;
+                } else {
+                    $firstRowFields[] = $a;
+                }
+            });
+
 
             foreach ($firstRowFields as $field) {
                 $fld = new ET("<div class='hFormField' >[#{$field->name}#][#UNIT#]</div>");
-                $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
+                $fld->replace(($field->unit ?? null) ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
                 $tpl->append($fld, 'FIELDS');
             }
             if(countR($secondRowFields)){
@@ -1030,7 +1061,7 @@ class core_Form extends core_FieldSet
                 }
                 foreach ($secondRowFields as $field) {
                     $fld = new ET("<div class='hFormField' >[#{$field->name}#][#UNIT#]</div>");
-                    $fld->replace($field->unit ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
+                    $fld->replace(($field->unit ?? null) ? ('&nbsp;' . tr($field->unit)) : '', 'UNIT');
                     $tpl->append($fld, 'FIELDS');
                 }
             }
@@ -1077,9 +1108,10 @@ class core_Form extends core_FieldSet
 
                 // Обработка на заглавния ред
                 if ($headerRow) {
-                    list($group, $en) = explode('||', $captionArr[0]);
+                    $captionParts = explode('||', $captionArr[0]);
+                    [$group, $en] = [$captionParts[0], $captionParts[1] ?? ''];
 
-                    if ($fsArr[$fsId] == $group) {
+                    if (($fsArr[$fsId] ?? null) == $group) {
                         $fsRow = " [#FS_ROW{$fsId}#]";
                         $fsHead = '';
                         $headerRow = '';
@@ -1188,7 +1220,7 @@ class core_Form extends core_FieldSet
             
             // Заменяме състоянието на секциите
             foreach ($fsArr as $id => $group) {
-                if (!$usedGroups[$group] && !Mode::is('javascript', 'no')) {
+                if (!($usedGroups[$group] ?? null) && !Mode::is('javascript', 'no')) {
                     $tpl->replace(" fs{$id}  hiddenFormRow", "FS_ROW{$id}");
                     $tpl->replace(" fs{$id}  hiddenFormRow", "FS1_ROW{$id}");
                     $tpl->replace(" class='fs-toggle{$id}' style='cursor: pointer;' onclick=\"toggleFormGroup({$id});\"", "FS_HEAD{$id}");
@@ -1233,7 +1265,7 @@ class core_Form extends core_FieldSet
     public function getMvc()
     {
         if (!($mvc = $this->mvc)) {
-            $ctr = $this->action['Ctr'];
+            $ctr = $this->action['Ctr'] ?? null;
             if (!$ctr) {
                 expect($ctr = $this->action[0]);
             }
@@ -1347,8 +1379,7 @@ class core_Form extends core_FieldSet
      */
     public function renderHtml_($fields = null, $vars = null)
     {
-        setIfNot($this->formAttr['id'], str::getRand());
-
+        $this->formAttr['id'] = $this->formAttr['id'] ?? str::getRand();
         $this->smartSet('showFields', arr::make($fields, true));
         $this->smartSet('renderVars', arr::make($vars, true));
         
@@ -1404,7 +1435,7 @@ class core_Form extends core_FieldSet
 
         $sf = array();
         foreach ($fields as $name => $field) {
-            $sf[$name] = $this->rec->{$name};
+            $sf[$name] = $this->rec->{$name} ?? null;
         }
         
         $getArr = Request::getParams('_GET');
@@ -1490,7 +1521,7 @@ class core_Form extends core_FieldSet
         
         if (countR($arr)) {
             foreach ($arr as $name => $value) {
-                if (!$this->rec->{$name}) {
+                if (empty($this->rec->{$name})) {
                     $this->rec->{$name} = $value;
                 }
             }
@@ -1621,7 +1652,8 @@ class core_Form extends core_FieldSet
             }
             
             unset($field->type->params['allowEmpty']);
-            
+            $field->type->params['isReadOnly'] = true;
+
             Mode::push('text', 'plain');
             if (isset($field->type->options[$value])) {
                 $verbal = $field->type->options[$value];
@@ -1633,8 +1665,6 @@ class core_Form extends core_FieldSet
             $this->setOptions($name, array(
                 "{$value}" => $verbal
             ));
-            
-            $field->type->params['isReadOnly'] = true;
         }
     }
     
@@ -1713,7 +1743,7 @@ class core_Form extends core_FieldSet
      */
     public static function preventDoubleSubmission(core_ET &$tpl, $form)
     {
-        setIfNot($form->formAttr['id'], str::getRand());
+        $form->formAttr['id'] = $form->formAttr['id'] ?? str::getRand();
 
         $formId = $form->formAttr['id'];
 

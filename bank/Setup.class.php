@@ -69,7 +69,9 @@ class bank_Setup extends core_ProtoSetup
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
         'bank_Register',
-        'migrate::recontoExchangeDocuments2601'
+        'migrate::recontoExchangeDocuments2601',
+        'migrate::recontoDocs2620',
+        'migrate::fixPaymentUntil2623',
     );
 
 
@@ -98,8 +100,31 @@ class bank_Setup extends core_ProtoSetup
         $eurozoneDate = acc_Setup::getEurozoneDate();
         $bQuery = bank_ExchangeDocument::getQuery();
         $bQuery->where("#state = 'active' AND #createdOn >= '{$eurozoneDate}' AND #createdBy = -1");
-        while($bRec = $bQuery->fetch()) {
+        while ($bRec = $bQuery->fetch()) {
             acc_Journal::reconto($bRec->containerId);
         }
+    }
+
+
+    /**
+     * Реконтиране на ПКО и ВКТ
+     */
+    public function recontoDocs2620()
+    {
+        $callOn = dt::addSecs(120);
+        $data = (object)array('class' => 'bank_InternalMoneyTransfer', 'from' => '2026-01-01', 'fields' => array(), 'lastId' => null);
+        core_CallOnTime::setCall('acc_Journal', 'recontoActiveDocuments', $data, $callOn);
+    }
+
+
+    /**
+     * Миграция на замърсените РБД-та
+     */
+    public function fixPaymentUntil2623()
+    {
+        $Spending = cls::get('bank_SpendingDocuments');
+        $earlyPaymentUntilColName = str::phpToMysqlName('earlyPaymentUntil');
+        $query = "UPDATE {$Spending->dbTableName} SET {$earlyPaymentUntilColName} = NULL WHERE {$earlyPaymentUntilColName} = '0000-00-00'";
+        $Spending->db->query($query);
     }
 }

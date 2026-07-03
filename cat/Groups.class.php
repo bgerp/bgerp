@@ -194,7 +194,7 @@ class cat_Groups extends core_Master
         $groupsWithOverheadCosts = keylist::toArray(cat_Setup::get('GROUPS_WITH_OVERHEAD_COSTS'));
         $parentsArr = cls::get('cat_Groups')->getParentsArray($rec->parentId);
         $intersectedParents = array_intersect_key($groupsWithOverheadCosts, $parentsArr);
-        if (array_key_exists($rec->id, $groupsWithOverheadCosts) || countR($intersectedParents)) {
+        if ((!empty($rec->id) && array_key_exists($rec->id, $groupsWithOverheadCosts)) || countR($intersectedParents)) {
             $form->setField('defaultOverheadCostsPercent', 'input');
         }
     }
@@ -272,7 +272,7 @@ class cat_Groups extends core_Master
         $data->listFilter->input(null, 'silent');
 
         $data->query->orderBy('#name');
-        if ($data->listFilter->rec->product) {
+        if (!empty($data->listFilter->rec->product)) {
             $groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
             $data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
         }
@@ -288,16 +288,16 @@ class cat_Groups extends core_Master
             $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
             $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
 
-            if ($fields['-list']) {
+            if (isset($fields['-list'])) {
                 $row->productCnt = ht::createLinkRef($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
 
-            if ($fields['-single']) {
+            if (isset($fields['-single'])) {
                 $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
         }
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if(!isset($rec->defaultOverheadCostsPercent)){
                 // Ако е намерена наследена стойност
                 if ($overheadCostArr = $mvc->getDefaultOverheadCostFromParent($rec)) {
@@ -329,7 +329,7 @@ class cat_Groups extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
-        if ($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
+        if ($action == 'delete' && isset($rec) && (($rec->sysId ?? null) || ($rec->productCnt ?? null))) {
             $requiredRoles = 'no_one';
         }
     }
@@ -409,7 +409,7 @@ class cat_Groups extends core_Master
 
         $parentIdNumb = (int)$parentId;
 
-        if (!($res = $groups[$parentIdNumb][$name])) {
+        if (!($res = $groups[$parentIdNumb][$name] ?? null)) {
             if (strpos($name, '»')) {
                 $gArr = explode('»', $name);
                 foreach ($gArr as $gName) {
@@ -540,8 +540,8 @@ class cat_Groups extends core_Master
         }
 
         while ($rec = $query->fetch()) {
-            if ($gCntArr[$rec->id] != $rec->productCnt) {
-                $rec->productCnt = $gCntArr[$rec->id];
+            if (($gCntArr[$rec->id] ?? null) != $rec->productCnt) {
+                $rec->productCnt = $gCntArr[$rec->id] ?? 0;
                 if (empty($rec->productCnt)) {
                     $rec->productCnt = 0;
                 }
@@ -620,11 +620,13 @@ class cat_Groups extends core_Master
 
                 // Ако в самата група има ръчно въведен процент - взима се той
                 $groupRec = static::fetch("#id = {$groupId}", "id,parentId,defaultOverheadCostsPercent");
-                if (isset($groupRec->defaultOverheadCostsPercent)) {
-                    $groupsToCheck[$groupRec->id] = $groupRec->defaultOverheadCostsPercent;
-                } else {
-                    if ($overheadCostArr = $me->getDefaultOverheadCostFromParent($groupRec)) {
-                        $groupsToCheck[$groupRec->id] = $overheadCostArr['overheadCost'];
+                if ($groupRec) {
+                    if (isset($groupRec->defaultOverheadCostsPercent)) {
+                        $groupsToCheck[$groupRec->id] = $groupRec->defaultOverheadCostsPercent;
+                    } else {
+                        if ($overheadCostArr = $me->getDefaultOverheadCostFromParent($groupRec)) {
+                            $groupsToCheck[$groupRec->id] = $overheadCostArr['overheadCost'];
+                        }
                     }
                 }
             }

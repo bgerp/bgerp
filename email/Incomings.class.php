@@ -1025,7 +1025,7 @@ class email_Incomings extends core_Master
             }
         }
         
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if ($rec->files) {
                 $vals = keylist::toArray($rec->files);
                 
@@ -1042,7 +1042,7 @@ class email_Incomings extends core_Master
                     foreach ($vals as $keyD) {
                         $fRec = fileman::fetch($keyD);
 
-                        if ($ourImgArr[$fRec->dataId]) {
+                        if (!empty($ourImgArr[$fRec->dataId])) {
                             continue;
                         }
                         $keyD = $fRec->fileLen . '|' . $keyD;
@@ -1456,7 +1456,7 @@ class email_Incomings extends core_Master
         }
         
         foreach ($emailsArr as $emailArr) {
-            if (!$emailArr['name']) {
+            if (empty($emailArr['name'])) {
                 continue;
             }
             $pEmailsFromName = type_Email::extractEmails($emailArr['name']);
@@ -1524,8 +1524,8 @@ class email_Incomings extends core_Master
             $emailRecsArr = doclog_Documents::getRecs(null, doclog_Documents::ACTION_SEND, $threadId);
             
             foreach ($emailRecsArr as $emailRecArr) {
-                $toArr = type_Emails::toArray($emailRecArr->data->to);
-                $ccArr = type_Emails::toArray($emailRecArr->data->cc);
+                $toArr = type_Emails::toArray($emailRecArr->data->to ?? null);
+                $ccArr = type_Emails::toArray($emailRecArr->data->cc ?? null);
                 $allArr = array_merge((array) $toArr, (array) $ccArr);
                 
                 foreach ($allArr as $emailStr) {
@@ -3554,7 +3554,7 @@ class email_Incomings extends core_Master
         }
 
         if (!$res) {
-            if ($rec->headers['list-unsubscribe']) {
+            if (!empty($rec->headers['list-unsubscribe'])) {
                 $uData = $rec->headers['list-unsubscribe'][0];
                 if (preg_match(type_Richtext::URL_PATTERN, $uData, $matches)) {
 

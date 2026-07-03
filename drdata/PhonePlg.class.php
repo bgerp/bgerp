@@ -36,23 +36,23 @@ class drdata_PhonePlg extends core_Plugin
         }
         
         // Името на полето за държавата
-        $countryField = ($mvc->phoneCountryField) ? $mvc->phoneCountryField : 'country';
+        $countryField = ($mvc->phoneCountryField ?? null) ?: 'country';
         
         // Ако не е подадена държавата
-        if (!$rec->{$countryField}) {
+        if (!is_object($rec) || !$rec->{$countryField}) {
             
             return ;
         }
         
         // Ако полето е празно
-        if (!$rec->{$field}) {
+        if (!($rec->{$field} ?? null)) {
             
             return ;
         }
         
         // Ако не е дефинирано преди
         // За да не се взема всеки път
-        if (is_null($mvc->phoneFields)) {
+        if (!isset($mvc->phoneFields)) {
             
             // Маси с данните
             $mvc->phoneFields = array();
@@ -89,7 +89,7 @@ class drdata_PhonePlg extends core_Plugin
         }
         
         // Ако полета, за което се прави обработката не съществува в масива
-        if (!$mvc->phoneFields[$field]) {
+        if (!($mvc->phoneFields[$field] ?? null)) {
             
             return ;
         }

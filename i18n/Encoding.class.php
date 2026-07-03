@@ -130,7 +130,7 @@ class i18n_Encoding
             }
             
             $name = strtoupper(trim($name));
-            expect(!self::$encodingsMatchs[$name]);
+            expect(!isset(self::$encodingsMatchs[$name]));
             self::$encodingsMatchs[$name] = $name;
             
             $alArr = explode(',', $al);
@@ -139,7 +139,7 @@ class i18n_Encoding
                 $a = strtoupper(trim($a));
                 
                 if ($a != $name) {
-                    expect(!self::$encodingsMatchs[$a]);
+                    expect(!isset(self::$encodingsMatchs[$a]));
                 }
                 
                 self::$encodingsMatchs[$a] = $name;

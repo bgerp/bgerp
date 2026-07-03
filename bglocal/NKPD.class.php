@@ -54,6 +54,8 @@ class bglocal_NKPD extends core_Master
         $this->FLD('key', 'varchar', 'caption=Код');
         $this->FLD('number', 'varchar', 'caption=Номер');
         $this->FLD('title', 'text', 'caption=Наименование');
+        
+        $this->setDbUnique('key,number');
     }
     
     
@@ -74,7 +76,7 @@ class bglocal_NKPD extends core_Master
     {
         $file = 'bglocal/data/nkpd.csv';
         $fields = array(0 => 'key', 1 => 'number', 2 => 'title');
-        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
+        $cntObj = csv_Lib::largeImportOnce($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
     
@@ -93,7 +95,7 @@ class bglocal_NKPD extends core_Master
             }
             
             $ids = implode(',', $onlyIds);
-            expect(preg_match("/^[0-9\,]+$/", $onlyIds), $ids, $onlyIds);
+            expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
             $query->where("#id IN (${ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
@@ -107,6 +109,7 @@ class bglocal_NKPD extends core_Master
         $query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
         if ($q) {
+            $strict = false;
             if ($q[0] == '"') {
                 $strict = true;
             }

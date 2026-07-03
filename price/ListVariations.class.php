@@ -196,7 +196,7 @@ class price_ListVariations extends core_Detail
     public static function getActiveVariations($listId, $datetime = null, $limit = null)
     {
         $datetime = $datetime ?? dt::now();
-        $datetime = strlen($datetime == 10) ? "{$datetime} 23:59:59" : $datetime;
+        $datetime = (strlen($datetime) == 10) ? "{$datetime} 23:59:59" : $datetime;
 
         $res = array();
         $query = static::getQuery();
@@ -228,7 +228,7 @@ class price_ListVariations extends core_Detail
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->TabCaption = tr('Вариация');
-        $activeVariations = static::getActiveVariations($data->masterId);
+        $activeVariations = static::getActiveVariations($data->masterId ?? null);
         foreach ($data->rows as $id => &$row){
             if(array_key_exists($id, $activeVariations)){
                 $row->ROW_ATTR['class'] .= ' state-active';

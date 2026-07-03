@@ -154,7 +154,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
             $chekTyme = dt::addSecs(-1 * 60 * 60 * 2, $cartRec->createdOn);
             // $chekTyme =dt::addSecs(-1 * 60 * 60 * 2 , '2013-08-13 16:09:25');
 
-            if ($vRec = vislog_Referer::fetch("#ip = '{$cartRec->ip}' AND #createdOn >= '{$chekTyme}' AND #createdOn <= '{$cartRec->createdOn}'")) {
+            if ($vRec = vislog_Referer::fetch(array("#ip = '[#1#]' AND #createdOn >= '[#2#]' AND #createdOn <= '[#3#]'", $cartRec->ip, $chekTyme, $cartRec->createdOn))) {
 
                 $referer = $vRec->id;
             } else {
@@ -240,7 +240,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         $row->totalNoVat = $Double->toVerbal($dRec->totalNoVat);
 
-        $row->ip = type_Ip::decorateIp($dRec->ip, $dRec->dt, true, true);
+        $row->ip = type_Ip::decorateIp($dRec->ip, $dRec->dt, true);
         $row->brid = log_Browsers::getLink($dRec->brid);
 
         // row->userId .= type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>" .log_Browsers::getLink($rec->brid);

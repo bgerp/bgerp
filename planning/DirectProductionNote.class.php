@@ -59,12 +59,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
-     * Кой може да преизчислява сб-ст от журнала?
-     */
-    public $canCalcproductionamount = 'ceo,accJournal';
-
-
-    /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,production,store, planningAll';
@@ -104,8 +98,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,production,store';
-	
-	
+
+
+    /**
+     * Кой може да приключва всички движения?
+     */
+    public $canDoallmovements = 'ceo,rack';
+
+
     /**
      * Кои роли може да променят активен ПП
      */
@@ -360,7 +360,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
 
             $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,sales');
-            $defaultOverheadCost = $bomRec->expenses;
+            $defaultOverheadCost = $bomRec->expenses ?? null;
             if(!isset($defaultOverheadCost)){
                 if($defaultOverheadCostArr = cat_Products::getDefaultOverheadCost($rec->productId)){
                     $defaultOverheadCost = $defaultOverheadCostArr['overheadCost'];
@@ -498,7 +498,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = &$form->rec;
 
         if ($form->isSubmitted()) {
-
             if($form->getField('inputStoreId')->input != 'none'){
                 if(empty($rec->inputStoreId)){
                     if(!planning_ConsumptionNotes::existActivatedInThread($rec->threadId)){
@@ -531,26 +530,29 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $rec->dealId = null;
             }
 
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->quantityInPack = isset($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
 
             // Ако има въведена втора мярка
             if(!empty($rec->additionalMeasureId) && !empty($rec->additionalMeasureQuantity)){
-                $measureDerivities = cat_Uom::getSameTypeMeasures($productInfo->productRec->measureId);
+                $measureDerivities = cat_UoM::getSameTypeMeasures($productInfo->productRec->measureId);
                 $secondMeasureType = cat_UoM::fetchField($rec->additionalMeasureId, 'type');
 
                 // Ако втората мярка е производна на основната, обръща се в основната
                 if(array_key_exists($rec->additionalMeasureId, $measureDerivities)){
-                    $additionalMeasureQuantity = cat_Uom::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $productInfo->productRec->measureId);
+                    $additionalMeasureQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $productInfo->productRec->measureId);
                     $rec->quantityInPack = $additionalMeasureQuantity / $rec->packQuantity;
                 } elseif($secondMeasureType == 'packaging'){
                     $origin = doc_Containers::getDocument($rec->originId);
                     $originRec = $origin->fetch();
 
                     // Ако втората мярка е опаковка, смята се колко е в основната мярка
-                    $quantityInPack = ($productInfo->packagings[$rec->additionalMeasureId]) ? $productInfo->packagings[$rec->additionalMeasureId]->quantity : 1;
+                    $quantityInPack = isset($productInfo->packagings[$rec->additionalMeasureId])
+                        ? $productInfo->packagings[$rec->additionalMeasureId]->quantity
+                        : 1;
+
                     if($origin->isInstanceOf('planning_Tasks')){
                         if($originRec->labelPackagingId == $rec->additionalMeasureId){
-                            $quantityInPack = isset($originRec->labelQuantityInPack) ? $originRec->labelQuantityInPack : planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId, $originRec->id);
+                            $quantityInPack = $originRec->labelQuantityInPack ?? planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $originRec->measureId, $originRec->labelPackagingId, $originRec->id);
                         }
                     }
 
@@ -711,21 +713,59 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
 
             if($mvc->haveRightFor('calcproductionamount', $rec) && !Mode::isReadOnly()){
-                $row->calcPrimeCostBtn = ht::createBtn('Изчисли сб-ст', array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true));
+                $row->calcPrimeCostBtn = ht::createBtn('Изчисли сб-ст', array($mvc, 'calcproductionamount', $rec->id, 'ret_url' => true), false, false, 'ef_icon=img/16/arrow_refresh.png');
                 $calcedPrice = core_Permanent::get("{$mvc->className}_{$rec->id}_calcedPrimeCost");
                 if(is_array($calcedPrice)){
-                    $row->calcedPrimeCost = core_Type::getByName('double(decimals=2)')->toVerbal($calcedPrice['primecost']);
-                    $row->calcedPrimeCost = currency_Currencies::decorate($row->calcedPrimeCost, null, true);
-                    $row->calcedPrimeCost = ht::styleNumber($row->calcedPrimeCost, $calcedPrice['primecost']);
-
+                    $primeCost = $calcedPrice['primecost'];
                     $withExpenses = $calcedPrice['primecost'] + $calcedPrice['expenses'];
-                    $row->calcedPrimeCostExpenses = core_Type::getByName('double(decimals=2)')->toVerbal($withExpenses);
-                    $row->calcedPrimeCostExpenses = currency_Currencies::decorate($row->calcedPrimeCostExpenses, null, true);
-                    $row->calcedPrimeCostExpenses = ht::styleNumber($row->calcedPrimeCostExpenses, $withExpenses);
-                    $row->calcedPrimeCostDate = core_Type::getByName('datetime(dormat=smartTime)')->toVerbal($calcedPrice['date']);
+                    foreach (array('calcedPrimeCost' => $primeCost, 'calcedPrimeCostExpenses' => $withExpenses) as $key => $cost) {
+                        $row->{$key} = core_Type::getByName('double(decimals=2)')->toVerbal($cost);
+                        $row->{$key} = currency_Currencies::decorate($row->{$key}, null, true);
+                        $row->{$key} = ht::styleNumber($row->{$key}, $cost);
+
+                        if($rec->quantity != 1){
+                            $singlePrice = $cost / $rec->quantity;
+                            $singlePriceRow = core_Type::getByName('double(decimals=2)')->toVerbal($singlePrice);
+                            $singlePriceRow = currency_Currencies::decorate($singlePriceRow, null, true);
+                            $singlePriceRow = ht::styleNumber($singlePriceRow, $singlePrice);
+                            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+                            $measureName = cat_UoM::getShortName($measureId);
+                            $row->{$key} .= " <i style='font-weight:normal;'>({$singlePriceRow}/{$measureName})</i>";
+                        }
+                    }
+                    $row->calcedPrimeCostDate = core_Type::getByName('datetime(format=smartTime)')->toVerbal($calcedPrice['date']);
                 }
             }
 
+            // По подразбиране: без разместване на колоните
+            $row->leftMetaClass = '';
+            $row->productImageRightMeta = '';
+            $row->productionNoteMainClass = '';
+
+            // Да се показва изображението при печат ако е избрано в настройките
+            $showImage = planning_Setup::get('PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING');
+            if ($showImage == 'yes' && Mode::is('printing')) {
+                if ($preview = cat_Products::getPreview($rec->productId, array(420, 420))) {
+                    $row->productImage = "<div class='production-note-image-holder'>{$preview}</div>";
+                    $row->productionNoteMainClass = 'production-note-swap-cols';
+
+                    // Скриваме левия текстов блок и го показваме отделно вдясно
+                    $row->leftMetaClass = 'production-note-hidden';
+
+                    $docTitle = tr('протокол за производство');
+
+                    $rightMeta = "<div class='production-note-right-meta-wrap'>
+                                    <div class='document-title'>{$docTitle}</div>
+                                    <div class='small'>( <i> {$row->subTitle} </i> )</div>
+                                    <div style='padding-top:5px;'>
+                                        № <span class='bigData'>{$row->id}</span> /
+                                        <span class='bigData'>{$row->valior}</span>
+                                    </div>
+                                  </div>";
+
+                    $row->productImageRightMeta = $rightMeta;
+                }
+            }
         } else {
             $row->productId = cat_Products::getShortHyperlink($rec->productId, null, 'short', 'internal');
         }
@@ -967,12 +1007,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         // Ако артикула има активна рецепта
-        $bomId = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')->id;
+        $bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales');
 
         // Ако ням рецепта, не могат да се определят дефолт детайли за влагане
-        if (!$bomId) return $details;
+        if (empty($bomRec)) return $details;
 
         // К-ко е произведено до сега и колко ще произвеждаме
+        $bomId = $bomRec->id;
         $quantityProduced = $originRec->quantityProduced;
         $quantityToProduce = $rec->quantity + $quantityProduced;
 
@@ -1026,7 +1067,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     protected static function on_AfterCreate($mvc, $rec)
     {
         // Ако записа е клониран не правим нищо
-        if ($rec->_isClone === true) return;
+        if (isset($rec->_isClone) && $rec->_isClone === true) return;
         $rec->_isCreated = true;
 
         $details = $mvc->getDefaultDetails($rec);
@@ -1043,7 +1084,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                     // Ако са материали за влагане склада е посочения за влагане от
                     if($dRec->type == 'input') {
-                        if(isset($rec->inputStoreId) && $dRec->_realData !== true){
+                        if (isset($rec->inputStoreId) && (!isset($dRec->_realData) || $dRec->_realData !== true)) {
                             if (cat_Products::fetchField($dRec->productId, 'canStore') == 'yes') {
                                 $dRec->storeId = $rec->inputStoreId;
                             }
@@ -1056,7 +1097,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     }
                 }
 
-                if($dRec->_realData === true){
+                if (isset($dRec->_realData) && $dRec->_realData === true) {
                     $dRec->autoAllocate = false;
                     $dRec->_clonedWithBatches = true;
                 }
@@ -1122,7 +1163,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         // Ако за артикула има произведени партиди в другите операции да се прехвърлят
-        if(empty($rec->batch) && $rec->_isCreated){
+        if(empty($rec->batch) && !empty($rec->_isCreated)){
             if(core_Packs::isInstalled('batch')){
                 $jobRec = static::getJobRec($rec->id);
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
@@ -1145,7 +1186,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $dQuery = $Details->getQuery();
             $dQuery->where("#noteId = {$rec->id} AND #quantityFromBom IS NOT NULL");
             while($dRec = $dQuery->fetch()){
-                if(!$rec->_isCreated){
+                if(empty($rec->_isCreated)){
                     $singleQuantity = $dRec->quantityFromBom / $rec->_exQuantity;
                     $measureId = $dRec->measureId ?? $dRec->packagingId;
                     $round = cat_UoM::fetchField($measureId, 'round');
@@ -1161,7 +1202,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 core_Statuses::newStatus("След промяна на количеството е преизчислено очакваното по рецепта!");
 
                 foreach ($save as $sRec){
-                    if($sRec->_reAlocateBatches){
+                    if(!empty($sRec->_reAlocateBatches)){
                         batch_BatchesInDocuments::delete("#detailClassId = {$Details->getClassId()} AND #detailRecId = {$sRec->id}");
                         batch_plg_DocumentMovementDetail::autoAllocate($Details, $sRec);
                     }
@@ -1297,7 +1338,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             if(round($rec->debitAmount, 2) < round($subtractAmount, 2)){
                 $subProductAmountVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($subtractAmount);
-                $form->setWarning('debitAmount', "Въведената сб-ст е по-малка от сумата на сб-стите на отпадъците и субпродуктите|*: <b>{$subProductAmountVerbal}</b>");
+                $form->setWarning('debitPrice', "Въведената сб-ст е по-малка от сумата на сб-стите на отпадъците и субпродуктите|*: <b>{$subProductAmountVerbal}</b>");
             }
 
             if(!$form->gotErrors()){
@@ -1479,7 +1520,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec->originId = $jRec->containerId;
         $rec->threadId = $jRec->threadId;
         $rec->productId = $productId;
-        expect($productRec->canManifacture = 'yes', 'Артикулът не е производим');
+        expect($productRec->canManifacture == 'yes', 'Артикулът не е производим');
 
         $Double = cls::get('type_Double');
         expect($rec->quantity = $Double->fromVerbal($quantity));
@@ -1488,7 +1529,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             expect(store_Stores::fetch($fields['storeId']), "Несъществуващ склад {$fields['storeId']}");
             $rec->storeId = $fields['storeId'];
         } else {
-            if ($rec->canConvert == 'yes') {
+            if ($productRec->canConvert == 'yes') {
                 $rec->expenseItemId = acc_CostAllocations::getUnallocatedItemId();
             } else {
                 expect($fields['expenseItemId'], 'Няма разходен обект');
@@ -1543,7 +1584,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * @param array    $batch          - партида
      * @return void
      */
-    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null, $isSubProduct = false, $batches)
+    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null, $isSubProduct = false, $batches = array())
     {
         // Проверки на параметрите
         expect($noteRec = self::fetch($id), "Няма протокол с ид {$id}");
@@ -1596,7 +1637,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $rec->storeId = $noteRec->storeId;
         }
 
-        setIfNot($rec->storeId, $storeId);
+        $rec->storeId = $rec->storeId ?? $storeId;
 
         if(!empty($batches) && core_Packs::isInstalled('batch')){
             $rec->autoAllocate = false;
@@ -1827,6 +1868,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             return "Не може да {$actionStr} протокола, защото заданието вече е приключено|*!";
         }
 
+        if($action == 'conto'){
+            if(isset($rec->storeId)){
+                if(planning_DirectProductNoteDetails::count("#noteId = {$rec->id} AND #productId = '{$rec->productId}' AND #type = 'input' AND #storeId = {$rec->storeId}")){
+                    return "Едновременното Произвеждане и Влагане на един и същ артикул е допустимо САМО от различни складове|*!";
+                }
+            }
+        }
+
         if ($jobRec->allowSecondMeasure == 'no' && !empty($rec->additionalMeasureId)) {
             $errorMsg = "Не може да {$actionStr} протокола, защото е с втора мярка, а заданието вече не е избрана";
         } elseif ($jobRec->allowSecondMeasure == 'yes' && empty($rec->additionalMeasureId)) {
@@ -1878,45 +1927,29 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
-     * Екшън за преизчисляване на сб-ст на артикула
-     */
-    function act_CalcProductionAmount()
-    {
-        $this->requireRightFor('calcproductionamount');
-        expect($id = Request::get('id', 'int'));
-        expect($rec = $this->fetch($id));
-        $this->requireRightFor('calcproductionamount', $rec);
-        $productionAmount = self::getProductionAmount($rec);
-
-        core_Permanent::set("{$this->className}_{$rec->id}_calcedPrimeCost", $productionAmount, 86400);
-        doc_DocumentCache::cacheInvalidation($rec->containerId);
-
-        followRetUrl(null, "Сб-ст е изчислена успешно|*!");
-    }
-
-
-    /**
      * На каква сума е произведеното количество на артикула от ПП
      *
      * @param int $id
      * @return array $res
      *          ['primecost'] - чиста сб без режийни разходи
+     * 
      *          ['expenses']  - сума на режийните разходи
      *          ['date']      - към коя дата
      */
-    public static function getProductionAmount($id)
+    protected static function getProductionAmount($id)
     {
+        $res = array('primecost' => 0, 'expenses' => 0,'cost' => 0, 'date' => dt::now());
         $rec = static::fetchRec($id);
         $journalRec = acc_Journal::fetchByDoc(get_called_class(), $rec->id);
+        if(!is_object($journalRec)) return $res;
+
         $jQuery = acc_JournalDetails::getQuery();
         $jQuery->where("#journalId = {$journalRec->id}");
-
         $productItemId = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
         $debitAccArr = array(acc_Accounts::getRecBySystemId(321)->id, acc_Accounts::getRecBySystemId(60201)->id);
         $reasonCode = acc_Operations::getIdByTitle('Разпределени режийни разходи');
 
         // Смятане на сумата, която ще се натрупва към сб-ст на произведения артикул
-        $res = array('primecost' => 0, 'expenses' => 0, 'date' => dt::now());
         while ($jRec = $jQuery->fetch()) {
             if (in_array($jRec->debitAccId, $debitAccArr) && $jRec->debitItem2 == $productItemId) {
                 $amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $journalRec->valior);

@@ -875,7 +875,10 @@ class store_ConsignmentProtocols extends core_Master
     public function getPlannedQuantityDate_($rec)
     {
         // Ако има ръчно въведена дата на натоварване, връща се тя
-        if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
+        if (!empty($rec->deliveryTime)) {
+
+            return array('date' => $rec->deliveryTime, 'isLive' => false);
+        }
 
         $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
         $dateArr = array('date' => dt::addSecs(-1 * $preparationTime, $rec->deliveryOn), 'isLive' => false);

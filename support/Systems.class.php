@@ -291,7 +291,7 @@ class support_Systems extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'edit') {
-            if ($rec->state == 'active') {
+            if (($rec->state ?? null) == 'active') {
 //                $requiredRoles = 'no_one';
             }
         }
@@ -300,7 +300,7 @@ class support_Systems extends core_Master
         if ($action == 'list') {
 
             // Ако е активен
-            if ($rec->state == 'active') {
+            if (($rec->state ?? null) == 'active') {
 
                 // Ако няма папка
                 if (!$folderId = $rec->folderId) {

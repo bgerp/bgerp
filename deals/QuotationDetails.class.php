@@ -184,6 +184,8 @@ class deals_QuotationDetails extends doc_Detail
             if ($oDocId && !Mode::is('stopRenderOrigin')) {
                 $document = doc_Containers::getDocument($oDocId);
                 if ($document && cls::haveInterface('doc_DocumentIntf', $document->instance)) {
+                    $className = '';
+
                     // Добавяме клас, за да може формата да застане до привюто на документа/файла
                     if (Mode::is('screenMode', 'wide')) {
                         $className = ' floatedElement ';
@@ -212,6 +214,7 @@ class deals_QuotationDetails extends doc_Detail
         $rec = &$form->rec;
         $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
+        $vat = 0;
 
         if(isset($rec->productId)) {
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
@@ -428,7 +431,7 @@ class deals_QuotationDetails extends doc_Detail
                 $row->amount = deals_Helper::displayDualAmount($row->amount, $rec->amount, $masterRec->activatedOn, $masterRec->currencyId, $countryId);
             }
 
-            if ($rec->livePrice === true) {
+            if (($rec->livePrice ?? null) === true) {
                 $row->packPrice = "<span style='color:blue'>{$row->packPrice}</span>";
                 $row->packPrice = ht::createHint($row->packPrice, 'Цената е динамично изчислена. Ще бъде записана при активиране', 'notice', false);
             }
@@ -450,7 +453,7 @@ class deals_QuotationDetails extends doc_Detail
 
         // Подреждане на груприаните записи по к-ва
         $zebra = 'zebra1';
-        foreach ($newRows as &$group) {
+        foreach ($newRows as $groupKey => &$group) {
 
             // Сортиране по к-во
             usort($group, function ($a, $b) {
@@ -467,7 +470,7 @@ class deals_QuotationDetails extends doc_Detail
                     $row->rowspanId = $group[0]->rowspanId;
                     $row->TR_CLASS = $group[0]->TR_CLASS;
                 } else {
-                    $prot = md5($pId.$data->masterData->rec->id);
+                    $prot = md5($groupKey . $data->masterData->rec->id);
                     $row->rowspanId = $row->rowspanpId = "product-row{$prot}";
                     $zebra = $row->TR_CLASS = ($zebra == 'zebra0') ? 'zebra1' :'zebra0';
                 }
@@ -532,8 +535,7 @@ class deals_QuotationDetails extends doc_Detail
             $res->price = $rec->price;
             if($me instanceof sales_QuotationsDetails){
                 $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
-
-                if ($fee && $fee->fee > 0) {
+                if (is_object($fee) && $fee->fee > 0) {
                     $res->price -= round($fee->fee / $rec->quantity, 4);
                 }
             }
@@ -634,7 +636,7 @@ class deals_QuotationDetails extends doc_Detail
             // Показване на к-то в основна мярка, само ако тя е различна от мярката/опаковката на показване
             if($measureId != $rec->packagingId){
                 $row->totalQuantity = core_Type::getByName('double(smartRound)')->toVerbal($totalQuantity);
-                $shortUom = cat_Uom::getShortName($measureId);
+                $shortUom = cat_UoM::getShortName($measureId);
                 $row->totalQuantity .= ' ' . tr($shortUom);
             }
         }
@@ -686,7 +688,7 @@ class deals_QuotationDetails extends doc_Detail
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
 
             $vat = cat_Products::getVat($rec->productId, $masterRec->date, $vatExceptionId);
-            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
+            $row->amount = sales_TransportValues::getAmountHint($row->amount, ($fee->fee ?? null), $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, ($fee->explain ?? null));
 
             if(isset($rec->vatPackPrice) && $data->renderVatPriceInRec){
                 $row->vatPackPrice = $mvc->getFieldType('vatPackPrice')->toVerbal($rec->vatPackPrice);
@@ -782,15 +784,11 @@ class deals_QuotationDetails extends doc_Detail
             }
             $data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat, false, $masterRec->tplLang, $dualSummaryData);
 
-            if (isset($data->summary->vat009) && !isset($data->summary->vat0) && !isset($data->summary->vat02)) {
-                $data->summary->onlyVat = $data->summary->vat009;
-                unset($data->summary->vat009);
-            } elseif (isset($data->summary->vat0) && !isset($data->summary->vat009) && !isset($data->summary->vat02)) {
-                $data->summary->onlyVat = $data->summary->vat0;
-                unset($data->summary->vat0);
-            } elseif (isset($data->summary->vat02) && !isset($data->summary->vat009) && !isset($data->summary->vat0)) {
-                $data->summary->onlyVat = $data->summary->vat02;
-                unset($data->summary->vat02);
+            if(countR($mvc->_total->vats) == 1){
+                $onlyVatPercent = key($mvc->_total->vats);
+                $percentVal = str_replace('.', '', $onlyVatPercent);
+                $data->summary->onlyVat = $data->summary->{"vat{$percentVal}"};
+                unset($data->summary->{"vat{$percentVal}"});
             }
 
             // Обработваме сумарните данни
@@ -798,7 +796,7 @@ class deals_QuotationDetails extends doc_Detail
                 $data->summary->chargeVat = $data->masterData->row->chargeVat;
             }
 
-            if (!$data->summary->discountValue) {
+            if (empty($data->summary->discountValue)) {
                 $data->summary->discountValue = '-';
                 $data->summary->discountTitle = '-';
             } else {
@@ -806,7 +804,7 @@ class deals_QuotationDetails extends doc_Detail
                 $data->summary->discountValue = "- {$data->summary->discountValue}";
             }
 
-            if (!$data->summary->neto) {
+            if (empty($data->summary->neto)) {
                 $data->summary->neto = '-';
                 $data->summary->netTitle = '-';
             } else {
@@ -829,6 +827,9 @@ class deals_QuotationDetails extends doc_Detail
                     $data->summary->total = ht::createHint($data->summary->total, 'Сумата е динамично изчислена. Ще бъде записана при активиране', 'notice', false, 'width=14px,height=14px');
                 }
             }
+        }
+        if(is_object($mvc->_total)){
+            $data->_total = clone $mvc->_total;
         }
 
         // Подготовка за показване на опционалните продукти
@@ -890,6 +891,10 @@ class deals_QuotationDetails extends doc_Detail
             }
         }
 
+        if(!empty($data->summary)){
+            deals_Helper::renderVatDataLayout($dTpl, $this, $data->_total->vats, $data->summary);
+        }
+
         // Шаблон за опционалните продукти
         $optionalTemplateFile = ($data->countOptional && $data->optionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
 
@@ -947,7 +952,7 @@ class deals_QuotationDetails extends doc_Detail
             $oTpl->replace('<tr><td colspan="6">' . tr('Няма записи') . '</td></tr>', 'ROWS');
         }
 
-        if ($summary = $data->summary) {
+        if ($summary = ($data->summary ?? null)) {
             if ($summary->discountTitle != '-') {
                 $summary->discountTitle = tr($summary->discountTitle);
             }
@@ -978,11 +983,11 @@ class deals_QuotationDetails extends doc_Detail
 
         $miscMandatory = $masterRec->currencyId . $vatRow;
         $miscOptional = $masterRec->currencyId . $vatRow;
-        if (countR($data->discounts) && $data->hasDiscounts === true) {
+        if (countR($data->discounts ?? null) && ($data->hasDiscounts ?? null) === true) {
             $miscMandatory .= ', ' . tr('без извадени отстъпки');
         }
 
-        if (countR($data->discountsOptional) && $data->hasDiscounts === true) {
+        if (countR($data->discountsOptional ?? null) && ($data->hasDiscounts ?? null) === true) {
             $miscOptional .= ', ' . tr('без извадени отстъпки');
         }
 
@@ -1039,5 +1044,26 @@ class deals_QuotationDetails extends doc_Detail
         jquery_Jquery::runAfterAjax($tpl, 'resizeQuoteTable');
 
         return $tpl;
+    }
+
+
+    /**
+     * Връща вариантите за добавяне на детайл към мастъра.
+     *
+     * @param int             $masterId
+     * @return array
+     */
+    public function getCreateVariants_($masterId)
+    {
+        return array(
+            'default' => array(
+                'title' => 'Добавяне на артикул',
+                'params' => array('optional' => 'no'),
+            ),
+            'optional' => array(
+                'title' => 'Добавяне на опционален артикул',
+                'params' => array('optional' => 'yes'),
+            ),
+        );
     }
 }

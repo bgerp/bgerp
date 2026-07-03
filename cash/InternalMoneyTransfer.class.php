@@ -226,15 +226,15 @@ class cash_InternalMoneyTransfer extends core_Master
         }
         
         if (isset($rec)) {
-            if ($rec->operationSysId == 'case2bank') {
+            if ((($rec->operationSysId ?? null) ?? null) == 'case2bank') {
                 if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'debitBank')) {
                     $requiredRoles = 'no_one';
                 }
-            } elseif ($rec->operationSysId == 'case2case' || $rec->operationSysId == 'nonecash2case') {
+            } elseif (($rec->operationSysId ?? null) == 'case2case' || ($rec->operationSysId ?? null) == 'nonecash2case') {
                 if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'debitCase')) {
                     $requiredRoles = 'no_one';
                 }
-            } elseif ($rec->operationSysId == 'nonecash2bank') {
+            } elseif (($rec->operationSysId ?? null) == 'nonecash2bank') {
                 if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'debitBank')) {
                     $requiredRoles = 'no_one';
                 }
@@ -242,7 +242,7 @@ class cash_InternalMoneyTransfer extends core_Master
         }
 
         if($action == 'collectnoncashpayments' && isset($rec)) {
-            if($rec->state != 'draft' || $rec->operationSysId != 'nonecash2bank') {
+            if($rec->state != 'draft' || ($rec->operationSysId ?? null) != 'nonecash2bank') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -419,8 +419,8 @@ class cash_InternalMoneyTransfer extends core_Master
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
             
-            $rec->debitAccId = $mvc->allowedOperations[$rec->operationSysId]['debit'];
-            $rec->creditAccId = $mvc->allowedOperations[$rec->operationSysId]['credit'];
+            $rec->debitAccId = $mvc->allowedOperations[($rec->operationSysId ?? null)]['debit'];
+            $rec->creditAccId = $mvc->allowedOperations[($rec->operationSysId ?? null)]['credit'];
             
             // Проверяваме дали валутите на дебитната сметка съвпадат с тези на кредитната
             $mvc->validateForm($form);
@@ -434,9 +434,9 @@ class cash_InternalMoneyTransfer extends core_Master
      */
     protected static function on_BeforeRoute($mvc, &$res, $rec)
     {
-        if ($rec->operationSysId == 'case2bank' || $rec->operationSysId == 'nonecash2bank') {
+        if (($rec->operationSysId ?? null) == 'case2bank' || ($rec->operationSysId ?? null) == 'nonecash2bank') {
             $rec->folderId = bank_OwnAccounts::fetchField($rec->debitBank, 'folderId');
-        } elseif ($rec->operationSysId == 'case2case') {
+        } elseif (($rec->operationSysId ?? null) == 'case2case') {
             $rec->folderId = cash_Cases::fetchField($rec->debitCase, 'folderId');
         }
     }
@@ -449,7 +449,7 @@ class cash_InternalMoneyTransfer extends core_Master
     {
         $rec = &$form->rec;
         
-        switch ($rec->operationSysId){
+        switch (($rec->operationSysId ?? null)){
             case 'case2case':
                 $caseRec = cash_Cases::fetch($rec->debitCase);
                 if ($caseRec->autoShare == 'yes') {
@@ -499,11 +499,11 @@ class cash_InternalMoneyTransfer extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             $row->currency = currency_Currencies::getCodeById($rec->currencyId);
             
             // Изчисляваме равностойността на сумата в основната валута
-            if ($rec->rate != '1') {
+            if (($rec->rate ?? null) != '1') {
                 $double = cls::get('type_Double');
                 $double->params['decimals'] = 2;
                 $equals = currency_CurrencyRates::convertAmount($rec->amount, $rec->valior, $row->currency);
@@ -512,7 +512,7 @@ class cash_InternalMoneyTransfer extends core_Master
             }
 
             if(!empty($rec->amountDetails)){
-                if($rec->operationSysId == 'nonecash2bank'){
+                if(($rec->operationSysId ?? null) == 'nonecash2bank'){
                     if(round($rec->amount, 2) != round($rec->amountDetails, 2)){
                         $row->amount = ht::createHint($row->amount, "Сумата се различава от сумарното по детайли|*: {$row->amountDetails}", 'warning', false);
                     }
@@ -590,7 +590,7 @@ class cash_InternalMoneyTransfer extends core_Master
         $cu = core_Users::getCurrent();
         doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
 
-        if($rec->operationSysId == 'nonecash2bank'){
+        if(($rec->operationSysId ?? null) == 'nonecash2bank'){
             $count = $mvc->syncNotCollectedRecs($rec);
             if($count){
                 core_Statuses::newStatus("Събрани записи за инкасиране|*: {$count}");
@@ -614,7 +614,7 @@ class cash_InternalMoneyTransfer extends core_Master
     protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        if($rec->operationSysId == 'nonecash2bank' && !empty($rec->amountDetails)){
+        if(($rec->operationSysId ?? null) == 'nonecash2bank' && !empty($rec->amountDetails)){
             if(round($rec->amount, 2) != round($rec->amountDetails, 2)){
                 core_Statuses::newStatus('Въведената сума се различава от очакваната за инкасиране - трябва да се уеднаквят|*!', 'warning');
 
@@ -717,7 +717,7 @@ class cash_InternalMoneyTransfer extends core_Master
     {
         $rec = $mvc->fetchRec($id);
 
-        if($rec->operationSysId == 'nonecash2bank'){
+        if(($rec->operationSysId ?? null) == 'nonecash2bank'){
             cash_InternalMoneyTransferDetails::delete("#transferId = {$rec->id}");
         }
     }

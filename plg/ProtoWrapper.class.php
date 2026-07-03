@@ -41,13 +41,13 @@ class plg_ProtoWrapper extends core_Plugin
         if (is_string($url)) {
             $url = array('Ctr' => $url);
         } elseif (is_array($url)) {
-            if ($url[0]) {
+            if ($url[0] ?? null) {
                 $url['Ctr'] = $url[0];
             }
-            if ($url[1]) {
+            if ($url[1] ?? null) {
                 $url['Act'] = $url[1];
             }
-            if ($url[2]) {
+            if ($url[2] ?? null) {
                 $url['id'] = $url[2];
             }
         } else {
@@ -103,6 +103,7 @@ class plg_ProtoWrapper extends core_Plugin
         $tpl->prepend($this->getHtmlPageTitle($invoker, $data) . ' « ', 'PAGE_TITLE');
     
         // Проверяваме дали текущия таб не е изрично зададен
+        $currentTab = null;
         if ($isCurrentTabSet = $invoker->currentTab) {
             if(is_object($invoker->currentTab)) {
                 $class = cls::getClassName($invoker->currentTab);
@@ -128,11 +129,11 @@ class plg_ProtoWrapper extends core_Plugin
             if (!$isCurrentTabSet) {
                 // Ако текущия таб не е изрично зададен, опитваме да го определим евристично
                 $score = 0;
-                if ($rec->url['Ctr'] == $ctr && !empty($ctr)) {
+                if (($rec->url['Ctr'] ?? null) == $ctr && !empty($ctr)) {
                     $score = 1;
-                    if (strtolower($rec->url['Act']) == strtolower($act) && !empty($act)) {
+                    if (strtolower($rec->url['Act'] ?? '') == strtolower($act ?? '') && !empty($act)) {
                         $score = 2;
-                        if ($rec->url['id'] == $id && !empty($id)) {
+                        if (($rec->url['id'] ?? null) == $id && !empty($id)) {
                             $score = 3;
                         }
                     }
@@ -150,7 +151,7 @@ class plg_ProtoWrapper extends core_Plugin
                     $act = strtolower($rec->url['Act']);
                 }
                 try {
-                    if (($act == 'list' || $act == 'default' || empty($act)) && $rec->url['Ctr']) {
+                    if (($act == 'list' || $act == 'default' || empty($act)) && ($rec->url['Ctr'] ?? null)) {
                         $tabCtr = cls::get($rec->url['Ctr']);
                         if ($tabCtr instanceof core_Manager) {
                             $rec->haveRight = $tabCtr->haveRightFor('list');
@@ -163,7 +164,7 @@ class plg_ProtoWrapper extends core_Plugin
         }
         
         // Създаваме рендер на табове
-        if ($this->htmlClass) {
+        if ($this->htmlClass ?? null) {
             $tabs = cls::get('core_Tabs', array('htmlClass' => $this->htmlClass));
         } else {
             $tabs = cls::get('core_Tabs');
@@ -178,14 +179,17 @@ class plg_ProtoWrapper extends core_Plugin
 
         $hint = '';
         $hintBtn = '';
-        
+        $usedNames = array();
+
         foreach ($this->tabs as $name => $rec) {
             
             // Дали ще правим един или два таб контрола?
-            list($mainName, $subName) = explode('->', $name);
+            $nameParts = explode('->', $name);
+            $mainName = $nameParts[0];
+            $subName = $nameParts[1] ?? null;
             
             // Добавяме към главния таб
-            if (!$usedNames[$mainName]) {
+            if (!($usedNames[$mainName] ?? null)) {
                 if ($rec->haveRight) {
                     $tabs->TAB($mainName, $mainName, $rec->url);
                     if ($name == $currentTab && (!$subName)) {
@@ -199,7 +203,7 @@ class plg_ProtoWrapper extends core_Plugin
             
             // Добавяме към подчинения таб, ако има нужда
             if ($subName) {
-                if (!$subTabs[$mainName]) {
+                if (!($subTabs[$mainName] ?? null)) {
                     $subTabs[$mainName] = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'htmlId' => 'wrapper2'));
                 }
                 if ($rec->haveRight) {
@@ -213,9 +217,11 @@ class plg_ProtoWrapper extends core_Plugin
             }
         }
         
-        list($currentMainTab, $currentSubTab) = explode('->', $currentTab);
-        
-        if ($subTabs[$currentMainTab]) {
+        $currentTabParts = explode('->', $currentTab);
+        $currentMainTab = $currentTabParts[0];
+        $currentSubTab = $currentTabParts[1] ?? null;
+
+        if ($subTabs[$currentMainTab] ?? null) {
             $tpl = $subTabs[$currentMainTab]->renderHtml($tpl, $currentSubTab, $hint, $hintBtn);
             $tpl = $tabs->renderHtml($tpl, $currentMainTab);
         } else {

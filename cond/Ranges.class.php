@@ -240,67 +240,125 @@ class cond_Ranges extends core_Manager
         // В краен вариант връщаме глобалния дефолт
         return $globalDefaultRangeId;
     }
-    
-    
+
+
     /**
-     * Ф-я връщаща следващия номер на документа в зададения диапазон
-     * 
-     * @param int $id
-     * @param mixed $class
-     * @param string|null $numberField
-     * @throws core_exception_Expect
-     * 
-     * @return int $next
+     * Връща следващия номер на документа в зададения диапазон.
+     *
+     * За да се избегне race condition при едновременно контиране на документи,
+     * логиката използва атомарен UPDATE вместо SELECT + UPDATE:
+     *
+     * - SELECT MAX подход (стар): чете максималния номер от таблицата с документи,
+     *   изчислява следващия и го записва. При едновременни заявки двама потребители
+     *   могат да прочетат един и същ MAX и да получат дублиран номер.
+     *
+     * - Атомарен UPDATE (нов): MySQL сериализира едновременните UPDATE-и върху един
+     *   ред, гарантирайки че всеки потребител получава уникална стойност.
+     *
+     * GREATEST() синхронизира брояча `current` с реалните номера в таблицата
+     * с документи, предпазвайки от дублиране при ръчни корекции или десинхронизация.
+     *
+     * @param int         $id          - ид на диапазона в cond_Ranges
+     * @param mixed       $class       - класа на документа (напр. sales_Invoices)
+     * @param string|null $numberField - полето с номера, ако е различно от дефолтното
+     * @param bool        $increment   - дали да се инкрементира current (default: true)
+     *                                   false = само преглед на следващия номер без запис
+     *
+     * @throws core_exception_Expect   - ако диапазонът е запълнен или затворен
+     * @return int $next               - следващия номер за документа
      */
-    public static function getNextNumber($id, $class, $numberField = null)
+    public static function getNextNumber($id, $class, $numberField = null, $increment = true)
     {
         $mvc = cls::get($class);
         expect($rec = self::fetchRec($id));
         setIfNot($numberField, $mvc->numberFld);
-        if($rec->state == 'closed'){
-            
+
+        // Ако диапазонът е затворен, няма смисъл да продължаваме
+        if ($rec->state == 'closed') {
             throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
         }
 
+        // Взима се реалния максимален номер от таблицата с документи в рамките на диапазона.
+        // Използва се в GREATEST() за да се синхронизира брояча current с реалното
+        // състояние на документите - предпазва от дублиране при десинхронизация на current
         $query = $mvc->getQuery();
         $query->between($numberField, $rec->min, $rec->max);
         $query->orderBy($numberField, 'DESC');
         $query->limit(1);
         $query->show($numberField);
+        $realMax = $query->fetch()->{$numberField} ?? ($rec->min - 1);
 
-        if (!$maxNum = $query->fetch()->{$numberField}) {
-            $next = $rec->min;
-        } else {
-            $next = $maxNum + 1;
-        }
-        
-        if($next > $rec->max){
-            
+        // Изчисляване на следващия номер
+        $next = max(($rec->current ?? ($rec->min - 1)), $realMax) + 1;
+
+        if ($next > $rec->max) {
             throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
         }
-        
-        return $next;
+
+        // Ако increment е false, само връщаме следващия номер без да пишем в базата
+        // Използва се за валидации и проверки без страничен ефект върху брояча
+        if ($increment === false) {
+            return $next;
+        }
+
+        $now = dt::verbal2mysql(dt::now());
+        $me = cls::get(get_called_class());
+
+        $currentColName = str::phpToMysqlName('current');
+        $minColName     = str::phpToMysqlName('min');
+        $maxColName     = str::phpToMysqlName('max');
+        $idColName      = str::phpToMysqlName('id');
+        $stateColName   = str::phpToMysqlName('state');
+        $lastUsedOnName = str::phpToMysqlName('lastUsedOn');
+
+        // Атомарен UPDATE който едновременно:
+        // 1. Взима по-голямото от current и реалния MAX от документите (GREATEST)
+        // 2. Инкрементира с 1 за да получи следващия свободен номер
+        // 3. Записва lastUsedOn за одитна следа
+        //
+        // WHERE условието гарантира че:
+        // - Диапазонът е активен
+        // - Следващия номер не надвишава горната граница
+        //
+        // Ако два потребителя извикат функцията едновременно, MySQL нарежда
+        // UPDATE-ите последователно - всеки получава различна стойност на current
+        $dbQuery = "UPDATE {$me->dbTableName} 
+         SET {$currentColName} = GREATEST(COALESCE({$currentColName}, {$minColName} - 1), {$realMax}) + 1,
+             {$lastUsedOnName} = '{$now}'
+         WHERE {$idColName} = {$id}
+           AND {$stateColName} = 'active'
+           AND GREATEST(COALESCE({$currentColName}, {$minColName} - 1), {$realMax}) + 1 <= {$maxColName}";
+
+        $res = $me->db->query($dbQuery);
+
+        // Ако UPDATE-а не е засегнал нито един ред, диапазонът е запълнен
+        // (current + 1 > max) или е затворен между проверката по-горе и UPDATE-а
+        if (!$res) {
+            throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
+        }
+
+        // Прочита се новозаписания current без кеш за да се получи точната актуална стойност
+        $cRec = self::fetch($id, '*', false);
+
+        return $cRec->current;
     }
-    
-    
-    
+
+
     /**
      * Обновява брояча на диапазона
      * 
      * @param int $id
-     * @param double $number
      * 
      * @return void
      */
-    public static function updateRange($id, $current)
+    public static function updateRange($id)
     {
         expect($rec = self::fetchRec($id));
-        $rec->current = $current;
         if($rec->current >= $rec->max){
             $rec->state = 'closed';
         }
         
-        self::save($rec, 'current,isDefault,state');
+        self::save($rec, 'isDefault,state');
     }
     
     
@@ -346,7 +404,7 @@ class cond_Ranges extends core_Manager
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         // Ако се затваря дефолтен период, да се активира следващия
-        if($rec->state == 'closed' && $rec->isDefault == 'yes'){
+        if(($rec->state ?? null) == 'closed' && ($rec->isDefault ?? null) == 'yes'){
             $rec->isDefault = 'no';
             $mvc->save_($rec, 'isDefault');
             self::setNextDefault($rec->class, $rec->id);

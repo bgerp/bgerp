@@ -201,7 +201,7 @@ class store_Stores extends core_Master
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('displayStockMeasure', 'enum(productMeasureId=От артикула,basePack=Избраната за "основна")', 'caption=Мярка,notNull,value=productMeasureId', "unit= (|за показване на наличностите|*)");
-        $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди Експедиция->Време');
+        $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди експедиция->Време');
 
         $this->FLD('chiefs', 'userList(roles=store|ceo|production,showClosedUsers=no)', 'caption=Контиране на документи->Потребители');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
@@ -220,9 +220,10 @@ class store_Stores extends core_Master
             $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Палетен склад->Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
             $this->FLD('fullPalletStrategy', "enum(oldest=Най-стария,lowest=Най-ниския,closest=Най-близкия)",'caption=Палетен склад->Вземане / разбутване на цял палет (само за ver3)->Първо,notNull,value=oldest');
             $this->FLD('minKeepPct', 'percent','caption=Палетен склад->Минимален остатък по позиции (само за ver3)->Процент от палет,unit=%');
+            $this->FLD('requireZoneInDocuments', 'enum(yes=Да,no=Не)','caption=Палетен склад->Избор на зона в експедиращи документи->Задължително,notNull,value=no');
         }
 
-        $this->FLD('notifyUsers', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Нотифициране при промяна на транспортна линия->Потребители,autohide');
+        $this->FLD('notifyUsers', 'userList(roles=storeWorker,showClosedUsers=no)', 'caption=Нотифициране при промяна на Транспортна линия->Потребители,autohide');
         $this->setDbUnique('name');
     }
 
@@ -331,7 +332,7 @@ class store_Stores extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
             }
@@ -427,7 +428,7 @@ class store_Stores extends core_Master
      */
     protected static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
     {
-        $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
+        $type->params['where'] = ($type->params['where'] ?? '') . (($type->params['where'] ?? '') ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
     }
 
 
@@ -514,7 +515,7 @@ class store_Stores extends core_Master
         foreach ($entries as $d){
 
             // Извличат се артикулите, които се изписват от склад в транзакцията
-            if($d['credit'][0] == '321') {
+            if(!empty($d['credit']) && ($d['credit'][0] ?? null) == '321') {
                 $productId = $d['credit'][2][1];
                 $storeId = $d['credit'][1][1];
                 if(!array_key_exists($productId, $skipArr)){
@@ -522,17 +523,47 @@ class store_Stores extends core_Master
                         if(!array_key_exists($productId, $res)){
                             $res[$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
                         }
-                        $res[$productId]->quantity += $d['credit']['quantity'];
+                        $res[$productId]->quantity += ($d['credit']['quantity'] ?? 0);
                     } else {
-                        if(is_null($res[$storeId]) || !array_key_exists($productId, $res[$storeId])){
+                        if(!isset($res[$storeId]) || !array_key_exists($productId, $res[$storeId])){
                             $res[$storeId][$productId] = (object)array('productId' => $d['credit'][2][1], 'quantity' => 0);
                         }
-                        $res[$storeId][$productId]->quantity += $d['credit']['quantity'];
+                        $res[$storeId][$productId]->quantity += ($d['credit']['quantity'] ?? 0);
                     }
                 }
             }
         }
 
         return $res;
+    }
+
+
+    /**
+     * Тестов екшън за проверка на type_Keylist2
+     */
+    public function act_Test()
+    {
+        requireRole('debug');
+
+        $form = cls::get('core_Form');
+        $form->title = "Тест на кейлист2";
+        $form->FLD('folders', 'keylist2(mvc=doc_Folders,select=name,maxSuggestions=100)', 'caption=Папки,class=w100');//,
+
+        $form->FLD('products2Id', 'keylist2(mvc=cat_Products,select=name,maxSuggestions=100,selectSourceArr=cat_Products::getProductOptions)', 'caption=Артикули,class=w100');//,
+        //$form->setFieldTypeParams('products2Id', array('hasProperties' => 'canStore'));
+        //$wasteSysId = cat_Groups::getKeylistBySysIds('waste');
+        //$form->setFieldTypeParams("products2Id", array('hasnotProperties' => 'canStore'));
+
+        $form->input();
+
+        if ($form->isSubmitted()) {
+            bp($form->rec);
+
+            return $tpl;
+        }
+
+        $form->toolbar->addSbBtn('Изпрати', 'save', 'id=save,class=btn-primary');
+
+        return $this->renderWrapping($form->renderHtml());
     }
 }

@@ -21,7 +21,12 @@ class crm_Profiles extends core_Master
     public $interfaces = 'crm_ProfileIntf, core_SettingsIntf';
     
     
-    public $details = 'AuthorizationsList=remote_Authorizations,Personalization=crm_Personalization';
+     /**
+     * Детайла, на модела
+     *
+     * @var string|array
+     */
+    public $details = 'AuthorizationsList=remote_Authorizations,AutoResponses=email_AutomaticResponse, Personalization=crm_Personalization';
     
     
     /**
@@ -277,7 +282,12 @@ class crm_Profiles extends core_Master
             if (!isset($data->Person->row->buzTel) && isset($data->Person->row->tel)) {
                 $data->Person->row->buzTel = $data->Person->row->tel;
             }
-            
+
+            // Ако има права за добавяне
+            if (email_AutomaticResponse::haveRightFor('add', (object)array('userId' => $data->rec->userId))) {
+                // Добавяме бутон за добавяне на шаблон
+                $data->toolbar->addBtn('Авт. отговори', array('email_AutomaticResponse', 'add', 'userId' => $data->rec->userId, 'ret_url' => true), 'id=btnAutomaticResponse', 'ef_icon = img/16/email_forward.png, row=2');
+            }
             // Ако има права за сингъл
             if (crm_Persons::haveRightFor('single', $data->Person->rec)) {
                 if ($data->Person->rec->id) {
@@ -480,8 +490,8 @@ class crm_Profiles extends core_Master
         if (self::canModifySettings($key, $data->rec->userId)) {
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
         }
-        
-        if (($currUser == $data->User->rec->id) && bgerp_Portal::haveRightFor('list')) {
+
+        if (!empty($data->User->rec) && ($currUser == $data->User->rec->id) && bgerp_Portal::haveRightFor('list')) {
             $data->toolbar->addBtn('Портал', array('bgerp_Portal', 'list'), 'ef_icon=img/16/application_home.png');
         }
     }
@@ -528,10 +538,10 @@ class crm_Profiles extends core_Master
         }
         
         // Показваме достъпните папки на колабораторите
-        if ($data->ColabFolders) {
+        if (!empty($data->ColabFolders)) {
             $colabTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileColabFoldersLayout.shtml')));
             
-            if ($data->ColabFolders->rowsArr) {
+            if (!empty($data->ColabFolders->rowsArr)) {
                 $folderBlockTpl = $colabTpl->getBlock('folders');
                 foreach ((array) $data->ColabFolders->rowsArr as $rows) {
                     $folderBlockTpl->placeObject($rows);
@@ -539,7 +549,7 @@ class crm_Profiles extends core_Master
                 }
             }
             
-            if ($data->ColabFolders->addUrl) {
+            if (!empty($data->ColabFolders->addUrl)) {
                 // Иконата за редактиране
                 $img = '<img src=' . sbf('img/16/add.png') . " width='16' height='16'>";
                 $addLink = ht::createLink($img, $data->ColabFolders->addUrl, null, 'title=Споделяне на нова папка');
@@ -548,9 +558,10 @@ class crm_Profiles extends core_Master
             
             $tpl->prepend($colabTpl, 'colabFolders');
         }
-        
-        if ($data->LoginLog) {
-            if ($data->LoginLog->rowsArr) {
+        $lTpl = null;
+
+        if (!empty($data->LoginLog)) {
+            if (!empty($data->LoginLog->rowsArr)) {
                 // Вземаме шаблона за потребителя
                 $lTpl = new ET(tr('|*' . getFileContent('crm/tpl/SingleProfileLoginLogLayout.shtml')));
                 
@@ -568,8 +579,8 @@ class crm_Profiles extends core_Master
             }
         }
         
-        if ($data->ActionLog) {
-            if ($data->ActionLog->rowsArr) {
+        if (!empty($data->ActionLog)) {
+            if (!empty($data->ActionLog->rowsArr)) {
                 $lTpl = getTplFromFile('crm/tpl/SingleProfileActionLogLayout.shtml');
                 
                 $logBlockTpl = $lTpl->getBlock('log');
@@ -587,8 +598,8 @@ class crm_Profiles extends core_Master
             }
         }
         
-        if ($data->RoleLogs) {
-            if ($data->RoleLogs->rowsArr) {
+        if (!empty($data->RoleLogs)) {
+            if (!empty($data->RoleLogs->rowsArr)) {
                 $lTpl = getTplFromFile('crm/tpl/SingleProfileRoleLogsLayout.shtml');
                 
                 $logBlockTpl = $lTpl->getBlock('log');
@@ -607,7 +618,7 @@ class crm_Profiles extends core_Master
         }
         
         if (isset($data->tabs) && $data->HaveRightForLog) {
-            if (!$lTpl) {
+            if (empty($lTpl)) {
                 $lTpl = new ET(tr('Липсва информация'));
             }
             $tabHtml = $data->tabs->renderHtml($lTpl, $data->LogTab);
@@ -811,7 +822,7 @@ class crm_Profiles extends core_Master
     public static function prepareUnusedUserOptions($data, $limit = null)
     {
         $type = 'prepareUnusedUserOptions';
-        $handler = 'unusedUserOptions' . '|' . $limit . '|' . $data->form->rec->id;
+        $handler = 'unusedUserOptions' . '|' . $limit . '|' . (isset($data->form) ? ($data->form->rec->id ?? '') : '');
         $keepMinutes = 10000;
         $depends = 'crm_Profiles';
         
@@ -896,7 +907,7 @@ class crm_Profiles extends core_Master
     
     public static function on_AfterSave(crm_Profiles $mvc, $id, $profile)
     {
-        if ($profile->_syncUser) {
+        if (!empty($profile->_syncUser)) {
             // Флага _sync се вдига само на crm_Profiles::on_AfterInputEditForm().
             $person = crm_Persons::fetch($profile->personId);
             $mvc::syncUser($person);
@@ -939,7 +950,7 @@ class crm_Profiles extends core_Master
      */
     public static function syncPerson($personId, $user)
     {
-        if ($user->_skipPersonUpdate) {
+        if (!empty($user->_skipPersonUpdate)) {
             // След запис на визитка се обновяват данните (имена, имейл) на асоциирания с нея
             // потребител. Ако сме стигнали до тук по този път, не обновяваме отново данните
             // на визитката след промяна на потребителя, защото това води до безкраен цикъл!
@@ -949,7 +960,8 @@ class crm_Profiles extends core_Master
         if (!empty($personId)) {
             $person = crm_Persons::fetch($personId);
         }
-        
+        $mustSave = false;
+
         if (empty($person)) {
             $person = (object) array(
                 'groupList' => '',
@@ -972,23 +984,23 @@ class crm_Profiles extends core_Master
         $profilesGroup = crm_Groups::fetch("#sysId = 'users'");
         $Persons = cls::get('crm_Persons');
         $groupExpandField = $Persons->expandInputFieldName;
-        $exGroupList = $person->{$groupExpandField};
-        if ($user->state == 'rejected') {
-            $person->{$groupExpandField} = keylist::removeKey($person->{$groupExpandField}, $profilesGroup->id);
+        $exGroupList = $person->{$groupExpandField} ?? null;
+        if (($user->state ?? null) == 'rejected') {
+            $person->{$groupExpandField} = keylist::removeKey($person->{$groupExpandField} ?? null, $profilesGroup->id);
         } else {
-            $person->{$groupExpandField} = keylist::addKey($person->{$groupExpandField}, $profilesGroup->id);
+            $person->{$groupExpandField} = keylist::addKey($person->{$groupExpandField} ?? null, $profilesGroup->id);
         }
         if ($person->{$groupExpandField} != $exGroupList) {
             $mustSave = true;
         }
         
-        if (!empty($user->names) && ($person->name != $user->names)) {
+        if (!empty($user->names) && (($person->name ?? null) != $user->names)) {
             $person->name = $user->names;
             $mustSave = true;
         }
         
         // Само ако записа на потребителя има
-        if (!empty($user->email) && (strpos($person->email, $user->email) === false) && (strpos($person->buzEmail, $user->email) === false)) {
+        if (!empty($user->email) && (strpos($person->email ?? '', $user->email) === false) && (strpos($person->buzEmail ?? '', $user->email) === false)) {
             $person->email = type_Emails::prepend($person->email, $user->email);
             
             $mustSave = true;
@@ -1001,7 +1013,7 @@ class crm_Profiles extends core_Master
         }
         
         // Само ако досега визитката не е имала inCharge, променения потребител и става отговорник
-        if (!$person->inCharge) {
+        if (empty($person->inCharge)) {
             
             // Ако създадения потребител е partner
             if (core_Users::haveRole('partner', $user->id)) {
@@ -1057,17 +1069,14 @@ class crm_Profiles extends core_Master
      */
     public static function syncUser($personRec)
     {
-        if ($personRec->_skipUserUpdate) {
+        if (!empty($personRec->_skipUserUpdate)) {
             
             return;
         }
         
         $profile = static::fetch("#personId = {$personRec->id}");
         
-        if (!$profile) {
-            
-            return;
-        }
+        if (empty($profile)) return;
         
         // Обновяване на записа на потребителя след промяна на асоциираната му визитка
         if (!$userRec = core_Users::fetch($profile->userId)) {
@@ -1096,13 +1105,10 @@ class crm_Profiles extends core_Master
         
         // Флаг за предотвратяване на безкраен цикъл след промяна на визитка
         $userRec->_skipPersonUpdate = true;
-        
-        // Синхронизираме профила при промяна на `core_Users`
-        if ($profile) {
-            $profile->_syncUser = false;
-            $profile->_skipUserUpdate = true;
-            self::save($profile, 'searchKeywords');
-        }
+
+        $profile->_syncUser = false;
+        $profile->_skipUserUpdate = true;
+        self::save($profile, 'searchKeywords');
 
         core_Users::save($userRec);
     }
@@ -1121,7 +1127,8 @@ class crm_Profiles extends core_Master
             $userId = core_Users::getCurrent();
         }
         
-        $profileId = self::fetch("#userId = {$userId}")->id;
+        $profileRec = self::fetch("#userId = {$userId}");
+        $profileId = $profileRec ? $profileRec->id : null;
         
         return $profileId;
     }
@@ -1152,7 +1159,7 @@ class crm_Profiles extends core_Master
     /**
      * Метод за удобство при генерирането на линкове към потребителски профили
      *
-     * @param string|int $user    @see crm_Profiles::getUrl()
+     * @param string|int $userId    @see crm_Profiles::getUrl()
      * @param string     $title   @see core_Html::createLink()
      * @param string     $warning @see core_Html::createLink()
      * @param array      $attr    @see core_Html::createLink()
@@ -1168,8 +1175,8 @@ class crm_Profiles extends core_Master
         $isOut = (boolean) (Mode::is('text', 'xhtml') || Mode::is('pdf'));
         
         $key = "{$userId}|{$title}|{$warning}|{$isOut}|" . implode('|', $attr);
-        
-        if (!$cacheArr[$key]) {
+
+        if (empty($cacheArr[$key])) {
             $userRec = core_Users::fetch($userId);
             
             if (!$userRec) {
@@ -1185,7 +1192,10 @@ class crm_Profiles extends core_Master
             $url = array();
             
             $profRec = self::fetch("#userId = {$userId}");
-            
+
+            if (!isset($attr['class'])) {
+                $attr['class'] = '';
+            }
             $attr['class'] .= ' profile';
 
             $e = '';
@@ -1220,6 +1230,7 @@ class crm_Profiles extends core_Master
                     $attr['class'] .= ' no-one';
                 }
                 
+                $before = null;
                 if ($userRec->lastActivityTime) {
                     $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
                 }
@@ -1238,7 +1249,7 @@ class crm_Profiles extends core_Master
                 
                 $link = ht::createLink($title . $e, $url, $warning, $attr);
             } else {
-                $attr['style'] .= ';color:#999 !important;';
+                $attr['style'] = ($attr['style'] ?? '') . ';color:#999 !important;';
                 $link = ht::createLink($userRec->nick . $e, null, null, $attr);
             }
             
@@ -1276,7 +1287,7 @@ class crm_Profiles extends core_Master
      */
     public static function getUserTitle($nick)
     {
-        list($l, $r) = explode('@', $nick);
+        list($l, $r) = array_pad(explode('@', $nick), 2, null);
         $title = type_Nick::normalize($l);
         if ($r) {
             $title .= '@' . $r;
@@ -1287,8 +1298,6 @@ class crm_Profiles extends core_Master
     
     
     /**
-     *
-     *
      * @param int  $id
      * @param bool $escape
      */
@@ -1422,7 +1431,7 @@ class crm_Profiles extends core_Master
         $data->query->orderBy('lastTime', 'DESC');
         
         // Ако е избран 'Отсъстващи'
-        switch ($fields->leave) {
+        switch ($fields->leave ?? null) {
             
             case 'missing':
                 
@@ -1640,17 +1649,17 @@ class crm_Profiles extends core_Master
                 $type = $arguments[0];
                 
                 // Параметри на полето
-                $params = arr::combine($arguments[1], $arguments[2]);
+                $params = arr::combine($arguments[1], $arguments[2] ?? null);
                 
                 // Ако не е зададено, че може да се конфигурира или не може да се конфигурира за текущия потребител
-                if (!$params['customizeBy'] || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {
+                if (empty($params['customizeBy']) || !haveRole(str_replace('|', ',', $params['customizeBy']), $currUserId)) {
                     continue;
                 }
 
                 $haveCustomizable = true;
 
                 // Ако не е зададено, заглавието на полето е неговото име
-                setIfNot($params['caption'], '|*' . $field);
+                $params['caption'] = $params['caption'] ?? '|*' . $field;
                 
                 $typeInst = core_Type::getByName($type);
                 

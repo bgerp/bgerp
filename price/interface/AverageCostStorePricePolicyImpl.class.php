@@ -91,8 +91,9 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             }
             
             $debitPrice = (!empty($lastDebitRec->debitQuantity)) ? round($lastDebitRec->amount / $lastDebitRec->debitQuantity, 6) : 0;
+
             $lastDebitRec->valior = dt::today();
-            
+
             $obj = (object) array('sourceClassId' => null,
                 'sourceId' => null,
                 'productId' => $iMap->productId,
@@ -110,15 +111,15 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 $oldDate = $lastRec->valior;
                 $oldPrice = $lastRec->price;
             }
-            
+
             // Ако вальора на последния дебит е по-голям или равен от съществуващия запис
             if ($lastDebitRec->valior >= $oldDate) {
                 
                 // Изчисляване на количеството към датата от общите складове
-                $Balance = new acc_ActiveShortBalance(array('from' => $lastDebitRec->valior, 'to' => $lastDebitRec->valior, 'accs' => '321', false, true, 'item1' => $storeItems, 'item2' => $itemId, 'null'));
+                $Balance = new acc_ActiveShortBalance(array('from' => $lastDebitRec->valior, 'to' => $lastDebitRec->valior, 'accs' => '321', false, true, 'item1' => $storeItems, 'item2' => $itemId));
                 $bRecs = $Balance->getBalance('321');
                 $iQuantity = arr::sumValuesArray($bRecs, 'blQuantity');
-                
+
                 if ($iQuantity > 0) {
                     
                     // Взема се новата наличност на артикула, след дебита Q1 и ако тя е положителна:
@@ -140,80 +141,109 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         
         return $res;
     }
-    
-    
+
+
     /**
      * Последните дебити на артикулите
      *
-     * @param array $productItemIds   - пера на артикули
-     * @param array $storeItemIds     - пера на складове
-     * @param boolean $useCachedDate  - използване на кешираната дата
+     * @param array   $productItemIds  - пера на артикули
+     * @param array   $storeItemIds    - пера на складове
+     * @param boolean $useCachedDate   - използване на кешираната дата
      *
-     * @return array $debitRecs
+     * @return array
      */
     private function getLastDebitRecs($productItemIds, $storeItemIds, $useCachedDate = true)
     {
         // Ако баланса се изчислява в момента да не прави нищо
         if ($useCachedDate && !core_Locks::obtain('RecalcBalances', 600, 100, 30)) {
-
-            log_System::logDebug("AVG BALANCE NOT FREE");
+            log_System::logDebug('AVG BALANCE NOT FREE');
 
             return array();
         }
 
+        if (!countR($productItemIds) || !countR($storeItemIds)) {
+            return array();
+        }
+
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
-        $skipDocArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId(), store_ConsignmentProtocols::getClassId());
+        $skipDocArr = array(
+            store_Transfers::getClassId(),
+            store_InventoryNotes::getClassId(),
+            store_ConsignmentProtocols::getClassId(),
+        );
         $lastBalance = acc_Balances::getLastBalance();
-        
+
         // Дали да се използва кешираната дата
         $lastCalcedDebitTime = null;
-        if($useCachedDate){
+        if ($useCachedDate) {
             $lastCalcedDebitTime = core_Permanent::get('lastCalcedDebitTime');
         }
-        
-        $debitRecs = array();
-        foreach ($productItemIds as $itemId) {
-            $jQuery = acc_JournalDetails::getQuery();
-            $jQuery->where("#debitAccId = {$storeAccId}");
-            $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId');
-            $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
-            $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalKey=journalId,externalName=createdOn');
-            $jQuery->XPR('maxValior', 'double', 'MAX(#valior)');
-            $jQuery->XPR('sumDebitQuantity', 'double', 'SUM(#debitQuantity)');
-            $jQuery->XPR('sumDebitAmount', 'double', 'SUM(#amount)');
-            $jQuery->where("#debitItem2 = {$itemId} AND #debitQuantity >= 0");
-            $jQuery->in('debitItem1', $storeItemIds);
-            $jQuery->notIn('docType', $skipDocArr);
-            
-            $jQuery->show('debitItem1,debitItem2,amount,debitQuantity,valior,journalId,sumDebitQuantity,sumDebitAmount,maxValior');
-            $jQuery->orderBy('valior,id', 'desc');
-            if(empty($lastCalcedDebitTime)){
-                $jQuery->groupBy('journalId');
-            } else { 
-                $where = "#journalCreatedOn >= '{$lastCalcedDebitTime}'";
-                if(is_object($lastBalance)){
-                    $where .= " AND #journalCreatedOn <= '{$lastBalance->lastCalculate}'";
-                }
+
+        $jQuery = acc_JournalDetails::getQuery();
+        $jQuery->where("#debitAccId = {$storeAccId}");
+        $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId');
+        $jQuery->EXT('valior', 'acc_Journal', 'externalKey=journalId');
+        $jQuery->EXT('journalCreatedOn', 'acc_Journal', 'externalKey=journalId,externalName=createdOn');
+
+        $jQuery->in('debitItem2', $productItemIds);
+        $jQuery->in('debitItem1', $storeItemIds);
+        $jQuery->notIn('docType', $skipDocArr);
+        $jQuery->where("#debitQuantity >= 0");
+
+        if (!empty($lastCalcedDebitTime)) {
+            $where = "#journalCreatedOn >= '{$lastCalcedDebitTime}'";
+            if (is_object($lastBalance) && !empty($lastBalance->lastCalculate)) {
+                $where .= " AND #journalCreatedOn <= '{$lastBalance->lastCalculate}'";
                 log_System::logDebug("AVG FROM '{$lastCalcedDebitTime}' - BID={$lastBalance->id} '{$lastBalance->lastCalculate}'");
-
-                $jQuery->where($where);
-
-                log_System::logDebug("AVG QUERY '{$jQuery->getWhereAndHaving()->w}'");
-
+            } else {
+                log_System::logDebug("AVG FROM '{$lastCalcedDebitTime}'");
             }
-            
-            $jRec = $jQuery->fetch();
-            if (is_object($jRec)) {
-                $jRec->debitQuantity = $jRec->sumDebitQuantity;
-                $jRec->amount = $jRec->sumDebitAmount;
-                $jRec->valior = $jRec->maxValior;
-                unset($jRec->sumDebitQuantity);
-                unset($jRec->sumDebitAmount);
-                unset($jRec->maxValior);
-                $debitRecs[$itemId] = $jRec;
 
-                log_System::logDebug("AVG Quantity {$jRec->debitQuantity} AMOUNT {$jRec->amount}");
+            $jQuery->where($where);
+            log_System::logDebug("AVG QUERY '{$jQuery->getWhereAndHaving()->w}'");
+        }
+
+        $jQuery->show('id,journalId,debitItem1,debitItem2,amount,debitQuantity,valior,journalCreatedOn');
+        $jQuery->orderBy('debitItem2', 'ASC');
+        $jQuery->orderBy('valior', 'DESC');
+        $jQuery->orderBy('journalId', 'DESC');
+        $jQuery->orderBy('id', 'DESC');
+
+        $debitRecs = $foundJournalByItem = $sumQtyByItem = $sumAmountByItem = $maxValiorByItem =  $baseRecByItem = array();
+        while ($jRec = $jQuery->fetch()) {
+            $itemId = $jRec->debitItem2;
+
+            // За този артикул още не е избран последен журнал
+            if (!array_key_exists($itemId, $foundJournalByItem)) {
+                $foundJournalByItem[$itemId] = $jRec->journalId;
+                $sumQtyByItem[$itemId] = 0;
+                $sumAmountByItem[$itemId] = 0;
+                $maxValiorByItem[$itemId] = $jRec->valior;
+                $baseRecByItem[$itemId] = clone $jRec;
             }
+
+            // Събираме само редовете от последния journal за артикула
+            if ($jRec->journalId != $foundJournalByItem[$itemId]) {
+                continue;
+            }
+
+            $amount = deals_Helper::getSmartBaseCurrency($jRec->amount, $jRec->valior);
+            $sumQtyByItem[$itemId] += $jRec->debitQuantity;
+            $sumAmountByItem[$itemId] += $amount;
+
+            if ($jRec->valior > $maxValiorByItem[$itemId]) {
+                $maxValiorByItem[$itemId] = $jRec->valior;
+            }
+        }
+
+        foreach ($baseRecByItem as $itemId => $baseRec) {
+            $baseRec->debitQuantity = $sumQtyByItem[$itemId];
+            $baseRec->amount = $sumAmountByItem[$itemId];
+            $baseRec->valior = $maxValiorByItem[$itemId];
+
+            $debitRecs[$itemId] = $baseRec;
+
+            log_System::logDebug("AVG ITEM {$itemId} JOURNAL {$baseRec->journalId} Quantity {$baseRec->debitQuantity} AMOUNT {$baseRec->amount}");
         }
 
         $lastCalcedDebitTime = is_object($lastBalance) ? $lastBalance->lastCalculate : dt::now();

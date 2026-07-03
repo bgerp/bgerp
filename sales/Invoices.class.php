@@ -243,7 +243,6 @@ class sales_Invoices extends deals_InvoiceMaster
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         $this->FLD('template', 'key(mvc=doc_TplManager,select=name)', 'caption=Допълнително->Изглед,notChangeableByContractor,silent,removeAndRefreshForm=additionalInfo');
         $this->FNC('selectInvoiceText', 'enum(,private=Частно,public=Общо,both=Частно и общо)', 'caption=Допълнително->Други условия,removeAndRefreshForm=additionalInfo,silent,before=additionalInfo');
-        $this->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
 
         $this->setDbUnique('number');
     }
@@ -314,25 +313,27 @@ class sales_Invoices extends deals_InvoiceMaster
         $form = &$data->form;
         $rec = &$form->rec;
 
+        if($data->action != 'changefields'){
+            $form->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
+        }
+
         $defInfo = '';
 
-        if(isset($rec->id)){
-            $form->setDefault('selectInvoiceText', 'inputed');
-        } else {
+        if(!isset($rec->id)){
             $form->setDefault('selectInvoiceText', 'both');
         }
 
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $firstRec = $firstDoc->rec();
 
-        if ($rec->sourceContainerId) {
+        if (!empty($rec->sourceContainerId)) {
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('sales_Proformas')) {
                 if ($proformaRec = $Source->fetch()) {
                     $mvc->prepareFromProforma($proformaRec, $form);
                     $handle = sales_Proformas::getHandle($Source->that);
                     $mvc->pushTemplateLg($rec->template);
-                    $defInfo .= (($defInfo) ? ' ' : '') . tr('По проформа|* #') . $handle . "\n";
+                    $defInfo .= (!empty($defInfo) ? ' ' : '') . tr('По проформа|* #') . $handle . "\n";
                     core_Lg::pop();
                 }
             }
@@ -480,7 +481,7 @@ class sales_Invoices extends deals_InvoiceMaster
 
             // Валидна ли е датата (при само промяна няма да се изпълни)
             $warning = null;
-            if (!$mvc->isAllowedToBePosted($rec, $warning) && $rec->__isBeingChanged !== true) {
+            if (!$mvc->isAllowedToBePosted($rec, $warning) && empty($rec->__isBeingChanged)) {
                 $form->setError('date', $warning);
             }
 
@@ -560,8 +561,17 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($rec->state == 'active') {
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             $firstRec = $firstDoc->fetch('containerId,currencyId');
-            $amount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
-            $amount /= ($rec->displayRate) ? $rec->displayRate : $rec->rate;
+
+            $rate = $rec->displayRate ? $rec->displayRate : $rec->rate;
+            $rawAmount = ($rec->dealValue - $rec->discountAmount) + $rec->vatAmount;
+            $minus = 0;
+            if ($rec->type != 'dc_note' && $firstRec->currencyId == $rec->currencyId) {
+                $testAmount = $rate ? ($rawAmount / $rate) : $rawAmount;
+                if (abs($testAmount - round($testAmount, 2)) > 0.000001) {
+                    $minus = 0.005;
+                }
+            }
+            $amount = ($rawAmount - $minus) / $rate;
             if($firstRec->currencyId != $rec->currencyId){
                 $amount = currency_CurrencyRates::convertAmount($amount, null, $rec->currencyId, $firstRec->currencyId);
             }
@@ -611,7 +621,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         parent::getVerbalInvoice($mvc, $rec, $row, $fields);
 
-        if ($fields['-single']) {
+        if (isset($fields['-single'])) {
             if ($rec->accountId) {
                 if($rec->paymentType != 'factoring'){
                     $Varchar = cls::get('type_Varchar');
@@ -790,10 +800,12 @@ class sales_Invoices extends deals_InvoiceMaster
 
         if ($restore === false) {
             $query->orderBy('date', 'DESC');
-            $newDate = $query->fetch()->date;
-            if ($newDate > $date) {
+            $lastActiveRec = $query->fetch();
+            $newDate = $lastActiveRec->date ?? null;
+
+            if (isset($newDate) && $newDate > $date) {
                 $newDate = dt::mysql2verbal($newDate, 'd.m.y');
-                $msg = "Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* [<b>{$rangeName}</b>] ({$newDate})";
+                $msg = "Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* [<b>{$rangeName}</b>] (<b>{$newDate}</b>)";
                 
                 return false;
             }
@@ -802,7 +814,7 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         try{
-            $number = (isset($rec->number)) ? $rec->number : cond_Ranges::getNextNumber($rec->numlimit, $this, 'number');
+            $number = (isset($rec->number)) ? $rec->number : cond_Ranges::getNextNumber($rec->numlimit, $this, 'number', false);
         } catch(core_exception_Expect $e){
             $msg = $e->getMessage();
             

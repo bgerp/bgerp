@@ -54,9 +54,8 @@ class doc_SequencerPlg extends core_Plugin
         }
         
         $seqField = static::getSeqField($mvc);
-        
-        setIfNot($min, $mvc->sequencerMin, 1);
-        setIfNot($max, $mvc->sequencerMax, PHP_INT_MAX);
+        $min = $min ?? ($mvc->sequencerMin ?? 1);
+        $max = $max ?? ($mvc->sequencerMax ?? PHP_INT_MAX);
         
         $query->where("#{$seqField} IS NOT NULL");
         

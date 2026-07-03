@@ -119,7 +119,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice
             return false;
         }
         
-        $frame = substr("${r}", $soi, $end - $soi);
+        $frame = substr($r, $soi, $end - $soi);
         
         $eoi = chr(0xff) . chr(0xd9);
         $eoi = strrpos($frame, $eoi);

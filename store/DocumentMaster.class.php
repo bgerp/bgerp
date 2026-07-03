@@ -130,7 +130,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $mvc->FLD('contragentId', 'int', 'input=hidden');
-        $mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
+        $mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty,maxRadio2=0)', 'caption=Обект до,silent');
         $mvc->FLD('deliveryTime', 'datetime');
         $mvc->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -368,6 +368,7 @@ abstract class store_DocumentMaster extends core_Master
                     $dQuery = $invDetail->getQuery();
                     $dQuery->where("#invoiceId = {$invRec->id}");
                     $details = $dQuery->fetchAll();
+
                     $invDetail::modifyDcDetails($details, $invRec, $invDetail);
                     $withChangedQuantityDetails = array_filter($details, function($a) {return $a->changedQuantity === true;});
 
@@ -377,7 +378,7 @@ abstract class store_DocumentMaster extends core_Master
                         $shipProduct->{$Detail->masterKey} = $rec->id;
                         $shipProduct->productId = $invDetailRec->productId;
                         $shipProduct->packagingId = $invDetailRec->packagingId;
-                        $shipProduct->quantity = abs($invDetailRec->quantity);
+                        $shipProduct->quantity = abs($invDetailRec->quantity) * $invDetailRec->quantityInPack;
                         $shipProduct->price = $invDetailRec->price;
                         $shipProduct->discount = $invDetailRec->discount;
                         $shipProduct->quantityInPack = $invDetailRec->quantityInPack;
@@ -1483,7 +1484,7 @@ abstract class store_DocumentMaster extends core_Master
 
         $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'));
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'), 'cashDiscount' => null);
     }
 
 
@@ -1516,5 +1517,15 @@ abstract class store_DocumentMaster extends core_Master
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
 
         return $files;
+    }
+
+
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    {
+        // Динамично рендиране на ДДС информацията
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
     }
 }

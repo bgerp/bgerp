@@ -46,6 +46,21 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
      */
     protected $groupByField;
 
+    /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields= 'amount,weight';
+
+
+    /**
+     * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
+     *
+     * @var int
+     */
+    protected $summaryRowCaption = 'ОБЩО';
+
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
@@ -79,8 +94,10 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fieldset->FLD('centre', 'keylist(mvc=planning_Centers,select=name)', 'caption=Филтър по->Центрове,placeholder=Всички,after=groups');
         $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Филтър по->Склад,placeholder=Всички,after=centre');
 
+        $fieldset->FLD('seeWeight', 'enum(yes=да, no=не)', 'caption=Показване->Покажи тегло,after=storeId,single=none');
+
         //Групиране на резултата
-        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=storeId,single=none');
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=seeWeight,single=none');
 
 
         //Подредба на резултатите
@@ -94,7 +111,6 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         } else {
             $fieldset->FLD('groupsMat', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени материали->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
         }
-
 
         $fieldset->FNC('montsArr', 'varchar', 'caption=Месеци по,after=groupsMat,input=hiden,single=none');
         $fieldset->FNC('totalConsumed', 'varchar', 'caption=Обща стойност на вложените материали,after=montsArr,input=hiden,single=none');
@@ -135,10 +151,20 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('groupBy', 'no');
+
         $form->setDefault('orderBy', 'code');
+
         $form->setDefault('totalConsumed', null);
+
         $form->setDefault('consumedFrom', 'protocols');
+
         $form->setDefault('accProd', 'no');
+
+        $form->setDefault('seeWeight', 'no');
+
+        if ($rec->accProd != 'no') {
+            $form->setField('seeWeight', 'input=hidden');
+        }
 
         if (!core_Packs::isInstalled('extrapack')) {
             $form->setField('accProd', 'input=hidden');
@@ -264,7 +290,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                         //rec-а на вложения материал
                         $matRec = $matClassName::fetch($matItemRec->objectId);
 
-                        $id = $planningRec->productId . '|' . $matRec->id;
+                        $id = $planningRec->productId . '|' . $matRec->id . '|' .$dpRecDet->id;
                     }
                     if (!$dpRecDet->creditItem2 && $dpRecDet->creditItem1) {
                         $matItemRec = acc_Items::fetch($dpRecDet->creditItem1);
@@ -273,11 +299,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                         //rec-а на вложения материал
                         $matRec = $matClassName::fetch($matItemRec->objectId);
 
-                        $id = $planningRec->productId . '|' . $matRec->id;
+                        $id = $planningRec->productId . '|' . $matRec->id . '|' .$dpRecDet->id;
                     }
 
                     if (!$dpRecDet->creditItem1 && !$dpRecDet->creditItem2) {
-                        $id = $planningRec->productId . '|' . 'distrib';
+                        $id = $planningRec->productId . '|' . 'distrib'. '|' .$dpRecDet->id;
                     }
 
 
@@ -521,6 +547,21 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $recs = $temp;
         }
 
+        //Добавяне на колона за теглото
+        if ($rec->seeWeight == 'yes' && $rec->accProd == 'no') {
+
+            foreach ($recs as $val) {
+
+                $prodRec = cat_Products::fetch($val->productId);
+
+                $prodWeight = sales_reports_SoldProductsRep::getProductWeight($prodRec);
+
+                $val->weight = (is_numeric($prodWeight)) ? $prodWeight * $val->quantity : 'n.a.';
+
+            }
+
+        }
+
         //Подредба на резултатите
         if (!is_null($recs) && $rec->accProd == 'no') {
             $typeOrder = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
@@ -572,6 +613,10 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
         $fld->FLD('amount', 'varchar', 'caption=Стойност,tdClass=centered');
 
+
+        if ($rec->seeWeight == 'yes') {
+            $fld->FLD('weight', 'double(smartRound,decimals=2)', "smartCenter,caption=Тегло->[кг]");
+        }
         $monthArr = $rec->montsArr;
         sort($monthArr);
         if ($rec->groupBy == 'month') {
@@ -602,12 +647,13 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 4;
+        $Double->params['decimals'] = 2;
         $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произв.', 'consum' => 'вл.')));
 
         $row = new stdClass();
 
         if ($rec->accProd == 'yes') {
+            $Double->params['decimals'] = 4;
 
             $accProd = $dRec->accProd ? $dRec->accProd : 'Няма';
             $row->accProd = $accProd;
@@ -680,6 +726,8 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             }
         }
 
+        $row->weight = $Double->toVerbal($dRec->weight);
+
         if ($dRec->consumedType == 'prod' && $rec->consumed == 'yes') {
             $row->ROW_ATTR['class'] = 'bold state-active';
         }
@@ -723,6 +771,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN groupsMat--><div>|Групи материали|*: [#groupsMat#]</div><!--ET_END groupsMat-->
+                                        <!--ET_BEGIN groups--><div>|Групи артикули|*: [#groups#]</div><!--ET_END groups-->
                                         <!--ET_BEGIN totalConsumed--><div>|Общо вложени|*: [#totalConsumed#] лв.</div><!--ET_END totalConsumed--> 
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
@@ -753,6 +802,24 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             } else {
                 $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groupsMat');
             }
+        }
+
+        if (isset($data->rec->groups)) {
+            $marker = 0;
+            $groupVerb = '';
+            foreach (type_Keylist::toArray($data->rec->groups) as $group) {
+                $marker++;
+
+                $groupVerb .= (cat_Groups::getTitleById($group));
+
+                if ((countR((type_Keylist::toArray($data->rec->groups))) - $marker) != 0) {
+                    $groupVerb .= ', ';
+                }
+            }
+
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
+        } else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groups');
         }
 
         if ($data->rec->consumed == 'yes') {

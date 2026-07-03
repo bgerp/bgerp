@@ -162,7 +162,7 @@ class core_Settings extends core_Manager
         
         $query = self::getQuery();
         
-        if (isset($objectId)) {
+        if (!empty($objectId)) {
             $query->where(array("#key = '[#1#]' AND #objectId = '[#2#]'", $key, $objectId));
         } else {
             $query->where(array("#key = '[#1#]'", $key));
@@ -266,8 +266,8 @@ class core_Settings extends core_Manager
      */
     public static function fetchUsers($key, $property = null, $value = null)
     {
-        list(, $objectId) = explode('::', $key);
-        
+        list(, $objectId) = explode('::', $key) + ['', ''];
+
         // Подготвяме ключа
         $key = self::prepareKey($key);
         
@@ -285,8 +285,8 @@ class core_Settings extends core_Manager
         $fetched = array();
         
         $query = self::getQuery();
-        
-        if (isset($objectId)) {
+
+        if (!empty($objectId)) {
             $query->where(array("#key = '[#1#]' AND #objectId = '[#2#]'", $key, $objectId));
         } else {
             $query->where(array("#key = '[#1#]'", $key));
@@ -349,8 +349,8 @@ class core_Settings extends core_Manager
                 }
             }
         }
-        
-        return $resArr[$hashStr];
+
+        return $resArr[$hashStr] ?? null;
     }
     
     
@@ -365,8 +365,8 @@ class core_Settings extends core_Manager
     public static function fetchKeyNoMerge($key, $userOrRole = null)
     {
         $dataVal = array();
-        
-        list(, $objectId) = explode('::', $key);
+
+        list(, $objectId) = explode('::', $key) + [null, null];
         
         $key = self::prepareKey($key);
         
@@ -744,7 +744,7 @@ class core_Settings extends core_Manager
      */
     public function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = null)
     {
-        if (!$data->cClass) {
+        if (!($data->cClass ?? null)) {
             
             return ;
         }

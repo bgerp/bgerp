@@ -112,7 +112,7 @@ class vislog_History extends core_Manager
         $History = cls::get('vislog_History');
 
         $rec->domainId = cms_Domains::getPublicDomain('id');
-        
+
         $History->save($rec);
         
         if ($returnCnt) {
@@ -145,7 +145,7 @@ class vislog_History extends core_Manager
         $domainsCnt = cms_Domains::count();
 
         // Ако е ясен домейна, махаме колонката
-        if($data->listFilter->rec->domainId || $domainsCnt == 1) {
+        if(($data->listFilter->rec->domainId ?? null) || $domainsCnt == 1) {
             unset($data->listFields['domainId']);
         }
 
@@ -153,20 +153,20 @@ class vislog_History extends core_Manager
             $data->listFilter->showFields = 'ip, brid';  //, HistoryResourceId';
         }
         
-        if ($ip = $data->listFilter->rec->ip) {
+        if ($ip = ($data->listFilter->rec->ip ?? null)) {
             $ip = str_replace('*', '%', $ip);
             $data->query->where(array("#ip LIKE '[#1#]'", $ip));
         }
         
-        if ($brid = $data->listFilter->rec->brid) {
+        if ($brid = ($data->listFilter->rec->brid ?? null)) {
             $data->query->where(array("#brid LIKE '[#1#]'", $brid));
         }
-        
-        if ($domainId = $data->listFilter->rec->domainId) {
+
+        if ($domainId = ($data->listFilter->rec->domainId ?? null)) {
             $data->query->where(array("#domainId = '[#1#]'", $domainId));
         }
 
-        if ($HistoryResourceId = $data->listFilter->rec->HistoryResourceId) {
+        if ($HistoryResourceId = ($data->listFilter->rec->HistoryResourceId ?? null)) {
             // $data->query->where("#HistoryResourceId = {$HistoryResourceId}");
         }
         
@@ -198,10 +198,13 @@ class vislog_History extends core_Manager
             }
             $rec->query = $q;
         }
-        
-        $rec->HistoryResourceId = $mvc->HistoryResources->fetchField(array("#query = '[#1#]'", $rec->query), 'id');
-        
-        if (!$rec->HistoryResourceId) {
+
+        // Ако има вече записан ресурс със същия хеш - връща се той
+        $queryHash = md5($rec->query);
+        $rec->HistoryResourceId = $mvc->HistoryResources->fetchField(array("#queryHash = '[#1#]'", $queryHash), 'id');
+
+        // Ако няма добавя се нов
+        if (empty($rec->HistoryResourceId)) {
             $sRec = new stdClass();
             $sRec->query = $rec->query;
             $rec->HistoryResourceId = $mvc->HistoryResources->save($sRec);
@@ -210,8 +213,7 @@ class vislog_History extends core_Manager
         // Ако имаме такъв запис в последните 5 минути - връщаме FALSE, за да не продължи обработката
         $conf = core_Packs::getConfig('vislog');
         $last5 = dt::addSecs(0 - $conf->VISLOG_ALLOW_SAME_IP);
-        
-        if ($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId} AND #createdOn > '{$last5}'")) {
+        if ($mvc->fetch(array("#ip = '[#1#]' AND #HistoryResourceId = {$rec->HistoryResourceId} AND #createdOn > '{$last5}'", $rec->ip))) {
             
             return false;
         }
@@ -227,7 +229,7 @@ class vislog_History extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true, true);
+        $row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, true);
         
         $ref = type_Varchar::escape(vislog_Referer::getReferer($rec->ip, $rec->createdOn));
         

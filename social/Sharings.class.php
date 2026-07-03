@@ -96,8 +96,8 @@ class social_Sharings extends core_Master
         
         // Подготвяме кодирани параметри
         $selfUrl     = substr(rawurlencode($cntUrl), 4);
-        $selfTitle   = rawurlencode(html_entity_decode(Mode::get('SOC_TITLE')));
-        $selfSummary = rawurlencode(str::truncate(html_entity_decode(Mode::get('SOC_SUMMARY')), 200));
+        $selfTitle   = rawurlencode(html_entity_decode(Mode::get('SOC_TITLE') ?? ''));
+        $selfSummary = rawurlencode(str::truncate(html_entity_decode(Mode::get('SOC_SUMMARY') ?? ''), 200));
         
         $tpl = new ET('');
         

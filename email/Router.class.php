@@ -244,15 +244,15 @@ class email_Router extends core_Manager
         
         $toEmail = email_Inboxes::replaceDomains($toEmail);
         
-        if ($type[self::RuleFromTo]) {
+        if (!empty($type[self::RuleFromTo])) {
             $keys[self::RuleFromTo] = str::convertToFixedKey($fromEmail . '|' . $toEmail);
         }
-        
-        if ($type[self::RuleFrom]) {
+
+        if (!empty($type[self::RuleFrom])) {
             $keys[self::RuleFrom] = str::convertToFixedKey($fromEmail);
         }
-        
-        if ($type[self::RuleDomain]) {
+
+        if (!empty($type[self::RuleDomain])) {
             if (!static::isPublicDomain($domain = type_Email::domain($fromEmail))) {
                 $keys[self::RuleDomain] = str::convertToFixedKey($domain);
             }
@@ -280,15 +280,17 @@ class email_Router extends core_Manager
         $rec = $query->fetch(array("#key = '[#1#]' AND #type = '[#2#]'", $rule->key, $rule->type));
         
         // Ако няма да се обновява записа и има такъв запис, не променяме стойността
-        if (!$updateRec && $rec->id) {
-            
+        if (!$updateRec && !empty($rec->id)) {
+
             return ;
         }
-        
-        if (strcmp("{$rec->priority}", "{$rule->priority}") < 0) {
+
+        if (!$rec || strcmp("{$rec->priority}", "{$rule->priority}") < 0) {
             // Досегашното правило за тази двойка <type, key> е с по-нисък приоритет
             // Обновяваме го
-            $rule->id = $rec->id;
+            if ($rec) {
+                $rule->id = $rec->id;
+            }
             expect($rule->objectType && $rule->objectId && $rule->key, $rule);
             static::save($rule);
         }
@@ -531,8 +533,8 @@ class email_Router extends core_Manager
         static $hostNameArr = array();
         
         // Да не се определя повторно
-        if ($hostNameArr[$boxFrom]) {
-            
+        if (!empty($hostNameArr[$boxFrom])) {
+
             return $hostNameArr[$boxFrom];
         }
         

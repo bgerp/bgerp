@@ -226,7 +226,7 @@ class sales_SalesDetails extends deals_DealDetail
 
             if (core_Users::haveRole('ceo,seePriceSale') && isset($row->packPrice)) {
                $hintField = isset($data->listFields['packPrice']) ? 'packPrice' : 'amount';
-               $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
+               $priceDate = ($masterRec->state == 'draft') ? null : $masterRec->valior;
                
                // Предупреждение дали цената е под себестойност
                $comparedWithPrimeCostObj = sales_PrimeCostByDocument::comparePriceWithPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $mvc, $rec->id);
@@ -251,9 +251,11 @@ class sales_SalesDetails extends deals_DealDetail
                    $useQuotationPrice = isset($masterRec->originId);
                    $discountPercent = ($rec->autoDiscount) ? round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4) : $rec->discount;
                    $transportFeeRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
+                   core_Debug::startTimer('CALC_COMPARE_CONTRAGENT_PRICE');
                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discountPercent, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
                         $row->{$hintField} = ht::createHint($row->{$hintField}, $checkedObject['hint'], $checkedObject['hintType'], false);
                    }
+                   core_Debug::stopTimer('CALC_COMPARE_CONTRAGENT_PRICE');
                }
             }
             
@@ -261,7 +263,9 @@ class sales_SalesDetails extends deals_DealDetail
             $fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $masterRec->vatExceptionId);
             if(doc_plg_HidePrices::canSeePriceFields($mvc->Master, $masterRec)){
-                $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
+                if(is_object($fee)){
+                    $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
+                }
             }
 
             if(haveRole('debug')){
@@ -281,6 +285,11 @@ class sales_SalesDetails extends deals_DealDetail
     {
         $recalcPricesOnClone = sales_Setup::get('RECALC_PRICES_ON_CLONE');
         if($recalcPricesOnClone == 'no'){
+
+            // Подсигуряване, че цената няма да се развали при промяна на курса (понеже е записано в основна валута)
+            $oldRate = sales_Sales::fetchField($oldRec->saleId, 'currencyRate');
+            $newRate = sales_Sales::fetchField($rec->saleId, 'currencyRate');
+            $rec->price = ($rec->price / $oldRate) * $newRate;
 
             // Ако не може да се изчисли цената и остави оригиналната - приспада се от нея скрития транспорт ако има
             $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
@@ -302,7 +311,7 @@ class sales_SalesDetails extends deals_DealDetail
             $rec->price = $policyInfo->price;
             $rec->price = deals_Helper::getPurePrice($rec->price, cat_Products::getVat($rec->productId, $masterRec->valior, $masterRec->vatExceptionId), $masterRec->currencyRate, $masterRec->chargeVat);
             $rec->discount = $policyInfo->discount;
-        } else {;
+        } else {
             $rec->discount = $oldRec->inputDiscount;
             $cRec = sales_TransportValues::get($mvc->Master, $oldRec->saleId, $oldRec->id);
             if (isset($cRec->fee) && $cRec->fee > 0) {
@@ -320,7 +329,7 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        if($rec->_isClone){
+        if($rec->_isClone ?? null){
             $masterRec = $mvc->Master->fetch($rec->saleId);
             if($masterRec->deliveryCalcTransport == 'yes'){
 

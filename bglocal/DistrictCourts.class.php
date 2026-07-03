@@ -122,8 +122,9 @@ class bglocal_DistrictCourts extends core_Manager
             array('city' => 'Ямбол',          'type' => 'districtCourt', 'code' => '230')
         );
         
+        $nAffected = 0;
+
         if (!$mvc->fetch('1=1')) {
-            $nAffected = 0;
             
             foreach ($data as $rec) {
                 $rec = (object) $rec;

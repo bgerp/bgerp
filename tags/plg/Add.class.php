@@ -26,7 +26,7 @@ class tags_plg_Add extends core_Plugin
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-list']) {
+        if (isset($fields['-list'])) {
             core_RowToolbar::createIfNotExists($row->_rowTools);
 
             if (tags_Logs::haveRightFor('tag', $rec)) {
@@ -56,7 +56,7 @@ class tags_plg_Add extends core_Plugin
                 $tags .= $tagArr['span'];
             }
 
-            $data->row->DocumentSettingsLeft = new ET($data->row->DocumentSettingsLeft);
+            $data->row->DocumentSettingsLeft = new ET($data->row->DocumentSettingsLeft ?? '');
             $data->row->DocumentSettingsLeft->prepend("<span class='documentTags'>{$tags}</span>");
         }
     }
@@ -81,7 +81,7 @@ class tags_plg_Add extends core_Plugin
                 $tags .= $tagArr['span'];
             }
 
-            $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
+            $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft ?? '');
             $row->DocumentSettingsLeft->prepend("<span class='documentTags'>{$tags}</span>");
         }
     }
@@ -125,7 +125,7 @@ class tags_plg_Add extends core_Plugin
             $rowObj = new stdClass();
         }
 
-        if ($rec->id) {
+        if (is_object($rec) && $rec->id) {
             $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $id);
 
             $sTitleStr = '';
@@ -150,9 +150,13 @@ class tags_plg_Add extends core_Plugin
             $sTitleStr = "<span class='{$mvc->tagsClassHolderName}'>" . $sTitleStr . "</span>";
 
             $rowObj->_haveSubtitle = false;
-            if ($rowObj->subTitle) {
+            if (!empty($rowObj->subTitle)) {
                 $rowObj->subTitle = "<span class='otherSubtitleStr'>{$rowObj->subTitle}</span>";
                 $rowObj->_haveSubtitle = true;
+            }
+
+            if (!isset($rowObj->subTitle)) {
+                $rowObj->subTitle = '';
             }
 
             if ($mvc->addTagsToSubtitle == 'after') {

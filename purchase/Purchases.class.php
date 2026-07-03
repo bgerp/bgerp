@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Покупки
+ * @title     Договори за покупка
  */
 class purchase_Purchases extends deals_DealMaster
 {
@@ -764,7 +764,7 @@ class purchase_Purchases extends deals_DealMaster
             $row->title .= "  «  " . $row->folderId;
         }
 		
-		$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |{$row->detailOrderBy}|*");
+		$row->detailOrderBy = ht::createHint("", "Подреждане артикули по|*: |" . ($row->detailOrderBy ?? '') . "|*");
         if($rec->haveVatCreditProducts == 'yes'){
             $row->detailOrderBy = ht::createHint($row->detailOrderBy, "С право на данъчен кредит");
             unset($row->haveVatCreditProducts);

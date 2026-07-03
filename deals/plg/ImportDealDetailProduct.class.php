@@ -33,7 +33,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('deals_DealImportProductIntf');
-        setIfNot($mvc->allowPriceImport, true);
+        setPartIfNot($mvc, 'allowPriceImport', true);
     }
     
     

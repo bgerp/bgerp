@@ -27,12 +27,12 @@ class doc_ThreadRefreshPlg extends core_Plugin
     {
         // Ако не се листва, да не се изпълнява
         if (core_Users::haveRole('partner') && core_Packs::isInstalled('colab')) {
-            if ($data->action != 'single') {
-                
+            if (($data->action ?? null) != 'single') {
+
                 return ;
             }
-        } elseif ($data->action != 'list') {
-            
+        } elseif (($data->action ?? null) != 'list') {
+
             return ;
         }
         

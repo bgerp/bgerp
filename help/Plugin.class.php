@@ -30,7 +30,7 @@ class help_Plugin extends core_Plugin
         
         $act = Request::get('Act');
         
-        $act = strtolower($act);
+        $act = strtolower($act ?? '');
         
         // какъв е метода на показваната страница?
         if ($act == 'edit' || $act == 'add') {
@@ -44,6 +44,7 @@ class help_Plugin extends core_Plugin
         
         
         if (($act == 'list') && ($rec = help_Info::fetch(array("#class = '[#1#]' AND #lg = '[#2#]'", $ctr, $lg))) || haveRole('help')) {
+            $mustSeeClass = '';
             if (!$rec) {
                 $rec = new stdClass();
                 $rec->class = $ctr;
@@ -69,10 +70,10 @@ class help_Plugin extends core_Plugin
             $img = ht::createElement('img', array('src' => $imageUrl, 'alt' => 'help'));
             $hintBtn = new ET("<a class='tooltip-button'>[#1#]</a>", $img);
             $convertText = cls::get('type_Richtext');
-            $hintText = $convertText->toVerbal($rec->text . '');
+            $hintText = $convertText->toVerbal(($rec->text ?? '') . '');
             if (haveRole('help')) {
                 $imgEdit = ht::createElement('img', array('src' => sbf('img/16/edit-icon.png', ''), 'alt' => 'edit'));
-                if (!$rec->id) {
+                if (!($rec->id ?? null)) {
                     $urlAE = array('help_Info', 'add', 'class' => $ctr, 'action' => $act, 'lg' => $lg, 'ret_url' => true);
                 } else {
                     $urlAE = array('help_Info', 'edit', $rec->id, 'ret_url' => true);
@@ -80,7 +81,7 @@ class help_Plugin extends core_Plugin
                 $hintText .= ht::createLink($imgEdit, $urlAE, null, array('class' => 'edit-tooltip'));
             }
             
-            if ($rec->url) {
+            if ($rec->url ?? null) {
                 $hintText .= "<div class='clearfix21'><div style='float:right;font-size:0.8em;'>" . ht::createLink('» виж документацията', $rec->url, null, 'target=_blank') . '</div></div>';
             }
             

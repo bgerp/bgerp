@@ -187,7 +187,7 @@ class rack_ZoneDetails extends core_Detail
     protected static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
         if(!countR($data->rows)) return;
-        setIfNot($data->inlineDetail, false);
+        setPartIfNot($data, 'inlineDetail', false);
         setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
         $requestedProductId = Request::get('productId', 'int');
         if(Mode::is('printing')){
@@ -548,8 +548,6 @@ class rack_ZoneDetails extends core_Detail
     public static function renderInlineDetail($masterRec, $masterMvc, $additional = null)
     {
         $additional = !empty($additional) ? $additional : 'pendingAndMine';
-        setIfNot($additional, 'pendingAndMine');
-
         $productId = Request::get('productId', 'int');
         $cu = core_Users::getCurrent();
         $tpl = core_Cache::get("rack_Zones_{$masterRec->id}", "{$cu}|{$additional}|{$productId}");
@@ -1111,11 +1109,20 @@ class rack_ZoneDetails extends core_Detail
         $mQuery->where("LOCATE('|{$zoneRec->id}|', #zoneList)");
         $mQuery->where("#productId = {$rec->productId} AND #packagingId = {$rec->packagingId} AND #batch = '{$rec->batch}' AND #state IN ('pending', 'waiting')");
         $mQuery->show('id');
-        $deleteIds = arr::extractValuesFromArray($mQuery->fetchAll(), 'id');
-        if(countR($deleteIds)){
-            core_Statuses::newStatus('L:' . countR($deleteIds), 'warning');
-            $deleteIdStr = implode(',', $deleteIds);
-            rack_Movements::delete("#id IN ({$deleteIdStr})");
+        $deleted = 0;
+        while ($mRec = $mQuery->fetch()) {
+            $lockId = "movement{$mRec->id}";
+            if (!core_Locks::obtain($lockId, 120, 0, 0)) {
+                continue;
+            }
+
+            rack_Movements::delete($mRec->id);
+            $deleted++;
+
+            core_Locks::release($lockId);
+        }
+        if($deleted){
+            core_Statuses::newStatus('L:' . $deleted, 'warning');
         }
 
         followRetUrl(null, "Успешно е променено количеството в|* #{$Document->getHandle()} ");

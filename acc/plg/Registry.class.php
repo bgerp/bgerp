@@ -26,6 +26,7 @@ class acc_plg_Registry extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('acc_RegisterIntf');
+        setPartIfNot($mvc, 'closeItems', array());
     }
     
     
@@ -111,7 +112,7 @@ class acc_plg_Registry extends core_Plugin
         // да става на on_Shutdown, поради това, че някои пера може да са начало на нишка,
         // а ако те се затворят преди да се е оттеглила цялата нишка това води до не пълно оттегляне
         // затова затваряме перото след като са се изпълнили всички други действия на плъгините
-        if (countR($mvc->closeItems)) {
+        if (countR($mvc->closeItems ?? null)) {
             foreach ($mvc->closeItems as $rec) {
                 if ($itemRec = acc_Items::fetchItem($mvc, $rec->id)) {
                     if ($itemRec->state == 'active') {

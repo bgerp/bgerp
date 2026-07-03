@@ -254,7 +254,7 @@ class acc_BalanceRepairs extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        if($rec->_isClone === true) return;
+        if(($rec->_isClone ?? false) === true) return;
         
         $useDefaults = acc_Setup::get('BALANCE_REPAIR_NO_DEFAULTS');
         if($useDefaults != 'yes'){

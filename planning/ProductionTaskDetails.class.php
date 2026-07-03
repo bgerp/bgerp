@@ -158,6 +158,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
         $this->FNC('scrapRecId', 'int', 'caption=Време,input=hidden,silent');
         $this->FNC('inputType', 'enum(materials,services,actions,subProducts)', 'caption=Тип на влагане,input=hidden,silent');
+        $this->FNC('closeIfCompleted', 'int', 'silent');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('type');
@@ -197,10 +198,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         // Кои оператори са въведени досега
+        $selectedEmployeesByNowKeylist = '';
+        $lastEmployees = null;
         $defaultFillUser = planning_Setup::get('TASK_PROGRESS_OPERATOR');
         if(in_array($defaultFillUser, array('lastAndOptional', 'lastAndMandatory'))){
-            $lastEmployees = null;
-            $selectedEmployeesByNowKeylist = '';
             $query = $mvc->getQuery();
             $query->where("#taskId = {$rec->taskId} AND #employees IS NOT NULL");
             $query->orderBy('id', 'ASC');
@@ -414,7 +415,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr(keylist::toArray($selectedEmployeesByNowKeylist) + keylist::toArray($masterRec->employees)) : planning_Hr::getByFolderId($masterRec->folderId, $selectedEmployeesByNowKeylist);
-
         if (countR($employees)) {
             $form->setSuggestions('employees', array('' => '') + $employees);
             $form->setField('employees', 'input');
@@ -563,9 +563,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             if (!$form->gotErrors()) {
                 if ($rec->type == 'scrap') {
                     if (empty($rec->quantity) && empty($rec->weight)) {
-                        $rec->quantity = $rec->_defaultScrapQuantity;
-                        $rec->weight = $rec->_defaultScrapWeight;
-                        $rec->netWeight = $rec->_defaultScrapNetWeight;
+                        $rec->quantity = $rec->_defaultScrapQuantity ?? null;
+                        $rec->weight = $rec->_defaultScrapWeight ?? null;
+                        $rec->netWeight = $rec->_defaultScrapNetWeight ?? null;
                     } elseif (!empty($rec->quantity) && empty($rec->weight)) {
                         if (isset($rec->_defaultScrapWeight)) {
                             $singleWeight = $rec->_defaultScrapWeight / $rec->_defaultScrapQuantity;
@@ -625,9 +625,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                         $rec->employees = keylist::merge($rec->employees, $rec->otherEmployees);
                     }
 
-                    if ($rec->_isKgMeasureId) {
+                    if (!empty($rec->_isKgMeasureId)) {
                         $rec->quantity = !empty($rec->quantity) ? $rec->quantity : ((!empty($rec->netWeight)) ? $rec->netWeight : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1));
-                        $rec->weight = $rec->weight;
                     } else {
                         $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
                     }
@@ -822,6 +821,11 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
+        // Ако ще се приключва автоматично се задава в сесията
+        if(!empty($rec->closeIfCompleted)){
+            Mode::setPermanent("autoCloseIfCompleted{$rec->taskId}", true);
+        }
+
         $serialProductId = $rec->productId;
         if($rec->type == 'production'){
             $originId = planning_Tasks::fetchField("#id = {$rec->taskId}", 'originId');
@@ -916,7 +920,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     private static function getProgressSerialInfo($serial, $productId, $taskId, $type)
     {
         $taskRec = planning_Tasks::fetch($taskId, 'originId,productId,labelPackagingId,measureId,assetId');
-        $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
+        $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown', 'totalQuantity' => 0);
 
         // Търси се в другите ПО от това задание дали вече се използва този сериен номер
         // със същата опаковка за етикетиране
@@ -947,7 +951,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         while($rec = $query->fetch()){
 
             if(!array_key_exists($rec->taskId, $foundRecs)){
-                $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing');
+                $foundRecs[$rec->taskId] = (object)array('serial' => $rec->serial, 'productId' => $rec->productId, 'batch' => $rec->batch, 'type' => 'existing', 'quantity' => 0);
             }
             $sign = ($rec->type == 'scrap') ? -1 : 1;
             $quantity = $rec->quantity;
@@ -1036,6 +1040,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако не е намерен артикул търси се в етикет от опаковка
         $serialProductId = is_object($pRec) ? $pRec->id : null;
         $labelOriginTaskId = null;
+
         if(empty($serialProductId)){
             if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
                 $printRec = label_Prints::fetch($serialPrintId, 'objectId,classId');
@@ -1185,8 +1190,15 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $data->listTableId = "taskProgressTable{$data->masterData->rec->id}";
-        $data->isMeasureKg = ($data->masterData->rec->measureId == cat_UoM::fetchBySinonim('kg')->id);
+        if (!isset($data->masterData)) {
+            $data->masterData = (object) array('rec' => ($data->masterId ?? null) ? planning_Tasks::fetch($data->masterId) : null);
+        }
+        $masterTaskRec = is_object($data->masterData->rec) ? $data->masterData->rec : null;
+        $masterFolderId = $masterTaskRec->folderId ?? null;
+
+        $masterTaskId = $masterTaskRec->id ?? '';
+        $data->listTableId = "taskProgressTable{$masterTaskId}";
+        $data->isMeasureKg = ($masterTaskRec && $masterTaskRec->measureId == cat_UoM::fetchBySinonim('kg')->id);
         $lastRecId = $masterCenterRec = null;
 
         if (isset($data->masterMvc)) {
@@ -1198,7 +1210,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listTableMvc->setField('weight', 'smartCenter');
 
             // Ако няма настройка за приспадане на тарата да не се показва колонката за нето
-            $masterCenterRec = planning_Centers::fetch("#folderId = {$data->masterData->rec->folderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetMeasureId');
+            $masterCenterRec = planning_Centers::fetch("#folderId = {$masterFolderId}", 'useTareFromParamId,useTareFromPackagings,paramExpectedNetWeight,paramExpectedNetMeasureId');
             if(empty($masterCenterRec->useTareFromParamId) && empty($masterCenterRec->useTareFromPackagings) && !planning_ProductionTaskProducts::count("#taskId = {$data->masterId} AND #tareWeight IS NOT NULL")){
                 unset($data->listFields['netWeight']);
             }
@@ -1210,7 +1222,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (!countR($rows)) return;
 
         $recsBySerials = $producedSerials = array();
-        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$data->masterData->rec->folderId}'", 'showSerialWarningOnDuplication');
+        $showSerialWarningOnDuplication = planning_Centers::fetchField("#folderId = '{$masterFolderId}'", 'showSerialWarningOnDuplication');
         $checkSerials4Warning = ($showSerialWarningOnDuplication == 'auto') ? planning_Setup::get('WARNING_DUPLICATE_TASK_PROGRESS_SERIALS') : $showSerialWarningOnDuplication;
         array_walk($data->recs, function($a) use (&$recsBySerials, &$producedSerials){if($a->type != 'scrap' && !empty($a->serial)){if(!array_key_exists($a->serial, $recsBySerials)){$recsBySerials[$a->serial] = 0;}$recsBySerials[$a->serial] += 1;}if($a->type == 'production' && !empty($a->serial)) {$producedSerials[$a->serial] = $a->serial;};});
 
@@ -1449,7 +1461,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             Mode::setPermanent("newAsset{$rec->taskId}", $rec->newAssetId);
         }
 
-        if($rec->_serialIsForced){
+        if($rec->_serialIsForced ?? null){
             plg_Search::forceUpdateKeywords($mvc, $rec);
         }
     }
@@ -1679,6 +1691,27 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $masterRec = planning_Tasks::fetch($rec->taskId, 'showadditionalUom');
                 if($masterRec->showadditionalUom == 'no'){
                     $requiredRoles = 'no_one';
+                }
+            }
+        }
+
+        if($action == 'fastprogress'){
+
+            // Ако потребителя може да добавя прогрес към ПО
+            $requiredRoles = $mvc->getRequiredRoles('add', $rec, $userId);
+            if($requiredRoles != 'no_one' && isset($rec)){
+                $taskRec = planning_Tasks::fetch($rec->taskId);
+                $rest = round($taskRec->plannedQuantity - $taskRec->totalQuantity, 4);
+                if($rest <= 0){
+                    $requiredRoles = 'no_one';
+                } else {
+                    // Ако не е разрешен бърз прогрес от листа в етапа - бутона няма да се показва
+                    if($Driver = cat_Products::getDriver($taskRec->productId)){
+                        $stepData = $Driver->getProductionData($taskRec->productId);
+                        if($stepData['fastProgressBtn'] != 'yes'){
+                            $requiredRoles = 'no_one';
+                        }
+                    }
                 }
             }
         }
@@ -2187,9 +2220,79 @@ class planning_ProductionTaskDetails extends doc_Detail
     public function getModeAutoLabelPrint_($rec)
     {
         $rec = $this->fetchRec($rec);
-        $labelType = planning_Tasks::fetchField($rec->taskId, 'labelType');
-        if($labelType == 'autoPrint') return 'both';
+        if(is_object($rec)){
+            $labelType = planning_Tasks::fetchField($rec->taskId, 'labelType');
+            if($labelType == 'autoPrint') return 'both';
+        }
 
         return 'no';
+    }
+
+
+    /**
+     * Екшън за бърз прогрес на ПО
+     */
+    public function act_fastprogress()
+    {
+        $this->requireRightFor('fastprogress');
+        expect($taskId = Request::get('taskId', 'int'));
+        $this->requireRightFor('fastprogress', (object)array('taskId' => $taskId));
+        $taskRec = planning_Tasks::fetch($taskId);
+
+        $rest = $taskRec->plannedQuantity - $taskRec->totalQuantity;
+        $rest = $rest <= 0 ? null : $rest;
+
+        // Ако има задължителни полета за попълване се минава през стандартната форма
+        $productId = ($taskRec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId') : $taskRec->productId;
+        $retUrl = getRetUrl();
+        $retUrl["#"] = planning_Tasks::getHandle($taskId);
+        $manualAdd = ($taskRec->labelType == 'scan' || $taskRec->showadditionalUom == 'yes' || $taskRec->followBatchesForFinalProduct == 'yes');
+
+        // Ако има избрани оператори и текущия потребител не е сред тях - минава се през формата винаги
+        $selectedEmployees = keylist::toArray($taskRec->employees);
+        if(countR($selectedEmployees)){
+            $cProfileRec = crm_Profiles::getProfile();
+            if(!array_key_exists($cProfileRec->id, $selectedEmployees)){
+                $manualAdd = true;
+            }
+        }
+        if($manualAdd){
+            $redirectUrl = array($this, 'add', 'taskId' => $taskId, 'type' => 'production', 'productId' => $productId,'quantity' => $rest, 'closeIfCompleted' => true, 'ret_url' => $retUrl);
+            redirect($redirectUrl);
+        }
+
+        // Иначе се добавя бърз прогрес
+        $currentUserPersonId = crm_Profiles::getProfile()->id;
+        $dRec = (object)array('productId' => $productId,
+                              'taskId' => $taskRec->id,
+                              'type' => 'production',
+                              'employees' => $currentUserPersonId,
+                              'closeIfCompleted' => 1,
+                              'quantity' => $rest);
+
+        // Добавяне и на заработката за прогреса
+        $info = planning_ProductionTaskProducts::getInfo($taskRec->id, $productId, 'production', $taskRec->fixedAsset);
+        if (!empty($info->indTime)) {
+            $dRec->norm = $info->indTime;
+        }
+
+        $this->save($dRec);
+
+        followRetUrl();
+    }
+
+
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        if (!empty($data->form->rec->closeIfCompleted)) {
+            $data->form->toolbar->removeBtn('saveAndNew');
+        }
     }
 }

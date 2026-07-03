@@ -54,6 +54,8 @@ class bglocal_MKB extends core_Master
         $this->FLD('key', 'varchar', 'caption=Код');
         //$this->FLD('number', 'varchar', 'caption=Номер');
         $this->FLD('title', 'text', 'caption=Наименование');
+        
+        $this->setDbUnique('key');
     }
     
     
@@ -75,7 +77,7 @@ class bglocal_MKB extends core_Master
         $file = 'bglocal/data/MKB.csv';
         //$fields = array(0 => 'key', 1 => 'number', 2 => 'title');
         $fields = array(0 => 'key', 1 => 'title');
-        $cntObj = csv_Lib::largeImportOnceFromZero($mvc, $file, $fields);
+        $cntObj = csv_Lib::largeImportOnce($mvc, $file, $fields);
         $res .= $cntObj->html;
     }
     

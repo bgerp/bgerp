@@ -113,7 +113,7 @@ class cal_TasksResourceCycleSens extends sens2_ProtoDriver
             }
 
             if (($rec->expectationTimeStart > $now)) {
-                setIfNot($startIn, $rec->expectationTimeStart);
+                $startIn = $startIn ?? $rec->expectationTimeStart;
                 $startIn = min($startIn, $rec->expectationTimeStart);
             }
 

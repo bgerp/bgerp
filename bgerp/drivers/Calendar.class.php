@@ -78,7 +78,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         }
         
         $resData->month = Request::get('cal_month', 'int');
-        $resData->month = str_pad($resData->month, 2, '0', STR_PAD_LEFT);
+        $resData->month = str_pad($resData->month ?? '', 2, '0', STR_PAD_LEFT);
         $resData->year = Request::get('cal_year', 'int');
         
         if (!$resData->month || $resData->month < 1 || $resData->month > 12 || !$resData->year || $resData->year < 1970 || $resData->year > 2038) {
@@ -163,7 +163,8 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 if (!isset($resData->cData[$i])) {
                     $resData->cData[$i] = new stdClass();
                 }
-                $resData->cData[$i]->url = toUrl(array('cal_Calendar', 'day', 'from' => "{$i}.{$resData->month}.{$resData->year}"));
+                $iDay = str_pad($i, 2, '0', STR_PAD_LEFT);
+                $resData->cData[$i]->url = toUrl(array('cal_Calendar', 'day', 'selectPeriod' => "{$resData->year}-{$resData->month}-{$iDay}|{$resData->year}-{$resData->month}-{$iDay}"));
             }
             
             // Съдържание на списъка със събития
@@ -279,7 +280,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                     break;
                 }
                 
-                if (!$tArr['now'][$d]) {
+                if (empty($tArr['now'][$d])) {
                     $tArr['now'][$d][] = (object)array('title' => $noEvent);
                 }
             }
@@ -322,7 +323,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $dBlock->replace($nowDateClass, 'NOW_DATE_CLASS');
                 $dBlock->replace($nowClassName, 'NOW_CLASS_NAME');
                 
-                if ($tRowArr['events']) {
+                if (!empty($tRowArr['events'])) {
                     $dBlock->append('<span class="subTitle"><small style="vertical-align:text-top">' . tr('Празнуваме||Celebrate') . ':</small>' . $tRowArr['events'] . '</span>', 'NOW');
                     unset($tRowArr['events']);
                 }
@@ -336,7 +337,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             }
             
             // Показваме събитията за в бъдеще
-            if ($tArr['future']) {
+            if (!empty($tArr['future'])) {
                 $data->tpl->append($tArr['future'], 'FUTURE');
                 $data->tpl->replace(tr('По-нататък'), 'FUTURE_DATE');
             }
@@ -743,7 +744,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $expandTypeArr = arr::make($expandType, true);
             $type = strtolower($rec->type);
 
-            if ($pArr['search'] || $expandTypeArr[$type] || $type[0] == '_') {
+            if ($pArr['search'] || !empty($expandTypeArr[$type]) || $type[0] == '_') {
                 if ($oTim) {
                     $rec->title = $oTim . ' ' . $rec->title;
                 }
@@ -770,12 +771,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $eventImg = ht::createElement('img', array('src' => sbf("img/16/{$type}.png", '')));
                 $event = ht::createElement('span', array('class' => 'tooltip-arrow-link', 'data-url' => $url), $eventImg, true);
                 $event = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$uniqId}'></span>{$event}</span>";
-                
+
+                if (!isset($rArrNow[$orderDate]['events'])) {
+                    $rArrNow[$orderDate]['events'] = '';
+                }
                 $rArrNow[$orderDate]['events'] .= '&nbsp;' . $event;
             }
         }
-
-
     }
     
     

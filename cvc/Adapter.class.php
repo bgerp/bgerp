@@ -320,7 +320,7 @@ class cvc_Adapter
      */
     public static function getCounties($countryId = null)
     {
-        setIfNot($countryId, self::DEFAULT_COUNTRY_ID);
+        $countryId = $countryId ?? self::DEFAULT_COUNTRY_ID;
 
         $res = self::makeCall('get_counties', array('country_id' => $countryId));
 
@@ -353,7 +353,7 @@ class cvc_Adapter
      */
     public static function getMunicipalities($q, $countryId = null)
     {
-        setIfNot($countryId, self::DEFAULT_COUNTRY_ID);
+        $countryId = $countryId ?? self::DEFAULT_COUNTRY_ID;
 
         $q = mb_strtolower($q);
         $q = trim($q);
@@ -400,7 +400,7 @@ class cvc_Adapter
      */
     public static function getCities($q, $countryId = null, $countyId = null, $municipalityId = null)
     {
-        setIfNot($countryId, self::DEFAULT_COUNTRY_ID);
+        $countryId = $countryId ?? self::DEFAULT_COUNTRY_ID;
 
         $q = mb_strtolower($q);
         $q = trim($q);
@@ -502,7 +502,7 @@ class cvc_Adapter
      */
     public static function getHubs($countryId = null)
     {
-        setIfNot($countryId, self::DEFAULT_COUNTRY_ID);
+        $countryId = $countryId ?? self::DEFAULT_COUNTRY_ID;
 
         $res = self::makeCall('get_hubs', array('country_id' => $countryId));
 
@@ -537,7 +537,7 @@ class cvc_Adapter
      */
     public static function getOffices($countryId = null)
     {
-        setIfNot($countryId, self::DEFAULT_COUNTRY_ID);
+        $countryId = $countryId ?? self::DEFAULT_COUNTRY_ID;
 
         $res = self::makeCall('get_offices', array('country_id' => $countryId));
 
@@ -579,7 +579,7 @@ class cvc_Adapter
      */
     public static function getCustomLocations()
     {
-        setIfNot($countryId, self::DEFAULT_COUNTRY_ID);
+        $countryId = $countryId ?? self::DEFAULT_COUNTRY_ID;
 
         $res = self::makeCall('get_custom_locations');
 
@@ -622,7 +622,7 @@ class cvc_Adapter
      */
     public static function getQts($q, $cityId, $countryId = null)
     {
-        setIfNot($countryId, self::DEFAULT_COUNTRY_ID);
+        $countryId = $countryId ?? self::DEFAULT_COUNTRY_ID;
 
         $q = mb_strtolower($q);
         $q = trim($q);
@@ -662,7 +662,7 @@ class cvc_Adapter
      */
     public static function getStreets($q, $cityId, $countryId = null)
     {
-        setIfNot($countryId, self::DEFAULT_COUNTRY_ID);
+        $countryId = $countryId ?? self::DEFAULT_COUNTRY_ID;
 
         $q = mb_strtolower($q);
         $q = trim($q);

@@ -47,7 +47,7 @@ class type_Date extends core_Type
             return;
         }
         
-        if ($this->params['format'] && !Mode::is('printing') && (Mode::is('text', 'html') || !Mode::is('text')) && $useFormat) {
+        if (($this->params['format'] ?? null) && !Mode::is('printing') && (Mode::is('text', 'html') || !Mode::is('text')) && $useFormat) {
             $format = $this->params['format'];
         } elseif (Mode::is('screenMode', 'narrow')) {
             $format = $conf->EF_DATE_NARROW_FORMAT . $this->timePart;
@@ -99,13 +99,16 @@ class type_Date extends core_Type
         if ($value && !$this->error) {
             $value = dt::mysql2verbal($value, 'd.m.Y', null, false);
         } else {
-            $value = $attr['value'];
+            $value = $attr['value'] ?? null;
         }
         
         $attr['autocomplete'] = 'off';
         setIfNot($attr['type'], 'text');
         setIfNot($this->params['width'], 8);
-        
+
+        if (!isset($attr['style'])) {
+            $attr['style'] = '';
+        }
         $attr['style'] .= ';width:' . $this->params['width'] . 'em;';
 
         return $this->createInput($name, $value, $attr);

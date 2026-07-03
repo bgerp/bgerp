@@ -44,17 +44,17 @@ class doc_FolderPlg extends core_Plugin
         
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
-        setIfNot($mvc->interfaces['doc_FolderIntf'], 'doc_FolderIntf');
-        setIfNot($mvc->canCreatenewfolder, 'powerUser');
-        setIfNot($mvc->canViewlogact, 'powerUser');
-        
+        $mvc->interfaces['doc_FolderIntf'] = $mvc->interfaces['doc_FolderIntf'] ?? 'doc_FolderIntf';
+        setPartIfNot($mvc, 'canCreatenewfolder', 'powerUser');
+        setPartIfNot($mvc, 'canViewlogact', 'powerUser');
         $mvc->details = arr::make($mvc->details);
         
         $mvc->details['Rights'] = $mvc->className;
         $mvc->details['History'] = $mvc->className;
         $mvc->details['Resources'] = 'doc_FolderResources';
-        setIfNot($mvc->autoCreateFolder, 'instant');
-        setIfNot($mvc->cloneFolderSettings, false);
+
+        setPartIfNot($mvc, 'autoCreateFolder', 'instant');
+        setPartIfNot($mvc, 'cloneFolderSettings', false);
     }
     
     
@@ -83,11 +83,11 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterPrepareHistory($mvc, $res, $data)
     {
-        if ($mvc->haveRightFor('viewlogact', $data->rec)) {
+        if ($mvc->haveRightFor('viewlogact', $data->rec ?? null)) {
             $data->TabCaption = 'История';
         }
-        
-        if (!$data->TabCaption || !$data->isCurrent) {
+
+        if (empty($data->TabCaption) || empty($data->isCurrent)) {
             
             return;
         }
@@ -96,7 +96,7 @@ class doc_FolderPlg extends core_Plugin
         
         $data->ActionLog = new stdClass();
         
-        $perPage = $mvc->actLogPerPage ? $mvc->actLogPerPage : 10;
+        $perPage = $mvc->actLogPerPage ?? 10;
         
         $data->ActionLog->pager = cls::get('core_Pager', array('itemsPerPage' => $perPage, 'pageVar' => 'P_Act_Log'));
         
@@ -127,7 +127,7 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterRenderHistory($mvc, &$tpl, $data)
     {
-        if (($data->ActionLog) && ($data->ActionLog->rows)) {
+        if (!empty($data->ActionLog) && !empty($data->ActionLog->rows)) {
             $tpl = getTplFromFile('doc/tpl/FolderHistoryLog.shtml');
             
             $logBlockTpl = $tpl->getBlock('log');
@@ -141,7 +141,9 @@ class doc_FolderPlg extends core_Plugin
             $tpl->append($data->ActionLog->pager->getHtml(), 'pager');
             $tpl->append($data->ActionLog->actionLogLink, 'actionLogLink');
         } else {
-            $data->masterData->History->disabled = true;
+            if (isset($data->masterData->History) && is_object($data->masterData->History)) {
+                $data->masterData->History->disabled = true;
+            }
         }
     }
     
@@ -157,11 +159,11 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // Полета за Достъп
-        if (!$data->form->rec->inCharge) {
+        if (empty($data->form->rec->inCharge)) {
             $data->form->setDefault('inCharge', core_Users::getCurrent());
         }
-        if (!$data->form->rec->access) {
-            $data->form->setDefault('access', $mvc->defaultAccess ? $mvc->defaultAccess : 'team');
+        if (empty($data->form->rec->access)) {
+            $data->form->setDefault('access', ($mvc->defaultAccess ?? null) ?: 'team');
         }
         
         // Ако сме в тесен режим
@@ -172,7 +174,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // При редакция
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             
             // Ако нямаш достъп до обекта, но имаш до корицата да не можеш да променяш правата за достъп
             if (!doc_Folders::haveRightToObject($data->form->rec)) {
@@ -229,16 +231,16 @@ class doc_FolderPlg extends core_Plugin
         $allSysTeamId = type_UserOrRole::getAllSysTeamId();
         $fKey = doc_Folders::getSettingsKey($data->rec->folderId);
         $settings = core_Settings::fetchKeyNoMerge($fKey, $allSysTeamId);
-        if ($settings['closeTime']) {
+        if (!empty($settings['closeTime'])) {
             $typeTime = cls::get('type_Time');
             $data->row->CloseTime = $typeTime->toVerbal($settings['closeTime']);
         }
         
-        if ($settings['showDocumentsAsButtons']) {
+        if (!empty($settings['showDocumentsAsButtons'])) {
             $typeKeylist = cls::get('type_Keylist');
             $typeKeylist->params['mvc'] = 'core_Classes';
             $typeKeylist->params['select'] = 'title';
-            
+
             $data->row->ShowDocumentsAsButtons = $typeKeylist->toVerbal($settings['showDocumentsAsButtons']);
         }
     }
@@ -273,17 +275,18 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако оттегляме документа
-        if ($action == 'reject' && $rec->folderId && $requiredRoles != 'no_one') {
-            
+        if ($action == 'reject' && $rec && $rec->folderId && $requiredRoles != 'no_one') {
+
             // Ако има запис, който не е оттеглен
-            if (doc_Folders::fetch($rec->folderId)->allThreadsCnt) {
+            $fRec = doc_Folders::fetch($rec->folderId);
+            if ($fRec && $fRec->allThreadsCnt) {
                 
                 // Никой да не може да оттегля папката
                 $requiredRoles = 'no_one';
             }
         }
         
-        if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc') && $requiredRoles != 'no_one') {
+        if ($rec && !empty($rec->id) && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc') && $requiredRoles != 'no_one') {
             $rec = $mvc->fetch($rec->id);
             
             // Ако модела е достъпен за всички потребители по подразбиране,
@@ -325,7 +328,7 @@ class doc_FolderPlg extends core_Plugin
         
         // Потребителите само с ранг ексикютив може да променят само корици на които са отговорник
         if (!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
-            if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
+            if (is_object($rec) && $rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
                 if (!$userId) {
                     $userId = core_Users::getCurrent();
                 }
@@ -351,9 +354,9 @@ class doc_FolderPlg extends core_Plugin
         $cu = core_Users::getCurrent();
         
         if (!haveRole('ceo') && $cu > 0) {
-            $add = "NOT (#access = 'secret' AND #inCharge != ${cu} AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)";
+            $add = "NOT (#access = 'secret' AND #inCharge != {$cu} AND !(#shared LIKE '%|{$cu}|%')) OR (#access IS NULL)";
             if ($where) {
-                $where = "(${where}) AND " . $add;
+                $where = "({$where}) AND " . $add;
             } else {
                 $where = $add;
             }
@@ -384,10 +387,12 @@ class doc_FolderPlg extends core_Plugin
             if (is_numeric($rec)) {
                 expect($exRec = $mvc->fetch($rec), $rec);
                 $rec = $exRec;
-            } elseif ($rec->id) {
+            } elseif ($rec->id ?? null) {
                 expect($exRec = $mvc->fetch($rec->id), $rec);
                 $rec = $exRec;
             } else {
+                $fields = array();
+                $exRec = null;
                 $res = $mvc->isUnique($rec, $fields, $exRec);
                 
                 if ($exRec) {
@@ -400,7 +405,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
-            if ($bForce && (!$rec->folderId || !doc_Folders::fetch($rec->folderId))) {
+            if ($bForce && (!($rec->folderId ?? null) || !doc_Folders::fetch($rec->folderId))) {
                 
                 // Очакваме да не е подаден празен stdClass
                 // Така се подсигуряваме да не се създаде празна корица
@@ -412,7 +417,7 @@ class doc_FolderPlg extends core_Plugin
                 $mvc->save($rec);
             }
             
-            $folderId = $rec->folderId;
+            $folderId = $rec->folderId ?? null;
         }
     }
     
@@ -508,11 +513,11 @@ class doc_FolderPlg extends core_Plugin
         
         $fArr = arr::make($fields, true);
         
-        if ((!$fields || $fArr['inCharge']) && !$rec->inCharge) {
+        if ((!$fields || !empty($fArr['inCharge'])) && !($rec->inCharge ?? null)) {
             $rec->inCharge = $cu;
         }
-        
-        if ((!$fields || $fArr['state']) && !$rec->state) {
+
+        if ((!$fields || !empty($fArr['state'])) && !($rec->state ?? null)) {
             $rec->state = 'active';
         }
         
@@ -579,7 +584,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // Връщаме ид-то на намерения потребител
-        return $userRec->id;
+        return $userRec ? $userRec->id : null;
     }
     
     
@@ -596,14 +601,31 @@ class doc_FolderPlg extends core_Plugin
             return;
         }
         
-        if (!$rec->folderId) {
+        if (empty($rec->folderId)) {
             $rec->folderId = $mvc->fetchField($rec->id, 'folderId');
         }
-        
+
+        // Ако има папка - обновяме ковъра
         if ($rec->folderId) {
-            
-            //Ако има папка - обновяме ковъра
-            doc_Folders::updateByCover($rec->folderId);
+
+            // При редакция на корицата ще се обнови папката
+            $updateFolderByCover = true;
+            if($mvc->hasPlugin('change_plg_History')){
+
+                // Но ако корицата поддържа версии и има дата на валидност на новата версия
+                // и тя е след ДНЕС, тогава папката няма да се обновява;
+                if(!empty($rec->newValidFrom)){
+                    $newValidFrom = strlen($rec->newValidFrom) == 10 ? "{$rec->newValidFrom} 00:00:00" : $rec->newValidFrom;
+                    $today = dt::today() . " 00:00:00";
+                    if($newValidFrom > $today){
+                        $updateFolderByCover = false;
+                    }
+                }
+            }
+
+            if($updateFolderByCover){
+                doc_Folders::updateByCover($rec->folderId);
+            }
         } else {
             
             //Ako няма папка и autoCreateFolder е TRUE, тогава създава папка
@@ -614,13 +636,14 @@ class doc_FolderPlg extends core_Plugin
         
         // При променя на споделените потребители прави или чисти нотификацията
         if (isset($rec->__mustNotify)) {
-            
+
             // Добавяме и отговорниците към списъка
-            $rec->__oShared = type_Keylist::addKey($rec->__oShared, $rec->__oInCharge);
-            $rec->shared = type_Keylist::addKey($rec->shared, $rec->inCharge);
-            
-            $sArr = type_Keylist::getDiffArr($rec->__oShared, $rec->shared);
-            
+            $oShared = $rec->__oShared ?? '';
+            $oInCharge = $rec->__oInCharge ?? null;
+            $oShared = type_Keylist::addKey($oShared, $oInCharge);
+            $shared = type_Keylist::addKey($rec->shared ?? '', $rec->inCharge ?? null);
+            $sArr = type_Keylist::getDiffArr($oShared, $shared);
+
             $currUserNick = core_Users::getCurrent('nick');
             $currUserNick = type_Nick::normalize($currUserNick);
             
@@ -692,7 +715,7 @@ class doc_FolderPlg extends core_Plugin
             $row->inCharge = core_Setup::get('SYSTEM_NICK');
         }
         
-        if ($fields['-single']) {
+        if (!empty($fields['-single'])) {
             if (Mode::is('screenMode', 'narrow')) {
                 $imageUrl = sbf($mvc->getSingleIcon($rec->id), '');
                 $row->SingleIcon = ht::createElement('img', array('src' => $imageUrl, 'alt' => ''));
@@ -703,17 +726,21 @@ class doc_FolderPlg extends core_Plugin
             }
         }
         $currUrl = getCurrentUrl();
-        
+
+        $fField = $mvc->listFieldForFolderLink ?? null;
         // Подготовка на линк към папката (или създаване на нова) на корицата
-        if ($fField = $mvc->listFieldForFolderLink) {
-            list($fField, $fName) = explode('=', $fField);
+        if (!empty($fField)) {
+            $fParts = explode('=', $fField, 2);
+            $fField = $fParts[0];
+            $fName = $fParts[1] ?? null;
             $folderTitle = $mvc->getFolderTitle($rec->id, false);
             
             if ($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
-                if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
+                $isRejectedUrl = !empty($currUrl['Rejected']);
+                if (doc_Folders::haveRightFor('single', $rec->folderId) && !$isRejectedUrl) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Папка', array('doc_Threads', 'list', 'folderId' => $rec->folderId), array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder-g.png' : 'img/16/folder-y.png', 'title' => "Папка към|* {$folderTitle}", 'class' => 'new-folder-btn'));
-                    $folderVal = $fName ?? $row->{$fField};
+                    $folderVal = $fName ?? ($row->{$fField} ?? '');
                     $row->{$fField} = ht::createLink(
                         $folderVal,
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
@@ -725,7 +752,7 @@ class doc_FolderPlg extends core_Plugin
                 }
             } else {
                 if ($mvc->hasPlugin('plg_RowTools2')) {
-                    if ($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
+                    if ($mvc->haveRightFor('createnewfolder', $rec) && empty($currUrl['Rejected'])) {
                         core_RowToolbar::createIfNotExists($row->_rowTools);
                         $row->_rowTools->addLink('Папка', array($mvc, 'createFolder', $rec->id), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към|* {$folderTitle}", 'class' => 'new-folder-btn', 'warning' => "Наистина ли желаете да създадете папка за документи към|*  \"{$folderTitle}\"?", 'order' => 19));
                     }
@@ -734,7 +761,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // В лист изгледа
-        if ($fields['-list']) {
+        if (!empty($fields['-list'])) {
             
             // Имали бързи бутони
             if ($mvc->hasPlugin('plg_RowTools2') && $rec->state != 'rejected' && doc_Folders::haveRightToObject($rec)) {
@@ -750,12 +777,17 @@ class doc_FolderPlg extends core_Plugin
                             // Добавяме го в rowToolbar-а
                             $url = array($mvc, 'forcedocumentinfolder', 'id' => $rec->id, 'documentClassId' => $Cls->getClassId(), 'ret_url' => true);
                             core_RowToolbar::createIfNotExists($row->_rowTools);
-                            $title = $obj->caption ? $obj->caption : $Cls->singleTitle;
+                            $title = !empty($obj->caption) ? $obj->caption : $Cls->singleTitle;
                             $row->_rowTools->addLink($title, $url, "ef_icon = {$Cls->singleIcon},order=18,title=Създаване на " . mb_strtolower($Cls->singleTitle));
                         }
                     }
                 }
             }
+        }
+
+        if(isset($rec->folderId)){
+            $row->folderHandle = doc_Folders::getHandle($rec->folderId);
+            $row->folderHandle ="</b><span class='folder-handle' onmouseUp='selectInnerText(this);' title='Хендлър на папка'>" . $row->folderHandle . '</span>';
         }
     }
     
@@ -848,15 +880,15 @@ class doc_FolderPlg extends core_Plugin
             break;
         }
         
-        if (!$query->fields['folderAccess']) {
+        if (!($query->fields['folderAccess'] ?? null)) {
             $query->XPR('folderAccess', 'varchar', '#access');
         }
-        
-        if (!$query->fields['folderInCharge']) {
+
+        if (!($query->fields['folderInCharge'] ?? null)) {
             $query->XPR('folderInCharge', 'varchar', '#inCharge');
         }
-        
-        if (!$query->fields['folderShared']) {
+
+        if (!($query->fields['folderShared'] ?? null)) {
             $query->XPR('folderShared', 'varchar', '#shared');
         }
 
@@ -918,16 +950,17 @@ class doc_FolderPlg extends core_Plugin
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            
+            $sharedUsersArr = array();
+
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
             foreach ((array) $mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
-                    if ($field->type->params['nickToLink'] == 'no') {
+                    if (($field->type->params['nickToLink'] ?? null) == 'no') {
                         continue;
                     }
                     
                     // Вземаме споделените потребители
-                    $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
+                    $sharedUsersArr = rtac_Plugin::getNicksArr($rec->{$name});
                     if (!$sharedUsersArr) {
                         continue;
                     }
@@ -943,8 +976,9 @@ class doc_FolderPlg extends core_Plugin
                 // Добавяме id-тата на споделените потребители
                 foreach ((array) $sharedUsersArr as $nick) {
                     $nick = strtolower($nick);
-                    $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
-                    $rec->shared = type_Keylist::addKey($rec->shared, $id);
+                    if($id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id')){
+                        $rec->shared = type_Keylist::addKey($rec->shared, $id);
+                    }
                 }
             }
             
@@ -994,8 +1028,13 @@ class doc_FolderPlg extends core_Plugin
             
             // Ако имаме достъп до корицата и тя наследява core_Master пренасочваме към сингъла
             if (doc_Folders::haveRightToObject($data->form->rec) && $mvc instanceof core_Master) {
-                if (is_array($data->retUrl) && (strtolower($data->retUrl[1]) == 'list' || strtolower($data->retUrl[1]) == 'default' || strtolower($data->retUrl['Act']) == 'list' || strtolower($data->retUrl['Act']) == 'default')) {
-                    $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+                if (is_array($data->retUrl)) {
+                    $act1 = strtolower((string) ($data->retUrl[1] ?? ''));
+                    $act2 = strtolower((string) ($data->retUrl['Act'] ?? ''));
+
+                    if (in_array($act1, array('list', 'default')) || in_array($act2, array('list', 'default'))) {
+                        $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+                    }
                 }
             } else {
                 
@@ -1011,15 +1050,14 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterGetDocButtonsInFolder($mvc, &$res, $id)
     {
-        setIfNot($res, array());
-        
+        $res = $res ?? array();
         $rec = $mvc->fetch($id);
         
         $allSysTeamId = type_UserOrRole::getAllSysTeamId();
         $fKey = doc_Folders::getSettingsKey($rec->folderId);
         $settings = core_Settings::fetchKeyNoMerge($fKey, $allSysTeamId);
         
-        if ($settings['showDocumentsAsButtons']) {
+        if (!empty($settings['showDocumentsAsButtons'])) {
             $keyArr = type_Keylist::toArray($settings['showDocumentsAsButtons']);
             foreach ($keyArr as $key){
                 $res[] = (object)array('class' => $key);

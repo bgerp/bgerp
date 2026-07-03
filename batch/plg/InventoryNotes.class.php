@@ -192,7 +192,7 @@ class batch_plg_InventoryNotes extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        setIfNot($mvc->hideListFieldsIfEmpty, 'batch');
+        setPartIfNot($mvc, 'hideListFieldsIfEmpty', 'batch');
         arr::placeInAssocArray($data->listFields, array('batch' => 'Партида'), 'packQuantity');
         
         $data->listTableMvc->setField('batch', 'smartCenter');

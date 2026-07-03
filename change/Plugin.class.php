@@ -41,6 +41,8 @@ class change_Plugin extends core_Plugin
         if (empty($mvc->fields['changeModifiedBy'])) {
             $mvc->FLD('changeModifiedBy', 'key(mvc=core_Users)', 'caption=Промяна->От,input=none,column=none,single=none');
         }
+
+        $mvc->canPickup = $mvc->canPickup ?? 'powerUser';
     }
     
     
@@ -75,9 +77,35 @@ class change_Plugin extends core_Plugin
                 $data->rec->id,
                 'ret_url' => array($mvc, 'single', $data->rec->id),
             );
-            
+
+
             // Добавяме бутона за промяна
             $data->toolbar->addBtn('Промяна', $changeUrl, array('id' => 'changeBtn' . $data->rec->id,'order' => '19', 'ef_icon' => 'img/16/to_do_list.png', 'title' => 'Промяна на документа', 'row' => 2));
+        }
+
+        if ($mvc->haveRightFor('pickup', $data->rec)) {
+            $pickUrl = array(
+                $mvc,
+                'pickUp',
+                $data->rec->id,
+                'ret_url' => array($mvc, 'single', $data->rec->id),
+            );
+
+            $btnName = 'Поемане';
+            $btnTitle = 'Възлагане на документа към себе си';
+            $row = 1;
+
+            if ($data->rec->state != 'active' && $data->rec->state != 'waiting' && $data->rec->state != 'pending' && $data->rec->state != 'wakeup') {
+                $row = 2;
+            }
+
+            if (type_Keylist::isIn(core_Users::getCurrent(), $data->rec->assign)) {
+                $btnName = 'Освобождаване';
+                $btnTitle = 'Премахване на възлагането към себе си';
+                $row = 2;
+            }
+
+            $data->toolbar->addBtn($btnName, $pickUrl, array('id' => 'pickBtn' . $data->rec->id,'order' => '19.09', 'ef_icon' => 'img/16/hand.png', 'title' => $btnTitle, 'row' => $row));
         }
     }
     
@@ -85,11 +113,48 @@ class change_Plugin extends core_Plugin
     public static function on_BeforeAction($mvc, &$tpl, $action)
     {
         // Ако екшъна не е changefields, да не се изпълнява
-        if (strtolower($action) != 'changefields') {
+        if ((strtolower($action) != 'changefields') && (strtolower($action) != 'pickup')) {
             
             return ;
         }
-        
+
+        if (strtolower($action) == 'pickup') {
+            // Ако има права за промяна
+            $mvc->requireRightFor('pickup');
+
+            $id = Request::get('id', 'int');
+            expect($id);
+
+            $rec = $mvc->fetch($id);
+            expect($rec);
+
+            $mvc->requireRightFor('pickup', $rec);
+
+            $cu = core_Users::getCurrent();
+
+            if (type_Keylist::isIn($cu, $rec->assign)) {
+                $rec->assign = type_Keylist::removeKey($rec->assign, $cu);
+                $msg = 'Премахнато възлагане';
+            } else {
+                $rec->assign = type_Keylist::addKey($rec->assign, $cu);
+                $msg = 'Възложен документ';
+            }
+
+            $mvc->save($rec, 'assign');
+
+            $mvc->logWrite($msg, $rec);
+
+            $retUrl = getRetUrl();
+
+            if (empty($retUrl)) {
+                $retUrl = array($mvc, 'single', $rec->id);
+            }
+
+            redirect($retUrl, false, $msg);
+
+            return false;
+        }
+
         // Ако има права за промяна
         $mvc->requireRightFor('changerec');
         
@@ -146,13 +211,14 @@ class change_Plugin extends core_Plugin
         $form->input($inputFields);
         
         // Очакваме потребителя да има права за съответния запис
-        $mvc->requireRightFor('single', $fRec);
+        $mvc->requireRightFor('single', $rec);
         
         // Изискваме да има права за промяна на записа
-        $mvc->requireRightFor('changerec', $fRec);
+        $mvc->requireRightFor('changerec', $rec);
         
         // Проверка дали входните данни са уникални
         if ($fRec) {
+            $fields = array();
             if ($form->isSubmitted() && !$mvc->isUnique($fRec, $fields)) {
                 $form->setError($fields, 'Вече съществува запис със същите данни');
             }
@@ -408,12 +474,12 @@ class change_Plugin extends core_Plugin
         $form = $mvc->getForm();
         
         // Вземаме всички полета, които могат да се променят
-        $allowedFieldsArr = (array) static::getAllowedFields($form, $mvc->changableFields);
+        $allowedFieldsArr = (array) static::getAllowedFields($form, $mvc->changableFields ?? null);
         
-        if ($selVerArr['first'] != $lastVersion) {
-            
+        if (($selVerArr['first'] ?? null) != $lastVersion) {
+
             // Ако има избрана версия
-            if ($selVerArr['first']) {
+            if ($selVerArr['first'] ?? null) {
                 $lastArr = array();
                 
                 // Вземаме стойността за съответното поле, за първата версия
@@ -487,15 +553,15 @@ class change_Plugin extends core_Plugin
         }
         
         // Вербално представяне на избраните версии
-        $firstSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['first']);
+        $firstSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['first'] ?? null);
         $lastVerDocArr = change_Log::getVersionAndDateFromKey($mvc, $lastVersion);
-        $isLastVer = (boolean) ($lastVersionStr && ($selVerArr['last'] == $lastVersion));
+        $isLastVer = (boolean) (($lastVersionStr ?? null) && (($selVerArr['last'] ?? null) == $lastVersion));
         
         if (!$isLastVer) {
-            $lastSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['last']);
-            $lastCreatedOn = $lastSelVerArr['createdOn'];
+            $lastSelVerArr = change_Log::getVersionAndDateFromKey($mvc, $selVerArr['last'] ?? null);
+            $lastCreatedOn = $lastSelVerArr['createdOn'] ?? null;
         } else {
-            $lastCreatedOn = $lastVerDocArr['createdOn'];
+            $lastCreatedOn = $lastVerDocArr['createdOn'] ?? null;
         }
         
         $dateMask = 'd-m-y';
@@ -511,10 +577,10 @@ class change_Plugin extends core_Plugin
         }
         
         // Ако има избрана версия
-        if ($selVerArr['first']) {
-            
+        if ($selVerArr['first'] ?? null) {
+
             // Добавяме в променлива
-            $res->row->LastSavedVersion = $lastVerDocArr['versionStr'];
+            $res->row->LastSavedVersion = $lastVerDocArr['versionStr'] ?? null;
             
             // Ако е върната дата
             if ($lastVerDocArr['createdOn']) {
@@ -532,10 +598,10 @@ class change_Plugin extends core_Plugin
         }
         
         // Първата избрана версия
-        $res->row->FirstSelectedVersion = $firstSelVerArr['versionStr'];
-        
+        $res->row->FirstSelectedVersion = $firstSelVerArr['versionStr'] ?? null;
+
         // Ако е върната дата
-        if ($firstSelVerArr['createdOn']) {
+        if ($firstSelVerArr['createdOn'] ?? null) {
             $res->row->FirstSelectedVersionDate = dt::mysql2verbal($firstSelVerArr['createdOn'], $dateMask);
         }
         
@@ -552,10 +618,10 @@ class change_Plugin extends core_Plugin
         } else {
             
             // Последната избрана версия
-            $res->row->LastSelectedVersion = $lastSelVerArr['versionStr'];
-            
+            $res->row->LastSelectedVersion = $lastSelVerArr['versionStr'] ?? null;
+
             // Ако е върната дата
-            if ($lastSelVerArr['createdOn']) {
+            if ($lastSelVerArr['createdOn'] ?? null) {
                 $res->row->LastSelectedVersionDate = dt::mysql2verbal($lastSelVerArr['createdOn'], $dateMask);
             }
         }
@@ -581,17 +647,17 @@ class change_Plugin extends core_Plugin
         foreach ($form->fields as $field => $filedClass) {
             
             // Ако могат да се променят
-            if (($filedClass->changable && $filedClass->changable != 'no') || in_array($field, $changableFieldsArr)) {
+            if ((($filedClass->changable ?? null) && ($filedClass->changable ?? null) != 'no') || in_array($field, $changableFieldsArr)) {
 
                 // Добавяме в масива
                 $allowedFieldsArr[$field] = $field;
             }
             
-            if ($filedClass->changable == 'ifInput' && $filedClass->input == 'none') {
+            if (($filedClass->changable ?? null) == 'ifInput' && ($filedClass->input ?? null) == 'none') {
                 unset($allowedFieldsArr[$field]);
             }
 
-            if ($filedClass->notChangeableIfHidden && in_array($filedClass->input, array('hidden', 'none'))) {
+            if (($filedClass->notChangeableIfHidden ?? null) && in_array(($filedClass->input ?? null), array('hidden', 'none'))) {
                 unset($allowedFieldsArr[$field]);
             }
         }
@@ -701,6 +767,15 @@ class change_Plugin extends core_Plugin
         if ($rec && $action == 'changerec') {
             if (($requiredRoles != 'no_one') && (!$mvc->canChangeRec($rec))) {
                 $requiredRoles = 'no_one';
+            }
+        }
+        if ($rec && $action == 'pickup') {
+            if (!$mvc->haveRightFor('changerec', $rec, $userId)) {
+                $requiredRoles = 'no_one';
+            } else {
+                if (!array_key_exists('assign', (array) $rec)) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }

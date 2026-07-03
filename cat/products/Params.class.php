@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2022 Experta OOD
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -111,8 +111,9 @@ class cat_products_Params extends doc_Detail
         $this->FLD('classId', 'class', 'input=hidden,silent');
         $this->FLD('productId', 'int', 'input=hidden,silent,tdClass=leftCol wrapText');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen,maxRadio=1)', 'input,caption=Параметър,mandatory,silent');
-        $this->FLD('paramValue', 'text', 'input=none,caption=Стойност,mandatory');
-        
+        $this->FLD('paramValue', 'text', 'input=none,caption=Стойност');
+        $this->FLD('type', 'enum(mandatory=Задължителен,optional=Незадължителен,readOnly=Само за четене)', 'input=none,caption=Тип');
+
         $this->setDbUnique('classId,productId,paramId');
         $this->setDbIndex('classId,productId');
         $this->setDbIndex('productId,classId');
@@ -146,12 +147,23 @@ class cat_products_Params extends doc_Detail
             $paramRec->group = tr($paramRec->group);
             $row->group = cat_Params::getVerbal($paramRec, 'group');
         }
-        
-        $row->paramValue = cond_Parameters::toVerbal($paramRec, $rec->classId, $rec->productId, $rec->paramValue);
-        
-        if (!empty($paramRec->suffix)) {
-            $suffix = cat_Params::getVerbal($paramRec, 'suffix');
-            $row->paramValue .= ' ' . tr($suffix);
+
+        try{
+            if(trim($rec->paramValue) !== ''){
+                $row->paramValue = cond_Parameters::toVerbal($paramRec, $rec->classId, $rec->productId, $rec->paramValue);
+
+                if (!empty($paramRec->suffix)) {
+                    $suffix = cat_Params::getVerbal($paramRec, 'suffix');
+                    $row->paramValue .= ' ' . tr($suffix);
+                }
+            } else {
+                $row->paramValue = "<span style='color:blue;'>n/a</span>";
+            }
+            if(!empty($rec->type)){
+                $row->paramValue = ht::createHint($row->paramValue, "$row->type", 'notice', false);
+            }
+        } catch(core_exception_Expect $e){
+            $row->paramValue = "<span class='color'>" . tr("Проблем при показване") . "</span>";
         }
 
         if(isset($fields['-list'])){
@@ -172,8 +184,23 @@ class cat_products_Params extends doc_Detail
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
-        if (!$rec->id) {
+
+        // Ако параметърът се добавя към прототипен артикул да може да се посочва параметрите му дали да са опционални
+        $isValueMandatory = true;
+        $Master = $mvc->getMasterMvc($rec);
+        if($Master instanceof cat_Products){
+            if($data->masterRec->state == 'template'){
+                $form->setField('type', 'input,mandatory');
+                $form->setDefault('type', 'optional');
+                $isValueMandatory = false;
+            }
+        }
+
+        if($isValueMandatory){
+            $form->setField('paramValue', 'mandatory');
+        }
+
+        if (empty($rec->id)) {
             $form->setField('paramId', array('removeAndRefreshForm' => 'paramValue|paramValue[lP]|paramValue[rP]'));
             $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
             
@@ -197,7 +224,7 @@ class cat_products_Params extends doc_Detail
             $form->setReadOnly('paramId');
         }
         
-        if ($rec->paramId) {
+        if (!empty($rec->paramId)) {
             $pRec = cat_Params::fetch($rec->paramId);
             if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
                 $form->setField('paramValue', 'input');
@@ -262,6 +289,10 @@ class cat_products_Params extends doc_Detail
                     }
                 }
             }
+
+            if($rec->type == 'readOnly' && !strlen($rec->paramValue)){
+                $form->setError('type,paramValue', 'При опция "Само за четене" не може стойноста да е празна');
+            }
         }
     }
 
@@ -318,19 +349,12 @@ class cat_products_Params extends doc_Detail
         $taskClassId = planning_Tasks::getClassId();
         $bomClassId = cat_BomDetails::getClassId();
         if ($classId == cat_Products::getClassId()) {
-            $grSysid = cat_Params::fetchIdBySysId('weight');
-            $kgSysid = cat_Params::fetchIdBySysId('weightKg');
-            
             $measureId = cat_Products::fetchField($productId, 'measureId');
             if (cat_UoM::isWeightMeasure($measureId)) {
-                $ids[$grSysid] = $grSysid;
-                $ids[$kgSysid] = $kgSysid;
-            } else {
-                if (!empty($ids[$grSysid])) {
-                    $ids[$kgSysid] = $kgSysid;
-                } elseif (!empty($ids[$kgSysid])) {
-                    $ids[$grSysid] = $grSysid;
-                }
+                $grSysid = cat_Params::fetchIdBySysId('weight');
+                $kgSysid = cat_Params::fetchIdBySysId('weightKg');
+                $notIn[$grSysid] = $grSysid;
+                $notIn[$kgSysid] = $kgSysid;
             }
         } elseif($classId == $taskClassId || $classId == $bomClassId){
             $productField = ($classId == $taskClassId) ? 'productId' : 'resourceId';
@@ -401,7 +425,7 @@ class cat_products_Params extends doc_Detail
                 }
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                if ($data->noChange !== true && !Mode::isReadOnly()) {
+                if (empty($data->noChange) && !Mode::isReadOnly()) {
                     $minRowToolbar = $data->minRowToolbar ?? null;
                     $row->tools = $row->_rowTools->renderHtml($minRowToolbar);
                 } else {
@@ -415,7 +439,7 @@ class cat_products_Params extends doc_Detail
         $tpl = cat_Params::renderParamBlock($data->params, $paramCaption);
         $tpl->replace(get_called_class(), 'DetailName');
         
-        if ($data->noChange !== true) {
+        if (($data->noChange ?? null) !== true) {
             $tpl->append($data->changeBtn, 'addParamBtn');
         }
         
@@ -443,7 +467,8 @@ class cat_products_Params extends doc_Detail
             $query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
             $query->where("#showInPublicDocuments = 'yes'");
         }
-        
+
+        $data->params = array();
         while ($rec = $query->fetch()) {
             $data->params[$rec->id] = static::recToVerbal($rec);
             $data->params[$rec->id]->_paramId = $rec->paramId;
@@ -518,7 +543,7 @@ class cat_products_Params extends doc_Detail
      */
     public static function renderParams($data)
     {
-        if ($data->addUrl && !Mode::isReadOnly()) {
+        if (isset($data->addUrl) && !Mode::isReadOnly()) {
             $data->changeBtn = ht::createLink('<img src=' . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, false, 'title=Добавяне на нов параметър');
         }
         
@@ -562,7 +587,13 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        if(!isset($rec->id)){
+        if(isset($rec->id)){
+
+            // Кои са старите стойности
+            $exRec = $mvc->fetch($rec->id, '*', 'paramId,paramValue');
+            $rec->_exParamId = $exRec->paramId;
+            $rec->_exParamValue = $exRec->paramValue;
+        } else {
             $rec->_isCreated = true;
         }
     }
@@ -577,7 +608,19 @@ class cat_products_Params extends doc_Detail
         if($Class instanceof cat_Products){
             $mvc->syncWithFeature($rec->paramId, $rec->productId);
         }
-        
+
+        // Има ли промяна на стойноста на параметъра
+        $exValue = $rec->_exParamValue ?? null;
+        if($exValue != $rec->paramValue){
+            $res = cat_Params::onParamChanged($rec->paramId, $Class, $rec->productId, $rec->paramValue, $exValue);
+            if(!empty($res['msg'])){
+                core_Statuses::newStatus($res['msg']);
+            }
+            if(!empty($res['error'])){
+                core_Statuses::newStatus($res['error'], 'error');
+            }
+        }
+
         $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
         $logMsg = ($rec->_isCreated) ? 'Добавяне на параметър' : 'Редактиране на параметър';
 
@@ -764,13 +807,10 @@ class cat_products_Params extends doc_Detail
             if(in_array($paramRec->state, array('rejected', 'closed'))) continue;
 
             $name = cat_Params::getVerbal($paramRec, 'name');
-            $name = str_replace('|', '&#124;', $name);
             if(!empty($paramRec->group)){
                 $groupName = cat_Params::getVerbal($paramRec, 'group');
-                $groupName = str_replace('|', '&#124;', $groupName);
                 $caption = "Параметри за|*: <b>{$groupName}</b>->{$name}";
             } else {
-                $plannedProductName = str_replace('|', '&#124;', $plannedProductName);
                 $caption = "Параметри за планиране на|*: <b>{$plannedProductName}</b>->|{$name}|*";
             }
             $form->FLD("paramcat{$pId}", 'double', "caption={$caption},before=indPackagingId");
@@ -837,7 +877,7 @@ class cat_products_Params extends doc_Detail
         }
 
         // Синхронизиране
-        $synced = arr::syncArrays($newRecs, $exRecs, 'classId,objectId,paramId', 'paramValue');
+        $synced = arr::syncArrays($newRecs, $exRecs, 'classId,productId,paramId', 'paramValue');
         if (countR($synced['insert'])) {
             static::saveArray($synced['insert']);
         }
@@ -864,8 +904,10 @@ class cat_products_Params extends doc_Detail
     public static function saveParams($class, $rec, $paramField = '_params')
     {
         $params = array();
-        foreach ($rec->{$paramField} as $k => $o) {
-            $params[$o->paramId] = $rec->{$k};
+        if(is_array($rec->{$paramField})){
+            foreach ($rec->{$paramField} as $k => $o) {
+                $params[$o->paramId] = $rec->{$k};
+            }
         }
 
         static::syncParams($class, $rec->id, $params);
@@ -889,7 +931,7 @@ class cat_products_Params extends doc_Detail
             if(!in_array($objectRec->state, array('draft', 'active'))){
                 $d->noChange = true;
             }
-        } elseif ($objectRec->state == 'closed' || $objectRec->state == 'stopped' || $objectRec->state == 'rejected') {
+        } elseif (in_array($objectRec->state, array('closed', 'stopped', 'rejected'))) {
             $d->noChange = true;
         }
         cat_products_Params::prepareParams($d);
@@ -909,7 +951,7 @@ class cat_products_Params extends doc_Detail
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         if($filter = $data->listFilter->rec){
-            if(isset($filter->paramId)){
+            if(!empty($filter->paramId)){
                 $data->query->where("#paramId = {$filter->paramId}");
             }
         }

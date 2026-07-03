@@ -52,6 +52,12 @@ class speedy_BillOfLadings extends core_Manager
 
 
     /**
+     * Кой може да парсира адрес?
+     */
+    public $canParseaddress = 'speedy,admin';
+
+
+    /**
      * Плъгини за зареждане
      */
     public $loadList = 'drdata_Wrapper, plg_Sorting, plg_Created, plg_Select, plg_RowTools2, plg_Search';
@@ -186,6 +192,53 @@ class speedy_BillOfLadings extends core_Manager
                     $requiredRoles = 'no_one';
                 }
             }
+        }
+    }
+
+
+    /**
+     * След подготовка на тулбара за единичен изглед
+     */
+    public static function on_AfterPrepareListToolbar($mvc, $data)
+    {
+        if ($mvc->haveRightFor('parseaddress')) {
+            $data->toolbar->addBtn('Парсиране на адрес', array($mvc, 'parseaddress', 'ret_url' => true), 'ef_icon=img/16/bug.png,title=Парсиране на адрес');
+        }
+    }
+
+
+    /**
+     * Екшън за парсиране на адрес
+     */
+    function act_ParseAddress()
+    {
+        $this->requireRightFor('parseaddress');
+
+        $form = cls::get('core_Form');
+        $form->title = "Парсиране на адрес";
+        $form->FLD('string', 'varchar(255)', 'caption=Адрес,mandatory');
+        $form->input();
+        
+        if($form->isSubmitted()){
+            $parsedAddress = $this->parseAddressSpeedy($form->rec->string);
+            $form->info = ht::mixedToHtml($parsedAddress); 
+        }
+            
+        // Добавяне на бутони
+        $form->toolbar->addSbBtn('Парсиране', 'save', 'ef_icon=img/16/bug.png,title =Парсиране на адрес');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon=img/16/close-red.png,title=Прекратяване на действията');
+
+        return $this->renderWrapping($form->renderHtml());
+    }
+
+
+    /**
+     * Евент за парсиране на адрес
+     */
+    public function on_AfterParseAddressSpeedy(&$mvc, &$res, $address)
+    {
+        if(!isset($res)){
+            $res = str::parseAddress($address);
         }
     }
 }

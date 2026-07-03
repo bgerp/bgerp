@@ -53,14 +53,12 @@ class acc_plg_DocumentSummary extends core_Plugin
     public static $rolesAllMap = array(
         'purchase_Invoices' => 'invoiceAll',
         'sales_Invoices' => 'invoiceAll',
-        'sales_Proformas' => 'invoiceAll',
         'store_ShipmentOrders' => 'storeAll',
         'store_Receipts' => 'storeAll',
         'store_Transfers' => 'storeAll',
         'store_ConsignmentProtocols' => 'storeAll',
         'store_InventoryNotes' => 'storeAll',
         'purchase_Services' => 'storeAll',
-        'sales_Services' => 'storeAll',
         'rack_Movements' => 'storeAll',
         'store_Stores' => 'storeAll',
         'bank_IncomeDocuments' => 'bankAll',
@@ -73,7 +71,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         'cash_ExchangeDocument' => 'cashAll',
         'sales_Sales' => 'saleAll',
         'sales_Quotations' => 'saleAll',
-        'sales_Proformas' => 'saleAll',
+        'sales_Proformas' => 'saleAll,invoiceAll',
         'sales_Services' => 'saleAll',
         'purchase_Purchases' => 'purchaseAll',
         'planning_DirectProductionNote' => 'planningAll,storeAll',
@@ -109,6 +107,13 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         setPartIfNot($mvc, 'termDateFld', null);
         setPartIfNot($mvc, 'showNullDateFields', false);
+        setPartIfNot($mvc, 'amountIsInNotInBaseCurrency', false);
+
+        setPartIfNot($mvc, 'filterFieldDateTo', null);
+        setPartIfNot($mvc, 'filterFieldDateFrom', null);
+        setPartIfNot($mvc, 'filterDateFrom', null);
+        setPartIfNot($mvc, 'filterDateTo', null);
+        setPartIfNot($mvc, 'showFilterFolderField', true);
 
         $mvc->filterRolesForTeam ??= '';
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
@@ -162,7 +167,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     public function on_BeforeSave($mvc, $id, $rec, $fields = null)
     {
         // Ако създаваме нов документ и ...
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             // Задаваме стойностите на created полетата
             if (!isset($rec->createdBy)) {
                 $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
@@ -182,7 +187,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     {
         // Проверка за права за частния сингъл
         if ($action == 'viewpsingle') {
-            $rolesAll = self::$rolesAllMap[$mvc->className];
+            $rolesAll = self::$rolesAllMap[$mvc->className] ?? null;
             if (!$rolesAll || !haveRole($rolesAll, $userId)) {
                 $requiredRoles = 'no_one';
             }
@@ -221,6 +226,9 @@ class acc_plg_DocumentSummary extends core_Plugin
     {
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $showFilterDateField = $lastPeriod = $lastFolderId = null;
+        $cKey = $mvc->className . '|' . core_Users::getCurrent();
+        $userFields = array();
 
         if(!$mvc->hidePeriodFilter){
             $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
@@ -242,17 +250,18 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if (!$defaultFilterDateField) {
                         $defaultFilterDateField = $f;
                     }
-                    $caption = $data->listFilter->getField($f)->caption;
-                    if (strpos($caption, '->')) {
-                        list($l, $r) = explode('->', $caption);
-                        $caption = tr($l) . ' » ' . tr($r);
+                    $fField = $data->listFilter->getField($f);
+                    if(!empty($fField)){
+                        $caption = $fField->caption;
+                        if (strpos($caption, '->')) {
+                            list($l, $r) = explode('->', $caption);
+                            $caption = tr($l) . ' » ' . tr($r);
+                        }
+                        $opt[] = $f . '=' . $caption;
                     }
-                    $opt[] = $f . '=' . $caption;
                 }
                 $data->listFilter->FLD('filterDateField', 'enum(' . implode(',', $opt) . ')', 'width=6em,caption=Филтър по||Filter by,silent,input');
                 $showFilterDateField = ',filterDateField';
-            } else {
-                $showFilterDateField = null;
             }
 
             if (!isset($data->listFilter->fields['Rejected'])) {
@@ -267,9 +276,8 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
         
         $fields = $data->listFilter->selectFields();
-        
         if (isset($fields['search'])) {
-            $data->listFilter->showFields .= 'search';
+            $data->listFilter->showFields .= (!empty($data->listFilter->showFields) ? ',' : '') . 'search';
         }
 
         if(!$mvc->hidePeriodFilter){
@@ -281,10 +289,11 @@ class acc_plg_DocumentSummary extends core_Plugin
             // Филтър по "Наша фирма", ако е инсталиран пакета за многофирменост
             $mvc->invoke('afterGetDocumentSummaryListFields', array(&$data));
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam}, showClosedGroups)", 'caption=Потребители,silent,autoFilter,remember');
-            $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,silent,after=users');
-            $data->listFilter->showFields .= ',folder';
+            if(!empty($mvc->showFilterFolderField)){
+                $data->listFilter->FNC('folder', 'key2(mvc=doc_FoldersProxy, allowEmpty, selectSourceArr=doc_Folders::getSelectArr, forceProxy)', 'caption=Папка,silent,after=users');
+                $data->listFilter->showFields .= ',folder';
+            }
             
-            $cKey = $mvc->className . '|' . core_Users::getCurrent();
             $haveUsers = false;
             
             if ($lastUsers = core_Permanent::get('userFilter' . $cKey)) {
@@ -329,8 +338,8 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
 
         // Ако има поле по валута да се филтрира по нея
-        if($mvc->getField($mvc->currencyFld, false)){
-            $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ", {$mvc->currencyFld}";
+        if(!empty($mvc->currencyFld) && $mvc->getField($mvc->currencyFld, false)){
+            $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ", {$mvc->currencyFld}";
             $data->listFilter->setFieldTypeParams($mvc->currencyFld, array('allowEmpty' => 'allowEmpty'));
             $data->listFilter->setField($mvc->currencyFld, "caption=Валута,input,formOrder=1000");
             $data->listFilter->showFields .= ",{$mvc->currencyFld}";
@@ -340,7 +349,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         if($mvc->hasPlugin('doc_plg_TplManager')){
             $templateOptions = doc_TplManager::getTemplates($mvc);
             if(countR($templateOptions)){
-                $data->listFilter->mvc->toggableFieldsInVerticalListFilter .= ",template";
+                $data->listFilter->mvc->toggableFieldsInVerticalListFilter = ($data->listFilter->mvc->toggableFieldsInVerticalListFilter ?? '') . ",template";
                 $data->listFilter->setOptions('template', array('' => '') + $templateOptions);
                 $data->listFilter->setField('template', "caption=Шаблон,formOrder=1002");
                 $data->listFilter->showFields .= ",template";
@@ -357,6 +366,9 @@ class acc_plg_DocumentSummary extends core_Plugin
                         $stateOptions[$k] = is_object($v) ? $v->title : $v;
                     }
                     $stateOptions = array('all' => 'Всички') + $stateOptions;
+                    if(isset($stateOptions['draft']) && isset($stateOptions['pending'])){
+                        $stateOptions += array('draftAndPending' => 'Чернова+Заявка');
+                    }
                     $stateOptionsString = arr::fromArray($stateOptions);
                     $data->listFilter->FNC('fState', "enum({$stateOptionsString})", 'caption=Състояние,input,silent');
                     $data->listFilter->showFields .= ',fState';
@@ -367,10 +379,11 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         // Активиране на филтъра
         $data->listFilter->input($data->listFilter->showFields, 'silent');
-        
+        $usedUsers = null;
+
         // Ако формата за търсене е изпратена
         if ($filter = $data->listFilter->rec) {
-            if(!empty($filter->{$mvc->currencyFld})){
+            if(!empty($mvc->currencyFld) && !empty($filter->{$mvc->currencyFld})){
                 $data->query->where("#{$mvc->currencyFld} = '{$filter->{$mvc->currencyFld}}'");
             }
 
@@ -378,8 +391,12 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $data->query->where("#template = '{$filter->template}'");
             }
 
-            if(!empty($filter->fState) && $filter->fState != 'all'){
-                $data->query->where("#state = '{$filter->fState}'");
+            if(!empty($filter->fState)){
+                if($filter->fState == 'draftAndPending'){
+                    $data->query->in('state', array('draft', 'pending'));
+                } elseif($filter->fState != 'all'){
+                    $data->query->where("#state = '{$filter->fState}'");
+                }
             }
 
             // Записваме в кеша последно избраните потребители
@@ -395,43 +412,42 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
             
             // Филтрираме по потребители
-            if ($filter->users && $isDocument) {
+            if (!empty($filter->users) && $isDocument) {
                 $userIds = keylist::toArray($filter->users);
 
                 // Ако не се търси по всички
                 if ($usedUsers != 'all_users') {
                     $userArr = implode(',', $userIds);
 
-                    if(in_array($filter->filterDateField, $userFields)){
+                    if(!empty($filter->filterDateField) && in_array($filter->filterDateField, $userFields)){
                         $data->query->where("#{$filter->filterDateField} IN ({$userArr})");
                     } else {
                         $map = array('createdOn' => 'createdBy', 'modifiedOn' => 'modifiedBy', 'activatedOn' => 'activatedBy');
-                        $useUserField = isset($map[$filter->filterDateField]) ? $map[$filter->filterDateField] : $mvc->filterFieldUsers;
+                        $useUserField = $map[$filter->filterDateField ?? ''] ?? $mvc->filterFieldUsers;
 
                         $data->query->where("#{$useUserField} IN ({$userArr})");
-                        if(!isset($map[$filter->filterDateField]) && $useUserField != $mvc->filterFieldUsers){
+                        if(!isset($map[$filter->filterDateField ?? '']) && $useUserField != $mvc->filterFieldUsers){
                             $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
                         }
                     }
                 }
             }
 
-            $dateRange = array();
-            
-            if ($filter->from) {
+            $dateRange = array(null, null);
+            if (!empty($filter->from)) {
                 $dateRange[0] = $filter->from;
             }
             
-            if ($filter->to) {
+            if (!empty($filter->to)) {
                 $dateRange[1] = $filter->to;
             }
 
-            if (countR($dateRange) == 2) {
+            if ($dateRange[0] && $dateRange[1]) {
                 sort($dateRange);
             }
             
             if ($showFilterDateField) {
-                $fromField = $filter->filterDateField ? $filter->filterDateField : $defaultFilterDateField;
+                $fromField = ($filter->filterDateField ?? null) ?: $defaultFilterDateField;
                 if(in_array($fromField, $userFields)){
                     $fromField = $defaultFilterDateField;
                 }
@@ -484,10 +500,10 @@ class acc_plg_DocumentSummary extends core_Plugin
                         }
                     }
 
-                    if($autoCalcField){
-                        $nullCond = " OR #{$fromField} IS NULL";
-                    } else {
+                    if ($autoCalcField) {
                         $nullCond = " OR (#{$fromField} IS NULL AND #{$autoCalcField} IS NULL)";
+                    } else {
+                        $nullCond = " OR #{$fromField} IS NULL";
                     }
                 }
 
@@ -508,8 +524,8 @@ class acc_plg_DocumentSummary extends core_Plugin
                 }
 
                 if (($fromField == 'createdOn') || ($toField == 'createdOn')) {
-                    $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
-                    $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
+                    $fF = !empty($mvc->filterDateFrom) ? $mvc->filterDateFrom : 'from';
+                    $fT = !empty($mvc->filterDateTo) ? $mvc->filterDateTo : 'to';
                     if ($data->listFilter->rec->{$fF} || $data->listFilter->rec->{$fT}) {
                         $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('createdOn'))));
                         $data->query->useIndex($indexName);
@@ -524,7 +540,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $data->query->where(array($where, $dateRange[0], $dateRange[1]));
             }
 
-            if (isset($filter->folder)) {
+            if (!empty($filter->folder)) {
                 unset($data->listFields['folderId']);
                 $data->query->where("#folderId = '{$filter->folder}'");
                 if($mvc->rememberListFilterFolderId) {
@@ -543,7 +559,7 @@ class acc_plg_DocumentSummary extends core_Plugin
     public static function on_AfterPrepareListSummary($mvc, &$res, &$data)
     {
         // Ако няма заявка, да не се изпълнява
-        if (!$data->listSummary->query) {
+        if (empty($data->listSummary->query)) {
             
             return ;
         }
@@ -561,19 +577,6 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         $data->listSummary->summary = array();
         $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
-        $showFields = arr::make(array_keys($fieldsArr), true);
-        $showFields['state'] = 'state';
-        if($mvc->getField('createdOn', false)){
-            $showFields['createdOn'] = 'createdOn';
-        }
-        if($mvc->getField('rate', false)){
-            $showFields['rate'] = 'rate';
-        }
-        if(isset($mvc->valiorFld)){
-            $showFields[$mvc->valiorFld] = $mvc->valiorFld;
-        }
-        $showFields = implode(',', $showFields);
-        $sQuery->show($showFields);
 
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
@@ -582,7 +585,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $eurozoneDate = acc_Setup::getEurozoneDate();
         $data->hasDocumentBeforeEu = false;
         while ($rec = $sQuery->fetch()) {
-            if(isset($mvc->valiorFld) && $rec->{$mvc->valiorFld}) {
+            if(isset($mvc->valiorFld) && !empty($rec->{$mvc->valiorFld})) {
                 if($rec->{$mvc->valiorFld} < $eurozoneDate){
                     $data->hasDocumentBeforeEu = true;
                 }
@@ -620,8 +623,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     public static function on_AfterRenderListSummary($mvc, &$tpl, $data)
     {
-
-        if ($data->listSummary->summary) {
+        if (!empty($data->listSummary->summary)) {
             $tpl = self::renderSummary($data);
         }
         
@@ -642,26 +644,23 @@ class acc_plg_DocumentSummary extends core_Plugin
      */
     private static function prepareSummary($mvc, $fieldsArr, $rec, &$res, $currencyCode)
     {
-        if (countR($fieldsArr) == 0) {
-            
-            return;
-        }
+        if (countR($fieldsArr) == 0) return;
 
-        $today = dt::today();
         foreach ($fieldsArr as $fld) {
             if (!array_key_exists($fld->name, $res)) {
                 $captionValue = (isset($fld->summaryCaption)) ? $fld->summaryCaption : $fld->caption;
                 $captionArr = explode('->', $captionValue);
                 $caption = (countR($captionArr) == 2) ? tr($captionArr[0]) . ': ' . tr($captionArr[1]) : tr($captionValue);
-                $res[$fld->name] = (object) array('caption' => $caption, 'measure' => '', 'number' => 0);
+                $res[$fld->name] = (object) array('caption' => $caption, 'measure' => '', 'number' => 0, 'amount' => null, 'quantity' => null);
             }
             
             switch ($fld->summary) {
                 case 'amount':
-
                     $baseAmount = $rec->{$fld->name};
-                    if ($mvc->amountIsInNotInBaseCurrency === true && isset($rec->rate)) {
-                        $baseAmount *= $rec->rate;
+                    if ($mvc->amountIsInNotInBaseCurrency === true) {
+                        if(isset($rec->rate)){
+                            $baseAmount *= $rec->rate;
+                        }
                     }
 
                     if(isset($mvc->valiorFld)){
@@ -688,16 +687,14 @@ class acc_plg_DocumentSummary extends core_Plugin
     /**
      * Рендира обобщението
      *
-     * @param array $res - Масив от записи за показване
-     *
+     * @param array $data - Масив от записи за показване
      * @return core_ET $tpl - Шаблон на обобщението
      */
     private static function renderSummary($data)
     {
         // Зареждаме и подготвяме шаблона
-        $double = cls::get('type_Double');
-        $int = cls::get('type_Int');
-        $double->params['decimals'] = 2;
+        $Double = core_Type::getByName('double(decimals=2)');
+        $Int = core_Type::getByName('int');
         $tpl = new ET(tr('|*' . getFileContent('acc/plg/tpl/Summary.shtml')));
         $rowTpl = $tpl->getBlock('ROW');
 
@@ -709,21 +706,21 @@ class acc_plg_DocumentSummary extends core_Plugin
 
                 $row->colspan = 1;
                 if (isset($rec->amount)) {
-                    $row->amount = $double->toVerbal($rec->amount);
+                    $row->amount = $Double->toVerbal($rec->amount);
                     $row->amount = currency_Currencies::decorate($row->amount,  $rec->measure, true);
                     $row->amount = ht::styleNumber($row->amount, $rec->amount);
 
-                    if($data->hasDocumentBeforeEu){
+                    if(!empty($data->hasDocumentBeforeEu)){
                         $amountBgn = currency_CurrencyRates::convertAmount($rec->amount, null, 'EUR', 'BGN');
-                        $row->amountBgn = $double->toVerbal($amountBgn);
+                        $row->amountBgn = $Double->toVerbal($amountBgn);
                         $row->amountBgn = currency_Currencies::decorate($row->amountBgn,  'BGN');
                         $row->amountBgn = ht::styleNumber($row->amountBgn, $amountBgn);
                     }
                 } elseif (isset($rec->quantity)) {
                     $row->measure = $rec->measure;
-                    $row->quantity = $int->toVerbal($rec->quantity);
+                    $row->quantity = $Int->toVerbal($rec->quantity);
                     $row->quantity = ($rec->quantity < 0) ? "<span style='color:red'>{$row->quantity}</span>" : $row->quantity;
-                    if($data->hasDocumentBeforeEu){
+                    if(!empty($data->hasDocumentBeforeEu)){
                         $row->colspan = 3;
                     }
                 }

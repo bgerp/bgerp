@@ -24,15 +24,15 @@ class cms_plg_ContentSharable extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        setIfNot($mvc->sharableToContentSourceClass, $mvc->className);
-        setIfNot($mvc->contentMenuFld, 'menuId');
-        setIfNot($mvc->contentMenuSharedFld, 'sharedMenus');
+        setPartIfNot($mvc, 'sharableToContentSourceClass', $mvc->className);
+        setPartIfNot($mvc, 'contentMenuFld', 'menuId');
+        setPartIfNot($mvc, 'contentMenuSharedFld', 'sharedMenus');
 
-        if (!$mvc->fields[$mvc->contentMenuFld]) {
+        if (empty($mvc->fields[$mvc->contentMenuFld])) {
             $mvc->FLD($mvc->contentMenuFld, 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm,mandatory');
         }
 
-        if (!$mvc->fields[$mvc->contentMenuSharedFld]) {
+        if (empty($mvc->fields[$mvc->contentMenuSharedFld])) {
             $mvc->FLD($mvc->contentMenuSharedFld, 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,refreshForm');
         }
     }

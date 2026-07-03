@@ -172,7 +172,31 @@ class cms_GalleryRichTextPlg extends core_Plugin
         
         return $imagesArr;
     }
-    
+
+
+    /**
+     * Замества [img=#title] тагове с [file=fileHandler]title[/file]
+     *
+     * @param string $rt - Ричтекст съдържание
+     * @return string - Ричтекст с заместени тагове
+     */
+    public static function replaceImageTagsWithFileTag($rt)
+    {
+        return preg_replace_callback(static::IMG_PATTERN, function($match) {
+            $title = $match['title'];
+
+            $imgRec = cms_GalleryImages::fetch(array("#title = '[#1#]'", $title));
+            if (empty($imgRec)) {
+                return $match[0];
+            }
+            $fileRec = fileman::fetchByFh($imgRec->src);
+            if (empty($fileRec)) {
+                return $match[0];
+            }
+
+            return "[file={$imgRec->src}]{$fileRec->name}[/file]" . $match['end'];
+        }, $rt);
+    }
     
     /**
      * Добавя бутон за качване на документ

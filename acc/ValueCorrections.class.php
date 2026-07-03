@@ -709,7 +709,7 @@ class acc_ValueCorrections extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'add' && isset($rec)) {
-            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId ?? null);
             if ($firstDoc) {
                 if (!$firstDoc->haveInterface('acc_AllowArticlesCostCorrectionDocsIntf')) {
                     $requiredRoles = 'no_one';
@@ -1010,6 +1010,6 @@ class acc_ValueCorrections extends core_Master
         }
         $amount = round($amount / $rec->rate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'isReverse' => $rec->action == 'decrease');
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'isReverse' => $rec->action == 'decrease', 'cashDiscount' => null);
     }
 }

@@ -71,6 +71,12 @@ class rack_Movements extends rack_MovementAbstract
 
 
     /**
+     * Кой може да възстановява липсващи движения от историята?
+     */
+    public $canRestoremissing = 'ceo,rackMaster';
+
+
+    /**
      * Полета за листовия изглед
      */
     public $listFields = 'productId,movement=Движение,leftColBtns=Зап.,rightColBtns=Д-ие,workerId=Изп.,documents=Документ,createdOn=Създаване->На,createdBy=Създаване->От,modifiedOn,modifiedBy';
@@ -101,18 +107,24 @@ class rack_Movements extends rack_MovementAbstract
 
 
     /**
+     * Кеш за броя липсващи архивни движения по контейнер
+     */
+    protected static $missingArchiveCnt = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         parent::setFields($this);
-		
-		$this->setDbIndex('storeId,state');        // филтрите по склад/статус
-		$this->setDbIndex('storeId,modifiedOn');   // за getContentHash (ORDER BY modifiedOn DESC LIMIT 1)
-		$this->setDbIndex('storeId,createdBy');    // за почистване на pending от system
-		$this->setDbIndex('storeId,modifiedBy');   // за префетча на user-modified
-		$this->setDbIndex('productId,packagingId,batch'); // за филтри по продукт/опаковка/партида
-		$this->setDbIndex('storeId,state,productId');
+        
+        $this->setDbIndex('storeId,state');        // филтрите по склад/статус
+        $this->setDbIndex('storeId,modifiedOn');   // за getContentHash (ORDER BY modifiedOn DESC LIMIT 1)
+        $this->setDbIndex('storeId,createdBy');    // за почистване на pending от system
+        $this->setDbIndex('storeId,modifiedBy');   // за префетча на user-modified
+        $this->setDbIndex('productId,packagingId,batch'); // за филтри по продукт/опаковка/партида
+        $this->setDbIndex('storeId,state,productId');
     }
     
     /**
@@ -278,6 +290,15 @@ class rack_Movements extends rack_MovementAbstract
      */
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
+        if (!empty($rec->id) && !Mode::is('rackRestoreMissing')) {
+            if (!static::fetch($rec->id, 'id', false)) {
+                core_Statuses::newStatus('Движението вече липсва от активния списък. Операцията е прекъсната.', 'error');
+                static::logDebug("RACK SAVE STOPPED - missing active movement {$rec->id}", $rec->id);
+
+                return false;
+            }
+        }
+
         // Кеш на засегнатите зони за бързодействие
         $zonesArr = arr::extractValuesFromArray(static::getZoneArr($rec), 'zone');
         $rec->zoneList = (countR($zonesArr)) ? keylist::fromArray($zonesArr) : null;
@@ -343,25 +364,31 @@ class rack_Movements extends rack_MovementAbstract
             $batch = empty($batch) ? '' : $batch;
             foreach ($zonesQuantityArr as $zoneRec){
 
-				// Ако за тази зона има заявка (documentQuantity), лепим „празния“ ред към нейната опаковка,
-				// вместо към packagingId на движението (което при комбинирани може да е по-малка опаковка).
-				$reqPackId = rack_ZoneDetails::getRequestedPackagingId($zoneRec->zone, $rec->productId, $batch);
-				$packIdToUse = $reqPackId ? $reqPackId : $rec->packagingId;
+                // Ако за тази зона има заявка (documentQuantity), лепим „празния“ ред към нейната опаковка,
+                // вместо към packagingId на движението (което при комбинирани може да е по-малка опаковка).
+                $reqPackId = rack_ZoneDetails::getRequestedPackagingId($zoneRec->zone, $rec->productId, $batch);
+                $packIdToUse = $reqPackId ? $reqPackId : $rec->packagingId;
 
-				rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $packIdToUse, 0, $batch);
-			}
+                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $packIdToUse, 0, $batch);
+            }
         }
 
         // Синхронизиране на записа
         if(isset($rec->id)){
+            if (!static::fetch($rec->id, 'id', false)) {
+                static::logDebug("RACK AFTER SAVE SKIP SYNC - missing active movement {$rec->id}", $rec->id);
+
+                return;
+            }
+
             foreach ($zonesQuantityArr as $zoneRec){
                 core_Cache::removeByType("rack_Zones_{$zoneRec->zone}");
             }
 
             rack_OldMovements::sync($rec);
-            if($rec->_isCreated){
+            if($rec->_isCreated ?? null){
                 rack_Logs::add($rec->storeId, $rec->productId, 'create', $rec->position, $rec->id,"Създаване на движение #{$rec->id}");
-            } elseif($rec->_isEdited){
+            } elseif($rec->_isEdited ?? null){
                 rack_Logs::add($rec->storeId, $rec->productId, 'edit', $rec->position, $rec->id, "Редактиране на движение #{$rec->id}");
             }
 
@@ -445,16 +472,16 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         if (is_array($transaction->zonesQuantityArr)) {
-			foreach ($transaction->zonesQuantityArr as $obj) {
-				$batch = empty($transaction->batch) ? '' : $transaction->batch;
+            foreach ($transaction->zonesQuantityArr as $obj) {
+                $batch = empty($transaction->batch) ? '' : $transaction->batch;
 
-				// Ако за тази зона има заявка (documentQuantity), лепим movement-а към нейната опаковка
-				$reqPackId = rack_ZoneDetails::getRequestedPackagingId($obj->zone, $transaction->productId, $batch);
-				$packIdToUse = $reqPackId ? $reqPackId : $transaction->packagingId;
+                // Ако за тази зона има заявка (documentQuantity), лепим movement-а към нейната опаковка
+                $reqPackId = rack_ZoneDetails::getRequestedPackagingId($obj->zone, $transaction->productId, $batch);
+                $packIdToUse = $reqPackId ? $reqPackId : $transaction->packagingId;
 
-				rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $packIdToUse, $obj->quantity, $batch);
-			}
-		}
+                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $packIdToUse, $obj->quantity, $batch);
+            }
+        }
        
         $cacheType = 'UsedRacksPositions' . $transaction->storeId;
         core_Cache::removeByType($cacheType);
@@ -472,9 +499,6 @@ class rack_Movements extends rack_MovementAbstract
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = $data->form;
-        if (Mode::is('screenMode', 'wide')) {
-            $data->form->class .= ' floatedElement ';
-        }
         $rec = &$form->rec;
         
         // Нормализиране на движението за редакция във вер.3 –
@@ -497,10 +521,10 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if (isset($rec->productId)) {
-			
-			// Оригиналната опаковка от URL / записа – преди да я сменим
+            
+            // Оригиналната опаковка от URL / записа – преди да я сменим
             $originalPackagingId = !empty($rec->packagingId) ? (int)$rec->packagingId : null;
-			
+            
             $form->setField('packagingId', 'input');
             
             $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
@@ -560,8 +584,8 @@ class rack_Movements extends rack_MovementAbstract
                 // За да е консистентно и за type params / зони
                 $rec->packagingId = $preferredPackId;
             }
-			
-			// Дали реално сме сменили опаковката спрямо тази от URL/записа?
+            
+            // Дали реално сме сменили опаковката спрямо тази от URL/записа?
             $changedPackaging = ($originalPackagingId && $preferredPackId && $originalPackagingId != $preferredPackId);
             
             // ---- Колко базови единици има в една опаковка? ----
@@ -707,9 +731,6 @@ class rack_Movements extends rack_MovementAbstract
             $positionSuggestions = array(tr('Под') => tr('Под'));
             if ($bestPos = static::getRecommendedPosition($rec->productId, $rec->storeId)) {
                 $positionSuggestions +=  array($bestPos => $bestPos);
-                if ($form->rec->positionTo == rack_PositionType::FLOOR) {
-                    $form->rec->positionTo = tr('Под');
-                }
             }
             if ($lastPosition = rack_Pallets::getLastPalletPosition($rec->productId, $rec->storeId)) {
                 if ($lastPosition != rack_PositionType::FLOOR) {
@@ -782,16 +803,20 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         $form->layout = $data->form->renderLayout();
-        if ($form->cmd != 'refresh') {
-            $form->layout->append(new core_ET('[#AFTER_INFO#]'));
-        }
+        $formId = $form->formAttr['id'];
+        jquery_Jquery::run($form->layout, "var form = $('#{$formId}'); var holder = form.children('.vertical'); holder.css({'display':'flex','align-items':'flex-start','gap':'20px','flex-wrap':'wrap'}); holder.children('table.formTable').css({'flex':'0 0 auto'}); holder.children('.palletInfoBlock').css({'flex':'0 0 auto'});", false);
         if (isset($rec->productId)) {
             if ($middleCaption = $mvc->getMovementProductInfo($rec->productId, $rec->storeId)) {
-                $className = Mode::is('screenMode', 'wide') ? ' floatedElement' : '';
-                $tpl = new ET("<div class='preview-holder {$className} palletInfoBlock'><div style='margin-top:10px; margin-bottom:-10px; padding:5px;'><b>" . tr('Налични палети') . "</b></div><div class='scrolling-holder' style='margin-top:10px'>[#PALLET_INFO#]</div></div><div class='clearfix21'></div>");
+                $infoBlockStyle = 'flex:0 0 auto; margin-top:-10px;';
+                $scrollingHolderStyle = 'margin-top:10px; display:block !important; width:auto !important; overflow-x:visible !important;';
+                $tpl = new ET("<div class='palletInfoBlock' style='{$infoBlockStyle}'><div style='margin-top:10px; margin-bottom:-10px; padding:5px;'><b>" . tr('Информация') . "</b></div><div class='scrolling-holder' style='{$scrollingHolderStyle}'>[#PALLET_INFO#]</div></div>");
                 $tpl->replace($middleCaption, 'PALLET_INFO');
-                $form->layout->replace($tpl, 'AFTER_INFO');
+                $form->layout->replace($tpl, 'AFTER_MAIN_TABLE');
             }
+        }
+
+        if ($form->cmd == 'refresh' && Request::get('ajax_mode')) {
+            jquery_Jquery::run($form->layout, "var form = $('#{$formId}'); $('.palletInfoBlock').not(form.find('.palletInfoBlock')).remove();", false);
         }
     }
 
@@ -808,21 +833,72 @@ class rack_Movements extends rack_MovementAbstract
         $foundRecs = array();
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state = 'active'");
-        $pQuery->orderBy('position');
+        $pQuery->show('position,quantity,batch,createdOn');
+        $pQuery->orderBy('createdOn=ASC,position=ASC');
         while($pRec = $pQuery->fetch()){
-            $foundRecs['PALLET_BLOCK'][] = (object)array('position' => $pRec->position, 'quantity' => $pRec->quantity, 'batch' => $pRec->batch);
+            $foundRecs['PALLET_BLOCK'][] = (object)array('position' => $pRec->position, 'quantity' => $pRec->quantity, 'batch' => $pRec->batch, 'createdOn' => $pRec->createdOn);
+        }
+        if (isset($foundRecs['PALLET_BLOCK'])) {
+            usort($foundRecs['PALLET_BLOCK'], function($a, $b) {
+                $aTime = !empty($a->createdOn) ? @strtotime($a->createdOn) : PHP_INT_MAX;
+                $bTime = !empty($b->createdOn) ? @strtotime($b->createdOn) : PHP_INT_MAX;
+                $aTime = ($aTime !== false && $aTime !== -1) ? (int)$aTime : PHP_INT_MAX;
+                $bTime = ($bTime !== false && $bTime !== -1) ? (int)$bTime : PHP_INT_MAX;
+                if ($aTime != $bTime) {
+                    return ($aTime < $bTime) ? -1 : 1;
+                }
+
+                return strcmp($a->position, $b->position);
+            });
+        }
+        $palletPositionOrder = array();
+        if (isset($foundRecs['PALLET_BLOCK'])) {
+            foreach ($foundRecs['PALLET_BLOCK'] as $pRec) {
+                if (!isset($palletPositionOrder[$pRec->position])) {
+                    $palletPositionOrder[$pRec->position] = countR($palletPositionOrder);
+                }
+            }
         }
 
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
-        $tpl = new core_ET(tr("|*<div class='formMiddleCaption'><small><!--ET_BEGIN PALLET_BLOCK--><table><tr><th>|На палети|*</th></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN MOVEMENT_BLOCK--><table><tr><th>|Чакащи|*</th></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN LAST--><hr><table>[#LAST#]</table></div><!--ET_END LAST--></small></div>"));
+        $middleCaptionStyle = 'display:inline-table; width:auto;';
+        $sectionTableStyle = 'width:100%;';
+        $noDataRow = "<tr><td colspan='2' style='color:#666;'>" . "--- " . tr('няма') . " ---" . "</td></tr>";
+        $tpl = new core_ET(tr("|*<div class='formMiddleCaption' style='{$middleCaptionStyle}'><small><!--ET_BEGIN PALLET_BLOCK--><table style='{$sectionTableStyle}'><tr><td colspan='2'><b>|На палети|*</b>:</td></tr>[#PALLET_BLOCK#]</table><!--ET_END PALLET_BLOCK--><!--ET_BEGIN LAST--><table style='{$sectionTableStyle}'><tr><td colspan='2'><hr></td></tr>[#LAST#]</table><!--ET_END LAST--><!--ET_BEGIN MOVEMENT_BLOCK--><table style='{$sectionTableStyle}'><tr><td colspan='2'><hr></td></tr><tr><td colspan='2'><b>|Чакащи от|*</b>:</td></tr>[#MOVEMENT_BLOCK#]</table><!--ET_END MOVEMENT_BLOCK--><!--ET_BEGIN RESERVED_BLOCK--><table style='{$sectionTableStyle}'><tr><td colspan='2'><hr></td></tr><tr><td colspan='2'><b>[#RESERVED_TITLE#]</b>:</td></tr>[#RESERVED_BLOCK#]</table><!--ET_END RESERVED_BLOCK--><!--ET_BEGIN FLOOR_BLOCK--><table style='{$sectionTableStyle}'><tr><td colspan='2'><hr></td></tr>[#FLOOR_BLOCK#]</table><!--ET_END FLOOR_BLOCK--></small></div>"));
+        $reservedTitle = tr('Запаз. "за утре" - "В зони"');
+        $reservedTitleHint = tr('Запазените с хоризонт "Утре" количества, намалени с количествата, които вече са в зони');
+        $reservedTitleHint = str_replace('"', '&quot;', strip_tags($reservedTitleHint));
+        $reservedTitleHint = "<span title=\"{$reservedTitleHint}\" rel=\"tooltip\">{$reservedTitle}</span>";
+        $tpl->replace($reservedTitleHint, 'RESERVED_TITLE');
         $batchDef = batch_Defs::getBatchDef($productId);
 
-        // Показване на позицията от която последно е смъкнат артикула
+        // Показване на чакащите движения от палетмясто или от пода
         $haveWhatToShow = false;
         $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state = 'pending' AND #positionTo IS NOT NULL");
+        $mQuery->where("#productId = {$productId} AND #storeId = {$storeId} AND #state = 'pending'");
+        $mQuery->show('position,quantity');
+        $pendingQuantities = array();
         while($mRec = $mQuery->fetch()){
-            $foundRecs['MOVEMENT_BLOCK'][] = (object)array('position' => $mRec->positionTo, 'quantity' => $mRec->quantity, 'batch' => $mRec->batch);
+            if (empty($mRec->quantity)) {
+                continue;
+            }
+
+            $position = empty($mRec->position) ? rack_PositionType::FLOOR : $mRec->position;
+            $pendingQuantities[$position] = ($pendingQuantities[$position] ?? 0) + $mRec->quantity;
+        }
+        foreach ($pendingQuantities as $position => $quantity) {
+            $foundRecs['MOVEMENT_BLOCK'][] = (object)array('position' => $position, 'quantity' => $quantity);
+        }
+        if (isset($foundRecs['MOVEMENT_BLOCK'])) {
+            usort($foundRecs['MOVEMENT_BLOCK'], function($a, $b) use ($palletPositionOrder) {
+                $aOrder = ($a->position == rack_PositionType::FLOOR) ? PHP_INT_MAX : (isset($palletPositionOrder[$a->position]) ? $palletPositionOrder[$a->position] : PHP_INT_MAX - 1);
+                $bOrder = ($b->position == rack_PositionType::FLOOR) ? PHP_INT_MAX : (isset($palletPositionOrder[$b->position]) ? $palletPositionOrder[$b->position] : PHP_INT_MAX - 1);
+                if ($aOrder != $bOrder) {
+                    return ($aOrder < $bOrder) ? -1 : 1;
+                }
+
+                return strcmp($a->position, $b->position);
+            });
         }
 
         // Наличните активни палети за този артикул в склада
@@ -832,13 +908,14 @@ class rack_Movements extends rack_MovementAbstract
             // Показване на информацията
             foreach ($foundRecs as $placeholder => $pData){
                 $positionArr = array();
+                $fromVerbal = tr('от');
                 foreach($pData as $pRec){
 
                     // Групиране на партидите по позиции
                     $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($pRec->quantity);
-                    $positionVerbal = core_Type::getByName('varchar')->toVerbal($pRec->position);
+                    $positionVerbal = ($pRec->position == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($pRec->position);
                     $string = "<b>{$quantityVerbal}</b>";
-                    if ($batchDef) {
+                    if ($batchDef && $placeholder == 'PALLET_BLOCK') {
                         if (!empty($pRec->batch)) {
                             $batchVerbal = $batchDef->toVerbal($pRec->batch);
                         } else {
@@ -847,29 +924,111 @@ class rack_Movements extends rack_MovementAbstract
                         $string = "{$batchVerbal} <b>{$quantityVerbal}</b>";
                     }
                     $string .= " {$measureName}";
+                    if ($placeholder == 'PALLET_BLOCK' && !empty($pRec->createdOn)) {
+                        $dateVerbal = static::getPalletInfoDateVerbal($pRec->createdOn);
+                        $string .= " <span style='color:#666;'>{$fromVerbal} {$dateVerbal}</span>";
+                    }
                     $positionArr[$positionVerbal][] = $string;
                 }
 
                 // Показват се на съответното място
                 foreach ($positionArr as $position => $batchArr){
-                    $tpl->append("<tr><td><b>{$position}</b>: </td><td>" . implode(' / ', $batchArr) . "</td></tr>", $placeholder);
+                    $tpl->append("<tr><td style='white-space:nowrap; padding-right:8px; text-align:left; width:1%;'><b>{$position}</b>: </td><td style='text-align:left;'>" . implode(' / ', $batchArr) . "</td></tr>", $placeholder);
                 }
             }
         }
-
-        if($lastPosition = rack_Pallets::getLastPalletPosition($productId, $storeId)){
-            $positionVerbal = ($lastPosition == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($lastPosition);
-            $tpl->append(tr("|*<tr><td>|Последно смъкнат от|*:</td><td><b>{$positionVerbal}</b></td></tr>"), 'LAST');
+        if (!isset($foundRecs['PALLET_BLOCK']) || !countR($foundRecs['PALLET_BLOCK'])) {
+            $tpl->append($noDataRow, 'PALLET_BLOCK');
+            $haveWhatToShow = true;
+        }
+        if (!isset($foundRecs['MOVEMENT_BLOCK']) || !countR($foundRecs['MOVEMENT_BLOCK'])) {
+            $tpl->append($noDataRow, 'MOVEMENT_BLOCK');
             $haveWhatToShow = true;
         }
 
-        if($rackRec = rack_Products::fetch("#productId = $productId AND #storeId = $storeId")){
+        $rackRec = rack_Products::fetch("#productId = $productId AND #storeId = $storeId");
+        $tomorrow = dt::addDays(1, dt::today(), false);
+        $plannedQuantities = store_StockPlanning::getPlannedQuantities($tomorrow, array($productId), array($storeId));
+        $reservedTomorrow = $plannedQuantities[$storeId][$productId]->reserved ?? 0;
+        $quantityOnZones = isset($rackRec->quantityOnZones) ? $rackRec->quantityOnZones : 0;
+        $reservedNotInZones = max(0, $reservedTomorrow - $quantityOnZones);
+        if (round($reservedTomorrow, 6) > 0) {
+            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($reservedNotInZones);
+            $quantityVerbal = "<b>{$quantityVerbal}</b> {$measureName}";
+            $reservedInfoIcon = static::getReservedTomorrowInfoIcon($productId, $storeId, $tomorrow);
+            $tpl->append("<tr><td colspan='2'>{$reservedInfoIcon} {$quantityVerbal}</td></tr>", 'RESERVED_BLOCK');
+            $haveWhatToShow = true;
+        } else {
+            $tpl->append($noDataRow, 'RESERVED_BLOCK');
+            $haveWhatToShow = true;
+        }
+
+        $tpl->append(tr("|*<tr><td colspan='2'><b>|Последно смъкнат от|*</b>:</td></tr>"), 'LAST');
+        $onVerbal = tr('на');
+        if(countR($lastPositions = rack_Pallets::getLastPalletPositions($productId, $storeId))){
+            foreach($lastPositions as $i => $lastPositionRec){
+                $position = $lastPositionRec->position;
+                $positionVerbal = ($position == rack_PositionType::FLOOR) ? tr('Под') : core_Type::getByName('varchar')->toVerbal($position);
+                $dateVerbal = static::getPalletInfoDateVerbal($lastPositionRec->lastOn);
+                $rowStyle = ($i) ? " style='color:#666;'" : '';
+                $tpl->append("<tr{$rowStyle}><td colspan='2'><b style='font-size:1.1em;'>{$positionVerbal}</b> {$onVerbal} {$dateVerbal}</td></tr>", 'LAST');
+            }
+            $haveWhatToShow = true;
+        } else {
+            $tpl->append($noDataRow, 'LAST');
+            $haveWhatToShow = true;
+        }
+
+        if($rackRec){
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rackRec->quantityNotOnPallets);
             $quantityVerbal = "<b>{$quantityVerbal}</b> {$measureName}";
-            $tpl->append(tr("|*<tr><td>|На пода|*:</td><td>{$quantityVerbal}</td></tr>"), 'LAST');
+            $tpl->append(tr("|*<tr><td style='white-space:nowrap; padding-right:8px; text-align:left; width:1%;'>|На пода|*:</td><td style='text-align:left;'>{$quantityVerbal}</td></tr>"), 'FLOOR_BLOCK');
+        } else {
+            $tpl->append(tr("|*<tr><td style='white-space:nowrap; padding-right:8px; text-align:left; width:1%;'>|На пода|*:</td><td style='color:#666; text-align:left;'>--- |няма|* ---</td></tr>"), 'FLOOR_BLOCK');
         }
 
         return ($haveWhatToShow) ? $tpl->getContent() : null;
+    }
+
+
+    /**
+     * Вербализира дата за помощната информация без часа от smartDate формата
+     *
+     * @param string $date
+     *
+     * @return string
+     */
+    private static function getPalletInfoDateVerbal($date)
+    {
+        return dt::mysql2verbal($date, 'smartDate', null, false, false);
+    }
+
+
+    /**
+     * Връща иконка с документите, формиращи запазеното количество за утре
+     *
+     * @param int    $productId
+     * @param int    $storeId
+     * @param string $date
+     *
+     * @return string
+     */
+    private static function getReservedTomorrowInfoIcon($productId, $storeId, $date)
+    {
+        $replaceField = "rackReservedTomorrow{$productId}_{$storeId}";
+        $tooltipUrl = toUrl(array(
+            'store_Products',
+            'ShowReservedDocs',
+            'productId' => $productId,
+            'stores' => keylist::addKey('', $storeId),
+            'replaceField' => $replaceField,
+            'field' => 'reserved',
+            'date' => $date
+        ), 'local');
+        $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', ''), 'style' => 'vertical-align:middle; position:relative; top:-1px;'));
+        $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => 'От кои документи е сформирано количеството'), $arrowImg, true);
+
+        return "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$replaceField}' style='white-space:nowrap;'></span>{$arrow}</span>";
     }
 
 
@@ -996,43 +1155,50 @@ class rack_Movements extends rack_MovementAbstract
         }
        
         $id = Request::get('id', 'int');
-        $rec = $this->fetch($id);
+        expect($id);
 
         $resObj = new stdClass();
         $resObj->func = 'enableBtn';
-        $resObj->arg = array('moveId' => $rec->id);
+        $resObj->arg = array('moveId' => $id);
         $resArr[] = $resObj;
 
         $rId = Request::get('_rid', 'varchar');
         $ts = Request::get('_ts', 'varchar');
         $tab = Request::get('_ts', 'varchar');
 
-        rack_Movements::logDebug("RACK TOGGLE '{$rec->id}' -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $rec->id);
+        rack_Movements::logDebug("RACK TOGGLE '{$id}' -> '{$action}'/Rid:{$rId}|ts:{$ts}|tab:{$tab}", $id);
 
         // Заключване на екшъна
-        if (!core_Locks::obtain("movement{$rec->id}", 120, 0, 0)) {
+        if (!core_Locks::obtain("movement{$id}", 120, 0, 0)) {
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
 
-            wp("RACK: друг работи", $cu, $url, $action, $rec);
-            rack_Movements::logDebug("RACK: друг работи: {$cu}|{$url}|{$action}", $rec->id);
+            wp("RACK: друг работи", $cu, $url, $action, $id);
+            rack_Movements::logDebug("RACK: друг работи: {$cu}|{$url}|{$action}", $id);
 
             if($ajaxMode){
                 return array_merge($resArr, status_Messages::returnStatusesArray());
             }
             followretUrl(array($this));
         }
+
+        $rec = $this->fetch($id, '*', false);
+
+        if(empty($rec)){
+            core_Statuses::newStatus('|Записът вече е изтрит|*!', 'error');
+            core_Locks::release("movement{$id}");
+
+            wp("RACK: изтрит запис", $cu, $url, $action, $id);
+            rack_Movements::logDebug("RACK: изтрит запис: {$cu}|{$url}|{$action}", $id);
+
+            if($ajaxMode){
+                return array_merge($resArr, status_Messages::returnStatusesArray());
+            }
+
+            followretUrl(null, 'Движението вече е изтрито', 'error');
+        }
         
         if($ajaxMode){
-            if(empty($rec)){
-                core_Statuses::newStatus('|Записът вече е изтрит|*!', 'error');
-                core_Locks::release("movement{$rec->id}");
-
-                $serialize = serialize($rec);
-                wp("RACK: изтрит запис", $cu, $url, $action, $rec);
-                rack_Movements::logDebug("RACK: изтрит запис: {$cu}|{$url}|{$action}|{$serialize}");
-
-                return array_merge($resArr, status_Messages::returnStatusesArray());
-            } elseif(!in_array($action, array('start', 'reject', 'load', 'unload'))){
+            if(!in_array($action, array('start', 'reject', 'load', 'unload'))){
                 core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Невалидна операция|*!', 'error');
 
@@ -1063,7 +1229,6 @@ class rack_Movements extends rack_MovementAbstract
             }
         } else {
             expect($rec);
-            core_Locks::release("movement{$rec->id}");
             $this->requireRightFor($action, $rec);
         }
 
@@ -1096,7 +1261,7 @@ class rack_Movements extends rack_MovementAbstract
         if(in_array($action, array('load', 'unload'))){
 
             // Ако записа вече е изтрит не се прави нищо и се показва статус
-            if(!$this->fetchField($rec->id, 'id', false)){
+            if(!$this->fetch($rec->id, 'id', false)){
                 wp('Опит за промяна на изтрит запис', $rec);
                 core_Locks::release("movement{$rec->id}");
                 if($ajaxMode){
@@ -1118,7 +1283,7 @@ class rack_Movements extends rack_MovementAbstract
             $errorMsg = $transaction->errors;
 
             // Ако записа в изтрит не се прави нищо
-            if(!$this->fetchField($rec->id, 'id', false)){
+            if(!$this->fetch($rec->id, 'id', false)){
                 wp('Опит за промяна на изтрит запис', $rec);
                 $errorMsg = 'Движението вече е изтрито';
             }
@@ -1154,6 +1319,126 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         followretUrl(null, $msg, $type);
+    }
+
+
+    /**
+     * Възстановява липсващи активни/запазени/приключени движения от историята за документ.
+     */
+    public function act_Restoremissing()
+    {
+        $this->requireRightFor('restoremissing');
+        expect($containerId = Request::get('containerId', 'int'));
+
+        $containerState = doc_Containers::fetchField($containerId, 'state');
+        if (!in_array($containerState, array('draft', 'pending'))) {
+            followRetUrl(null, 'Възстановяване е позволено само за неконтирани документи', 'error');
+        }
+
+        $res = static::restoreMissingFromArchive($containerId);
+
+        if ($res === false) {
+            followRetUrl(null, 'В момента се изпълнява друго възстановяване за документа', 'warning');
+        }
+
+        $Document = doc_Containers::getDocument($containerId);
+        $Document->getInstance()->logWrite("Възстановени липсващи движения от историята: {$res->restored}", $Document->that);
+
+        followRetUrl(null, "Възстановени движения|*: {$res->restored}");
+    }
+
+
+    /**
+     * Брой липсващи активни движения в историята за контейнер.
+     *
+     * @param int $containerId
+     * @return int
+     */
+    public static function countMissingInArchive($containerId)
+    {
+        if (array_key_exists($containerId, static::$missingArchiveCnt)) {
+            return static::$missingArchiveCnt[$containerId];
+        }
+
+        $query = rack_OldMovements::getQuery();
+        $query->where("LOCATE('|{$containerId}|', #documents)");
+        $query->in('state', array('waiting', 'active', 'closed'));
+        $query->show('movementId');
+
+        $count = 0;
+        while ($rec = $query->fetch()) {
+            if (!empty($rec->movementId) && !static::fetch($rec->movementId, 'id', false)) {
+                $count++;
+            }
+        }
+
+        static::$missingArchiveCnt[$containerId] = $count;
+
+        return $count;
+    }
+
+
+    /**
+     * Връща липсващите движения от rack_OldMovements без повторно изпълнение на складова транзакция.
+     *
+     * @param int $containerId
+     * @return stdClass|false
+     */
+    public static function restoreMissingFromArchive($containerId)
+    {
+        if (!core_Locks::obtain("rackRestoreMissing{$containerId}", 120, 0, 0)) {
+            return false;
+        }
+
+        $res = (object) array('restored' => 0, 'skipped' => 0, 'ids' => array());
+        $Movements = cls::get('rack_Movements');
+
+        $query = rack_OldMovements::getQuery();
+        $query->where("LOCATE('|{$containerId}|', #documents)");
+        $query->in('state', array('waiting', 'active', 'closed'));
+        $query->orderBy('movementId', 'ASC');
+
+        Mode::push('rackRestoreMissing', true);
+        while ($oldRec = $query->fetch()) {
+            if (empty($oldRec->movementId)) {
+                $res->skipped++;
+                continue;
+            }
+
+            $lockId = "movement{$oldRec->movementId}";
+            if (!core_Locks::obtain($lockId, 120, 0, 0)) {
+                $res->skipped++;
+                continue;
+            }
+
+            if (static::fetch($oldRec->movementId, 'id', false)) {
+                core_Locks::release($lockId);
+                $res->skipped++;
+                continue;
+            }
+
+            $movementRec = clone $oldRec;
+            $movementRec->id = $oldRec->movementId;
+            unset($movementRec->movementId);
+
+            $Movements->save_($movementRec, null, 'replace');
+
+            foreach (keylist::toArray($movementRec->zoneList) as $zoneId) {
+                core_Cache::removeByType("rack_Zones_{$zoneId}");
+            }
+
+            rack_Logs::add($movementRec->storeId, $movementRec->productId, 'revision', $movementRec->position, $movementRec->id, "Възстановяване на движение #{$movementRec->id} от историята");
+            static::logDebug("RACK RESTORE MISSING {$movementRec->id} FROM ARCHIVE", $movementRec->id);
+
+            $res->restored++;
+            $res->ids[$movementRec->id] = $movementRec->id;
+            core_Locks::release($lockId);
+        }
+        Mode::pop('rackRestoreMissing');
+
+        core_Locks::release("rackRestoreMissing{$containerId}");
+
+        return $res;
     }
     
     
@@ -1698,11 +1983,33 @@ class rack_Movements extends rack_MovementAbstract
     {
         if($olderThan = rack_Setup::get('DELETE_OLD_MOVEMENTS')){
 
-            // Всички движения преди X време
+            // Всички движения модифицирани преди X време
             $createdBefore = dt::addSecs(-1 * $olderThan);
 
             Mode::push('movementDeleteByCron', true);
-            rack_Movements::delete("#createdOn <= '{$createdBefore}'");
+
+            $deleteWhere = "#modifiedOn <= '{$createdBefore}' AND #state = 'closed'";
+
+            // Зони, които в момента имат закачен документ
+            $zQuery = rack_Zones::getQuery();
+            $zQuery->where("#containerId IS NOT NULL");
+            $zQuery->show('id,containerId');
+
+            $protect = array();
+            while ($zRec = $zQuery->fetch()) {
+                $zoneId = (int)$zRec->id;
+                $containerId = (int)$zRec->containerId;
+
+                // Ако движението е към тази зона и е вързано към този документ – НЕ го трием от rack_Movements
+                $protect[] = "(LOCATE('|{$zoneId}|', #zoneList) AND LOCATE('|{$containerId}|', #documents))";
+            }
+
+            if (countR($protect)) {
+                $deleteWhere .= " AND NOT (" . implode(" OR ", $protect) . ")";
+            }
+
+            rack_Movements::delete($deleteWhere);
+
             Mode::pop('movementDeleteByCron');
         }
 
@@ -1803,7 +2110,7 @@ class rack_Movements extends rack_MovementAbstract
         if ($mvc->haveRightFor('load', $rec)) {
             $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'load', 'additional' => $additional, 'ret_url' => true);
 
-            if($fields['-inline'] && !isset($fields['-inline-single'])){
+            if(isset($fields['-inline']) && !isset($fields['-inline-single'])){
                 unset($loadUrl['ret_url']);
                 $loadUrl = toUrl($loadUrl, 'local');
                 $row->leftColBtns = ht::createFnBtn('Запазване', '', null, array('id' => "ajLoad{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $loadUrl, 'title' => 'Запазване на движението', 'ef_icon' => 'img/16/checkbox_no.png', 'data-moveid' => $rec->id));
@@ -1827,7 +2134,7 @@ class rack_Movements extends rack_MovementAbstract
             $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'additional' => $additional, 'ret_url' => true);
             $row->_rowTools->addLink('Започване', $startUrl, array('warning' => $startWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/control_play.png', 'title' => 'Започване на движението'));
 
-            if($fields['-inline'] && !isset($fields['-inline-single'])){
+            if(isset($fields['-inline']) && !isset($fields['-inline-single'])){
                 unset($startUrl['ret_url']);
                 $startUrl = toUrl($startUrl, 'local');
                 $row->rightColBtns = ht::createFnBtn('Започване', '', $startWarning, array('id' => "ajStart{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png', 'data-moveid' => $rec->id));
@@ -1844,7 +2151,7 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             $row->_rowTools->addLink('Приключване', $doneUrl, array('id' => "done{$rec->id}", 'warning' => $doneWarning, 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
-            if($fields['-inline'] && !isset($fields['-inline-single'])){
+            if(isset($fields['-inline']) && !isset($fields['-inline-single'])){
                 unset($doneUrl['ret_url']);
                 $doneUrl = toUrl($doneUrl, 'local');
                 $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('id' => "ajDone{$rec->id}", 'class' => 'toggle-movement', 'data-url' => $doneUrl, 'title' => 'Приключване на движението', 'ef_icon' => 'img/16/gray-close.png', 'data-moveid' => $rec->id));
@@ -1888,7 +2195,7 @@ class rack_Movements extends rack_MovementAbstract
      * @param int $containerId   - ид на контейнер на документ
      * @return double|null
      */
-    public static function getQuantitiesByContainerId($storeId, $productId, $batch = null, $containerId, $states = array())
+    public static function getQuantitiesByContainerId($storeId, $productId, $batch = null, $containerId = null, $states = array())
     {
         $query = rack_Movements::getQuery();
         $query->where("#storeId = {$storeId} AND #productId = {$productId}");

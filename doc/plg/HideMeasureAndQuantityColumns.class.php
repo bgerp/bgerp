@@ -20,10 +20,10 @@ class doc_plg_HideMeasureAndQuantityColumns extends core_Plugin
      */
     public static function on_AfterDescription(&$mvc)
     {
-        setIfNot($mvc->packQuantityFld, 'packQuantity');
-        setIfNot($mvc->packagingFld, 'packagingId');
-        setIfNot($mvc->packPriceFld, 'packPrice');
-        setIfNot($mvc->productFld, 'productId');
+        setPartIfNot($mvc, 'packQuantityFld', 'packQuantity');
+        setPartIfNot($mvc, 'packagingFld', 'packagingId');
+        setPartIfNot($mvc, 'packPriceFld', 'packPrice');
+        setPartIfNot($mvc, 'productFld', 'productId');
     }
     
     

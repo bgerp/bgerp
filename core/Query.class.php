@@ -21,8 +21,50 @@ class core_Query extends core_FieldSet
      * Място за MVC класа, към който се отнася заявката
      */
     public $mvc;
-    
-    
+
+
+    /**
+     *
+     */
+    protected $useExpr = false;
+
+
+    /**
+     *
+     */
+    protected $realFields = array();
+
+
+    /**
+     *
+     */
+    protected $dbRes;
+
+
+    /**
+     *
+     */
+    protected $onCond;
+
+
+    /**
+     *
+     */
+    protected $join;
+
+
+    /**
+     *
+     */
+    public $addId;
+
+
+    /**
+     *
+     */
+    protected $areBracketsPlaced;
+
+
     /**
      * Масив от изрази, именувани с полета
      */
@@ -182,7 +224,7 @@ class core_Query extends core_FieldSet
                 $cond = "#id = {$cond}";
             }
             
-            $lastCondKey = countR($this->where) - 1;
+            $lastCondKey = countR($this->where ?? null) - 1;
             
             if ($or && ($lastCondKey >= 0)) {
                 $lastCond = & $this->where[$lastCondKey];
@@ -438,6 +480,7 @@ class core_Query extends core_FieldSet
     public function getGroupBy()
     {
         if (countR($this->groupBy) > 0) {
+            $groupBy = '';
             foreach ($this->groupBy as $f => $true) {
                 $groupBy .= ($groupBy ? ', ' : '') . $f;
             }
@@ -534,7 +577,7 @@ class core_Query extends core_FieldSet
             // сортирането се използва името на полето записано в orderAs
             // иначе сортиране не се прави
             if ($fieldObj->kind == 'FNC') {
-                if ($fieldObj->orderAs) {
+                if ($fieldObj->orderAs ?? null) {
                     $order->field = $fieldObj->orderAs;
                 } else {
                     continue;
@@ -655,7 +698,7 @@ class core_Query extends core_FieldSet
     {
         if (countR($this->unions)) {
             $count = countR($this->unions);
-            
+            $query = '';
             foreach ($this->unions as $cond) {
                 $q = clone($this);
                 $q->unions = null;
@@ -674,8 +717,12 @@ class core_Query extends core_FieldSet
                 $unionStr = !$this->useUnionAll ? 'UNION' : "UNION ALL";
                 $string = ($count > 1) ? '(' . $q->buildQuery() . ')' : $q->buildQuery();
                 $query .= ($query ? "\n{$unionStr}\n" : '') . $string;
+
+                // Виртуалните полета от всеки юниън се добавят към тези на куерито иначе FNC полетата не се изчисляват
+                $this->virtualFields = array_merge($this->virtualFields, $q->virtualFields);
+                $this->show = array_merge($this->show, $q->show);
             }
-            
+
             $query .= $this->getOrderBy(true);
             $query .= $this->getLimit();
         } else {
@@ -705,66 +752,87 @@ class core_Query extends core_FieldSet
         
         return $query;
     }
-    
-    
-    /**
-     * Преброява записите, които отговарят на условието, което се добавя като AND във WHERE
-     */
+
+
     public function count($cond = null, $limit = 0)
     {
         if ($this->mvc->invoke('BeforeCount', array(&$res, &$this, &$cond)) === false) {
-            
             return $res;
         }
-        
+
         $temp = clone($this);
-        
+
         $temp->where($cond);
-        
+
         if ($limit) {
             $temp->limit($limit);
         }
-        
+
+        // Ако има UNION/UNION ALL, броим върху вече построената заявка,
+        // защото ръчното сглобяване на COUNT игнорира setUnion() условията
+        if (countR($temp->unions)) {
+            $countQuery = clone($temp);
+
+            // ORDER BY не влияе на COUNT и само товари,
+            // освен ако няма LIMIT/START
+            if ($countQuery->limit === null && $countQuery->start === null) {
+                $countQuery->orderBy = array();
+            }
+
+            $innerQuery = $countQuery->buildQuery();
+            $query = "SELECT COUNT(*) AS `_count` FROM ({$innerQuery}) AS COUNT_TABLE";
+
+            $db = $countQuery->mvc->db;
+
+            DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
+            $dbRes = $db->query($query);
+            DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
+
+            $r = $db->fetchObject($dbRes);
+
+            $db->freeResult($dbRes);
+
+            return (int) $r->_count;
+        }
+
         $wh = $temp->getWhereAndHaving();
-        
+
         $options = '';
-        
+
         if (!empty($this->_selectOptions)) {
             $options = implode(' ', $this->_selectOptions);
         }
-        
+
         $query = "SELECT {$options}\n   count(*) AS `_count`";
         if (countR($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
             $fields = $temp->getShowFields();
             $query .= ($fields ? ',' : '') . $fields;
         }
-        
+
         $query .= "\nFROM ";
         $query .= $temp->getTables();
-        
+
         $query .= $wh->w;
         $query .= $wh->h;
         $query .= $temp->getGroupBy();
         $query .= $temp->getLimit();
-        
+
         if ($temp->useHaving || $temp->getGroupBy() || ($temp->limit)) {
             $query = str_replace('count(*) AS `_count`', '1 AS `fix_val`', $query);
             $query = "SELECT COUNT(*) AS `_count` FROM ({$query}) as COUNT_TABLE";
         }
-        
+
         $db = $temp->mvc->db;
-        
+
         DEBUG::startTimer(cls::getClassName($this->mvc) . ' COUNT ');
         $dbRes = $db->query($query);
         DEBUG::stopTimer(cls::getClassName($this->mvc) . ' COUNT ');
-        
+
         $r = $db->fetchObject($dbRes);
-        
-        // Освобождаваме MySQL резултата
+
         $db->freeResult($dbRes);
-        
-        // Връщаме брояча на редовете
-        return (integer) $r->_count;
+
+        return (int) $r->_count;
     }
     
     
@@ -866,10 +934,11 @@ class core_Query extends core_FieldSet
                         }
                     }
                 }
-                
+
+
                 if (countR($this->virtualFields) > 0) {
                     $virtualFields = array_intersect($this->virtualFields, array_keys($this->show));
-                    
+
                     foreach ($virtualFields as $fld) {
                         $this->mvc->invoke('Calc' . $fld, array(&$rec));
                     }
@@ -993,7 +1062,7 @@ class core_Query extends core_FieldSet
                 $externalFieldName = $fieldRec->externalFieldName ?? 'id';
                 $externalFieldName = str::phpToMysqlName($externalFieldName);
                 
-                if ($fieldRec->externalKey && !$isDelete) {
+                if (($fieldRec->externalKey ?? null) && !$isDelete) {
                     $mvc = cls::get($fieldRec->externalClass);
                     $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`{$externalFieldName}`");
                     $this->tables[$mvc->dbTableName] = true;
@@ -1088,7 +1157,9 @@ class core_Query extends core_FieldSet
         if ($this->fields['id']) {
             $this->show['id'] = true;
         }
-        
+
+        $show = array();
+
         foreach ($this->show as $name => $dummy) {
             $f = $this->getField($name);
             
@@ -1294,8 +1365,9 @@ class core_Query extends core_FieldSet
     {
         //$key = Mode::getProcessKey();
         
-        $exp = $arr[0];
-        
+        $exp = $arr[0] ?? null;
+
+        $a = $c = array();
         $cntArr = countR($arr);
         for ($i = 1; $i < $cntArr; $i++) {
             $a[] = "[#{$i}#]";
