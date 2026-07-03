@@ -2498,6 +2498,15 @@ pre.document {
 .planning_Tasks .shortTime {
   width: 70px !important; }
 
+form select.w100 + .select2 {
+  min-width: 100%; }
+
+form select.w75 + .select2 {
+  min-width: 75%; }
+
+form select.w50 + .select2 {
+  min-width: 50%; }
+
 .boldText {
   font-weight: bold; }
 
