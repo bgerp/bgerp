@@ -131,6 +131,9 @@ class deals_InvoicesToDocuments extends core_Manager
                 $fRec->invoicesList = null;
             }
 
+            // При разпределяне на ф-ри към складови документи да се игнорират разпределените плащания
+            $subtractPayedByNow = !(($Document instanceof store_DocumentMaster) || ($Document instanceof deals_ServiceMaster));
+
             // Ако е избрана таблица със фактури
             if(!empty($fRec->invoices)){
                 $iData =  @json_decode($fRec->invoices, true);
@@ -144,7 +147,7 @@ class deals_InvoicesToDocuments extends core_Manager
                     $iRec = $iDoc->fetch();
                     $fullRecs[$iRec->containerId] = $iRec;
                     if(empty($iData['amount'][$k])){
-                        $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+                        $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId, $subtractPayedByNow);
                         $totalValue = $iRec->dealValue - $iRec->discountAmount + $iRec->vatAmount;
                         if($iRec->type == 'dc_note' && $totalValue < 0){
                             $expectedAmountToPayData->amount = -1 * $expectedAmountToPayData->amount;
@@ -172,7 +175,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 // Ако е избрана конкретна ф-ра
                 $iRec = doc_Containers::getDocument($fRec->fromContainerId)->fetch();
                 $fullRecs[$iRec->containerId] = $iRec;
-                $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+                $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId, $subtractPayedByNow);
 
                 $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
                 $vAmount = round($vAmount, 2);
@@ -198,12 +201,12 @@ class deals_InvoicesToDocuments extends core_Manager
                 }
             }
             $currencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
-           
+
             // Ако е към платежен документ проверка дали са допустими
             if($Document instanceof deals_PaymentDocument){
                 $amountWarnings = $amountErrors = array();
                 foreach ($invArr as $iRec){
-                    $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+                    $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId, $subtractPayedByNow);
                     $eAmount = round(currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode), 2);
 
                     $invRec = $fullRecs[$iRec->containerId];
@@ -362,7 +365,8 @@ class deals_InvoicesToDocuments extends core_Manager
                     }
                 }
 
-                followRetUrl(null, 'Промяната е записана успешно|*!');
+                $msg = countR($newArr) ? 'Разпределението по фактури е записано|*!' : 'Разпределението по фактури е премахнато|*!';
+                followRetUrl(null, $msg);
             }
         }
 
@@ -385,9 +389,10 @@ class deals_InvoicesToDocuments extends core_Manager
      *
      * @param $invoiceContainerId
      * @param $ignoreDocumentContainerId
-     * @return float|int
+     * @param boolean $subtractPayedByNow
+     * @return array
      */
-    public static function getExpectedAmountToPay($invoiceContainerId, $ignoreDocumentContainerId)
+    public static function getExpectedAmountToPay($invoiceContainerId, $ignoreDocumentContainerId, $subtractPayedByNow = true)
     {
         $Document = doc_Containers::getDocument($invoiceContainerId);
         $iRec = doc_Containers::getDocument($invoiceContainerId)->fetch();
@@ -405,24 +410,28 @@ class deals_InvoicesToDocuments extends core_Manager
         $query->where("#containerId = {$invoiceContainerId} AND #documentContainerId != {$ignoreDocumentContainerId}" );
         $query->notIn('docClass', $exceptClassIds);
 
-        $paidByNow = 0;
-        while($rec = $query->fetch()){
-            $Document = doc_Containers::getDocument($rec->documentContainerId);
-            $state = $Document->fetchField('state');
-            if($state != 'active') continue;
+        $toPay = $vAmount;
+        if($subtractPayedByNow){
+            $paidByNow = 0;
+            while($rec = $query->fetch()){
+                $Document = doc_Containers::getDocument($rec->documentContainerId);
+                $state = $Document->fetchField('state');
+                if($state != 'active') continue;
 
-            $pData = $Document->getPaymentData();
-            if(!empty($pData->amountDeal)){
-                $rate = $pData->amount / $pData->amountDeal;
-                $amountPaid  = $rec->amount / $rate;
-            } else {
-                $amountPaid = $rec->amount;
+                $pData = $Document->getPaymentData();
+                if(!empty($pData->amountDeal)){
+                    $rate = $pData->amount / $pData->amountDeal;
+                    $amountPaid  = $rec->amount / $rate;
+                } else {
+                    $amountPaid = $rec->amount;
+                }
+
+                $paidByNow += $amountPaid;
             }
 
-            $paidByNow += $amountPaid;
+            $toPay -= $paidByNow;
         }
 
-        $toPay = $vAmount - $paidByNow;
         if($toPay < 0){
             $toPay = 0;
         }
