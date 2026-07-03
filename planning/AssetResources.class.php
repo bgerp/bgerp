@@ -800,26 +800,43 @@ class planning_AssetResources extends core_Master
      */
     public static function getUsedAssetsInTasks($folders = null)
     {
-        $options = array();
+        // Еднократно извличане на всички оборудвания, споделени в посочените папки
+        $folderArr = arr::make($folders, true);
+        $inFolderIds = array();
+        if (countR($folderArr)) {
+            $fQuery = planning_AssetResourceFolders::getQuery();
+            $fQuery->in('folderId', $folderArr);
+            $fQuery->where(array("#classId = '[#1#]'", static::getClassId()));
+            $fQuery->show('objectId');
+            $inFolderIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
+        }
+
+        $aQuery = static::getQuery();
+        $aQuery->where("#state NOT IN ('rejected', 'closed')");
+        if(countR($inFolderIds)) {
+            $aQuery->in('id', $inFolderIds);
+        }
+        $allAssets = $aQuery->fetchAll();
+
+        if (!countR($allAssets)) return array();
+
+        // Ако има намерени оборудвания, засича се кои от тях са избрани в ПО-та
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#assetId IS NOT NULL");
-        $tQuery->show('assetId');
-        if(isset($folders)){
-            $folderArr = arr::make($folders, true);
-            $assetsInFolderId = array();
-            foreach ($folderArr as $folderId) {
-                $assetsInFolderId += static::getByFolderId($folderId);
-            }
-
-            if(countR($assetsInFolderId)){
-                $tQuery->in('assetId', array_keys($assetsInFolderId));
-            } else {
-                $tQuery->where("1=2");
-            }
+        $tQuery->in('assetId', array_keys($allAssets));
+        if(countR($folderArr)){
+            $tQuery->in('folderId', $folderArr);
         }
-        $assets = arr::extractValuesFromArray($tQuery->fetchAll(), 'assetId');
-        foreach ($assets as $assetId){
-            $options[$assetId] = planning_AssetResources::getTitleById($assetId, false);
+        $tQuery->show('assetId');
+        $tQuery->groupBy('assetId');
+        $usedIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'assetId');
+
+        $me = cls::get(get_called_class());
+        $options = array();
+        foreach ($usedIds as $id) {
+            if (isset($allAssets[$id])) {
+                $options[$id] = $me->getRecTitle($allAssets[$id], false);
+            }
         }
 
         return $options;
