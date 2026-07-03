@@ -165,9 +165,9 @@ class fileman_Files extends core_Master
         $Files = cls::get('fileman_Files');
         
         $rec = $Files->fetch(array("#fileHnd = '[#1#]'", $fh));
-        
-        if ($field === null) {
-            
+
+        if ($field === null || !$rec) {
+
             return $rec;
         }
         
@@ -1006,7 +1006,7 @@ class fileman_Files extends core_Master
         } else {
             
             // Името
-            $name = $rec->name;
+            $name = $rec->name ?? null;
             
             // Вербалното име
             $vName = fileman_Files::getVerbal($rec, 'name');
@@ -1104,7 +1104,7 @@ class fileman_Files extends core_Master
         }
         
         // Обновяваме времето на последно използване на данните
-        return fileman_Data::updateLastUse($fRec->dataId, $lastUse);
+        return fileman_Data::updateLastUse($fRec->dataId ?? null, $lastUse);
     }
     
     
@@ -1401,7 +1401,7 @@ class fileman_Files extends core_Master
             // Ако е подаден манипулатор на файл
             // Вземаме името на файла
             $fRec = static::fetchByFh($fh);
-            $fname = $fRec->name;
+            $fname = $fRec->name ?? null;
         }
         
         // Ако има разширение
@@ -1777,7 +1777,7 @@ class fileman_Files extends core_Master
     public function getVerbalLinkFromClass($id)
     {
         $rec = static::fetch($id);
-        $fileHnd = $rec->fileHnd;
+        $fileHnd = $rec->fileHnd ?? null;
         
         return static::getLink($fileHnd);
     }
@@ -1841,7 +1841,7 @@ class fileman_Files extends core_Master
             $rec = static::fetch($id);
             
             // Вместо id използваме манипулатора на файла
-            $id = $rec->fileHnd;
+            $id = $rec->fileHnd ?? null;
         }
         
         return $id;
@@ -2161,7 +2161,7 @@ class fileman_Files extends core_Master
         
         if ($rec->dataId) {
             $dRec = fileman_Data::fetch($rec->dataId);
-            $fileLen = $dRec->fileLen;
+            $fileLen = $dRec->fileLen ?? null;
             $rec->fileLen = $fileLen;
         }
     }
@@ -2191,7 +2191,7 @@ class fileman_Files extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = null, $userId = null)
     {
         if ($action == 'editfile' && !haveRole('powerUser')) {
-            if ($rec->createdBy != $userId) {
+            if ($rec && $rec->createdBy != $userId) {
                 $roles = 'no_one';
             }
         }
@@ -2247,7 +2247,7 @@ class fileman_Files extends core_Master
             $dangerFileClass .= ' dangerFile';
         }
 
-        $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
+        $fileNavArr = (array) core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
 
         // Вербалното име на файла
         $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">';
@@ -2257,12 +2257,13 @@ class fileman_Files extends core_Master
         $row->fileName .= $mvc->getVerbal($rec, 'name') . '</span>';
 
         // Показваме и източника на файла
-        if ($fileNavArr[$rec->fileHnd]['src']) {
-            if ($fileNavArr[$rec->fileHnd]['srcDirName']) {
-                $row->fileName .= ' « ' . type_Varchar::escape($fileNavArr[$rec->fileHnd]['srcDirName']);
+        $navInfo = $fileNavArr[$rec->fileHnd] ?? array();
+        if ($navInfo['src'] ?? null) {
+            if ($navInfo['srcDirName'] ?? null) {
+                $row->fileName .= ' « ' . type_Varchar::escape($navInfo['srcDirName']);
             }
-            
-            $row->fileName .= ' « ' . self::getLink($fileNavArr[$rec->fileHnd]['src']);
+
+            $row->fileName .= ' « ' . self::getLink($navInfo['src']);
         }
         
         // Масив с линка към папката и документа на първата достъпна нишка, където се използва файла
@@ -2370,7 +2371,7 @@ class fileman_Files extends core_Master
                     $warning = 'Няма данни за отпечатване';
                 }
                 
-                if (is_array($jpgArr) && $jpgArr['otherPagesCnt']) {
+                if (is_array($jpgArr) && ($jpgArr['otherPagesCnt'] ?? null)) {
                     $all = countR($jpgArr);
                     $all--;
                     
@@ -2683,7 +2684,7 @@ class fileman_Files extends core_Master
         $filter = $data->listFilter->rec;
         
         $usersArr = type_Keylist::toArray($filter->usersSearch);
-        if ($usersArr[-1]) {
+        if ($usersArr[-1] ?? null) {
             $data->query->isSlowQuery = true;
             $data->query->useCacheForPager = true;
         }
@@ -2719,7 +2720,7 @@ class fileman_Files extends core_Master
             $query->EXT('lastUse', 'fileman_Data', 'externalName=lastUse, externalKey=dataId');
             $query->orderBy('#lastUse', 'DESC');
             
-            if (!$usersArr[-1]) {
+            if (!($usersArr[-1] ?? null)) {
                 $query->where("#createdBy IN ({$userArrImp})");
             }
         } else {
@@ -3192,19 +3193,19 @@ class fileman_Files extends core_Master
     public static function getDataPath($id)
     {
         $Files = cls::get('fileman_Files');
-        
+
         $rec = $Files->fetch($id);
-        
-        if ($field === null) {
-            
+
+        if (!$rec) {
+
             return null;
         }
-        
+
         $Data = cls::get('fileman_Data');
-     
+
         $rec = $Data->fetch($rec->dataId);
-        
-        return $rec->path;
+
+        return $rec->path ?? null;
     }
 
 
@@ -3219,7 +3220,7 @@ class fileman_Files extends core_Master
         $fileName = $string;
         if(static::isFileHnd($string)) {
             $fRec = static::fetchByFh($string);
-            $fileName = $fRec->name;
+            $fileName = $fRec->name ?? null;
         }
 
         $fileExt = fileman_Files::getExt($fileName);

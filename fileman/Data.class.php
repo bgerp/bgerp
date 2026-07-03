@@ -304,7 +304,8 @@ class fileman_Data extends core_Manager
         
         // Резултата
         $res = new stdClass();
-        
+        $res->new = false;
+
         // В зависимост от типа
         switch ($type) {
             case 'file':
