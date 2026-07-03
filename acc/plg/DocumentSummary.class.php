@@ -252,7 +252,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
                     $fField = $data->listFilter->getField($f);
                     if(!empty($fField)){
-                        $caption = $fField->caption;
+                        $caption = $fField->caption ?? '';
                         if (strpos($caption, '->')) {
                             list($l, $r) = explode('->', $caption);
                             $caption = tr($l) . ' » ' . tr($r);
