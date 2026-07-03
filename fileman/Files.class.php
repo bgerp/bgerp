@@ -2144,6 +2144,7 @@ class fileman_Files extends core_Master
     {
         // Ако липсва, създаваме нов уникален номер-държател
         if (!($rec->fileHnd ?? null)) {
+            $i = 0;
             do {
                 if (16 < $i++) {
                     error('@Unable to generate random file handler', $rec);

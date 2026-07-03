@@ -937,6 +937,7 @@ class core_Cron extends core_Manager
         core_Session::$mute = true;
 
         // Пробваме да вземем lock за този процес, за 65 секунди
+        $okTrays = 0;
         while (core_Locks::obtain('core_Cron::Watchdog', 80)) {
             set_time_limit(120);
             
