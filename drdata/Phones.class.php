@@ -128,9 +128,9 @@ class drdata_Phones extends core_Manager
     public function getMobile($countryCode)
     {
         // Зареждаме инфото, което имаме за тази $countryCode
-        static $mobileInfo;
-        
-        if ($countryCode && !$mobileInfo[$countryCode]) {
+        static $mobileInfo = array();
+
+        if ($countryCode && empty($mobileInfo[$countryCode])) {
             $query = $this->DialCodes->getQuery();
             
             while ($rec = $query->fetch("#countryCode = '{$countryCode}'")) {
