@@ -456,7 +456,12 @@ class bank_Accounts extends core_Master
     {
         $Contragent = cls::get($contragentClass);
         $suggestions = array('' => '');
-        
+
+        if (empty($contragentId)) {
+
+            return $suggestions;
+        }
+
         $query = static::getQuery();
         $query->where("#contragentId = {$contragentId}");
         $query->where("#contragentCls = {$Contragent->getClassId()}");
