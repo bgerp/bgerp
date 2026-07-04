@@ -1009,7 +1009,7 @@ class store_Products extends core_Detail
     public function renderDetail_($data)
     {
         // Не се рендира детайла, ако има само една версия или режима е само за показване
-        if ($data->render === false) {
+        if (($data->render ?? null) === false) {
            
             return new core_ET('');
         }
