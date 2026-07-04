@@ -450,11 +450,11 @@ class sales_Sales extends deals_DealMaster
         $rec = $form->rec;
 
         $myCompany = crm_Companies::fetchOwnCompany();
-        $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
+        $options = bank_Accounts::getContragentIbans($myCompany->companyId ?? null, 'crm_Companies', true);
         $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$options));
 
         // Ако няма ръчно избрана БС гледа се последно избраната в папката
-        $defaultBankAccountId = $rec->bankAccountId;
+        $defaultBankAccountId = $rec->bankAccountId ?? null;
         if(empty($rec->bankAccountId)) {
             $lastSelectedBankAccountId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'bankAccountId', 'lastDocUser|lastDoc');
             if(!empty($lastSelectedBankAccountId)){
