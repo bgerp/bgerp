@@ -426,7 +426,7 @@ class label_plg_Print extends core_Plugin
     {
         // Ако се рендира таблицата на детайла веднага след добавянето на запис
         $prevSavedId = Mode::get("{$mvc->className}_PREV_SAVED_ID");
-        if(isset($prevSavedId) && !$mvc->_isSaveAndNew){
+        if(isset($prevSavedId) && !($mvc->_isSaveAndNew ?? null)){
 
             // Ако е оказано да се печата след Запис или след Запис и Запис и нов да се разпечата автоматично етикет
             $autoLabelMode = $mvc->getModeAutoLabelPrint($prevSavedId);
