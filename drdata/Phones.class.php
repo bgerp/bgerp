@@ -57,6 +57,12 @@ class drdata_Phones extends core_Manager
      * Страница от менюто
      */
     public $pageMenu = 'Членове';
+
+
+    /**
+     * Дали да се извежда debug информация от @see self::debug()
+     */
+    public $test = false;
     
     
     /**
