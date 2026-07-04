@@ -27,8 +27,18 @@ class type_Combodate extends type_Varchar
      * Клас за <td> елемент, който показва данни от този тип
      */
     public $tdClass = 'centerCol';
-    
-    
+
+
+    /**
+     * Опции за дните, месеците и годините
+     *
+     * @see self::prepareOpt()
+     */
+    public $days;
+    public $months;
+    public $years;
+
+
     /**
      * Разделител във вътрешното представяне на датата
      */
