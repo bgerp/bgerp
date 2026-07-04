@@ -174,7 +174,7 @@ class acc_plg_Contable extends core_Plugin
             // Дали документа може да се активира
             $canActivate = $mvc->canActivate($tRec);
 
-            Mode::push('ignoreListCheckOnNullWhenConto', $mvc->ignoreListCheckOnNullWhenConto);
+            Mode::push('ignoreListCheckOnNullWhenConto', $mvc->ignoreListCheckOnNullWhenConto ?? null);
             $transaction = $mvc->getValidatedTransaction($tRec);
             Mode::pop('ignoreListCheckOnNullWhenConto');
 
