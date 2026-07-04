@@ -206,7 +206,7 @@ class planning_Centers extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams);
+        $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams ?? null);
         $form->setSuggestions("planningParams", $paramSuggestions);
 
         $options = cat_UoM::getPackagingOptions();

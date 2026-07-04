@@ -57,6 +57,12 @@ class drdata_Phones extends core_Manager
      * Страница от менюто
      */
     public $pageMenu = 'Членове';
+
+
+    /**
+     * Дали да се извежда debug информация от @see self::debug()
+     */
+    public $test = false;
     
     
     /**
@@ -122,9 +128,9 @@ class drdata_Phones extends core_Manager
     public function getMobile($countryCode)
     {
         // Зареждаме инфото, което имаме за тази $countryCode
-        static $mobileInfo;
-        
-        if ($countryCode && !$mobileInfo[$countryCode]) {
+        static $mobileInfo = array();
+
+        if ($countryCode && empty($mobileInfo[$countryCode])) {
             $query = $this->DialCodes->getQuery();
             
             while ($rec = $query->fetch("#countryCode = '{$countryCode}'")) {
@@ -167,16 +173,17 @@ class drdata_Phones extends core_Manager
             $from = array(' fax', ' факс', ' f.', ' ф.', ' Fax',  ' Факс',  ' F.', ' Ф.', ' FAX', ' ФАКС',
                 ' Mob', ' mob', ' m.', ' m ', ' моб', ' Моб', ' Тел.', ' тел.', '+');
             
-            if ($defaultCountryCode) {
-                $from[] = ' 00' . $defaultCountryCode;
-                $from[] = ' 00 ' . $defaultCountryCode;
+            if ($dCC) {
+                $from[] = ' 00' . $dCC;
+                $from[] = ' 00 ' . $dCC;
             }
-            if ($defaultAreaCode) {
-                $from[] = ' 0' . $defaultAreaCode;
+            if ($dAC) {
+                $from[] = ' 0' . $dAC;
             }
             
             $sepArr = array(';', ',', ' ', '.', '/', '\\');      // възможни сепаратори
-            
+
+            $test = array();
             foreach ($sepArr as $sep) {
                 $to = array();
                 foreach ($from as $c) {
@@ -209,6 +216,14 @@ class drdata_Phones extends core_Manager
                     // Нулираме обекта
                     $obj = new stdClass();
                     $obj->original = $t;
+                    $obj->countryCode = null;
+                    $obj->areaCode = null;
+                    $obj->area = null;
+                    $obj->country = null;
+                    $obj->mobile = false;
+                    $obj->fax = false;
+                    $obj->internal = null;
+                    $obj->number = null;
                     
                     // правим го с малки букви, на латиница
                     $t1 = trim(strtolower(str::utf2ascii($t)));
@@ -364,7 +379,7 @@ class drdata_Phones extends core_Manager
                     }
                     
                     // Само за италия
-                    if ($obj->countryCode == '39' && ($obj->areaCode[0] != '0') && ($obj->areaCode[0] != '3')) {
+                    if ($obj->countryCode == '39' && (substr((string) $obj->areaCode, 0, 1) != '0') && (substr((string) $obj->areaCode, 0, 1) != '3')) {
                         $obj->areaCode = '0' . $obj->areaCode;
                     }
                     
@@ -413,7 +428,7 @@ class drdata_Phones extends core_Manager
                     }
                     
                     $obj->number = $t1;
-                    $this->debug("<li> ${t1} [ " . $obj->countryCode . '-' . $obj->areaCode . '-' . $obj->number . '-' . $ok . " ] ( ${defaultCountryCode} ) ( ${defaultAreaCode} ) {$obj->area} ");
+                    $this->debug("<li> ${t1} [ " . $obj->countryCode . '-' . $obj->areaCode . '-' . $obj->number . " ] ( ${defaultCountryCode} ) ( ${defaultAreaCode} ) {$obj->area} ");
                     
                     if (strpos($obj->area, 'Cellular') !== false) {
                         $obj->mobile = true;
@@ -428,7 +443,7 @@ class drdata_Phones extends core_Manager
                     }
                     
                     // Прекалено дълъг номер
-                    if (strlen($obj->number . $obj->areacode) > 13) {
+                    if (strlen($obj->number . $obj->areaCode) > 13) {
                         $this->debug(' [>13] ');
                         $error = true;
                     }

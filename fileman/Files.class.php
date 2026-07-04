@@ -2703,6 +2703,8 @@ class fileman_Files extends core_Master
             $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
             plg_Search::applySearch($search, $data->query, 'searchKeywords');
         }
+
+        $data->query->isSlowQuery = true;
     }
     
     

@@ -409,8 +409,8 @@ abstract class deals_DealMaster extends deals_DealBase
             $form->setDefault('paymentType', $type);
         }
         
-        if ($rec->id) {
-            
+        if (!empty($rec->id)) {
+
             // Не може да се сменя ДДС-то ако има вече детайли
             $Detail = $mvc->mainDetail;
             if ($mvc->$Detail->fetch("#{$mvc->{$Detail}->masterKey} = {$rec->id}")) {

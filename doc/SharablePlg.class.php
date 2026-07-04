@@ -355,7 +355,7 @@ class doc_SharablePlg extends core_Plugin
     public static function getShareUsersArr($formRec)
     {
         $shareUsers = array();
-        $folderId = $formRec->folderId ?? (isset($formRec->originId) ? doc_Containers::fetchField($formRec->originId, 'folderId') : (($formRec->threadId) ? doc_Threads::fetchField($formRec->threadId, 'folderId') : $formRec->folderId));
+        $folderId = $formRec->folderId ?? (isset($formRec->originId) ? doc_Containers::fetchField($formRec->originId, 'folderId') : (!empty($formRec->threadId) ? doc_Threads::fetchField($formRec->threadId, 'folderId') : null));
         if (!$folderId) {
             
             return $shareUsers;

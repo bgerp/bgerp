@@ -427,7 +427,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterGetDefaultTemplate($mvc, &$res, $rec)
     {
         if (!$res) {
-            $cData = doc_Folders::getContragentData($rec->folderId);
+            $cData = empty($rec->folderId) ? null : doc_Folders::getContragentData($rec->folderId);
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
             $languages = array();
             

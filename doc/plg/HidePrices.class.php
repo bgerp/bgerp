@@ -95,6 +95,12 @@ class doc_plg_HidePrices extends core_Plugin
                     if(haveRole('ceo,seePrice')) return true;
                 }
             }
+        } elseif(is_null($rec)){
+            if($mvc instanceof sales_Sales || $mvc instanceof store_ShipmentOrders || $mvc instanceof sales_Proformas || $mvc instanceof sales_Invoices || $mvc instanceof sales_Services){
+                if(haveRole('ceo,seePrice')) return true;
+            } elseif($mvc instanceof purchase_Purchases || $mvc instanceof purchase_Invoices || $mvc instanceof store_Receipts || $mvc instanceof purchase_Services){
+                if(haveRole('ceo,seePricePurchase')) return true;
+            }
         }
 
         if(isset($rec->threadId)){

@@ -162,7 +162,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 foreach ($details->$fld as $key => $val) {
                     if ($val) {
                         $Double = core_Type::getByName('double');
-                        $details->$fld[$key] = $Double->fromVerbal($val);
+                        ($details->$fld)[$key] = $Double->fromVerbal($val);
                     }
                 }
             }

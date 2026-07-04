@@ -266,6 +266,13 @@ defIfNot('PLANNING_PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING', 'no');
 
 
 /**
+ * Пренасяне забележките на артикулите от рецептата в Протокола за производство->По подразбиране
+ */
+defIfNot('PLANNING_BOM_TRANSFER_NOTES', 'no');
+
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -357,6 +364,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Автоматично добавяне на артикули от протокол за влагане в ПО->Избор')),
         'PLANNING_PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'При печат на ПП да се показва изображението на артикула->Избор')),
         'PLANNING_TASK_FAST_PROGRESS_BTN' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Добавяне на бърз прогрес за оставащото в листа на ПО->Избор')),
+        'PLANNING_BOM_TRANSFER_NOTES' => array('enum(yes=Да,no=Не)', 'caption=Пренасяне забележките на артикулите от рецептата в Протокола за производство->По подразбиране'),
     );
 
 

@@ -126,7 +126,7 @@ class type_Table extends type_Blob
                     $text = strip_tags($value[$field][0]);
                     $row1 .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'text-indent:2px', 'readonly' => 'readonly', 'title' => strlen($text) > 16 ? $text : "", 'value' => $text)) . '</td>';
                 } else {
-                    $row1 .= "<td {$tdClass}>" . ht::createCombo($attr[$field]['name'], $value[$field][0], $attr[$field] + $this->getErrorArr($field, 0), array('' => '') + $sgt[$field]) . '</td>';
+                    $row1 .= "<td {$tdClass}>" . ht::createCombo($attr[$field]['name'], $value[$field][0] ?? '', $attr[$field] + $this->getErrorArr($field, 0), array('' => '') + $sgt[$field]) . '</td>';
                 }
             } else {
                 $tpl .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field]) . '</td>';
@@ -134,7 +134,7 @@ class type_Table extends type_Blob
                     $text = strip_tags($value[$field][0]);
                     $row1 .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('class' => 'readonlyInput', 'style' => 'float:left;text-indent:2px', 'readonly' => 'readonly', 'title' => strlen($text) > 16 ? $text : "", 'value' => $text)) . '</td>';
                 } else {
-                    $row1 .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0]) + $this->getErrorArr($field, 0)) . '</td>';
+                    $row1 .= "<td {$tdClass}>" . ht::createElement('input', $attr[$field] + array('value' => $value[$field][0] ?? '') + $this->getErrorArr($field, 0)) . '</td>';
                 }
             }
         }
