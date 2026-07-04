@@ -48,7 +48,7 @@ class ModbusMasterUdp {
    *     
    * @param String $host An IP address of a Modbus TCP device. E.g. "192.168.1.1".
    */         
-  function ModbusMasterUdp($host){
+  function __construct($host){
     $this->host = $host;
   }
 

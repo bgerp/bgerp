@@ -521,7 +521,7 @@ class acc_Periods extends core_Manager
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $rec->state = 'active';
         }
     }

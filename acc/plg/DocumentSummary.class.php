@@ -252,7 +252,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
                     $fField = $data->listFilter->getField($f);
                     if(!empty($fField)){
-                        $caption = $fField->caption;
+                        $caption = $fField->caption ?? '';
                         if (strpos($caption, '->')) {
                             list($l, $r) = explode('->', $caption);
                             $caption = tr($l) . ' » ' . tr($r);
@@ -706,7 +706,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 
                 $row->colspan = 1;
                 if (isset($rec->amount)) {
-                    if(!doc_plg_HidePrices::canSeePriceFields($data->query->mvc, $rec)){
+                    if(!doc_plg_HidePrices::canSeePriceFields($data->query->mvc, null)){
                         $row->amount = doc_plg_HidePrices::getBuriedElement();
                     } else{
                         $row->amount = $Double->toVerbal($rec->amount);

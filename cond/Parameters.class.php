@@ -127,7 +127,7 @@ class cond_Parameters extends bgerp_ProtoParam
         }
 
         // Ако има поле за държава
-        $countryFieldName = $Class->countryFieldName;
+        $countryFieldName = $Class->countryFieldName ?? null;
         if (isset($countryFieldName)) {
 
             // Търси се имали дефинирано търговско условие за държавата на контрагента

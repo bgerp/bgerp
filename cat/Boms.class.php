@@ -251,6 +251,7 @@ class cat_Boms extends core_Master
 
         $this->FLD('expenses', 'percent(min=0)', 'caption=Общи режийни,changeable,placeholder=Автоматично');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Без допълване (рецептата е Пълна),no=Допълване до "Себестойност" (рецептата е Непълна))', 'caption=Себестойност,notNull,value=auto,mandatory,width=100%');
+        $this->FLD('transferNotes', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пренасяне забележките на артикулите от рецептата в Протокола за производство->Избор,notNull,value=auto');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
@@ -711,7 +712,8 @@ class cat_Boms extends core_Master
         if (empty($rec->showInProduct)) {
             $showInProduct = cat_Setup::get('SHOW_BOM_IN_PRODUCT');
             $row->showInProduct = $mvc->getFieldType('showInProduct')->toVerbal($showInProduct);
-            $row->showInProduct = ht::createHint($row->showInProduct, 'По подразбиране');
+            $row->showInProduct = "<span style='color:blue'>{$row->showInProduct}</span>";
+            $row->showInProduct = ht::createHint($row->showInProduct, 'По подразбиране', 'notice', false);
         }
         
         $row->productId = cat_Products::getShortHyperlink($rec->productId);
@@ -750,7 +752,7 @@ class cat_Boms extends core_Master
                     if (!empty($defaultOverheadCost)) {
                         $overheadCost = $defaultOverheadCost['overheadCost'];
                         $defaultOverheadCostVerbal = $mvc->getFieldType('expenses')->toVerbal($defaultOverheadCost['overheadCost']);
-                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично|* {$defaultOverheadCost['hint']}");
+                        $row->expenses = ht::createHint("<span style='color:blue'>{$defaultOverheadCostVerbal}</span>", "Автоматично|* {$defaultOverheadCost['hint']}", 'notice', false);
                     } else {
                         $row->expenses = ht::createHint("<span style='color:blue'>n/a</span>", "Не може да се определи автоматично|*!");
                     }
@@ -792,7 +794,15 @@ class cat_Boms extends core_Master
                 if ($rec->isComplete == 'auto') {
                     $autoValue = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
                     $row->isComplete = $mvc->getFieldType('isComplete')->toVerbal($autoValue);
-                    $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена');
+                    $row->isComplete = "<span style='color:blue'>{$row->isComplete}</span>";
+                    $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена', 'notice', false);
+                }
+
+                if ($rec->transferNotes == 'auto') {
+                    $autoValue = planning_Setup::get('BOM_TRANSFER_NOTES');
+                    $row->transferNotes = $mvc->getFieldType('transferNotes')->toVerbal($autoValue);
+                    $row->transferNotes = "<span style='color:blue'>{$row->transferNotes}</span>";
+                    $row->transferNotes = ht::createHint($row->transferNotes, 'Стойността е автоматично определена', 'notice', false);
                 }
 
                 if(isset($rec->regeneratedFromId)){
@@ -1423,6 +1433,7 @@ class cat_Boms extends core_Master
             $index = "{$rec->resourceId}|{$rec->type}";
             if (!isset($materials[$index])) {
                 $materials[$index] = (object) array('productId' => $rec->resourceId,
+                    'notes' => array(),
                     'packagingId' => $rec->packagingId,
                     'quantityInPack' => $rec->quantityInPack,
                     'type' => $rec->type,
@@ -1436,10 +1447,18 @@ class cat_Boms extends core_Master
                 }
             } else {
                 $d = &$materials[$index];
+
                 if ($rQuantity != cat_BomDetails::CALC_ERROR) {
                     $d->propQuantity += $t * $rQuantity;
                 } else {
                     $d->propQuantity = $rQuantity;
+                }
+            }
+
+            // Добавят се и забележките при нужда
+            if(!empty($rec->description) && array_key_exists($index, $materials)){
+                if(!empty($rec->_transferNotes)){
+                    $materials[$index]->notes[] = $rec->description;
                 }
             }
         }
@@ -1511,6 +1530,7 @@ class cat_Boms extends core_Master
 
             // За всеки детайл
             while ($dRec = $query->fetch()) {
+                $dRec->_transferNotes = $rec->_transferNotes;
 
                 // Опитваме се да намерим цената му
                 if($rQuantity != cat_BomDetails::CALC_ERROR){
@@ -1641,11 +1661,15 @@ class cat_Boms extends core_Master
         
         // Ако изчисляваме цената на рецептата по себестойност, ще кешираме изчислените цени на редовете
         $canCalcPrimeCost = true;
-        
+
+        $transferNotes = $rec->transferNotes == 'auto' ? planning_Setup::get('BOM_TRANSFER_NOTES') : $rec->transferNotes;
+        $transferNotes = $transferNotes == 'yes';
+
         // За всеки от тях
         if (is_array($details)) {
             foreach ($details as $dRec) {
-                
+                $dRec->_transferNotes = $transferNotes;
+
                 // Параметрите са на продукта на рецептата
                 $params = array();
                 $pushParams = static::getProductParams($rec->productId);
@@ -2208,6 +2232,7 @@ class cat_Boms extends core_Master
                 <tr><td style='font-weight:normal'>|Себестойност|*:</td><td>[#primeCost#]</td></tr>
                 <!--ET_BEGIN primeCostWithOverheadCost--><tr><td style='font-weight:normal'>|С реж. разходи|*:</td><td>[#primeCostWithOverheadCost#]</td></tr><!--ET_END primeCostWithOverheadCost-->
                 <!--ET_BEGIN expenses--><tr><td style='font-weight:normal'>|Режийни разходи|*:</td><td>[#expenses#]</td></tr><!--ET_END expenses-->
+                <!--ET_BEGIN transferNotes--><tr><td style='font-weight:normal'>|Пренасяне на забележки в ПП|*:</td><td>[#transferNotes#]</td></tr><!--ET_END transferNotes-->
                 <tr><td style='font-weight:normal' colspan='2'><b>[#isComplete#]</b></td></tr>
                 </table>"));
 

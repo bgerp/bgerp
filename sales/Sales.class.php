@@ -450,11 +450,11 @@ class sales_Sales extends deals_DealMaster
         $rec = $form->rec;
 
         $myCompany = crm_Companies::fetchOwnCompany();
-        $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', true);
+        $options = bank_Accounts::getContragentIbans($myCompany->companyId ?? null, 'crm_Companies', true);
         $mvc->invoke('AfterGetOwnAccountOptions', array($form, &$options));
 
         // Ако няма ръчно избрана БС гледа се последно избраната в папката
-        $defaultBankAccountId = $rec->bankAccountId;
+        $defaultBankAccountId = $rec->bankAccountId ?? null;
         if(empty($rec->bankAccountId)) {
             $lastSelectedBankAccountId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'bankAccountId', 'lastDocUser|lastDoc');
             if(!empty($lastSelectedBankAccountId)){
@@ -467,16 +467,16 @@ class sales_Sales extends deals_DealMaster
             }
         }
 
-        if(!array_key_exists($rec->bankAccountId, $options)){
+        if(!array_key_exists($rec->bankAccountId ?? null, $options)){
             if($data->action != 'clone'){
-                $options[$rec->bankAccountId] = $rec->bankAccountId;
+                $options[$rec->bankAccountId ?? null] = $rec->bankAccountId ?? null;
             } else {
                 $query = $mvc->getQuery();
                 $query->where("#state != 'rejected'");
                 $query->in("bankAccountId", array_keys($options));
                 $query->orderBy("id", 'DESC');
                 $query->limit(1);
-                $defaultBankAccountId = $query->fetch()->bankAccountId;
+                $defaultBankAccountId = $query->fetch()->bankAccountId ?? null;
                 if(!empty($rec->bankAccountId) && $rec->bankAccountId != $defaultBankAccountId){
                     $form->setWarning('bankAccountId', "Банковата сметка е сменена, защото оригиналната не може да се използва|*: <b>" . bank_OwnAccounts::getTitleById(bank_OwnAccounts::fetchField("#bankAccountId = {$rec->bankAccountId}")) . "</b>");
                 }
@@ -562,10 +562,10 @@ class sales_Sales extends deals_DealMaster
         $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($rec->contragentClassId, $rec->contragentId));
         
         // Ако е първата продажба в папката, задава банковата сметка по подразбиране за съответна държава
-        if ($rec->folderId) {
+        if (!empty($rec->folderId)) {
             if (!doc_Containers::fetch(array("#docClass = '[#1#]' AND #folderId = '[#2#]'", $mvc->getClassId(), $rec->folderId))) {
                 $cData = doc_Folders::getContragentData($rec->folderId);
-                if ($cData->countryId) {
+                if (!empty($cData->countryId)) {
                     $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
                     if ($defBankId) {
                         $form->setDefault('bankAccountId', $defBankId);
@@ -1252,7 +1252,7 @@ class sales_Sales extends deals_DealMaster
      */
     public function getDefaultTemplate_($rec)
     {
-        $cData = doc_Folders::getContragentData($rec->folderId);
+        $cData = empty($rec->folderId) ? null : doc_Folders::getContragentData($rec->folderId);
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
         
         $conf = core_Packs::getConfig('sales');
