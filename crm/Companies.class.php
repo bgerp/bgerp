@@ -589,7 +589,7 @@ class crm_Companies extends core_Master
 
         if (empty($form->rec->name)) {
 
-            $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
+            $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : ($form->rec->uicId ?? null);
             // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
             if(!empty($cDataSource)){
                 if($cData = self::getCompanyDataFromString($cDataSource)){

@@ -83,7 +83,7 @@ class type_Time extends type_Varchar
         }
         
         if (is_numeric($val)) {
-            switch ($this->params['uom']) {
+            switch ($this->params['uom'] ?? null) {
                 case 'years':
                     $val = $val * 12 * core_DateTime::SECONDS_IN_MONTH;
                     break;

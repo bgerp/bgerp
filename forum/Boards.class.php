@@ -676,7 +676,7 @@ class forum_Boards extends core_Master
     public function on_AfterRenderWrapping($mvc, &$tpl, $content, $data = null)
     {
         $tpl->push('forum/tpl/styles.css', 'CSS');
-        if ($data->navigation) {
+        if (!empty($data->navigation)) {
             $tpl->replace($this->renderNavigation($data), 'NAVIGATION');
         }
     }

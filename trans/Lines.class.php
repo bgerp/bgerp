@@ -993,7 +993,7 @@ class trans_Lines extends core_Master
             $query->where("#createdBy = {$cu} AND #state != 'rejected'");
             $query->orderBy("#createdOn", 'DESC');
             $query->show('folderId');
-            $folderId = $query->fetch()->folderId;
+            $folderId = $query->fetch()->folderId ?? null;
         }
         if(isset($folderId)) return $folderId;
 

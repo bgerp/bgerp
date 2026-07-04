@@ -324,7 +324,7 @@ class label_Prints extends core_Master
         }
         
         // Показваме допълнителните полета за плейсхолдерите
-        if ($rec->templateId) {
+        if (!empty($rec->templateId)) {
             $lang = label_Templates::fetchField($rec->templateId, 'lang');
             
             core_Lg::push($lang);

@@ -327,7 +327,7 @@ class blast_Lists extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'edit' || $action == 'delete') && $rec->state != 'draft' && isset($rec->state)) {
+        if (($action == 'edit' || $action == 'delete') && isset($rec->state) && $rec->state != 'draft') {
             $roles = 'no_one';
         }
 

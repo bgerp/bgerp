@@ -155,7 +155,7 @@ class cond_DeliveryTerms extends core_Master
     {
         $form = &$data->form;
         
-        if ($form->rec->createdBy == core_Users::SYSTEM_USER) {
+        if (($form->rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
             $form->setReadOnly('codeName');
             foreach (array('term', 'forSeller', 'forBuyer', 'transport', 'address') as $fld) {
                 $form->setField($fld, 'input=none');

@@ -317,7 +317,7 @@ class blogm_Articles extends core_Master
     {
         $form = $data->form;
         
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('author', core_Users::getCurrent('nick'));
             $form->setDefault('commentsMode', 'confirmation');
         }
