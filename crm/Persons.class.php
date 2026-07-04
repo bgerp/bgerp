@@ -2002,7 +2002,7 @@ class crm_Persons extends core_Master
     {
         $form = &$data->form;
 
-        if ($form->rec->buzCompanyId) {
+        if (!empty($form->rec->buzCompanyId)) {
             $form->title = core_Detail::getEditTitle('crm_Companies', $form->rec->buzCompanyId, 'представител', $form->rec->id);
         }
     }
