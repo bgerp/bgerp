@@ -467,16 +467,16 @@ class sales_Sales extends deals_DealMaster
             }
         }
 
-        if(!array_key_exists($rec->bankAccountId, $options)){
+        if(!array_key_exists($rec->bankAccountId ?? null, $options)){
             if($data->action != 'clone'){
-                $options[$rec->bankAccountId] = $rec->bankAccountId;
+                $options[$rec->bankAccountId ?? null] = $rec->bankAccountId ?? null;
             } else {
                 $query = $mvc->getQuery();
                 $query->where("#state != 'rejected'");
                 $query->in("bankAccountId", array_keys($options));
                 $query->orderBy("id", 'DESC');
                 $query->limit(1);
-                $defaultBankAccountId = $query->fetch()->bankAccountId;
+                $defaultBankAccountId = $query->fetch()->bankAccountId ?? null;
                 if(!empty($rec->bankAccountId) && $rec->bankAccountId != $defaultBankAccountId){
                     $form->setWarning('bankAccountId', "Банковата сметка е сменена, защото оригиналната не може да се използва|*: <b>" . bank_OwnAccounts::getTitleById(bank_OwnAccounts::fetchField("#bankAccountId = {$rec->bankAccountId}")) . "</b>");
                 }
