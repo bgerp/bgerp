@@ -489,6 +489,8 @@ class doc_UnsortedFolders extends core_Master
         $queryContainers->where("#folderId = '{$folderData->folderId}' AND #docClass = '{$idTaskDoc}'");
         
         $resTask = array();
+        $forTask = (object) array('recs' => array());
+        $i = 0;
         while ($recContainers = $queryContainers->fetch()) {
             $queryTasks->where("#folderId = '{$folderData->folderId}' AND (#state = 'waiting' OR #state = 'active' OR #state = 'closed')");
             $recs = array();
@@ -853,10 +855,11 @@ class doc_UnsortedFolders extends core_Master
      */
     public function prepareContragentUnsortedFolders($data)
     {
+        $data->recs = $data->rows = array();
+
         $folderId = $data->masterData->rec->folderId;
         if(empty($folderId)) return;
 
-        $data->recs = $data->rows = array();
         $query = self::getQuery();
         $query->where("#contragentFolderId = {$data->masterData->rec->folderId}");
         while($rec = $query->fetch()){
