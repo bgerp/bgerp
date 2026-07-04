@@ -636,7 +636,9 @@ class crm_Companies extends core_Master
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
         if (!Request::get('id') && $country = Request::get('country')) {
-            if (($tel = Request::get('tel')) || ($fax = Request::get('fax'))) {
+            $tel = Request::get('tel');
+            $fax = Request::get('fax');
+            if ($tel || $fax) {
                 $code = drdata_Countries::fetchField($country, 'telCode');
                 if ($tel) {
                     $tel1 = drdata_PhoneType::setCodeIfMissing($tel, $code);
