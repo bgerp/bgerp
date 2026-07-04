@@ -342,7 +342,7 @@ class cond_plg_DefaultValues extends core_Plugin
     private static function getFromClientCondition(core_Mvc $mvc, $rec, $name)
     {
         $fld = $mvc->fields[$name];
-        if (isset($fld->salecondSysId)) {
+        if (isset($fld->salecondSysId) && !empty($rec->folderId)) {
             $cId = doc_Folders::fetchCoverId($rec->folderId);
             $Class = doc_Folders::fetchCoverClassId($rec->folderId);
             

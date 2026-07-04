@@ -347,24 +347,24 @@ class blast_Lists extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             $data->form->setReadonly('keyField');
         }
 
-        if (!$data->form->rec->fields) {
+        if (empty($data->form->rec->fields)) {
             $template = new ET(getFileContent('blast/tpl/ListsEditFormTemplates.txt'));
             $data->form->rec->fields = $template->getContent();
         }
-        
-        if (!$data->form->rec->id) {
+
+        if (empty($data->form->rec->id)) {
             $data->form->setDefault('lg', core_Lg::getCurrent());
         }
         $data->form->input('keyField');
-        
+
         //Добавя в лист само списъци с имейли
         $query = $mvc->getQuery();
         $kField = 'email';
-        $kField = $data->form->rec->keyField ? $data->form->rec->keyField : 'email';
+        $kField = !empty($data->form->rec->keyField) ? $data->form->rec->keyField : 'email';
         $query->where(array("#keyField = '[#1#]'", $kField));
         $query->where("#state != 'rejected'");
         $query->orderBy('createdOn', 'DESC');

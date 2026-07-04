@@ -196,11 +196,11 @@ class label_Prints extends core_Master
         $form = $data->form;
         $rec = $form->rec;
         
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $form->title = 'Създаване на етикет';
         }
-        
-        if ($rec->classId && $rec->objectId) {
+
+        if (!empty($rec->classId) && !empty($rec->objectId)) {
             $form->title = 'Създаване на етикет към|* ' . cls::get($rec->classId)->getLabelSourceLink($rec->objectId);
         }
     }
@@ -231,7 +231,7 @@ class label_Prints extends core_Master
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
             
             $lang = '';
-            if ($rec->templateId) {
+            if (!empty($rec->templateId)) {
                 $lang = label_Templates::fetchField($rec->templateId, 'lang');
             }
             core_Mode::push('prepareLabel', true);
@@ -385,7 +385,7 @@ class label_Prints extends core_Master
             $form->input(null, true);
         }
 
-        if ($rec->templateId) {
+        if (!empty($rec->templateId)) {
             // Трябва да има зададена медия за шаблона
             $mediaArr = label_Templates::getMediaForTemplate($rec->templateId);
 
@@ -565,7 +565,7 @@ class label_Prints extends core_Master
         }
 
         // Попълваме стойностите на плейсхолдерите
-        if ($rec->templateId) {
+        if (!empty($rec->templateId)) {
             $oldDataArr = array();
             
             // Ако редактираме записа
@@ -638,7 +638,7 @@ class label_Prints extends core_Master
         }
         
         // Рендираме изглед, ако има параметри
-        if ($rec->templateId) {
+        if (!empty($rec->templateId)) {
             $renderView = false;
             
             if ($rec->id) {
@@ -686,7 +686,7 @@ class label_Prints extends core_Master
         
         // Да се махат стойността от параметрите при рефрешване
         if (empty($refreshForm)) {
-            if ($rec->templateId) {
+            if (!empty($rec->templateId)) {
                 $fncForm = cls::get('core_Form');
                 
                 // Вземаме функционалните полета за типа
@@ -947,7 +947,7 @@ class label_Prints extends core_Master
             }
         }
         
-        if ($rec->templateId) {
+        if (!empty($rec->templateId)) {
             if (label_Templates::haveRightFor('single', $rec->templateId)) {
                 $row->templateId = label_Templates::getLinkToSingle($rec->templateId, 'title');
             }
