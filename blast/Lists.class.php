@@ -368,7 +368,7 @@ class blast_Lists extends core_Master
         $query->where(array("#keyField = '[#1#]'", $kField));
         $query->where("#state != 'rejected'");
         $query->orderBy('createdOn', 'DESC');
-        if ($data->form->rec->id) {
+        if (!empty($data->form->rec->id)) {
             $query->where(array("#id != '[#1#]'", $data->form->rec->id));
         }
         $lists = array();

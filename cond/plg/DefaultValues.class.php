@@ -193,7 +193,7 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     private static function getFromLastDocUser(core_Mvc $mvc, $rec, $name)
     {
-        return self::getFromLastDocument($mvc, $rec->folderId, $name);
+        return self::getFromLastDocument($mvc, $rec->folderId ?? null, $name);
     }
 
 
@@ -208,7 +208,7 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     private static function getFromLastDoc(core_Mvc $mvc, $rec, $name)
     {
-        return self::getFromLastDocument($mvc, $rec->folderId, $name, false);
+        return self::getFromLastDocument($mvc, $rec->folderId ?? null, $name, false);
     }
 
 
@@ -262,6 +262,8 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     public static function getFromLastDocSameCountry(core_Mvc $mvc, $rec, $name)
     {
+        if (empty($rec->folderId)) return;
+
         // Информацията за текущия контрагент
         $cData = doc_Folders::getContragentData($rec->folderId);
         
@@ -365,7 +367,7 @@ class cond_plg_DefaultValues extends core_Plugin
         if (!isset($mvc->_cachedContragentData)) {
             
             // Ако документа няма такъв метод, се взимат контрагент данните от корицата
-            $data = self::getCoverMethod($rec->folderId, 'getContragentData');
+            $data = self::getCoverMethod($rec->folderId ?? null, 'getContragentData');
             if (empty($data)) {
                 
                 return;
@@ -407,7 +409,7 @@ class cond_plg_DefaultValues extends core_Plugin
     {
         $name = "getDefault{$name}";
         
-        return self::getCoverMethod($rec->folderId, $name);
+        return self::getCoverMethod($rec->folderId ?? null, $name);
     }
     
     

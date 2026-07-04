@@ -224,9 +224,10 @@ class label_Prints extends core_Master
         $objId = $rec->objectId ?? null;
         
         $labelDataArr = array();
-        
+        $intfInst = null;
+
         $oLang = core_Lg::getCurrent();
-        
+
         if (isset($classId, $objId)) {
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
             
