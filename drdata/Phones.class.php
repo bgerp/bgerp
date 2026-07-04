@@ -167,16 +167,17 @@ class drdata_Phones extends core_Manager
             $from = array(' fax', ' факс', ' f.', ' ф.', ' Fax',  ' Факс',  ' F.', ' Ф.', ' FAX', ' ФАКС',
                 ' Mob', ' mob', ' m.', ' m ', ' моб', ' Моб', ' Тел.', ' тел.', '+');
             
-            if ($defaultCountryCode) {
-                $from[] = ' 00' . $defaultCountryCode;
-                $from[] = ' 00 ' . $defaultCountryCode;
+            if ($dCC) {
+                $from[] = ' 00' . $dCC;
+                $from[] = ' 00 ' . $dCC;
             }
-            if ($defaultAreaCode) {
-                $from[] = ' 0' . $defaultAreaCode;
+            if ($dAC) {
+                $from[] = ' 0' . $dAC;
             }
             
             $sepArr = array(';', ',', ' ', '.', '/', '\\');      // възможни сепаратори
-            
+
+            $test = array();
             foreach ($sepArr as $sep) {
                 $to = array();
                 foreach ($from as $c) {
