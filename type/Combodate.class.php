@@ -193,11 +193,12 @@ class type_Combodate extends type_Varchar
     public static function toArray($cDate)
     {
         $div = self::DIV;
-        
+
+        $y = $m = $d = null;
         if ($cDate) {
             list($y, $m, $d) = explode($div, $cDate);
         }
-        
+
         if (strlen($d) > 2) {
             $t = $d;
             $d = $y;
