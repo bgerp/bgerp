@@ -871,19 +871,19 @@ class crm_Companies extends core_Master
                 $form->setWarning($fields, $resStr);
             }
             
-            if ($rec->place) {
+            if (!empty($rec->place)) {
                 $rec->place = bglocal_Address::canonizePlace($rec->place);
             }
-            
-            if ($rec->regCompanyFileYear && $rec->regDecisionDate) {
+
+            if (!empty($rec->regCompanyFileYear) && !empty($rec->regDecisionDate)) {
                 $dYears = abs($rec->regCompanyFileYear - (int) $rec->regDecisionDate);
-                
+
                 if ($dYears > 1) {
                     $form->setWarning('regCompanyFileYear,regDecisionDate', 'Годината на регистрацията на фирмата и фирменото дело се различават твърде много.');
                 }
             }
-            
-            if ($rec->vatId) {
+
+            if (!empty($rec->vatId)) {
                 if (empty($rec->uicId)) {
                     $rec->uicId = drdata_Vats::getUicByVatNo($rec->vatId);
                 }
