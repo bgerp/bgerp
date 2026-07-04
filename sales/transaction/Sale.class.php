@@ -89,7 +89,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             $rec->_newCurrencyRate = $newRate;
         }
 
-        $actions = type_Set::toArray($rec->contoActions);
+        $actions = type_Set::toArray($rec->contoActions ?? null);
         $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
 
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
