@@ -562,7 +562,7 @@ class sales_Sales extends deals_DealMaster
         $form->setOptions('priceListId', array('' => '') + price_Lists::getAccessibleOptions($rec->contragentClassId, $rec->contragentId));
         
         // Ако е първата продажба в папката, задава банковата сметка по подразбиране за съответна държава
-        if ($rec->folderId) {
+        if (!empty($rec->folderId)) {
             if (!doc_Containers::fetch(array("#docClass = '[#1#]' AND #folderId = '[#2#]'", $mvc->getClassId(), $rec->folderId))) {
                 $cData = doc_Folders::getContragentData($rec->folderId);
                 if ($cData->countryId) {
@@ -1252,7 +1252,7 @@ class sales_Sales extends deals_DealMaster
      */
     public function getDefaultTemplate_($rec)
     {
-        $cData = doc_Folders::getContragentData($rec->folderId);
+        $cData = empty($rec->folderId) ? null : doc_Folders::getContragentData($rec->folderId);
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
         
         $conf = core_Packs::getConfig('sales');
