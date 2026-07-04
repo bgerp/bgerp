@@ -383,7 +383,7 @@ class store_Products extends core_Detail
                 }
             }
 
-            $filtersArr = bgerp_type_CustomFilter::toArray($data->listFilter->rec->filters);
+            $filtersArr = bgerp_type_CustomFilter::toArray($data->listFilter->rec->filters ?? '');
             cat_Products::applyAdditionalListFilters($filtersArr, $data->query, 'productId', 'pState');
 
             if(!empty($rec->horizon)){
