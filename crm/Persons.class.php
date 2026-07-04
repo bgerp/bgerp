@@ -880,7 +880,7 @@ class crm_Persons extends core_Master
         }
 
         // Ако има променена служебна фирма и тя има търговско условие за доставка, то ще се прехвърли към клиента
-        if (isset($rec->buzCompanyId) && $rec->_exBuzCompanyId != $rec->buzCompanyId) {
+        if (isset($rec->buzCompanyId) && ($rec->_exBuzCompanyId ?? null) != $rec->buzCompanyId) {
             $listId = cond_Parameters::getParameter(crm_Companies::getClassId(), $rec->buzCompanyId, 'employeesList');
             if ($listId) {
                 $mvc->updatedListsOnShutdown[$id] = $listId;
@@ -1978,7 +1978,7 @@ class crm_Persons extends core_Master
             $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));
         }
 
-        if (!$form->rec->id && $form->rec->buzCompanyId && isset($_GET['buzCompanyId'])) {
+        if (empty($form->rec->id) && !empty($form->rec->buzCompanyId) && isset($_GET['buzCompanyId'])) {
             $form->setReadOnly('buzCompanyId');
         }
 
