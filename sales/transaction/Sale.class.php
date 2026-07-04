@@ -101,11 +101,11 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
         }
 
-        if ($rec->doTransaction != 'no' && ($actions['ship'] || $actions['pay'])) {
-            
+        if (($rec->doTransaction ?? 'yes') != 'no' && (!empty($actions['ship']) || !empty($actions['pay']))) {
+
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
-            
-            if ($actions['ship']) {
+
+            if (!empty($actions['ship'])) {
                 $entriesProduction = self::getProductionEntries($rec, $this->class);
                 if (countR($entriesProduction)) {
                     $entries = array_merge($entries, $entriesProduction);
@@ -134,7 +134,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 }
             }
             
-            if ($actions['pay']) {
+            if (!empty($actions['pay'])) {
                 // Продажбата играе роля и на платежен документ (ПКО)
                 // Записите от тип 3 (получаване на плащане)
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
