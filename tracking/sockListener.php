@@ -80,7 +80,7 @@ function toHex ($str)
     $res = '';
     
     for ($i = 0; $i<strlen($str); $i++) {
-        $input = dechex(ord($str{$i}));
+        $input = dechex(ord($str[$i]));
 //      $res .= str_pad($input, 2, "0", STR_PAD_LEFT) . " ";
         $res .= str_pad($input, 2, "0", STR_PAD_LEFT);
     }
