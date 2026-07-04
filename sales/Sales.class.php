@@ -565,7 +565,7 @@ class sales_Sales extends deals_DealMaster
         if (!empty($rec->folderId)) {
             if (!doc_Containers::fetch(array("#docClass = '[#1#]' AND #folderId = '[#2#]'", $mvc->getClassId(), $rec->folderId))) {
                 $cData = doc_Folders::getContragentData($rec->folderId);
-                if ($cData->countryId) {
+                if (!empty($cData->countryId)) {
                     $defBankId = bank_OwnAccounts::getDefaultIdForCountry($cData->countryId);
                     if ($defBankId) {
                         $form->setDefault('bankAccountId', $defBankId);
