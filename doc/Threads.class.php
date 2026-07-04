@@ -2034,7 +2034,7 @@ class doc_Threads extends core_Manager
         }
         
         // Нишката е видима за партньори, само ако първият документ не е оттеглен, чернова и е от типа, който дава видимост
-        if ($firstDcRec->visibleForPartners != 'yes') {
+        if (!$firstDcRec || $firstDcRec->visibleForPartners != 'yes') {
             $rec->visibleForPartners = 'no';
             $rec->partnerDocCnt = 0;
         } else {
