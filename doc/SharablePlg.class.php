@@ -84,7 +84,7 @@ class doc_SharablePlg extends core_Plugin
                     }
                     
                     // Вземаме споделените потребители
-                    $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
+                    $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name ?? null);
                     if (empty($sharedUsersArr)) {
                         continue;
                     }
