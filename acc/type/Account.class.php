@@ -143,7 +143,7 @@ class acc_type_Account extends type_Key
                 
                 // От опциите махаме групите на сметките, ако в тях не са останали сметки
                 foreach ($resetArr as $i => $v) {
-                    $vNext = $resetArr[$i + 1];
+                    $vNext = $resetArr[$i + 1] ?? null;
                     
                     // Ако текущото предложение е група и след нея следва друга група, я махаме
                     if (is_object($v) && (is_object($vNext) || !$vNext)) {
