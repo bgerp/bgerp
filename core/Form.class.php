@@ -1174,7 +1174,7 @@ class core_Form extends core_FieldSet
                     
                     $unit = $fUnit ? ('&nbsp;' . $fUnit) : '';
                     if($originalCaption == '@'){
-                       $mandatoryClass = ($field->mandatory) ? 'mandatoryNoCaptionField' : '';
+                       $mandatoryClass = (!empty($field->mandatory)) ? 'mandatoryNoCaptionField' : '';
                        $tdHtml = "<td class='formFieldCaption'>{$caption}</td><td class='formElement[#{$field->name}_INLINETO_CLASS#] noCaptionElement {$mandatoryClass}'>[#{$field->name}#]{$unit}</td>";
                     } else {
                        $tdHtml = "<td class='formFieldCaption'>{$caption}:</td><td class='formElement[#{$field->name}_INLINETO_CLASS#]'>[#{$field->name}#]{$unit}</td>";
@@ -1191,7 +1191,7 @@ class core_Form extends core_FieldSet
 
                 // Добавяме rowCaption
                 if (!empty($rowCaption)) {
-                    $mandatoryClass = ($field->mandatory) ? 'mandatoryMiddleCaption' : '';
+                    $mandatoryClass = (!empty($field->mandatory)) ? 'mandatoryMiddleCaption' : '';
                     if (Mode::is('screenMode', 'narrow')) {
                         $fld->prepend(new ET("\n<tr class='filed-{$name} {$fsRow1}'{$rowStyle}><td colspan=2 class='{$mandatoryClass}'><div class='formMiddleCaption'>{$rowCaption}</div></td></tr>"));
                     } else {
