@@ -782,7 +782,7 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterCanUseClosedItems($mvc, &$res, $id)
     {
         if (!$res) {
-            $res = ($mvc->canUseClosedItems === true) ? true : false;
+            $res = (($mvc->canUseClosedItems ?? null) === true) ? true : false;
         }
     }
     
