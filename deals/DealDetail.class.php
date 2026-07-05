@@ -322,7 +322,7 @@ abstract class deals_DealDetail extends doc_Detail
 
             if (isset($mvc->LastPricePolicy)) {
                 $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
-                if ($policyInfoLast->price != 0) {
+                if (($policyInfoLast->price ?? 0) != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
             }
