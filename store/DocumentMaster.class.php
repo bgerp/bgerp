@@ -351,7 +351,7 @@ abstract class store_DocumentMaster extends core_Master
         $origin = $mvc::getOrigin($rec);
 
         // Ако документа е клониран пропуска се
-        if ($rec->_isClone === true) {
+        if (($rec->_isClone ?? null) === true) {
             
             return;
         }
