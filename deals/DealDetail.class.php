@@ -301,7 +301,7 @@ abstract class deals_DealDetail extends doc_Detail
         if (!empty($rec->productId)) {
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('packagingId', 'input');
