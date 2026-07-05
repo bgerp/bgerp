@@ -242,7 +242,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
         
         $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
 
-        if (countR($rec->details)) {
+        if (countR($rec->details ?? null)) {
 
             foreach ($rec->details as $det) {
                 if (!empty($det->baseQuantity)) {
