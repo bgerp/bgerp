@@ -110,7 +110,7 @@ class cms_plg_ContentSharable extends core_Plugin
             redirect(array('cms_Content'), false, 'Моля въведете поне една точка от менюто с източник');
         }
 
-        if ($form->rec->{$mvc->contentMenuFld} && !$menuOptions[$form->rec->{$mvc->contentMenuFld}]) {
+        if (($form->rec->{$mvc->contentMenuFld} ?? null) && !($menuOptions[$form->rec->{$mvc->contentMenuFld}] ?? null)) {
             $form->rec->{$mvc->contentMenuFld} = key($menuOptions);
         }
 
