@@ -786,7 +786,7 @@ class sales_TransportValues extends core_Manager
             $rec->fee = $feeArr['totalFee'];
         }
         
-        if ($rec->autoPrice !== true) {
+        if (($rec->autoPrice ?? null) !== true) {
             if (cond_DeliveryTerms::canCalcHiddenCost($masterRec->deliveryTermId, $rec->productId)) {
                 if (isset($rec->{$map['price']})) {
                     // Проверка дали цената е допустима спрямо сумата на транспорта
