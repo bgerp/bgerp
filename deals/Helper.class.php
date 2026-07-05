@@ -3209,7 +3209,7 @@ abstract class deals_Helper
                     $toleranceDiff = price_Lists::fetchField($var->listId, 'discountComparedShowAbove');
                 }
                 $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
-                $foundPrice = $var->price * (1 - $var->discount);
+                $foundPrice = $var->price * (1 - ($var->discount ?? 0));
                 
                 $price1Round = round($price, 5);
                 $price2Round = round($foundPrice, 5);
