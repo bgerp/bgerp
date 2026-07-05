@@ -386,6 +386,8 @@ class plg_StructureAndOrder extends core_Plugin
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         if (is_array($data->rows)) {
+            $lastRec = null;
+            $lastRow = null;
             foreach ($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
                 if ($f = ($mvc->saoTitleField ?? null)) {
