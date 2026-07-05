@@ -282,7 +282,7 @@ class store_Transfers extends core_Master
             $requiredRoles = 'no_one';
         }
 
-        if ($action == 'pending' && isset($rec) && $rec->id) {
+        if ($action == 'pending' && isset($rec) && ($rec->id ?? null)) {
             $Detail = cls::get($mvc->mainDetail);
             if (!$Detail->fetchField("#{$Detail->masterKey} = {$rec->id}")) {
                 $requiredRoles = 'no_one';
