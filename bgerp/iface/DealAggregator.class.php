@@ -64,7 +64,7 @@ class bgerp_iface_DealAggregator
     public function get($name)
     {
         // Връщаме стойността на пропъртито
-        return $this->{$name};
+        return $this->{$name} ?? null;
     }
     
     
