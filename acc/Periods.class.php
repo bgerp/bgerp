@@ -807,7 +807,7 @@ class acc_Periods extends core_Manager
         $period = self::fetchByDate($date);
         
         // Проверка дали периода е затворен
-        return $period->state == 'closed';
+        return ($period->state ?? null) == 'closed';
     }
     
     
