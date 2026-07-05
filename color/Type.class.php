@@ -88,7 +88,7 @@ class color_Type extends type_Varchar
         if ($value) {
             $value = $value;
         } else {
-            $value = $attr['value'];
+            $value = $attr['value'] ?? null;
         }
         
         return $this->createInput($name, $value, $attr);
