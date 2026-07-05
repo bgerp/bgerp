@@ -209,7 +209,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->rec->deduct == 'yes'){
+        if(($form->rec->deduct ?? null) == 'yes'){
             $form->setWarning('deduct', "Наистина ли искате да приспаднете количествата от заявката, която клонирате|*?");
         }
     }
