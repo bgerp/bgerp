@@ -89,13 +89,13 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             $rec->_newCurrencyRate = $newRate;
         }
 
-        $actions = type_Set::toArray($rec->contoActions);
+        $actions = type_Set::toArray($rec->contoActions ?? null);
         $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
-        
-        if ($actions['ship'] || $actions['pay']) {
+
+        if (!empty($actions['ship']) || !empty($actions['pay'])) {
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
-            
-            if ($actions['ship']) {
+
+            if (!empty($actions['ship'])) {
                 // Покупката играе роля и на складова разписка.
                 // Контирането е същото като при СР
                 
@@ -111,7 +111,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 }
             }
             
-            if ($actions['pay']) {
+            if (!empty($actions['pay'])) {
                 // покупката играе роля и на платежен документ (РКО)
                 // Записите от тип 3 (получаване на плащане)
                 $entries = array_merge($entries, $this->getPaymentPart($rec));

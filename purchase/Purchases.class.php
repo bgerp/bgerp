@@ -470,8 +470,8 @@ class purchase_Purchases extends deals_DealMaster
     public function pushDealInfo($id, &$result)
     {
         $rec = $this->fetchRec($id);
-        $actions = type_Set::toArray($rec->contoActions);
-        
+        $actions = type_Set::toArray($rec->contoActions ?? null);
+
         // Извличаме продуктите на покупката
         $dQuery = purchase_PurchasesDetails::getQuery();
         $dQuery->where("#requestId = {$rec->id}");
