@@ -250,13 +250,13 @@ class store_TransfersDetails extends doc_Detail
     {
         $rec = &$form->rec;
         
-        if ($rec->newProductId) {
+        if ($rec->newProductId ?? null) {
             $masterRec = store_Transfers::fetch($rec->transferId, 'fromStore,deliveryTime,valior');
             $deliveryDate = !empty($masterRec->deliveryTime) ? $masterRec->deliveryTime : $masterRec->valior;
-            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $masterRec->fromStore, $deliveryDate);
+            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->fromStore, $deliveryDate);
             $form->info = $storeInfo->formInfo;
             
-            $packs = cat_Products::getPacks($rec->newProductId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->newProductId, $rec->packagingId ?? null);
             $form->setField('packagingId', 'input');
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
