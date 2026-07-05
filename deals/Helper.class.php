@@ -879,7 +879,7 @@ abstract class deals_Helper
         $pRec = cat_Products::fetch($productId, 'canStore,isPublic');
 
         // Ако артикулът е с моментна рецепта няма да се проверява за наличност
-        if($mvc->manifactureProductsOnShipment) {
+        if($mvc->manifactureProductsOnShipment ?? null) {
             $lastInstantBom = cat_Products::getLastActiveBom($productId, 'instant');
             if(is_object($lastInstantBom)) {
                 $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, null, "class=doc-positive-quantity");
