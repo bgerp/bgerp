@@ -2925,7 +2925,7 @@ abstract class deals_Helper
     {
         $stRec = store_Products::fetch("#productId = '{$productId}' AND #storeId = {$storeId}", 'quantity');
 
-        return $stRec->quantity - $quantity;
+        return ($stRec->quantity ?? 0) - $quantity;
     }
 
 
