@@ -1642,7 +1642,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
         // Ако доставката е с явен транспорт, намира се максималния срок на доставка до мястото
         $defaultDeliveryTime = null;
-        if($rec->deliveryCalcTransport == 'no'){
+        if(($rec->deliveryCalcTransport ?? null) == 'no'){
             $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
             if(is_object($Calculator)){
                 $logisticData = $this->getLogisticData($rec);
