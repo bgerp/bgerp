@@ -271,7 +271,7 @@ class store_TransfersDetails extends doc_Detail
             }
             
             $pInfo = cat_Products::getProductInfo($rec->newProductId);
-            $rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->quantityInPack = !empty($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
             
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
         }
