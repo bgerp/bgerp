@@ -2832,7 +2832,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!Mode::is('calcOnlyDeliveryPart')) {
             $res["{$ownPart}Company"] = $ownCompany->name;
             $personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
-            $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($personId, 'names');
+            $res["{$ownPart}Person"] = !empty($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($personId, 'names');
             if($res["{$ownPart}Person"]){
                 $personId = crm_Profiles::getPersonByUser($personId);
                 if(isset($personId)){
