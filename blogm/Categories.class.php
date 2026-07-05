@@ -237,8 +237,8 @@ class blogm_Categories extends core_Manager
         $res = array();
         $query = self::getQuery();
         $menuId = Request::get('menuId', 'int');
-        if (!$menuId || strpos($rec->sharedMenus, "|{$menuId}|") === false) {
-            $menuId = (int) $rec->menuId;
+        if (!$menuId || strpos($rec->sharedMenus ?? '', "|{$menuId}|") === false) {
+            $menuId = (int) ($rec->menuId ?? 0);
         }
         if (!$menuId) {
             $menuId = cms_Content::getDefaultMenuId('blogm_Articles');

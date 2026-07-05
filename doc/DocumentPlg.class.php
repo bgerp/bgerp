@@ -2383,7 +2383,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        $saveBtnName = (haveRole('powerUser') && !((($mvc->canEditActivated ?? null) === true && in_array($rec->state, array('active', 'waiting', 'wakeup'))))) ? 'Чернова' : 'Запис';
+        $saveBtnName = (haveRole('powerUser') && !((($mvc->canEditActivated ?? null) === true && in_array($rec->state ?? null, array('active', 'waiting', 'wakeup'))))) ? 'Чернова' : 'Запис';
         $form->toolbar->renameBtn('save', $saveBtnName);
         
         if (isset($rec->state) && $rec->state == 'pending' && isset($rec->id)) {

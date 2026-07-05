@@ -162,7 +162,7 @@ class store_plg_StockPlanning extends core_Plugin
             if(in_array($rec->state, $mvc->updatePlannedStockOnChangeStates)){
                 store_StockPlanning::updateByDocument($mvc, $rec->id);
                 self::recalcOriginPlannedStocks($mvc, $rec);
-            } elseif(!in_array($rec->state, $mvc->updatePlannedStockOnChangeStates) && in_array($rec->{$mvc->exStateField}, $mvc->updatePlannedStockOnChangeStates)){
+            } elseif(!in_array($rec->state, $mvc->updatePlannedStockOnChangeStates) && in_array($rec->{$mvc->exStateField} ?? null, $mvc->updatePlannedStockOnChangeStates)){
                 store_StockPlanning::remove($mvc, $rec->id);
                 self::recalcOriginPlannedStocks($mvc, $rec);
             }

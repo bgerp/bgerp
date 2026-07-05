@@ -228,9 +228,9 @@ class change_Log extends core_Manager
         
         // Вземаме записа
         $rec = static::getRec($docClassId, $docId);
-        
+
         // Ако е масив
-        if (is_array($rec->value)) {
+        if ($rec && is_array($rec->value)) {
             
             // Обхождаме масива
             foreach ((array) $rec->value as $key => $value) {

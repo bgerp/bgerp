@@ -147,12 +147,12 @@ class acc_journal_EntrySide
         $this->amount = isset($data->amount)   ? floatval($data->amount) : null;
         $this->quantity = isset($data->quantity) ? floatval($data->quantity) : null;
         $this->price = isset($data->price)    ? floatval($data->price) : null;
-        $this->account = $data->account instanceof acc_journal_Account ? $data->account :
-        new acc_journal_Account($data->account);
-        
+        $this->account = ($data->account ?? null) instanceof acc_journal_Account ? $data->account :
+        new acc_journal_Account($data->account ?? null);
+
         $this->items = array();
-        
-        if (is_array($data->items)) {
+
+        if (is_array($data->items ?? null)) {
             foreach ($data->items as $item) {
                 $this->items[] = $item instanceof acc_journal_Item ? $item :
                 new acc_journal_Item($item);

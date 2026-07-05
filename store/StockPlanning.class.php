@@ -559,7 +559,7 @@ class store_StockPlanning extends core_Manager
                 $finalQuantity = isset($inStockArr[$productId]) ? $inStockArr[$productId] : 0;
 
                 // Ако има записи в хоризонтите се сумират движенията до текущата дата
-                if(is_array($plannedArr[$productId])){
+                if(is_array($plannedArr[$productId] ?? null)){
                     array_walk($plannedArr[$productId], function($totalMovement, $date) use ($currentDate, &$finalQuantity) {
 
                         // Ако датата е преди текущата добавя се към първоначалното налично

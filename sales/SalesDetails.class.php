@@ -190,7 +190,7 @@ class sales_SalesDetails extends deals_DealDetail
             
             if (isset($pInfo->meta['canStore']) && $masterRec->shipmentStoreId) {
                 $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
-                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->shipmentStoreId, $deliveryDate);
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->shipmentStoreId, $deliveryDate);
                 $form->info = $storeInfo->formInfo;
             }
         }
@@ -353,7 +353,7 @@ class sales_SalesDetails extends deals_DealDetail
         }
 
         // Синхронизиране на сумата на транспорта
-        if ($rec->syncFee === true) {
+        if (($rec->syncFee ?? null) === true) {
             sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
         }
     }

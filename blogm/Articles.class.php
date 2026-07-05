@@ -359,7 +359,7 @@ class blogm_Articles extends core_Master
         
         // Активиране на филтъра
         $recFilter = $data->listFilter->input(null, 'silent');
-        if (($cat = $recFilter->category) > 0) {
+        if (($cat = $recFilter->category ?? null) > 0) {
             $data->query->where("#categories LIKE '%|{$cat}|%'");
         } else {
             $data->query->likeKeylist('categories', keylist::fromArray($categories));

@@ -99,7 +99,10 @@ class sms_Sender extends core_Manager
         );
         
         // Променяме цвета на реда в зависимост от стойността на $row->status
-        $row->ROW_ATTR['style'] .= 'background-color: ' . $rowColors[$rec->status] . ';';
+        if (!isset($row->ROW_ATTR['style'])) {
+            $row->ROW_ATTR['style'] = '';
+        }
+        $row->ROW_ATTR['style'] .= 'background-color: ' . ($rowColors[$rec->status] ?? '#ffffff') . ';';
     }
     
     
@@ -116,7 +119,7 @@ class sms_Sender extends core_Manager
         
         $rec = $data->listFilter->input();
         
-        if ($rec->status) {
+        if ($rec->status ?? null) {
             $data->query->where("#status = '{$rec->status}'");
         }
         
