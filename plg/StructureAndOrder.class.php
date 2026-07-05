@@ -388,7 +388,7 @@ class plg_StructureAndOrder extends core_Plugin
         if (is_array($data->rows)) {
             foreach ($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
-                if ($f = $mvc->saoTitleField) {
+                if ($f = ($mvc->saoTitleField ?? null)) {
                     $row->{$f} = $mvc->saoGetTitle($rec, $row->{$f});
                 }
 
