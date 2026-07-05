@@ -286,6 +286,7 @@ class store_TransfersDetails extends doc_Detail
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             unset($data->toolbar->buttons['btnAdd']);
             $products = cat_Products::getByProperty('canStore', null, 1);
+            $error = null;
             if (!countR($products)) {
                 $error = 'error=Няма складируеми артикули, ';
             }
