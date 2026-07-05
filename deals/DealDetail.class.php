@@ -411,7 +411,7 @@ abstract class deals_DealDetail extends doc_Detail
             
             // Проверка на цената
             $msg = null;
-            if (!deals_Helper::isPriceAllowed($price, $rec->quantity, $rec->autoPrice, $msg)) {
+            if (!deals_Helper::isPriceAllowed($price, $rec->quantity, $rec->autoPrice ?? null, $msg)) {
                 $form->setError('packPrice,packQuantity', $msg);
             }
 
