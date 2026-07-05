@@ -116,7 +116,7 @@ class sms_Sender extends core_Manager
         
         $rec = $data->listFilter->input();
         
-        if ($rec->status) {
+        if ($rec->status ?? null) {
             $data->query->where("#status = '{$rec->status}'");
         }
         
