@@ -433,6 +433,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 $debitAccId = '701';
                 
                 $entries[] = array(
+                    'amount' => 0,
+
                     'debit' => array(
                         $debitAccId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
@@ -440,7 +442,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                         array('cat_Products', $detailRec->productId), // Перо 3 - Продукт
                         'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
                     ),
-                    
+
                     'credit' => array(
                         $creditAccId,
                         array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
