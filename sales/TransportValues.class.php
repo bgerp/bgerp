@@ -706,13 +706,14 @@ class sales_TransportValues extends core_Manager
             $rec->deliveryTimeFromFee = $cRec->deliveryTime;
         }
         
+        $countryId = null;
         if ($masterRec->deliveryAdress) {
             if ($parsePlace = drdata_Address::parsePlace($masterRec->deliveryAdress)) {
                 $countryId = $parsePlace->countryId;
                 $PCode = $parsePlace->pCode;
             }
         }
-        
+
         if (!$countryId) {
             $countryId = !empty($masterRec->{$map['countryId']}) ? $masterRec->{$map['countryId']} : null;
             $PCode = !empty($masterRec->pCode) ? $masterRec->pCode : null;
