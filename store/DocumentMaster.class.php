@@ -245,7 +245,7 @@ abstract class store_DocumentMaster extends core_Master
      */
     protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-        if ($form->rec->prevShipment) {
+        if ($form->rec->prevShipment ?? null) {
             $prevRec = $mvc->fetch($form->rec->prevShipment);
             foreach (explode('|', $form->fields['prevShipment']->removeAndRefreshForm) as $fName) {
                 $form->setDefault($fName, $prevRec->{$fName});
