@@ -1128,9 +1128,9 @@ class acc_Balances extends core_Master
                     $balImg = ($showIcon) ? 'ef_icon=img/16/filter.png,title=Разбивка по пера на сметката' : null;
                     
                     $title = ht::createLink(
-                        
+
                         $title,
-                        array('acc_Balances', 'single', $rec->id, 'accId' => $accountRec->id),
+                        array('acc_Balances', 'single', $rec->id ?? null, 'accId' => $accountRec->id),
                         
                         null,
                         
@@ -1146,7 +1146,7 @@ class acc_Balances extends core_Master
                         $title = ht::createLink(
                             
                             $title,
-                            array('acc_BalanceHistory', 'History', 'fromDate' => $rec->fromDate, 'toDate' => $rec->toDate, 'accNum' => $accountRec->num),
+                            array('acc_BalanceHistory', 'History', 'fromDate' => $rec->fromDate ?? null, 'toDate' => $rec->toDate ?? null, 'accNum' => $accountRec->num),
                             
                             null,
                             
