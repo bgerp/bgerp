@@ -64,7 +64,7 @@ class store_plg_Request extends core_Plugin
      */
     public static function on_AfterGetDetailsToCloneAndChange($mvc, &$res, $rec)
     {
-        if (!$rec->clonedFromId) return;
+        if (!($rec->clonedFromId ?? null)) return;
         if ($rec->state != 'active') return;
 
         core_Request::setProtected('showDiff');
