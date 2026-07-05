@@ -572,7 +572,7 @@ class purchase_Purchases extends deals_DealMaster
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId', 'autoDiscount', 'inputDiscount') as $fld) {
-                $p->{$fld} = $dRec->{$fld};
+                $p->{$fld} = $dRec->{$fld} ?? null;
             }
 
             if(Mode::is('isClosedWithDeal')){
