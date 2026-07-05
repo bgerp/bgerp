@@ -54,7 +54,7 @@ class plg_StructureAndOrder extends core_Plugin
         // По подразбиране задаваме позиция след
         $form->setDefault('saoPosition', 'next');
         
-        if ($rec->id) {
+        if ($rec->id ?? null) {
             $id = $rec->id;
         } else {
             $id = self::getOrSetLastId($mvc->className);
