@@ -577,7 +577,7 @@ class forum_Postings extends core_Detail
         $tpl->placeObject($data->row);
         
         // Ако има коментари ние ги рендираме
-        if (countR($data->postings)) {
+        if (countR($data->postings ?? null)) {
             $cloneTpl = clone($detailsTpl);
             
             foreach ($data->postings as $row) {
