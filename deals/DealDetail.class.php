@@ -226,7 +226,7 @@ abstract class deals_DealDetail extends doc_Detail
         }
 
         // Добавяне да се показва ценовата информация за стандартните артикули
-        $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'listId' => $masterRec->priceListId, 'currencyId' => $masterRec->currencyId, 'threadId' => $masterRec->threadId);
+        $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'listId' => $masterRec->priceListId ?? null, 'currencyId' => $masterRec->currencyId, 'threadId' => $masterRec->threadId);
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic', 'priceData' => $priceData));
 
         if (empty($rec->id)) {
