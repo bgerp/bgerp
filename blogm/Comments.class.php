@@ -429,12 +429,12 @@ class blogm_Comments extends core_Detail
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input($data->listFilter->showFields, 'silent');
         
-        if ($ip = $data->listFilter->rec->ip) {
+        if ($ip = ($data->listFilter->rec->ip ?? null)) {
             $ip = str_replace('*', '%', $ip);
             $data->query->where(array("#ip LIKE '[#1#]'", $ip));
         }
-        
-        if ($brid = $data->listFilter->rec->brid) {
+
+        if ($brid = ($data->listFilter->rec->brid ?? null)) {
             $data->query->where(array("#brid LIKE '[#1#]'", $brid));
         }
         

@@ -194,7 +194,7 @@ class store_plg_RequestDetail extends core_Plugin
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
         // Е записа е от натискане на бутона 'Заявено', обновява се заявеното
-        if ($rec->updateRequested === true) {
+        if (($rec->updateRequested ?? null) === true) {
             $rec->{$mvc->requestQuantityFieldName} = $rec->{$mvc->quantityFieldName};
             $mvc->save_($rec, $mvc->requestQuantityFieldName);
         }

@@ -213,7 +213,7 @@ abstract class store_DocumentMaster extends core_Master
         $prevShipmentArr = array('' => '');
         if (isset($rec->folderId)) {
             $sQuery = $mvc->getQuery();
-            $sQuery->where("#id != '{$rec->id}' AND #folderId = {$rec->folderId} AND #state != 'rejected' AND #state != 'draft'");
+            $sQuery->where("#id != '" . ($rec->id ?? 0) . "' AND #folderId = {$rec->folderId} AND #state != 'rejected' AND #state != 'draft'");
             $sQuery->orderBy('modifiedOn', 'DESC');
             $sQuery->limit(100);
 
@@ -245,7 +245,7 @@ abstract class store_DocumentMaster extends core_Master
      */
     protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
-        if ($form->rec->prevShipment) {
+        if ($form->rec->prevShipment ?? null) {
             $prevRec = $mvc->fetch($form->rec->prevShipment);
             foreach (explode('|', $form->fields['prevShipment']->removeAndRefreshForm) as $fName) {
                 $form->setDefault($fName, $prevRec->{$fName});
@@ -351,7 +351,7 @@ abstract class store_DocumentMaster extends core_Master
         $origin = $mvc::getOrigin($rec);
 
         // Ако документа е клониран пропуска се
-        if ($rec->_isClone === true) {
+        if (($rec->_isClone ?? null) === true) {
             
             return;
         }
@@ -624,7 +624,7 @@ abstract class store_DocumentMaster extends core_Master
         
         $rec = &$data->rec;
         if (empty($data->noTotal)) {
-            $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
+            $data->summary = deals_Helper::prepareSummary($this->_total ?? null, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
             $data->row = (object) ((array) $data->row + (array) $data->summary);
         }  elseif(!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
             $data->row->value = doc_plg_HidePrices::getBuriedElement();
@@ -1484,7 +1484,7 @@ abstract class store_DocumentMaster extends core_Master
 
         $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
 
-        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId, 'isReverse' => ($rec->isReverse == 'yes'), 'cashDiscount' => null);
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId), 'operationSysId' => $rec->operationSysId ?? null, 'isReverse' => (($rec->isReverse ?? null) == 'yes'), 'cashDiscount' => null);
     }
 
 
@@ -1526,6 +1526,6 @@ abstract class store_DocumentMaster extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         // Динамично рендиране на ДДС информацията
-        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats ?? null, $data->row);
     }
 }

@@ -402,7 +402,7 @@ class type_Key2 extends type_Int
 
                         $title = $title->title;
                     }
-                    if ($this->params['inputType'] == 'combo') {
+                    if (($this->params['inputType'] ?? null) == 'combo') {
                         $key = $title . ' (' . $key . ')';
                         $attr = array('value' => $key);
                         if (isset($class)) {
@@ -433,7 +433,7 @@ class type_Key2 extends type_Int
                     }
                 }
             }
-            if ($this->params['inputType'] == 'combo') {
+            if (($this->params['inputType'] ?? null) == 'combo') {
                 $res = array('content' => $select->getContent());
             }
         }

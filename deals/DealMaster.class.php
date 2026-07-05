@@ -1642,7 +1642,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
         // Ако доставката е с явен транспорт, намира се максималния срок на доставка до мястото
         $defaultDeliveryTime = null;
-        if($rec->deliveryCalcTransport == 'no'){
+        if(($rec->deliveryCalcTransport ?? null) == 'no'){
             $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
             if(is_object($Calculator)){
                 $logisticData = $this->getLogisticData($rec);
@@ -2152,7 +2152,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $tpl->removeBlock('INVOICE_DOWNPAYMENT_DEDUCTED_TH');
         }
 
-        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats ?? null, $data->row);
     }
     
     
@@ -2832,7 +2832,7 @@ abstract class deals_DealMaster extends deals_DealBase
         if(!Mode::is('calcOnlyDeliveryPart')) {
             $res["{$ownPart}Company"] = $ownCompany->name;
             $personId = ($rec->dealerId) ? $rec->dealerId : (($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy);
-            $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($personId, 'names');
+            $res["{$ownPart}Person"] = !empty($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($personId, 'names');
             if($res["{$ownPart}Person"]){
                 $personId = crm_Profiles::getPersonByUser($personId);
                 if(isset($personId)){

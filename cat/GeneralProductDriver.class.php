@@ -155,7 +155,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $res = array();
         
         // Ориджина е прототипа (ако има)
-        $originRecId = $rec->proto;
+        $originRecId = $rec->proto ?? null;
         if (isset($rec->proto)) {
             $classId = cat_Products::getClassId();
         }

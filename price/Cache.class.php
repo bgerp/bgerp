@@ -142,9 +142,9 @@ class price_Cache extends core_Manager
         $cond = "#listId = {$listId} AND #productId = {$productId}";
         
         $priceRec = self::fetch($cond, 'price,discount');
-        $discount = $priceRec->discount;
+        $discount = $priceRec->discount ?? null;
 
-        return $priceRec->price;
+        return $priceRec->price ?? null;
     }
     
     

@@ -54,7 +54,7 @@ class plg_StructureAndOrder extends core_Plugin
         // По подразбиране задаваме позиция след
         $form->setDefault('saoPosition', 'next');
         
-        if ($rec->id) {
+        if ($rec->id ?? null) {
             $id = $rec->id;
         } else {
             $id = self::getOrSetLastId($mvc->className);
@@ -162,7 +162,7 @@ class plg_StructureAndOrder extends core_Plugin
         $res = array();
         $removeIds = array();
         
-        if ($rId) {
+        if ($rec->id ?? null) {
             $removeIds[$rec->id] = $rec->id;
         }
         
@@ -171,7 +171,7 @@ class plg_StructureAndOrder extends core_Plugin
         if (is_array($items)) {
             foreach ($items as $iRec) {
                 if (countR($removeIds)) {
-                    if ($removeIds[$iRec->saoParentId]) {
+                    if ($removeIds[$iRec->saoParentId] ?? null) {
                         $removeIds[$iRec->id] = $iRec->id;
                         continue;
                     }
@@ -386,9 +386,11 @@ class plg_StructureAndOrder extends core_Plugin
     public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
     {
         if (is_array($data->rows)) {
+            $lastRec = null;
+            $lastRow = null;
             foreach ($data->rows as $id => &$row) {
                 $rec = $data->recs[$id];
-                if ($f = $mvc->saoTitleField) {
+                if ($f = ($mvc->saoTitleField ?? null)) {
                     $row->{$f} = $mvc->saoGetTitle($rec, $row->{$f});
                 }
 

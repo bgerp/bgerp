@@ -65,6 +65,7 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
             // Ако артикула е вложим сметка 321
             $accId = '321';
             $result->entries[] = array(
+                'amount' => 0,
                 'credit' => array($accId,
                     array('store_Stores', $rec->fromStore), // Перо 1 - Склад
                     array('cat_Products', $dRec->newProductId),  // Перо 2 - Артикул

@@ -577,7 +577,7 @@ class forum_Postings extends core_Detail
         $tpl->placeObject($data->row);
         
         // Ако има коментари ние ги рендираме
-        if (countR($data->postings)) {
+        if (countR($data->postings ?? null)) {
             $cloneTpl = clone($detailsTpl);
             
             foreach ($data->postings as $row) {
@@ -928,8 +928,8 @@ class forum_Postings extends core_Detail
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        if ($rec->themeId) {
-              
+        if ($rec->themeId ?? null) {
+
               // Ако постинга е коментар към тема, ние обновяваме, кой е последния коментар в нея
             $mvc->updateStatistics($rec->themeId, $rec->createdOn, $rec->createdBy);
         }

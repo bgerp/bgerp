@@ -30,7 +30,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
     {
         if (!$res) {
             $res = array();
-            if (!$rec->clonedFromId) return;
+            if (!($rec->clonedFromId ?? null)) return;
 
             $recs = array();
             $Detail = cls::get($mvc->mainDetail);
@@ -75,8 +75,8 @@ class deals_plg_EditClonedDetails extends core_Plugin
         $MainDetail = cls::get($mvc->mainDetail);
         $detailsToCloneArr = $mvc->getDetailsToCloneAndChange($rec);
 
-        $detailsToClone = $detailsToCloneArr['recs'];
-        $Detail = $detailsToCloneArr['detailMvc'];
+        $detailsToClone = $detailsToCloneArr['recs'] ?? null;
+        $Detail = $detailsToCloneArr['detailMvc'] ?? null;
 
         if (!countR($detailsToClone)) return;
 
@@ -209,7 +209,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if($form->rec->deduct == 'yes'){
+        if(($form->rec->deduct ?? null) == 'yes'){
             $form->setWarning('deduct', "Наистина ли искате да приспаднете количествата от заявката, която клонирате|*?");
         }
     }
@@ -242,7 +242,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
         
         $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
 
-        if (countR($rec->details)) {
+        if (countR($rec->details ?? null)) {
 
             foreach ($rec->details as $det) {
                 if (!empty($det->baseQuantity)) {

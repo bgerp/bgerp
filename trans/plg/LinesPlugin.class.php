@@ -634,12 +634,14 @@ class trans_plg_LinesPlugin extends core_Plugin
                 // Проверяват се датите
                 $now = dt::now();
                 $warnings = array();
-                foreach ($datesArr as $i => $dObj){
-                    if($i != 0){
-                        if($dObj['value'] < $datesArr[$i-1]['value']){
-                            $warnings[$dObj['key']][] = "Датата е преди|* " . '"|' . $datesArr[$i-1]['caption'] . '|*"';
+                $prevObj = null;
+                foreach ($datesArr as $dObj){
+                    if($prevObj !== null){
+                        if($dObj['value'] < $prevObj['value']){
+                            $warnings[$dObj['key']][] = "Датата е преди|* " . '"|' . $prevObj['caption'] . '|*"';
                         }
                     }
+                    $prevObj = $dObj;
 
                     if(in_array($rec->state, array('draft', 'pending'))){
                         if($dObj['compareDate'] < $now) {

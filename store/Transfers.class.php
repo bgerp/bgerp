@@ -282,7 +282,7 @@ class store_Transfers extends core_Master
             $requiredRoles = 'no_one';
         }
 
-        if ($action == 'pending' && isset($rec) && $rec->id) {
+        if ($action == 'pending' && isset($rec) && ($rec->id ?? null)) {
             $Detail = cls::get($mvc->mainDetail);
             if (!$Detail->fetchField("#{$Detail->masterKey} = {$rec->id}")) {
                 $requiredRoles = 'no_one';
@@ -384,10 +384,10 @@ class store_Transfers extends core_Master
         }
 
         // При редакция, ако няма права до склада, да е избрано
-        if ($data->form->rec->id) {
+        if ($data->form->rec->id ?? null) {
             foreach (array('fromStore', 'toStore') as $fName) {
                 $optArr = $data->form->fields[$fName]->type->prepareOptions();
-                if (!$optArr[$data->form->rec->{$fName}]) {
+                if (!($optArr[$data->form->rec->{$fName}] ?? null)) {
                     $data->form->setOptions($fName, array($data->form->rec->{$fName} => store_Stores::getVerbal($data->form->rec->{$fName}, 'name')));
                     $data->form->setDefault($fName, $data->form->rec->{$fName});
                 }

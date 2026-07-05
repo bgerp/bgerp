@@ -328,7 +328,7 @@ class hr_Departments extends core_Master
             $mode = 'replace';
         }
         
-        if ($rec->name != $myCompanyName) {
+        if (($rec->name ?? null) != $myCompanyName) {
             $rec->name = $myCompanyName;
             
             // Ако има дублиран запис, променяме името на предишния

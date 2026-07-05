@@ -511,7 +511,7 @@ class core_Array
         $nKey = '';
         
         foreach ($keyFields as $key) {
-            $nKey .= $rec->$key . '|';
+            $nKey .= ($rec->$key ?? null) . '|';
         }
         
         return $nKey;

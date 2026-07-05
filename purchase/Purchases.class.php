@@ -470,8 +470,8 @@ class purchase_Purchases extends deals_DealMaster
     public function pushDealInfo($id, &$result)
     {
         $rec = $this->fetchRec($id);
-        $actions = type_Set::toArray($rec->contoActions);
-        
+        $actions = type_Set::toArray($rec->contoActions ?? null);
+
         // Извличаме продуктите на покупката
         $dQuery = purchase_PurchasesDetails::getQuery();
         $dQuery->where("#requestId = {$rec->id}");
@@ -572,7 +572,7 @@ class purchase_Purchases extends deals_DealMaster
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId', 'autoDiscount', 'inputDiscount') as $fld) {
-                $p->{$fld} = $dRec->{$fld};
+                $p->{$fld} = $dRec->{$fld} ?? null;
             }
 
             if(Mode::is('isClosedWithDeal')){

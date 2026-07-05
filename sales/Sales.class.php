@@ -717,7 +717,7 @@ class sales_Sales extends deals_DealMaster
     public function pushDealInfo($id, &$result)
     {
         $rec = $this->fetchRec($id);
-        $actions = type_Set::toArray($rec->contoActions);
+        $actions = type_Set::toArray($rec->contoActions ?? null);
         $detailId = sales_SalesDetails::getClassId();
         
         // Извличаме продуктите на продажбата
@@ -1063,7 +1063,7 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($action == 'printfiscreceipt' && isset($rec)) {
-            $actions = type_Set::toArray($rec->contoActions);
+            $actions = type_Set::toArray($rec->contoActions ?? null);
 
             if (!(!empty($actions['ship']) && !empty($actions['pay']))) {
                 $res = 'no_one';
