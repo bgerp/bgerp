@@ -731,8 +731,12 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 
         core_Debug::stopTimer('FAST_PRODUCTION_ENTRIES');
         core_Debug::log("GET FAST_PRODUCTION_ENTRIES " . round(core_Debug::$timers["FAST_PRODUCTION_ENTRIES"]->workingTime, 6));
-        core_Debug::log("GET CALC_BATCH_DATA " . round(core_Debug::$timers["CALC_BATCH_DATA"]->workingTime, 6));
-        core_Debug::log("GET ALLOCATE_BATCH_DATA " . round(core_Debug::$timers["ALLOCATE_BATCH_DATA"]->workingTime, 6));
+        if (isset(core_Debug::$timers["CALC_BATCH_DATA"])) {
+            core_Debug::log("GET CALC_BATCH_DATA " . round(core_Debug::$timers["CALC_BATCH_DATA"]->workingTime, 6));
+        }
+        if (isset(core_Debug::$timers["ALLOCATE_BATCH_DATA"])) {
+            core_Debug::log("GET ALLOCATE_BATCH_DATA " . round(core_Debug::$timers["ALLOCATE_BATCH_DATA"]->workingTime, 6));
+        }
 
         return $entries;
     }
