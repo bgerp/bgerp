@@ -162,7 +162,7 @@ class plg_StructureAndOrder extends core_Plugin
         $res = array();
         $removeIds = array();
         
-        if ($rId) {
+        if ($rec->id ?? null) {
             $removeIds[$rec->id] = $rec->id;
         }
         
@@ -171,7 +171,7 @@ class plg_StructureAndOrder extends core_Plugin
         if (is_array($items)) {
             foreach ($items as $iRec) {
                 if (countR($removeIds)) {
-                    if ($removeIds[$iRec->saoParentId]) {
+                    if ($removeIds[$iRec->saoParentId] ?? null) {
                         $removeIds[$iRec->id] = $iRec->id;
                         continue;
                     }
