@@ -34,7 +34,7 @@ class bgerp_iface_DealAggregator
     public function setIfNot($name, $value)
     {
         // Ако няма стойност пропъртито, задаваме му първата стойност
-        if (empty($this->{$args[0]})) {
+        if (empty($this->{$name})) {
             $this->{$name} = $value;
         }
     }
