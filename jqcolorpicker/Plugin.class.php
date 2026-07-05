@@ -37,13 +37,14 @@ class jqcolorpicker_Plugin extends core_Plugin
             $options = $this->getDefaultOpt();
         }
         
+        $selected = null;
         if ($value) {
             $cObj = new color_Object($value);
             $hCol = $cObj->getHex();
             $options[substr($hCol, 1)] = $value;
             $selected = substr($hCol, 1);
         }
-        
+
         $tpl = ht::createSelect($name, $options, $selected, $attr);
         
         $tpl->push('jqcolorpicker/2.0/jquery.colourPicker.css', 'CSS');
