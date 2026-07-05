@@ -213,7 +213,7 @@ abstract class store_DocumentMaster extends core_Master
         $prevShipmentArr = array('' => '');
         if (isset($rec->folderId)) {
             $sQuery = $mvc->getQuery();
-            $sQuery->where("#id != '{$rec->id}' AND #folderId = {$rec->folderId} AND #state != 'rejected' AND #state != 'draft'");
+            $sQuery->where("#id != '" . ($rec->id ?? 0) . "' AND #folderId = {$rec->folderId} AND #state != 'rejected' AND #state != 'draft'");
             $sQuery->orderBy('modifiedOn', 'DESC');
             $sQuery->limit(100);
 
