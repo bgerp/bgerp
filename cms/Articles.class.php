@@ -167,7 +167,7 @@ class cms_Articles extends core_Master
             redirect(array('cms_Content'), false, '|Моля въведете поне един елемент от менюто');
         }
         
-        if (!$opt[$form->rec->menuId]) {
+        if (empty($form->rec->menuId) || !($opt[$form->rec->menuId] ?? null)) {
             $form->rec->menuId = key($opt);
         }
         
