@@ -198,7 +198,7 @@ class cms_Articles extends core_Master
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        if (trim($rec->body) && $fields['-list'] && $mvc->haveRightFor('show', $rec)) {
+        if (trim($rec->body) && ($fields['-list'] ?? null) && $mvc->haveRightFor('show', $rec)) {
             $row->title = ht::createLink($row->title, toUrl(self::getUrl($rec)), null, 
                 array('ef_icon' => 'img/16/monitor.png', 'title' => isset($rec->seoTitle) ? $rec->seoTitle : null));
         }
