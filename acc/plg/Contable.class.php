@@ -400,7 +400,7 @@ class acc_plg_Contable extends core_Plugin
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
                 // Само активни документи с транзакция и в незатворен период могат да се сторнират
-                if (($periodRec->state != 'closed') || ($rec->state != 'active' && $rec->state != 'closed') || empty($jRec)) {
+                if ((($periodRec->state ?? null) != 'closed') || ($rec->state != 'active' && $rec->state != 'closed') || empty($jRec)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -414,7 +414,7 @@ class acc_plg_Contable extends core_Plugin
                 $periodRec = acc_Periods::fetchByDate($valior);
                 
                 // Ако периода на вальора е затворен, забраняваме
-                if ($periodRec->state == 'closed' && $rec->state != 'draft') {
+                if (($periodRec->state ?? null) == 'closed' && $rec->state != 'draft') {
                     $requiredRoles = 'no_one';
                 } else {
                     
