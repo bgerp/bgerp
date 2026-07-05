@@ -624,7 +624,7 @@ abstract class store_DocumentMaster extends core_Master
         
         $rec = &$data->rec;
         if (empty($data->noTotal)) {
-            $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
+            $data->summary = deals_Helper::prepareSummary($this->_total ?? null, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
             $data->row = (object) ((array) $data->row + (array) $data->summary);
         }  elseif(!doc_plg_HidePrices::canSeePriceFields($this, $rec)) {
             $data->row->value = doc_plg_HidePrices::getBuriedElement();
@@ -1526,6 +1526,6 @@ abstract class store_DocumentMaster extends core_Master
     public static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         // Динамично рендиране на ДДС информацията
-        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats, $data->row);
+        deals_Helper::renderVatDataLayout($tpl, $mvc, $mvc->_total->vats ?? null, $data->row);
     }
 }

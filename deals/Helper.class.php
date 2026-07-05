@@ -284,29 +284,29 @@ abstract class deals_Helper
         // Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
         $arr = array();
         $values = (array) $values;
-        $arr['value'] = $values['amount'];
+        $arr['value'] = $values['amount'] ?? null;
         $arr['currencyId'] = $currencyId;                          // Валута на документа
-        
+
         $baseCurrency = acc_Periods::getBaseCurrencyCode($date);   // Основната валута
-        $arr['value'] = $values['amount']; 						   // Стойноста е сумираната от показваното на всеки ред
-        
-        if ($values['discount']) { 								// ако има отстъпка
+        $arr['value'] = $values['amount'] ?? null; 						   // Стойноста е сумираната от показваното на всеки ред
+
+        if ($values['discount'] ?? null) { 								// ако има отстъпка
             $arr['discountValue'] = $values['discount'];
             $arr['discountCurrencyId'] = $currencyId; 			// Валутата на отстъпката е тази на документа
-            
+
             $arr['neto'] = $arr['value'] - round($arr['discountValue'], 2); 	// Стойността - отстъпката
             $arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
             core_Lg::push($lang);
-            $arr['discountCaption'] = $values['haveAtleastOneDiscount'] ? tr('Отстъпка') : "<i class='quiet'>" . tr('Разлики от закръгляне') . "</i>";
+            $arr['discountCaption'] = ($values['haveAtleastOneDiscount'] ?? null) ? tr('Отстъпка') : "<i class='quiet'>" . tr('Разлики от закръгляне') . "</i>";
             core_Lg::pop();
         }
-        
+
         // Ако има нето, крайната сума е тази на нетото, ако няма е тази на стойността
         $arr['total'] = (isset($arr['neto'])) ? $arr['neto'] : $arr['value'];
-        
+
         $coreConf = core_Packs::getConfig('core');
         $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
-        $countVats = countR($values['vats']);
+        $countVats = countR($values['vats'] ?? null);
 
         if ($invoice || $chargeVat == 'separate') {
             $date = $date ?? dt::today();
@@ -315,7 +315,7 @@ abstract class deals_Helper
                 $baseCurrency = 'EUR';
             }
 
-            if (is_array($values['vats'])) {
+            if (is_array($values['vats'] ?? null)) {
                 foreach ($values['vats'] as $percent => $vi) {
                     if (is_object($vi)) {
                         $index = str_replace('.', '', abs($percent));
