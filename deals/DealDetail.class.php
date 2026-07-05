@@ -333,7 +333,7 @@ abstract class deals_DealDetail extends doc_Detail
                 if(empty($rec->id)){
                     $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
                     if($setWarning == 'yes'){
-                        $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
+                        $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '" . ($rec->id ?? 0) . "' AND #productId = {$rec->productId}");
                         if ($countSameProduct) {
                             $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*!');
                         }
