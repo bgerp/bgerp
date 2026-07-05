@@ -789,10 +789,10 @@ abstract class deals_Helper
                                 $d->deliveryTimeFromFee = min($d->deliveryTimeFromFee, $p->deliveryTimeFromFee);
                             }
                             
-                            if ($p->syncFee === true) {
+                            if (($p->syncFee ?? null) === true) {
                                 $d->syncFee = true;
                             }
-                            
+
                             $sign = ($parameter == 'arrays') ? 1 : -1;
                             $d->quantity += $sign * $p->quantity;
                             $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
@@ -805,12 +805,12 @@ abstract class deals_Helper
                             }
 
                             if (empty($d->packagingId)) {
-                                $d->packagingId = $p->packagingId;
-                                $d->quantityInPack = $p->quantityInPack;
+                                $d->packagingId = $p->packagingId ?? null;
+                                $d->quantityInPack = $p->quantityInPack ?? null;
                             } else {
-                                if ($p->quantityInPack < $d->quantityInPack) {
-                                    $d->packagingId = $p->packagingId;
-                                    $d->quantityInPack = $p->quantityInPack;
+                                if (($p->quantityInPack ?? null) < $d->quantityInPack) {
+                                    $d->packagingId = $p->packagingId ?? null;
+                                    $d->quantityInPack = $p->quantityInPack ?? null;
                                 }
                             }
                         }
