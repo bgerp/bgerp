@@ -770,7 +770,7 @@ abstract class deals_Helper
                                     $combined[$index]->notes = $p->notes;
                                 }
 
-                                if(is_array($p->batches)){
+                                if(is_array($p->batches ?? null)){
                                     $combined[$index]->batches = array();
                                     $combined[$index]->batchesSums = array();
                                 }
@@ -797,7 +797,7 @@ abstract class deals_Helper
                             $d->quantity += $sign * $p->quantity;
                             $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
 
-                            if(is_array($p->batches)){
+                            if(is_array($p->batches ?? null)){
                                 foreach ($p->batches as $batch => $batchQuantity){
                                     $d->batches[$batch] = ($d->batches[$batch] ?? 0) + $sign * $batchQuantity;
                                     $d->batchesSums[$batch] = ($d->batchesSums[$batch] ?? 0) + $sign * ($batchQuantity * $p->price * (1 - $p->discount));
