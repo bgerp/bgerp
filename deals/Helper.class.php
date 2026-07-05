@@ -3954,7 +3954,7 @@ abstract class deals_Helper
             }
 
             foreach ($arr as $fld => $placeholder){
-                $block->replace($row->{$fld}, $placeholder);
+                $block->replace($row->{$fld} ?? null, $placeholder);
             }
             $block->removeBlocksAndPlaces();
             $tpl->append($block, 'VAT_BLOCK');
