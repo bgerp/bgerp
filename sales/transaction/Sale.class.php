@@ -481,7 +481,9 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                     if (cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)) {
                         $obj = new stdClass();
                         $obj->productId = $itemRec->objectId;
-                        
+                        $obj->amount = 0;
+                        $obj->quantity = 0;
+
                         $index = $obj->productId;
                         if (empty($res[$index])) {
                             $res[$index] = $obj;

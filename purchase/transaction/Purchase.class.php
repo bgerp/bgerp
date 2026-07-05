@@ -540,7 +540,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 if (cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)) {
                     $obj = new stdClass();
                     $obj->productId = $itemRec->objectId;
-                    
+                    $obj->amount = 0;
+                    $obj->quantity = 0;
+
                     $index = $obj->productId;
                     if (empty($res[$index])) {
                         $res[$index] = $obj;
@@ -556,8 +558,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                         if ($p->{"debitItem{$storePositionId}"}) {
                             $storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
                             
-                            $res[$index]->inStores[$storeItem->objectId]['amount'] += $amount;
-                            $res[$index]->inStores[$storeItem->objectId]['quantity'] += $p->debitQuantity;
+                            $res[$index]->inStores[$storeItem->objectId]['amount'] = ($res[$index]->inStores[$storeItem->objectId]['amount'] ?? 0) + $amount;
+                            $res[$index]->inStores[$storeItem->objectId]['quantity'] = ($res[$index]->inStores[$storeItem->objectId]['quantity'] ?? 0) + $p->debitQuantity;
                         }
                     }
                     
@@ -567,8 +569,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                         if ($p->{"debitItem{$expensePositionId}"}) {
                             $expenseItem = acc_Items::fetch($p->{"debitItem{$expensePositionId}"})->id;
                             
-                            $res[$index]->expenseItems[$expenseItem]['amount'] += $amount;
-                            $res[$index]->expenseItems[$expenseItem]['quantity'] += $p->debitQuantity;
+                            $res[$index]->expenseItems[$expenseItem]['amount'] = ($res[$index]->expenseItems[$expenseItem]['amount'] ?? 0) + $amount;
+                            $res[$index]->expenseItems[$expenseItem]['quantity'] = ($res[$index]->expenseItems[$expenseItem]['quantity'] ?? 0) + $p->debitQuantity;
                         }
                     }
                 }
