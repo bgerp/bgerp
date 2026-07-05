@@ -30,7 +30,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
     {
         if (!$res) {
             $res = array();
-            if (!$rec->clonedFromId) return;
+            if (!($rec->clonedFromId ?? null)) return;
 
             $recs = array();
             $Detail = cls::get($mvc->mainDetail);
