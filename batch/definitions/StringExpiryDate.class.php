@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title Номер + Годен до
+ * @title Символи+Срок на годност
  */
 class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
 {
