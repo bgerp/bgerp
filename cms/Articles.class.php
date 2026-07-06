@@ -619,7 +619,7 @@ class cms_Articles extends core_Master
      */
     public static function getShortUrl($url)
     {
-        $vid = urldecode($url['id']);
+        $vid = urldecode($url['id'] ?? '');
         
         if ($vid) {
             $id = cms_VerbalId::fetchId($vid, 'cms_Articles');

@@ -1163,8 +1163,8 @@ class blogm_Articles extends core_Master
      */
     public static function getShortUrl($url)
     {
-        $vid = urldecode($url['id']);
-        $act = strtolower($url['Act']);
+        $vid = urldecode($url['id'] ?? '');
+        $act = strtolower($url['Act'] ?? '');
         
         if ($vid && $act == 'article') {
             $id = cms_VerbalId::fetchId($vid, 'blogm_Articles');
