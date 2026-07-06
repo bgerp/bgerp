@@ -484,7 +484,7 @@ class cms_Articles extends core_Master
     public function renderNavigation_($data)
     {
         $navTpl = new ET("");
-        $noRootClass = ($data->hasRootNavigation) ? '' : 'noRoot';
+        $noRootClass = ($data->hasRootNavigation ?? null) ? '' : 'noRoot';
         $currentPage = '';
 
         if(is_array($data->links)){
