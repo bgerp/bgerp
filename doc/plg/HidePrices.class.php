@@ -73,7 +73,7 @@ class doc_plg_HidePrices extends core_Plugin
         $mvc = cls::get($mvc);
         if(($mvc instanceof deals_PaymentDocument) || ($mvc instanceof crm_Persons)){
             if(haveRole('ceo,seePrice')) return true;
-        } elseif($mvc instanceof sales_Quotations){
+        } elseif(($mvc instanceof sales_Quotations) || ($mvc instanceof eshop_Carts)){
             if(haveRole('ceo,seePriceSale')) return true;
         } elseif($mvc instanceof purchase_Quotations){
             if(haveRole('ceo,seePricePurchase')) return true;
