@@ -978,11 +978,11 @@ class forum_Postings extends core_Detail
                 
                 $row->title = $row->status. ht::createLink($row->title, array($mvc, 'Topic', $rec->id));
                 
-                if (!$row->last) {
+                if (empty($row->last)) {
                     $row->last = tr('няма');
                 }
-                
-                (!$row->lastWho) ? $row->lastWho = tr('няма') : $row->lastWho = core_Users::fetch($rec->lastWho)->nick;
+
+                (empty($row->lastWho)) ? $row->lastWho = tr('няма') : $row->lastWho = core_Users::fetch($rec->lastWho)->nick;
             } elseif (isset($fields['-browse'])) {
                 
                 // Ако екшъна е browse правим обработки на заглавието и типа

@@ -178,11 +178,11 @@ class bank_InternalMoneyTransfer extends core_Master
         }
         
         if (isset($rec)) {
-            if ($rec->operationSysId == 'bank2bank') {
+            if (($rec->operationSysId ?? null) == 'bank2bank') {
                 if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'bank_OwnAccounts', 'debitBank')) {
                     $requiredRoles = 'no_one';
                 }
-            } elseif ($rec->operationSysId == 'bank2case') {
+            } elseif (($rec->operationSysId ?? null) == 'bank2case') {
                 if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'cash_Cases', 'debitCase')) {
                     $requiredRoles = 'no_one';
                 }

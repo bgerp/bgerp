@@ -357,7 +357,7 @@ class blogm_Comments extends core_Detail
      */
     public function on_AfterPrepareListFields($mvc, $data)
     {
-        if ($data->masterMvc) {
+        if (isset($data->masterMvc)) {
             unset($data->listFields['articleId']);
         }
         
@@ -386,7 +386,7 @@ class blogm_Comments extends core_Detail
                 if ($artRec->commentsMode == 'disabled' ||
                     $artRec->commentsMode == 'stopped' ||
                     $artRec->state != 'active' ||
-                    dt::addDays((dt::timestamp2Mysql(dt::now() - $conf->BLOGM_MAX_COMMENT_DAYS)), $artRec->modifiedOn) < dt::verbal2mysql()) {
+                    dt::addDays($conf->BLOGM_MAX_COMMENT_DAYS, $artRec->modifiedOn) < dt::now()) {
                     $res = 'no_one'; // Коментарите са забранени
                 } else {
                     $res = 'every_one';  // Коментарите са разрешени
