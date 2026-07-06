@@ -56,6 +56,11 @@ class doc_plg_LlmExportable extends core_Plugin
     {
         $html = preg_replace('/<!--.*?-->/s', '', $html);
 
+        // Нормализираме nbsp към обикновен интервал още преди парсването - иначе декоративни
+        // nbsp-разделители (напр. <div>&nbsp;</div>) минават trim()-овете по-долу като непразно
+        // съдържание и се превръщат в самостоятелни "празни" редове.
+        $html = preg_replace('/&#(?:xa0|160);|&nbsp;|\xc2\xa0/i', ' ', $html);
+
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
         $dom->loadHTML('<?xml encoding="UTF-8"><html><body>' . $html . '</body></html>');
@@ -66,7 +71,14 @@ class doc_plg_LlmExportable extends core_Plugin
 
         $result = str_replace("\xc2\xa0", ' ', $result);
         $result = preg_replace('/[ \t]+/', ' ', $result);
-        $result = preg_replace('/(\n[ \t]*){3,}/', "\n\n", $result);
+
+        // Разделящ HTML whitespace между съседни блокови елементи (напр. между </table> и
+        // следващ <div>, или между </div> и "гол" <span>) остава като самостоятелен ред само
+        // с интервал, защото не достига прага "3+" на колапса по-долу. Изчистваме водещите/
+        // крайните интервали на всеки ред, за да не се показват такива "призрачни" редове.
+        $result = preg_replace('/^[ \t]+|[ \t]+$/m', '', $result);
+
+        $result = preg_replace('/\n{2,}/', "\n", $result);
 
         return trim($result);
     }
@@ -130,6 +142,10 @@ class doc_plg_LlmExportable extends core_Plugin
 
             // Обхождаме редовете на таблицата
             $result = '';
+            // Заглавия на колоните - научени от първия "сложен" ред от кратки прости етикети
+            // (напр. Получател/Доставчик), за да могат следващите редове със същия брой
+            // видими клетки да се надписват по колона, без да знаем нищо конкретно за тях.
+            $columnHeaders = null;
             foreach (self::llmTableRows($node) as $row) {
                 $cells = self::llmRowCells($row);
                 if (!$cells) continue;
@@ -148,32 +164,97 @@ class doc_plg_LlmExportable extends core_Plugin
                         // Клетка-обвивка (layout wrapper) — рекурсираме вътре
                         $result .= self::llmDomWalk($cells[0], false);
                     }
-                } else {
-                    if (self::llmCellIsSimpleCaption($cells[0]) && self::llmCellIsSimpleCaption($cells[1])) {
-                        // Ред ключ-стойност: **Caption:** Value
-                        // rtrim(':') премахва двойно двоеточие ако caption вече завършва с ':'
-                        $caption = rtrim(trim(preg_replace('/\s+/', ' ', self::llmNodeText($cells[0]))), ':');
-                        $value   = trim(preg_replace('/\s+/', ' ', self::llmDomWalk($cells[1], true)));
-                        // При 3+ колони — добавяме и останалите
-                        for ($ci = 2; $ci < count($cells); $ci++) {
-                            $extra = trim(preg_replace('/\s+/', ' ', self::llmNodeText($cells[$ci])));
-                            if ($extra) $value .= " {$extra}";
-                        }
-                        if ($caption && $value) {
-                            $result .= "**{$caption}:** {$value}\n";
-                        }
-                    } else {
-                        // Сложен ред (адресни блокове, summary) — всяка клетка самостоятелно.
-                        // Клетки с rowspan > 1 са layout елементи (напр. центровата колона
-                        // тип/номер на документа) — съдържанието им идва от $startStr, пропускаме.
-                        foreach ($cells as $cell) {
-                            $rowspan = (int) $cell->getAttribute('rowspan');
-                            if ($rowspan > 1) continue;
-                            $cellOut = trim(self::llmDomWalk($cell, false));
-                            $cellOut = preg_replace('/(\n[ \t]*){3,}/', "\n\n", $cellOut);
-                            if ($cellOut) $result .= $cellOut . "\n";
-                        }
+                    continue;
+                }
+
+                // Клетки с rowspan > 1 са layout елементи (напр. центровата колона
+                // тип/номер на документа) — съдържанието им идва отделно, пропускаме ги
+                // навсякъде по-долу, за да не разместват подредбата на колоните.
+                $visibleCells = array();
+                foreach ($cells as $cell) {
+                    if ((int) $cell->getAttribute('rowspan') > 1) continue;
+                    $visibleCells[] = $cell;
+                }
+                if (count($visibleCells) < 2) {
+                    foreach ($visibleCells as $cell) {
+                        $cellOut = trim(self::llmDomWalk($cell, false));
+                        if ($cellOut) $result .= $cellOut . "\n";
                     }
+                    continue;
+                }
+
+                // Търсим първата проста клетка, чийто текст завършва на ':' — това е истинският
+                // caption. По-ранни клетки (ако има) са само контекст/квалификатор пред него
+                // (напр. "Ставка" пред "Данъчна основа:").
+                $capIdx = null;
+                foreach ($visibleCells as $i => $cell) {
+                    if (!self::llmCellIsSimpleCaption($cell)) break;
+                    $text = trim(preg_replace('/\s+/', ' ', self::llmNodeText($cell)));
+                    if ($text !== '' && substr($text, -1) === ':') {
+                        $capIdx = $i;
+                        break;
+                    }
+                }
+
+                $value = null;
+                if ($capIdx !== null && $capIdx < count($visibleCells) - 1) {
+                    $valueParts = array();
+                    for ($i = $capIdx + 1; $i < count($visibleCells); $i++) {
+                        $part = trim(preg_replace('/\s+/', ' ', self::llmDomWalk($visibleCells[$i], true)));
+                        if ($part !== '') $valueParts[] = $part;
+                    }
+                    $value = implode(' ', $valueParts);
+                }
+
+                // Ако "стойността" сама завършва на ':', това всъщност са два паралелни
+                // етикета (напр. "Получил:" / "Съставил:"), а не caption:value чифт.
+                if ($value !== null && $value !== '' && substr($value, -1) !== ':') {
+                    // Ред ключ-стойност: [контекст] **Caption:** Value
+                    $caption = rtrim(trim(preg_replace('/\s+/', ' ', self::llmNodeText($visibleCells[$capIdx]))), ':');
+                    $prefix = '';
+                    if ($capIdx > 0) {
+                        $prefixParts = array();
+                        for ($i = 0; $i < $capIdx; $i++) {
+                            $t = trim(preg_replace('/\s+/', ' ', self::llmNodeText($visibleCells[$i])));
+                            if ($t !== '') $prefixParts[] = $t;
+                        }
+                        if ($prefixParts) $prefix = implode(' ', $prefixParts) . ' ';
+                    }
+                    if ($caption && $value) {
+                        $result .= "{$prefix}**{$caption}:** {$value}\n";
+                    }
+                    continue;
+                }
+
+                // Сложен ред (адресни блокове, паралелни заглавия, summary) — всяка клетка
+                // самостоятелно. Ако все още нямаме заглавия на колони и този ред е съставен
+                // само от кратки прости етикети, приемаме го за заглавен ред на колоните.
+                $justSetHeaders = false;
+                if ($columnHeaders === null) {
+                    $headerTexts = array();
+                    $isHeaderRow = true;
+                    foreach ($visibleCells as $cell) {
+                        $t = trim(preg_replace('/\s+/', ' ', self::llmNodeText($cell)));
+                        if ($t === '' || strlen($t) > 30 || !self::llmCellIsSimpleCaption($cell)) {
+                            $isHeaderRow = false;
+                            break;
+                        }
+                        // rtrim(':') - за да не се получи двойно двоеточие при префикса по-долу
+                        $headerTexts[] = rtrim($t, ':');
+                    }
+                    if ($isHeaderRow) {
+                        $columnHeaders = $headerTexts;
+                        $justSetHeaders = true;
+                    }
+                }
+                $useHeaders = !$justSetHeaders && $columnHeaders !== null && count($columnHeaders) === count($visibleCells);
+
+                foreach ($visibleCells as $i => $cell) {
+                    $cellOut = trim(self::llmDomWalk($cell, false));
+                    $cellOut = preg_replace('/(\n[ \t]*){3,}/', "\n\n", $cellOut);
+                    if ($cellOut === '') continue;
+                    if ($useHeaders) $cellOut = "{$columnHeaders[$i]}: {$cellOut}";
+                    $result .= $cellOut . "\n";
                 }
             }
             return $result ? "\n" . $result : '';
@@ -182,6 +263,12 @@ class doc_plg_LlmExportable extends core_Plugin
         $result = '';
         foreach ($node->childNodes as $child) {
             $result .= self::llmDomWalk($child, $inCell);
+        }
+        // Елемент без видим текст (напр. <img>), чието единствено съдържание е в
+        // title-атрибута (честа употреба за tooltip-и в bgERP - endTooltip/frontTooltip
+        // икони) - вадим title-а, за да не се губи информацията при експорта.
+        if (trim($result) === '' && $node instanceof DOMElement && $node->getAttribute('title') !== '') {
+            $result = $node->getAttribute('title');
         }
         return $result;
     }
@@ -206,6 +293,9 @@ class doc_plg_LlmExportable extends core_Plugin
         $t = '';
         foreach ($node->childNodes as $c) {
             $t .= self::llmNodeText($c);
+        }
+        if (trim($t) === '' && $node instanceof DOMElement && $node->getAttribute('title') !== '') {
+            $t = $node->getAttribute('title');
         }
         return $t;
     }
