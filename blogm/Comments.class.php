@@ -126,7 +126,8 @@ class blogm_Comments extends core_Detail
         $data->brid = log_Browsers::getBrid();
         
         $query->where(array("#articleId = {$data->articleId} AND (#state = 'active' OR #brid = '[#1#]')", $data->brid));
-        
+
+        $data->commentsRecs = $data->commentsRows = array();
         while ($rec = $query->fetch()) {
             $data->commentsRecs[$rec->id] = $rec;
             $data->commentsRows[$rec->id] = self::recToVerbal($rec, $fields);
@@ -195,7 +196,7 @@ class blogm_Comments extends core_Detail
             }
         }
         
-        if ($data->commentForm) {
+        if ($data->commentForm ?? null) {
             $data->commentForm->layout = $data->ThemeClass->getCommentFormLayout();
             $data->commentForm->fieldsLayout = $data->ThemeClass->getCommentFormFieldsLayout();
             $layout->replace($data->commentForm->renderHtml(), 'COMMENT_FORM');
