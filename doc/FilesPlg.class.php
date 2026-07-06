@@ -84,6 +84,7 @@ class doc_FilesPlg extends core_Plugin
         
         $threadArr = array();
         $folderArr = array();
+        $containerArr = array();
         
         // Обхождаме всички извлечени резултати
         while ($fRec = $query->fetch()) {

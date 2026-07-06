@@ -297,9 +297,10 @@ class bank_Accounts extends core_Master
     public function prepareContragentBankAccounts($data)
     {
         $data->TabCaption = 'Банка';
-        
+        $data->recs = $data->rows = array();
+
         if (!$data->isCurrent) {
-            
+
             return;
         }
         

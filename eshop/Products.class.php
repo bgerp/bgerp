@@ -1260,8 +1260,8 @@ class eshop_Products extends core_Master
      */
     public static function getShortUrl($url)
     {
-        $vid = urldecode($url['id']);
-        $act = strtolower($url['Act']);
+        $vid = urldecode($url['id'] ?? '');
+        $act = strtolower($url['Act'] ?? '');
         
         if ($vid && $act == 'show') {
             $id = cms_VerbalId::fetchId($vid, 'eshop_Products');

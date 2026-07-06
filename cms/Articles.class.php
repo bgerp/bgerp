@@ -391,7 +391,7 @@ class cms_Articles extends core_Master
             $lArr1 = explode('.', self::getVerbal($rec1, 'level'));
             
             if ($lArr) {
-                if ($lArr1[2] && (($lArr[0] != $lArr1[0]) || ($lArr[1] != $lArr1[1]))) {
+                if (($lArr1[2] ?? null) && (($lArr[0] != $lArr1[0]) || ($lArr[1] != $lArr1[1]))) {
                     continue;
                 }
             }
@@ -416,11 +416,11 @@ class cms_Articles extends core_Master
 
             $l->selected = (is_object($rec) && isset($rec->id) && $rec->id == $rec1->id);
             
-            if ($lArr1[2]) {
+            if ($lArr1[2] ?? null) {
                 $l->level = 3;
-            } elseif ($lArr1[1]) {
+            } elseif ($lArr1[1] ?? null) {
                 $l->level = 2;
-            } elseif ($lArr1[0]) {
+            } elseif ($lArr1[0] ?? null) {
                 $l->level = 1;
             }
             
@@ -484,7 +484,7 @@ class cms_Articles extends core_Master
     public function renderNavigation_($data)
     {
         $navTpl = new ET("");
-        $noRootClass = ($data->hasRootNavigation) ? '' : 'noRoot';
+        $noRootClass = ($data->hasRootNavigation ?? null) ? '' : 'noRoot';
         $currentPage = '';
 
         if(is_array($data->links)){
@@ -619,7 +619,7 @@ class cms_Articles extends core_Master
      */
     public static function getShortUrl($url)
     {
-        $vid = urldecode($url['id']);
+        $vid = urldecode($url['id'] ?? '');
         
         if ($vid) {
             $id = cms_VerbalId::fetchId($vid, 'cms_Articles');
@@ -731,6 +731,7 @@ class cms_Articles extends core_Master
         
         $query = self::getQuery();
         $query->where("#state = 'active' AND #menuId = {$menuId}");
+        $query->show('searchKeywords');
         while ($rec = $query->fetch()) {
             $text .= ' ' . $rec->searchKeywords;
         }
