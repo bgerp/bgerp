@@ -1283,9 +1283,10 @@ class core_Form extends core_FieldSet
     public function renderHidden_()
     {
         $vars = $this->prepareVars($this->renderVars ?? null);
-        
+
         // Определяме скритите полета
-        
+        $hiddens = array();
+
         if (countR($this->fields ?? null)) {
             foreach ($this->fields as $field) {
                 if (($field->input ?? null) === 'hidden') {
