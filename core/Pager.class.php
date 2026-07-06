@@ -385,7 +385,8 @@ class core_Pager extends core_BaseClass
         
         $p = $this->getPage();
         $cnt = $this->getPagesCount();
-        
+        $prev = $next = '';
+
         if ($p > 1) {
             $link[$this->pageVar] = $p - 1;
             $prev = '<a href="' . toUrlEsc($link) . "\" class=\"pager\">{$prevTitle}</a>";
