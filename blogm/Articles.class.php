@@ -805,6 +805,7 @@ class blogm_Articles extends core_Master
         // Определяне на титлата
         // Ако е посочено заглавие по-което се търси
         $showRoot = blogm_Setup::get('SHOW_ALL_ARTICLE_CAPTION');
+        $data->descr = '';
         if (!empty($data->q)) {
             $domainId = cms_Domains::getPublicDomain('id');
             $clsId = core_Classes::getId('blogm_Articles');
