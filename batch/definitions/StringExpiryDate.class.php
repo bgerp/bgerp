@@ -4,12 +4,10 @@
 /**
  * Тип партидност за Номер + Годен до
  *
- *
  * @category  bgerp
  * @package   batch
- *
- * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @author    Mustafa Mustafov <mmustafov084@gmail.com>
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -179,8 +177,11 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
         $dates = array_keys($batches);
 
         usort($dates, function ($a, $b) {
-            list(, $aDate) = explode('|', $a);
-            list(, $bDate) = explode('|', $b);
+            $aParts = explode('|', $a);
+            $bParts = explode('|', $b);
+            
+            $aDate = end($aParts);
+            $bDate = end($bParts);
             
             $aTime = strtotime(dt::getMysqlFromMask($aDate, $this->rec->format));
             $bTime = strtotime(dt::getMysqlFromMask($bDate, $this->rec->format));
