@@ -648,8 +648,8 @@ class core_Mvc extends core_FieldSet
                 "WHERE  TABLE_SCHEMA = '{$me->db->dbName}'\n" .
                 "   AND TABLE_NAME = '{$me->dbTableName}'");
             $dbObj = $me->db->fetchObject($dbRes);
-            
-            $me->lastUpdateTime = $dbObj->UPDATE_TIME;
+
+            $me->lastUpdateTime = $dbObj->UPDATE_TIME ?? null;
         }
         
         return $me->lastUpdateTime;
@@ -852,7 +852,7 @@ class core_Mvc extends core_FieldSet
         $value = $rec->{$fieldName} ?? null;
         
         if (isset($me->fields[$fieldName]->options) && is_array($me->fields[$fieldName]->options)) {
-            $res = $me->fields[$fieldName]->options[$value];
+            $res = $me->fields[$fieldName]->options[$value] ?? null;
         } else {
             $res = $me->fields[$fieldName]->type->toVerbal($value);
         }

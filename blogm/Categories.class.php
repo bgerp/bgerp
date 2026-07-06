@@ -137,13 +137,13 @@ class blogm_Categories extends core_Manager
 
         if(!$showAll){
             if (isset($categoryId)) {
-                $fRec = self::fetch($categoryId, 'id,saoParentId');
+                $fRec = self::fetch($categoryId, 'id,saoParentId,saoLevel');
                 $parentGroupsArr = array($fRec->id);
                 $sisCond = ($fRec->saoParentId) ? " OR #saoParentId = {$fRec->saoParentId} " : '';
 
                 while ($fRec->saoLevel > 1) {
                     $parentGroupsArr[] = $fRec->id;
-                    $fRec = self::fetch($fRec->saoParentId. 'id,saoParentId');
+                    $fRec = self::fetch($fRec->saoParentId, 'id,saoParentId,saoLevel');
                 }
 
                 $parentGroupsList = implode(',', $parentGroupsArr);
@@ -173,6 +173,10 @@ class blogm_Categories extends core_Manager
             $data->categories = array();
         }
 
+        if (!($data->selectedCategories ?? null)) {
+            $data->selectedCategories = array();
+        }
+
         $Lg = cls::get('core_Lg');
         $allCaption = $Lg->translate('Всички', false, cms_Content::getLang());
         if(!countR($data->categories)) return $tpl;
@@ -183,7 +187,7 @@ class blogm_Categories extends core_Manager
             $saoLevel = static::fetchField($id, 'saoLevel');
             $num = ($saoLevel) ? $saoLevel : 1;
 
-            if ($data->selectedCategories[$id] || (!$id && !countR($data->selectedCategories))) {
+            if (($data->selectedCategories[$id] ?? null) || (!$id && !countR($data->selectedCategories))) {
                 $attr = array('class' => "nav_item sel_page level{$num}");
             } else {
                 $attr = array('class' => "nav_item level{$num}");

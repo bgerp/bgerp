@@ -183,6 +183,8 @@ class cond_ConditionsToCustomers extends core_Manager
             // Според параметарът, се променя вербалното представяне на стойността
             $data->recs[$rec->conditionId] = $rec;
             $row = static::recToVerbal($rec);
+            $row->group = $rec->group;
+            $row->order = $rec->order;
             core_RowToolbar::createIfNotExists($row->_rowTools);
             $data->rows[$rec->conditionId] = $row;
         }
@@ -213,6 +215,8 @@ class cond_ConditionsToCustomers extends core_Manager
             $caption = isset($countryRules[$condId]) ? $cData->country : "Всички държави";
             $data->recs[$condId] = $fRec;
             $dRow = cond_Countries::recToVerbal($fRec);
+            $dRow->group = $fRec->group;
+            $dRow->order = $fRec->order;
             $dRow->value = ht::createHint($dRow->value, "Стойност по подразбиране за контрагенти от|* \"{$caption}\"", 'notice', true, 'width=12px,height=12px');
             unset($dRow->_rowTools);
             $data->rows[$condId] = $dRow;

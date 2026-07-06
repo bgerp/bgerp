@@ -346,7 +346,7 @@ class drdata_Vats extends core_Manager
     {
         $vatPrefixes = arr::make('BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HR,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT,XI,NO', true);
         
-        if ($vatPrefixes[substr(strtoupper(trim($value)), 0, 2)]) {
+        if (isset($vatPrefixes[substr(strtoupper(trim($value)), 0, 2)])) {
             return true;
         }
         

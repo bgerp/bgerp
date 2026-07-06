@@ -2508,10 +2508,11 @@ class email_Outgoings extends core_Master
             $footerData['city'] = transliterate(tr($companyRec->place));
             $footerData['street'] = transliterate(tr($companyRec->address));
             
+            $footerData['pCodeAndCity'] = '';
             if ($footerData['pCode']) {
                 $footerData['pCodeAndCity'] = $footerData['pCode'] . ' ';
             }
-            
+
             $footerData['pCodeAndCity'] .= ' ' . $footerData['city'];
             
             $getCountry = false;

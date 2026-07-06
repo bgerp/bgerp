@@ -82,7 +82,9 @@ class blogm_Links extends core_Manager
         
         // Избираме само активните линкове
         $query->where("#state = 'active'");
-        
+
+        $data->links = array();
+
         // За всеки запис създаваме обект, който натрупваме в масива $data
         while ($rec = $query->fetch()) {
             $link = new stdClass();

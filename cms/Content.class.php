@@ -955,7 +955,7 @@ class cms_Content extends core_Manager
             }
             
             // Точни думи
-            if (is_array($kArr[$f][$len]) && in_array($w, $kArr[$f][$len])) {  
+            if (is_array($kArr[$f][$len] ?? null) && in_array($w, $kArr[$f][$len])) {
                 $flag = true;
                 $resArr[] = $w;
                 $lastW = null;
@@ -967,7 +967,7 @@ class cms_Content extends core_Manager
                 $dw = $lastW . $w;
                 $df = $dw[0];
                 $dLen = strlen($dw);
-                if(is_array($kArr[$df][$dLen]) && in_array($dw, $kArr[$df][$dLen])) {
+                if(is_array($kArr[$df][$dLen] ?? null) && in_array($dw, $kArr[$df][$dLen])) {
                     $flag = true;
                     $resArr[] = $dw;
                     $lastW = null;
@@ -979,7 +979,7 @@ class cms_Content extends core_Manager
             if(preg_match("/^([a-z]+)([0-9]+)$/", $w, $matches)) {
                 $fw = $matches[1];
                 $fLen = strlen($fw);
-                if(is_array($kArr[$f][$fLen]) && in_array($fw, $kArr[$f][$fLen])) {
+                if(is_array($kArr[$f][$fLen] ?? null) && in_array($fw, $kArr[$f][$fLen])) {
                     $flag = true;
                     $resArr[] = $fw;
                     $resArr[] = $matches[2];
@@ -997,7 +997,7 @@ class cms_Content extends core_Manager
                 $bestW = '';
                 
                 for ($i = $min; $i <= $max; $i++) {
-                    if (is_array($kArr[$f][$i])) {
+                    if (is_array($kArr[$f][$i] ?? null)) {
                         foreach ($kArr[$f][$i] as $kw) {
                             $d = levenshtein($w, $kw) / $i;
                             if ($d < 0.20 && $d < $bestD) {
@@ -1020,7 +1020,7 @@ class cms_Content extends core_Manager
             if(preg_match("/^([a-z]+)(te|to|ta|at|yat|ska)$/", $w, $matches)) {
                 $fw = $matches[1];
                 $fLen = strlen($fw);
-                if(is_array($kArr[$f][$fLen]) && in_array($fw, $kArr[$f][$fLen])) {
+                if(is_array($kArr[$f][$fLen] ?? null) && in_array($fw, $kArr[$f][$fLen])) {
                     $flag = true;
                     $resArr[] = $fw;
                     $lastW = null;
