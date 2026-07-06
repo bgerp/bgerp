@@ -137,13 +137,13 @@ class blogm_Categories extends core_Manager
 
         if(!$showAll){
             if (isset($categoryId)) {
-                $fRec = self::fetch($categoryId, 'id,saoParentId');
+                $fRec = self::fetch($categoryId, 'id,saoParentId,saoLevel');
                 $parentGroupsArr = array($fRec->id);
                 $sisCond = ($fRec->saoParentId) ? " OR #saoParentId = {$fRec->saoParentId} " : '';
 
                 while ($fRec->saoLevel > 1) {
                     $parentGroupsArr[] = $fRec->id;
-                    $fRec = self::fetch($fRec->saoParentId. 'id,saoParentId');
+                    $fRec = self::fetch($fRec->saoParentId, 'id,saoParentId,saoLevel');
                 }
 
                 $parentGroupsList = implode(',', $parentGroupsArr);
