@@ -731,6 +731,7 @@ class cms_Articles extends core_Master
         
         $query = self::getQuery();
         $query->where("#state = 'active' AND #menuId = {$menuId}");
+        $query->show('searchKeywords');
         while ($rec = $query->fetch()) {
             $text .= ' ' . $rec->searchKeywords;
         }

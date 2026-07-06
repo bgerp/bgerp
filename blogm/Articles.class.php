@@ -1272,8 +1272,9 @@ class blogm_Articles extends core_Master
             $query = self::getQuery();
             $query->where("#state = 'active'");
             $query->likeKeylist('categories', keylist::fromArray($groupsArr));
+            $query->show('searchKeywords');
             $rt = cls::get('type_RichText');
-            
+
             while ($rec = $query->fetch()) {
                 $text .= ' ' . $rec->searchKeywords;
             }
