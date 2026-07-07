@@ -83,11 +83,7 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
                     'string'    => $manufacturerValue,
                 );
 
-                try {
-                    batch_ManufacturersPerProducts::forceInsert($dRec);
-                } catch (Exception $e) {
-                    
-                }
+                batch_ManufacturersPerProducts::save($dRec);
             }
         }
 

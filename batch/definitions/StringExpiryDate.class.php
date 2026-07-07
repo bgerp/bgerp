@@ -154,13 +154,14 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
     public function getFeatures($value)
     {
         $parts = explode('|', $value);
+        $features = array_values($this->featureOrder);
         $res = array();
 
         $varcharClassId = batch_definitions_Varchar::getClassId();
         $dateClassId = batch_definitions_ExpirationDate::getClassId();
 
         // Обхождаме динамично структурата, дефинирана в класа
-        foreach ($this->featureOrder as $index => $featureName) {
+        foreach ($this->features as $index => $featureName) {
             $partValue = isset($parts[$index]) ? $parts[$index] : '';
 
             if ($featureName == 'Срок на годност') {

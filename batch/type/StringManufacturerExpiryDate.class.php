@@ -43,6 +43,10 @@ class batch_type_StringManufacturerExpiryDate extends batch_type_StringExpiryDat
             $valueArr = $value;
         }
 
+        if (empty($valueArr['s']) && empty($valueArr['m']) && empty($valueArr['d'])) {
+            return;
+        }
+
         $manufacturerErrors = array();
         if (empty($valueArr['m'])) {
             $manufacturerErrors[] = 'Липсва производител';
