@@ -82,7 +82,21 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
                     'productId' => $this->rec->productId,
                     'string'    => $manufacturerValue,
                 );
+                
+                $where = array(
+                    "#folderId = [#1#] AND #productId = [#2#] AND #string = '[#3#]'", 
+                    $this->rec->folderId, 
+                    $this->rec->productId, 
+                    $manufacturerValue
+                );
 
+                $exRec = batch_ManufacturersPerProducts::fetch($where);
+
+                // Ако записът съществува, му подаваме неговото ID, за да предотвратим дублиране (ще направи UPDATE вместо нов INSERT)
+                if ($exRec) {
+                    $dRec->id = $exRec->id;
+                }
+                
                 batch_ManufacturersPerProducts::save($dRec);
             }
         }
