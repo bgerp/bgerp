@@ -24,7 +24,16 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
 
 
     /**
-     * Проверява дали стойността е невалидна и връща специфичния за Сина клас тип
+     * Партида
+     */
+    protected $featureOrder = array('s' => 'Номер', 
+                                    'm' => 'Производител', 
+                                    'd' => 'Срок на годност'
+                                );
+
+
+    /**
+     * Проверява дали стойността е невалидна и връща специфичния клас тип
      *
      * @param mixed $class
      * @param int $objectId
@@ -44,35 +53,9 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
             }
         }
         
-        // Връщаме съответния тип с 3 полета, който написахме по-рано
         $Type = core_Type::getByName("batch_type_StringManufacturerExpiryDate(productId={$this->rec->productId},format={$this->rec->format},defaultTime={$this->rec->time},folderId={$this->rec->folderId},delimiter={$this->rec->delimiter})");
 
         return $Type;
-    }
-
-
-    /**
-     * Вербално представяне на трикомпонентната партида
-     */
-    public function toVerbal($value)
-    {
-        // Експлодираме по права черта от системния запис, за да не се счупи 
-        // разделителя, ако в името на производителя има интервал, точка или тире.
-        list($string, $manifacture, $date) = explode('|', $value);
-
-        $expiryTime = cat_Products::getParams($this->rec->productId, 'expiryTime');
-        $expiryTime = !empty($expiryTime) ? $expiryTime : $this->rec->time;
-        $date = batch_definitions_ExpirationDate::displayExpiryDate($date, $this->rec->format, $expiryTime);
-
-        $string = core_Type::getByName('varchar')->toVerbal($string);
-        $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
-        
-        $value = implode($delimiter, array($string, $manifacture, $date));
-        if(!Mode::is('text', 'plain') && $value != strip_tags($value)) {
-            $value = "<span>{$value}</span>";
-        }
-
-        return $value;
     }
 
 
@@ -95,25 +78,5 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
         }
 
         return $string;
-    }
-
-
-    /**
-     * Специфични свойства на партидата (включва и Производител)
-     */
-    public function getFeatures($value)
-    {
-        list($string, $manufacturer, $date) = explode('|', $value);
-
-        $varcharClassId = batch_definitions_Varchar::getClassId();
-        $dateClassId = batch_definitions_ExpirationDate::getClassId();
-        $date = dt::getMysqlFromMask($date, $this->rec->format);
-
-        $res = array();
-        $res[] = (object) array('name' => 'Номер', 'classId' => $varcharClassId, 'value' => $string);
-        $res[] = (object) array('name' => 'Производител', 'classId' => $varcharClassId, 'value' => $manufacturer);
-        $res[] = (object) array('name' => 'Срок на годност', 'classId' => $dateClassId, 'value' => $date);
-
-        return $res;
     }
 }
