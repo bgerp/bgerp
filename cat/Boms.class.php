@@ -37,7 +37,7 @@ class cat_Boms extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'title,showInProduct,expenses,isComplete';
+    public $changableFields = 'title,showInProduct,expenses,isComplete,transferNotes';
     
     
     /**
