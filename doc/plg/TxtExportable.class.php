@@ -47,12 +47,7 @@ class doc_plg_TxtExportable extends core_Plugin
 
         $row = self::getVerbalRow($mvc, $rec);
         $authorName = self::getAuthorName($mvc, $rec);
-
         $text = self::buildInfoHeader($mvc, $id, $row, $authorName) . $string;
-
-        // Кои са прикачените файлове + текстовото им съдържание, ако имат
-        $linkedFiles = $mvc->getLinkedFiles($rec);
-        $text .= fileman_Indexes::getShortTextSummary($linkedFiles);
 
         $mvc->invoke('AfterAfterGetTxtExport', array(&$text, $rec, $params));
     }
