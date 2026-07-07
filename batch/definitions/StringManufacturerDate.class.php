@@ -38,6 +38,7 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
      * @param mixed $class
      * @param int $objectId
      * @return core_Type - инстанция на тип
+     * 
      */
     public function getBatchClassType($class = null, $objectId = null)
     {
@@ -64,13 +65,12 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
      */
     public function normalize($value)
     {
-        $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
-        $string = str_replace($delimiter, '|', $value);
+        $string = parent::normalize($value);
 
         if(isset($this->rec->folderId) && isset($this->rec->productId)){
             $exploded = explode('|', $string);
             if(!empty($exploded[1])){
-                if(!batch_ManufacturersPerProducts::fetch(array("#folderId = {$this->rec->folderId} AND #productId = {$this->rec->productId} AND #string = '[#1#]'", $exploded[1]))){
+                if(!batch_ManufacturersPerProducts::fetch(array("#folderId = [#1#] AND #productId = [#2#] AND #string = '[#3#]'", $this->rec->folderId, $this->rec->productId, $exploded[1]))){
                     $dRec = (object)array('folderId' => $this->rec->folderId, 'productId' => $this->rec->productId, 'string' => $exploded[1]);
                     batch_ManufacturersPerProducts::save($dRec);
                 }

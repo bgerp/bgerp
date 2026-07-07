@@ -93,8 +93,9 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
         
         // Ако системният запис е с '|', го разделяме по него
         $parts = (strpos($value, '|') !== false) ? explode('|', $value) : explode($delimiter, $value);
-        
-        foreach ($this->featureOrder as $index => $featureName) {
+        $features = array_values($this->featureOrder);
+
+        foreach ($features as $index => $featureName) {
             if (!isset($parts[$index])) continue;
 
             if ($featureName == 'Срок на годност') {
@@ -118,6 +119,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
     public function normalize($value)
     {
         $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+
         return str_replace($delimiter, '|', $value);
     }
 
@@ -179,34 +181,41 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
     }
 
 
-   /**
-     * Подрежда подадените партиди
-     *
-     * @param array         $batches - наличните партиди
-     *                               ['batch_name'] => ['quantity']
-     * @param datetime|NULL $date
-     *                               return void
-     */
+    /**
+     * Подрежда подадените партиди по дата на годност
+    *
+    * @param array         $batches - наличните партиди ['batch_name'] => ['quantity']
+    * @param int           $storeId
+    * @param datetime|NULL $date
+    * return void
+    *
+    */
     public function orderBatchesInStore(&$batches, $storeId, $date = null)
     {
-        $dates = array_keys($batches);
+        $batchNames = array_keys($batches);
 
-        usort($dates, function ($a, $b) {
+        $keys = array_keys($this->featureOrder);
+        $dateIndex = array_search('d', $keys);
+
+        if ($dateIndex === false) return;
+
+        usort($batchNames, function ($a, $b) use ($dateIndex) {
             $aParts = explode('|', $a);
             $bParts = explode('|', $b);
             
-            $aDate = end($aParts);
-            $bDate = end($bParts);
+            $aDate = isset($aParts[$dateIndex]) ? $aParts[$dateIndex] : '';
+            $bDate = isset($bParts[$dateIndex]) ? $bParts[$dateIndex] : '';
             
             $aTime = strtotime(dt::getMysqlFromMask($aDate, $this->rec->format));
             $bTime = strtotime(dt::getMysqlFromMask($bDate, $this->rec->format));
 
+            if ($aTime == $bTime) return 0;
             return ($aTime < $bTime) ? -1 : 1;
         });
 
         $sorted = array();
-        foreach ($dates as $date) {
-            $sorted[$date] = $batches[$date];
+        foreach ($batchNames as $name) {
+            $sorted[$name] = $batches[$name];
         }
 
         $batches = $sorted;
