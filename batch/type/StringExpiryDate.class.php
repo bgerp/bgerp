@@ -16,6 +16,12 @@
 class batch_type_StringExpiryDate extends type_Varchar
 {
     /**
+     * Ред и брой компоненти на партидата (override-ва се в наследници)
+     */
+    protected $partsOrder = array('s', 'd');
+
+
+    /**
      * Получава дата от двете входни стойности
      */
     public function fromVerbal($value)
@@ -131,28 +137,25 @@ class batch_type_StringExpiryDate extends type_Varchar
 
     
     /**
-     * Помощен метод за извличане на въведените стойности
+     * Помощен метод за извличане на въведените стойности, спрямо $this->partsOrder
      */
-    protected function prepareInputValue($name, $value, $partsCount)
+    protected function prepareInputValue($name, $value)    
     {
         $useValue = $this->formWithErrors ? Request::get($name) : $value;
         $useValue = empty($value) ? $value : $useValue;
-        
-        $res = array_fill_keys(array('s', 'm', 'd'), null);
+
+        $order = $this->partsOrder;
+        $res = array_fill_keys($order, null);
 
         if (!empty($useValue)) {
             if (is_array($useValue)) {
-                $res['s'] = $useValue['s'] ?? null;
-                $res['m'] = $useValue['m'] ?? null;
-                $res['d'] = $useValue['d'] ?? null;
+                foreach ($order as $key) {
+                    $res[$key] = $useValue[$key] ?? null;
+                }
             } else {
                 $parts = explode('|', $useValue);
-                $res['s'] = $parts[0] ?? null;
-                if ($partsCount == 3) {
-                    $res['m'] = $parts[1] ?? null;
-                    $res['d'] = $parts[2] ?? null;
-                } else {
-                    $res['d'] = $parts[1] ?? null;
+                foreach ($order as $idx => $key) {
+                    $res[$key] = $parts[$idx] ?? null;
                 }
             }
         }
@@ -188,8 +191,8 @@ class batch_type_StringExpiryDate extends type_Varchar
 
 
     /**
-     * Динамично генериране на входовете спрямо дефинирания шаблон ($featureOrder)
-     */
+    * Динамично генериране на входовете спрямо дефинирания шаблон ($partsOrder)
+    */
     public function renderInput_($name, $value = '', &$attr = array())
     {
         $productId = $this->params['productId'] ?? null;
@@ -197,67 +200,59 @@ class batch_type_StringExpiryDate extends type_Varchar
         $datePlaceholder = $this->getDefaultExpirationDate($productId, null, $params);
         $delimiter = html_entity_decode($this->params['delimiter'], ENT_COMPAT, 'UTF-8');
 
+        $order = $this->partsOrder;
+
+        // Вземаме стойностите правилно разпределени по ключове, спрямо $this->partsOrder
+        $val = $this->prepareInputValue($name, $value);
         
-        // Използваме името на класа, за да разберем дали сме в Сина или в Бащата
-        $isManufacturer = ($this instanceof batch_type_StringManufacturerExpiryDate);
-        $partsCount = $isManufacturer ? 3 : 2;
-
-        // Вземаме стойностите правилно разпределени по ключове ('s', 'm', 'd')
-        $val = $this->prepareInputValue($name, $value, $partsCount);
-
         // Разделяме подсказките (suggestions) динамично
         $suggestionsArr = array();
         if (is_array($this->suggestions)) {
             unset($this->suggestions['']);
             foreach ($this->suggestions as $sgt) {
                 $sgtOpt = explode($delimiter, $sgt);
-                if (isset($sgtOpt[0])) $suggestionsArr['s']["{$sgtOpt[0]}"] = $sgtOpt[0];
-                if ($isManufacturer && isset($sgtOpt[1])) $suggestionsArr['m']["{$sgtOpt[1]}"] = $sgtOpt[1];
-                
-                // Датата е на индекс 1 при Бащата и на индекс 2 при Сина
-                $dateIdx = $isManufacturer ? 2 : 1;
-                if (isset($sgtOpt[$dateIdx])) $suggestionsArr['d']["{$sgtOpt[$dateIdx]}"] = $sgtOpt[$dateIdx];
+                foreach ($order as $idx => $key) {
+                    if (isset($sgtOpt[$idx])) {
+                        $suggestionsArr[$key]["{$sgtOpt[$idx]}"] = $sgtOpt[$idx];
+                    }
+                }
             }
         }
-
-        // Дефинираме подредбата на компонентите (съвпада с $featureOrder от дефиниционните файлове)
-        $order = $isManufacturer ? array('s', 'm', 'd') : array('s', 'd');
 
         $tpl = new ET('<span style="white-space:nowrap;">[#INPUTS#]</span>');
 
         foreach ($order as $key) {
             $attrComp = $attr;
-            $attrComp['id'] = "batchName" . strtoupper($key) . '_' . uniqid();      
-                  
-            // Мачваме специфичните настройки за всяко поле
-            switch ($key) {
-                case 's':
-                    $attrComp['placeholder'] = 'Номер';
-                    $this->suggestions = countR($suggestionsArr['s'] ?? null) ? array('' => '') + $suggestionsArr['s'] : array();
-                    $inputHtml = $this->createInput($name . '[s]', $val['s'], $attrComp);
-                    break;
-                    
-                case 'm':
-                    $attrComp['placeholder'] = 'Произв.';
-                    $manifactureOptions = batch_ManufacturersPerProducts::getArray($this->params['folderId'], $productId);
-                    if (empty($value) && !$this->formWithErrors && empty($this->params['autohide'])) {
-                        $val['m'] = key($manifactureOptions);
-                    }
-                    $this->suggestions = $manifactureOptions;
-                    $inputHtml = $this->createInput($name . '[m]', $val['m'], $attrComp);
-                    break;
-                    
-                case 'd':
-                    $attrComp['placeholder'] = !empty($datePlaceholder) ? $datePlaceholder : 'Годен до';
-                    $this->suggestions = countR($suggestionsArr['d'] ?? null) ? array('' => '') + $suggestionsArr['d'] : array();
-                    $inputHtml = $this->createInput($name . '[d]', $val['d'], $attrComp);
-                    break;
-            }
+            $attrComp['id'] = "batchName" . strtoupper($key) . '_' . uniqid();
+
+            $inputHtml = $this->renderComponentInput($key, $name, $val, $attrComp, $suggestionsArr, $productId, $datePlaceholder);
 
             $tpl->append($inputHtml, 'INPUTS');
         }
 
         return $tpl;
+    }
+
+
+    /**
+     * Рендира вход за един компонент от партидата. Наследниците могат да разширят
+     * с обработка на допълнителни ключове, без бащата да знае за тях.
+     */
+    protected function renderComponentInput($key, $name, $val, $attrComp, $suggestionsArr, $productId, $datePlaceholder)
+    {
+        switch ($key) {
+            case 's':
+                $attrComp['placeholder'] = 'Номер';
+                $this->suggestions = countR($suggestionsArr['s'] ?? null) ? array('' => '') + $suggestionsArr['s'] : array();
+                return $this->createInput($name . '[s]', $val['s'], $attrComp);
+
+            case 'd':
+                $attrComp['placeholder'] = !empty($datePlaceholder) ? $datePlaceholder : 'Годен до';
+                $this->suggestions = countR($suggestionsArr['d'] ?? null) ? array('' => '') + $suggestionsArr['d'] : array();
+                return $this->createInput($name . '[d]', $val['d'], $attrComp);
+        }
+
+        return '';
     }
     
 

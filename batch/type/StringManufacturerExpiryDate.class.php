@@ -15,6 +15,12 @@
 class batch_type_StringManufacturerExpiryDate extends batch_type_StringExpiryDate
 {
     /**
+     * Ред и брой компоненти на партидата
+     */
+    protected $partsOrder = array('s', 'm', 'd');
+
+
+    /**
      * Получава дата от трите входни стойности
      */
     public function fromVerbal($value)
@@ -58,5 +64,24 @@ class batch_type_StringManufacturerExpiryDate extends batch_type_StringExpiryDat
             trim($valueArr['m']),
             $parentParts[1] ?? '',
         ));
+    }
+
+    
+    /**
+     * Разширява рендирането с полето за производител, без бащата да знае за него
+     */
+    protected function renderComponentInput($key, $name, $val, $attrComp, $suggestionsArr, $productId, $datePlaceholder)
+    {
+        if ($key === 'm') {
+            $attrComp['placeholder'] = 'Произв.';
+            $manifactureOptions = batch_ManufacturersPerProducts::getArray($this->params['folderId'], $productId);
+            if (empty($val['m']) && !$this->formWithErrors && empty($this->params['autohide'])) {
+                $val['m'] = key($manifactureOptions);
+            }
+            $this->suggestions = $manifactureOptions;
+            return $this->createInput($name . '[m]', $val['m'], $attrComp);
+        }
+
+        return parent::renderComponentInput($key, $name, $val, $attrComp, $suggestionsArr, $productId, $datePlaceholder);
     }
 }
