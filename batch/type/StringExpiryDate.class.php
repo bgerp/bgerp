@@ -20,25 +20,27 @@ class batch_type_StringExpiryDate extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        if(empty($value)) return;
+        if (empty($value)) return;
 
         $valueArr = $value;
         $delimiter = html_entity_decode($this->params['delimiter'], ENT_COMPAT, 'UTF-8');
-        if(is_scalar($value)){
+        
+        if (is_scalar($value)) {
             $value = str_replace($delimiter, '|', $value);
             $valueParsed = explode('|', $value);
             $valueArr = array();
-            $valueArr['s'] = trim($valueParsed[0]);
-            $valueArr['d'] = trim($valueParsed[1]);
+            $valueArr['s'] = isset($valueParsed[0]) ? trim($valueParsed[0]) : '';
+            $valueArr['d'] = isset($valueParsed[1]) ? trim($valueParsed[1]) : '';
         }
 
-        if(empty($valueArr['s']) && empty($valueArr['d'])) return;
+        if (empty($valueArr['s']) && empty($valueArr['d'])) return;
 
         $errorArr = array();
-        if(empty($valueArr['s'])){
+        
+        if (empty($valueArr['s'])) {
             $errorArr[] = 'Задайте номер на партидата';
         } else {
-            if(strpos($valueArr['s'], $delimiter) !== false){
+            if (strpos($valueArr['s'], $delimiter) !== false) {
                 $errorArr[] = "В номера не трябва да се съдържа|* <b>{$delimiter}</b>";
             }
         }
@@ -46,10 +48,10 @@ class batch_type_StringExpiryDate extends type_Varchar
         $foundDate = $this->extractDateFromSerial($valueArr['s']);
 
         $res = $valueArr;
-        if(empty($valueArr['d'])){
+        if (empty($valueArr['d'])) {
             $defaultDate = $this->getDefaultExpirationDate($this->params['productId'], $foundDate);
             $res['d'] = $defaultDate;
-            if(empty($defaultDate)){
+            if (empty($defaultDate)) {
                 $errorArr[] = 'Липсва дата';
             }
         } else {
@@ -61,18 +63,19 @@ class batch_type_StringExpiryDate extends type_Varchar
                 $errorArr[] = "Годен до трябва да е ВАЛИДНА дата във формата|* <b>{$example}</b>";
             }
 
-            if(strpos($valueArr['d'], $delimiter) !== false){
+            if (strpos($valueArr['d'], $delimiter) !== false) {
                 $errorArr[] = "Във формата на датата не трябва да се съдържа|* <b>{$delimiter}</b>";
             }
         }
 
-        if(countR($errorArr)){
-            $this->error = implode(', ', $errorArr);
+        if (countR($errorArr)) {
+            $this->error = (empty($this->error)) ? implode(', ', $errorArr) : $this->error . ', ' . implode(', ', $errorArr);
             return false;
         }
 
         $res['s'] = trim($res['s']);
-        return implode('|', $res);
+        
+        return implode('|', array_filter($res));
     }
 
 
@@ -172,7 +175,7 @@ class batch_type_StringExpiryDate extends type_Varchar
         $startDate = $startDate ?? dt::now();
 
         $expiryParamId = cat_Params::fetchIdBySysId('expiryTime');
-        $time = $params[$expiryParamId];
+        $time = $params[$expiryParamId] ?? null;
         if (empty($time)) {
             $time = $this->params['defaultTime'];
         }
@@ -185,40 +188,76 @@ class batch_type_StringExpiryDate extends type_Varchar
 
 
     /**
-     * Генерира поле за въвеждане на дата, състоящо се от
-     * селектори за годината, месеца и деня
-    */
+     * Динамично генериране на входовете спрямо дефинирания шаблон ($featureOrder)
+     */
     public function renderInput_($name, $value = '', &$attr = array())
     {
-        $params = isset($this->params['productId']) ? cat_Products::getParams($this->params['productId']) : array();
-        $datePlaceholder = $this->getDefaultExpirationDate($this->params['productId'], null, $params);
+        $productId = $this->params['productId'] ?? null;
+        $params = isset($productId) ? cat_Products::getParams($productId) : array();
+        $datePlaceholder = $this->getDefaultExpirationDate($productId, null, $params);
         $delimiter = html_entity_decode($this->params['delimiter'], ENT_COMPAT, 'UTF-8');
 
-        $stringSgt = $dateSgt = array();
+        
+        // Използваме името на класа, за да разберем дали сме в Сина или в Бащата
+        $isManufacturer = ($this instanceof batch_type_StringManufacturerExpiryDate);
+        $partsCount = $isManufacturer ? 3 : 2;
+
+        // Вземаме стойностите правилно разпределени по ключове ('s', 'm', 'd')
+        $val = $this->prepareInputValue($name, $value, $partsCount);
+
+        // Разделяме подсказките (suggestions) динамично
+        $suggestionsArr = array();
         if (is_array($this->suggestions)) {
             unset($this->suggestions['']);
             foreach ($this->suggestions as $sgt) {
                 $sgtOpt = explode($delimiter, $sgt);
-                $stringSgt["{$sgtOpt[0]}"] = $sgtOpt[0];
-                $dateSgt["{$sgtOpt[1]}"] = $sgtOpt[1];
+                if (isset($sgtOpt[0])) $suggestionsArr['s']["{$sgtOpt[0]}"] = $sgtOpt[0];
+                if ($isManufacturer && isset($sgtOpt[1])) $suggestionsArr['m']["{$sgtOpt[1]}"] = $sgtOpt[1];
+                
+                // Датата е на индекс 1 при Бащата и на индекс 2 при Сина
+                $dateIdx = $isManufacturer ? 2 : 1;
+                if (isset($sgtOpt[$dateIdx])) $suggestionsArr['d']["{$sgtOpt[$dateIdx]}"] = $sgtOpt[$dateIdx];
             }
         }
 
-        $val = $this->prepareInputValue($name, $value, 2);
+        // Дефинираме подредбата на компонентите (съвпада с $featureOrder от дефиниционните файлове)
+        $order = $isManufacturer ? array('s', 'm', 'd') : array('s', 'd');
 
-        $this->suggestions = countR($stringSgt) ? array('' => '') + $stringSgt : array();
-        $attrString = $attr;
-        $attrString['placeholder'] = 'Номер';
-        $attrString['id'] = "batchNameS" . rand(1, 100);
-        $tpl = $this->createInput($name . '[s]', $val['s'], $attrString);
+        $tpl = new ET('<span style="white-space:nowrap;">[#INPUTS#]</span>');
 
-        $this->suggestions = countR($dateSgt) ? array('' => '') + $dateSgt : array();
-        $attrDate = $attr;
-        $attrDate['placeholder'] = !empty($datePlaceholder) ? $datePlaceholder : 'Годен до';
-        $attrDate['id'] = "batchNameD" . rand(1, 100);
-        $tpl->append($this->createInput($name . '[d]', $val['d'], $attrDate));
+        foreach ($order as $key) {
+            $attrComp = $attr;
+            $attrComp['id'] = "batchName" . strtoupper($key) . '_' . uniqid();      
+                  
+            // Мачваме специфичните настройки за всяко поле
+            switch ($key) {
+                case 's':
+                    $attrComp['placeholder'] = 'Номер';
+                    $this->suggestions = countR($suggestionsArr['s'] ?? null) ? array('' => '') + $suggestionsArr['s'] : array();
+                    $inputHtml = $this->createInput($name . '[s]', $val['s'], $attrComp);
+                    break;
+                    
+                case 'm':
+                    $attrComp['placeholder'] = 'Произв.';
+                    $manifactureOptions = batch_ManufacturersPerProducts::getArray($this->params['folderId'], $productId);
+                    if (empty($value) && !$this->formWithErrors && empty($this->params['autohide'])) {
+                        $val['m'] = key($manifactureOptions);
+                    }
+                    $this->suggestions = $manifactureOptions;
+                    $inputHtml = $this->createInput($name . '[m]', $val['m'], $attrComp);
+                    break;
+                    
+                case 'd':
+                    $attrComp['placeholder'] = !empty($datePlaceholder) ? $datePlaceholder : 'Годен до';
+                    $this->suggestions = countR($suggestionsArr['d'] ?? null) ? array('' => '') + $suggestionsArr['d'] : array();
+                    $inputHtml = $this->createInput($name . '[d]', $val['d'], $attrComp);
+                    break;
+            }
 
-        return new ET('<span style="white-space:nowrap;">[#1#]</span>', $tpl);
+            $tpl->append($inputHtml, 'INPUTS');
+        }
+
+        return $tpl;
     }
     
 

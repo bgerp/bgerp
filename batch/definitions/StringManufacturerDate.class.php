@@ -42,19 +42,20 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
      */
     public function getBatchClassType($class = null, $objectId = null)
     {
+        $folderId = $this->rec->folderId;
         if(isset($class) && isset($objectId)){
             $Class = cls::get($class);
             if($Class instanceof core_Detail){
                 if(cls::haveInterface('doc_DocumentIntf', $Class->Master)){
                     $masterKey = $Class->fetchRec($objectId)->{$Class->masterKey};
-                    $this->rec->folderId = $Class->Master->fetchField($masterKey, 'folderId');
+                    $folderId = $Class->Master->fetchField($masterKey, 'folderId');
                 }
             } elseif(cls::haveInterface('doc_DocumentIntf', $Class)){
-                $this->rec->folderId = $Class->fetchRec($objectId)->folderId;
+                $folderId = $Class->fetchRec($objectId)->folderId;
             }
         }
-        
-        $Type = core_Type::getByName("batch_type_StringManufacturerExpiryDate(productId={$this->rec->productId},format={$this->rec->format},defaultTime={$this->rec->time},folderId={$this->rec->folderId},delimiter={$this->rec->delimiter})");
+
+        $Type = core_Type::getByName("batch_type_StringManufacturerExpiryDate(productId={$this->rec->productId},format={$this->rec->format},defaultTime={$this->rec->time},folderId={$folderId},delimiter={$this->rec->delimiter})");
 
         return $Type;
     }
@@ -69,10 +70,23 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
 
         if(isset($this->rec->folderId) && isset($this->rec->productId)){
             $exploded = explode('|', $string);
-            if(!empty($exploded[1])){
-                if(!batch_ManufacturersPerProducts::fetch(array("#folderId = [#1#] AND #productId = [#2#] AND #string = '[#3#]'", $this->rec->folderId, $this->rec->productId, $exploded[1]))){
-                    $dRec = (object)array('folderId' => $this->rec->folderId, 'productId' => $this->rec->productId, 'string' => $exploded[1]);
-                    batch_ManufacturersPerProducts::save($dRec);
+
+            $keys = array_keys($this->featureOrder);
+            $manufacturerIndex = array_search('m', $keys);
+
+            if($manufacturerIndex !== false && !empty($exploded[$manufacturerIndex])){
+                $manufacturerValue = $exploded[$manufacturerIndex];
+
+                $dRec = (object)array(
+                    'folderId'  => $this->rec->folderId,
+                    'productId' => $this->rec->productId,
+                    'string'    => $manufacturerValue,
+                );
+
+                try {
+                    batch_ManufacturersPerProducts::forceInsert($dRec);
+                } catch (Exception $e) {
+                    
                 }
             }
         }

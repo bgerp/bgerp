@@ -209,6 +209,9 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
             $aTime = strtotime(dt::getMysqlFromMask($aDate, $this->rec->format));
             $bTime = strtotime(dt::getMysqlFromMask($bDate, $this->rec->format));
 
+            if ($aTime === false) $aTime = PHP_INT_MAX;
+            if ($bTime === false) $bTime = PHP_INT_MAX;
+
             if ($aTime == $bTime) return 0;
             return ($aTime < $bTime) ? -1 : 1;
         });
