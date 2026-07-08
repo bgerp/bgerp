@@ -159,7 +159,7 @@ defIfNot('CAT_LAST_PACK_USAGES', 12);
 /**
  * Проверките за цената/Сб-ста на нестандартните универсални артикули да се търси от рецепта->Избор
  */
-defIfNot('CAT_USE_BOM_PRICE_OF_NON_STANDART_GP', 'no');
+defIfNot('CAT_USE_BOM_PRICE_OF_NON_STANDART_GP', 'yes');
 
 
 /**
