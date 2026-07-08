@@ -372,7 +372,7 @@ class doc_View extends core_Master
      */
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-        if ($data->form->rec->_toFullView) {
+        if (!empty($data->form->rec->_toFullView)) {
             $data->retUrl = toUrl(array($mvc, 'editDocument', $data->form->rec->id));
         }
     }
@@ -510,7 +510,7 @@ class doc_View extends core_Master
     {
         if ($action == 'add') {
             if ($rec) {
-                if (!$rec->clsId || !$rec->dataId) {
+                if (empty($rec->clsId) || empty($rec->dataId)) {
                     $requiredRoles = 'no_one';
                 } else {
                     if (!cls::load($rec->clsId, true)) {
@@ -522,9 +522,9 @@ class doc_View extends core_Master
                         }
                     }
                 }
-                
+
                 // Ако няма достъп до сингъла на нишката, да не може да създава изглед
-                if (($requiredRoles != 'no_one') && ($rec->originId)) {
+                if (($requiredRoles != 'no_one') && !empty($rec->originId)) {
                     if ($threadId = doc_Containers::fetchField($rec->originId, 'threadId')) {
                         if (!doc_Threads::haveRightFor('single', $threadId)) {
                             $requiredRoles = 'no_one';
