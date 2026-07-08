@@ -86,7 +86,7 @@
 					<!--ET_END supportUsers-->
 
 					<!--ET_BEGIN autoAddConvertableInTask-->
-					<div>|Автоматично добавяне на артикули от протокол за влагане в ПО|*: [#autoAddConvertableInTask#]</div>
+					<div>|Автоматично добавяне на артикули от Протокол за влагане (на Заявка) в ПО|*: [#autoAddConvertableInTask#]</div>
 					<!--ET_END autoAddConvertableInTask-->
 	            </div>
 	        </fieldset>
