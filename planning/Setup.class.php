@@ -254,9 +254,9 @@ defIfNot('PLANNING_ALLOW_STORE_DOCS_IN_JOB', '0');
 
 
 /**
- * Автоматично добавяне на артикули от протокол за влагане в ПО->Избор
+ * Автоматично добавяне на артикули от Протокол за влагане (на Заявка) в ПО->Избор
  */
-defIfNot('PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK', 'no');
+defIfNot('PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK', 'yes');
 
 
 /**
@@ -361,7 +361,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_MANUAL_ORDER_IN_ASSET' => array('enum(yes=Да,no=Не)', array('caption' => 'САМО ръчно подреждане на операциите на оборудването->Избор')),
         'PLANNING_TASK_SUB_PRODUCT_MIN_BUTTONS' => array('int(Min=0)', array('caption' => 'Колко индивидуални бутони за субпродукти да се показват в ПО->Брой')),
         'PLANNING_ALLOW_STORE_DOCS_IN_JOB' => array('time', array('caption' => 'До кога след приключване на заданието да се контират протоколи за влагане и връщане->Време')),
-        'PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Автоматично добавяне на артикули от протокол за влагане в ПО->Избор')),
+        'PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Автоматично добавяне на артикули от Протокол за влагане (на Заявка) в ПО->Избор')),
         'PLANNING_PRODUCT_IMAGE_IN_PRODUCTION_NOTE_PRINTING' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'При печат на ПП да се показва изображението на артикула->Избор')),
         'PLANNING_TASK_FAST_PROGRESS_BTN' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Добавяне на бърз прогрес за оставащото в листа на ПО->Избор')),
         'PLANNING_BOM_TRANSFER_NOTES' => array('enum(yes=Да,no=Не)', 'caption=Пренасяне забележките на артикулите от рецептата в Протокола за производство->По подразбиране'),

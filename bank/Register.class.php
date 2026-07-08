@@ -569,6 +569,7 @@ class bank_Register extends core_Manager
     {
         // Обикаляме по всичко отворени Продажби и такива, в които имаме затваряне
         $earlyClosed = dt::addSecs(-5 * 24 * 60 * 60);
+        $threads = $folders = $docs = array();
 
         $query = sales_Sales::getQuery();
         $query->where("#state = 'active' OR (#state = 'closed' AND #closedOn >= '{$earlyClosed}')");
@@ -622,6 +623,7 @@ class bank_Register extends core_Manager
             $threads[] = $rec->threadId;
             $folders[$rec->folderId] = $rec->folderId;
 
+            $o = new stdClass();
             $o->type = 'outgoing';
             $o->number = $rec->id;
             $o->amount = round(($rec->amountBl ? $rec->amountBl : $rec->amountDeal - $rec->amountDiscount + $rec->amountVat) / self::getCurrencyRate($rec), 2);
@@ -712,6 +714,7 @@ class bank_Register extends core_Manager
         }
         $s2Arr = explode(' ', strtolower(trim(preg_replace('/[^a-z0-9]+/i', ' ', $s2))));
 
+        $s = 0;
         foreach ($s1Arr as $w1) {
             $m = 0;
             foreach ($s2Arr as $w2) {

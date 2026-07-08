@@ -47,7 +47,6 @@ class doc_plg_TxtExportable extends core_Plugin
 
         $row = self::getVerbalRow($mvc, $rec);
         $authorName = self::getAuthorName($mvc, $rec);
-
         $text = self::buildInfoHeader($mvc, $id, $row, $authorName) . $string;
 
         $mvc->invoke('AfterAfterGetTxtExport', array(&$text, $rec, $params));

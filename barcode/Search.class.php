@@ -200,7 +200,7 @@ class barcode_Search extends core_Manager
 
         if ($haveRes === false) {
             $tpl->append(tr('Няма открити съвпадения'));
-        } else {
+        } elseif ($haveRes) {
             $tpl->append($tableTpl);
         }
 

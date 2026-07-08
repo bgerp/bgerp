@@ -267,7 +267,7 @@ class cal_Reminders extends core_Master
         $this->FLD('notifyCnt', 'int(min=1, max=100)', 'caption=Напомняния преди събитието->Брой, changable');
 
         // Колко пъти ще се повтаря напомнянето?
-        $this->FLD('repetitionEach', 'int(Min=0)', 'caption=Повторяемо събитие->Период,changable,autohide, placeholder=Еднократно');
+        $this->FLD('repetitionEach', 'int(Min=0)', 'caption=Повтарящо се събитие->Период,changable,autohide, placeholder=Еднократно');
 
         // По какво ще се повтаря напомненето - дни, седмици, месеци, години
         $this->FLD(
@@ -277,7 +277,7 @@ class cal_Reminders extends core_Master
 			                                  months=месеца,
 			                                  weekDay=месеца-ден от началото на седмицата,
 			                                  monthDay=месеца-ден от началото на месеца)',
-           'caption=Повторяемо събитие->Мярка на периода, maxRadio=5,columns=1,notNull,changable,autohide=any, placeholder=Дни'
+           'caption=Повтарящо се събитие->Мярка на периода, maxRadio=5,columns=1,notNull,changable,autohide=any, placeholder=Дни'
         );
 
         // За кой път се среща деня
