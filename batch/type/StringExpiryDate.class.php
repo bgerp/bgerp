@@ -166,17 +166,17 @@ class batch_type_StringExpiryDate extends type_Varchar
     /**
      * Помощна ф-я връщаща дефолтния срок на годност
      *
-     * @param $productId
+     * @param int $productId
      * @param null $startDate
-     * @param null $params
      * @return datetime|null $date
+     *
      */
-    protected function getDefaultExpirationDate($productId, $startDate = null, $params = null)
+    protected function getDefaultExpirationDate($productId, $startDate = null)
     {
         $date = null;
         $startDate = $startDate ?? dt::now();
-        $productTime = cat_Products::getParams($this->rec->productId, 'expiryTime');
-        
+        $productTime = isset($productId) ? cat_Products::getParams($productId, 'expiryTime') : null;
+
         if (empty($productTime)) {
             $productTime = $this->params['defaultTime'];
         }
@@ -194,8 +194,7 @@ class batch_type_StringExpiryDate extends type_Varchar
     public function renderInput_($name, $value = '', &$attr = array())
     {
         $productId = $this->params['productId'] ?? null;
-        $params = isset($productId) ? cat_Products::getParams($productId) : array();
-        $datePlaceholder = $this->getDefaultExpirationDate($productId, null, $params);
+        $datePlaceholder = $this->getDefaultExpirationDate($productId);
         $delimiter = html_entity_decode($this->params['delimiter'], ENT_COMPAT, 'UTF-8');
 
         $order = $this->partsOrder;
