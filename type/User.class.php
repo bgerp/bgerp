@@ -225,7 +225,7 @@ class type_User extends type_Key
      */
     public function renderInput($name, $value = '', &$attr = array())
     {
-        if (is_null($value) && !$this->params['allowEmpty']) {
+        if (is_null($value) && !($this->params['allowEmpty'] ?? null)) {
             $value = core_Users::getCurrent();
         }
         

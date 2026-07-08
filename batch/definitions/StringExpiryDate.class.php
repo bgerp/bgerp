@@ -4,12 +4,10 @@
 /**
  * Тип партидност за Номер + Годен до
  *
- *
  * @category  bgerp
  * @package   batch
- *
- * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2023 Experta OOD
+ * @author    Mustafa Mustafov <mmustafov084@gmail.com>
+ * @copyright 2006 - 2026 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -21,6 +19,14 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
      * Позволени формати
      */
     protected $formatSuggestions = 'm/d/y,m.d.y,d.m.Y,m/d/Y,d/m/Y,Ymd,Ydm,Y-m-d,dmY,ymd,ydm,m.d.Y';
+    
+    
+    /**
+     * Партида
+    */
+    protected $featureOrder = array('s' => 'Номер', 
+                                    'd' => 'Срок на годност'
+                                );
 
 
     /**
@@ -38,6 +44,21 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
 
 
     /**
+     * Връща параметрите за инстанциране на типа
+     *
+     * @return array
+     */
+    protected function getBatchTypeParams()
+    {
+        return array(
+            'productId'   => $this->rec->productId,
+            'format'      => $this->rec->format,
+            'defaultTime' => $this->rec->time,
+            'delimiter'   => $this->rec->delimiter,
+        );
+    }
+
+    /**
      * Проверява дали стойността е невалидна
      *
      * @param mixed $class
@@ -46,20 +67,14 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
      */
     public function getBatchClassType($class = null, $objectId = null)
     {
-        if(isset($class) && isset($objectId)){
-            $Class = cls::get($class);
-            if($Class instanceof core_Detail){
-                if(cls::haveInterface('doc_DocumentIntf', $Class->Master)){
-                    $masterKey = $Class->fetchRec($objectId)->{$Class->masterKey};
-                    $this->rec->folderId = $Class->Master->fetchField($masterKey, 'folderId');
-                }
-            } elseif(cls::haveInterface('doc_DocumentIntf', $Class)){
-                $this->rec->folderId = $Class->fetchRec($objectId)->folderId;
-            }
-        }
-        $Type = core_Type::getByName("batch_type_StringExpiryDate(productId={$this->rec->productId},format={$this->rec->format},defaultTime={$this->rec->time},folderId={$this->rec->folderId},delimiter={$this->rec->delimiter})");
+        $params = $this->getBatchTypeParams();
         
-        return $Type;
+        $paramStr = array();
+        foreach ($params as $k => $v) {
+            $paramStr[] = "{$k}={$v}";
+        }
+        
+        return core_Type::getByName("batch_type_StringExpiryDate(" . implode(',', $paramStr) . ")");
     }
 
 
@@ -90,26 +105,31 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
 
 
     /**
-     * Кой може да избере драйвера
+     * Вербално представяне на партидата (Поддържа 2, 3 или повече компонента)
      */
     public function toVerbal($value)
     {
-        $Type = $this->getBatchClassType();
-        $verbal = $Type->toVerbal($value);
         $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
-        list($string, $date) = explode($delimiter, $verbal);
+        
+        // Ако системният запис е с '|', го разделяме по него
+        $parts = (strpos($value, '|') !== false) ? explode('|', $value) : explode($delimiter, $value);
+        $features = array_values($this->featureOrder);
 
-        $expiryTime = cat_Products::getParams($this->rec->productId, 'expiryTime');
-        $expiryTime = !empty($expiryTime) ? $expiryTime : $this->rec->time;
-        $date = batch_definitions_ExpirationDate::displayExpiryDate($date, $this->rec->format, $expiryTime);
+        foreach ($features as $index => $featureName) {
+            if (!isset($parts[$index])) continue;
 
-        $string = core_Type::getByName('varchar')->toVerbal($string);
-        $value = implode($delimiter, array($string, $date));
-        if(!Mode::is('text', 'plain') && $value != strip_tags($value)) {
-            $value = "<span>{$value}</span>";
+            if ($featureName == 'Срок на годност') {
+                $expiryTime = cat_Products::getParams($this->rec->productId, 'expiryTime');
+                $expiryTime = !empty($expiryTime) ? $expiryTime : $this->rec->time;
+                $parts[$index] = batch_definitions_ExpirationDate::displayExpiryDate($parts[$index], $this->rec->format, $expiryTime);
+            } elseif ($featureName == 'Номер') {
+                $parts[$index] = core_Type::getByName('varchar')->toVerbal($parts[$index]);
+            }
         }
 
-        return $value;
+        $value = implode($delimiter, $parts);
+        
+        return (!Mode::is('text', 'plain') && $value != strip_tags($value)) ? "<span>{$value}</span>" : $value;
     }
 
 
@@ -119,6 +139,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
     public function normalize($value)
     {
         $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+
         return str_replace($delimiter, '|', $value);
     }
 
@@ -144,53 +165,81 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
 
 
     /**
-     * Какви са свойствата на партидата
+     * Какви са свойствата на партидата (Динамично спрямо дефинирания шаблон)
      *
-     * @param string $value - номер на партидара
+     * @param string $value - номер на партидата
      * @return array - свойства на партидата
-     *               масив с ключ ид на партидна дефиниция и стойност свойството
+     *
      */
     public function getFeatures($value)
     {
-        list($string, $date) = explode('|', $value);
+        $parts = explode('|', $value);
+        $features = array_values($this->featureOrder);
+        $res = array();
 
         $varcharClassId = batch_definitions_Varchar::getClassId();
         $dateClassId = batch_definitions_ExpirationDate::getClassId();
-        $date = dt::getMysqlFromMask($date, $this->rec->format);
 
-        $res = array();
-        $res[] = (object) array('name' => 'Номер', 'classId' => $varcharClassId, 'value' => $string);
-        $res[] = (object) array('name' => 'Срок на годност', 'classId' => $dateClassId, 'value' => $date);
+        // Обхождаме динамично структурата, дефинирана в класа
+        foreach ($features as $index => $featureName) {
+            $partValue = isset($parts[$index]) ? $parts[$index] : '';
+
+            if ($featureName == 'Срок на годност') {
+                $partValue = dt::getMysqlFromMask($partValue, $this->rec->format);
+                $classId = $dateClassId;
+            } else {
+                $classId = $varcharClassId;
+            }
+
+            $res[] = (object) array(
+                'name' => $featureName, 
+                'classId' => $classId, 
+                'value' => $partValue
+            );
+        }
 
         return $res;
     }
 
 
-   /**
-     * Подрежда подадените партиди
-     *
-     * @param array         $batches - наличните партиди
-     *                               ['batch_name'] => ['quantity']
-     * @param datetime|NULL $date
-     *                               return void
-     */
+    /**
+     * Подрежда подадените партиди по дата на годност
+    *
+    * @param array         $batches - наличните партиди ['batch_name'] => ['quantity']
+    * @param int           $storeId
+    * @param datetime|NULL $date
+    * return void
+    *
+    */
     public function orderBatchesInStore(&$batches, $storeId, $date = null)
     {
-        $dates = array_keys($batches);
+        $batchNames = array_keys($batches);
 
-        usort($dates, function ($a, $b) {
-            list(, $aDate) = explode('|', $a);
-            list(, $bDate) = explode('|', $b);
+        $keys = array_keys($this->featureOrder);
+        $dateIndex = array_search('d', $keys);
+
+        if ($dateIndex === false) return;
+
+        usort($batchNames, function ($a, $b) use ($dateIndex) {
+            $aParts = explode('|', $a);
+            $bParts = explode('|', $b);
+            
+            $aDate = isset($aParts[$dateIndex]) ? $aParts[$dateIndex] : '';
+            $bDate = isset($bParts[$dateIndex]) ? $bParts[$dateIndex] : '';
             
             $aTime = strtotime(dt::getMysqlFromMask($aDate, $this->rec->format));
             $bTime = strtotime(dt::getMysqlFromMask($bDate, $this->rec->format));
 
+            if ($aTime === false) $aTime = PHP_INT_MAX;
+            if ($bTime === false) $bTime = PHP_INT_MAX;
+
+            if ($aTime == $bTime) return 0;
             return ($aTime < $bTime) ? -1 : 1;
         });
 
         $sorted = array();
-        foreach ($dates as $date) {
-            $sorted[$date] = $batches[$date];
+        foreach ($batchNames as $name) {
+            $sorted[$name] = $batches[$name];
         }
 
         $batches = $sorted;
