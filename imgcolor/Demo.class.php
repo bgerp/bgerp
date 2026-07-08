@@ -1,0 +1,208 @@
+<?php
+
+
+/**
+ * Тестов интерфейс и fileman действие за анализ на цветове за печат.
+ *
+ * @category  bgerp
+ * @package   imgcolor
+ *
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class imgcolor_Demo extends core_Manager
+{
+    /**
+     * Интерфейси
+     */
+    public $interfaces = 'fileman_FileActionsIntf';
+
+
+    /**
+     * Заглавие
+     */
+    public $title = 'Анализ на цветове за печат';
+
+
+    /**
+     * Права
+     */
+    public $canAnalyze = 'imgcolor, ceo, admin';
+    public $canAnalyzecolors = 'imgcolor, ceo, admin';
+
+
+    /**
+     * Разрешени разширения за анализ
+     */
+    public static $allowedExt = array('png', 'jpg', 'jpeg');
+
+
+    /**
+     * Няма таблица - само контролер
+     */
+    public function description()
+    {
+    }
+
+
+    /**
+     * Входна точка към формата за качване
+     */
+    public function act_Default()
+    {
+        $this->requireRightFor('analyze');
+
+        return new Redirect(array($this->className, 'analyze'));
+    }
+
+
+    /**
+     * Форма за качване на изображение и преглед на резултата
+     */
+    public function act_Analyze()
+    {
+        $this->requireRightFor('analyze');
+
+        $form = $this->getForm();
+        $form->title = 'Анализ на цветове за печат';
+        $form->FLD('imageFile', 'fileman_FileType(bucket=imgcolorImages)', 'caption=Изображение,mandatory');
+
+        $form->input();
+
+        $resultHtml = '';
+        if ($form->isSubmitted()) {
+            try {
+                $bytes = fileman::extractStr($form->rec->imageFile);
+                $result = imgcolor_Analyzer::process($bytes);
+                $resultHtml = self::renderResult($result);
+            } catch (core_exception_Expect $e) {
+                $resultHtml = self::renderError($e);
+            }
+        }
+
+        $form->toolbar->addSbBtn('Анализирай', 'save', 'ef_icon=img/16/color_swatch_1.png');
+
+        $tpl = getTplFromFile('imgcolor/tpl/Demo.shtml');
+        $tpl->append($form->renderHtml(), 'FORM');
+        $tpl->append($resultHtml, 'RESULT');
+
+        return $this->renderWrapping($tpl);
+    }
+
+
+    /**
+     * fileman действие: анализ на цветове върху вече качен файл
+     */
+    public function act_AnalyzeColors()
+    {
+        $this->requireRightFor('analyzecolors');
+
+        $fh = Request::get('id');
+        expect($fRec = fileman_Files::fetchByFh($fh));
+        expect(self::canAnalyzeFile($fRec));
+        fileman_Files::requireRightFor('single', $fRec);
+
+        try {
+            $result = imgcolor_Analyzer::process(fileman::extractStr($fh));
+        } catch (core_exception_Expect $e) {
+
+            return $this->renderWrapping(self::renderError($e));
+        }
+
+        return $this->renderWrapping(self::renderResult($result));
+    }
+
+
+    /**
+     * Интерфейсен метод на fileman_FileActionsIntf - бутон върху файла
+     *
+     * @param stdClass $fRec
+     *
+     * @return array|NULL
+     */
+    public static function getActionsForFile_($fRec)
+    {
+        $arr = null;
+
+        if (self::haveRightFor('analyzecolors') && self::canAnalyzeFile($fRec)) {
+            $btnParams = array();
+            $btnParams['order'] = 80;
+            $btnParams['title'] = 'Анализ на основните цветове за печат';
+
+            $arr = array();
+            $arr['imgcolor']['url'] = array(get_called_class(), 'analyzeColors', $fRec->fileHnd, 'ret_url' => true);
+            $arr['imgcolor']['title'] = 'Цветове за печат';
+            $arr['imgcolor']['icon'] = 'img/16/color_swatch_1.png';
+            $arr['imgcolor']['btnParams'] = $btnParams;
+        }
+
+        return $arr;
+    }
+
+
+    /**
+     * Може ли файлът да бъде анализиран (по разширение)
+     *
+     * @param stdClass|string $fRec
+     *
+     * @return bool
+     */
+    public static function canAnalyzeFile($fRec)
+    {
+        $name = is_object($fRec) ? $fRec->name : $fRec;
+        $ext = strtolower(fileman_Files::getExt($name));
+
+        return $ext && in_array($ext, self::$allowedExt, true);
+    }
+
+
+    /**
+     * Рендира резултата: изрязано изображение + цветови мостри
+     *
+     * @param \ImageColorAnalyzer\PublicAPI\ProcessedImageResult $result
+     *
+     * @return string
+     */
+    public static function renderResult($result)
+    {
+        $colors = json_decode($result->json, true);
+        if (!is_array($colors)) {
+            $colors = array();
+        }
+
+        $swatches = '';
+        foreach ($colors as $c) {
+            $hex = preg_replace('/[^#0-9A-Fa-f]/', '', (string) $c['color']);
+            $pct = (float) $c['coverage_percent'];
+            $swatches .= "<div style='display:flex;align-items:center;gap:8px;margin:2px 0'>"
+                . "<span style='display:inline-block;width:20px;height:20px;border:1px solid #999;background:{$hex}'></span>"
+                . "<code>{$hex}</code> - {$pct}%</div>";
+        }
+
+        $imgTag = '';
+        if (is_object($result->croppedImage) && is_string($result->croppedImage->bytes) && $result->croppedImage->bytes !== '') {
+            $b64 = base64_encode($result->croppedImage->bytes);
+            $imgTag = "<div><img alt='cropped' style='max-width:320px;border:1px solid #ccc' src='data:image/png;base64,{$b64}'/></div>";
+        }
+
+        return "<div style='display:flex;gap:24px;flex-wrap:wrap'>"
+            . "<div>{$imgTag}</div>"
+            . "<div>{$swatches}</div>"
+            . '</div>';
+    }
+
+
+    /**
+     * Рендира грешка от анализа в UI контекст.
+     *
+     * @param core_exception_Expect $e
+     *
+     * @return string
+     */
+    private static function renderError($e)
+    {
+        $msg = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+
+        return "<div class='formError'>{$msg}</div>";
+    }
+}

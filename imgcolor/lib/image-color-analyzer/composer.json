@@ -1,0 +1,36 @@
+{
+    "name": "acme/image-color-analyzer",
+    "description": "Analyze PNG/JPEG images: crop the near-white background and report principal print colors with coverage percentages.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["image", "color", "clustering", "kmeans", "cielab", "print", "gd"],
+    "require": {
+        "php": ">=8.2",
+        "ext-gd": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "phpstan/phpstan": "^1.11",
+        "friendsofphp/php-cs-fixer": "^3.59"
+    },
+    "suggest": {
+        "ext-imagick": "Enables the Imagick loader for CMYK/ICC-aware or very large images."
+    },
+    "autoload": {
+        "psr-4": { "ImageColorAnalyzer\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "ImageColorAnalyzer\\Tests\\": "tests/" }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "stan": "phpstan analyse --memory-limit=512M",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
