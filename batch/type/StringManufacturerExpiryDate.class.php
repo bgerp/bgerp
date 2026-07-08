@@ -57,6 +57,10 @@ class batch_type_StringManufacturerExpiryDate extends batch_type_StringExpiryDat
         $parentResult = parent::fromVerbal(array('s' => $valueArr['s'], 'd' => $valueArr['d']));
 
         if ($parentResult === false || $parentResult === null || countR($manufacturerErrors)) {
+            if (($parentResult === false || $parentResult === null) && empty($this->error)) {
+                $this->error = 'Липсва номер';
+            }
+
             $this->error = implode(', ', array_filter(array_merge($manufacturerErrors, array($this->error))));
             return false;
         }
@@ -79,7 +83,7 @@ class batch_type_StringManufacturerExpiryDate extends batch_type_StringExpiryDat
         if ($key === 'm') {
             $attrComp['placeholder'] = 'Произв.';
             $manifactureOptions = batch_ManufacturersPerProducts::getArray($this->params['folderId'], $productId);
-            if (empty($val['m']) && !$this->formWithErrors && empty($this->params['autohide'])) {
+            if (empty($val['m']) && empty($this->formWithErrors) && empty($this->params['autohide'])) {
                 $val['m'] = key($manifactureOptions);
             }
             $this->suggestions = $manifactureOptions;
