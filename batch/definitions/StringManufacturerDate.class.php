@@ -43,21 +43,28 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
     public function getBatchClassType($class = null, $objectId = null)
     {
         $folderId = $this->rec->folderId;
-        if(isset($class) && isset($objectId)){
+        if (isset($class) && isset($objectId)) {
             $Class = cls::get($class);
-            if($Class instanceof core_Detail){
-                if(cls::haveInterface('doc_DocumentIntf', $Class->Master)){
+            if ($Class instanceof core_Detail) {
+                if (cls::haveInterface('doc_DocumentIntf', $Class->Master)) {
                     $masterKey = $Class->fetchRec($objectId)->{$Class->masterKey};
                     $folderId = $Class->Master->fetchField($masterKey, 'folderId');
                 }
-            } elseif(cls::haveInterface('doc_DocumentIntf', $Class)){
+            } elseif (cls::haveInterface('doc_DocumentIntf', $Class)) {
                 $folderId = $Class->fetchRec($objectId)->folderId;
             }
         }
 
-        $Type = core_Type::getByName("batch_type_StringManufacturerExpiryDate(productId={$this->rec->productId},format={$this->rec->format},defaultTime={$this->rec->time},folderId={$folderId},delimiter={$this->rec->delimiter})");
+        // Вземаме базовите параметри и само ги разширяваме/заменяме
+        $params = parent::getBatchTypeParams();
+        $params['folderId'] = $folderId;
 
-        return $Type;
+        $paramStr = array();
+        foreach ($params as $k => $v) {
+            $paramStr[] = "{$k}={$v}";
+        }
+
+        return core_Type::getByName("batch_type_StringManufacturerExpiryDate(" . implode(',', $paramStr) . ")");
     }
 
 
@@ -74,7 +81,7 @@ class batch_definitions_StringManufacturerDate extends batch_definitions_StringE
             $keys = array_keys($this->featureOrder);
             $manufacturerIndex = array_search('m', $keys);
 
-            if($manufacturerIndex !== false && !empty($exploded[$manufacturerIndex])){
+            if($manufacturerIndex !== false && isset($exploded[$manufacturerIndex]) && strlen($exploded[$manufacturerIndex]) > 0){
                 $manufacturerValue = $exploded[$manufacturerIndex];
 
                 $dRec = (object)array(

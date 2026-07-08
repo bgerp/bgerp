@@ -25,10 +25,9 @@ class batch_type_StringManufacturerExpiryDate extends batch_type_StringExpiryDat
      */
     public function fromVerbal($value)
     {
-        if (empty($value)) return;
+        if (!isset($value) || $value === '' || $value === array()) return;
 
         $this->error = null;
-        
         $delimiter = html_entity_decode($this->params['delimiter'], ENT_COMPAT, 'UTF-8');
 
         if (is_scalar($value)) {
@@ -43,12 +42,17 @@ class batch_type_StringManufacturerExpiryDate extends batch_type_StringExpiryDat
             $valueArr = $value;
         }
 
-        if (empty($valueArr['s']) && empty($valueArr['m']) && empty($valueArr['d'])) {
+        // Стриктна проверка за всички полета
+        $sEmpty = !isset($valueArr['s']) || $valueArr['s'] === '';
+        $mEmpty = !isset($valueArr['m']) || $valueArr['m'] === '';
+        $dEmpty = !isset($valueArr['d']) || $valueArr['d'] === '';
+
+        if ($sEmpty && $mEmpty && $dEmpty) {
             return;
         }
 
         $manufacturerErrors = array();
-        if (empty($valueArr['m'])) {
+        if ($mEmpty) {
             $manufacturerErrors[] = 'Липсва производител';
         } elseif (strpos($valueArr['m'], $delimiter) !== false) {
             $manufacturerErrors[] = "В производителя не трябва да се съдържа|* <b>{$delimiter}</b>";

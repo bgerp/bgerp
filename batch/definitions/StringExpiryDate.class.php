@@ -44,6 +44,21 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
 
 
     /**
+     * Връща параметрите за инстанциране на типа
+     *
+     * @return array
+     */
+    protected function getBatchTypeParams()
+    {
+        return array(
+            'productId'   => $this->rec->productId,
+            'format'      => $this->rec->format,
+            'defaultTime' => $this->rec->time,
+            'delimiter'   => $this->rec->delimiter,
+        );
+    }
+
+    /**
      * Проверява дали стойността е невалидна
      *
      * @param mixed $class
@@ -52,9 +67,14 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
      */
     public function getBatchClassType($class = null, $objectId = null)
     {
-        $Type = core_Type::getByName("batch_type_StringExpiryDate(productId={$this->rec->productId},format={$this->rec->format},defaultTime={$this->rec->time},delimiter={$this->rec->delimiter})");
+        $params = $this->getBatchTypeParams();
         
-        return $Type;
+        $paramStr = array();
+        foreach ($params as $k => $v) {
+            $paramStr[] = "{$k}={$v}";
+        }
+        
+        return core_Type::getByName("batch_type_StringExpiryDate(" . implode(',', $paramStr) . ")");
     }
 
 

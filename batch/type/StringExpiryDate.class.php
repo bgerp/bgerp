@@ -26,7 +26,7 @@ class batch_type_StringExpiryDate extends type_Varchar
      */
     public function fromVerbal($value)
     {
-        if (empty($value)) return;
+        if (!isset($value) || $value === '' || $value === array()) return;
 
         $valueArr = $value;
         $delimiter = html_entity_decode($this->params['delimiter'], ENT_COMPAT, 'UTF-8');
@@ -39,11 +39,11 @@ class batch_type_StringExpiryDate extends type_Varchar
             $valueArr['d'] = isset($valueParsed[1]) ? trim($valueParsed[1]) : '';
         }
 
-        if (empty($valueArr['s']) && empty($valueArr['d'])) return;
+        if ((!isset($valueArr['s']) || $valueArr['s'] === '') && (!isset($valueArr['d']) || $valueArr['d'] === '')) return;
 
         $errorArr = array();
         
-        if (empty($valueArr['s'])) {
+        if (!isset($valueArr['s']) || $valueArr['s'] === '') {
             $errorArr[] = 'Задайте номер на партидата';
         } else {
             if (strpos($valueArr['s'], $delimiter) !== false) {
@@ -81,7 +81,11 @@ class batch_type_StringExpiryDate extends type_Varchar
 
         $res['s'] = trim($res['s']);
         
-        return implode('|', array_filter($res));
+        $filteredRes = array_filter($res, function($val) {
+            return $val !== null && $val !== '';
+        });
+
+        return implode('|', $filteredRes);
     }
 
 
@@ -142,12 +146,13 @@ class batch_type_StringExpiryDate extends type_Varchar
     protected function prepareInputValue($name, $value)    
     {
         $useValue = $this->formWithErrors ? Request::get($name) : $value;
-        $useValue = empty($value) ? $value : $useValue;
+        // Стриктна проверка за празна стойност
+        $useValue = ($value === '' || $value === null) ? $value : $useValue;
 
         $order = $this->partsOrder;
         $res = array_fill_keys($order, null);
 
-        if (!empty($useValue)) {
+        if ($useValue !== null && $useValue !== '') {
             if (is_array($useValue)) {
                 foreach ($order as $key) {
                     $res[$key] = $useValue[$key] ?? null;
@@ -161,7 +166,6 @@ class batch_type_StringExpiryDate extends type_Varchar
         }
         return $res;
     }
-
     
     /**
      * Помощна ф-я връщаща дефолтния срок на годност
