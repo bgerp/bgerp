@@ -157,6 +157,12 @@ defIfNot('CAT_LAST_PACK_USAGES', 12);
 
 
 /**
+ * Проверките за цената/Сб-ста на нестандартните универсални артикули да се търси от рецепта->Избор
+ */
+defIfNot('CAT_USE_BOM_PRICE_OF_NON_STANDART_GP', 'no');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -292,9 +298,10 @@ class cat_Setup extends core_ProtoSetup
         'CAT_SHOW_GENERAL_PRODUCT_IMG_IN_PUBLIC' => array('enum(yes=Да,no=Не)', array('caption' => 'Показване на изображението на универсалния артикул във външните документи->Избор')),
         'CAT_LAST_PACK_USAGES' => array('int(Min=1)', array('caption' => 'Колко назад да се броят използванията на продуктовите опаковки->Месеци')),
         'CAT_EXPORTABLE_FIELDS' => array('keylist(mvc=cat_Params, select=typeExt)', array('caption' => 'Полета|*&nbsp; |коието мога да се експортират->Избор')),
+        'CAT_USE_BOM_PRICE_OF_NON_STANDART_GP' => array('enum(yes=Да,no=Не)', array('caption' => 'Проверките за цената/Сб-ста на нестандартните универсални артикули да се търси от рецепта->Избор')),
     );
-    
-    
+
+
     /**
      * Настройки за Cron
      */

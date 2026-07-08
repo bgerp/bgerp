@@ -3164,6 +3164,7 @@ abstract class deals_Helper
      */
     public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
     {
+        static $useBomVal;
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
         $isPublic = cat_Products::fetchField($productId, 'isPublic');
@@ -3189,8 +3190,14 @@ abstract class deals_Helper
             }
         }
 
+        if(empty($useBomVal)){
+            $useBomVal = cat_Setup::get('USE_BOM_PRICE_OF_NON_STANDART_GP');
+        }
+
         if(empty($foundPrice)){
+            Mode::push('calcCompareBomPrice', $useBomVal);
             $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
+            Mode::pop('calcCompareBomPrice');
         }
 
         foreach (array($foundMinPrice, $foundPrice) as $i => $var){
