@@ -256,7 +256,7 @@ defIfNot('PLANNING_ALLOW_STORE_DOCS_IN_JOB', '0');
 /**
  * Автоматично добавяне на артикули от Протокол за влагане (на Заявка) в ПО->Избор
  */
-defIfNot('PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK', 'no');
+defIfNot('PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK', 'yes');
 
 
 /**
