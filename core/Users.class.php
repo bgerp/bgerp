@@ -1668,7 +1668,7 @@ class core_Users extends core_Manager
                 }
                 
                 // Последното успешно логване от друго IP
-                $successArr = (array) $arr['success'];
+                $successArr = (array) ($arr['success'] ?? []);
                 
                 // Ако се е логнал от друг браузър или IP
                 $cOsName = log_Browsers::getUserAgentOsName();
