@@ -146,5 +146,12 @@ class imgcolor_Setup extends core_ProtoSetup
 
             return 'Избран е Imagick loader, но разширението imagick липсва';
         }
+
+        try {
+            imgcolor_Analyzer::buildOptions();
+        } catch (InvalidArgumentException $e) {
+
+            return 'Некоректна imgcolor конфигурация: ' . $e->getMessage();
+        }
     }
 }

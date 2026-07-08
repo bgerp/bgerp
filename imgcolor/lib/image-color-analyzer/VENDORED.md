@@ -7,9 +7,24 @@
 - **Vendored on:** 2026-07-08
 - **PSR-4 root:** `src/` maps namespace prefix `ImageColorAnalyzer\`
 
-## DO NOT EDIT
+## Local patch
 
-This tree is a verbatim copy. All BGERP-specific behavior lives in the
-`imgcolor_*` wrapper classes one level up. To update: replace `src/` with the
-new upstream `src/`, bump the commit/tag above, and re-run
-`tests/cli_parity.php` plus the `imgcolor_tests_Analyzer` web test.
+The following files contain BGERP review patches:
+
+- `src/ImageLoader/GdImageLoader.php` and
+  `src/ImageLoader/ImagickImageLoader.php` check image dimensions from metadata
+  before decoding image pixels.
+- `src/WhiteBackgroundCropper/WhiteBackgroundCropper.php` keeps raw content
+  extents in the crop box so thin marks are not erased by the line-noise guard.
+- `src/Options/*Options.php` validate option ranges.
+- `src/ImageLoader/FileImageSource.php` loops over short stream writes.
+- `src/Contracts/EncodedImage.php` preserves destination file permissions on
+  atomic overwrite.
+
+`composer.json` is retained as source/license/autoload metadata. Its upstream
+development scripts require files that are not vendored here; use
+`../../tests/cli_parity.php` and the BGERP unit test instead.
+
+To update: replace `src/` with the new upstream `src/`, reapply or drop local
+patches if upstream contains equivalent fixes, bump the commit/tag above, and
+re-run `tests/cli_parity.php` plus the `imgcolor_tests_Analyzer` web test.

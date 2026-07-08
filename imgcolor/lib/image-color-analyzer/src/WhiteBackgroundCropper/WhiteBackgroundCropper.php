@@ -13,8 +13,6 @@ use ImageColorAnalyzer\Contracts\Raster;
 use ImageColorAnalyzer\Options\CropOptions;
 
 /**
- * OWNER: Developer B.
- *
  * Removes the near-white margin surrounding image content using a
  * **border-inward scan**: it only ever trims from the four outer edges toward
  * the centre, so white *inside* the artwork is structurally impossible to
@@ -31,11 +29,9 @@ use ImageColorAnalyzer\Options\CropOptions;
  *
  * Tuning (see {@see CropOptions}): raise `chromaMax` / lower `lightnessMin` for
  * off-white scanned paper; lower `chromaMax` for clean exports where only true
- * white should be trimmed. `lineContentFraction` is a per-line noise guard: a
- * row/column counts as content only once its fraction of content pixels crosses
- * that floor, so dust and stray specks in the margin do not defeat cropping —
- * while a raw-extent fallback guarantees genuinely small content (a single
- * pixel, a thin line) is never erased.
+ * white should be trimmed. `lineContentFraction` identifies the main content
+ * block, while the final crop still includes the raw content extent so genuinely
+ * small edge content (a single pixel, a thin line) is never erased.
  *
  * The scan is a single O(W·H) pass; the near-white decision is memoized by
  * packed RGB so the highly repetitive margin costs one Lab evaluation per unique
@@ -114,6 +110,15 @@ final class WhiteBackgroundCropper implements CropperInterface
             $left = $minX;
             $right = $maxX;
         }
+
+        // The line-content guard identifies the main block, but it must not
+        // erase genuine thin marks when larger artwork elsewhere makes the
+        // guarded ranges non-null. Keep all real content extents in the final
+        // crop; callers can tune near-white thresholds for noisy scans.
+        $top = min($top, $minY);
+        $bottom = max($bottom, $maxY);
+        $left = min($left, $minX);
+        $right = max($right, $maxX);
 
         $box = new BoundingBox($left, $top, $right - $left + 1, $bottom - $top + 1);
 

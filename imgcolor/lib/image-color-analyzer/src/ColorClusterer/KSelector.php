@@ -7,8 +7,6 @@ namespace ImageColorAnalyzer\ColorClusterer;
 use ImageColorAnalyzer\Color\ColorConverter;
 
 /**
- * OWNER: Developer C.
- *
  * Chooses the number of clusters k using two views of weighted silhouette over
  * the histogram bins for k in 2..kMax. A conservative bin-structure score keeps
  * gradients from fragmenting into one cluster per bin; a represented-pixel score

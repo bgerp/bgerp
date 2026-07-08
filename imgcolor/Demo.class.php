@@ -32,12 +32,6 @@ class imgcolor_Demo extends core_Manager
 
 
     /**
-     * Разрешени разширения за анализ
-     */
-    public static $allowedExt = array('png', 'jpg', 'jpeg');
-
-
-    /**
      * Няма таблица - само контролер
      */
     public function description()
@@ -72,6 +66,16 @@ class imgcolor_Demo extends core_Manager
         $resultHtml = '';
         if ($form->isSubmitted()) {
             try {
+                $fRec = fileman_Files::fetchByFh($form->rec->imageFile);
+                if (!$fRec) {
+                    throw new core_exception_Expect('imgcolor: липсва качения файл', 'Несъответствие');
+                }
+                fileman_Files::requireRightFor('single', $fRec);
+
+                if (!self::canAnalyzeFile($fRec)) {
+                    throw new core_exception_Expect('imgcolor: поддържат се само PNG/JPEG изображения', 'Несъответствие');
+                }
+
                 $bytes = fileman::extractStr($form->rec->imageFile);
                 $result = imgcolor_Analyzer::process($bytes);
                 $resultHtml = self::renderResult($result);
@@ -98,9 +102,20 @@ class imgcolor_Demo extends core_Manager
         $this->requireRightFor('analyzecolors');
 
         $fh = Request::get('id');
-        expect($fRec = fileman_Files::fetchByFh($fh));
-        expect(self::canAnalyzeFile($fRec));
+        $fRec = fileman_Files::fetchByFh($fh);
+        if (!$fRec) {
+            $error = new core_exception_Expect('imgcolor: липсва файл за подадения handle', 'Несъответствие');
+
+            return $this->renderWrapping(self::renderError($error));
+        }
+
         fileman_Files::requireRightFor('single', $fRec);
+
+        if (!self::canAnalyzeFile($fRec)) {
+            $error = new core_exception_Expect('imgcolor: поддържат се само PNG/JPEG изображения', 'Несъответствие');
+
+            return $this->renderWrapping(self::renderError($error));
+        }
 
         try {
             $result = imgcolor_Analyzer::process(fileman::extractStr($fh));
@@ -149,10 +164,7 @@ class imgcolor_Demo extends core_Manager
      */
     public static function canAnalyzeFile($fRec)
     {
-        $name = is_object($fRec) ? $fRec->name : $fRec;
-        $ext = strtolower(fileman_Files::getExt($name));
-
-        return $ext && in_array($ext, self::$allowedExt, true);
+        return imgcolor_Analyzer::canAnalyzeFile($fRec);
     }
 
 

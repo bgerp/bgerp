@@ -8,8 +8,6 @@ use ImageColorAnalyzer\Contracts\ColorRGBA;
 use InvalidArgumentException;
 
 /**
- * OWNER: Developer A (foundation).
- *
  * Pure, deterministic sRGB <-> CIELAB <-> HSV conversions (D65 reference white)
  * plus CIE76 delta-E. Analysis happens in Lab; RGB stays the transport format.
  */

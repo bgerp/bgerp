@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ImageColorAnalyzer\Options;
 
+use InvalidArgumentException;
+
 /**
  * Configuration for color histogram binning and k-means clustering.
  */
@@ -27,5 +29,23 @@ final readonly class ClusterOptions
         public int $seed = 1,
         public int $alphaThreshold = 8,
     ) {
+        if ($fixedK !== null && $fixedK < 1) {
+            throw new InvalidArgumentException('Cluster fixedK must be null or a positive integer.');
+        }
+        if ($kMax < 1) {
+            throw new InvalidArgumentException('Cluster kMax must be positive.');
+        }
+        if ($histogramBitsPerChannel < 1 || $histogramBitsPerChannel > 8) {
+            throw new InvalidArgumentException('Cluster histogramBitsPerChannel must be in the range 1..8.');
+        }
+        if ($mergeDeltaE < 0.0) {
+            throw new InvalidArgumentException('Cluster mergeDeltaE must be non-negative.');
+        }
+        if ($minClusterCoverage < 0.0 || $minClusterCoverage >= 1.0) {
+            throw new InvalidArgumentException('Cluster minClusterCoverage must be in the range 0..<1.');
+        }
+        if ($alphaThreshold < 0 || $alphaThreshold > 255) {
+            throw new InvalidArgumentException('Cluster alphaThreshold must be in the range 0..255.');
+        }
     }
 }

@@ -14,8 +14,6 @@ use InvalidArgumentException;
 use Throwable;
 
 /**
- * OWNER: Developer A.
- *
  * Decodes sources with ext-gd, normalizing all formats to an immutable RGBA raster.
  */
 final class GdImageLoader implements ImageLoaderInterface
@@ -46,25 +44,39 @@ final class GdImageLoader implements ImageLoaderInterface
         }
 
         $bytes = $this->readAllBytes($source);
-        $this->rejectUnsupportedJpeg($source, $bytes);
+        $info = $this->inspectBytes($bytes);
+        $this->rejectUnsupportedJpeg($source, $info);
 
         $image = $this->createImageFromBytes($bytes);
-        // Reject oversized inputs before allocating the normalized copy. GD
-        // images are freed by the garbage collector since
-        // PHP 8.0, so no explicit imagedestroy() is needed (and it is deprecated
-        // as a no-op in 8.5).
-        $this->assertImageSizeSupported($image);
+        // GD images are freed by the garbage collector since PHP 8.0, so no
+        // explicit imagedestroy() is needed (and it is deprecated as a no-op in
+        // 8.5).
 
         return new GdRaster($this->normalizeTruecolorWithAlpha($image));
     }
 
-    private function rejectUnsupportedJpeg(ImageSource $source, string $bytes): void
+    /**
+     * Reads cheap metadata before full image decode so compressed oversized
+     * inputs are rejected before GD allocates their bitmap.
+     *
+     * @return array<int|string, mixed>
+     */
+    public function inspectBytes(string $bytes): array
+    {
+        $info = $this->imageInfoFromBytes($bytes);
+        $this->assertImageSizeSupported((int) $info[0], (int) $info[1]);
+
+        return $info;
+    }
+
+    /**
+     * @param array<int|string, mixed> $info
+     */
+    private function rejectUnsupportedJpeg(ImageSource $source, array $info): void
     {
         if ($source->detectedFormat() !== ImageFormat::JPEG) {
             return;
         }
-
-        $info = $this->imageInfoFromBytes($bytes);
 
         if (($info['channels'] ?? 3) === 4) {
             throw new UnsupportedImageException(
@@ -100,13 +112,13 @@ final class GdImageLoader implements ImageLoaderInterface
         try {
             $info = getimagesizefromstring($bytes);
         } catch (Throwable $e) {
-            throw new InvalidImageException('JPEG metadata could not be read.', previous: $e);
+            throw new InvalidImageException('Image metadata could not be read.', previous: $e);
         } finally {
             restore_error_handler();
         }
 
         if ($info === false) {
-            throw new InvalidImageException('JPEG metadata could not be read.');
+            throw new InvalidImageException('Image metadata could not be read.');
         }
 
         return $info;
@@ -165,10 +177,11 @@ final class GdImageLoader implements ImageLoaderInterface
         return $truecolor;
     }
 
-    private function assertImageSizeSupported(\GdImage $image): void
+    private function assertImageSizeSupported(int $width, int $height): void
     {
-        $width = imagesx($image);
-        $height = imagesy($image);
+        if ($width <= 0 || $height <= 0) {
+            throw new InvalidImageException('Image dimensions must be positive.');
+        }
         if ($width > intdiv($this->maxPixels, $height)) {
             throw new UnsupportedImageException(sprintf(
                 'Image dimensions %dx%d exceed the maximum supported pixel count of %d.',

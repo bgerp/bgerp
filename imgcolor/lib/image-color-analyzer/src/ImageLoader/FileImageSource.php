@@ -10,8 +10,6 @@ use ImageColorAnalyzer\Exception\InvalidImageException;
 use ImageColorAnalyzer\Exception\UnsupportedImageException;
 
 /**
- * OWNER: Developer A (foundation).
- *
  * Wraps a file path or stream resource, sniffing PNG/JPEG from magic bytes
  * (never from the file extension).
  */
@@ -43,10 +41,7 @@ final class FileImageSource implements ImageSource
     public static function fromBytes(string $bytes): self
     {
         $stream = self::openTemporaryStream();
-        $written = fwrite($stream, $bytes);
-        if ($written === false || $written !== strlen($bytes)) {
-            throw new InvalidImageException('Unable to write image bytes to an in-memory stream.');
-        }
+        self::writeAll($stream, $bytes);
         rewind($stream);
 
         return new self($stream, self::sniff($stream));
@@ -124,6 +119,24 @@ final class FileImageSource implements ImageSource
             restore_error_handler();
         }
     }
+
+    /**
+     * @param resource $stream
+     */
+    private static function writeAll($stream, string $bytes): void
+    {
+        $offset = 0;
+        $length = strlen($bytes);
+
+        while ($offset < $length) {
+            $written = fwrite($stream, substr($bytes, $offset));
+            if ($written === false || $written === 0) {
+                throw new InvalidImageException('Unable to write image bytes to an in-memory stream.');
+            }
+            $offset += $written;
+        }
+    }
+
 
     /**
      * @return resource

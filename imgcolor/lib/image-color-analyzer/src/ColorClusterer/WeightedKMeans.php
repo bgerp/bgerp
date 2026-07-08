@@ -8,8 +8,6 @@ use Random\Engine\Mt19937;
 use Random\Randomizer;
 
 /**
- * OWNER: Developer C.
- *
  * Deterministic weighted k-means with k-means++ seeding, operating on points in
  * CIELAB. Shared by {@see KSelector} (to score candidate k values) and
  * {@see KMeansClusterer} (for the final clustering) so the two never disagree.

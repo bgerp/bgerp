@@ -13,8 +13,6 @@ use ImageColorAnalyzer\Contracts\Raster;
 use ImageColorAnalyzer\Options\ClusterOptions;
 
 /**
- * OWNER: Developer C.
- *
  * k-means (Lloyd) with k-means++ seeded initialization, run in CIELAB over the
  * weighted histogram produced by {@see ColorHistogram}. k is fixed
  * (`options->fixedK`) or chosen by {@see KSelector}. A post-pass merges clusters

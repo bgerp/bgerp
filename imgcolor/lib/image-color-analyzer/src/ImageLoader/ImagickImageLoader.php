@@ -8,6 +8,7 @@ use ImageColorAnalyzer\Contracts\ImageFormat;
 use ImageColorAnalyzer\Contracts\ImageLoaderInterface;
 use ImageColorAnalyzer\Contracts\ImageSource;
 use ImageColorAnalyzer\Contracts\Raster;
+use ImageColorAnalyzer\Exception\ImageAnalyzerException;
 use ImageColorAnalyzer\Exception\InvalidImageException;
 use ImageColorAnalyzer\Exception\UnsupportedImageException;
 use Throwable;
@@ -44,7 +45,10 @@ final class ImagickImageLoader implements ImageLoaderInterface
         $imagick = $this->newImagick();
         $pngBytes = null;
         try {
-            $this->invoke($imagick, 'readImageBlob', $this->readAllBytes($source));
+            $bytes = $this->readAllBytes($source);
+            $this->gdLoader->inspectBytes($bytes);
+
+            $this->invoke($imagick, 'readImageBlob', $bytes);
             if (method_exists($imagick, 'setIteratorIndex')) {
                 $this->invoke($imagick, 'setIteratorIndex', 0);
             }
@@ -53,7 +57,7 @@ final class ImagickImageLoader implements ImageLoaderInterface
             }
             $this->invoke($imagick, 'setImageFormat', 'png32');
             $pngBytes = $this->invoke($imagick, 'getImagesBlob');
-        } catch (UnsupportedImageException $e) {
+        } catch (ImageAnalyzerException $e) {
             throw $e;
         } catch (Throwable $e) {
             throw new InvalidImageException('Imagick could not decode the image bytes.', previous: $e);

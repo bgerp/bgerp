@@ -81,6 +81,9 @@ final readonly class EncodedImage
             throw new ImageSaveException("Unable to open cropped image destination: {$path}.");
         }
 
+        $existingPerms = is_file($path) ? fileperms($path) : false;
+        $existingMode = $existingPerms === false ? null : ($existingPerms & 0777);
+
         $temporaryPath = tempnam($directory, '.ica-');
         if ($temporaryPath === false) {
             throw new ImageSaveException("Unable to open cropped image destination: {$path}.");
@@ -96,6 +99,9 @@ final readonly class EncodedImage
             $this->writeAll($stream, $path);
             $this->finalize($stream, $path);
 
+            if ($existingMode !== null && !chmod($temporaryPath, $existingMode)) {
+                throw new ImageSaveException("Unable to restore cropped image permissions: {$path}.");
+            }
             if (!rename($temporaryPath, $path)) {
                 throw new ImageSaveException("Unable to replace cropped image destination: {$path}.");
             }

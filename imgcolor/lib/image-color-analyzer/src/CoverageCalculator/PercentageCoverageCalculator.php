@@ -9,8 +9,6 @@ use ImageColorAnalyzer\Contracts\ColorCoverage;
 use ImageColorAnalyzer\Contracts\CoverageCalculatorInterface;
 
 /**
- * OWNER: Developer C.
- *
  * Turns a {@see ClusterResult} into a sorted list of {@see ColorCoverage}. Each
  * percentage is `cluster weight / totalAnalyzedPixels * 100`, rounded to one
  * decimal with the **largest-remainder method** so the displayed values sum to

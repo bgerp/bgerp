@@ -10,8 +10,6 @@ use ImageColorAnalyzer\Contracts\Raster;
 use InvalidArgumentException;
 
 /**
- * OWNER: Developer A (foundation).
- *
  * Array-backed, immutable {@see Raster}. Deliberately simple so it can back both
  * real decoded images and synthetic test fixtures without depending on ext-gd.
  */

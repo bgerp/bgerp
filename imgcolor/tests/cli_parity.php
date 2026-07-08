@@ -70,26 +70,31 @@ if ($transparentPath === false) {
     fail('unable to create temporary transparent fixture path');
 }
 
-$transparentImage = imagecreatetruecolor(4, 4);
-if ($transparentImage === false) {
-    fail('unable to create transparent fixture image');
-}
+try {
+    $transparentImage = imagecreatetruecolor(4, 4);
+    if ($transparentImage === false) {
+        fail('unable to create transparent fixture image');
+    }
 
-imagealphablending($transparentImage, false);
-imagesavealpha($transparentImage, true);
-$transparentColor = imagecolorallocatealpha($transparentImage, 0, 0, 0, 127);
-if ($transparentColor === false || !imagefilledrectangle($transparentImage, 0, 0, 3, 3, $transparentColor)) {
-    fail('unable to initialize transparent fixture image');
-}
+    imagealphablending($transparentImage, false);
+    imagesavealpha($transparentImage, true);
+    $transparentColor = imagecolorallocatealpha($transparentImage, 0, 0, 0, 127);
+    if ($transparentColor === false || !imagefilledrectangle($transparentImage, 0, 0, 3, 3, $transparentColor)) {
+        fail('unable to initialize transparent fixture image');
+    }
 
-if (!imagepng($transparentImage, $transparentPath)) {
-    fail('unable to write transparent fixture image');
-}
+    if (!imagepng($transparentImage, $transparentPath)) {
+        fail('unable to write transparent fixture image');
+    }
 
-$empty = json_decode($analyzer->analyzePathAsJson($transparentPath), true);
-unlink($transparentPath);
-if ($empty !== []) {
-    fail('fully transparent image should yield [] (got ' . json_encode($empty) . ')');
+    $empty = json_decode($analyzer->analyzePathAsJson($transparentPath), true);
+    if ($empty !== []) {
+        fail('fully transparent image should yield [] (got ' . json_encode($empty) . ')');
+    }
+} finally {
+    if (is_file($transparentPath)) {
+        unlink($transparentPath);
+    }
 }
 
 // 4) determinism -> identical bytes on a second run

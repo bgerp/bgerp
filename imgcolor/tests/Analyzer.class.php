@@ -33,8 +33,9 @@ class imgcolor_tests_Analyzer extends unit_Class
         $fixture = dirname(__DIR__) . '/tests/fixtures/sample.png';
 
         imgcolor_Analyzer::registerAutoload();
-        $direct = \ImageColorAnalyzer\PublicAPI\AnalyzerFactory::createDefault()->analyzePathAsJson($fixture);
-        $wrapped = imgcolor_Analyzer::analyzePathAsJson($fixture);
+        $options = new \ImageColorAnalyzer\Options\AnalyzerOptions();
+        $direct = \ImageColorAnalyzer\PublicAPI\AnalyzerFactory::createDefault()->analyzePathAsJson($fixture, $options);
+        $wrapped = imgcolor_Analyzer::analyzePathAsJson($fixture, $options);
 
         ut::expectEqual($direct, $wrapped);
     }
@@ -87,6 +88,74 @@ class imgcolor_tests_Analyzer extends unit_Class
         $def = imgcolor_Analyzer::getToolDefinition();
         ut::expectEqual('analyze_image_print_colors', $def['name']);
         ut::expectEqual(true, in_array('fileHandle', $def['parameters']['required'], true));
+    }
+
+
+    /**
+     * Грешките от библиотеката се виждат като съобщение, не само като debug dump
+     */
+    public static function test_InvalidImageKeepsAnalyzerMessage($us)
+    {
+        try {
+            imgcolor_Analyzer::analyzeAsJson('not an image');
+            ut::expectEqual(true, false);
+        } catch (core_exception_Expect $e) {
+            ut::expectEqual(true, strpos($e->getMessage(), 'imgcolor:') === 0);
+            ut::expectEqual(true, strpos($e->getMessage(), 'PNG') !== false || strpos($e->getMessage(), 'JPEG') !== false);
+        }
+    }
+
+
+    /**
+     * Некоректни опции се отхвърлят явно, вместо да дават тихо грешни резултати
+     */
+    public static function test_InvalidOptionsAreRejected($us)
+    {
+        imgcolor_Analyzer::registerAutoload();
+
+        try {
+            new \ImageColorAnalyzer\Options\CropOptions(alphaThreshold: 300);
+            ut::expectEqual(true, false);
+        } catch (InvalidArgumentException $e) {
+            ut::expectEqual(true, strpos($e->getMessage(), 'alphaThreshold') !== false);
+        }
+
+        try {
+            new \ImageColorAnalyzer\Options\ClusterOptions(histogramBitsPerChannel: 9);
+            ut::expectEqual(true, false);
+        } catch (InvalidArgumentException $e) {
+            ut::expectEqual(true, strpos($e->getMessage(), 'histogramBitsPerChannel') !== false);
+        }
+    }
+
+
+    /**
+     * Line-noise guard не трябва да отрязва реален тънък детайл по края
+     */
+    public static function test_CropKeepsThinEdgeContent($us)
+    {
+        imgcolor_Analyzer::registerAutoload();
+
+        $white = new \ImageColorAnalyzer\Contracts\ColorRGBA(255, 255, 255);
+        $black = new \ImageColorAnalyzer\Contracts\ColorRGBA(0, 0, 0);
+
+        $pixels = array_fill(0, 25, $white);
+        $pixels[0] = $black;
+        foreach (array(18, 19, 23, 24) as $index) {
+            $pixels[$index] = $black;
+        }
+
+        $raster = new \ImageColorAnalyzer\ImageLoader\InMemoryRaster(5, 5, $pixels);
+        $cropper = new \ImageColorAnalyzer\WhiteBackgroundCropper\WhiteBackgroundCropper(
+            new \ImageColorAnalyzer\Color\ColorConverter()
+        );
+
+        $crop = $cropper->crop($raster, new \ImageColorAnalyzer\Options\CropOptions(lineContentFraction: 0.3));
+
+        ut::expectEqual(0, $crop->boundingBox->x);
+        ut::expectEqual(0, $crop->boundingBox->y);
+        ut::expectEqual(5, $crop->boundingBox->width);
+        ut::expectEqual(5, $crop->boundingBox->height);
     }
 
 

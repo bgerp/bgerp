@@ -7,8 +7,6 @@ namespace ImageColorAnalyzer\ColorClusterer;
 use ImageColorAnalyzer\Contracts\Raster;
 
 /**
- * OWNER: Developer C.
- *
  * Reduces a raster to a weighted color histogram: bins colors to
  * `bitsPerChannel` resolution, skips transparent pixels, and returns unique
  * colors with their pixel counts plus the total analyzed pixel count. Running

@@ -16,7 +16,6 @@ use ImageColorAnalyzer\Options\AnalyzerOptions;
 
 /**
  * Public entry point. Wires Loader -> Cropper -> Clusterer -> Coverage.
- * OWNER: skeleton by Developer A; final wiring is the joint integration task (T6).
  */
 final class ImageColorAnalyzer
 {

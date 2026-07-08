@@ -7,9 +7,9 @@
  * Единствената входна точка към библиотеката: регистрира PSR-4 автолоудъра,
  * превежда конфигурацията IMGCOLOR_* към AnalyzerOptions, избира loader-а,
  * делегира към публичния facade и превежда изключенията на библиотеката към
- * native BGERP грешки (expect()).
+ * native BGERP грешки.
  *
- * Библиотеката НЕ се променя - виж imgcolor/lib/.../VENDORED.md.
+ * Локалните пачове към библиотеката са описани в imgcolor/lib/.../VENDORED.md.
  *
  * @category  bgerp
  * @package   imgcolor
@@ -29,6 +29,12 @@ class imgcolor_Analyzer extends core_Mvc
      * Дали PSR-4 автолоудърът е регистриран
      */
     private static $autoloadReady = false;
+
+
+    /**
+     * Разрешени разширения за анализ
+     */
+    public static $allowedExt = array('png', 'jpg', 'jpeg');
 
 
     /**
@@ -76,7 +82,9 @@ class imgcolor_Analyzer extends core_Mvc
      */
     private static function requireGd()
     {
-        expect(extension_loaded('gd'), 'imgcolor: PHP разширението GD е задължително');
+        if (!extension_loaded('gd')) {
+            throw new core_exception_Expect('imgcolor: PHP разширението GD е задължително', 'Несъответствие');
+        }
     }
 
 
@@ -97,7 +105,11 @@ class imgcolor_Analyzer extends core_Mvc
         );
 
         $fixedK = imgcolor_Setup::get('CLUSTER_FIXED_K');
-        $fixedK = ($fixedK === null || $fixedK === '' || (int) $fixedK < 1) ? null : (int) $fixedK;
+        if ($fixedK === null || $fixedK === '' || (int) $fixedK === 0) {
+            $fixedK = null;
+        } else {
+            $fixedK = (int) $fixedK;
+        }
 
         $cluster = new \ImageColorAnalyzer\Options\ClusterOptions(
             $fixedK,
@@ -155,9 +167,39 @@ class imgcolor_Analyzer extends core_Mvc
 
             return $fn(self::makeAnalyzer());
         } catch (\ImageColorAnalyzer\Exception\ImageAnalyzerException $e) {
-            self::logWrite('Грешка при анализ на цветове: ' . $e->getMessage());
-            expect(false, 'imgcolor: ' . $e->getMessage());
+            self::raiseError($e->getMessage());
         }
+    }
+
+
+    /**
+     * Превежда библиотечна грешка към BGERP exception, запазвайки видимото съобщение.
+     *
+     * @param string $message
+     *
+     * @throws core_exception_Expect
+     */
+    private static function raiseError($message)
+    {
+        self::logWrite('Грешка при анализ на цветове: ' . $message);
+
+        throw new core_exception_Expect('imgcolor: ' . $message, 'Несъответствие');
+    }
+
+
+    /**
+     * Може ли файлът да бъде анализиран (по разширение)
+     *
+     * @param stdClass|string $fRec
+     *
+     * @return bool
+     */
+    public static function canAnalyzeFile($fRec)
+    {
+        $name = is_object($fRec) ? $fRec->name : $fRec;
+        $ext = strtolower(fileman_Files::getExt($name));
+
+        return $ext && in_array($ext, self::$allowedExt, true);
     }
 
 
@@ -245,11 +287,23 @@ class imgcolor_Analyzer extends core_Mvc
     public static function analyzeFileHandle($fh, $options = null)
     {
         self::registerAutoload();
+
+        $fRec = fileman_Files::fetchByFh($fh);
+        if (!$fRec) {
+            self::raiseError('липсва файл за подадения handle');
+        }
+
+        fileman_Files::requireRightFor('single', $fRec);
+        if (!self::canAnalyzeFile($fRec)) {
+            self::raiseError('поддържат се само PNG/JPEG изображения');
+        }
+
         self::requireGd();
 
-        expect($fRec = fileman_Files::fetchByFh($fh), 'imgcolor: липсва файл за подадения handle');
         $bytes = fileman::extractStr($fh);
-        expect(is_string($bytes) && $bytes !== '', 'imgcolor: празно съдържание на файла');
+        if (!is_string($bytes) || $bytes === '') {
+            self::raiseError('празно съдържание на файла');
+        }
 
         return self::guard(function ($a) use ($bytes, $options) {
 
