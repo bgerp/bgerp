@@ -93,8 +93,8 @@ class imgcolor_Setup extends core_ProtoSetup
      */
     public $menuItems = array(
         array(9.9, 'Инструменти', 'Цветове за печат', 'imgcolor_Demo', 'analyze', 'imgcolor, ceo, admin'),
-        array(9.91, 'Инструменти', 'Профили за калибриране', 'imgcolor_Profiles', 'list', 'imgcolor, ceo, admin, officer'),
-        array(9.92, 'Инструменти', 'История на анализите', 'imgcolor_Analyses', 'list', 'imgcolor, ceo, admin, officer'),
+        array(9.91, 'Инструменти', 'Профили за калибриране', 'imgcolor_Profiles', 'list', 'imgcolor, ceo, admin'),
+        array(9.92, 'Инструменти', 'История на анализите', 'imgcolor_Analyses', 'list', 'imgcolor, ceo, admin'),
     );
 
 

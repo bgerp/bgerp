@@ -35,9 +35,9 @@ class imgcolor_Analyses extends core_Manager
     /**
      * Права - записите се създават само програмно
      */
-    public $canRead = 'imgcolor, ceo, admin, officer';
-    public $canList = 'imgcolor, ceo, admin, officer';
-    public $canSingle = 'imgcolor, ceo, admin, officer';
+    public $canRead = 'imgcolor, ceo, admin';
+    public $canList = 'imgcolor, ceo, admin';
+    public $canSingle = 'imgcolor, ceo, admin';
     public $canAdd = 'no_one';
     public $canEdit = 'no_one';
     public $canDelete = 'ceo, admin';
