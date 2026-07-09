@@ -60,6 +60,7 @@ class imgcolor_Demo extends core_Manager
         $form = $this->getForm();
         $form->title = 'Анализ на цветове за печат';
         $form->FLD('imageFile', 'fileman_FileType(bucket=imgcolorImages)', 'caption=Изображение,mandatory');
+        $form->FLD('profileId', 'key(mvc=imgcolor_Profiles, select=name, allowEmpty)', 'caption=Профил на калибриране,placeholder=Глобална конфигурация');
 
         $form->input();
 
@@ -76,9 +77,14 @@ class imgcolor_Demo extends core_Manager
                     throw new core_exception_Expect('imgcolor: поддържат се само PNG/JPEG изображения', 'Несъответствие');
                 }
 
+                $profileRec = $form->rec->profileId ? imgcolor_Profiles::fetchRec($form->rec->profileId) : null;
+                $options = $profileRec ? imgcolor_Analyzer::buildOptions($profileRec) : null;
+
                 $bytes = fileman::extractStr($form->rec->imageFile);
-                $result = imgcolor_Analyzer::process($bytes);
+                $result = imgcolor_Analyzer::process($bytes, $options);
                 $resultHtml = self::renderResult($result);
+
+                self::persistResult($form->rec->imageFile, $form->rec->profileId, $result);
             } catch (core_exception_Expect $e) {
                 $resultHtml = self::renderError($e);
             }
@@ -119,6 +125,7 @@ class imgcolor_Demo extends core_Manager
 
         try {
             $result = imgcolor_Analyzer::process(fileman::extractStr($fh));
+            self::persistResult($fh, null, $result);
         } catch (core_exception_Expect $e) {
 
             return $this->renderWrapping(self::renderError($e));
@@ -222,6 +229,25 @@ class imgcolor_Demo extends core_Manager
         }
 
         return self::renderColorsHtml($result->json, $croppedBytes);
+    }
+
+
+    /**
+     * Записва завършен анализ в imgcolor_Analyses за бъдещо преизползване/справка.
+     * Публичен метод, за да е тестваем директно (виж imgcolor_tests_Analyses).
+     *
+     * @param string                                            $imageFh   fileman handle на изходния файл
+     * @param int|null                                          $profileId избран профил, или празно за глобална конфигурация
+     * @param \ImageColorAnalyzer\PublicAPI\ProcessedImageResult $result
+     */
+    public static function persistResult($imageFh, $profileId, $result)
+    {
+        $croppedFh = null;
+        if (is_object($result->croppedImage) && is_string($result->croppedImage->bytes) && $result->croppedImage->bytes !== '') {
+            $croppedFh = fileman::absorbStr($result->croppedImage->bytes, 'imgcolorImages', 'cropped.png');
+        }
+
+        imgcolor_Analyses::createFromResult($imageFh, $profileId, $result->json, $croppedFh);
     }
 
 

@@ -44,4 +44,28 @@ class imgcolor_tests_Analyses extends unit_Class
 
         imgcolor_Analyses::delete($id);
     }
+
+
+    /**
+     * persistResult() записва резултата с подадения profileId в историята
+     */
+    public static function test_PersistResultWritesHistory($us)
+    {
+        $fh = fileman::absorb(dirname(__DIR__) . '/tests/fixtures/sample.png', 'imgcolorImages');
+
+        $result = new stdClass();
+        $result->json = '[{"color":"#BE1E8C","coverage_percent":100.0}]';
+        $result->croppedImage = null;
+
+        imgcolor_Demo::persistResult($fh, null, $result);
+
+        $rec = imgcolor_Analyses::fetch(array("#imageFile = '[#1#]'", $fh));
+        ut::expectEqual(true, (bool) $rec);
+        ut::expectEqual($result->json, $rec->colorsJson);
+        ut::expectEqual(true, empty($rec->profileId));
+
+        if ($rec) {
+            imgcolor_Analyses::delete($rec->id);
+        }
+    }
 }
