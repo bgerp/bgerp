@@ -1288,7 +1288,7 @@ class rack_Pallets extends core_Manager
             $addPalletUrl['containerId'] = $containerId;
         }
 
-        return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/pallet1.png,class=smallIcon,title=Палетиране на артикул');
+        return  ht::createLink('', $addPalletUrl, false, 'ef_icon=img/16/edit-icon.png,class=smallIcon,title=Палетиране на артикул');
     }
 
 
