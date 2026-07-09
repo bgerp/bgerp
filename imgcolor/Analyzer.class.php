@@ -89,39 +89,43 @@ class imgcolor_Analyzer extends core_Mvc
 
 
     /**
-     * Изгражда AnalyzerOptions от конфигурацията IMGCOLOR_*.
+     * Изгражда AnalyzerOptions - от подаден профилен запис (imgcolor_Profiles),
+     * ако е зададен, или от конфигурацията IMGCOLOR_* (imgcolor_Setup::get())
+     * по подразбиране. И двата пътя минават през едно и също съпоставяне
+     * (imgcolor_Calibration::buildOptions()), за да няма разминаване между тях.
+     *
+     * @param stdClass|null $profileRec запис на imgcolor_Profiles, или null за глобалната конфигурация
      *
      * @return \ImageColorAnalyzer\Options\AnalyzerOptions
      */
-    public static function buildOptions()
+    public static function buildOptions($profileRec = null)
     {
         self::registerAutoload();
 
-        $crop = new \ImageColorAnalyzer\Options\CropOptions(
-            (float) imgcolor_Setup::get('CROP_LIGHTNESS_MIN'),
-            (float) imgcolor_Setup::get('CROP_CHROMA_MAX'),
-            (float) imgcolor_Setup::get('CROP_LINE_CONTENT_FRACTION'),
-            (int) imgcolor_Setup::get('CROP_ALPHA_THRESHOLD')
-        );
+        if ($profileRec !== null) {
+            $values = array();
+            foreach (imgcolor_Calibration::$fields as $f) {
+                $values[$f] = $profileRec->{$f};
+            }
 
-        $fixedK = imgcolor_Setup::get('CLUSTER_FIXED_K');
-        if ($fixedK === null || $fixedK === '' || (int) $fixedK === 0) {
-            $fixedK = null;
-        } else {
-            $fixedK = (int) $fixedK;
+            return imgcolor_Calibration::buildOptions($values);
         }
 
-        $cluster = new \ImageColorAnalyzer\Options\ClusterOptions(
-            $fixedK,
-            (int) imgcolor_Setup::get('CLUSTER_KMAX'),
-            (int) imgcolor_Setup::get('CLUSTER_HISTOGRAM_BITS'),
-            (float) imgcolor_Setup::get('CLUSTER_MERGE_DELTAE'),
-            (float) imgcolor_Setup::get('CLUSTER_MIN_COVERAGE'),
-            (int) imgcolor_Setup::get('CLUSTER_SEED'),
-            (int) imgcolor_Setup::get('CLUSTER_ALPHA_THRESHOLD')
+        $values = array(
+            'cropLightnessMin' => imgcolor_Setup::get('CROP_LIGHTNESS_MIN'),
+            'cropChromaMax' => imgcolor_Setup::get('CROP_CHROMA_MAX'),
+            'cropLineContentFraction' => imgcolor_Setup::get('CROP_LINE_CONTENT_FRACTION'),
+            'cropAlphaThreshold' => imgcolor_Setup::get('CROP_ALPHA_THRESHOLD'),
+            'clusterFixedK' => imgcolor_Setup::get('CLUSTER_FIXED_K'),
+            'clusterKMax' => imgcolor_Setup::get('CLUSTER_KMAX'),
+            'clusterHistogramBits' => imgcolor_Setup::get('CLUSTER_HISTOGRAM_BITS'),
+            'clusterMergeDeltaE' => imgcolor_Setup::get('CLUSTER_MERGE_DELTAE'),
+            'clusterMinCoverage' => imgcolor_Setup::get('CLUSTER_MIN_COVERAGE'),
+            'clusterSeed' => imgcolor_Setup::get('CLUSTER_SEED'),
+            'clusterAlphaThreshold' => imgcolor_Setup::get('CLUSTER_ALPHA_THRESHOLD'),
         );
 
-        return new \ImageColorAnalyzer\Options\AnalyzerOptions($crop, $cluster);
+        return imgcolor_Calibration::buildOptions($values);
     }
 
 

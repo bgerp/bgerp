@@ -42,6 +42,36 @@ class imgcolor_tests_Analyzer extends unit_Class
 
 
     /**
+     * buildOptions() приема профилен запис вместо глобалната конфигурация
+     */
+    public static function test_BuildOptionsFromProfileRecord($us)
+    {
+        $rec = new stdClass();
+        $rec->cropLightnessMin = 90.0;
+        $rec->cropChromaMax = 4.0;
+        $rec->cropLineContentFraction = 0.003;
+        $rec->cropAlphaThreshold = 10;
+        $rec->clusterFixedK = 3;
+        $rec->clusterKMax = 6;
+        $rec->clusterHistogramBits = 4;
+        $rec->clusterMergeDeltaE = 2.5;
+        $rec->clusterMinCoverage = 0.02;
+        $rec->clusterSeed = 7;
+        $rec->clusterAlphaThreshold = 12;
+
+        $options = imgcolor_Analyzer::buildOptions($rec);
+
+        ut::expectEqual(90.0, $options->crop->lightnessMin);
+        ut::expectEqual(6, $options->cluster->kMax);
+        ut::expectEqual(3, $options->cluster->fixedK);
+
+        // No argument: behavior is unchanged (reads global IMGCOLOR_* config)
+        $default = imgcolor_Analyzer::buildOptions();
+        ut::expectEqual((float) imgcolor_Setup::get('CROP_LIGHTNESS_MIN'), $default->crop->lightnessMin);
+    }
+
+
+    /**
      * Изображение с прозрачен фон анализира само плътното съдържание
      */
     public static function test_TransparentBackgroundIgnoresAlpha($us)
