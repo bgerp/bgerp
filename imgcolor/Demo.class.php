@@ -169,15 +169,18 @@ class imgcolor_Demo extends core_Manager
 
 
     /**
-     * Рендира резултата: изрязано изображение + цветови мостри
+     * Рендира резултата: изрязано изображение + цветови мостри. Споделено
+     * между живия преглед (renderResult()) и запазените резултати
+     * (imgcolor_Analyses::renderRec()), за да не се дублира HTML логиката.
      *
-     * @param \ImageColorAnalyzer\PublicAPI\ProcessedImageResult $result
+     * @param string      $colorsJson        JSON резултат ([{color, coverage_percent}, ...])
+     * @param string|null $croppedImageBytes суровите байтове на изрязаното PNG, ако има
      *
      * @return string
      */
-    public static function renderResult($result)
+    public static function renderColorsHtml($colorsJson, $croppedImageBytes = null)
     {
-        $colors = json_decode($result->json, true);
+        $colors = json_decode($colorsJson, true);
         if (!is_array($colors)) {
             $colors = array();
         }
@@ -192,8 +195,8 @@ class imgcolor_Demo extends core_Manager
         }
 
         $imgTag = '';
-        if (is_object($result->croppedImage) && is_string($result->croppedImage->bytes) && $result->croppedImage->bytes !== '') {
-            $b64 = base64_encode($result->croppedImage->bytes);
+        if (is_string($croppedImageBytes) && $croppedImageBytes !== '') {
+            $b64 = base64_encode($croppedImageBytes);
             $imgTag = "<div><img alt='cropped' style='max-width:320px;border:1px solid #ccc' src='data:image/png;base64,{$b64}'/></div>";
         }
 
@@ -201,6 +204,24 @@ class imgcolor_Demo extends core_Manager
             . "<div>{$imgTag}</div>"
             . "<div>{$swatches}</div>"
             . '</div>';
+    }
+
+
+    /**
+     * Рендира резултата от imgcolor_Analyzer::process() - живия преглед.
+     *
+     * @param \ImageColorAnalyzer\PublicAPI\ProcessedImageResult $result
+     *
+     * @return string
+     */
+    public static function renderResult($result)
+    {
+        $croppedBytes = null;
+        if (is_object($result->croppedImage) && is_string($result->croppedImage->bytes) && $result->croppedImage->bytes !== '') {
+            $croppedBytes = $result->croppedImage->bytes;
+        }
+
+        return self::renderColorsHtml($result->json, $croppedBytes);
     }
 
 
