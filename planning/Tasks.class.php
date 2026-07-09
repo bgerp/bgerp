@@ -3135,7 +3135,7 @@ class planning_Tasks extends core_Master
         // Ако има намерени планиращи параметри - показват се в таблицата
         $firstColumnsIfNotSelected = arr::make(array_keys($data->listFields), true);
     
-        // Параметрите от Етапите да са планиращи
+        // Параметрите от Етапа да са планиращи (при филтриране по Етап)
         if(!empty($data->listFilter->rec->productId)){
             $productId = $data->listFilter->rec->productId;
             if($Driver = cat_Products::getDriver($productId)){
