@@ -282,7 +282,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Покаване на резултата
         $fieldset->FLD('grouping', 'enum(yes=По групи, no=По артикули)', 'caption=Показване->Вид,removeAndRefreshForm,after=quantityType');
         $fieldset->FLD('currency', 'key(mvc=currency_Currencies,select=code,allowEmpty)', 'caption=Показване->Валута,removeAndRefreshForm,single=none,after=grouping,placeholder=Основна');
-        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->По контрагенти,after=currency,single=none,silent');
+        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->По контрагенти,after=currency,removeAndRefreshForm,single=none,silent');
         $fieldset->FLD('seeCategory', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи категория,after=seeByContragent,single=none,silent');
 
         $fieldset->FLD('engName', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Име EN,after=seeByContragent,single=none');
@@ -357,9 +357,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $form->setError('products,group,category', 'Не може едновременно да бъдат включени и двата филтъра "Артикул" и "Групи"');
             }
 
-            if ($form->rec->typeOfGroups == 'no' && !$form->rec->products) {
-                $form->setError('products,group,category', 'Трябва да има или групи или артикул');
-            }
         }
     }
 
@@ -1603,7 +1600,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if ($rec->grouping == 'yes') {
             $recs = array();
 
-            if ($rec->typeOfGroups == 'category') {
+            if ($rec->typeOfGroups == 'category' || $rec->typeOfGroups == 'no') {
                 foreach ($groupValues as $key => $val) {
                     if (cat_Categories::fetch($key) === false) {
                         $groupValues[99999] += $val;
@@ -1942,7 +1939,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         if ($rec->typeOfGroups == 'art') {
             $typeGroup = 'group';
-        } elseif (($rec->typeOfGroups == 'category')) {
+        } elseif (($rec->typeOfGroups == 'category') || ($rec->typeOfGroups == 'no')) {
             $typeGroup = 'category';
         }
 
@@ -1954,7 +1951,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
                 if ($rec->typeOfGroups == 'art') {
                     $groupClass = 'cat_Groups';
-                } elseif (($rec->typeOfGroups == 'category')) {
+                } elseif (($rec->typeOfGroups == 'category') || ($rec->typeOfGroups == 'no')) {
                     $groupClass = 'cat_Categories';
                 }
 
@@ -2062,7 +2059,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if ($rec->grouping == 'yes') {
             if ($rec->typeOfGroups == 'art') {
                 $groupClass = 'cat_Groups';
-            } elseif (($rec->typeOfGroups == 'category')) {
+            } elseif (($rec->typeOfGroups == 'category') || ($rec->typeOfGroups == 'no')) {
                 $groupClass = 'cat_Categories';
             }
 
