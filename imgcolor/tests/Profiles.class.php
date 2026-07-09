@@ -15,7 +15,7 @@ class imgcolor_tests_Profiles extends unit_Class
      */
     public static function test_ValidProfileSaves($us)
     {
-        $rec = self::validRec('imgcolor-test-valid');
+        $rec = self::validRec('ic-valid');
         imgcolor_Profiles::save($rec);
 
         ut::expectEqual(true, $rec->id > 0);
@@ -29,7 +29,7 @@ class imgcolor_tests_Profiles extends unit_Class
      */
     public static function test_OutOfRangeThresholdIsRejected($us)
     {
-        $rec = self::validRec('imgcolor-test-invalid');
+        $rec = self::validRec('ic-invalid');
         $rec->cropLightnessMin = 150.0;
 
         try {
@@ -47,7 +47,7 @@ class imgcolor_tests_Profiles extends unit_Class
      */
     public static function test_EmptyFixedKIsValid($us)
     {
-        $rec = self::validRec('imgcolor-test-autok');
+        $rec = self::validRec('ic-autok');
         $rec->clusterFixedK = null;
         imgcolor_Profiles::save($rec);
 

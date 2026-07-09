@@ -30,12 +30,12 @@ class imgcolor_Profiles extends core_Manager
     /**
      * Права
      */
-    public $canRead = 'imgcolor, ceo, admin, officer';
-    public $canAdd = 'imgcolor, ceo, admin, officer';
-    public $canEdit = 'imgcolor, ceo, admin, officer';
-    public $canList = 'imgcolor, ceo, admin, officer';
-    public $canSingle = 'imgcolor, ceo, admin, officer';
-    public $canDelete = 'imgcolor, ceo, admin, officer';
+    public $canRead = 'imgcolor, ceo, admin';
+    public $canAdd = 'imgcolor, ceo, admin';
+    public $canEdit = 'imgcolor, ceo, admin';
+    public $canList = 'imgcolor, ceo, admin';
+    public $canSingle = 'imgcolor, ceo, admin';
+    public $canDelete = 'imgcolor, ceo, admin';
 
 
     /**
