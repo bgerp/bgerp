@@ -15,17 +15,30 @@ principal print colors with coverage percentages.
   - `imgcolor_Analyzer::getToolDefinition()` -> `{name, description, parameters}`
 - UI: `imgcolor_Demo` (menu `Инструменти -> Цветове за печат`) + a fileman
   file-action button on PNG/JPEG files.
+- Calibration profiles: `imgcolor_Profiles` (menu `Инструменти -> Профили за
+  калибриране`) - named, reusable threshold sets. Optional: the global
+  `IMGCOLOR_*` constants remain the zero-config default; a profile is an
+  explicit override, selected per-run in `imgcolor_Demo` or passed to
+  `imgcolor_Analyzer::buildOptions($profileRec)` by any other caller.
+- Analysis history: `imgcolor_Analyses` (menu `Инструменти -> История на
+  анализите`) - every completed run (via `imgcolor_Demo`) is persisted:
+  source image, profile used (if any), color JSON, cropped image. Records
+  are created only in code (`imgcolor_Analyses::createFromResult()`), never
+  through a manual add form.
 
 ## Wrapper to library map
 | BGERP wrapper | Library object/method | Notes |
 |---|---|---|
 | `imgcolor_Analyzer::registerAutoload()` | PSR-4 prefix `ImageColorAnalyzer\` -> `lib/image-color-analyzer/src/` | Prepended autoloader; no Composer runtime in BGERP. |
-| `imgcolor_Analyzer::buildOptions()` | `Options\AnalyzerOptions`, `CropOptions`, `ClusterOptions` | Reads `IMGCOLOR_*` through `imgcolor_Setup::get(...)`. |
+| `imgcolor_Analyzer::buildOptions($profileRec = null)` | `Options\AnalyzerOptions`, `CropOptions`, `ClusterOptions` | No argument: reads `IMGCOLOR_*` through `imgcolor_Setup::get(...)`. With an `imgcolor_Profiles` record: builds from its fields instead. Both paths funnel through `imgcolor_Calibration::buildOptions()`. |
 | `imgcolor_Analyzer::makeAnalyzer()` | `PublicAPI\AnalyzerFactory::createDefault()` or explicit Imagick wiring | GD is default; Imagick still depends on GD for PNG decode/encode paths. |
 | `imgcolor_Analyzer::analyze*()` | `PublicAPI\ImageColorAnalyzer::analyze*()` | Returns the library array/JSON unchanged. |
 | `imgcolor_Analyzer::process*()` | `PublicAPI\ImageColorAnalyzer::process*()` | Returns the library `ProcessedImageResult` DTO unchanged. |
 | `imgcolor_Analyzer::analyzeFileHandle($fh)` | `fileman::extractStr($fh)` -> `analyzeAsJson($bytes)` | Machine/LLM entry point; input is a fileman handle and output is JSON. |
-| `imgcolor_Demo` | `imgcolor_Analyzer::process($bytes)` | Human test UI and fileman file-action button. |
+| `imgcolor_Demo` | `imgcolor_Analyzer::process($bytes, $options)` | Human test UI and fileman file-action button; persists every run via `imgcolor_Analyses::createFromResult()`. |
+| `imgcolor_Calibration::buildOptions(array $values)` | `Options\CropOptions`, `Options\ClusterOptions`, `Options\AnalyzerOptions` | Framework-free; single mapping shared by the global-config path and the profile path. Standalone-testable: `php imgcolor/tests/cli_calibration.php`. |
+| `imgcolor_Profiles` | n/a (bgERP `core_Manager`) | CRUD for named calibration profiles; `on_BeforeSave` validates through `imgcolor_Calibration::buildOptions()`. |
+| `imgcolor_Analyses` | n/a (bgERP `core_Manager`) | Append-mostly history of completed runs; written by `imgcolor_Demo`, not by a manual form. |
 
 ## Tool definition (function-calling)
 ```json
@@ -56,6 +69,14 @@ else changes.
 All tuning is `IMGCOLOR_*` on `imgcolor_Setup` (pack config UI). Defaults equal
 the library defaults, so an unconfigured install matches the library exactly.
 `IMGCOLOR_LOADER` picks GD (default) or Imagick. GD is required either way.
+
+Profiles (`imgcolor_Profiles`) mirror this same field list (minus the loader
+choice, which stays a global/infra setting) for per-run overrides. The two
+are intentionally parallel, not derived from one another - one is a single
+global scalar config, the other a multi-row table - `imgcolor_Calibration` is
+the one place both funnel through before reaching the library, so they can
+never drift in *how* a value becomes an `AnalyzerOptions`, only in *where the
+value comes from*.
 
 | Constant | Default | Maps to |
 |---|---:|---|
