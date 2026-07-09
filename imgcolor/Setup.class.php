@@ -42,7 +42,7 @@ class imgcolor_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.1';
+    public $version = '0.2';
 
 
     /**
@@ -74,6 +74,7 @@ class imgcolor_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'imgcolor_Demo',
+        'imgcolor_Profiles',
     );
 
 
@@ -91,6 +92,7 @@ class imgcolor_Setup extends core_ProtoSetup
      */
     public $menuItems = array(
         array(9.9, 'Инструменти', 'Цветове за печат', 'imgcolor_Demo', 'analyze', 'imgcolor, ceo, admin'),
+        array(9.91, 'Инструменти', 'Профили за калибриране', 'imgcolor_Profiles', 'list', 'imgcolor, ceo, admin, officer'),
     );
 
 
