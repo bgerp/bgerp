@@ -34,7 +34,7 @@ class planning_AssetResources extends core_Master
      * Опашка assetId => 'used'|'removed' за синхронизиране на usedInTask при
      * on_Shutdown (@see markUsedInTask, on_Shutdown)
      */
-    public $usedInTaskQueue = array();
+    protected $usedInTaskQueue = array();
 
 
     /**
