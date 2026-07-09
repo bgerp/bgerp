@@ -3591,6 +3591,14 @@ class planning_Tasks extends core_Master
             $mvc->forceCalcTimes = true;
         }
 
+        // Синхронизиране на usedInTask към заопашените промени по оборудването (@see planning_AssetResources::on_Shutdown)
+        if(!empty($rec->assetId) && (!isset($rec->_exAssetId) || $rec->assetId != $rec->_exAssetId)){
+            planning_AssetResources::markUsedInTask($rec->assetId);
+        }
+        if(!empty($rec->_exAssetId) && $rec->assetId != $rec->_exAssetId){
+            planning_AssetResources::markUsedInTask($rec->_exAssetId, false);
+        }
+
         // Преизчисляване на продължителноста след промяна
         if($rec->_fromForm ?? null){
             planning_TaskConstraints::calcTaskDuration($rec->id);
