@@ -2182,7 +2182,7 @@ class doc_Folders extends core_Master
      *
      * @return array $options - масив с опции
      */
-    public static function getOptionsByCoverInterface($interface, $ignoreFolders = array())
+    public static function getOptionsByCoverInterface($interface, $ignoreFolders = array(), $sortByName = false)
     {
         $options = array();
         
@@ -2201,7 +2201,11 @@ class doc_Folders extends core_Master
         while ($rec = $query->fetch()) {
             $options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
         }
-        
+
+        if($sortByName){
+            natsort($options);
+        }
+
         return $options;
     }
     

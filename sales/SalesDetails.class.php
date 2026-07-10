@@ -246,7 +246,7 @@ class sales_SalesDetails extends deals_DealDetail
                        $row->{$hintField} = ht::createHint($row->{$hintField}, $warning, 'img/16/red-warning.png', false)->getContent();
                    }
                } elseif(in_array($masterRec->state, array('pending', 'draft'))){
-                   
+
                    // Предупреждение дали цената е под очакваната за клиента
                    $useQuotationPrice = isset($masterRec->originId);
                    $discountPercent = ($rec->autoDiscount) ? round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4) : $rec->discount;

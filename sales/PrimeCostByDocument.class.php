@@ -1241,8 +1241,15 @@ class sales_PrimeCostByDocument extends core_Manager
             }
         }
 
+        static $useBomVal;
+        if(empty($useBomVal)){
+            $useBomVal = cat_Setup::get('USE_BOM_PRICE_OF_NON_STANDART_GP');
+        }
+
         if(empty($primeCost)){
+            Mode::push('calcCompareBomPrice', $useBomVal);
             $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $valior);
+            Mode::pop('calcCompareBomPrice');
         }
 
         $resObj = (object)array('bellowPrimeCost' => (round($price, 4) < round($primeCost, 4)), 'primeCost' => $primeCost);

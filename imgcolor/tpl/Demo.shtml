@@ -1,0 +1,6 @@
+<div class="imgcolorDemo">
+    [#FORM#]
+    <!--ET_BEGIN RESULT-->
+    <div class="imgcolorResult" style="margin-top:16px">[#RESULT#]</div>
+    <!--ET_END RESULT-->
+</div>

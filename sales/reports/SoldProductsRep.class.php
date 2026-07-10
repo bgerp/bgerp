@@ -92,7 +92,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             'allowedTeams' => array(),
         );
 
-        if (haveRole('saleAllGlobal', $userId)) {
+        if (haveRole('ceo,salesAllGlobal', $userId)) {
             $res['canSeeAll'] = true;
             $res['allowedDealers'] = self::getAllDealers();
             $res['allowedTeams'] = keylist::toArray(core_Roles::getRolesByType('team'));
@@ -100,7 +100,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             return $res;
         }
 
-        if (haveRole('saleAll', $userId)) {
+        if (haveRole('salesAll', $userId)) {
             $res['canSeeTeams'] = true;
             $res['allowedTeams'] = keylist::toArray(core_Users::getUserRolesByType($userId, 'team'));
 
@@ -184,6 +184,101 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
 
     /**
+     * Връща възможните групи/категории от текущите резултати на справката
+     *
+     * @param stdClass $rec
+     *
+     * @return array
+     */
+    protected static function getGroupFilterSuggestions($rec)
+    {
+        $suggestions = array();
+
+        if (empty($rec->data->recs) || !is_array($rec->data->recs)) {
+
+            return $suggestions;
+        }
+
+        if ($rec->typeOfGroups == 'category' || $rec->typeOfGroups == 'no') {
+            foreach ($rec->data->recs as $dRec) {
+                $categoryId = isset($dRec->category) ? $dRec->category : $dRec->group;
+
+                if (is_numeric($categoryId) && $categoryId != 99999) {
+                    $categoryRec = cat_Categories::fetch($categoryId);
+                    if ($categoryRec) {
+                        $suggestions[$categoryRec->id] = $categoryRec->name;
+                    }
+                }
+            }
+
+            return $suggestions;
+        }
+
+        foreach ($rec->data->recs as $dRec) {
+            if (!isset($dRec->group)) {
+                continue;
+            }
+
+            if (keylist::isKeylist($dRec->group)) {
+                $groupIds = keylist::toArray($dRec->group);
+            } elseif (is_array($dRec->group)) {
+                $groupIds = $dRec->group;
+            } elseif (is_numeric($dRec->group)) {
+                $groupIds = array($dRec->group => $dRec->group);
+            } else {
+                $groupIds = array();
+            }
+
+            foreach ($groupIds as $groupId) {
+                if (!is_numeric($groupId)) {
+                    continue;
+                }
+
+                $groupRec = cat_Groups::fetch($groupId);
+                if (!$groupRec) {
+                    continue;
+                }
+
+                $groupsWithParents = cls::get('cat_Groups')->getParentsArray($groupId);
+                foreach ($groupsWithParents as $suggestionId) {
+                    $suggestionRec = cat_Groups::fetch($suggestionId);
+                    if ($suggestionRec) {
+                        $suggestions[$suggestionRec->id] = $suggestionRec->name;
+                    }
+                }
+            }
+        }
+
+        return $suggestions;
+    }
+
+
+    /**
+     * Добавя филтър за артикули, които не са в избраните групи
+     *
+     * @param core_Query $query
+     * @param string $field
+     * @param string $groups
+     */
+    protected static function applyNotInGroupsFilter($query, $field, $groups)
+    {
+        $groupsArr = keylist::toArray($groups);
+        if (empty($groupsArr)) {
+
+            return;
+        }
+
+        $notInGroupsCond = '';
+        foreach ($groupsArr as $groupId) {
+            $groupId = (int) $groupId;
+            $notInGroupsCond .= ($notInGroupsCond ? ' AND ' : '') . "LOCATE('|{$groupId}|', #{$field}) = 0";
+        }
+
+        $query->where("(#{$field} IS NULL OR #{$field} = '' OR ({$notInGroupsCond}))");
+    }
+
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -206,7 +301,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealersTeam');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
 
-        $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули, nogrp=Без групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
+        $fieldset->FLD('typeOfGroups', 'enum(no=Всички групи/категории, category=Категории артикули, art=Групи артикули, nogrp=Изключи избраните групи артикули)', 'caption=Артикули->Филтър по,removeAndRefreshForm,after=crmGroup');
         $fieldset->FLD('category', 'keylist(mvc=cat_Categories,select=name)', 'caption=Артикули->Категории артикули,after=typeOfGroups,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=category,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,placeholder=Всички,after=group,single=none,input=none,class=w100');
@@ -216,7 +311,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Покаване на резултата
         $fieldset->FLD('grouping', 'enum(yes=По групи, no=По артикули)', 'caption=Показване->Вид,removeAndRefreshForm,after=quantityType');
         $fieldset->FLD('currency', 'key(mvc=currency_Currencies,select=code,allowEmpty)', 'caption=Показване->Валута,removeAndRefreshForm,single=none,after=grouping,placeholder=Основна');
-        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->По контрагенти,after=currency,single=none,silent');
+        $fieldset->FLD('seeByContragent', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->По контрагенти,after=currency,removeAndRefreshForm,single=none,silent');
         $fieldset->FLD('seeCategory', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи категория,after=seeByContragent,single=none,silent');
         
         $fieldset->FLD('engName', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Име EN,after=seeByContragent,single=none');
@@ -289,10 +384,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             if (($form->rec->products) && (($form->rec->group) || ($form->rec->category))) {
                 $form->setError('products,group,category', 'Не може едновременно да бъдат включени и двата филтъра "Артикул" и "Групи"');
-            }
-            
-            if ($form->rec->typeOfGroups == 'no' && !$form->rec->products) {
-                $form->setError('products,group,category', 'Трябва да има или групи или артикул');
             }
         }
     }
@@ -594,7 +685,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         //Показването да бъде ли ГРУПИРАНО
-        if (($rec->grouping == 'no') && ($rec->group || $rec->category)) {
+        if (($rec->grouping == 'no') && ($rec->typeOfGroups != 'nogrp') && ($rec->group || $rec->category)) {
             if ($rec->typeOfGroups == 'art' || $rec->typeOfGroups == 'nogrp') {
                 $groupByField = 'group';
             } elseif (($rec->typeOfGroups == 'category')) {
@@ -707,7 +798,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
         $query->in('state', array('rejected', 'stopped', 'draft'), true);
-        
+
+        if ($rec->grFilter) {
+            if ($rec->typeOfGroups == 'art' || $rec->typeOfGroups == 'nogrp') {
+                $filterGroups = cat_Groups::getDescendantArray($rec->grFilter);
+                $filterGroups = !empty($filterGroups) ? $filterGroups : array($rec->grFilter => $rec->grFilter);
+                if ($rec->typeOfGroups == 'nogrp') {
+                    self::applyNotInGroupsFilter($query, 'groupMat', keylist::fromArray($filterGroups));
+                } else {
+                    plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, keylist::fromArray($filterGroups), 'productId');
+                }
+            } elseif ($rec->typeOfGroups == 'category') {
+                $query->where("#category = {$rec->grFilter}");
+            }
+        }
+
         //Когато е БЕЗ СРАВНЕНИЕ
         if (($rec->compare) == 'no') {
             $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
@@ -875,7 +980,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $filterGroupsType = 'category';
         }
         $checkFieldName = ($filterGroupsType == 'group') ? 'groupMat' : 'category';
-        
+
+        if ($rec->typeOfGroups == 'nogrp' && !$rec->$filterGroupsType) {
+            $query->where("(#{$checkFieldName} IS NULL OR #{$checkFieldName} = '')");
+        }
+
         if ($rec->products || $rec->$filterGroupsType) {
             $prodsArr = array();
             
@@ -885,7 +994,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             
             if ($rec->$filterGroupsType && !$rec->products) {
-                if ($filterGroupsType == 'group') {
+                if ($rec->typeOfGroups == 'nogrp') {
+                    self::applyNotInGroupsFilter($query, $checkFieldName, $rec->$filterGroupsType);
+                } elseif ($filterGroupsType == 'group') {
                     $query->likeKeylist($checkFieldName, $rec->$filterGroupsType);
                 } else {
                     $filterGroupsArr = keylist::toArray($rec->$filterGroupsType);
@@ -896,7 +1007,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->$filterGroupsType && $rec->products) {
                 $prodsArr = keylist::toArray($rec->products);
                 $query->in('productId', $prodsArr);
-                $query->orLikeKeylist($checkFieldName, $rec->$filterGroupsType);
+                if ($rec->typeOfGroups == 'nogrp') {
+                    self::applyNotInGroupsFilter($query, $checkFieldName, $rec->$filterGroupsType);
+                } else {
+                    $query->orLikeKeylist($checkFieldName, $rec->$filterGroupsType);
+                }
             }
         }
         
@@ -1354,20 +1469,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $tempArr = array();
         $totalArr = array();
         $totalValue = $totalDelta = 0;
-        
-        if ($rec->typeOfGroups == 'art') {
+
+        if ($rec->typeOfGroups == 'art' || $rec->typeOfGroups == 'nogrp') {
             $typeGroup = 'group';
         } elseif (($rec->typeOfGroups == 'category')) {
             $typeGroup = 'category';
         } elseif (($rec->typeOfGroups == 'no')) {
             $typeGroup = 'category';
         }
-        
+        $hasPositiveGroupFilter = ($rec->typeOfGroups != 'nogrp' && $rec->$typeGroup);
+
         // Изчисляване на общите продажби и продажбите по групи
         foreach ($recs as $v) {
             
             //Когато НЕ СА ИЗБРАНИ групи артикули
-            if (!($rec->$typeGroup)) {
+            if (!$hasPositiveGroupFilter) {
                 if (keylist::isKeylist(($v->$typeGroup))) {
                     $v->$typeGroup = keylist::toArray($v->$typeGroup); //Кейлиста с групите го записва като масив
                 } elseif (is_numeric($v->$typeGroup)) {
@@ -1464,7 +1580,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         //при избрани групи включва артикулите във всички групи в които са регистрирани, и се сумира във всички групи
-        if (!is_null(($rec->group || $rec->category))) {
+        if ($hasPositiveGroupFilter) {
             $tempArr = array();
             
             foreach ($recs as $v) {
@@ -1524,8 +1640,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Когато имаме избрано групирано показване правим нов масив
         if ($rec->grouping == 'yes') {
             $recs = array();
-            
-            if ($rec->typeOfGroups == 'category') {
+
+            if ($rec->typeOfGroups == 'category' || $rec->typeOfGroups == 'no') {
                 foreach ($groupValues as $key => $val) {
                     if (cat_Categories::fetch($key) === false) {
                         $groupValues[99999] += $val;
@@ -1863,7 +1979,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         if ($rec->typeOfGroups == 'art') {
             $typeGroup = 'group';
-        } elseif (($rec->typeOfGroups == 'category')) {
+        } elseif (($rec->typeOfGroups == 'category') || ($rec->typeOfGroups == 'no')) {
             $typeGroup = 'category';
         }
         
@@ -1875,7 +1991,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 
                 if ($rec->typeOfGroups == 'art') {
                     $groupClass = 'cat_Groups';
-                } elseif (($rec->typeOfGroups == 'category')) {
+                } elseif (($rec->typeOfGroups == 'category') || ($rec->typeOfGroups == 'no')) {
                     $groupClass = 'cat_Categories';
                 }
                 
@@ -1983,7 +2099,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if ($rec->grouping == 'yes') {
             if ($rec->typeOfGroups == 'art') {
                 $groupClass = 'cat_Groups';
-            } elseif (($rec->typeOfGroups == 'category')) {
+            } elseif (($rec->typeOfGroups == 'category') || ($rec->typeOfGroups == 'no')) {
                 $groupClass = 'cat_Categories';
             }
             
@@ -2382,14 +2498,18 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $grFilter = $data->rec->grFilter;
         
         if ($grFilter) {
-            $grFilterName = cat_Groups::fetch($grFilter)->name;
+            if ($data->rec->typeOfGroups == 'category') {
+                $grFilterName = cat_Categories::fetch($grFilter)->name;
+            } else {
+                $grFilterName = cat_Groups::fetch($grFilter)->name;
+            }
         } else {
             $grFilterName = 'Не е избрана';
         }
         $fieldTpl->append('<b>' . "$grFilterName" . '</b>', 'grFilter');
-        
-        $grUrl = array('store_reports_ProductAvailableQuantity1', 'groupfilter', 'recId' => $data->rec->id, 'ret_url' => true);
-        $artUrl = array('store_reports_ProductAvailableQuantity1', 'artfilter', 'recId' => $data->rec->id, 'ret_url' => true);
+
+        $grUrl = array('sales_reports_SoldProductsRep', 'groupfilter', 'recId' => $data->rec->id, 'ret_url' => true);
+        $artUrl = array('sales_reports_SoldProductsRep', 'artfilter', 'recId' => $data->rec->id, 'ret_url' => true);
         //$exportUrl = array('store_reports_ProductAvailableQuantity1', 'exportfilter', 'recId' => $data->rec->id, 'ret_url' => true);
         
         $toolbar = cls::get('core_Toolbar');
@@ -2405,6 +2525,126 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     }
     
     
+    /**
+     * Филтриране по група/категория в резултатите на справката
+     */
+    public static function act_GroupFilter()
+    {
+        expect($recId = Request::get('recId', 'int'));
+
+        $rec = frame2_Reports::fetch($recId);
+
+        frame2_Reports::refresh($rec);
+        $rec = frame2_Reports::fetch($recId);
+
+        if (!in_array($rec->typeOfGroups, array('art', 'category'))) {
+            core_Statuses::newStatus('Филтърът по група е достъпен само при "Групи артикули" или "Категории артикули"', 'error');
+
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
+        }
+
+        $form = cls::get('core_Form');
+        $form->title = 'Филтър за група';
+
+        $isCategoryFilter = ($rec->typeOfGroups == 'category');
+        $groupFilterType = $isCategoryFilter ? 'key(mvc=cat_Categories,allowEmpty,select=name)' : 'key(mvc=cat_Groups,allowEmpty,select=name)';
+
+        $form->FLD('groupFilter', $groupFilterType, 'caption=Покажи група,placeholder=Изчисти филтъра,silent');
+
+        $suggestions = self::getGroupFilterSuggestions($rec);
+        if ($rec->grFilter && !isset($suggestions[$rec->grFilter])) {
+            if ($isCategoryFilter) {
+                $filterRec = cat_Categories::fetch($rec->grFilter);
+            } else {
+                $filterRec = cat_Groups::fetch($rec->grFilter);
+            }
+
+            if ($filterRec) {
+                $suggestions[$filterRec->id] = $filterRec->name;
+            }
+        }
+
+        asort($suggestions);
+        $form->setOptions('groupFilter', $suggestions);
+        $form->setDefault('groupFilter', $rec->grFilter);
+
+        $form->input();
+
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+        if ($form->isSubmitted()) {
+            $rec->grFilter = $form->rec->groupFilter;
+
+            frame2_Reports::save($rec);
+            frame2_Reports::refresh($rec);
+
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'grFilter' => $form->rec->groupFilter, 'ret_url' => true));
+        }
+
+        return $form->renderHtml();
+    }
+
+
+    /**
+     * Филтриране по артикул в текущите резултати на справката
+     */
+    public static function act_ArtFilter()
+    {
+        expect($recId = Request::get('recId', 'int'));
+
+        $rec = frame2_Reports::fetch($recId);
+
+        if (Request::get('clearArtFilter', 'int')) {
+            frame2_Reports::refresh($rec);
+
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
+        }
+
+        $filterRec = clone $rec;
+        if ($Driver = frame2_Reports::getDriver($filterRec)) {
+            $filterRec->data = $Driver->prepareData($filterRec);
+        }
+
+        $form = cls::get('core_Form');
+        $form->title = 'Филтър по артикул';
+
+        $artSuggestionsArr = array();
+        if (is_array($filterRec->data->recs) && !empty($filterRec->data->recs)) {
+            $prArr = arr::extractValuesFromArray($filterRec->data->recs, 'productId');
+            foreach (array_keys($prArr) as $val) {
+                $pRec = cat_Products::fetch($val);
+                $code = $pRec->code ?: 'Art' . $pRec->productId;
+                $artSuggestionsArr[$val] = $code . '|' . $pRec->name;
+            }
+        }
+
+        $form->FLD('artFilter', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,silent');
+        $form->setOptions('artFilter', $artSuggestionsArr);
+
+        $form->input();
+
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Изчисти филтъра', array('sales_reports_SoldProductsRep', 'artfilter', 'recId' => $recId, 'clearArtFilter' => 1, 'ret_url' => true), 'ef_icon = img/16/delete.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+        if ($form->isSubmitted()) {
+            $rec->data = $filterRec->data;
+            foreach ($rec->data->recs as $key => $pRec) {
+                if (($pRec->productId) && ($form->rec->artFilter != $pRec->productId)) {
+                    unset($rec->data->recs[$key]);
+                }
+            }
+
+            frame2_Reports::save($rec);
+
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'artFilter' => $form->rec->artFilter, 'ret_url' => true));
+        }
+
+        return $form->renderHtml();
+    }
+
+
     /**
      * След подготовка на реда за експорт
      *
