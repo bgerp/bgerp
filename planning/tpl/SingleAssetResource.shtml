@@ -23,6 +23,13 @@
                     <td>[#groupId#]</td>
                 </tr>
                 <!--ET_END groupId-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Използване в ПО|*:
+                    </td>
+                    <td>[#usedInTask#]</td>
+                </tr>
+
                 <!--ET_BEGIN protocols-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">

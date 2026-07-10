@@ -1177,8 +1177,58 @@ class core_String
     {
         return preg_replace('/\s+/', $replace, $string);
     }
-    
-    
+
+
+    /**
+     * Превръща таб-разделени редове в markdown-подобни таблични редове (`| a | b | c |`),
+     * без `|---|---|` разделителна секция (нарочно - пести токъни, а AI моделите го разбират
+     * добре и само по заглавния ред). Редове без таб (заглавия, футъри и пр.) остават
+     * непроменени. Полезно за таб-разделен текст, извлечен от таблични файлове (xls/csv/ods
+     * и др.), за да е по-лесен за коректно парсване от AI модел, отколкото суров таб текст.
+     *
+     * Ако първата колона е празна на [b]всички[/b] таблични редове (чест артефакт от Excel
+     * експорт - водеща spacer-колона), тя се маха изцяло - за да не се повтаря празно `| |`
+     * на всеки ред. Ако е празна само на част от редовете, не се пипа (може да е реална данна).
+     *
+     * @param string $text
+     *
+     * @return string
+     */
+    public static function tabsToMarkdownTable($text)
+    {
+        $lines = explode("\n", $text);
+
+        // Кои редове са таблични (съдържат таб) и техните клетки
+        $tabularIdx = array();
+        $cellsArr = array();
+        foreach ($lines as $i => $line) {
+            if (strpos($line, "\t") !== false) {
+                $tabularIdx[] = $i;
+                $cellsArr[$i] = array_map('trim', explode("\t", $line));
+            }
+        }
+
+        // Дали първата колона е систематично празна на всички таблични редове
+        $dropFirstCol = !empty($tabularIdx);
+        foreach ($tabularIdx as $i) {
+            if (($cellsArr[$i][0] ?? '') !== '') {
+                $dropFirstCol = false;
+                break;
+            }
+        }
+
+        foreach ($tabularIdx as $i) {
+            $cells = $cellsArr[$i];
+            if ($dropFirstCol) {
+                array_shift($cells);
+            }
+            $lines[$i] = '| ' . implode(' | ', $cells) . ' |';
+        }
+
+        return implode("\n", $lines);
+    }
+
+
     /**
      * Разбива текст по нови редове във масив
      *

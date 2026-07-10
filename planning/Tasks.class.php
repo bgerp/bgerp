@@ -2224,7 +2224,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Центрове');
-        $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf'));
+        $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf', array(), true));
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
         $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect,class=w100');
@@ -3135,7 +3135,7 @@ class planning_Tasks extends core_Master
         // Ако има намерени планиращи параметри - показват се в таблицата
         $firstColumnsIfNotSelected = arr::make(array_keys($data->listFields), true);
     
-        // Параметрите от Етапите да са планиращи
+        // Параметрите от Етапа да са планиращи (при филтриране по Етап)
         if(!empty($data->listFilter->rec->productId)){
             $productId = $data->listFilter->rec->productId;
             if($Driver = cat_Products::getDriver($productId)){
@@ -3589,6 +3589,14 @@ class planning_Tasks extends core_Master
 
         if(isset($rec->_exAssetId) && $rec->assetId != $rec->_exAssetId){
             $mvc->forceCalcTimes = true;
+        }
+
+        // Синхронизиране на usedInTask към заопашените промени по оборудването (@see planning_AssetResources::on_Shutdown)
+        if(!empty($rec->assetId) && (!isset($rec->_exAssetId) || $rec->assetId != $rec->_exAssetId)){
+            planning_AssetResources::markUsedInTask($rec->assetId);
+        }
+        if(!empty($rec->_exAssetId) && $rec->assetId != $rec->_exAssetId){
+            planning_AssetResources::markUsedInTask($rec->_exAssetId, false);
         }
 
         // Преизчисляване на продължителноста след промяна

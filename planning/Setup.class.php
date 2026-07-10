@@ -422,6 +422,7 @@ class planning_Setup extends core_ProtoSetup
             'period' => 5,
             'timeLimit' => 60,
         ),
+
     );
 
 
@@ -457,6 +458,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_TaskConstraints',
         'planning_TaskManualOrderPerAssets',
         'planning_AssetScheduleBreaks',
+        'migrate::forceBackfillUsedInTask2628',
     );
 
 
@@ -554,5 +556,18 @@ class planning_Setup extends core_ProtoSetup
                 core_Cron::addOnce($rec);
             }
         }
+    }
+
+
+    /**
+     * Еднократен бекфил на planning_AssetResources::usedInTask за оборудванията,
+     * използвани в ПО отпреди добавянето на полето. Отложен през core_CallOnTime,
+     * за да не бави изпълнението на setup-а
+     *
+     * @see planning_AssetResources::callback_BackfillUsedInTask()
+     */
+    public function forceBackfillUsedInTask2628()
+    {
+        core_CallOnTime::setCall('planning_AssetResources', 'BackfillUsedInTask', null, dt::addSecs(120));
     }
 }
