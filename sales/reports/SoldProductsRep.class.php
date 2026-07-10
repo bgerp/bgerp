@@ -297,7 +297,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('dealers', 'keylist(mvc=core_Users,select=names)', 'caption=Търговци->Търговец,placeholder=Всички,after=secondMonth,single=none');
         $fieldset->FLD('dealersTeam', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Търговци->Екип,placeholder=Всички,after=dealers,single=none');
 
-
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealersTeam');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
 
@@ -800,6 +799,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
 
+        $query->EXT('productMeasureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
+
+        $query->EXT('productIsPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+
         $query->in('state', array('rejected', 'stopped', 'draft'), true);
 
         if ($rec->grFilter) {
@@ -1032,6 +1035,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             core_App::setTimeLimit($timeLimit);
         }
 
+        $productsCache = array();
+        $foldersTitleCache = array();
+        $classesCache = array();
+        $documentsCache = array();
+        $posContragentCache = array();
+
         while ($recPrime = $query->fetch()) {
             $quantity = $primeCost = $delta = 0;
             $quantityPrevious = $primeCostPrevious = $deltaPrevious = 0;
@@ -1049,31 +1058,54 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             }
 
-            $categoryId = doc_Folders::fetch($recPrime->prodFolderId)->coverId;
+            $categoryId = $recPrime->category;
 
-            //rec-a на артикула
-            $prodRec = cat_Products::fetch($recPrime->productId);
+            // Данните за артикула вече са взети с EXT, за да няма fetch за всеки ред
+            if (!isset($productsCache[$recPrime->productId])) {
+                $productsCache[$recPrime->productId] = (object)array(
+                    'measureId' => $recPrime->productMeasureId,
+                    'isPublic' => $recPrime->productIsPublic,
+                );
+            }
+            $prodRec = $productsCache[$recPrime->productId];
 
             //Ключ на масива
             $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId . ' | ' . $recPrime->folderId : $recPrime->productId;
-            $Doc = doc_Containers::getDocument($recPrime->containerId);
+            if (!isset($documentsCache[$recPrime->containerId])) {
+                $documentsCache[$recPrime->containerId] = doc_Containers::getDocument($recPrime->containerId);
+            }
+            $Doc = $documentsCache[$recPrime->containerId];
             $poscontragentClassId = $poscontragentId = null;
             if ($Doc->isInstanceOf('pos_Reports')) {
 
                 $poscontragentClassId = $recPrime->contragentClassId;
                 $poscontragentId = $recPrime->contragentId;
 
-                $posContragentClassName = core_Classes::fetch($recPrime->contragentClassId)->name;
-                $posContragentFolder = $posContragentClassName::fetch($recPrime->contragentId)->folderId;
+                if (!isset($classesCache[$recPrime->contragentClassId])) {
+                    $classesCache[$recPrime->contragentClassId] = core_Classes::fetch($recPrime->contragentClassId)->name;
+                }
+                $posContragentClassName = $classesCache[$recPrime->contragentClassId];
 
-                $contragentName = doc_Folders::getTitleById($posContragentFolder);
+                $posContragentKey = $recPrime->contragentClassId . '|' . $recPrime->contragentId;
+                if (!isset($posContragentCache[$posContragentKey])) {
+                    $posContragentCache[$posContragentKey] = $posContragentClassName::fetch($recPrime->contragentId)->folderId;
+                }
+                $posContragentFolder = $posContragentCache[$posContragentKey];
+
+                if (!isset($foldersTitleCache[$posContragentFolder])) {
+                    $foldersTitleCache[$posContragentFolder] = doc_Folders::getTitleById($posContragentFolder);
+                }
+                $contragentName = $foldersTitleCache[$posContragentFolder];
                 $posKey = $recPrime->contragentClassId . '|' . $recPrime->contragentId;
 
                 $id = ($rec->seeByContragent == 'yes') ? $recPrime->productId . ' | ' . $recPrime->folderId . ' | ' . $posKey : $recPrime->productId;
 
             } else {
 
-                $contragentName = doc_Folders::getTitleById($recPrime->folderId);
+                if (!isset($foldersTitleCache[$recPrime->folderId])) {
+                    $foldersTitleCache[$recPrime->folderId] = doc_Folders::getTitleById($recPrime->folderId);
+                }
+                $contragentName = $foldersTitleCache[$recPrime->folderId];
             }
 
 
