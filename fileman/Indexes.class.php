@@ -1148,12 +1148,41 @@ class fileman_Indexes extends core_Manager
 
 
     /**
-     * Връща текстовото представяне на файла (ако няма кеширано го форсира)
+     * Разширения, за които извлеченият (от Tika) текст е таблично, таб-разделено
+     * съдържание - вижте str::tabsToMarkdownTable()
+     */
+    protected static $tabularExtensions = array('xls', 'xlsx', 'xlsm', 'xlt', 'xltx', 'ods', 'ots', 'csv', 'tsv');
+
+
+    /**
+     * Дали файлът (по разширение) е от табличен тип, за когото си заслужава
+     * $asMarkdownIfPossible преобразуването - вижте forceTextForIndex()
      *
      * @param string $fileHnd
+     * @return bool
+     */
+    protected static function isTabularFileExt($fileHnd)
+    {
+        $fName = fileman_Files::fetchByFh($fileHnd, 'name');
+        if (empty($fName)) return false;
+
+        $ext = fileman_Files::getExt($fName);
+
+        return in_array($ext, self::$tabularExtensions, true);
+    }
+
+
+    /**
+     * Връща текстовото представяне на файла (ако няма кеширано го форсира)
+     *
+     * @param string  $fileHnd
+     * @param boolean $asMarkdownIfPossible ако е true и файлът е табличен по разширение
+     *                (xls/xlsx/ods/csv и др. - вижте $tabularExtensions), таб-разделените
+     *                редове се преобразуват в markdown-подобни таблични редове - по-лесни
+     *                за коректно парсване от AI модел, отколкото суров таб-разделен текст
      * @return string|null
      */
-    public static function forceTextForIndex($fileHnd)
+    public static function forceTextForIndex($fileHnd, $asMarkdownIfPossible = false)
     {
         $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
 
@@ -1171,18 +1200,27 @@ class fileman_Indexes extends core_Manager
         // Ако няма извлечено или е извлечен празен стринг няма да се върне нищо
         if ($fileTxtContent === false || empty(trim($fileTxtContent))) return null;
 
-        return trim($fileTxtContent);
+        $fileTxtContent = trim($fileTxtContent);
+
+        if ($asMarkdownIfPossible && self::isTabularFileExt($fileHnd)) {
+            $fileTxtContent = str::tabsToMarkdownTable($fileTxtContent);
+        }
+
+        return $fileTxtContent;
     }
 
 
     /**
      * Връща кратко текстово представяне на масива от файлове с ограничение до брой символи
      *
-     * @param array $filesArr  - масив от файл хендлъри => име на файл
-     * @param int $maxLen      - максимална дължина
+     * @param array   $filesArr  - масив от файл хендлъри => име на файл
+     * @param int     $maxLen      - максимална дължина
+     * @param boolean $asMarkdownIfPossible - вижте forceTextForIndex(); ако е true, новите
+     *                редове се пазят (нужни за табличните редове), вместо целият текст да се
+     *                сплеска в един ред, както прави обичайното почистване на whitespace
      * @return string $string  - стринг
      */
-    public static function getShortTextSummary($filesArr, $maxLen = 10000)
+    public static function getShortTextSummary($filesArr, $maxLen = 10000, $asMarkdownIfPossible = false)
     {
         $string = '';
         foreach ($filesArr as $fileHnd => $fileName){
@@ -1190,10 +1228,18 @@ class fileman_Indexes extends core_Manager
             $fileLenVerbal = core_Type::getByName('fileman_FileSize')->toVerbal($fileLen);
             $fileLenVerbal = str_replace('&nbsp;', ' ', $fileLenVerbal);
 
-            $fileTxtContent = self::forceTextForIndex($fileHnd);
+            $fileTxtContent = self::forceTextForIndex($fileHnd, $asMarkdownIfPossible);
             if(empty($fileTxtContent)) continue;
 
-            $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
+            if ($asMarkdownIfPossible) {
+                // Пазим новите редове (иначе табличните редове ще се слепят в един ред) -
+                // чистим само хоризонталния whitespace (двойни интервали/табове в текста).
+                $fileTxtContent = preg_replace('/[ \t]+/', ' ', trim($fileTxtContent));
+                $fileTxtContent = preg_replace('/\n{2,}/', "\n", $fileTxtContent);
+            } else {
+                $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
+            }
+
             $string .= "\n" . tr("|*& |Прикачен файл|*: {$fileName} ({$fileLenVerbal})") . "\n";
             $string .= tr("Извлечен текст|*: ");
             $strLen = mb_strlen($fileTxtContent);
