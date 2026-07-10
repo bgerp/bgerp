@@ -230,6 +230,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
 
             foreach ($groupIds as $groupId) {
+                if (!is_numeric($groupId)) {
+                    continue;
+                }
+
                 $groupRec = cat_Groups::fetch($groupId);
                 if (!$groupRec) {
                     continue;
@@ -2595,15 +2599,23 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $rec = frame2_Reports::fetch($recId);
 
-        frame2_Reports::refresh($rec);
-        $rec = frame2_Reports::fetch($recId);
+        if (Request::get('clearArtFilter', 'int')) {
+            frame2_Reports::refresh($rec);
+
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'ret_url' => true));
+        }
+
+        $filterRec = clone $rec;
+        if ($Driver = frame2_Reports::getDriver($filterRec)) {
+            $filterRec->data = $Driver->prepareData($filterRec);
+        }
 
         $form = cls::get('core_Form');
         $form->title = 'Филтър по артикул';
 
         $artSuggestionsArr = array();
-        if (is_array($rec->data->recs) && !empty($rec->data->recs)) {
-            $prArr = arr::extractValuesFromArray($rec->data->recs, 'productId');
+        if (is_array($filterRec->data->recs) && !empty($filterRec->data->recs)) {
+            $prArr = arr::extractValuesFromArray($filterRec->data->recs, 'productId');
             foreach (array_keys($prArr) as $val) {
                 $pRec = cat_Products::fetch($val);
                 $code = $pRec->code ?: 'Art' . $pRec->productId;
@@ -2617,9 +2629,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->input();
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Изчисти филтъра', array('sales_reports_SoldProductsRep', 'artfilter', 'recId' => $recId, 'clearArtFilter' => 1, 'ret_url' => true), 'ef_icon = img/16/delete.png');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
         if ($form->isSubmitted()) {
+            $rec->data = $filterRec->data;
             foreach ($rec->data->recs as $key => $pRec) {
                 if (($pRec->productId) && ($form->rec->artFilter != $pRec->productId)) {
                     unset($rec->data->recs[$key]);
