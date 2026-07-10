@@ -35,6 +35,7 @@ filter:
         - 'html2text/*'
         - 'iban/php-iban-1.1.2/*'
         - 'iban/php-iban-1.4.7/*'
+        - 'imgcolor/lib/image-color-analyzer/*'
         - 'jqcolorpicker/2.0/*'
         - 'jqdatepick/v4.0.6/*'
         - 'jqplot/jquery.jqplot.1.0.0b2_r1012/*'
@@ -67,3 +68,17 @@ filter:
         - 'ckeditor/ckeditor_php4.php'
         - 'ckeditor/ckeditor_php5.php'
         - 'ckeditor/ckeditor.php'
+
+build:
+    nodes:
+        analysis:
+            environment:
+                php:
+                    version: "8.2"
+            dependencies:
+                before:
+                    - composer self-update --2
+                    - composer config --global policy.advisories.block false
+            tests:
+                override:
+                    - php-scrutinizer-run
