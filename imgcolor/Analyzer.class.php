@@ -40,8 +40,10 @@ class imgcolor_Analyzer extends core_Mvc
     /**
      * Инициализация на услугата
      */
-    public function init()
+    public function init($params = array())
     {
+        parent::init($params);
+
         self::registerAutoload();
     }
 
