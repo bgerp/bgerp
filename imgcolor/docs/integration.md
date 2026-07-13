@@ -14,17 +14,51 @@ principal print colors with coverage percentages.
   - `imgcolor_Analyzer::analyzeFileHandle($fh)` -> JSON
   - `imgcolor_Analyzer::getToolDefinition()` -> `{name, description, parameters}`
 - UI: `imgcolor_Demo` (menu `Инструменти -> Цветове за печат`) + a fileman
-  file-action button on PNG/JPEG files.
+  file-action button on PNG/JPEG files. The analysis form exposes the complete
+  calibration set: selecting a profile loads its values, and the displayed
+  values can be adjusted before the run.
 - Calibration profiles: `imgcolor_Profiles` (menu `Инструменти -> Профили за
-  калибриране`) - named, reusable threshold sets. Optional: the global
-  `IMGCOLOR_*` constants remain the zero-config default; a profile is an
-  explicit override, selected per-run in `imgcolor_Demo` or passed to
-  `imgcolor_Analyzer::buildOptions($profileRec)` by any other caller.
+  калибриране`) - named, reusable threshold sets. The analysis form can save
+  the displayed values as a new profile or update the selected profile. The
+  manager remains the place to list, rename, edit notes, and delete profiles.
+  Optional: the global `IMGCOLOR_*` constants remain the zero-config default;
+  a profile is an explicit override, selected per-run in `imgcolor_Demo` or
+  passed to `imgcolor_Analyzer::buildOptions($profileRec)` by another caller.
 - Analysis history: `imgcolor_Analyses` (menu `Инструменти -> История на
   анализите`) - every completed run (via `imgcolor_Demo`) is persisted:
-  source image, profile used (if any), color JSON, cropped image. Records
-  are created only in code (`imgcolor_Analyses::createFromResult()`), never
-  through a manual add form.
+  source image, profile selected (if any), exact calibration snapshot, color
+  JSON, and cropped image. The profile records where values came from; the
+  snapshot records what the analyzer actually used, even after an inline
+  adjustment or a later profile edit. Records are created only in code
+  (`imgcolor_Analyses::createFromResult()`), never through a manual add form.
+
+## Upload policy
+
+The package bucket `imgcolorImages` accepts only `jpg`, `jpeg`, and `png`
+extensions. Fileman derives the browser `accept` attribute and applies the same
+extension policy to its server-side upload paths. Extension matching is
+case-insensitive.
+
+This is an upload filter, not a content-trust boundary. The analyzer separately
+sniffs and decodes the bytes through the vendored library, so a renamed or
+malformed file with an allowed extension is still rejected. The restriction is
+local to `imgcolorImages`; no global Fileman MIME or extension behavior changes.
+
+## Interactive calibration workflow
+
+1. Open `Инструменти -> Цветове за печат`.
+2. Use the global configuration shown initially, or select a saved profile to
+   load its calibration values.
+3. Adjust any displayed value and analyze an image. The submitted values are
+   used directly and saved in the analysis snapshot.
+4. To retain the displayed values, enter a short identifier and name and choose
+   `Запази като профил`. An image is not required for this action.
+5. With an editable profile selected, choose `Обнови профила` to replace only
+   its calibration values. Its name and notes are preserved.
+6. Use `Профили` for listing, renaming, editing notes, and deleting profiles.
+
+Profiles are shared records governed by the existing `imgcolor`, `ceo`, and
+`admin` rights. There is no per-user ownership or implicit default profile.
 
 ## Wrapper to library map
 | BGERP wrapper | Library object/method | Notes |
@@ -35,10 +69,10 @@ principal print colors with coverage percentages.
 | `imgcolor_Analyzer::analyze*()` | `PublicAPI\ImageColorAnalyzer::analyze*()` | Returns the library array/JSON unchanged. |
 | `imgcolor_Analyzer::process*()` | `PublicAPI\ImageColorAnalyzer::process*()` | Returns the library `ProcessedImageResult` DTO unchanged. |
 | `imgcolor_Analyzer::analyzeFileHandle($fh)` | `fileman::extractStr($fh)` -> `analyzeAsJson($bytes)` | Machine/LLM entry point; input is a fileman handle and output is JSON. |
-| `imgcolor_Demo` | `imgcolor_Analyzer::process($bytes, $options)` | Human test UI and fileman file-action button; persists every run via `imgcolor_Analyses::createFromResult()`. |
-| `imgcolor_Calibration::buildOptions(array $values)` | `Options\CropOptions`, `Options\ClusterOptions`, `Options\AnalyzerOptions` | Framework-free; single mapping shared by the global-config path and the profile path. Standalone-testable: `php imgcolor/tests/cli_calibration.php`. |
+| `imgcolor_Demo` | `imgcolor_Analyzer::process($bytes, $options)` | Interactive analysis/calibration UI and fileman file-action button; persists every run via `imgcolor_Analyses::createFromResult()`. |
+| `imgcolor_Calibration` | `Options\CropOptions`, `Options\ClusterOptions`, `Options\AnalyzerOptions` | Authoritative field/default/record mapping through `getDefaultValues()`, `getValues()`, `applyValues()`, and `buildOptions()`. Standalone-testable: `php imgcolor/tests/cli_calibration.php`. |
 | `imgcolor_Profiles` | n/a (bgERP `core_Manager`) | CRUD for named calibration profiles; `on_BeforeSave` validates through `imgcolor_Calibration::buildOptions()`. |
-| `imgcolor_Analyses` | n/a (bgERP `core_Manager`) | Append-mostly history of completed runs; written by `imgcolor_Demo`, not by a manual form. |
+| `imgcolor_Analyses` | n/a (bgERP `core_Manager`) | Append-mostly history with optional profile attribution and exact calibration JSON; written by `imgcolor_Demo`, not by a manual form. |
 
 ## Tool definition (function-calling)
 ```json
@@ -85,13 +119,30 @@ value comes from*.
 | `IMGCOLOR_CROP_CHROMA_MAX` | `5.0` | `CropOptions::$chromaMax` |
 | `IMGCOLOR_CROP_LINE_CONTENT_FRACTION` | `0.002` | `CropOptions::$lineContentFraction` |
 | `IMGCOLOR_CROP_ALPHA_THRESHOLD` | `8` | `CropOptions::$alphaThreshold` |
-| `IMGCOLOR_CLUSTER_FIXED_K` | empty | `ClusterOptions::$fixedK`; empty or `< 1` means automatic k |
+| `IMGCOLOR_CLUSTER_FIXED_K` | empty | `ClusterOptions::$fixedK`; empty or `0` means automatic k |
 | `IMGCOLOR_CLUSTER_KMAX` | `8` | `ClusterOptions::$kMax` |
 | `IMGCOLOR_CLUSTER_HISTOGRAM_BITS` | `5` | `ClusterOptions::$histogramBitsPerChannel` |
 | `IMGCOLOR_CLUSTER_MERGE_DELTAE` | `3.0` | `ClusterOptions::$mergeDeltaE` |
 | `IMGCOLOR_CLUSTER_MIN_COVERAGE` | `0.01` | `ClusterOptions::$minClusterCoverage` |
 | `IMGCOLOR_CLUSTER_SEED` | `1` | `ClusterOptions::$seed` |
 | `IMGCOLOR_CLUSTER_ALPHA_THRESHOLD` | `8` | `ClusterOptions::$alphaThreshold` |
+
+## Tests
+
+The framework-free regressions require PHP 8.2+ with GD and can run without a
+configured bgERP database:
+
+```sh
+php imgcolor/tests/cli_setup_bucket.php
+php imgcolor/tests/cli_calibration.php
+php imgcolor/tests/cli_analysis_snapshot.php
+php imgcolor/tests/cli_init_signature.php
+php imgcolor/tests/cli_parity.php
+```
+
+The web unit runner (`?Ctr=unit_Tests`) provides the Fileman/database-backed
+coverage in `imgcolor_tests_Analyzer`, `imgcolor_tests_Profiles`, and
+`imgcolor_tests_Analyses`.
 
 ## Updating the library
 Replace `lib/image-color-analyzer/src/` with the new upstream `src/`, update
