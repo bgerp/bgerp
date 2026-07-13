@@ -241,6 +241,90 @@ class imgcolor_Analyzer extends core_Mvc
 
 
     /**
+     * Праговете за класификация на преливките от глобалната конфигурация.
+     *
+     * @return array за imgcolor_TransitionClassifier::classify()
+     */
+    public static function getTransParams()
+    {
+        return array(
+            'span' => (int) imgcolor_Setup::get('TRANS_SPAN'),
+            'noiseDeltaE' => (float) imgcolor_Setup::get('TRANS_NOISE_DELTAE'),
+            'coherenceMin' => (float) imgcolor_Setup::get('TRANS_COHERENCE_MIN'),
+            'aaRadius' => (int) imgcolor_Setup::get('TRANS_AA_RADIUS'),
+            'minSeed' => (int) imgcolor_Setup::get('TRANS_MIN_SEED'),
+            'edgeDeltaE' => (float) imgcolor_Setup::get('TRANS_EDGE_DELTAE'),
+            'minCoverage' => (float) imgcolor_Setup::get('TRANS_MIN_COVERAGE'),
+        );
+    }
+
+
+    /**
+     * Конфигурацията на RGB->CMYK конверсията от глобалната конфигурация.
+     *
+     * @return array за конструктора на imgcolor_CmykConverter
+     */
+    public static function getCmykConfig()
+    {
+        return array(
+            'engine' => imgcolor_Setup::get('CMYK_ENGINE'),
+            'rgbProfile' => imgcolor_Setup::get('CMYK_ICC_RGB_PROFILE'),
+            'cmykProfile' => imgcolor_Setup::get('CMYK_ICC_CMYK_PROFILE'),
+        );
+    }
+
+
+    /**
+     * Разделен анализ: плътните цветове остават в стандартния списък
+     * (без преливките), а преливките се натрупват в CMYK акумулатор.
+     * Изображения без преливки дават байт-идентичен colors JSON с process().
+     *
+     * @param mixed $source ImageSource, stream, raw bytes или GD image
+     *
+     * @return stdClass {json, cmykJson, croppedImage, boundingBox, wasCropped}
+     */
+    public static function processSeparated($source, $options = null)
+    {
+        self::registerAutoload();
+        self::requireGd();
+
+        try {
+            $options = $options === null ? self::buildOptions() : $options;
+
+            $loader = imgcolor_Setup::get('LOADER') === 'imagick'
+                ? new \ImageColorAnalyzer\ImageLoader\ImagickImageLoader()
+                : new \ImageColorAnalyzer\ImageLoader\GdImageLoader();
+            $resolver = new \ImageColorAnalyzer\ImageLoader\SourceResolver();
+            $raster = $loader->load($resolver->resolve($source));
+
+            $sep = imgcolor_Separation::process(
+                $raster,
+                $options,
+                self::getTransParams(),
+                new imgcolor_CmykConverter(self::getCmykConfig())
+            );
+
+            $encoder = new \ImageColorAnalyzer\ImageEncoder\GdPngEncoder();
+
+            $result = new stdClass();
+            $result->json = json_encode($sep->colors, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_PRESERVE_ZERO_FRACTION);
+            $result->cmykJson = $sep->cmyk === null ? null : json_encode($sep->cmyk, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+            $result->croppedImage = $encoder->encode($sep->crop->raster);
+            $result->boundingBox = $sep->crop->boundingBox;
+            $result->wasCropped = $sep->crop->wasCropped;
+
+            return $result;
+        } catch (\ImageColorAnalyzer\Exception\ImageAnalyzerException $e) {
+            self::raiseError($e->getMessage());
+        } catch (InvalidArgumentException $e) {
+            self::raiseError($e->getMessage());
+        } catch (RuntimeException $e) {
+            self::raiseError($e->getMessage());
+        }
+    }
+
+
+    /**
      * @return \ImageColorAnalyzer\PublicAPI\ProcessedImageResult
      */
     public static function process($source, $options = null)

@@ -50,8 +50,8 @@ require_once dirname(__DIR__) . '/Setup.class.php';
 $setup = new imgcolor_Setup();
 $setup->install();
 
-if ($setup->version !== '0.3') {
-    fail('package version must advance to 0.3 so existing installations rerun setup');
+if ($setup->version !== '0.4') {
+    fail('package version must advance to 0.4 so existing installations rerun setup');
 }
 
 $args = fileman_Buckets::$createArgs;
