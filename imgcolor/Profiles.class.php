@@ -78,17 +78,9 @@ class imgcolor_Profiles extends core_Manager
         $rec = $form->rec;
 
         if (empty($rec->id)) {
-            $rec->cropLightnessMin = imgcolor_Setup::get('CROP_LIGHTNESS_MIN');
-            $rec->cropChromaMax = imgcolor_Setup::get('CROP_CHROMA_MAX');
-            $rec->cropLineContentFraction = imgcolor_Setup::get('CROP_LINE_CONTENT_FRACTION');
-            $rec->cropAlphaThreshold = imgcolor_Setup::get('CROP_ALPHA_THRESHOLD');
-            $rec->clusterFixedK = imgcolor_Setup::get('CLUSTER_FIXED_K');
-            $rec->clusterKMax = imgcolor_Setup::get('CLUSTER_KMAX');
-            $rec->clusterHistogramBits = imgcolor_Setup::get('CLUSTER_HISTOGRAM_BITS');
-            $rec->clusterMergeDeltaE = imgcolor_Setup::get('CLUSTER_MERGE_DELTAE');
-            $rec->clusterMinCoverage = imgcolor_Setup::get('CLUSTER_MIN_COVERAGE');
-            $rec->clusterSeed = imgcolor_Setup::get('CLUSTER_SEED');
-            $rec->clusterAlphaThreshold = imgcolor_Setup::get('CLUSTER_ALPHA_THRESHOLD');
+            foreach (imgcolor_Calibration::getDefaultValues() as $field => $value) {
+                $rec->{$field} = $value;
+            }
         }
     }
 
@@ -105,13 +97,8 @@ class imgcolor_Profiles extends core_Manager
      */
     public static function on_BeforeSave($mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        $values = array();
-        foreach (imgcolor_Calibration::$fields as $f) {
-            $values[$f] = $rec->{$f};
-        }
-
         try {
-            imgcolor_Calibration::buildOptions($values);
+            imgcolor_Calibration::buildOptions(imgcolor_Calibration::getValues($rec));
         } catch (InvalidArgumentException $e) {
             throw new core_exception_Expect('imgcolor: ' . $e->getMessage(), 'Несъответствие');
         }

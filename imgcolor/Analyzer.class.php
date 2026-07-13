@@ -105,29 +105,10 @@ class imgcolor_Analyzer extends core_Mvc
         self::registerAutoload();
 
         if ($profileRec !== null) {
-            $values = array();
-            foreach (imgcolor_Calibration::$fields as $f) {
-                $values[$f] = $profileRec->{$f};
-            }
-
-            return imgcolor_Calibration::buildOptions($values);
+            return imgcolor_Calibration::buildOptions(imgcolor_Calibration::getValues($profileRec));
         }
 
-        $values = array(
-            'cropLightnessMin' => imgcolor_Setup::get('CROP_LIGHTNESS_MIN'),
-            'cropChromaMax' => imgcolor_Setup::get('CROP_CHROMA_MAX'),
-            'cropLineContentFraction' => imgcolor_Setup::get('CROP_LINE_CONTENT_FRACTION'),
-            'cropAlphaThreshold' => imgcolor_Setup::get('CROP_ALPHA_THRESHOLD'),
-            'clusterFixedK' => imgcolor_Setup::get('CLUSTER_FIXED_K'),
-            'clusterKMax' => imgcolor_Setup::get('CLUSTER_KMAX'),
-            'clusterHistogramBits' => imgcolor_Setup::get('CLUSTER_HISTOGRAM_BITS'),
-            'clusterMergeDeltaE' => imgcolor_Setup::get('CLUSTER_MERGE_DELTAE'),
-            'clusterMinCoverage' => imgcolor_Setup::get('CLUSTER_MIN_COVERAGE'),
-            'clusterSeed' => imgcolor_Setup::get('CLUSTER_SEED'),
-            'clusterAlphaThreshold' => imgcolor_Setup::get('CLUSTER_ALPHA_THRESHOLD'),
-        );
-
-        return imgcolor_Calibration::buildOptions($values);
+        return imgcolor_Calibration::buildOptions(imgcolor_Calibration::getDefaultValues());
     }
 
 

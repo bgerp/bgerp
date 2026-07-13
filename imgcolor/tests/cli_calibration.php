@@ -5,6 +5,28 @@
 // AnalyzerOptions. Requires no bgERP bootstrap (mirrors cli_parity.php).
 // Usage: php imgcolor/tests/cli_calibration.php
 
+class imgcolor_Setup
+{
+    public static function get($key)
+    {
+        $values = array(
+            'CROP_LIGHTNESS_MIN' => 95.0,
+            'CROP_CHROMA_MAX' => 5.0,
+            'CROP_LINE_CONTENT_FRACTION' => 0.002,
+            'CROP_ALPHA_THRESHOLD' => 8,
+            'CLUSTER_FIXED_K' => '',
+            'CLUSTER_KMAX' => 8,
+            'CLUSTER_HISTOGRAM_BITS' => 5,
+            'CLUSTER_MERGE_DELTAE' => 3.0,
+            'CLUSTER_MIN_COVERAGE' => 0.01,
+            'CLUSTER_SEED' => 1,
+            'CLUSTER_ALPHA_THRESHOLD' => 8,
+        );
+
+        return $values[$key];
+    }
+}
+
 require_once __DIR__ . '/../Calibration.class.php';
 
 function fail($msg)
@@ -30,7 +52,32 @@ function defaultValues()
     );
 }
 
-// 1) defaults matching today's IMGCOLOR_* constants build valid options
+// 1) setup defaults are mapped to the authoritative eleven calibration fields
+$defaults = imgcolor_Calibration::getDefaultValues();
+if ($defaults !== defaultValues()) {
+    fail('getDefaultValues did not return the expected setup mapping: ' . var_export($defaults, true));
+}
+
+// 2) records are reduced to calibration fields only, preserving optional fixedK
+$record = (object) (defaultValues() + array('id' => 42, 'name' => 'Ignored'));
+$record->clusterFixedK = null;
+$recordValues = imgcolor_Calibration::getValues($record);
+$expectedRecordValues = defaultValues();
+$expectedRecordValues['clusterFixedK'] = null;
+if ($recordValues !== $expectedRecordValues) {
+    fail('getValues did not extract the exact calibration fields');
+}
+if (array_key_exists('id', $recordValues) || array_key_exists('name', $recordValues)) {
+    fail('getValues leaked unrelated record fields');
+}
+
+// 3) array sources use the same extraction contract
+$arrayValues = imgcolor_Calibration::getValues(defaultValues() + array('notes' => 'Ignored'));
+if ($arrayValues !== defaultValues()) {
+    fail('getValues did not extract calibration values from an array');
+}
+
+// 4) defaults matching today's IMGCOLOR_* constants build valid options
 $options = imgcolor_Calibration::buildOptions(defaultValues());
 if (!($options instanceof \ImageColorAnalyzer\Options\AnalyzerOptions)) {
     fail('buildOptions did not return an AnalyzerOptions instance');
@@ -42,7 +89,7 @@ if ($options->cluster->kMax !== 8) {
     fail('cluster->kMax not mapped correctly, got ' . var_export($options->cluster->kMax, true));
 }
 
-// 2) clusterFixedK: '', null and 0 all normalize to automatic (null)
+// 5) clusterFixedK: '', null and 0 all normalize to automatic (null)
 foreach (array('', null, 0, '0') as $empty) {
     $values = defaultValues();
     $values['clusterFixedK'] = $empty;
@@ -52,7 +99,7 @@ foreach (array('', null, 0, '0') as $empty) {
     }
 }
 
-// 3) clusterFixedK: a real positive value passes through as int
+// 6) clusterFixedK: a real positive value passes through as int
 $values = defaultValues();
 $values['clusterFixedK'] = '4';
 $options = imgcolor_Calibration::buildOptions($values);
@@ -60,7 +107,7 @@ if ($options->cluster->fixedK !== 4) {
     fail('clusterFixedK "4" should map to int 4, got ' . var_export($options->cluster->fixedK, true));
 }
 
-// 4) out-of-range crop value is rejected with a message naming the field
+// 7) out-of-range crop value is rejected with a message naming the field
 $values = defaultValues();
 $values['cropLightnessMin'] = 150.0;
 try {
@@ -72,7 +119,7 @@ try {
     }
 }
 
-// 5) out-of-range cluster value is rejected with a message naming the field
+// 8) out-of-range cluster value is rejected with a message naming the field
 $values = defaultValues();
 $values['clusterHistogramBits'] = 9;
 try {

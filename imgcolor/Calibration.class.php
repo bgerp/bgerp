@@ -42,6 +42,66 @@ class imgcolor_Calibration
 
 
     /**
+     * Съпоставяне на полетата с ключовете в imgcolor_Setup.
+     */
+    private static $setupKeys = array(
+        'cropLightnessMin' => 'CROP_LIGHTNESS_MIN',
+        'cropChromaMax' => 'CROP_CHROMA_MAX',
+        'cropLineContentFraction' => 'CROP_LINE_CONTENT_FRACTION',
+        'cropAlphaThreshold' => 'CROP_ALPHA_THRESHOLD',
+        'clusterFixedK' => 'CLUSTER_FIXED_K',
+        'clusterKMax' => 'CLUSTER_KMAX',
+        'clusterHistogramBits' => 'CLUSTER_HISTOGRAM_BITS',
+        'clusterMergeDeltaE' => 'CLUSTER_MERGE_DELTAE',
+        'clusterMinCoverage' => 'CLUSTER_MIN_COVERAGE',
+        'clusterSeed' => 'CLUSTER_SEED',
+        'clusterAlphaThreshold' => 'CLUSTER_ALPHA_THRESHOLD',
+    );
+
+
+    /**
+     * Връща текущите глобални стойности във формата за калибриране.
+     *
+     * @return array
+     */
+    public static function getDefaultValues()
+    {
+        $values = array();
+        foreach (self::$fields as $field) {
+            $values[$field] = imgcolor_Setup::get(self::$setupKeys[$field]);
+        }
+
+        return $values;
+    }
+
+
+    /**
+     * Извлича единствено стойностите за калибриране от запис или масив.
+     *
+     * @param object|array $source
+     *
+     * @throws InvalidArgumentException ако липсва поле за калибриране
+     *
+     * @return array
+     */
+    public static function getValues($source)
+    {
+        $values = array();
+        foreach (self::$fields as $field) {
+            if (is_array($source) && array_key_exists($field, $source)) {
+                $values[$field] = $source[$field];
+            } elseif (is_object($source) && property_exists($source, $field)) {
+                $values[$field] = $source->{$field};
+            } else {
+                throw new InvalidArgumentException("Missing calibration field: {$field}");
+            }
+        }
+
+        return $values;
+    }
+
+
+    /**
      * Строи AnalyzerOptions от плосък масив стойности (от Setup константи
      * или от Profile запис - еднакво по форма). Границите на стойностите
      * се пазят от самата библиотека: конструкторите на CropOptions/
