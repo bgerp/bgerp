@@ -77,7 +77,17 @@ if ($arrayValues !== defaultValues()) {
     fail('getValues did not extract calibration values from an array');
 }
 
-// 4) defaults matching today's IMGCOLOR_* constants build valid options
+// 4) applying calibration changes only calibration fields on a target record
+$target = (object) array('name' => 'Keep name', 'notes' => 'Keep notes');
+imgcolor_Calibration::applyValues($target, $recordValues + array('name' => 'Replace name'));
+if ($target->name !== 'Keep name' || $target->notes !== 'Keep notes') {
+    fail('applyValues changed unrelated target fields');
+}
+if (imgcolor_Calibration::getValues($target) !== $recordValues) {
+    fail('applyValues did not copy the exact calibration values');
+}
+
+// 5) defaults matching today's IMGCOLOR_* constants build valid options
 $options = imgcolor_Calibration::buildOptions(defaultValues());
 if (!($options instanceof \ImageColorAnalyzer\Options\AnalyzerOptions)) {
     fail('buildOptions did not return an AnalyzerOptions instance');
@@ -89,7 +99,7 @@ if ($options->cluster->kMax !== 8) {
     fail('cluster->kMax not mapped correctly, got ' . var_export($options->cluster->kMax, true));
 }
 
-// 5) clusterFixedK: '', null and 0 all normalize to automatic (null)
+// 6) clusterFixedK: '', null and 0 all normalize to automatic (null)
 foreach (array('', null, 0, '0') as $empty) {
     $values = defaultValues();
     $values['clusterFixedK'] = $empty;
@@ -99,7 +109,7 @@ foreach (array('', null, 0, '0') as $empty) {
     }
 }
 
-// 6) clusterFixedK: a real positive value passes through as int
+// 7) clusterFixedK: a real positive value passes through as int
 $values = defaultValues();
 $values['clusterFixedK'] = '4';
 $options = imgcolor_Calibration::buildOptions($values);
@@ -107,7 +117,7 @@ if ($options->cluster->fixedK !== 4) {
     fail('clusterFixedK "4" should map to int 4, got ' . var_export($options->cluster->fixedK, true));
 }
 
-// 7) out-of-range crop value is rejected with a message naming the field
+// 8) out-of-range crop value is rejected with a message naming the field
 $values = defaultValues();
 $values['cropLightnessMin'] = 150.0;
 try {
@@ -119,7 +129,7 @@ try {
     }
 }
 
-// 8) out-of-range cluster value is rejected with a message naming the field
+// 9) out-of-range cluster value is rejected with a message naming the field
 $values = defaultValues();
 $values['clusterHistogramBits'] = 9;
 try {

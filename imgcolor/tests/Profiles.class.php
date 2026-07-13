@@ -58,6 +58,31 @@ class imgcolor_tests_Profiles extends unit_Class
 
 
     /**
+     * Обновяването от формата заменя само калибрирането и пази името и бележките
+     */
+    public static function test_UpdateCalibrationPreservesMetadata($us)
+    {
+        $rec = self::validRec('ic-update');
+        $rec->name = 'Име за запазване';
+        $rec->notes = 'Бележки за запазване';
+        imgcolor_Profiles::save($rec);
+
+        $stored = imgcolor_Profiles::fetchRec($rec->id);
+        $values = imgcolor_Calibration::getValues($stored);
+        $values['cropLightnessMin'] = 90.0;
+        imgcolor_Calibration::applyValues($stored, $values);
+        imgcolor_Profiles::save($stored, implode(',', imgcolor_Calibration::$fields));
+
+        $updated = imgcolor_Profiles::fetchRec($rec->id);
+        ut::expectEqual(90.0, $updated->cropLightnessMin);
+        ut::expectEqual('Име за запазване', $updated->name);
+        ut::expectEqual('Бележки за запазване', $updated->notes);
+
+        imgcolor_Profiles::delete($rec->id);
+    }
+
+
+    /**
      * Помощен метод: валиден профилен запис с текущите библиотечни дефолти
      *
      * @param string $sysId

@@ -102,6 +102,24 @@ class imgcolor_Calibration
 
 
     /**
+     * Копира единствено стойностите за калибриране върху целеви запис.
+     *
+     * @param object       $target
+     * @param object|array $source
+     *
+     * @return object
+     */
+    public static function applyValues($target, $source)
+    {
+        foreach (self::getValues($source) as $field => $value) {
+            $target->{$field} = $value;
+        }
+
+        return $target;
+    }
+
+
+    /**
      * Строи AnalyzerOptions от плосък масив стойности (от Setup константи
      * или от Profile запис - еднакво по форма). Границите на стойностите
      * се пазят от самата библиотека: конструкторите на CropOptions/
