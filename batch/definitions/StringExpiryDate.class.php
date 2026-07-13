@@ -40,6 +40,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
         $fieldset->FLD('format', 'varchar(20)', 'caption=Формат,mandatory');
         $fieldset->setOptions('format', array('' => '') + arr::make($this->formatSuggestions, true));
         $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок по подразбиране,unit=след текущата дата');
+        $fieldset->FLD('size', 'int', 'caption=Дължина');
     }
 
 
@@ -55,6 +56,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
             'format'      => $this->rec->format,
             'defaultTime' => $this->rec->time,
             'delimiter'   => $this->rec->delimiter,
+            'sizeOfBatch' => $this->rec->size,
         );
     }
 
