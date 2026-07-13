@@ -6494,9 +6494,122 @@ function checkVatAndTriger(name) {
 
 
 /**
+ * Показва стилизиран модал за потвърждение (Да/Отказ) вместо нативния window.confirm().
+ * Връща Promise<boolean> - true при потвърждение, false при отказ/Escape/клик извън модала.
+ *
+ * @param {string} message  текст на съобщението
+ * @param {object} [opts]   {title, okText, cancelText, cssClass}
+ */
+function efConfirm(message, opts) {
+    opts = opts || {};
+
+    return new Promise(function (resolve) {
+        var overlay = $('<div class="ef-confirm-overlay"></div>');
+        var modal = $('<div class="ef-confirm-modal"></div>');
+        if (opts.cssClass) {
+            modal.addClass(opts.cssClass);
+        }
+
+        modal.append('<div class="ef-confirm-icon">&#9888;</div>');
+        modal.append($('<div class="ef-confirm-title"></div>').text(opts.title || 'Внимание'));
+        modal.append($('<div class="ef-confirm-message"></div>').text(message || ''));
+
+        var btnRow = $('<div class="ef-confirm-buttons"></div>');
+        var cancelBtn = $('<button type="button" class="ef-confirm-btn ef-confirm-cancel"></button>').text(opts.cancelText || 'Отказ');
+        var okBtn = $('<button type="button" class="ef-confirm-btn ef-confirm-ok"></button>').text(opts.okText || 'Да');
+        btnRow.append(cancelBtn).append(okBtn);
+        modal.append(btnRow);
+
+        function close(result) {
+            $(document).off('keydown.efConfirm');
+            overlay.remove();
+            modal.remove();
+            resolve(result);
+        }
+
+        cancelBtn.on('click', function () { close(false); });
+        okBtn.on('click', function () { close(true); });
+        overlay.on('click', function () { close(false); });
+        $(document).on('keydown.efConfirm', function (e) {
+            if (e.key === 'Escape') { close(false); }
+            if (e.key === 'Enter') { close(true); }
+        });
+
+        $('body').append(overlay).append(modal);
+        okBtn.trigger('focus');
+    });
+}
+
+
+/**
+ * Верижен confirm за бутон за контиране: стандартен нативен window.confirm(), последван (само при
+ * потвърждение) от стилизиран efConfirm() за допълнителния уорнинг.
+ *
+ * confirm() е синхронен, но efConfirm() е асинхронен (чака клик в модала), затова при потвърждение
+ * на втория диалог кликът върху бутона се "преиграва" (buttonEl.click()) - на втория пасаж флагът
+ * buttonEl.__efContoConfirmed е вече сложен, пропускат се двата диалога и се продължава по обичайния
+ * начин (навигация към href-а или bubble-ване към делегиран click handler).
+ *
+ * @param {Event}  ev
+ * @param {Element} buttonEl
+ * @param {string} standardWarning - стандартния текст ("Наистина ли желаете...")
+ * @param {string} extraWarning    - допълнителния (стилизиран) текст
+ *
+ * @return {boolean}
+ */
+function contoChainedConfirm(ev, buttonEl, standardWarning, extraWarning) {
+    if (buttonEl.__efContoConfirmed) {
+        buttonEl.__efContoConfirmed = false;
+        return true;
+    }
+
+    if (standardWarning && !confirm(standardWarning)) {
+        if (window.jQuery) { jQuery(buttonEl).blur(); }
+        if (ev && ev.stopPropagation) { ev.stopPropagation(); }
+        return false;
+    }
+
+    if (ev) {
+        if (ev.stopImmediatePropagation) { ev.stopImmediatePropagation(); }
+        if (ev.preventDefault) { ev.preventDefault(); }
+    }
+
+    efConfirm(extraWarning, {cssClass: 'ef-confirm-danger'}).then(function (ok) {
+        if (ok) {
+            buttonEl.__efContoConfirmed = true;
+            buttonEl.click();
+        }
+    });
+
+    return false;
+}
+
+
+/**
  * ф-я за контиране на ПКО
  */
 function contoPkoPrompt(ev, buttonEl, callUrl) {
+
+    // "Преигран" клик след потвърждение на допълнителния (стилизиран) уорнинг в стъпка 5) по-долу -
+    // прескачаме prompt-а и валидацията, продължаваме направо с вече валидирания URL
+    if (buttonEl.__efContoReplayUrl !== undefined) {
+        var replayUrl = buttonEl.__efContoReplayUrl;
+        delete buttonEl.__efContoReplayUrl;
+
+        if (callUrl && replayUrl) {
+            if (typeof getEfae === 'function') {
+                var efae = getEfae();
+                if (efae && typeof efae.process === 'function') {
+                    var resObj = new Object();
+                    resObj['url'] = replayUrl;
+                    efae.process(resObj, undefined);
+                }
+            }
+        }
+
+        return true;
+    }
+
     var warningText        = buttonEl.dataset.warning;
     var expectedAmount     = buttonEl.dataset.expectedAmount;
     var currenciesRaw      = buttonEl.dataset.expectedCurrency || '';
@@ -6541,11 +6654,7 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
     // 2) Ако текстът не е променян
     if (userText === expectedAmount) {
         urlToCall = documentUrl;
-
-        if (!callUrl) {
-            return true;
-        }
-        // ако callUrl === true, ще стигнем до Efae call по-долу
+        // продължаваме напред - към допълнителния уорнинг (при наличие) и евентуалния Efae call по-долу
     } else {
         // 3) Текстът е променен -> парсваме и валидираме
         userText = userText.trim();
@@ -6638,7 +6747,25 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
         }
     }
 
-    // 5) Ако трябва директно да извикаме URL-а през Efae
+    // 5) Допълнителен (втори, стилизиран) уорнинг - показва се само ако бекендът е сложил
+    // data-extra-warning. efConfirm() е асинхронен, затова тук спираме клика и при потвърждение
+    // го "преиграваме" (виж guard-а в началото на функцията) с вече валидирания urlToCall
+    var extraWarningText = buttonEl.dataset.extraWarning;
+    if (urlToCall && extraWarningText) {
+        stopEvent(ev);
+        efConfirm(extraWarningText, {cssClass: 'ef-confirm-danger'}).then(function (ok) {
+            if (ok) {
+                buttonEl.__efContoReplayUrl = urlToCall;
+                buttonEl.click();
+            } else {
+                blurButton(buttonEl);
+            }
+        });
+
+        return false;
+    }
+
+    // 6) Ако трябва директно да извикаме URL-а през Efae
     if (callUrl && urlToCall) {
         if (typeof getEfae === 'function') {
             var efae = getEfae();

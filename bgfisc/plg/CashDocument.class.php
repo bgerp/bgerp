@@ -231,8 +231,20 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 $data->toolbar->removeBtn('btnConto');
                 $contoUrl = toUrl(array($mvc, 'contocash', $rec->id), 'local');
                 $warning = $mvc->getContoWarning($rec, $rec->isContable);
-                
-                $data->toolbar->addFnBtn('Контиране', '', array('id' => 'btnConto', 'warning' => $warning, 'data-url' => $contoUrl, 'class' => 'document-conto-btn'), 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
+                $extraWarning = $mvc->getContoExtraWarning($rec, $rec->isContable);
+
+                $btnAttr = array('id' => 'btnConto', 'data-url' => $contoUrl, 'class' => 'document-conto-btn');
+                if (!empty($extraWarning)) {
+
+                    // Стандартния уорнинг - нативен confirm(), допълнителния - стилизиран модал (виж
+                    // acc_plg_Contable::buildContoChainedConfirmJs())
+                    $btnAttr['onclick'] = acc_plg_Contable::buildContoChainedConfirmJs($warning, $extraWarning);
+                    $btnAttr['style'] = 'color:#772200;';
+                } else {
+                    $btnAttr['warning'] = $warning;
+                }
+
+                $data->toolbar->addFnBtn('Контиране', '', $btnAttr, 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
             }
         }
     }

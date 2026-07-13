@@ -995,14 +995,14 @@ class sales_Invoices extends deals_InvoiceMaster
 
 
     /**
-     * Какво да е предупреждението на бутона за контиране
+     * Допълнителен уорнинг на бутона за контиране - показва се в отделен confirm() след стандартния
      *
      * @param int $id - ид
      * @param string $isContable - какво е действието
      *
      * @return NULL|string - текста на предупреждението или NULL ако няма
      */
-    public function getContoWarning_($id, $isContable)
+    public function getContoExtraWarning_($id, $isContable)
     {
         $rec = static::fetchRec($id);
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");

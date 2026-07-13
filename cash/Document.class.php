@@ -731,6 +731,7 @@ abstract class cash_Document extends deals_PaymentDocument
         if($this->haveRightFor('conto', $rec) && $lineState != 'rejected'){
             if(!Mode::is('printing') && !Mode::is('xhtml')){
                 $warning = $this->getContoWarning($rec->id, $rec->isContable);
+                $extraWarning = $this->getContoExtraWarning($rec->id, $rec->isContable);
 
                 $info['amountVerbal'] = str_replace('&nbsp;', ' ', $info['amountVerbal']);
 
@@ -741,6 +742,11 @@ abstract class cash_Document extends deals_PaymentDocument
                 $attr['data-url'] = core_Packs::isInstalled('bgfisc') ? toUrl(array($this, 'contocash', $rec->id, 'lineId' => $lineId), 'local') : toUrl(array($this, 'savegivenamount', $rec->id), 'local');
                 $attr['id'] = $this->getHandle($rec->id);
                 $attr['data-warning'] = tr($warning);
+                if (!empty($extraWarning)) {
+
+                    // Показва се като допълнителен confirm() след amount-prompt-а - виж contoPkoPrompt() в efCommon.js
+                    $attr['data-extra-warning'] = tr($extraWarning);
+                }
                 $attr['data-expected-amount'] = $info['amount'] . " " . currency_Currencies::getCodeById($rec->currencyId);
                 $attr['data-error-format'] = tr('Невалиден формат. Трябва да е въведена положителна сума, опционално последвана от валута|*!');
                 $attr['data-default-currency'] =  currency_Currencies::getCodeById($rec->currencyId);

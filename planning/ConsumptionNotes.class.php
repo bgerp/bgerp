@@ -303,22 +303,22 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
     
     
     /**
-     * Какво да е предупреждението на бутона за контиране
+     * Допълнителен уорнинг на бутона за контиране - показва се в отделен confirm() след стандартния
      *
      * @param int    $id         - ид
      * @param string $isContable - какво е действието
      *
      * @return NULL|string - текста на предупреждението или NULL ако няма
      */
-    public function getContoWarning_($id, $isContable)
+    public function getContoExtraWarning_($id, $isContable)
     {
         $rec = $this->fetchRec($id);
         $dQuery = planning_ConsumptionNoteDetails::getQuery();
         $dQuery->where("#noteId = {$id}");
         $dQuery->show('productId, quantity');
-        
+
         $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId, $rec->state);
-        
+
         return $warning;
     }
     

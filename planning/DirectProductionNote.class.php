@@ -1678,14 +1678,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
-     * Какво да е предупреждението на бутона за контиране
+     * Допълнителен уорнинг на бутона за контиране - показва се в отделен confirm() след стандартния
      *
      * @param int    $id         - ид
      * @param string $isContable - какво е действието
      *
      * @return NULL|string - текста на предупреждението или NULL ако няма
      */
-    public function getContoWarning_($id, $isContable)
+    public function getContoExtraWarning_($id, $isContable)
     {
         $warning = null;
         $dQuery = planning_DirectProductNoteDetails::getQuery();

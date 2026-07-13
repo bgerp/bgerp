@@ -224,11 +224,27 @@ class acc_plg_Contable extends core_Plugin
         if ($mvc->haveRightFor('conto', $rec)) {
             $row = 2;
             $caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
-            
+
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
             $warning = $mvc->getContoWarning($rec->id, $rec->isContable);
-            $data->toolbar->addBtn($caption, $contoUrl, array('id' => 'btnConto', 'warning' => $warning), $contoAttr);
+            $extraWarning = $mvc->getContoExtraWarning($rec->id, $rec->isContable);
+
+            $btnParams = array('id' => 'btnConto');
+            if (!empty($extraWarning)) {
+
+                // Стандартния уорнинг излиза първи като нативен confirm(), допълнителния - втори,
+                // като стилизиран (custom) модал. 'warning' не се подава на addBtn нарочно - той би
+                // произвел единствено нативен confirm(), несъвместим със стилизирания модал по-долу.
+                // Червения цвят/реда на бутона се пазят ръчно, за да изглежда като warning бутон
+                $btnParams['onclick'] = self::buildContoChainedConfirmJs($warning, $extraWarning);
+                $btnParams['style'] = 'color:#772200;';
+                $btnParams['order'] = 30;
+            } else {
+                $btnParams['warning'] = $warning;
+            }
+
+            $data->toolbar->addBtn($caption, $contoUrl, $btnParams, $contoAttr);
         }
         
         // Бутон за заявка
@@ -294,7 +310,53 @@ class acc_plg_Contable extends core_Plugin
             $res = "|Наистина ли желаете документът да бъде {$action}|*?";
         }
     }
-    
+
+
+    /**
+     * Допълнителен (втори) уорнинг на бутона за контиране/активиране.
+     *
+     * Ако е върнат текст, той се показва в отделен confirm() прозорец СЛЕД потвърждаването на стандартния
+     * уорнинг от `getContoWarning`, вместо да се слива с него в едно съобщение. Ако потребителят откаже
+     * някой от двата прозореца, контиране не се извършва (заявката изобщо не се изпраща).
+     *
+     * Стандартно (по подразбиране за всички контируеми документи) се ползва проверката на
+     * `acc_Periods::checkDocumentDate()` - същата, с която `on_AfterInputEditForm` предупреждава във
+     * формата - вальор преди първия активен период, в несъществуващ период, след края на текущия
+     * месец или след утрешния ден. Конкретен документен клас може да предефинира
+     * `getContoExtraWarning_($id, $isContable)` за допълнителен/различен условен текст, връщайки
+     * NULL/празен стринг, когато условието не е налице - тогава важи стандартната проверка по-долу.
+     */
+    public static function on_AfterGetContoExtraWarning($mvc, &$res, $id, $isContable)
+    {
+        if (empty($res)) {
+            $valior = $mvc->getValiorValue($id);
+            $res = acc_Periods::checkDocumentDate($valior) ?: null;
+        }
+    }
+
+
+    /**
+     * Изгражда onclick JS за бутона за контиране: стандартен нативен confirm() + стилизиран (custom,
+     * стилизуем чрез CSS) модал за допълнителния уорнинг - виж contoChainedConfirm()/efConfirm() в
+     * js/efCommon.js.
+     *
+     * Публичен е нарочно - ползва се и от пакети, които изцяло подменят стандартния бутон за
+     * контиране (напр. bgfisc/plg/CashDocument, cash/Pko), за да могат и те да наредят
+     * стандартния уорнинг преди допълнителния.
+     *
+     * @param string $standardWarning стандартния текст ("Наистина ли желаете...")
+     * @param string $extraWarning    допълнителния (стилизиран) текст
+     *
+     * @return string
+     */
+    public static function buildContoChainedConfirmJs($standardWarning, $extraWarning)
+    {
+        $std = str_replace("'", "\'", tr($standardWarning));
+        $extra = str_replace("'", "\'", tr($extraWarning));
+
+        return "if (!contoChainedConfirm(event, this, '{$std}', '{$extra}')) { return false; }";
+    }
+
     
     /**
      * Взимане на грешка в бутона за възстановяване

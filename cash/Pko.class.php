@@ -299,6 +299,7 @@ class cash_Pko extends cash_Document
 
             $data->toolbar->removeBtn('btnConto');
             $warning = $mvc->getContoWarning($rec, $rec->isContable);
+            $extraWarning = $mvc->getContoExtraWarning($rec, $rec->isContable);
             $errorUrl = toUrl($mvc->getSingleUrlArray($rec), 'local');
             $data->_deviceRec = $deviceRec;
 
@@ -306,7 +307,16 @@ class cash_Pko extends cash_Document
             $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
             $hash = bank_interface_POS::getPaymentHash($mvc->getClassId(), $rec->id);
             $successUrl = toUrl(array($mvc, 'successfullcardpayment', $rec->id, 'hash' => $hash, 'deviceId' => $deviceRec->id), 'local');
-            $btnAttr = array('id' => "btnConto{$rec->containerId}", 'warning' => $warning, 'data-amount' => $amount, 'data-errorUrl' => $errorUrl, 'class' => 'cardPaymentBtn', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Контиране на документа');
+            $btnAttr = array('id' => "btnConto{$rec->containerId}", 'data-amount' => $amount, 'data-errorUrl' => $errorUrl, 'class' => 'cardPaymentBtn', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Контиране на документа');
+            if (!empty($extraWarning)) {
+
+                // Стандартния уорнинг - нативен confirm(), допълнителния - стилизиран модал (виж
+                // acc_plg_Contable::buildContoChainedConfirmJs())
+                $btnAttr['onclick'] = acc_plg_Contable::buildContoChainedConfirmJs($warning, $extraWarning);
+                $btnAttr['style'] = 'color:#772200;';
+            } else {
+                $btnAttr['warning'] = $warning;
+            }
             $btnAttr['data-diffamount'] = tr("Има разминаване при отчетено плащане|*: {$deviceName}!");
             $btnAttr['data-successUrl'] = $successUrl;
             $btnAttr['data-returnUrl'] = core_Packs::isInstalled('bgfisc') ? toUrl(array($mvc, 'contocash', $rec->id), 'local') : toUrl($mvc->getContoUrl($rec->id));
