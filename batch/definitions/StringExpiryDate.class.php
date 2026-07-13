@@ -96,15 +96,28 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
 
         $Type = $this->getBatchClassType();
         $Type->fromVerbal($value);
-        $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
-        list($string, $date) = explode($delimiter, $value, 2);
 
+        $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+        if (strpos($value, $delimiter) === false) {
+            $msg = 'В партидата трябва да има|* "' . $delimiter . '"';
+            
+            return false;
+        }
+
+        list($string, $date) = explode($delimiter, $value, 2);
         if (isset($this->rec->sizeOfBatch)) {
             if (mb_strlen($string) > $this->rec->sizeOfBatch) {
                 $msg = "|*{$string} |е над допустимата дължина от|* <b>{$this->rec->sizeOfBatch}</b>";
                 
                 return false;
             }
+        }
+        
+        if (!dt::checkByMask($date, $this->rec->format)) {
+            $f = dt::mysql2verbal(dt::today(), $this->rec->format);
+            $msg = "|Срока на годност трябва да е във формата|* <b>{$f}</b>";
+            
+            return false;
         }
 
         if(!empty($Type->error)){
