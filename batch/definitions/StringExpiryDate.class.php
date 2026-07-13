@@ -95,7 +95,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
         if (batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))) return true;
 
         $Type = $this->getBatchClassType();
-        $Type->fromVerbal($value);
+        $value = $Type->toVerbal($value);
 
         $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
         if (strpos($value, $delimiter) === false) {
@@ -112,7 +112,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
                 return false;
             }
         }
-        
+
         if (!dt::checkByMask($date, $this->rec->format)) {
             $f = dt::mysql2verbal(dt::today(), $this->rec->format);
             $msg = "|Срока на годност трябва да е във формата|* <b>{$f}</b>";
