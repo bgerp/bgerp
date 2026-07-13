@@ -332,7 +332,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->От склад,notChangeableByContractor');
         $mvc->FLD('oneTimeDelivery', 'enum(yes=Да,no=Не)', 'caption=Доставка->Еднократно,maxRadio=2,notChangeableByContractor,notNull,value=no');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor,removeAndRefreshForm=paymentType,silent');
-        $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин');
+        $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод,none=Без плащане)', 'caption=Плащане->Начин');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate|currencyManualRate,notChangeableByContractor,silent');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $mvc->FLD('currencyManualRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
@@ -591,6 +591,14 @@ abstract class deals_DealMaster extends deals_DealBase
         if (!empty($rec->_isBeingCloned) && !empty($defPaymentId)) {
             if($rec->paymentMethodId != $defPaymentId){
                 $form->setWarning('paymentMethodId', 'Методът на плащане се различава от дефолтния в търговските условия на контрагента|*: <b>' . cond_PaymentMethods::getTitleById($defPaymentId) . "</b>");
+            }
+        }
+
+        // Ако е избран начин на плащане "Без плащане", а методът на плащане сочи друг вид - предупреждение
+        if ($rec->paymentType == 'none' && !empty($rec->paymentMethodId)) {
+            $methodType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
+            if (!empty($methodType) && $methodType != 'none') {
+                $form->setWarning('paymentType', 'Избраният метод на плащане|* "' . cond_PaymentMethods::getTitleById($rec->paymentMethodId) . '" |сочи различен вид плащане от избрания|*');
             }
         }
 
@@ -2018,7 +2026,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // На които треда им не е променян от определено време
         // Крайното салдо, и Аванса за фактуриране по сметката на сделката трябва да е в допустимия толеранс или да е NULL
-        $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
+        // При избран начин на плащане "Без плащане" салдото не е пречка за приключване
+        $query->where("(#amountBl BETWEEN -{$tolerance} AND {$tolerance}) OR #paymentType = 'none'");
         $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
         $query->where("#threadModifiedOn <= '{$oldBefore}'");
 
