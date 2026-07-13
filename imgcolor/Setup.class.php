@@ -42,7 +42,7 @@ class imgcolor_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.2';
+    public $version = '0.3';
 
 
     /**
