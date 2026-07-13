@@ -11,6 +11,24 @@
 class imgcolor_tests_Profiles extends unit_Class
 {
     /**
+     * The list exposes the standard edit and delete row actions.
+     */
+    public static function test_ListLoadsRowTools($us)
+    {
+        ut::expectEqual(true, strpos($us->loadList, 'plg_RowTools2') !== false);
+    }
+
+
+    /**
+     * Notes stay editable in a standalone manager without document RTAC context.
+     */
+    public static function test_NotesUsePlainText($us)
+    {
+        ut::expectEqual('type_Text', get_class($us->fields['notes']->type));
+    }
+
+
+    /**
      * Валиден профил се записва без грешка
      */
     public static function test_ValidProfileSaves($us)

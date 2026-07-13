@@ -16,6 +16,12 @@
 class imgcolor_Profiles extends core_Manager
 {
     /**
+     * Standard per-row edit and delete actions in the list view.
+     */
+    public $loadList = 'plg_RowTools2';
+
+
+    /**
      * Заглавие
      */
     public $title = 'Профили за калибриране на цветови анализ';
@@ -59,7 +65,7 @@ class imgcolor_Profiles extends core_Manager
         $this->FLD('clusterSeed', 'int', 'caption=Клъстеризиране->Seed (детерминизъм),mandatory');
         $this->FLD('clusterAlphaThreshold', 'int', 'caption=Клъстеризиране->Праг прозрачност (0-255),mandatory');
 
-        $this->FLD('notes', 'richtext', 'caption=Бележки');
+        $this->FLD('notes', 'text(rows=4)', 'caption=Бележки');
 
         $this->setDbUnique('sysId');
     }
