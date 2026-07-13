@@ -3536,8 +3536,9 @@ td.leftColImportant {
   .treelist .minus-icon {
     background-image: url('../img/16/toggle2.png') !important; }
 
-/**
- * Стилизиран модал за потвърждение (efConfirm) - виж js/efCommon.js
+/*
+ * *
+ * * Стилизиран модал за потвърждение (efConfirm) - виж js/efCommon.js
  */
 .ef-confirm-overlay {
   position: fixed;
@@ -3547,13 +3548,14 @@ td.leftColImportant {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.55);
   z-index: 2000; }
+
 .ef-confirm-modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 2001;
-  background: #fff;
+  background: white;
   border-radius: 4px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
   padding: 24px 28px;
@@ -3561,38 +3563,38 @@ td.leftColImportant {
   min-width: 280px;
   text-align: center;
   border-top: 4px solid #772200; }
-.ef-confirm-modal .ef-confirm-icon {
-  font-size: 32px;
-  line-height: 1;
-  color: #772200;
-  margin-bottom: 8px; }
-.ef-confirm-modal .ef-confirm-title {
-  font-weight: bold;
-  font-size: 15px;
-  color: #772200;
-  margin-bottom: 10px; }
-.ef-confirm-modal .ef-confirm-message {
-  font-size: 13px;
-  color: #333;
-  margin-bottom: 18px;
-  white-space: pre-line; }
-.ef-confirm-modal .ef-confirm-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 10px; }
-.ef-confirm-modal .ef-confirm-btn {
-  padding: 6px 18px;
-  border-radius: 3px;
-  border: 1px solid #ccc;
-  background: #f2f2f2;
-  cursor: pointer;
-  font-size: 13px; }
-.ef-confirm-modal .ef-confirm-btn:hover {
-  background: #e6e6e6; }
-.ef-confirm-modal .ef-confirm-ok {
-  background: #772200;
-  border-color: #772200;
-  color: #fff; }
-.ef-confirm-modal .ef-confirm-ok:hover {
-  background: #5c1a00; }
+  .ef-confirm-modal .ef-confirm-icon {
+    font-size: 32px;
+    line-height: 1;
+    color: #772200;
+    margin-bottom: 8px; }
+  .ef-confirm-modal .ef-confirm-title {
+    font-weight: bold;
+    font-size: 15px;
+    color: #772200;
+    margin-bottom: 10px; }
+  .ef-confirm-modal .ef-confirm-message {
+    font-size: 13px;
+    color: #333333;
+    margin-bottom: 18px;
+    white-space: pre-line; }
+  .ef-confirm-modal .ef-confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px; }
+  .ef-confirm-modal .ef-confirm-btn {
+    padding: 6px 18px;
+    border-radius: 3px;
+    border: 1px solid #cccccc;
+    background: #f2f2f2;
+    cursor: pointer;
+    font-size: 13px; }
+    .ef-confirm-modal .ef-confirm-btn:hover {
+      background: #e6e6e6; }
+  .ef-confirm-modal .ef-confirm-ok {
+    background: #772200;
+    border-color: #772200;
+    color: white; }
+    .ef-confirm-modal .ef-confirm-ok:hover {
+      background: #5c1a00; }
 
