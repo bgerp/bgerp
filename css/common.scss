@@ -3962,14 +3962,14 @@ td.leftColImportant {
 	}
 	.ef-confirm-title {
 		font-weight: bold;
-		font-size: 15px;
+		font-size: 1.3em;
 		color: #772200;
 		margin-bottom: 10px;
 	}
 	.ef-confirm-message {
-		font-size: 13px;
 		color: #333;
 		margin-bottom: 18px;
+		font-size: 1em;
 		white-space: pre-line;
 	}
 	.ef-confirm-buttons {
@@ -3983,7 +3983,9 @@ td.leftColImportant {
 		border: 1px solid #ccc;
 		background: #f2f2f2;
 		cursor: pointer;
-		font-size: 13px;
+		font-size: 1em;
+		width: 80px;
+		text-shadow: none;
 
 		&:hover {
 			background: #e6e6e6;

@@ -3570,13 +3570,13 @@ td.leftColImportant {
     margin-bottom: 8px; }
   .ef-confirm-modal .ef-confirm-title {
     font-weight: bold;
-    font-size: 15px;
+    font-size: 1.3em;
     color: #772200;
     margin-bottom: 10px; }
   .ef-confirm-modal .ef-confirm-message {
-    font-size: 13px;
     color: #333333;
     margin-bottom: 18px;
+    font-size: 1em;
     white-space: pre-line; }
   .ef-confirm-modal .ef-confirm-buttons {
     display: flex;
@@ -3588,7 +3588,9 @@ td.leftColImportant {
     border: 1px solid #cccccc;
     background: #f2f2f2;
     cursor: pointer;
-    font-size: 13px; }
+    font-size: 1em;
+    width: 80px;
+    text-shadow: none; }
     .ef-confirm-modal .ef-confirm-btn:hover {
       background: #e6e6e6; }
   .ef-confirm-modal .ef-confirm-ok {
