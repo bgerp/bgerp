@@ -106,3 +106,94 @@ if (!extension_loaded('imagick')) {
 }
 
 echo "PASS: cli_separation section 1 (converter)\n";
+
+// ---------------------------------------------------------------------------
+// 2) CMYK accumulator: alpha weighting, largest-remainder 100.0, zero ink
+// ---------------------------------------------------------------------------
+
+require_once __DIR__ . '/../TransitionClassifier.class.php';
+require_once __DIR__ . '/../CmykAccumulator.class.php';
+
+/**
+ * Builds an InMemoryRaster + hand-made classification over a pixel spec list:
+ * each entry: array(r, g, b, a255, classByte).
+ */
+function accumFixture(array $pixels)
+{
+    $colors = array();
+    $mask = '';
+    foreach ($pixels as $p) {
+        $colors[] = new \ImageColorAnalyzer\Contracts\ColorRGBA($p[0], $p[1], $p[2], $p[3]);
+        $mask .= $p[4];
+    }
+    $raster = new \ImageColorAnalyzer\ImageLoader\InMemoryRaster(count($pixels), 1, $colors);
+    $cls = new stdClass();
+    $cls->mask = $mask;
+    $cls->analyzedCount = 0;
+    $cls->transitionCount = 0;
+    foreach ($pixels as $p) {
+        if ($p[4] !== imgcolor_TransitionClassifier::CLS_BG) {
+            $cls->analyzedCount++;
+        }
+        if ($p[4] === imgcolor_TransitionClassifier::CLS_TRANS) {
+            $cls->transitionCount++;
+        }
+    }
+
+    return array($raster, $cls);
+}
+
+$T = imgcolor_TransitionClassifier::CLS_TRANS;
+$S = imgcolor_TransitionClassifier::CLS_SOLID;
+$B = imgcolor_TransitionClassifier::CLS_BG;
+
+// no transitions -> null
+list($raster, $cls) = accumFixture(array(array(10, 20, 30, 255, $S)));
+if (imgcolor_CmykAccumulator::accumulate($raster, $cls, $math) !== null) {
+    fail('no transitions must yield null');
+}
+
+// pure red + pure cyan transitions, solid/background pixels excluded
+list($raster, $cls) = accumFixture(array(
+    array(255, 0, 0, 255, $T),   // math: C0 M1 Y1 K0
+    array(0, 255, 255, 255, $T), // math: C1 M0 Y0 K0
+    array(0, 0, 0, 255, $S),     // solid: excluded (would add K)
+    array(0, 0, 0, 255, $B),     // background: excluded
+));
+$res = imgcolor_CmykAccumulator::accumulate($raster, $cls, $math);
+if ($res === null) {
+    fail('transitions present must yield a result');
+}
+$sum = $res['composition_percent']['c'] + $res['composition_percent']['m']
+     + $res['composition_percent']['y'] + $res['composition_percent']['k'];
+approx($sum, 100.0, 0.001, 'composition must sum to exactly 100.0');
+approx($res['composition_percent']['c'], 33.3, 0.11, 'cyan share');
+approx($res['composition_percent']['k'], 0.0, 0.001, 'solid black pixel must not leak into K');
+approx($res['transition_coverage_percent'], 66.7, 0.11, 'coverage = 2 of 3 analyzed');
+approx($res['ink_total'], 3.0, 0.001, 'raw ink total');
+if ($res['conversion']['engine'] !== 'math') {
+    fail('conversion metadata must be embedded');
+}
+
+// alpha weighting: half-transparent red deposits half the ink of opaque red
+list($raster, $cls) = accumFixture(array(
+    array(255, 0, 0, 255, $T),
+    array(255, 0, 0, 128, $T),
+));
+$res = imgcolor_CmykAccumulator::accumulate($raster, $cls, $math);
+approx($res['ink_total'], 2 * (1 + 128 / 255), 0.01, 'alpha-weighted ink total');
+
+// zero ink: white-only transition reports zeros, no division by zero
+list($raster, $cls) = accumFixture(array(array(255, 255, 255, 200, $T)));
+$res = imgcolor_CmykAccumulator::accumulate($raster, $cls, $math);
+if ($res['ink_total'] != 0.0) {
+    fail('white transition must accumulate zero ink');
+}
+foreach (array('c', 'm', 'y', 'k') as $ch) {
+    if ($res['composition_percent'][$ch] !== 0.0) {
+        fail('zero-ink composition must be all zeros');
+    }
+}
+approx($res['transition_coverage_percent'], 100.0, 0.001, 'zero-ink coverage still reported');
+
+echo "PASS: cli_separation section 2 (accumulator)\n";
