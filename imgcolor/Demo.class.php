@@ -78,13 +78,14 @@ class imgcolor_Demo extends core_Manager
                 }
 
                 $profileRec = $form->rec->profileId ? imgcolor_Profiles::fetchRec($form->rec->profileId) : null;
-                $options = $profileRec ? imgcolor_Analyzer::buildOptions($profileRec) : null;
+                $calibrationValues = $profileRec ? imgcolor_Calibration::getValues($profileRec) : imgcolor_Calibration::getDefaultValues();
+                $options = imgcolor_Calibration::buildOptions($calibrationValues);
 
                 $bytes = fileman::extractStr($form->rec->imageFile);
                 $result = imgcolor_Analyzer::process($bytes, $options);
                 $resultHtml = self::renderResult($result);
 
-                self::persistResult($form->rec->imageFile, $form->rec->profileId, $result);
+                self::persistResult($form->rec->imageFile, $form->rec->profileId, $result, $calibrationValues);
             } catch (core_exception_Expect $e) {
                 $resultHtml = self::renderError($e);
             }
@@ -124,8 +125,9 @@ class imgcolor_Demo extends core_Manager
         }
 
         try {
-            $result = imgcolor_Analyzer::process(fileman::extractStr($fh));
-            self::persistResult($fh, null, $result);
+            $calibrationValues = imgcolor_Calibration::getDefaultValues();
+            $result = imgcolor_Analyzer::process(fileman::extractStr($fh), imgcolor_Calibration::buildOptions($calibrationValues));
+            self::persistResult($fh, null, $result, $calibrationValues);
         } catch (core_exception_Expect $e) {
 
             return $this->renderWrapping(self::renderError($e));
@@ -239,15 +241,16 @@ class imgcolor_Demo extends core_Manager
      * @param string                                            $imageFh   fileman handle на изходния файл
      * @param int|null                                          $profileId избран профил, или празно за глобална конфигурация
      * @param \ImageColorAnalyzer\PublicAPI\ProcessedImageResult $result
+     * @param array|null                                        $calibrationValues действително използваните стойности
      */
-    public static function persistResult($imageFh, $profileId, $result)
+    public static function persistResult($imageFh, $profileId, $result, $calibrationValues = null)
     {
         $croppedFh = null;
         if (is_object($result->croppedImage) && is_string($result->croppedImage->bytes) && $result->croppedImage->bytes !== '') {
             $croppedFh = fileman::absorbStr($result->croppedImage->bytes, 'imgcolorImages', 'cropped.png');
         }
 
-        imgcolor_Analyses::createFromResult($imageFh, $profileId, $result->json, $croppedFh);
+        imgcolor_Analyses::createFromResult($imageFh, $profileId, $result->json, $croppedFh, $calibrationValues);
     }
 
 
