@@ -42,10 +42,12 @@ class imgcolor_TransitionClassifier
 
 
     /**
-     * Временен маркер по време на реконструкцията: AA пиксел, вече отхвърлен
-     * като твърд ръб - да не се тества повторно от друг съсед.
+     * Временни маркери по време на реконструкцията/дилатацията: пиксел,
+     * вече отхвърлен като твърд ръб - да не се тества повторно от друг
+     * съсед. Възстановяват се към AA/SOLID в края.
      */
     const CLS_BLOCKED = "\x04";
+    const CLS_BLOCKED_SOLID = "\x05";
 
 
     /**
@@ -312,9 +314,49 @@ class imgcolor_TransitionClassifier
                 }
             }
         }
-        if ($head > 0) {
-            $mask = strtr($mask, array(self::CLS_BLOCKED => self::CLS_AA));
+        // Етап 3.5: ограничена дилатация - кохерентният тест не достига
+        // последните span пиксела на всяка преливка (едната му проба излиза
+        // от region-а), затова преливката поглъща съседните не-ръбови
+        // пиксели до дълбочина span. При липса на преливки е no-op, така
+        // че пътят на плътните изображения остава байт-идентичен.
+        $frontier = $queue;
+        for ($depth = 0; $depth < $span && count($frontier); $depth++) {
+            $next = array();
+            foreach ($frontier as $i) {
+                $cy = intdiv($i, $w);
+                $cx = $i - $cy * $w;
+                for ($dy = -1; $dy <= 1; $dy++) {
+                    $ny = $cy + $dy;
+                    if ($ny < 0 || $ny >= $h) {
+                        continue;
+                    }
+                    for ($dx = -1; $dx <= 1; $dx++) {
+                        if ($dx === 0 && $dy === 0) {
+                            continue;
+                        }
+                        $nx = $cx + $dx;
+                        if ($nx < 0 || $nx >= $w) {
+                            continue;
+                        }
+                        $j = $ny * $w + $nx;
+                        $b = $mask[$j];
+                        if ($b !== self::CLS_AA && $b !== self::CLS_SOLID) {
+                            continue;
+                        }
+                        if (self::isHardEdge($data, $nx, $ny, $w, $h, $alphaThr, $edgeCap)) {
+                            $mask[$j] = $b === self::CLS_SOLID ? self::CLS_BLOCKED_SOLID : self::CLS_BLOCKED;
+                            continue;
+                        }
+                        $mask[$j] = self::CLS_TRANS;
+                        $next[] = $j;
+                        $transitionCount++;
+                    }
+                }
+            }
+            $frontier = $next;
         }
+
+        $mask = strtr($mask, array(self::CLS_BLOCKED => self::CLS_AA, self::CLS_BLOCKED_SOLID => self::CLS_SOLID));
 
         // Етап 4: пазач по минимално покритие
         if ($analyzed === 0 || $transitionCount / $analyzed < $p['minCoverage']) {

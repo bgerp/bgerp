@@ -574,3 +574,161 @@ try {
 }
 
 echo "PASS: cli_separation section 4 (masked raster)\n";
+
+// ---------------------------------------------------------------------------
+// 5) Separation orchestrator: byte parity on solid inputs, true separation
+//    on mixed inputs, transparency, determinism, performance probe
+// ---------------------------------------------------------------------------
+
+require_once __DIR__ . '/../Separation.class.php';
+
+$JSON_FLAGS = JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_PRESERVE_ZERO_FRACTION;
+
+function separatePath($path)
+{
+    $loader = new \ImageColorAnalyzer\ImageLoader\GdImageLoader();
+    $resolver = new \ImageColorAnalyzer\ImageLoader\SourceResolver();
+    $raster = $loader->load($resolver->resolvePath($path));
+    $math = new imgcolor_CmykConverter(array('engine' => 'math', 'rgbProfile' => '', 'cmykProfile' => ''));
+
+    return imgcolor_Separation::process($raster, new \ImageColorAnalyzer\Options\AnalyzerOptions(), array(), $math);
+}
+
+function separateGd($im)
+{
+    ob_start();
+    imagepng($im);
+    $bytes = ob_get_clean();
+    $loader = new \ImageColorAnalyzer\ImageLoader\GdImageLoader();
+    $resolver = new \ImageColorAnalyzer\ImageLoader\SourceResolver();
+    $raster = $loader->load($resolver->resolve($bytes));
+    $math = new imgcolor_CmykConverter(array('engine' => 'math', 'rgbProfile' => '', 'cmykProfile' => ''));
+
+    return imgcolor_Separation::process($raster, new \ImageColorAnalyzer\Options\AnalyzerOptions(), array(), $math);
+}
+
+$legacy = \ImageColorAnalyzer\PublicAPI\AnalyzerFactory::createDefault();
+
+// byte parity on the repository fixtures (no transitions in either)
+foreach (array('sample.png', 'sample_transparent.png') as $fixture) {
+    $path = __DIR__ . '/fixtures/' . $fixture;
+    $sep = separatePath($path);
+    $legacyJson = $legacy->analyzePathAsJson($path);
+    $sepJson = json_encode($sep->colors, $JSON_FLAGS);
+    if ($sepJson !== $legacyJson) {
+        fail("{$fixture}: separated colors must be byte-identical to the legacy path");
+    }
+    if ($sep->cmyk !== null) {
+        fail("{$fixture}: no transitions expected");
+    }
+}
+
+// byte parity on a synthetic solid-multi image with AA edges
+$im = mkImg(96, 96, array(220, 40, 40));
+imagefilledrectangle($im, 48, 0, 95, 95, imagecolorallocatealpha($im, 30, 60, 200, 0));
+$disk = aaDisk(48, array(30, 120, 60), array(220, 40, 40));
+imagecopy($im, $disk, 4, 44, 0, 0, 48, 48);
+ob_start();
+imagepng($im);
+$solidBytes = ob_get_clean();
+$sep = separateGd($im);
+if (json_encode($sep->colors, $JSON_FLAGS) !== $legacy->analyzeAsJson($solidBytes)) {
+    fail('solid+AA synthetic: separated colors must be byte-identical to the legacy path');
+}
+if ($sep->cmyk !== null) {
+    fail('solid+AA synthetic: no transitions expected');
+}
+
+// mixed scene: gradient band leaves the solid list and lands in CMYK
+$im = mkImg(192, 96, array(30, 120, 60));
+for ($x = 64; $x < 128; $x++) {
+    $c = lerpC(array(250, 210, 40), array(210, 40, 120), ($x - 64) / 63);
+    for ($y = 0; $y < 96; $y++) {
+        setPx($im, $x, $y, $c[0], $c[1], $c[2]);
+    }
+}
+imagefilledrectangle($im, 128, 0, 191, 95, imagecolorallocatealpha($im, 30, 60, 200, 0));
+$sep = separateGd($im);
+if ($sep->cmyk === null) {
+    fail('mixed: CMYK result expected');
+}
+$sum = 0.0;
+foreach ($sep->cmyk['composition_percent'] as $v) {
+    $sum += $v;
+}
+approx($sum, 100.0, 0.001, 'mixed: composition must sum to 100.0');
+if ($sep->cmyk['transition_coverage_percent'] < 25 || $sep->cmyk['transition_coverage_percent'] > 40) {
+    fail('mixed: transition coverage out of expected band: ' . $sep->cmyk['transition_coverage_percent']);
+}
+// solid list: only green and blue solids, no gradient centroids
+$expectedSolids = array(array(30, 120, 60), array(30, 60, 200));
+foreach ($sep->colors as $c) {
+    if (!preg_match('/^#([0-9A-F]{2})([0-9A-F]{2})([0-9A-F]{2})$/', $c['color'], $m)) {
+        fail('mixed: malformed color ' . $c['color']);
+    }
+    $rgb = array(hexdec($m[1]), hexdec($m[2]), hexdec($m[3]));
+    $near = false;
+    foreach ($expectedSolids as $s) {
+        if (abs($rgb[0] - $s[0]) + abs($rgb[1] - $s[1]) + abs($rgb[2] - $s[2]) < 60) {
+            $near = true;
+        }
+    }
+    if (!$near) {
+        fail('mixed: unexpected pseudo-solid from the gradient band: ' . $c['color']);
+    }
+}
+$sum = 0.0;
+foreach ($sep->colors as $c) {
+    $sum += $c['coverage_percent'];
+}
+approx($sum, 100.0, 0.11, 'mixed: solid coverage still sums to ~100 over the solid area');
+
+// gradient-only image: CMYK covers nearly everything
+$im = mkImg(128, 64);
+for ($x = 0; $x < 128; $x++) {
+    $c = lerpC(array(200, 30, 30), array(30, 60, 200), $x / 127);
+    for ($y = 0; $y < 64; $y++) {
+        setPx($im, $x, $y, $c[0], $c[1], $c[2]);
+    }
+}
+$sep = separateGd($im);
+if ($sep->cmyk === null || $sep->cmyk['transition_coverage_percent'] < 85) {
+    fail('gradient-only: CMYK coverage below 85%');
+}
+
+// fully transparent image: both results empty
+$im = mkImg(4, 4, null);
+$sep = separateGd($im);
+if ($sep->colors !== array() || $sep->cmyk !== null) {
+    fail('fully transparent image must yield empty colors and no CMYK');
+}
+
+// determinism: identical serialized output across runs
+$im = mkImg(192, 96, array(30, 120, 60));
+for ($x = 64; $x < 128; $x++) {
+    $c = lerpC(array(250, 210, 40), array(210, 40, 120), ($x - 64) / 63);
+    for ($y = 0; $y < 96; $y++) {
+        setPx($im, $x, $y, $c[0], $c[1], $c[2]);
+    }
+}
+$a = separateGd($im);
+$b = separateGd($im);
+if (json_encode($a->colors, $JSON_FLAGS) !== json_encode($b->colors, $JSON_FLAGS)
+    || json_encode($a->cmyk) !== json_encode($b->cmyk)) {
+    fail('separation must be deterministic');
+}
+
+// performance probe (reported, not asserted)
+$im = mkImg(1200, 800, array(235, 235, 235));
+imagefilledrectangle($im, 0, 0, 399, 799, imagecolorallocatealpha($im, 30, 120, 60, 0));
+for ($x = 400; $x < 800; $x++) {
+    $c = lerpC(array(250, 210, 40), array(210, 40, 120), ($x - 400) / 399);
+    imageline($im, $x, 0, $x, 799, imagecolorallocatealpha($im, $c[0], $c[1], $c[2], 0));
+}
+imagefilledellipse($im, 1000, 400, 300, 300, imagecolorallocatealpha($im, 30, 60, 200, 0));
+$t0 = microtime(true);
+$sep = separateGd($im);
+printf("PERF: 1200x800 mixed separation in %.2fs, peak %.0f MB, transition %.1f%%\n",
+    microtime(true) - $t0, memory_get_peak_usage(true) / 1048576, $sep->cmyk === null ? 0 : $sep->cmyk['transition_coverage_percent']);
+
+echo "PASS: cli_separation section 5 (orchestrator)\n";
