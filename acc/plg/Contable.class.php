@@ -313,24 +313,30 @@ class acc_plg_Contable extends core_Plugin
 
 
     /**
-     * Допълнителен (втори) уорнинг на бутона за контиране/активиране.
+     * Допълнителен уорнинг на бутона за контиране/активиране.
      *
-     * Ако е върнат текст, той се показва в отделен confirm() прозорец СЛЕД потвърждаването на стандартния
-     * уорнинг от `getContoWarning`, вместо да се слива с него в едно съобщение. Ако потребителят откаже
-     * някой от двата прозореца, контиране не се извършва (заявката изобщо не се изпраща).
+     * Ако е върнат текст, той се показва в стилизиран модал СЛЕД потвърждаването на стандартния
+     * уорнинг от `getContoWarning`. Ако потребителят откаже някой от двата прозореца, контиране не
+     * се извършва (заявката изобщо не се изпраща).
      *
      * Стандартно (по подразбиране за всички контируеми документи) се ползва проверката на
      * `acc_Periods::checkDocumentDate()` - същата, с която `on_AfterInputEditForm` предупреждава във
      * формата - вальор преди първия активен период, в несъществуващ период, след края на текущия
      * месец или след утрешния ден. Конкретен документен клас може да предефинира
-     * `getContoExtraWarning_($id, $isContable)` за допълнителен/различен условен текст, връщайки
-     * NULL/празен стринг, когато условието не е налице - тогава важи стандартната проверка по-долу.
+     * `getContoExtraWarning_($id, $isContable)` за допълнителен/различен условен текст - той се
+     * КОМБИНИРА (не се замества) с датовата проверка по-долу, ако и двете условия са налице
+     * едновременно, за да излязат в един и същ модал вместо да се губи едното (виж
+     * ef-confirm-message,white-space:pre-line в css/common.scss - празният ред между тях остава видим).
      */
     public static function on_AfterGetContoExtraWarning($mvc, &$res, $id, $isContable)
     {
-        if (empty($res)) {
-            $valior = $mvc->getValiorValue($id);
-            $res = acc_Periods::checkDocumentDate($valior) ?: null;
+        $valior = $mvc->getValiorValue($id);
+        $dateWarning = acc_Periods::checkDocumentDate($valior) ?: null;
+
+        if (!empty($dateWarning)) {
+            // При комбиниране на два уорнинга - булет пред всеки, за да си личи че
+            // са отделни точки, а не един непрекъснат текст
+            $res = empty($res) ? $dateWarning : ("• {$res}\n\n• {$dateWarning}");
         }
     }
 
@@ -351,8 +357,11 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function buildContoChainedConfirmJs($standardWarning, $extraWarning)
     {
-        $std = str_replace("'", "\'", tr($standardWarning));
-        $extra = str_replace("'", "\'", tr($extraWarning));
+        // extraWarning може да съдържа истински нови редове (виж on_AfterGetContoExtraWarning() -
+        // комбиниране на няколко уорнинга) - addcslashes() ги превръща в \n (escape-нат за JS
+        // низов литерал), а не буквален нов ред, който би счупил синтаксиса на onclick-а
+        $std = addcslashes(tr($standardWarning), "'\\\n\r");
+        $extra = addcslashes(tr($extraWarning), "'\\\n\r");
 
         return "if (!contoChainedConfirm(event, this, '{$std}', '{$extra}')) { return false; }";
     }
