@@ -51,7 +51,7 @@ class batch_type_StringExpiryDate extends type_Varchar
                 $errorArr[] = "В номера не трябва да се съдържа|* <b>{$delimiter}</b>";
             }
             if(!(mb_strlen($valueArr['s']) <= $size)){
-                $errorArr[] = "|*Номерът |е над допустимата дължина от|* <b>{$size}</b>";
+                $errorArr[] = "Номерът е над допустимата дължина от|* <b>{$size}</b>";
             }
         }
 
