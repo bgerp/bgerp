@@ -526,3 +526,51 @@ if (substr($png, 0, 4) !== "\x89PNG") {
 }
 
 echo "PASS: cli_separation section 3 (classifier)\n";
+
+// ---------------------------------------------------------------------------
+// 4) Masked raster: hides only the skipped class from pixels()
+// ---------------------------------------------------------------------------
+
+require_once __DIR__ . '/../MaskedRaster.class.php';
+
+$im = mkImg(8, 4, array(200, 30, 30));
+setPx($im, 0, 0, 30, 60, 200);
+setPx($im, 1, 0, 30, 60, 200);
+$raster = new \ImageColorAnalyzer\ImageLoader\GdRaster($im);
+
+// mask: two TRANS pixels at offsets 0 and 1, rest SOLID
+$mask = str_repeat(imgcolor_TransitionClassifier::CLS_SOLID, 32);
+$mask[0] = imgcolor_TransitionClassifier::CLS_TRANS[0];
+$mask[1] = imgcolor_TransitionClassifier::CLS_TRANS[0];
+
+$masked = new imgcolor_MaskedRaster($raster, $mask);
+$histogram = new \ImageColorAnalyzer\ColorClusterer\ColorHistogram();
+$full = $histogram->build($raster, 5, 8);
+$part = $histogram->build($masked, 5, 8);
+if ($full['total'] !== 32 || $part['total'] !== 30) {
+    fail("masked histogram totals: expected 32/30, got {$full['total']}/{$part['total']}");
+}
+foreach ($part['colors'] as $c) {
+    if ($c[2] > 150) {
+        fail('masked-out blue pixels must not reach the histogram');
+    }
+}
+
+// an all-solid mask is fully transparent to the histogram
+$noop = new imgcolor_MaskedRaster($raster, str_repeat(imgcolor_TransitionClassifier::CLS_SOLID, 32));
+if ($histogram->build($noop, 5, 8) !== $full) {
+    fail('no-op mask must not change the histogram');
+}
+
+// dimensions delegate; wrong mask length rejected
+if ($masked->width() !== 8 || $masked->height() !== 4) {
+    fail('masked raster must delegate dimensions');
+}
+try {
+    new imgcolor_MaskedRaster($raster, 'short');
+    fail('mask length mismatch must be rejected');
+} catch (InvalidArgumentException $e) {
+    // expected
+}
+
+echo "PASS: cli_separation section 4 (masked raster)\n";
