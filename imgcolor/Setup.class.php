@@ -42,7 +42,7 @@ class imgcolor_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.2';
+    public $version = '0.3';
 
 
     /**
@@ -128,7 +128,7 @@ class imgcolor_Setup extends core_ProtoSetup
     {
         $html = parent::install();
 
-        $html .= fileman_Buckets::createBucket('imgcolorImages', 'Изображения за цветови анализ', '', '50MB', 'imgcolor,ceo,admin', 'imgcolor,ceo,admin');
+        $html .= fileman_Buckets::createBucket('imgcolorImages', 'Изображения за цветови анализ', 'jpg,jpeg,png', '50MB', 'imgcolor,ceo,admin', 'imgcolor,ceo,admin');
 
         return $html;
     }

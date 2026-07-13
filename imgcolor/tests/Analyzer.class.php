@@ -21,7 +21,25 @@ class imgcolor_tests_Analyzer extends unit_Class
      */
     public function __construct()
     {
-        fileman_Buckets::createBucket(self::$bucket, 'Изображения за цветови анализ', '', '50MB', 'imgcolor,ceo,admin', 'imgcolor,ceo,admin');
+        fileman_Buckets::createBucket(self::$bucket, 'Изображения за цветови анализ', 'jpg,jpeg,png', '50MB', 'imgcolor,ceo,admin', 'imgcolor,ceo,admin');
+    }
+
+
+    /**
+     * Проверка на файла допуска само JPEG/PNG, без значение от регистъра на разширението
+     */
+    public static function test_FileEligibilityIsCaseInsensitive($us)
+    {
+        foreach (array('sample.jpg', 'sample.jpeg', 'sample.png', 'sample.JPG', 'sample.JpEg', 'sample.PNG') as $name) {
+            ut::expectEqual(true, imgcolor_Analyzer::canAnalyzeFile($name));
+        }
+
+        foreach (array('sample.gif', 'sample.webp', 'sample.svg', 'sample', '') as $name) {
+            ut::expectEqual(false, imgcolor_Analyzer::canAnalyzeFile($name));
+        }
+
+        $rec = (object) array('name' => 'record.JPEG');
+        ut::expectEqual(true, imgcolor_Analyzer::canAnalyzeFile($rec));
     }
 
 

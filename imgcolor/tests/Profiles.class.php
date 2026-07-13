@@ -11,6 +11,24 @@
 class imgcolor_tests_Profiles extends unit_Class
 {
     /**
+     * The list exposes the standard edit and delete row actions.
+     */
+    public static function test_ListLoadsRowTools($us)
+    {
+        ut::expectEqual(true, strpos($us->loadList, 'plg_RowTools2') !== false);
+    }
+
+
+    /**
+     * Notes stay editable in a standalone manager without document RTAC context.
+     */
+    public static function test_NotesUsePlainText($us)
+    {
+        ut::expectEqual('type_Text', get_class($us->fields['notes']->type));
+    }
+
+
+    /**
      * Валиден профил се записва без грешка
      */
     public static function test_ValidProfileSaves($us)
@@ -52,6 +70,31 @@ class imgcolor_tests_Profiles extends unit_Class
         imgcolor_Profiles::save($rec);
 
         ut::expectEqual(true, $rec->id > 0);
+
+        imgcolor_Profiles::delete($rec->id);
+    }
+
+
+    /**
+     * Обновяването от формата заменя само калибрирането и пази името и бележките
+     */
+    public static function test_UpdateCalibrationPreservesMetadata($us)
+    {
+        $rec = self::validRec('ic-update');
+        $rec->name = 'Име за запазване';
+        $rec->notes = 'Бележки за запазване';
+        imgcolor_Profiles::save($rec);
+
+        $stored = imgcolor_Profiles::fetchRec($rec->id);
+        $values = imgcolor_Calibration::getValues($stored);
+        $values['cropLightnessMin'] = 90.0;
+        imgcolor_Calibration::applyValues($stored, $values);
+        imgcolor_Profiles::save($stored, implode(',', imgcolor_Calibration::$fields));
+
+        $updated = imgcolor_Profiles::fetchRec($rec->id);
+        ut::expectEqual(90.0, $updated->cropLightnessMin);
+        ut::expectEqual('Име за запазване', $updated->name);
+        ut::expectEqual('Бележки за запазване', $updated->notes);
 
         imgcolor_Profiles::delete($rec->id);
     }
