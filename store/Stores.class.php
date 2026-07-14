@@ -37,7 +37,24 @@ class store_Stores extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified, doc_plg_Close, deals_plg_AdditionalConditions';
+    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified, doc_plg_Close, deals_plg_AdditionalConditions, plg_EditSections';
+
+
+    /**
+     * Секции, които могат да се редактират самостоятелно от single изгледа
+     *
+     * @see plg_EditSections
+     */
+    public $editSections = array(
+        'posting' => array(
+            'caption' => 'Кой може да контира документи, в които е избран склада',
+            'fields' => 'chiefs,activateRoles',
+        ),
+        'selection' => array(
+            'caption' => 'Кой може да избира склада в документи и филтри',
+            'fields' => 'selectUsers,selectRoles',
+        ),
+    );
 
 
     /**
