@@ -3932,7 +3932,7 @@ td.leftColImportant {
  */
 $warningColor = #b75b00;
 $errorColor = #a30000;
-$noticeColor = #2e7d32;
+$noticeColor = #1976D2;
 
 .ef-confirm-overlay {
 	position: fixed;
@@ -3978,7 +3978,6 @@ $noticeColor = #2e7d32;
 		color: #888;
 	}
 	.ef-confirm-message {
-
 		color: #333;
 		padding-top: 15px;
 		margin-bottom: 25px;
@@ -4051,7 +4050,7 @@ $noticeColor = #2e7d32;
 			border-color: $noticeColor;
 
 			&:hover {
-				background: #1b5e20;
+				background: #1566b6;
 			}
 		}
 	}
