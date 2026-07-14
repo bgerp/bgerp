@@ -112,7 +112,7 @@ class SassScriptFunction
     if (isset(SassParser::$functions) && count(SassParser::$functions)) {
       foreach (SassParser::$functions as $fn => $callback) {
         if (($fn == $name || $fn == $this->name) && is_callable($callback)) {
-          $result = call_user_func_array($callback, $args);
+          $result = call_user_func_array($callback, array_values($args));
           if (!is_object($result)) {
             $lexed = SassScriptLexer::$instance->lex($result, self::$context);
             if (count($lexed) === 1) {
@@ -131,7 +131,7 @@ class SassScriptFunction
       $sig = self::get_reflection(array('SassScriptFunctions', $name));
       list($args) = self::fill_parameters($sig, $this->args, SassScriptParser::$context, $this);
 
-      return call_user_func_array(array('SassScriptFunctions', $name), $args);
+      return call_user_func_array(array('SassScriptFunctions', $name), array_values($args));
     }
 
     foreach ($this->args as $i => $arg) {

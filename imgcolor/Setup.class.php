@@ -29,6 +29,30 @@ defIfNot('IMGCOLOR_CLUSTER_ALPHA_THRESHOLD', 8);
 
 
 /**
+ * Класификация на преливките (CMYK отделяне) - прагове на
+ * imgcolor_TransitionClassifier. Единици и ефект - виж
+ * docs/superpowers/specs/2026-07-13-imgcolor-cmyk-separation-design.md §4.
+ */
+defIfNot('IMGCOLOR_TRANS_SPAN', 4);
+defIfNot('IMGCOLOR_TRANS_NOISE_DELTAE', 1.0);
+defIfNot('IMGCOLOR_TRANS_COHERENCE_MIN', 0.4);
+defIfNot('IMGCOLOR_TRANS_AA_RADIUS', 3);
+defIfNot('IMGCOLOR_TRANS_MIN_SEED', 20);
+defIfNot('IMGCOLOR_TRANS_EDGE_DELTAE', 10.0);
+defIfNot('IMGCOLOR_TRANS_MIN_COVERAGE', 0.005);
+
+
+/**
+ * RGB -> CMYK конверсия за акумулатора на преливките. Без включени ICC
+ * профили в пакета - при 'auto' без конфигурирани профили се ползва
+ * математическата апроксимация (записва се в резултата като fallback).
+ */
+defIfNot('IMGCOLOR_CMYK_ENGINE', 'auto');
+defIfNot('IMGCOLOR_CMYK_ICC_RGB_PROFILE', '');
+defIfNot('IMGCOLOR_CMYK_ICC_CMYK_PROFILE', '');
+
+
+/**
  * Пакет за анализ на основните цветове за печат в изображение (PNG/JPEG)
  *
  * @category  bgerp
@@ -42,7 +66,7 @@ class imgcolor_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    public $version = '0.2';
+    public $version = '0.4';
 
 
     /**
@@ -116,6 +140,18 @@ class imgcolor_Setup extends core_ProtoSetup
         'IMGCOLOR_CLUSTER_MIN_COVERAGE' => array('double', 'caption=Клъстеризиране->Мин. покривност на клъстер'),
         'IMGCOLOR_CLUSTER_SEED' => array('int', 'caption=Клъстеризиране->Seed (детерминизъм)'),
         'IMGCOLOR_CLUSTER_ALPHA_THRESHOLD' => array('int', 'caption=Клъстеризиране->Праг прозрачност (0-255)'),
+
+        'IMGCOLOR_TRANS_SPAN' => array('int', 'caption=Преливки->Обхват на пробите (px)'),
+        'IMGCOLOR_TRANS_NOISE_DELTAE' => array('double', 'caption=Преливки->Шумов праг (deltaE)'),
+        'IMGCOLOR_TRANS_COHERENCE_MIN' => array('double', 'caption=Преливки->Мин. кохерентност (косинус)'),
+        'IMGCOLOR_TRANS_AA_RADIUS' => array('int', 'caption=Преливки->Радиус на ерозия (px)'),
+        'IMGCOLOR_TRANS_MIN_SEED' => array('int', 'caption=Преливки->Мин. пиксели за seed'),
+        'IMGCOLOR_TRANS_EDGE_DELTAE' => array('double', 'caption=Преливки->Праг твърд ръб (deltaE)'),
+        'IMGCOLOR_TRANS_MIN_COVERAGE' => array('double', 'caption=Преливки->Мин. покритие (дял)'),
+
+        'IMGCOLOR_CMYK_ENGINE' => array('enum(auto=Автоматично,math=Математическа формула,imagick=Imagick + ICC)', 'caption=CMYK->Енджин'),
+        'IMGCOLOR_CMYK_ICC_RGB_PROFILE' => array('varchar', 'caption=CMYK->Път до RGB ICC профил'),
+        'IMGCOLOR_CMYK_ICC_CMYK_PROFILE' => array('varchar', 'caption=CMYK->Път до CMYK ICC профил'),
     );
 
 
@@ -128,7 +164,7 @@ class imgcolor_Setup extends core_ProtoSetup
     {
         $html = parent::install();
 
-        $html .= fileman_Buckets::createBucket('imgcolorImages', 'Изображения за цветови анализ', '', '50MB', 'imgcolor,ceo,admin', 'imgcolor,ceo,admin');
+        $html .= fileman_Buckets::createBucket('imgcolorImages', 'Изображения за цветови анализ', 'jpg,jpeg,png', '50MB', 'imgcolor,ceo,admin', 'imgcolor,ceo,admin');
 
         return $html;
     }
@@ -153,6 +189,8 @@ class imgcolor_Setup extends core_ProtoSetup
 
         try {
             imgcolor_Analyzer::buildOptions();
+            imgcolor_TransitionClassifier::normalizeParams(imgcolor_Analyzer::getTransParams());
+            new imgcolor_CmykConverter(imgcolor_Analyzer::getCmykConfig());
         } catch (InvalidArgumentException $e) {
 
             return 'Некоректна imgcolor конфигурация: ' . $e->getMessage();

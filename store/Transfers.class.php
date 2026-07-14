@@ -675,12 +675,13 @@ class store_Transfers extends core_Master
 
 
     /**
-     * Какво да е предупреждението на бутона за контиране
+     * Уорнинг на бутона за контиране - слива се със стандартния въпрос в общия модал
+     * (виж acc_plg_Contable::on_AfterGetContoWarning())
      *
      * @param int $id - ид
      * @param string $isContable - какво е действието
      *
-     * @return NULL|string - текста на предупреждението или NULL ако няма
+     * @return NULL|array - array('text' => string, 'severity' => acc_plg_Contable::SEVERITY_*) или NULL ако няма
      */
     public function getContoWarning_($id, $isContable)
     {
@@ -691,7 +692,7 @@ class store_Transfers extends core_Master
 
         $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->fromStore, $rec->state, 'newProductId');
 
-        return $warning;
+        return !empty($warning) ? array('text' => $warning, 'severity' => acc_plg_Contable::SEVERITY_WARNING) : null;
     }
 
 

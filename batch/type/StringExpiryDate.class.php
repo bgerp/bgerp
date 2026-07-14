@@ -30,7 +30,8 @@ class batch_type_StringExpiryDate extends type_Varchar
 
         $valueArr = $value;
         $delimiter = html_entity_decode($this->params['delimiter'], ENT_COMPAT, 'UTF-8');
-        
+        $size = $this->params['sizeOfBatch'];
+
         if (is_scalar($value)) {
             $value = str_replace($delimiter, '|', $value);
             $valueParsed = explode('|', $value);
@@ -48,6 +49,9 @@ class batch_type_StringExpiryDate extends type_Varchar
         } else {
             if (strpos($valueArr['s'], $delimiter) !== false) {
                 $errorArr[] = "В номера не трябва да се съдържа|* <b>{$delimiter}</b>";
+            }
+            if(!(mb_strlen($valueArr['s']) <= $size)){
+                $errorArr[] = "Номерът е над допустимата дължина от|* <b>{$size}</b> символа";
             }
         }
 

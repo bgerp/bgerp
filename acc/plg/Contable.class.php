@@ -17,6 +17,16 @@
 class acc_plg_Contable extends core_Plugin
 {
     /**
+     * Позволени severity нива за уорнинга на бутона за контиране - виж on_AfterGetContoWarning()/
+     * getSeverityColor() по-долу и съответните CSS класове (.ef-confirm-notice/-warning/-error) в
+     * css/common.scss.
+     */
+    const SEVERITY_NOTICE = 'notice';
+    const SEVERITY_WARNING = 'warning';
+    const SEVERITY_ERROR = 'error';
+
+
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -212,23 +222,40 @@ class acc_plg_Contable extends core_Plugin
 
         $error = $mvc->getContoBtnErrStr($rec);
         $contoAttr = array('ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Контиране на документа');
-        if(!empty($error)){
-            $contoAttr['error'] = $error;
-        }
 
         if (haveRole('debug')) {
             $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг информация,row=2');
         }
-        
+
         $row = 1;
         if ($mvc->haveRightFor('conto', $rec)) {
             $row = 2;
             $caption = ($rec->isContable == 'activate') ? 'Активиране' : 'Контиране';
-            
+
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
-            $warning = $mvc->getContoWarning($rec->id, $rec->isContable);
-            $data->toolbar->addBtn($caption, $contoUrl, array('id' => 'btnConto', 'warning' => $warning), $contoAttr);
+
+            // core_Toolbar::add() слага order=40/30 автоматично САМО ако подадем 'error'/'warning'
+            // параметър, а ние нарочно не ги подаваме (те биха задействали нативен alert()/confirm(),
+            // виж по-долу) - затова тук пресъздаваме същото позициониране ръчно (най-вдясно в реда).
+            if (!empty($error)) {
+
+                // Блокираща грешка - вместо $contoAttr['error'] - стилизиран модал (severity=error,
+                // само бутон "ОК", без "Отказ" - натискането не води до никакво действие, виж
+                // efAlert() в js/efCommon.js). Цветът е #772200;#9A5919 - същия, който createErrBtn()
+                // слага (Html.class.php) - #9A5919 е последен, той override-ва #772200.
+                $btnParams = array('id' => 'btnConto', 'onclick' => self::buildContoAlertJs($error), 'style' => 'color:#772200;color:#9A5919;', 'ef_icon' => 'img/16/error.png', 'order' => 40);
+            } else {
+                $warning = $mvc->getContoWarning($rec->id, $rec->isContable);
+
+                // Един-единствен стилизиран модал (efConfirm) с целия текст от getContoWarning() -
+                // цветовете на самия модал следват severity, но бутонът остава винаги в стандартния
+                // "warning" цвят (color:#772200), както преди. 'warning' не се подава на addBtn
+                // нарочно - той би произвел нативен confirm(), несъвместим със стилизирания модал.
+                $btnParams = array('id' => 'btnConto', 'onclick' => self::buildContoConfirmJs($warning['text'], $warning['severity']), 'style' => 'color:' . self::getSeverityColor(self::SEVERITY_WARNING) . ';', 'order' => 30);
+            }
+
+            $data->toolbar->addBtn($caption, $contoUrl, $btnParams, $contoAttr);
         }
         
         // Бутон за заявка
@@ -282,20 +309,143 @@ class acc_plg_Contable extends core_Plugin
             $data->toolbar->addBtn('Реконтиране', array($mvc, 'debugreconto', $rec->id, 'ret_url' => true), "id=btnDebugreconto-{$rec->id},warning=Наистина ли желаете да реконтирате документа?,title=Реконтиране на документа,ef_icon=img/16/bug.png,row=3");
         }
     }
-    
-    
+
+
     /**
-     * Уорнинг на бутона за контиране/активиране
+     * Уорнинг на бутона за контиране/активиране.
+     *
+     * ЕДИНСТВЕНОТО събитие за текста на бутона за контиране/активиране - целият текст излиза в един
+     * стилизиран модал (efConfirm) при клик на бутона (виж on_AfterPrepareSingleToolbar()/
+     * buildContoConfirmJs() по-долу). Няма повече верижни прозорци и няма повече отделни методи/
+     * събития - само това.
+     *
+     * Плъгинът винаги добавя стандартния въпрос "Наистина ли желаете документът да бъде
+     * контиран/активиран?" с severity=notice (по подразбиране - "не толкова страшно", виж
+     * .ef-confirm-notice в css/common.scss). Ако конкретен документен клас вече е сложил нещо в
+     * $res - през собствен `getContoWarning_($id, $isContable)` (стандартната bgERP конвенция -
+     * вика се преди този After hook), то се пази и се комбинира със стандартния въпрос. Единен,
+     * строг формат навсякъде по веригата - `getContoWarning_()` и всеки `on_AfterGetContoWarning`
+     * връщат ИЛИ `null` (нищо за добавяне), ИЛИ `array('text' => string, 'severity' => self::SEVERITY_*)`
+     * - никога чист текст. Автоматично се добавя и проверката на вальора (датата) -
+     * `acc_Periods::checkDocumentDate()`, същата с която `on_AfterInputEditForm` предупреждава във
+     * формата - тя също вдига severity на 'warning', ако вече не е по-високо.
+     *
+     * @return void $res се сменя на array('text' => string, 'severity' => string)
      */
     public static function on_AfterGetContoWarning($mvc, &$res, $id, $isContable)
     {
-        if (empty($res)) {
-            $action = ($isContable == 'activate') ? 'активиран' : 'контиран';
-            $res = "|Наистина ли желаете документът да бъде {$action}|*?";
+        $action = ($isContable == 'activate') ? 'активиран' : 'контиран';
+        $handle = $mvc->getHandle($id);
+
+        // tr() се вика тук, парче по парче, ПРЕДИ слепването - core_Lg::translate() explode-ва
+        // по '|' за ЦЕЛИЯ подаден низ и очаква точно една |*-маркирана фраза; ако му подадем няколко
+        // слепени |*-фрази (+ HTML между тях) наведнъж, резултатът излиза съсипан/непълен.
+        $question = tr("|Наистина ли желаете да бъде {$action}|* <b>#{$handle}</b>?");
+
+        // $res тук е ИЛИ null, ИЛИ array('text','severity') от getContoWarning_() на класа
+        $classWarning = isset($res['text']) ? tr($res['text']) : null;
+        $severity = $res['severity'] ?? self::SEVERITY_NOTICE;
+
+        $valior = $mvc->getValiorValue($id);
+        $dateWarning = acc_Periods::checkDocumentDate($valior) ?: null;
+        if (!empty($dateWarning)) {
+            $dateWarning = tr($dateWarning);
         }
+
+        // Вальора е след утрешния ден - проверява се само тук (при контиране), не и в
+        // acc_Periods::checkDocumentDate() - тя се ползва и от формата за редакция
+        // (on_AfterInputEditForm), където това не трябва да се проверява
+        if (empty($dateWarning) && !empty($valior) && $valior > dt::addDays(1, null, false)) {
+            $dateWarning = tr("Вальорът е след утрешния ден|*!");
+        }
+
+        if (!empty($dateWarning) && $severity == self::SEVERITY_NOTICE) {
+            $severity = self::SEVERITY_WARNING;
+        }
+
+        // Уорнингите от класа/датовата проверка вървят ПРЕДИ стандартния въпрос, разделени с <hr>
+        // от него. При повече от един - <ul><li> (за да си личи че са отделни точки); при точно
+        // един - обикновен текст, без булет.
+        $extras = array_filter(array($classWarning, $dateWarning));
+        if (countR($extras) > 1) {
+            $items = '';
+            foreach ($extras as $extra) {
+                $items .= "<li>{$extra}</li>";
+            }
+            $extrasText = "<ul class=\"ef-confirm-list\">{$items}</ul>";
+        } else {
+            $extrasText = reset($extras) ?: '';
+        }
+
+        $text = !empty($extras) ? ($extrasText . "<hr>" . $question) : $question;
+
+        $res = array('text' => $text, 'severity' => $severity);
     }
-    
-    
+
+
+    /**
+     * Цвят на текста на бутона за контиране спрямо severity (виж on_AfterGetContoWarning()) - в тон
+     * със съответната CSS класа на модала (.ef-confirm-notice/-warning/-error в css/common.scss).
+     *
+     * @param string $severity self::SEVERITY_*
+     *
+     * @return string hex цвят
+     */
+    public static function getSeverityColor($severity)
+    {
+        $colors = array(
+            self::SEVERITY_NOTICE  => '#2e7d32',
+            self::SEVERITY_WARNING => '#772200',
+            self::SEVERITY_ERROR   => '#a30000',
+        );
+
+        return $colors[$severity] ?? $colors[self::SEVERITY_NOTICE];
+    }
+
+
+    /**
+     * Изгражда onclick JS за бутона за контиране: един-единствен стилизиран (custom, стилизуем чрез
+     * CSS) модал (efConfirm) с целия (вече слят) текст от getContoWarning() - виж contoConfirm()/
+     * efConfirm() в js/efCommon.js. Няма повече нативен confirm()/верижни прозорци.
+     *
+     * Публичен е нарочно - ползва се и от пакети, които изцяло подменят стандартния бутон за
+     * контиране (напр. bgfisc/plg/CashDocument, cash/Pko).
+     *
+     * @param string $warning  целия (слят) текст на уорнинга
+     * @param string $severity self::SEVERITY_* (по подразбиране SEVERITY_NOTICE)
+     *
+     * @return string
+     */
+    public static function buildContoConfirmJs($warning, $severity = self::SEVERITY_NOTICE)
+    {
+        // $warning е вече преведен (tr() е викан парче по парче в on_AfterGetContoWarning(), а не
+        // тук - виж коментара там защо). Може да съдържа истински нови редове (сливане на няколко
+        // уорнинга) - addcslashes() ги превръща в \n (escape-нат за JS низов литерал), а не буквален
+        // нов ред, който би счупил синтаксиса на onclick-а
+        $escaped = addcslashes($warning, "'\\\n\r");
+        $sev = addcslashes($severity, "'\\");
+
+        return "if (!contoConfirm(event, this, '{$escaped}', '{$sev}')) { return false; }";
+    }
+
+
+    /**
+     * Изгражда onclick JS за бутона за контиране, когато има блокираща грешка (getContoBtnErrStr())
+     * - показва стилизиран модал (SEVERITY_ERROR), само бутон "ОК", без "Отказ". Натискането не
+     * води до никакво действие - виж efAlert() в js/efCommon.js.
+     *
+     * @param string $error текста на грешката
+     *
+     * @return string
+     */
+    public static function buildContoAlertJs($error)
+    {
+        $escaped = addcslashes(tr($error), "'\\\n\r");
+
+        return "if (!efAlert(event, '{$escaped}')) { return false; }";
+    }
+
+
     /**
      * Взимане на грешка в бутона за възстановяване
      */

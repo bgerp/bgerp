@@ -51,6 +51,8 @@ class imgcolor_Analyses extends core_Manager
         $this->FLD('imageFile', 'fileman_FileType(bucket=imgcolorImages)', 'caption=Изходно изображение');
         $this->FLD('profileId', 'key(mvc=imgcolor_Profiles, select=name, allowEmpty)', 'caption=Профил');
         $this->FLD('colorsJson', 'text', 'caption=Резултат (JSON),input=none');
+        $this->FLD('cmykJson', 'text', 'caption=CMYK преливки (JSON),input=none');
+        $this->FLD('calibrationJson', 'text', 'caption=Калибриране (JSON),input=none');
         $this->FLD('croppedImage', 'fileman_FileType(bucket=imgcolorImages)', 'caption=Изрязано изображение,allowEmpty');
     }
 
@@ -62,15 +64,19 @@ class imgcolor_Analyses extends core_Manager
      * @param int|null    $profileId  избран профил, или null/0 за глобална конфигурация
      * @param string      $colorsJson JSON резултат от imgcolor_Analyzer
      * @param string|null $croppedFh  fileman handle на изрязаното изображение, ако е запазено
+     * @param array|null  $calibrationValues действително използваните стойности за калибриране
+     * @param string|null $cmykJson   CMYK резултат за преливките, ако има такива
      *
      * @return int id на новия запис
      */
-    public static function createFromResult($imageFh, $profileId, $colorsJson, $croppedFh = null)
+    public static function createFromResult($imageFh, $profileId, $colorsJson, $croppedFh = null, $calibrationValues = null, $cmykJson = null)
     {
         $rec = new stdClass();
         $rec->imageFile = $imageFh;
         $rec->profileId = $profileId ?: null;
         $rec->colorsJson = $colorsJson;
+        $rec->cmykJson = $cmykJson;
+        $rec->calibrationJson = $calibrationValues === null ? null : json_encode(imgcolor_Calibration::getValues($calibrationValues), JSON_PRESERVE_ZERO_FRACTION);
         $rec->croppedImage = $croppedFh;
 
         self::save($rec);
@@ -93,6 +99,6 @@ class imgcolor_Analyses extends core_Manager
             $croppedBytes = fileman::extractStr($rec->croppedImage);
         }
 
-        return imgcolor_Demo::renderColorsHtml($rec->colorsJson, $croppedBytes);
+        return imgcolor_Demo::renderColorsHtml($rec->colorsJson, $croppedBytes, isset($rec->cmykJson) ? $rec->cmykJson : null);
     }
 }

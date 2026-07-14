@@ -40,8 +40,10 @@ class imgcolor_Analyzer extends core_Mvc
     /**
      * Инициализация на услугата
      */
-    public function init()
+    public function init($params = array())
     {
+        parent::init($params);
+
         self::registerAutoload();
     }
 
@@ -103,29 +105,10 @@ class imgcolor_Analyzer extends core_Mvc
         self::registerAutoload();
 
         if ($profileRec !== null) {
-            $values = array();
-            foreach (imgcolor_Calibration::$fields as $f) {
-                $values[$f] = $profileRec->{$f};
-            }
-
-            return imgcolor_Calibration::buildOptions($values);
+            return imgcolor_Calibration::buildOptions(imgcolor_Calibration::getValues($profileRec));
         }
 
-        $values = array(
-            'cropLightnessMin' => imgcolor_Setup::get('CROP_LIGHTNESS_MIN'),
-            'cropChromaMax' => imgcolor_Setup::get('CROP_CHROMA_MAX'),
-            'cropLineContentFraction' => imgcolor_Setup::get('CROP_LINE_CONTENT_FRACTION'),
-            'cropAlphaThreshold' => imgcolor_Setup::get('CROP_ALPHA_THRESHOLD'),
-            'clusterFixedK' => imgcolor_Setup::get('CLUSTER_FIXED_K'),
-            'clusterKMax' => imgcolor_Setup::get('CLUSTER_KMAX'),
-            'clusterHistogramBits' => imgcolor_Setup::get('CLUSTER_HISTOGRAM_BITS'),
-            'clusterMergeDeltaE' => imgcolor_Setup::get('CLUSTER_MERGE_DELTAE'),
-            'clusterMinCoverage' => imgcolor_Setup::get('CLUSTER_MIN_COVERAGE'),
-            'clusterSeed' => imgcolor_Setup::get('CLUSTER_SEED'),
-            'clusterAlphaThreshold' => imgcolor_Setup::get('CLUSTER_ALPHA_THRESHOLD'),
-        );
-
-        return imgcolor_Calibration::buildOptions($values);
+        return imgcolor_Calibration::buildOptions(imgcolor_Calibration::getDefaultValues());
     }
 
 
@@ -258,6 +241,104 @@ class imgcolor_Analyzer extends core_Mvc
 
 
     /**
+     * Праговете за класификация на преливките: глобалната конфигурация,
+     * при подаден профилен запис - с наслагани непразни trans* override-и.
+     *
+     * @param stdClass|null $profileRec запис на imgcolor_Profiles, или null
+     *
+     * @return array за imgcolor_TransitionClassifier::classify()
+     */
+    public static function getTransParams($profileRec = null)
+    {
+        $params = array(
+            'span' => (int) imgcolor_Setup::get('TRANS_SPAN'),
+            'noiseDeltaE' => (float) imgcolor_Setup::get('TRANS_NOISE_DELTAE'),
+            'coherenceMin' => (float) imgcolor_Setup::get('TRANS_COHERENCE_MIN'),
+            'aaRadius' => (int) imgcolor_Setup::get('TRANS_AA_RADIUS'),
+            'minSeed' => (int) imgcolor_Setup::get('TRANS_MIN_SEED'),
+            'edgeDeltaE' => (float) imgcolor_Setup::get('TRANS_EDGE_DELTAE'),
+            'minCoverage' => (float) imgcolor_Setup::get('TRANS_MIN_COVERAGE'),
+        );
+
+        if ($profileRec !== null) {
+            $params = imgcolor_TransitionClassifier::applyOverrides($params, $profileRec);
+        }
+
+        return $params;
+    }
+
+
+    /**
+     * Конфигурацията на RGB->CMYK конверсията от глобалната конфигурация.
+     *
+     * @return array за конструктора на imgcolor_CmykConverter
+     */
+    public static function getCmykConfig()
+    {
+        return array(
+            'engine' => imgcolor_Setup::get('CMYK_ENGINE'),
+            'rgbProfile' => imgcolor_Setup::get('CMYK_ICC_RGB_PROFILE'),
+            'cmykProfile' => imgcolor_Setup::get('CMYK_ICC_CMYK_PROFILE'),
+        );
+    }
+
+
+    /**
+     * Разделен анализ: плътните цветове остават в стандартния списък
+     * (без преливките), а преливките се натрупват в CMYK акумулатор.
+     * Покритието на плътните цветове е спрямо анализираната площ - същата
+     * скала като transition_coverage_percent, така че двете сумират до 100%.
+     * Изображения без преливки дават байт-идентичен colors JSON с process().
+     *
+     * @param mixed      $source      ImageSource, stream, raw bytes или GD image
+     * @param mixed      $options     AnalyzerOptions или null за глобалната конфигурация
+     * @param array|null $transParams прагове за класификацията, или null за
+     *                                getTransParams() от глобалната конфигурация
+     *
+     * @return stdClass {json, cmykJson, croppedImage, boundingBox, wasCropped}
+     */
+    public static function processSeparated($source, $options = null, $transParams = null)
+    {
+        self::registerAutoload();
+        self::requireGd();
+
+        try {
+            $options = $options === null ? self::buildOptions() : $options;
+
+            $loader = imgcolor_Setup::get('LOADER') === 'imagick'
+                ? new \ImageColorAnalyzer\ImageLoader\ImagickImageLoader()
+                : new \ImageColorAnalyzer\ImageLoader\GdImageLoader();
+            $resolver = new \ImageColorAnalyzer\ImageLoader\SourceResolver();
+            $raster = $loader->load($resolver->resolve($source));
+
+            $sep = imgcolor_Separation::process(
+                $raster,
+                $options,
+                $transParams === null ? self::getTransParams() : $transParams,
+                new imgcolor_CmykConverter(self::getCmykConfig())
+            );
+
+            $encoder = new \ImageColorAnalyzer\ImageEncoder\GdPngEncoder();
+
+            $result = new stdClass();
+            $result->json = json_encode($sep->colors, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_PRESERVE_ZERO_FRACTION);
+            $result->cmykJson = $sep->cmyk === null ? null : json_encode($sep->cmyk, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+            $result->croppedImage = $encoder->encode($sep->crop->raster);
+            $result->boundingBox = $sep->crop->boundingBox;
+            $result->wasCropped = $sep->crop->wasCropped;
+
+            return $result;
+        } catch (\ImageColorAnalyzer\Exception\ImageAnalyzerException $e) {
+            self::raiseError($e->getMessage());
+        } catch (InvalidArgumentException $e) {
+            self::raiseError($e->getMessage());
+        } catch (RuntimeException $e) {
+            self::raiseError($e->getMessage());
+        }
+    }
+
+
+    /**
      * @return \ImageColorAnalyzer\PublicAPI\ProcessedImageResult
      */
     public static function process($source, $options = null)
@@ -290,6 +371,46 @@ class imgcolor_Analyzer extends core_Mvc
      */
     public static function analyzeFileHandle($fh, $options = null)
     {
+        $bytes = self::requireAnalyzableBytes($fh);
+
+        return self::guard(function ($a) use ($bytes, $options) {
+
+            return $a->analyzeAsJson($bytes, $options === null ? self::buildOptions() : $options);
+        });
+    }
+
+
+    /**
+     * LLM tool входна точка: разделен анализ по fileman handle - плътните
+     * цветове отделно от CMYK състава на преливките.
+     *
+     * @param string $fh - fileman манипулатор на PNG/JPEG файл
+     *
+     * @return string JSON: {"colors":[{"color","coverage_percent"},...],"cmyk":{...}|null}
+     */
+    public static function analyzeSeparatedFileHandle($fh, $options = null)
+    {
+        $bytes = self::requireAnalyzableBytes($fh);
+
+        $result = self::processSeparated($bytes, $options);
+
+        return json_encode(array(
+            'colors' => json_decode($result->json, true),
+            'cmyk' => $result->cmykJson === null ? null : json_decode($result->cmykJson, true),
+        ), JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+    }
+
+
+    /**
+     * Общите проверки на LLM tool входовете: съществуващ достъпен PNG/JPEG
+     * файл с непразно съдържание.
+     *
+     * @param string $fh
+     *
+     * @return string суровите байтове на файла
+     */
+    private static function requireAnalyzableBytes($fh)
+    {
         self::registerAutoload();
 
         $fRec = fileman_Files::fetchByFh($fh);
@@ -309,10 +430,39 @@ class imgcolor_Analyzer extends core_Mvc
             self::raiseError('празно съдържание на файла');
         }
 
-        return self::guard(function ($a) use ($bytes, $options) {
+        return $bytes;
+    }
 
-            return $a->analyzeAsJson($bytes, $options === null ? self::buildOptions() : $options);
-        });
+
+    /**
+     * Self-describing tool descriptor за разделния анализ (LLM function-calling).
+     *
+     * @return array
+     */
+    public static function getSeparatedToolDefinition()
+    {
+        return array(
+            'name' => 'analyze_image_print_colors_separated',
+            'description' => 'Crop the near-white background of a PNG/JPEG stored in fileman, '
+                           . 'list the solid (spot-printable) colors with coverage percentages, and '
+                           . 'report gradients/continuous-tone areas separately as a normalized CMYK '
+                           . 'ink composition (c+m+y+k = 100) with transition area coverage. '
+                           . 'Solid "coverage_percent" and "transition_coverage_percent" are both '
+                           . 'shares of the whole analyzed (non-transparent, cropped) area and sum '
+                           . 'to 100, so a solid color covering a fifth of an image that is mostly '
+                           . 'gradient reads as 20, not 50. '
+                           . '"cmyk" is null when the image contains no gradients.',
+            'parameters' => array(
+                'type' => 'object',
+                'properties' => array(
+                    'fileHandle' => array(
+                        'type' => 'string',
+                        'description' => 'fileman handle (fh) of the image to analyze',
+                    ),
+                ),
+                'required' => array('fileHandle'),
+            ),
+        );
     }
 
 

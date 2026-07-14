@@ -40,6 +40,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
         $fieldset->FLD('format', 'varchar(20)', 'caption=Формат,mandatory');
         $fieldset->setOptions('format', array('' => '') + arr::make($this->formatSuggestions, true));
         $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец)', 'caption=Срок по подразбиране,unit=след текущата дата');
+        $fieldset->FLD('sizeOfBatch', 'int', 'caption=Дължина');
     }
 
 
@@ -55,6 +56,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
             'format'      => $this->rec->format,
             'defaultTime' => $this->rec->time,
             'delimiter'   => $this->rec->delimiter,
+            'sizeOfBatch' => $this->rec->sizeOfBatch,
         );
     }
 
@@ -93,7 +95,30 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
         if (batch_Items::fetchField(array("#productId = {$this->rec->productId} AND #batch = '[#1#]'", $value))) return true;
 
         $Type = $this->getBatchClassType();
-        $Type->fromVerbal($value);
+        $value = $Type->toVerbal($value);
+
+        $delimiter = html_entity_decode($this->rec->delimiter, ENT_COMPAT, 'UTF-8');
+        if (strpos($value, $delimiter) === false) {
+            $msg = 'В партидата трябва да има|* "' . $delimiter . '"';
+            
+            return false;
+        }
+
+        list($string, $date) = explode($delimiter, $value, 2);
+        if (isset($this->rec->sizeOfBatch)) {
+            if (mb_strlen($string) > $this->rec->sizeOfBatch) {
+                $msg = "|*{$string} |е над допустимата дължина от|* <b>{$this->rec->sizeOfBatch}</b>";
+                
+                return false;
+            }
+        }
+
+        if (!dt::checkByMask($date, $this->rec->format)) {
+            $f = dt::mysql2verbal(dt::today(), $this->rec->format);
+            $msg = "|Срока на годност трябва да е във формата|* <b>{$f}</b>";
+            
+            return false;
+        }
 
         if(!empty($Type->error)){
             $msg = $Type->error;
