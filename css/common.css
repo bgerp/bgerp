@@ -3589,7 +3589,7 @@ td.leftColImportant {
     .ef-confirm-modal .ef-confirm-message hr {
       border: none;
       border-top: 1px solid #dddddd;
-      margin: 10px 0 0 0; }
+      margin: 10px 0; }
     .ef-confirm-modal .ef-confirm-message ul {
       text-align: left;
       margin: 8px 0 0 20px;

@@ -336,31 +336,48 @@ class acc_plg_Contable extends core_Plugin
     {
         $action = ($isContable == 'activate') ? 'активиран' : 'контиран';
         $handle = $mvc->getHandle($id);
-        $question = "|Наистина ли желаете да бъде {$action}|* <b>#{$handle}</b>?";
+
+        // tr() се вика тук, парче по парче, ПРЕДИ слепването - core_Lg::translate() explode-ва
+        // по '|' за ЦЕЛИЯ подаден низ и очаква точно една |*-маркирана фраза; ако му подадем няколко
+        // слепени |*-фрази (+ HTML между тях) наведнъж, резултатът излиза съсипан/непълен.
+        $question = tr("|Наистина ли желаете да бъде {$action}|* <b>#{$handle}</b>?");
 
         // $res тук е ИЛИ null, ИЛИ array('text','severity') от getContoWarning_() на класа
-        $classWarning = $res['text'] ?? null;
+        $classWarning = isset($res['text']) ? tr($res['text']) : null;
         $severity = $res['severity'] ?? self::SEVERITY_NOTICE;
 
         $valior = $mvc->getValiorValue($id);
         $dateWarning = acc_Periods::checkDocumentDate($valior) ?: null;
+        if (!empty($dateWarning)) {
+            $dateWarning = tr($dateWarning);
+        }
+
+        // Вальора е след утрешния ден - проверява се само тук (при контиране), не и в
+        // acc_Periods::checkDocumentDate() - тя се ползва и от формата за редакция
+        // (on_AfterInputEditForm), където това не трябва да се проверява
+        if (empty($dateWarning) && !empty($valior) && $valior > dt::addDays(1, null, false)) {
+            $dateWarning = tr("Вальорът е след утрешния ден|*!");
+        }
+
         if (!empty($dateWarning) && $severity == self::SEVERITY_NOTICE) {
             $severity = self::SEVERITY_WARNING;
         }
 
-        // Точките, които идват допълнително към стандартния въпрос - в <ul><li> (позволени тагове
-        // в efConfirm() - виж EF_CONFIRM_ALLOWED_TAGS в js/efCommon.js), за да могат да се
-        // стилизират/декорират през CSS (.ef-confirm-message ul в css/common.scss), а не с ръчни
-        // булет символи
+        // Уорнингите от класа/датовата проверка вървят ПРЕДИ стандартния въпрос, разделени с <hr>
+        // от него. При повече от един - <ul><li> (за да си личи че са отделни точки); при точно
+        // един - обикновен текст, без булет.
         $extras = array_filter(array($classWarning, $dateWarning));
-        $text = $question;
-        if (!empty($extras)) {
+        if (countR($extras) > 1) {
             $items = '';
             foreach ($extras as $extra) {
                 $items .= "<li>{$extra}</li>";
             }
-            $text .= "<hr><ul class=\"ef-confirm-list\">{$items}</ul>";
+            $extrasText = "<ul class=\"ef-confirm-list\">{$items}</ul>";
+        } else {
+            $extrasText = reset($extras) ?: '';
         }
+
+        $text = !empty($extras) ? ($extrasText . "<hr>" . $question) : $question;
 
         $res = array('text' => $text, 'severity' => $severity);
     }
@@ -401,10 +418,11 @@ class acc_plg_Contable extends core_Plugin
      */
     public static function buildContoConfirmJs($warning, $severity = self::SEVERITY_NOTICE)
     {
-        // warning може да съдържа истински нови редове (виж on_AfterGetContoWarning() - сливане на
-        // няколко уорнинга) - addcslashes() ги превръща в \n (escape-нат за JS низов литерал), а не
-        // буквален нов ред, който би счупил синтаксиса на onclick-а
-        $escaped = addcslashes(tr($warning), "'\\\n\r");
+        // $warning е вече преведен (tr() е викан парче по парче в on_AfterGetContoWarning(), а не
+        // тук - виж коментара там защо). Може да съдържа истински нови редове (сливане на няколко
+        // уорнинга) - addcslashes() ги превръща в \n (escape-нат за JS низов литерал), а не буквален
+        // нов ред, който би счупил синтаксиса на onclick-а
+        $escaped = addcslashes($warning, "'\\\n\r");
         $sev = addcslashes($severity, "'\\");
 
         return "if (!contoConfirm(event, this, '{$escaped}', '{$sev}')) { return false; }";

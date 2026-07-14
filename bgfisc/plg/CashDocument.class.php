@@ -190,7 +190,10 @@ class bgfisc_plg_CashDocument extends core_Plugin
 
                         $aboveTolerance = empty($diff) || $diff > $tolerance;
                         if ($aboveTolerance  && $dealPaid && $dealBl <= 0) {
-                            $additionalWarning = "ЦЯЛАТА СУМА ПО ДОКУМЕНТА ИЗГЛЕЖДА ВЕЧЕ Е ПЛАТЕНА|*!";
+                            // tr() тук, отделно, ПРЕДИ слепването с $defaultWarning (той вече е
+                            // преведен от acc_plg_Contable::on_AfterGetContoWarning()) -
+                            // core_Lg::translate() не поддържа няколко |*-маркирани фрази в един низ
+                            $additionalWarning = tr("ЦЯЛАТА СУМА ПО ДОКУМЕНТА ИЗГЛЕЖДА ВЕЧЕ Е ПЛАТЕНА|*!");
 
                             // $defaultWarning вече е целия (слят) текст от getContoWarning() - не е
                             // кратка фраза за долепяне със запетая, а отделно изречение/HTML блок
