@@ -730,9 +730,10 @@ abstract class cash_Document extends deals_PaymentDocument
         $info['stores'] = array();
         if($this->haveRightFor('conto', $rec) && $lineState != 'rejected'){
             if(!Mode::is('printing') && !Mode::is('xhtml')){
-                // getContoWarning() връща целия слят текст (виж
-                // acc_plg_Contable::on_AfterGetContoWarning()), затова тук няма отделно data-extra-warning
-                $warning = $this->getContoWarning($rec->id, $rec->isContable);
+                // getContoWarning() връща array('text','severity') (виж
+                // acc_plg_Contable::on_AfterGetContoWarning()) - тук е window.prompt(), чист текст,
+                // затова взимаме само 'text' (severity не важи за нативен prompt)
+                $warning = $this->getContoWarning($rec->id, $rec->isContable)['text'];
 
                 $info['amountVerbal'] = str_replace('&nbsp;', ' ', $info['amountVerbal']);
 

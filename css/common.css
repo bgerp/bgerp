@@ -3562,16 +3562,23 @@ td.leftColImportant {
   max-width: 420px;
   min-width: 280px;
   text-align: center;
-  border-top: 4px solid #772200; }
+  border-top: 4px solid #888888; }
   .ef-confirm-modal .ef-confirm-icon {
-    font-size: 32px;
-    line-height: 1;
-    color: #772200;
-    margin-bottom: 8px; }
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 10px auto;
+    border-radius: 50%;
+    background: #888888;
+    color: white;
+    font-size: 20px;
+    line-height: 1; }
   .ef-confirm-modal .ef-confirm-title {
     font-weight: bold;
     font-size: 1.3em;
-    color: #772200;
+    color: #888888;
     margin-bottom: 10px; }
   .ef-confirm-modal .ef-confirm-message {
     color: #333333;
@@ -3580,7 +3587,7 @@ td.leftColImportant {
     white-space: pre-line; }
     .ef-confirm-modal .ef-confirm-message hr {
       border: none;
-      border-top: 1px solid #ddd;
+      border-top: 1px solid #dddddd;
       margin: 10px 0 0 0; }
     .ef-confirm-modal .ef-confirm-message ul {
       text-align: left;
@@ -3606,9 +3613,42 @@ td.leftColImportant {
     .ef-confirm-modal .ef-confirm-btn:hover {
       background: #e6e6e6; }
   .ef-confirm-modal .ef-confirm-ok {
-    background: #772200;
-    border-color: #772200;
+    background: #888888;
+    border-color: #888888;
     color: white; }
     .ef-confirm-modal .ef-confirm-ok:hover {
-      background: #5c1a00; }
+      background: #666666; }
+  .ef-confirm-modal.ef-confirm-notice {
+    border-top-color: #2e7d32; }
+    .ef-confirm-modal.ef-confirm-notice .ef-confirm-icon {
+      background: #2e7d32; }
+    .ef-confirm-modal.ef-confirm-notice .ef-confirm-title {
+      color: #2e7d32; }
+    .ef-confirm-modal.ef-confirm-notice .ef-confirm-ok {
+      background: #2e7d32;
+      border-color: #2e7d32; }
+      .ef-confirm-modal.ef-confirm-notice .ef-confirm-ok:hover {
+        background: #1b5e20; }
+  .ef-confirm-modal.ef-confirm-warning {
+    border-top-color: #772200; }
+    .ef-confirm-modal.ef-confirm-warning .ef-confirm-icon {
+      background: #772200; }
+    .ef-confirm-modal.ef-confirm-warning .ef-confirm-title {
+      color: #772200; }
+    .ef-confirm-modal.ef-confirm-warning .ef-confirm-ok {
+      background: #772200;
+      border-color: #772200; }
+      .ef-confirm-modal.ef-confirm-warning .ef-confirm-ok:hover {
+        background: #5c1a00; }
+  .ef-confirm-modal.ef-confirm-error {
+    border-top-color: #a30000; }
+    .ef-confirm-modal.ef-confirm-error .ef-confirm-icon {
+      background: #a30000; }
+    .ef-confirm-modal.ef-confirm-error .ef-confirm-title {
+      color: #a30000; }
+    .ef-confirm-modal.ef-confirm-error .ef-confirm-ok {
+      background: #a30000;
+      border-color: #a30000; }
+      .ef-confirm-modal.ef-confirm-error .ef-confirm-ok:hover {
+        background: #7a0000; }
 

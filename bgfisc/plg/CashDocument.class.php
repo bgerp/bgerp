@@ -232,10 +232,11 @@ class bgfisc_plg_CashDocument extends core_Plugin
                 $contoUrl = toUrl(array($mvc, 'contocash', $rec->id), 'local');
                 $warning = $mvc->getContoWarning($rec, $rec->isContable);
 
-                // Един-единствен стилизиран модал (виж acc_plg_Contable::buildContoConfirmJs()).
-                // Червеният цвят (иначе слаган автоматично от core_Html::createFnBtn() само когато
-                // е подаден warning=) се пази ръчно
-                $btnAttr = array('id' => 'btnConto', 'data-url' => $contoUrl, 'class' => 'document-conto-btn', 'onclick' => acc_plg_Contable::buildContoConfirmJs($warning), 'style' => 'color:#772200;');
+                // Един-единствен стилизиран модал (виж acc_plg_Contable::buildContoConfirmJs()) -
+                // цветовете на модала следват severity, бутонът остава винаги в стандартния
+                // "warning" цвят, както преди (иначе слаган автоматично от core_Html::createFnBtn()
+                // само когато е подаден warning=)
+                $btnAttr = array('id' => 'btnConto', 'data-url' => $contoUrl, 'class' => 'document-conto-btn', 'onclick' => acc_plg_Contable::buildContoConfirmJs($warning['text'], $warning['severity']), 'style' => 'color:' . acc_plg_Contable::getSeverityColor(acc_plg_Contable::SEVERITY_WARNING) . ';');
 
                 $data->toolbar->addFnBtn('Контиране', '', $btnAttr, 'ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа');
             }

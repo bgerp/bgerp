@@ -306,10 +306,10 @@ class cash_Pko extends cash_Document
             $deviceName = cash_NonCashPaymentDetails::getCardPaymentBtnName($deviceRec);
             $hash = bank_interface_POS::getPaymentHash($mvc->getClassId(), $rec->id);
             $successUrl = toUrl(array($mvc, 'successfullcardpayment', $rec->id, 'hash' => $hash, 'deviceId' => $deviceRec->id), 'local');
-            // Един-единствен стилизиран модал (виж acc_plg_Contable::buildContoConfirmJs()). Червеният
-            // цвят (иначе слаган автоматично от core_Html::createFnBtn() само когато е подаден
-            // warning=) се пази ръчно
-            $btnAttr = array('id' => "btnConto{$rec->containerId}", 'data-amount' => $amount, 'data-errorUrl' => $errorUrl, 'class' => 'cardPaymentBtn', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Контиране на документа', 'onclick' => acc_plg_Contable::buildContoConfirmJs($warning), 'style' => 'color:#772200;');
+            // Един-единствен стилизиран модал (виж acc_plg_Contable::buildContoConfirmJs()) - цветовете
+            // на модала следват severity, бутонът остава винаги в стандартния "warning" цвят, както
+            // преди (иначе слаган автоматично от core_Html::createFnBtn() само когато е подаден warning=)
+            $btnAttr = array('id' => "btnConto{$rec->containerId}", 'data-amount' => $amount, 'data-errorUrl' => $errorUrl, 'class' => 'cardPaymentBtn', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Контиране на документа', 'onclick' => acc_plg_Contable::buildContoConfirmJs($warning['text'], $warning['severity']), 'style' => 'color:' . acc_plg_Contable::getSeverityColor(acc_plg_Contable::SEVERITY_WARNING) . ';');
             $btnAttr['data-diffamount'] = tr("Има разминаване при отчетено плащане|*: {$deviceName}!");
             $btnAttr['data-successUrl'] = $successUrl;
             $btnAttr['data-returnUrl'] = core_Packs::isInstalled('bgfisc') ? toUrl(array($mvc, 'contocash', $rec->id), 'local') : toUrl($mvc->getContoUrl($rec->id));

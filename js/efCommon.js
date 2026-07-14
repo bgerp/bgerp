@@ -6566,6 +6566,17 @@ function sanitizeEfConfirmHtml(html) {
 
 
 /**
+ * Severity нива за efConfirm() - CSS класове .ef-confirm-notice/-warning/-error в css/common.scss
+ * (виж acc_plg_Contable::SEVERITY_* в acc/plg/Contable.class.php - огледални имена).
+ */
+var EF_CONFIRM_SEVERITY_ICONS = {
+    notice:  '&#8505;',  // ℹ
+    warning: '&#9888;',  // ⚠
+    error:   '&#10060;'  // ❌
+};
+
+
+/**
  * Показва стилизиран модал за потвърждение (Да/Отказ) вместо нативния window.confirm().
  * Връща Promise<boolean> - true при потвърждение, false при отказ/Escape/клик извън модала.
  *
@@ -6573,19 +6584,25 @@ function sanitizeEfConfirmHtml(html) {
  * <span>/<div>, само с class атрибут. Всичко останало се показва като чист текст.
  *
  * @param {string} message  текст на съобщението (може да съдържа позволен HTML)
- * @param {object} [opts]   {title, okText, cancelText, cssClass}
+ * @param {object} [opts]   {title, okText, cancelText, severity, cssClass}
+ *                          severity - notice|warning|error (по подразбиране notice), определя
+ *                          цвета/иконата на модала - виж EF_CONFIRM_SEVERITY_ICONS по-горе.
+ *                          cssClass - допълнителна класа, ако е нужна извън severity.
  */
 function efConfirm(message, opts) {
     opts = opts || {};
+    var severity = opts.severity || 'notice';
 
     return new Promise(function (resolve) {
         var overlay = $('<div class="ef-confirm-overlay"></div>');
         var modal = $('<div class="ef-confirm-modal"></div>');
+        modal.addClass('ef-confirm-' + severity);
         if (opts.cssClass) {
             modal.addClass(opts.cssClass);
         }
 
-        modal.append('<div class="ef-confirm-icon">&#9888;</div>');
+        var icon = EF_CONFIRM_SEVERITY_ICONS[severity] || EF_CONFIRM_SEVERITY_ICONS.notice;
+        modal.append('<div class="ef-confirm-icon">' + icon + '</div>');
         modal.append($('<div class="ef-confirm-title"></div>').text(opts.title || 'Внимание'));
 
         var messageDiv = $('<div class="ef-confirm-message"></div>');
@@ -6631,11 +6648,12 @@ function efConfirm(message, opts) {
  *
  * @param {Event}  ev
  * @param {Element} buttonEl
- * @param {string} warning - целия (слят) текст на уорнинга
+ * @param {string} warning  - целия (слят) текст на уорнинга
+ * @param {string} [severity] - notice|warning|error (виж EF_CONFIRM_SEVERITY_ICONS), по подразбиране notice
  *
  * @return {boolean}
  */
-function contoConfirm(ev, buttonEl, warning) {
+function contoConfirm(ev, buttonEl, warning, severity) {
     if (buttonEl.__efContoConfirmed) {
         buttonEl.__efContoConfirmed = false;
         return true;
@@ -6646,7 +6664,7 @@ function contoConfirm(ev, buttonEl, warning) {
         if (ev.preventDefault) { ev.preventDefault(); }
     }
 
-    efConfirm(warning, {cssClass: 'ef-confirm-danger'}).then(function (ok) {
+    efConfirm(warning, {severity: severity}).then(function (ok) {
         if (ok) {
             buttonEl.__efContoConfirmed = true;
             buttonEl.click();

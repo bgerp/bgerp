@@ -228,12 +228,14 @@ class acc_plg_Contable extends core_Plugin
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
             $warning = $mvc->getContoWarning($rec->id, $rec->isContable);
+            $text = $warning['text'];
+            $severity = $warning['severity'];
 
-            // Един-единствен стилизиран модал (efConfirm) с целия текст от getContoWarning().
-            // 'warning' не се подава на addBtn нарочно - той би произвел нативен confirm(),
-            // несъвместим със стилизирания модал. Червения цвят (иначе слаган автоматично от
-            // core_Html::createBtn() само когато е подаден warning=) се пази ръчно.
-            $btnParams = array('id' => 'btnConto', 'onclick' => self::buildContoConfirmJs($warning), 'style' => 'color:#772200;');
+            // Един-единствен стилизиран модал (efConfirm) с целия текст от getContoWarning() -
+            // цветовете на самия модал следват severity, но бутонът остава винаги в стандартния
+            // "warning" цвят (color:#772200), както преди. 'warning' не се подава на addBtn
+            // нарочно - той би произвел нативен confirm(), несъвместим със стилизирания модал.
+            $btnParams = array('id' => 'btnConto', 'onclick' => self::buildContoConfirmJs($text, $severity), 'style' => 'color:' . self::getSeverityColor(self::SEVERITY_WARNING) . ';');
 
             $data->toolbar->addBtn($caption, $contoUrl, $btnParams, $contoAttr);
         }
@@ -292,6 +294,16 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
+     * Позволени severity нива за уорнинга на бутона за контиране - виж on_AfterGetContoWarning()/
+     * getSeverityColor() по-долу и съответните CSS класове (.ef-confirm-notice/-warning/-error) в
+     * css/common.scss.
+     */
+    const SEVERITY_NOTICE = 'notice';
+    const SEVERITY_WARNING = 'warning';
+    const SEVERITY_ERROR = 'error';
+
+
+    /**
      * Уорнинг на бутона за контиране/активиране.
      *
      * ЕДИНСТВЕНОТО събитие за текста на бутона за контиране/активиране - целият текст излиза в един
@@ -300,11 +312,21 @@ class acc_plg_Contable extends core_Plugin
      * събития - само това.
      *
      * Плъгинът винаги добавя стандартния въпрос "Наистина ли желаете документът да бъде
-     * контиран/активиран?". Ако конкретен документен клас вече е сложил нещо в $res - през
-     * собствен `getContoWarning_($id, $isContable)` (стандартната bgERP конвенция - вика се преди
-     * този After hook), то се пази и се комбинира със стандартния въпрос. Автоматично се добавя и
-     * проверката на вальора (датата) - `acc_Periods::checkDocumentDate()`, същата с която
-     * `on_AfterInputEditForm` предупреждава във формата.
+     * контиран/активиран?" с severity=notice (по подразбиране - "не толкова страшно", виж
+     * .ef-confirm-notice в css/common.scss). Ако конкретен документен клас вече е сложил нещо в
+     * $res - през собствен `getContoWarning_($id, $isContable)` (стандартната bgERP конвенция -
+     * вика се преди този After hook), то се пази и се комбинира със стандартния въпрос, а severity
+     * се вдига на 'warning'. `getContoWarning_()` може да върне:
+     *   - null/празно  - без допълнителен текст
+     *   - string       - допълнителен текст, severity автоматично 'warning'
+     *   - array('text' => ..., 'severity' => self::SEVERITY_ERROR|SEVERITY_WARNING) - за клас,
+     *     който изрично иска да сигнализира по-тежко ниво (напр. блокираща грешка, не просто
+     *     предупреждение)
+     * Автоматично се добавя и проверката на вальора (датата) - `acc_Periods::checkDocumentDate()`,
+     * същата с която `on_AfterInputEditForm` предупреждава във формата - тя също вдига severity на
+     * 'warning', ако вече не е по-високо.
+     *
+     * @return void $res се сменя на array('text' => string, 'severity' => string)
      */
     public static function on_AfterGetContoWarning($mvc, &$res, $id, $isContable)
     {
@@ -312,23 +334,63 @@ class acc_plg_Contable extends core_Plugin
         $handle = $mvc->getHandle($id);
         $question = "|Наистина ли желаете да бъде {$action}|* <b>#{$handle}</b>?";
 
-        $classWarning = $res;
+        $classResult = $res;
+        $classWarning = null;
+        $severity = self::SEVERITY_NOTICE;
+
+        if (is_array($classResult)) {
+            $classWarning = $classResult['text'] ?? null;
+            if (!empty($classResult['severity'])) {
+                $severity = $classResult['severity'];
+            } elseif (!empty($classWarning)) {
+                $severity = self::SEVERITY_WARNING;
+            }
+        } elseif (!empty($classResult)) {
+            $classWarning = $classResult;
+            $severity = self::SEVERITY_WARNING;
+        }
+
         $valior = $mvc->getValiorValue($id);
         $dateWarning = acc_Periods::checkDocumentDate($valior) ?: null;
+        if (!empty($dateWarning) && $severity == self::SEVERITY_NOTICE) {
+            $severity = self::SEVERITY_WARNING;
+        }
 
         // Точките, които идват допълнително към стандартния въпрос - в <ul><li> (позволени тагове
         // в efConfirm() - виж EF_CONFIRM_ALLOWED_TAGS в js/efCommon.js), за да могат да се
         // стилизират/декорират през CSS (.ef-confirm-message ul в css/common.scss), а не с ръчни
         // булет символи
         $extras = array_filter(array($classWarning, $dateWarning));
-        $res = $question;
+        $text = $question;
         if (!empty($extras)) {
             $items = '';
             foreach ($extras as $extra) {
                 $items .= "<li>{$extra}</li>";
             }
-            $res .= "<hr><ul class=\"ef-confirm-list\">{$items}</ul>";
+            $text .= "<hr><ul class=\"ef-confirm-list\">{$items}</ul>";
         }
+
+        $res = array('text' => $text, 'severity' => $severity);
+    }
+
+
+    /**
+     * Цвят на текста на бутона за контиране спрямо severity (виж on_AfterGetContoWarning()) - в тон
+     * със съответната CSS класа на модала (.ef-confirm-notice/-warning/-error в css/common.scss).
+     *
+     * @param string $severity self::SEVERITY_*
+     *
+     * @return string hex цвят
+     */
+    public static function getSeverityColor($severity)
+    {
+        $colors = array(
+            self::SEVERITY_NOTICE  => '#2e7d32',
+            self::SEVERITY_WARNING => '#772200',
+            self::SEVERITY_ERROR   => '#a30000',
+        );
+
+        return $colors[$severity] ?? $colors[self::SEVERITY_NOTICE];
     }
 
 
@@ -340,18 +402,20 @@ class acc_plg_Contable extends core_Plugin
      * Публичен е нарочно - ползва се и от пакети, които изцяло подменят стандартния бутон за
      * контиране (напр. bgfisc/plg/CashDocument, cash/Pko).
      *
-     * @param string $warning целия (слят) текст на уорнинга
+     * @param string $warning  целия (слят) текст на уорнинга
+     * @param string $severity self::SEVERITY_* (по подразбиране SEVERITY_NOTICE)
      *
      * @return string
      */
-    public static function buildContoConfirmJs($warning)
+    public static function buildContoConfirmJs($warning, $severity = self::SEVERITY_NOTICE)
     {
         // warning може да съдържа истински нови редове (виж on_AfterGetContoWarning() - сливане на
         // няколко уорнинга) - addcslashes() ги превръща в \n (escape-нат за JS низов литерал), а не
         // буквален нов ред, който би счупил синтаксиса на onclick-а
         $escaped = addcslashes(tr($warning), "'\\\n\r");
+        $sev = addcslashes($severity, "'\\");
 
-        return "if (!contoConfirm(event, this, '{$escaped}')) { return false; }";
+        return "if (!contoConfirm(event, this, '{$escaped}', '{$sev}')) { return false; }";
     }
 
     

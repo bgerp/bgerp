@@ -3952,18 +3952,25 @@ td.leftColImportant {
 	max-width: 420px;
 	min-width: 280px;
 	text-align: center;
-	border-top: 4px solid #772200;
+	border-top: 4px solid #888;
 
 	.ef-confirm-icon {
-		font-size: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		margin: 0 auto 10px auto;
+		border-radius: 50%;
+		background: #888;
+		color: #fff;
+		font-size: 20px;
 		line-height: 1;
-		color: #772200;
-		margin-bottom: 8px;
 	}
 	.ef-confirm-title {
 		font-weight: bold;
 		font-size: 1.3em;
-		color: #772200;
+		color: #888;
 		margin-bottom: 10px;
 	}
 	.ef-confirm-message {
@@ -4010,12 +4017,70 @@ td.leftColImportant {
 		}
 	}
 	.ef-confirm-ok {
-		background: #772200;
-		border-color: #772200;
+		background: #888;
+		border-color: #888;
 		color: #fff;
 
 		&:hover {
-			background: #5c1a00;
+			background: #666;
+		}
+	}
+
+	// Severity нива (виж acc_plg_Contable::SEVERITY_* / EF_CONFIRM_SEVERITY_ICONS в js/efCommon.js) -
+	// "не толкова страшно" (зелено, стандартния въпрос без допълнителни уорнинги), сегашния оранжев
+	// вариант (има допълнителен уорнинг), и по-тежък червен вариант (изрична грешка)
+	&.ef-confirm-notice {
+		border-top-color: #2e7d32;
+
+		.ef-confirm-icon {
+			background: #2e7d32;
+		}
+		.ef-confirm-title {
+			color: #2e7d32;
+		}
+		.ef-confirm-ok {
+			background: #2e7d32;
+			border-color: #2e7d32;
+
+			&:hover {
+				background: #1b5e20;
+			}
+		}
+	}
+	&.ef-confirm-warning {
+		border-top-color: #772200;
+
+		.ef-confirm-icon {
+			background: #772200;
+		}
+		.ef-confirm-title {
+			color: #772200;
+		}
+		.ef-confirm-ok {
+			background: #772200;
+			border-color: #772200;
+
+			&:hover {
+				background: #5c1a00;
+			}
+		}
+	}
+	&.ef-confirm-error {
+		border-top-color: #a30000;
+
+		.ef-confirm-icon {
+			background: #a30000;
+		}
+		.ef-confirm-title {
+			color: #a30000;
+		}
+		.ef-confirm-ok {
+			background: #a30000;
+			border-color: #a30000;
+
+			&:hover {
+				background: #7a0000;
+			}
 		}
 	}
 }
