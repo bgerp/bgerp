@@ -3562,7 +3562,7 @@ td.leftColImportant {
   max-width: 420px;
   min-width: 280px;
   text-align: center;
-  border-top: 4px solid #888888; }
+  border-top: 5px solid #888888; }
   .ef-confirm-modal .ef-confirm-icon {
     display: flex;
     align-items: center;
@@ -3582,7 +3582,7 @@ td.leftColImportant {
     margin-bottom: 10px; }
   .ef-confirm-modal .ef-confirm-message {
     color: #333333;
-    margin-bottom: 18px;
+    margin-bottom: 25px;
     font-size: 1em;
     white-space: pre-line; }
     .ef-confirm-modal .ef-confirm-message hr {
@@ -3591,16 +3591,17 @@ td.leftColImportant {
       margin: 10px 0 0 0; }
     .ef-confirm-modal .ef-confirm-message ul {
       text-align: left;
-      margin: 8px 0 0 0;
+      margin: 8px 0 0 20px;
       padding-left: 20px; }
     .ef-confirm-modal .ef-confirm-message li {
-      margin-bottom: 6px; }
+      margin-bottom: 6px;
+      font-size: 0.95em; }
       .ef-confirm-modal .ef-confirm-message li:last-child {
         margin-bottom: 0; }
   .ef-confirm-modal .ef-confirm-buttons {
     display: flex;
-    justify-content: center;
-    gap: 10px; }
+    gap: 10px;
+    justify-content: space-evenly; }
   .ef-confirm-modal .ef-confirm-btn {
     padding: 6px 18px;
     border-radius: 3px;
@@ -3608,7 +3609,7 @@ td.leftColImportant {
     background: #f2f2f2;
     cursor: pointer;
     font-size: 1em;
-    width: 80px;
+    width: 100px;
     text-shadow: none; }
     .ef-confirm-modal .ef-confirm-btn:hover {
       background: #e6e6e6; }
@@ -3630,16 +3631,16 @@ td.leftColImportant {
       .ef-confirm-modal.ef-confirm-notice .ef-confirm-ok:hover {
         background: #1b5e20; }
   .ef-confirm-modal.ef-confirm-warning {
-    border-top-color: #772200; }
+    border-top-color: #b75b00; }
     .ef-confirm-modal.ef-confirm-warning .ef-confirm-icon {
-      background: #772200; }
+      background: #b75b00; }
     .ef-confirm-modal.ef-confirm-warning .ef-confirm-title {
-      color: #772200; }
+      color: #b75b00; }
     .ef-confirm-modal.ef-confirm-warning .ef-confirm-ok {
-      background: #772200;
-      border-color: #772200; }
+      background: #b75b00;
+      border-color: #b75b00; }
       .ef-confirm-modal.ef-confirm-warning .ef-confirm-ok:hover {
-        background: #5c1a00; }
+        background: #994c00; }
   .ef-confirm-modal.ef-confirm-error {
     border-top-color: #a30000; }
     .ef-confirm-modal.ef-confirm-error .ef-confirm-icon {

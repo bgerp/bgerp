@@ -3930,6 +3930,10 @@ td.leftColImportant {
 /**
  * Стилизиран модал за потвърждение (efConfirm) - виж js/efCommon.js
  */
+$warningColor = #b75b00;
+$errorColor = #a30000;
+$noticeColor = #2e7d32;
+
 .ef-confirm-overlay {
 	position: fixed;
 	top: 0;
@@ -3952,7 +3956,7 @@ td.leftColImportant {
 	max-width: 420px;
 	min-width: 280px;
 	text-align: center;
-	border-top: 4px solid #888;
+	border-top: 5px solid #888;
 
 	.ef-confirm-icon {
 		display: flex;
@@ -3975,7 +3979,7 @@ td.leftColImportant {
 	}
 	.ef-confirm-message {
 		color: #333;
-		margin-bottom: 18px;
+		margin-bottom: 25px;
 		font-size: 1em;
 		white-space: pre-line;
 
@@ -3986,11 +3990,12 @@ td.leftColImportant {
 		}
 		ul {
 			text-align: left;
-			margin: 8px 0 0 0;
+			margin: 8px 0 0 20px;
 			padding-left: 20px;
 		}
 		li {
 			margin-bottom: 6px;
+			font-size: 0.95em;
 
 			&:last-child {
 				margin-bottom: 0;
@@ -3999,8 +4004,8 @@ td.leftColImportant {
 	}
 	.ef-confirm-buttons {
 		display: flex;
-		justify-content: center;
 		gap: 10px;
+		justify-content: space-evenly;
 	}
 	.ef-confirm-btn {
 		padding: 6px 18px;
@@ -4009,7 +4014,7 @@ td.leftColImportant {
 		background: #f2f2f2;
 		cursor: pointer;
 		font-size: 1em;
-		width: 80px;
+		width: 100px;
 		text-shadow: none;
 
 		&:hover {
@@ -4030,17 +4035,17 @@ td.leftColImportant {
 	// "не толкова страшно" (зелено, стандартния въпрос без допълнителни уорнинги), сегашния оранжев
 	// вариант (има допълнителен уорнинг), и по-тежък червен вариант (изрична грешка)
 	&.ef-confirm-notice {
-		border-top-color: #2e7d32;
+		border-top-color: $noticeColor;
 
 		.ef-confirm-icon {
-			background: #2e7d32;
+			background: $noticeColor;
 		}
 		.ef-confirm-title {
-			color: #2e7d32;
+			color: $noticeColor;
 		}
 		.ef-confirm-ok {
-			background: #2e7d32;
-			border-color: #2e7d32;
+			background: $noticeColor;
+			border-color: $noticeColor;
 
 			&:hover {
 				background: #1b5e20;
@@ -4048,35 +4053,35 @@ td.leftColImportant {
 		}
 	}
 	&.ef-confirm-warning {
-		border-top-color: #772200;
+		border-top-color: $warningColor;
 
 		.ef-confirm-icon {
-			background: #772200;
+			background: $warningColor;
 		}
 		.ef-confirm-title {
-			color: #772200;
+			color: $warningColor;
 		}
 		.ef-confirm-ok {
-			background: #772200;
-			border-color: #772200;
+			background: $warningColor;
+			border-color: $warningColor;
 
 			&:hover {
-				background: #5c1a00;
+				background: #994c00;
 			}
 		}
 	}
 	&.ef-confirm-error {
-		border-top-color: #a30000;
+		border-top-color: $errorColor;
 
 		.ef-confirm-icon {
-			background: #a30000;
+			background: $errorColor;
 		}
 		.ef-confirm-title {
-			color: #a30000;
+			color: $errorColor;
 		}
 		.ef-confirm-ok {
-			background: #a30000;
-			border-color: #a30000;
+			background: $errorColor;
+			border-color: $errorColor;
 
 			&:hover {
 				background: #7a0000;
