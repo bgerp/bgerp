@@ -286,6 +286,8 @@ class imgcolor_Analyzer extends core_Mvc
     /**
      * Разделен анализ: плътните цветове остават в стандартния списък
      * (без преливките), а преливките се натрупват в CMYK акумулатор.
+     * Покритието на плътните цветове е спрямо анализираната площ - същата
+     * скала като transition_coverage_percent, така че двете сумират до 100%.
      * Изображения без преливки дават байт-идентичен colors JSON с process().
      *
      * @param mixed      $source      ImageSource, stream, raw bytes или GD image
@@ -445,6 +447,10 @@ class imgcolor_Analyzer extends core_Mvc
                            . 'list the solid (spot-printable) colors with coverage percentages, and '
                            . 'report gradients/continuous-tone areas separately as a normalized CMYK '
                            . 'ink composition (c+m+y+k = 100) with transition area coverage. '
+                           . 'Solid "coverage_percent" and "transition_coverage_percent" are both '
+                           . 'shares of the whole analyzed (non-transparent, cropped) area and sum '
+                           . 'to 100, so a solid color covering a fifth of an image that is mostly '
+                           . 'gradient reads as 20, not 50. '
                            . '"cmyk" is null when the image contains no gradients.',
             'parameters' => array(
                 'type' => 'object',

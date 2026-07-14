@@ -630,10 +630,87 @@ try {
 echo "PASS: cli_separation section 4 (masked raster)\n";
 
 // ---------------------------------------------------------------------------
+// 4b) Solid coverage: percentages are shares of the analyzed area, not of the
+//     clustered (solid-only) area
+// ---------------------------------------------------------------------------
+
+require_once __DIR__ . '/../SolidCoverage.class.php';
+
+/** ClusterResult over a weights list, with a matching classification stub */
+function coverageFixture(array $weights, $transitionCount)
+{
+    $clusters = array();
+    foreach ($weights as $i => $w) {
+        // distinct centroids; the exact colors are irrelevant to the math
+        $rgb = new \ImageColorAnalyzer\Contracts\ColorRGBA(10 * ($i + 1), 20, 30, 255);
+        $clusters[] = new \ImageColorAnalyzer\Contracts\Cluster($rgb, array(0.0, 0.0, 0.0), $w);
+    }
+
+    $cls = new stdClass();
+    $cls->analyzedCount = array_sum($weights) + $transitionCount;
+    $cls->transitionCount = $transitionCount;
+
+    return array(new \ImageColorAnalyzer\Contracts\ClusterResult($clusters, array_sum($weights)), $cls);
+}
+
+/** @return float sum of coverage_percent */
+function coverageSum(array $colors)
+{
+    $sum = 0.0;
+    foreach ($colors as $c) {
+        $sum += $c['coverage_percent'];
+    }
+
+    return $sum;
+}
+
+// 200 solid px of one color + 800 transition px: the solid is 20% of the
+// image, not 100% of the solid area
+list($clusterResult, $cls) = coverageFixture(array(200), 800);
+$cov = imgcolor_SolidCoverage::calculate($clusterResult, $cls);
+approx($cov[0]['coverage_percent'], 20.0, 0.001, 'single solid over a mostly-transition image');
+
+// solids + transition coverage land on exactly 100.0 (no 99.9/100.1 artifacts
+// from independently rounded halves)
+list($clusterResult, $cls) = coverageFixture(array(211, 122, 34), 300);
+$cov = imgcolor_SolidCoverage::calculate($clusterResult, $cls);
+$transPct = round($cls->transitionCount / $cls->analyzedCount * 100, 1);
+approx(coverageSum($cov) + $transPct, 100.0, 0.001, 'solid + transition must sum to exactly 100.0');
+
+// ordering stays descending by share
+if ($cov[0]['coverage_percent'] < $cov[1]['coverage_percent'] || $cov[1]['coverage_percent'] < $cov[2]['coverage_percent']) {
+    fail('coverage must be sorted descending: ' . json_encode($cov));
+}
+
+// no transitions: the whole analyzed area is solid, so the list sums to 100.0
+// exactly as the library calculator does
+list($clusterResult, $cls) = coverageFixture(array(211, 122, 34), 0);
+$cov = imgcolor_SolidCoverage::calculate($clusterResult, $cls);
+approx(coverageSum($cov), 100.0, 0.001, 'without transitions solids must sum to 100.0');
+
+$libCoverage = new \ImageColorAnalyzer\CoverageCalculator\PercentageCoverageCalculator();
+$expected = array();
+foreach ($libCoverage->calculate($clusterResult) as $item) {
+    $expected[] = $item->toArray();
+}
+if ($cov !== $expected) {
+    fail('without transitions the result must equal the library calculator: ' . json_encode($cov) . ' vs ' . json_encode($expected));
+}
+
+// degenerate inputs
+list($clusterResult, $cls) = coverageFixture(array(), 0);
+if (imgcolor_SolidCoverage::calculate($clusterResult, $cls) !== array()) {
+    fail('empty cluster list must yield no colors');
+}
+
+echo "PASS: cli_separation section 4b (solid coverage)\n";
+
+// ---------------------------------------------------------------------------
 // 5) Separation orchestrator: byte parity on solid inputs, true separation
 //    on mixed inputs, transparency, determinism, performance probe
 // ---------------------------------------------------------------------------
 
+require_once __DIR__ . '/../SolidCoverage.class.php';
 require_once __DIR__ . '/../Separation.class.php';
 
 $JSON_FLAGS = JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_PRESERVE_ZERO_FRACTION;
@@ -731,11 +808,20 @@ foreach ($sep->colors as $c) {
         fail('mixed: unexpected pseudo-solid from the gradient band: ' . $c['color']);
     }
 }
+// solid percentages are shares of the whole analyzed area, on the same scale
+// as transition_coverage_percent: the two sum to exactly 100.0
 $sum = 0.0;
 foreach ($sep->colors as $c) {
     $sum += $c['coverage_percent'];
 }
-approx($sum, 100.0, 0.11, 'mixed: solid coverage still sums to ~100 over the solid area');
+approx($sum + $sep->cmyk['transition_coverage_percent'], 100.0, 0.001, 'mixed: solid + transition coverage must sum to exactly 100.0');
+// each solid keeps its own share of the image, not of the solid area: the two
+// bands are ~1/3 of the image each, and the gradient band takes the rest
+foreach ($sep->colors as $c) {
+    if ($c['coverage_percent'] > 45.0) {
+        fail('mixed: solid share inflated by a solid-only denominator: ' . $c['color'] . " at {$c['coverage_percent']}%");
+    }
+}
 
 // gradient-only image: CMYK covers nearly everything
 $im = mkImg(128, 64);

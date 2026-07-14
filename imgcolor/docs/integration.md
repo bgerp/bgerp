@@ -16,8 +16,10 @@ thresholds: `docs/superpowers/specs/2026-07-13-imgcolor-cmyk-separation-design.m
   - `imgcolor_Analyzer::process($bytesOrSource)` -> ProcessedImageResult (json + cropped PNG bytes)
   - `imgcolor_Analyzer::processSeparated($bytesOrSource)` -> stdClass
     `{json, cmykJson, croppedImage, boundingBox, wasCropped}`. `json` lists
-    only solid colors (percentages over the solid+AA area, still summing to
-    100); `cmykJson` is null when the image has no transitions, otherwise:
+    only solid colors, each as a percentage **of the whole analyzed area** -
+    the same denominator as `transition_coverage_percent`, so the solid list
+    and the transition coverage sum to exactly 100.0 (`imgcolor_SolidCoverage`).
+    `cmykJson` is null when the image has no transitions, otherwise:
 
     ```json
     {
@@ -101,6 +103,7 @@ Profiles are shared records governed by the existing `imgcolor`, `ceo`, and
 | `imgcolor_Analyzer::makeAnalyzer()` | `PublicAPI\AnalyzerFactory::createDefault()` or explicit Imagick wiring | GD is default; Imagick still depends on GD for PNG decode/encode paths. |
 | `imgcolor_Analyzer::analyze*()` | `PublicAPI\ImageColorAnalyzer::analyze*()` | Returns the library array/JSON unchanged. |
 | `imgcolor_Analyzer::process*()` | `PublicAPI\ImageColorAnalyzer::process*()` | Returns the library `ProcessedImageResult` DTO unchanged. |
+| `imgcolor_SolidCoverage` | replaces `CoverageCalculator\PercentageCoverageCalculator` on the separated path | Same rounding, whole-analyzed-area denominator (see the v0.4 semantics note). The library class stays in use on the legacy `process()`/`analyze*()` path. |
 | `imgcolor_Analyzer::analyzeFileHandle($fh)` | `fileman::extractStr($fh)` -> `analyzeAsJson($bytes)` | Machine/LLM entry point; input is a fileman handle and output is JSON. |
 | `imgcolor_Demo` | `imgcolor_Analyzer::process($bytes, $options)` | Interactive analysis/calibration UI and fileman file-action button; persists every run via `imgcolor_Analyses::createFromResult()`. |
 | `imgcolor_Calibration` | `Options\CropOptions`, `Options\ClusterOptions`, `Options\AnalyzerOptions` | Authoritative field/default/record mapping through `getDefaultValues()`, `getValues()`, `applyValues()`, and `buildOptions()`. Standalone-testable: `php imgcolor/tests/cli_calibration.php`. |
@@ -203,11 +206,24 @@ decode path strips them); sources are assumed sRGB.
 ### Semantics note (v0.4)
 
 For images that contain transitions, the solid-color list changes meaning:
-transition pixels no longer surface as pseudo-solid swatches, and solid
-percentages are relative to the solid+AA area only. Anti-aliased edges and
-narrow blurred edges stay in the solid path (absorbed by cluster merging,
-as before). Analysis history records created before v0.4 keep their old
-semantics; they are not migrated.
+transition pixels no longer surface as pseudo-solid swatches, and every solid
+percentage is a share of the whole analyzed (non-transparent, cropped) area
+rather than of the solid area. On an image that is one third green, one third
+gradient, one third blue, the solids read 33.8% and 33.9% with the transitions
+at 32.3% - not 50/50 with the gradient invisible in the denominator. Solid
+percentages therefore no longer sum to 100 on their own; they sum to
+`100 - transition_coverage_percent`.
+
+The library's `PercentageCoverageCalculator` cannot express this (it always
+normalizes to 100 over the pixels handed to the clusterer, and the transition
+pixels are masked out before that), so the wrapper computes coverage in
+`imgcolor_SolidCoverage` instead - same largest-remainder rounding and
+tie-breaks, different denominator. With no transitions the two denominators
+coincide and the output is identical to the library's (regression-tested).
+
+Anti-aliased edges and narrow blurred edges stay in the solid path (absorbed
+by cluster merging, as before). Analysis history records created before v0.4
+keep their old semantics; they are not migrated.
 
 ## Tests
 

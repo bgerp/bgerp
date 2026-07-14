@@ -309,12 +309,21 @@ class imgcolor_Demo extends core_Manager
         }
 
         $swatches = '';
+        $solidTotal = 0.0;
         foreach ($colors as $c) {
             $hex = preg_replace('/[^#0-9A-Fa-f]/', '', (string) $c['color']);
             $pct = (float) $c['coverage_percent'];
+            $solidTotal += $pct;
             $swatches .= "<div style='display:flex;align-items:center;gap:8px;margin:2px 0'>"
                 . "<span style='display:inline-block;width:20px;height:20px;border:1px solid #999;background:{$hex}'></span>"
                 . "<code>{$hex}</code> - {$pct}%</div>";
+        }
+
+        // Заглавие на скалата: процентите са спрямо анализираната площ, както
+        // и покритието на преливките - двата блока сумират до 100%.
+        if ($swatches !== '') {
+            $solidTotal = round($solidTotal, 1);
+            $swatches = '<b>' . tr('Плътни цветове') . ": {$solidTotal}% " . tr('от анализираната площ') . '</b>' . $swatches;
         }
 
         $imgTag = '';
