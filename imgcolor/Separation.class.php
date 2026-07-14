@@ -4,8 +4,9 @@
 /**
  * bgERP-независим оркестратор на разделния анализ: изрязване (библиотечен
  * cropper) -> класификация на преливките -> клъстеризиране на плътните
- * цветове (непроменен библиотечен път; при липса на преливки оригиналният
- * растер се подава директно за байт-идентичен резултат) -> CMYK акумулация.
+ * цветове (непроменен библиотечен клъстеризатор; при липса на преливки
+ * оригиналният растер се подава директно за байт-идентичен резултат) ->
+ * покритие спрямо анализираната площ -> CMYK акумулация.
  *
  * Тества се директно с `php imgcolor/tests/cli_separation.php`.
  *
@@ -48,14 +49,11 @@ class imgcolor_Separation
         );
         $clusters = $clusterer->cluster($clusterInput, $options->cluster);
 
-        $colors = array();
-        $coverage = new \ImageColorAnalyzer\CoverageCalculator\PercentageCoverageCalculator();
-        foreach ($coverage->calculate($clusters) as $item) {
-            $colors[] = $item->toArray();
-        }
-
         $result = new stdClass();
-        $result->colors = $colors;
+        // Покритието е спрямо анализираната площ, а не спрямо площта на
+        // плътните пиксели - иначе преливките изчезват от знаменателя и
+        // плътните проценти се раздуват (imgcolor_SolidCoverage).
+        $result->colors = imgcolor_SolidCoverage::calculate($clusters, $classification);
         $result->cmyk = imgcolor_CmykAccumulator::accumulate(
             $crop->raster,
             $classification,
