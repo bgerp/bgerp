@@ -3579,24 +3579,24 @@ td.leftColImportant {
   .ef-confirm-modal .ef-confirm-title {
     font-weight: bold;
     font-size: 1.3em;
-    color: #888888;
-    margin-bottom: 10px; }
+    color: #888888; }
   .ef-confirm-modal .ef-confirm-message {
     color: #333333;
+    padding-top: 15px;
     margin-bottom: 25px;
     font-size: 1em;
     white-space: pre-line; }
     .ef-confirm-modal .ef-confirm-message hr {
       border: none;
       border-top: 1px solid #dddddd;
-      margin: 10px 0; }
+      margin: 15px 0; }
     .ef-confirm-modal .ef-confirm-message ul {
       text-align: left;
       margin: 8px 0 0 20px;
-      padding-left: 20px; }
+      padding-left: 0; }
     .ef-confirm-modal .ef-confirm-message li {
       margin-bottom: 6px;
-      font-size: 0.95em; }
+      list-style: square; }
       .ef-confirm-modal .ef-confirm-message li:last-child {
         margin-bottom: 0; }
   .ef-confirm-modal .ef-confirm-buttons {
@@ -3623,9 +3623,8 @@ td.leftColImportant {
   .ef-confirm-modal.ef-confirm-notice {
     border-top-color: #2e7d32; }
     .ef-confirm-modal.ef-confirm-notice .ef-confirm-icon {
-      background: #f1f1f1;
-      border: 2px solid #2e7d32;
-      color: #2e7d32; }
+      background: #2e7d32;
+      color: #f1f1f1; }
     .ef-confirm-modal.ef-confirm-notice .ef-confirm-title {
       color: #2e7d32; }
     .ef-confirm-modal.ef-confirm-notice .ef-confirm-ok {

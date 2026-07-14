@@ -3976,10 +3976,11 @@ $noticeColor = #2e7d32;
 		font-weight: bold;
 		font-size: 1.3em;
 		color: #888;
-		margin-bottom: 10px;
 	}
 	.ef-confirm-message {
+
 		color: #333;
+		padding-top: 15px;
 		margin-bottom: 25px;
 		font-size: 1em;
 		white-space: pre-line;
@@ -3987,16 +3988,16 @@ $noticeColor = #2e7d32;
 		hr {
 			border: none;
 			border-top: 1px solid #ddd;
-			margin: 10px 0;
+			margin: 15px 0;
 		}
 		ul {
 			text-align: left;
 			margin: 8px 0 0 20px;
-			padding-left: 20px;
+			padding-left: 0;
 		}
 		li {
 			margin-bottom: 6px;
-			font-size: 0.95em;
+			list-style: square;
 
 			&:last-child {
 				margin-bottom: 0;
@@ -4039,9 +4040,8 @@ $noticeColor = #2e7d32;
 		border-top-color: $noticeColor;
 
 		.ef-confirm-icon {
-			background: #f1f1f1;
-			border: 2px solid $noticeColor;
-			color: $noticeColor;
+			background: $noticeColor;
+			color: #f1f1f1;
 		}
 		.ef-confirm-title {
 			color: $noticeColor;
