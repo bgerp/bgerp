@@ -57,6 +57,11 @@ class imgcolor_Separation
         $result = new stdClass();
         $result->colors = $colors;
         $result->cmyk = imgcolor_CmykAccumulator::accumulate($crop->raster, $classification, $converter);
+        if ($result->cmyk !== null) {
+            // Действително използваните (нормализирани) прагове - за
+            // одитируемост, както conversion блока на конвертора.
+            $result->cmyk['classifier'] = $classification->params;
+        }
         $result->crop = $crop;
         $result->classification = $classification;
 

@@ -163,7 +163,7 @@ class imgcolor_Demo extends core_Manager
                     }
 
                     $bytes = fileman::extractStr($form->rec->imageFile);
-                    $result = imgcolor_Analyzer::processSeparated($bytes, $options);
+                    $result = imgcolor_Analyzer::processSeparated($bytes, $options, imgcolor_Analyzer::getTransParams($profileRec));
                     $resultHtml = self::renderResult($result);
 
                     self::persistResult($form->rec->imageFile, $form->rec->profileId, $result, $calibrationValues);

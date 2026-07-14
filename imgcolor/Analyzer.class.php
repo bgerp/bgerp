@@ -241,13 +241,16 @@ class imgcolor_Analyzer extends core_Mvc
 
 
     /**
-     * Праговете за класификация на преливките от глобалната конфигурация.
+     * Праговете за класификация на преливките: глобалната конфигурация,
+     * при подаден профилен запис - с наслагани непразни trans* override-и.
+     *
+     * @param stdClass|null $profileRec запис на imgcolor_Profiles, или null
      *
      * @return array за imgcolor_TransitionClassifier::classify()
      */
-    public static function getTransParams()
+    public static function getTransParams($profileRec = null)
     {
-        return array(
+        $params = array(
             'span' => (int) imgcolor_Setup::get('TRANS_SPAN'),
             'noiseDeltaE' => (float) imgcolor_Setup::get('TRANS_NOISE_DELTAE'),
             'coherenceMin' => (float) imgcolor_Setup::get('TRANS_COHERENCE_MIN'),
@@ -256,6 +259,12 @@ class imgcolor_Analyzer extends core_Mvc
             'edgeDeltaE' => (float) imgcolor_Setup::get('TRANS_EDGE_DELTAE'),
             'minCoverage' => (float) imgcolor_Setup::get('TRANS_MIN_COVERAGE'),
         );
+
+        if ($profileRec !== null) {
+            $params = imgcolor_TransitionClassifier::applyOverrides($params, $profileRec);
+        }
+
+        return $params;
     }
 
 
@@ -279,11 +288,14 @@ class imgcolor_Analyzer extends core_Mvc
      * (без преливките), а преливките се натрупват в CMYK акумулатор.
      * Изображения без преливки дават байт-идентичен colors JSON с process().
      *
-     * @param mixed $source ImageSource, stream, raw bytes или GD image
+     * @param mixed      $source      ImageSource, stream, raw bytes или GD image
+     * @param mixed      $options     AnalyzerOptions или null за глобалната конфигурация
+     * @param array|null $transParams прагове за класификацията, или null за
+     *                                getTransParams() от глобалната конфигурация
      *
      * @return stdClass {json, cmykJson, croppedImage, boundingBox, wasCropped}
      */
-    public static function processSeparated($source, $options = null)
+    public static function processSeparated($source, $options = null, $transParams = null)
     {
         self::registerAutoload();
         self::requireGd();
@@ -300,7 +312,7 @@ class imgcolor_Analyzer extends core_Mvc
             $sep = imgcolor_Separation::process(
                 $raster,
                 $options,
-                self::getTransParams(),
+                $transParams === null ? self::getTransParams() : $transParams,
                 new imgcolor_CmykConverter(self::getCmykConfig())
             );
 

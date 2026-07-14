@@ -74,6 +74,22 @@ class imgcolor_TransitionClassifier
 
 
     /**
+     * Съпоставяне на override полетата в профилен запис (imgcolor_Profiles)
+     * с имената на параметрите. Празна стойност (null/'') означава
+     * "използвай глобалната конфигурация".
+     */
+    public static $overrideFields = array(
+        'transSpan' => 'span',
+        'transNoiseDeltaE' => 'noiseDeltaE',
+        'transCoherenceMin' => 'coherenceMin',
+        'transAaRadius' => 'aaRadius',
+        'transMinSeed' => 'minSeed',
+        'transEdgeDeltaE' => 'edgeDeltaE',
+        'transMinCoverage' => 'minCoverage',
+    );
+
+
+    /**
      * @var \ImageColorAnalyzer\Color\ColorConverter|null
      */
     private static $converter;
@@ -139,6 +155,33 @@ class imgcolor_TransitionClassifier
         }
 
         return $p;
+    }
+
+
+    /**
+     * Наслагва override стойности от профилен запис или масив върху базови
+     * параметри: само trans* полетата, само непразните стойности.
+     * Валидацията остава на normalizeParams() при употреба.
+     *
+     * @param array        $params базови параметри (напр. от глобалната конфигурация)
+     * @param object|array $source запис на imgcolor_Profiles или масив
+     *
+     * @return array
+     */
+    public static function applyOverrides(array $params, $source)
+    {
+        foreach (self::$overrideFields as $field => $param) {
+            if (is_array($source)) {
+                $value = isset($source[$field]) ? $source[$field] : null;
+            } else {
+                $value = isset($source->{$field}) ? $source->{$field} : null;
+            }
+            if ($value !== null && $value !== '') {
+                $params[$param] = $value;
+            }
+        }
+
+        return $params;
     }
 
 
@@ -368,6 +411,7 @@ class imgcolor_TransitionClassifier
 
         $result = new stdClass();
         $result->mask = $mask;
+        $result->params = $p;
         $result->width = $w;
         $result->height = $h;
         $result->analyzedCount = $analyzed;

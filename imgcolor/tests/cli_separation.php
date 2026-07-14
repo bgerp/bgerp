@@ -732,3 +732,75 @@ printf("PERF: 1200x800 mixed separation in %.2fs, peak %.0f MB, transition %.1f%
     microtime(true) - $t0, memory_get_peak_usage(true) / 1048576, $sep->cmyk === null ? 0 : $sep->cmyk['transition_coverage_percent']);
 
 echo "PASS: cli_separation section 5 (orchestrator)\n";
+
+// ---------------------------------------------------------------------------
+// 6) Profile overrides of transition thresholds + classifier audit block
+// ---------------------------------------------------------------------------
+
+$defaults = imgcolor_TransitionClassifier::$defaults;
+
+// object source (as an imgcolor_Profiles record): empty values are ignored
+$rec = new stdClass();
+$rec->transSpan = 6;
+$rec->transNoiseDeltaE = '';
+$rec->transMinCoverage = 0.25;
+$rec->unrelated = 99;
+$merged = imgcolor_TransitionClassifier::applyOverrides($defaults, $rec);
+if ($merged['span'] !== 6 || $merged['minCoverage'] !== 0.25) {
+    fail('object overrides must apply non-empty trans* fields');
+}
+if ($merged['noiseDeltaE'] !== $defaults['noiseDeltaE']) {
+    fail('empty override must keep the base value');
+}
+if (array_keys($merged) !== array_keys($defaults)) {
+    fail('overrides must not introduce foreign keys');
+}
+
+// array source works the same way
+$merged = imgcolor_TransitionClassifier::applyOverrides($defaults, array('transAaRadius' => 5));
+if ($merged['aaRadius'] !== 5) {
+    fail('array overrides must apply');
+}
+
+// invalid override values surface through normalizeParams with the field name
+try {
+    imgcolor_TransitionClassifier::normalizeParams(
+        imgcolor_TransitionClassifier::applyOverrides($defaults, array('transSpan' => 99))
+    );
+    fail('out-of-range override must be rejected');
+} catch (InvalidArgumentException $e) {
+    if (strpos($e->getMessage(), 'span') === false) {
+        fail('override rejection must name the parameter');
+    }
+}
+
+// the cmyk payload records the actually used (normalized) classifier params
+$im = mkImg(128, 64);
+for ($x = 0; $x < 128; $x++) {
+    $c = lerpC(array(200, 30, 30), array(30, 60, 200), $x / 127);
+    for ($y = 0; $y < 64; $y++) {
+        setPx($im, $x, $y, $c[0], $c[1], $c[2]);
+    }
+}
+$sep = separateGd($im);
+if (!isset($sep->cmyk['classifier']) || $sep->cmyk['classifier']['span'] !== $defaults['span']) {
+    fail('cmyk payload must embed the normalized classifier params');
+}
+
+// a prohibitive noise-floor override folds everything back to the solid path
+$loader = new \ImageColorAnalyzer\ImageLoader\GdImageLoader();
+$resolver = new \ImageColorAnalyzer\ImageLoader\SourceResolver();
+ob_start();
+imagepng($im);
+$raster = $loader->load($resolver->resolve(ob_get_clean()));
+$sep = imgcolor_Separation::process(
+    $raster,
+    new \ImageColorAnalyzer\Options\AnalyzerOptions(),
+    imgcolor_TransitionClassifier::applyOverrides($defaults, array('transNoiseDeltaE' => 20.0)),
+    new imgcolor_CmykConverter(array('engine' => 'math', 'rgbProfile' => '', 'cmykProfile' => ''))
+);
+if ($sep->cmyk !== null) {
+    fail('noiseDeltaE=20 override must suppress the CMYK result');
+}
+
+echo "PASS: cli_separation section 6 (profile overrides)\n";
