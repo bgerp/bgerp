@@ -3,13 +3,42 @@
 ## What this package is
 A BGERP wrapper around the vendored, unmodified `image-color-analyzer`
 library. It crops the near-white background of a PNG/JPEG and reports the
-principal print colors with coverage percentages.
+principal print colors with coverage percentages. Since v0.4 it can also
+*separate* solid (spot-printable) colors from transitions (преливки):
+gradient/continuous-tone pixels are excluded from the solid list and
+accumulated into a CMYK ink-composition result instead. Design and calibrated
+thresholds: `docs/superpowers/specs/2026-07-13-imgcolor-cmyk-separation-design.md`.
 
 ## Entry points
 - Service (any PHP caller / other module):
   - `imgcolor_Analyzer::analyzePath($path)` / `::analyze($bytesOrSource)`
   - `imgcolor_Analyzer::analyzeAsJson(...)` / `::analyzePathAsJson(...)`
   - `imgcolor_Analyzer::process($bytesOrSource)` -> ProcessedImageResult (json + cropped PNG bytes)
+  - `imgcolor_Analyzer::processSeparated($bytesOrSource)` -> stdClass
+    `{json, cmykJson, croppedImage, boundingBox, wasCropped}`. `json` lists
+    only solid colors (percentages over the solid+AA area, still summing to
+    100); `cmykJson` is null when the image has no transitions, otherwise:
+
+    ```json
+    {
+      "transition_coverage_percent": 31.2,
+      "composition_percent": {"c": 41.3, "m": 30.1, "y": 20.4, "k": 8.2},
+      "ink_total": 12345.678,
+      "raw_channels": {"c": 1.0, "m": 2.0, "y": 3.0, "k": 4.0},
+      "conversion": {
+        "engine": "math",
+        "source_profile": "assumed-sRGB",
+        "destination_profile": null,
+        "fallback": true,
+        "version": 1
+      }
+    }
+    ```
+
+    `composition_percent` sums to exactly 100.0 (largest-remainder rounding);
+    when `ink_total` is 0 (e.g. a white-to-transparent fade) all four values
+    are 0.0. For images without genuine transitions `json` is byte-identical
+    to the legacy `process()` output (regression-tested).
 - LLM tool:
   - `imgcolor_Analyzer::analyzeFileHandle($fh)` -> JSON
   - `imgcolor_Analyzer::getToolDefinition()` -> `{name, description, parameters}`
@@ -127,6 +156,48 @@ value comes from*.
 | `IMGCOLOR_CLUSTER_SEED` | `1` | `ClusterOptions::$seed` |
 | `IMGCOLOR_CLUSTER_ALPHA_THRESHOLD` | `8` | `ClusterOptions::$alphaThreshold` |
 
+### Transition classification (CMYK separation)
+
+All thresholds feed `imgcolor_TransitionClassifier` via
+`imgcolor_Analyzer::getTransParams()`; ranges are validated on options build
+and by `imgcolor_Setup::checkConfig()`. Calibration evidence for the defaults
+is in the design spec (§4).
+
+| Constant | Default | Units / effect |
+|---|---:|---|
+| `IMGCOLOR_TRANS_SPAN` | `4` | px; sampling distance of the coherent-drift test. Detectability bound: gradients shallower than ~noiseDeltaE/span ΔE per px read as solid. |
+| `IMGCOLOR_TRANS_NOISE_DELTAE` | `1.0` | CIE76 ΔE (+alpha%); minimum average half-difference to count as changing |
+| `IMGCOLOR_TRANS_COHERENCE_MIN` | `0.4` | cosine; both half-differences must point the same way (rejects JPEG noise/ringing) |
+| `IMGCOLOR_TRANS_AA_RADIUS` | `3` | px; erosion radius - bands narrower than 2r+1 px (AA ramps, blurred edges) never become transitions |
+| `IMGCOLOR_TRANS_MIN_SEED` | `20` | px; minimum changing pixels in the erosion window to seed a region |
+| `IMGCOLOR_TRANS_EDGE_DELTAE` | `10.0` | ΔE; reconstruction/dilation stops at harder edges |
+| `IMGCOLOR_TRANS_MIN_COVERAGE` | `0.005` | fraction; smaller transition areas are folded back to the solid path |
+
+### CMYK conversion
+
+| Constant | Default | Meaning |
+|---|---:|---|
+| `IMGCOLOR_CMYK_ENGINE` | `auto` | `auto` uses Imagick+ICC when available and configured, else the documented math formula (recorded as `fallback: true`); `imagick` requires ICC and fails loudly; `math` forces the formula |
+| `IMGCOLOR_CMYK_ICC_RGB_PROFILE` | empty | path to the source RGB ICC profile (e.g. sRGB IEC61966-2.1) |
+| `IMGCOLOR_CMYK_ICC_CMYK_PROFILE` | empty | path to the destination CMYK ICC profile (e.g. ECI ISOcoated_v2_300) |
+
+No ICC profiles ship with the package - obtain them separately (the ECI
+profiles are freely redistributable from eci.org) and point the constants at
+the files. The result metadata records the profile basenames + MD5 for
+reproducibility. The math formula (`K = 1 - max(R',G',B')`, `C = (1-R'-K)/(1-K)`,
+...) is an approximation and is **not** press-accurate; treat its output as an
+indicator, not a proof. Embedded source profiles are not honored (the GD
+decode path strips them); sources are assumed sRGB.
+
+### Semantics note (v0.4)
+
+For images that contain transitions, the solid-color list changes meaning:
+transition pixels no longer surface as pseudo-solid swatches, and solid
+percentages are relative to the solid+AA area only. Anti-aliased edges and
+narrow blurred edges stay in the solid path (absorbed by cluster merging,
+as before). Analysis history records created before v0.4 keep their old
+semantics; they are not migrated.
+
 ## Tests
 
 The framework-free regressions require PHP 8.2+ with GD and can run without a
@@ -138,11 +209,19 @@ php imgcolor/tests/cli_calibration.php
 php imgcolor/tests/cli_analysis_snapshot.php
 php imgcolor/tests/cli_init_signature.php
 php imgcolor/tests/cli_parity.php
+php imgcolor/tests/cli_separation.php
 ```
 
+`cli_separation.php` carries the full classifier fixture battery (solid, AA,
+blurred edges, JPEG noise/ringing, all gradient families, alpha fades, mixed
+scenes), the CMYK converter/accumulator units, the solid-path byte-parity
+regression, and a performance probe. `imgcolor_TransitionClassifier::renderMaskPng()`
+produces a diagnostic class-mask PNG (solid=gray, AA=red, transition=blue)
+for inspecting disputed classifications.
+
 The web unit runner (`?Ctr=unit_Tests`) provides the Fileman/database-backed
-coverage in `imgcolor_tests_Analyzer`, `imgcolor_tests_Profiles`, and
-`imgcolor_tests_Analyses`.
+coverage in `imgcolor_tests_Analyzer`, `imgcolor_tests_Profiles`,
+`imgcolor_tests_Analyses`, and `imgcolor_tests_Separation`.
 
 ## Updating the library
 Replace `lib/image-color-analyzer/src/` with the new upstream `src/`, update
