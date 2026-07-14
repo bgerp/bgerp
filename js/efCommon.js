@@ -6569,10 +6569,23 @@ function sanitizeEfConfirmHtml(html) {
  * Severity нива за efConfirm() - CSS класове .ef-confirm-notice/-warning/-error в css/common.scss
  * (виж acc_plg_Contable::SEVERITY_* в acc/plg/Contable.class.php - огледални имена).
  */
+// Обикновени текстови символи, не цветни emoji glyph-ове (emoji си имат собствен вграден цвят,
+// който не следва CSS color - виж .ef-confirm-icon в css/common.scss, което оцветява border+текста)
 var EF_CONFIRM_SEVERITY_ICONS = {
-    notice:  '&#8505;',  // ℹ
-    warning: '&#9888;',  // ⚠
-    error:   '&#10060;'  // ❌
+    notice:  '?',
+    warning: '!',
+    error:   '&#10005;' // ✕
+};
+
+
+/**
+ * Заглавие по подразбиране на модала по severity - notice няма заглавие (само иконка+съобщение),
+ * освен ако викащия код изрично подаде opts.title.
+ */
+var EF_CONFIRM_SEVERITY_TITLES = {
+    notice:  '',
+    warning: 'Внимание',
+    error:   'Внимание'
 };
 
 
@@ -6584,10 +6597,13 @@ var EF_CONFIRM_SEVERITY_ICONS = {
  * <span>/<div>, само с class атрибут. Всичко останало се показва като чист текст.
  *
  * @param {string} message  текст на съобщението (може да съдържа позволен HTML)
- * @param {object} [opts]   {title, okText, cancelText, severity, cssClass}
+ * @param {object} [opts]   {title, okText, cancelText, severity, cssClass, okOnly}
  *                          severity - notice|warning|error (по подразбиране notice), определя
  *                          цвета/иконата на модала - виж EF_CONFIRM_SEVERITY_ICONS по-горе.
  *                          cssClass - допълнителна класа, ако е нужна извън severity.
+ *                          okOnly   - true = само бутон "ОК" (без Отказ) - за чисто информативни
+ *                          съобщения (напр. блокираща грешка), не за истинско потвърждение - виж
+ *                          efAlert() по-долу.
  */
 function efConfirm(message, opts) {
     opts = opts || {};
@@ -6603,16 +6619,24 @@ function efConfirm(message, opts) {
 
         var icon = EF_CONFIRM_SEVERITY_ICONS[severity] || EF_CONFIRM_SEVERITY_ICONS.notice;
         modal.append('<div class="ef-confirm-icon">' + icon + '</div>');
-        modal.append($('<div class="ef-confirm-title"></div>').text(opts.title || 'Внимание'));
+
+        var title = (opts.title !== undefined) ? opts.title : (EF_CONFIRM_SEVERITY_TITLES[severity] ?? 'Внимание');
+        if (title) {
+            modal.append($('<div class="ef-confirm-title"></div>').text(title));
+        }
 
         var messageDiv = $('<div class="ef-confirm-message"></div>');
         messageDiv[0].appendChild(sanitizeEfConfirmHtml(message));
         modal.append(messageDiv);
 
         var btnRow = $('<div class="ef-confirm-buttons"></div>');
-        var cancelBtn = $('<button type="button" class="ef-confirm-btn ef-confirm-cancel"></button>').text(opts.cancelText || 'Отказ');
+        var cancelBtn = null;
+        if (!opts.okOnly) {
+            cancelBtn = $('<button type="button" class="ef-confirm-btn ef-confirm-cancel"></button>').text(opts.cancelText || 'Отказ');
+            btnRow.append(cancelBtn);
+        }
         var okBtn = $('<button type="button" class="ef-confirm-btn ef-confirm-ok"></button>').text(opts.okText || 'Да');
-        btnRow.append(cancelBtn).append(okBtn);
+        btnRow.append(okBtn);
         modal.append(btnRow);
 
         function close(result) {
@@ -6622,11 +6646,11 @@ function efConfirm(message, opts) {
             resolve(result);
         }
 
-        cancelBtn.on('click', function () { close(false); });
+        if (cancelBtn) { cancelBtn.on('click', function () { close(false); }); }
         okBtn.on('click', function () { close(true); });
-        overlay.on('click', function () { close(false); });
+        overlay.on('click', function () { close(!!opts.okOnly); });
         $(document).on('keydown.efConfirm', function (e) {
-            if (e.key === 'Escape') { close(false); }
+            if (e.key === 'Escape') { close(!!opts.okOnly); }
             if (e.key === 'Enter') { close(true); }
         });
 
@@ -6672,6 +6696,29 @@ function contoConfirm(ev, buttonEl, warning, severity) {
             if (window.jQuery) { jQuery(buttonEl).blur(); }
         }
     });
+
+    return false;
+}
+
+
+/**
+ * Чисто информативен модал (SEVERITY_ERROR, само бутон "ОК", без "Отказ") - generic заместител на
+ * нативния alert() за бутони за грешка (виж core_Html::createErrBtn(),
+ * acc_plg_Contable::buildContoAlertJs()). За разлика от contoConfirm() - НЕ преиграва клика след
+ * затваряне, натискането на "ОК" просто затваря модала и нищо друго не се случва.
+ *
+ * @param {Event}  ev
+ * @param {string} message - текста на грешката
+ *
+ * @return {boolean} винаги false
+ */
+function efAlert(ev, message) {
+    if (ev) {
+        if (ev.stopImmediatePropagation) { ev.stopImmediatePropagation(); }
+        if (ev.preventDefault) { ev.preventDefault(); }
+    }
+
+    efConfirm(message, {severity: 'error', okOnly: true, okText: 'ОК'});
 
     return false;
 }

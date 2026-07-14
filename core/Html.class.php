@@ -663,15 +663,22 @@ class core_Html
     public static function createErrBtn($title, $error, $attr = array())
     {
         $attr = arr::make($attr);
-        $attr['error'] = $error;
         $icon = $attr['ef_icon'] ?? null;
         if($icon != 'none'){
             $attr['ef_icon'] = 'img/16/error.png';
         }
-        
-        // Url-то се заменя с такова водещо към грешка
+
+        // Url-то се заменя с такова водещо към грешка (fallback за режим без JavaScript, виж
+        // Mode::is('javascript','no') по-долу в createBtn())
         $url = core_Message::getErrorUrl($error, 'page_Error');
-        
+
+        // Вместо $attr['error'] (който createBtn() превръща в нативен alert()) - стилизиран модал
+        // (severity=error, само бутон "ОК", без "Отказ", натискането не води до никакво действие) -
+        // виж efAlert() в js/efCommon.js
+        $escaped = addcslashes(tr($error), "'\\\n\r");
+        $attr['onclick'] = ($attr['onclick'] ?? '') . "if (!efAlert(event, '{$escaped}')) { return false; }";
+        $attr['style'] = ($attr['style'] ?? '') . 'color:#772200;color:#9A5919;';
+
         return self::createBtn($title, $url, null, null, $attr);
     }
     

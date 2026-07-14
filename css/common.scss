@@ -3969,6 +3969,7 @@ $noticeColor = #2e7d32;
 		background: #888;
 		color: #fff;
 		font-size: 20px;
+		font-weight: bold;
 		line-height: 1;
 	}
 	.ef-confirm-title {
@@ -4038,7 +4039,9 @@ $noticeColor = #2e7d32;
 		border-top-color: $noticeColor;
 
 		.ef-confirm-icon {
-			background: $noticeColor;
+			background: #fff;
+			border: 2px solid $noticeColor;
+			color: $noticeColor;
 		}
 		.ef-confirm-title {
 			color: $noticeColor;

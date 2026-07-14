@@ -3574,6 +3574,7 @@ td.leftColImportant {
     background: #888888;
     color: white;
     font-size: 20px;
+    font-weight: bold;
     line-height: 1; }
   .ef-confirm-modal .ef-confirm-title {
     font-weight: bold;
@@ -3622,7 +3623,9 @@ td.leftColImportant {
   .ef-confirm-modal.ef-confirm-notice {
     border-top-color: #2e7d32; }
     .ef-confirm-modal.ef-confirm-notice .ef-confirm-icon {
-      background: #2e7d32; }
+      background: white;
+      border: 2px solid #2e7d32;
+      color: #2e7d32; }
     .ef-confirm-modal.ef-confirm-notice .ef-confirm-title {
       color: #2e7d32; }
     .ef-confirm-modal.ef-confirm-notice .ef-confirm-ok {

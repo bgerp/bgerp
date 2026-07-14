@@ -727,7 +727,7 @@ class store_ConsignmentProtocols extends core_Master
      * @param int    $id         - ид
      * @param string $isContable - какво е действието
      *
-     * @return NULL|string - текста на предупреждението или NULL ако няма
+     * @return NULL|array - array('text' => string, 'severity' => acc_plg_Contable::SEVERITY_*) или NULL ако няма
      */
     public function getContoWarning_($id, $isContable)
     {
@@ -735,10 +735,10 @@ class store_ConsignmentProtocols extends core_Master
         $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
         $dQuery->where("#protocolId = {$id}");
         $dQuery->show('productId, quantity');
-        
+
         $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->storeId, $rec->state);
-        
-        return $warning;
+
+        return !empty($warning) ? array('text' => $warning, 'severity' => acc_plg_Contable::SEVERITY_WARNING) : null;
     }
     
     

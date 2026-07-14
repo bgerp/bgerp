@@ -191,7 +191,10 @@ class bgfisc_plg_CashDocument extends core_Plugin
                         $aboveTolerance = empty($diff) || $diff > $tolerance;
                         if ($aboveTolerance  && $dealPaid && $dealBl <= 0) {
                             $additionalWarning = "ЦЯЛАТА СУМА ПО ДОКУМЕНТА ИЗГЛЕЖДА ВЕЧЕ Е ПЛАТЕНА|*!";
-                            $defaultWarning = (!empty($additionalWarning)) ? "{$additionalWarning}, {$defaultWarning}" : "{$additionalWarning}, Наистина ли желаете документът да бъде контиран|*?";
+
+                            // $defaultWarning вече е целия (слят) текст от getContoWarning() - не е
+                            // кратка фраза за долепяне със запетая, а отделно изречение/HTML блок
+                            $defaultWarning = "{$additionalWarning}\n\n{$defaultWarning}";
                         }
                     }
                 }
@@ -203,11 +206,24 @@ class bgfisc_plg_CashDocument extends core_Plugin
     
     
     /**
-     * Уорнинг на бутона за контиране/активиране
+     * Уорнинг на бутона за контиране/активиране.
+     *
+     * $res е ИЛИ null, ИЛИ array('text' => ..., 'severity' => ...) (виж
+     * acc_plg_Contable::on_AfterGetContoWarning() - вика се преди тук по ред в $loadList). Тук се
+     * пипа само текстовата част (getContoWarning() очаква/връща string) - ако тя реално се смени
+     * (открито надплащане), severity се вдига до 'warning'.
      */
     public static function on_AfterGetContoWarning($mvc, &$res, $rec, $isContable)
     {
-        $res = self::getContoWarning($mvc, $rec, $res);
+        $text = $res['text'] ?? null;
+        $severity = $res['severity'] ?? acc_plg_Contable::SEVERITY_NOTICE;
+
+        $newText = self::getContoWarning($mvc, $rec, $text);
+        if ($newText !== $text) {
+            $severity = acc_plg_Contable::SEVERITY_WARNING;
+        }
+
+        $res = array('text' => $newText, 'severity' => $severity);
     }
     
     

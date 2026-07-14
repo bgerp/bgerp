@@ -473,11 +473,6 @@ class acc_Periods extends core_Manager
             return 'Вальорът е в бъдещ счетоводен период|*!';
         }
 
-        // Вальора е след утрешния ден
-        if($dateToCheck > dt::addDays(1, null, false)){
-            return "Вальорът е след утрешния ден|*!";
-        }
-
         return false;
     }
     
