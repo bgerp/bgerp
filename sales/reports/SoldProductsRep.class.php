@@ -74,7 +74,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     /**
      * Връща обхвата на достъп до търговци и екипи за потребителя
      *
-     * Използва salesAllGlobal за всички търговци и salesAll за екипите на потребителя.
+     * Използва saleAllGlobal за всички търговци и saleAll за екипите на потребителя.
      * Резултатът се използва едновременно за опциите във формата и за сървърния филтър в prepareRecs().
      *
      * @param int|null $userId
@@ -92,7 +92,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             'allowedTeams' => array(),
         );
 
-        if (haveRole('ceo,salesAllGlobal', $userId)) {
+        if (haveRole('ceo,saleAllGlobal', $userId)) {
             $res['canSeeAll'] = true;
             $res['allowedDealers'] = self::getAllDealers();
             $res['allowedTeams'] = keylist::toArray(core_Roles::getRolesByType('team'));
@@ -100,7 +100,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             return $res;
         }
 
-        if (haveRole('salesAll', $userId)) {
+        if (haveRole('saleAll', $userId)) {
             $res['canSeeTeams'] = true;
             $res['allowedTeams'] = keylist::toArray(core_Users::getUserRolesByType($userId, 'team'));
 
