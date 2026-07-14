@@ -995,14 +995,15 @@ class sales_Invoices extends deals_InvoiceMaster
 
 
     /**
-     * Допълнителен уорнинг на бутона за контиране - показва се в отделен confirm() след стандартния
+     * Уорнинг на бутона за контиране - слива се със стандартния въпрос в общия модал
+     * (виж acc_plg_Contable::on_AfterGetContoWarning())
      *
      * @param int $id - ид
      * @param string $isContable - какво е действието
      *
      * @return NULL|string - текста на предупреждението или NULL ако няма
      */
-    public function getContoExtraWarning_($id, $isContable)
+    public function getContoWarning_($id, $isContable)
     {
         $rec = static::fetchRec($id);
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'");

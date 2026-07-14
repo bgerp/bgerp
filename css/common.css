@@ -3578,6 +3578,18 @@ td.leftColImportant {
     margin-bottom: 18px;
     font-size: 1em;
     white-space: pre-line; }
+    .ef-confirm-modal .ef-confirm-message hr {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 10px 0 0 0; }
+    .ef-confirm-modal .ef-confirm-message ul {
+      text-align: left;
+      margin: 8px 0 0 0;
+      padding-left: 20px; }
+    .ef-confirm-modal .ef-confirm-message li {
+      margin-bottom: 6px; }
+      .ef-confirm-modal .ef-confirm-message li:last-child {
+        margin-bottom: 0; }
   .ef-confirm-modal .ef-confirm-buttons {
     display: flex;
     justify-content: center;

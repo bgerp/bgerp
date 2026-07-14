@@ -6494,10 +6494,85 @@ function checkVatAndTriger(name) {
 
 
 /**
+ * Позволени тагове/атрибути в текста на efConfirm() - виж sanitizeEfConfirmHtml() по-долу.
+ * Само структурни/стилизиращи тагове, никакви такива способни да заредят ресурс или да сложат
+ * onclick/onerror и т.н. (a, img, script... не са позволени - изобщо не се копират).
+ */
+var EF_CONFIRM_ALLOWED_TAGS = ['B', 'I', 'BR', 'SPAN', 'DIV', 'UL', 'LI', 'HR'];
+var EF_CONFIRM_ALLOWED_ATTRS = ['class'];
+
+
+/**
+ * Рекурсивно копира един DOM възел в targetParent, като позволява само таговете/атрибутите от
+ * EF_CONFIRM_ALLOWED_TAGS/EF_CONFIRM_ALLOWED_ATTRS. Всеки непозволен таг (a, img, script,
+ * svg, ...) се "разгъва" до чистия си текст (textContent) - структурата и атрибутите му отпадат,
+ * не се изпълнява/рендира като таг.
+ *
+ * @param {Node} node
+ * @param {Node} targetParent
+ */
+function sanitizeEfConfirmNode(node, targetParent) {
+    if (node.nodeType === Node.TEXT_NODE) {
+        targetParent.appendChild(document.createTextNode(node.nodeValue));
+
+        return;
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+
+        return;
+    }
+
+    if (EF_CONFIRM_ALLOWED_TAGS.indexOf(node.tagName) !== -1) {
+        var clean = document.createElement(node.tagName);
+        for (var i = 0; i < EF_CONFIRM_ALLOWED_ATTRS.length; i++) {
+            var attr = EF_CONFIRM_ALLOWED_ATTRS[i];
+            if (node.hasAttribute(attr)) {
+                clean.setAttribute(attr, node.getAttribute(attr));
+            }
+        }
+        for (var j = 0; j < node.childNodes.length; j++) {
+            sanitizeEfConfirmNode(node.childNodes[j], clean);
+        }
+        targetParent.appendChild(clean);
+    } else {
+        targetParent.appendChild(document.createTextNode(node.textContent));
+    }
+}
+
+
+/**
+ * Санитизира HTML низ за показване в efConfirm() - връща DocumentFragment, готов за append.
+ *
+ * Парсва през DOMParser (не innerHTML!) - документът, който той връща, е "inert" (не е свързан
+ * с browsing context), затова евентуални <img src=x onerror=...> и т.н. в message-а НЕ се зареждат
+ * и не тригерят събития дори по време на самото парсене. Ако все пак някой такъв таг оцелее,
+ * sanitizeEfConfirmNode() го маха/разгъва до текст, преди да влезе в реалния DOM.
+ *
+ * @param {string} html
+ *
+ * @return {DocumentFragment}
+ */
+function sanitizeEfConfirmHtml(html) {
+    var parsed = new DOMParser().parseFromString(html || '', 'text/html');
+    var out = document.createDocumentFragment();
+    var children = parsed.body.childNodes;
+    for (var i = 0; i < children.length; i++) {
+        sanitizeEfConfirmNode(children[i], out);
+    }
+
+    return out;
+}
+
+
+/**
  * Показва стилизиран модал за потвърждение (Да/Отказ) вместо нативния window.confirm().
  * Връща Promise<boolean> - true при потвърждение, false при отказ/Escape/клик извън модала.
  *
- * @param {string} message  текст на съобщението
+ * message може да съдържа ограничен HTML (виж EF_CONFIRM_ALLOWED_TAGS по-горе) - <b>/<i>/<br>/
+ * <span>/<div>, само с class атрибут. Всичко останало се показва като чист текст.
+ *
+ * @param {string} message  текст на съобщението (може да съдържа позволен HTML)
  * @param {object} [opts]   {title, okText, cancelText, cssClass}
  */
 function efConfirm(message, opts) {
@@ -6512,7 +6587,10 @@ function efConfirm(message, opts) {
 
         modal.append('<div class="ef-confirm-icon">&#9888;</div>');
         modal.append($('<div class="ef-confirm-title"></div>').text(opts.title || 'Внимание'));
-        modal.append($('<div class="ef-confirm-message"></div>').text(message || ''));
+
+        var messageDiv = $('<div class="ef-confirm-message"></div>');
+        messageDiv[0].appendChild(sanitizeEfConfirmHtml(message));
+        modal.append(messageDiv);
 
         var btnRow = $('<div class="ef-confirm-buttons"></div>');
         var cancelBtn = $('<button type="button" class="ef-confirm-btn ef-confirm-cancel"></button>').text(opts.cancelText || 'Отказ');
@@ -6542,31 +6620,25 @@ function efConfirm(message, opts) {
 
 
 /**
- * Верижен confirm за бутон за контиране: стандартен нативен window.confirm(), последван (само при
- * потвърждение) от стилизиран efConfirm() за допълнителния уорнинг.
+ * Confirm за бутон за контиране: един-единствен стилизиран efConfirm() модал с целия (вече слят -
+ * виж acc_plg_Contable::on_AfterGetContoWarning()) текст. Без нативен window.confirm(), без верижни
+ * прозорци.
  *
- * confirm() е синхронен, но efConfirm() е асинхронен (чака клик в модала), затова при потвърждение
- * на втория диалог кликът върху бутона се "преиграва" (buttonEl.click()) - на втория пасаж флагът
- * buttonEl.__efContoConfirmed е вече сложен, пропускат се двата диалога и се продължава по обичайния
- * начин (навигация към href-а или bubble-ване към делегиран click handler).
+ * efConfirm() е асинхронен (чака клик в модала), затова при потвърждение кликът върху бутона се
+ * "преиграва" (buttonEl.click()) - на втория пасаж флагът buttonEl.__efContoConfirmed е вече сложен,
+ * пропуска се модала и се продължава по обичайния начин (навигация към href-а или bubble-ване към
+ * делегиран click handler).
  *
  * @param {Event}  ev
  * @param {Element} buttonEl
- * @param {string} standardWarning - стандартния текст ("Наистина ли желаете...")
- * @param {string} extraWarning    - допълнителния (стилизиран) текст
+ * @param {string} warning - целия (слят) текст на уорнинга
  *
  * @return {boolean}
  */
-function contoChainedConfirm(ev, buttonEl, standardWarning, extraWarning) {
+function contoConfirm(ev, buttonEl, warning) {
     if (buttonEl.__efContoConfirmed) {
         buttonEl.__efContoConfirmed = false;
         return true;
-    }
-
-    if (standardWarning && !confirm(standardWarning)) {
-        if (window.jQuery) { jQuery(buttonEl).blur(); }
-        if (ev && ev.stopPropagation) { ev.stopPropagation(); }
-        return false;
     }
 
     if (ev) {
@@ -6574,10 +6646,12 @@ function contoChainedConfirm(ev, buttonEl, standardWarning, extraWarning) {
         if (ev.preventDefault) { ev.preventDefault(); }
     }
 
-    efConfirm(extraWarning, {cssClass: 'ef-confirm-danger'}).then(function (ok) {
+    efConfirm(warning, {cssClass: 'ef-confirm-danger'}).then(function (ok) {
         if (ok) {
             buttonEl.__efContoConfirmed = true;
             buttonEl.click();
+        } else {
+            if (window.jQuery) { jQuery(buttonEl).blur(); }
         }
     });
 
@@ -6589,26 +6663,6 @@ function contoChainedConfirm(ev, buttonEl, standardWarning, extraWarning) {
  * ф-я за контиране на ПКО
  */
 function contoPkoPrompt(ev, buttonEl, callUrl) {
-
-    // "Преигран" клик след потвърждение на допълнителния (стилизиран) уорнинг в стъпка 5) по-долу -
-    // прескачаме prompt-а и валидацията, продължаваме направо с вече валидирания URL
-    if (buttonEl.__efContoReplayUrl !== undefined) {
-        var replayUrl = buttonEl.__efContoReplayUrl;
-        delete buttonEl.__efContoReplayUrl;
-
-        if (callUrl && replayUrl) {
-            if (typeof getEfae === 'function') {
-                var efae = getEfae();
-                if (efae && typeof efae.process === 'function') {
-                    var resObj = new Object();
-                    resObj['url'] = replayUrl;
-                    efae.process(resObj, undefined);
-                }
-            }
-        }
-
-        return true;
-    }
 
     var warningText        = buttonEl.dataset.warning;
     var expectedAmount     = buttonEl.dataset.expectedAmount;
@@ -6654,7 +6708,7 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
     // 2) Ако текстът не е променян
     if (userText === expectedAmount) {
         urlToCall = documentUrl;
-        // продължаваме напред - към допълнителния уорнинг (при наличие) и евентуалния Efae call по-долу
+        // продължаваме напред - към евентуалния Efae call по-долу
     } else {
         // 3) Текстът е променен -> парсваме и валидираме
         userText = userText.trim();
@@ -6745,24 +6799,6 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
         } else {
             urlToCall = null;
         }
-    }
-
-    // 5) Допълнителен (втори, стилизиран) уорнинг - показва се само ако бекендът е сложил
-    // data-extra-warning. efConfirm() е асинхронен, затова тук спираме клика и при потвърждение
-    // го "преиграваме" (виж guard-а в началото на функцията) с вече валидирания urlToCall
-    var extraWarningText = buttonEl.dataset.extraWarning;
-    if (urlToCall && extraWarningText) {
-        stopEvent(ev);
-        efConfirm(extraWarningText, {cssClass: 'ef-confirm-danger'}).then(function (ok) {
-            if (ok) {
-                buttonEl.__efContoReplayUrl = urlToCall;
-                buttonEl.click();
-            } else {
-                blurButton(buttonEl);
-            }
-        });
-
-        return false;
     }
 
     // 6) Ако трябва директно да извикаме URL-а през Efae
