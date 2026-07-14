@@ -3623,7 +3623,7 @@ td.leftColImportant {
   .ef-confirm-modal.ef-confirm-notice {
     border-top-color: #2e7d32; }
     .ef-confirm-modal.ef-confirm-notice .ef-confirm-icon {
-      background: white;
+      background: #f1f1f1;
       border: 2px solid #2e7d32;
       color: #2e7d32; }
     .ef-confirm-modal.ef-confirm-notice .ef-confirm-title {
