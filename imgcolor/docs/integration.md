@@ -40,8 +40,12 @@ thresholds: `docs/superpowers/specs/2026-07-13-imgcolor-cmyk-separation-design.m
     are 0.0. For images without genuine transitions `json` is byte-identical
     to the legacy `process()` output (regression-tested).
 - LLM tool:
-  - `imgcolor_Analyzer::analyzeFileHandle($fh)` -> JSON
+  - `imgcolor_Analyzer::analyzeFileHandle($fh)` -> JSON (legacy, un-separated)
   - `imgcolor_Analyzer::getToolDefinition()` -> `{name, description, parameters}`
+  - `imgcolor_Analyzer::analyzeSeparatedFileHandle($fh)` -> JSON envelope
+    `{"colors": [...], "cmyk": {...}|null}` (separated view)
+  - `imgcolor_Analyzer::getSeparatedToolDefinition()` ->
+    `analyze_image_print_colors_separated` descriptor
 - UI: `imgcolor_Demo` (menu `Инструменти -> Цветове за печат`) + a fileman
   file-action button on PNG/JPEG files. The analysis form exposes the complete
   calibration set: selecting a profile loads its values, and the displayed
@@ -172,6 +176,13 @@ is in the design spec (§4).
 | `IMGCOLOR_TRANS_MIN_SEED` | `20` | px; minimum changing pixels in the erosion window to seed a region |
 | `IMGCOLOR_TRANS_EDGE_DELTAE` | `10.0` | ΔE; reconstruction/dilation stops at harder edges |
 | `IMGCOLOR_TRANS_MIN_COVERAGE` | `0.005` | fraction; smaller transition areas are folded back to the solid path |
+
+Per-profile overrides: `imgcolor_Profiles` carries optional `trans*` fields
+(empty = use the global constant). A selected profile's overrides are applied
+by `imgcolor_Analyzer::getTransParams($profileRec)`; the actually used
+(normalized) thresholds are embedded in every CMYK payload under
+`"classifier"`, next to the `"conversion"` block, so historical results stay
+auditable after config or profile edits.
 
 ### CMYK conversion
 

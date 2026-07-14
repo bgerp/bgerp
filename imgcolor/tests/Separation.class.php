@@ -88,6 +88,48 @@ class imgcolor_tests_Separation extends unit_Class
 
 
     /**
+     * Профилен override на праговете влияе на разделния анализ.
+     */
+    public static function test_ProfileOverridesSuppressTransitions($us)
+    {
+        $png = self::createGradientPng();
+
+        $profileRec = new stdClass();
+        $profileRec->transNoiseDeltaE = 20.0;
+
+        $result = imgcolor_Analyzer::processSeparated($png, null, imgcolor_Analyzer::getTransParams($profileRec));
+        ut::expectEqual(null, $result->cmykJson);
+
+        // без override преливката се отчита
+        $result = imgcolor_Analyzer::processSeparated($png);
+        ut::expectEqual(true, is_string($result->cmykJson));
+        $cmyk = json_decode($result->cmykJson, true);
+        ut::expectEqual(true, isset($cmyk['classifier']['noiseDeltaE']));
+    }
+
+
+    /**
+     * LLM tool за разделен анализ: envelope с colors + cmyk.
+     */
+    public static function test_SeparatedFileHandleTool($us)
+    {
+        $fh = fileman::absorbStr(self::createGradientPng(), self::$bucket, 'tool-gradient.png');
+
+        $envelope = json_decode(imgcolor_Analyzer::analyzeSeparatedFileHandle($fh), true);
+        ut::expectEqual(true, is_array($envelope['colors']));
+        ut::expectEqual(true, is_array($envelope['cmyk']));
+
+        $def = imgcolor_Analyzer::getSeparatedToolDefinition();
+        ut::expectEqual('analyze_image_print_colors_separated', $def['name']);
+        ut::expectEqual(true, in_array('fileHandle', $def['parameters']['required'], true));
+
+        // legacy tool контрактът остава непроменен
+        $legacyDef = imgcolor_Analyzer::getToolDefinition();
+        ut::expectEqual('analyze_image_print_colors', $legacyDef['name']);
+    }
+
+
+    /**
      * Създава PNG с хоризонтална преливка червено -> синьо.
      *
      * @return string PNG байтове

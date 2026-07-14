@@ -369,6 +369,46 @@ class imgcolor_Analyzer extends core_Mvc
      */
     public static function analyzeFileHandle($fh, $options = null)
     {
+        $bytes = self::requireAnalyzableBytes($fh);
+
+        return self::guard(function ($a) use ($bytes, $options) {
+
+            return $a->analyzeAsJson($bytes, $options === null ? self::buildOptions() : $options);
+        });
+    }
+
+
+    /**
+     * LLM tool входна точка: разделен анализ по fileman handle - плътните
+     * цветове отделно от CMYK състава на преливките.
+     *
+     * @param string $fh - fileman манипулатор на PNG/JPEG файл
+     *
+     * @return string JSON: {"colors":[{"color","coverage_percent"},...],"cmyk":{...}|null}
+     */
+    public static function analyzeSeparatedFileHandle($fh, $options = null)
+    {
+        $bytes = self::requireAnalyzableBytes($fh);
+
+        $result = self::processSeparated($bytes, $options);
+
+        return json_encode(array(
+            'colors' => json_decode($result->json, true),
+            'cmyk' => $result->cmykJson === null ? null : json_decode($result->cmykJson, true),
+        ), JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+    }
+
+
+    /**
+     * Общите проверки на LLM tool входовете: съществуващ достъпен PNG/JPEG
+     * файл с непразно съдържание.
+     *
+     * @param string $fh
+     *
+     * @return string суровите байтове на файла
+     */
+    private static function requireAnalyzableBytes($fh)
+    {
         self::registerAutoload();
 
         $fRec = fileman_Files::fetchByFh($fh);
@@ -388,10 +428,35 @@ class imgcolor_Analyzer extends core_Mvc
             self::raiseError('празно съдържание на файла');
         }
 
-        return self::guard(function ($a) use ($bytes, $options) {
+        return $bytes;
+    }
 
-            return $a->analyzeAsJson($bytes, $options === null ? self::buildOptions() : $options);
-        });
+
+    /**
+     * Self-describing tool descriptor за разделния анализ (LLM function-calling).
+     *
+     * @return array
+     */
+    public static function getSeparatedToolDefinition()
+    {
+        return array(
+            'name' => 'analyze_image_print_colors_separated',
+            'description' => 'Crop the near-white background of a PNG/JPEG stored in fileman, '
+                           . 'list the solid (spot-printable) colors with coverage percentages, and '
+                           . 'report gradients/continuous-tone areas separately as a normalized CMYK '
+                           . 'ink composition (c+m+y+k = 100) with transition area coverage. '
+                           . '"cmyk" is null when the image contains no gradients.',
+            'parameters' => array(
+                'type' => 'object',
+                'properties' => array(
+                    'fileHandle' => array(
+                        'type' => 'string',
+                        'description' => 'fileman handle (fh) of the image to analyze',
+                    ),
+                ),
+                'required' => array('fileHandle'),
+            ),
+        );
     }
 
 
