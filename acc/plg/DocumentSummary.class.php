@@ -283,7 +283,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         if(!$mvc->hidePeriodFilter){
             $data->listFilter->showFields .=  ((!empty($data->listFilter->showFields) ? ',' : '')) . 'from, to' . $showFilterDateField;
         }
-        
+
+        $usedUsers = null;
+
         if ($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)) {
 
             // Филтър по "Наша фирма", ако е инсталиран пакета за многофирменост
@@ -379,7 +381,6 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         // Активиране на филтъра
         $data->listFilter->input($data->listFilter->showFields, 'silent');
-        $usedUsers = null;
 
         // Ако формата за търсене е изпратена
         if ($filter = $data->listFilter->rec) {
