@@ -163,7 +163,7 @@ class imgcolor_Demo extends core_Manager
                     }
 
                     $bytes = fileman::extractStr($form->rec->imageFile);
-                    $result = imgcolor_Analyzer::process($bytes, $options);
+                    $result = imgcolor_Analyzer::processSeparated($bytes, $options, imgcolor_Analyzer::getTransParams($profileRec));
                     $resultHtml = self::renderResult($result);
 
                     self::persistResult($form->rec->imageFile, $form->rec->profileId, $result, $calibrationValues);
@@ -239,7 +239,7 @@ class imgcolor_Demo extends core_Manager
 
         try {
             $calibrationValues = imgcolor_Calibration::getDefaultValues();
-            $result = imgcolor_Analyzer::process(fileman::extractStr($fh), imgcolor_Calibration::buildOptions($calibrationValues));
+            $result = imgcolor_Analyzer::processSeparated(fileman::extractStr($fh), imgcolor_Calibration::buildOptions($calibrationValues));
             self::persistResult($fh, null, $result, $calibrationValues);
         } catch (core_exception_Expect $e) {
 
@@ -297,10 +297,11 @@ class imgcolor_Demo extends core_Manager
      *
      * @param string      $colorsJson        JSON резултат ([{color, coverage_percent}, ...])
      * @param string|null $croppedImageBytes суровите байтове на изрязаното PNG, ако има
+     * @param string|null $cmykJson          CMYK резултат за преливките, ако има такива
      *
      * @return string
      */
-    public static function renderColorsHtml($colorsJson, $croppedImageBytes = null)
+    public static function renderColorsHtml($colorsJson, $croppedImageBytes = null, $cmykJson = null)
     {
         $colors = json_decode($colorsJson, true);
         if (!is_array($colors)) {
@@ -325,14 +326,66 @@ class imgcolor_Demo extends core_Manager
         return "<div style='display:flex;gap:24px;flex-wrap:wrap'>"
             . "<div>{$imgTag}</div>"
             . "<div>{$swatches}</div>"
+            . self::renderCmykHtml($cmykJson)
             . '</div>';
     }
 
 
     /**
-     * Рендира резултата от imgcolor_Analyzer::process() - живия преглед.
+     * Рендира CMYK блока за преливките: покритие, състав на мастилата
+     * (сумиращ точно 100%) и използвания енджин за конверсия.
      *
-     * @param \ImageColorAnalyzer\PublicAPI\ProcessedImageResult $result
+     * @param string|null $cmykJson
+     *
+     * @return string празен низ, когато няма преливки
+     */
+    public static function renderCmykHtml($cmykJson)
+    {
+        if (!is_string($cmykJson) || $cmykJson === '') {
+
+            return '';
+        }
+
+        $cmyk = json_decode($cmykJson, true);
+        if (!is_array($cmyk) || !isset($cmyk['composition_percent'])) {
+
+            return '';
+        }
+
+        $channels = array(
+            'c' => array('Cyan', '#00AEEF'),
+            'm' => array('Magenta', '#EC008C'),
+            'y' => array('Yellow', '#FFF200'),
+            'k' => array('Black', '#231F20'),
+        );
+
+        $bars = '';
+        foreach ($channels as $ch => $def) {
+            $pct = isset($cmyk['composition_percent'][$ch]) ? (float) $cmyk['composition_percent'][$ch] : 0.0;
+            $width = (int) round($pct * 2);
+            $bars .= "<div style='display:flex;align-items:center;gap:8px;margin:2px 0'>"
+                . "<span style='display:inline-block;width:64px'>{$def[0]}</span>"
+                . "<span style='display:inline-block;width:{$width}px;height:14px;background:{$def[1]};border:1px solid #999'></span>"
+                . "<code>{$pct}%</code></div>";
+        }
+
+        $coverage = isset($cmyk['transition_coverage_percent']) ? (float) $cmyk['transition_coverage_percent'] : 0.0;
+        $engine = isset($cmyk['conversion']['engine']) ? htmlspecialchars((string) $cmyk['conversion']['engine'], ENT_QUOTES, 'UTF-8') : '?';
+        $note = tr('Преливки (CMYK)') . ": {$coverage}% " . tr('от анализираната площ');
+        if (isset($cmyk['ink_total']) && (float) $cmyk['ink_total'] == 0.0) {
+            $note .= ' - ' . tr('без мастилено съдържание');
+        }
+
+        return "<div><b>{$note}</b>{$bars}"
+            . "<div style='color:#777;font-size:0.9em'>" . tr('Конверсия') . ": <code>{$engine}</code></div></div>";
+    }
+
+
+    /**
+     * Рендира резултата от imgcolor_Analyzer::processSeparated() (или
+     * legacy process()) - живия преглед.
+     *
+     * @param stdClass|\ImageColorAnalyzer\PublicAPI\ProcessedImageResult $result
      *
      * @return string
      */
@@ -343,7 +396,7 @@ class imgcolor_Demo extends core_Manager
             $croppedBytes = $result->croppedImage->bytes;
         }
 
-        return self::renderColorsHtml($result->json, $croppedBytes);
+        return self::renderColorsHtml($result->json, $croppedBytes, self::extractCmykJson($result));
     }
 
 
@@ -351,10 +404,10 @@ class imgcolor_Demo extends core_Manager
      * Записва завършен анализ в imgcolor_Analyses за бъдещо преизползване/справка.
      * Публичен метод, за да е тестваем директно (виж imgcolor_tests_Analyses).
      *
-     * @param string                                            $imageFh   fileman handle на изходния файл
-     * @param int|null                                          $profileId избран профил, или празно за глобална конфигурация
-     * @param \ImageColorAnalyzer\PublicAPI\ProcessedImageResult $result
-     * @param array|null                                        $calibrationValues действително използваните стойности
+     * @param string                                                      $imageFh   fileman handle на изходния файл
+     * @param int|null                                                    $profileId избран профил, или празно за глобална конфигурация
+     * @param stdClass|\ImageColorAnalyzer\PublicAPI\ProcessedImageResult $result
+     * @param array|null                                                  $calibrationValues действително използваните стойности
      */
     public static function persistResult($imageFh, $profileId, $result, $calibrationValues = null)
     {
@@ -363,7 +416,21 @@ class imgcolor_Demo extends core_Manager
             $croppedFh = fileman::absorbStr($result->croppedImage->bytes, 'imgcolorImages', 'cropped.png');
         }
 
-        imgcolor_Analyses::createFromResult($imageFh, $profileId, $result->json, $croppedFh, $calibrationValues);
+        imgcolor_Analyses::createFromResult($imageFh, $profileId, $result->json, $croppedFh, $calibrationValues, self::extractCmykJson($result));
+    }
+
+
+    /**
+     * CMYK JSON от резултат на processSeparated(); legacy process()
+     * резултатите нямат такова поле.
+     *
+     * @param object $result
+     *
+     * @return string|null
+     */
+    private static function extractCmykJson($result)
+    {
+        return (isset($result->cmykJson) && is_string($result->cmykJson)) ? $result->cmykJson : null;
     }
 
 

@@ -67,5 +67,14 @@ $legacy = core_Manager::$savedRec;
 if (isset($legacy->calibrationJson) && $legacy->calibrationJson !== null) {
     fail('legacy-compatible call should leave the calibration snapshot empty');
 }
+if (isset($legacy->cmykJson) && $legacy->cmykJson !== null) {
+    fail('legacy-compatible call should leave the CMYK payload empty');
+}
+
+imgcolor_Analyses::createFromResult('cmykFh', null, '[]', null, null, '{"ink_total":1.5}');
+$withCmyk = core_Manager::$savedRec;
+if ($withCmyk->cmykJson !== '{"ink_total":1.5}') {
+    fail('CMYK payload must be persisted verbatim');
+}
 
 echo "PASS: analysis history stores exact calibration snapshots\n";
