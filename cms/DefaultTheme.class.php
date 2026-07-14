@@ -287,7 +287,7 @@ class cms_DefaultTheme extends core_ProtoInner
                 }
             }
         } else {
-            if ($this->innerForm->nImg) {
+            if (!empty($this->innerForm->nImg)) {
                 $imgs[1] = $this->innerForm->nImg;
             }
         }

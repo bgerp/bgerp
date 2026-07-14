@@ -313,7 +313,7 @@ class cms_FancyTheme extends core_ProtoInner
                 return $banner;
             }
         } else {
-            if ($this->innerForm->nImg) {
+            if (!empty($this->innerForm->nImg)) {
                 $imgs[1] = $this->innerForm->nImg;
             }
         }
