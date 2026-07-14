@@ -24,45 +24,69 @@ class imgcolor_CmykAccumulator
      * @param \ImageColorAnalyzer\Contracts\Raster $raster    изрязаният растер
      * @param stdClass                             $cls       резултат от imgcolor_TransitionClassifier::classify()
      * @param imgcolor_CmykConverter               $converter
+     * @param int                                  $bits      резолюция на квантуване, битове на канал
+     *                                                        (1..8; подава се $options->cluster->histogramBitsPerChannel,
+     *                                                        за да съвпада с резолюцията на плътното клъстеризиране)
      *
      * @return array|null null когато няма преливки; иначе payload за cmykJson
      */
-    public static function accumulate($raster, $cls, imgcolor_CmykConverter $converter)
+    public static function accumulate($raster, $cls, imgcolor_CmykConverter $converter, $bits = 5)
     {
         if (empty($cls->transitionCount)) {
 
             return null;
         }
 
-        // Групиране по 24-битов RGB ключ: тегло = сума alpha/255
+        $bits = max(1, min(8, (int) $bits));
+        $shift = 8 - $bits;
+
+        // Групиране по квантуван RGB ключ (imgcolor_ColorHistogram конвенция:
+        // <= 32^3 bins при bits=5), не по пълния 24-битов цвят - иначе фото/
+        // преливкови изображения раждат до 2^24 уникални бина и изчерпват
+        // паметта. Представителен цвят на бина = среднопретеглена стойност
+        // на попадналите пиксели; тегло за мастилото си остава сума alpha/255.
         $bins = array();
         $i = 0;
         foreach ($raster->pixels() as $px) {
             if ($cls->mask[$i++] !== imgcolor_TransitionClassifier::CLS_TRANS) {
                 continue;
             }
-            $key = ($px->r << 16) | ($px->g << 8) | $px->b;
-            $bins[$key] = (isset($bins[$key]) ? $bins[$key] : 0.0) + $px->a / 255;
+            $key = (($px->r >> $shift) << ($bits * 2))
+                | (($px->g >> $shift) << $bits)
+                | ($px->b >> $shift);
+            if (isset($bins[$key])) {
+                $bins[$key]['r'] += $px->r;
+                $bins[$key]['g'] += $px->g;
+                $bins[$key]['b'] += $px->b;
+                $bins[$key]['count']++;
+                $bins[$key]['weight'] += $px->a / 255;
+            } else {
+                $bins[$key] = array('r' => $px->r, 'g' => $px->g, 'b' => $px->b, 'count' => 1, 'weight' => $px->a / 255);
+            }
         }
 
         // Каноничен ред за детерминизъм, независим от реда на срещане
         ksort($bins);
 
         $colors = array();
-        foreach ($bins as $key => $weight) {
-            $colors[] = array(($key >> 16) & 0xFF, ($key >> 8) & 0xFF, $key & 0xFF);
+        $weights = array();
+        foreach ($bins as $bin) {
+            $colors[] = array(
+                (int) round($bin['r'] / $bin['count']),
+                (int) round($bin['g'] / $bin['count']),
+                (int) round($bin['b'] / $bin['count']),
+            );
+            $weights[] = $bin['weight'];
         }
 
         $cmyk = $converter->convert($colors);
 
         $raw = array('c' => 0.0, 'm' => 0.0, 'y' => 0.0, 'k' => 0.0);
-        $j = 0;
-        foreach ($bins as $weight) {
+        foreach ($weights as $j => $weight) {
             $raw['c'] += $cmyk[$j][0] * $weight;
             $raw['m'] += $cmyk[$j][1] * $weight;
             $raw['y'] += $cmyk[$j][2] * $weight;
             $raw['k'] += $cmyk[$j][3] * $weight;
-            $j++;
         }
 
         $inkTotal = $raw['c'] + $raw['m'] + $raw['y'] + $raw['k'];

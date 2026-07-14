@@ -196,6 +196,60 @@ foreach (array('c', 'm', 'y', 'k') as $ch) {
 }
 approx($res['transition_coverage_percent'], 100.0, 0.001, 'zero-ink coverage still reported');
 
+// histogram-resolution binning: bounds memory to <= (2^bits)^3 bins instead
+// of up to 2^24, mirroring ImageColorAnalyzer\ColorClusterer\ColorHistogram
+class RecordingCmykConverterForTest extends imgcolor_CmykConverter
+{
+    public $lastColors = null;
+
+    public function convert(array $colors)
+    {
+        $this->lastColors = $colors;
+
+        return parent::convert($colors);
+    }
+}
+
+// two near colors fall into the same default (bits=5) bin and collapse into
+// one weighted-average representative before conversion
+$recorder = new RecordingCmykConverterForTest(array('engine' => 'math', 'rgbProfile' => '', 'cmykProfile' => ''));
+list($raster, $cls) = accumFixture(array(
+    array(0, 0, 0, 255, $T),
+    array(7, 0, 0, 255, $T),
+));
+$res = imgcolor_CmykAccumulator::accumulate($raster, $cls, $recorder);
+if (count($recorder->lastColors) !== 1) {
+    fail('near colors within the same histogram bin must collapse to one representative, got ' . count($recorder->lastColors) . ' bins');
+}
+if ($recorder->lastColors[0] !== array(4, 0, 0)) {
+    fail('bin representative must be the weighted average of its pixels: ' . json_encode($recorder->lastColors[0]));
+}
+$sum = $res['composition_percent']['c'] + $res['composition_percent']['m']
+     + $res['composition_percent']['y'] + $res['composition_percent']['k'];
+approx($sum, 100.0, 0.001, 'binned composition must still sum to exactly 100.0');
+
+// $bits is honored end-to-end: coarser quantization merges more, bits=8
+// (lossless for 8-bit channels) reproduces the pre-fix one-bin-per-color behavior
+list($raster, $cls) = accumFixture(array(
+    array(0, 0, 0, 255, $T),
+    array(100, 0, 0, 255, $T),
+    array(250, 0, 0, 255, $T),
+));
+$recorder = new RecordingCmykConverterForTest(array('engine' => 'math', 'rgbProfile' => '', 'cmykProfile' => ''));
+$res = imgcolor_CmykAccumulator::accumulate($raster, $cls, $recorder, 1);
+if (count($recorder->lastColors) !== 2) {
+    fail('bits=1 must merge (0,0,0) and (100,0,0) into one bin, keep (250,0,0) separate: got ' . count($recorder->lastColors) . ' bins');
+}
+$sum = $res['composition_percent']['c'] + $res['composition_percent']['m']
+     + $res['composition_percent']['y'] + $res['composition_percent']['k'];
+approx($sum, 100.0, 0.001, 'bits=1 composition must still sum to exactly 100.0');
+
+$recorder = new RecordingCmykConverterForTest(array('engine' => 'math', 'rgbProfile' => '', 'cmykProfile' => ''));
+imgcolor_CmykAccumulator::accumulate($raster, $cls, $recorder, 8);
+if (count($recorder->lastColors) !== 3) {
+    fail('bits=8 must keep all three distinct 8-bit colors in separate bins, got ' . count($recorder->lastColors) . ' bins');
+}
+
 echo "PASS: cli_separation section 2 (accumulator)\n";
 
 // ---------------------------------------------------------------------------
