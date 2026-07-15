@@ -25,8 +25,14 @@ class cat_products_Usage extends core_Manager
      * Колко да са на страница другите документи
      */
     public $listOtherDocumentsPerPage = 10;
-    
-    
+
+
+    /**
+     * До колко записа да се разлиства през пейджъра на другите документи - над това само линк към пълния филтриран списък
+     */
+    public $maxOtherDocumentsForPaging = 500;
+
+
     /**
      * Подготвя ценовата информация за артикула
      */
@@ -185,11 +191,13 @@ class cat_products_Usage extends core_Manager
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listOtherDocumentsPerPage));
         $data->Pager->setPageVar('cat_Products', $data->masterId, $Document);
 
-        // Общият брой вече е известен от намерените id-та - не е нужна отделна COUNT/пълна заявка
-        $data->Pager->itemsCount = countR($ids);
+        // Общият брой вече е известен от намерените id-та - не е нужна отделна COUNT/пълна заявка.
+        // Пейджърът се разлиства само до maxOtherDocumentsForPaging - над това се показва линк към пълния филтриран списък
+        $data->totalCount = countR($ids);
+        $data->Pager->itemsCount = min($data->totalCount, $this->maxOtherDocumentsForPaging);
         $data->Pager->calc();
 
-        if (countR($ids)) {
+        if ($data->Pager->itemsCount) {
 
             // Ограничаване на заявката - тегли се само текущата страница
             $query = $data->Document->getQuery();
@@ -251,9 +259,9 @@ class cat_products_Usage extends core_Manager
             $tpl->append($data->Pager->getHtml(), 'content');
         }
 
-        // При много резултати - допълнителен линк към пълния филтриран списък
-        if (isset($filterUrl) && ($data->Pager->itemsCount > 500)) {
-            $filterLink = ht::createLink(tr('Виж всички||View all') . " ({$data->Pager->itemsCount})", $filterUrl);
+        // При много резултати (над разлистваните от пейджъра) - допълнителен линк към пълния филтриран списък
+        if (isset($filterUrl) && ($data->totalCount > $data->Pager->itemsCount)) {
+            $filterLink = ht::createLink(tr('Виж всички||View all') . " ({$data->totalCount})", $filterUrl);
             $tpl->append("<div style='margin-top:5px'>{$filterLink}</div>", 'content');
         }
 
