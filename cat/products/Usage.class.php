@@ -247,13 +247,14 @@ class cat_products_Usage extends core_Manager
         $details = $table->get($data->rows, $data->listFields);
 
         $tpl->append($details, 'content');
+        if (isset($data->Pager)) {
+            $tpl->append($data->Pager->getHtml(), 'content');
+        }
 
-        // При много резултати показваме линк към пълния филтриран списък вместо пейджър с хиляди страници
+        // При много резултати - допълнителен линк към пълния филтриран списък
         if (isset($filterUrl) && ($data->Pager->itemsCount > 500)) {
             $filterLink = ht::createLink(tr('Виж всички||View all') . " ({$data->Pager->itemsCount})", $filterUrl);
             $tpl->append("<div style='margin-top:5px'>{$filterLink}</div>", 'content');
-        } elseif (isset($data->Pager)) {
-            $tpl->append($data->Pager->getHtml(), 'content');
         }
 
         $tpl->removePlaces();
