@@ -5608,16 +5608,25 @@ div.location.public {
 .acc_JournalDetails {
   margin-top: 10px; }
 
-.details .portal .formToolbar #filter {
+.details  .formToolbar #filter {
   background-color: #e5e5e5;
   padding: 6px 4px !important;
   width: 26px;
   background-position: center; }
-  .details .portal .formToolbar #filter:hover {
+  .details  .formToolbar #filter:hover {
     background-color: #cccccc; }
 
+.docStatistic form .horizontal {
+  border: 1px solid #eeeeee;
+  padding: 5px 10px 3px;
+  border-top: none;
+  border-bottom: none; }
+  .docStatistic form .horizontal .formFields,
+  .docStatistic form .horizontal .formToolbar {
+    margin-bottom: 0; }
+
 .document .details .portal .formToolbar #filter {
-  padding: 5px 4px 4px !important; }
+  1padding: 5px 4px 4px !important; }
 
 /*
  * шаблон за журнал
