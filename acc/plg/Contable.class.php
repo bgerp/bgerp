@@ -405,7 +405,7 @@ class acc_plg_Contable extends core_Plugin
 
     /**
      * Изгражда onclick JS за бутона за контиране: един-единствен стилизиран (custom, стилизуем чрез
-     * CSS) модал (efConfirm) с целия (вече слят) текст от getContoWarning() - виж contoConfirm()/
+     * CSS) модал (efConfirm) с целия (вече слят) текст от getContoWarning() - виж efConfirmClick()/
      * efConfirm() в js/efCommon.js. Няма повече нативен confirm()/верижни прозорци.
      *
      * Публичен е нарочно - ползва се и от пакети, които изцяло подменят стандартния бутон за
@@ -425,7 +425,7 @@ class acc_plg_Contable extends core_Plugin
         $escaped = addcslashes($warning, "'\\\n\r");
         $sev = addcslashes($severity, "'\\");
 
-        return "if (!contoConfirm(event, this, '{$escaped}', '{$sev}')) { return false; }";
+        return "if (!efConfirmClick(event, this, '{$escaped}', '{$sev}')) { return false; }";
     }
 
 

@@ -6498,7 +6498,7 @@ function checkVatAndTriger(name) {
  * Само структурни/стилизиращи тагове, никакви такива способни да заредят ресурс или да сложат
  * onclick/onerror и т.н. (a, img, script... не са позволени - изобщо не се копират).
  */
-var EF_CONFIRM_ALLOWED_TAGS = ['B', 'I', 'BR', 'SPAN', 'DIV', 'UL', 'LI', 'HR'];
+var EF_CONFIRM_ALLOWED_TAGS = ['B', 'I', 'BR', 'SPAN', 'DIV', 'UL', 'LI', 'HR', 'PRE'];
 var EF_CONFIRM_ALLOWED_ATTRS = ['class'];
 
 
@@ -6597,13 +6597,15 @@ var EF_CONFIRM_SEVERITY_TITLES = {
  * <span>/<div>, само с class атрибут. Всичко останало се показва като чист текст.
  *
  * @param {string} message  текст на съобщението (може да съдържа позволен HTML)
- * @param {object} [opts]   {title, okText, cancelText, severity, cssClass, okOnly}
+ * @param {object} [opts]   {title, okText, cancelText, severity, cssClass, okOnly, noIcon}
  *                          severity - notice|warning|error (по подразбиране notice), определя
  *                          цвета/иконата на модала - виж EF_CONFIRM_SEVERITY_ICONS по-горе.
  *                          cssClass - допълнителна класа, ако е нужна извън severity.
  *                          okOnly   - true = само бутон "ОК" (без Отказ) - за чисто информативни
  *                          съобщения (напр. блокираща грешка), не за истинско потвърждение - виж
  *                          efAlert() по-долу.
+ *                          noIcon   - true = без кръглата severity иконка (напр. чист преглед на
+ *                          съдържание) - виж efShowInfo() по-долу.
  */
 function efConfirm(message, opts) {
     opts = opts || {};
@@ -6617,8 +6619,10 @@ function efConfirm(message, opts) {
             modal.addClass(opts.cssClass);
         }
 
-        var icon = EF_CONFIRM_SEVERITY_ICONS[severity] || EF_CONFIRM_SEVERITY_ICONS.notice;
-        modal.append('<div class="ef-confirm-icon">' + icon + '</div>');
+        if (!opts.noIcon) {
+            var icon = EF_CONFIRM_SEVERITY_ICONS[severity] || EF_CONFIRM_SEVERITY_ICONS.notice;
+            modal.append('<div class="ef-confirm-icon">' + icon + '</div>');
+        }
 
         var title = (opts.title !== undefined) ? opts.title : (EF_CONFIRM_SEVERITY_TITLES[severity] ?? 'Внимание');
         if (title) {
@@ -6661,25 +6665,26 @@ function efConfirm(message, opts) {
 
 
 /**
- * Confirm за бутон за контиране: един-единствен стилизиран efConfirm() модал с целия (вече слят -
- * виж acc_plg_Contable::on_AfterGetContoWarning()) текст. Без нативен window.confirm(), без верижни
- * прозорци.
+ * Generic confirm за бутон/линк с warning=: един-единствен стилизиран efConfirm() модал вместо
+ * нативния window.confirm() (виж core_Html::prepareLinkAndBtnAttr() - централната точка, която
+ * превръща warning= в извикване на тази функция; и acc_plg_Contable::buildContoConfirmJs() - за
+ * бутона за контиране, с вече слят текст от няколко уорнинга). Без верижни прозорци.
  *
- * efConfirm() е асинхронен (чака клик в модала), затова при потвърждение кликът върху бутона се
- * "преиграва" (buttonEl.click()) - на втория пасаж флагът buttonEl.__efContoConfirmed е вече сложен,
- * пропуска се модала и се продължава по обичайния начин (навигация към href-а или bubble-ване към
- * делегиран click handler).
+ * efConfirm() е асинхронен (чака клик в модала), затова при потвърждение кликът върху елемента се
+ * "преиграва" (buttonEl.click()) - на втория пасаж флагът buttonEl.__efConfirmed е вече сложен,
+ * пропуска се модала и се продължава по обичайния начин (навигация към href-а, форма submit, или
+ * bubble-ване към делегиран click handler).
  *
  * @param {Event}  ev
  * @param {Element} buttonEl
- * @param {string} warning  - целия (слят) текст на уорнинга
+ * @param {string} warning  - текста на уорнинга
  * @param {string} [severity] - notice|warning|error (виж EF_CONFIRM_SEVERITY_ICONS), по подразбиране notice
  *
  * @return {boolean}
  */
-function contoConfirm(ev, buttonEl, warning, severity) {
-    if (buttonEl.__efContoConfirmed) {
-        buttonEl.__efContoConfirmed = false;
+function efConfirmClick(ev, buttonEl, warning, severity) {
+    if (buttonEl.__efConfirmed) {
+        buttonEl.__efConfirmed = false;
         return true;
     }
 
@@ -6690,7 +6695,7 @@ function contoConfirm(ev, buttonEl, warning, severity) {
 
     efConfirm(warning, {severity: severity}).then(function (ok) {
         if (ok) {
-            buttonEl.__efContoConfirmed = true;
+            buttonEl.__efConfirmed = true;
             buttonEl.click();
         } else {
             if (window.jQuery) { jQuery(buttonEl).blur(); }
@@ -6704,7 +6709,7 @@ function contoConfirm(ev, buttonEl, warning, severity) {
 /**
  * Чисто информативен модал (SEVERITY_ERROR, само бутон "ОК", без "Отказ") - generic заместител на
  * нативния alert() за бутони за грешка (виж core_Html::createErrBtn(),
- * acc_plg_Contable::buildContoAlertJs()). За разлика от contoConfirm() - НЕ преиграва клика след
+ * acc_plg_Contable::buildContoAlertJs()). За разлика от efConfirmClick() - НЕ преиграва клика след
  * затваряне, натискането на "ОК" просто затваря модала и нищо друго не се случва.
  *
  * @param {Event}  ev
@@ -6719,6 +6724,31 @@ function efAlert(ev, message) {
     }
 
     efConfirm(message, {severity: 'error', okOnly: true, okText: 'ОК'});
+
+    return false;
+}
+
+
+/**
+ * Чисто информативен модал (SEVERITY_NOTICE, само бутон "ОК") - за преглед на дълго
+ * съдържание при клик (напр. бютифициран JSON), вместо native title tooltip (без скрол/стил).
+ * За разлика от efAlert() е с notice стил (не error) и приема опционален cssClass за по-широк
+ * модал - виж .ef-confirm-wide в css/common.scss.
+ *
+ * @param {Event}  ev
+ * @param {string} message   - може да съдържа <pre> (виж EF_CONFIRM_ALLOWED_TAGS по-горе)
+ * @param {string} [cssClass]
+ * @param {boolean} [noIcon] - true = без severity иконката (виж opts.noIcon в efConfirm())
+ *
+ * @return {boolean} винаги false
+ */
+function efShowInfo(ev, message, cssClass, noIcon) {
+    if (ev) {
+        if (ev.stopPropagation) { ev.stopPropagation(); }
+        if (ev.preventDefault) { ev.preventDefault(); }
+    }
+
+    efConfirm(message, {severity: 'notice', okOnly: true, okText: 'ОК', cssClass: cssClass, noIcon: !!noIcon});
 
     return false;
 }

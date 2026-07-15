@@ -3932,7 +3932,7 @@ td.leftColImportant {
  */
 $warningColor = #b75b00;
 $errorColor = #a30000;
-$noticeColor = #2e7d32;
+$noticeColor = #1976D2;
 
 .ef-confirm-overlay {
 	position: fixed;
@@ -3978,7 +3978,6 @@ $noticeColor = #2e7d32;
 		color: #888;
 	}
 	.ef-confirm-message {
-
 		color: #333;
 		padding-top: 15px;
 		margin-bottom: 25px;
@@ -4033,6 +4032,29 @@ $noticeColor = #2e7d32;
 		}
 	}
 
+	// По-широк вариант за преглед на съдържание (напр. бютифициран JSON) вместо кратко потвърждение
+	&.ef-confirm-wide {
+		max-width: 800px;
+		text-align: left;
+
+		.ef-confirm-message {
+			text-align: left;
+
+			pre {
+				margin: 0;
+				max-height: 60vh;
+				overflow: auto;
+				white-space: pre-wrap;
+				word-break: break-word;
+				background: #f5f5f5;
+				padding: 10px;
+				border-radius: 3px;
+				font-size: 0.9em;
+				text-align: left;
+			}
+		}
+	}
+
 	// Severity нива (виж acc_plg_Contable::SEVERITY_* / EF_CONFIRM_SEVERITY_ICONS в js/efCommon.js) -
 	// "не толкова страшно" (зелено, стандартния въпрос без допълнителни уорнинги), сегашния оранжев
 	// вариант (има допълнителен уорнинг), и по-тежък червен вариант (изрична грешка)
@@ -4051,7 +4073,7 @@ $noticeColor = #2e7d32;
 			border-color: $noticeColor;
 
 			&:hover {
-				background: #1b5e20;
+				background: #1566b6;
 			}
 		}
 	}

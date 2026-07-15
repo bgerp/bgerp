@@ -1495,14 +1495,28 @@ class core_Html
             $attr['title'] = tr($attr['title']);
         }
         
-        // Вкарваме предупреждението
+        // Вкарваме предупреждението - стилизиран модал вместо нативен confirm() - виж
+        // efConfirmClick()/efConfirm() в js/efCommon.js. efConfirmClick() е асинхронен, затова при
+        // потвърждение "преиграва" клика (element.click()) - на втория пасаж флагът
+        // element.__efConfirmed вече е сложен, минава директно (виж кода на efConfirmClick()).
+        // $attr['warningHigh'] е алтернатива на $warning - носи си самия текст, но със
+        // severity=warning (по-тревожен, оранжев вид) вместо стандартния notice. Ако е зададен,
+        // той има предимство пред $warning.
+        $severity = 'notice';
+        if (!empty($attr['warningHigh'])) {
+            $warning = $attr['warningHigh'];
+            $severity = 'warning';
+        }
+        unset($attr['warningHigh']);
+
         if ($warning) {
             if (!isset($attr['onclick'])) {
                 $attr['onclick'] = '';
             }
-            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) { $(event.target).blur(); event.stopPropagation(); return false; }";
+            $escaped = addcslashes(tr($warning), "'\\\n\r");
+            $attr['onclick'] .= " if (!efConfirmClick(event, this, '{$escaped}', '{$severity}')) { return false; }";
         }
-        
+
         return $attr;
     }
     

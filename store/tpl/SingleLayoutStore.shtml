@@ -136,7 +136,7 @@
                 <!--ET_END RACK_BLOCK-->
 
                 <fieldset class="detail-info">
-                <legend class="groupTitle">|Кой може да контира документи, в които е избран склада|*</legend>
+                <legend class="groupTitle">|Кой може да контира документи, в които е избран склада|* [#editSection_posting#]</legend>
                 <div class="groupList">
                     <table>
                         <!--ET_BEGIN chiefs-->
@@ -158,7 +158,7 @@
             <!--ET_BEGIN SELECT_FIELD-->
             [#SELECT_FIELD#]
             <fieldset class="detail-info">
-                <legend class="groupTitle">|Кой може да избира склада в документи и филтри|*</legend>
+                <legend class="groupTitle">|Кой може да избира склада в документи и филтри|* [#editSection_selection#]</legend>
                 <div class="groupList">
                     <table>
                     	<!--ET_BEGIN selectUsers-->
