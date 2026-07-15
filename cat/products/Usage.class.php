@@ -239,6 +239,11 @@ class cat_products_Usage extends core_Manager
 
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->replace("style='margin-top:10px'", 'STYLE');
+
+        // Котва - за да не скача страницата в началото при кликане по пейджъра
+        $anchorId = 'usage_' . get_class($data->Document);
+        $tpl->append("<span id='{$anchorId}'></span>", 'title');
+
         $title = tr($data->Document->title);
         $tpl->append($title, 'title');
 
@@ -256,6 +261,7 @@ class cat_products_Usage extends core_Manager
 
         $tpl->append($details, 'content');
         if (isset($data->Pager)) {
+            $data->Pager->addToUrl = array('#' => $anchorId);
             $tpl->append($data->Pager->getHtml(), 'content');
         }
 
@@ -284,6 +290,11 @@ class cat_products_Usage extends core_Manager
         if ($data->hide === true) return;
 
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+
+        // Котва - за да не скача страницата в началото при кликане по пейджъра
+        $anchorId = 'usage_' . get_class($data->Jobs);
+        $tpl->append("<span id='{$anchorId}'></span>", 'title');
+
         $title = tr('Задания за производство');
         $tpl->append($title, 'title');
         
@@ -311,9 +322,10 @@ class cat_products_Usage extends core_Manager
         
         $tpl->append($details, 'content');
         if (isset($data->Pager)) {
+            $data->Pager->addToUrl = array('#' => $anchorId);
             $tpl->append($data->Pager->getHtml(), 'content');
         }
-        
+
         $tpl->removePlaces();
         $tpl->removeBlocks();
         
