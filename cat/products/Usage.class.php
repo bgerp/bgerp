@@ -116,7 +116,8 @@ class cat_products_Usage extends core_Manager
             $tpl->append($this->renderDocuments($data->purQuoteData));
         }
         if (!empty($data->taskData)) {
-            $tpl->append($this->renderDocuments($data->taskData));
+            $taskFilterUrl = array('planning_Tasks', 'list', 'productId' => $data->masterId, 'state' => 'all', 'ret_url' => true);
+            $tpl->append($this->renderDocuments($data->taskData, false, $taskFilterUrl));
         }
 
         return $tpl;
@@ -184,33 +185,29 @@ class cat_products_Usage extends core_Manager
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listOtherDocumentsPerPage));
         $data->Pager->setPageVar('cat_Products', $data->masterId, $Document);
 
-        // Ограничаване на заявката
-        $query = $data->Document->getQuery();
-        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2  WHEN 'pending' THEN '3' ELSE 4 END)");
-        $query->orderBy('#orderByState=ASC,#id=DESC');
+        // Общият брой вече е известен от намерените id-та - не е нужна отделна COUNT/пълна заявка
+        $data->Pager->itemsCount = countR($ids);
+        $data->Pager->calc();
 
         if (countR($ids)) {
+
+            // Ограничаване на заявката - тегли се само текущата страница
+            $query = $data->Document->getQuery();
+            $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2  WHEN 'pending' THEN '3' ELSE 4 END)");
+            $query->orderBy('#orderByState=ASC,#id=DESC');
             $query->in('id', $ids);
-        } else {
-            $query->where('1=2');
-        }
+            $query->limit($data->Pager->itemsPerPage);
+            $query->startFrom($data->Pager->rangeStart);
 
-        // Зареждаме всички записи за да знае пейджърът total count
-        while ($dRec = $query->fetch()) {
-            $data->recs[$dRec->id] = $dRec;
-        }
-        $data->Pager->itemsCount = countR($data->recs);
+            $fields = $data->Document->selectFields();
+            $fields['-list'] = true;
 
-        $fields = $data->Document->selectFields();
-        $fields['-list'] = true;
-
-        // Вербализираме само записите на текущата страница
-        foreach ($data->recs as $id => $dRec) {
-            if ($data->Pager->isOnPage()) {
+            while ($dRec = $query->fetch()) {
+                $data->recs[$dRec->id] = $dRec;
                 $row = $data->Document->recToVerbal($dRec, $fields);
                 $row->title = $data->Document->getHyperlink($dRec->id, true);
                 $row->created = "{$row->createdOn} " . tr('от||by') . " {$row->createdBy}";
-                $data->rows[$id] = $row;
+                $data->rows[$dRec->id] = $row;
             }
         }
     }
@@ -221,40 +218,48 @@ class cat_products_Usage extends core_Manager
      *
      * @param stdClass $data
      * @param bool     $evenIfEmpty
+     * @param array|null $filterUrl - url към пълния филтриран списък, показван като линк при много резултати
      *
      * @return void|core_ET
      */
-    private function renderDocuments($data, $evenIfEmpty = false)
+    private function renderDocuments($data, $evenIfEmpty = false, $filterUrl = null)
     {
         if (!countR($data->rows) && $evenIfEmpty === false) {
-            
+
             return;
         }
-        
+
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->replace("style='margin-top:10px'", 'STYLE');
         $title = tr($data->Document->title);
         $tpl->append($title, 'title');
-        
+
         $data->listFields = arr::make("title={$data->Document->singleTitle},folderId=Папка,created=Създадено");
         $dateArr = ($data->Document instanceof sales_Quotations) ? array('date' => 'Дата') : array('valior' => 'Вальор');
         arr::placeInAssocArray($data->listFields, $dateArr, null, 'title');
         $data->listTableMvc = clone $data->Document;
         $data->Document->invoke('BeforeRenderListTable', array($tpl, &$data));
+
         $data->Document->setFieldType('title', 'varchar');
         $data->Document->setField('title', array('tdClass' => 'leftCell'));
-        
+
         $table = cls::get('core_TableView', array('mvc' => $data->Document));
         $details = $table->get($data->rows, $data->listFields);
-        
+
         $tpl->append($details, 'content');
         if (isset($data->Pager)) {
             $tpl->append($data->Pager->getHtml(), 'content');
         }
-        
+
+        // При много резултати - линк към пълния филтриран списък, вместо разлистване страница по страница
+        if (isset($filterUrl) && ($data->Pager->itemsCount > 500)) {
+            $filterLink = ht::createLink(tr('Виж всички||View all') . " ({$data->Pager->itemsCount})", $filterUrl);
+            $tpl->append("<div style='margin-top:5px'>{$filterLink}</div>", 'content');
+        }
+
         $tpl->removePlaces();
         $tpl->removeBlocks();
-        
+
         return $tpl;
     }
     

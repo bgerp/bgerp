@@ -2399,7 +2399,9 @@ class cat_Products extends embed_Manager
     public static function getParams($id, $name = null, $verbal = false)
     {
         $res = (isset($name)) ? null : array();
-
+        if(Mode::is('test1')){
+            bp();
+        }
         // Ако има драйвър, питаме него за стойността
         if ($Driver = static::getDriver($id)) {
             core_Debug::startTimer('GET_PARAMS');
