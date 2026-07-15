@@ -3620,6 +3620,22 @@ td.leftColImportant {
     color: white; }
     .ef-confirm-modal .ef-confirm-ok:hover {
       background: #666666; }
+  .ef-confirm-modal.ef-confirm-wide {
+    max-width: 800px;
+    text-align: left; }
+    .ef-confirm-modal.ef-confirm-wide .ef-confirm-message {
+      text-align: left; }
+      .ef-confirm-modal.ef-confirm-wide .ef-confirm-message pre {
+        margin: 0;
+        max-height: 60vh;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: whitesmoke;
+        padding: 10px;
+        border-radius: 3px;
+        font-size: 0.9em;
+        text-align: left; }
   .ef-confirm-modal.ef-confirm-notice {
     border-top-color: #1976d2; }
     .ef-confirm-modal.ef-confirm-notice .ef-confirm-icon {
