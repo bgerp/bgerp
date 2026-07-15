@@ -83,6 +83,12 @@ class planning_GenericMapper extends core_Manager
 
 
     /**
+     * До колко рецепти да се разлиства пейджъра в таб 'Влагане' - над това само съобщение за общия брой
+     */
+    public $maxBomsForPaging = 500;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -299,47 +305,59 @@ class planning_GenericMapper extends core_Manager
     public function prepareBoms(&$data)
     {
         $data->rows = array();
-        $data->fromConvertable = true;
 
-        // Намираме Рецептите където се използва
         $Details = cls::get('cat_BomDetails');
-        $query = $Details->getQuery();
-        $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
-        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
-        $query->where("#resourceId = {$data->masterId}");
-        $query->where("#state != 'rejected'");
-        $query->groupBy('bomId');
-        $query->orderBy('orderByState', 'ASC');
-        $data->recs = $query->fetchAll();
 
-        // Странициране на записите
+        // Намираме id-та на рецептите, в които участва артикула като ресурс (леко, само bomId)
+        $idQuery = $Details->getQuery();
+        $idQuery->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
+        $idQuery->where("#resourceId = {$data->masterId} AND #state != 'rejected'");
+        $idQuery->show('bomId');
+        $bomIds = arr::extractValuesFromArray($idQuery->fetchAll(), 'bomId');
+
+        // Странициране на записите - ограничено до maxBomsForPaging, за да не се получи пейджър с хиляди страници
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
         $data->Pager->setPageVar('cat_Products', $data->masterId, 'cat_Boms');
-        $data->Pager->itemsCount = countR($data->recs);
+        $data->totalCount = countR($bomIds);
+        $data->Pager->itemsCount = min($data->totalCount, $this->maxBomsForPaging);
+        $data->Pager->calc();
+
         $shortUom = tr(cat_UoM::getShortName($data->masterData->rec->measureId));
         $Param = core_Request::get($data->masterData->tabTopParam, 'varchar');
-
         $now = dt::now();
-        foreach ($data->recs as $rec) {
-            if (!$data->Pager->isOnPage()) continue;
-            $bomRec = cat_Boms::fetch($rec->bomId);
-            $data->rows[$rec->id] = cat_Boms::recToVerbal($bomRec);
-            $data->rows[$rec->id]->action = $Details->getFieldType('type')->toVerbal($rec->type);
 
-            $actionClass = ($rec->type == 'input') ? '#e6ffe0' : ($rec->type == 'pop' ? '#cce3fe' : '#ece2ff');
-            $data->rows[$rec->id]->action = "<div class='document-handler' style='background-color:{$actionClass};'>{$data->rows[$rec->id]->action}</div>";
+        if (countR($bomIds)) {
 
-            // Изчисляване за какво количество е вложено, ако се показват рецептите, в които е вложена
-            if($Param == 'Resources'){
-                $rInfo = cat_Boms::getResourceInfo($bomRec->id, 1, $now);
+            // Заявка само за текущата страница
+            $query = $Details->getQuery();
+            $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
+            $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
+            $query->where("#resourceId = {$data->masterId} AND #state != 'rejected'");
+            $query->groupBy('bomId');
+            $query->orderBy('orderByState', 'ASC');
+            $query->limit($data->Pager->itemsPerPage);
+            $query->startFrom($data->Pager->rangeStart);
 
-                if(is_array($rInfo['resources'])){
-                    $foundRec = array_filter($rInfo['resources'], function($a) use ($data){return $a->productId == $data->masterId;});
-                    $quantityVerbal = "<span class='red'>???</span>";
-                    if($foundRec[key($foundRec)]->propQuantity){
-                        $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundRec[key($foundRec)]->propQuantity);
+            while ($rec = $query->fetch()) {
+                $bomRec = cat_Boms::fetch($rec->bomId);
+                $data->rows[$rec->id] = cat_Boms::recToVerbal($bomRec);
+                $data->rows[$rec->id]->action = $Details->getFieldType('type')->toVerbal($rec->type);
+
+                $actionClass = ($rec->type == 'input') ? '#e6ffe0' : ($rec->type == 'pop' ? '#cce3fe' : '#ece2ff');
+                $data->rows[$rec->id]->action = "<div class='document-handler' style='background-color:{$actionClass};'>{$data->rows[$rec->id]->action}</div>";
+
+                // Изчисляване за какво количество е вложено, ако се показват рецептите, в които е вложена
+                if($Param == 'Resources'){
+                    $rInfo = cat_Boms::getResourceInfo($bomRec->id, 1, $now);
+
+                    if(is_array($rInfo['resources'])){
+                        $foundRec = array_filter($rInfo['resources'], function($a) use ($data){return $a->productId == $data->masterId;});
+                        $quantityVerbal = "<span class='red'>???</span>";
+                        if($foundRec[key($foundRec)]->propQuantity){
+                            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundRec[key($foundRec)]->propQuantity);
+                        }
+                        $data->rows[$rec->id]->quantity = "{$quantityVerbal} {$shortUom}";
                     }
-                    $data->rows[$rec->id]->quantity = "{$quantityVerbal} {$shortUom}";
                 }
             }
         }
@@ -362,6 +380,13 @@ class planning_GenericMapper extends core_Manager
 
         $recTpl = cls::get('cat_Boms')->renderBoms($data->recData);
         $recTpl->append(tr('Технологични рецепти, в които участва'), 'title');
+
+        // При повече от maxBomsForPaging рецепти - пейджърът е ограничен, показваме реалния общ брой
+        if ($data->recData->totalCount > $data->recData->Pager->itemsCount) {
+            $msg = tr('Показани са само първите') . " {$data->recData->Pager->itemsCount} " . tr('от общо') . " {$data->recData->totalCount}";
+            $recTpl->append("<div class='quiet small' style='margin-top:5px'>{$msg}</div>", 'content');
+        }
+
         $tpl->replace($recTpl, 'boms');
 
         return $tpl;
