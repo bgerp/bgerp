@@ -46,7 +46,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
         
         // Текстовата част
         $textPart = static::getRichTextPart($fRec);
-        
+
         // Вземаме съдържанието на таба за HTML
         $htmlPart = static::getHtmlTabTpl($htmlPartArr['url'], $htmlPartArr['path']);
 
@@ -105,9 +105,9 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
     {
         // Вземаме съдържанието на файла
         $content = fileman_Files::getContent($fRec->fileHnd);
-        
+
         $content = i18n_Charset::convertToUtf8($content, array(), true);
-        
+
         // Инстанция на richtext типа
         $richText = cls::get('type_Richtext');
         

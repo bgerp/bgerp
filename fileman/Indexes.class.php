@@ -905,7 +905,7 @@ class fileman_Indexes extends core_Manager
         fileman_Data::save($dRec, 'searchKeywords');
         
         $break = false;
-        $bGet = $hGet = $vGet = false;
+        $bGet = $hGet = $vGet = $mGet = false;
 
         foreach ($fArr as $hnd => $fRec) {
             if (dt::now() >= $endOn) {
@@ -969,8 +969,31 @@ class fileman_Indexes extends core_Manager
                     }
                 }
             }
-            
-            if ($hGet && $bGet && $vGet) {
+
+            // Извличане на съдържанието в markdown - само за поддържаните файлове
+            if (!$mGet) {
+
+                // Игнорираме файловете от кофите, които не трябва да се индексират
+                $skipBucket = false;
+                if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId] ?? null)) {
+                    $skipBucket = !empty($ignoreExtArr['*']) || !empty($ignoreExtArr[$ext]);
+                }
+
+                if (!$skipBucket) {
+                    $drvInst = self::getDrvForMethod($ext, 'extractMarkdown', $fName);
+                    if ($drvInst) {
+                        try {
+                            usleep(500000);
+                            $drvInst->extractMarkdown($fRec);
+                            $mGet = true;
+                        } catch (ErrorException $e) {
+                            reportException($e);
+                        }
+                    }
+                }
+            }
+
+            if ($hGet && $bGet && $vGet && $mGet) {
                 break;
             }
         }
@@ -1050,8 +1073,34 @@ class fileman_Indexes extends core_Manager
 
         return $content;
     }
-    
-    
+
+
+    /**
+     * Връща извлеченото съдържание на файла в markdown
+     *
+     * @param string  $fh
+     * @param boolean $convertToUtf8
+     *
+     * @return FALSE|string
+     */
+    public static function getMarkdownForIndex($fh, $convertToUtf8 = true)
+    {
+        $content = fileman_Indexes::getInfoContentByFh($fh, 'markdown');
+
+        // При грешка в обработката, в индекса се записва обект
+        if ($content === false || !is_string($content)) {
+
+            return false;
+        }
+
+        if ($convertToUtf8) {
+            $content = i18n_Charset::convertToUtf8($content);
+        }
+
+        return $content;
+    }
+
+
     /**
      * След извличане на записите от базата данни
      *
@@ -1176,14 +1225,35 @@ class fileman_Indexes extends core_Manager
      * Връща текстовото представяне на файла (ако няма кеширано го форсира)
      *
      * @param string  $fileHnd
-     * @param boolean $asMarkdownIfPossible ако е true и файлът е табличен по разширение
-     *                (xls/xlsx/ods/csv и др. - вижте $tabularExtensions), таб-разделените
-     *                редове се преобразуват в markdown-подобни таблични редове - по-лесни
-     *                за коректно парсване от AI модел, отколкото суров таб-разделен текст
+     * @param boolean $asMarkdownIfPossible ако е true, с предимство се връща съдържанието в
+     *                markdown (от програмата в FILEMAN_MARKDOWN - напр. markitdown), защото
+     *                пази структурата на документа (заглавия, списъци, таблици) и се парсва
+     *                по-лесно от AI модел. Ако няма такова съдържание (програмата не е
+     *                настроена, файлът не се поддържа или извличането е празно), се минава
+     *                по текстовия индекс, като за табличните файлове (xls/xlsx/ods/csv и др. -
+     *                вижте $tabularExtensions) таб-разделените редове се преобразуват в
+     *                markdown-подобни таблични редове
      * @return string|null
      */
     public static function forceTextForIndex($fileHnd, $asMarkdownIfPossible = false)
     {
+        // Съдържанието в markdown е с предимство - то е с максимално запазена структура.
+        // При какъвто и да е проблем с markdown обработката (ненастроена/липсваща програма,
+        // неочаквано изключение от драйвер) падаме обратно към текстовата логика по-долу,
+        // вместо да чупим извикващия код.
+        if ($asMarkdownIfPossible) {
+            try {
+                $markdownContent = self::forceMarkdownForIndex($fileHnd);
+
+                if (!empty($markdownContent)) {
+
+                    return $markdownContent;
+                }
+            } catch (Throwable $e) {
+                reportException($e);
+            }
+        }
+
         $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
 
         // Ако все още не е извлечен текста, форсираме извличането му
@@ -1207,6 +1277,53 @@ class fileman_Indexes extends core_Manager
         }
 
         return $fileTxtContent;
+    }
+
+
+    /**
+     * Връща съдържанието на файла в markdown (ако няма кеширано, форсира извличането му)
+     *
+     * За разлика от `forceTextForIndex()` тук съдържанието е с максимално запазена структура
+     * (заглавия, списъци, таблици, връзки) - по-подходящо за подаване към AI модел
+     *
+     * @param string $fileHnd
+     * @param int    $waitSecs - до колко секунди да се изчака обработката, ако е стартирана
+     *
+     * @return string|NULL
+     */
+    public static function forceMarkdownForIndex($fileHnd, $waitSecs = 120)
+    {
+        $content = self::getMarkdownForIndex($fileHnd);
+
+        // Ако все още не е извлечено съдържанието, форсираме извличането му
+        if ($content === false) {
+            $fRec = fileman::fetchByFh($fileHnd);
+
+            if ($fRec && $fRec->dataId) {
+                fileman_webdrv_Generic::extractMarkdown($fRec);
+
+                // Изчакваме, докато приключи обработката
+                $lockId = fileman_webdrv_Generic::getLockId('markdown', $fRec->dataId);
+                $endOn = dt::addSecs($waitSecs);
+
+                while (core_Locks::isLocked($lockId)) {
+                    if (dt::now() >= $endOn) {
+                        break;
+                    }
+                    usleep(500000);
+                }
+
+                $content = self::getMarkdownForIndex($fileHnd);
+            }
+        }
+
+        // Ако няма извлечено или е извлечен празен стринг, няма да се върне нищо
+        if ($content === false || empty(trim($content))) {
+
+            return null;
+        }
+
+        return trim($content);
     }
 
 
