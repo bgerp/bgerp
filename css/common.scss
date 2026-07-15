@@ -3924,5 +3924,193 @@ td.leftColImportant {
 	}
 	.minus-icon {
 		background-image: url('../img/16/toggle2.png') !important;
-	} 
+	}
+}
+
+/**
+ * Стилизиран модал за потвърждение (efConfirm) - виж js/efCommon.js
+ */
+$warningColor = #b75b00;
+$errorColor = #a30000;
+$noticeColor = #1976D2;
+
+.ef-confirm-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.55);
+	z-index: 2000;
+}
+.ef-confirm-modal {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 2001;
+	background: #fff;
+	border-radius: 4px;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+	padding: 24px 28px;
+	max-width: 420px;
+	min-width: 280px;
+	text-align: center;
+	border-top: 5px solid #888;
+
+	.ef-confirm-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		margin: 0 auto 10px auto;
+		border-radius: 50%;
+		background: #888;
+		color: #fff;
+		font-size: 20px;
+		font-weight: bold;
+		line-height: 1;
+	}
+	.ef-confirm-title {
+		font-weight: bold;
+		font-size: 1.3em;
+		color: #888;
+	}
+	.ef-confirm-message {
+		color: #333;
+		padding-top: 15px;
+		margin-bottom: 25px;
+		font-size: 1em;
+		white-space: pre-line;
+
+		hr {
+			border: none;
+			border-top: 1px solid #ddd;
+			margin: 15px 0;
+		}
+		ul {
+			text-align: left;
+			margin: 8px 0 0 20px;
+			padding-left: 0;
+		}
+		li {
+			margin-bottom: 6px;
+			list-style: square;
+
+			&:last-child {
+				margin-bottom: 0;
+			}
+		}
+	}
+	.ef-confirm-buttons {
+		display: flex;
+		gap: 10px;
+		justify-content: space-evenly;
+	}
+	.ef-confirm-btn {
+		padding: 6px 18px;
+		border-radius: 3px;
+		border: 1px solid #ccc;
+		background: #f2f2f2;
+		cursor: pointer;
+		font-size: 1em;
+		width: 100px;
+		text-shadow: none;
+
+		&:hover {
+			background: #e6e6e6;
+		}
+	}
+	.ef-confirm-ok {
+		background: #888;
+		border-color: #888;
+		color: #fff;
+
+		&:hover {
+			background: #666;
+		}
+	}
+
+	// По-широк вариант за преглед на съдържание (напр. бютифициран JSON) вместо кратко потвърждение
+	&.ef-confirm-wide {
+		max-width: 800px;
+		text-align: left;
+
+		.ef-confirm-message {
+			text-align: left;
+
+			pre {
+				margin: 0;
+				max-height: 60vh;
+				overflow: auto;
+				white-space: pre-wrap;
+				word-break: break-word;
+				background: #f5f5f5;
+				padding: 10px;
+				border-radius: 3px;
+				font-size: 0.9em;
+				text-align: left;
+			}
+		}
+	}
+
+	// Severity нива (виж acc_plg_Contable::SEVERITY_* / EF_CONFIRM_SEVERITY_ICONS в js/efCommon.js) -
+	// "не толкова страшно" (зелено, стандартния въпрос без допълнителни уорнинги), сегашния оранжев
+	// вариант (има допълнителен уорнинг), и по-тежък червен вариант (изрична грешка)
+	&.ef-confirm-notice {
+		border-top-color: $noticeColor;
+
+		.ef-confirm-icon {
+			background: $noticeColor;
+			color: #f1f1f1;
+		}
+		.ef-confirm-title {
+			color: $noticeColor;
+		}
+		.ef-confirm-ok {
+			background: $noticeColor;
+			border-color: $noticeColor;
+
+			&:hover {
+				background: #1566b6;
+			}
+		}
+	}
+	&.ef-confirm-warning {
+		border-top-color: $warningColor;
+
+		.ef-confirm-icon {
+			background: $warningColor;
+		}
+		.ef-confirm-title {
+			color: $warningColor;
+		}
+		.ef-confirm-ok {
+			background: $warningColor;
+			border-color: $warningColor;
+
+			&:hover {
+				background: #994c00;
+			}
+		}
+	}
+	&.ef-confirm-error {
+		border-top-color: $errorColor;
+
+		.ef-confirm-icon {
+			background: $errorColor;
+		}
+		.ef-confirm-title {
+			color: $errorColor;
+		}
+		.ef-confirm-ok {
+			background: $errorColor;
+			border-color: $errorColor;
+
+			&:hover {
+				background: #7a0000;
+			}
+		}
+	}
 }

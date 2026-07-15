@@ -864,7 +864,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $error = null;
         if ($rec->date > dt::today()) {
-            $res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
+            $res = 'Фактурата е с бъдещата дата и не може да бъде контирана|*!';
         } elseif (!$mvc->isAllowedToBePosted($rec, $error)) {
             $res = strip_tags($error);
         } elseif($rec->type == 'invoice') {
@@ -995,12 +995,13 @@ class sales_Invoices extends deals_InvoiceMaster
 
 
     /**
-     * Какво да е предупреждението на бутона за контиране
+     * Уорнинг на бутона за контиране - слива се със стандартния въпрос в общия модал
+     * (виж acc_plg_Contable::on_AfterGetContoWarning())
      *
      * @param int $id - ид
      * @param string $isContable - какво е действието
      *
-     * @return NULL|string - текста на предупреждението или NULL ако няма
+     * @return NULL|array - array('text' => string, 'severity' => acc_plg_Contable::SEVERITY_*) или NULL ако няма
      */
     public function getContoWarning_($id, $isContable)
     {
@@ -1010,7 +1011,9 @@ class sales_Invoices extends deals_InvoiceMaster
             $VatType = core_Type::getByName('drdata_VatType');
             $vatCheck = $VatType->isValid($rec->contragentVatNo);
 
-            return $vatCheck['warning'] ? "Евентуален проблем при контиране на фактурата с полето|* ДДС №: |{$vatCheck['warning']}|*" : null;
+            return $vatCheck['warning'] ? array('text' => "Евентуален проблем при контиране на фактурата с полето|* ДДС №: |{$vatCheck['warning']}|*", 'severity' => acc_plg_Contable::SEVERITY_WARNING) : null;
         }
+
+        return null;
     }
 }

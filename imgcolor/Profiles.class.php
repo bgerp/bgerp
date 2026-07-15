@@ -16,6 +16,12 @@
 class imgcolor_Profiles extends core_Manager
 {
     /**
+     * Standard per-row edit and delete actions in the list view.
+     */
+    public $loadList = 'plg_RowTools2';
+
+
+    /**
      * Заглавие
      */
     public $title = 'Профили за калибриране на цветови анализ';
@@ -59,7 +65,17 @@ class imgcolor_Profiles extends core_Manager
         $this->FLD('clusterSeed', 'int', 'caption=Клъстеризиране->Seed (детерминизъм),mandatory');
         $this->FLD('clusterAlphaThreshold', 'int', 'caption=Клъстеризиране->Праг прозрачност (0-255),mandatory');
 
-        $this->FLD('notes', 'richtext', 'caption=Бележки');
+        // Опционални override-и на праговете за преливки (CMYK отделяне);
+        // празно поле означава "използвай глобалната IMGCOLOR_TRANS_* стойност".
+        $this->FLD('transSpan', 'int', 'caption=Преливки->Обхват на пробите (px),allowEmpty');
+        $this->FLD('transNoiseDeltaE', 'double', 'caption=Преливки->Шумов праг (deltaE),allowEmpty');
+        $this->FLD('transCoherenceMin', 'double', 'caption=Преливки->Мин. кохерентност (косинус),allowEmpty');
+        $this->FLD('transAaRadius', 'int', 'caption=Преливки->Радиус на ерозия (px),allowEmpty');
+        $this->FLD('transMinSeed', 'int', 'caption=Преливки->Мин. пиксели за seed,allowEmpty');
+        $this->FLD('transEdgeDeltaE', 'double', 'caption=Преливки->Праг твърд ръб (deltaE),allowEmpty');
+        $this->FLD('transMinCoverage', 'double', 'caption=Преливки->Мин. покритие (дял),allowEmpty');
+
+        $this->FLD('notes', 'text(rows=4)', 'caption=Бележки');
 
         $this->setDbUnique('sysId');
     }
@@ -78,17 +94,9 @@ class imgcolor_Profiles extends core_Manager
         $rec = $form->rec;
 
         if (empty($rec->id)) {
-            $rec->cropLightnessMin = imgcolor_Setup::get('CROP_LIGHTNESS_MIN');
-            $rec->cropChromaMax = imgcolor_Setup::get('CROP_CHROMA_MAX');
-            $rec->cropLineContentFraction = imgcolor_Setup::get('CROP_LINE_CONTENT_FRACTION');
-            $rec->cropAlphaThreshold = imgcolor_Setup::get('CROP_ALPHA_THRESHOLD');
-            $rec->clusterFixedK = imgcolor_Setup::get('CLUSTER_FIXED_K');
-            $rec->clusterKMax = imgcolor_Setup::get('CLUSTER_KMAX');
-            $rec->clusterHistogramBits = imgcolor_Setup::get('CLUSTER_HISTOGRAM_BITS');
-            $rec->clusterMergeDeltaE = imgcolor_Setup::get('CLUSTER_MERGE_DELTAE');
-            $rec->clusterMinCoverage = imgcolor_Setup::get('CLUSTER_MIN_COVERAGE');
-            $rec->clusterSeed = imgcolor_Setup::get('CLUSTER_SEED');
-            $rec->clusterAlphaThreshold = imgcolor_Setup::get('CLUSTER_ALPHA_THRESHOLD');
+            foreach (imgcolor_Calibration::getDefaultValues() as $field => $value) {
+                $rec->{$field} = $value;
+            }
         }
     }
 
@@ -105,13 +113,11 @@ class imgcolor_Profiles extends core_Manager
      */
     public static function on_BeforeSave($mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        $values = array();
-        foreach (imgcolor_Calibration::$fields as $f) {
-            $values[$f] = $rec->{$f};
-        }
-
         try {
-            imgcolor_Calibration::buildOptions($values);
+            imgcolor_Calibration::buildOptions(imgcolor_Calibration::getValues($rec));
+            imgcolor_TransitionClassifier::normalizeParams(
+                imgcolor_TransitionClassifier::applyOverrides(imgcolor_TransitionClassifier::$defaults, $rec)
+            );
         } catch (InvalidArgumentException $e) {
             throw new core_exception_Expect('imgcolor: ' . $e->getMessage(), 'Несъответствие');
         }

@@ -6493,9 +6493,271 @@ function checkVatAndTriger(name) {
 
 
 /**
+ * Позволени тагове/атрибути в текста на efConfirm() - виж sanitizeEfConfirmHtml() по-долу.
+ * Само структурни/стилизиращи тагове, никакви такива способни да заредят ресурс или да сложат
+ * onclick/onerror и т.н. (a, img, script... не са позволени - изобщо не се копират).
+ */
+var EF_CONFIRM_ALLOWED_TAGS = ['B', 'I', 'BR', 'SPAN', 'DIV', 'UL', 'LI', 'HR', 'PRE'];
+var EF_CONFIRM_ALLOWED_ATTRS = ['class'];
+
+
+/**
+ * Рекурсивно копира един DOM възел в targetParent, като позволява само таговете/атрибутите от
+ * EF_CONFIRM_ALLOWED_TAGS/EF_CONFIRM_ALLOWED_ATTRS. Всеки непозволен таг (a, img, script,
+ * svg, ...) се "разгъва" до чистия си текст (textContent) - структурата и атрибутите му отпадат,
+ * не се изпълнява/рендира като таг.
+ *
+ * @param {Node} node
+ * @param {Node} targetParent
+ */
+function sanitizeEfConfirmNode(node, targetParent) {
+    if (node.nodeType === Node.TEXT_NODE) {
+        targetParent.appendChild(document.createTextNode(node.nodeValue));
+
+        return;
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+
+        return;
+    }
+
+    if (EF_CONFIRM_ALLOWED_TAGS.indexOf(node.tagName) !== -1) {
+        var clean = document.createElement(node.tagName);
+        for (var i = 0; i < EF_CONFIRM_ALLOWED_ATTRS.length; i++) {
+            var attr = EF_CONFIRM_ALLOWED_ATTRS[i];
+            if (node.hasAttribute(attr)) {
+                clean.setAttribute(attr, node.getAttribute(attr));
+            }
+        }
+        for (var j = 0; j < node.childNodes.length; j++) {
+            sanitizeEfConfirmNode(node.childNodes[j], clean);
+        }
+        targetParent.appendChild(clean);
+    } else {
+        targetParent.appendChild(document.createTextNode(node.textContent));
+    }
+}
+
+
+/**
+ * Санитизира HTML низ за показване в efConfirm() - връща DocumentFragment, готов за append.
+ *
+ * Парсва през DOMParser (не innerHTML!) - документът, който той връща, е "inert" (не е свързан
+ * с browsing context), затова евентуални <img src=x onerror=...> и т.н. в message-а НЕ се зареждат
+ * и не тригерят събития дори по време на самото парсене. Ако все пак някой такъв таг оцелее,
+ * sanitizeEfConfirmNode() го маха/разгъва до текст, преди да влезе в реалния DOM.
+ *
+ * @param {string} html
+ *
+ * @return {DocumentFragment}
+ */
+function sanitizeEfConfirmHtml(html) {
+    var parsed = new DOMParser().parseFromString(html || '', 'text/html');
+    var out = document.createDocumentFragment();
+    var children = parsed.body.childNodes;
+    for (var i = 0; i < children.length; i++) {
+        sanitizeEfConfirmNode(children[i], out);
+    }
+
+    return out;
+}
+
+
+/**
+ * Severity нива за efConfirm() - CSS класове .ef-confirm-notice/-warning/-error в css/common.scss
+ * (виж acc_plg_Contable::SEVERITY_* в acc/plg/Contable.class.php - огледални имена).
+ */
+// Обикновени текстови символи, не цветни emoji glyph-ове (emoji си имат собствен вграден цвят,
+// който не следва CSS color - виж .ef-confirm-icon в css/common.scss, което оцветява border+текста)
+var EF_CONFIRM_SEVERITY_ICONS = {
+    notice:  '?',
+    warning: '!',
+    error:   '&#10005;' // ✕
+};
+
+
+/**
+ * Заглавие по подразбиране на модала по severity - notice няма заглавие (само иконка+съобщение),
+ * освен ако викащия код изрично подаде opts.title.
+ */
+var EF_CONFIRM_SEVERITY_TITLES = {
+    notice:  '',
+    warning: 'Внимание',
+    error:   'Внимание'
+};
+
+
+/**
+ * Показва стилизиран модал за потвърждение (Да/Отказ) вместо нативния window.confirm().
+ * Връща Promise<boolean> - true при потвърждение, false при отказ/Escape/клик извън модала.
+ *
+ * message може да съдържа ограничен HTML (виж EF_CONFIRM_ALLOWED_TAGS по-горе) - <b>/<i>/<br>/
+ * <span>/<div>, само с class атрибут. Всичко останало се показва като чист текст.
+ *
+ * @param {string} message  текст на съобщението (може да съдържа позволен HTML)
+ * @param {object} [opts]   {title, okText, cancelText, severity, cssClass, okOnly, noIcon}
+ *                          severity - notice|warning|error (по подразбиране notice), определя
+ *                          цвета/иконата на модала - виж EF_CONFIRM_SEVERITY_ICONS по-горе.
+ *                          cssClass - допълнителна класа, ако е нужна извън severity.
+ *                          okOnly   - true = само бутон "ОК" (без Отказ) - за чисто информативни
+ *                          съобщения (напр. блокираща грешка), не за истинско потвърждение - виж
+ *                          efAlert() по-долу.
+ *                          noIcon   - true = без кръглата severity иконка (напр. чист преглед на
+ *                          съдържание) - виж efShowInfo() по-долу.
+ */
+function efConfirm(message, opts) {
+    opts = opts || {};
+    var severity = opts.severity || 'notice';
+
+    return new Promise(function (resolve) {
+        var overlay = $('<div class="ef-confirm-overlay"></div>');
+        var modal = $('<div class="ef-confirm-modal"></div>');
+        modal.addClass('ef-confirm-' + severity);
+        if (opts.cssClass) {
+            modal.addClass(opts.cssClass);
+        }
+
+        if (!opts.noIcon) {
+            var icon = EF_CONFIRM_SEVERITY_ICONS[severity] || EF_CONFIRM_SEVERITY_ICONS.notice;
+            modal.append('<div class="ef-confirm-icon">' + icon + '</div>');
+        }
+
+        var title = (opts.title !== undefined) ? opts.title : (EF_CONFIRM_SEVERITY_TITLES[severity] ?? 'Внимание');
+        if (title) {
+            modal.append($('<div class="ef-confirm-title"></div>').text(title));
+        }
+
+        var messageDiv = $('<div class="ef-confirm-message"></div>');
+        messageDiv[0].appendChild(sanitizeEfConfirmHtml(message));
+        modal.append(messageDiv);
+
+        var btnRow = $('<div class="ef-confirm-buttons"></div>');
+        var cancelBtn = null;
+        if (!opts.okOnly) {
+            cancelBtn = $('<button type="button" class="ef-confirm-btn ef-confirm-cancel"></button>').text(opts.cancelText || 'Отказ');
+            btnRow.append(cancelBtn);
+        }
+        var okBtn = $('<button type="button" class="ef-confirm-btn ef-confirm-ok"></button>').text(opts.okText || 'Да');
+        btnRow.append(okBtn);
+        modal.append(btnRow);
+
+        function close(result) {
+            $(document).off('keydown.efConfirm');
+            overlay.remove();
+            modal.remove();
+            resolve(result);
+        }
+
+        if (cancelBtn) { cancelBtn.on('click', function () { close(false); }); }
+        okBtn.on('click', function () { close(true); });
+        overlay.on('click', function () { close(!!opts.okOnly); });
+        $(document).on('keydown.efConfirm', function (e) {
+            if (e.key === 'Escape') { close(!!opts.okOnly); }
+            if (e.key === 'Enter') { close(true); }
+        });
+
+        $('body').append(overlay).append(modal);
+        okBtn.trigger('focus');
+    });
+}
+
+
+/**
+ * Generic confirm за бутон/линк с warning=: един-единствен стилизиран efConfirm() модал вместо
+ * нативния window.confirm() (виж core_Html::prepareLinkAndBtnAttr() - централната точка, която
+ * превръща warning= в извикване на тази функция; и acc_plg_Contable::buildContoConfirmJs() - за
+ * бутона за контиране, с вече слят текст от няколко уорнинга). Без верижни прозорци.
+ *
+ * efConfirm() е асинхронен (чака клик в модала), затова при потвърждение кликът върху елемента се
+ * "преиграва" (buttonEl.click()) - на втория пасаж флагът buttonEl.__efConfirmed е вече сложен,
+ * пропуска се модала и се продължава по обичайния начин (навигация към href-а, форма submit, или
+ * bubble-ване към делегиран click handler).
+ *
+ * @param {Event}  ev
+ * @param {Element} buttonEl
+ * @param {string} warning  - текста на уорнинга
+ * @param {string} [severity] - notice|warning|error (виж EF_CONFIRM_SEVERITY_ICONS), по подразбиране notice
+ *
+ * @return {boolean}
+ */
+function efConfirmClick(ev, buttonEl, warning, severity) {
+    if (buttonEl.__efConfirmed) {
+        buttonEl.__efConfirmed = false;
+        return true;
+    }
+
+    if (ev) {
+        if (ev.stopImmediatePropagation) { ev.stopImmediatePropagation(); }
+        if (ev.preventDefault) { ev.preventDefault(); }
+    }
+
+    efConfirm(warning, {severity: severity}).then(function (ok) {
+        if (ok) {
+            buttonEl.__efConfirmed = true;
+            buttonEl.click();
+        } else {
+            if (window.jQuery) { jQuery(buttonEl).blur(); }
+        }
+    });
+
+    return false;
+}
+
+
+/**
+ * Чисто информативен модал (SEVERITY_ERROR, само бутон "ОК", без "Отказ") - generic заместител на
+ * нативния alert() за бутони за грешка (виж core_Html::createErrBtn(),
+ * acc_plg_Contable::buildContoAlertJs()). За разлика от efConfirmClick() - НЕ преиграва клика след
+ * затваряне, натискането на "ОК" просто затваря модала и нищо друго не се случва.
+ *
+ * @param {Event}  ev
+ * @param {string} message - текста на грешката
+ *
+ * @return {boolean} винаги false
+ */
+function efAlert(ev, message) {
+    if (ev) {
+        if (ev.stopImmediatePropagation) { ev.stopImmediatePropagation(); }
+        if (ev.preventDefault) { ev.preventDefault(); }
+    }
+
+    efConfirm(message, {severity: 'error', okOnly: true, okText: 'ОК'});
+
+    return false;
+}
+
+
+/**
+ * Чисто информативен модал (SEVERITY_NOTICE, само бутон "ОК") - за преглед на дълго
+ * съдържание при клик (напр. бютифициран JSON), вместо native title tooltip (без скрол/стил).
+ * За разлика от efAlert() е с notice стил (не error) и приема опционален cssClass за по-широк
+ * модал - виж .ef-confirm-wide в css/common.scss.
+ *
+ * @param {Event}  ev
+ * @param {string} message   - може да съдържа <pre> (виж EF_CONFIRM_ALLOWED_TAGS по-горе)
+ * @param {string} [cssClass]
+ * @param {boolean} [noIcon] - true = без severity иконката (виж opts.noIcon в efConfirm())
+ *
+ * @return {boolean} винаги false
+ */
+function efShowInfo(ev, message, cssClass, noIcon) {
+    if (ev) {
+        if (ev.stopPropagation) { ev.stopPropagation(); }
+        if (ev.preventDefault) { ev.preventDefault(); }
+    }
+
+    efConfirm(message, {severity: 'notice', okOnly: true, okText: 'ОК', cssClass: cssClass, noIcon: !!noIcon});
+
+    return false;
+}
+
+
+/**
  * ф-я за контиране на ПКО
  */
 function contoPkoPrompt(ev, buttonEl, callUrl) {
+
     var warningText        = buttonEl.dataset.warning;
     var expectedAmount     = buttonEl.dataset.expectedAmount;
     var currenciesRaw      = buttonEl.dataset.expectedCurrency || '';
@@ -6540,11 +6802,7 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
     // 2) Ако текстът не е променян
     if (userText === expectedAmount) {
         urlToCall = documentUrl;
-
-        if (!callUrl) {
-            return true;
-        }
-        // ако callUrl === true, ще стигнем до Efae call по-долу
+        // продължаваме напред - към евентуалния Efae call по-долу
     } else {
         // 3) Текстът е променен -> парсваме и валидираме
         userText = userText.trim();
@@ -6637,7 +6895,7 @@ function contoPkoPrompt(ev, buttonEl, callUrl) {
         }
     }
 
-    // 5) Ако трябва директно да извикаме URL-а през Efae
+    // 6) Ако трябва директно да извикаме URL-а през Efae
     if (callUrl && urlToCall) {
         if (typeof getEfae === 'function') {
             var efae = getEfae();

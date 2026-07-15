@@ -90,6 +90,7 @@ class avatar_Plugin extends core_Plugin
      */
     public static function getUrl($userId, $email = null, $width = null)
     {
+        $imgUrl = null;
         if ($userId < 0) {
             // Ако става дума за системния потребител
             $imgUrl = sbf('img/100/system.png', '');
@@ -108,7 +109,7 @@ class avatar_Plugin extends core_Plugin
             $imgUrl = avatar_Gravatar::getUrl($email, $width);
         }
         
-        if (!$imgUrl) {
+        if (empty($imgUrl)) {
             $imgUrl = sbf('img/100/noavatar.png', '');
         }
         

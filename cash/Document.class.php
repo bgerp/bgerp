@@ -730,7 +730,10 @@ abstract class cash_Document extends deals_PaymentDocument
         $info['stores'] = array();
         if($this->haveRightFor('conto', $rec) && $lineState != 'rejected'){
             if(!Mode::is('printing') && !Mode::is('xhtml')){
-                $warning = $this->getContoWarning($rec->id, $rec->isContable);
+                // getContoWarning() връща array('text','severity') (виж
+                // acc_plg_Contable::on_AfterGetContoWarning()) - тук е window.prompt(), чист текст,
+                // затова взимаме само 'text' (severity не важи за нативен prompt)
+                $warning = $this->getContoWarning($rec->id, $rec->isContable)['text'];
 
                 $info['amountVerbal'] = str_replace('&nbsp;', ' ', $info['amountVerbal']);
 
@@ -908,19 +911,23 @@ abstract class cash_Document extends deals_PaymentDocument
     
     
     /**
-     * Уорнинг на бутона за контиране/активиране
+     * Уорнинг на бутона за контиране/активиране - информативна добавка към стандартния въпрос
+     * (виж acc_plg_Contable::on_AfterGetContoWarning()) с касата, в която ще се контира
+     *
+     * @return NULL|array - array('text' => string, 'severity' => acc_plg_Contable::SEVERITY_*) или NULL ако няма
      */
     public static function getContoWarning_($id, $isContable)
     {
         $rec = static::fetchRec($id);
         $currentCaseId = cls::get(get_called_class())->getDefaultCase($rec);
-        
+
         if(!isset($rec->peroCase) && isset($currentCaseId)){
             $currentCaseName = cash_Cases::getTitleById($currentCaseId);
-            return "|Наистина ли желаете документът да бъде контиран в каса|*: {$currentCaseName}?";
+
+            return array('text' => "|Ще бъде контиран в каса|*: {$currentCaseName}", 'severity' => acc_plg_Contable::SEVERITY_NOTICE);
         }
-        
-        return "|Наистина ли желаете документът да бъде контиран|*?";
+
+        return null;
     }
 
 
