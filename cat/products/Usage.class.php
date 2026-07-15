@@ -240,8 +240,9 @@ class cat_products_Usage extends core_Manager
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->replace("style='margin-top:10px'", 'STYLE');
 
-        // Котва - за да не скача страницата в началото при кликане по пейджъра
-        $anchorId = 'usage_' . get_class($data->Document);
+        // Котва - за да не скача страницата в началото при кликане по пейджъра.
+        // Включва containerId на мастъра, защото в една нишка може да има няколко артикула
+        $anchorId = 'usage_' . get_class($data->Document) . '_' . $data->masterData->rec->containerId;
         $tpl->append("<span id='{$anchorId}'></span>", 'title');
 
         $title = tr($data->Document->title);
@@ -291,8 +292,9 @@ class cat_products_Usage extends core_Manager
 
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
 
-        // Котва - за да не скача страницата в началото при кликане по пейджъра
-        $anchorId = 'usage_' . get_class($data->Jobs);
+        // Котва - за да не скача страницата в началото при кликане по пейджъра.
+        // Включва containerId на мастъра, защото в една нишка може да има няколко артикула
+        $anchorId = 'usage_' . get_class($data->Jobs) . '_' . $data->masterData->rec->containerId;
         $tpl->append("<span id='{$anchorId}'></span>", 'title');
 
         $title = tr('Задания за производство');
