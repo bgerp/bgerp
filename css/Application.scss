@@ -4076,8 +4076,12 @@ fieldset.sharing-history {
 .twoColsFilter {
 	display: flex;
 	justify-content: space-between;
+	margin-bottom: 20px;
 	.listFilter form {
 		column-count: 2;
+	}
+	.summary-block {
+		margin-left: 20px;
 	}
 }
 

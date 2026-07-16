@@ -3493,9 +3493,12 @@ span.sharing-history-title {
 
 .twoColsFilter {
   display: flex;
-  justify-content: space-between; }
+  justify-content: space-between;
+  margin-bottom: 20px; }
   .twoColsFilter .listFilter form {
     column-count: 2; }
+  .twoColsFilter .summary-block {
+    margin-left: 20px; }
 
 /*
  * край на външни стилове за ширина
