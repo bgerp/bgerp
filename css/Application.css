@@ -3491,6 +3491,12 @@ span.sharing-history-title {
 .filterForm #filter {
   padding-left: 20px !important; }
 
+.twoColsFilter {
+  display: flex;
+  justify-content: space-between; }
+  .twoColsFilter .listFilter form {
+    column-count: 2; }
+
 /*
  * край на външни стилове за ширина
  */
@@ -5624,9 +5630,6 @@ div.location.public {
   .docStatistic form .horizontal .formFields,
   .docStatistic form .horizontal .formToolbar {
     margin-bottom: 0; }
-
-.document .details .portal .formToolbar #filter {
-  1padding: 5px 4px 4px !important; }
 
 /*
  * шаблон за журнал
