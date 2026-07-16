@@ -133,11 +133,17 @@ class core_Detail extends core_Manager
     public function renderDetailLayout_($data)
     {
         $className = cls::getClassName($this);
-        
+
+        setPartIfNot($data, 'listTopContainerHtmlClass', $this->listTopContainerHtmlClass);
+        $listTopContainerClass = 'listTopContainer clearfix21';
+        if (!empty($data->listTopContainerHtmlClass)) {
+            $listTopContainerClass .= ' ' . $data->listTopContainerHtmlClass;
+        }
+
         // Шаблон за листовия изглед
         $listLayout = new ET("
             <div class='clearfix21 {$className}'>
-            	<div class='listTopContainer clearfix21'>
+            	<div class='{$listTopContainerClass}'>
                     [#ListFilter#]
                 </div>
                 [#ListPagerTop#]
