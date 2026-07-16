@@ -252,14 +252,16 @@ class cat_products_Usage extends core_Manager
         $tpl->append($title, 'title');
 
         $data->listFields = arr::make("title={$data->Document->singleTitle},folderId=Папка,created=Създадено");
+        $data->listTableMvc = clone $data->Document;
         if ($data->Document instanceof planning_Tasks) {
             // planning_Tasks няма поле "вальор" - вместо това показваме заданието му
             arr::placeInAssocArray($data->listFields, array('originId' => 'Задание'), null, 'title');
+            $data->listTableMvc->setField('originId', 'tdClass=leftCol');
         } else {
             $dateArr = ($data->Document instanceof sales_Quotations) ? array('date' => 'Дата') : array('valior' => 'Вальор');
             arr::placeInAssocArray($data->listFields, $dateArr, null, 'title');
         }
-        $data->listTableMvc = clone $data->Document;
+
         $data->Document->invoke('BeforeRenderListTable', array($tpl, &$data));
 
         $data->Document->setFieldType('title', 'varchar');

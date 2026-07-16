@@ -138,8 +138,14 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
-    
-    
+
+
+    /**
+     * Допълнителен CSS клас на listTopContainer
+     */
+    public $listTopContainerHtmlClass = 'twoColsFilter';
+
+
     /**
      * Икона на единичния изглед
      */

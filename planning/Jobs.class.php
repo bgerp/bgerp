@@ -151,8 +151,14 @@ class planning_Jobs extends core_Master
      * Клас за отделния ред в листовия изглед
      */
     public $commonRowClass = 'separateRowTable';
-    
-    
+
+
+    /**
+     * Допълнителен CSS клас на listTopContainer
+     */
+    public $listTopContainerHtmlClass = 'twoColsFilter';
+
+
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      *
