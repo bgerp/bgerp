@@ -620,6 +620,8 @@ class planning_Tasks extends core_Master
             }
         }
 
+        $row->originId = $origin->getHyperlink(true);
+
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
             if (!Mode::is('printing')) {
@@ -723,7 +725,6 @@ class planning_Tasks extends core_Master
                 unset($row->isFinal);
             }
 
-            $row->originId = $origin->getHyperlink(true);
             $row->jobState = $origin->fetchField('state');
 
             if (isset($rec->wasteProductId)) {
