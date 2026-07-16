@@ -1676,12 +1676,12 @@ class cat_Products extends embed_Manager
         $rec = $this->fetchRec($rec);
         
         // Ако артикула е генеричен не става перо по дефолт
-        $generic = ($rec->generic) ? $rec->generic : $this->fetchField($rec->id, 'generic');
+        $generic = (!empty($rec->generic)) ? $rec->generic : $this->fetchField($rec->id, 'generic');
         if ($generic == 'yes') {
             return false;
         }
-        
-        $isPublic = ($rec->isPublic) ? $rec->isPublic : $this->fetchField($rec->id, 'isPublic');
+
+        $isPublic = (!empty($rec->isPublic)) ? $rec->isPublic : $this->fetchField($rec->id, 'isPublic');
         
         return $isPublic == 'yes';
     }
@@ -2242,6 +2242,9 @@ class cat_Products extends embed_Manager
      */
     public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null, $primeCostlistId = null)
     {
+        core_Debug::startTimer("GET_PRIME_COST_ALL");
+        core_Debug::startTimer("GET_PRIME_COST_{$productId}");
+
         // Опитваме се да намерим запис в в себестойностти за артикула
         $primeCostlistId = (isset($primeCostlistId)) ? $primeCostlistId : price_ListRules::PRICE_LIST_COST;
 
@@ -2263,6 +2266,7 @@ class cat_Products extends embed_Manager
 
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
         $date = price_ListToCustomers::canonizeTime($date);
+        core_Debug::startTimer("GET_PRIME_COST_FROM_LIST");
         if($isPublic == 'yes'){
 
             // Ако е стандартен първо се търси цената по политика "Себестойност", ако няма от драйвера
@@ -2279,8 +2283,12 @@ class cat_Products extends embed_Manager
                 $primeCost = price_ListRules::getPrice($primeCostlistId, $proto, $packagingId, $date);
             }
         }
-        
+        core_Debug::stopTimer("GET_PRIME_COST_FROM_LIST");
+
         $primeCost = is_object($primeCost) ? $primeCost->price : $primeCost;
+
+        core_Debug::stopTimer("GET_PRIME_COST_ALL");
+        core_Debug::stopTimer("GET_PRIME_COST_{$productId}");
 
         return $primeCost;
     }

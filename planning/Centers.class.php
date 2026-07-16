@@ -166,7 +166,7 @@ class planning_Centers extends core_Master
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри за планиране->Списък');
-        $this->FLD('showTaskPlanningParams', 'enum(yes=Само те, yesAdd=Допълват останалите, no=Не)', 'caption=Параметрите от Етапите да са планиращи->Избор,notNull,value=no');
+        $this->FLD('showTaskPlanningParams', 'enum(yes=Само те, yesAdd=Допълват останалите, no=Не)', 'caption=Параметрите от Етапа да са планиращи (при филтриране по Етап)->Избор,notNull,value=no');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', 'caption=Служители->Щат, input=none');
         $this->FLD('employmentOccupied', 'int', 'caption=Служители->Назначени, input=none');
@@ -188,7 +188,7 @@ class planning_Centers extends core_Master
         $this->FLD('showMaxPreviousTasksInATask', 'int', 'caption=За колко от предходните Операции да се визуализира готовността->До');
         $this->FLD('autoCreateTaskState', 'enum(auto=Автоматично,pending=Заявка,draft=Чернова)', 'caption=Състояние на ПО след автоматично създаване от Рецепта->Състояние,value=auto,notNull');
         $this->FLD('supportSystemFolderId', 'key2(mvc=doc_Folders,select=title,coverClasses=support_Systems,allowEmpty)', 'caption=Система за подаване на сигнали->Система');
-        $this->FLD('autoAddConvertableInTask', 'enum(auto=Автоматично,no=Изключено,yes=Включено)', 'caption=Автоматично добавяне на артикули от протокол за влагане в ПО->Избор,value=auto,notNull');
+        $this->FLD('autoAddConvertableInTask', 'enum(auto=Автоматично,no=Изключено,yes=Включено)', 'caption=Автоматично добавяне на артикули от Протокол за влагане (на Заявка) в ПО->Избор,value=auto,notNull');
 
         $powerUserId = core_Roles::fetchByName('powerUser');
         $this->FLD('supportUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Система за подаване на сигнали->Отговорници');
@@ -206,7 +206,7 @@ class planning_Centers extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams);
+        $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams ?? null);
         $form->setSuggestions("planningParams", $paramSuggestions);
 
         $options = cat_UoM::getPackagingOptions();

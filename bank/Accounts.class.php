@@ -297,9 +297,10 @@ class bank_Accounts extends core_Master
     public function prepareContragentBankAccounts($data)
     {
         $data->TabCaption = 'Банка';
-        
+        $data->recs = $data->rows = array();
+
         if (!$data->isCurrent) {
-            
+
             return;
         }
         
@@ -456,14 +457,19 @@ class bank_Accounts extends core_Master
     {
         $Contragent = cls::get($contragentClass);
         $suggestions = array('' => '');
-        
+
+        if (empty($contragentId)) {
+
+            return $suggestions;
+        }
+
         $query = static::getQuery();
         $query->where("#contragentId = {$contragentId}");
         $query->where("#contragentCls = {$Contragent->getClassId()}");
         $query->where("#state != 'closed'");
 
         $myCompany = crm_Companies::fetchOwnCompany();
-        $isOurCompany = ($myCompany->companyId == $contragentId && $Contragent->getClassId() == crm_Companies::getClassId());
+        $isOurCompany = (($myCompany->companyId ?? null) == $contragentId && $Contragent->getClassId() == crm_Companies::getClassId());
         $cu = core_Users::getCurrent();
 
         while ($rec = $query->fetch()) {

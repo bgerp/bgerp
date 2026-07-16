@@ -304,7 +304,7 @@ class eshop_Settings extends core_Master
         $this->FLD('defaultStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Склад');
         $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Продажби създадени от онлайн магазина->Каса');
 
-        $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми,both=Фирми и лица)', 'caption=Онлайн поръчки->Допускат се за,notNull,value=auto');
+        $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми (задължително фактуриране),both=Фирми и лица (опционално фактуриране))', 'caption=Онлайн поръчки->Допускат се за,notNull,value=auto');
         $this->FLD('inputCardBtn', 'enum(yes=Включено,no=Изключено)', 'caption=Онлайн поръчки->Въвеждане на карта/ваучер,notNull,value=no');
         $this->FLD('mandatoryInquiryContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допускат се за,notNull,value=auto');
         $this->FLD('mandatoryEGN', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕГН');

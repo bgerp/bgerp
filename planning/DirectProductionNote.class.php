@@ -896,14 +896,25 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $jobRec =  static::getJobRec($rec);
             $details2 = planning_Jobs::getDefaultProductionDetailsFromConvertedByNow($jobRec, $rec->valior);
             $details = array();
-
+            
             // Сумират се очакваните детайли по рецепта и реално вложеното
             if(countR($details2)){
                 foreach ($details2 as $d2){
                     $d2->_realData = true;
                     if(array_key_exists("{$d2->productId}|{$d2->type}", $detailsFromBom)){
-                        $d2->quantityFromBom = $detailsFromBom["{$d2->productId}|{$d2->type}"]->quantityFromBom;
+                        $bomEntry = $detailsFromBom["{$d2->productId}|{$d2->type}"];
+                        $d2->quantityFromBom = $bomEntry->quantityFromBom;
                         $d2->quantity = $d2->quantityFromBom;
+                        $mergedNotes = array();
+                        foreach (array($d2->notes, $bomEntry->notes) as $notesStr) {
+                            $lines = is_array($notesStr) ? $notesStr : explode("\n", (string)$notesStr);
+                            foreach ($lines as $line) {
+                                if (($line = trim($line)) !== '') {
+                                    $mergedNotes[md5($line)] = $line;
+                                }
+                            }
+                        }
+                        $d2->notes = $mergedNotes ? implode("\n", $mergedNotes) : null;
                         unset($detailsFromBom["{$d2->productId}|{$d2->type}"]);
 
                     } else {
@@ -1034,6 +1045,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $dRec->type = $resource->type;
             $dRec->packagingId = $resource->packagingId;
             $dRec->quantityInPack = $resource->quantityInPack;
+            $notesArr = array();
+            foreach ((array)$resource->notes as $line) {
+                if (($line = trim($line)) !== '') {
+                    $notesArr[md5($line)] = $line;
+                }
+            }
+            $dRec->notes = $notesArr ? implode("\n", $notesArr) : null;
 
             // Дефолтното к-во ще е разликата между к-та за произведеното до сега и за произведеното в момента
             if($quantityProduced){
@@ -1660,12 +1678,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
-     * Какво да е предупреждението на бутона за контиране
+     * Уорнинг на бутона за контиране - слива се със стандартния въпрос в общия модал
+     * (виж acc_plg_Contable::on_AfterGetContoWarning())
      *
      * @param int    $id         - ид
      * @param string $isContable - какво е действието
      *
-     * @return NULL|string - текста на предупреждението или NULL ако няма
+     * @return NULL|array - array('text' => string, 'severity' => acc_plg_Contable::SEVERITY_*) или NULL ако няма
      */
     public function getContoWarning_($id, $isContable)
     {
@@ -1690,7 +1709,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $warning = rtrim($warning, ' |и|* ');
         }
 
-        return $warning;
+        return !empty($warning) ? array('text' => $warning, 'severity' => acc_plg_Contable::SEVERITY_WARNING) : null;
     }
 
 

@@ -987,13 +987,13 @@ class trans_Lines extends core_Master
         $tQuery->orderBy('modifiedOn', 'DESC');
 
         // Ако няма е тази, в която последно е създавал линия
-        $folderId = $tQuery->fetch()->folderId;
+        $folderId = $tQuery->fetch()->folderId ?? null;
         if(empty($folderId)){
             $query = trans_Lines::getQuery();
             $query->where("#createdBy = {$cu} AND #state != 'rejected'");
             $query->orderBy("#createdOn", 'DESC');
             $query->show('folderId');
-            $folderId = $query->fetch()->folderId;
+            $folderId = $query->fetch()->folderId ?? null;
         }
         if(isset($folderId)) return $folderId;
 

@@ -28,8 +28,15 @@ class planning_AssetResources extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'createdOn, createdBy, modifiedOn, modifiedBy';
-    
-    
+
+
+    /**
+     * Опашка assetId => 'used'|'removed' за синхронизиране на usedInTask при
+     * on_Shutdown (@see markUsedInTask, on_Shutdown)
+     */
+    protected $usedInTaskQueue = array();
+
+
     /**
      * Плъгини за зареждане
      */
@@ -164,7 +171,10 @@ class planning_AssetResources extends core_Master
         $this->FLD('lastReorderedTasks', 'datetime(format=smartTime)', 'caption=Последно->Преподредени операции,input=none');
         $this->FNC('fromProtocolId', 'key(mvc=accda_Da,select=id)', 'silent,input=hidden');
 
+        $this->FLD('usedInTask', 'enum(no=Не,yes=Да)', 'caption=Използвано в ПО,notNull,value=no,input=none');
+
         $this->setDbUnique('code');
+        $this->setDbIndex('usedInTask');
     }
     
     
@@ -457,7 +467,7 @@ class planning_AssetResources extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->FNC('folderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Папка,silent,remember,input,refreshForm');
-        $data->listFilter->setFieldType('state', 'enum(all=Всички,active=Активни,closed=Затворени)');
+        $data->listFilter->setFieldType('state', 'enum(all=Всички,active=Активни,closed=Затворени,usedInTask=Използвани в ПО,notUsedInTask=Неизползвани в ПО)');
         $data->listFilter->setDefault('state', 'active');
 
         $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
@@ -487,7 +497,13 @@ class planning_AssetResources extends core_Master
             }
 
             if ($filterRec->state && $filterRec->state != 'all') {
-                $data->query->where("#state = '{$filterRec->state}'");
+                if($filterRec->state == 'usedInTask') {
+                    $data->query->where("#usedInTask = 'yes'");
+                } elseif($filterRec->state == 'notUsedInTask') {
+                    $data->query->where("#usedInTask = 'no'");
+                } else {
+                    $data->query->where("#state = '{$filterRec->state}'");
+                }
             }
         }
 
@@ -793,34 +809,41 @@ class planning_AssetResources extends core_Master
 
 
     /**
-     * Кои са използваните в операции ресурси
+     * Кои са използваните в операции ресурси. Ползва полето usedInTask, което се
+     * поддържа периодично от cron_RecalcUsedInTask (без folder-scoping - веднъж
+     * маркирано оборудване остава "използвано" във всички папки, докато крон-ът
+     * не установи, че вече не участва в нито едно ПО)
      *
      * @param mixed $folders - една папка или няколко
      * @return array $options
      */
     public static function getUsedAssetsInTasks($folders = null)
     {
-        $options = array();
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#assetId IS NOT NULL");
-        $tQuery->show('assetId');
-        if(isset($folders)){
-            $folderArr = arr::make($folders, true);
-            $assetsInFolderId = array();
-            foreach ($folderArr as $folderId) {
-                $assetsInFolderId += static::getByFolderId($folderId);
-            }
+        // Еднократно извличане на всички оборудвания, споделени в посочените папки
+        $folderArr = arr::make($folders, true);
+        $inFolderIds = array();
+        if (countR($folderArr)) {
+            $fQuery = planning_AssetResourceFolders::getQuery();
+            $fQuery->in('folderId', $folderArr);
+            $fQuery->where(array("#classId = '[#1#]'", static::getClassId()));
+            $fQuery->show('objectId');
+            $inFolderIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
+        }
 
-            if(countR($assetsInFolderId)){
-                $tQuery->in('assetId', array_keys($assetsInFolderId));
-            } else {
-                $tQuery->where("1=2");
-            }
+        $aQuery = static::getQuery();
+        $aQuery->where("#state NOT IN ('rejected', 'closed')");
+        $aQuery->where("#usedInTask = 'yes'");
+        if(countR($inFolderIds)) {
+            $aQuery->in('id', $inFolderIds);
         }
-        $assets = arr::extractValuesFromArray($tQuery->fetchAll(), 'assetId');
-        foreach ($assets as $assetId){
-            $options[$assetId] = planning_AssetResources::getTitleById($assetId, false);
-        }
+        $allAssets = $aQuery->fetchAll();
+
+        if (!countR($allAssets)) return array();
+
+        $me = cls::get(get_called_class());
+        $options = array_map(function ($rec) use ($me) {
+            return $me->getRecTitle($rec, false);
+        }, $allAssets);
 
         return $options;
     }
@@ -1135,5 +1158,77 @@ class planning_AssetResources extends core_Master
         }
 
         return true;
+    }
+
+
+    /**
+     * Заопашва оборудване за синхронизиране на usedInTask. Реалната синхронизация
+     * се случва еднократно в on_Shutdown, за да не се дублира при няколко запис
+     * на ПО-та към едно и също оборудване в рамките на един request
+     *
+     * @param int  $assetId
+     * @param bool $used     - true = оборудването току-що е използвано в ПО,
+     *                         false = свалено е от ПО, трябва да се провери дали
+     *                         все още се среща другаде
+     */
+    public static function markUsedInTask($assetId, $used = true)
+    {
+        if (empty($assetId)) return;
+
+        $me = cls::get(get_called_class());
+        if ($used) {
+            $me->usedInTaskQueue[$assetId] = 'used';
+        } elseif (($me->usedInTaskQueue[$assetId] ?? null) !== 'used') {
+            $me->usedInTaskQueue[$assetId] = 'removed';
+        }
+    }
+
+
+    /**
+     * Синхронизира заопашените от markUsedInTask() оборудвания в края на request-а.
+     * За 'used' само се презаписва ако е било 'no' (за да не се пише излишно).
+     * За 'removed' се прави евтина проверка дали оборудването все още се среща
+     * поне в едно ПО и полето се сваля на 'no' само ако не се среща никъде
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if (!countR($mvc->usedInTaskQueue)) return;
+
+        foreach ($mvc->usedInTaskQueue as $assetId => $event) {
+            $newState = ($event == 'used') ? 'yes' : (planning_Tasks::fetchField("#assetId = {$assetId}", 'id') ? 'yes' : 'no');
+
+            $curState = $mvc->fetchField($assetId, 'usedInTask');
+            if ($curState != $newState) {
+                $rec = (object)array('id' => $assetId, 'usedInTask' => $newState);
+                $mvc->save_($rec, 'id,usedInTask');
+            }
+        }
+    }
+
+
+    /**
+     * Еднократен бекфил на usedInTask за оборудванията, използвани в ПО преди
+     * въвеждането на полето. Извиква се веднъж от миграция (@see planning_Setup::forceBackfillUsedInTask)
+     * през core_CallOnTime, а не по крон, защото след бекфила markUsedInTask()
+     * при запис на ПО поддържа полето актуално
+     * @todo да се премахне след рилийз и разпространение на миграцията
+     *
+     * @param mixed $data - не се ползва, идва от core_CallOnTime
+     */
+    public static function callback_BackfillUsedInTask($data = null)
+    {
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#assetId IS NOT NULL");
+        $tQuery->show('assetId');
+        $tQuery->groupBy('assetId');
+        $usedArr = array();
+        foreach ($tQuery->fetchAll() as $tRec) {
+            $usedArr[] = (object)array('id' => $tRec->assetId, 'usedInTask' => 'yes');
+        }
+
+        $me = cls::get(get_called_class());
+        $me->saveArray($usedArr, 'id,usedInTask');
     }
 }

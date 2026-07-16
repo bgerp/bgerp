@@ -445,7 +445,7 @@ class sales_Routes extends core_Manager
      */
     protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        if ($action == 'edit' && $rec->id) {
+        if ($action == 'edit' && ($rec->id ?? null)) {
             if ($rec->state == 'rejected') {
                 $res = 'no_one';
             }

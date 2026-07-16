@@ -656,8 +656,8 @@ class core_FieldSet extends core_BaseClass
     public function getFieldTypeParam($name, $paramName, $strict = true)
     {
         $fieldType = $this->getFieldType($name, $strict);
-        
-        return $fieldType->params[$paramName];
+
+        return $fieldType->params[$paramName] ?? null;
     }
     
     

@@ -231,16 +231,16 @@ class label_Templates extends core_Master
         static $tplArr = array();
         
         // Ако преди е бил извлечен
-        if ($tplArr[$id]) {
-            
+        if (isset($tplArr[$id])) {
+
             return $tplArr[$id];
         }
-        
+
         // Вземаме записа
         $rec = self::fetch($id);
-        
+
         // Вкарваме CSS-а, като инлай в шаблона
-        $tplArr[$id] = $rec->template;
+        $tplArr[$id] = $rec->template ?? null;
         
         return $tplArr[$id];
     }
@@ -287,17 +287,17 @@ class label_Templates extends core_Master
         $hash = md5($template);
         
         // Ако преди е бил извлечен
-        if ($templateArrCss[$hash]) {
-            
+        if (isset($templateArrCss[$hash])) {
+
             return $templateArrCss[$hash];
         }
-        
+
         // Вземаме записа
         $rec = self::fetch($id);
 
         $templateArrCss[$hash] = $template;
 
-        if (trim($rec->css)) {
+        if (trim($rec->css ?? '')) {
             // Вкарваме CSS-а, като инлайн
             $templateArrCss[$hash] = self::templateWithInlineCSS($template, $rec->css);
         }
@@ -323,7 +323,7 @@ class label_Templates extends core_Master
         static $placesArr = array();
         
         // Ако не е генериран преди
-        if (!$placesArr[$id]) {
+        if (!isset($placesArr[$id])) {
             
             // Масив с плейсхолдерите
             $placesArrAll = self::getPlaceHolders($template);
@@ -333,7 +333,7 @@ class label_Templates extends core_Master
         }
         
         // Ако плейсхолдера се съдържа в шаблона
-        if ($placesArr[$id][$placeHolder]) {
+        if ($placesArr[$id][$placeHolder] ?? null) {
             
             return true;
         }
@@ -585,7 +585,7 @@ class label_Templates extends core_Master
                     $et->removeBlock($key);
                     $pArr = self::getPlaceholders($et);
                     $uKey = mb_strtoupper($key);
-                    if (!$pArr[$uKey]) {
+                    if (!($pArr[$uKey] ?? null)) {
                         break;
                     }
                 }
@@ -696,13 +696,13 @@ class label_Templates extends core_Master
             $classId = cls::get($class)->getClassId();
         }
         
-        $isContentTheSame = md5($exRec->template) == $templateHash;
+        $isContentTheSame = md5($exRec->template ?? '') == $templateHash;
         if(isset($cssPath)){
-            $isContentTheSame = $isContentTheSame && md5($exRec->css) == $cssTemplateHash;
+            $isContentTheSame = $isContentTheSame && md5($exRec->css ?? '') == $cssTemplateHash;
         }
 
         // Ако подадените параметри са същите като съществуващите, не се обновява/създава нищо
-        if ($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId && $exRec->series == $series) {
+        if ($isContentTheSame && ($exRec->title ?? null) == $title && ($exRec->title ?? null) == $title && ($exRec->sizes ?? null) == $sizes && ($exRec->lang ?? null) == $lang && ($exRec->classId ?? null) == $classId && ($exRec->series ?? null) == $series) {
             
             return false;
         }

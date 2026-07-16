@@ -13,3 +13,4 @@ syntax: regexp
 .vscode/launch.json
 **/.env
 .codex
+.claude/worktrees/

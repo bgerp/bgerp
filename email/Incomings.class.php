@@ -969,6 +969,8 @@ class email_Incomings extends core_Master
         }
 
         $data->query->orderBy('id', 'DESC');
+
+        $data->query->isSlowQuery = true;
     }
     
     

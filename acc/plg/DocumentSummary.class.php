@@ -252,7 +252,7 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
                     $fField = $data->listFilter->getField($f);
                     if(!empty($fField)){
-                        $caption = $fField->caption;
+                        $caption = $fField->caption ?? '';
                         if (strpos($caption, '->')) {
                             list($l, $r) = explode('->', $caption);
                             $caption = tr($l) . ' » ' . tr($r);
@@ -283,7 +283,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         if(!$mvc->hidePeriodFilter){
             $data->listFilter->showFields .=  ((!empty($data->listFilter->showFields) ? ',' : '')) . 'from, to' . $showFilterDateField;
         }
-        
+
+        $usedUsers = null;
+
         if ($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)) {
 
             // Филтър по "Наша фирма", ако е инсталиран пакета за многофирменост
@@ -379,7 +381,6 @@ class acc_plg_DocumentSummary extends core_Plugin
 
         // Активиране на филтъра
         $data->listFilter->input($data->listFilter->showFields, 'silent');
-        $usedUsers = null;
 
         // Ако формата за търсене е изпратена
         if ($filter = $data->listFilter->rec) {
@@ -706,15 +707,19 @@ class acc_plg_DocumentSummary extends core_Plugin
 
                 $row->colspan = 1;
                 if (isset($rec->amount)) {
-                    $row->amount = $Double->toVerbal($rec->amount);
-                    $row->amount = currency_Currencies::decorate($row->amount,  $rec->measure, true);
-                    $row->amount = ht::styleNumber($row->amount, $rec->amount);
+                    if(!doc_plg_HidePrices::canSeePriceFields($data->query->mvc, null)){
+                        $row->amount = doc_plg_HidePrices::getBuriedElement();
+                    } else{
+                        $row->amount = $Double->toVerbal($rec->amount);
+                        $row->amount = currency_Currencies::decorate($row->amount,  $rec->measure, true);
+                        $row->amount = ht::styleNumber($row->amount, $rec->amount);
 
-                    if(!empty($data->hasDocumentBeforeEu)){
-                        $amountBgn = currency_CurrencyRates::convertAmount($rec->amount, null, 'EUR', 'BGN');
-                        $row->amountBgn = $Double->toVerbal($amountBgn);
-                        $row->amountBgn = currency_Currencies::decorate($row->amountBgn,  'BGN');
-                        $row->amountBgn = ht::styleNumber($row->amountBgn, $amountBgn);
+                        if(!empty($data->hasDocumentBeforeEu)){
+                            $amountBgn = currency_CurrencyRates::convertAmount($rec->amount, null, 'EUR', 'BGN');
+                            $row->amountBgn = $Double->toVerbal($amountBgn);
+                            $row->amountBgn = currency_Currencies::decorate($row->amountBgn, 'BGN');
+                            $row->amountBgn = ht::styleNumber($row->amountBgn, $amountBgn);
+                        }
                     }
                 } elseif (isset($rec->quantity)) {
                     $row->measure = $rec->measure;

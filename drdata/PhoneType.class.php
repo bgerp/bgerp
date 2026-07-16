@@ -346,7 +346,7 @@ class drdata_PhoneType extends type_Varchar
                     }
                 }
                 
-                if ($res['error']) {
+                if (!empty($res['error'])) {
                     $this->error = $res['error'];
                 }
             }

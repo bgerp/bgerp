@@ -86,12 +86,14 @@ class change_plg_History extends core_Plugin
             $fieldsToCheck = $warning ? $loggableWarningFields : $mvc->loggableFields;
             $loggableFields = arr::make($fieldsToCheck, true);
             $exRec = $mvc->fetch($rec->id, '*', false);
-            foreach ($loggableFields as $field){
-                $fieldArr[$field] = trim($exRec->{$field});
-                $noArr[$field] = $fieldArr[$field];
-                $fieldArr[$field] = str_replace("\n\r", '', $fieldArr[$field]);
-                $fieldArr[$field] = str_replace("\r\n", '', $fieldArr[$field]);
-                $fieldArr[$field] = str_replace("\n", '', $fieldArr[$field]);
+            if ($exRec) {
+                foreach ($loggableFields as $field){
+                    $fieldArr[$field] = trim($exRec->{$field} ?? '');
+                    $noArr[$field] = $fieldArr[$field];
+                    $fieldArr[$field] = str_replace("\n\r", '', $fieldArr[$field]);
+                    $fieldArr[$field] = str_replace("\r\n", '', $fieldArr[$field]);
+                    $fieldArr[$field] = str_replace("\n", '', $fieldArr[$field]);
+                }
             }
             $rec->_oldRec = $exRec;
         }

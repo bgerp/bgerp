@@ -73,7 +73,8 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     private static function saveIfFromContainer($mvc, $rec)
     {
         // След създаване синхронизиране на модела
-        $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId);
+        $subtractPayedByNow = !(($mvc instanceof store_DocumentMaster) || ($mvc instanceof deals_ServiceMaster));
+        $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId, $subtractPayedByNow);
         $paymentCurrencyCode = currency_Currencies::getCodeById($mvc->getPaymentData($rec)->currencyId);
 
         $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
@@ -199,7 +200,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
         $res = array();
         $threadsArr = deals_Helper::getCombinedThreads($rec->threadId);
 
-        $isTransfer = in_array($rec->operationSysId, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer', 'supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'));
+        $isTransfer = in_array($rec->operationSysId ?? null, array('case2customer', 'bank2customer', 'caseAdvance2customer', 'bankAdvance2customer', 'supplier2case', 'supplier2bank', 'supplierAdvance2case', 'supplierAdvance2bank'));
         if($mvc instanceof acc_ValueCorrections){
             if($rec->action == 'decrease'){
                 $iArr = deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true);

@@ -54,7 +54,7 @@ class acc_plg_Registry extends core_Plugin
 
         // Ако е зададено да се добави в номенклатура при активиране
         if (!empty($mvc->addToListOnActivation)) {
-            if ($rec->state == 'active') {
+            if (($rec->state ?? null) == 'active') {
 
                 // Ако документа става перо при активиране, добавяме го като перо, ако вече не е
                 if ($mvc->canAddToListOnActivation($rec)) {
@@ -76,7 +76,8 @@ class acc_plg_Registry extends core_Plugin
         if (!$added) {
             
             // Ако е активно състоянието и обекта е перо
-            if ($rec->state != 'closed' && $rec->state != 'rejected' && $rec->state != 'stopped') {
+            $recState = $rec->state ?? null;
+            if ($recState != 'closed' && $recState != 'rejected' && $recState != 'stopped') {
                 
                 // Активираме перото
                 if ($itemRec = acc_Items::fetchItem($mvc, $rec->id)) {
@@ -97,7 +98,7 @@ class acc_plg_Registry extends core_Plugin
         
         // Ако обекта е затворен или оттеглен
         // Отбелязваме перото му, че е за затваряне
-        if ($rec->state == 'rejected' || $rec->state == 'closed' || $rec->state == 'stopped') {
+        if (($rec->state ?? null) == 'rejected' || ($rec->state ?? null) == 'closed' || ($rec->state ?? null) == 'stopped') {
             $mvc->closeItems[$rec->id] = $rec;
         }
     }

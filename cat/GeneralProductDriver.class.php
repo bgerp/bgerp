@@ -155,7 +155,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
         $res = array();
         
         // Ориджина е прототипа (ако има)
-        $originRecId = $rec->proto;
+        $originRecId = $rec->proto ?? null;
         if (isset($rec->proto)) {
             $classId = cat_Products::getClassId();
         }
@@ -612,18 +612,26 @@ class cat_GeneralProductDriver extends cat_ProductDriver
     {
         // Ако има рецепта връщаме по нея
         $priceFound = null;
-        if ($bomRec = $this->getBomForPrice($productId)) {
+        $calcBomPrice =  Mode::get('calcCompareBomPrice');
 
-            // Рецептата ще се преизчисли за текущия артикул, В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
-            $bomRec->productId = $productId;
-            $price = cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
-            if(!empty($price)){
-                $priceFound = $price;
+        if($calcBomPrice != 'no'){
+            core_Debug::startTimer("GET_PRICE_FROM_BOM");
+            if ($bomRec = $this->getBomForPrice($productId)) {
+
+                // Рецептата ще се преизчисли за текущия артикул, В случай че че рецептата му всъщност идва от генеричния му артикул (ако има)
+                $bomRec->productId = $productId;
+                $price = cat_Boms::getBomPrice($bomRec, $quantity, $minDelta, $maxDelta, $datetime, price_ListRules::PRICE_LIST_COST);
+                if(!empty($price)){
+                    $priceFound = $price;
+                }
             }
+            core_Debug::stopTimer("GET_PRICE_FROM_BOM");
         }
 
         if(empty($priceFound)){
+            core_Debug::startTimer("GET_PRICE_FROM_PRIME_COST");
             $price = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $productId, null, $datetime);
+            core_Debug::startTimer("GET_PRICE_FROM_PRIME_COST");
             if(isset($price)){
                 $priceFound = $price;
             }

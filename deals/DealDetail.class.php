@@ -226,7 +226,7 @@ abstract class deals_DealDetail extends doc_Detail
         }
 
         // Добавяне да се показва ценовата информация за стандартните артикули
-        $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'listId' => $masterRec->priceListId, 'currencyId' => $masterRec->currencyId, 'threadId' => $masterRec->threadId);
+        $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'listId' => $masterRec->priceListId ?? null, 'currencyId' => $masterRec->currencyId, 'threadId' => $masterRec->threadId);
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic', 'priceData' => $priceData));
 
         if (empty($rec->id)) {
@@ -301,7 +301,7 @@ abstract class deals_DealDetail extends doc_Detail
         if (!empty($rec->productId)) {
             $vatExceptionId = cond_VatExceptions::getFromThreadId($masterRec->threadId);
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior, $vatExceptionId);
-            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId);
+            $packs = cat_Products::getPacks($rec->productId, $rec->packagingId ?? null);
             $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', key($packs));
             $form->setField('packagingId', 'input');
@@ -321,8 +321,8 @@ abstract class deals_DealDetail extends doc_Detail
             }
 
             if (isset($mvc->LastPricePolicy)) {
-                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
-                if ($policyInfoLast->price != 0) {
+                $policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
+                if (($policyInfoLast->price ?? 0) != 0) {
                     $form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
                 }
             }
@@ -333,7 +333,7 @@ abstract class deals_DealDetail extends doc_Detail
                 if(empty($rec->id)){
                     $setWarning = deals_Setup::get('WARNING_ON_DUPLICATED_ROWS');
                     if($setWarning == 'yes'){
-                        $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '{$rec->id}' AND #productId = {$rec->productId}");
+                        $countSameProduct = $mvc->count("#{$mvc->masterKey} = '{$rec->{$mvc->masterKey}}' AND #id != '" . ($rec->id ?? 0) . "' AND #productId = {$rec->productId}");
                         if ($countSameProduct) {
                             $form->setWarning('productId', 'Артикулът вече присъства на друг ред в документа|*!');
                         }
@@ -366,7 +366,7 @@ abstract class deals_DealDetail extends doc_Detail
             }
             
             // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->quantityInPack = !empty($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             
             // Проверка дали к-то е под МКП
@@ -411,7 +411,7 @@ abstract class deals_DealDetail extends doc_Detail
             
             // Проверка на цената
             $msg = null;
-            if (!deals_Helper::isPriceAllowed($price, $rec->quantity, $rec->autoPrice, $msg)) {
+            if (!deals_Helper::isPriceAllowed($price, $rec->quantity, $rec->autoPrice ?? null, $msg)) {
                 $form->setError('packPrice,packQuantity', $msg);
             }
 

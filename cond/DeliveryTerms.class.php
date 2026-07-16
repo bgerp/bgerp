@@ -155,7 +155,7 @@ class cond_DeliveryTerms extends core_Master
     {
         $form = &$data->form;
         
-        if ($form->rec->createdBy == core_Users::SYSTEM_USER) {
+        if (($form->rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
             $form->setReadOnly('codeName');
             foreach (array('term', 'forSeller', 'forBuyer', 'transport', 'address') as $fld) {
                 $form->setField($fld, 'input=none');
@@ -323,7 +323,6 @@ class cond_DeliveryTerms extends core_Master
      */
     public static function addDeliveryTermLocation($deliveryCode, $contragentClassId, $contragentId, $storeId, $locationId, $deliveryData, $document, $ownCompanyId = null)
     {
-
         $address = null;
         $isSale = ($document->isInstanceOf('sales_Sales') || $document->isInstanceOf('sales_Quotations'));
         if(empty($deliveryCode)){
@@ -335,6 +334,21 @@ class cond_DeliveryTerms extends core_Master
         }
         
         expect($rec = self::fetch(array('[#1#]', $deliveryCode)));
+
+        if ($document->isInstanceOf('sales_Sales')) {
+            $saleId = $document->that;
+            if(core_Packs::isInstalled('eshop')){
+                $cartRec = eshop_Carts::fetch(array("#saleId = '[#1#]'", $saleId));
+                if (!empty($cartRec) && $rec->address == 'receiver') {
+                    if(!empty($cartRec->deliveryPCode) || !empty($cartRec->deliveryPlace) || !empty($cartRec->deliveryAddress)){
+                        $address = $cartRec->deliveryPCode . " " . $cartRec->deliveryPlace . ", " . $cartRec->deliveryAddress;
+                        $address = trim($address, ", ");
+
+                        return $address;
+                    }
+                }
+            }
+        }
 
         $activatedOn = $document->fetchField('activatedOn');
         if (($rec->address == 'supplier' && $isSale === true) || ($rec->address == 'receiver' && $isSale === false)) {

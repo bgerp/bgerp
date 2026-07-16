@@ -102,9 +102,11 @@ class plg_Search extends core_Plugin
                 $cRec = clone $rec;
                 if (!empty($cRec->id)) {
                     $fullRec = $mvc->fetch($cRec->id);
-                    foreach ($fieldsArr as $fieldName => $dummy) {
-                        if (!isset($cRec->{$fieldName})) {
-                            $cRec->{$fieldName} = $fullRec->{$fieldName};
+                    if ($fullRec) {
+                        foreach ($fieldsArr as $fieldName => $dummy) {
+                            if (!isset($cRec->{$fieldName})) {
+                                $cRec->{$fieldName} = $fullRec->{$fieldName} ?? null;
+                            }
                         }
                     }
                 }
@@ -116,7 +118,7 @@ class plg_Search extends core_Plugin
                 // Дали това поле даващо ключови думи е дефинирано?
                 expect(is_object($fieldObj), $field);
                 if (get_class($fieldObj->type) == 'type_Text') {
-                    $searchKeywords .= ' ' . static::normalizeText($cRec->{$field});
+                    $searchKeywords .= ' ' . static::normalizeText($cRec->{$field} ?? null);
                 } else {
                     Mode::push('text', 'plain');
                     Mode::push('htmlEntity', 'none');
@@ -644,7 +646,7 @@ class plg_Search extends core_Plugin
             
             // Кога трябва да се пробваме да започнем нова дума
             if ($c == ' ' && !$quote) {
-                if (strlen($words[$wordId])) {
+                if (strlen($words[$wordId] ?? '')) {
                     $wordId++;
                     continue;
                 }
@@ -938,7 +940,9 @@ class plg_Search extends core_Plugin
         $rec = $mvc->fetchRec($rec);
 
         $fRec = $mvc->fetch("id = {$rec->id}", '*', false);
-        $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
+        if ($fRec) {
+            $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
+        }
         $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
 
         if ($mvc->hasPlugin('plg_Search')){

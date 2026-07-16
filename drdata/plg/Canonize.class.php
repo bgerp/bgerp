@@ -53,7 +53,7 @@ class drdata_plg_Canonize extends core_Plugin
         // Преди запис посочените полета се канонизират при нужда
         foreach ($canonizeFields as $field => $type) {
             if(!empty($rec->{$field})){
-                if($oldRec->{$field} != $rec->{$field}){
+                if(!$oldRec || $oldRec->{$field} != $rec->{$field}){
                     $rec->{$field} = drdata_CanonizedStrings::canonize($rec->{$field}, $type);
                 }
             }

@@ -661,13 +661,13 @@ class price_ListRules extends core_Detail
     {
         if (!empty($rec->listId)) {
 
-            if ($rec->validFrom <= dt::now() || empty($rec->validFrom)) {
+            if (empty($rec->validFrom) || $rec->validFrom <= dt::now()) {
                 $mvc->invalidateListsOnShutdown[$rec->listId] = $rec->listId;
             } else {
                 core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validFrom);
             }
-            if ($rec->validTo > dt::now()) {
-                core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validTo);
+            if (($rec->validUntil ?? null) > dt::now()) {
+                core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validUntil);
             }
         }
     }

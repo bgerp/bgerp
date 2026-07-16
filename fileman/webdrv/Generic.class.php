@@ -47,10 +47,10 @@ class fileman_webdrv_Generic extends core_Manager
     public static function getArrows($fRec){
         $fileNavArr = core_Cache::get('doc_Files', 'fileNavArr|' . core_Users::getCurrent());
 
-        $prevUrl = $fileNavArr[$fRec->fileHnd]['prev'];
-        $nextUrl = $fileNavArr[$fRec->fileHnd]['next'];
+        $prevUrl = $fileNavArr[$fRec->fileHnd]['prev'] ?? null;
+        $nextUrl = $fileNavArr[$fRec->fileHnd]['next'] ?? null;
 
-        $resArr = array();
+        $resArr = array('prevLink' => '', 'nextLink' => '');
 
         if ($prevUrl) {
             $resArr['prevLink'] = ht::createLink('', $prevUrl, false, 'ef_icon=img/prev.png,class=prevLink');
@@ -91,6 +91,19 @@ class fileman_webdrv_Generic extends core_Manager
 					<iframe src='{$infoUrl}'  ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
                 'order' => 1,
             );
+
+        // Таб за съдържанието на файла в markdown
+        if (self::canShowMarkdownTab($fRec)) {
+            $markdownUrl = toUrl(array('fileman_webdrv_Generic', 'Markdown', $fRec->fileHnd));
+
+            $tabsArr['markdown'] = (object)
+            array(
+                'title' => 'Markdown',
+                'html' => "<div class='webdrvTabBody'><div class='webdrvFieldset'>{$prevLink}{$nextLink}
+					<iframe src='{$markdownUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+                'order' => 5,
+            );
+        }
 
         if (haveRole('debug')) {
             $pos = Request::get('pos', 'int');
@@ -133,9 +146,98 @@ class fileman_webdrv_Generic extends core_Manager
     {
         // Извличане на мета информцията за всички файлове
         static::getMetaData($fRec);
+
+        // Извличане на съдържанието в markdown
+        static::extractMarkdown($fRec);
     }
-    
-    
+
+
+    /**
+     * Връща интерфейса на програмата за извличане на съдържанието в markdown
+     *
+     * Програмата е зададена в конфигурацията на `fileman` (FILEMAN_MARKDOWN). Ако няма
+     * такава (или пакетът ѝ не е инсталиран), markdown не се извлича.
+     *
+     * @return fileman_MarkdownIntf|FALSE
+     */
+    public static function getMarkdownIntf()
+    {
+        $markdownCls = fileman_Setup::get('MARKDOWN');
+
+        if (!$markdownCls || !cls::load($markdownCls, true)) {
+
+            return false;
+        }
+
+        return cls::getInterface('fileman_MarkdownIntf', $markdownCls, null, true);
+    }
+
+
+    /**
+     * Извлича съдържанието на файла в markdown
+     *
+     * Резултатът се записва във `fileman_Indexes` с тип 'markdown'
+     *
+     * @param object|string $fRec - Записите за файла или път до файл
+     *
+     * @return NULL|string
+     */
+    public static function extractMarkdown($fRec)
+    {
+        $intf = static::getMarkdownIntf();
+
+        if (!$intf) {
+
+            return ;
+        }
+
+        // Всеки драйвер минава от тук - извличаме само от поддържаните файлове
+        if (!$intf->canExtract($fRec)) {
+
+            return ;
+        }
+
+        return $intf->getMarkdown($fRec);
+    }
+
+
+    /**
+     * Дали да се показва табът със съдържанието на файла в markdown
+     *
+     * @param object $fRec - Записите за файла
+     *
+     * @return bool
+     */
+    public static function canShowMarkdownTab($fRec)
+    {
+        // Табът е за дебъг - извлеченото съдържание се ползва от системата, не от потребителя
+        if (!haveRole('debug')) {
+
+            return false;
+        }
+
+        $content = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'markdown');
+
+        // Ако вече е правено извличане, показваме таба само ако е останало нещо
+        if ($content !== false) {
+
+            // Грешката от обработката също се показва
+            if (is_object($content)) {
+
+                return true;
+            }
+
+            return is_string($content) && (trim($content) !== '');
+        }
+
+        // Още няма извличане - табът има смисъл само ако има настроена програма,
+        // която може да обработи файла
+        $intf = static::getMarkdownIntf();
+
+        return $intf && $intf->canExtract($fRec);
+    }
+
+
     /**
      * Дали трябва да се показва съответния таб
      *
@@ -259,6 +361,58 @@ class fileman_webdrv_Generic extends core_Manager
     
     
     /**
+     * Екшън за показване на съдържанието на файла в markdown
+     */
+    public function act_Markdown()
+    {
+        requireRole('debug');
+
+        // Очакваме да има права за виждане
+        $this->requireRightFor('view');
+
+        // Манипулатора на файла
+        $fileHnd = Request::get('id');
+
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+
+        // Очакваме да има права за разглеждане на записа
+        $this->requireRightFor('view', $fRec);
+
+        // Вземаме съдържанието в markdown
+        $content = fileman_Indexes::getInfoContentByFh($fileHnd, 'markdown');
+
+        // Ако няма такъв запис - обработката още не е приключила
+        if ($content === false) {
+
+            // Сменяме мода на page_Waiting
+            Mode::set('wrapper', 'page_Waiting');
+
+            return ;
+        }
+
+        // Ако е обект и има съобщение за грешка
+        if (is_object($content) && $content->errorProc) {
+
+            // Сменяме мода
+            Mode::set('wrapper', 'page_PreText');
+
+            // Връщаме съобщението за грешка
+            return tr($content->errorProc);
+        }
+
+        // Сменяма wrapper'а да е празна страница
+        Mode::set('wrapper', 'page_PreText');
+
+        // Ескейпваме съдържанието
+        $content = type_Varchar::escape($content);
+
+        // Връщаме съдържанието
+        return $content;
+    }
+
+
+    /**
      * Екшън за показване превю
      */
     public function act_Preview()
@@ -320,6 +474,8 @@ class fileman_webdrv_Generic extends core_Manager
             $bgImg = sbf('fileman/img/Preview_background.jpg');
 
             $style = Mode::is('screenMode', 'wide') ? "display: table-cell; vertical-align: middle;" : "";
+
+            $jqRun = '';
 
             // Създаваме шаблон за preview на изображението
             $preview = new ET("<div id='imgBg' style='background-image:url(" . $bgImg . "); padding: 8px 0 0px; height: 598px; display: table;width: 100%;'><div  style='margin: 0 auto;" . $style . "'>[#THUMB_IMAGE#]</div></div>");
@@ -407,9 +563,11 @@ class fileman_webdrv_Generic extends core_Manager
             return tr($barcodes->errorProc);
         }
         
+        $barcodeStr = '';
+
         // Ако е масив
         if (is_array($barcodes)) {
-            
+
             // Обхождаме масива
             foreach ($barcodes as $barcode) {
                 
@@ -813,7 +971,7 @@ class fileman_webdrv_Generic extends core_Manager
         unset($excludeExtArr[' ']);
         if (!empty($excludeExtArr)) {
             $ext = mb_strtolower($ext);
-            if ($excludeExtArr[$ext]) {
+            if (!empty($excludeExtArr[$ext])) {
                 
                 return false;
             }
@@ -1015,7 +1173,7 @@ class fileman_webdrv_Generic extends core_Manager
             $sbfIcon = sbf('/img/16/back16.png', '');
             
             // Добавяме към стринга линк с икона
-            $dirsAndFilesStr = "<span class='linkWithIcon' style='background-image:url(${sbfIcon});'>{$link}</span>";
+            $dirsAndFilesStr = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'>{$link}</span>";
         }
         
         // Броя на всички документи в архива
@@ -1277,13 +1435,13 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Обхождаме всики директории и файлове
         foreach ($filesArr as $index => $file) {
-            
+
+            // Дали да прескочи
+            $continue = false;
+
             // В зависимост от дълбочината обхождаме файловете
             for ($i = 0; $i < $depth; $i++) {
-                
-                // Дали да прескочи
-                $continue = false;
-                
+
                 // Ако пътя до файла е различен от директорията
                 if ($file[$i] != $pathArr[$i]) {
                     
@@ -1347,6 +1505,8 @@ class fileman_webdrv_Generic extends core_Manager
      */
     public static function prepareDirsInArchive($filesArr, $path)
     {
+        $text = '';
+
         // Обхождаме всики директории
         foreach ($filesArr as $file => $index) {
             
@@ -1371,7 +1531,7 @@ class fileman_webdrv_Generic extends core_Manager
             $sbfIcon = sbf($icon, '');
             
             // Създаваме стринга
-            $foldersStr = "<span class='linkWithIcon' style='background-image:url(${sbfIcon});'>{$link}</span>";
+            $foldersStr = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'>{$link}</span>";
             $text .= ($text) ? "\n" . $foldersStr : $foldersStr;
         }
         
@@ -1388,6 +1548,8 @@ class fileman_webdrv_Generic extends core_Manager
      */
     public static function prepareFilesInArchive($filesArr, $fileHnd, $sizeContentArr = null)
     {
+        $text = '';
+
         // Обхождаме вски файлове в текущата директория
         foreach ($filesArr as $file => $index) {
             
@@ -1416,7 +1578,7 @@ class fileman_webdrv_Generic extends core_Manager
             $link = ht::createLink($file, $url, null, array('target' => '_blank'));
             
             // Създаваме стринга
-            $fileStr = "<span class='linkWithIcon' style='background-image:url(${sbfIcon});'>{$link}</span>";
+            $fileStr = "<span class='linkWithIcon' style='background-image:url({$sbfIcon});'>{$link}</span>";
             $text .= ($text) ? "\n" . $fileStr : $fileStr;
         }
         
@@ -1461,7 +1623,7 @@ class fileman_webdrv_Generic extends core_Manager
     public static function getArchiveInst($fRec)
     {
         // Ако не сме създали инстанция преди
-        if (!self::$archiveInst[$fRec->fileHnd]) {
+        if (empty(self::$archiveInst[$fRec->fileHnd])) {
             
             // Проверяваме големината на архива
             self::checkArchiveLen($fRec->dataId);
@@ -1612,12 +1774,13 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Ако има двуеточние с интервал
             if (strripos($contentLine, ': ') !== false) {
-                
+
                 // Разделяме реда на тагове и стойност
                 list($tag, $value) = explode(': ', $contentLine, 2);
             } else {
-                
+
                 // Стойността е цялото поле
+                $tag = null;
                 $value = $contentLine;
             }
             

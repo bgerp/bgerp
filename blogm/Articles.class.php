@@ -317,7 +317,7 @@ class blogm_Articles extends core_Master
     {
         $form = $data->form;
         
-        if (!$form->rec->id) {
+        if (empty($form->rec->id)) {
             $form->setDefault('author', core_Users::getCurrent('nick'));
             $form->setDefault('commentsMode', 'confirmation');
         }
@@ -359,7 +359,7 @@ class blogm_Articles extends core_Master
         
         // Активиране на филтъра
         $recFilter = $data->listFilter->input(null, 'silent');
-        if (($cat = $recFilter->category) > 0) {
+        if (($cat = $recFilter->category ?? null) > 0) {
             $data->query->where("#categories LIKE '%|{$cat}|%'");
         } else {
             $data->query->likeKeylist('categories', keylist::fromArray($categories));
@@ -456,7 +456,7 @@ class blogm_Articles extends core_Master
         $data->row->categories = blogm_Categories::getCategoryLinks($rec->categories, $data->menuId);
 
         // Обработка на формата за добавяне на коментари
-        if ($cForm = $data->commentForm) {
+        if ($cForm = ($data->commentForm ?? null)) {
             
             // Зареждаме REQUEST данните във формата за коментар
             $cRec = $cForm->input();
@@ -765,7 +765,8 @@ class blogm_Articles extends core_Master
         $conf = core_Packs::getConfig('blogm');
         $data->pager = cls::get('core_Pager', array('itemsPerPage' => $conf->BLOGM_ARTICLES_PER_PAGE));
         $data->pager->setLimit($data->query);
-        
+
+        $data->recs = $data->rows = array();
         while ($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
             
@@ -805,6 +806,8 @@ class blogm_Articles extends core_Master
         // Определяне на титлата
         // Ако е посочено заглавие по-което се търси
         $showRoot = blogm_Setup::get('SHOW_ALL_ARTICLE_CAPTION');
+        $data->descr = '';
+        $data->title = null;
         if (!empty($data->q)) {
             $domainId = cms_Domains::getPublicDomain('id');
             $clsId = core_Classes::getId('blogm_Articles');
@@ -914,7 +917,7 @@ class blogm_Articles extends core_Master
         $layout->append(blogm_Categories::renderCategories($data), 'CATEGORIES');
         
         
-        if ($data->workshop) {
+        if ($data->workshop ?? null) {
             $data->workshop['ret_url'] = true;
             $layout->append(ht::createBtn('Работилница', $data->workshop, null, null, 'ef_icon=img/16/application_edit.png'), 'WORKSHOP');
         }
@@ -960,7 +963,7 @@ class blogm_Articles extends core_Master
         $data->searchForm->layout->replace(toUrl(array('blogm_Articles', 'Browse', 'cMenuId' => $data->menuId)), 'ACTION');
         
         $data->searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
-        $data->searchForm->layout->replace(ht::escapeAttr($data->q), 'VALUE');
+        $data->searchForm->layout->replace(ht::escapeAttr($data->q ?? null), 'VALUE');
         $data->searchForm->layout->replace($data->menuId, 'cMenuId');
 
         return $data->searchForm->renderHtml();
@@ -990,6 +993,7 @@ class blogm_Articles extends core_Master
             $query->where("1=2");
         }
         
+        $data->archiveArr = array();
         while ($rec = $query->fetch()) {
             $data->archiveArr[] = $rec->month;
         }
@@ -1009,7 +1013,7 @@ class blogm_Articles extends core_Master
             foreach ($data->archiveArr as $month) {
                 list($y, $m) = explode('|', $month);
                 
-                if ($data->archive == $month) {
+                if (($data->archive ?? null) == $month) {
                     $attr = array('class' => 'nav_item sel_page level2');
                 } else {
                     $attr = array('class' => 'nav_item level2');
@@ -1159,8 +1163,8 @@ class blogm_Articles extends core_Master
      */
     public static function getShortUrl($url)
     {
-        $vid = urldecode($url['id']);
-        $act = strtolower($url['Act']);
+        $vid = urldecode($url['id'] ?? '');
+        $act = strtolower($url['Act'] ?? '');
         
         if ($vid && $act == 'article') {
             $id = cms_VerbalId::fetchId($vid, 'blogm_Articles');
@@ -1268,8 +1272,9 @@ class blogm_Articles extends core_Master
             $query = self::getQuery();
             $query->where("#state = 'active'");
             $query->likeKeylist('categories', keylist::fromArray($groupsArr));
+            $query->show('searchKeywords');
             $rt = cls::get('type_RichText');
-            
+
             while ($rec = $query->fetch()) {
                 $text .= ' ' . $rec->searchKeywords;
             }
@@ -1335,7 +1340,7 @@ class blogm_Articles extends core_Master
             $query->where("#state = 'active' AND #categories LIKE '%|{$id}|%'");
             $lastMod = '';
             while ($rec = $query->fetch()) {
-                if ($used[$id]) {
+                if ($used[$id] ?? null) {
                     continue;
                 }
                 $resObj = new stdClass();

@@ -72,10 +72,9 @@ class export_Llm extends core_Mvc
     public function makeExport($form, $clsId, $objId)
     {
         $Cls = cls::get($clsId);
-        $rec = $Cls->fetch($objId);
+        $rec = $Cls->fetchRec($objId);
         $threadId = $rec->threadId;
         $firstDocInThread = doc_Threads::getFirstDocument($threadId);
-        $threadText = null;
 
         $whole = $form->rec->exportWholeThread === 'yes';
         if($rec->id == $firstDocInThread->that && $whole){

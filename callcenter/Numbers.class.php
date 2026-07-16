@@ -250,7 +250,7 @@ class callcenter_Numbers extends core_Manager
     public static function addNumbers($numbersArr, $classId, $docId, $countryId = null)
     {
         // Резултата, който ще връщаме
-        $retArr = array();
+        $retArr = array('saved' => 0, 'deleted' => 0);
         
         // Инстанция на текущия клас
         $me = cls::get(get_called_class());
@@ -284,7 +284,7 @@ class callcenter_Numbers extends core_Manager
                     $numStr = drdata_PhoneType::getNumStrFromObj($numberDetObj);
                     
                     // Ако е бил записан
-                    if ($numRec = $existRecsArr[$numStr]) {
+                    if ($numRec = ($existRecsArr[$numStr] ?? null)) {
                         
                         // Обновяваме записите
                         $me->savedItems[$numRec->id] = $numRec->id;
@@ -454,8 +454,8 @@ class callcenter_Numbers extends core_Manager
     public static function on_Shutdown($mvc)
     {
         // Ако имаме променини или добавени номера
-        if (countR((array) $mvc->savedItems)) {
-            
+        if (countR((array) ($mvc->savedItems ?? null))) {
+
             // Обхождаме масива
             foreach ((array) $mvc->savedItems as $id) {
                 
@@ -481,7 +481,7 @@ class callcenter_Numbers extends core_Manager
         }
         
         // Ако имаме изтрити номера
-        if (countR((array) $mvc->deletedItems)) {
+        if (countR((array) ($mvc->deletedItems ?? null))) {
             
             // Обхождаме масива
             foreach ((array) $mvc->deletedItems as $id => $rec) {
@@ -611,17 +611,19 @@ class callcenter_Numbers extends core_Manager
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+        $rec = $form->rec;
+
         // Ако формата е изпратена успешно
         if ($form->isSubmitted()) {
-            $rec = $form->rec;
-            
+
             // Ако има избран потреибител
+            $profileId = null;
             if ($form->rec->userId) {
-                
+
                 // Вземаме id' то на профила
                 $profileId = crm_Profiles::fetchField("#userId = '{$form->rec->userId}'");
             }
-            
+
             // Очакваме да има такова id
             expect($profileId);
             
@@ -828,7 +830,11 @@ class callcenter_Numbers extends core_Manager
         core_App::setTimeLimit('600');
         
         $this->logDebug('Начало на обновяването на номерата');
-        
+
+        $savedNums = 0;
+        $delNums = 0;
+        $res = '';
+
         // Вземаме всички записи за потребителите
         $Person = cls::get('crm_Persons');
         $pQuery = $Person->getQuery();

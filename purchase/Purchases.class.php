@@ -176,7 +176,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery,detailOrderBy,reff,makeInvoice';
+    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery,detailOrderBy,reff,makeInvoice,paymentType';
 
 
     /**
@@ -470,8 +470,8 @@ class purchase_Purchases extends deals_DealMaster
     public function pushDealInfo($id, &$result)
     {
         $rec = $this->fetchRec($id);
-        $actions = type_Set::toArray($rec->contoActions);
-        
+        $actions = type_Set::toArray($rec->contoActions ?? null);
+
         // Извличаме продуктите на покупката
         $dQuery = purchase_PurchasesDetails::getQuery();
         $dQuery->where("#requestId = {$rec->id}");
@@ -572,7 +572,7 @@ class purchase_Purchases extends deals_DealMaster
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId', 'autoDiscount', 'inputDiscount') as $fld) {
-                $p->{$fld} = $dRec->{$fld};
+                $p->{$fld} = $dRec->{$fld} ?? null;
             }
 
             if(Mode::is('isClosedWithDeal')){
@@ -933,7 +933,7 @@ class purchase_Purchases extends deals_DealMaster
         $setDefaultDealerId = purchase_Setup::get('SET_DEFAULT_DEALER_ID');
         if($setDefaultDealerId != 'yes') return null;
 
-        $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $rec->folderId, 'dealerId', true);
+        $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $rec->folderId ?? null, 'dealerId', true);
         if (core_Users::haveRole('purchase', $dealerId)) return $dealerId;
     }
 

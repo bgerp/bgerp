@@ -120,6 +120,12 @@ defIfNot('FILEMAN_OCR', '');
 
 
 /**
+ * Коя програма да се използва за извличане на съдържанието на файловете в markdown
+ */
+defIfNot('FILEMAN_MARKDOWN', '');
+
+
+/**
  * Директория, в която ще се държат екстрактнатите файлове
  */
 defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
@@ -233,6 +239,8 @@ class fileman_Setup extends core_ProtoSetup
         'FILEMAN_WEBDRV_PREVIEW_MULTIPLIER' => array('int(min=0, max=10)', 'caption=Увеличаване на размера на картинката при превю->Пъти'),
         
         'FILEMAN_OCR' => array('class(interface=fileman_OCRIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за OCR обработка->Програма'),
+
+        'FILEMAN_MARKDOWN' => array('class(interface=fileman_MarkdownIntf,select=title, allowEmpty)', 'caption=Програма по подразбиране за извличане на съдържанието в markdown->Програма'),
 
         'FILEMAN_INDEXES_KEEP_DAYS' => array('time(suggestions=1 година|2 години|3 години,unit=days)', 'caption=Време за съхранение на индексите на файловете->Време'),
 

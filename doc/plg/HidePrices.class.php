@@ -73,12 +73,14 @@ class doc_plg_HidePrices extends core_Plugin
         $mvc = cls::get($mvc);
         if(($mvc instanceof deals_PaymentDocument) || ($mvc instanceof crm_Persons)){
             if(haveRole('ceo,seePrice')) return true;
-        } elseif($mvc instanceof sales_Quotations){
+        } elseif(($mvc instanceof sales_Quotations) || ($mvc instanceof eshop_Carts)){
             if(haveRole('ceo,seePriceSale')) return true;
         } elseif($mvc instanceof purchase_Quotations){
             if(haveRole('ceo,seePricePurchase')) return true;
         } elseif($mvc instanceof findeals_AdvanceReports){
             if(haveRole('ceo,pettyCashReport')) return true;
+        }  elseif($mvc instanceof pos_Receipts|| $mvc instanceof pos_Reports){
+            if(haveRole('ceo, pos')) return true;
         } elseif(isset($rec->threadId)){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 if($firstDocument->isInstanceOf('sales_Sales')){
@@ -94,6 +96,12 @@ class doc_plg_HidePrices extends core_Plugin
                 } else {
                     if(haveRole('ceo,seePrice')) return true;
                 }
+            }
+        } elseif(is_null($rec)){
+            if($mvc instanceof sales_Sales || $mvc instanceof store_ShipmentOrders || $mvc instanceof sales_Proformas || $mvc instanceof sales_Invoices || $mvc instanceof sales_Services){
+                if(haveRole('ceo,seePrice')) return true;
+            } elseif($mvc instanceof purchase_Purchases || $mvc instanceof purchase_Invoices || $mvc instanceof store_Receipts || $mvc instanceof purchase_Services){
+                if(haveRole('ceo,seePricePurchase')) return true;
             }
         }
 

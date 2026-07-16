@@ -53,7 +53,7 @@ class select2_PluginSelect extends core_Plugin
         
         if (self::$optCnt > $maxSuggestions) {
             if (!$value) {
-                $value = $attr['value'];
+                $value = $attr['value'] ?? null;
             }
             
             // Избраната стойност да е на първо мяасто

@@ -101,7 +101,7 @@ class ssh_Hosts extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
         
-        if (is_array($rec->config)) {
+        if (is_array($rec->config ?? null)) {
             foreach ($rec->config as $name => $value) {
                 $form->setDefault($name, $value);
             }

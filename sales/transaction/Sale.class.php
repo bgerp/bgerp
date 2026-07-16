@@ -89,7 +89,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             $rec->_newCurrencyRate = $newRate;
         }
 
-        $actions = type_Set::toArray($rec->contoActions);
+        $actions = type_Set::toArray($rec->contoActions ?? null);
         $rec = $this->fetchSaleData($rec); // Продажбата ще контира - нужни са и детайлите
 
         if (acc_Journal::throwErrorsIfFoundWhenTryingToPost()) {
@@ -101,11 +101,11 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
             }
         }
 
-        if ($rec->doTransaction != 'no' && ($actions['ship'] || $actions['pay'])) {
-            
+        if (($rec->doTransaction ?? 'yes') != 'no' && (!empty($actions['ship']) || !empty($actions['pay']))) {
+
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
-            
-            if ($actions['ship']) {
+
+            if (!empty($actions['ship'])) {
                 $entriesProduction = self::getProductionEntries($rec, $this->class);
                 if (countR($entriesProduction)) {
                     $entries = array_merge($entries, $entriesProduction);
@@ -134,7 +134,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 }
             }
             
-            if ($actions['pay']) {
+            if (!empty($actions['pay'])) {
                 // Продажбата играе роля и на платежен документ (ПКО)
                 // Записите от тип 3 (получаване на плащане)
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
@@ -433,6 +433,8 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                 $debitAccId = '701';
                 
                 $entries[] = array(
+                    'amount' => 0,
+
                     'debit' => array(
                         $debitAccId,
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
@@ -440,7 +442,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                         array('cat_Products', $detailRec->productId), // Перо 3 - Продукт
                         'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
                     ),
-                    
+
                     'credit' => array(
                         $creditAccId,
                         array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
@@ -481,7 +483,9 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                     if (cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)) {
                         $obj = new stdClass();
                         $obj->productId = $itemRec->objectId;
-                        
+                        $obj->amount = 0;
+                        $obj->quantity = 0;
+
                         $index = $obj->productId;
                         if (empty($res[$index])) {
                             $res[$index] = $obj;
@@ -729,8 +733,12 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 
         core_Debug::stopTimer('FAST_PRODUCTION_ENTRIES');
         core_Debug::log("GET FAST_PRODUCTION_ENTRIES " . round(core_Debug::$timers["FAST_PRODUCTION_ENTRIES"]->workingTime, 6));
-        core_Debug::log("GET CALC_BATCH_DATA " . round(core_Debug::$timers["CALC_BATCH_DATA"]->workingTime, 6));
-        core_Debug::log("GET ALLOCATE_BATCH_DATA " . round(core_Debug::$timers["ALLOCATE_BATCH_DATA"]->workingTime, 6));
+        if (isset(core_Debug::$timers["CALC_BATCH_DATA"])) {
+            core_Debug::log("GET CALC_BATCH_DATA " . round(core_Debug::$timers["CALC_BATCH_DATA"]->workingTime, 6));
+        }
+        if (isset(core_Debug::$timers["ALLOCATE_BATCH_DATA"])) {
+            core_Debug::log("GET ALLOCATE_BATCH_DATA " . round(core_Debug::$timers["ALLOCATE_BATCH_DATA"]->workingTime, 6));
+        }
 
         return $entries;
     }

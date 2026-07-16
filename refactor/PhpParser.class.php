@@ -670,7 +670,7 @@ class refactor_PhpParser
         if (is_array($tokenArr)) {
             foreach ($tokenArr as $i => $c) {
                 if ($c->type == T_COMMENT || $c->type == T_OPEN_TAG) {
-                    if ($c->str{strlen($c->str) - 1} == "\n") {
+                    if ($c->str[strlen($c->str) - 1] == "\n") {
                         $c->insertAfter(T_WHITESPACE, "\n");
                         $c->str = substr($c->str, 0, strlen($c->str) - 1);
                         expect(strlen($c->str));

@@ -577,7 +577,7 @@ class forum_Postings extends core_Detail
         $tpl->placeObject($data->row);
         
         // Ако има коментари ние ги рендираме
-        if (countR($data->postings)) {
+        if (countR($data->postings ?? null)) {
             $cloneTpl = clone($detailsTpl);
             
             foreach ($data->postings as $row) {
@@ -928,8 +928,8 @@ class forum_Postings extends core_Detail
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        if ($rec->themeId) {
-              
+        if ($rec->themeId ?? null) {
+
               // Ако постинга е коментар към тема, ние обновяваме, кой е последния коментар в нея
             $mvc->updateStatistics($rec->themeId, $rec->createdOn, $rec->createdBy);
         }
@@ -978,11 +978,11 @@ class forum_Postings extends core_Detail
                 
                 $row->title = $row->status. ht::createLink($row->title, array($mvc, 'Topic', $rec->id));
                 
-                if (!$row->last) {
+                if (empty($row->last)) {
                     $row->last = tr('няма');
                 }
-                
-                (!$row->lastWho) ? $row->lastWho = tr('няма') : $row->lastWho = core_Users::fetch($rec->lastWho)->nick;
+
+                (empty($row->lastWho)) ? $row->lastWho = tr('няма') : $row->lastWho = core_Users::fetch($rec->lastWho)->nick;
             } elseif (isset($fields['-browse'])) {
                 
                 // Ако екшъна е browse правим обработки на заглавието и типа

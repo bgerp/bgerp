@@ -190,7 +190,7 @@ class sales_SalesDetails extends deals_DealDetail
             
             if (isset($pInfo->meta['canStore']) && $masterRec->shipmentStoreId) {
                 $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
-                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->shipmentStoreId, $deliveryDate);
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId ?? null, $rec->packQuantity ?? null, $masterRec->shipmentStoreId, $deliveryDate);
                 $form->info = $storeInfo->formInfo;
             }
         }
@@ -246,14 +246,16 @@ class sales_SalesDetails extends deals_DealDetail
                        $row->{$hintField} = ht::createHint($row->{$hintField}, $warning, 'img/16/red-warning.png', false)->getContent();
                    }
                } elseif(in_array($masterRec->state, array('pending', 'draft'))){
-                   
+
                    // Предупреждение дали цената е под очакваната за клиента
                    $useQuotationPrice = isset($masterRec->originId);
                    $discountPercent = ($rec->autoDiscount) ? round((1 - (1 - $rec->discountPercent) * (1 - $rec->autoDiscount)), 4) : $rec->discount;
                    $transportFeeRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
+                   core_Debug::startTimer('CALC_COMPARE_CONTRAGENT_PRICE');
                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discountPercent, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
                         $row->{$hintField} = ht::createHint($row->{$hintField}, $checkedObject['hint'], $checkedObject['hintType'], false);
                    }
+                   core_Debug::stopTimer('CALC_COMPARE_CONTRAGENT_PRICE');
                }
             }
             
@@ -351,7 +353,7 @@ class sales_SalesDetails extends deals_DealDetail
         }
 
         // Синхронизиране на сумата на транспорта
-        if ($rec->syncFee === true) {
+        if (($rec->syncFee ?? null) === true) {
             sales_TransportValues::sync($mvc->Master, $rec->{$mvc->masterKey}, $rec->id, $rec->fee, $rec->deliveryTimeFromFee, $rec->_transportExplained);
         }
     }

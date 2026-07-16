@@ -663,15 +663,22 @@ class core_Html
     public static function createErrBtn($title, $error, $attr = array())
     {
         $attr = arr::make($attr);
-        $attr['error'] = $error;
         $icon = $attr['ef_icon'] ?? null;
         if($icon != 'none'){
             $attr['ef_icon'] = 'img/16/error.png';
         }
-        
-        // Url-то се заменя с такова водещо към грешка
+
+        // Url-то се заменя с такова водещо към грешка (fallback за режим без JavaScript, виж
+        // Mode::is('javascript','no') по-долу в createBtn())
         $url = core_Message::getErrorUrl($error, 'page_Error');
-        
+
+        // Вместо $attr['error'] (който createBtn() превръща в нативен alert()) - стилизиран модал
+        // (severity=error, само бутон "ОК", без "Отказ", натискането не води до никакво действие) -
+        // виж efAlert() в js/efCommon.js
+        $escaped = addcslashes(tr($error), "'\\\n\r");
+        $attr['onclick'] = ($attr['onclick'] ?? '') . "if (!efAlert(event, '{$escaped}')) { return false; }";
+        $attr['style'] = ($attr['style'] ?? '') . 'color:#772200;color:#9A5919;';
+
         return self::createBtn($title, $url, null, null, $attr);
     }
     
@@ -1488,14 +1495,28 @@ class core_Html
             $attr['title'] = tr($attr['title']);
         }
         
-        // Вкарваме предупреждението
+        // Вкарваме предупреждението - стилизиран модал вместо нативен confirm() - виж
+        // efConfirmClick()/efConfirm() в js/efCommon.js. efConfirmClick() е асинхронен, затова при
+        // потвърждение "преиграва" клика (element.click()) - на втория пасаж флагът
+        // element.__efConfirmed вече е сложен, минава директно (виж кода на efConfirmClick()).
+        // $attr['warningHigh'] е алтернатива на $warning - носи си самия текст, но със
+        // severity=warning (по-тревожен, оранжев вид) вместо стандартния notice. Ако е зададен,
+        // той има предимство пред $warning.
+        $severity = 'notice';
+        if (!empty($attr['warningHigh'])) {
+            $warning = $attr['warningHigh'];
+            $severity = 'warning';
+        }
+        unset($attr['warningHigh']);
+
         if ($warning) {
             if (!isset($attr['onclick'])) {
                 $attr['onclick'] = '';
             }
-            $attr['onclick'] .= " if (!confirm('" . str_replace("'", "\'", tr($warning)) . "')) { $(event.target).blur(); event.stopPropagation(); return false; }";
+            $escaped = addcslashes(tr($warning), "'\\\n\r");
+            $attr['onclick'] .= " if (!efConfirmClick(event, this, '{$escaped}', '{$severity}')) { return false; }";
         }
-        
+
         return $attr;
     }
     

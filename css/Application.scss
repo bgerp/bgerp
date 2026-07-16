@@ -2882,6 +2882,15 @@ max-width: 400px;
    width: 70px !important;
  }
 
+form select.w100 + .select2 {
+	min-width: 100%;
+}
+form select.w75 + .select2 {
+	min-width: 75%;
+}
+form select.w50 + .select2 {
+	min-width: 50%;
+}
 .boldText {
 	font-weight: bold;
 }
@@ -6440,7 +6449,7 @@ div.location.public {
 	margin-top: 10px;
 }
 
-.details .portal .formToolbar #filter{
+.details  .formToolbar #filter{
 	background-color: #e5e5e5;
 	padding: 6px 4px !important;
 	width: 26px;
@@ -6449,10 +6458,16 @@ div.location.public {
 		background-color: #ccc;
 	}
 }
-
-.document .details .portal .formToolbar #filter {
-	padding: 5px 4px 4px !important;
+.docStatistic form .horizontal {
+	border: 1px solid #eee;
+	padding: 5px 10px 3px;
+	border-top: none;
+	border-bottom: none;
+	.formFields, .formToolbar {
+		margin-bottom: 0;
+	}
 }
+
 /*шаблон за журнал*/
 
 .closePeriod .listTable tr > th:first-child {

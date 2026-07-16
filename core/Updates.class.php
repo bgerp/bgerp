@@ -146,10 +146,13 @@ class core_Updates extends core_Manager
             $rUrl = git_Lib::getRemoteUrl(EF_PRIVATE_PATH, $log);
             
             if ($rUrl) {
-                list($protocol, $ownerRepo) = explode('@github.com:', $rUrl);
+                $urlParts = explode('@github.com:', $rUrl);
+                $ownerRepo = $urlParts[1] ?? null;
                 if ($ownerRepo) {
-                    list($privateOwner, $privateRepo) = explode('/', $ownerRepo);
-                    $privateRepo = str_replace('.git', '', $privateRepo);
+                    $ownerRepoParts = explode('/', $ownerRepo);
+                    $privateOwner = $ownerRepoParts[0] ?? null;
+                    $privateRepo = $ownerRepoParts[1] ?? null;
+                    $privateRepo = str_replace('.git', '', $privateRepo ?? '');
                     
                     $releases = self::getReleases($privateOwner, $privateRepo);
                     
@@ -398,7 +401,7 @@ class core_Updates extends core_Manager
         $matches = array();
         preg_match('/[0-9]{2}\\.[0-9]{2}(p[0-9]{0,3}|)/i', $tagName, $matches);
         
-        return $matches[0];
+        return $matches[0] ?? null;
     }
     
     
@@ -456,9 +459,9 @@ class core_Updates extends core_Manager
     public function act_SystemUpdate()
     {
         $id = Request::get('id', 'int');
-        
-        $rec = $this->fetch($id);
-        
+
+        expect($rec = $this->fetch($id));
+
         if ($rec->state != 'closed') {
             $rec->state = 'closed';
             $this->save($rec, 'state');

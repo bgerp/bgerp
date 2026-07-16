@@ -153,8 +153,8 @@ class bgerp_Notifications extends core_Manager
         $this->setDbIndex('lastTime');
 //        $this->setDbIndex('customUrl');
         $this->setDbIndex('url');
-//        $this->setDbIndex('customUrlId');
-//        $this->setDbIndex('urlId');
+        $this->setDbIndex('customUrlId');
+        $this->setDbIndex('urlId');
     }
     
     
@@ -896,15 +896,15 @@ class bgerp_Notifications extends core_Manager
         
         $ctr = $url['Ctr'];
         $act = $url['Act'];
-        $dId = $url['id'];
-        
+        $dId = $url['id'] ?? null;
+
         if (cls::load($ctr, true)) {
             $clsInst = cls::get($ctr);
 
             if (($clsInst instanceof core_Manager) && ($clsInst->haveRightFor($act, $dId))) {
-                $folderId = $url['folderId'];
-                $threadId = $url['threadId'];
-                $containerId = $url['containerId'];
+                $folderId = $url['folderId'] ?? null;
+                $threadId = $url['threadId'] ?? null;
+                $containerId = $url['containerId'] ?? null;
                 
                 if ($dId) {
                     if (is_numeric($dId) && $dRec = $clsInst->fetch($dId)) {
@@ -1236,18 +1236,18 @@ class bgerp_Notifications extends core_Manager
         
         $ctr = $url['Ctr'];
         $act = $url['Act'];
-        $dId = $url['id'];
-        
+        $dId = $url['id'] ?? null;
+
         $retUrl = getRetUrl();
-        
+
         if (!cls::load($ctr, true) || !$ctr::haveRightFor($act, $dId)) {
-            
+
             return new Redirect($retUrl, '|Не може да се настройва', 'warning');
         }
-        
-        $folderId = $url['folderId'];
-        $threadId = $url['threadId'];
-        $containerId = $url['containerId'];
+
+        $folderId = $url['folderId'] ?? null;
+        $threadId = $url['threadId'] ?? null;
+        $containerId = $url['containerId'] ?? null;
         
         if ($dId) {
             expect($dRec = $ctr::fetch($dId));

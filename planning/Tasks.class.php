@@ -2223,14 +2223,15 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Центрове');
-        $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf'));
+        $data->listFilter->setSuggestions('folders', array('' => '') + doc_Folders::getOptionsByCoverInterface('planning_ActivityCenterIntf', array(), true));
         $data->listFilter->input('folders');
         $orderByField = 'orderByDate';
-        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect');
+        $data->listFilter->FNC('saleId', 'key2(mvc=sales_Sales,select=id,allowEmpty,input,remember,forceAjax, maxSuggestions=100)', 'caption=Продажба,input, after=isFinalSelect,class=w100');
         $data->listFilter->setFieldTypeParams("saleId", array('state' => 'active,closed'));
         $data->listFilter->showFields .= ',folders,productId, saleId';
         $data->listFilter->setField('productId','before=isFinalSelect');
         $data->listFilter->input('productId, saleId');
+        $data->query->isSlowQuery = true;
 
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folders ?? null);
@@ -3073,6 +3074,14 @@ class planning_Tasks extends core_Master
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
+        // В таба "Употреба" на артикул (cat_products_Usage) се показват само title/folderId/created/дата -
+        // не са нужни тагове, задания, зависими операции и планиращи параметри
+        if ($data->masterMvc instanceof cat_Products) {
+            core_Debug::stopTimer('RENDER_TABLE');
+
+            return;
+        }
+
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
@@ -3133,7 +3142,7 @@ class planning_Tasks extends core_Master
         // Ако има намерени планиращи параметри - показват се в таблицата
         $firstColumnsIfNotSelected = arr::make(array_keys($data->listFields), true);
     
-        // Параметрите от Етапите да са планиращи
+        // Параметрите от Етапа да са планиращи (при филтриране по Етап)
         if(!empty($data->listFilter->rec->productId)){
             $productId = $data->listFilter->rec->productId;
             if($Driver = cat_Products::getDriver($productId)){
@@ -3230,9 +3239,12 @@ class planning_Tasks extends core_Master
         }
 
         // Еднократно извличане на зависимите предходни операции
-        core_Debug::startTimer('RENDER_DEPENDANT');
-        $dependantTaskArr = planning_StepConditions::getPrevAndNextTasks($data->recs);
-        core_Debug::stopTimer('RENDER_DEPENDANT');
+        $dependantTaskArr = array();
+        if(empty($data->masterMvc)){
+            core_Debug::startTimer('RENDER_DEPENDANT');
+            $dependantTaskArr = planning_StepConditions::getPrevAndNextTasks($data->recs);
+            core_Debug::stopTimer('RENDER_DEPENDANT');
+        }
 
         // Еднократно извличане на заданията за бързодействие
         $jobRecs = array();
@@ -3242,13 +3254,6 @@ class planning_Tasks extends core_Master
 
         while ($jRec = $jQuery->fetch()) {
             $jobRecs[$jRec->containerId] = $jRec;
-            $taskByJob = planning_Tasks::getTasksByJob($jRec->id, 'active,wakeup,closed,stopped,pending', false);
-            $jobRecs[$jRec->containerId]->tasks = array();
-            $i = 1;
-            foreach ($taskByJob as $jobTask){
-                $jobRecs[$jRec->containerId]->tasks[$i] = $jobTask;
-                $i++;
-            }
 
             if($showSaleInList != 'no'){
                 if(!empty($jRec->saleId)){
@@ -3272,8 +3277,10 @@ class planning_Tasks extends core_Master
             // Взимане с приоритет от кеша на параметрите на артикула от заданието
             $jobParams = core_Permanent::get("taskListJobParams{$jRec->productId}");
             if (!is_array($jobParams)) {
-                $jobParams = cat_Products::getParams($jRec->productId, null, true);
-                core_Permanent::set("taskListJobParams{$jRec->productId}", $jobParams, 5);
+                if(empty($data->masterMvc)){
+                    $jobParams = cat_Products::getParams($jRec->productId, null, true);
+                    core_Permanent::set("taskListJobParams{$jRec->productId}", $jobParams, 5);
+                }
             }
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
@@ -3287,7 +3294,6 @@ class planning_Tasks extends core_Master
             $measuresArr[$r1->measureId] = $r1->measureId;
             $productIds[$r1->productId] = $r1->productId;
         }
-
 
         $haveDiffMeasure = countR($measuresArr) > 1 || isset($data->masterMvc);
         $haveDiffProductIds = countR($productIds) > 1;
@@ -3589,6 +3595,14 @@ class planning_Tasks extends core_Master
             $mvc->forceCalcTimes = true;
         }
 
+        // Синхронизиране на usedInTask към заопашените промени по оборудването (@see planning_AssetResources::on_Shutdown)
+        if(!empty($rec->assetId) && (!isset($rec->_exAssetId) || $rec->assetId != $rec->_exAssetId)){
+            planning_AssetResources::markUsedInTask($rec->assetId);
+        }
+        if(!empty($rec->_exAssetId) && $rec->assetId != $rec->_exAssetId){
+            planning_AssetResources::markUsedInTask($rec->_exAssetId, false);
+        }
+
         // Преизчисляване на продължителноста след промяна
         if($rec->_fromForm ?? null){
             planning_TaskConstraints::calcTaskDuration($rec->id);
@@ -3700,7 +3714,7 @@ class planning_Tasks extends core_Master
             core_Debug::stopTimer('REORDER_BY_JOB');
         }
 
-        if (countR($mvc->cacheAssetDataOnShutdown)) {
+        if (countR($mvc->cacheAssetDataOnShutdown ?? null)) {
             core_Debug::startTimer('CACHE_ON_SHUTDOWN');
             foreach ($mvc->cacheAssetDataOnShutdown as $assetId) {
                 $cacheData = array('assetId' => planning_AssetResources::fetch($assetId), 'tasks' => planning_AssetResources::getAssetTaskOptions($assetId, true));

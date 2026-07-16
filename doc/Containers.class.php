@@ -987,7 +987,7 @@ class doc_Containers extends core_Manager
                 $sharedArr = keylist::toArray($shared);
                 
                 // Вземаме, ако има приоритета от документа
-                $priority = ($docRec && $docRec->priority) ? $docRec->priority : 'normal';
+                $priority = ($docRec && !empty($docRec->priority)) ? $docRec->priority : 'normal';
                 
                 // Нотифицираме споделените
                 self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', false, $priority);
@@ -1583,15 +1583,15 @@ class doc_Containers extends core_Manager
             $id = (int) $id;
             
             $rec = doc_Containers::fetch($id, 'docId, docClass');
-            
+
             // Ако няма id на документ, изчакваме една-две секунди,
             // защото може този документ да се създава точно в този момент
-            if (!$rec->docId) {
+            if (!$rec || !$rec->docId) {
                 sleep((int) BGERP_DOCUMENT_SLEEP_TIME);
             }
             $rec = doc_Containers::fetch($id, 'docId, docClass');
-            
-            if (!$rec->docId) {
+
+            if (!$rec || !$rec->docId) {
                 sleep((int) BGERP_DOCUMENT_SLEEP_TIME);
             }
             $rec = doc_Containers::fetch($id, 'docId, docClass');
@@ -1599,9 +1599,10 @@ class doc_Containers extends core_Manager
             $rec = $id;
         }
         
+        expect($rec, $id);
         expect($rec->docClass, $rec);
         expect($rec->docId, $rec);
-        
+
         return new core_ObjectReference($rec->docClass, $rec->docId, $intf);
     }
     
@@ -1805,7 +1806,7 @@ class doc_Containers extends core_Manager
     public static function getNewDocMenu($rec)
     {
         // Определяме заглавието на нишката или папката
-        if ($rec->threadId) {
+        if (!empty($rec->threadId)) {
             $thRec = doc_Threads::fetch($rec->threadId);
             $title = doc_Threads::recToVerbal($thRec)->onlyTitle;
         } else {
@@ -1822,12 +1823,12 @@ class doc_Containers extends core_Manager
                 if(!cls::load($class, true)) continue;
                 $mvc = cls::get($class);
                 
-                if ($mvc->newBtnGroup === false) {
+                if (($mvc->newBtnGroup ?? null) === false) {
                     continue;
                 }
 
                 if ($mvc->haveRightFor('add', $rec)) {
-                    if($mvc->newBtnGroup){
+                    if($mvc->newBtnGroup ?? null){
                         list($order, $group) = explode('|', $mvc->newBtnGroup);
                     } else {
                         $order = 0;
@@ -1853,7 +1854,7 @@ class doc_Containers extends core_Manager
             $tpl = new ET();
             
             // Ако сме в нишка
-            if ($rec->threadId) {
+            if (!empty($rec->threadId)) {
                 $text = tr('Нов документ в') . ' ' . $title;
             } else {
                 $text = tr('Нова тема в') . ' ' . $title;

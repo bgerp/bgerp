@@ -383,7 +383,7 @@ class store_Products extends core_Detail
                 }
             }
 
-            $filtersArr = bgerp_type_CustomFilter::toArray($data->listFilter->rec->filters);
+            $filtersArr = bgerp_type_CustomFilter::toArray($data->listFilter->rec->filters ?? '');
             cat_Products::applyAdditionalListFilters($filtersArr, $data->query, 'productId', 'pState');
 
             if(!empty($rec->horizon)){
@@ -1009,7 +1009,7 @@ class store_Products extends core_Detail
     public function renderDetail_($data)
     {
         // Не се рендира детайла, ако има само една версия или режима е само за показване
-        if ($data->render === false) {
+        if (($data->render ?? null) === false) {
            
             return new core_ET('');
         }
@@ -1017,7 +1017,7 @@ class store_Products extends core_Detail
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->append(tr('Наличности'), 'title');
 
-        if($data->masterData->rec->generic == 'yes'){
+        if(($data->masterData->rec->generic ?? null) == 'yes'){
             $infoBlock = tr("Показани са наличностите на артикулите, които заместват|* <b class='green'>") . cat_Products::getTitleById($data->masterId) . "</b>";
             $infoBlock = "<div style='margin-bottom:5px'>{$infoBlock}</div>";
             $tpl->append($infoBlock, 'content');

@@ -706,13 +706,14 @@ class sales_TransportValues extends core_Manager
             $rec->deliveryTimeFromFee = $cRec->deliveryTime;
         }
         
+        $countryId = null;
         if ($masterRec->deliveryAdress) {
             if ($parsePlace = drdata_Address::parsePlace($masterRec->deliveryAdress)) {
                 $countryId = $parsePlace->countryId;
                 $PCode = $parsePlace->pCode;
             }
         }
-        
+
         if (!$countryId) {
             $countryId = !empty($masterRec->{$map['countryId']}) ? $masterRec->{$map['countryId']} : null;
             $PCode = !empty($masterRec->pCode) ? $masterRec->pCode : null;
@@ -785,7 +786,7 @@ class sales_TransportValues extends core_Manager
             $rec->fee = $feeArr['totalFee'];
         }
         
-        if ($rec->autoPrice !== true) {
+        if (($rec->autoPrice ?? null) !== true) {
             if (cond_DeliveryTerms::canCalcHiddenCost($masterRec->deliveryTermId, $rec->productId)) {
                 if (isset($rec->{$map['price']})) {
                     // Проверка дали цената е допустима спрямо сумата на транспорта

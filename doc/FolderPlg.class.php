@@ -328,11 +328,11 @@ class doc_FolderPlg extends core_Plugin
         
         // Потребителите само с ранг ексикютив може да променят само корици на които са отговорник
         if (!$requiredRoles || $requiredRoles == 'powerUser' || $requiredRoles == 'user') {
-            if (is_object($rec) && $rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
+            if (is_object($rec) && !empty($rec->id) && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'close' || $action == 'reject')) {
                 if (!$userId) {
                     $userId = core_Users::getCurrent();
                 }
-                if (!$rec->inCharge) {
+                if (empty($rec->inCharge)) {
                     $rec = $mvc->fetch($rec->id);
                 }
                 if ($userId && ($userId != $rec->inCharge) && !type_Keylist::isIn($userId, $rec->shared)) {

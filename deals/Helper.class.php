@@ -284,29 +284,29 @@ abstract class deals_Helper
         // Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
         $arr = array();
         $values = (array) $values;
-        $arr['value'] = $values['amount'];
+        $arr['value'] = $values['amount'] ?? null;
         $arr['currencyId'] = $currencyId;                          // Валута на документа
-        
+
         $baseCurrency = acc_Periods::getBaseCurrencyCode($date);   // Основната валута
-        $arr['value'] = $values['amount']; 						   // Стойноста е сумираната от показваното на всеки ред
-        
-        if ($values['discount']) { 								// ако има отстъпка
+        $arr['value'] = $values['amount'] ?? null; 						   // Стойноста е сумираната от показваното на всеки ред
+
+        if ($values['discount'] ?? null) { 								// ако има отстъпка
             $arr['discountValue'] = $values['discount'];
             $arr['discountCurrencyId'] = $currencyId; 			// Валутата на отстъпката е тази на документа
-            
+
             $arr['neto'] = $arr['value'] - round($arr['discountValue'], 2); 	// Стойността - отстъпката
             $arr['netoCurrencyId'] = $currencyId; 				// Валутата на нетото е тази на документа
             core_Lg::push($lang);
-            $arr['discountCaption'] = $values['haveAtleastOneDiscount'] ? tr('Отстъпка') : "<i class='quiet'>" . tr('Разлики от закръгляне') . "</i>";
+            $arr['discountCaption'] = ($values['haveAtleastOneDiscount'] ?? null) ? tr('Отстъпка') : "<i class='quiet'>" . tr('Разлики от закръгляне') . "</i>";
             core_Lg::pop();
         }
-        
+
         // Ако има нето, крайната сума е тази на нетото, ако няма е тази на стойността
         $arr['total'] = (isset($arr['neto'])) ? $arr['neto'] : $arr['value'];
-        
+
         $coreConf = core_Packs::getConfig('core');
         $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
-        $countVats = countR($values['vats']);
+        $countVats = countR($values['vats'] ?? null);
 
         if ($invoice || $chargeVat == 'separate') {
             $date = $date ?? dt::today();
@@ -315,7 +315,7 @@ abstract class deals_Helper
                 $baseCurrency = 'EUR';
             }
 
-            if (is_array($values['vats'])) {
+            if (is_array($values['vats'] ?? null)) {
                 foreach ($values['vats'] as $percent => $vi) {
                     if (is_object($vi)) {
                         $index = str_replace('.', '', abs($percent));
@@ -770,7 +770,7 @@ abstract class deals_Helper
                                     $combined[$index]->notes = $p->notes;
                                 }
 
-                                if(is_array($p->batches)){
+                                if(is_array($p->batches ?? null)){
                                     $combined[$index]->batches = array();
                                     $combined[$index]->batchesSums = array();
                                 }
@@ -789,15 +789,15 @@ abstract class deals_Helper
                                 $d->deliveryTimeFromFee = min($d->deliveryTimeFromFee, $p->deliveryTimeFromFee);
                             }
                             
-                            if ($p->syncFee === true) {
+                            if (($p->syncFee ?? null) === true) {
                                 $d->syncFee = true;
                             }
-                            
+
                             $sign = ($parameter == 'arrays') ? 1 : -1;
                             $d->quantity += $sign * $p->quantity;
                             $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
 
-                            if(is_array($p->batches)){
+                            if(is_array($p->batches ?? null)){
                                 foreach ($p->batches as $batch => $batchQuantity){
                                     $d->batches[$batch] = ($d->batches[$batch] ?? 0) + $sign * $batchQuantity;
                                     $d->batchesSums[$batch] = ($d->batchesSums[$batch] ?? 0) + $sign * ($batchQuantity * $p->price * (1 - $p->discount));
@@ -805,12 +805,12 @@ abstract class deals_Helper
                             }
 
                             if (empty($d->packagingId)) {
-                                $d->packagingId = $p->packagingId;
-                                $d->quantityInPack = $p->quantityInPack;
+                                $d->packagingId = $p->packagingId ?? null;
+                                $d->quantityInPack = $p->quantityInPack ?? null;
                             } else {
-                                if ($p->quantityInPack < $d->quantityInPack) {
-                                    $d->packagingId = $p->packagingId;
-                                    $d->quantityInPack = $p->quantityInPack;
+                                if (($p->quantityInPack ?? null) < $d->quantityInPack) {
+                                    $d->packagingId = $p->packagingId ?? null;
+                                    $d->quantityInPack = $p->quantityInPack ?? null;
                                 }
                             }
                         }
@@ -879,7 +879,7 @@ abstract class deals_Helper
         $pRec = cat_Products::fetch($productId, 'canStore,isPublic');
 
         // Ако артикулът е с моментна рецепта няма да се проверява за наличност
-        if($mvc->manifactureProductsOnShipment) {
+        if($mvc->manifactureProductsOnShipment ?? null) {
             $lastInstantBom = cat_Products::getLastActiveBom($productId, 'instant');
             if(is_object($lastInstantBom)) {
                 $html = ht::createHint($html, "Артикулът е с моментна рецепта и ще бъде произведен при изписване от склада|*!", 'img/16/cog.png', false, null, "class=doc-positive-quantity");
@@ -1386,7 +1386,7 @@ abstract class deals_Helper
      */
     public static function isQuantityBellowMoq(&$form, $productId, $quantity, $quantityInPack, $quantityField = 'packQuantity', $action = 'sell')
     {
-        $moq = $form->rec->_moq;
+        $moq = $form->rec->_moq ?? null;
         
         if (!$moq) {
             $moq = cat_Products::getMoq($productId, $action);
@@ -2925,7 +2925,7 @@ abstract class deals_Helper
     {
         $stRec = store_Products::fetch("#productId = '{$productId}' AND #storeId = {$storeId}", 'quantity');
 
-        return $stRec->quantity - $quantity;
+        return ($stRec->quantity ?? 0) - $quantity;
     }
 
 
@@ -3164,6 +3164,7 @@ abstract class deals_Helper
      */
     public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
     {
+        static $useBomVal;
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
         $isPublic = cat_Products::fetchField($productId, 'isPublic');
@@ -3189,8 +3190,14 @@ abstract class deals_Helper
             }
         }
 
+        if(empty($useBomVal)){
+            $useBomVal = cat_Setup::get('USE_BOM_PRICE_OF_NON_STANDART_GP');
+        }
+
         if(empty($foundPrice)){
+            Mode::push('calcCompareBomPrice', $useBomVal);
             $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
+            Mode::pop('calcCompareBomPrice');
         }
 
         foreach (array($foundMinPrice, $foundPrice) as $i => $var){
@@ -3209,7 +3216,7 @@ abstract class deals_Helper
                     $toleranceDiff = price_Lists::fetchField($var->listId, 'discountComparedShowAbove');
                 }
                 $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
-                $foundPrice = $var->price * (1 - $var->discount);
+                $foundPrice = $var->price * (1 - ($var->discount ?? 0));
                 
                 $price1Round = round($price, 5);
                 $price2Round = round($foundPrice, 5);
@@ -3954,7 +3961,7 @@ abstract class deals_Helper
             }
 
             foreach ($arr as $fld => $placeholder){
-                $block->replace($row->{$fld}, $placeholder);
+                $block->replace($row->{$fld} ?? null, $placeholder);
             }
             $block->removeBlocksAndPlaces();
             $tpl->append($block, 'VAT_BLOCK');

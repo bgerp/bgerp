@@ -448,7 +448,7 @@ class crm_Persons extends core_Master
         if ($data->listFilter->rec->order == 'birthday') {
             $mvc->birthdayFilter = true;
         }
-        if ($data->listFilter->rec->alpha) {
+        if (!empty($data->listFilter->rec->alpha)) {
             if ($data->listFilter->rec->alpha[0] == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
@@ -583,14 +583,14 @@ class crm_Persons extends core_Master
      */
     public static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
-        if ($data->listFilter->rec->groupId) {
+        if ($data->listFilter->rec->groupId ?? null) {
             $data->title = "Лица в групата|* \"<b style='color:green'>|" .
                 crm_Groups::getTitleById($data->listFilter->rec->groupId) . '|*</b>"';
-        } elseif ($data->listFilter->rec->search) {
+        } elseif ($data->listFilter->rec->search ?? null) {
             $data->title = "Лица отговарящи на филтъра|* \"<b style='color:green'>" .
                 type_Varchar::escape($data->listFilter->rec->search) .
                 '</b>"';
-        } elseif ($data->listFilter->rec->alpha) {
+        } elseif ($data->listFilter->rec->alpha ?? null) {
             if ($data->listFilter->rec->alpha[0] == '0') {
                 $data->title = 'Лица, които започват с не-буквени символи';
             } else {
@@ -736,7 +736,9 @@ class crm_Persons extends core_Master
 
             $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
 
-            if ($row->country) {
+            $row->addressBox = '';
+
+            if ($row->country ?? null) {
                 $row->addressBox = $row->country;
                 $row->addressBox .= ($pCode || $place) ? '<br>' : '';
             }
@@ -878,7 +880,7 @@ class crm_Persons extends core_Master
         }
 
         // Ако има променена служебна фирма и тя има търговско условие за доставка, то ще се прехвърли към клиента
-        if (isset($rec->buzCompanyId) && $rec->_exBuzCompanyId != $rec->buzCompanyId) {
+        if (isset($rec->buzCompanyId) && ($rec->_exBuzCompanyId ?? null) != $rec->buzCompanyId) {
             $listId = cond_Parameters::getParameter(crm_Companies::getClassId(), $rec->buzCompanyId, 'employeesList');
             if ($listId) {
                 $mvc->updatedListsOnShutdown[$id] = $listId;
@@ -1512,6 +1514,8 @@ class crm_Persons extends core_Master
             $contrData->validFrom = $person->validFrom;
             $contrData->validTo = $person->validTo;
 
+            $contrData->groupEmails = '';
+
             // Ако е свързан с фирма
             if ($person->buzCompanyId) {
 
@@ -1974,7 +1978,7 @@ class crm_Persons extends core_Master
             $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));
         }
 
-        if (!$form->rec->id && $form->rec->buzCompanyId && isset($_GET['buzCompanyId'])) {
+        if (empty($form->rec->id) && !empty($form->rec->buzCompanyId) && isset($_GET['buzCompanyId'])) {
             $form->setReadOnly('buzCompanyId');
         }
 
@@ -1998,7 +2002,7 @@ class crm_Persons extends core_Master
     {
         $form = &$data->form;
 
-        if ($form->rec->buzCompanyId) {
+        if (!empty($form->rec->buzCompanyId)) {
             $form->title = core_Detail::getEditTitle('crm_Companies', $form->rec->buzCompanyId, 'представител', $form->rec->id);
         }
     }
@@ -2894,7 +2898,7 @@ class crm_Persons extends core_Master
         $rec = $this->fetch($id);
 
         if (email_Outgoings::haveRightFor('add', array('folderId' => $rec->folderId))) {
-            $res[] = 'email_Outgoings';
+            $res[] = (object)array('class' => 'email_Outgoings');
         }
 
         static $clientGroupId, $supplierGroupId, $debitGroupId, $creditGroupId;

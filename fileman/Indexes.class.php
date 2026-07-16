@@ -145,7 +145,10 @@ class fileman_Indexes extends core_Manager
         
         // Вземаме уеб-драйверите за това файлово разширение
         $webdrvArr = self::getDriver($ext, $data->fRec->name);
-        
+
+        // Масив с всички табове
+        $data->tabs = array();
+
         // Обикаляме всички открити драйвери
         foreach ($webdrvArr as $drv) {
             
@@ -177,11 +180,11 @@ class fileman_Indexes extends core_Manager
         $tabsArr = static::orderTabs($tabsArr);
         
         // Ако е избран някой таб
-        if ($tabsArr[$data->currentTab]) {
-            
+        if (!empty($tabsArr[$data->currentTab])) {
+
             // Задаваме той да е текущия
             $currentTab = $data->currentTab;
-        } elseif ($tabsArr['__defaultTab'] && $tabsArr['__defaultTab']->name && $tabsArr[$tabsArr['__defaultTab']->name]) {
+        } elseif (!empty($tabsArr['__defaultTab']) && $tabsArr['__defaultTab']->name && !empty($tabsArr[$tabsArr['__defaultTab']->name])) {
             
             // Ако не е избран таб, избираме таба по подразбиране зададен от класа
             $currentTab = $tabsArr['__defaultTab']->name;
@@ -203,14 +206,14 @@ class fileman_Indexes extends core_Manager
                 continue;
             }
             
-            if ($data->localUrl) {
+            if (!empty($data->localUrl)) {
                 $urlArr = core_App::parseLocalUrl($data->localUrl);
                 $urlArr['currentTab'] = $name;
                 $urlArr['#'] = 'fileDetail';
             } else {
                 $urlArr = array($data->fhName => $data->rec->fileHnd, 'currentTab' => $name, '#' => 'fileDetail');
-                
-                if ($data->retUrl) {
+
+                if (!empty($data->retUrl)) {
                     $urlArr['ret_url'] = $data->retUrl;
                 }
             }
@@ -232,7 +235,7 @@ class fileman_Indexes extends core_Manager
         $tpl = $tabs->renderHtml($body, $currentTab);
         
         // Ако има подаден шаблон
-        if ($tabsArr[$currentTab]->tpl) {
+        if (!empty($tabsArr[$currentTab]->tpl)) {
             
             // Добавяме чакащите елементи от шаблона
             $tpl->processContent($tabsArr[$currentTab]->tpl); // TODO вероятно ще се промени
@@ -260,7 +263,7 @@ class fileman_Indexes extends core_Manager
         
         // Ако тово разширение трябва да се игнорира
         $ignoreExtArr = arr::make(self::$ignoreExtArr, true);
-        if ($ignoreExtArr[$ext]) {
+        if ($ignoreExtArr[$ext] ?? null) {
             $fArr = fileman_Files::getNameAndExt($fName);
             
             $nExt = fileman_Files::getExt($fArr['name']);
@@ -410,7 +413,7 @@ class fileman_Indexes extends core_Manager
     public static function isProcessStarted($params, $trim = false)
     {
         // Ако няма lockId
-        if (!$params['lockId']) {
+        if (empty($params['lockId'])) {
             $params['lockId'] = fileman_webdrv_Generic::getLockId($params['type'], $params['dataId']);
         }
         
@@ -431,7 +434,7 @@ class fileman_Indexes extends core_Manager
             $content = fileman_Indexes::decodeContent($rec->content);
             
             // Ако в индекса е записана грешка
-            if (($content->errorProc) && (dt::mysql2timestamp($rec->createdOn) < $time)) {
+            if ((is_object($content) && $content->errorProc) && (dt::mysql2timestamp($rec->createdOn) < $time)) {
                 
                 // Изтрива съответния запис
                 fileman_Indexes::delete($rec->id);
@@ -547,7 +550,7 @@ class fileman_Indexes extends core_Manager
             // Ако е валиден файл
             $isValid = is_file($file);
             
-            if (($errFilePath = $params['errFilePath']) && is_file($errFilePath)) {
+            if (($errFilePath = $params['errFilePath'] ?? null) && is_file($errFilePath)) {
                 $errContent = @file_get_contents($errFilePath);
                 
                 $errContent = trim($errContent);
@@ -781,18 +784,18 @@ class fileman_Indexes extends core_Manager
             $ext = fileman_Files::getExt($fName);
             
             // Игнорираме файлове, не трябва да индексираме
-            if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId])) {
-                if ($ignoreExtArr['*']) {
+            if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId] ?? null)) {
+                if ($ignoreExtArr['*'] ?? null) {
                     continue;
                 }
-                
-                if ($ignoreExtArr[$ext]) {
+
+                if ($ignoreExtArr[$ext] ?? null) {
                     continue;
                 }
             }
             
             // Няма нужда за същото разширение да се прави обработка
-            if ($extArr[$ext]) {
+            if (!empty($extArr[$ext])) {
                 continue;
             }
             $extArr[$ext] = $ext;
@@ -803,7 +806,9 @@ class fileman_Indexes extends core_Manager
                 
                 // Намираме драйвера
                 $drvInst = self::getDrvForMethod($ext, 'extractText', $fName);
-                
+
+                $dId = fileman_webdrv_Generic::prepareLockId($fRec);
+
                 if ($drvInst) {
                     try {
                         // Извличаме текстовата част от драйвера
@@ -811,9 +816,7 @@ class fileman_Indexes extends core_Manager
                     } catch (ErrorException $e) {
                         reportException($e);
                     }
-                    
-                    $dId = fileman_webdrv_Generic::prepareLockId($fRec);
-                    
+
                     // Заключваме процеса и изчакваме докато се отключи
                     $lockId = fileman_webdrv_Generic::getLockId('text', $dId);
                     while (core_Locks::isLocked($lockId)) {
@@ -828,7 +831,7 @@ class fileman_Indexes extends core_Manager
                 // Ако не може да се определи текстова част
                 // И ако отговора на условията, извличаме текстовата част с OCR
                 $content = self::getTextForIndex($hnd);
-                $minSize = self::$ocrIndexArr[$ext];
+                $minSize = self::$ocrIndexArr[$ext] ?? null;
                 
                 $ocrText = fileman_Indexes::getInfoContentByFh($hnd, 'textOcr');
                 if ($ocrText === false) {
@@ -902,7 +905,7 @@ class fileman_Indexes extends core_Manager
         fileman_Data::save($dRec, 'searchKeywords');
         
         $break = false;
-        $bGet = $hGet = $vGet = false;
+        $bGet = $hGet = $vGet = $mGet = false;
 
         foreach ($fArr as $hnd => $fRec) {
             if (dt::now() >= $endOn) {
@@ -966,8 +969,31 @@ class fileman_Indexes extends core_Manager
                     }
                 }
             }
-            
-            if ($hGet && $bGet && $vGet) {
+
+            // Извличане на съдържанието в markdown - само за поддържаните файлове
+            if (!$mGet) {
+
+                // Игнорираме файловете от кофите, които не трябва да се индексират
+                $skipBucket = false;
+                if ($fRec->bucketId && ($ignoreExtArr = $ignoreBucketIdArr[$fRec->bucketId] ?? null)) {
+                    $skipBucket = !empty($ignoreExtArr['*']) || !empty($ignoreExtArr[$ext]);
+                }
+
+                if (!$skipBucket) {
+                    $drvInst = self::getDrvForMethod($ext, 'extractMarkdown', $fName);
+                    if ($drvInst) {
+                        try {
+                            usleep(500000);
+                            $drvInst->extractMarkdown($fRec);
+                            $mGet = true;
+                        } catch (ErrorException $e) {
+                            reportException($e);
+                        }
+                    }
+                }
+            }
+
+            if ($hGet && $bGet && $vGet && $mGet) {
                 break;
             }
         }
@@ -1047,8 +1073,34 @@ class fileman_Indexes extends core_Manager
 
         return $content;
     }
-    
-    
+
+
+    /**
+     * Връща извлеченото съдържание на файла в markdown
+     *
+     * @param string  $fh
+     * @param boolean $convertToUtf8
+     *
+     * @return FALSE|string
+     */
+    public static function getMarkdownForIndex($fh, $convertToUtf8 = true)
+    {
+        $content = fileman_Indexes::getInfoContentByFh($fh, 'markdown');
+
+        // При грешка в обработката, в индекса се записва обект
+        if ($content === false || !is_string($content)) {
+
+            return false;
+        }
+
+        if ($convertToUtf8) {
+            $content = i18n_Charset::convertToUtf8($content);
+        }
+
+        return $content;
+    }
+
+
     /**
      * След извличане на записите от базата данни
      *
@@ -1145,13 +1197,63 @@ class fileman_Indexes extends core_Manager
 
 
     /**
-     * Връща текстовото представяне на файла (ако няма кеширано го форсира)
+     * Разширения, за които извлеченият (от Tika) текст е таблично, таб-разделено
+     * съдържание - вижте str::tabsToMarkdownTable()
+     */
+    protected static $tabularExtensions = array('xls', 'xlsx', 'xlsm', 'xlt', 'xltx', 'ods', 'ots', 'csv', 'tsv');
+
+
+    /**
+     * Дали файлът (по разширение) е от табличен тип, за когото си заслужава
+     * $asMarkdownIfPossible преобразуването - вижте forceTextForIndex()
      *
      * @param string $fileHnd
+     * @return bool
+     */
+    protected static function isTabularFileExt($fileHnd)
+    {
+        $fName = fileman_Files::fetchByFh($fileHnd, 'name');
+        if (empty($fName)) return false;
+
+        $ext = fileman_Files::getExt($fName);
+
+        return in_array($ext, self::$tabularExtensions, true);
+    }
+
+
+    /**
+     * Връща текстовото представяне на файла (ако няма кеширано го форсира)
+     *
+     * @param string  $fileHnd
+     * @param boolean $asMarkdownIfPossible ако е true, с предимство се връща съдържанието в
+     *                markdown (от програмата в FILEMAN_MARKDOWN - напр. markitdown), защото
+     *                пази структурата на документа (заглавия, списъци, таблици) и се парсва
+     *                по-лесно от AI модел. Ако няма такова съдържание (програмата не е
+     *                настроена, файлът не се поддържа или извличането е празно), се минава
+     *                по текстовия индекс, като за табличните файлове (xls/xlsx/ods/csv и др. -
+     *                вижте $tabularExtensions) таб-разделените редове се преобразуват в
+     *                markdown-подобни таблични редове
      * @return string|null
      */
-    public static function forceTextForIndex($fileHnd)
+    public static function forceTextForIndex($fileHnd, $asMarkdownIfPossible = false)
     {
+        // Съдържанието в markdown е с предимство - то е с максимално запазена структура.
+        // При какъвто и да е проблем с markdown обработката (ненастроена/липсваща програма,
+        // неочаквано изключение от драйвер) падаме обратно към текстовата логика по-долу,
+        // вместо да чупим извикващия код.
+        if ($asMarkdownIfPossible) {
+            try {
+                $markdownContent = self::forceMarkdownForIndex($fileHnd);
+
+                if (!empty($markdownContent)) {
+
+                    return $markdownContent;
+                }
+            } catch (Throwable $e) {
+                reportException($e);
+            }
+        }
+
         $fileTxtContent = fileman_Indexes::getTextForIndex($fileHnd);
 
         // Ако все още не е извлечен текста, форсираме извличането му
@@ -1168,18 +1270,74 @@ class fileman_Indexes extends core_Manager
         // Ако няма извлечено или е извлечен празен стринг няма да се върне нищо
         if ($fileTxtContent === false || empty(trim($fileTxtContent))) return null;
 
-        return trim($fileTxtContent);
+        $fileTxtContent = trim($fileTxtContent);
+
+        if ($asMarkdownIfPossible && self::isTabularFileExt($fileHnd)) {
+            $fileTxtContent = str::tabsToMarkdownTable($fileTxtContent);
+        }
+
+        return $fileTxtContent;
+    }
+
+
+    /**
+     * Връща съдържанието на файла в markdown (ако няма кеширано, форсира извличането му)
+     *
+     * За разлика от `forceTextForIndex()` тук съдържанието е с максимално запазена структура
+     * (заглавия, списъци, таблици, връзки) - по-подходящо за подаване към AI модел
+     *
+     * @param string $fileHnd
+     * @param int    $waitSecs - до колко секунди да се изчака обработката, ако е стартирана
+     *
+     * @return string|NULL
+     */
+    public static function forceMarkdownForIndex($fileHnd, $waitSecs = 120)
+    {
+        $content = self::getMarkdownForIndex($fileHnd);
+
+        // Ако все още не е извлечено съдържанието, форсираме извличането му
+        if ($content === false) {
+            $fRec = fileman::fetchByFh($fileHnd);
+
+            if ($fRec && $fRec->dataId) {
+                fileman_webdrv_Generic::extractMarkdown($fRec);
+
+                // Изчакваме, докато приключи обработката
+                $lockId = fileman_webdrv_Generic::getLockId('markdown', $fRec->dataId);
+                $endOn = dt::addSecs($waitSecs);
+
+                while (core_Locks::isLocked($lockId)) {
+                    if (dt::now() >= $endOn) {
+                        break;
+                    }
+                    usleep(500000);
+                }
+
+                $content = self::getMarkdownForIndex($fileHnd);
+            }
+        }
+
+        // Ако няма извлечено или е извлечен празен стринг, няма да се върне нищо
+        if ($content === false || empty(trim($content))) {
+
+            return null;
+        }
+
+        return trim($content);
     }
 
 
     /**
      * Връща кратко текстово представяне на масива от файлове с ограничение до брой символи
      *
-     * @param array $filesArr  - масив от файл хендлъри => име на файл
-     * @param int $maxLen      - максимална дължина
+     * @param array   $filesArr  - масив от файл хендлъри => име на файл
+     * @param int     $maxLen      - максимална дължина
+     * @param boolean $asMarkdownIfPossible - вижте forceTextForIndex(); ако е true, новите
+     *                редове се пазят (нужни за табличните редове), вместо целият текст да се
+     *                сплеска в един ред, както прави обичайното почистване на whitespace
      * @return string $string  - стринг
      */
-    public static function getShortTextSummary($filesArr, $maxLen = 10000)
+    public static function getShortTextSummary($filesArr, $maxLen = 10000, $asMarkdownIfPossible = false)
     {
         $string = '';
         foreach ($filesArr as $fileHnd => $fileName){
@@ -1187,10 +1345,18 @@ class fileman_Indexes extends core_Manager
             $fileLenVerbal = core_Type::getByName('fileman_FileSize')->toVerbal($fileLen);
             $fileLenVerbal = str_replace('&nbsp;', ' ', $fileLenVerbal);
 
-            $fileTxtContent = self::forceTextForIndex($fileHnd);
+            $fileTxtContent = self::forceTextForIndex($fileHnd, $asMarkdownIfPossible);
             if(empty($fileTxtContent)) continue;
 
-            $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
+            if ($asMarkdownIfPossible) {
+                // Пазим новите редове (иначе табличните редове ще се слепят в един ред) -
+                // чистим само хоризонталния whitespace (двойни интервали/табове в текста).
+                $fileTxtContent = preg_replace('/[ \t]+/', ' ', trim($fileTxtContent));
+                $fileTxtContent = preg_replace('/\n{2,}/', "\n", $fileTxtContent);
+            } else {
+                $fileTxtContent = str::removeWhiteSpace(trim($fileTxtContent), ' ');
+            }
+
             $string .= "\n" . tr("|*& |Прикачен файл|*: {$fileName} ({$fileLenVerbal})") . "\n";
             $string .= tr("Извлечен текст|*: ");
             $strLen = mb_strlen($fileTxtContent);

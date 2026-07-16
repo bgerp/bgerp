@@ -89,13 +89,13 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
             $rec->_newCurrencyRate = $newRate;
         }
 
-        $actions = type_Set::toArray($rec->contoActions);
+        $actions = type_Set::toArray($rec->contoActions ?? null);
         $rec = $this->fetchPurchaseData($rec); // покупката ще контира - нужни са и детайлите
-        
-        if ($actions['ship'] || $actions['pay']) {
+
+        if (!empty($actions['ship']) || !empty($actions['pay'])) {
             deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => true));
-            
-            if ($actions['ship']) {
+
+            if (!empty($actions['ship'])) {
                 // Покупката играе роля и на складова разписка.
                 // Контирането е същото като при СР
                 
@@ -111,7 +111,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 }
             }
             
-            if ($actions['pay']) {
+            if (!empty($actions['pay'])) {
                 // покупката играе роля и на платежен документ (РКО)
                 // Записите от тип 3 (получаване на плащане)
                 $entries = array_merge($entries, $this->getPaymentPart($rec));
@@ -540,7 +540,9 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                 if (cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)) {
                     $obj = new stdClass();
                     $obj->productId = $itemRec->objectId;
-                    
+                    $obj->amount = 0;
+                    $obj->quantity = 0;
+
                     $index = $obj->productId;
                     if (empty($res[$index])) {
                         $res[$index] = $obj;
@@ -556,8 +558,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                         if ($p->{"debitItem{$storePositionId}"}) {
                             $storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
                             
-                            $res[$index]->inStores[$storeItem->objectId]['amount'] += $amount;
-                            $res[$index]->inStores[$storeItem->objectId]['quantity'] += $p->debitQuantity;
+                            $res[$index]->inStores[$storeItem->objectId]['amount'] = ($res[$index]->inStores[$storeItem->objectId]['amount'] ?? 0) + $amount;
+                            $res[$index]->inStores[$storeItem->objectId]['quantity'] = ($res[$index]->inStores[$storeItem->objectId]['quantity'] ?? 0) + $p->debitQuantity;
                         }
                     }
                     
@@ -567,8 +569,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                         if ($p->{"debitItem{$expensePositionId}"}) {
                             $expenseItem = acc_Items::fetch($p->{"debitItem{$expensePositionId}"})->id;
                             
-                            $res[$index]->expenseItems[$expenseItem]['amount'] += $amount;
-                            $res[$index]->expenseItems[$expenseItem]['quantity'] += $p->debitQuantity;
+                            $res[$index]->expenseItems[$expenseItem]['amount'] = ($res[$index]->expenseItems[$expenseItem]['amount'] ?? 0) + $amount;
+                            $res[$index]->expenseItems[$expenseItem]['quantity'] = ($res[$index]->expenseItems[$expenseItem]['quantity'] ?? 0) + $p->debitQuantity;
                         }
                     }
                 }

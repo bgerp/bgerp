@@ -242,7 +242,7 @@ class catering_Orders extends core_Master
         
         // ENDOF Prepare render table
         
-        $data->toolbar->addBtn('Назад', array('Ctr' => $this,
+        $data->toolbar->addBtn('Назад', array('Ctr' => $mvc,
             'Act' => 'list',
             'ret_url' => true));
         

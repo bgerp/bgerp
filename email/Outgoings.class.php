@@ -327,7 +327,7 @@ class email_Outgoings extends core_Master
      */
     public static function checkAndAddForLateSending($rec, $options, $lg, $className = 'email_Outgoings')
     {
-        if ($options->delay) {
+        if ($options->delay ?? null) {
             $delay = $options->delay;
             
             // Нулираме закъснението, за да не сработи при отложеното изпращане
@@ -341,7 +341,7 @@ class email_Outgoings extends core_Master
                 
                 $saveStr = 'modifiedOn';
                 
-                if ($options->waiting) {
+                if ($options->waiting ?? null) {
                     $rec->waiting = $options->waiting + dt::secsBetween($delay, dt::now());
                     $saveStr .= ',waiting';
                 }
@@ -2509,10 +2509,11 @@ class email_Outgoings extends core_Master
             $footerData['city'] = transliterate(tr($companyRec->place));
             $footerData['street'] = transliterate(tr($companyRec->address));
             
+            $footerData['pCodeAndCity'] = '';
             if ($footerData['pCode']) {
                 $footerData['pCodeAndCity'] = $footerData['pCode'] . ' ';
             }
-            
+
             $footerData['pCodeAndCity'] .= ' ' . $footerData['city'];
             
             $getCountry = false;

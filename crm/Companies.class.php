@@ -589,7 +589,7 @@ class crm_Companies extends core_Master
 
         if (empty($form->rec->name)) {
 
-            $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
+            $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : ($form->rec->uicId ?? null);
             // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
             if(!empty($cDataSource)){
                 if($cData = self::getCompanyDataFromString($cDataSource)){
@@ -636,7 +636,9 @@ class crm_Companies extends core_Master
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
         if (!Request::get('id') && $country = Request::get('country')) {
-            if (($tel = Request::get('tel')) || ($fax = Request::get('fax'))) {
+            $tel = Request::get('tel');
+            $fax = Request::get('fax');
+            if ($tel || $fax) {
                 $code = drdata_Countries::fetchField($country, 'telCode');
                 if ($tel) {
                     $tel1 = drdata_PhoneType::setCodeIfMissing($tel, $code);
@@ -869,19 +871,19 @@ class crm_Companies extends core_Master
                 $form->setWarning($fields, $resStr);
             }
             
-            if ($rec->place) {
+            if (!empty($rec->place)) {
                 $rec->place = bglocal_Address::canonizePlace($rec->place);
             }
-            
-            if ($rec->regCompanyFileYear && $rec->regDecisionDate) {
+
+            if (!empty($rec->regCompanyFileYear) && !empty($rec->regDecisionDate)) {
                 $dYears = abs($rec->regCompanyFileYear - (int) $rec->regDecisionDate);
-                
+
                 if ($dYears > 1) {
                     $form->setWarning('regCompanyFileYear,regDecisionDate', 'Годината на регистрацията на фирмата и фирменото дело се различават твърде много.');
                 }
             }
-            
-            if ($rec->vatId) {
+
+            if (!empty($rec->vatId)) {
                 if (empty($rec->uicId)) {
                     $rec->uicId = drdata_Vats::getUicByVatNo($rec->vatId);
                 }
@@ -2744,7 +2746,7 @@ class crm_Companies extends core_Master
     {
         if(empty($ownCompanyId)){
             $myCompany = crm_Companies::fetchOurCompany();
-            $myCompanyVatId = $myCompany->vatId;
+            $myCompanyVatId = $myCompany->vatId ?? null;
         } else {
             $myCompanyVatId = crm_Companies::fetchField($ownCompanyId, 'vatId');
         }

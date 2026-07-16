@@ -138,7 +138,8 @@ class acc_journal_Item
     public function isClosed()
     {
         if (!$this->id) {
-            $this->id = acc_Items::fetchItem($this->classId, $this->objectId)->id;
+            $fetchedItem = acc_Items::fetchItem($this->classId, $this->objectId);
+            $this->id = $fetchedItem ? $fetchedItem->id : null;
         }
         
         // Ако има такова перо извличаме му състоянието

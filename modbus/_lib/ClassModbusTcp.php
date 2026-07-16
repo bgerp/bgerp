@@ -151,7 +151,7 @@ class ModbusTcp {
 	var $TypeDouble;
 	var $TypeFloat;
 
-	function ModbusTcp () { // Конструктор
+	function __construct () { // Конструктор
 		$this->AdIpPLC = "";
 		$this->PortIpPLC = 502;
 		$this->Unit = 0;

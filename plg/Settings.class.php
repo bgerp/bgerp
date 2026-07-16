@@ -77,7 +77,7 @@ class plg_Settings extends core_Plugin
        
         
         $prototypeOptions = $mvc->getPrototypeOptions();
-        unset($prototypeOptions[$rec->id]);
+        unset($prototypeOptions[$rec->id ?? null]);
         $settingFields = $mvc->selectFields('#settings');
         $settingFields = array_keys($settingFields);
        

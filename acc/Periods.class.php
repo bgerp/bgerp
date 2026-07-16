@@ -453,29 +453,26 @@ class acc_Periods extends core_Manager
      */
     public static function checkDocumentDate($dateToCheck)
     {
-        if (!$dateToCheck) {
-            
-            return;
-        }
+        if (!$dateToCheck) return;
         
         $rec = self::getFirstActive();
-        
+
         if ($rec && ($rec->start > $dateToCheck)) {
             
-            return "Датата е преди първия активен период|* <b>{$rec->title}</b>";
+            return "Вальорът е преди първия активен период|* <b>{$rec->title}</b>!";
         }
         
         $rec = self::fetchByDate($dateToCheck);
         if (!$rec) {
             
-            return 'Датата е в несъществуващ счетоводен период';
+            return 'Вальорът е в несъществуващ счетоводен период|*!';
         }
         
         if ($dateToCheck > dt::getLastDayOfMonth()) {
             
-            return 'Датата е в бъдещ счетоводен период';
+            return 'Вальорът е в бъдещ счетоводен период|*!';
         }
-        
+
         return false;
     }
     
@@ -521,7 +518,7 @@ class acc_Periods extends core_Manager
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
-        if (!$rec->id) {
+        if (empty($rec->id)) {
             $rec->state = 'active';
         }
     }
@@ -716,7 +713,9 @@ class acc_Periods extends core_Manager
      */
     public static function getPeriodEnd($date = null)
     {
-        return acc_Periods::fetchByDate($date)->end;
+        $rec = acc_Periods::fetchByDate($date);
+
+        return $rec ? $rec->end : null;
     }
     
     
@@ -805,7 +804,7 @@ class acc_Periods extends core_Manager
         $period = self::fetchByDate($date);
         
         // Проверка дали периода е затворен
-        return $period->state == 'closed';
+        return ($period->state ?? null) == 'closed';
     }
     
     

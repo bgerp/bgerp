@@ -22,7 +22,7 @@
 					<div>|Параметри за планиране|*: <b>[#planningParams#]</b></div>
 					<!--ET_END planningParams-->
 					<!--ET_BEGIN showTaskPlanningParams-->
-					<div>|Параметрите от Етапите да са планиращи|*: <b>[#showTaskPlanningParams#]</b></div>
+					<div>|Параметрите от Етапа да са планиращи (при филтриране по Етап)|*: <b>[#showTaskPlanningParams#]</b></div>
 					<!--ET_END showTaskPlanningParams-->
 					<!--ET_BEGIN mandatoryOperatorsInTasks-->
 					<div>|Оператор в прогрес на ПО|*: <b>[#mandatoryOperatorsInTasks#]</b></div>
@@ -86,7 +86,7 @@
 					<!--ET_END supportUsers-->
 
 					<!--ET_BEGIN autoAddConvertableInTask-->
-					<div>|Автоматично добавяне на артикули от протокол за влагане в ПО|*: [#autoAddConvertableInTask#]</div>
+					<div>|Автоматично добавяне на артикули от Протокол за влагане (на Заявка) в ПО|*: [#autoAddConvertableInTask#]</div>
 					<!--ET_END autoAddConvertableInTask-->
 	            </div>
 	        </fieldset>

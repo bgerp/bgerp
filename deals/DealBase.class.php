@@ -304,6 +304,7 @@ abstract class deals_DealBase extends core_Master
         $closedItems = array();
         $rec = $mvc->fetchRec($id);
         $dealItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+        $dealItemId = $dealItem ? $dealItem->id : null;
         
         // Записите от журнала засягащи това перо
         $entries = acc_Journal::getEntries(array($mvc, $rec->id));
@@ -328,7 +329,7 @@ abstract class deals_DealBase extends core_Master
             // Ако транзакцията е направена от друг тред запомняме от кой документ е направена
             $threadId = $Doc->fetchField($ent->docId, 'threadId');
             if ($threadId != $rec->threadId) {
-                $mvc->usedIn[$dealItem->id][] = $Doc->getHandle($ent->docId);
+                $mvc->usedIn[$dealItemId][] = $Doc->getHandle($ent->docId);
             }
             
             if (cls::existsMethod($Doc, 'getValidatedTransaction')) {
@@ -344,7 +345,7 @@ abstract class deals_DealBase extends core_Master
         }
         
         if ($rec->state != 'closed') {
-            unset($closedItems[$dealItem->id]);
+            unset($closedItems[$dealItemId]);
         }
         
         // Връщаме намерените пера

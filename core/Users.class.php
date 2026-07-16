@@ -248,7 +248,7 @@ class core_Users extends core_Manager
         }
         
         if (!empty($rec->__updateRoleLogs)) {
-            core_RoleLogs::add($rec->roles, $rec->state, $rec->id);
+            core_RoleLogs::add($rec->roles, $rec->state ?? null, $rec->id);
         }
     }
     
@@ -335,7 +335,7 @@ class core_Users extends core_Manager
         
         $cash = $roles . '_' . $limit . '_' . $nick;
         
-        if (!$usersArr[$cash]) {
+        if (empty($usersArr[$cash])) {
             
             // Всичко, потребители, които не са заличени
             $query = static::getQuery();
@@ -454,7 +454,12 @@ class core_Users extends core_Manager
         if (!is_object($rec)) {
             $rec = self::fetch($rec);
         }
-        
+
+        if (!$rec) {
+
+            return false;
+        }
+
         static $isPowerUserArr = array();
         
         if (!isset($isPowerUserArr[$rec->id])) {
@@ -633,7 +638,7 @@ class core_Users extends core_Manager
         self::setUserFormJS($form);
         
         if ($id = ($form->rec->id ?? null)) {
-            $exRec = self::fetch($id);
+            expect($exRec = self::fetch($id));
             if ($exRec->state != 'draft') {
                 $stateType = &$mvc->fields['state']->type;
                 unset($stateType->options['draft']);
@@ -808,7 +813,7 @@ class core_Users extends core_Manager
             }
         } else {
             if ($recId) {
-                $exRec = self::fetch($recId);
+                expect($exRec = self::fetch($recId));
                 if (strtolower($rec->nick) != strtolower($exRec->nick)) {
                     $form->setError('passNew,passRe', 'При промяна на ника на потребителя трябва да се зададе нова парола');
                 }
@@ -834,7 +839,7 @@ class core_Users extends core_Manager
             $rec->passExHash = '';
         } else {
             if ($recId) {
-                $exRec = self::fetch($recId);
+                expect($exRec = self::fetch($recId));
                 if ($rec->nick != $exRec->nick) {
                     $mvc->changeNick = true;
                 }
@@ -847,7 +852,7 @@ class core_Users extends core_Manager
         
         // Администратор не може да премахне сам на себе си ролята `administrator`
         if (!empty($rec->id) && $rec->id == core_Users::getCurrent()) {
-            $exRec = self::fetch($rec->id);
+            expect($exRec = self::fetch($rec->id));
             $adminId = core_Roles::fetchByName('admin');
             if (keylist::isIn($adminId, $exRec->rolesInput) && !keylist::isIn($adminId, $rec->rolesInput)) {
                 $form->setError('roleOthers', 'Не може да премахнете сам на себе си ролята `administrator`');
@@ -862,7 +867,7 @@ class core_Users extends core_Manager
 
         if (!empty($rec->id)) {
             // При редакция, ако има промяна в състоянието, записваме предишното състояние
-            $oldRec = $mvc->fetch($rec->id);
+            expect($oldRec = $mvc->fetch($rec->id));
             if ($rec->state != $oldRec->state) {
                 $rec->exState = $oldRec->state;
             }
@@ -1000,6 +1005,9 @@ class core_Users extends core_Manager
                 
                 if (!$userRec) {
                     $userRec = new stdClass();
+                    $userRec->state = null;
+                    $userRec->id = null;
+                    $userRec->ps5Enc = null;
                 }
                 
                 if ($userRec->state == 'rejected' || $userRec->state == 'closed') {
@@ -1050,8 +1058,7 @@ class core_Users extends core_Manager
                 $uId = core_LoginLog::getUserIdForAutocomplete();
                 
                 // Ако има потребител
-                if ($uId) {
-                    $assumeRec = $this->fetch($uId);
+                if ($uId && ($assumeRec = $this->fetch($uId))) {
                     $inputs->email = $assumeRec->email;
                     $inputs->nick = $assumeRec->nick;
                 }
@@ -1219,8 +1226,8 @@ class core_Users extends core_Manager
         
         if (!$fields || in_array('roles', $fields = arr::make($fields)) || in_array('state', $fields = arr::make($fields))) {
             if ($rec->id) {
-                $oRec = $mvc->fetch($rec->id);
-                
+                expect($oRec = $mvc->fetch($rec->id));
+
                 if (!$fields || in_array('state', $fields = arr::make($fields))) {
                     if ($oRec->state != $rec->state) {
                         $rec->__updateRoleLogs = true;
@@ -1473,7 +1480,7 @@ class core_Users extends core_Manager
             $rec = new stdClass();
             $rec->lastLoginTime = $rec->lastActivityTime = $now;
             $rec->lastLoginIp = $Users->getRealIpAddr();
-            $rec->id = $userRec->id;
+            $rec->id = $userRec->id ?? null;
             $Users->save($rec, 'lastLoginTime,lastActivityTime,lastLoginIp');
             
             // Помним в сесията, кога сме се логнали
@@ -1661,7 +1668,7 @@ class core_Users extends core_Manager
                 }
                 
                 // Последното успешно логване от друго IP
-                $successArr = (array) $arr['success'];
+                $successArr = (array) ($arr['success'] ?? []);
                 
                 // Ако се е логнал от друг браузър или IP
                 $cOsName = log_Browsers::getUserAgentOsName();
@@ -1890,7 +1897,7 @@ class core_Users extends core_Manager
         expect($roleId > 0, $roleId);
         expect($userId > 0, $userId);
         
-        $uRec = core_Users::fetch($userId, 'rolesInput');
+        expect($uRec = core_Users::fetch($userId, 'rolesInput'));
         $rolesArr = keylist::toArray($uRec->rolesInput);
         $rolesArr[$roleId] = $roleId;
         
@@ -1982,7 +1989,7 @@ class core_Users extends core_Manager
         }
         
         $userRec = self::fetch($userId);
-        $rolesArr = keylist::toArray($userRec->roles);
+        $rolesArr = keylist::toArray($userRec->roles ?? null);
         
         foreach ($rangs as $role => $roleId) {
             if (isset($rolesArr[$roleId])) {
@@ -2532,7 +2539,8 @@ class core_Users extends core_Manager
         if ($userId > 0) {
             
             // Вземаме ника от записа
-            $nick = self::fetch($userId)->nick;
+            $userRec = self::fetch($userId);
+            $nick = $userRec ? $userRec->nick : null;
         } elseif ($userId == core_Users::SYSTEM_USER) {
             
             // Ако е системният потребител
@@ -2599,7 +2607,7 @@ class core_Users extends core_Manager
                 
                 if (!keylist::isIn($rec->userTo, $fRec->shared)) {
                     $mvc = cls::get($fRec->coverClass);
-                    $cRec = $mvc->fetch($fRec->coverId);
+                    expect($cRec = $mvc->fetch($fRec->coverId));
                     $cRec->shared = keylist::addKey($cRec->shared, $rec->userTo);
                     $mvc->save($cRec, 'shared');
                     $res[] = doc_Folders::getLink($fRec->id);

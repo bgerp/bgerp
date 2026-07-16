@@ -634,12 +634,14 @@ class trans_plg_LinesPlugin extends core_Plugin
                 // Проверяват се датите
                 $now = dt::now();
                 $warnings = array();
-                foreach ($datesArr as $i => $dObj){
-                    if($i != 0){
-                        if($dObj['value'] < $datesArr[$i-1]['value']){
-                            $warnings[$dObj['key']][] = "Датата е преди|* " . '"|' . $datesArr[$i-1]['caption'] . '|*"';
+                $prevObj = null;
+                foreach ($datesArr as $dObj){
+                    if($prevObj !== null){
+                        if($dObj['value'] < $prevObj['value']){
+                            $warnings[$dObj['key']][] = "Датата е преди|* " . '"|' . $prevObj['caption'] . '|*"';
                         }
                     }
+                    $prevObj = $dObj;
 
                     if(in_array($rec->state, array('draft', 'pending'))){
                         if($dObj['compareDate'] < $now) {
@@ -772,20 +774,20 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_Shutdown($mvc)
     {
         // Обновяване на линиите
-        if (is_array($mvc->syncLineDetails)) {
+        if (is_array($mvc->syncLineDetails ?? null)) {
             foreach ($mvc->syncLineDetails as $lineId => $containerId) {
                 trans_LineDetails::sync($lineId, $containerId);
             }
         }
 
-        if (is_array($mvc->updateLines)) {
+        if (is_array($mvc->updateLines ?? null)) {
             $Lines = cls::get('trans_Lines');
             foreach ($mvc->updateLines as $lineId) {
                 $Lines->updateMaster($lineId);
             }
         }
 
-        if (is_array($mvc->recalcAutoDates)) {
+        if (is_array($mvc->recalcAutoDates ?? null)) {
             foreach ($mvc->recalcAutoDates as $rec) {
                 $mvc->recalcShipmentDateFields($rec, true);
             }

@@ -130,7 +130,7 @@ class fileman_Upload2 extends core_Manager
         $size = $json ? $json->size : Request::get('fileSize', 'int');
         $mime = $json ? $json->mime : Request::get('mime', 'text');
         $ext = $json ? $json->ext : Request::get('ext', 'text');
-        $totalChunks = $json ? $json->totalChunks : Request::get('totalChunks', 'int');
+        $totalChunks = $json ? ($json->totalChunks ?? null) : Request::get('totalChunks', 'int');
         $sha256 = $json ? $json->sha256 : Request::get('sha256', 'text');
 
         $sha256 = strtolower(preg_replace('/[^a-f0-9]/', '', $sha256));

@@ -41,27 +41,27 @@ class plg_SelectPeriod extends core_Plugin
             return ;
         }
         
-        if (($form->fields[$fF]->input == 'none') || ($form->fields[$fF]->input == 'hidden')) {
-            
+        if ((($form->fields[$fF]->input ?? null) == 'none') || (($form->fields[$fF]->input ?? null) == 'hidden')) {
+
             return ;
         }
-        
-        if (($form->fields[$fT]->input == 'none') || ($form->fields[$fT]->input == 'hidden')) {
-            
+
+        if ((($form->fields[$fT]->input ?? null) == 'none') || (($form->fields[$fT]->input ?? null) == 'hidden')) {
+
             return ;
         }
-        
-        if (!($form->fields[$fF]->type instanceof type_Date) || !($form->fields[$fT]->type instanceof type_Date)) {
-            
+
+        if (!(($form->fields[$fF]->type ?? null) instanceof type_Date) || !(($form->fields[$fT]->type ?? null) instanceof type_Date)) {
+
             return ;
         }
-        
+
         $refresh = '';
-        if ($form->fields[$fF]->removeAndRefreshForm) {
+        if ($form->fields[$fF]->removeAndRefreshForm ?? null) {
             $refresh = $form->fields[$fF]->removeAndRefreshForm;
         }
-        
-        if ($form->fields[$fT]->removeAndRefreshForm) {
+
+        if ($form->fields[$fT]->removeAndRefreshForm ?? null) {
             $refresh = trim($refresh, '|');
             $refresh .= $refresh ? '|' : '';
             $refresh .= $form->fields[$fT]->removeAndRefreshForm;
@@ -78,7 +78,7 @@ class plg_SelectPeriod extends core_Plugin
         $fFEsc = json_encode($fF);
         $fTEsc = json_encode($fT);
 
-        $mandatory = ($form->fields[$fF]->mandatory || $form->fields[$fT]->mandatory) ? ',mandatory' : '';
+        $mandatory = (($form->fields[$fF]->mandatory ?? null) || ($form->fields[$fT]->mandatory ?? null)) ? ',mandatory' : '';
         $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory}{$refresh},mustExist", array('attr' => array('onchange' => "spr(this,false, {$fFEsc}, {$fTEsc});")));
         
         $keySel = null;

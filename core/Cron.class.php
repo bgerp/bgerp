@@ -545,16 +545,18 @@ class core_Cron extends core_Manager
             $mPeriod *= 60;
             
             $data = &$rec->data;
-            
-            if (($rec->lastMaxUsedMemory >= $data['maxUsedMemory']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxUsedMemoryTime'])) {
+            if (!is_array($data)) {
+                $data = [];
+            }
+            if (($rec->lastMaxUsedMemory >= ($data['maxUsedMemory'] ?? 0)) || (dt::subtractSecs($mPeriod, $rec->lastDone) > ($data['maxUsedMemoryTime'] ?? 0))) {
                 $data['maxUsedMemory'] = $rec->lastMaxUsedMemory;
                 $data['maxUsedMemoryTime'] = $rec->lastDone;
                 $saveArr['data'] = 'data';
             }
-            
+
             $duration = dt::secsBetween($rec->lastDone, $rec->lastStart);
             $duration -= $rec->delay;
-            if (($duration >= $data['maxDuration']) || (dt::subtractSecs($mPeriod, $rec->lastDone) > $data['maxDurationTime'])) {
+            if (($duration >= ($data['maxDuration'] ?? 0)) || (dt::subtractSecs($mPeriod, $rec->lastDone) > ($data['maxDurationTime'] ?? 0))) {
                 $data['maxDuration'] = $duration;
                 $data['maxDurationTime'] = $rec->lastDone;
                 $saveArr['data'] = 'data';
@@ -614,19 +616,22 @@ class core_Cron extends core_Manager
         
         $row->max = '';
 
-        if ($rec->data['maxUsedMemory']) {
+        $rData = (array) $rec->data;
+
+        if ($rData['maxUsedMemory'] ?? null) {
             $fType = cls::get('fileman_FileSize');
 
-            $row->max .= '<p>' . tr('Памет') . ': <b>' . $fType->toVerbal($rec->data['maxUsedMemory']) . '</b> - ' . dt::mysql2verbal($rec->data['maxUsedMemoryTime'], 'smartTime') . '</p>';
+            $row->max .= '<p>' . tr('Памет') . ': <b>' . $fType->toVerbal($rData['maxUsedMemory']) . '</b> - ' . dt::mysql2verbal($rData['maxUsedMemoryTime'], 'smartTime') . '</p>';
         }
-        
-        if ($rec->data['maxDuration']) {
+
+        if ($rData['maxDuration'] ?? null) {
             $tTime = cls::get('type_Time');
             
-            $row->max .= '<p>' . tr('Прод.') . ': <b>' . $tTime->toVerbal($rec->data['maxDuration']) . '</b> - ' . dt::mysql2verbal($rec->data['maxDurationTime'], 'smartTime') . '</p>';
+            $row->max .= '<p>' . tr('Прод.') . ': <b>' . $tTime->toVerbal($rData['maxDuration']) . '</b> - ' . dt::mysql2verbal($rData['maxDurationTime'], 'smartTime') . '</p>';
         }
         
         $url = toUrl(array(
+            'Ctr' => 'core_Cron',
             'Act' => 'ProcessRun',
             'id' => str::addHash($rec->id),
             'forced' => 'yes'
@@ -933,6 +938,7 @@ class core_Cron extends core_Manager
         core_Session::$mute = true;
 
         // Пробваме да вземем lock за този процес, за 65 секунди
+        $okTrays = 0;
         while (core_Locks::obtain('core_Cron::Watchdog', 80)) {
             set_time_limit(120);
             

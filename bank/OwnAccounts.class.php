@@ -369,7 +369,7 @@ class bank_OwnAccounts extends core_Master
         }
         
         // При редакция се допълват полетата с тези от сметката
-        if ($form->rec->id) {
+        if ($form->rec->id ?? null) {
             if (isset($form->rec->bankAccountId)) {
                 $ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
                 $form->setDefault('iban', $ibanRec->iban);

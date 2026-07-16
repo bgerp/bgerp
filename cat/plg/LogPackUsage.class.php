@@ -120,7 +120,7 @@ class cat_plg_LogPackUsage extends core_Plugin
         foreach ($packagingFields as $packagingField) {
 
             // Ако тя е сменена се инкрементира използването на новата
-            if($rec->{$packagingField} != $rec->{"_ex{$packagingField}"}){
+            if(($rec->{$packagingField} ?? null) != ($rec->{"_ex{$packagingField}"} ?? null)){
                 if(!empty($rec->{$packagingField})){
                     cat_products_Packagings::logUsage($rec->{$mvc->productFld}, $rec->{$packagingField});
                 }
