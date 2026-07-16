@@ -210,6 +210,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Допълнителен CSS клас на listTopContainer
+     */
+    public $listTopContainerHtmlClass = 'horizontalListSummary';
+
+
+    /**
      * Кои са детайлите на класа
      */
     public $details = 'planning_ProductionTaskDetails,planning_ProductionTaskProducts';
