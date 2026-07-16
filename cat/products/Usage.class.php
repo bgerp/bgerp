@@ -25,8 +25,14 @@ class cat_products_Usage extends core_Manager
      * Колко да са на страница другите документи
      */
     public $listOtherDocumentsPerPage = 10;
-    
-    
+
+
+    /**
+     * До колко записа да се разлиства през пейджъра на другите документи - над това само линк към пълния филтриран списък
+     */
+    public $maxOtherDocumentsForPaging = 500;
+
+
     /**
      * Подготвя ценовата информация за артикула
      */
@@ -116,7 +122,11 @@ class cat_products_Usage extends core_Manager
             $tpl->append($this->renderDocuments($data->purQuoteData));
         }
         if (!empty($data->taskData)) {
-            $tpl->append($this->renderDocuments($data->taskData));
+
+            // Търсене по име, а не филтър по productId - артикулът може да не е реализиран като етап,
+            // а само избран в детайл на операцията (planning_ProductionTaskProducts)
+            $taskFilterUrl = array('planning_Tasks', 'list', 'search' => $data->masterData->rec->name, 'state' => 'all', 'ret_url' => true);
+            $tpl->append($this->renderDocuments($data->taskData, false, $taskFilterUrl));
         }
 
         return $tpl;
@@ -184,33 +194,31 @@ class cat_products_Usage extends core_Manager
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listOtherDocumentsPerPage));
         $data->Pager->setPageVar('cat_Products', $data->masterId, $Document);
 
-        // Ограничаване на заявката
-        $query = $data->Document->getQuery();
-        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2  WHEN 'pending' THEN '3' ELSE 4 END)");
-        $query->orderBy('#orderByState=ASC,#id=DESC');
+        // Общият брой вече е известен от намерените id-та - не е нужна отделна COUNT/пълна заявка.
+        // Пейджърът се разлиства само до maxOtherDocumentsForPaging - над това се показва линк към пълния филтриран списък
+        $data->totalCount = countR($ids);
+        $data->Pager->itemsCount = min($data->totalCount, $this->maxOtherDocumentsForPaging);
+        $data->Pager->calc();
 
-        if (countR($ids)) {
+        if ($data->Pager->itemsCount) {
+
+            // Ограничаване на заявката - тегли се само текущата страница
+            $query = $data->Document->getQuery();
+            $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2  WHEN 'pending' THEN '3' ELSE 4 END)");
+            $query->orderBy('#orderByState=ASC,#id=DESC');
             $query->in('id', $ids);
-        } else {
-            $query->where('1=2');
-        }
+            $query->limit($data->Pager->itemsPerPage);
+            $query->startFrom($data->Pager->rangeStart);
 
-        // Зареждаме всички записи за да знае пейджърът total count
-        while ($dRec = $query->fetch()) {
-            $data->recs[$dRec->id] = $dRec;
-        }
-        $data->Pager->itemsCount = countR($data->recs);
+            $fields = $data->Document->selectFields();
+            $fields['-list'] = true;
 
-        $fields = $data->Document->selectFields();
-        $fields['-list'] = true;
-
-        // Вербализираме само записите на текущата страница
-        foreach ($data->recs as $id => $dRec) {
-            if ($data->Pager->isOnPage()) {
+            while ($dRec = $query->fetch()) {
+                $data->recs[$dRec->id] = $dRec;
                 $row = $data->Document->recToVerbal($dRec, $fields);
                 $row->title = $data->Document->getHyperlink($dRec->id, true);
                 $row->created = "{$row->createdOn} " . tr('от||by') . " {$row->createdBy}";
-                $data->rows[$id] = $row;
+                $data->rows[$dRec->id] = $row;
             }
         }
     }
@@ -221,40 +229,60 @@ class cat_products_Usage extends core_Manager
      *
      * @param stdClass $data
      * @param bool     $evenIfEmpty
+     * @param array|null $filterUrl - url към пълния филтриран списък, показван като линк при много резултати
      *
      * @return void|core_ET
      */
-    private function renderDocuments($data, $evenIfEmpty = false)
+    private function renderDocuments($data, $evenIfEmpty = false, $filterUrl = null)
     {
         if (!countR($data->rows) && $evenIfEmpty === false) {
-            
+
             return;
         }
-        
+
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $tpl->replace("style='margin-top:10px'", 'STYLE');
+
+        // Котва - за да не скача страницата в началото при кликане по пейджъра.
+        // Включва containerId на мастъра, защото в една нишка може да има няколко артикула
+        $anchorId = 'usage_' . get_class($data->Document) . '_' . $data->masterData->rec->containerId;
+        $tpl->append("<span id='{$anchorId}'></span>", 'title');
+
         $title = tr($data->Document->title);
         $tpl->append($title, 'title');
-        
+
         $data->listFields = arr::make("title={$data->Document->singleTitle},folderId=Папка,created=Създадено");
-        $dateArr = ($data->Document instanceof sales_Quotations) ? array('date' => 'Дата') : array('valior' => 'Вальор');
-        arr::placeInAssocArray($data->listFields, $dateArr, null, 'title');
+        if ($data->Document instanceof planning_Tasks) {
+            // planning_Tasks няма поле "вальор" - вместо това показваме заданието му
+            arr::placeInAssocArray($data->listFields, array('originId' => 'Задание'), null, 'title');
+        } else {
+            $dateArr = ($data->Document instanceof sales_Quotations) ? array('date' => 'Дата') : array('valior' => 'Вальор');
+            arr::placeInAssocArray($data->listFields, $dateArr, null, 'title');
+        }
         $data->listTableMvc = clone $data->Document;
         $data->Document->invoke('BeforeRenderListTable', array($tpl, &$data));
+
         $data->Document->setFieldType('title', 'varchar');
         $data->Document->setField('title', array('tdClass' => 'leftCell'));
-        
+
         $table = cls::get('core_TableView', array('mvc' => $data->Document));
         $details = $table->get($data->rows, $data->listFields);
-        
+
         $tpl->append($details, 'content');
         if (isset($data->Pager)) {
+            $data->Pager->addToUrl = array('#' => $anchorId);
             $tpl->append($data->Pager->getHtml(), 'content');
         }
-        
+
+        // При много резултати (над разлистваните от пейджъра) - допълнителен линк към пълния филтриран списък
+        if (isset($filterUrl) && ($data->totalCount > $data->Pager->itemsCount)) {
+            $filterLink = ht::createLink(tr('Виж всички||View all') . " ({$data->totalCount})", $filterUrl);
+            $tpl->append("<div style='margin-top:5px'>{$filterLink}</div>", 'content');
+        }
+
         $tpl->removePlaces();
         $tpl->removeBlocks();
-        
+
         return $tpl;
     }
     
@@ -271,6 +299,12 @@ class cat_products_Usage extends core_Manager
         if ($data->hide === true) return;
 
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+
+        // Котва - за да не скача страницата в началото при кликане по пейджъра.
+        // Включва containerId на мастъра, защото в една нишка може да има няколко артикула
+        $anchorId = 'usage_' . get_class($data->Jobs) . '_' . $data->masterData->rec->containerId;
+        $tpl->append("<span id='{$anchorId}'></span>", 'title');
+
         $title = tr('Задания за производство');
         $tpl->append($title, 'title');
         
@@ -298,9 +332,10 @@ class cat_products_Usage extends core_Manager
         
         $tpl->append($details, 'content');
         if (isset($data->Pager)) {
+            $data->Pager->addToUrl = array('#' => $anchorId);
             $tpl->append($data->Pager->getHtml(), 'content');
         }
-        
+
         $tpl->removePlaces();
         $tpl->removeBlocks();
         

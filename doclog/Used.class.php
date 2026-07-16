@@ -126,32 +126,66 @@ class doclog_Used extends core_Manager
      *
      * @param int             $cid
      * @param NULL|core_Pager $pager
+     * @param int|NULL        $classId - филтър по клас на документа, който е използвал $cid
      *
      * @return array
      */
-    public static function prepareRecsFor($cid, &$pager = null)
+    public static function prepareRecsFor($cid, &$pager = null, $classId = null)
     {
         $query = self::getQuery();
         $query->where(array("#usedContainerId = '[#1#]'", $cid));
-        
+
+        if ($classId) {
+            $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
+            $query->where(array("#docClass = '[#1#]'", $classId));
+        }
+
         $query->orderBy('createdOn', 'DESC');
-        
+
         // Ако е подаден обект за странициране
         if ($pager) {
-            
+
             // Задаваме лимита за странициране
             $pager->setLimit($query);
         }
-        
+
         $rowsArr = array();
-        
+
         while ($rec = $query->fetch()) {
-            
+
             // Добавяме в масива
             $rowsArr[] = self::recToVerbal($rec);
         }
-        
+
         return $rowsArr;
+    }
+
+
+    /**
+     * Класовете документи, участвали като "използвали" дадения контейнер - за филтъра над таблицата
+     *
+     * @param int $cid
+     *
+     * @return array
+     */
+    public static function getUsedByClasses($cid)
+    {
+        $query = self::getQuery();
+        $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
+        $query->where(array("#usedContainerId = '[#1#]'", $cid));
+        $query->show('docClass');
+        $query->groupBy('docClass');
+
+        $fieldType = cls::get('doc_Containers')->getFieldType('docClass');
+        $res = array();
+        while ($rec = $query->fetch()) {
+            if (!$rec->docClass) {
+                continue;
+            }
+            $res[$rec->docClass] = $fieldType->toVerbal($rec->docClass);
+        }
+
+        return $res;
     }
     
     

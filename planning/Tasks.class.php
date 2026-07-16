@@ -3074,6 +3074,14 @@ class planning_Tasks extends core_Master
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
+        // В таба "Употреба" на артикул (cat_products_Usage) се показват само title/folderId/created/дата -
+        // не са нужни тагове, задания, зависими операции и планиращи параметри
+        if ($data->masterMvc instanceof cat_Products) {
+            core_Debug::stopTimer('RENDER_TABLE');
+
+            return;
+        }
+
         // Ако е филтрирано по център на дейност
         core_Debug::startTimer('RENDER_HEADER');
         $paramCache = array();
@@ -3231,9 +3239,12 @@ class planning_Tasks extends core_Master
         }
 
         // Еднократно извличане на зависимите предходни операции
-        core_Debug::startTimer('RENDER_DEPENDANT');
-        $dependantTaskArr = planning_StepConditions::getPrevAndNextTasks($data->recs);
-        core_Debug::stopTimer('RENDER_DEPENDANT');
+        $dependantTaskArr = array();
+        if(empty($data->masterMvc)){
+            core_Debug::startTimer('RENDER_DEPENDANT');
+            $dependantTaskArr = planning_StepConditions::getPrevAndNextTasks($data->recs);
+            core_Debug::stopTimer('RENDER_DEPENDANT');
+        }
 
         // Еднократно извличане на заданията за бързодействие
         $jobRecs = array();
@@ -3243,13 +3254,6 @@ class planning_Tasks extends core_Master
 
         while ($jRec = $jQuery->fetch()) {
             $jobRecs[$jRec->containerId] = $jRec;
-            $taskByJob = planning_Tasks::getTasksByJob($jRec->id, 'active,wakeup,closed,stopped,pending', false);
-            $jobRecs[$jRec->containerId]->tasks = array();
-            $i = 1;
-            foreach ($taskByJob as $jobTask){
-                $jobRecs[$jRec->containerId]->tasks[$i] = $jobTask;
-                $i++;
-            }
 
             if($showSaleInList != 'no'){
                 if(!empty($jRec->saleId)){
@@ -3273,8 +3277,10 @@ class planning_Tasks extends core_Master
             // Взимане с приоритет от кеша на параметрите на артикула от заданието
             $jobParams = core_Permanent::get("taskListJobParams{$jRec->productId}");
             if (!is_array($jobParams)) {
-                $jobParams = cat_Products::getParams($jRec->productId, null, true);
-                core_Permanent::set("taskListJobParams{$jRec->productId}", $jobParams, 5);
+                if(empty($data->masterMvc)){
+                    $jobParams = cat_Products::getParams($jRec->productId, null, true);
+                    core_Permanent::set("taskListJobParams{$jRec->productId}", $jobParams, 5);
+                }
             }
             $jobRecs[$jRec->containerId]->params = $jobParams;
         }
@@ -3288,7 +3294,6 @@ class planning_Tasks extends core_Master
             $measuresArr[$r1->measureId] = $r1->measureId;
             $productIds[$r1->productId] = $r1->productId;
         }
-
 
         $haveDiffMeasure = countR($measuresArr) > 1 || isset($data->masterMvc);
         $haveDiffProductIds = countR($productIds) > 1;
