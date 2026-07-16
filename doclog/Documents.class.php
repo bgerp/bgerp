@@ -2853,59 +2853,98 @@ class doclog_Documents extends core_Manager
         }
         
         // Вземаме cid от URL' то
-        $cid = Request::get('Cid', 'int');
-        
+        $cid = $data->cid = Request::get('Cid', 'int');
+
         // Ако не листваме данните за съответния контейнер
         if ($data->masterData->rec->containerId != $cid) {
-            
+
             return ;
         }
-        
+
         // Името на таба
         $data->TabCaption = tr('Използване');
-        
+
+        // Котва - за да не скача страницата в началото при смяна на филтъра/пейджъра
+        $data->anchorId = "docUsed{$cid}";
+
+        // Наличните класове документи, използвали този - за филтъра над таблицата
+        $data->classOptions = doclog_Used::getUsedByClasses($cid);
+        $data->classId = null;
+
+        // Лист филтър за класа - по образец на batch_Items::prepareBatches()/renderBatches()
+        if (countR($data->classOptions) > 1) {
+            $fld = "UsedClass{$cid}";
+
+            $form = cls::get('core_Form');
+            $form->FLD($fld, 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ,silent');
+            $form->setOptions($fld, array('' => tr('Всички документи')) + $data->classOptions);
+            $form->input(null, 'silent');
+            $form->view = 'horizontal';
+            $form->setAction(getCurrentUrl());
+            $form->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon=img/16/funnel.png');
+            $form->input();
+            $data->classFilter = $form;
+
+            $data->classId = $form->rec->{$fld};
+            if ($data->classId && !isset($data->classOptions[$data->classId])) {
+                $data->classId = null;
+            }
+        }
+
         // Създаваме странициране
         $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
-        
+
         // URL' то където ще сочат
-        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_USED));
-        
-        $data->rows = doclog_Used::prepareRecsFor($cid, $data->pager);
-        
-        if (empty($data->rows)) {
-            
-            // Бутона да не е линк
+        $pagerLink = static::getLinkToSingle($cid, static::ACTION_USED);
+        if ($data->classId) {
+            $pagerLink['UsedClass'] = $data->classId;
+        }
+        $pagerLink['#'] = $data->anchorId;
+        $data->pager->url = toUrl($pagerLink);
+
+        $data->rows = doclog_Used::prepareRecsFor($cid, $data->pager, $data->classId);
+
+        // Бутона да не е линк - само ако наистина няма никакви използвания (независимо от филтъра)
+        if (!doclog_Used::getUsedCount($cid)) {
             $data->disabled = true;
         }
     }
-    
-    
+
+
     /**
      * Рендиране на таба за използвания
      */
     public function renderUsed($data)
     {
-        // Ако няма записи
-        if (empty($data->rows)) {
-            
+        // Ако prepareUsed изобщо не е подготвил този таб (Printing, друг Cid), или наистина няма никакви използвания
+        if (empty($data->pager) || !empty($data->disabled)) {
+
             return ;
         }
-        
+
         // Вземаме шаблона за детайлите с попълнена титла
         $tpl = static::getLogDetailTpl();
-        
+
+        // Котва - за да не скача страницата в началото при смяна на филтъра/пейджъра
+        $tpl->append("<span id='{$data->anchorId}'></span>", 'content');
+
+        // Филтър по клас на документа, който го е използвал
+        if (isset($data->classFilter)) {
+            $tpl->append($data->classFilter->renderHtml(), 'content');
+        }
+
         // Инстанция на класа
         $inst = cls::get('core_TableView');
-        
+
         // Вземаме таблицата с попълнени данни
         $sendTpl = $inst->get($data->rows, 'createdOn=Дата, containerId=Документ, createdBy=От');
-        
+
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
-        
+
         // Добавяме странициране
         $tpl->append($data->pager->getHtml());
-        
+
         return $tpl;
     }
     
