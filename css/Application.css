@@ -3491,14 +3491,24 @@ span.sharing-history-title {
 .filterForm #filter {
   padding-left: 20px !important; }
 
-.twoColsFilter {
+.wide .twoColsFilter {
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px; }
-  .twoColsFilter .listFilter form {
+  .wide .twoColsFilter .listFilter form {
     column-count: 2; }
-  .twoColsFilter .summary-block {
+  .wide .twoColsFilter .summary-block {
     margin-left: 20px; }
+
+@media handheld,
+only screen and (max-width: 1400px) {
+  .wide .twoColsFilter {
+    display: block;
+    margin-bottom: 0; }
+    .wide .twoColsFilter .listFilter form {
+      column-count: 1; }
+    .wide .twoColsFilter .summary-block {
+      margin-left: 0px; } }
 
 /*
  * край на външни стилове за ширина
