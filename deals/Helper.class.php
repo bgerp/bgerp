@@ -748,6 +748,7 @@ abstract class deals_Helper
                     if (is_array($arr)) {
                         foreach ($arr as $p) {
                             $index = $p->productId;
+                            $discount = $p->discount ?? null;
                             
                             if (!empty($p->notes)) {
                                 $index .= '|' . serialize($p->notes) . '|';
@@ -777,8 +778,8 @@ abstract class deals_Helper
                             }
                             
                             $d = &$combined[$index];
-                            if ($p->discount != 1) {
-                                $d->discount = max($d->discount, $p->discount);
+                            if ($discount != 1) {
+                                $d->discount = max($d->discount, $discount);
                             }
                             
                             if (isset($p->fee) && $p->fee > 0) {
@@ -795,12 +796,12 @@ abstract class deals_Helper
 
                             $sign = ($parameter == 'arrays') ? 1 : -1;
                             $d->quantity += $sign * $p->quantity;
-                            $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $p->discount));
+                            $d->sumAmounts += $sign * ($p->quantity * $p->price * (1 - $discount));
 
                             if(is_array($p->batches ?? null)){
                                 foreach ($p->batches as $batch => $batchQuantity){
                                     $d->batches[$batch] = ($d->batches[$batch] ?? 0) + $sign * $batchQuantity;
-                                    $d->batchesSums[$batch] = ($d->batchesSums[$batch] ?? 0) + $sign * ($batchQuantity * $p->price * (1 - $p->discount));
+                                    $d->batchesSums[$batch] = ($d->batchesSums[$batch] ?? 0) + $sign * ($batchQuantity * $p->price * (1 - $discount));
                                 }
                             }
 

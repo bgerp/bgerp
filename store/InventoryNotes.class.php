@@ -941,11 +941,11 @@ class store_InventoryNotes extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
-            if ($rec->batches == 'yes') {
+            if (($rec->batches ?? null) == 'yes') {
                 $url['showBatches'] = true;
             }
             
-            if ($rec->showBlQuantities == 'yes') {
+            if (($rec->showBlQuantities ?? null) == 'yes') {
                 $url['showBlQuantities'] = true;
             }
             
