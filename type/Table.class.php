@@ -412,16 +412,16 @@ class type_Table extends type_Blob
                 if (isset($value[$field][$i])) {
                     $isset = true;
                 }
-                if (strlen($value[$field][$i])) {
+                if (strlen($value[$field][$i] ?? '')) {
                     $empty = false;
                 } elseif ($fObj->mandatory) {
                     $emptyMandatory = true;
                 }
             }
-            
+
             if (!$empty && !$emptyMandatory) {
                 foreach ($columns as $field => $fObj) {
-                    $res[$field][] = trim($value[$field][$i]);
+                    $res[$field][] = trim($value[$field][$i] ?? '');
                 }
             }
             
