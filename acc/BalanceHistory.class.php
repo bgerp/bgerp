@@ -534,8 +534,8 @@ class acc_BalanceHistory extends core_Manager
         // Ако има отрицателна сума показва се в червено
         foreach (array('debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld) {
             $Type = strpos($fld, 'Amount') !== false ? $DoubleAmount : $DoubleQuantity;
-            $arr[$fld] = $Type->toVerbal($rec[$fld]);
-            $arr[$fld] = ht::styleIfNegative($arr[$fld], $rec[$fld]);
+            $arr[$fld] = $Type->toVerbal($rec[$fld] ?? 0);
+            $arr[$fld] = ht::styleIfNegative($arr[$fld], $rec[$fld] ?? 0);
         }
 
         try {
