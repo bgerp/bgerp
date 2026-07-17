@@ -3401,7 +3401,7 @@ class planning_Tasks extends core_Master
                 $row->{$fld} = $mvc->getDateFieldVerbal($rec, $fld, Mode::is('isReorder'));
             }
 
-            if(!Mode::is('isReorder')){
+            if(!Mode::is('isReorder') && in_array($rec->state, array('active', 'pending', 'wakeup', 'stopped'))){
                 if($rec->planningError == 'error'){
                     $row->expectedTimeStart = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
                     $row->expectedTimeEnd = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
@@ -3597,7 +3597,9 @@ class planning_Tasks extends core_Master
             planning_TaskConstraints::delete("#taskId = {$rec->id} OR #previousTaskId = {$rec->id}");
             planning_TaskManualOrderPerAssets::removeTasks($rec->assetId ?? null, $rec->id);
             $rec->orderByAssetId = null;
-            $mvc->save_($rec, 'orderByAssetId');
+            $rec->planningError = 'no';
+            $rec->gapData = null;
+            $mvc->save_($rec, 'orderByAssetId,planningError,gapData');
         }
 
         if(isset($rec->_exAssetId) && $rec->assetId != $rec->_exAssetId){
@@ -4405,7 +4407,7 @@ class planning_Tasks extends core_Master
                 foreach ($problemTaskIds as $problemTaskId) {
                     $problemHandles[] = '#' . $this->getHandle($problemTaskId);
                 }
-                core_Statuses::newStatus('Подредбата не може да бъде записана, защото образува цикъл с технологичните зависимости: ' . implode(', ', $problemHandles), 'error');
+                core_Statuses::newStatus('Подредбата не може да бъде записана, защото противоречи на технологична зависимост: ' . implode(', ', $problemHandles), 'error');
                 $success = false;
             }
 
@@ -4689,7 +4691,7 @@ class planning_Tasks extends core_Master
                 foreach ($problemTaskIds as $problemTaskId) {
                     $problemHandles[] = '#' . $this->getHandle($problemTaskId);
                 }
-                $form->setError('after', 'Преместването не може да бъде записано, защото образува цикъл с технологичните зависимости: ' . implode(', ', $problemHandles));
+                $form->setError('after', 'Преместването не може да бъде записано, защото противоречи на технологична зависимост: ' . implode(', ', $problemHandles));
             }
 
             if (!$form->gotErrors()) {
