@@ -905,9 +905,9 @@ class rack_Zones extends core_Master
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
 
-            $dQuery->where("#productId IN (${ids})");
+            $dQuery->where("#productId IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $dQuery->where("#productId = ${onlyIds}");
+            $dQuery->where("#productId = {$onlyIds}");
         }
 
         if ($q) {

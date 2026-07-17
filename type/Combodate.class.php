@@ -187,7 +187,7 @@ class type_Combodate extends type_Varchar
         $date = "{$y}{$div}{$m}{$div}{$d}";
         
         // Очакваме, че датата е получена във вътрешния ни формат
-        expect(preg_match("/^[\{${u}}0-9]{4}{$div}[\{${u}}0-9]{2}{$div}[\{${u}}0-9]{2}$/", $date), $date);
+        expect(preg_match("/^[\{{$u}}0-9]{4}{$div}[\{{$u}}0-9]{2}{$div}[\{{$u}}0-9]{2}$/", $date), $date);
         
         return $date;
     }

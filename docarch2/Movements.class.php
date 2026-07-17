@@ -847,7 +847,7 @@ bp($options);
 
         $mQuery->where('#objectId IS NOT NULL');
 
-        $mQuery->where("#objectId = ${containerId}");
+        $mQuery->where("#objectId = {$containerId}");
 
         $mQuery->orderBy('createdOn', 'ASC');
 

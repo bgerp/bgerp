@@ -474,7 +474,7 @@ class core_Cron extends core_Manager
                 // Ако извикания метод е генерирал резултат, то го добавяме
                 // подходящо форматиран към лога
                 if ($content) {
-                    $content = "<p><i>${content}</i></p>";
+                    $content = "<p><i>{$content}</i></p>";
                     if (Request::get('forced')) {
                         echo $content;
                     }

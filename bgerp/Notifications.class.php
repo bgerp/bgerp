@@ -1444,7 +1444,7 @@ class bgerp_Notifications extends core_Manager
         
         // Намираме времето на последния запис
         $query = $Notifications->getQuery();
-        $query->where("#userId = ${userId}");
+        $query->where("#userId = {$userId}");
         $query->limit(1);
         
         $cQuery = clone $query;

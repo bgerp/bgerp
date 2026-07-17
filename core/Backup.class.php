@@ -650,7 +650,7 @@ class core_Backup extends core_Mvc
                 foreach ($diffFields as $fld) {
                     $expr .= ', `' . str::phpToMysqlName($fld) . '`';
                 }
-                $expr = "abs(crc32(${expr})))";
+                $expr = "abs(crc32({$expr})))";
                 $maxId = 0;
 
                 for ($i = 0; $i * $backupMaxRows < $cnt; $i++) {

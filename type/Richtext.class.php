@@ -142,7 +142,7 @@ class type_Richtext extends type_Blob
         $size = $this->params['size'] ?? $this->params[0] ?? null;
         if ($size > 0) {
             $attr['onblur'] .= "colorByLen(this, {$size}, true); if(this.value.length > {$size}) alert('" .
-                 tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " ${size} " . tr('символа') . "');";
+                 tr('Въведената стойност е дълга') . " ' + this.value.length + ' " . tr('символа, което е над допустимите') . " {$size} " . tr('символа') . "');";
             $attr['onkeyup'] .= "colorByLen(this, {$size});";
         }
         
@@ -289,8 +289,8 @@ class type_Richtext extends type_Blob
         
         if (countR($this->_htmlBoard)) {
             foreach ($this->_htmlBoard as $place => $cnt) {
-                $replaceFrom[] = core_ET::escape("[#${place}#]");
-                $replaceTo[] = "[#${place}#]";
+                $replaceFrom[] = core_ET::escape("[#{$place}#]");
+                $replaceTo[] = "[#{$place}#]";
             }
             
             // Възстановяваме началното състояние

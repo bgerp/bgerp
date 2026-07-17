@@ -2628,7 +2628,7 @@ class planning_Jobs extends core_Master
             $ids = implode(',', $onlyIds);
             $jQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $jQuery->where("#id = ${onlyIds}");
+            $jQuery->where("#id = {$onlyIds}");
         } else {
             $jQuery->where("#state IN ('active', 'wakeup', 'stopped', 'closed')");
 

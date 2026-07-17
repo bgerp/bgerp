@@ -4110,9 +4110,9 @@ class cal_Tasks extends embed_Manager
             }
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
 
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #title, ' ', #id))");

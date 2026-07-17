@@ -668,7 +668,7 @@ class html2text_Converter
                 if (stripos($display, trim($path)) === false) {
                     if (html2text_Setup::get('BUILD_LINK_COUNTER')) {
                         $this->_link_count++;
-                        $this->_link_list .= '[' . $this->_link_count . "] ${link} {$alert}\n";
+                        $this->_link_list .= '[' . $this->_link_count . "] {$link} {$alert}\n";
                         $additional = " [link={$link}][" . $this->_link_count . "][/link]{$alert}";
                     } else {
                         $additional = " [link={$link}]" . $display . "[/link]{$alert}";
@@ -681,7 +681,7 @@ class html2text_Converter
             case 'mailto':
                 if (stripos($display, $path) === false) {
                     $this->_link_count++;
-                    $this->_link_list .= '[' . $this->_link_count . "]${path}\n";
+                    $this->_link_list .= '[' . $this->_link_count . "]{$path}\n";
                     $additional = ' [' . $this->_link_count . ']';
                 } else {
                     $additional = '';

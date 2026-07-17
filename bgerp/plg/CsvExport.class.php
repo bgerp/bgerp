@@ -109,7 +109,7 @@ class bgerp_plg_CsvExport extends core_BaseClass
         
         $sets = implode(',', $sets);
         $form->FNC('showColumnNames', 'enum(yes=Да,no=Не)', 'input,caption=Имена на колони,mandatory');
-        $form->FNC('fields', "set(${sets})", 'input,caption=Полета,mandatory');
+        $form->FNC('fields', "set({$sets})", 'input,caption=Полета,mandatory');
         $form->setDefault('fields', $selectedFields);
         
         $form->FNC('delimiter', 'varchar(1,size=3)', 'input,caption=Разделител,mandatory');

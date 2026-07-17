@@ -281,7 +281,7 @@ class store_reports_Documents extends frame2_driver_TableData
     {
         if ($mvc == 'store_Transfers') {
             $storeIds = implode(',', $storeIds);
-            $query->where("#fromStore IN (${storeIds}) OR #toStore IN (${storeIds})");
+            $query->where("#fromStore IN ({$storeIds}) OR #toStore IN ({$storeIds})");
         } else {
             $query->in('storeId', $storeIds);
         }

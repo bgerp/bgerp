@@ -505,7 +505,7 @@ class core_Mvc extends core_FieldSet
             if ($fld->kind == 'FLD' && (!countR($fields) || !empty($fields[$name]))) {
                 $fieldsArr[$name] = $fld;
                 $mysqlName = str::phpToMysqlName($name);
-                $insertFields .= "`${mysqlName}`,";
+                $insertFields .= "`{$mysqlName}`,";
                 $updateFields .= "`{$mysqlName}`=VALUES(`{$mysqlName}`),";
             }
         }
