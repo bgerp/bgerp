@@ -23,15 +23,25 @@ class unit_Tests extends core_Manager
     public function on_BeforeAction($mvc, &$res, $act)
     {
         $act = trim(Request::get('Act', 'identifier'), '_');
-        $tests = $classes = array();
+        $tests = $classes = $skipped = array();
         
-        if ($act && cls::load($act, true)) {
+        $actPackName = $act ? self::getTestPackName($act) : null;
+        if ($actPackName && !core_Packs::isInstalled($actPackName)) {
+            $skipped[$act] = $actPackName;
+        } elseif ($act && cls::load($act, true)) {
             $classes[] = $act;
         } else {
             $classes = $this->readClasses(EF_APP_PATH, $act);
         }
         foreach ($classes as $testClass) {
             if (strrpos($testClass, '_tests_')) {
+                $packName = self::getTestPackName($testClass);
+                if ($packName && !core_Packs::isInstalled($packName)) {
+                    $skipped[$testClass] = $packName;
+                    
+                    continue;
+                }
+                
                 if (cls::load($testClass, true)) {
                     $class = str_replace('_tests_', '_', $testClass);
                     if (cls::load($class, true)) {
@@ -91,6 +101,10 @@ class unit_Tests extends core_Manager
             Debug::stopTimer('unit_Tests');
         }
         
+        foreach ($skipped as $testClass => $packName) {
+            $this->testLog[] = "<h3>Пропуснат тест <b style='color:blue;'>{$testClass}</b></h3><ul><li>Пакетът <b>{$packName}</b> не е инсталиран</li></ul>";
+        }
+        
         $res = implode("\n", $this->testLog);
         
         if ($errCnt || $exceptionCnt) {
@@ -98,6 +112,25 @@ class unit_Tests extends core_Manager
         }
         
         return false;
+    }
+    
+    
+    /**
+     * Връща името на пакета от клас във формат {pack}_tests_{Name}.
+     *
+     * @param string $testClass
+     *
+     * @return NULL|string
+     */
+    private static function getTestPackName($testClass)
+    {
+        $pos = strpos($testClass, '_tests_');
+        if ($pos === false) {
+            
+            return null;
+        }
+        
+        return substr($testClass, 0, $pos);
     }
     
     
