@@ -79,6 +79,18 @@ class core_UserTranslates extends core_Manager
      * Префикс за името на преведеното поле
      */
     private $tFPrefix = '_t_';
+
+
+    /**
+     * Тип на кеша с данните за преводите
+     */
+    const CACHE_TYPE = 'usrTranslates';
+
+
+    /**
+     * Колко минути да се пазят данните в кеша
+     */
+    const CACHE_KEEP_MINUTES = 1440;
     
     
     public function description()
@@ -87,6 +99,8 @@ class core_UserTranslates extends core_Manager
         $this->FLD('recId', 'int', 'input=hidden,notNull,caption=Ид,silent');
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,silent');
         $this->FLD('data', 'blob(serialize, compress)', 'input=none');
+
+        $this->setDbIndex('classId, recId, lang');
     }
     
     
@@ -103,25 +117,35 @@ class core_UserTranslates extends core_Manager
      */
     public static function getUserTranslatedStr($classId, $recId, $lg, $fldName, $checkValStr = null)
     {
-        $rec = self::fetch(array("#classId = '[#1#]' AND #recId = '[#2#]' AND #lang = '[#3#]'", $classId, $recId, $lg));
-        
+        core_Debug::startTimer('getUserTranslatedStr_' . $classId);
+        $handler = $classId . '|' . $recId . '|' . $lg;
+
+        $data = core_Cache::get(self::CACHE_TYPE, $handler, self::CACHE_KEEP_MINUTES, array('core_UserTranslates'));
+
+        if ($data === false) {
+            $rec = self::fetch(array("#classId = '[#1#]' AND #recId = '[#2#]' AND #lang = '[#3#]'", $classId, $recId, $lg));
+
+            $data = ($rec && is_array($rec->data)) ? $rec->data : array();
+
+            core_Cache::set(self::CACHE_TYPE, $handler, $data, self::CACHE_KEEP_MINUTES, array('core_UserTranslates'));
+        }
+
         $tr = null;
-        
-        if ($rec) {
-            $valArr = $rec->data[$fldName];
-            
-            if ($valArr && $valArr['tr']) {
-                if (isset($checkValStr)) {
-                    $checkValSrc = crc32($checkValStr);
-                    if ($checkValSrc == $valArr['crc']) {
-                        $tr = $valArr['tr'];
-                    }
-                } else {
+
+        $valArr = $data[$fldName] ?? null;
+
+        if ($valArr && $valArr['tr']) {
+            if (isset($checkValStr)) {
+                $checkValSrc = crc32($checkValStr);
+                if ($checkValSrc == $valArr['crc']) {
                     $tr = $valArr['tr'];
                 }
+            } else {
+                $tr = $valArr['tr'];
             }
         }
-        
+        core_Debug::stopTimer('getUserTranslatedStr_' . $classId);
+
         return $tr;
     }
     
@@ -187,7 +211,7 @@ class core_UserTranslates extends core_Manager
         }
         
         $hashArr[$hashStr] = $tFields;
-        
+//        wp($hashArr);
         return $hashArr[$hashStr];
     }
     
