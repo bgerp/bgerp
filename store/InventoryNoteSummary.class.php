@@ -521,7 +521,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
         $data->listFilter->input();
         if($filter = $data->listFilter->rec){
-            if($filter->filterBy == 'diff'){
+            if(($filter->filterBy ?? null) == 'diff'){
                 $data->query->where('#quantity IS NOT NULL');
             }
         }
