@@ -372,8 +372,8 @@ class planning_TaskConstraints extends core_Master
 
 
     /**
-     * Checks whether a manual resource order forms a cycle together with the
-     * technological dependencies and the other saved resource orders.
+     * Checks whether a manual resource order directly reverses a hard
+     * technological dependency on the same resource.
      *
      * @param int $assetId
      * @param array $orderedTaskIds
@@ -402,15 +402,13 @@ class planning_TaskConstraints extends core_Master
             return true;
         }
 
-        $inDegree = array_fill_keys(array_keys($remaining), 0);
-        $successors = array();
-
+        $constraints = array();
         $constraintQuery = static::getQuery();
         $constraintQuery->where("#type = 'prevId'");
         $constraintQuery->show('taskId,previousTaskId');
         while ($constraint = $constraintQuery->fetch()) {
             if (isset($remaining[$constraint->taskId]) && isset($remaining[$constraint->previousTaskId])) {
-                static::addPlanningEdge($constraint->previousTaskId, $constraint->taskId, $inDegree, $successors);
+                $constraints[] = $constraint;
             }
         }
 
@@ -433,6 +431,7 @@ class planning_TaskConstraints extends core_Master
         }
         $manualOrders[$assetId] = $cleanOrder;
 
+        $positions = array();
         foreach ($manualOrders as $manualAssetId => $manualOrder) {
             if (!isset($tasksByAsset[$manualAssetId])) {
                 continue;
@@ -450,43 +449,29 @@ class planning_TaskConstraints extends core_Master
             arr::sortObjects($withStart, 'timeStart', 'ASC');
             arr::sortObjects($withoutStart, 'dueDate', 'ASC');
             $orderedTasks = static::reorderTasksByManualOrder($withStart + $withoutStart, $manualOrder);
-            $previousId = null;
+            $position = 0;
             foreach ($orderedTasks as $task) {
-                if (isset($previousId)) {
-                    static::addPlanningEdge($previousId, $task->id, $inDegree, $successors);
-                }
-                $previousId = $task->id;
+                $positions[$manualAssetId][$task->id] = $position;
+                $position++;
             }
         }
 
-        $queue = array();
-        foreach ($inDegree as $taskId => $degree) {
-            if ($degree == 0) {
-                $queue[] = $taskId;
+        foreach ($constraints as $constraint) {
+            $task = $remaining[$constraint->taskId];
+            $previousTask = $remaining[$constraint->previousTaskId];
+            if ($task->assetId != $previousTask->assetId || !isset($positions[$task->assetId])) {
+                continue;
+            }
+
+            $taskPosition = $positions[$task->assetId][$task->id] ?? PHP_INT_MAX;
+            $previousPosition = $positions[$task->assetId][$previousTask->id] ?? PHP_INT_MAX;
+            if ($taskPosition < $previousPosition) {
+                $problemTaskIds[$previousTask->id] = $previousTask->id;
+                $problemTaskIds[$task->id] = $task->id;
             }
         }
 
-        $processed = 0;
-        for ($position = 0; isset($queue[$position]); $position++) {
-            $taskId = $queue[$position];
-            $processed++;
-            foreach ($successors[$taskId] ?? array() as $successorId) {
-                $inDegree[$successorId]--;
-                if ($inDegree[$successorId] == 0) {
-                    $queue[] = $successorId;
-                }
-            }
-        }
-
-        if ($processed == count($remaining)) {
-            return true;
-        }
-
-        $problemTaskIds = array_keys(array_filter($inDegree, function ($degree) {
-            return $degree > 0;
-        }));
-
-        return false;
+        return !countR($problemTaskIds);
     }
 
 
@@ -819,7 +804,6 @@ class planning_TaskConstraints extends core_Master
 
         // Tasks already in progress reserve the corresponding resource intervals first.
         arr::sortObjects($tasksWithActualStart, 'actualStart', 'ASC');
-        $lastActualTaskByAsset = array();
         foreach ($tasksWithActualStart as $task) {
             $task->calcedCurrentDuration = max(1, (int)$task->calcedCurrentDuration);
             $begin = max($task->actualStart, $now);
@@ -830,11 +814,11 @@ class planning_TaskConstraints extends core_Master
             }
             $debugRes .= static::feedToInterval($task, $begin, $interruptOffset, $Interval, $planned, $debugOrder);
             $plannedByAssets[$task->assetId][$task->id] = $planned[$task->id];
-            $lastActualTaskByAsset[$task->assetId] = $task->id;
         }
 
-        // Build the resource edges. A saved manual order is authoritative for its resource.
-        $remaining = $machinePrevious = $manualPosition = array();
+        // Build a preferred position for every resource. The position is not a hard edge:
+        // a temporarily blocked operation must not stop the whole resource.
+        $remaining = $manualPosition = array();
         foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks) {
             $withStart = $withoutStart = array();
             foreach ($assetTasks as $task) {
@@ -853,18 +837,11 @@ class planning_TaskConstraints extends core_Master
                 $orderedTasks = static::reorderTasksByManualOrder($orderedTasks, $assets[$assetId]->manualOrder);
             }
 
-            $previousId = $lastActualTaskByAsset[$assetId] ?? null;
             $position = 0;
             foreach ($orderedTasks as $task) {
                 $task->calcedCurrentDuration = max(1, (int)$task->calcedCurrentDuration);
                 $remaining[$task->id] = $task;
-                $manualPosition[$task->id] = $hasManualOrder ? $position : PHP_INT_MAX;
-                if ($hasManualOrder && isset($previousId)) {
-                    $machinePrevious[$task->id] = $previousId;
-                }
-                if ($hasManualOrder) {
-                    $previousId = $task->id;
-                }
+                $manualPosition[$task->id] = $position;
                 $position++;
             }
         }
@@ -880,16 +857,12 @@ class planning_TaskConstraints extends core_Master
                     }
                 }
             }
-
-            if (isset($machinePrevious[$taskId]) && isset($remaining[$machinePrevious[$taskId]])) {
-                static::addPlanningEdge($machinePrevious[$taskId], $taskId, $inDegree, $successors);
-            }
         }
 
         $readyHeap = array();
         foreach ($inDegree as $taskId => $degree) {
             if ($degree == 0) {
-                $plannedTime = static::getGraphReadyTime($remaining[$taskId], $previousTasks, $machinePrevious, $planned, $allTasks, $now);
+                $plannedTime = static::getGraphReadyTime($remaining[$taskId], $previousTasks, $planned, $allTasks, $now);
                 static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$taskId], $plannedTime, $manualPosition[$taskId]));
             }
         }
@@ -915,13 +888,13 @@ class planning_TaskConstraints extends core_Master
             foreach ($successors[$taskId] ?? array() as $successorId) {
                 $inDegree[$successorId]--;
                 if ($inDegree[$successorId] == 0 && isset($remaining[$successorId])) {
-                    $plannedTime = static::getGraphReadyTime($remaining[$successorId], $previousTasks, $machinePrevious, $planned, $allTasks, $now);
+                    $plannedTime = static::getGraphReadyTime($remaining[$successorId], $previousTasks, $planned, $allTasks, $now);
                     static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$successorId], $plannedTime, $manualPosition[$successorId]));
                 }
             }
         }
 
-        // What remains is part of, or depends on, a cycle in the combined graph.
+        // What remains is part of, or depends on, a technological dependency cycle.
         $notPlanned = $remaining;
         foreach ($remaining as $task) {
             $plannedByAssets[$task->assetId][$task->id] = (object)array(
@@ -974,7 +947,7 @@ class planning_TaskConstraints extends core_Master
     /**
      * Calculates the earliest usable time after all already planned predecessors.
      */
-    private static function getGraphReadyTime($task, $previousTasks, $machinePrevious, $planned, $allTasks, $now)
+    private static function getGraphReadyTime($task, $previousTasks, $planned, $allTasks, $now)
     {
         $readyTimes = array($now);
         if (!empty($task->timeStart)) {
@@ -991,11 +964,6 @@ class planning_TaskConstraints extends core_Master
             }
 
             $readyTimes[] = static::getConstraintReadyTime($task, $planned[$previousTaskId], $constraint);
-        }
-
-        if (isset($machinePrevious[$task->id]) && isset($planned[$machinePrevious[$task->id]])) {
-            $machineReadyTime = $planned[$machinePrevious[$task->id]]->expectedTimeEnd;
-            $readyTimes[] = ($machineReadyTime >= self::NOT_FOUND_DATE) ? self::NOT_FOUND_DATE : $machineReadyTime;
         }
 
         return max($readyTimes);
@@ -1105,7 +1073,7 @@ class planning_TaskConstraints extends core_Master
      */
     private static function compareReadyHeapItems($a, $b)
     {
-        foreach (array('plannedTimestamp', 'manualPosition', 'dueTimestamp', 'taskId') as $field) {
+        foreach (array('manualPosition', 'plannedTimestamp', 'dueTimestamp', 'taskId') as $field) {
             if ($a[$field] == $b[$field]) {
                 continue;
             }
