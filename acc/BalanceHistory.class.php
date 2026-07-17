@@ -605,7 +605,7 @@ class acc_BalanceHistory extends core_Manager
                     
                     // Ако има запис и текущия е с по ново ид, заместваме съществуващия,
                     // така имаме последните записи за всяка дата
-                    if ($rec['id'] > $tmpArray[$rec['valior']]['id']) {
+                    if (($rec['id'] ?? null) > ($tmpArray[$rec['valior']]['id'] ?? null)) {
                         $tmpArray[$rec['valior']] = $rec;
                     }
                 }
