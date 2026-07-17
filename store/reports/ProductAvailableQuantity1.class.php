@@ -280,7 +280,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             if ($recProduct->storeId && $productId) {
                 $stKey = $productId . '|' . $recProduct->storeId;
-                $storesQuatity[$stKey] += $quantity;
+                $storesQuatity[$stKey] = ($storesQuatity[$stKey] ?? 0) + $quantity;
             }
 
             if ($obj = &$recs[$productId]) {
@@ -478,14 +478,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $row->quantity = ($row->quantity ?? '') . '<table class="no-border full-width"><tr><th style="font-size: 1.05em; border-bottom: 1px solid #ccc !important;">Общо: </th><th style="font-size: 1em;border-bottom: 1px solid #ccc  !important;;">' .$quantityStr . '</th></tr>';
 
             foreach ($dRec->storesQuatity as $val) {
-                $row->quantity .= "<tr>";
+                $row->quantity = ($row->quantity ?? '') . "<tr>";
                 list($storeId, $stQuantity) = explode('|', $val);
 
                 $quantityStr = ht::styleIfNegative($Double->toVerbal($stQuantity), $stQuantity) ;
-                $row->quantity .= "<td>" . store_Stores::getTitleById($storeId) . ":</td><td style='width: 100px'>" .$quantityStr. "</td>";
-                $row->quantity .= "</tr>";
+                $row->quantity = ($row->quantity ?? '') . "<td>" . store_Stores::getTitleById($storeId) . ":</td><td style='width: 100px'>" .$quantityStr. "</td>";
+                $row->quantity = ($row->quantity ?? '') . "</tr>";
             }
-            $row->quantity .= '</table>';
+            $row->quantity = ($row->quantity ?? '') . '</table>';
         }
 
         if (isset($dRec->measure)) {
@@ -527,8 +527,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $row->conditionQuantity = "<span style='color: $dRec->conditionColor'>$conditionQuantity</span>";
         }
         $row->delrow = '';
-        //$row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'delRow', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/delete.png");
-        $row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
+        //$row->delrow = ($row->delrow ?? '') . ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'delRow', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/delete.png");
+        $row->delrow = ($row->delrow ?? '') . ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
 
 
         return $row;

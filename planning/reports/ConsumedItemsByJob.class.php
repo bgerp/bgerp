@@ -576,8 +576,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             } else {
 
                 $row->jobId = '';
-                $row->jobId .= 'Без задание ';
-                $row->jobId .= $dRec->opCls::getLinkToSingle($dRec->opId);
+                $row->jobId = ($row->jobId ?? '') . 'Без задание ';
+                $row->jobId = ($row->jobId ?? '') . $dRec->opCls::getLinkToSingle($dRec->opId);
             }
         }
 

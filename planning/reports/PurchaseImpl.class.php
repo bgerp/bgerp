@@ -186,10 +186,11 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
                     if (isset($storeId)) {
                         $store = store_Products::fetchField("#productId = {$index} AND #storeId = {$storeId}", 'quantity');
                     } else {
+                        $store = array();
                         $storeQuery = store_Products::getQuery();
                         $storeQuery->where("#productId = {$index}");
                         while ($storeRec = $storeQuery->fetch()) {
-                            $store[$storeRec->productId] += $storeRec->quantity;
+                            $store[$storeRec->productId] = ($store[$storeRec->productId] ?? 0) + $storeRec->quantity;
                         }
                     }
                     
@@ -398,7 +399,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         $row->dateSale = $Date->toVerbal($rec->dateSale);
         
         for ($i = 0; $i <= countR($rec->sales) - 1; $i++) {
-            $row->sales .= '#'.sales_Sales::getHandle($rec->sales[$i]) .',';
+            $row->sales = ($row->sales ?? '') . '#'.sales_Sales::getHandle($rec->sales[$i]) .',';
         }
         $row->sales = $RichtextType->toVerbal(substr($row->sales, 0, -1));
         

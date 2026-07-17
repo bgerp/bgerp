@@ -289,8 +289,8 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
             }
         }
         foreach ($recs as $key => $val) {
-            $totalProdQuantity[$val->productId] += $val->quantity;
-            $totalProdAmount[$val->productId] += round($val->amount, 2);
+            $totalProdQuantity[$val->productId] = ($totalProdQuantity[$val->productId] ?? 0) + $val->quantity;
+            $totalProdAmount[$val->productId] = ($totalProdAmount[$val->productId] ?? 0) + round($val->amount, 2);
         }
 
         foreach ($recs as $key => $val) {
@@ -497,4 +497,3 @@ class pos_reports_QuicklyOutOfStockProducts extends frame2_driver_TableData
     }
 
 }
-

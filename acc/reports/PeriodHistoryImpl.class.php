@@ -457,11 +457,11 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
                 $firstDate = dt::verbal2mysql(dt::mysql2verbal($rec->date, 'Y-01-01'), false);
                 
                 if ($rec->to != $lastDate) {
-                    $row->date .= " <span class='small'>(" . tr('до') . ' ' . dt::mysql2verbal($rec->to, 'd.m') . ')</span>';
+                    $row->date = ($row->date ?? '') . " <span class='small'>(" . tr('до') . ' ' . dt::mysql2verbal($rec->to, 'd.m') . ')</span>';
                 }
                 
                 if ($rec->from != $firstDate) {
-                    $row->date .= " <span class='small'>(" . tr('от') . ' ' . dt::mysql2verbal($rec->from, 'd.m') . ')</span>';
+                    $row->date = ($row->date ?? '') . " <span class='small'>(" . tr('от') . ' ' . dt::mysql2verbal($rec->from, 'd.m') . ')</span>';
                 }
                 
                 break;

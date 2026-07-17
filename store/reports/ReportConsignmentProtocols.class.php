@@ -362,7 +362,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
         if (store_ConsignmentProtocols::haveRightFor('add')) {
             $cUrl = array('store_reports_ReportConsignmentProtocols', 'newProtocol', 'contragentFolder' => $dRec->contragent, 'ret_url' => true);
 
-            $row->contragent .= "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, true, "ef_icon = img/16/add.png") . "</span>";
+            $row->contragent = ($row->contragent ?? '') . "<span class='fright smallBtnHolder'>" . ht::createBtn('Нов ПОП', $cUrl, false, true, "ef_icon = img/16/add.png") . "</span>";
         }
 
         if (isset($dRec->measureId)) {
@@ -401,7 +401,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                     $state = $rDoc->state;
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
-                    $row->debitDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
+                    $row->debitDocuments = ($row->debitDocuments ?? '') . "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
                         ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank', 'ef_icon' => "{$Doc->singleIcon}")) . '</span>';
 //ht::createLink($str, $str, false, array('target' => '_blank')),
                 }
@@ -421,7 +421,7 @@ class store_reports_ReportConsignmentProtocols extends frame2_driver_TableData
                     $state = $rDoc->state;
 
                     $singleUrl = toUrl(array($Doc->className, 'single', $v->docId));
-                    $row->creditDocuments .= "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
+                    $row->creditDocuments = ($row->creditDocuments ?? '') . "<span class= 'state-{$state} document-handler' style='margin: 1px 3px;'>" .
                         ht::createLink("#{$handle}", $singleUrl, false, array('target' => '_blank', 'ef_icon' => "{$Doc->singleIcon}")) . '</span>';
 
                 }

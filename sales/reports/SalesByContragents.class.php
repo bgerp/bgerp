@@ -378,7 +378,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                         $deltaPrevious = $recPrime->delta;
 
                         //Масив с Id-та на уникалнни артикули
-                        if (!is_array($unicartPrev[$id])) {
+                        if (!is_array($unicartPrev[$id] ?? null)) {
                             $unicartPrev[$id] = array();
                         }
                         if (!in_array($recPrime->productId, $unicartPrev[$id])) {
@@ -387,7 +387,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
 
                         // Масив сделки
-                        if (!is_array($salesArrPrev[$id])) {
+                        if (!is_array($salesArrPrev[$id] ?? null)) {
                             $salesArrPrev[$id] = array();
                         }
 
@@ -417,7 +417,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     }
 
                     //Масив с Id-та на уникалнни артикули
-                    if (!is_array($unicartLast[$id])) {
+                    if (!is_array($unicartLast[$id] ?? null)) {
                         $unicartLast[$id] = array();
                     }
                     if (!in_array($recPrime->productId, $unicartLast[$id])) {
@@ -426,7 +426,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
 
                     // Масив сделки
-                    if (!is_array($salesArrLast[$id])) {
+                    if (!is_array($salesArrLast[$id] ?? null)) {
                         $salesArrLast[$id] = array();
                     }
 
@@ -453,7 +453,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                     $delta = $recPrime->delta;
 
                     //Масив с Id-та на уникалнни артикули
-                    if (!is_array($unicart[$id])) {
+                    if (!is_array($unicart[$id] ?? null)) {
                         $unicart[$id] = array();
                     }
                     if (!in_array($recPrime->productId, $unicart[$id])) {
@@ -462,7 +462,7 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
 
 
                     // Масив сделки
-                    if (!is_array($salesArr[$id])) {
+                    if (!is_array($salesArr[$id] ?? null)) {
                         $salesArr[$id] = array();
                     }
 
@@ -549,8 +549,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                 if ($rec->compare == 'year') {
                     $tempArr[$v->folderId]->change = $v->saleValue - $v->sellValueLastYear;
                 }
-                $groupValues[$firstGroup] += $v->saleValue;
-                $groupDeltas[$firstGroup] += $v->delta;
+                $groupValues[$firstGroup] = ($groupValues[$firstGroup] ?? 0) + $v->saleValue;
+                $groupDeltas[$firstGroup] = ($groupDeltas[$firstGroup] ?? 0) + $v->delta;
 
                 if (!$v->groupList) {
                     $v->groupList = 'Без група';
@@ -570,8 +570,8 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
                             $tempArr[$v->folderId]->change = $v->saleValue - $v->sellValueLastYear;
                         }
 
-                        $groupValues[$gr] += $v->saleValue;
-                        $groupDeltas[$gr] += $v->delta;
+                        $groupValues[$gr] = ($groupValues[$gr] ?? 0) + $v->saleValue;
+                        $groupDeltas[$gr] = ($groupDeltas[$gr] ?? 0) + $v->delta;
 
                         break;
                     }
@@ -918,16 +918,16 @@ class sales_reports_SalesByContragents extends frame2_driver_TableData
         }
 
         if (is_numeric($dRec->groupList)) {
-            $row->groupList .= crm_Groups::getVerbal($dRec->groupList, 'name') .
+            $row->groupList = ($row->groupList ?? '') . crm_Groups::getVerbal($dRec->groupList, 'name') .
                 "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' .
                 core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . '</span>';
 
 
             if (!is_null($rec->seeDelta)) {
-                $row->groupList .= "<span class= 'fright'><span class= ''>" . ', делта: ' .
+                $row->groupList = ($row->groupList ?? '') . "<span class= 'fright'><span class= ''>" . ', делта: ' .
                     core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas) . '</span>';
             }
-            $row->groupList .= "<span class= 'fright'><span class= ''>" . ' )' . '</span>';
+            $row->groupList = ($row->groupList ?? '') . "<span class= 'fright'><span class= ''>" . ' )' . '</span>';
         } else {
             if ($dRec->groupList) {
                 $row->group = $dRec->groupList .

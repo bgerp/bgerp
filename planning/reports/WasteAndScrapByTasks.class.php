@@ -319,7 +319,7 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
         if (isset($dRec->wasteProdWeigth)) {
             $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
             if ($dRec->wasteWeightNullMark === true) {
-                $row->wasteWeight .= "<span class='red'>?</span>";
+                $row->wasteWeight = ($row->wasteWeight ?? '') . "<span class='red'>?</span>";
             }
         } else {
             $row->wasteWeight = '?';
@@ -340,8 +340,8 @@ class planning_reports_WasteAndScrapByTasks extends frame2_driver_TableData
             $row->employees = '';
             foreach (keylist::toArray($dRec->employees) as $val) {
 
-                //$row->employees .= crm_Persons::getTitleById(($val)) . ' - ' . planning_Hr::getCodeLink($val) . ',' . "</br>";
-                $row->employees .= crm_Persons::getTitleById(($val)) . "</br>";
+                //$row->employees = ($row->employees ?? '') . crm_Persons::getTitleById(($val)) . ' - ' . planning_Hr::getCodeLink($val) . ',' . "</br>";
+                $row->employees = ($row->employees ?? '') . crm_Persons::getTitleById(($val)) . "</br>";
             }
 
 

@@ -118,7 +118,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         if ($form->isSubmitted()) {
             $details = (json_decode($form->rec->additional));
             
-            if (is_array($details->code)) {
+            if (is_array($details->code ?? null)) {
                 foreach ($details->code as $v) {
                     $v = trim($v);
                     
@@ -188,7 +188,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                     
                     // Премахва артикули ако вече са добавени
                     
-                    if (is_array($grDetails['code'])) {
+                    if (is_array($grDetails['code'] ?? null)) {
                         foreach ($grDetails['code'] as $k => $v) {
                             if ($details['code'] && in_array($v, $details['code'])) {
                                 unset($grDetails['code'][$k]);
@@ -201,7 +201,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                     
                     // Премахване на нестандартнитв артикули
                     
-                    if (is_array($grDetails['name'])) {
+                    if (is_array($grDetails['name'] ?? null)) {
                         foreach ($grDetails['name'] as $k => $v) {
                             if ($grDetails['code'][$k]) {
                                 $isPublic = (cat_Products::fetch(cat_Products::getByCode($grDetails['code'][$k])->productId)->isPublic);
@@ -221,7 +221,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                     $count = 0;
                     $countUnset = 0;
                     
-                    if (is_array($grDetails['code'])) {
+                    if (is_array($grDetails['code'] ?? null)) {
                         foreach ($grDetails['code'] as $k => $v) {
                             $count ++;
                             
@@ -447,7 +447,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         /*
          * Премахваме повтарящи се артикули
          */
-        if (is_array($products->code)) {
+        if (is_array($products->code ?? null)) {
             foreach ($products->code as $k => $v) {
                 if (in_array($v, $tempProducts)) {
                     continue;
@@ -660,7 +660,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         $tempArr = (array) $arr;
         
         $tempProducts = array();
-        if (is_array($tempArr['code'])) {
+        if (is_array($tempArr['code'] ?? null)) {
             foreach ($tempArr['code'] as $k => $v) {
                 if (in_array($v, $tempProducts)) {
                     unset($tempArr['minQuantity'][$k]);
