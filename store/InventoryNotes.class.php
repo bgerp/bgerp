@@ -600,7 +600,7 @@ class store_InventoryNotes extends core_Master
         $Summary = cls::get('store_InventoryNoteSummary');
         
         // Търсим артикулите от два месеца назад
-        $to = $rec->instockTo == 'valior' ? $rec->valior : dt::addDays(-1, $rec->valior);
+        $to = ($rec->instockTo ?? 'dayBefore') == 'valior' ? $rec->valior : dt::addDays(-1, $rec->valior);
         $to = dt::verbal2mysql($to, false);
         $from = dt::addMonths(-2, $to);
         $from = dt::verbal2mysql($from, false);
@@ -656,7 +656,7 @@ class store_InventoryNotes extends core_Master
         }
 
         // Ако ще се показват по партиди
-        if($rec->expandByBatches == 'yes'){
+        if(($rec->expandByBatches ?? null) == 'yes'){
 
             // Тези от баланса, които има наличности по партиди и не се срещат от баланса ще се добавят с 0-во очаквано
             core_Debug::startTimer('SYNC_BALANCE_BATCH_MOVEMENT');
@@ -717,6 +717,7 @@ class store_InventoryNotes extends core_Master
         $balanceArr = $this->getProductsFromBalance($rec);
         core_Debug::stopTimer('SYNC_BALANCE_RECS');
 
+        $rec->quantitiesFilter ??= 'all';
         if($rec->quantitiesFilter != 'all'){
             $balanceArr = array_filter($balanceArr, function($a) use ($rec){
                 if($rec->quantitiesFilter == 'negative' && $a->blQuantity < 0) return true;
@@ -733,7 +734,7 @@ class store_InventoryNotes extends core_Master
         core_Debug::stopTimer('SYNC_CURRENT_PRODUCTS');
 
         // Избраните групи
-        $rGroup = cat_Groups::getDescendantArray($rec->groups);
+        $rGroup = cat_Groups::getDescendantArray($rec->groups ?? null);
         $rGroup = keylist::toArray($rGroup);
         
         // От наличните артикули, взимат се ид-та на тези с к-во
