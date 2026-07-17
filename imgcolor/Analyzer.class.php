@@ -38,6 +38,13 @@ class imgcolor_Analyzer extends core_Mvc
 
 
     /**
+     * Минимална PHP версия за венднатата image-color-analyzer библиотека.
+     */
+    const MIN_LIBRARY_PHP_VERSION = '8.2.0';
+    const MIN_LIBRARY_PHP_VERSION_ID = 80200;
+
+
+    /**
      * Инициализация на услугата
      */
     public function init($params = array())
@@ -45,6 +52,43 @@ class imgcolor_Analyzer extends core_Mvc
         parent::init($params);
 
         self::registerAutoload();
+    }
+
+
+    /**
+     * Може ли текущият runtime безопасно да зареди венднатата библиотека.
+     */
+    public static function canRunLibrary()
+    {
+        return PHP_VERSION_ID >= self::MIN_LIBRARY_PHP_VERSION_ID;
+    }
+
+
+    /**
+     * Връща съобщение за runtime несъвместимост или NULL, ако няма такава.
+     *
+     * @return NULL|string
+     */
+    public static function getLibraryRuntimeError()
+    {
+        if (!self::canRunLibrary()) {
+
+            return 'венднатата библиотека image-color-analyzer изисква PHP ' . self::MIN_LIBRARY_PHP_VERSION . '+, текущата версия е ' . PHP_VERSION;
+        }
+    }
+
+
+    /**
+     * Спира преди autoload на PHP 8.2-only файловете, когато runtime-ът е по-стар.
+     *
+     * @throws core_exception_Expect
+     */
+    private static function requireLibraryRuntime()
+    {
+        $error = self::getLibraryRuntimeError();
+        if ($error !== null) {
+            throw new core_exception_Expect('imgcolor: ' . $error, 'Несъответствие');
+        }
     }
 
 
@@ -66,6 +110,11 @@ class imgcolor_Analyzer extends core_Mvc
             if (strncmp($class, $prefix, strlen($prefix)) !== 0) {
 
                 return;
+            }
+
+            $error = imgcolor_Analyzer::getLibraryRuntimeError();
+            if ($error !== null) {
+                throw new core_exception_Expect('imgcolor: ' . $error, 'Несъответствие');
             }
 
             $rel = substr($class, strlen($prefix));
@@ -102,6 +151,7 @@ class imgcolor_Analyzer extends core_Mvc
      */
     public static function buildOptions($profileRec = null)
     {
+        self::requireLibraryRuntime();
         self::registerAutoload();
 
         if ($profileRec !== null) {
@@ -119,6 +169,7 @@ class imgcolor_Analyzer extends core_Mvc
      */
     public static function makeAnalyzer()
     {
+        self::requireLibraryRuntime();
         self::registerAutoload();
 
         if (imgcolor_Setup::get('LOADER') === 'imagick') {
@@ -147,6 +198,7 @@ class imgcolor_Analyzer extends core_Mvc
      */
     private static function guard($fn)
     {
+        self::requireLibraryRuntime();
         self::registerAutoload();
         self::requireGd();
 
@@ -299,6 +351,7 @@ class imgcolor_Analyzer extends core_Mvc
      */
     public static function processSeparated($source, $options = null, $transParams = null)
     {
+        self::requireLibraryRuntime();
         self::registerAutoload();
         self::requireGd();
 

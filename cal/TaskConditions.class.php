@@ -278,7 +278,7 @@ class cal_TaskConditions extends core_Detail
     {
         $arr[$id] = $id;
         $query = self::getQuery();
-        while ($rec = $query->fetch("#{$field} = ${id}")) {
+        while ($rec = $query->fetch("#{$field} = {$id}")) {
             self::getInheritors($rec->id, $field, $arr);
         }
         

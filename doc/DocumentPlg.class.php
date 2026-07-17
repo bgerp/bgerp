@@ -1181,7 +1181,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $retUrl = getRetUrl();
         
-        if (($data->form->cmd != 'save_n_new') && ($retUrl['Ctr'] ?? null) == 'doc_Containers' && is_a($mvc, 'core_Master') && $data->form->rec->id > 0) {
+        if (($data->form->cmd ?? null) != 'save_n_new' && ($retUrl['Ctr'] ?? null) == 'doc_Containers' && is_a($mvc, 'core_Master') && !empty($data->form->rec->id)) {
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
             
             return false;

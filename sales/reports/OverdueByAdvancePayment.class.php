@@ -363,7 +363,7 @@ class sales_reports_OverdueByAdvancePayment extends frame2_driver_TableData
         }
         
         if (isset($dRec->condition)) {
-            $row->condition = "<span style='color: ${conditionColor}'>{$dRec->condition}</span>";
+            $row->condition = "<span style='color: {$conditionColor}'>{$dRec->condition}</span>";
         }
         
         if (isset($dRec->dealer)) {

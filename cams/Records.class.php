@@ -410,7 +410,7 @@ class cams_Records extends core_Master
         core_Locks::release(basename($script->params['mp4File']));
         $err = file_get_contents($script->params['errFilePath']);
         if ($err) {
-            self::logErr("Грешка при конвертиране на видео: ${err}");
+            self::logErr("Грешка при конвертиране на видео: {$err}");
         }
         
         return true;
@@ -422,7 +422,7 @@ class cams_Records extends core_Master
      */
     public function convertToFlv($mp4Path, $flvFile, $params)
     {
-        $cmd = "ffmpeg -i ${mp4Path} -ar 44100 -ab 96 -qmax {$params->FPS} -f flv ${flvFile} < /dev/null > /dev/null 2>&1 &";
+        $cmd = "ffmpeg -i {$mp4Path} -ar 44100 -ab 96 -qmax {$params->FPS} -f flv {$flvFile} < /dev/null > /dev/null 2>&1 &";
         
         $out = exec($cmd);
         
@@ -438,7 +438,7 @@ class cams_Records extends core_Master
      */
     public function convertToOgv($mp4Path, $ogvFile)
     {
-        $cmd = "ffmpeg -i ${mp4Path} -ar 44100 -vcodec libtheora -acodec libvorbis -ab 96 -qmax 10 -f ogv ${ogvFile} < /dev/null > /dev/null 2>&1 &";
+        $cmd = "ffmpeg -i {$mp4Path} -ar 44100 -vcodec libtheora -acodec libvorbis -ab 96 -qmax 10 -f ogv {$ogvFile} < /dev/null > /dev/null 2>&1 &";
         
         $out = exec($cmd);
         $this->logDebug("cmd = {$cmd}");

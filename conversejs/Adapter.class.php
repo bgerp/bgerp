@@ -32,7 +32,7 @@ class conversejs_Adapter extends core_Mvc
         
         $cu = core_Users::getCurrent();
         $aQuery = remote_Authorizations::getQuery();
-        while ($aRec = $aQuery->fetch("#userId = ${cu} AND #state = 'active'")) {
+        while ($aRec = $aQuery->fetch("#userId = {$cu} AND #state = 'active'")) {
             if ($aRec->xmppUser) {
                 $driver = remote_Authorizations::getDriver($aRec);
                 $rec = $driver->getXmppCredentials($aRec);

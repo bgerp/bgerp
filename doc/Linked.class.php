@@ -1119,9 +1119,9 @@ class doc_Linked extends core_Manager
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $cQuery->where("#id IN (${ids})");
+            $cQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $cQuery->where("#id = ${onlyIds}");
+            $cQuery->where("#id = {$onlyIds}");
         }
         
         if ($q) {
@@ -1288,9 +1288,9 @@ class doc_Linked extends core_Manager
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
         
         $titleFld = $params['titleFld'];
@@ -1512,9 +1512,9 @@ class doc_Linked extends core_Manager
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
         
         $show = 'id, firstDocClass, firstDocId';

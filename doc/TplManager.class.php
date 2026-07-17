@@ -273,13 +273,15 @@ class doc_TplManager extends core_Master
      */
     private function setTempField(core_Mvc $DocClass, core_Form &$form)
     {
+        $toggleFields = $DocClass->toggleFields ?? null;
+
         // Ако са посочени незадължителни полета
-        if ($DocClass->toggleFields) {
+        if ($toggleFields) {
             
             // Създаване на FNC поле със стойности идващи от 'toggleFields'
             $fldName = ($DocClass instanceof core_Master) ? 'masterFld' : $DocClass->className;
-            $fields = array_keys(arr::make($DocClass->toggleFields));
-            $form->FNC($fldName, "set({$DocClass->toggleFields})", 'caption=Полета за показване->Колони,input,columns=3,tempFld,silent');
+            $fields = array_keys(arr::make($toggleFields));
+            $form->FNC($fldName, "set({$toggleFields})", 'caption=Полета за показване->Колони,input,columns=3,tempFld,silent');
             
             // Стойност по подразбиране
             if (isset($form->rec->{$fldName})) {

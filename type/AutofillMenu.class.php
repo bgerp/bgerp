@@ -53,7 +53,7 @@ class type_AutofillMenu extends type_Varchar
         if (is_array($this->menuOpt) && countR($this->menuOpt)) {
             $opt = '';
             foreach ($this->menuOpt as $fromTo => $verbal) {
-                $opt .= "<option value='${fromTo}'>{$verbal}</options>";
+                $opt .= "<option value='{$fromTo}'>{$verbal}</options>";
             }
             
             expect($this->namesList);

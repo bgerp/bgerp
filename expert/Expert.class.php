@@ -715,7 +715,7 @@ class expert_Expert extends core_FieldSet
             
             if (countR($this->reason)) {
                 foreach ($this->reason as $l) {
-                    $debug .= "<li> ${l}</li>";
+                    $debug .= "<li> {$l}</li>";
                 }
             }
             
@@ -1047,7 +1047,7 @@ class expert_Expert extends core_FieldSet
             $form->layout = $layout;
         }
         
-        $form->info = "<div class='formError'>${info}</info>";
+        $form->info = "<div class='formError'>{$info}</info>";
         
         $form->title = "|*<img width=32 height=32 alt='' align=absmiddle  src=" . sbf('img/32/error.png') . '> ' . $this->getTitle($kRec);
         $form->method = 'POST';

@@ -771,7 +771,7 @@ class csv_Lib
         
         // Махаме BOM, ако има
         $bom = pack('H*', 'EFBBBF');
-        $csv = preg_replace("/^${bom}/", '', $csv);
+        $csv = preg_replace("/^{$bom}/", '', $csv);
         
         // Правим новия ред - \n
         $nl = "\n";

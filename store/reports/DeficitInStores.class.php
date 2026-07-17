@@ -165,7 +165,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                 
                 if (($arts + $grInArts) > $maxPost) {
                     $form->setError('droupId', "Лимита за следени продукти е достигнат.
-            				За да добавите група \" ${groupName}\" трябва да премахнете ${prodForCut} артикула ");
+            				За да добавите група \" {$groupName}\" трябва да премахнете {$prodForCut} артикула ");
                 } else {
                     
                     // Добавя цяла група артикули
@@ -245,7 +245,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                             $maxArt = self::NUMBER_OF_ITEMS_TO_ADD;
                             
                             $form->setWarning('groupId', "{$countUnset} артикула от група {$groupName} няма да  бъдат добавени.
-            						Максимален брой артикули за еднократно добавяне - ${maxArt}.
+            						Максимален брой артикули за еднократно добавяне - {$maxArt}.
             						Може да добавите още артикули от групата при следваща редакция.");
                         }
                     }

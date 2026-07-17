@@ -102,6 +102,12 @@ class store_InventoryNotes extends core_Master
      * Кой има право да клонира?
      */
     public $canClonerec = 'ceo,storeMaster,inventory';
+
+
+    /**
+     * Дали потребител с роля 'accMaster'/'ceo' може да контира/оттегля/възстановява с приключени права
+     */
+    public $canUseClosedItems = false;
     
     
     /**
@@ -594,7 +600,7 @@ class store_InventoryNotes extends core_Master
         $Summary = cls::get('store_InventoryNoteSummary');
         
         // Търсим артикулите от два месеца назад
-        $to = $rec->instockTo == 'valior' ? $rec->valior : dt::addDays(-1, $rec->valior);
+        $to = ($rec->instockTo ?? 'dayBefore') == 'valior' ? $rec->valior : dt::addDays(-1, $rec->valior);
         $to = dt::verbal2mysql($to, false);
         $from = dt::addMonths(-2, $to);
         $from = dt::verbal2mysql($from, false);
@@ -650,7 +656,7 @@ class store_InventoryNotes extends core_Master
         }
 
         // Ако ще се показват по партиди
-        if($rec->expandByBatches == 'yes'){
+        if(($rec->expandByBatches ?? null) == 'yes'){
 
             // Тези от баланса, които има наличности по партиди и не се срещат от баланса ще се добавят с 0-во очаквано
             core_Debug::startTimer('SYNC_BALANCE_BATCH_MOVEMENT');
@@ -711,6 +717,7 @@ class store_InventoryNotes extends core_Master
         $balanceArr = $this->getProductsFromBalance($rec);
         core_Debug::stopTimer('SYNC_BALANCE_RECS');
 
+        $rec->quantitiesFilter ??= 'all';
         if($rec->quantitiesFilter != 'all'){
             $balanceArr = array_filter($balanceArr, function($a) use ($rec){
                 if($rec->quantitiesFilter == 'negative' && $a->blQuantity < 0) return true;
@@ -727,7 +734,7 @@ class store_InventoryNotes extends core_Master
         core_Debug::stopTimer('SYNC_CURRENT_PRODUCTS');
 
         // Избраните групи
-        $rGroup = cat_Groups::getDescendantArray($rec->groups);
+        $rGroup = cat_Groups::getDescendantArray($rec->groups ?? null);
         $rGroup = keylist::toArray($rGroup);
         
         // От наличните артикули, взимат се ид-та на тези с к-во
@@ -811,7 +818,7 @@ class store_InventoryNotes extends core_Master
     {
 
         // Синхронизираме данните само в чернова
-        if ($rec->state == 'draft' && $rec->_isClone !== true) {
+        if ($rec->state == 'draft' && ($rec->_isClone ?? null) !== true) {
             $mvc->sync($rec);
         } elseif ($rec->state == 'active' && ($rec->brState == 'stopped' || Mode::is('recontoMovement'))) {
             cls::get('store_InventoryNoteDetails')->invoke('AfterStartDocument', array($rec));
@@ -934,11 +941,11 @@ class store_InventoryNotes extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
-            if ($rec->batches == 'yes') {
+            if (($rec->batches ?? null) == 'yes') {
                 $url['showBatches'] = true;
             }
             
-            if ($rec->showBlQuantities == 'yes') {
+            if (($rec->showBlQuantities ?? null) == 'yes') {
                 $url['showBlQuantities'] = true;
             }
             
@@ -1166,7 +1173,7 @@ class store_InventoryNotes extends core_Master
                     }
 
                     foreach ($batchQuantities as $batch => $batchQuantity){
-                        if($exRecs[$summaryRec->productId][$batch] === true) continue;
+                        if(($exRecs[$summaryRec->productId][$batch] ?? null) === true) continue;
                         $productIds[$summaryRec->productId] = $summaryRec->productId;
 
                         $dRec = clone $obj;

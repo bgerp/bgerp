@@ -286,9 +286,9 @@ class drdata_Address extends core_MVC
         }
         
         foreach ($obj->_wordsLower as $w) {
-            if (strpos(self::$companyTypes, "|${w}|")) {
+            if (strpos(self::$companyTypes, "|{$w}|")) {
                 $cnt += 3;
-            } elseif (strpos(self::$companyWords, "|${w}|")) {
+            } elseif (strpos(self::$companyWords, "|{$w}|")) {
                 ++$cnt;
             }
         }
@@ -333,11 +333,11 @@ class drdata_Address extends core_MVC
         
         $cnt = 0;
         foreach ($obj->_wordsLower as $w) {
-            if (strpos(self::$givenNames, "|${w}|")) {
+            if (strpos(self::$givenNames, "|{$w}|")) {
                 $cnt += 3;
-            } elseif (strpos(self::$titles, "|${w}|")) {
+            } elseif (strpos(self::$titles, "|{$w}|")) {
                 $cnt += 2;
-            } elseif (strpos($titles, "|${w}|")) {
+            } elseif (strpos($titles, "|{$w}|")) {
                 $cnt += 2;
             } elseif (preg_match('/[a-zA-Z]{2,15}(ov|ova|ev|eva)$/', $w)) {
                 $cnt += 2;
@@ -372,7 +372,7 @@ class drdata_Address extends core_MVC
         }
         
         foreach ($obj->_wordsLower as $w) {
-            if (strpos(self::$regards, "|${w}|")) {
+            if (strpos(self::$regards, "|{$w}|")) {
                 $cnt += 2;
             }
         }
@@ -657,15 +657,15 @@ class drdata_Address extends core_MVC
                     
                     $strlen = strlen($w);
                     
-                    if (strpos($companyTypes, "|${w}|")) {
+                    if (strpos($companyTypes, "|{$w}|")) {
                         $companyCnt += 3;
                     }
                     
-                    if (strpos($companyWords, "|${w}|")) {
+                    if (strpos($companyWords, "|{$w}|")) {
                         ++$companyCnt;
                     }
                     
-                    if ($strlen > 3 && strpos($givenNames, "|${w}|")) {
+                    if ($strlen > 3 && strpos($givenNames, "|{$w}|")) {
                         $nameCnt += $strlen > 5 ? 1.5 : 1.2;
                     }
                     
@@ -673,7 +673,7 @@ class drdata_Address extends core_MVC
                         $nameCnt += 0.8;
                     }
                     
-                    if ($strlen < 5 && strpos($titles, "|${w}|")) {
+                    if ($strlen < 5 && strpos($titles, "|{$w}|")) {
                         ++$nameCnt;
                     }
                     
@@ -686,11 +686,11 @@ class drdata_Address extends core_MVC
                         --$companyCnt;
                     }
                     
-                    if (strpos($addresses, "|${w}|")) {
+                    if (strpos($addresses, "|{$w}|")) {
                         $addressCnt += $strlen > 1 ? 1 : 0.2;
                     }
                     
-                    if (strpos($regards, "|${w}|")) {
+                    if (strpos($regards, "|{$w}|")) {
                         $regardsCnt += $strlen > 6 ? 1.2 : 1;
                     }
                     
@@ -1057,17 +1057,17 @@ class drdata_Address extends core_MVC
                 if ($countryId = drdata_Countries::getIdByName($part)) {
                     $o->countryId = $countryId;
                 }
-                if ($o->countryId && $o->code) {
+                if (!empty($o->countryId) && !empty($o->pCode)) {
                     break;
                 }
             }
             
-            if (!$best && $o->countryId) {
+            if (!$best && !empty($o->countryId)) {
                 $best = new stdClass();
                 $best = $o;
             }
             
-            if ($o->countryId && $o->pCode) {
+            if (!empty($o->countryId) && !empty($o->pCode)) {
                 $best = $o;
             }
         }

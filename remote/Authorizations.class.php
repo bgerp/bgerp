@@ -192,7 +192,7 @@ class remote_Authorizations extends embed_Manager
         
         // Създаваме заявката
         $data->query = $mvc->getQuery();
-        $data->query->where("#userId = ${userId}");
+        $data->query->where("#userId = {$userId}");
         
         // Подготвяме полетата за показване
         $data->listFields = arr::make('url=Услуга,auth=Оторизация,state=Състояние');

@@ -45,7 +45,7 @@ class chartjs_Adapter extends core_Mvc
         $data = json_encode($data);
         
         $chart = ht::createElement('canvas', array('class' => 'diagramCanvas', 'width' => '700', 'height' => '570', 'data-data' => $data, 'data-type' => $chartType), $tpl);
-        $tpl->append("<div class='chartHolder chart-${chartType}'>" . $chart . '</div>');
+        $tpl->append("<div class='chartHolder chart-{$chartType}'>" . $chart . '</div>');
         
         $tpl->push('chartjs/lib/preparechart.js', 'JS');
         $tpl->push('chartjs/' . chartjs_Setup::get('VERSION') . '/Chart.min.js', 'JS');

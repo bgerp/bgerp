@@ -1116,13 +1116,13 @@ class draw_Designs extends core_Master
         
         if ($data->canvas->info) {
             foreach ($data->canvas->info as $c => $v) {
-                $tpl->append("<div>${c} = <b>${v}</b></div>", 'INFO_BLOCK');
+                $tpl->append("<div>{$c} = <b>{$v}</b></div>", 'INFO_BLOCK');
             }
         }
 
         if ($data->canvas->errorMsg) {
             foreach ($data->canvas->errorMsg as $c => $v) {
-                $tpl->append("<div class='errorMsg'>${c} = <b>${v}</b></div>", 'ERROR_BLOCK');
+                $tpl->append("<div class='errorMsg'>{$c} = <b>{$v}</b></div>", 'ERROR_BLOCK');
             }
         }
     }

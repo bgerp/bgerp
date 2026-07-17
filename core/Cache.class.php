@@ -151,7 +151,7 @@ class core_Cache extends core_Manager
     {
         $Cache = cls::get('core_Cache');
         
-        Debug::log("Cache::set ${type}, ${handler}");
+        Debug::log("Cache::set {$type}, {$handler}");
         
         if (!$handler) {
             $handler = md5(json_encode($value));

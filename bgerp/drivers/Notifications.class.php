@@ -282,7 +282,7 @@ class bgerp_drivers_Notifications extends core_BaseClass
         
         // Намираме времето на последния запис
         $query = bgerp_Notifications::getQuery();
-        $query->where("#userId = ${userId}");
+        $query->where("#userId = {$userId}");
         $query->limit(1);
         
         $cQuery = clone $query;

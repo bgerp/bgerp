@@ -240,7 +240,7 @@ class core_tests_DateTime extends unit_Class
             $title = dt::mysql2verbal($mysqlDate, 'd-M-Y H:i (l)');
             $title = "  title='{$title}'";
             
-            $verbDate = "<font color='#${color}' ${title}>{$verbDate}</font>";
+            $verbDate = "<font color='#{$color}' {$title}>{$verbDate}</font>";
         }
         
         return $verbDate;
@@ -615,7 +615,7 @@ class core_tests_DateTime extends unit_Class
         $rc = $r4 + $r5;
         
         // Православния Великден за тази година се пада $rc дни след 3-ти Април
-        return strtotime("3 April ${year} + ${rc} days");
+        return strtotime("3 April {$year} + {$rc} days");
     }
     
     

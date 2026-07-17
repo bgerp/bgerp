@@ -58,7 +58,7 @@ class payment_ImportDriver extends import2_AbstractDriver
         
         // Махаме BOM, ако има
         $bom = pack('H*', 'EFBBBF');
-        $xml = preg_replace("/^${bom}/", '', $xml);
+        $xml = preg_replace("/^{$bom}/", '', $xml);
 
         core_App::setTimeLimit(30 + round(strlen($xml) / 100000));
   

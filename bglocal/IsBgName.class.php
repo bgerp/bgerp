@@ -45,7 +45,7 @@ class bglocal_IsBgName extends core_Manager
             static::$bgNames = file_get_contents('/var/www/ef_root/vendors/bglocal/data/bgLadiesNamesLatin.txt') . file_get_contents('/var/www/ef_root/vendors/bglocal/data/bgSurNamesLatin.txt');
         }
         
-        $isName = strpos(static::$bgNames, "\n${name}\n");
+        $isName = strpos(static::$bgNames, "\n{$name}\n");
         
         if ($isName === false) {
             $res = $name . ' не е българско име';

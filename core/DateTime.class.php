@@ -891,7 +891,7 @@ class core_DateTime
             $date = dt::now();
         }
         
-        list($d, $t) = explode(' ', $date);
+        list($d, $t) = array_pad(explode(' ', $date), 2, null);
         
         if (!$t) {
             $t = '00:00:00';

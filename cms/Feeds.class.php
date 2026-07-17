@@ -331,7 +331,7 @@ class cms_Feeds extends core_Manager
         
         $query = static::getQuery();
         $domainId = cms_Domains::getPublicDomain('id');
-        $feeds = $query->fetchAll("#domainId = '${domainId}'");
+        $feeds = $query->fetchAll("#domainId = '{$domainId}'");
         if (!countR($feeds)) {
             
             return;

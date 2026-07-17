@@ -58,7 +58,7 @@ class cams_plg_RecordState extends core_Plugin
                 break;
             case 'hidden':
                 $bgColor = '#f0f0f0';
-                $row->ROW_ATTR['style'] .= "background:${bgColor};";
+                $row->ROW_ATTR['style'] .= "background:{$bgColor};";
                 break;
         }
         

@@ -798,7 +798,7 @@ class label_Prints extends core_Master
             // Ако съсотоянието е затворено показваме предупреждение
             if ($data->rec->printedCnt) {
                 $modifiedDate = dt::mysql2verbal($data->rec->modifiedOn);
-                $warning = "warning=Този етикет е бил отпечатван на|* ${modifiedDate}. |Искате ли да го отпечатате още веднъж|*?";
+                $warning = "warning=Този етикет е бил отпечатван на|* {$modifiedDate}. |Искате ли да го отпечатате още веднъж|*?";
             }
             
             $data->toolbar->addBtn('Печат', array($mvc, 'print', $data->rec->id), $warning, 'ef_icon=img/16/printer.png, title = Отпечатване');
@@ -906,7 +906,7 @@ class label_Prints extends core_Master
             // Ако съсотоянието е затворено показваме предупреждение
             if ($rec->printedCnt) {
                 $modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y H:i');
-                $warning = "Този етикет е бил отпечатван на|* ${modifiedDate}. |Искате ли да го отпечатате още веднъж|*?";
+                $warning = "Този етикет е бил отпечатван на|* {$modifiedDate}. |Искате ли да го отпечатате още веднъж|*?";
             }
             
             $btnAttr = arr::make('ef_icon=img/16/printer.png, title=Отпечатване, class=fleft');

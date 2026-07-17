@@ -579,7 +579,7 @@ class blast_Letters extends core_Master
     public function closeLetter($id)
     {
         // Вземаме детайла на писмото което не е принтирано
-        $details = blast_LetterDetails::fetch("#letterId = '${id}' AND #printedDate IS NULL");
+        $details = blast_LetterDetails::fetch("#letterId = '{$id}' AND #printedDate IS NULL");
         
         //Ако няма нито един запис
         if ($details === false) {
@@ -916,7 +916,7 @@ class blast_Letters extends core_Master
             
             // Вземаме детайлите, които не са печатани в съответното писмо
             $dQuery = blast_LetterDetails::getQuery();
-            $dQuery->where("#letterId = '${id}'");
+            $dQuery->where("#letterId = '{$id}'");
             $dQuery->where('#printedDate IS NULL');
             
             // Обикаляме резултатите

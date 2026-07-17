@@ -249,7 +249,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
             }
         }
         
-        $typeOfDocument = $Document->title . '  »  ' . cls::get($className)->getFieldType('state')->toVerbal($other) . " ${thisCounter} " . 'бр.';
+        $typeOfDocument = $Document->title . '  »  ' . cls::get($className)->getFieldType('state')->toVerbal($other) . " {$thisCounter} " . 'бр.';
         
         $handle = $className::getHandle($dRec->documentId);
         

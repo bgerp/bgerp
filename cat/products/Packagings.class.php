@@ -885,9 +885,6 @@ class cat_products_Packagings extends core_Detail
             return;
         }
 
-        $productIdFld = 'productId';
-        $packagingIdFld = 'packagingId';
-
         $pArr = array();
 
         // В мастера

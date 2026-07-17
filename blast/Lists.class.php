@@ -306,7 +306,7 @@ class blast_Lists extends core_Master
             foreach ($mvc->mustUpdate as $id => $detailMvc) {
                 $rec = $mvc->fetch($id);
                 $dQuery = $detailMvc->getQuery();
-                $dQuery->where("#listId = ${id}");
+                $dQuery->where("#listId = {$id}");
                 $rec->contactsCnt = $dQuery->count();
                 
                 // Определяме състоянието на база на количеството записи (контакти)
