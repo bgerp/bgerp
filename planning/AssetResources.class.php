@@ -1022,7 +1022,7 @@ class planning_AssetResources extends core_Master
 
             $order = 1;
             $prevEnd = $now;
-            $Interval = $scheduledData->intervals[$assetId];
+            $Interval = $scheduledData->calendarIntervals[$assetId];
 
             foreach ($plannedTasks as $a) {
                 $a->planningError = 'no';
