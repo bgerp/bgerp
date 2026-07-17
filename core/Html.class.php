@@ -48,7 +48,11 @@ class core_Html
                     if (is_string($atr) && isset($atr[0]) && $atr[0] == '#') continue;
 
                     if (is_array($content)) {
-                        $content = implode(' ', $content);
+                        $flatContent = array();
+                        array_walk_recursive($content, function ($c) use (&$flatContent) {
+                            $flatContent[] = $c;
+                        });
+                        $content = implode(' ', $flatContent);
                     }
 
                     if (is_string($content)) {
