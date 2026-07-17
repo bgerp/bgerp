@@ -59,7 +59,7 @@ class planning_TaskConstraints extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $listFields = 'taskId,type,previousTaskId=Предходна,earliestTimeStart=Най-рано,waitingTime=Изчакване,updatedOn';
+    public $listFields = 'taskId,type,previousTaskId=Предходна,intersect=Застъпване,earliestTimeStart=Най-рано,waitingTime=Изчакване,updatedOn';
 
 
     const NOT_FOUND_DATE = '9999-12-21 23:59:59';
@@ -76,6 +76,7 @@ class planning_TaskConstraints extends core_Master
         $this->FLD('taskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Операция');
         $this->FLD('type', 'enum(prevId=Предходна операция,earliest=Най-рано)', 'caption=Тип');
         $this->FLD('previousTaskId', 'key(mvc=planning_Tasks,select=title)', 'caption=Предходна');
+        $this->FLD('intersect', 'enum(yes=Да,no=Не)', 'caption=Застъпване,input=none,notNull,default=yes');
         $this->FLD('waitingTime', 'time', 'caption=Време за изчакване');
         $this->FLD('earliestTimeStart', 'datetime', 'caption=Най-ранно започване');
         $this->FLD('updatedOn', 'datetime(format=smartTime)', 'caption=Обновяване');
@@ -248,13 +249,16 @@ class planning_TaskConstraints extends core_Master
         while ($cRec = $cQuery->fetch()) {
             $folderLocations[$cRec->folderId] = $cRec->locationId ?? '-';
         }
+        foreach ($folderIds as $folderId) {
+            $folderLocations[$folderId] = $folderLocations[$folderId] ?? '-';
+        }
 
         // Извличане на всички етапи, които са посочени като предишни
         $cQuery = planning_StepConditions::getQuery();
         $cQuery->in("stepId", $stepIds);
-        $cQuery->show('stepId,prevStepId');
+        $cQuery->show('stepId,prevStepId,delay,intersect');
         while ($cRec = $cQuery->fetch()) {
-            $prevSteps[$cRec->stepId][$cRec->prevStepId] = $cRec->prevStepId;
+            $prevSteps[$cRec->stepId][$cRec->prevStepId] = $cRec;
         }
 
         // Всички текущи ПО към заданието за посочените етапи
@@ -262,8 +266,25 @@ class planning_TaskConstraints extends core_Master
         $tQuery->where("#state IN ('active', 'stopped', 'wakeup', 'pending')");
         $tQuery->in('originId', $jobIds);
         $tQuery->show('id,originId,productId,folderId,offsetAfter');
+        $additionalFolderIds = array();
         while ($tRec = $tQuery->fetch()) {
             $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id, 'folderId' => $tRec->folderId, 'offsetAfter' => $tRec->offsetAfter);
+            if (!isset($folderLocations[$tRec->folderId])) {
+                $additionalFolderIds[$tRec->folderId] = $tRec->folderId;
+            }
+        }
+
+        if (countR($additionalFolderIds)) {
+            $cQuery = planning_Centers::getQuery();
+            $cQuery->EXT('locationId', 'hr_Departments', 'externalName=locationId,externalKey=departmentId');
+            $cQuery->in('folderId', $additionalFolderIds);
+            $cQuery->show('locationId,folderId');
+            while ($cRec = $cQuery->fetch()) {
+                $folderLocations[$cRec->folderId] = $cRec->locationId ?? '-';
+            }
+            foreach ($additionalFolderIds as $folderId) {
+                $folderLocations[$folderId] = $folderLocations[$folderId] ?? '-';
+            }
         }
 
         $offsetSameLocation = planning_Setup::get('TASK_OFFSET_IN_SAME_LOCATION');
@@ -275,38 +296,41 @@ class planning_TaskConstraints extends core_Master
             // Ако има посочено най-ранно начало и то е в бъдещето - записва се
             if (!empty($taskRec->timeStart)) {
                 if ($taskRec->timeStart > $now) {
-                    $res["time|{$taskRec->id}"] = (object)array('taskId' => $taskRec->id, 'type' => 'earliest', 'earliestTimeStart' => $taskRec->timeStart, 'waitingTime' => null, 'previousTaskId' => null, 'updatedOn' => $now);
+                    $res["time|{$taskRec->id}"] = (object)array('taskId' => $taskRec->id, 'type' => 'earliest', 'earliestTimeStart' => $taskRec->timeStart, 'waitingTime' => null, 'previousTaskId' => null, 'intersect' => 'yes', 'updatedOn' => $now);
                 }
             }
 
             // Ако има ръчно посочена предходна - нея, иначе се търсят всички предходни от заданието
             $prevTaskIds = array();
             if (isset($taskRec->previousTask)) {
-                if(isset($tasks[$taskRec->previousTask])){
-                    $prevTaskIds[$taskRec->previousTask] = $taskRec->previousTask;
+                if(isset($tasksByJobs[$taskRec->originId][$taskRec->previousTask])){
+                    $prevTaskProductId = $tasksByJobs[$taskRec->originId][$taskRec->previousTask]->productId;
+                    $prevTaskIds[$taskRec->previousTask] = $prevSteps[$taskRec->productId][$prevTaskProductId] ?? null;
                 }
             } else {
                 $prevStepsArr = array_key_exists($taskRec->productId, $prevSteps) ? $prevSteps[$taskRec->productId] : array();
-                array_walk($tasksByJobs[$taskRec->originId], function ($a) use (&$prevTaskIds, $prevStepsArr) {
-                    if (in_array($a->productId, $prevStepsArr)) {
-                        $prevTaskIds[$a->id] = $a->id;
+                foreach ($tasksByJobs[$taskRec->originId] as $a) {
+                    if (array_key_exists($a->productId, $prevStepsArr)) {
+                        $prevTaskIds[$a->id] = $prevStepsArr[$a->productId];
                     }
-                });
+                }
             }
 
             if(countR($prevTaskIds)){
 
                 // За всяка предходна ще се добави че операцията е зависима от нея
-                $thisTaskLocationId = $folderLocations[$tasks[$taskRec->id]->folderId];
-                foreach ($prevTaskIds as $prevTaskId) {
+                $thisTaskLocationId = $folderLocations[$tasksByJobs[$taskRec->originId][$taskRec->id]->folderId] ?? '-';
+                foreach ($prevTaskIds as $prevTaskId => $stepCondition) {
 
                     // Гледа се дали текущата и предходната са в една локация или са в различни
-                    $prevTaskLocationId = $folderLocations[$tasks[$prevTaskId]->folderId];
+                    $prevTaskLocationId = $folderLocations[$tasksByJobs[$taskRec->originId][$prevTaskId]->folderId] ?? '-';
                     $locationOffset = ($thisTaskLocationId == $prevTaskLocationId) ? $offsetSameLocation : $offsetOtherLocation;
 
                     // Времето за изчакване е по-голямото от това за локацията и зададеното в етапа време на изчакване
-                    $waitingTime = max($locationOffset,  $tasksByJobs[$taskRec->originId][$prevTaskId]->offsetAfter);
-                    $res["prev|{$taskRec->id}|$prevTaskId"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => $waitingTime, 'previousTaskId' => $prevTaskId, 'updatedOn' => $now);
+                    $conditionDelay = (is_object($stepCondition) && isset($stepCondition->delay)) ? $stepCondition->delay : 0;
+                    $intersect = (is_object($stepCondition) && isset($stepCondition->intersect)) ? $stepCondition->intersect : 'yes';
+                    $waitingTime = max($locationOffset, $tasksByJobs[$taskRec->originId][$prevTaskId]->offsetAfter, $conditionDelay);
+                    $res["prev|{$taskRec->id}|$prevTaskId"] = (object)array('taskId' => $taskRec->id, 'type' => 'prevId', 'earliestTimeStart' => null, 'waitingTime' => $waitingTime, 'previousTaskId' => $prevTaskId, 'intersect' => $intersect, 'updatedOn' => $now);
                 }
             }
         }
@@ -324,7 +348,7 @@ class planning_TaskConstraints extends core_Master
         $me = cls::get(get_called_class());
 
         // Синхронизират се
-        $synced = arr::syncArrays($res, $exRecs, 'taskId,type,previousTaskId', 'taskId,type,earliestTimeStart,waitingTime,previousTaskId');
+        $synced = arr::syncArrays($res, $exRecs, 'taskId,type,previousTaskId', 'taskId,type,earliestTimeStart,waitingTime,previousTaskId,intersect');
         $i = countR($synced['insert']);
         if ($i) {
             $me->saveArray($synced['insert']);
@@ -332,7 +356,7 @@ class planning_TaskConstraints extends core_Master
 
         $u = countR($synced['update']);
         if ($u) {
-            $me->saveArray($synced['update'], 'id,previousTaskId,waitingTime,earliestTimeStart,updatedOn');
+            $me->saveArray($synced['update'], 'id,previousTaskId,waitingTime,earliestTimeStart,intersect,updatedOn');
         }
 
         $d = countR($synced['delete']);
@@ -345,6 +369,125 @@ class planning_TaskConstraints extends core_Master
         core_Debug::log("SYNC_TASK_CONSTRAINTS " . round(core_Debug::$timers["SYNC_TASK_CONSTRAINTS"]->workingTime, 6));
 
         return "Синхронизирани ограничения I:{$i} / U: {$u} / D: {$d}";
+    }
+
+
+    /**
+     * Checks whether a manual resource order forms a cycle together with the
+     * technological dependencies and the other saved resource orders.
+     *
+     * @param int $assetId
+     * @param array $orderedTaskIds
+     * @param array $problemTaskIds
+     * @param array $taskAssetOverrides
+     * @return bool
+     */
+    public static function validateManualOrder($assetId, $orderedTaskIds, &$problemTaskIds = array(), $taskAssetOverrides = array())
+    {
+        $problemTaskIds = array();
+        $tasks = static::getDefaultArr(null, 'actualStart,timeStart,assetId,dueDate,state');
+        $remaining = $tasksByAsset = array();
+        foreach ($tasks as $task) {
+            if (isset($taskAssetOverrides[$task->id])) {
+                $task->assetId = $taskAssetOverrides[$task->id];
+            }
+            if (!empty($task->actualStart) && $task->state != 'stopped') {
+                continue;
+            }
+
+            $remaining[$task->id] = $task;
+            $tasksByAsset[$task->assetId][$task->id] = $task;
+        }
+
+        if (!countR($remaining)) {
+            return true;
+        }
+
+        $inDegree = array_fill_keys(array_keys($remaining), 0);
+        $successors = array();
+
+        $constraintQuery = static::getQuery();
+        $constraintQuery->where("#type = 'prevId'");
+        $constraintQuery->show('taskId,previousTaskId');
+        while ($constraint = $constraintQuery->fetch()) {
+            if (isset($remaining[$constraint->taskId]) && isset($remaining[$constraint->previousTaskId])) {
+                static::addPlanningEdge($constraint->previousTaskId, $constraint->taskId, $inDegree, $successors);
+            }
+        }
+
+        $manualOrders = array();
+        $manualQuery = planning_TaskManualOrderPerAssets::getQuery();
+        $manualQuery->in('assetId', array_keys($tasksByAsset));
+        $manualQuery->show('assetId,data');
+        while ($manualRec = $manualQuery->fetch()) {
+            if (isset($tasksByAsset[$manualRec->assetId]) && is_array($manualRec->data)) {
+                $manualOrders[$manualRec->assetId] = $manualRec->data;
+            }
+        }
+
+        $cleanOrder = array();
+        foreach ((array)$orderedTaskIds as $taskId) {
+            $taskId = (int)$taskId;
+            if (isset($tasksByAsset[$assetId][$taskId])) {
+                $cleanOrder[$taskId] = $taskId;
+            }
+        }
+        $manualOrders[$assetId] = $cleanOrder;
+
+        foreach ($manualOrders as $manualAssetId => $manualOrder) {
+            if (!isset($tasksByAsset[$manualAssetId])) {
+                continue;
+            }
+
+            $withStart = $withoutStart = array();
+            foreach ($tasksByAsset[$manualAssetId] as $task) {
+                if (!empty($task->timeStart)) {
+                    $withStart[$task->id] = $task;
+                } else {
+                    $withoutStart[$task->id] = $task;
+                }
+            }
+
+            arr::sortObjects($withStart, 'timeStart', 'ASC');
+            arr::sortObjects($withoutStart, 'dueDate', 'ASC');
+            $orderedTasks = static::reorderTasksByManualOrder($withStart + $withoutStart, $manualOrder);
+            $previousId = null;
+            foreach ($orderedTasks as $task) {
+                if (isset($previousId)) {
+                    static::addPlanningEdge($previousId, $task->id, $inDegree, $successors);
+                }
+                $previousId = $task->id;
+            }
+        }
+
+        $queue = array();
+        foreach ($inDegree as $taskId => $degree) {
+            if ($degree == 0) {
+                $queue[] = $taskId;
+            }
+        }
+
+        $processed = 0;
+        for ($position = 0; isset($queue[$position]); $position++) {
+            $taskId = $queue[$position];
+            $processed++;
+            foreach ($successors[$taskId] ?? array() as $successorId) {
+                $inDegree[$successorId]--;
+                if ($inDegree[$successorId] == 0) {
+                    $queue[] = $successorId;
+                }
+            }
+        }
+
+        if ($processed == count($remaining)) {
+            return true;
+        }
+
+        $problemTaskIds = array_keys(array_filter($inDegree, function ($degree) {
+            return $degree > 0;
+        }));
+
+        return false;
     }
 
 
@@ -529,7 +672,7 @@ class planning_TaskConstraints extends core_Master
             $assetQuery->in('id', $assetIds);
         }
 
-        $assetQuery->show("code,taskQuantization,scheduleId,code");
+        $assetQuery->show('code,taskQuantization,scheduleId');
         while ($aRec = $assetQuery->fetch()) {
             $assets[$aRec->id] = $aRec;
             $scheduleId = null;
@@ -567,7 +710,7 @@ class planning_TaskConstraints extends core_Master
 
         $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
         if($manualPlanning == 'no'){
-            $debugRes .= self::smartPlanning($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
+            $debugRes .= self::smartPlanningGraph($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
         } else {
             $debugRes .= self::manualPlanning($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
         }
@@ -646,6 +789,337 @@ class planning_TaskConstraints extends core_Master
      * @param datetime $now
      * @param array $previousTasks
      * @return string
+     */
+    private static function smartPlanningGraph(&$plannedByAssets, &$notPlanned, $intervals, $assets, $tasks, $now, $previousTasks)
+    {
+        $planned = array();
+        $tasksWithActualStart = $tasksWithoutActualStartByAssetId = $allTasks = $taskLinks = array();
+        $withoutIntervalCount = 0;
+        $assetsWithIntervals = array_fill_keys(array_keys($intervals), true);
+        $debugOrder = Mode::is('debugOrder');
+
+        foreach ($tasks as $task) {
+            $allTasks[$task->id] = $task;
+            if (isset($assetsWithIntervals[$task->assetId])) {
+                if ($debugOrder) {
+                    $taskLinks[$task->id] = ht::createLink("Opr{$task->id}", array('planning_Tasks', 'single', $task->id), false, 'target=_blank')->getContent();
+                }
+                if (!empty($task->actualStart) && $task->state != 'stopped') {
+                    $tasksWithActualStart[$task->id] = $task;
+                } else {
+                    $tasksWithoutActualStartByAssetId[$task->assetId][$task->id] = $task;
+                }
+            } else {
+                $withoutIntervalCount++;
+            }
+        }
+
+        $debugRes = "<hr />УМНО ПЛАНИРАНЕ (ГРАФ)<hr />Без графици: {$withoutIntervalCount}";
+        $debugRes .= "<hr />ВСИЧКИ: " . countR($tasks);
+        $interruptionArr = planning_Steps::getInterruptionArr($tasks);
+
+        // Tasks already in progress reserve the corresponding resource intervals first.
+        arr::sortObjects($tasksWithActualStart, 'actualStart', 'ASC');
+        $lastActualTaskByAsset = array();
+        foreach ($tasksWithActualStart as $task) {
+            $task->calcedCurrentDuration = max(1, (int)$task->calcedCurrentDuration);
+            $begin = max($task->actualStart, $now);
+            $Interval = $intervals[$task->assetId];
+            $interruptOffset = $interruptionArr[$task->productId] ?? null;
+            if ($debugOrder) {
+                $debugRes .= "<br />{$taskLinks[$task->id]} [{$assets[$task->assetId]->code}] от {$begin}";
+            }
+            $debugRes .= static::feedToInterval($task, $begin, $interruptOffset, $Interval, $planned, $debugOrder);
+            $plannedByAssets[$task->assetId][$task->id] = $planned[$task->id];
+            $lastActualTaskByAsset[$task->assetId] = $task->id;
+        }
+
+        // Build the resource edges. A saved manual order is authoritative for its resource.
+        $remaining = $machinePrevious = $manualPosition = array();
+        foreach ($tasksWithoutActualStartByAssetId as $assetId => $assetTasks) {
+            $withStart = $withoutStart = array();
+            foreach ($assetTasks as $task) {
+                if (!empty($task->timeStart)) {
+                    $withStart[$task->id] = $task;
+                } else {
+                    $withoutStart[$task->id] = $task;
+                }
+            }
+
+            arr::sortObjects($withStart, 'timeStart', 'ASC');
+            arr::sortObjects($withoutStart, 'dueDate', 'ASC');
+            $orderedTasks = $withStart + $withoutStart;
+            $hasManualOrder = isset($assets[$assetId]->manualOrder) && is_array($assets[$assetId]->manualOrder);
+            if ($hasManualOrder) {
+                $orderedTasks = static::reorderTasksByManualOrder($orderedTasks, $assets[$assetId]->manualOrder);
+            }
+
+            $previousId = $lastActualTaskByAsset[$assetId] ?? null;
+            $position = 0;
+            foreach ($orderedTasks as $task) {
+                $task->calcedCurrentDuration = max(1, (int)$task->calcedCurrentDuration);
+                $remaining[$task->id] = $task;
+                $manualPosition[$task->id] = $hasManualOrder ? $position : PHP_INT_MAX;
+                if ($hasManualOrder && isset($previousId)) {
+                    $machinePrevious[$task->id] = $previousId;
+                }
+                if ($hasManualOrder) {
+                    $previousId = $task->id;
+                }
+                $position++;
+            }
+        }
+
+        // Kahn traversal: dependencies are visited once instead of rescanning every task.
+        $inDegree = array_fill_keys(array_keys($remaining), 0);
+        $successors = array();
+        foreach ($remaining as $taskId => $task) {
+            if (isset($previousTasks[$taskId])) {
+                foreach ($previousTasks[$taskId] as $previousTaskId => $constraint) {
+                    if (isset($remaining[$previousTaskId])) {
+                        static::addPlanningEdge($previousTaskId, $taskId, $inDegree, $successors);
+                    }
+                }
+            }
+
+            if (isset($machinePrevious[$taskId]) && isset($remaining[$machinePrevious[$taskId]])) {
+                static::addPlanningEdge($machinePrevious[$taskId], $taskId, $inDegree, $successors);
+            }
+        }
+
+        $readyHeap = array();
+        foreach ($inDegree as $taskId => $degree) {
+            if ($degree == 0) {
+                $plannedTime = static::getGraphReadyTime($remaining[$taskId], $previousTasks, $machinePrevious, $planned, $allTasks, $now);
+                static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$taskId], $plannedTime, $manualPosition[$taskId]));
+            }
+        }
+
+        while (count($readyHeap)) {
+            $readyItem = static::readyHeapPop($readyHeap);
+            $taskId = $readyItem['taskId'];
+            if (!isset($remaining[$taskId])) {
+                continue;
+            }
+
+            $task = $remaining[$taskId];
+            $task->_plannedTime = $readyItem['plannedTime'];
+            $Interval = $intervals[$task->assetId];
+            $interruptOffset = $interruptionArr[$task->productId] ?? null;
+            if ($debugOrder) {
+                $debugRes .= "<br />{$taskLinks[$taskId]} [{$assets[$task->assetId]->code}] от {$task->_plannedTime}";
+            }
+            $debugRes .= static::feedToInterval($task, $task->_plannedTime, $interruptOffset, $Interval, $planned, $debugOrder);
+            $plannedByAssets[$task->assetId][$taskId] = $planned[$taskId];
+            unset($remaining[$taskId]);
+
+            foreach ($successors[$taskId] ?? array() as $successorId) {
+                $inDegree[$successorId]--;
+                if ($inDegree[$successorId] == 0 && isset($remaining[$successorId])) {
+                    $plannedTime = static::getGraphReadyTime($remaining[$successorId], $previousTasks, $machinePrevious, $planned, $allTasks, $now);
+                    static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$successorId], $plannedTime, $manualPosition[$successorId]));
+                }
+            }
+        }
+
+        // What remains is part of, or depends on, a cycle in the combined graph.
+        $notPlanned = $remaining;
+        foreach ($remaining as $task) {
+            $plannedByAssets[$task->assetId][$task->id] = (object)array(
+                'id' => $task->id,
+                'assetId' => $task->assetId,
+                'calcedCurrentDuration' => $task->calcedCurrentDuration,
+                'expectedTimeStart' => self::NOT_PLANNABLE,
+                'expectedTimeEnd' => self::NOT_PLANNABLE,
+            );
+        }
+
+        $debugRes .= "<hr />КРАЙНО НЕПЛАНИРАНИ: " . implode(', ', array_keys($notPlanned)) . "<br />";
+        core_Debug::stopTimer('SCHEDULE_CALC_TIMES');
+        core_Debug::log("END SCHEDULE_CALC_TIMES " . round(core_Debug::$timers['SCHEDULE_CALC_TIMES']->workingTime, 6));
+
+        return $debugRes;
+    }
+
+
+    /**
+     * Adds a unique edge to the planning graph.
+     */
+    private static function addPlanningEdge($fromId, $toId, &$inDegree, &$successors)
+    {
+        if (isset($successors[$fromId][$toId])) {
+            return;
+        }
+
+        $successors[$fromId][$toId] = $toId;
+        $inDegree[$toId]++;
+    }
+
+
+    /**
+     * Applies a persisted manual order in linear time.
+     */
+    private static function reorderTasksByManualOrder($tasks, $manualOrder)
+    {
+        $ordered = array();
+        foreach ((array)$manualOrder as $taskId) {
+            if (isset($tasks[$taskId])) {
+                $ordered[$taskId] = $tasks[$taskId];
+            }
+        }
+
+        return $ordered + array_diff_key($tasks, $ordered);
+    }
+
+
+    /**
+     * Calculates the earliest usable time after all already planned predecessors.
+     */
+    private static function getGraphReadyTime($task, $previousTasks, $machinePrevious, $planned, $allTasks, $now)
+    {
+        $readyTimes = array($now);
+        if (!empty($task->timeStart)) {
+            $readyTimes[] = $task->timeStart;
+        }
+
+        foreach ($previousTasks[$task->id] ?? array() as $previousTaskId => $constraint) {
+            if (!isset($allTasks[$previousTaskId])) {
+                continue;
+            }
+            if (!isset($planned[$previousTaskId])) {
+                $readyTimes[] = self::NOT_FOUND_DATE;
+                continue;
+            }
+
+            $readyTimes[] = static::getConstraintReadyTime($task, $planned[$previousTaskId], $constraint);
+        }
+
+        if (isset($machinePrevious[$task->id]) && isset($planned[$machinePrevious[$task->id]])) {
+            $machineReadyTime = $planned[$machinePrevious[$task->id]]->expectedTimeEnd;
+            $readyTimes[] = ($machineReadyTime >= self::NOT_FOUND_DATE) ? self::NOT_FOUND_DATE : $machineReadyTime;
+        }
+
+        return max($readyTimes);
+    }
+
+
+    /**
+     * Applies the technological overlap rule between two operations.
+     */
+    private static function getConstraintReadyTime($task, $previousTask, $constraint)
+    {
+        if ($previousTask->expectedTimeStart >= self::NOT_FOUND_DATE || $previousTask->expectedTimeEnd >= self::NOT_FOUND_DATE) {
+            return self::NOT_FOUND_DATE;
+        }
+
+        $waitingTime = (int)($constraint->waitingTime ?? 0);
+        if (($constraint->intersect ?? 'yes') == 'no') {
+            return dt::addSecs($waitingTime, $previousTask->expectedTimeEnd);
+        }
+
+        $duration = max(1, (int)$task->calcedCurrentDuration);
+        $fromPreviousEnd = dt::addSecs(-1 * ($duration - $waitingTime), $previousTask->expectedTimeEnd);
+        $fromPreviousStart = dt::addSecs($waitingTime, $previousTask->expectedTimeStart);
+
+        return max($fromPreviousEnd, $fromPreviousStart);
+    }
+
+
+    /**
+     * Creates one deterministic min-heap item.
+     */
+    private static function getReadyHeapItem($task, $plannedTime, $manualPosition)
+    {
+        $plannedTimestamp = strtotime($plannedTime);
+        $dueTimestamp = !empty($task->dueDate) ? strtotime($task->dueDate) : false;
+
+        return array(
+            'taskId' => $task->id,
+            'plannedTime' => $plannedTime,
+            'plannedTimestamp' => ($plannedTimestamp === false) ? PHP_INT_MAX : $plannedTimestamp,
+            'manualPosition' => $manualPosition,
+            'dueTimestamp' => ($dueTimestamp === false) ? PHP_INT_MAX : $dueTimestamp,
+        );
+    }
+
+
+    /**
+     * Pushes an item to the deterministic min-heap.
+     */
+    private static function readyHeapPush(&$heap, $item)
+    {
+        $heap[] = $item;
+        $index = count($heap) - 1;
+        while ($index > 0) {
+            $parent = (int)(($index - 1) / 2);
+            if (static::compareReadyHeapItems($heap[$parent], $heap[$index]) <= 0) {
+                break;
+            }
+
+            $tmp = $heap[$parent];
+            $heap[$parent] = $heap[$index];
+            $heap[$index] = $tmp;
+            $index = $parent;
+        }
+    }
+
+
+    /**
+     * Removes the earliest item from the deterministic min-heap.
+     */
+    private static function readyHeapPop(&$heap)
+    {
+        $result = $heap[0];
+        $last = array_pop($heap);
+        if (count($heap)) {
+            $heap[0] = $last;
+            $index = 0;
+            $count = count($heap);
+            while (true) {
+                $left = $index * 2 + 1;
+                if ($left >= $count) {
+                    break;
+                }
+
+                $right = $left + 1;
+                $smallest = $left;
+                if ($right < $count && static::compareReadyHeapItems($heap[$right], $heap[$left]) < 0) {
+                    $smallest = $right;
+                }
+                if (static::compareReadyHeapItems($heap[$index], $heap[$smallest]) <= 0) {
+                    break;
+                }
+
+                $tmp = $heap[$index];
+                $heap[$index] = $heap[$smallest];
+                $heap[$smallest] = $tmp;
+                $index = $smallest;
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Compares two heap items by release time, manual position, due date and id.
+     */
+    private static function compareReadyHeapItems($a, $b)
+    {
+        foreach (array('plannedTimestamp', 'manualPosition', 'dueTimestamp', 'taskId') as $field) {
+            if ($a[$field] == $b[$field]) {
+                continue;
+            }
+
+            return ($a[$field] < $b[$field]) ? -1 : 1;
+        }
+
+        return 0;
+    }
+
+
+    /**
+     * Legacy quantized planner, retained temporarily for rollback compatibility.
      */
     private static function smartPlanning(&$plannedByAssets, &$notPlanned, $intervals, $assets, $tasks, $now, $previousTasks)
     {
@@ -863,9 +1337,10 @@ class planning_TaskConstraints extends core_Master
      * @param int $interrupedOffset    - отместването при прекъсване
      * @param core_Intervals $Interval - инстанцията на интервала
      * @param array $planned
+     * @param bool $withDebug
      * @return string
      */
-    private static function feedToInterval($task, $begin, $interrupedOffset, &$Interval, &$planned)
+    private static function feedToInterval($task, $begin, $interrupedOffset, &$Interval, &$planned, $withDebug = true)
     {
         $planned[$task->id] = (object)array('id' => $task->id, 'assetId' => $task->assetId, 'calcedCurrentDuration' => $task->calcedCurrentDuration, 'expectedTimeStart' => self::NOT_FOUND_DATE, 'expectedTimeEnd' => self::NOT_FOUND_DATE);
 
@@ -876,12 +1351,12 @@ class planning_TaskConstraints extends core_Master
             if(is_array($timeArr)){
                 $planned[$task->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
                 $planned[$task->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
-                return "--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />";
+                return $withDebug ? "--------Изчислено за S: <b>{$planned[$task->id]->expectedTimeStart}</b> / Е: <b>{$planned[$task->id]->expectedTimeEnd}</b> <br />" : '';
             }
 
-            return "--------Не е изчислено начало/край<br />";
+            return $withDebug ? "--------Не е изчислено начало/край<br />" : '';
         } else {
-            return "--------Е ИЗВЪН ГРАФИКА<br />";
+            return $withDebug ? "--------Е ИЗВЪН ГРАФИКА<br />" : '';
         }
     }
 
