@@ -320,13 +320,14 @@ class planning_TaskConstraints extends core_Master
                 }
             }
 
-            // Ако има ръчно посочена предходна - нея, иначе се търсят всички предходни от заданието
+            // Ако има ръчно посочена и все още планируема предходна - нея.
+            // При приключена/оттеглена предходна се продължава назад по реда на
+            // заданието до най-близката планируема операция.
             $prevTaskIds = array();
-            if (isset($taskRec->previousTask)) {
-                if(isset($tasksByJobs[$taskRec->originId][$taskRec->previousTask])){
-                    $prevTaskProductId = $tasksByJobs[$taskRec->originId][$taskRec->previousTask]->productId;
-                    $prevTaskIds[$taskRec->previousTask] = $prevSteps[$taskRec->productId][$prevTaskProductId] ?? null;
-                }
+            $hasPlanableManualPrevious = isset($taskRec->previousTask) && isset($tasksByJobs[$taskRec->originId][$taskRec->previousTask]);
+            if ($hasPlanableManualPrevious) {
+                $prevTaskProductId = $tasksByJobs[$taskRec->originId][$taskRec->previousTask]->productId;
+                $prevTaskIds[$taskRec->previousTask] = $prevSteps[$taskRec->productId][$prevTaskProductId] ?? null;
             } else {
                 $prevStepsArr = array_key_exists($taskRec->productId, $prevSteps) ? $prevSteps[$taskRec->productId] : array();
                 foreach ($tasksByJobs[$taskRec->originId] as $a) {
