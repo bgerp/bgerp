@@ -395,7 +395,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 }
             }
 
-            if($rec->quantityHasAddedValues == 'yes'){
+            if(($rec->quantityHasAddedValues ?? null) == 'yes'){
                 if($rec->isBatch ?? false){
                     if(!isset($rec->quantity)){
                         $row->quantity = $row->blQuantity;
@@ -404,7 +404,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 }
             }
 
-            if(!($rec->isBatch ?? false)){
+            if(isset($rec) && !($rec->isBatch ?? false)){
                 if (!Mode::isReadOnly()) {
                     $row->productId = cat_Products::getVerbal($rec->productId, 'name');
                     $row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
