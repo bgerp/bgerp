@@ -388,7 +388,7 @@ class cal_Progresses extends core_Mvc
             $pVal = $doc->instance->fields['progress']->type->toVerbal($rec->progress);
             Mode::pop('text');
             
-            $pValStr = $progressArr[$pVal];
+            $pValStr = $progressArr[$pVal] ?? null;
             
             if ($pValStr && ($pValStr != $pVal)) {
                 $row->progress .= ' (' . $pValStr . ')';
