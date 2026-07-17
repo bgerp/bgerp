@@ -82,7 +82,7 @@ class plg_SelectPeriod extends core_Plugin
         $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory}{$refresh},mustExist", array('attr' => array('onchange' => "spr(this,false, {$fFEsc}, {$fTEsc});")));
         
         $keySel = null;
-        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF}, $rec->{$fT}, $showFuturePeriods));
+        $form->setOptions('selectPeriod', self::getOptions($keySel, $rec->{$fF} ?? null, $rec->{$fT} ?? null, $showFuturePeriods));
 
         if (!$form->isSubmitted() && ($form->cmd != 'refresh')) {
             if (!$keySel) {
