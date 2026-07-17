@@ -27,7 +27,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
     {
         if($mvc instanceof store_ShipmentOrders && $rec->isReverse != 'yes') return;
         
-        if ($rec->state == 'rejected') {
+        if (($rec->state ?? null) == 'rejected') {
             
             $docClassId = core_Classes::getId($mvc);
             $dQuery = purchase_PurchasesData::getQuery();
@@ -84,7 +84,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         
         //Проверка за бърза прокупка или продажба
-        if (!is_null($clone->contoActions)) {
+        if (!is_null($clone->contoActions ?? null)) {
             $cond = (strrpos($clone->contoActions, 'ship') !== false);
         } else {
             $cond = true;

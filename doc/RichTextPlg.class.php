@@ -279,7 +279,7 @@ class doc_RichTextPlg extends core_Plugin
         //Ако сме в текстов режим
         if (Mode::is('text', 'plain')) {
             //Добавяме линк към системата
-            $this->mvc->_htmlBoard[$place] = "{$docName} ( ${link} )";
+            $this->mvc->_htmlBoard[$place] = "{$docName} ( {$link} )";
         } else {
             $attr = array();
 
@@ -436,7 +436,7 @@ class doc_RichTextPlg extends core_Plugin
         //Ако сме в текстов режим
         if (Mode::is('text', 'plain')) {
             //Добавяме линк към системата
-            $this->mvc->_htmlBoard[$place] = "{$docName} ( ${link} )";
+            $this->mvc->_htmlBoard[$place] = "{$docName} ( {$link} )";
         } else {
             $attr = array();
 

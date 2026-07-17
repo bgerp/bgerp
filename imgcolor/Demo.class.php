@@ -244,6 +244,10 @@ class imgcolor_Demo extends core_Manager
         } catch (core_exception_Expect $e) {
 
             return $this->renderWrapping(self::renderError($e));
+        } catch (InvalidArgumentException $e) {
+            $error = new core_exception_Expect('imgcolor: ' . $e->getMessage(), 'Несъответствие');
+
+            return $this->renderWrapping(self::renderError($error));
         }
 
         return $this->renderWrapping(self::renderResult($result));

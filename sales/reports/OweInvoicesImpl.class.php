@@ -449,7 +449,7 @@ class sales_reports_OweInvoicesImpl extends frame_BaseDriver
             $row->amountVat =
                 "<div>
 						<span class='cCode'>{$data->currencyId}</span>
-						<span>${amountVat}</span></b>
+						<span>{$amountVat}</span></b>
 				</div>";
             
             $data->rows[] = $row;

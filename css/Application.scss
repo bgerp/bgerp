@@ -4073,31 +4073,6 @@ fieldset.sharing-history {
 .filterForm #filter {
 	padding-left: 20px !important;
 }
-.wide .twoColsFilter {
-	display: flex;
-	justify-content: space-between;
-	margin-bottom: 20px;
-	.listFilter form {
-		column-count: 2;
-	}
-	.summary-block {
-		margin-left: 20px;
-	}
-
-}
-
-@media handheld , only screen and (max-width: 1400px) {
-	.wide .twoColsFilter {
-		display: block;
-		margin-bottom: 0;
-		.listFilter form {
-			column-count: 1;
-		}
-		.summary-block {
-			margin-left: 0px;
-		}
-	}
-}
 
 /*край на външни стилове за ширина*/
 .background-holder {

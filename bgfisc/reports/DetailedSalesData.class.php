@@ -100,7 +100,7 @@ class bgfisc_reports_DetailedSalesData extends frame2_driver_TableData
         $suggestions = ($suggestionsPos+$suggestionsSales);
         
         foreach ($suggestions as $val) {
-            $suggestions[$val] = core_Users::fetch("#id = ${val}")->names;
+            $suggestions[$val] = core_Users::fetch("#id = {$val}")->names;
         }
         
         asort($suggestions);

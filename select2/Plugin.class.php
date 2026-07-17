@@ -386,7 +386,7 @@ class select2_Plugin extends core_Plugin
             
             foreach ($value as $id => $val) {
                 if (!ctype_digit(trim($id))) {
-                    $type->error = "Некоректен списък ${id} ";
+                    $type->error = "Некоректен списък {$id} ";
                     
                     return false;
                 }

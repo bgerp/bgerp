@@ -119,7 +119,7 @@ class core_Composer extends core_Mvc
                     putenv('COMPOSER_HOME=' . $vPath . '/.composer');
                     exec($cmd, $output, $returnvar);
                     if ($returnvar != 0) {
-                        self::$error = "Грешка (${cmd}):" . implode('; ', $output);
+                        self::$error = "Грешка ({$cmd}):" . implode('; ', $output);
 
                         return false;
                     }
@@ -298,7 +298,7 @@ class core_Composer extends core_Mvc
         
         if ($result != 0) {
             
-            return "Грешка (${cmd}):" . implode('; ', $lines);
+            return "Грешка ({$cmd}):" . implode('; ', $lines);
         }
     }
     

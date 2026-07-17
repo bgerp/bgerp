@@ -86,7 +86,7 @@ class blast_Labels extends core_Manager
         requireRole('blast, ceo');
         
         $text = tr('В процес на разработка');
-        $underConstructionImg = "<h2>${text}</h2><img src=" . sbf('img/under_construction.png') . '>';
+        $underConstructionImg = "<h2>{$text}</h2><img src=" . sbf('img/under_construction.png') . '>';
         
         return $this->renderWrapping($underConstructionImg);
     }

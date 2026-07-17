@@ -47,6 +47,14 @@ class core_Html
                     // са вътрешни и поради това не ги показваме в елемента
                     if (is_string($atr) && isset($atr[0]) && $atr[0] == '#') continue;
 
+                    if (is_array($content)) {
+                        $flatContent = array();
+                        array_walk_recursive($content, function ($c) use (&$flatContent) {
+                            $flatContent[] = $c;
+                        });
+                        $content = implode(' ', $flatContent);
+                    }
+
                     if (is_string($content)) {
                         /**
                          * Необходимо ли е да се ескейпва символи различни от двойни кавички

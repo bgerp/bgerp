@@ -224,7 +224,7 @@ class sens2_ServMon extends sens2_ProtoDriver
         if (file_exists($path)) {
             $res = disk_free_space($path);
         } else {
-            $res = "Не съществуваща директория ${path}";
+            $res = "Не съществуваща директория {$path}";
         }
         
         return $res;

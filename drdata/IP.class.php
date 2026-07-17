@@ -28,7 +28,7 @@ class drdata_IP
      */
     public function ripeLink($ip)
     {
-        return "<a class=out target=_blank href='http://www.ripe.net/perl/whois?searchtext=${ip}'>${ip}</a>";
+        return "<a class=out target=_blank href='http://www.ripe.net/perl/whois?searchtext={$ip}'>{$ip}</a>";
     }
     
     
@@ -62,7 +62,7 @@ class drdata_IP
         global $db;
         $ips = explode('.', $ip);
         $ipn = ($ips[3] + $ips[2] * 256 + $ips[1] * 256 * 256 + $ips[0] * 256 * 256 * 256);
-        $dbRes = $db->query("SELECT c FROM ip2country WHERE l<${ipn} AND h>${ipn}");
+        $dbRes = $db->query("SELECT c FROM ip2country WHERE l<{$ipn} AND h>{$ipn}");
         
         if ($db->numRows($dbRes) > 0) {
             $r = $db->fetchObject($dbRes);

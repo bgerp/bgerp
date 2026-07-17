@@ -461,7 +461,7 @@ class email_Incomings extends core_Master
         $duration = time() - $startTime;
         
         // Генерираме и записваме лог съобщение
-        $logMsg = "{$accRec->email} (${duration} s)";
+        $logMsg = "{$accRec->email} ({$duration} s)";
         
         // Обхождаме всички статуси
         foreach ($statusSum as $status => $cnt) {
@@ -470,7 +470,7 @@ class email_Incomings extends core_Master
         }
         
         // Показваме стринга
-        echo "<h3> ${logMsg} </h3>";
+        echo "<h3> {$logMsg} </h3>";
         
         email_Accounts::logInfo($logMsg, $accRec->id);
     }
@@ -912,11 +912,11 @@ class email_Incomings extends core_Master
         static $isDown = array();
         $accId = $imapConn->accRec->id;
         
-        email_Accounts::logInfo("Check Down: ${msgNum}", $accId);
+        email_Accounts::logInfo("Check Down: {$msgNum}", $accId);
         
         // Номерата почват от 1
         if ($msgNum < 1) {
-            email_Accounts::logInfo("TRUE: ${msgNum} < 1", $accId);
+            email_Accounts::logInfo("TRUE: {$msgNum} < 1", $accId);
             
             return true;
         }
@@ -934,7 +934,7 @@ class email_Incomings extends core_Master
             $isDown[$accId][$msgNum] = email_Fingerprints::fetchByHeaders($headers) ? true : false;
         }
         
-        email_Accounts::logInfo("Result: ${msgNum}  " . $isDown[$accId][$msgNum], $accId);
+        email_Accounts::logInfo("Result: {$msgNum}  " . $isDown[$accId][$msgNum], $accId);
         
         return $isDown[$accId][$msgNum];
     }

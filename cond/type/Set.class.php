@@ -50,7 +50,7 @@ class cond_type_Set extends cond_type_abstract_Proto
         }
 
         $options = arr::fromArray($options);
-        $Type = core_Type::getByName("set(${options})");
+        $Type = core_Type::getByName("set({$options})");
         
         return $Type;
     }

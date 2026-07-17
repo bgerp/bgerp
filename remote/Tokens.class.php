@@ -127,6 +127,6 @@ class remote_Tokens extends core_Master
         
         $cnt = self::delete("#expiredOn < '{$now}'");
         
-        return "Изтрити са ${cnt} tokens";
+        return "Изтрити са {$cnt} tokens";
     }
 }

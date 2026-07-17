@@ -536,7 +536,7 @@ class core_Setup extends core_ProtoSetup
         // Изтриване на старите файлове от sbf директорията
         $delCnt = core_Os::deleteOldFiles(EF_SBF_PATH, 2 * 30 * 24 * 60 * 60, "#^_[a-z0-9\-\/_]+#i");
         if ($delCnt) {
-            $html .= "<li class=\"green\">Изтрити са ${delCnt} файла в " . EF_SBF_PATH . '/</li>';
+            $html .= "<li class=\"green\">Изтрити са {$delCnt} файла в " . EF_SBF_PATH . '/</li>';
         }
         
         // Нагласяване на Крон да почиства кеша

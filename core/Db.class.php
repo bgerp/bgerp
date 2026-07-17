@@ -552,7 +552,7 @@ class core_Db
         // Правим допълнителните параметри към заявката
         $params = 'ENGINE = ' . $params['ENGINE'] . ' CHARACTER SET =' . $params['CHARACTER'] . ' COLLATE ' . $params['COLLATION'] . ';';
         
-        $dbRes = $this->query("CREATE TABLE `${tableName}` (`id` INT UNSIGNED AUTO_INCREMENT, PRIMARY KEY(`id`)) {$params}", false, true);
+        $dbRes = $this->query("CREATE TABLE `{$tableName}` (`id` INT UNSIGNED AUTO_INCREMENT, PRIMARY KEY(`id`)) {$params}", false, true);
         
         return true;
     }

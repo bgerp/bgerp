@@ -552,7 +552,7 @@ class bgerp_Setup extends core_ProtoSetup
                         $loadRes = $packsInst[$p]->loadSetupData($itr);
                         
                         if ($loadRes) {
-                            $html .= "<h2>Инициализиране на ${p}</h2>";
+                            $html .= "<h2>Инициализиране на {$p}</h2>";
                             $html .= '<ul>';
                             $html .= $loadRes;
                             $html .= '</ul>';

@@ -420,10 +420,10 @@ class html2text_Html2Text
         if ($this->wapSafe) {
             if (trim($link) == trim($display)) {
                 
-                return "{[{a href='${display}'}]}${display}{[{/a}]}";
+                return "{[{a href='{$display}'}]}{$display}{[{/a}]}";
             }
             
-            return "{[{a href='${link}'}]}${display}{[{/a}]}" ;
+            return "{[{a href='{$link}'}]}{$display}{[{/a}]}" ;
         }
         if (trim($link) == trim($display)) {
             

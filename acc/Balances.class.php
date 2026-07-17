@@ -1123,8 +1123,8 @@ class acc_Balances extends core_Master
         if ($accountRec->id && strlen($num) >= 3) {
             if (acc_Balances::haveRightFor('read', $rec) && !Mode::isReadOnly()) {
                 
-                // Ако има номенклатури, правим линк към обобщението на сметката
-                if ($accountRec->groupId1 || $accountRec->groupId2 || $accountRec->groupId3) {
+                // Ако има номенклатури и вече е изчислен баланс, правим линк към обобщението на сметката
+                if (($accountRec->groupId1 || $accountRec->groupId2 || $accountRec->groupId3) && !empty($rec->id)) {
                     $balImg = ($showIcon) ? 'ef_icon=img/16/filter.png,title=Разбивка по пера на сметката' : null;
                     
                     $title = ht::createLink(

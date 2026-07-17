@@ -223,11 +223,11 @@ class rack_Products extends store_Products
             $ids = implode(',', $inIds);
             $ids = trim($ids, ',');
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $inIds);
-            $pQuery->where("#id IN (${ids})");
+            $pQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$inIds}")) {
-            $pQuery->where("#id = ${onlyIds}");
+            $pQuery->where("#id = {$onlyIds}");
         } elseif (preg_match("/^[0-9\,]+$/", $inIds)) {
-            $pQuery->where("#id IN (${onlyIds})");
+            $pQuery->where("#id IN ({$onlyIds})");
         }
 
         cat_Products::addSearchQueryToKey2SelectArr($pQuery, $q, $limit);

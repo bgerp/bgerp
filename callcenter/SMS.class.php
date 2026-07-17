@@ -1040,7 +1040,7 @@ class callcenter_SMS extends core_Master
                 // Ако не открием мобилен номер, няма да се праща съобщение
                 if (!$mobileNum) {
                     $notMobileCnt++;
-                    $clsInst->logNotice("Към '{$type}:${pId}' не e изпратено циркулярно съобщение, защото няма мобилен номер: ", $objId);
+                    $clsInst->logNotice("Към '{$type}:{$pId}' не e изпратено циркулярно съобщение, защото няма мобилен номер: ", $objId);
                     continue;
                 }
                 
@@ -1060,7 +1060,7 @@ class callcenter_SMS extends core_Master
                     $msgArr[0] = $form->rec->message;
                     $send = callcenter_SMS::sendSmart($mobileNum, $msgArr, $paramsArr);
                 } catch (ErrorException $e) {
-                    $clsInst->logWarning("Грешка при изпращане на циркулярно съобщение към '{$type}:${pId}': " . $e->getMessage());
+                    $clsInst->logWarning("Грешка при изпращане на циркулярно съобщение към '{$type}:{$pId}': " . $e->getMessage());
                     if ($isFirstErr) {
                         wp('Грешка при изпращане на циркулярно съобщение', $e);
                         $isFirstErr = false;

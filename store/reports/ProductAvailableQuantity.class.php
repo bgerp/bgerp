@@ -282,7 +282,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
                     if ((($arts + $numbersOfItemsToAdd) * 4) > $maxPost) {
                         $form->setError('droupId', "Лимита за следени продукти е достигнат.
-                            За да добавите група \" ${groupName}\" трябва да премахнете ${prodForCut} артикула ");
+                            За да добавите група \" {$groupName}\" трябва да премахнете {$prodForCut} артикула ");
                     } else {
 
                         // Добавя цяла група артикули
@@ -620,7 +620,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if ((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))) {
             list($a, $conditionQuantity) = explode('|', $dRec->conditionQuantity);
 
-            $row->conditionQuantity = "<span style='color: {$dRec->conditionColor}'>${conditionQuantity}</span>";
+            $row->conditionQuantity = "<span style='color: {$dRec->conditionColor}'>{$conditionQuantity}</span>";
         }
 
         return $row;

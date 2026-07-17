@@ -129,14 +129,14 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
             
             $id = $rec->id;
             
-            if (sales_SalesDetails::fetch("#saleId = ${id}") !== false) {
+            if (sales_SalesDetails::fetch("#saleId = {$id}") !== false) {
                 $p = sales_SalesDetails::fetch("#saleId = {$rec->id}");
                 $productId = $p->productId;
                 
                 $productInfo = cat_Products::getProductInfo($productId);
                 
                 if ($productInfo->meta['canBuy'] == true && $productInfo->meta['canStore'] == true) {
-                    $products[] = sales_SalesDetails::fetch("#saleId = ${id} AND #productId = ${productId}");
+                    $products[] = sales_SalesDetails::fetch("#saleId = {$id} AND #productId = {$productId}");
                     $dates[$productId][$id] = $date;
                 } else {
                     continue;
