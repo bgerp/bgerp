@@ -706,6 +706,7 @@ class core_Manager extends core_Mvc
             $showFields = arr::make($data->listFilter->showFields, true);
 
             foreach ($showFields as $name) {
+                core_Debug::startTimer("HIDE_EMPTY_OPTIONS_{$name}");
                 $Type = $data->listFilter->getField($name);
                 $options = array();
 
@@ -749,6 +750,7 @@ class core_Manager extends core_Mvc
                     unset($showFields[$name]);
                     $data->listFilter->setField($name, 'input=none');
                 }
+                core_Debug::stopTimer("HIDE_EMPTY_OPTIONS_{$name}");
             }
 
             $data->listFilter->showFields = implode(',', $showFields);
