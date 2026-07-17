@@ -273,7 +273,7 @@ class type_Table extends type_Blob
             return;
         }
         
-        if (($columns = $this->params['mandatory']) && ($columns != 'mandatory')) {
+        if (($columns = $this->params['mandatory'] ?? null) && ($columns != 'mandatory')) {
             $value = self::toArray($value);
             
             
