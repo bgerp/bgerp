@@ -51,6 +51,7 @@ class plg_GroupByField extends core_Plugin
         
         // Колко е броя на колоните
         $columns = countR($data->listFields);
+        $groupByFieldStyles = $data->groupByFieldStyles ?? '';
         
         $groups = array();
         
@@ -74,7 +75,7 @@ class plg_GroupByField extends core_Plugin
                     
                     'tr',
                     $rowAttr,
-                    new ET("<td style='padding-top:9px;padding-left:5px;{$data->groupByFieldStyles}' colspan='{$columns}'>" . $groupVerbal . '</td>')
+                    new ET("<td style='padding-top:9px;padding-left:5px;{$groupByFieldStyles}' colspan='{$columns}'>" . $groupVerbal . '</td>')
                     
                     );
             }
