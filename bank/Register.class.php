@@ -537,7 +537,7 @@ class bank_Register extends core_Manager
         $query->where('#folderId > 0');
 
         $lastDateActivity = DT::addSecs(-$inThePast);
-        $query->where("#last > '${lastDateActivity}'");
+        $query->where("#last > '{$lastDateActivity}'");
 
         $res = array();
 

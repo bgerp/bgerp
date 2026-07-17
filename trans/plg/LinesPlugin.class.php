@@ -268,7 +268,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 
             if (!$form->gotErrors()) {
                 $rec->lineNotes = $formRec->lineNotes;
-                $rec->{$mvc->lineFieldName} = $formRec->lineId;
+                $rec->{$mvc->lineFieldName} = $formRec->lineId ?? null;
                 if(is_array($lineDateFields)){
                     foreach ($lineDateFields as $dateFld => $dateObj){
                         if(!in_array($rec->state, array('draft', 'pending'))) {

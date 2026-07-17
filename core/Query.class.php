@@ -394,7 +394,7 @@ class core_Query extends core_FieldSet
                 // Добавя се леко изчакване за да не се заключва цялата таблица за дълго
                 usleep(rand(100000, 200000));
                 $clone = clone $this;
-                $clone->XPR('gCount', 'int', "SUM(LOCATE('|" . $id . "|', ${mysqlKeylistName}) > 0)");
+                $clone->XPR('gCount', 'int', "SUM(LOCATE('|" . $id . "|', {$mysqlKeylistName}) > 0)");
                 $clone->show('gCount');
                 $res[$id] = $clone->fetch()->gCount;
             }
@@ -404,7 +404,7 @@ class core_Query extends core_FieldSet
 
         // Иначе с една заявка
         foreach ($ids as $id) {
-            $this->XPR($keylistName . '_cnt_' . $id, 'int', "SUM(LOCATE('|" . $id . "|', ${mysqlKeylistName}) > 0)");
+            $this->XPR($keylistName . '_cnt_' . $id, 'int', "SUM(LOCATE('|" . $id . "|', {$mysqlKeylistName}) > 0)");
         }
         $rec = $this->fetch();
         foreach ($ids as $id) {

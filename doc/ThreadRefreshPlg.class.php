@@ -340,7 +340,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
                 if ($cRec) {
                     $currUrl = getCurrentUrl();
                     $currUrl['#'] = $docId;
-                    $link = ht::createLink('#' . $docId, $currUrl, null, array('onclick' => "getEO().scrollTo('${docId}'); return false;"));
+                    $link = ht::createLink('#' . $docId, $currUrl, null, array('onclick' => "getEO().scrollTo('{$docId}'); return false;"));
                     
                     if ($cu == $cRec->modifiedBy) {
                         continue;

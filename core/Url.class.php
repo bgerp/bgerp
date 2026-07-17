@@ -188,7 +188,7 @@ class core_Url
             $r .= "(?:\?((?:[a-z0-9-._~!$&'()*+,;=:\/?@]|%[0-9a-f]{2})*))?";
             $r .= "(?:#((?:[a-z0-9-._~!$&'()*+,;=:\/?@]|%[0-9a-f]{2})*))?";
             
-            preg_match("`${r}`i", $url, $match);
+            preg_match("`{$r}`i", $url, $match);
             
             $parts = array(
                 'scheme' => '',
@@ -642,10 +642,10 @@ class core_Url
             foreach ($send_header as $name => $value) {
                 if (is_array($value)) {
                     foreach ($value as $item) {
-                        $custom_headers[] = "{$name}: ${item}";
+                        $custom_headers[] = "{$name}: {$item}";
                     }
                 } else {
-                    $custom_headers[] = "{$name}: ${value}";
+                    $custom_headers[] = "{$name}: {$value}";
                 }
             }
             
@@ -686,19 +686,19 @@ class core_Url
                 $out = '';
                 
                 if (isset($options['method']) and $options['method'] == 'post' and isset($url_parts['query'])) {
-                    $out .= "POST ${page} HTTP/1.1\r\n";
+                    $out .= "POST {$page} HTTP/1.1\r\n";
                 } else {
-                    $out .= "GET ${page} HTTP/1.0\r\n";     //HTTP/1.0 is much easier to handle than HTTP/1.1
+                    $out .= "GET {$page} HTTP/1.0\r\n";     //HTTP/1.0 is much easier to handle than HTTP/1.1
                 }
                 $out .= "Host: {$url_parts[host]}\r\n";
                 
                 foreach ($send_header as $name => $value) {
                     if (is_array($value)) {
                         foreach ($value as $item) {
-                            $out .= "{$name}: ${item}\r\n";
+                            $out .= "{$name}: {$item}\r\n";
                         }
                     } else {
-                        $out .= "{$name}: ${value}\r\n";
+                        $out .= "{$name}: {$value}\r\n";
                     }
                 }
                 $out .= "Connection: Close\r\n";

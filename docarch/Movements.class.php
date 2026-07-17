@@ -787,7 +787,7 @@ class docarch_Movements extends core_Master
         
         $mQuery->where('#documentId IS NOT NULL');
         
-        $mQuery->where("#documentId = ${containerId}");
+        $mQuery->where("#documentId = {$containerId}");
         
         $mQuery->orderBy('createdOn', 'ASC');
         

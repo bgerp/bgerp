@@ -284,13 +284,13 @@ class bglocal_Address extends core_MVC
             
             if (countR($res)) {
                 foreach ($res as $key => $lines) {
-                    $html .= "<li> ${key} </li>";
+                    $html .= "<li> {$key} </li>";
                     $html .= '<ol>';
                     
                     arsort($lines);
                     
                     foreach ($lines as $l => $v) {
-                        $html .= "<li> ${l} </li>";
+                        $html .= "<li> {$l} </li>";
                     }
                     
                     $html .= '</ol>';
@@ -467,7 +467,7 @@ class bglocal_Address extends core_MVC
             $cnt = 0;
             
             foreach ($words as $w) {
-                if (strpos($companyTypes, "|${w}|") !== false) {
+                if (strpos($companyTypes, "|{$w}|") !== false) {
                     $cnt++;
                 }
                 
@@ -512,7 +512,7 @@ class bglocal_Address extends core_MVC
                 $cnt = 0;
                 
                 foreach ($words as $w) {
-                    if (strpos($givenNames, "|${w}|") !== false) {
+                    if (strpos($givenNames, "|{$w}|") !== false) {
                         $cnt++;
                     }
                 }
@@ -563,7 +563,7 @@ class bglocal_Address extends core_MVC
             $cnt = 0;
             
             foreach ($words as $w) {
-                if (strpos($companyWords, "|${w}|") !== false) {
+                if (strpos($companyWords, "|{$w}|") !== false) {
                     $cnt++;
                 }
             }

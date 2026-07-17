@@ -146,7 +146,7 @@ class core_Sbf extends core_Mvc
                     // Записваме в лога
                          // self::logWarning("Файла не може да се запише в '{$sbfPath}'.");
                 } else {
-                    self::logNotice("Липсващ файл: ${rPath}");
+                    self::logNotice("Липсващ файл: {$rPath}");
                     $ext = str::getFileExt($rPath);
                     if (in_array($ext, array('jpg', 'jpeg', 'png', 'bmp'))) {
                         $rPath = 'img/1x1.gif';
@@ -231,7 +231,7 @@ class core_Sbf extends core_Mvc
                 }
                 header('HTTP/1.1 404 Not Found');
             } else {
-                header("Content-Type: ${ctype}; charset: utf-8");
+                header("Content-Type: {$ctype}; charset: utf-8");
                 
                 // Хедъри за управлението на кеша в браузъра
                 header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 3153600) . ' GMT');

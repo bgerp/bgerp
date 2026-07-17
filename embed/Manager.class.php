@@ -467,7 +467,7 @@ abstract class embed_Manager extends core_Master
             $query = static::getQuery();
         }
         $classId = core_Classes::getId($driverClass);
-        $query->where("#{$query->mvc->driverClassField} = ${classId}");
+        $query->where("#{$query->mvc->driverClassField} = {$classId}");
         
         return $query;
     }

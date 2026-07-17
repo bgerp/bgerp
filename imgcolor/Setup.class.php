@@ -191,6 +191,9 @@ class imgcolor_Setup extends core_ProtoSetup
             imgcolor_Analyzer::buildOptions();
             imgcolor_TransitionClassifier::normalizeParams(imgcolor_Analyzer::getTransParams());
             new imgcolor_CmykConverter(imgcolor_Analyzer::getCmykConfig());
+        } catch (core_exception_Expect $e) {
+
+            return $e->getMessage();
         } catch (InvalidArgumentException $e) {
 
             return 'Некоректна imgcolor конфигурация: ' . $e->getMessage();

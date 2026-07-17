@@ -160,7 +160,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
             $time = dt::mysql2verbal($point->fixTime, $mask = 'd.m.y H:i:s');
             
             
-            $coords[$point->vehicleId][] = array($parseData['latitude'],$parseData['longitude'],'info' => "{$vehicleData->number} » ${time}");
+            $coords[$point->vehicleId][] = array($parseData['latitude'],$parseData['longitude'],'info' => "{$vehicleData->number} » {$time}");
             
             $values[$point->vehicleId] = array(
                 'coords' => $coords[$point->vehicleId],

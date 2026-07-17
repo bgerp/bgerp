@@ -351,7 +351,7 @@ class remote_BgerpDriver extends core_Mvc
         
         $dc = core_Classes::getId(__CLASS__);
         
-        while ($rec = $query->fetch("#driverClass = ${dc} AND #state = 'active'")) {
+        while ($rec = $query->fetch("#driverClass = {$dc} AND #state = 'active'")) {
             
             // Ако нотификациите са изключени за този потребител, не вадим нищо
             $getNotifys = remote_Setup::get('RECEIVE_NOTIFICATIONS', false, $rec->userId);

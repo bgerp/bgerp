@@ -26,6 +26,15 @@ class imgcolor_tests_Analyzer extends unit_Class
 
 
     /**
+     * Венднатата библиотека е PHP 8.2+, но unit класът трябва да се зарежда и под PHP 7.4.
+     */
+    private static function canRunLibraryTests()
+    {
+        return imgcolor_Analyzer::canRunLibrary() && extension_loaded('gd');
+    }
+
+
+    /**
      * Проверка на файла допуска само JPEG/PNG, без значение от регистъра на разширението
      */
     public static function test_FileEligibilityIsCaseInsensitive($us)
@@ -48,6 +57,11 @@ class imgcolor_tests_Analyzer extends unit_Class
      */
     public static function test_ParityWithLibraryDefaults($us)
     {
+        if (!self::canRunLibraryTests()) {
+
+            return;
+        }
+
         $fixture = dirname(__DIR__) . '/tests/fixtures/sample.png';
 
         imgcolor_Analyzer::registerAutoload();
@@ -64,6 +78,11 @@ class imgcolor_tests_Analyzer extends unit_Class
      */
     public static function test_BuildOptionsFromProfileRecord($us)
     {
+        if (!self::canRunLibraryTests()) {
+
+            return;
+        }
+
         $rec = new stdClass();
         $rec->cropLightnessMin = 90.0;
         $rec->cropChromaMax = 4.0;
@@ -94,6 +113,11 @@ class imgcolor_tests_Analyzer extends unit_Class
      */
     public static function test_TransparentBackgroundIgnoresAlpha($us)
     {
+        if (!self::canRunLibraryTests()) {
+
+            return;
+        }
+
         $fixture = dirname(__DIR__) . '/tests/fixtures/sample_transparent.png';
         $colors = json_decode(imgcolor_Analyzer::analyzePathAsJson($fixture), true);
 
@@ -108,6 +132,11 @@ class imgcolor_tests_Analyzer extends unit_Class
      */
     public static function test_FullyTransparentYieldsEmpty($us)
     {
+        if (!self::canRunLibraryTests()) {
+
+            return;
+        }
+
         $fixture = self::createTransparentFixture();
 
         try {
@@ -125,6 +154,11 @@ class imgcolor_tests_Analyzer extends unit_Class
      */
     public static function test_FileHandleMatchesPath($us)
     {
+        if (!self::canRunLibraryTests()) {
+
+            return;
+        }
+
         $fixture = dirname(__DIR__) . '/tests/fixtures/sample.png';
         $fh = fileman::absorb($fixture, self::$bucket);
 
@@ -144,6 +178,11 @@ class imgcolor_tests_Analyzer extends unit_Class
      */
     public static function test_InvalidImageKeepsAnalyzerMessage($us)
     {
+        if (!self::canRunLibraryTests()) {
+
+            return;
+        }
+
         try {
             imgcolor_Analyzer::analyzeAsJson('not an image');
             ut::expectEqual(true, false);
@@ -159,17 +198,22 @@ class imgcolor_tests_Analyzer extends unit_Class
      */
     public static function test_InvalidOptionsAreRejected($us)
     {
+        if (!self::canRunLibraryTests()) {
+
+            return;
+        }
+
         imgcolor_Analyzer::registerAutoload();
 
         try {
-            new \ImageColorAnalyzer\Options\CropOptions(alphaThreshold: 300);
+            new \ImageColorAnalyzer\Options\CropOptions(95.0, 5.0, 0.002, 300);
             ut::expectEqual(true, false);
         } catch (InvalidArgumentException $e) {
             ut::expectEqual(true, strpos($e->getMessage(), 'alphaThreshold') !== false);
         }
 
         try {
-            new \ImageColorAnalyzer\Options\ClusterOptions(histogramBitsPerChannel: 9);
+            new \ImageColorAnalyzer\Options\ClusterOptions(null, 8, 9);
             ut::expectEqual(true, false);
         } catch (InvalidArgumentException $e) {
             ut::expectEqual(true, strpos($e->getMessage(), 'histogramBitsPerChannel') !== false);
@@ -182,6 +226,11 @@ class imgcolor_tests_Analyzer extends unit_Class
      */
     public static function test_CropKeepsThinEdgeContent($us)
     {
+        if (!self::canRunLibraryTests()) {
+
+            return;
+        }
+
         imgcolor_Analyzer::registerAutoload();
 
         $white = new \ImageColorAnalyzer\Contracts\ColorRGBA(255, 255, 255);
@@ -198,7 +247,7 @@ class imgcolor_tests_Analyzer extends unit_Class
             new \ImageColorAnalyzer\Color\ColorConverter()
         );
 
-        $crop = $cropper->crop($raster, new \ImageColorAnalyzer\Options\CropOptions(lineContentFraction: 0.3));
+        $crop = $cropper->crop($raster, new \ImageColorAnalyzer\Options\CropOptions(95.0, 5.0, 0.3));
 
         ut::expectEqual(0, $crop->boundingBox->x);
         ut::expectEqual(0, $crop->boundingBox->y);

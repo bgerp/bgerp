@@ -2434,7 +2434,7 @@ class core_Users extends core_Manager
         $Roles = cls::get('core_Roles');
         $adminId = $Roles->fetchByName('admin');
         
-        $id = self::fetchField("#roles LIKE '%|${adminId}|%' AND #state != 'rejected'", 'id');
+        $id = self::fetchField("#roles LIKE '%|{$adminId}|%' AND #state != 'rejected'", 'id');
         
         return $id;
     }
@@ -2623,7 +2623,7 @@ class core_Users extends core_Manager
         $html = $this->renderWrapping($form->renderHtml());
         
         if ($cnt = countR($res)) {
-            $html .= "<h2 style='margin-left:15px'>Мигрирани са ${cnt} папки</h2>";
+            $html .= "<h2 style='margin-left:15px'>Мигрирани са {$cnt} папки</h2>";
             $html .= '<ul><li>' . implode('</li><li>', $res) . '</li></ul>';
         } elseif ($form->isSubmitted()) {
             $html .= "<h2 style='margin-left:15px'>Няма мигрирани папки</h2>";
@@ -2689,9 +2689,9 @@ class core_Users extends core_Manager
             $ids = implode(',', $onlyIds);
             expect(preg_match("/^[0-9\,]+$/", $ids), $ids, $onlyIds);
             
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $query->where("#id = ${onlyIds}");
+            $query->where("#id = {$onlyIds}");
         }
         
         if (!empty($params['rolesArr'])) {

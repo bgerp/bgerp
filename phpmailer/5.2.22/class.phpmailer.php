@@ -874,7 +874,7 @@ class PHPMailer
         $name = trim(preg_replace('/[\r\n]+/', '', $name)); //Strip breaks and trim
         if (($pos = strrpos($address, '@')) === false) {
             // At-sign is misssing.
-            $error_message = $this->lang('invalid_address') . " (addAnAddress ${kind}): ${address}";
+            $error_message = $this->lang('invalid_address') . " (addAnAddress {$kind}): {$address}";
             $this->setError($error_message);
             $this->edebug($error_message);
             if ($this->exceptions) {
@@ -929,7 +929,7 @@ class PHPMailer
             return false;
         }
         if (!$this->validateAddress($address)) {
-            $error_message = $this->lang('invalid_address') . " (addAnAddress ${kind}): ${address}";
+            $error_message = $this->lang('invalid_address') . " (addAnAddress {$kind}): {$address}";
             $this->setError($error_message);
             $this->edebug($error_message);
             if ($this->exceptions) {
@@ -1028,7 +1028,7 @@ class PHPMailer
         if (($pos = strrpos($address, '@')) === false or
             (!$this->has8bitChars(substr($address, ++$pos)) or !$this->idnSupported()) and
             !$this->validateAddress($address)) {
-            $error_message = $this->lang('invalid_address') . " (setFrom) ${address}";
+            $error_message = $this->lang('invalid_address') . " (setFrom) {$address}";
             $this->setError($error_message);
             $this->edebug($error_message);
             if ($this->exceptions) {
@@ -2869,7 +2869,7 @@ class PHPMailer
             $encoded = str_replace('=' . self::CRLF, "\n", trim($encoded));
         }
 
-        $encoded = preg_replace('/^(.*)$/m', ' =?' . $this->CharSet . "?${encoding}?\\1?=", $encoded);
+        $encoded = preg_replace('/^(.*)$/m', ' =?' . $this->CharSet . "?{$encoding}?\\1?=", $encoded);
         $encoded = trim(str_replace("\n", $this->LE, $encoded));
 
         return $encoded;
@@ -3962,7 +3962,7 @@ class PHPMailer
         $DKIMcanonicalization = 'relaxed/simple'; // Canonicalization of header/body
         $DKIMquery = 'dns/txt'; // Query method
         $DKIMtime = time(); // Signature Timestamp = seconds since 00:00:00 - Jan 1, 1970 (UTC time zone)
-        $subject_header = "Subject: ${subject}";
+        $subject_header = "Subject: {$subject}";
         $headers = explode($this->LE, $headers_line);
         $from_header = '';
         $to_header = '';
@@ -4011,10 +4011,10 @@ class PHPMailer
             "\tt=" . $DKIMtime . '; c=' . $DKIMcanonicalization . ";\r\n" .
             "\th=From:To:Date:Subject;\r\n" .
             "\td=" . $this->DKIM_domain . ';' . $ident . "\r\n" .
-            "\tz=${from}\r\n" .
-            "\t|${to}\r\n" .
-            "\t|${date}\r\n" .
-            "\t|${subject};\r\n" .
+            "\tz={$from}\r\n" .
+            "\t|{$to}\r\n" .
+            "\t|{$date}\r\n" .
+            "\t|{$subject};\r\n" .
             "\tbh=" . $DKIMb64 . ";\r\n" .
             "\tb=";
         $toSign = $this->DKIM_HeaderC(

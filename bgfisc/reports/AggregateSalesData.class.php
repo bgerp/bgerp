@@ -77,7 +77,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
          $suggestions = $suggestionsPos+$suggestionsSales;
         
          foreach ($suggestions as $val) {
-             $suggestions[$val] = core_Users::fetch("#id = ${val}")->names;
+             $suggestions[$val] = core_Users::fetch("#id = {$val}")->names;
          }
         
          asort($suggestions);
@@ -304,7 +304,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
                     //Ако по продажбата има сторниране
                     list($thisUrn) = (explode('|', $id));
                     $prntQuery = bgfisc_PrintedReceipts::getQuery();
-                    $prntQuery->where("#type = 'reverted' AND #urnId = ${thisUrn}");
+                    $prntQuery->where("#type = 'reverted' AND #urnId = {$thisUrn}");
                     $stornoVat = $stornoAmount = 0;
                     if (!empty($prntQuery->fetchAll())) {
                         while ($prntRcptRev = $prntQuery->fetch()) {

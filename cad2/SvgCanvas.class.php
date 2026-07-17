@@ -674,11 +674,11 @@ class cad2_SvgCanvas extends cad2_Canvas
                                     $tArr[2] = $tArr[1];
                                 }
                                 list($tX, $tY) = array($tArr[1], $tArr[2]);
-                                $tag->attr['transform'] .= "scale(${tX}, ${tY}) ";
+                                $tag->attr['transform'] .= "scale({$tX}, {$tY}) ";
                                 break;
                             case 'translate':
                                 list($tX, $tY) = self::toPix($tArr[1], $tArr[2]);
-                                $tag->attr['transform'] .= "translate(${tX}, ${tY}) ";
+                                $tag->attr['transform'] .= "translate({$tX}, {$tY}) ";
                                 break;
                             
                             case 'rotate':
@@ -686,7 +686,7 @@ class cad2_SvgCanvas extends cad2_Canvas
                                     $tArr[3] = $tArr[2] = 0;
                                 }
                                 list($tX, $tY) = self::toPix($tArr[2], $tArr[3]);
-                                $tag->attr['transform'] .= "rotate({$tArr[1]}, ${tX}, ${tY}) ";
+                                $tag->attr['transform'] .= "rotate({$tArr[1]}, {$tX}, {$tY}) ";
                                 break;
                             default:
                                 
@@ -725,7 +725,7 @@ class cad2_SvgCanvas extends cad2_Canvas
                     $c = -$b;
                     $d = $a;
                     
-                    $tag->attr['transform'] = "matrix(${a}, ${b}, ${c}, ${d}, ".(-$x * $a + $y * $b + $x).', '.(-$x * $b - $y * $a + $y).')';
+                    $tag->attr['transform'] = "matrix({$a}, {$b}, {$c}, {$d}, ".(-$x * $a + $y * $b + $x).', '.(-$x * $b - $y * $a + $y).')';
                 }
             }
             

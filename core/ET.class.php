@@ -136,7 +136,7 @@ class core_ET extends core_BaseClass
      */
     public function toBeginMark($blockName)
     {
-        return "<!--ET_BEGIN ${blockName}-->";
+        return "<!--ET_BEGIN {$blockName}-->";
     }
     
     
@@ -145,7 +145,7 @@ class core_ET extends core_BaseClass
      */
     public function toEndMark($blockName)
     {
-        return "<!--ET_END ${blockName}-->";
+        return "<!--ET_END {$blockName}-->";
     }
     
     

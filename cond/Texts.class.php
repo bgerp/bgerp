@@ -336,7 +336,7 @@ class cond_Texts extends core_Manager
 
             $str = json_encode($placeBody);
             
-            $attr = array('onclick' => "if(window.opener.{$callback}(${str}) != true) self.close(); else self.focus();", 'class' => 'file-log-link');
+            $attr = array('onclick' => "if(window.opener.{$callback}({$str}) != true) self.close(); else self.focus();", 'class' => 'file-log-link');
 
             $title = ht::createLink($rec->title, '#', false, $attr);
             

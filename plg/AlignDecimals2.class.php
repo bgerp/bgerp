@@ -45,7 +45,7 @@ class plg_AlignDecimals2 extends core_Plugin
         // тука определяме най-дългата дробна част, без да записваме числото
         foreach ($recs as $id => $rec) {
             foreach ($decFields as $fName) {
-                core_Math::roundNumber($rec->{$fName}, ${"{$fName}FracLen"});
+                core_Math::roundNumber($rec->{$fName} ?? 0, ${"{$fName}FracLen"});
             }
         }
 

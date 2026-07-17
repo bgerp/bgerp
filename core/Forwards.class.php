@@ -132,7 +132,7 @@ class core_Forwards extends core_Manager
             
             do {
                 $sysId = str::getRand($ptr);
-            } while (self::fetch("#sysId = '${sysId}'"));
+            } while (self::fetch("#sysId = '{$sysId}'"));
             
             $rec = (object) array(
                 'hash' => $hash,

@@ -572,7 +572,7 @@ class log_Data extends core_Manager
             $row->classCrc = $typeClass->toVerbal($className);
         }
         
-        if (empty($fieldsArr) || $fieldsArr['text']) {
+        if (empty($fieldsArr) || !empty($fieldsArr['text'])) {
             $row->text = self::prepareText($action, $className, $rec->objectId);
         }
         

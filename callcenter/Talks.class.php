@@ -2451,7 +2451,7 @@ class callcenter_Talks extends core_Master
         // Вземаме всички записи, които нямат dialStatus и са по стари от посоченото време
         $query = static::getQuery();
         $query->where("#dialStatus IS NULL OR #dialStatus = ''");
-        $query->where("#startTime < '${before}'");
+        $query->where("#startTime < '{$before}'");
         
         // Обхождаме резултатите
         while ($rec = $query->fetch()) {

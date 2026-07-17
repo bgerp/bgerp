@@ -268,7 +268,7 @@ class cat_Listings extends core_Master
 
             if (is_array($instock) && countR($instock)) {
                 $instock = implode(',', $instock);
-                $query->XPR('instock', 'int', "(CASE WHEN #productId IN (${instock}) THEN 0 ELSE 1 END)");
+                $query->XPR('instock', 'int', "(CASE WHEN #productId IN ({$instock}) THEN 0 ELSE 1 END)");
                 $query->orderBy('instock', 'ASC');
             }
 
@@ -590,7 +590,7 @@ class cat_Listings extends core_Master
             $ids = implode(',', $onlyIds);
             $pQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $pQuery->where("#id = ${onlyIds}");
+            $pQuery->where("#id = {$onlyIds}");
         } else {
             $dQuery = cat_ListingDetails::getQuery();
             $dQuery->where("#listId = {$params['listId']}");

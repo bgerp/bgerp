@@ -1080,7 +1080,7 @@ class price_ListRules extends core_Detail
             $ids = implode(',', $onlyIds);
             $pQuery->where("#id IN ({$ids})");
         } elseif (ctype_digit("{$onlyIds}")) {
-            $pQuery->where("#id = ${onlyIds}");
+            $pQuery->where("#id = {$onlyIds}");
         } else {
             $pQuery->where("#state != 'closed' AND #state != 'rejected'");
             if (!isset($params['showTemplates'])) {

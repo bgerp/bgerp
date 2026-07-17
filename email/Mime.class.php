@@ -1010,7 +1010,7 @@ class email_Mime extends core_BaseClass
             $cntParts = countR($data);
             
             if ($cntParts == 2) {
-                $this->errors[] = "Само едно  boundary в MULTIPART частта (${cntParts})";
+                $this->errors[] = "Само едно  boundary в MULTIPART частта ({$cntParts})";
                 
                 if (strlen($data[0]) > strlen($data[1])) {
                     unset($data[1]);
@@ -1020,7 +1020,7 @@ class email_Mime extends core_BaseClass
             }
             
             if ($cntParts == 1) {
-                $this->errors[] = "Няма нито едно boundary в MULTIPART частта (${cntParts})";
+                $this->errors[] = "Няма нито едно boundary в MULTIPART частта ({$cntParts})";
             }
             
             if ($cntParts >= 3) {

@@ -396,7 +396,7 @@ class spas_Client
     public function learn($message, $learnType = self::LEARN_SPAM)
     {
         if (!in_array($learnType, $this->learnTypes)) {
-            throw new spas_client_Exception("Invalid learn type (${learnType})");
+            throw new spas_client_Exception("Invalid learn type ({$learnType})");
         }
         
         if ($learnType == self::LEARN_SPAM) {
