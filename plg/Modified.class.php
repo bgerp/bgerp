@@ -81,7 +81,7 @@ class plg_Modified extends core_Plugin
         }
         
         if ($modRecs) {
-            $res .= "<li style='color:green'>Обновено времето за модифициране на ${modRecs} запис(а)</li>";
+            $res .= "<li style='color:green'>Обновено времето за модифициране на {$modRecs} запис(а)</li>";
         }
     }
 }

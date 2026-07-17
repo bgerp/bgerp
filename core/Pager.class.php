@@ -352,7 +352,7 @@ class core_Pager extends core_BaseClass
             $ids = array_slice($ids, 0, $this->rangeEnd - $this->rangeStart);
           
             $ids = implode(',', $ids);
-            $query->where("#id IN (${ids})");
+            $query->where("#id IN ({$ids})");
              
             foreach ($query->where as $i => $cond) {
                 if ((stripos($cond, 'match(') !== false) || (stripos($cond, 'locate(') !== false)) {
@@ -442,7 +442,7 @@ class core_Pager extends core_BaseClass
                 if ($start == $this->getPage()) {
                     $sel = "class='pager pagerSelected'";
                 }
-                $html .= '<a href="' . htmlspecialchars(Url::change($link, array($this->pageVar => $start)), ENT_QUOTES, 'UTF-8') . "\"  ${sel} title='{$pn}{$start}'>{$start}</a> ";
+                $html .= '<a href="' . htmlspecialchars(Url::change($link, array($this->pageVar => $start)), ENT_QUOTES, 'UTF-8') . "\"  {$sel} title='{$pn}{$start}'>{$start}</a> ";
             } while ($start++ < $end);
             
             //Ако имаме страници, които не се показват в посока към края, показваме >
@@ -461,7 +461,7 @@ class core_Pager extends core_BaseClass
             }
         }
         
-        $tpl = new ET($html ? "<div class='pages'>${html}</div>" : '');
+        $tpl = new ET($html ? "<div class='pages'>{$html}</div>" : '');
         
         return $tpl;
     }

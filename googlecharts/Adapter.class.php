@@ -61,7 +61,7 @@ class googlecharts_Adapter extends core_Mvc
         
         $data = json_encode($data);
         
-        jquery_Jquery::run($tpl, "prepareGoogleChart('${idChart}', ${data}, '${chartType}');", true);
+        jquery_Jquery::run($tpl, "prepareGoogleChart('{$idChart}', {$data}, '{$chartType}');", true);
         
         return $tpl;
     }

@@ -55,7 +55,7 @@ class efax_Sender
         if (!is_numeric($conf->EFAX_SENDER_BOX)) {
             
             //Вземаме id' то на получателя
-            $faxSender = email_Inboxes::fetchField("#email='${faxSender}'");
+            $faxSender = email_Inboxes::fetchField("#email='{$faxSender}'");
             
             //Очакваме да има такъв имейл
             expect($faxSender, 'Няма такъв имейл в системата Ви.');

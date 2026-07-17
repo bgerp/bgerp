@@ -158,7 +158,7 @@ class hr_FormCv extends core_Master
             $months .= $m.'|';
         }
         
-        $this->FLD('workExperience', "table(columns=orgName|position|beginM|beginY|endM|endY,beginM_opt=${months},beginY_opt=${period},endM_opt=${months},endY_opt=${period},captions=Фирма/Организация|Длъжност|ОТ мес|год|ДО мес|год,widths=20em|15em|4em|4em|4em|4em)", 'caption=Трудов стаж||Extras->Месторабота||Additional,autohide,advanced,export=Csv');
+        $this->FLD('workExperience', "table(columns=orgName|position|beginM|beginY|endM|endY,beginM_opt={$months},beginY_opt={$period},endM_opt={$months},endY_opt={$period},captions=Фирма/Организация|Длъжност|ОТ мес|год|ДО мес|год,widths=20em|15em|4em|4em|4em|4em)", 'caption=Трудов стаж||Extras->Месторабота||Additional,autohide,advanced,export=Csv');
         
         $this->FLD('education', 'table(columns=school|specility|begin|end,captions=Учебно заведение|Степен/Квалификация|Начало|Край,widths=20em|15em|5em|5em)', 'caption=Образование||Extras->Обучение||Additional,autohide,advanced,export=Csv');
         
@@ -244,7 +244,7 @@ class hr_FormCv extends core_Master
                             $parts = trim($parts, ',') ;
                             
                             
-                            $form->FLD("workpreff_{$v->id}", "enum(${parts})", "caption={$v->name},maxRadio={$v->count},columns=3,input");
+                            $form->FLD("workpreff_{$v->id}", "enum({$parts})", "caption={$v->name},maxRadio={$v->count},columns=3,input");
                             
                             $form->setDefault("workpreff_{$v->id}", $exRec->workpreff[$v->id]->value);
                             
@@ -259,7 +259,7 @@ class hr_FormCv extends core_Master
                             
                             $parts = trim($parts, ',') ;
                             
-                            $form->FLD("workpreff_{$v->id}", "set(${parts})", "caption ={$v->name},input");
+                            $form->FLD("workpreff_{$v->id}", "set({$parts})", "caption ={$v->name},input");
                             
                             
                             $form->setDefault("workpreff_{$v->id}", $exRec->workpreff[$v->id]->value);

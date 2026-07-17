@@ -352,14 +352,14 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
             $exp = "(#state = 'active' OR #state = 'closed')";
         }
         
-        $query->where("(#${fld} >= '{$period->start}' AND #${fld} <= '{$period->end}') AND ${exp}");
+        $query->where("(#{$fld} >= '{$period->start}' AND #{$fld} <= '{$period->end}') AND {$exp}");
         
         $recs = array();
         $recsDet = array();
         
         while ($rec = $query->fetch()) {
             $detQuery = $detailClass::getQuery();
-            $detQuery->where("#${masterKey} = '{$rec->id}'");
+            $detQuery->where("#{$masterKey} = '{$rec->id}'");
             
             while ($recDet = $detQuery->fetch()) {
                 $this->addRecs($data, $rec, $recDet, $masterClass);

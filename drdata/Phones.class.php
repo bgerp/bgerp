@@ -428,7 +428,7 @@ class drdata_Phones extends core_Manager
                     }
                     
                     $obj->number = $t1;
-                    $this->debug("<li> ${t1} [ " . $obj->countryCode . '-' . $obj->areaCode . '-' . $obj->number . " ] ( ${defaultCountryCode} ) ( ${defaultAreaCode} ) {$obj->area} ");
+                    $this->debug("<li> {$t1} [ " . $obj->countryCode . '-' . $obj->areaCode . '-' . $obj->number . " ] ( {$defaultCountryCode} ) ( {$defaultAreaCode} ) {$obj->area} ");
                     
                     if (strpos($obj->area, 'Cellular') !== false) {
                         $obj->mobile = true;

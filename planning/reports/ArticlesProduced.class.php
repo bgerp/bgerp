@@ -627,7 +627,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
                 $monthName = $months[($month)];
 
-                $fld->FLD($val, 'double(smartRound,decimals=2)', "smartCenter,caption=${year}->${monthName}");
+                $fld->FLD($val, 'double(smartRound,decimals=2)', "smartCenter,caption={$year}->{$monthName}");
             }
         }
         return $fld;

@@ -21,6 +21,13 @@
 class imgcolor_Calibration
 {
     /**
+     * Минимална PHP версия за венднатите Options класове.
+     */
+    const MIN_LIBRARY_PHP_VERSION = '8.2.0';
+    const MIN_LIBRARY_PHP_VERSION_ID = 80200;
+
+
+    /**
      * Имена на праговете, в реда на CropOptions/ClusterOptions конструкторите.
      * Споделени между imgcolor_Setup::$configDescription и
      * imgcolor_Profiles::description() - единствената форма стойности,
@@ -174,6 +181,10 @@ class imgcolor_Calibration
         if (class_exists('ImageColorAnalyzer\\Options\\AnalyzerOptions', false)) {
 
             return;
+        }
+
+        if (PHP_VERSION_ID < self::MIN_LIBRARY_PHP_VERSION_ID) {
+            throw new InvalidArgumentException('image-color-analyzer requires PHP ' . self::MIN_LIBRARY_PHP_VERSION . '+, current PHP is ' . PHP_VERSION . '.');
         }
 
         $base = __DIR__ . '/lib/image-color-analyzer/src/Options/';

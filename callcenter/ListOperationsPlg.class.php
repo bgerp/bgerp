@@ -127,7 +127,7 @@ class callcenter_ListOperationsPlg extends core_Plugin
         
         $tel = ($countryCode == 359) ? 'тел' : 'tel';
         
-        $q = "{$countryCode}{$areaCode}{$number} | ${tel} {$sNum}";
+        $q = "{$countryCode}{$areaCode}{$number} | {$tel} {$sNum}";
         
         if (strlen($number) == 6) {
             $q .= " | 0{$areaCode}_" . substr($number, 0, 2) . '_' . substr($number, 2, 2) . '_' . substr($number, 4, 2);

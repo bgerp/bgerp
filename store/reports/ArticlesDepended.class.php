@@ -421,7 +421,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN storeId--><div>|Склад|*: [#storeId#]</div><!--ET_END storeId-->
                                         <!--ET_BEGIN groups--><div>|Групи продукти|*: [#groups#]</div><!--ET_END groups-->
-                                        <!--ET_BEGIN minCost--><div>|Мин. наличност|*: [#minCost#] ${currency}</div><!--ET_END minCost-->
+                                        <!--ET_BEGIN minCost--><div>|Мин. наличност|*: [#minCost#] {$currency}</div><!--ET_END minCost-->
                                         <!--ET_BEGIN reversibility--><div>|Мин. обращаемост|*: [#reversibility#]</div><!--ET_END reversibility-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));

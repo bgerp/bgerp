@@ -109,7 +109,7 @@ class doc_FolderPlg extends core_Plugin
             $attr['ef_icon'] = '/img/16/page_go.png';
             $attr['title'] = 'Екшън лог на потребителя';
             
-            $id = $data->rec->id;
+            $id = $data->rec->id ?? null;
             
             if (!$id && $data->masterData) {
                 $id = $data->masterData->rec->id;

@@ -666,7 +666,7 @@ class colab_FolderToPartners extends core_Manager
         $lifetime = colab_Setup::get('PARTNER_REGISTRATION_LINK_LIFETIME');
         $PML->Encoding = 'quoted-printable';
         $url = core_Forwards::getUrl(get_called_class(), 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), $lifetime);
-        $rec->body = str_replace($rec->placeHolder, "[link=${url}]link[/link]", $rec->body);
+        $rec->body = str_replace($rec->placeHolder, "[link={$url}]link[/link]", $rec->body);
         
         Mode::push('text', 'plain');
         $bodyAlt = cls::get('type_Richtext')->toVerbal($rec->body);

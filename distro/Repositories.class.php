@@ -533,7 +533,7 @@ class distro_Repositories extends core_Master
         $path = self::getSystemFile($rec->path);
         $path = escapeshellarg($path);
         
-        $cmd = "tail -n {$linesCnt} ${path}";
+        $cmd = "tail -n {$linesCnt} {$path}";
         
         $sshObj->exec($cmd, $resLines);
         
@@ -778,7 +778,7 @@ class distro_Repositories extends core_Master
         $path = rtrim($sysDir, '/');
         $path .= '/' . self::$autorunFile;
         $ePath = escapeshellarg($path);
-        $sshObj->exec("echo {$autorunSh} >> ${ePath}");
+        $sshObj->exec("echo {$autorunSh} >> {$ePath}");
         $sshObj->exec("chmod +x {$ePath}");
         
         // Добавяме стартирането на файла в кронтаба
@@ -793,7 +793,7 @@ class distro_Repositories extends core_Master
         $content = file_get_contents($fPath);
         $content = escapeshellarg($content);
         
-        $sshObj->exec("echo {$content} >> ${htaccesPath}");
+        $sshObj->exec("echo {$content} >> {$htaccesPath}");
     }
     
     

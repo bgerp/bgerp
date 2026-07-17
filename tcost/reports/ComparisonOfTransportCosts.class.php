@@ -138,7 +138,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $iQuery->likeKeylist('lists', $nomId);
         
-        $iQuery->where("(#classId = ${classId})");
+        $iQuery->where("(#classId = {$classId})");
         
         $iQuery->EXT('saleState', 'sales_Sales', 'externalName=state,externalKey=objectId');
         

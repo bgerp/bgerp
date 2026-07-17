@@ -348,7 +348,7 @@ class sales_PrimeCostByDocument extends core_Manager
             // Ако има детайли от модела ще търсим точно записите от детайли на документи променяни след timeline
             if (countR($ids)) {
                 $ids = implode(',', $ids);
-                $iQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId IN (${ids})", $or);
+                $iQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId IN ({$ids})", $or);
                 $or = true;
             }
         }

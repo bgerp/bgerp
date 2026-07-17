@@ -779,12 +779,12 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             //  $resonId = acc_Operations::getIdByTitle('Влагане на материал в производството' OR 'Влагане на услуга в производството');
 
-            if (!$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id) return;
+            if (!$masterJurnalId = acc_Journal::fetch("#docType = {$docTypeId} AND #docId = {$pRec->noteId}")->id) return;
             //$masterJurnalId = acc_Journal::fetch("#docType = ${docTypeId} AND #docId = {$pRec->noteId}")->id;
 
             $jdQuery = acc_JournalDetails::getQuery();
 
-            $jdQuery->where("#journalId = ${masterJurnalId}");
+            $jdQuery->where("#journalId = {$masterJurnalId}");
 
             $jdQuery->in('reasonCode', $resonIdArr);
 

@@ -251,7 +251,7 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
         
         }
         
-        $fld->FLD('time', 'varchar', "caption=${text},tdClass=centered");
+        $fld->FLD('time', 'varchar', "caption={$text},tdClass=centered");
         $fld->FLD('counter', 'varchar', 'caption=Брой,tdClass=centered');
         $fld->FLD('amount', 'varchar', 'caption=Стойност,tdClass=centered');
         

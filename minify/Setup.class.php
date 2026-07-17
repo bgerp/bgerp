@@ -58,7 +58,7 @@ class minify_Setup extends core_ProtoSetup
         
         $delCnt = core_Os::deleteOldFiles(EF_SBF_PATH, 1, "#^_[a-z0-9\-\/_]+#i", "#[a-z0-9\-\/_]+(.js|.css)$#i");
         if ($delCnt) {
-            $html .= "<li class='status-new'>Изтрити са ${delCnt} .js и .css файла в " . EF_SBF_PATH . '/</li>';
+            $html .= "<li class='status-new'>Изтрити са {$delCnt} .js и .css файла в " . EF_SBF_PATH . '/</li>';
         }
         
         return $html;
@@ -74,7 +74,7 @@ class minify_Setup extends core_ProtoSetup
         
         $delCnt = core_Os::deleteOldFiles(EF_SBF_PATH, 1, "#^_[a-z0-9\-\/_]+#i", "#[a-z0-9\-\/_]+(.js|.css)$#i");
         if ($delCnt) {
-            $html .= "<li class='status-new'>Изтрити са ${delCnt} .js и .css файла в " . EF_SBF_PATH . '/</li>';
+            $html .= "<li class='status-new'>Изтрити са {$delCnt} .js и .css файла в " . EF_SBF_PATH . '/</li>';
         }
         
         return $html;

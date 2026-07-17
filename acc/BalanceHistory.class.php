@@ -168,7 +168,7 @@ class acc_BalanceHistory extends core_Manager
             
             // Ако сме на единствената страница или последната, показваме началното салдо
             if ($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0) {
-                if(is_array($data->zeroRec)){
+                if(is_array($data->zeroRec ?? null)){
                     $data->recs[] = $data->zeroRec;
                 }
             }
@@ -179,7 +179,7 @@ class acc_BalanceHistory extends core_Manager
             }
             
             $combined = array();
-            if(is_array($data->zeroRec)){
+            if(is_array($data->zeroRec ?? null)){
                 $combined += array('zero' => $data->zeroRec);
             }
             $combined += $data->allRecs;
@@ -195,7 +195,7 @@ class acc_BalanceHistory extends core_Manager
         }
         
         $combined1 = array();
-        if(is_array($data->zeroRec)){
+        if(is_array($data->zeroRec ?? null)){
             $combined1 += array('zero' => $data->zeroRec);
         }
         $combined1 += $data->allRecs;
@@ -257,7 +257,7 @@ class acc_BalanceHistory extends core_Manager
         $bQuery->where("#fromDate >= '{$from}' && #toDate <= '{$to}'");
         $bQuery->orderBy('id', 'ASC');
         
-        if ($balanceId = $bQuery->fetch()->id) {
+        if ($balanceId = $bQuery->fetch()->id ?? null) {
             
             return acc_Balances::fetch($balanceId);
         }
@@ -534,8 +534,8 @@ class acc_BalanceHistory extends core_Manager
         // Ако има отрицателна сума показва се в червено
         foreach (array('debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld) {
             $Type = strpos($fld, 'Amount') !== false ? $DoubleAmount : $DoubleQuantity;
-            $arr[$fld] = $Type->toVerbal($rec[$fld]);
-            $arr[$fld] = ht::styleIfNegative($arr[$fld], $rec[$fld]);
+            $arr[$fld] = $Type->toVerbal($rec[$fld] ?? 0);
+            $arr[$fld] = ht::styleIfNegative($arr[$fld], $rec[$fld] ?? 0);
         }
 
         try {
@@ -550,7 +550,7 @@ class acc_BalanceHistory extends core_Manager
             }
         }
         
-        if ($rec['ROW_ATTR']) {
+        if ($rec['ROW_ATTR'] ?? null) {
             $arr['ROW_ATTR'] = $rec['ROW_ATTR'];
         }
 
@@ -586,7 +586,11 @@ class acc_BalanceHistory extends core_Manager
 
             foreach ($recs as $k => $rec) {
                 if(is_numeric($k)){
-                    $data->rec->maxBlQuantity = max($rec['blQuantity'], $data->rec->maxBlQuantity);
+                    if(!isset($data->rec->maxBlQuantity)){
+                        $data->rec->maxBlQuantity = $rec['blQuantity'];
+                    } else {
+                        $data->rec->maxBlQuantity = max($rec['blQuantity'], $data->rec->maxBlQuantity);
+                    }
                     if(!isset($data->rec->minBlQuantity)){
                         $data->rec->minBlQuantity = $rec['blQuantity'];
                     } else {
@@ -601,7 +605,7 @@ class acc_BalanceHistory extends core_Manager
                     
                     // Ако има запис и текущия е с по ново ид, заместваме съществуващия,
                     // така имаме последните записи за всяка дата
-                    if ($rec['id'] > $tmpArray[$rec['valior']]['id']) {
+                    if (($rec['id'] ?? null) > ($tmpArray[$rec['valior']]['id'] ?? null)) {
                         $tmpArray[$rec['valior']] = $rec;
                     }
                 }
@@ -669,7 +673,7 @@ class acc_BalanceHistory extends core_Manager
             $tpl->replace($data->layoutClass, 'singleClass');
         }
         
-        if ($data->toolbar) {
+        if ($data->toolbar ?? null) {
             $tpl->append($data->toolbar->renderHtml(), 'HystoryToolbar');
         } else {
             $tpl->replace($data->row->fromDate, 'fromDate');

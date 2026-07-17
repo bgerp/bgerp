@@ -304,7 +304,7 @@ class label_Media extends core_Manager
             for ($s = 0; $s < $columns; $s++) {
                 
                 // Добавяме колона
-                $t .= "<td>[#${cnt}#]</td>";
+                $t .= "<td>[#{$cnt}#]</td>";
                 
                 // Увеличаваме брояча
                 $cnt++;

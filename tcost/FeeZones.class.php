@@ -344,7 +344,7 @@ class tcost_FeeZones extends core_Master
                 $zoneRec = tcost_Zones::getZoneIdAndDeliveryTerm($rec->deliveryTermId, $rec->countryId, $rec->pCode);
                 $result = tcost_Fees::calcFee($zoneRec, $rec->totalWeight, $rec->singleWeight);
                 if ($result < 0) {
-                    $form->setError('deliveryTermId,countryId,pCode', "Не може да се изчисли сума за транспорт (${result})");
+                    $form->setError('deliveryTermId,countryId,pCode', "Не може да се изчисли сума за транспорт ({$result})");
                 } else {
                     $taxes = self::getTaxesByZone($result[2], $rec->singleWeight, $rec->totalWeight);
                     $finalFee = $taxes['tax'] + $taxes['addPerKg'] + $result[1];
