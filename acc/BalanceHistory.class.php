@@ -586,7 +586,11 @@ class acc_BalanceHistory extends core_Manager
 
             foreach ($recs as $k => $rec) {
                 if(is_numeric($k)){
-                    $data->rec->maxBlQuantity = max($rec['blQuantity'], $data->rec->maxBlQuantity);
+                    if(!isset($data->rec->maxBlQuantity)){
+                        $data->rec->maxBlQuantity = $rec['blQuantity'];
+                    } else {
+                        $data->rec->maxBlQuantity = max($rec['blQuantity'], $data->rec->maxBlQuantity);
+                    }
                     if(!isset($data->rec->minBlQuantity)){
                         $data->rec->minBlQuantity = $rec['blQuantity'];
                     } else {
