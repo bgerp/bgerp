@@ -402,8 +402,8 @@ class planning_TaskConstraints extends core_Master
 
 
     /**
-     * Checks whether a manual resource order directly reverses a hard
-     * technological dependency on the same resource.
+     * Checks whether the submitted resource order introduces a new reversal
+     * of a hard technological dependency on the edited resource.
      *
      * @param int $assetId
      * @param array $orderedTaskIds
@@ -415,13 +415,17 @@ class planning_TaskConstraints extends core_Master
     {
         $problemTaskIds = array();
         $tasks = static::getDefaultArr(null, 'actualStart,timeStart,assetId,dueDate,state');
-        $remaining = $tasksByAsset = array();
+        $remaining = $tasksByAsset = $oldTasksOnAsset = array();
         foreach ($tasks as $task) {
-            if (isset($taskAssetOverrides[$task->id])) {
-                $task->assetId = $taskAssetOverrides[$task->id];
-            }
             if (!empty($task->actualStart) && $task->state != 'stopped') {
                 continue;
+            }
+
+            if ($task->assetId == $assetId) {
+                $oldTasksOnAsset[$task->id] = clone $task;
+            }
+            if (isset($taskAssetOverrides[$task->id])) {
+                $task->assetId = $taskAssetOverrides[$task->id];
             }
 
             $remaining[$task->id] = $task;
@@ -442,16 +446,6 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
-        $manualOrders = array();
-        $manualQuery = planning_TaskManualOrderPerAssets::getQuery();
-        $manualQuery->in('assetId', array_keys($tasksByAsset));
-        $manualQuery->show('assetId,data');
-        while ($manualRec = $manualQuery->fetch()) {
-            if (isset($tasksByAsset[$manualRec->assetId]) && is_array($manualRec->data)) {
-                $manualOrders[$manualRec->assetId] = $manualRec->data;
-            }
-        }
-
         $cleanOrder = array();
         foreach ((array)$orderedTaskIds as $taskId) {
             $taskId = (int)$taskId;
@@ -459,49 +453,65 @@ class planning_TaskConstraints extends core_Master
                 $cleanOrder[$taskId] = $taskId;
             }
         }
-        $manualOrders[$assetId] = $cleanOrder;
-
-        $positions = array();
-        foreach ($manualOrders as $manualAssetId => $manualOrder) {
-            if (!isset($tasksByAsset[$manualAssetId])) {
-                continue;
-            }
-
-            $withStart = $withoutStart = array();
-            foreach ($tasksByAsset[$manualAssetId] as $task) {
-                if (!empty($task->timeStart)) {
-                    $withStart[$task->id] = $task;
-                } else {
-                    $withoutStart[$task->id] = $task;
-                }
-            }
-
-            arr::sortObjects($withStart, 'timeStart', 'ASC');
-            arr::sortObjects($withoutStart, 'dueDate', 'ASC');
-            $orderedTasks = static::reorderTasksByManualOrder($withStart + $withoutStart, $manualOrder);
-            $position = 0;
-            foreach ($orderedTasks as $task) {
-                $positions[$manualAssetId][$task->id] = $position;
-                $position++;
-            }
-        }
+        $oldManualOrder = planning_TaskManualOrderPerAssets::fetchField("#assetId = {$assetId}", 'data');
+        $oldPositions = static::getManualOrderPositions($oldTasksOnAsset, $oldManualOrder);
+        $newPositions = static::getManualOrderPositions($tasksByAsset[$assetId] ?? array(), $cleanOrder);
 
         foreach ($constraints as $constraint) {
             $task = $remaining[$constraint->taskId];
             $previousTask = $remaining[$constraint->previousTaskId];
-            if ($task->assetId != $previousTask->assetId || !isset($positions[$task->assetId])) {
+            if ($task->assetId != $assetId || $previousTask->assetId != $assetId) {
                 continue;
             }
 
-            $taskPosition = $positions[$task->assetId][$task->id] ?? PHP_INT_MAX;
-            $previousPosition = $positions[$task->assetId][$previousTask->id] ?? PHP_INT_MAX;
-            if ($taskPosition < $previousPosition) {
+            if (static::isNewManualOrderConflict($task->id, $previousTask->id, $newPositions, $oldPositions)) {
                 $problemTaskIds[$previousTask->id] = $previousTask->id;
                 $problemTaskIds[$task->id] = $task->id;
             }
         }
 
         return !countR($problemTaskIds);
+    }
+
+
+    /**
+     * Returns task positions after applying a resource manual order.
+     */
+    private static function getManualOrderPositions($tasks, $manualOrder)
+    {
+        $withStart = $withoutStart = array();
+        foreach ($tasks as $task) {
+            if (!empty($task->timeStart)) {
+                $withStart[$task->id] = $task;
+            } else {
+                $withoutStart[$task->id] = $task;
+            }
+        }
+
+        arr::sortObjects($withStart, 'timeStart', 'ASC');
+        arr::sortObjects($withoutStart, 'dueDate', 'ASC');
+        $orderedTasks = static::reorderTasksByManualOrder($withStart + $withoutStart, $manualOrder);
+        $positions = array();
+        foreach ($orderedTasks as $task) {
+            $positions[$task->id] = countR($positions);
+        }
+
+        return $positions;
+    }
+
+
+    /**
+     * Returns whether a reversed dependency was introduced by the new order.
+     */
+    private static function isNewManualOrderConflict($taskId, $previousTaskId, $newPositions, $oldPositions)
+    {
+        if (!isset($newPositions[$taskId]) || !isset($newPositions[$previousTaskId])) return false;
+        if ($newPositions[$taskId] > $newPositions[$previousTaskId]) return false;
+
+        $wasComparable = isset($oldPositions[$taskId]) && isset($oldPositions[$previousTaskId]);
+        $wasReversed = $wasComparable && $oldPositions[$taskId] < $oldPositions[$previousTaskId];
+
+        return !$wasReversed;
     }
 
 
@@ -877,6 +887,33 @@ class planning_TaskConstraints extends core_Master
             }
         }
 
+        // Последователните операции от едно задание на една машина се третират
+        // като пакет, когато втората може да продължи непосредствено след първата.
+        $nextTaskByJob = $previousTaskByJob = $planableTasksByJob = array();
+        foreach ($allTasks as $task) {
+            if (isset($task->originId) && isset($task->saoOrder)) {
+                $planableTasksByJob[$task->originId][$task->id] = $task;
+            }
+        }
+        foreach ($planableTasksByJob as $tasksInJob) {
+            uasort($tasksInJob, function($a, $b) {
+                if ($a->saoOrder == $b->saoOrder) {
+                    return ($a->id < $b->id) ? -1 : 1;
+                }
+
+                return ($a->saoOrder < $b->saoOrder) ? -1 : 1;
+            });
+
+            $previousTaskId = null;
+            foreach ($tasksInJob as $taskInJob) {
+                if (isset($previousTaskId)) {
+                    $nextTaskByJob[$previousTaskId] = $taskInJob->id;
+                    $previousTaskByJob[$taskInJob->id] = $previousTaskId;
+                }
+                $previousTaskId = $taskInJob->id;
+            }
+        }
+
         // Kahn traversal: dependencies are visited once instead of rescanning every task.
         $inDegree = array_fill_keys(array_keys($remaining), 0);
         $successors = array();
@@ -894,7 +931,11 @@ class planning_TaskConstraints extends core_Master
         foreach ($inDegree as $taskId => $degree) {
             if ($degree == 0) {
                 $plannedTime = static::getGraphReadyTime($remaining[$taskId], $previousTasks, $planned, $allTasks, $now);
-                static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$taskId], $plannedTime, $manualPosition[$taskId]));
+                $previousTaskId = $previousTaskByJob[$taskId] ?? null;
+                $isResourceContinuation = isset($planned[$previousTaskId])
+                    && static::canContinueOnResource($remaining[$taskId], $planned[$previousTaskId], $plannedTime);
+                $continuationPriority = $isResourceContinuation ? 0 : 1;
+                static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$taskId], $plannedTime, $manualPosition[$taskId], $continuationPriority));
             }
         }
 
@@ -920,15 +961,9 @@ class planning_TaskConstraints extends core_Master
                 $inDegree[$successorId]--;
                 if ($inDegree[$successorId] == 0 && isset($remaining[$successorId])) {
                     $plannedTime = static::getGraphReadyTime($remaining[$successorId], $previousTasks, $planned, $allTasks, $now);
-                    $currentTaskEnd = strtotime($planned[$taskId]->expectedTimeEnd);
-                    $successorReadyTime = strtotime($plannedTime);
-                    $isResourceContinuation = $remaining[$successorId]->assetId == $task->assetId
-                        && $manualPosition[$successorId] == $manualPosition[$taskId] + 1
-                        && $planned[$taskId]->expectedTimeEnd < self::NOT_FOUND_DATE
-                        && $plannedTime < self::NOT_FOUND_DATE
-                        && $successorReadyTime !== false
-                        && $currentTaskEnd !== false
-                        && $successorReadyTime <= $currentTaskEnd;
+                    $isResourceContinuation = isset($nextTaskByJob[$taskId])
+                        && $nextTaskByJob[$taskId] == $successorId
+                        && static::canContinueOnResource($remaining[$successorId], $planned[$taskId], $plannedTime);
                     $continuationPriority = $isResourceContinuation ? 0 : 1;
                     static::readyHeapPush($readyHeap, static::getReadyHeapItem($remaining[$successorId], $plannedTime, $manualPosition[$successorId], $continuationPriority));
                 }
@@ -1008,6 +1043,22 @@ class planning_TaskConstraints extends core_Master
         }
 
         return max($readyTimes);
+    }
+
+
+    /**
+     * Checks whether a task can continue immediately after another one
+     * without leaving the resource idle.
+     */
+    private static function canContinueOnResource($task, $previousTask, $plannedTime)
+    {
+        if ($task->assetId != $previousTask->assetId) return false;
+        if ($previousTask->expectedTimeEnd >= self::NOT_FOUND_DATE || $plannedTime >= self::NOT_FOUND_DATE) return false;
+
+        $previousTaskEnd = strtotime($previousTask->expectedTimeEnd);
+        $taskReadyTime = strtotime($plannedTime);
+
+        return $previousTaskEnd !== false && $taskReadyTime !== false && $taskReadyTime <= $previousTaskEnd;
     }
 
 
