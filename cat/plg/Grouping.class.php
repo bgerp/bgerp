@@ -44,11 +44,11 @@ class cat_plg_Grouping extends core_Plugin
             $form->input(null, 'silent');
             $rec = $form->rec;
             
-            expect($rec->id || $rec->Selected, $rec);
+            expect(($rec->id ?? null) || ($rec->Selected ?? null), $rec);
             
             $selArr = arr::make($rec->Selected);
-            if ($id) {
-                $selArr[] = $id;
+            if ($rec->id ?? null) {
+                $selArr[] = $rec->id;
             }
             
             $metas = $mvc->getFieldType('meta')->suggestions;

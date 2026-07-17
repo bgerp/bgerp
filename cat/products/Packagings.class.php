@@ -520,7 +520,7 @@ class cat_products_Packagings extends core_Detail
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $options = self::getRemainingOptions($rec->productId, $rec->id);
+        $options = self::getRemainingOptions($rec->productId, $rec->id ?? null);
         $form->setOptions('packagingId', array('' => '') + $options);
 
         // Ако има дефолтни опаковки от драйвера

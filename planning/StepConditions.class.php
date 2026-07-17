@@ -232,6 +232,7 @@ class planning_StepConditions extends core_Detail
 
         // За всяка от подадените операции
         $res = array();
+        $now = dt::now();
         foreach ($arr as $taskRec){
             $lessThen = $taskRec->saoOrder;
             $arr1 = array('previous' => array(), 'next' => array());
@@ -249,16 +250,53 @@ class planning_StepConditions extends core_Detail
 
             // От тях се оставят до изисквания брой от центъра на дейност, после се сортират от ляво на дясно
             arr::sortObjects($arr1['previous'], 'saoOrder', 'ASC');
+            $prevExpectedTimeEnd = static::getEffectivePreviousTimeEnd($arr1['previous'], $now);
             $startCut = countR($arr1['previous']) - $centerMaxPreviousArr[$taskRec->folderId];
             $prevArr = array_splice($arr1['previous'], $startCut, $centerMaxPreviousArr[$taskRec->folderId]);
 
             arr::sortObjects($arr1['next'], 'saoOrder', 'ASC');
             $nextArr = array_splice($arr1['next'], 0, $centerMaxPreviousArr[$taskRec->folderId]);
 
-            $res[$taskRec->id] = array('previous' => $prevArr, 'next' => $nextArr);
+            $res[$taskRec->id] = array('previous' => $prevArr, 'next' => $nextArr, 'prevExpectedTimeEnd' => $prevExpectedTimeEnd);
         }
 
         return $res;
+    }
+
+
+    /**
+     * Връща ефективния край на непосредствено предходната операция.
+     *
+     * При приключена операция с бъдещ край или при липсващ край
+     * се взема краят на най-близката предходна заявена/активна операция.
+     * Ако няма такава с изчислен край, се връща минута преди текущото време.
+     *
+     * @param array $previousTasks
+     * @param string $now
+     * @return string|null
+     */
+    private static function getEffectivePreviousTimeEnd($previousTasks, $now)
+    {
+        if (!countR($previousTasks)) return null;
+
+        $previousTasks = array_values($previousTasks);
+        $immediatePrevious = array_pop($previousTasks);
+        $previousEnd = $immediatePrevious->expectedTimeEnd;
+        $hasUsableEnd = !empty($previousEnd) && $previousEnd < planning_TaskConstraints::NOT_FOUND_DATE;
+        $hasInvalidClosedEnd = $immediatePrevious->state == 'closed' && $previousEnd > $now;
+
+        if ($hasUsableEnd && !$hasInvalidClosedEnd) return $previousEnd;
+
+        while ($previousTask = array_pop($previousTasks)) {
+            if (!in_array($previousTask->state, array('pending', 'active'))) continue;
+
+            $previousEnd = $previousTask->expectedTimeEnd;
+            if (!empty($previousEnd) && $previousEnd < planning_TaskConstraints::NOT_FOUND_DATE) {
+                return $previousEnd;
+            }
+        }
+
+        return dt::addSecs(-60, $now);
     }
 
 

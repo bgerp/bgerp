@@ -210,6 +210,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Допълнителен CSS клас на listTopContainer
+     */
+    public $listTopContainerHtmlClass = 'twoColsFilter';
+
+
+    /**
      * Кои са детайлите на класа
      */
     public $details = 'planning_ProductionTaskDetails,planning_ProductionTaskProducts';
@@ -620,6 +626,8 @@ class planning_Tasks extends core_Master
             }
         }
 
+        $row->originId = $origin->getHyperlink(true);
+
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
             if (!Mode::is('printing')) {
@@ -723,7 +731,6 @@ class planning_Tasks extends core_Master
                 unset($row->isFinal);
             }
 
-            $row->originId = $origin->getHyperlink(true);
             $row->jobState = $origin->fetchField('state');
 
             if (isset($rec->wasteProductId)) {
@@ -3379,8 +3386,8 @@ class planning_Tasks extends core_Master
             $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . ($haveDiffJobPacks ? "<span class='small'>" . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity) . "</span>" : '');
 
-            if (!empty($dependantTaskArr[$rec->id]['previous'][0])) {
-                $rec->prevExpectedTimeEnd = $dependantTaskArr[$rec->id]['previous'][0]->expectedTimeEnd;
+            if (!empty($dependantTaskArr[$rec->id]['prevExpectedTimeEnd'])) {
+                $rec->prevExpectedTimeEnd = $dependantTaskArr[$rec->id]['prevExpectedTimeEnd'];
             }
 
             if(!empty($dependantTaskArr[$rec->id]['next'][0])){
@@ -3393,7 +3400,7 @@ class planning_Tasks extends core_Master
                 $row->{$fld} = $mvc->getDateFieldVerbal($rec, $fld, Mode::is('isReorder'));
             }
 
-            if(!Mode::is('isReorder')){
+            if(!Mode::is('isReorder') && in_array($rec->state, array('active', 'pending', 'wakeup', 'stopped'))){
                 if($rec->planningError == 'error'){
                     $row->expectedTimeStart = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
                     $row->expectedTimeEnd = ht::createHint('', 'Операцията не може да бъде планирана', 'img/16/red-warning.png');
@@ -3587,11 +3594,15 @@ class planning_Tasks extends core_Master
             planning_TaskConstraints::sync($rec->id);
         } elseif(in_array($rec->state, array('closed', 'rejected')) || ($rec->state == 'waiting' && $rec->brState == 'pending')) {
             planning_TaskConstraints::delete("#taskId = {$rec->id} OR #previousTaskId = {$rec->id}");
+            planning_TaskManualOrderPerAssets::removeTasks($rec->assetId ?? null, $rec->id);
             $rec->orderByAssetId = null;
-            $mvc->save_($rec, 'orderByAssetId');
+            $rec->planningError = 'no';
+            $rec->gapData = null;
+            $mvc->save_($rec, 'orderByAssetId,planningError,gapData');
         }
 
         if(isset($rec->_exAssetId) && $rec->assetId != $rec->_exAssetId){
+            planning_TaskManualOrderPerAssets::removeTasks($rec->_exAssetId, $rec->id);
             $mvc->forceCalcTimes = true;
         }
 
@@ -3876,6 +3887,11 @@ class planning_Tasks extends core_Master
             $rec->_exIndTime = $exRec->indTime;
             if(isset($rec->assetId) && $rec->assetId != $rec->_exAssetId){
                 $rec->prevAssetId = $rec->_exAssetId;
+                $rec->orderByAssetId = null;
+                $rec->expectedTimeStart = null;
+                $rec->expectedTimeEnd = null;
+                $rec->planningError = null;
+                $rec->gapData = null;
             }
         }
     }
@@ -4110,7 +4126,7 @@ class planning_Tasks extends core_Master
             $prevTaskArr = array();
             if($tRec->isFinal == 'yes'){
                 $prevTaskArr = array_filter($allTasks, function($a) use ($tRec){
-                    return $a->saoOrder < $tRec->id && $a->id != $tRec->id;
+                    return $a->saoOrder < $tRec->saoOrder && $a->id != $tRec->id;
                 });
             }
 
@@ -4384,40 +4400,53 @@ class planning_Tasks extends core_Master
             $manualTimes = json_decode($manualTimes, true);
             $manualTimes = is_array($manualTimes) ? $manualTimes : array('expectedTimeStart' => array(), 'expectedTimeEnd' => array());
 
-            // Ако има ръчно зададени желани времена, ще се запишат в операциите
-            $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
-            $Tasks = cls::get('planning_Tasks');
-            $countSavedManualTasks = 0;
-
-            foreach ($inOrderTasks as $i => $taskId){
-                $save = false;
-                $rec = $cachedData['tasks'][$taskId];
-                if(array_key_exists($taskId, $manualTimes['expectedTimeStart'])){
-                    $rec->timeStart = $manualTimes['expectedTimeStart'][$taskId];
-                    $save = true;
-                } elseif(array_key_exists($taskId, $manualTimes['expectedTimeEnd'])){
-                    $rec->timeStart = $manualTimes['expectedTimeEnd'][$taskId] ? dt::addSecs(-1 * $rec->calcedCurrentDuration, $manualTimes['expectedTimeEnd'][$taskId]) : null;
-                    $save = true;
+            $problemTaskIds = array();
+            if (!planning_TaskConstraints::validateManualOrder($assetId, $inOrderTasks, $problemTaskIds)) {
+                $problemHandles = array();
+                foreach ($problemTaskIds as $problemTaskId) {
+                    $problemHandles[] = '#' . $this->getHandle($problemTaskId);
                 }
-
-                if($save){
-                    $countSavedManualTasks++;
-                    $Tasks->save_($rec, 'timeStart');
-                    $Tasks->logWrite('Задаване на желано начало', $rec->id);
-                }
+                core_Statuses::newStatus('Подредбата не може да бъде записана, защото противоречи на технологична зависимост: ' . implode(', ', $problemHandles), 'error');
+                $success = false;
             }
 
-            if($countSavedManualTasks){
-                core_Statuses::newStatus("Задаване на желано начало на |* {$countSavedManualTasks} |операции|*");
+            if ($success) {
+
+                // Ако има ръчно зададени желани времена, ще се запишат в операциите
+                $cachedData = core_Cache::get('planning_Tasks',"reorderAsset{$assetId}");
+                $Tasks = cls::get('planning_Tasks');
+                $countSavedManualTasks = 0;
+
+                foreach ($inOrderTasks as $i => $taskId){
+                    $save = false;
+                    $rec = $cachedData['tasks'][$taskId];
+                    if(array_key_exists($taskId, $manualTimes['expectedTimeStart'])){
+                        $rec->timeStart = $manualTimes['expectedTimeStart'][$taskId];
+                        $save = true;
+                    } elseif(array_key_exists($taskId, $manualTimes['expectedTimeEnd'])){
+                        $rec->timeStart = $manualTimes['expectedTimeEnd'][$taskId] ? dt::addSecs(-1 * $rec->calcedCurrentDuration, $manualTimes['expectedTimeEnd'][$taskId]) : null;
+                        $save = true;
+                    }
+
+                    if($save){
+                        $countSavedManualTasks++;
+                        $Tasks->save_($rec, 'timeStart');
+                        $Tasks->logWrite('Задаване на желано начало', $rec->id);
+                    }
+                }
+
+                if($countSavedManualTasks){
+                    core_Statuses::newStatus("Задаване на желано начало на |* {$countSavedManualTasks} |операции|*");
+                }
+
+                planning_TaskManualOrderPerAssets::force($assetId, $inOrderTasks);
+                $this->forceCalcTimes = true;
+
+                core_Cache::remove('planning_Tasks', "reorderAsset{$assetId}");
+                $cu = core_Users::getCurrent();
+                core_Permanent::remove("folderFilter{$this->className}|{$cu}");
+                core_Permanent::remove("isReorderingTasks|{$assetId}|{$cu}");
             }
-
-            planning_TaskManualOrderPerAssets::force($assetId, $inOrderTasks);
-            $this->forceCalcTimes = true;
-
-            core_Cache::remove('planning_Tasks', "reorderAsset{$assetId}");
-            $cu = core_Users::getCurrent();
-            core_Permanent::remove("folderFilter{$this->className}|{$cu}");
-            core_Permanent::remove("isReorderingTasks|{$assetId}|{$cu}");
         } else {
             core_Statuses::newStatus("Нямате права за преподреждане|*!", 'error');
         }
@@ -4617,7 +4646,6 @@ class planning_Tasks extends core_Master
 
             $tQuery = static::getQuery();
             $tQuery->in('id', $selectedIds);
-            $tQuery->show('folderId,productId,assetId');
             $taskFullArr = $tQuery->fetchAll();
 
             // От избраните ПО се проверява, кои могат да се поставят след посочената
@@ -4640,44 +4668,75 @@ class planning_Tasks extends core_Master
                 }
             });
 
-            $movedArr = array();
-            foreach ($tasksToMove as $tRec){
-                $tRec->prevAssetId = $tRec->assetId;
-                $tRec->assetId = $rec->newAssetId;
-                $tRec->modifiedOn = dt::now();
-                $tRec->modifiedBy = core_Users::getCurrent();
+            $moveIds = array();
+            foreach ($selectedIds as $selectedId) {
+                if (isset($tasksToMove[$selectedId])) {
+                    $moveIds[] = $selectedId;
+                }
+            }
 
-                $newManualOrder = array_keys($taskOptions);
+            $newManualOrder = array_values(array_diff(array_keys($taskOptions), $moveIds));
+            $insertPosition = 0;
+            if (isset($rec->after)) {
                 $afterKey = array_search($rec->after, $newManualOrder);
-                array_splice($newManualOrder, $afterKey + 1, 0, $tRec->id);
+                $insertPosition = ($afterKey === false) ? count($newManualOrder) : $afterKey + 1;
+            }
+            array_splice($newManualOrder, $insertPosition, 0, $moveIds);
 
-                $this->save_($tRec, 'assetId,prevAssetId,modifiedBy,modifiedOn');
-                $this->logWrite("Преместване на друго оборудване", $tRec->id);
-                $movedArr[] = "#" . $this->getHandle($tRec->id);
-
-                planning_TaskManualOrderPerAssets::force($rec->newAssetId, $newManualOrder);
+            $problemTaskIds = array();
+            $taskAssetOverrides = countR($moveIds) ? array_fill_keys($moveIds, $rec->newAssetId) : array();
+            if (!planning_TaskConstraints::validateManualOrder($rec->newAssetId, $newManualOrder, $problemTaskIds, $taskAssetOverrides)) {
+                $problemHandles = array();
+                foreach ($problemTaskIds as $problemTaskId) {
+                    $problemHandles[] = '#' . $this->getHandle($problemTaskId);
+                }
+                $form->setError('after', 'Преместването не може да бъде записано, защото противоречи на технологична зависимост: ' . implode(', ', $problemHandles));
             }
 
-            if(countR($movedArr)){
-                $msgPart = isset($rec->after) ? "|са преместени след|* #{$this->getHandle($rec->after)}" : "са премести като първи за оборудването";
-                $implodedMoved = implode(', ', $movedArr);
-                core_Statuses::newStatus("Операциите|*: {$implodedMoved} {$msgPart}", 'notice', null, 180);
+            if (!$form->gotErrors()) {
+                $movedArr = array();
+                foreach ($tasksToMove as $tRec){
+                    $tRec->prevAssetId = $tRec->assetId;
+                    $tRec->assetId = $rec->newAssetId;
+                    $tRec->modifiedOn = dt::now();
+                    $tRec->modifiedBy = core_Users::getCurrent();
+                    $tRec->orderByAssetId = null;
+                    $tRec->expectedTimeStart = null;
+                    $tRec->expectedTimeEnd = null;
+                    $tRec->planningError = null;
+                    $tRec->gapData = null;
+
+                    $this->save_($tRec, 'assetId,prevAssetId,modifiedBy,modifiedOn,orderByAssetId,expectedTimeStart,expectedTimeEnd,planningError,gapData');
+                    $this->logWrite("Преместване на друго оборудване", $tRec->id);
+                    $movedArr[] = "#" . $this->getHandle($tRec->id);
+                }
+
+                if (countR($movedArr)) {
+                    planning_TaskManualOrderPerAssets::force($rec->newAssetId, $newManualOrder);
+                    $this->forceCalcTimes = true;
+                }
+
+                if(countR($movedArr)){
+                    $msgPart = isset($rec->after) ? "|са преместени след|* #{$this->getHandle($rec->after)}" : "са премести като първи за оборудването";
+                    $implodedMoved = implode(', ', $movedArr);
+                    core_Statuses::newStatus("Операциите|*: {$implodedMoved} {$msgPart}", 'notice', null, 180);
+                }
+
+                if(countR($tasksNotToMove)){
+                    $implodedNotMoved = implode(', ', $tasksNotToMove);
+                    core_Statuses::newStatus("Следните операции не могат да се преместят след избраната|*: {$implodedNotMoved}", 'warning', null, 180);
+                }
+
+                if($form->cmd == 'saveAndRed'){
+                    $nUrl = getRetUrl();
+                    $nUrl['assetId'] = $rec->newAssetId;
+                    unset($nUrl['ret_url']);
+
+                    redirect($nUrl, false, 'Отворено е новото оборудване');
+                }
+
+                followRetUrl();
             }
-
-            if(countR($tasksNotToMove)){
-                $implodedNotMoved = implode(', ', $tasksNotToMove);
-                core_Statuses::newStatus("Следните операции не могат да се преместят след избраната|*: {$implodedNotMoved}", 'warning', null, 180);
-            }
-
-            if($form->cmd == 'saveAndRed'){
-                $nUrl = getRetUrl();
-                $nUrl['assetId'] = $rec->newAssetId;
-                unset($nUrl['ret_url']);
-
-                redirect($nUrl, false, 'Отворено е новото оборудване');
-            }
-
-            followRetUrl();
         }
 
         $form->toolbar->addSbBtn('Премести', 'save', 'ef_icon = img/16/move.png, title=Преместване и оставане в текущото оборудване');

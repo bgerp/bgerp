@@ -155,7 +155,8 @@ class planning_AssetResources extends core_Master
         $this->FLD('unsortedUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване в проекти->Отговорници,remember');
         $this->FLD('assetFolders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Използване за производство->Центрове на дейност,oldFieldName=assetFolderId,remember');
         $this->FLD('scheduleId', 'key(mvc=hr_Schedules, select=name, allowEmpty)', 'caption=Използване за производство->Работен график,remember');
-        $this->FLD('taskQuantization', 'enum(day=Дневно,weekly=Седмично,monthly=Месечно)', 'caption=Групиране на операции при планиране и подредба->Избор,notNull,value=weekly,autohide=any');
+        // Legacy data is kept for backwards compatibility; graph planning no longer uses quantization.
+        $this->FLD('taskQuantization', 'enum(day=Дневно,weekly=Седмично,monthly=Месечно)', 'caption=Групиране на операции при планиране и подредба->Избор,input=none,notNull,value=weekly,autohide=any');
 
         $this->FLD('assetUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване за производство->Отговорници,remember');
         $this->FLD('simultaneity', 'int(min=0)', 'caption=Използване за производство->Едновременност,notNull,value=1, oldFieldName=quantity,remember');
@@ -988,7 +989,7 @@ class planning_AssetResources extends core_Master
         foreach ($constraintsArr as $cRec){
             if($cRec->type == 'prevId') {
                 if(!empty($cRec->previousTaskId)){
-                    $previousTasks[$cRec->taskId][$cRec->previousTaskId] = (object)array('previousTaskId' => $cRec->previousTaskId, 'waitingTime' => $cRec->waitingTime);
+                    $previousTasks[$cRec->taskId][$cRec->previousTaskId] = (object)array('previousTaskId' => $cRec->previousTaskId, 'waitingTime' => $cRec->waitingTime, 'intersect' => $cRec->intersect ?? 'yes');
                 }
             }
         }
@@ -999,10 +1000,13 @@ class planning_AssetResources extends core_Master
         $gap = planning_Setup::get('MIN_TIME_FOR_GAP');
         $scheduledData = planning_TaskConstraints::calcScheduledTimes($tasks, $previousTasks, $now);
         $Tasks = cls::get('planning_Tasks');
+        $debugOrder = Mode::is('debugOrder');
         foreach ($scheduledData->tasks as $assetId => &$plannedTasks){
-            $assetUrl = planning_AssetResources::getSingleUrlArray($assetId);
-            $assetLink = ht::createLink($scheduledData->assets[$assetId]->code, $assetUrl, false, 'target=_blank');
-            $scheduledData->debug .= "<li>Подреждане на операциите на: {$assetLink} [{$scheduledData->assets[$assetId]->scheduleName}]";
+            if ($debugOrder) {
+                $assetUrl = planning_AssetResources::getSingleUrlArray($assetId);
+                $assetLink = ht::createLink($scheduledData->assets[$assetId]->code, $assetUrl, false, 'target=_blank');
+                $scheduledData->debug .= "<li>Подреждане на операциите на: {$assetLink} [{$scheduledData->assets[$assetId]->scheduleName}]";
+            }
 
             usort($plannedTasks, function($a, $b) {
                 $startA = strtotime($a->expectedTimeStart);
@@ -1018,7 +1022,7 @@ class planning_AssetResources extends core_Master
 
             $order = 1;
             $prevEnd = $now;
-            $Interval = $scheduledData->intervals[$assetId];
+            $Interval = $scheduledData->calendarIntervals[$assetId];
 
             foreach ($plannedTasks as $a) {
                 $a->planningError = 'no';
@@ -1039,7 +1043,9 @@ class planning_AssetResources extends core_Master
 
                     // Ако е над зададения интервал ще се проверява дали е дупка или е престой
                     if($diff > $gap){
-                        $scheduledData->debug .= "<li>&nbsp;&nbsp;<b>Престой</b> #Opr{$a->id} - PREV {$prevEnd} -> {$a->expectedTimeStart}";
+                        if ($debugOrder) {
+                            $scheduledData->debug .= "<li>&nbsp;&nbsp;<b>Престой</b> #Opr{$a->id} - PREV {$prevEnd} -> {$a->expectedTimeStart}";
+                        }
 
                         $start = strtotime($prevEnd);
                         $end = strtotime($a->expectedTimeStart);
@@ -1057,7 +1063,9 @@ class planning_AssetResources extends core_Master
 
                             $pointInv = $Interval->getByPoint($middleDateTimestamp);
                             $currentType = is_array($pointInv) ? 'idle' : 'break';
-                            $scheduledData->debug .= "<li>&nbsp;&nbsp;&nbsp;&nbsp;<b>Средна дата</b> " . date('Y-m-d H:i:s', $middleDateTimestamp) . " е {$currentType}";
+                            if ($debugOrder) {
+                                $scheduledData->debug .= "<li>&nbsp;&nbsp;&nbsp;&nbsp;<b>Средна дата</b> " . date('Y-m-d H:i:s', $middleDateTimestamp) . " е {$currentType}";
+                            }
 
                             if ($lastType === null) {
                                 // Първи елемент в цикъла - задаваме стойности
@@ -1097,7 +1105,11 @@ class planning_AssetResources extends core_Master
 
                 $a->orderByAssetId = $order;
                 $order++;
-                $prevEnd = $a->expectedTimeEnd;
+                if (isset($a->expectedTimeEnd)) {
+                    // Защитно отчитане на стари/фактически припокриващи се диапазони:
+                    // за дупките се следи най-късният край, а не краят на последния ред.
+                    $prevEnd = max($prevEnd, $a->expectedTimeEnd);
+                }
             }
 
             $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId,planningError,gapData');

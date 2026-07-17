@@ -440,7 +440,7 @@ class cat_products_Params extends doc_Detail
         $tpl->replace(get_called_class(), 'DetailName');
         
         if (($data->noChange ?? null) !== true) {
-            $tpl->append($data->changeBtn, 'addParamBtn');
+            $tpl->append($data->changeBtn ?? null, 'addParamBtn');
         }
         
         $tpl->removeBlocks();

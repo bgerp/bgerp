@@ -141,8 +141,14 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/produce_out.png';
-    
-    
+
+
+    /**
+     * Допълнителен CSS клас на listTopContainer
+     */
+    public $listTopContainerHtmlClass = 'twoColsFilter';
+
+
     /**
      * Кой може да го прави документа чакащ/чернова?
      */

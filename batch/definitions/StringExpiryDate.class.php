@@ -104,7 +104,13 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
             return false;
         }
 
-        list($string, $date) = explode($delimiter, $value, 2);
+        $parts = explode($delimiter, $value);
+        $featureKeys = array_keys($this->featureOrder);
+        $stringIndex = array_search('s', $featureKeys);
+        $dateIndex = array_search('d', $featureKeys);
+
+        $string = ($stringIndex !== false && isset($parts[$stringIndex])) ? $parts[$stringIndex] : '';
+        $date = ($dateIndex !== false && isset($parts[$dateIndex])) ? $parts[$dateIndex] : '';
         if (isset($this->rec->sizeOfBatch)) {
             if (mb_strlen($string) > $this->rec->sizeOfBatch) {
                 $msg = "|*{$string} |е над допустимата дължина от|* <b>{$this->rec->sizeOfBatch}</b>";
@@ -207,7 +213,7 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
 
         // Обхождаме динамично структурата, дефинирана в класа
         foreach ($features as $index => $featureName) {
-            $partValue = isset($parts[$index]) ? $parts[$index] : '';
+            $partValue = $parts[$index] ?? '';
 
             if ($featureName == 'Срок на годност') {
                 $partValue = dt::getMysqlFromMask($partValue, $this->rec->format);
@@ -249,8 +255,8 @@ class batch_definitions_StringExpiryDate extends batch_definitions_Varchar
             $aParts = explode('|', $a);
             $bParts = explode('|', $b);
             
-            $aDate = isset($aParts[$dateIndex]) ? $aParts[$dateIndex] : '';
-            $bDate = isset($bParts[$dateIndex]) ? $bParts[$dateIndex] : '';
+            $aDate = $aParts[$dateIndex] ?? '';
+            $bDate = $bParts[$dateIndex] ?? '';
             
             $aTime = strtotime(dt::getMysqlFromMask($aDate, $this->rec->format));
             $bTime = strtotime(dt::getMysqlFromMask($bDate, $this->rec->format));

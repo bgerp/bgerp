@@ -142,10 +142,10 @@ class planning_TaskManualOrderPerAssets extends core_Master
     public static function getOrderedRecs($assetId, $recs, $placeWithActualStartFirst = true)
     {
         $newRecs = $recs;
+        $manualOrder = planning_TaskManualOrderPerAssets::fetchField("#assetId = {$assetId}", 'data');
 
         // Най-отпред ще са тези с фактическо начало (неспрените)
         if($placeWithActualStartFirst){
-            $manualOrder = planning_TaskManualOrderPerAssets::fetchField("#assetId = {$assetId}", 'data');
             $newRecs = array_filter($recs, function ($a) {return isset($a->actualStart) && $a->state != 'stopped';});
             arr::sortObjects($newRecs, 'actualStart', 'ASC');
         }
@@ -177,12 +177,52 @@ class planning_TaskManualOrderPerAssets extends core_Master
      */
     public static function force($assetId, $arr)
     {
+        $arr = array_values((array)$arr);
         $manualRec = planning_TaskManualOrderPerAssets::fetch("#assetId = {$assetId}");
         $manualRec = is_object($manualRec) ? $manualRec : (object)array('assetId' => $assetId);
-        $manualRec->data = array_combine($arr, $arr);
+        $manualRec->data = countR($arr) ? array_combine($arr, $arr) : array();
         $manualRec->createdOn = dt::now();
         $manualRec->createdBy = core_Users::getCurrent();
 
         return self::save($manualRec);
+    }
+
+
+    /**
+     * Removes operations which no longer belong to the resource.
+     *
+     * @param int $assetId
+     * @param array|int $taskIds
+     * @return int|null
+     */
+    public static function removeTasks($assetId, $taskIds)
+    {
+        if (empty($assetId)) {
+            return null;
+        }
+
+        $manualRec = static::fetch("#assetId = {$assetId}");
+        if (!is_object($manualRec) || !is_array($manualRec->data)) {
+            return null;
+        }
+
+        $remove = array();
+        foreach ((array)$taskIds as $taskId) {
+            $remove[(int)$taskId] = true;
+        }
+
+        $newData = array();
+        foreach ($manualRec->data as $key => $taskId) {
+            if (!isset($remove[(int)$key]) && !isset($remove[(int)$taskId])) {
+                $newData[$key] = $taskId;
+            }
+        }
+        if (count($newData) == count($manualRec->data)) {
+            return null;
+        }
+
+        $manualRec->data = $newData;
+
+        return static::save($manualRec, 'data');
     }
 }

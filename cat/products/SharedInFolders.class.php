@@ -250,7 +250,7 @@ class cat_products_SharedInFolders extends core_Manager
      */
     public function renderShared($data)
     {
-        if ($data->hide == true) {
+        if (($data->hide ?? null) == true) {
             
             return;
         }

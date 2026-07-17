@@ -150,8 +150,17 @@ class core_Manager extends core_Mvc
      * Дали в листовия изглед да се показват заглавията на колоните на таблицата
      */
     public $listTableHideHeaders = false;
-    
-    
+
+
+    /**
+     * Допълнителен(ни) CSS клас(ове), добавяни към 'listTopContainer' в
+     * renderListLayout_()/renderDetailLayout_() - за да може конкретен
+     * мениджър/детайл да променя оформлението на този див без да
+     * override-ва целия рендер.
+     */
+    public $listTopContainerHtmlClass;
+
+
     /****************************************************************************************
      *                                                                                      *
      *       ПРЕДЕФИНИРАНИ ДЕЙСТВИЯ (ЕКШЪНИ) НА МЕНИДЖЪРА                                   *
@@ -1034,12 +1043,18 @@ class core_Manager extends core_Mvc
     public function renderListLayout_($data)
     {
         $className = cls::getClassName($this);
-        
+
+        setPartIfNot($data, 'listTopContainerHtmlClass', $this->listTopContainerHtmlClass);
+        $listTopContainerClass = 'listTopContainer clearfix21';
+        if (!empty($data->listTopContainerHtmlClass)) {
+            $listTopContainerClass .= ' ' . $data->listTopContainerHtmlClass;
+        }
+
         // Шаблон за листовия изглед
         $listLayout = new ET("
             <div class='clearfix21 listBlock {$className}'>
                 [#ListTitle#]
-                <div class='listTopContainer clearfix21'>
+                <div class='{$listTopContainerClass}'>
                     [#ListFilter#]
                     [#ListSummary#]
                 </div>
