@@ -3387,8 +3387,8 @@ class planning_Tasks extends core_Master
             $jobPackQuantity = $jobRecs[$rec->originId]->quantity / $jobRecs[$rec->originId]->quantityInPack;
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . ($haveDiffJobPacks ? "<span class='small'>" . cat_UoM::getSmartName($jobRecs[$rec->originId]->packagingId, $jobPackQuantity) . "</span>" : '');
 
-            if (!empty($dependantTaskArr[$rec->id]['previous'][0])) {
-                $rec->prevExpectedTimeEnd = $dependantTaskArr[$rec->id]['previous'][0]->expectedTimeEnd;
+            if (!empty($dependantTaskArr[$rec->id]['prevExpectedTimeEnd'])) {
+                $rec->prevExpectedTimeEnd = $dependantTaskArr[$rec->id]['prevExpectedTimeEnd'];
             }
 
             if(!empty($dependantTaskArr[$rec->id]['next'][0])){
