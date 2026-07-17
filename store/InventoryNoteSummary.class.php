@@ -396,7 +396,7 @@ class store_InventoryNoteSummary extends doc_Detail
             }
 
             if($rec->quantityHasAddedValues == 'yes'){
-                if($rec->isBatch){
+                if($rec->isBatch ?? false){
                     if(!isset($rec->quantity)){
                         $row->quantity = $row->blQuantity;
                         $row->quantity = "<span class='quiet small'>{$row->quantity}</span>";
@@ -404,7 +404,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 }
             }
 
-            if(!$rec->isBatch){
+            if(!($rec->isBatch ?? false)){
                 if (!Mode::isReadOnly()) {
                     $row->productId = cat_Products::getVerbal($rec->productId, 'name');
                     $row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
@@ -456,7 +456,7 @@ class store_InventoryNoteSummary extends doc_Detail
                     }
                 }
 
-                if($rec->isBatch !== true){
+                if(($rec->isBatch ?? null) !== true){
                     $row->charge = static::renderCharge($rec);
 
                     // Рендиране на заявките, в които участва артикула
@@ -872,7 +872,7 @@ class store_InventoryNoteSummary extends doc_Detail
             if (is_array($data->rows)) {
                 foreach ($data->rows as $id => $sRow) {
                     $sRec = $data->recs[$id];
-                    if ($sRec->isBatch !== true) {
+                    if (($sRec->isBatch ?? null) !== true) {
                         $cache1[$id] = $sRec->productId;
                     }
                 }
