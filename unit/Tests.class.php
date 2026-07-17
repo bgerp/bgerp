@@ -26,7 +26,7 @@ class unit_Tests extends core_Manager
         $tests = $classes = $skipped = array();
         
         $actPackName = $act ? self::getTestPackName($act) : null;
-        if ($actPackName && !core_Packs::isInstalled($actPackName)) {
+        if ($actPackName && self::shouldSkipTestPack($actPackName)) {
             $skipped[$act] = $actPackName;
         } elseif ($act && cls::load($act, true)) {
             $classes[] = $act;
@@ -36,7 +36,7 @@ class unit_Tests extends core_Manager
         foreach ($classes as $testClass) {
             if (strrpos($testClass, '_tests_')) {
                 $packName = self::getTestPackName($testClass);
-                if ($packName && !core_Packs::isInstalled($packName)) {
+                if ($packName && self::shouldSkipTestPack($packName)) {
                     $skipped[$testClass] = $packName;
                     
                     continue;
@@ -131,6 +131,39 @@ class unit_Tests extends core_Manager
         }
         
         return substr($testClass, 0, $pos);
+    }
+    
+    
+    /**
+     * Дали тестовете за пакета трябва да се пропуснат
+     *
+     * @param string $packName
+     *
+     * @return bool
+     */
+    private static function shouldSkipTestPack($packName)
+    {
+        $packRec = core_Packs::fetch(array("#name = '[#1#]'", $packName));
+        if (($packRec->state ?? null) == 'hidden') {
+            
+            return false;
+        }
+        
+        if (!getFullPath("{$packName}/Setup.class.php")) {
+            
+            return false;
+        }
+        
+        $setupClass = "{$packName}_Setup";
+        if (cls::load($setupClass, true)) {
+            $setup = cls::get($setupClass);
+            if (!empty($setup->noInstall)) {
+                
+                return false;
+            }
+        }
+        
+        return !core_Packs::isInstalled($packName);
     }
     
     
