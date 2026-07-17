@@ -257,7 +257,7 @@ class acc_BalanceHistory extends core_Manager
         $bQuery->where("#fromDate >= '{$from}' && #toDate <= '{$to}'");
         $bQuery->orderBy('id', 'ASC');
         
-        if ($balanceId = $bQuery->fetch()->id) {
+        if ($balanceId = $bQuery->fetch()->id ?? null) {
             
             return acc_Balances::fetch($balanceId);
         }
