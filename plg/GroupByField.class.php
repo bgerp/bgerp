@@ -67,9 +67,7 @@ class plg_GroupByField extends core_Plugin
             $rowAttr = array();
             
             // Създаваме по един ред с името му, разпънат в цялата таблица
-            if (strstr($rowAttr['class'], 'group-by-field-row') === false) {
-                $rowAttr['class'] .= ' group-by-field-row';
-            }
+            $rowAttr['class'] = 'group-by-field-row';
             
             if(array_key_exists($field, $originalFields)){
                 $rows['|' . $groupId] = ht::createElement(
