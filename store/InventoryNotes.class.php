@@ -102,6 +102,12 @@ class store_InventoryNotes extends core_Master
      * Кой има право да клонира?
      */
     public $canClonerec = 'ceo,storeMaster,inventory';
+
+
+    /**
+     * Дали потребител с роля 'accMaster'/'ceo' може да контира/оттегля/възстановява с приключени права
+     */
+    public $canUseClosedItems = false;
     
     
     /**
@@ -811,7 +817,7 @@ class store_InventoryNotes extends core_Master
     {
 
         // Синхронизираме данните само в чернова
-        if ($rec->state == 'draft' && $rec->_isClone !== true) {
+        if ($rec->state == 'draft' && ($rec->_isClone ?? null) !== true) {
             $mvc->sync($rec);
         } elseif ($rec->state == 'active' && ($rec->brState == 'stopped' || Mode::is('recontoMovement'))) {
             cls::get('store_InventoryNoteDetails')->invoke('AfterStartDocument', array($rec));
@@ -1166,7 +1172,7 @@ class store_InventoryNotes extends core_Master
                     }
 
                     foreach ($batchQuantities as $batch => $batchQuantity){
-                        if($exRecs[$summaryRec->productId][$batch] === true) continue;
+                        if(($exRecs[$summaryRec->productId][$batch] ?? null) === true) continue;
                         $productIds[$summaryRec->productId] = $summaryRec->productId;
 
                         $dRec = clone $obj;
