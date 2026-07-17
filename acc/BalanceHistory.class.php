@@ -168,7 +168,7 @@ class acc_BalanceHistory extends core_Manager
             
             // Ако сме на единствената страница или последната, показваме началното салдо
             if ($data->pager->page == $data->pager->pagesCount || $data->pager->pagesCount == 0) {
-                if(is_array($data->zeroRec)){
+                if(is_array($data->zeroRec ?? null)){
                     $data->recs[] = $data->zeroRec;
                 }
             }
@@ -179,7 +179,7 @@ class acc_BalanceHistory extends core_Manager
             }
             
             $combined = array();
-            if(is_array($data->zeroRec)){
+            if(is_array($data->zeroRec ?? null)){
                 $combined += array('zero' => $data->zeroRec);
             }
             $combined += $data->allRecs;
@@ -195,7 +195,7 @@ class acc_BalanceHistory extends core_Manager
         }
         
         $combined1 = array();
-        if(is_array($data->zeroRec)){
+        if(is_array($data->zeroRec ?? null)){
             $combined1 += array('zero' => $data->zeroRec);
         }
         $combined1 += $data->allRecs;
@@ -550,7 +550,7 @@ class acc_BalanceHistory extends core_Manager
             }
         }
         
-        if ($rec['ROW_ATTR']) {
+        if ($rec['ROW_ATTR'] ?? null) {
             $arr['ROW_ATTR'] = $rec['ROW_ATTR'];
         }
 
@@ -673,7 +673,7 @@ class acc_BalanceHistory extends core_Manager
             $tpl->replace($data->layoutClass, 'singleClass');
         }
         
-        if ($data->toolbar) {
+        if ($data->toolbar ?? null) {
             $tpl->append($data->toolbar->renderHtml(), 'HystoryToolbar');
         } else {
             $tpl->replace($data->row->fromDate, 'fromDate');
