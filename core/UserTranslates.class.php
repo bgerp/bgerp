@@ -211,7 +211,7 @@ class core_UserTranslates extends core_Manager
         }
         
         $hashArr[$hashStr] = $tFields;
-//        wp($hashArr);
+
         return $hashArr[$hashStr];
     }
     
