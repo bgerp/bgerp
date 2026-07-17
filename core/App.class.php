@@ -171,6 +171,7 @@ class core_App
                 $q['Act'] = EF_ACT_NAME;
             }
             
+            $name = null;
             foreach ($vUrl as $id => $prm) {
                 // Определяме случая, когато заявката е за браузърен ресурс
                 if ($id == 0 && $prm == EF_SBF) {
@@ -533,7 +534,7 @@ class core_App
         if (!headers_sent()) {
             header('Connection: close');
             if ($_SERVER['REQUEST_METHOD'] != 'HEAD' && $output) {
-                $supportsGzip = strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false;
+                $supportsGzip = strpos($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '', 'gzip') !== false;
                 if ($supportsGzip && strlen($content) > 1000) {
                     $content = gzencode($content);
                     header('Content-Encoding: gzip');
@@ -785,20 +786,20 @@ class core_App
             $arr = explode('/', $str);
             
             $get['App'] = $arr[0];
-            $get['Ctr'] = $arr[1];
-            $get['Act'] = $arr[2];
+            $get['Ctr'] = $arr[1] ?? null;
+            $get['Act'] = $arr[2] ?? null;
             $begin = 3;
-            
+
             $cnt = countR($arr);
-            
+
             if (countR($arr) % 2 == (($begin - 1) % 2)) {
-                $get['id'] = $arr[$begin];
+                $get['id'] = $arr[$begin] ?? null;
                 $begin++;
             }
-            
+
             for ($i = $begin; $i < $cnt; $i += 2) {
                 $key = $arr[$i];
-                $value = $arr[$i + 1];
+                $value = $arr[$i + 1] ?? null;
                 $value = urldecode($value);
                 $key = explode(',', $key);
                 
