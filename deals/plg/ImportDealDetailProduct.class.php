@@ -616,7 +616,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
         $isFromClipboard = false;
 
-        if ($form->rec->fromClipboard) {
+        if ($form->rec->fromClipboard ?? null) {
             $isFromClipboard = true;
         }
 

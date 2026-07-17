@@ -504,7 +504,7 @@ class doc_SharablePlg extends core_Plugin
         if (!empty($rec->originId)) {
             $document = doc_Containers::getDocument($rec->originId);
             
-            $shareFieldsArr = arr::make($document->autoShareFields ?? true, true);
+            $shareFieldsArr = arr::make($document->autoShareFields ?? null, true);
             
             $dRec = $document->fetch();
             
