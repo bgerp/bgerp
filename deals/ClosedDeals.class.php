@@ -448,8 +448,10 @@ abstract class deals_ClosedDeals extends core_Master
                         $closeSaleIds += keylist::toArray($firstRec->closedDocuments);
                     }
 
-                    // Приключване на активните задания при нужда
-                    if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, null, $closeSaleIds, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след приключване на сделка')){
+                    // Приключване на активните задания при нужда - през вярното поле
+                    // ('saleId' или 'purchaseId'), защото тук се обработват и продажби, и покупки
+                    $jobSourceField = $DocClass->jobSourceField ?? 'saleId';
+                    if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, null, $closeSaleIds, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'), 'Приключване след приключване на сделка', $jobSourceField)){
                         core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
                     }
                 }

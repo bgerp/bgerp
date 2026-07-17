@@ -315,20 +315,21 @@ class cat_products_Usage extends core_Manager
             $tpl->append($addBtn, 'title');
         }
         
-        $listFields = arr::make('title=Задание,productId=Артикул,dueDate=Падеж,saleId=Продажба,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
-        $listFields = core_TableView::filterEmptyColumns($data->rows, $listFields, 'saleId');
+        $listFields = arr::make('title=Задание,type=Вид,productId=Артикул,dueDate=Падеж,dealId=Сделка,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
+        $listFields = core_TableView::filterEmptyColumns($data->rows, $listFields, 'dealId');
         $data->listFields = $listFields;
         $data->Jobs->invoke('BeforeRenderListTable', array($tpl, &$data));
         
         $listTableMvc = clone $data->Jobs;
         $listTableMvc->FLD('title', 'varchar', 'tdClass=leftCell');
+        $listTableMvc->FNC('dealId', 'varchar');
         
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $details = $table->get($data->rows, $data->listFields);
         
         // Ако артикула не е производим, показваме в детайла
         if ($data->notManifacturable === true) {
-            $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
+            $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим и не е едновременно вложим и складируем') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
         }
         
@@ -384,10 +385,13 @@ class cat_products_Usage extends core_Manager
         foreach ($data->recs as $id => $rec){
             if ($data->Pager->isOnPage()) {
                 $data->rows[$id] = $data->Jobs->recToVerbal($rec, $fields);
+                $data->rows[$id]->dealId = $data->rows[$id]->sourceId ?? null;
             }
         }
         
-        if ($masterRec->canManifacture != 'yes' || $masterRec->generic == 'yes') {
+        $canManifacture = ($masterRec->canManifacture == 'yes');
+        $canDisassemble = ($masterRec->canConvert == 'yes' && $masterRec->canStore == 'yes');
+        if ((!$canManifacture && !$canDisassemble) || $masterRec->generic == 'yes') {
             $data->notManifacturable = true;
         }
         

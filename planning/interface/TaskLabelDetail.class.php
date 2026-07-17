@@ -156,12 +156,13 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
         }
 
         $singleUrl = toUrl(array('planning_Tasks', 'single', $rec->taskId), 'absolute');
-        $saleId = $clientName = null;
-        if(isset($jRec->saleId)){
-            $saleId = "#" . sales_Sales::getHandle($jRec->saleId);
-            $saleRec = sales_Sales::fetch($jRec->saleId, 'reff, contragentClassId,contragentId');
-            $reff = !empty($saleRec->reff) ? $saleRec->reff : null;
-            $clientName = cls::get($saleRec->contragentClassId)->getVerbal($saleRec->contragentId, 'name');
+        $dealId = $clientName = null;
+        list($sourceClass, $sourceId) = planning_Jobs::getSourceInfo($jRec);
+        if (isset($sourceClass)) {
+            $dealId = "#" . $sourceClass::getHandle($sourceId);
+            $sourceRec = $sourceClass::fetch($sourceId, 'reff,contragentClassId,contragentId');
+            $reff = !empty($sourceRec->reff) ? $sourceRec->reff : null;
+            $clientName = cls::get($sourceRec->contragentClassId)->getVerbal($sourceRec->contragentId, 'name');
         }
 
         $notes = !empty($rec->notes) ? core_Type::getByName('richtext')->toHtml($rec->notes) : null;
@@ -184,8 +185,8 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
                 $res['REFF'] = $reff;
             }
 
-            if(!empty($saleId)){
-                $res['SALE_ID'] = $saleId;
+            if(!empty($dealId)){
+                $res['SALE_ID'] = $dealId;
                 $res['CLIENT_NAME'] = $clientName;
             }
 

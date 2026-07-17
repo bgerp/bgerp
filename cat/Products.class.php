@@ -1798,6 +1798,14 @@ class cat_Products extends embed_Manager
             }
 
             self::filterQueryByMeta($query, $params['hasProperties'] ?? null, $params['hasnotProperties'] ?? null, $params['orHasProperties'] ?? false);
+
+            // Артикули, годни за Задание (planning_Jobs): производими ИЛИ (вложими И
+            // складируеми). filterQueryByMeta()/hasProperties не могат да изразят
+            // "A ИЛИ (B И C)" - затова е отделен, твърдо кодиран филтър.
+            if (!empty($params['allowedForJobs'])) {
+                $query->where("#canManifacture = 'yes' OR (#canConvert = 'yes' AND #canStore = 'yes')");
+            }
+
             if (isset($params['groups'])) {
                plg_ExpandInput::applyExtendedInputSearch('cat_Products', $query, $params['groups']);
             }
