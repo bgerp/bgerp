@@ -232,7 +232,7 @@ class planning_TaskConstraints extends core_Master
         $taskCount = countR($tasks);
         core_App::setTimeLimit($taskCount * 0.3, false, 60);
 
-        $res = $prevSteps = $tasksByJobs = $stepIds = $jobIds = $folderIds = $folderLocations = array();
+        $res = $prevSteps = $tasksByJobs = $previousTaskByJobOrder = $stepIds = $jobIds = $folderIds = $folderLocations = array();
         foreach ($tasks as $tRec) {
             $stepIds[$tRec->productId] = $tRec->productId;
             $jobIds[$tRec->originId] = $tRec->originId;
@@ -265,14 +265,34 @@ class planning_TaskConstraints extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#state IN ('active', 'stopped', 'wakeup', 'pending')");
         $tQuery->in('originId', $jobIds);
-        $tQuery->show('id,originId,productId,folderId,offsetAfter');
+        $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder');
         $additionalFolderIds = array();
         while ($tRec = $tQuery->fetch()) {
-            $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id, 'folderId' => $tRec->folderId, 'offsetAfter' => $tRec->offsetAfter);
+            $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id, 'folderId' => $tRec->folderId, 'offsetAfter' => $tRec->offsetAfter, 'saoOrder' => $tRec->saoOrder);
             if (!isset($folderLocations[$tRec->folderId])) {
                 $additionalFolderIds[$tRec->folderId] = $tRec->folderId;
             }
         }
+
+        // Редът в заданието е технологичен ред, а не само ред за визуализация.
+        foreach ($tasksByJobs as $originId => &$tasksInJob) {
+            uasort($tasksInJob, function($a, $b) {
+                if ($a->saoOrder == $b->saoOrder) {
+                    return ($a->id < $b->id) ? -1 : 1;
+                }
+
+                return ($a->saoOrder < $b->saoOrder) ? -1 : 1;
+            });
+
+            $previousTaskId = null;
+            foreach ($tasksInJob as $taskInJob) {
+                if (isset($previousTaskId)) {
+                    $previousTaskByJobOrder[$originId][$taskInJob->id] = $previousTaskId;
+                }
+                $previousTaskId = $taskInJob->id;
+            }
+        }
+        unset($tasksInJob);
 
         if (countR($additionalFolderIds)) {
             $cQuery = planning_Centers::getQuery();
@@ -313,6 +333,14 @@ class planning_TaskConstraints extends core_Master
                     if (array_key_exists($a->productId, $prevStepsArr)) {
                         $prevTaskIds[$a->id] = $prevStepsArr[$a->productId];
                     }
+                }
+
+                // Ако няма ръчно избрана предходна операция, непосредствената предходна
+                // по реда на заданието остава твърдо ограничение. При липса на изрично
+                // условие между етапите не се допуска застъпване.
+                $orderedPreviousTaskId = $previousTaskByJobOrder[$taskRec->originId][$taskRec->id] ?? null;
+                if (isset($orderedPreviousTaskId) && !isset($prevTaskIds[$orderedPreviousTaskId])) {
+                    $prevTaskIds[$orderedPreviousTaskId] = (object)array('delay' => 0, 'intersect' => 'no');
                 }
             }
 
@@ -638,7 +666,7 @@ class planning_TaskConstraints extends core_Master
 
         // Извличат се графиците на всички ПО с интервали за планиране
         $assetIds = arr::extractValuesFromArray($tasks, 'assetId');
-        $intervals = $assets = $idleTimes = array();
+        $intervals = $calendarIntervals = $assets = $idleTimes = array();
 
         // Извличане на времето за престой
         $idleQuery = planning_AssetScheduleBreaks::getQuery();
@@ -675,6 +703,7 @@ class planning_TaskConstraints extends core_Master
                     }
                 }
 
+                $calendarIntervals[$aRec->id] = clone $Interval;
                 $intervals[$aRec->id] = $Interval;
             }
         }
@@ -699,7 +728,7 @@ class planning_TaskConstraints extends core_Master
             $debugRes .= self::manualPlanning($plannedByAssets, $notPlanned, $intervals, $assets, $tasks, $now, $previousTasks);
         }
 
-        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'assets' => $assets, 'intervals' => $intervals, 'debug' => $debugRes);
+        return (object)array('tasks' => $plannedByAssets, 'notPlanned' => $notPlanned, 'assets' => $assets, 'intervals' => $intervals, 'calendarIntervals' => $calendarIntervals, 'debug' => $debugRes);
     }
 
     /**

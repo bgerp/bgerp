@@ -4126,7 +4126,7 @@ class planning_Tasks extends core_Master
             $prevTaskArr = array();
             if($tRec->isFinal == 'yes'){
                 $prevTaskArr = array_filter($allTasks, function($a) use ($tRec){
-                    return $a->saoOrder < $tRec->id && $a->id != $tRec->id;
+                    return $a->saoOrder < $tRec->saoOrder && $a->id != $tRec->id;
                 });
             }
 
