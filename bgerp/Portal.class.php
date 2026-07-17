@@ -329,7 +329,8 @@ class bgerp_Portal extends embed_Manager
             $dArr = array();
             
             foreach ($recsArr as $r) {
-                $dArr[$r->{$mvc->driverClassField}]++;
+                $clsKey = $r->{$mvc->driverClassField};
+                $dArr[$clsKey] = ($dArr[$clsKey] ?? 0) + 1;
             }
             
             if (!empty($dArr)) {
@@ -683,6 +684,7 @@ class bgerp_Portal extends embed_Manager
             // За originId приемаме най-стария родител
             $nRec = clone $rec;
             $oIdCalc = $nRec->originIdCalc;
+            $mCnt = 0;
             while (true) {
                 if (!$nRec->originIdCalc) break;
                 
