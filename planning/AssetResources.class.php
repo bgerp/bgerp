@@ -1105,7 +1105,11 @@ class planning_AssetResources extends core_Master
 
                 $a->orderByAssetId = $order;
                 $order++;
-                $prevEnd = $a->expectedTimeEnd;
+                if (isset($a->expectedTimeEnd)) {
+                    // Защитно отчитане на стари/фактически припокриващи се диапазони:
+                    // за дупките се следи най-късният край, а не краят на последния ред.
+                    $prevEnd = max($prevEnd, $a->expectedTimeEnd);
+                }
             }
 
             $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId,planningError,gapData');
