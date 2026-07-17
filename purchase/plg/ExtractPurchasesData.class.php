@@ -77,8 +77,9 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         $firstDocument = doc_Threads::getFirstDocument($clone->threadId);                                                 // на първия документ в нишката на активния документ
         $className = $firstDocument->className;
-        
-        $dealerId = $className::fetch($firstDocument->that)->dealerId;
+
+        $firstDocumentRec = $className::fetch($firstDocument->that);
+        $dealerId = $firstDocumentRec->dealerId ?? null;
         
         $isFromInventory = ($Master->className == 'store_InventoryNotes') ? 'true' : 'false';
         
@@ -92,6 +93,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         
         if ($cond) {
             foreach ($details as $detail) {
+                $measureId = null;
                 
                 //Заприходено количество
                 $quantity = ($Master->className == 'store_InventoryNotes') ?(round($detail->quantity - $detail->blQuantity, 4)) : $detail->quantity;
@@ -103,10 +105,10 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     $measureId = cat_Products::fetchField($productId, 'measureId');
                 }
                 
-                $price = $detail->price;
-                $currencyId = $clone->currencyId;
-                $currencyRate = $clone->currencyRate;
-                $amount = $detail->amount;
+                $price = $detail->price ?? null;
+                $currencyId = $clone->currencyId ?? null;
+                $currencyRate = $clone->currencyRate ?? null;
+                $amount = $detail->amount ?? null;
                 
                 //Склад
                 $storeId = $clone->storeId;
@@ -142,7 +144,9 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 }
                 
                 $dRec = array();
-                $sign = ($rec->isReverse == 'yes') ? -1 : 1;
+                $sign = (($rec->isReverse ?? null) == 'yes') ? -1 : 1;
+
+                $productInfo = cat_Products::getProductInfo($productId);
 
                 $price = empty($price) ? $price : deals_Helper::getSmartBaseCurrency($price, $clone->valior);
                 $amount = empty($amount) ? $amount : deals_Helper::getSmartBaseCurrency($amount, $clone->valior);
@@ -152,21 +156,21 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'detailClassId' => $detailClassId,
                     'detailRecId' => $detail->id,
                     'state' => $clone->state,
-                    'contragentClassId' => $clone->contragentClassId,
-                    'contragentId' => $clone->contragentId,
+                    'contragentClassId' => $clone->contragentClassId ?? null,
+                    'contragentId' => $clone->contragentId ?? null,
                     'dealerId' => $dealerId,
                     'productId' => $productId,
                     'measureId' => $measureId,
                     'docId' => $clone->id,
                     'docClassId' => $docClassId,
                     'quantity' => $sign * $quantity,
-                    'packagingId' => $detail->packagingId,
+                    'packagingId' => $detail->packagingId ?? null,
                     'storeId' => $storeId,
                     'price' => $price,
                     'expenses' => '',
-                    'discount' => $detail->discount,
+                    'discount' => $detail->discount ?? null,
                     'amount' => $sign * $amount,
-                    'weight' => $detail->weight,
+                    'weight' => $detail->weight ?? null,
                     'currencyId' => $currencyId,
                     'currencyRate' => $currencyRate,
                     'createdBy' => $detail->createdBy,
@@ -174,7 +178,7 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                     'folderId' => $clone->folderId,
                     'containerId' => $clone->containerId,
                     'isFromInventory' => $isFromInventory,
-                    'canStore' => cat_Products::getProductInfo($productId)->meta['canStore'],
+                    'canStore' => $productInfo->meta['canStore'] ?? null,
                 );
                 
                 $id = purchase_PurchasesData::fetchField("#detailClassId = {$dRec->detailClassId} AND #detailRecId = {$dRec->detailRecId}");
@@ -332,13 +336,13 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
                 }
 
                 // Намираме колко е еденичната цена, и я умножаваме по преразпределеното количество
-                $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
+                $costsArr[$costProd->productId] = ($costsArr[$costProd->productId] ?? 0) + $costProdAmount * $costProd->allocated;
             }
         }
 
         $prodsAmount = array();
         foreach ($prods as $purKey => $prod) {
-            $prodsAmount[$prod->productId] += $prod->amount;
+            $prodsAmount[$prod->productId] = ($prodsAmount[$prod->productId] ?? 0) + $prod->amount;
         }
        
         foreach ($costsArr as $costKey => $cost) {

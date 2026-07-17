@@ -83,12 +83,13 @@ class doc_ExpandComments extends core_Mvc
         $res = arr::make($res);
         
         $haveOrigin = false;
+        $cid = null;
         
         //Ако имаме originId
-        if ($rec->originId) {
+        if (!empty($rec->originId)) {
             $cid = $rec->originId;
             $haveOrigin = true;
-        } elseif ($rec->threadId) {
+        } elseif (!empty($rec->threadId)) {
             // Ако добавяме коментар в нишката
             $cid = doc_Threads::fetchField($rec->threadId, 'firstContainerId');
         }

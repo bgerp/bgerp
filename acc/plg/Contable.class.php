@@ -719,7 +719,7 @@ class acc_plg_Contable extends core_Plugin
             $handle = $mvc->getHandle($rec->id);
             $cRes = 'НЕ Е контиран';
             status_Messages::newStatus("#{$handle} |" . $cRes);
-        } elseif ($rec->state == 'active' && $rec->_reconto !== true) {
+        } elseif ($rec->state == 'active' && ($rec->_reconto ?? false) !== true) {
             $mvc->logWrite('Контиране на документ', $id);
         }
         
