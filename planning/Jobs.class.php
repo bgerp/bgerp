@@ -294,11 +294,7 @@ class planning_Jobs extends core_Master
 
         $this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
         $this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
-        $this->FLD(
-            'state',
-                'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен, stopped=Спрян, wakeup=Събуден)',
-                'caption=Състояние, input=none'
-        );
+        $this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен, stopped=Спрян, wakeup=Събуден)', 'caption=Състояние, input=none');
 
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent,caption=Продажба');
         $this->FLD('purchaseId', 'key(mvc=purchase_Purchases)', 'input=hidden,silent,caption=Покупка');
@@ -834,6 +830,12 @@ class planning_Jobs extends core_Master
             $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
             $data->toolbar->addBtn('Произвеждане', $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
         }
+
+        // Бутон за добавяне на протокол за разпад
+        if (planning_DisassemblyNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
+            $pUrl = array('planning_DisassemblyNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
+            $data->toolbar->addBtn('Разпад', $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за разпад от заданието');
+        }
         
         // Бутон за добавяне на документ за влагане
         if (planning_ConsumptionNotes::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
@@ -1098,6 +1100,11 @@ class planning_Jobs extends core_Master
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink('Произвеждане', array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true), array('order' => 19, 'ef_icon' => 'img/16/page_paste.png', 'title' => 'Създаване на протокол за производство'));
                     $row->quantityNotStored = ht::createHint($row->quantityNotStored, 'Заданието очаква да се създаде протокол за производство', 'warning', false);
+                }
+
+                if (planning_DisassemblyNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
+                    core_RowToolbar::createIfNotExists($row->_rowTools);
+                    $row->_rowTools->addLink('Разпад', array('planning_DisassemblyNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true), array('order' => 19, 'ef_icon' => 'img/16/page_paste.png', 'title' => 'Създаване на протокол за разпад'));
                 }
             }
             
