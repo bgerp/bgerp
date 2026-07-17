@@ -207,7 +207,8 @@ class blast_ListDetails extends doc_Detail
      */
     public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        if ($bData = $data->form->rec->data) {
+        if (!empty($data->form->rec->data)) {
+            $bData = $data->form->rec->data;
             $fieldsArr = $mvc->getFncFieldsArr($data->masterRec->allFields);
             
             $bData = unserialize($bData);
@@ -245,6 +246,7 @@ class blast_ListDetails extends doc_Detail
         
         $form->rec->key = str::convertToFixedKey(mb_strtolower(trim($form->rec->{$keyField})));
         
+        $idCond = '';
         if ($form->rec->id) {
             $idCond = " AND #id != {$form->rec->id}";
         }

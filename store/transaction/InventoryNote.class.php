@@ -79,36 +79,37 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
         core_App::setTimeLimit(600);
         
         while ($dRec = $dQuery->fetch()) {
+            $delta = $dRec->delta ?? null;
 
             // Ако разликата е положителна, тоест имаме излишък
-            if ($dRec->delta > 0) {
+            if ($delta > 0) {
                 $productsArr[$dRec->productId] = $dRec->productId;
 
                 // Ако ще се занулява отрицателно к-во винаги ще е със складовата себестойност към момента
-                $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
+                $amount = cat_Products::getWacAmountInStore($delta, $dRec->productId, $rec->valior, $rec->storeId);
 
                 if (!isset($amount)) {
-                    $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
+                    $amount = cat_Products::getPrimeCost($dRec->productId, null, $delta, $rec->valior);
 
                     if (!isset($amount)) {
                         $errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }
 
-                    $amount = round($amount * $dRec->delta, 2);
+                    $amount = round($amount * $delta, 2);
                 }
                 $total += $amount;
 
                 $entries[] = array('amount' => $amount,
                     'debit' => array('321', array('store_Stores', $rec->storeId),
                         array('cat_Products', $dRec->productId),
-                        'quantity' => $dRec->delta),
+                        'quantity' => $delta),
                     'credit' => array('799'),
                     'reason' => 'Заприходени излишъци на стоково-материални запаси',
                 );
 
-            } elseif ($dRec->delta < 0) {
+            } elseif ($delta < 0) {
                 $productsArr[$dRec->productId] = $dRec->productId;
-                $delta = abs($dRec->delta);
+                $delta = abs($delta);
                 
                 $entries[] = array(
                     'debit' => array('699'),

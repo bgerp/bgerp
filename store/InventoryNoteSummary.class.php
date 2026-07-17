@@ -254,13 +254,14 @@ class store_InventoryNoteSummary extends doc_Detail
     public static function renderDeltaCell($rec)
     {
         $rec = static::fetchRec($rec);
+        $delta = $rec->delta ?? null;
         $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-        $deltaRow = $Double->toVerbal($rec->delta);
-        if ($rec->delta > 0) {
+        $deltaRow = $Double->toVerbal($delta);
+        if ($delta > 0) {
             $deltaRow = "+{$deltaRow}";
         }
         
-        $class = ($rec->delta < 0) ? 'red' : (($rec->delta > 0) ? 'green' : 'quiet');
+        $class = ($delta < 0) ? 'red' : (($delta > 0) ? 'green' : 'quiet');
         $deltaRow = "<span class='{$class}'>{$deltaRow}</span>";
         
         return new core_ET($deltaRow);
@@ -395,7 +396,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 }
             }
 
-            if($rec->quantityHasAddedValues == 'yes'){
+            if(($rec->quantityHasAddedValues ?? null) == 'yes'){
                 if($rec->isBatch ?? false){
                     if(!isset($rec->quantity)){
                         $row->quantity = $row->blQuantity;
@@ -404,7 +405,7 @@ class store_InventoryNoteSummary extends doc_Detail
                 }
             }
 
-            if(!($rec->isBatch ?? false)){
+            if(isset($rec) && !($rec->isBatch ?? false)){
                 if (!Mode::isReadOnly()) {
                     $row->productId = cat_Products::getVerbal($rec->productId, 'name');
                     $row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
@@ -437,7 +438,7 @@ class store_InventoryNoteSummary extends doc_Detail
             }
 
             if (isset($rec)) {
-                if($rec->hasNoBatchRow !== true) {
+                if(($rec->hasNoBatchRow ?? false) !== true) {
                     // Добавяне на бутон за редакция на реда
                     if ($rec->productId && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
                         $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId, $pageVar => $pageVal));
@@ -445,7 +446,7 @@ class store_InventoryNoteSummary extends doc_Detail
                         // Ако се редактира сумарен ред. Маркира се в урл-то
                         if(isset($rec->quantity) || isset($rec->_batch)){
                             $url['packagingId'] = cat_Products::fetchField($rec->productId, 'measureId');
-                            $url['editQuantity'] = $rec->quantity;
+                            $url['editQuantity'] = $rec->quantity ?? null;
                             $url['editSummary'] = true;
                             if(isset($rec->_batch)){
                                 $url['editBatch'] = $rec->_batch;
@@ -460,11 +461,12 @@ class store_InventoryNoteSummary extends doc_Detail
                     $row->charge = static::renderCharge($rec);
 
                     // Рендиране на заявките, в които участва артикула
-                    if (countR($pendingDocuments[$rec->productId]) && !Mode::isReadOnly()) {
+                    $productPendingDocuments = $pendingDocuments[$rec->productId] ?? array();
+                    if (countR($productPendingDocuments) && !Mode::isReadOnly()) {
 
                         $btn = ht::createFnBtn('', null, null, array('class' => 'more-btn linkWithIcon warningContextMenu', 'title' => 'Документи, които са запазили количества от артикула'));
                         $bodyLayout = new ET("<div class='clearfix21 modal-toolbar'>[#LI#]</div>");
-                        foreach ($pendingDocuments[$rec->productId] as $link) {
+                        foreach ($productPendingDocuments as $link) {
                             $block = new core_ET("<div style='padding: 3px 5px 2px 0px;'>[#1#]</div>");
                             $block->replace($link, '1');
                             $block->removeBlocksAndPlaces();
@@ -481,8 +483,10 @@ class store_InventoryNoteSummary extends doc_Detail
                 }
             }
 
-            $row->quantity = ht::styleIfNegative($row->quantity, $rec->quantity);
-            $row->blQuantity = ht::styleIfNegative($row->blQuantity, $rec->blQuantity);
+            if (isset($rec)) {
+                $row->quantity = ht::styleIfNegative($row->quantity, $rec->quantity);
+                $row->blQuantity = ht::styleIfNegative($row->blQuantity, $rec->blQuantity);
+            }
         }
         
         plg_RowTools2::on_BeforeRenderListTable($mvc, $res, $data);
@@ -517,7 +521,7 @@ class store_InventoryNoteSummary extends doc_Detail
 
         $data->listFilter->input();
         if($filter = $data->listFilter->rec){
-            if($filter->filterBy == 'diff'){
+            if(($filter->filterBy ?? null) == 'diff'){
                 $data->query->where('#quantity IS NOT NULL');
             }
         }

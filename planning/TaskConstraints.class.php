@@ -265,10 +265,10 @@ class planning_TaskConstraints extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#state IN ('active', 'stopped', 'wakeup', 'pending')");
         $tQuery->in('originId', $jobIds);
-        $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder');
+        $tQuery->show('id,originId,productId,folderId,offsetAfter,saoOrder,assetId');
         $additionalFolderIds = array();
         while ($tRec = $tQuery->fetch()) {
-            $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id, 'folderId' => $tRec->folderId, 'offsetAfter' => $tRec->offsetAfter, 'saoOrder' => $tRec->saoOrder);
+            $tasksByJobs[$tRec->originId][$tRec->id] = (object)array('productId' => $tRec->productId, 'id' => $tRec->id, 'folderId' => $tRec->folderId, 'offsetAfter' => $tRec->offsetAfter, 'saoOrder' => $tRec->saoOrder, 'assetId' => $tRec->assetId);
             if (!isset($folderLocations[$tRec->folderId])) {
                 $additionalFolderIds[$tRec->folderId] = $tRec->folderId;
             }
@@ -351,9 +351,12 @@ class planning_TaskConstraints extends core_Master
                 $thisTaskLocationId = $folderLocations[$tasksByJobs[$taskRec->originId][$taskRec->id]->folderId] ?? '-';
                 foreach ($prevTaskIds as $prevTaskId => $stepCondition) {
 
-                    // Гледа се дали текущата и предходната са в една локация или са в различни
+                    // Гледа се дали текущата и предходната са в една локация или са в различни.
+                    // При едно и също оборудване няма транспорт между операциите.
                     $prevTaskLocationId = $folderLocations[$tasksByJobs[$taskRec->originId][$prevTaskId]->folderId] ?? '-';
-                    $locationOffset = ($thisTaskLocationId == $prevTaskLocationId) ? $offsetSameLocation : $offsetOtherLocation;
+                    $isSameAsset = isset($tasksByJobs[$taskRec->originId][$taskRec->id]->assetId, $tasksByJobs[$taskRec->originId][$prevTaskId]->assetId)
+                        && $tasksByJobs[$taskRec->originId][$taskRec->id]->assetId == $tasksByJobs[$taskRec->originId][$prevTaskId]->assetId;
+                    $locationOffset = $isSameAsset ? 0 : (($thisTaskLocationId == $prevTaskLocationId) ? $offsetSameLocation : $offsetOtherLocation);
 
                     // Времето за изчакване е по-голямото от това за локацията и зададеното в етапа време на изчакване
                     $conditionDelay = (is_object($stepCondition) && isset($stepCondition->delay)) ? $stepCondition->delay : 0;

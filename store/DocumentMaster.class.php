@@ -1012,7 +1012,7 @@ abstract class store_DocumentMaster extends core_Master
         if(!Mode::is('calcOnlyDeliveryPart')){
             $res["{$ownPart}Company"] = $ownCompany->name;
             $toPersonId = ($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-            $res["{$ownPart}Person"] = ($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
+            $res["{$ownPart}Person"] = !empty($res["{$ownPart}Person"]) ? $res["{$ownPart}Person"] : core_Users::fetchField($toPersonId, 'names');
 
             if($res["{$ownPart}Person"]){
                 $personId = crm_Profiles::getPersonByUser($toPersonId);
