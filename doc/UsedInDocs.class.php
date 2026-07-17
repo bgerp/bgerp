@@ -123,7 +123,7 @@ class doc_UsedInDocs extends core_Manager
             return $rec->data;
         }
         
-        return $rec->data[$type];
+        return $rec->data[$type] ?? null;
     }
     
     

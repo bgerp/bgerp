@@ -150,7 +150,7 @@ class type_Class extends type_Key
         
         $savedOpt = $this->options;
         
-        $interface = $this->params['interface'];
+        $interface = $this->params['interface'] ?? null;
         $mvc = cls::get($this->params['mvc']);
         $this->options = $mvc->getOptionsByInterface($interface, $this->params['select']);
         

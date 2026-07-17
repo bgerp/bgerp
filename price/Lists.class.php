@@ -382,7 +382,7 @@ class price_Lists extends core_Master
         if (empty($rec->id)) {
 
             // По дефолт слагаме за частните политики да наследяват дефолт политиката за контрагента, иначе 'Каталог'
-            $rec->parent = ($rec->cId && $rec->cClass) ? price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId) : cat_Setup::get('DEFAULT_PRICELIST');
+            $rec->parent = (isset($rec->cId, $rec->cClass)) ? price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId) : cat_Setup::get('DEFAULT_PRICELIST');
         } else {
             // Ако наследената политика, не присъства в опциите, задаваме я за да не се затрие
             if($rec->parent && !array_key_exists($rec->parent, $parentOptions)){
