@@ -708,47 +708,86 @@ class core_Manager extends core_Mvc
             foreach ($showFields as $name) {
                 core_Debug::startTimer("HIDE_EMPTY_OPTIONS_{$name}");
                 $Type = $data->listFilter->getField($name);
-                $options = array();
 
-                if (in_array($Type->input ?? null, array('hidden', 'none')) || ($Type->alwaysShowInListFilter ?? null)) continue;
-
-                try {
-                    // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
-                    $skip = true;
-                    if ($Type->type instanceof type_Enum || $Type->type instanceof type_Key) {
-                        if (method_exists($Type->type, 'prepareOptions')) {
-                            $options = $Type->type->prepareOptions();
-                        } else {
-                            $options = $Type->type->options;
-                        }
-
-                        $skip = isset($Type->type->params['allowEmpty']) && isset($options['']);
-                    } elseif ($Type->type instanceof type_Keylist) {
-                        $options = $Type->type->getSuggestions();
-                        $skip = false;
-                    } elseif ($Type->type instanceof type_Set) {
-                        $options = $Type->type->suggestions;
-                        $skip = false;
-                    }
-                } catch (Exception $t) {
-                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
-                } catch (Error $t) {
-                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
-                } catch (Throwable $t) {
-                    wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                if (in_array($Type->input ?? null, array('hidden', 'none')) || ($Type->alwaysShowInListFilter ?? null)) {
+                    core_Debug::stopTimer("HIDE_EMPTY_OPTIONS_{$name}");
+                    continue;
                 }
 
-                if ($skip) continue;
-                unset($options[''], $options[' ']);
+                // Как ще се показва полето се кешира за час, защото за да се определи, трябва да се
+                // подготвят опциите му. В манипулатора влизат и параметрите на типа, текущия потребител
+                // и езика, защото опциите на някои полета се ограничават спрямо тях
+                $typeParams = array();
+                foreach ((array) $Type->type->params as $pName => $pValue) {
+                    $typeParams[$pName] = is_object($pValue) ? get_class($pValue) : $pValue;
+                }
+                $cacheHandler = md5($mvc->className . '|' . $name . '|' . get_class($Type->type) . '|' . serialize($typeParams) . '|' . core_Users::getCurrent() . '|' . core_Lg::getCurrent());
 
-                // Ако има само една опция или няма - няма да се показва полето във филтъра
-                $count = countR($options);
-                if ($count == 1) {
+                // Кешът зависи от самия модел, но и от модела, от който идват опциите на полето
+                // (key/keylist сочат към чужд модел) - иначе промяна в него нямаше да се усети
+                $depends = array($mvc);
+                $optionsMvc = $Type->type->params['mvc'] ?? null;
+                if (!empty($optionsMvc) && (is_object($optionsMvc) || cls::load($optionsMvc, true))) {
+                    $OptionsMvc = cls::get($optionsMvc);
+                    if (($OptionsMvc instanceof core_Mvc) && $OptionsMvc->className != $mvc->className) {
+                        $depends[] = $OptionsMvc;
+                    }
+                }
+
+                $input = core_Cache::get('listFilterOpt', $cacheHandler, 600, $depends);
+
+                if ($input === false) {
+                    $options = array();
+                    $hasError = false;
+
+                    try {
+                        // Обхождат се всички полета от тип енум/кей/кейлист/сет и се намират наличните за избор опции
+                        $skip = true;
+                        if ($Type->type instanceof type_Enum || $Type->type instanceof type_Key) {
+                            if (method_exists($Type->type, 'prepareOptions')) {
+                                $options = $Type->type->prepareOptions();
+                            } else {
+                                $options = $Type->type->options;
+                            }
+
+                            $skip = isset($Type->type->params['allowEmpty']) && isset($options['']);
+                        } elseif ($Type->type instanceof type_Keylist) {
+                            $options = $Type->type->getSuggestions();
+                            $skip = false;
+                        } elseif ($Type->type instanceof type_Set) {
+                            $options = $Type->type->suggestions;
+                            $skip = false;
+                        }
+                    } catch (Exception $t) {
+                        $hasError = true;
+                        wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                    } catch (Error $t) {
+                        $hasError = true;
+                        wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                    } catch (Throwable $t) {
+                        $hasError = true;
+                        wp('Грешка при подготовка на опциите за филтъра', $Type, $showFields, $name, $mvc);
+                    }
+
+                    if ($skip) {
+                        $input = 'show';
+                    } else {
+                        unset($options[''], $options[' ']);
+
+                        // Ако има само една опция или няма - няма да се показва полето във филтъра
+                        $count = countR($options);
+                        $input = ($count == 1) ? 'hidden' : (($count == 0) ? 'none' : 'show');
+                    }
+
+                    // При грешка резултатът не се кешира, за да се опита пак на следващия хит
+                    if (!$hasError) {
+                        core_Cache::set('listFilterOpt', $cacheHandler, $input, 600, $depends);
+                    }
+                }
+
+                if ($input != 'show') {
                     unset($showFields[$name]);
-                    $data->listFilter->setField($name, 'input=hidden');
-                } elseif ($count == 0) {
-                    unset($showFields[$name]);
-                    $data->listFilter->setField($name, 'input=none');
+                    $data->listFilter->setField($name, "input={$input}");
                 }
                 core_Debug::stopTimer("HIDE_EMPTY_OPTIONS_{$name}");
             }
