@@ -24,6 +24,7 @@ class planning_Wrapper extends plg_ProtoWrapper
         $this->TAB('planning_DirectProductionNote', 'Протоколи->Производство', 'ceo,production,planningAll');
         $this->TAB('planning_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,consumption,planningAll');
         $this->TAB('planning_ReturnNotes', 'Протоколи->Връщане', 'ceo,consumption,planningAll');
+        $this->TAB('planning_DisassemblyNote', 'Протоколи->Разпад', 'ceo,production,planningAll');
         $this->TAB('planning_WorkInProgress', 'Протоколи->Незавършено производство', 'ceo,planning,production,planningAll');
 
         $this->TAB('planning_Jobs', 'Задания', 'ceo,jobSee,planningAll');

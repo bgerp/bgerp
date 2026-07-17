@@ -438,6 +438,8 @@ class planning_Setup extends core_ProtoSetup
         'planning_DirectProductNoteDetails',
         'planning_ReturnNotes',
         'planning_ReturnNoteDetails',
+        'planning_DisassemblyNote',
+        'planning_DisassemblyNoteDetails',
         'planning_Tasks',
         'planning_AssetResources',
         'planning_AssetResourceFolders',
@@ -468,6 +470,7 @@ class planning_Setup extends core_ProtoSetup
     public $roles = array(
         array('jobSee'),
         array('job', 'jobSee'),
+        array('jobDisassembly', 'jobSee'),
         array('taskSee'),
         array('taskWorker', 'taskSee'),
         array('taskPostProduction', 'taskWorker'),

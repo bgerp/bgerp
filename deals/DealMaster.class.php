@@ -2155,10 +2155,11 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @param int|stdClass $id - ид или запис
      * @param boolean $onlyActive - дали да са само активните артикули
+     * @param string|null $jobType - вид задание (manifacture|disassembly)
      *
      * @return array $res - масив с годните артикули
      */
-    public static function getProducts4Job($id, $onlyActive = false)
+    public static function getProducts4Job($id, $onlyActive = false, $jobType = null)
     {
         $res = array();
         $rec = static::fetchRec($id);
@@ -2172,7 +2173,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $query->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $query->EXT('generic', 'cat_Products', 'externalName=generic,externalKey=productId');
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-        $query->where("(#canManifacture = 'yes' OR (#canConvert = 'yes' AND #canStore = 'yes')) AND (#generic IS NULL OR #generic != 'yes')");
+        if ($jobType == 'manifacture') {
+            $query->where("#canManifacture = 'yes'");
+        } elseif ($jobType == 'disassembly') {
+            $query->where("#canConvert = 'yes' AND #canStore = 'yes'");
+        } else {
+            $query->where("#canManifacture = 'yes' OR (#canConvert = 'yes' AND #canStore = 'yes')");
+        }
+        $query->where("#generic IS NULL OR #generic != 'yes'");
         $query->orderBy('id', 'ASC');
         $query->XPR('codeExp', 'varchar', "LOWER(COALESCE(#code, CONCAT('Art', #id)))");
         $query->show('productId,packagingId,codeExp');
@@ -2310,10 +2318,13 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->jobs[$jRec->id] = planning_Jobs::recToVerbal($jRec, $fields);
         }
 
-        if (planning_Jobs::haveRightFor('add', (object) array($jobField => $rec->id))) {
-            $data->addJobUrl = array('planning_Jobs', 'add', $jobField => $rec->id, 'foreignId' => $rec->containerId, 'ret_url' => true);
-            if(doc_Threads::haveRightFor('single', $rec->threadId)){
-                $data->addJobUrl['threadId'] = $rec->threadId;
+        foreach (array('manifacture', 'disassembly') as $jobType) {
+            $jobRec = (object) array($jobField => $rec->id, 'type' => $jobType);
+            if (countR(static::getProducts4Job($rec, true, $jobType)) && planning_Jobs::haveRightFor('add', $jobRec)) {
+                $data->addJobUrls[$jobType] = array('planning_Jobs', 'add', $jobField => $rec->id, 'type' => $jobType, 'foreignId' => $rec->containerId, 'ret_url' => true);
+                if(doc_Threads::haveRightFor('single', $rec->threadId)){
+                    $data->addJobUrls[$jobType]['threadId'] = $rec->threadId;
+                }
             }
         }
     }
@@ -2334,9 +2345,15 @@ abstract class deals_DealMaster extends deals_DealBase
         $jobTpl->replace($jobsTable, 'table');
         $tpl->replace($jobTpl, 'JOB_INFO');
 
-        if (isset($data->addJobUrl)) {
-            $addLink = ht::createLink('', $data->addJobUrl, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство');
-            $tpl->replace($addLink, 'JOB_ADD_BTN');
+        if (isset($data->addJobUrls)) {
+            $addLinks = '';
+            if (isset($data->addJobUrls['manifacture'])) {
+                $addLinks .= ht::createBtn('Производство', $data->addJobUrls['manifacture'], false, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за производство');
+            }
+            if (isset($data->addJobUrls['disassembly'])) {
+                $addLinks .= ht::createBtn('Разпад', $data->addJobUrls['disassembly'], false, false, 'ef_icon=img/16/add.png,title=Създаване на ново задание за разпад');
+            }
+            $tpl->replace($addLinks, 'JOB_ADD_BTN');
         }
     }
 

@@ -307,12 +307,18 @@ class cat_products_Usage extends core_Manager
         $anchorId = 'usage_' . get_class($data->Jobs) . '_' . $data->masterData->rec->containerId;
         $tpl->append("<span id='{$anchorId}'></span>", 'title');
 
-        $title = tr('Задания за производство');
+        $title = tr('Задание');
         $tpl->append($title, 'title');
-        
-        if (isset($data->addUrl)) {
-            $addBtn = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за производство');
-            $tpl->append($addBtn, 'title');
+
+        $addBtns = '';
+        if (isset($data->addUrls)) {
+            if (isset($data->addUrls['manifacture'])) {
+                $addBtns .= ht::createBtn('Производство', $data->addUrls['manifacture'], false, false, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за производство');
+            }
+
+            if (isset($data->addUrls['disassembly'])) {
+                $addBtns .= ht::createBtn('Разпад', $data->addUrls['disassembly'], false, false, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за разпад');
+            }
         }
         
         $listFields = arr::make('title=Задание,type=Вид,productId=Артикул,dueDate=Падеж,dealId=Сделка,packQuantity=Планирано,quantityProduced=Заскладено,packagingId=Мярка');
@@ -333,6 +339,7 @@ class cat_products_Usage extends core_Manager
             $tpl->append('state-rejected', 'TAB_STATE');
         }
         
+        $tpl->append($addBtns, 'content');
         $tpl->append($details, 'content');
         if (isset($data->Pager)) {
             $data->Pager->addToUrl = array('#' => $anchorId);
@@ -391,6 +398,7 @@ class cat_products_Usage extends core_Manager
         
         $canManifacture = ($masterRec->canManifacture == 'yes');
         $canDisassemble = ($masterRec->canConvert == 'yes' && $masterRec->canStore == 'yes');
+
         if ((!$canManifacture && !$canDisassemble) || $masterRec->generic == 'yes') {
             $data->notManifacturable = true;
         }
@@ -400,14 +408,20 @@ class cat_products_Usage extends core_Manager
             
             return;
         }
-        
+
         // Проверяваме можем ли да добавяме нови задания
-        if ($data->Jobs->haveRightFor('add', (object) array('productId' => $data->masterId))) {
-            $data->addUrl = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'ret_url' => true);
+        foreach (array('manifacture' => $canManifacture, 'disassembly' => $canDisassemble) as $jobType => $isAllowed) {
+            $jobRec = (object) array('productId' => $data->masterId, 'type' => $jobType);
+
+            if (!$data->Jobs->haveRightFor('add', $jobRec)) {
+                continue;
+            }
+
+            $data->addUrls[$jobType] = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'type' => $jobType, 'foreignId' => $masterRec->containerId, 'ret_url' => true);
             if($Driver = cat_Products::getDriver($data->masterId)) {
                 $productionData = $Driver->getProductionData($data->masterId);
                 if(isset($productionData['centerId'])){
-                    $data->addUrl['folderId'] = planning_Centers::fetchField($productionData['centerId'], 'folderId');
+                    $data->addUrls[$jobType]['folderId'] = planning_Centers::fetchField($productionData['centerId'], 'folderId');
                 }
             }
         }

@@ -1803,7 +1803,13 @@ class cat_Products extends embed_Manager
             // складируеми). filterQueryByMeta()/hasProperties не могат да изразят
             // "A ИЛИ (B И C)" - затова е отделен, твърдо кодиран филтър.
             if (!empty($params['allowedForJobs'])) {
-                $query->where("#canManifacture = 'yes' OR (#canConvert = 'yes' AND #canStore = 'yes')");
+                if (($params['jobType'] ?? null) == 'manifacture') {
+                    $query->where("#canManifacture = 'yes'");
+                } elseif (($params['jobType'] ?? null) == 'disassembly') {
+                    $query->where("#canConvert = 'yes' AND #canStore = 'yes'");
+                } else {
+                    $query->where("#canManifacture = 'yes' OR (#canConvert = 'yes' AND #canStore = 'yes')");
+                }
             }
 
             if (isset($params['groups'])) {

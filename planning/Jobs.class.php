@@ -64,19 +64,19 @@ class planning_Jobs extends core_Master
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, job';
+    public $canEdit = 'ceo, job, jobDisassembly';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, job';
+    public $canAdd = 'ceo, job, jobDisassembly';
     
     
     /**
      * Кой може да променя състоянието?
      */
-    public $canChangestate = 'ceo, job, production';
+    public $canChangestate = 'ceo, job, jobDisassembly, production';
     
     
     /**
@@ -84,7 +84,7 @@ class planning_Jobs extends core_Master
      *
      * @see change_Plugin
      */
-    public $canChangerec = 'ceo, job';
+    public $canChangerec = 'ceo, job, jobDisassembly';
     
     
     /**
@@ -114,7 +114,7 @@ class planning_Jobs extends core_Master
     /**
      * Кой може да клонира
      */
-    public $canClonerec = 'ceo, job';
+    public $canClonerec = 'ceo, job, jobDisassembly';
     
     
     /**
@@ -263,8 +263,8 @@ class planning_Jobs extends core_Master
      */
     public function  description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|productionScrap|quantity|oldJobId|type');
-        $this->FLD('type', 'enum(manifacture=Производство,disassembly=Разпад)', 'notNull,value=manifacture,caption=Вид,mandatory,after=productId,input=none,silent,removeAndRefreshForm=oldJobId|allowSecondMeasure|secondMeasureId');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|productionScrap|quantity|oldJobId');
+        $this->FLD('type', 'enum(manifacture=Производство,disassembly=Разпад)', 'notNull,value=manifacture,caption=Вид,mandatory,after=productId,input=hidden,silent');
         $this->FLD('oldJobId', 'key2(mvc=planning_Jobs,selectSourceArr=planning_Jobs::getPreviousJobs,allowEmpty,forceAjax,maxSuggestions=100)', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none,class=w100');
         $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory,remember');
         $this->FLD('expectedDueDate', 'date(smartTime)', 'caption=Очакван падеж,input=none');
@@ -325,7 +325,7 @@ class planning_Jobs extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
-        if(isset($rec->id) && $rec->state != 'draft'){
+        if(isset($rec->id)){
             $form->setReadOnly('productId');
         }
 
@@ -369,7 +369,7 @@ class planning_Jobs extends core_Master
         if (isset($sourceClass)) {
 
             // Ако заданието е към продажба/покупка, може да се избират само измежду артикулите в нея
-            $products = $sourceClass::getProducts4Job($sourceId, true);
+            $products = $sourceClass::getProducts4Job($sourceId, true, $rec->type);
             $form->setFieldType('productId', 'key(mvc=cat_Products)');
 
             // Дефолтния артикул е първия без задание към продажбата/покупката
@@ -383,26 +383,25 @@ class planning_Jobs extends core_Master
             $packsInDeal = $packsInDealOrdered;
 
             $found = false;
+            $availableJobsCnt = 0;
             foreach ($products as $pId => $pName){
-                if(isset($rec->productId) && $rec->productId != $pId) continue;
-
                 foreach ($packsInDeal[$pId] as $packId => $packQuantity){
                     $exRec = static::fetchField("#productId = {$pId} AND #{$jobField} = {$sourceId} AND #packagingId = {$packId} AND #state != 'rejected'");
                     if(!$exRec){
-                        $defaultProductId = $pId;
-                        $defaultProductPack = $packId;
-                        $defaultQuantity = $packQuantity;
-                        $found = true;
-                        break;
+                        $availableJobsCnt++;
+                        if (!$found && (!isset($rec->productId) || $rec->productId == $pId)) {
+                            $defaultProductId = $pId;
+                            $defaultProductPack = $packId;
+                            $defaultQuantity = $packQuantity;
+                            $found = true;
+                        }
                     }
                 }
-
-                if($found) break;
             }
 
             $form->setDefault('productId', $defaultProductId);
-            $form->rec->_allowedProductsCnt = countR($products);
-            if($form->rec->_allowedProductsCnt == 1){
+            $form->rec->_allowedProductsCnt = $availableJobsCnt;
+            if(countR($products) == 1){
                 $form->setDefault('productId', key($products));
                 $form->setOptions('productId', $products);
             } else {
@@ -414,6 +413,7 @@ class planning_Jobs extends core_Master
             $form->setFieldTypeParams('productId', array(
                 'notDriverId'      => planning_interface_StepProductDriver::getClassId(),
                 'allowedForJobs'   => true,
+                'jobType'          => $rec->type,
                 'hasnotProperties' => 'generic',
             ));
         }
@@ -422,7 +422,6 @@ class planning_Jobs extends core_Master
         $productId = $productId ?? $rec->productId;
         if(isset($productId)){
 
-            $form->setField('type', 'input');
             $packs = cat_Products::getPacks($productId, $packagingId, false, $secondMeasureId);
             $form->setOptions('packagingId', $packs);
             $form->setField('packagingId', 'input');
@@ -432,24 +431,9 @@ class planning_Jobs extends core_Master
                 $form->setDefault('tolerance', $tolerance);
             }
 
-            // Вид на заданието (Производство/Разпад) - заключено и автоматично сетнато,
-            // ако артикулът е годен само за едното; свободно за избор, ако е годен и за двете
+            // Видът на заданието идва от бутона/URL и остава скрит във формата
             $productTypeRec = cat_Products::fetch($productId, 'canManifacture,canConvert,canStore');
-            $canManifacture = ($productTypeRec->canManifacture == 'yes');
-            $canDisassemble = ($productTypeRec->canConvert == 'yes' && $productTypeRec->canStore == 'yes');
             $jobType = $rec->type ?? 'manifacture';
-            if ($canManifacture && !$canDisassemble) {
-                $jobType = 'manifacture';
-                $form->setDefault('type', 'manifacture');
-                $form->setReadOnly('type');
-            } elseif ($canDisassemble && !$canManifacture) {
-                $jobType = 'disassembly';
-                $form->setDefault('type', 'disassembly');
-                $form->setReadOnly('type');
-            }
-            // Иначе (артикулът е годен и за двете) - полето остава свободно за избор.
-            // silent + removeAndRefreshForm=oldJobId|allowSecondMeasure|secondMeasureId
-            // вече са в статичното описание.
 
             $oldJobParams = array('productId' => $productId, 'type' => $jobType);
 
@@ -1271,6 +1255,13 @@ class planning_Jobs extends core_Master
     {
         if (($action == 'write' || $action == 'add' || $action == 'edit') && isset($rec)){
 
+            $jobType = $rec->type ?? 'manifacture';
+            $requiredJobRole = ($jobType == 'disassembly') ? 'jobDisassembly' : 'job';
+
+            if (!haveRole("ceo,{$requiredJobRole}", $userId)) {
+                $res = 'no_one';
+            }
+
             if(isset($rec->productId)) {
                 $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,canConvert,canStore,generic,innerClass');
 
@@ -1279,11 +1270,12 @@ class planning_Jobs extends core_Master
                     $res = 'no_one';
                 }
 
-                // Трябва да е производим ИЛИ (вложим И складируем), и да не е генеричен
+                // Свойствата на артикула трябва да отговарят на вида на заданието
                 if ($res != 'no_one') {
                     $canManifacture = ($productRec->canManifacture == 'yes');
                     $canDisassemble = ($productRec->canConvert == 'yes' && $productRec->canStore == 'yes');
-                    if ((!$canManifacture && !$canDisassemble) || $productRec->generic == 'yes') {
+                    $canUseForJob = ($jobType == 'disassembly') ? $canDisassemble : $canManifacture;
+                    if (!$canUseForJob || $productRec->generic == 'yes') {
                         $res = 'no_one';
                     }
                 }
@@ -1296,7 +1288,7 @@ class planning_Jobs extends core_Master
                 if (!in_array($sourceState, array('active', 'closed', 'pending'))) {
                     $res = 'no_one';
                 } else {
-                    $products = $sourceClass::getProducts4Job($sourceId, true);
+                    $products = $sourceClass::getProducts4Job($sourceId, true, $jobType);
                     if (!countR($products)) {
                         $res = 'no_one';
                     }
@@ -2512,14 +2504,14 @@ class planning_Jobs extends core_Master
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако има форма, и тя е събмитната и действието е 'запис и нов'
-        if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save_n_new') {
+        if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save_n_new' && ($data->form->rec->_allowedProductsCnt ?? 0) > 1) {
 
             list($sourceClass, $sourceId, $jobField) = self::getSourceInfo($data->form->rec);
             if (isset($sourceClass)) {
 
                 // Редиректва се към същата форма за пускане на задание за следващия артикул
                 $sourceRec = $sourceClass::fetch($sourceId, 'id,threadId,containerId');
-                $url = array('planning_Jobs', 'add', $jobField => $sourceRec->id, 'foreignId' => $sourceRec->containerId, 'ret_url' => getRetUrl());
+                $url = array('planning_Jobs', 'add', $jobField => $sourceRec->id, 'type' => $data->form->rec->type, 'foreignId' => $sourceRec->containerId, 'ret_url' => getRetUrl());
                 if(doc_Threads::haveRightFor('single', $sourceRec->threadId)){
                     $url['threadId'] = $sourceRec->threadId;
                 } else {
