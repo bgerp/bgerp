@@ -155,12 +155,14 @@ class planning_AssetResources extends core_Master
         $this->FLD('unsortedUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване в проекти->Отговорници,remember');
         $this->FLD('assetFolders', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Използване за производство->Центрове на дейност,oldFieldName=assetFolderId,remember');
         $this->FLD('scheduleId', 'key(mvc=hr_Schedules, select=name, allowEmpty)', 'caption=Използване за производство->Работен график,remember');
-        // Legacy data is kept for backwards compatibility; graph planning no longer uses quantization.
-        $this->FLD('taskQuantization', 'enum(day=Дневно,weekly=Седмично,monthly=Месечно)', 'caption=Групиране на операции при планиране и подредба->Избор,input=none,notNull,value=weekly,autohide=any');
 
         $this->FLD('assetUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване за производство->Отговорници,remember');
         $this->FLD('simultaneity', 'int(min=0)', 'caption=Използване за производство->Едновременност,notNull,value=1, oldFieldName=quantity,remember');
-        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване за производство->Параметри за планиране');
+        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване за производство->Планиращи параметри');
+        $this->FLD('planningParamSimilarity', 'percent(Min=0,Max=1,decimals=0)', 'caption=Използване за производство->Минимално съвпадение за автоматично групиране,placeholder=Автоматично');
+        $this->FLD('planningParamGroupDays', 'int(Min=1)', 'caption=Използване за производство->Период за автоматично групиране,placeholder=Автоматично,unit=дни,hint=Максимална разлика в дни между падежите на операции със сходни планиращи параметри');
+        // Запазва се само за съвместимост и за временно връщане към стария планировчик.
+        $this->FLD('taskQuantization', 'enum(day=Дневно,weekly=Седмично,monthly=Месечно)', 'caption=Използване за производство->Старо квантуване,input=none,column=none,notNull,value=weekly');
 
         $this->FLD('systemFolderId', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Поддръжка->Системи,remember');
         $this->FLD('systemUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Поддръжка->Отговорници,remember');
@@ -186,6 +188,15 @@ class planning_AssetResources extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+
+        // Показване на смисления еквивалент на старите настройки до първия запис на ресурса.
+        if (!isset($rec->planningParamGroupDays)) {
+            if (($rec->taskQuantization ?? null) == 'day') {
+                $form->rec->planningParamGroupDays = 1;
+            } elseif (in_array(($rec->taskQuantization ?? null), array('month', 'monthly'))) {
+                $form->rec->planningParamGroupDays = 30;
+            }
+        }
         
         // От кое ДМА е оборудването
         if (!empty($rec->protocols)) {
@@ -342,6 +353,18 @@ class planning_AssetResources extends core_Master
                 if(!empty($groupPlanningParams)){
                     $row->planningParams = $mvc->getFieldType('planningParams')->toVerbal($groupPlanningParams);
                     $row->planningParams = ht::createHint($row->planningParams, 'Посочени са в групата на оборудването', 'notice', false);
+                }
+            }
+
+            if (!isset($rec->planningParamSimilarity)) {
+                $row->planningParamSimilarity = ht::createHint("<span class='quiet'>" . tr('Автоматично') . '</span>', 'От Центъра на дейност на операцията или от настройките на пакет „Планиране“', 'notice', false);
+            }
+            if (!isset($rec->planningParamGroupDays)) {
+                $legacyDays = (($rec->taskQuantization ?? null) == 'day') ? 1 : (in_array(($rec->taskQuantization ?? null), array('month', 'monthly')) ? 30 : null);
+                if (isset($legacyDays)) {
+                    $row->planningParamGroupDays = ht::createHint($mvc->getFieldType('planningParamGroupDays')->toVerbal($legacyDays), 'Преобразувано от старата настройка за квантуване', 'notice', false);
+                } else {
+                    $row->planningParamGroupDays = ht::createHint("<span class='quiet'>" . tr('Автоматично') . '</span>', 'От Центъра на дейност на операцията или от настройките на пакет „Планиране“', 'notice', false);
                 }
             }
 
@@ -748,6 +771,10 @@ class planning_AssetResources extends core_Master
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        // След първия запис новото поле е единствен източник, а старото остава неутрално.
+        if (property_exists($rec, 'planningParamGroupDays')) {
+            $rec->taskQuantization = 'weekly';
+        }
         if(empty($rec->id) && isset($rec->fromProtocolId)){
             $rec->protocols = keylist::addKey($rec->protocols, $rec->fromProtocolId);
         }
@@ -966,18 +993,20 @@ class planning_AssetResources extends core_Master
     /**
      * Рекалкулира времената на ПО към оборудванията
      */
-    public function cron_RecalcTaskTimes()
+    public function cron_RecalcTaskTimes($options = array())
     {
-        // Ако процеса е заключен да не се изпълнява отново
-         if (!core_Locks::obtain('CALC_TASK_TIMES', 120, 3, 1)) {
-            //$this->logNotice('Преизчисляването на времената е заключено от друг процес');
-           // return;
+        // Не се допуска едновременно преизчисляване от Cron и потребителска заявка.
+        // Lock-ът се освобождава веднага след края, а 10-минутният срок е само аварийна защита.
+        if (!core_Locks::obtain('CALC_TASK_TIMES', 600, 3, 1)) {
+            $this->logNotice('Преизчисляването на времената е пропуснато, защото вече се изпълнява от друг процес');
+
+            return;
         }
 
         $now = dt::now();
         // Извличане на всички ПО годни за планиране
         core_Debug::startTimer('SCHEDULE_PREPARE');
-        $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate,state,modifiedOn,originId,saoOrder');
+        $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate,state,modifiedOn,originId,saoOrder,productId,jobProductId,folderId');
 
         // Еднократно извличане на всички ограничения
         $query = planning_TaskConstraints::getQuery();
@@ -998,7 +1027,17 @@ class planning_AssetResources extends core_Master
         core_Debug::log("END SCHEDULE_PREPARE " . round(core_Debug::$timers["SCHEDULE_PREPARE"]->workingTime, 6));
 
         $gap = planning_Setup::get('MIN_TIME_FOR_GAP');
-        $scheduledData = planning_TaskConstraints::calcScheduledTimes($tasks, $previousTasks, $now);
+        $scheduledData = planning_TaskConstraints::calcScheduledTimes($tasks, $previousTasks, $now, $options);
+        foreach ($scheduledData->assets as $assetId => $assetRec) {
+            if (empty($assetRec->_saveAutomaticPackages)) continue;
+
+            planning_TaskManualOrderPerAssets::forceAutomatic(
+                $assetId,
+                $assetRec->manualOrder,
+                $assetRec->packageLinks,
+                $assetRec->autoGroupVersion
+            );
+        }
         $Tasks = cls::get('planning_Tasks');
         $debugOrder = Mode::is('debugOrder');
         foreach ($scheduledData->tasks as $assetId => &$plannedTasks){
@@ -1019,6 +1058,17 @@ class planning_AssetResources extends core_Master
 
                 return ($startA < $startB) ? -1 : 1;
             });
+
+            if (in_array($assetId, (array)($options['optimizeAssetIds'] ?? array()))) {
+                $optimizedOrder = array();
+                foreach ($plannedTasks as $plannedTask) $optimizedOrder[] = (int)$plannedTask->id;
+                planning_TaskManualOrderPerAssets::forceAutomatic(
+                    $assetId,
+                    $optimizedOrder,
+                    $scheduledData->assets[$assetId]->packageLinks ?? array(),
+                    planning_TaskManualOrderPerAssets::AUTO_GROUP_VERSION
+                );
+            }
 
             $order = 1;
             $prevEnd = $now;
@@ -1113,6 +1163,16 @@ class planning_AssetResources extends core_Master
             }
 
             $Tasks->saveArray($plannedTasks, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId,planningError,gapData');
+
+            if (in_array($assetId, (array)($options['commitAfterOptimizeAssetIds'] ?? array()))) {
+                $orderedTaskIds = array();
+                $taskRecs = array();
+                foreach ($plannedTasks as $plannedTask) {
+                    $orderedTaskIds[] = (int)$plannedTask->id;
+                    if (isset($tasks[$plannedTask->id])) $taskRecs[$plannedTask->id] = $tasks[$plannedTask->id];
+                }
+                planning_TaskManualOrderPerAssets::refreshCommittedTask($assetId, $orderedTaskIds, $taskRecs);
+            }
 
             $rec = $this->fetchRec($assetId);
             $rec->lastRecalcTimes = dt::now();

@@ -1,17 +1,28 @@
 let areMoved = false;
 let haveManualTimes = false;
+let packageLinks = {};
+let requiredPackageLinks = {};
+let packageMoveState = null;
+let packageMoveInProgress = false;
+let optimizeSnapshot = null;
+let dragSnapshot = null;
+let invalidPackageDrop = false;
 
 $(document).ready(function () {
     compareDates();
     fillManualTimes();
     let hasDragged = false;
     sessionStorage.removeItem('sortableOrder');
+    initializePackageLinks();
 
     $('#backBtn').on('click', function(e) {
         let url = $(this).attr("data-url");
 
         sessionStorage.removeItem('sortableOrder');
         sessionStorage.removeItem('manualTimes');
+        sessionStorage.removeItem('pendingTaskOptimization');
+        sessionStorage.removeItem('taskOptimizationDraft');
+        sessionStorage.removeItem('taskOptimizationReloadCount');
 
         // Redirect to the new page using the provided URL
         if(url){
@@ -69,7 +80,11 @@ $(document).ready(function () {
             let dataIdString = JSON.stringify(dataIds);
 
             let manualTimes = sessionStorage.getItem('manualTimes');
-            let params = { orderedTasks: dataIdString, manualTimes: manualTimes};
+            let params = {
+                orderedTasks: dataIdString,
+                manualTimes: manualTimes,
+                packageLinks: JSON.stringify(getPackageLinksForSave())
+            };
 
             console.log(url);
             console.log(dataIdString);
@@ -77,6 +92,9 @@ $(document).ready(function () {
 
             sessionStorage.removeItem('sortableOrder');
             sessionStorage.removeItem('manualTimes');
+            sessionStorage.removeItem('pendingTaskOptimization');
+            sessionStorage.removeItem('taskOptimizationDraft');
+            sessionStorage.removeItem('taskOptimizationReloadCount');
 
             let resObj = {};
             resObj['url'] = url;
@@ -100,8 +118,72 @@ $(document).ready(function () {
             handle: "tr",
             multiDrag: true,
             selectedClass: "selected",
-            filter: "tr[data-dragging='false']",
+            filter: "tr[data-dragging='false'], .packageLinkToggle",
             preventOnFilter: false,
+            onMove: function (evt) {
+                if (evt.dragged && evt.dragged.getAttribute('data-required-package') === '1' && !packageMoveState) {
+                    invalidPackageDrop = true;
+                    return false;
+                }
+
+                let tableRows = Array.from(document.querySelectorAll('#dragTable tbody tr[data-id]'));
+                let lastFixedIndex = -1;
+                tableRows.forEach((row, index) => {
+                    if (row.getAttribute('data-dragging') === 'false') lastFixedIndex = index;
+                });
+                let relatedRow = evt.related && evt.related.closest
+                    ? evt.related.closest('#dragTable tbody tr[data-id]')
+                    : null;
+                if (lastFixedIndex >= 0 && relatedRow) {
+                    let relatedIndex = tableRows.indexOf(relatedRow);
+                    let insertionIndex = relatedIndex + (evt.willInsertAfter ? 1 : 0);
+                    if (insertionIndex <= lastFixedIndex) {
+                        invalidPackageDrop = true;
+
+                        return false;
+                    }
+                }
+
+                if (relatedRow) {
+                    let movingTaskIds = {};
+                    if (packageMoveState) {
+                        packageMoveState.taskIds.forEach((taskId) => movingTaskIds[String(taskId)] = true);
+                    } else {
+                        document.querySelectorAll('#dragTable tbody tr.selected[data-id]').forEach((row) => {
+                            movingTaskIds[row.getAttribute('data-id')] = true;
+                        });
+                        if (evt.dragged) movingTaskIds[evt.dragged.getAttribute('data-id')] = true;
+                    }
+
+                    const findNonMovingSibling = function (row, direction) {
+                        let sibling = row ? row[direction] : null;
+                        while (sibling) {
+                            let taskId = sibling.getAttribute ? sibling.getAttribute('data-id') : null;
+                            if (taskId && !movingTaskIds[taskId]) return sibling;
+                            sibling = sibling[direction];
+                        }
+
+                        return null;
+                    };
+                    let previousRow = evt.willInsertAfter
+                        ? relatedRow
+                        : findNonMovingSibling(relatedRow, 'previousElementSibling');
+                    let nextRow = evt.willInsertAfter
+                        ? findNonMovingSibling(relatedRow, 'nextElementSibling')
+                        : relatedRow;
+                    let previousTaskId = previousRow ? previousRow.getAttribute('data-id') : null;
+                    let nextTaskId = nextRow ? nextRow.getAttribute('data-id') : null;
+                    if (previousTaskId && nextTaskId && requiredPackageLinks[nextTaskId] === previousTaskId) {
+                        invalidPackageDrop = true;
+
+                        return false;
+                    }
+                }
+
+                invalidPackageDrop = false;
+
+                return true;
+            },
             onChoose: function (evt) {
                 // Remove highlight from all rows
                 document.querySelectorAll("#dragTable tbody tr").forEach(row => {
@@ -122,14 +204,25 @@ $(document).ready(function () {
             },
 
             onStart: function (evt) {
+                let selectedRows = packageMoveState
+                    ? packageMoveState.taskIds.map((taskId) => document.querySelector(`#dragTable tbody tr[data-id="${taskId}"]`)).filter(Boolean)
+                    : Array.from(document.querySelectorAll('.selected')).filter((row) => row.getAttribute('data-dragging') !== 'false');
+                packageMoveInProgress = Boolean(packageMoveState);
+
                 // Collect selected elements based on their original order
-                selectedElements = Array.from(document.querySelectorAll('.selected')).map(element => ({
+                selectedElements = selectedRows.map(element => ({
                     element: element,
                     originalIndex: Array.from(element.parentNode.children).indexOf(element)
                 }));
 
                 // Sort selected elements based on their original index
                 selectedElements.sort((a, b) => a.originalIndex - b.originalIndex);
+                dragSnapshot = {
+                    order: getOrderedTasks(),
+                    packageLinks: Object.assign({}, packageLinks),
+                    areMoved: areMoved
+                };
+                invalidPackageDrop = false;
 
                 isScrolling = false; // Reset scrolling flag
 
@@ -138,6 +231,22 @@ $(document).ready(function () {
 
             onEnd: function (evt) {
                 console.log("END");
+                if (invalidPackageDrop && dragSnapshot) {
+                    reorderTaskRows(dragSnapshot.order);
+                    packageLinks = Object.assign({}, dragSnapshot.packageLinks);
+                    areMoved = dragSnapshot.areMoved;
+                    selectedElements.forEach((item) => item.element.classList.remove('dropped-highlight', 'selected'));
+                    clearSortableSelection();
+                    selectedElements = [];
+                    isScrolling = false;
+                    packageMoveState = null;
+                    packageMoveInProgress = false;
+                    dragSnapshot = null;
+                    invalidPackageDrop = false;
+                    updatePackageVisuals();
+
+                    return;
+                }
                 areMoved = true;
 
                 if (selectedElements.length === 0) {
@@ -164,11 +273,58 @@ $(document).ready(function () {
                     }
                 });
 
+                let currentOrder = getOrderedTasks();
+                let orderUnchanged = dragSnapshot
+                    && currentOrder.length === dragSnapshot.order.length
+                    && currentOrder.every((taskId, index) => taskId === String(dragSnapshot.order[index]));
+                if (orderUnchanged) {
+                    packageLinks = Object.assign({}, dragSnapshot.packageLinks);
+                    areMoved = dragSnapshot.areMoved;
+                    selectedElements.forEach((item) => item.element.classList.remove('dropped-highlight', 'selected'));
+                    clearSortableSelection();
+                    selectedElements = [];
+                    isScrolling = false;
+                    packageMoveState = null;
+                    packageMoveInProgress = false;
+                    dragSnapshot = null;
+                    invalidPackageDrop = false;
+                    updatePackageVisuals();
+
+                    return;
+                }
+
                 selectedElements.forEach((item) => item.element.classList.add('dropped-highlight'));
+
+                if (!areRequiredPackageLinksAdjacent() && dragSnapshot) {
+                    reorderTaskRows(dragSnapshot.order);
+                    packageLinks = Object.assign({}, dragSnapshot.packageLinks);
+                    areMoved = dragSnapshot.areMoved;
+                    selectedElements.forEach((item) => item.element.classList.remove('dropped-highlight', 'selected'));
+                    selectedElements = [];
+                    isScrolling = false;
+                    packageMoveState = null;
+                    packageMoveInProgress = false;
+                    dragSnapshot = null;
+                    invalidPackageDrop = false;
+                    updatePackageVisuals();
+
+                    return;
+                }
+
+                let movedIds = selectedElements.map((item) => item.element.getAttribute('data-id'));
+                if (packageMoveState && packageMoveInProgress) {
+                    updatePackageLinksAfterPackageMove(movedIds, packageMoveState.oldLinks);
+                } else {
+                    updatePackageLinksAfterMove(movedIds);
+                }
 
                 // Clear selectedElements after the operation
                 selectedElements = [];
                 isScrolling = false; // Reset scrolling state
+                packageMoveState = null;
+                packageMoveInProgress = false;
+                dragSnapshot = null;
+                invalidPackageDrop = false;
 
             },
 
@@ -193,15 +349,69 @@ $(document).ready(function () {
             }
         });
 
-        // Touch event handling for mobile scrolling
-        const dragTableBody = document.querySelector("#dragTable tbody");
+        const packageHandlePointerDown = function (event) {
+            let handle = event.target.closest('.packageDragHandle');
+            if (!handle) return;
+            if (handle.classList.contains('packageDragHandleDisabled')) {
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+            if (packageMoveState) return;
 
-        dragTableBody.addEventListener('touchstart', (event) => {
+            let row = handle.closest('tr[data-id]');
+            let packageRows = getPackageRows(row);
+            if (packageRows.length < 2) return;
+
+            clearSortableSelection();
+            packageRows.forEach((packageRow) => selectSortableRow(packageRow));
+            packageMoveState = {
+                taskIds: packageRows.map((packageRow) => packageRow.getAttribute('data-id')),
+                oldLinks: Object.assign({}, packageLinks)
+            };
+            packageMoveInProgress = false;
+        };
+        const clearUnusedPackageMove = function () {
+            window.setTimeout(function () {
+                if (!packageMoveState || packageMoveInProgress) return;
+
+                packageMoveState = null;
+                clearSortableSelection();
+            }, 0);
+        };
+        const dragTableBody = document.querySelector('#dragTable tbody');
+        dragTableBody.addEventListener('pointerdown', packageHandlePointerDown, true);
+        dragTableBody.addEventListener('mousedown', packageHandlePointerDown, true);
+        dragTableBody.addEventListener('touchstart', packageHandlePointerDown, true);
+        document.addEventListener('pointerup', clearUnusedPackageMove, true);
+        document.addEventListener('mouseup', clearUnusedPackageMove, true);
+        document.addEventListener('touchend', clearUnusedPackageMove, true);
+
+        $('#dragTable').on('change', '.packageLinkToggle', function () {
+            let row = this.closest('tr');
+            let previousRow = row ? row.previousElementSibling : null;
+            let taskId = row ? row.getAttribute('data-id') : null;
+            let previousTaskId = previousRow ? previousRow.getAttribute('data-id') : null;
+
+            if (this.checked && taskId && previousTaskId) {
+                packageLinks[taskId] = previousTaskId;
+            } else if (taskId) {
+                delete packageLinks[taskId];
+            }
+
+            areMoved = true;
+            updatePackageVisuals();
+        });
+
+        // Touch event handling for mobile scrolling
+        const dragTableBodyForTouch = document.querySelector("#dragTable tbody");
+
+        dragTableBodyForTouch.addEventListener('touchstart', (event) => {
             touchStartY = event.touches[0].clientY; // Get the initial touch position
             isScrolling = false; // Reset scrolling flag
         });
 
-        dragTableBody.addEventListener('touchmove', (event) => {
+        dragTableBodyForTouch.addEventListener('touchmove', (event) => {
             const touchCurrentY = event.touches[0].clientY;
             const touchDifference = touchCurrentY - touchStartY;
 
@@ -467,6 +677,22 @@ $(document).ready(function () {
             $modal.removeClass("show");
         });
     });
+
+    if (sessionStorage.getItem('pendingTaskOptimization') === '1') {
+        let draft = JSON.parse(sessionStorage.getItem('taskOptimizationDraft') || 'null');
+        sessionStorage.removeItem('pendingTaskOptimization');
+        sessionStorage.removeItem('taskOptimizationDraft');
+        if (draft) {
+            reorderTaskRows(draft.order || []);
+            packageLinks = Object.assign({}, draft.packageLinks || {});
+            optimizeSnapshot = draft.snapshot || null;
+            areMoved = Boolean(draft.areMoved);
+            updatePackageVisuals();
+            window.setTimeout(function () {
+                $('#optimizeBtn').data('optimization-retry', '1').trigger('click');
+            }, 0);
+        }
+    }
 })
 
 function getOrderedTasks()
@@ -665,4 +891,435 @@ function restoreSelectionFromLocalStorage() {
             row.classList.remove("selected");
         }
     });
+}
+
+function initializePackageLinks()
+{
+    packageLinks = {};
+    requiredPackageLinks = {};
+    document.querySelectorAll('#dragTable tbody tr[data-id]').forEach((row) => {
+        let taskId = row.getAttribute('data-id');
+        let previousTaskId = row.getAttribute('data-package-previous');
+        if (taskId && previousTaskId) {
+            packageLinks[taskId] = previousTaskId;
+            let toggle = row.querySelector('.packageLinkToggle');
+            if (toggle && toggle.getAttribute('data-required') === '1') {
+                requiredPackageLinks[taskId] = previousTaskId;
+            }
+        }
+    });
+
+    $('#dragTable')
+        .on('mouseenter', 'tbody tr.manualPackageRow', function () {
+            let packageNumber = this.getAttribute('data-package-number');
+            if (!packageNumber) return;
+
+            document.querySelectorAll(`#dragTable tbody tr[data-package-number="${packageNumber}"]`).forEach((row) => {
+                row.classList.add('manualPackageHover');
+            });
+        })
+        .on('mouseleave', 'tbody tr.manualPackageRow', function (event) {
+            let packageNumber = this.getAttribute('data-package-number');
+            if (!packageNumber) return;
+
+            let relatedRow = event.relatedTarget && event.relatedTarget.closest
+                ? event.relatedTarget.closest('#dragTable tbody tr[data-package-number]')
+                : null;
+            if (relatedRow && relatedRow.getAttribute('data-package-number') === packageNumber) return;
+
+            document.querySelectorAll(`#dragTable tbody tr[data-package-number="${packageNumber}"]`).forEach((row) => {
+                row.classList.remove('manualPackageHover');
+            });
+        });
+
+    $('#optimizeBtn').on('click', function () {
+        let url = $(this).attr('data-url');
+        if (!url) return;
+
+        let isRetry = $(this).data('optimization-retry') === '1';
+        $(this).removeData('optimization-retry');
+        if (!isRetry || !optimizeSnapshot) {
+            sessionStorage.removeItem('taskOptimizationReloadCount');
+            optimizeSnapshot = {
+                order: getOrderedTasks(),
+                packageLinks: Object.assign({}, packageLinks),
+                areMoved: areMoved
+            };
+        }
+
+        $('body').css('overflow', 'hidden').append($('<div class="loadingModal"></div>'));
+        let resObj = {url: url};
+        let params = {
+            orderedTasks: JSON.stringify(getOrderedTasks()),
+            packageLinks: JSON.stringify(getPackageLinksForSave())
+        };
+        getEfae().preventRequest = 0;
+        getEfae().process(resObj, params);
+    });
+
+    $('#undoOptimizeBtn').on('click', function () {
+        if (!optimizeSnapshot) return;
+
+        reorderTaskRows(optimizeSnapshot.order);
+        packageLinks = Object.assign({}, optimizeSnapshot.packageLinks);
+        areMoved = optimizeSnapshot.areMoved;
+        optimizeSnapshot = null;
+        sessionStorage.removeItem('taskOptimizationReloadCount');
+        document.querySelectorAll('#dragTable tbody tr[data-id]').forEach((row) => row.classList.remove('optimized-highlight'));
+        updatePackageVisuals();
+        $(this).addClass('hidden');
+    });
+
+    updatePackageVisuals();
+}
+
+function getPackageLinksForSave()
+{
+    let result = {};
+    let rows = Array.from(document.querySelectorAll('#dragTable tbody tr[data-id]'));
+    rows.forEach((row, index) => {
+        if (!index) return;
+
+        let taskId = row.getAttribute('data-id');
+        let previousTaskId = rows[index - 1].getAttribute('data-id');
+        let toggle = row.querySelector('.packageLinkToggle');
+        if (toggle && toggle.checked && (!toggle.disabled || toggle.getAttribute('data-required') === '1')) {
+            result[taskId] = previousTaskId;
+        }
+    });
+
+    return result;
+}
+
+
+function areRequiredPackageLinksAdjacent()
+{
+    let positions = {};
+    getOrderedTasks().forEach((taskId, index) => positions[String(taskId)] = index);
+    return Object.keys(requiredPackageLinks).every((taskId) => {
+        let previousTaskId = String(requiredPackageLinks[taskId]);
+
+        return positions[String(taskId)] === positions[previousTaskId] + 1;
+    });
+}
+
+
+function reorderTaskRows(order)
+{
+    let body = document.querySelector('#dragTable tbody');
+    if (!body) return;
+
+    let rows = Array.from(body.querySelectorAll('tr[data-id]'));
+    let byId = {};
+    rows.forEach((row) => byId[row.getAttribute('data-id')] = row);
+    (order || []).forEach((taskId) => {
+        taskId = String(taskId);
+        if (byId[taskId]) {
+            body.appendChild(byId[taskId]);
+            delete byId[taskId];
+        }
+    });
+    rows.forEach((row) => {
+        let taskId = row.getAttribute('data-id');
+        if (byId[taskId]) body.appendChild(row);
+    });
+}
+
+
+function render_applyOptimizedTaskOrder(data)
+{
+    data = data || {};
+    let oldOrder = getOrderedTasks();
+    let visibleBefore = {};
+    oldOrder.forEach((taskId) => visibleBefore[taskId] = true);
+    let optimizedIds = {};
+    (data.order || []).forEach((taskId) => optimizedIds[String(taskId)] = true);
+    let taskSetChanged = (data.order || []).some((taskId) => !visibleBefore[String(taskId)])
+        || oldOrder.some((taskId) => !optimizedIds[taskId]);
+    if (taskSetChanged) {
+        let reloadCount = parseInt(sessionStorage.getItem('taskOptimizationReloadCount') || '0', 10);
+        if (reloadCount >= 2) {
+            sessionStorage.removeItem('pendingTaskOptimization');
+            sessionStorage.removeItem('taskOptimizationDraft');
+            sessionStorage.removeItem('taskOptimizationReloadCount');
+            $('.loadingModal').remove();
+            $('body').css('overflow', '');
+            alert('Докато се изчисляваше оптимизацията, списъкът с операции беше променен неколкократно. Отворете отново формата „Подреждане“ и повторете опита.');
+            return;
+        }
+
+        sessionStorage.setItem('taskOptimizationDraft', JSON.stringify({
+            order: oldOrder,
+            packageLinks: packageLinks,
+            snapshot: optimizeSnapshot,
+            areMoved: areMoved
+        }));
+        sessionStorage.setItem('pendingTaskOptimization', '1');
+        sessionStorage.setItem('taskOptimizationReloadCount', String(reloadCount + 1));
+        window.location.reload();
+        return;
+    }
+
+    sessionStorage.removeItem('taskOptimizationReloadCount');
+
+    reorderTaskRows(data.order || []);
+    packageLinks = Object.assign({}, data.packageLinks || {});
+    areMoved = true;
+    updatePackageVisuals();
+
+    let newPositions = {};
+    getOrderedTasks().forEach((taskId, index) => newPositions[taskId] = index);
+    document.querySelectorAll('#dragTable tbody tr[data-id]').forEach((row) => {
+        let taskId = row.getAttribute('data-id');
+        row.classList.toggle('optimized-highlight', oldOrder.indexOf(taskId) !== newPositions[taskId]);
+    });
+
+    $('#undoOptimizeBtn').removeClass('hidden');
+    if (typeof render_showToast === 'function') {
+        let idleMessage = data.idleMessage ? ' ' + data.idleMessage : '';
+        render_showToast({
+            timeOut: 800,
+            text: 'Показана е предварителна оптимизация. Прегледайте резултата и натиснете „Запис“, за да я приемете.' + idleMessage,
+            isSticky: false,
+            stayTime: 15000,
+            type: data.hasIdleIncrease ? 'warning' : 'notice'
+        });
+    }
+    $('.loadingModal').remove();
+    $('body').css('overflow', '');
+}
+
+
+function clearSortableSelection()
+{
+    document.querySelectorAll('#dragTable tbody tr.selected').forEach((row) => {
+        if (window.Sortable && Sortable.utils && typeof Sortable.utils.deselect === 'function') {
+            Sortable.utils.deselect(row);
+        }
+        row.classList.remove('selected');
+    });
+}
+
+
+function selectSortableRow(row)
+{
+    if (window.Sortable && Sortable.utils && typeof Sortable.utils.select === 'function') {
+        Sortable.utils.select(row);
+    }
+    row.classList.add('selected');
+}
+
+
+function getPackageRows(row)
+{
+    if (!row) return [];
+
+    let rows = Array.from(document.querySelectorAll('#dragTable tbody tr[data-id]'));
+    let index = rows.indexOf(row);
+    if (index < 0) return [];
+
+    let start = index;
+    while (start > 0) {
+        let currentId = rows[start].getAttribute('data-id');
+        let previousId = rows[start - 1].getAttribute('data-id');
+        if (packageLinks[currentId] !== previousId) break;
+        start--;
+    }
+
+    let end = index;
+    while (end + 1 < rows.length) {
+        let nextId = rows[end + 1].getAttribute('data-id');
+        let currentId = rows[end].getAttribute('data-id');
+        if (packageLinks[nextId] !== currentId) break;
+        end++;
+    }
+
+    return rows.slice(start, end + 1);
+}
+
+
+function updatePackageLinksAfterPackageMove(movedIds, oldLinks)
+{
+    let moved = {};
+    movedIds.forEach((taskId) => moved[taskId] = true);
+    let preservedLinks = {};
+
+    // The package is moved as one unit: keep unrelated packages and its internal chain,
+    // but do not attach its head to an arbitrary preceding operation.
+    Object.keys(oldLinks).forEach((taskId) => {
+        let previousTaskId = oldLinks[taskId];
+        if (!moved[taskId] && !moved[previousTaskId]) {
+            preservedLinks[taskId] = previousTaskId;
+        }
+    });
+    packageLinks = preservedLinks;
+    for (let i = 1; i < movedIds.length; i++) {
+        packageLinks[movedIds[i]] = movedIds[i - 1];
+    }
+
+    let rows = Array.from(document.querySelectorAll('#dragTable tbody tr[data-id]'));
+    let movedRows = rows.filter((row) => moved[row.getAttribute('data-id')]);
+    if (movedRows.length) {
+        let firstIndex = rows.indexOf(movedRows[0]);
+        let lastIndex = rows.indexOf(movedRows[movedRows.length - 1]);
+        let previousRow = firstIndex > 0 ? rows[firstIndex - 1] : null;
+        let afterRow = lastIndex < rows.length - 1 ? rows[lastIndex + 1] : null;
+        let previousTaskId = previousRow ? previousRow.getAttribute('data-id') : null;
+        let afterTaskId = afterRow ? afterRow.getAttribute('data-id') : null;
+
+        // Dropping inside an existing package deliberately merges both packages.
+        // Dropping at an ordinary boundary keeps the moved package independent.
+        if (previousTaskId && afterTaskId && oldLinks[afterTaskId] === previousTaskId) {
+            packageLinks[movedIds[0]] = previousTaskId;
+            packageLinks[afterTaskId] = movedIds[movedIds.length - 1];
+        }
+    }
+
+    areMoved = true;
+    updatePackageVisuals();
+}
+
+
+function updatePackageLinksAfterMove(movedIds)
+{
+    let moved = {};
+    movedIds.forEach((id) => moved[id] = true);
+    let oldLinks = Object.assign({}, packageLinks);
+
+    // Removing a member reconnects the remaining neighbours of its old package.
+    movedIds.forEach((taskId) => {
+        let previousTaskId = packageLinks[taskId];
+        let nextTaskId = Object.keys(packageLinks).find((id) => packageLinks[id] === taskId);
+        delete packageLinks[taskId];
+
+        if (nextTaskId && !moved[nextTaskId]) {
+            if (previousTaskId && !moved[previousTaskId]) {
+                packageLinks[nextTaskId] = previousTaskId;
+            } else {
+                delete packageLinks[nextTaskId];
+            }
+        }
+    });
+
+    let rows = Array.from(document.querySelectorAll('#dragTable tbody tr[data-id]'));
+    let movedRows = rows.filter((row) => moved[row.getAttribute('data-id')]);
+    if (!movedRows.length) {
+        updatePackageVisuals();
+        return;
+    }
+
+    let firstIndex = rows.indexOf(movedRows[0]);
+    let lastIndex = rows.indexOf(movedRows[movedRows.length - 1]);
+    let previousRow = firstIndex > 0 ? rows[firstIndex - 1] : null;
+    let afterRow = lastIndex < rows.length - 1 ? rows[lastIndex + 1] : null;
+    let previousTaskId = previousRow ? previousRow.getAttribute('data-id') : null;
+    let afterTaskId = afterRow ? afterRow.getAttribute('data-id') : null;
+    let afterWasInPackage = afterTaskId && (oldLinks[afterTaskId]
+        || Object.keys(oldLinks).some((id) => oldLinks[id] === afterTaskId));
+    let afterStartsRequiredPackage = afterTaskId && Object.keys(requiredPackageLinks)
+        .some((taskId) => requiredPackageLinks[taskId] === afterTaskId);
+
+    // A mandatory package keeps its own head. The moved block remains separate and is
+    // attached to the operation before it, if there is one.
+    if (afterStartsRequiredPackage) {
+        delete packageLinks[afterTaskId];
+        if (previousTaskId) {
+            packageLinks[movedRows[0].getAttribute('data-id')] = previousTaskId;
+        } else {
+            delete packageLinks[movedRows[0].getAttribute('data-id')];
+        }
+    // If inserted before an ordinary package, the moved block becomes its new head.
+    } else if (afterWasInPackage && afterTaskId && !oldLinks[afterTaskId]) {
+        delete packageLinks[movedRows[0].getAttribute('data-id')];
+        packageLinks[afterTaskId] = movedRows[movedRows.length - 1].getAttribute('data-id');
+    } else if (previousRow) {
+        packageLinks[movedRows[0].getAttribute('data-id')] = previousRow.getAttribute('data-id');
+    }
+
+    for (let i = 1; i < movedRows.length; i++) {
+        packageLinks[movedRows[i].getAttribute('data-id')] = movedRows[i - 1].getAttribute('data-id');
+    }
+
+    // Insertion in the middle of a package splices the old successor after the moved block.
+    if (!afterStartsRequiredPackage && afterWasInPackage && afterTaskId && oldLinks[afterTaskId]) {
+        packageLinks[afterTaskId] = movedRows[movedRows.length - 1].getAttribute('data-id');
+    }
+
+    areMoved = true;
+    updatePackageVisuals();
+}
+
+function updatePackageVisuals()
+{
+    // Traverse the palette by distant hues so neighbouring packages remain easy to distinguish,
+    // including where the last colour wraps back to the first one.
+    const colorClasses = ['packageColor0', 'packageColor2', 'packageColor1', 'packageColor3', 'packageColor5', 'packageColor4'];
+    let rows = Array.from(document.querySelectorAll('#dragTable tbody tr[data-id]'));
+    let validLinks = {};
+
+    Object.keys(requiredPackageLinks).forEach((taskId) => {
+        packageLinks[taskId] = requiredPackageLinks[taskId];
+    });
+
+    rows.forEach((row, index) => {
+        let taskId = row.getAttribute('data-id');
+        let previousTaskId = index ? rows[index - 1].getAttribute('data-id') : null;
+        let toggle = row.querySelector('.packageLinkToggle');
+        let handle = row.querySelector('.packageDragHandle');
+        let cannotLink = !index || row.getAttribute('data-dragging') === 'false';
+        let isLinked = !cannotLink && packageLinks[taskId] === previousTaskId;
+
+        if (isLinked) validLinks[taskId] = previousTaskId;
+        if (toggle) {
+            toggle.checked = isLinked;
+            toggle.disabled = cannotLink || toggle.getAttribute('data-required') === '1';
+        }
+        if (handle) {
+            handle.classList.remove('packageDragHandleDisabled', 'packageNumberHandle');
+            handle.setAttribute('aria-disabled', 'false');
+            handle.title = handle.getAttribute('data-move-title') || '';
+            handle.textContent = '⋮';
+        }
+        row.setAttribute('data-package-previous', isLinked ? previousTaskId : '');
+        row.removeAttribute('data-package-number');
+        row.classList.remove('manualPackageRow', 'manualPackageHead', 'manualPackageTail', 'manualPackageHover', ...colorClasses);
+    });
+    packageLinks = validLinks;
+
+    let packageIndex = 0;
+    let start = 0;
+    while (start < rows.length) {
+        let end = start;
+        while (end + 1 < rows.length) {
+            let nextId = rows[end + 1].getAttribute('data-id');
+            let currentId = rows[end].getAttribute('data-id');
+            if (packageLinks[nextId] !== currentId) break;
+            end++;
+        }
+
+        if (end > start) {
+            let colorClass = colorClasses[packageIndex % colorClasses.length];
+            let packageNumber = packageIndex + 1;
+            let packageRows = rows.slice(start, end + 1);
+            let packageCanMove = packageRows.every((row) => row.getAttribute('data-dragging') !== 'false');
+            for (let i = start; i <= end; i++) {
+                rows[i].classList.add('manualPackageRow', colorClass);
+                rows[i].setAttribute('data-package-number', String(packageNumber));
+                let handle = rows[i].querySelector('.packageDragHandle');
+                if (handle && i === start) {
+                    handle.classList.add('packageNumberHandle');
+                    handle.textContent = String(packageNumber);
+                }
+                if (handle && !packageCanMove) {
+                    handle.classList.add('packageDragHandleDisabled');
+                    handle.setAttribute('aria-disabled', 'true');
+                    handle.title = handle.getAttribute('data-disabled-title') || '';
+                }
+            }
+            rows[start].classList.add('manualPackageHead');
+            rows[end].classList.add('manualPackageTail');
+            packageIndex++;
+        }
+        start = end + 1;
+    }
 }
