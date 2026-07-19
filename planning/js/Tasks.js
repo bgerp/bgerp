@@ -178,6 +178,15 @@ $(document).ready(function () {
 
                         return false;
                     }
+
+                    if (packageMoveState) {
+                        packageMoveState.dropBeforeTaskId = nextTaskId && !movingTaskIds[nextTaskId]
+                            ? nextTaskId
+                            : null;
+                        packageMoveState.dropAfterTaskId = previousTaskId && !movingTaskIds[previousTaskId]
+                            ? previousTaskId
+                            : null;
+                    }
                 }
 
                 invalidPackageDrop = false;
@@ -260,18 +269,22 @@ $(document).ready(function () {
 
                 let table = document.querySelector("#dragTable");
                 const dropIndex = evt.newIndex; // Index where the item is dropped
-                const rows = Array.from(table.querySelectorAll("tbody tr")); // Get all rows
+                if (packageMoveState && packageMoveInProgress) {
+                    reinsertPackageRowsAsBlock(selectedElements, packageMoveState, dropIndex);
+                } else {
+                    const rows = Array.from(table.querySelectorAll("tbody tr")); // Get all rows
 
-                // Reinsert the selected elements in their original order, relative to the new drop position
-                selectedElements.forEach((item, index) => {
-                    const targetIndex = dropIndex + index; // Adjust to drop at the correct place
-                    const targetRow = rows[targetIndex] || null; // Handle appending at the end
-                    if (targetRow) {
-                        targetRow.insertAdjacentElement('beforebegin', item.element);
-                    } else {
-                        table.querySelector('tbody').appendChild(item.element); // Append if dropped at the end
-                    }
-                });
+                    // Reinsert the selected elements in their original order, relative to the new drop position
+                    selectedElements.forEach((item, index) => {
+                        const targetIndex = dropIndex + index; // Adjust to drop at the correct place
+                        const targetRow = rows[targetIndex] || null; // Handle appending at the end
+                        if (targetRow) {
+                            targetRow.insertAdjacentElement('beforebegin', item.element);
+                        } else {
+                            table.querySelector('tbody').appendChild(item.element); // Append if dropped at the end
+                        }
+                    });
+                }
 
                 let currentOrder = getOrderedTasks();
                 let orderUnchanged = dragSnapshot
@@ -1080,7 +1093,7 @@ function render_applyOptimizedTaskOrder(data)
         render_showToast({
             timeOut: 800,
             text: 'Показана е предварителна оптимизация. Прегледайте резултата и натиснете „Запис“, за да я приемете.' + idleMessage,
-            isSticky: false,
+            isSticky: Boolean(data.hasIdleIncrease),
             stayTime: 15000,
             type: data.hasIdleIncrease ? 'warning' : 'notice'
         });
@@ -1135,6 +1148,40 @@ function getPackageRows(row)
     }
 
     return rows.slice(start, end + 1);
+}
+
+
+function reinsertPackageRowsAsBlock(selectedItems, moveState, fallbackIndex)
+{
+    let tableBody = document.querySelector('#dragTable tbody');
+    if (!tableBody || !selectedItems.length) return;
+
+    let packageRows = selectedItems.map((item) => item.element);
+
+    // Sortable has already changed the DOM when onEnd is called. Detach every package
+    // member first, then insert the complete package at the last accepted drop boundary.
+    // This prevents a large package from being split by references to rows which were
+    // themselves moved during an earlier iteration.
+    packageRows.forEach((row) => row.remove());
+
+    let beforeRow = moveState.dropBeforeTaskId
+        ? tableBody.querySelector(`tr[data-id="${moveState.dropBeforeTaskId}"]`)
+        : null;
+    let afterRow = moveState.dropAfterTaskId
+        ? tableBody.querySelector(`tr[data-id="${moveState.dropAfterTaskId}"]`)
+        : null;
+    let referenceRow = beforeRow;
+
+    if (!referenceRow && afterRow) {
+        referenceRow = afterRow.nextElementSibling;
+    }
+    if (!referenceRow && !afterRow) {
+        let remainingRows = Array.from(tableBody.querySelectorAll('tr'));
+        let safeIndex = Math.max(0, Math.min(Number(fallbackIndex) || 0, remainingRows.length));
+        referenceRow = remainingRows[safeIndex] || null;
+    }
+
+    packageRows.forEach((row) => tableBody.insertBefore(row, referenceRow));
 }
 
 
