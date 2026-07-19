@@ -433,10 +433,10 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                 
                 $singleUrl = $Document->getUrlWithAccess($Document->getInstance(), $originDoc);
                 
-                $row->docs .= ht::createLink("#{$handle}", $singleUrl);
+                $row->docs = ($row->docs ?? '') . ht::createLink("#{$handle}", $singleUrl);
                 
                 if ((countR(($dRec->originDoc)) - $marker) != 0) {
-                    $row->docs .= ', ';
+                    $row->docs = ($row->docs ?? '') . ', ';
                 }
             }
         }

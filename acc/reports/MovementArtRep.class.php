@@ -185,7 +185,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
             if (!array_key_exists($productId, $baseQuantities)) {
                 $baseQuantities[$productId] = $bRec->baseQuantity;
             } else {
-                $baseQuantities[$productId] += $bRec->baseQuantity;
+                $baseQuantities[$productId] = ($baseQuantities[$productId] ?? 0) + $bRec->baseQuantity;
             }
         }
 
@@ -230,7 +230,7 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
 
         // за всеки един продукт, се изчисляват търсените количества
         foreach ($productArr as $productRec) {
-            if ($itemId = $productItems[$productRec->id]) {
+            if ($itemId = ($productItems[$productRec->id] ?? null)) {
                 $baseQuantity = (isset($baseQuantities[$productRec->id])) ? $baseQuantities[$productRec->id] : 0;
                 $obj = (object)array('baseQuantity' => $baseQuantity, 'delivered' => 0, 'converted' => 0, 'produced' => 0, 'sold' => 0, 'blQuantity' => 0);
                 $obj->code = (!empty($productRec->code)) ? $productRec->code : "Art{$productRec->id}";

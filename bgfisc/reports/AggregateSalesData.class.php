@@ -528,7 +528,7 @@ class bgfisc_reports_AggregateSalesData extends frame2_driver_TableData
         }
         
         if (isset($dRec->invoiceNumber)) {
-            $row->invoiceNumber .= $Int->toVerbal($dRec->invoiceNumber);
+            $row->invoiceNumber = ($row->invoiceNumber ?? '') . $Int->toVerbal($dRec->invoiceNumber);
         }
         
         if (isset($dRec->invoiceDate)) {

@@ -353,11 +353,11 @@ class store_reports_Documents extends frame2_driver_TableData
         $row->created = "{$row->createdOn} " . tr('от') . " {$row->createdBy}";
         $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($dRec->folderId))->title;
         
-        if (is_array($dRec->linked) && countR($dRec->linked)) {
+        if (is_array($dRec->linked ?? null) && countR($dRec->linked)) {
             $row->linked = self::getLinked($dRec);
         }
         
-        if (is_array($dRec->stores)) {
+        if (is_array($dRec->stores ?? null)) {
             $row->stores = self::getStores($dRec);
         }
         
@@ -417,11 +417,11 @@ class store_reports_Documents extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
         $res->documentType = '#' . doc_Containers::getDocument($dRec->containerId)->getHandle();
-        if (is_array($dRec->stores)) {
+        if (is_array($dRec->stores ?? null)) {
             $res->stores = self::getStores($dRec, false);
         }
         
-        if (is_array($dRec->linked)) {
+        if (is_array($dRec->linked ?? null)) {
             $res->linked = self::getLinked($dRec, false);
         }
     }

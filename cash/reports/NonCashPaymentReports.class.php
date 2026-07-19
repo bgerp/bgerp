@@ -190,7 +190,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
             $id = $pkoRec->id;
             $stateArr = array('active', 'closed');
             $pkoTransferedSumm = 0;
-            if (is_array($intenalMoneyTrArr[$pkoRec->containerId])){
+            if (is_array($intenalMoneyTrArr[$pkoRec->containerId] ?? null)){
                 foreach ($intenalMoneyTrArr[$pkoRec->containerId] as $val){
                 
                     if(in_array($val->state, $stateArr)){
@@ -307,8 +307,9 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         }
         
         
-        if (is_array($dRec->inTransferMoney)) {
+        if (is_array($dRec->inTransferMoney ?? null)) {
             $sum = 0;
+            $row->transfer = $row->amount = '';
             foreach ($dRec->inTransferMoney as $val) {
                 $state = $val->state;
                 
@@ -318,11 +319,11 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 $color = $inAmount == 0 ? 'blue': 'black' ;
                 $sum += $inAmount;
                 if ($state == 'pending' || $state == 'draft') {
-                    $row->transfer .= "<div><span class= 'state-{$state} document-handler' >".ht::createLink("Cvt#$val->id", $url, false, array()).'</div>';
-                    $row->amount .= "<span style='color: {$color}'>".$Double->toVerbal($inAmount).'</br>';
+                    $row->transfer = ($row->transfer ?? '') . "<div><span class= 'state-{$state} document-handler' >".ht::createLink("Cvt#$val->id", $url, false, array()).'</div>';
+                    $row->amount = ($row->amount ?? '') . "<span style='color: {$color}'>".$Double->toVerbal($inAmount).'</br>';
                 } else {
-                    $row->transfer .= ht::createLink("Cvt#$val->id", $url, false, array()).'</br>';
-                    $row->amount .= "<span style='color: {$color}'>".$Double->toVerbal($inAmount).'</br>';
+                    $row->transfer = ($row->transfer ?? '') . ht::createLink("Cvt#$val->id", $url, false, array()).'</br>';
+                    $row->amount = ($row->amount ?? '') . "<span style='color: {$color}'>".$Double->toVerbal($inAmount).'</br>';
                 }
             }
         }
@@ -350,13 +351,13 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                 
                 $url['operationSysId'] = 'nonecash2bank';
                 $toolbar->addLink('Инкасиране(Банка)', $url, 'ef_icon = img/16/own-bank.png,title=Създаване на вътрешно касов трансфер  за инкасиране на безналично плащане по банка');
-                $row->pko .= ' - '.$toolbar->renderHtml(2);
+                $row->pko = ($row->pko ?? '') . ' - '.$toolbar->renderHtml(2);
             }
         }
         
         if (isset($dRec->invoice)) {
             
-            if(!is_array($dRec->invoice)){
+            if(!is_array($dRec->invoice ?? null)){
             
             $Invoice = doc_Containers::getDocument($dRec->invoice);
             
@@ -383,7 +384,7 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                     
                     $url = toUrl(array("sales_Invoices",'single', $Invoice->that));
                     
-                    $row->invoiceNum .=ht::createLink($handle, $url, false, array())."</br>";
+                    $row->invoiceNum =($row->invoiceNum ?? '') . ht::createLink($handle, $url, false, array())."</br>";
                     
                 }
             }
@@ -465,21 +466,22 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         $res->pkoAmount = $Double->toVerbal($dRec->pkoAmount);
        
         
-        if (is_array($dRec->inTransferMoney)) {
+        if (is_array($dRec->inTransferMoney ?? null)) {
             $sum = 0;$marker = 0;
+            $res->transfer = $res->amount = '';
             foreach ($dRec->inTransferMoney as $val) {
                 $marker ++;
                 $inAmount = ($val->state == 'pending' || $val->state == 'draft') ? 0 : $val->amount;
                 
                 $sum += $inAmount;
                 
-                $res->transfer .= "Cvt#$val->id";
-                $res->amount .= $Double->toVerbal($inAmount);
+                $res->transfer = ($res->transfer ?? '') . "Cvt#$val->id";
+                $res->amount = ($res->amount ?? '') . $Double->toVerbal($inAmount);
                 
                 
                 if ((countR($dRec->inTransferMoney)) - $marker != 0) {
-                $res->transfer .= ' |';
-                $res->amount .= ' |';
+                $res->transfer = ($res->transfer ?? '') . ' |';
+                $res->amount = ($res->amount ?? '') . ' |';
                 }
                 
                 
@@ -490,10 +492,11 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
         
        
             
-            if (is_array($dRec->invoice)){
+            if (is_array($dRec->invoice ?? null)){
+                $res->invoiceNum = '';
                 
                 if(!empty($dRec->invoice)){
-                    $res->invoiceNum .='За избор: ';
+                    $res->invoiceNum =($res->invoiceNum ?? '') . 'За избор: ';
                 }
                 $marker = 0;
                 foreach ($dRec->invoice as $val){ 
@@ -504,10 +507,10 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
                     
                     $handle = "Inv#$invRec->number";
                     
-                    $res->invoiceNum .=$handle;
+                    $res->invoiceNum =($res->invoiceNum ?? '') . $handle;
                     
                     if ((countR($dRec->invoice)) - $marker != 0) {
-                        $res->invoiceNum .=" |";
+                        $res->invoiceNum =($res->invoiceNum ?? '') . " |";
                     }
                 }
                 

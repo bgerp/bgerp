@@ -444,7 +444,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
             // Ако има избрано поле за сортиране, сортираме по него
             //arr::sortObjects($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
             
-            if (is_array($data->recsAll)) {
+            if (is_array($data->recsAll ?? null)) {
                 //arr::sortObjects($data->recsAll, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
             }
             
@@ -575,10 +575,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $pagePie = $pageVar . '_pie';
         $pageBar = $pageVar . '_bar';
         
-        if ($curUrl[$pagePie] == $this->EmbedderRec->that) {
+        if (($curUrl[$pagePie] ?? null) == $this->EmbedderRec->that) {
             $chart = $this->getChartPie($data);
             $tpl->append($chart, 'CONTENT');
-        } elseif ($curUrl[$pageBar] == $this->EmbedderRec->that) {
+        } elseif (($curUrl[$pageBar] ?? null) == $this->EmbedderRec->that) {
             $chart = $this->getChartBar($data);
             
             $tpl->append($chart, 'CONTENT');
@@ -1060,7 +1060,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         $pagePie = $pageVar . '_pie';
         $pageBar = $pageVar . '_bar';
         
-        if ($curUrl["{$pageVar}_pie"] || $curUrl["{$pageVar}_bar"]) {
+        if (($curUrl["{$pageVar}_pie"] ?? null) || ($curUrl["{$pageVar}_bar"] ?? null)) {
             unset($curUrl["{$pageVar}_pie"]);
             unset($curUrl["{$pageVar}_bar"]);
         }

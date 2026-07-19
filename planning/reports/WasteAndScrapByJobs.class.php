@@ -357,7 +357,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
 
             $tasksArr[$taskRec->id] = $taskRec->id;
 
-            if (!is_null($jobsArr[$taskRec->originId])) {
+            if (!is_null($jobsArr[$taskRec->originId] ?? null)) {
                 $originJobRec = $jobsArr[$taskRec->originId];
             } else {
                 $JOB = doc_Containers::getDocument($taskRec->originId);
@@ -671,7 +671,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
             $employeesArr = keylist::toArray($dRec->employees);
             $row->employees = '';
             foreach ($employeesArr as $personId) {
-                $row->employees .= crm_Persons::getTitleById($personId) . "<br>";
+                $row->employees = ($row->employees ?? '') . crm_Persons::getTitleById($personId) . "<br>";
             }
         }
 
@@ -681,7 +681,7 @@ class planning_reports_WasteAndScrapByJobs extends frame2_driver_TableData
         if (isset($dRec->wasteProdWeigth)) {
             $row->wasteWeight = $Double->toVerbal($dRec->wasteWeight);
             if ($dRec->wasteWeightNullMark === true) {
-                $row->wasteWeight .= "<span class='red'>?</span>";
+                $row->wasteWeight = ($row->wasteWeight ?? '') . "<span class='red'>?</span>";
             }
         } else {
             $row->wasteWeight = '?';

@@ -119,12 +119,12 @@ class fileman_reports_FileInfo extends frame_BaseDriver
         }
         
         if ($fRec->from) {
-            $fRec->from .= ' 00:00:00';
+            $fRec->from = ($fRec->from ?? '') . ' 00:00:00';
             $query->where("#createdOn >= '{$fRec->from}'");
         }
         
         if ($fRec->to) {
-            $fRec->to .= ' 23:59:59';
+            $fRec->to = ($fRec->to ?? '') . ' 23:59:59';
             $query->where("#createdOn <= '{$fRec->to}'");
         }
         

@@ -1188,7 +1188,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     private static function getPaidDates($dRec, $verbal = true)
     {
         // Обхождат се платежните документи, записани към реда на фактурата/проформата.
-        if (is_array($dRec->payDocuments)) {
+        if (is_array($dRec->payDocuments ?? null)) {
             foreach ($dRec->payDocuments as $onePayDoc) {
                 if (!is_null($onePayDoc->containerId)) {
                     $Document = doc_Containers::getDocument($onePayDoc->containerId);
@@ -1362,7 +1362,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' ' . $allCurrency;
                 if ($dRec->totalInvoiceOverPaid > 0.01) {
-                    $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
+                    $row->contragent = ($row->contragent ?? '') . ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
                 }
 
                 $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
@@ -1379,7 +1379,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     . ' »  ' . "<span class= 'quiet'>" . 'Недоплатено:' . '</span>' . $Double->toVerbal($dRec->totalInvoiceNotPayd);
 
                 if ($dRec->totalInvoiceOverPaid > 0.01) {
-                    $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
+                    $row->contragent = ($row->contragent ?? '') . ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
                 }
 
                 $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
@@ -1427,7 +1427,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' ' . $allCurrency;
                 if ($dRec->totalInvoiceOverPaid > 0.01) {
-                    $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
+                    $row->contragent = ($row->contragent ?? '') . ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
                 }
 
                 $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
@@ -1445,7 +1445,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
                 if ($dRec->totalInvoiceOverPaid > 0.01) {
-                    $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
+                    $row->contragent = ($row->contragent ?? '') . ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
                 }
 
                 $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
@@ -1788,7 +1788,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $dcMark = $dRec->invoiceValue < 0 ? -1 : 1;
         if ($dRec->type != 'invoice') {
             foreach ((array)$dRec->dcPay as $k => $val) {
-                $res->paidAmount .= $val->amount * $dcMark;
+                $res->paidAmount = ($res->paidAmount ?? '') . $val->amount * $dcMark;
             }
         } else {
             $res->paidAmount = self::getPaidAmount($dRec);
@@ -1796,7 +1796,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         if ($dRec->type != 'invoice') {
             foreach ((array)$dRec->dcPay as $k => $val) {
-                $res->paidDates .= $Date->toVerbal($val->payDate) . "\n\r";
+                $res->paidDates = ($res->paidDates ?? '') . $Date->toVerbal($val->payDate) . "\n\r";
             }
         } else {
             $res->paidDates = self::getPaidDates($dRec, false);
