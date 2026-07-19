@@ -3981,6 +3981,35 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Prepares a structured and readable idle-time comparison for the optimization preview.
+     */
+    private static function getIdleChangesReport($before, $after, $changes)
+    {
+        $result = array();
+        $timeType = core_Type::getByName('time');
+        foreach (array('increased' => 1, 'decreased' => -1) as $type => $direction) {
+            foreach ((array)($changes[$type] ?? array()) as $assetId => $difference) {
+                $beforeSeconds = max(0, (int)($before[$assetId] ?? 0));
+                $afterSeconds = max(0, (int)($after[$assetId] ?? 0));
+                $signedDifference = $direction * (int)$difference;
+                $verbalDifference = $timeType->toVerbal(abs($signedDifference));
+
+                $result[] = array(
+                    'assetId' => (int)$assetId,
+                    'assetTitle' => planning_AssetResources::getTitleById($assetId),
+                    'before' => $timeType->toVerbal($beforeSeconds),
+                    'after' => $timeType->toVerbal($afterSeconds),
+                    'change' => ($signedDifference > 0 ? '+' : '−') . $verbalDifference,
+                    'changeSeconds' => $signedDifference,
+                );
+            }
+        }
+
+        return $result;
+    }
+
+
+    /**
      * След рендиране на лист таблицата
      */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
@@ -4687,6 +4716,7 @@ class planning_Tasks extends core_Master
             'order' => $optimizedOrder,
             'packageLinks' => $optimizedLinks,
             'idleMessage' => static::getIdleChangesMessage($idleChanges, 'Предварителна оптимизация.'),
+            'idleChanges' => static::getIdleChangesReport($baselineIdle, $optimizedIdle, $idleChanges),
             'hasIdleIncrease' => countR($idleChanges['increased']) > 0,
         );
 

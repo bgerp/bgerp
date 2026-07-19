@@ -431,3 +431,104 @@ tr:hover td {
     border-top-color: rgba(28, 122, 170, 0.45) !important;
     border-bottom-color: rgba(28, 122, 170, 0.45) !important;
 }
+
+#optimizationIdleReport {
+  position: fixed;
+  z-index: 100001;
+  top: 44px;
+  right: 12px;
+  width: 720px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 58px);
+  box-sizing: border-box;
+  overflow: hidden;
+  color: #222;
+  background: #fff;
+  border: 1px solid #aaa;
+  border-left: 6px solid #2f855a;
+  border-radius: 5px;
+  box-shadow: 0 5px 22px rgba(0, 0, 0, 0.32);
+  font-family: "Roboto", sans-serif; }
+  #optimizationIdleReport.hasIdleIncrease {
+    border-left-color: #c05640; }
+
+.optimizationIdleReportHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  color: #fff;
+  background: #386f54;
+  font-size: 15px; }
+  .hasIdleIncrease .optimizationIdleReportHeader {
+    background: #8e4536; }
+
+.optimizationIdleReportClose {
+  width: 26px;
+  height: 26px;
+  margin-left: 12px;
+  padding: 0;
+  color: #fff;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 22px;
+  cursor: pointer; }
+  .optimizationIdleReportClose:hover {
+    background: rgba(255, 255, 255, 0.18); }
+
+.optimizationIdleReportHint,
+.optimizationIdleNoChanges,
+.optimizationIdleSummary {
+  padding: 8px 12px; }
+
+.optimizationIdleReportHint {
+  color: #444;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd; }
+
+.optimizationIdleSummary {
+  display: flex;
+  gap: 18px;
+  font-weight: 600; }
+
+.idleIncreaseCount,
+.idleIncreased .optimizationIdleDifference {
+  color: #a83220; }
+
+.idleDecreaseCount,
+.idleDecreased .optimizationIdleDifference {
+  color: #247044; }
+
+.optimizationIdleTableHolder {
+  max-height: calc(100vh - 190px);
+  overflow: auto; }
+
+#optimizationIdleReport .optimizationIdleTable {
+  width: 100%;
+  border-collapse: collapse; }
+  #optimizationIdleReport .optimizationIdleTable th,
+  #optimizationIdleReport .optimizationIdleTable td {
+    position: static !important;
+    padding: 6px 8px !important;
+    border: 1px solid #ddd !important;
+    font-size: 13px !important;
+    text-align: right;
+    vertical-align: top; }
+  #optimizationIdleReport .optimizationIdleTable th {
+    color: #333;
+    background: #e9ecef !important;
+    font-weight: 600 !important; }
+  #optimizationIdleReport .optimizationIdleTable th:first-child,
+  #optimizationIdleReport .optimizationIdleTable td:first-child {
+    text-align: left; }
+  #optimizationIdleReport .optimizationIdleTable tbody tr:nth-child(even) td {
+    background: #fafafa; }
+
+.optimizationIdleAsset {
+  min-width: 260px; }
+
+.optimizationIdleDifference {
+  white-space: nowrap;
+  font-weight: 700 !important; }

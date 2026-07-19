@@ -949,6 +949,8 @@ function initializePackageLinks()
         let url = $(this).attr('data-url');
         if (!url) return;
 
+        removeOptimizationIdleReport();
+
         let isRetry = $(this).data('optimization-retry') === '1';
         $(this).removeData('optimization-retry');
         if (!isRetry || !optimizeSnapshot) {
@@ -980,6 +982,7 @@ function initializePackageLinks()
         sessionStorage.removeItem('taskOptimizationReloadCount');
         document.querySelectorAll('#dragTable tbody tr[data-id]').forEach((row) => row.classList.remove('optimized-highlight'));
         updatePackageVisuals();
+        removeOptimizationIdleReport();
         $(this).addClass('hidden');
     });
 
@@ -995,8 +998,7 @@ function getPackageLinksForSave()
 
         let taskId = row.getAttribute('data-id');
         let previousTaskId = rows[index - 1].getAttribute('data-id');
-        let toggle = row.querySelector('.packageLinkToggle');
-        if (toggle && toggle.checked && (!toggle.disabled || toggle.getAttribute('data-required') === '1')) {
+        if (String(packageLinks[taskId]) === previousTaskId) {
             result[taskId] = previousTaskId;
         }
     });
@@ -1075,8 +1077,9 @@ function render_applyOptimizedTaskOrder(data)
 
     sessionStorage.removeItem('taskOptimizationReloadCount');
 
-    reorderTaskRows(data.order || []);
-    packageLinks = Object.assign({}, data.packageLinks || {});
+    let optimizedOrder = getOptimizedOrderWithPreservedPackages(data.order || []);
+    reorderTaskRows(optimizedOrder);
+    packageLinks = getPreservedOptimizedPackageLinks(optimizedOrder, data.packageLinks || {});
     areMoved = true;
     updatePackageVisuals();
 
@@ -1088,18 +1091,151 @@ function render_applyOptimizedTaskOrder(data)
     });
 
     $('#undoOptimizeBtn').removeClass('hidden');
-    if (typeof render_showToast === 'function') {
-        let idleMessage = data.idleMessage ? ' ' + data.idleMessage : '';
-        render_showToast({
-            timeOut: 800,
-            text: 'Показана е предварителна оптимизация. Прегледайте резултата и натиснете „Запис“, за да я приемете.' + idleMessage,
-            isSticky: Boolean(data.hasIdleIncrease),
-            stayTime: 15000,
-            type: data.hasIdleIncrease ? 'warning' : 'notice'
-        });
-    }
+    renderOptimizationIdleReport(data.idleChanges || [], Boolean(data.hasIdleIncrease));
     $('.loadingModal').remove();
     $('body').css('overflow', '');
+}
+
+
+function getOptimizedOrderWithPreservedPackages(order)
+{
+    let orderedIds = (order || []).map((taskId) => String(taskId));
+    let available = {};
+    orderedIds.forEach((taskId) => available[taskId] = true);
+    let next = {};
+    let previous = {};
+    let existingLinkSets = [requiredPackageLinks, optimizeSnapshot ? optimizeSnapshot.packageLinks : {}];
+
+    existingLinkSets.forEach((existingLinks) => {
+        Object.keys(existingLinks).forEach((taskId) => {
+            let currentTaskId = String(taskId);
+            let previousTaskId = String(existingLinks[taskId]);
+            if (!available[currentTaskId] || !available[previousTaskId]
+                || currentTaskId === previousTaskId || next[previousTaskId] || previous[currentTaskId]) {
+                return;
+            }
+
+            next[previousTaskId] = currentTaskId;
+            previous[currentTaskId] = previousTaskId;
+        });
+    });
+
+    let result = [];
+    let used = {};
+    orderedIds.forEach((taskId) => {
+        if (used[taskId]) return;
+
+        let headTaskId = taskId;
+        let guard = {};
+        while (previous[headTaskId] && !guard[headTaskId]) {
+            guard[headTaskId] = true;
+            headTaskId = previous[headTaskId];
+        }
+
+        let currentTaskId = headTaskId;
+        guard = {};
+        while (available[currentTaskId] && !guard[currentTaskId]) {
+            guard[currentTaskId] = true;
+            used[currentTaskId] = true;
+            result.push(currentTaskId);
+            if (!next[currentTaskId]) break;
+            currentTaskId = next[currentTaskId];
+        }
+    });
+
+    return result;
+}
+
+
+function getPreservedOptimizedPackageLinks(order, optimizedLinks)
+{
+    let positions = {};
+    (order || []).forEach((taskId, index) => positions[String(taskId)] = index);
+    let result = {};
+    let nextByPrevious = {};
+
+    const appendLinks = function (links) {
+        Object.keys(links || {}).forEach((taskId) => {
+            let currentTaskId = String(taskId);
+            let previousTaskId = String(links[taskId]);
+            if (positions[currentTaskId] !== positions[previousTaskId] + 1
+                || result[currentTaskId] || nextByPrevious[previousTaskId]) {
+                return;
+            }
+
+            result[currentTaskId] = previousTaskId;
+            nextByPrevious[previousTaskId] = currentTaskId;
+        });
+    };
+
+    // Existing packages are hard input for the preview. If optimization has kept their
+    // members adjacent, it must not silently remove their "With previous" links.
+    appendLinks(requiredPackageLinks);
+    appendLinks(optimizeSnapshot ? optimizeSnapshot.packageLinks : {});
+    appendLinks(optimizedLinks);
+
+    return result;
+}
+
+
+function renderOptimizationIdleReport(changes, hasIdleIncrease)
+{
+    removeOptimizationIdleReport();
+
+    let report = $('<section>', {
+        id: 'optimizationIdleReport',
+        class: hasIdleIncrease ? 'hasIdleIncrease' : 'hasOnlyIdleDecrease',
+        role: 'status'
+    });
+    let header = $('<div>', {class: 'optimizationIdleReportHeader'});
+    header.append($('<strong>').text('Резултат от предварителната оптимизация'));
+    header.append($('<button>', {
+        type: 'button',
+        class: 'optimizationIdleReportClose',
+        title: 'Затвори',
+        'aria-label': 'Затвори'
+    }).text('×').on('click', removeOptimizationIdleReport));
+    report.append(header);
+    report.append($('<div>', {class: 'optimizationIdleReportHint'})
+        .text('Прегледайте новата подредба и натиснете „Запис“, за да я приемете, или „Върни оптимизацията“, за да я отмените.'));
+
+    if (!changes.length) {
+        report.append($('<div>', {class: 'optimizationIdleNoChanges'})
+            .text('Няма промяна в престоите по машините.'));
+    } else {
+        let increasedCount = changes.filter((change) => Number(change.changeSeconds) > 0).length;
+        let decreasedCount = changes.filter((change) => Number(change.changeSeconds) < 0).length;
+        let summary = $('<div>', {class: 'optimizationIdleSummary'});
+        summary.append($('<span>', {class: 'idleIncreaseCount'}).text('Увеличени: ' + increasedCount));
+        summary.append($('<span>', {class: 'idleDecreaseCount'}).text('Намалени: ' + decreasedCount));
+        report.append(summary);
+
+        let table = $('<table>', {class: 'optimizationIdleTable'});
+        table.append($('<thead>').append($('<tr>')
+            .append($('<th>').text('Машина'))
+            .append($('<th>').text('Преди'))
+            .append($('<th>').text('След'))
+            .append($('<th>').text('Промяна'))));
+        let body = $('<tbody>');
+        changes.forEach((change) => {
+            let directionClass = Number(change.changeSeconds) > 0 ? 'idleIncreased' : 'idleDecreased';
+            body.append($('<tr>', {class: directionClass})
+                .append($('<td>', {class: 'optimizationIdleAsset'}).text(change.assetTitle || ''))
+                .append($('<td>').text(change.before || '0 сек.'))
+                .append($('<td>').text(change.after || '0 сек.'))
+                .append($('<td>', {class: 'optimizationIdleDifference'}).text(change.change || '')));
+        });
+        table.append(body);
+        report.append($('<div>', {class: 'optimizationIdleTableHolder'}).append(table));
+    }
+
+    $('body').append(report);
+}
+
+
+function removeOptimizationIdleReport()
+{
+    $('#optimizationIdleReport').remove();
 }
 
 
