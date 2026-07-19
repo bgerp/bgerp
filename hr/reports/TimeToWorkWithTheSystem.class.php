@@ -142,7 +142,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
         $form->setSuggestions('inIp', $suggestions);
 
-        if($suggestions[0] == 'не са посочени'){
+        if(($suggestions[0] ?? null) == 'не са посочени'){
             $form->setReadonly('inIp');
         }else{
             $form->setDefault('inIp', $suggestions);
@@ -241,7 +241,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
 
             //Ако $hash === $lastWorkHash[$lRec->userId][$ipType] приемаме че,
             // потрбителя прави рефреш на ресурса и не включваме  записа
-            if($hash === $lastWorkHash[$lRec->userId][$ipType]){
+            if($hash === ($lastWorkHash[$lRec->userId][$ipType] ?? null)){
                 continue;
             }
             $lastWorkHash[$lRec->userId][$ipType] = $hash;
@@ -334,7 +334,7 @@ class hr_reports_TimeToWorkWithTheSystem extends frame2_driver_TableData
         $row = new stdClass();
 
         $row->userName = $dRec->userName;
-        $row->userName .= ' ['.crm_Profiles::createLink($dRec->userId).']';
+        $row->userName = ($row->userName ?? '') . ' ['.crm_Profiles::createLink($dRec->userId).']';
 
         $row->office = $Time->toVerbal($dRec->office*60);
         $row->home = $Time->toVerbal($dRec->home*60);

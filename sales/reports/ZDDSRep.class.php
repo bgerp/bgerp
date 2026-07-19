@@ -104,7 +104,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
         // Обикаляме по Приемателни
         $this->prepareQuery($query, $data, $period, 'purchase_Services', 'purchase_ServicesDetails', 'shipmentId');
         
-        if (is_array($data->recs)) {
+        if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $pRec) {
                 $quantity = 0;
                 $amount = 0;

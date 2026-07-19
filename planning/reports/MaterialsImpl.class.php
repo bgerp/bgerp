@@ -141,7 +141,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
         $mArr = array();
         foreach ($materials as $material) {
             foreach ($material as $product => $productRec) {
-                $mArr[$product] += $productRec['quantity'];
+                $mArr[$product] = ($mArr[$product] ?? 0) + $productRec['quantity'];
             }
         }
         
@@ -154,10 +154,11 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
                 if (isset($storeId)) {
                     $store = store_Products::fetchField("#productId = {$index} AND #storeId = {$storeId}", 'quantity');
                 } else {
+                    $store = array();
                     $storeQuery = store_Products::getQuery();
                     $storeQuery->where("#productId = {$index}");
                     while ($storeRec = $storeQuery->fetch()) {
-                        $store[$storeRec->productId] += $storeRec->quantity;
+                        $store[$storeRec->productId] = ($store[$storeRec->productId] ?? 0) + $storeRec->quantity;
                     }
                 }
                 

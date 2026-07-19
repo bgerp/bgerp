@@ -416,7 +416,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = true)
     {
-        if (is_array($dRec->payDocuments)) {
+        if (is_array($dRec->payDocuments ?? null)) {
             foreach ($dRec->payDocuments as $onePayDoc) {
                 if (! is_null($onePayDoc->containerId)) {
                     $Document = doc_Containers::getDocument($onePayDoc->containerId);

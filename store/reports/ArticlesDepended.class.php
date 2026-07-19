@@ -248,7 +248,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 }
 
                 //Обороти дебит на артикулите от журнала, за които записите са от посочените класове
-                $journalProdArr[$productId] += $jRec->creditQuantity;
+                $journalProdArr[$productId] = ($journalProdArr[$productId] ?? 0) + $jRec->creditQuantity;
             }
         }
 
@@ -346,7 +346,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
             $i=0;
             foreach ($dRec->array as $val) {
                 $i++;
-                $row->productId .= $i.'>>'.cat_Products::getLinkToSingle_($val, 'name') . '</br>';
+                $row->productId = ($row->productId ?? '') . $i.'>>'.cat_Products::getLinkToSingle_($val, 'name') . '</br>';
             }
 
             return $row;
@@ -510,7 +510,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         while ($prod = $query->fetch()) {
 
             //Артикули които имат доставка през част от периода на стойност заложената част от скл. наличност
-            $deliveredProdInPeriod[$prod->productId] += $prod->quantity * $prodArr[$prod->productId]->selfPrice;
+            $deliveredProdInPeriod[$prod->productId] = ($deliveredProdInPeriod[$prod->productId] ?? 0) + $prod->quantity * $prodArr[$prod->productId]->selfPrice;
 
         }
 
@@ -533,7 +533,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
 
         $planningProdsInPeriod = array();
         while ($planningProd = $planningQuery->fetch()) {
-            $planningProdsInPeriod[$planningProd->productId] += $planningProd->quantity * $prodArr[$planningProd->productId]->selfPrice;
+            $planningProdsInPeriod[$planningProd->productId] = ($planningProdsInPeriod[$planningProd->productId] ?? 0) + $planningProd->quantity * $prodArr[$planningProd->productId]->selfPrice;
         }
 
         foreach ($planningProdsInPeriod as $key => $val) {

@@ -289,7 +289,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
         $oldData = self::getVersionBeforeData($rec);
         
         $send = false;
-        if (is_array($data->recs)) {
+        if (is_array($data->recs ?? null)) {
             foreach ($data->recs as $rec) {
                 if (isset($oldData[$rec->index])) {
                     $oldCount = $oldData[$rec->index]->count;

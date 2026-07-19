@@ -301,15 +301,15 @@ class frame2_Reports extends embed_Manager
         $data = parent::prepareEditForm_($data);
         
         $rec = $data->form->rec;
-        if (isset($rec->id) && $rec->changeFields) {
+        if (isset($rec->id) && !empty($rec->changeFields)) {
             $cu = core_Users::getCurrent();
             // И потребителя не е създател на документа
             if ($rec->createdBy != $cu) {
                 $changeable = type_Set::toArray($rec->changeFields);
-                $fF = $this->filterDateFrom ? $this->filterDateFrom : 'from';
-                $fT = $this->filterDateTo ? $this->filterDateTo : 'to';
+                $fF = ($this->filterDateFrom ?? null) ?: 'from';
+                $fT = ($this->filterDateTo ?? null) ?: 'to';
                 
-                if (!$changeable[$fF] || !$changeable[$fT]) {
+                if (empty($changeable[$fF]) || empty($changeable[$fT])) {
                     $this->useFilterDateOnEdit = false;
                 }
             }
@@ -457,7 +457,7 @@ class frame2_Reports extends embed_Manager
                 }
             }
             
-            frame2_ReportVersions::unSelectVersion($rec->id);
+            frame2_ReportVersions::unSelectVersion($rec->id ?? null);
         }
     }
     
@@ -577,7 +577,7 @@ class frame2_Reports extends embed_Manager
                 $data->toolbar->addBtn("Версии|* ({$vCount})", $url, null, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
             }
 
-            if(is_array($rec->log) && countR($rec->log)){
+            if(is_array($rec->log ?? null) && countR($rec->log)){
                 $url = array($mvc, 'single', $rec->id);
                 $icon = 'img/16/checked.png';
                 if (!Request::get('logId', 'int')) {
@@ -748,7 +748,7 @@ class frame2_Reports extends embed_Manager
                 $rec->lastRefreshDuration = round(core_Debug::$timers["PREPARE_DATA_TIMER_{$rec->id}"]->workingTime, 6);
 
                 // Ако има логове по време на изчислението да се записват
-                $log = is_array($rec->log) ? $rec->log : array();
+                $log = is_array($rec->log ?? null) ? $rec->log : array();
                 $currentLog = $Driver->getLog($rec);
 
                 if(countR($currentLog)) {
@@ -1468,7 +1468,7 @@ class frame2_Reports extends embed_Manager
 
         // Ако ще се показва в лога да се подготвят данните
         if ($logId == $data->rec->id) {
-            if(is_array($rec->log) && count($rec->log)){
+            if(is_array($rec->log ?? null) && count($rec->log)){
                 arr::sortObjects($rec->log, 'time', 'DESC');
 
                 $data->logPager = cls::get('core_Pager', array('itemsPerPage' => 10));

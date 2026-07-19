@@ -181,7 +181,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             }
 
             if ($form->rec->limmits == 'yes') {
-                if (is_array($details->code)) {
+                if (is_array($details->code ?? null)) {
                     $maxPost = ini_get('max_input_vars') - self::MAX_POST_ART;
 
                     $arts = countR($details->code);
@@ -204,7 +204,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         }
                     }
 
-                    if (is_array($details->minQuantity)) {
+                    if (is_array($details->minQuantity ?? null)) {
                         foreach ($details->minQuantity as $v) {
                             $v = trim($v);
 
@@ -214,7 +214,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         }
                     }
 
-                    if (is_array($details->maxQuantity)) {
+                    if (is_array($details->maxQuantity ?? null)) {
                         foreach ($details->maxQuantity as $v) {
                             $v = trim($v);
 
@@ -291,7 +291,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         if (!$rec->groupsChecked){
                             $rec->groupsChecked = $rec->groupId;
                         }else{
-                            $rec->groupsChecked .= ','.$rec->groupId;
+                            $rec->groupsChecked = ($rec->groupsChecked ?? '') . ','.$rec->groupId;
                         }
 
                         $details = (array)$details;
@@ -313,7 +313,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         }
 
                         // Премахва артикули ако вече са добавени
-                        if (is_array($grDetails['code'])) {
+                        if (is_array($grDetails['code'] ?? null)) {
                             foreach ($grDetails['code'] as $k => $v) {
                                 if ($details['code'] && in_array($v, $details['code'])) {
                                     unset($grDetails['code'][$k]);
@@ -326,7 +326,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         }
 
                         // Премахване на нестандартнитв артикули
-                        if (is_array($grDetails['name'])) {
+                        if (is_array($grDetails['name'] ?? null)) {
                             foreach ($grDetails['name'] as $k => $v) {
                                 if ($grDetails['code'][$k]) {
                                     $isPublic = (cat_Products::fetch(cat_Products::getByCode($grDetails['code'][$k])->productId)->isPublic);
@@ -346,7 +346,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         $count = 0;
                         $countUnset = 0;
 
-                        if (is_array($grDetails['code'])) {
+                        if (is_array($grDetails['code'] ?? null)) {
                             foreach ($grDetails['code'] as $k => $v) {
                                 $count++;
 
@@ -422,7 +422,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $sQuery->where("#groups LIKE '%|{$rec->groupId}|%'");
         } else {
             // Филтриране по кодове
-            if (is_array($additional->code)) {
+            if (is_array($additional->code ?? null)) {
                 foreach ($additional->code as $rowId => $code) {
                     $code = mb_strtolower($code);
                     $codes[$code] = $code;
@@ -459,7 +459,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
 
             $stKey = $productId . '|' . $recProduct->storeId;
-            $storesQuatity[$stKey] += $quantity;
+            $storesQuatity[$stKey] = ($storesQuatity[$stKey] ?? 0) + $quantity;
 
 
             if ($obj = &$recs[$productId]) {
@@ -596,7 +596,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             foreach ($dRec->storesQuatity as $val) {
 
                 list($storeId, $stQuantity) = explode('|', $val);
-                $row->quantity .= store_Stores::getTitleById($storeId) . ': ' . ($stQuantity) . "</br>";
+                $row->quantity = ($row->quantity ?? '') . store_Stores::getTitleById($storeId) . ': ' . ($stQuantity) . "</br>";
                 $row->quantity = ht::styleIfNegative($row->quantity, $stQuantity);
             }
         }
@@ -744,7 +744,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $tempArr = (array)$arr;
 
         $tempProducts = array();
-        if (is_array($tempArr['code'])) {
+        if (is_array($tempArr['code'] ?? null)) {
             foreach ($tempArr['code'] as $k => $v) {
                 if (in_array($v, $tempProducts)) {
                     unset($tempArr['minQuantity'][$k]);

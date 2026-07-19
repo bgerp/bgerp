@@ -274,14 +274,14 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
                 if (!array_key_exists($r->indicatorId, $total)) {
                     $total[$r->indicatorId] = $r->context;
                 } else {
-                    if (is_array($r->context)) {
+                    if (is_array($r->context ?? null)) {
                         foreach ($r->context as $k => $v) {
                             $total[$r->indicatorId][$k] += $v;
                         }
                     }
                 }
             } else {
-                $total[$r->indicatorId] += $r->value;
+                $total[$r->indicatorId] = ($total[$r->indicatorId] ?? 0) + $r->value;
             }
         }
         
