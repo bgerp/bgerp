@@ -4010,6 +4010,299 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Returns the total increased, decreased and net idle time for a comparison.
+     */
+    private static function getIdleChangesTotals($changes)
+    {
+        $increasedSeconds = array_sum((array)($changes['increased'] ?? array()));
+        $decreasedSeconds = array_sum((array)($changes['decreased'] ?? array()));
+        $netSeconds = $increasedSeconds - $decreasedSeconds;
+        $timeType = core_Type::getByName('time');
+
+        return array(
+            'increased' => $timeType->toVerbal($increasedSeconds),
+            'increasedSeconds' => $increasedSeconds,
+            'decreased' => $timeType->toVerbal($decreasedSeconds),
+            'decreasedSeconds' => $decreasedSeconds,
+            'net' => ($netSeconds > 0 ? '+' : ($netSeconds < 0 ? '−' : '')) . $timeType->toVerbal(abs($netSeconds)),
+            'netSeconds' => $netSeconds,
+        );
+    }
+
+
+    /**
+     * Runs one side-effect-free planning candidate and returns its order and quality metrics.
+     */
+    private static function calculateOptimizationCandidate($tasks, $previousTasks, $now, $assetId, $order, $packageLinks, $requiredLinks, $forceRegroup = false)
+    {
+        $candidateTasks = array();
+        foreach ($tasks as $taskId => $task) $candidateTasks[$taskId] = clone $task;
+
+        $options = array(
+            'manualOrderOverrides' => array($assetId => array_values($order)),
+            'packageLinkOverrides' => array($assetId => $packageLinks),
+        );
+        if ($forceRegroup) {
+            $options['optimizeAssetIds'] = array($assetId);
+            $options['regroupAssetIds'] = array($assetId);
+        }
+
+        $scheduledData = planning_TaskConstraints::calcScheduledTimes($candidateTasks, $previousTasks, $now, $options);
+        $linkCandidates = planning_TaskConstraints::mergeRequiredPackageLinks($requiredLinks, $packageLinks);
+        $linkCandidates = planning_TaskConstraints::mergeRequiredPackageLinks(
+            $linkCandidates,
+            $scheduledData->assets[$assetId]->packageLinks ?? array()
+        );
+        $plannedTasks = array_values((array)($scheduledData->tasks[$assetId] ?? array()));
+        usort($plannedTasks, function($a, $b) {
+            $startA = strtotime($a->expectedTimeStart);
+            $startB = strtotime($b->expectedTimeStart);
+            if ($startA == $startB) return ($a->id < $b->id) ? -1 : 1;
+
+            return ($startA < $startB) ? -1 : 1;
+        });
+
+        $plannedTasksById = array();
+        foreach ($plannedTasks as $task) $plannedTasksById[$task->id] = $task;
+        $plannedTasksById = planning_TaskConstraints::applyPackageLinksOrder($plannedTasksById, $linkCandidates);
+        $candidateOrder = array_values(array_map('intval', array_keys($plannedTasksById)));
+        $includedTaskIds = array_fill_keys($candidateOrder, true);
+        foreach ((array)$order as $taskId) {
+            $taskId = (int)$taskId;
+            if (!isset($includedTaskIds[$taskId]) && isset($tasks[$taskId]) && $tasks[$taskId]->assetId == $assetId) {
+                $candidateOrder[] = $taskId;
+                $includedTaskIds[$taskId] = true;
+            }
+        }
+        $candidateOrderObjects = array();
+        foreach ($candidateOrder as $taskId) $candidateOrderObjects[$taskId] = $tasks[$taskId] ?? (object)array('id' => $taskId);
+        $candidateOrderObjects = planning_TaskConstraints::applyPackageLinksOrder($candidateOrderObjects, $linkCandidates);
+        $candidateOrder = array_values(array_map('intval', array_keys($candidateOrderObjects)));
+        $candidateLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($candidateOrder, $linkCandidates);
+
+        return (object)array(
+            'order' => $candidateOrder,
+            'packageLinks' => $candidateLinks,
+            'scheduledData' => $scheduledData,
+            'metrics' => static::getOptimizationMetrics($scheduledData, $now, $tasks),
+        );
+    }
+
+
+    /**
+     * Measures the global result of one planning candidate.
+     */
+    private static function getOptimizationMetrics($scheduledData, $now, $tasksById)
+    {
+        $nowTimestamp = strtotime($now);
+        $latestEnd = $nowTimestamp;
+        $totalCompletionSeconds = 0;
+        $totalTardinessSeconds = 0;
+        foreach ((array)$scheduledData->tasks as $plannedTasks) {
+            foreach ((array)$plannedTasks as $task) {
+                if (empty($task->expectedTimeEnd)
+                    || $task->expectedTimeEnd == planning_TaskConstraints::NOT_FOUND_DATE
+                    || $task->expectedTimeEnd == planning_TaskConstraints::NOT_PLANNABLE) {
+                    continue;
+                }
+
+                $endTimestamp = strtotime($task->expectedTimeEnd);
+                if ($endTimestamp === false) continue;
+
+                $latestEnd = max($latestEnd, $endTimestamp);
+                $totalCompletionSeconds += max(0, $endTimestamp - $nowTimestamp);
+                $dueDate = $tasksById[$task->id]->dueDate ?? null;
+                if (!empty($dueDate) && ($dueTimestamp = strtotime($dueDate)) !== false) {
+                    $totalTardinessSeconds += max(0, $endTimestamp - $dueTimestamp);
+                }
+            }
+        }
+
+        $idleByAsset = static::getIdleSecondsFromScheduledData($scheduledData, $now);
+
+        return array(
+            'notPlanned' => countR($scheduledData->notPlanned),
+            'tardinessSeconds' => $totalTardinessSeconds,
+            'makespanSeconds' => max(0, $latestEnd - $nowTimestamp),
+            'completionSeconds' => $totalCompletionSeconds,
+            'idleSeconds' => array_sum($idleByAsset),
+            'idleByAsset' => $idleByAsset,
+        );
+    }
+
+
+    /**
+     * A candidate is accepted only when it does not worsen any protected metric and improves one.
+     */
+    private static function isOptimizationImprovement($candidate, $reference)
+    {
+        $metrics = array('notPlanned', 'tardinessSeconds', 'makespanSeconds', 'completionSeconds', 'idleSeconds');
+        $hasImprovement = false;
+        foreach ($metrics as $metric) {
+            if ($candidate[$metric] > $reference[$metric]) return false;
+            if ($candidate[$metric] < $reference[$metric]) $hasImprovement = true;
+        }
+
+        return $hasImprovement;
+    }
+
+
+    /**
+     * Splits an order into indivisible packages and standalone operations.
+     */
+    private static function getOptimizationBlocks($order, $packageLinks, $tasksById)
+    {
+        $blocks = array();
+        foreach ((array)$order as $taskId) {
+            $taskId = (int)$taskId;
+            if (!isset($tasksById[$taskId])) continue;
+
+            $lastIndex = count($blocks) - 1;
+            if ($lastIndex >= 0 && isset($packageLinks[$taskId])
+                && (int)$packageLinks[$taskId] == $blocks[$lastIndex]['tailId']) {
+                $blocks[$lastIndex]['taskIds'][] = $taskId;
+                $blocks[$lastIndex]['tailId'] = $taskId;
+                if (!empty($tasksById[$taskId]->actualStart) && $tasksById[$taskId]->state != 'stopped') {
+                    $blocks[$lastIndex]['movable'] = false;
+                }
+                continue;
+            }
+
+            $blocks[] = array(
+                'taskIds' => array($taskId),
+                'tailId' => $taskId,
+                'movable' => empty($tasksById[$taskId]->actualStart) || $tasksById[$taskId]->state == 'stopped',
+            );
+        }
+
+        return $blocks;
+    }
+
+
+    /**
+     * Flattens package blocks back to an operation order.
+     */
+    private static function flattenOptimizationBlocks($blocks)
+    {
+        $result = array();
+        foreach ($blocks as $block) {
+            foreach ($block['taskIds'] as $taskId) $result[] = (int)$taskId;
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Produces deterministic nearby orders, prioritising operations after the largest gaps.
+     */
+    private static function getOptimizationNeighbourOrders($candidate, $tasksById, $assetId, $now)
+    {
+        $blocks = static::getOptimizationBlocks($candidate->order, $candidate->packageLinks, $tasksById);
+        if (count($blocks) < 2) return array();
+
+        $blockByTask = array();
+        foreach ($blocks as $index => $block) {
+            foreach ($block['taskIds'] as $taskId) $blockByTask[$taskId] = $index;
+        }
+
+        $gapTargets = array();
+        $plannedTasks = array_values((array)($candidate->scheduledData->tasks[$assetId] ?? array()));
+        usort($plannedTasks, function($a, $b) {
+            return strcmp($a->expectedTimeStart, $b->expectedTimeStart);
+        });
+        $previousEnd = strtotime($now);
+        $minGap = max(1, (int)planning_Setup::get('MIN_TIME_FOR_GAP'));
+        foreach ($plannedTasks as $task) {
+            if (empty($task->expectedTimeStart) || empty($task->expectedTimeEnd)
+                || $task->expectedTimeStart >= planning_TaskConstraints::NOT_FOUND_DATE) {
+                continue;
+            }
+
+            $start = strtotime($task->expectedTimeStart);
+            $end = strtotime($task->expectedTimeEnd);
+            if ($start !== false && ($start - $previousEnd) > $minGap && isset($blockByTask[$task->id])) {
+                $blockIndex = $blockByTask[$task->id];
+                $gapTargets[$blockIndex] = max($gapTargets[$blockIndex] ?? 0, $start - $previousEnd);
+            }
+            if ($end !== false) $previousEnd = max($previousEnd, $end);
+        }
+        arsort($gapTargets);
+
+        $result = $seen = array();
+        $appendOrder = function($candidateBlocks) use (&$result, &$seen) {
+            $order = static::flattenOptimizationBlocks($candidateBlocks);
+            $hash = implode(',', $order);
+            if (isset($seen[$hash])) return;
+
+            $seen[$hash] = true;
+            $result[] = $order;
+        };
+        foreach ($gapTargets as $targetIndex => $gapSeconds) {
+            $lastSourceIndex = min(count($blocks) - 1, $targetIndex + 6);
+            for ($sourceIndex = $targetIndex + 1; $sourceIndex <= $lastSourceIndex; $sourceIndex++) {
+                $canMove = true;
+                for ($checkIndex = $targetIndex; $checkIndex <= $sourceIndex; $checkIndex++) {
+                    if (!$blocks[$checkIndex]['movable']) {
+                        $canMove = false;
+                        break;
+                    }
+                }
+                if (!$canMove) continue;
+
+                $newBlocks = $blocks;
+                $movedBlock = array_splice($newBlocks, $sourceIndex, 1);
+                array_splice($newBlocks, $targetIndex, 0, $movedBlock);
+                $appendOrder($newBlocks);
+                if (count($result) >= 12) return $result;
+            }
+        }
+
+        // Adjacent exchanges cover schedules without visible gaps and provide a cheap local search.
+        for ($index = 0; $index < count($blocks) - 1 && count($result) < 12; $index++) {
+            if (!$blocks[$index]['movable'] || !$blocks[$index + 1]['movable']) continue;
+
+            $newBlocks = $blocks;
+            $temporary = $newBlocks[$index];
+            $newBlocks[$index] = $newBlocks[$index + 1];
+            $newBlocks[$index + 1] = $temporary;
+            $appendOrder($newBlocks);
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Verbal comparison of the global completion horizon before and after optimization.
+     */
+    private static function getOptimizationMetricsReport($before, $after)
+    {
+        $timeType = core_Type::getByName('time');
+        $difference = (int)$after['makespanSeconds'] - (int)$before['makespanSeconds'];
+        $improved = array();
+        $captions = array(
+            'notPlanned' => 'непланирани операции',
+            'tardinessSeconds' => 'общо закъснение',
+            'makespanSeconds' => 'край на целия план',
+            'completionSeconds' => 'сумарно време до приключване',
+            'idleSeconds' => 'общ престой',
+        );
+        foreach ($captions as $metric => $caption) {
+            if ($after[$metric] < $before[$metric]) $improved[] = $caption;
+        }
+
+        return array(
+            'before' => $timeType->toVerbal($before['makespanSeconds']),
+            'after' => $timeType->toVerbal($after['makespanSeconds']),
+            'change' => ($difference > 0 ? '+' : ($difference < 0 ? '−' : '')) . $timeType->toVerbal(abs($difference)),
+            'changeSeconds' => $difference,
+            'improved' => implode(', ', $improved),
+        );
+    }
+
+
+    /**
      * След рендиране на лист таблицата
      */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
@@ -4031,7 +4324,7 @@ class planning_Tasks extends core_Master
                     $saveBtnAttr['data-url'] = toUrl(array($mvc, 'savereordertasks', 'assetId' => $assetId, 'hash' => $hash), 'local');
                 }
 
-                $optimizeBtnAttr = array('id' => 'optimizeBtn', 'title' => 'Предварителна автоматична оптимизация без запис');
+                $optimizeBtnAttr = array('id' => 'optimizeBtn', 'title' => 'Търсене на по-ефективна подредба без запис');
                 if ($mvc->haveRightFor('savereordertasks', (object)array('assetId' => $assetId))) {
                     $optimizeHash = str::addHash($assetId, 6, 'OP');
                     $optimizeBtnAttr['data-url'] = toUrl(array($mvc, 'optimizereordertasks', 'assetId' => $assetId, 'hash' => $optimizeHash), 'local');
@@ -4045,7 +4338,7 @@ class planning_Tasks extends core_Master
 
                 $headerTpl->append(ht::createFnBtn('Запис', '', false, $saveBtnAttr), 'saveBtn');
                 $headerTpl->append(ht::createFnBtn('Оптимизиране', '', false, $optimizeBtnAttr), 'optimizeBtn');
-                $headerTpl->append(ht::createFnBtn('Върни оптимизацията', '', false, array('id' => 'undoOptimizeBtn', 'class' => 'hidden', 'title' => 'Връщане към реда преди предварителната оптимизация')), 'undoOptimizeBtn');
+                $headerTpl->append(ht::createFnBtn('Върни оптимизацията', '', false, array('id' => 'undoOptimizeBtn', 'class' => 'hidden', 'title' => 'Връщане към реда преди оптимизирането')), 'undoOptimizeBtn');
                 $headerTpl->append(ht::createFnBtn('Отказ', '', false, array('id' => 'backBtn', 'data-url' => $backUrl, 'title' => 'Връщане назад')), 'assetId');
                 $headerTpl->append(ht::createFnBtn('Смяна оборудване', '', false, $changeBtnArr), 'changeAssetBtn');
                 $tpl->prepend($headerTpl);
@@ -4644,7 +4937,11 @@ class planning_Tasks extends core_Master
         $tasks = planning_TaskConstraints::getDefaultArr(null, 'actualStart,timeStart,calcedCurrentDuration,assetId,dueDate,state,modifiedOn,originId,saoOrder,productId,jobProductId,folderId');
         core_App::setTimeLimit(countR($tasks) * 0.6, false, 120);
         $tasksById = array();
-        foreach ($tasks as $task) $tasksById[$task->id] = $task;
+        $currentTargetTaskIds = array();
+        foreach ($tasks as $task) {
+            $tasksById[$task->id] = $task;
+            if ($task->assetId == $assetId) $currentTargetTaskIds[] = (int)$task->id;
+        }
         $requiredLinks = planning_TaskConstraints::getSameResourceJobPackageLinks($tasksById, $assetId);
         $submittedLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks(
             $orderedTaskIds,
@@ -4666,58 +4963,104 @@ class planning_Tasks extends core_Master
         }
 
         $now = dt::now();
-        $baseOptions = array(
-            'manualOrderOverrides' => array($assetId => $orderedTaskIds),
-            'packageLinkOverrides' => array($assetId => $submittedLinks),
+        $optimizationStartedAt = microtime(true);
+        $optimizationBudget = 22.0;
+        $maxCandidates = 9;
+        $testedCandidates = 0;
+        $baselineCandidate = static::calculateOptimizationCandidate(
+            $tasks,
+            $previousTasks,
+            $now,
+            $assetId,
+            $orderedTaskIds,
+            $submittedLinks,
+            $requiredLinks
         );
-        $baselineTasks = $optimizedTasks = array();
-        foreach ($tasks as $taskId => $task) {
-            $baselineTasks[$taskId] = clone $task;
-            $optimizedTasks[$taskId] = clone $task;
+        // When no better candidate is found the form must remain exactly as submitted.
+        $baselineCandidate->order = $orderedTaskIds;
+        $baselineCandidate->packageLinks = $submittedLinks;
+        $bestCandidate = $baselineCandidate;
+        $testedCandidates++;
+        $seenOrders = array(implode(',', $orderedTaskIds) => true);
+
+        if ((microtime(true) - $optimizationStartedAt) < $optimizationBudget) {
+            $automaticCandidate = static::calculateOptimizationCandidate(
+                $tasks,
+                $previousTasks,
+                $now,
+                $assetId,
+                $orderedTaskIds,
+                $submittedLinks,
+                $requiredLinks,
+                true
+            );
+            $testedCandidates++;
+            $seenOrders[implode(',', $automaticCandidate->order)] = true;
+            if (static::isOptimizationImprovement($automaticCandidate->metrics, $bestCandidate->metrics)) {
+                $bestCandidate = $automaticCandidate;
+            }
+            unset($automaticCandidate);
         }
-        $baselineData = planning_TaskConstraints::calcScheduledTimes($baselineTasks, $previousTasks, $now, $baseOptions);
 
-        $options = $baseOptions + array(
-            'optimizeAssetIds' => array($assetId),
-            'regroupAssetIds' => array($assetId),
-        );
-        $scheduledData = planning_TaskConstraints::calcScheduledTimes($optimizedTasks, $previousTasks, $now, $options);
-        $plannedTasks = array_values((array)($scheduledData->tasks[$assetId] ?? array()));
-        usort($plannedTasks, function($a, $b) {
-            $startA = strtotime($a->expectedTimeStart);
-            $startB = strtotime($b->expectedTimeStart);
-            if ($startA == $startB) return ($a->id < $b->id) ? -1 : 1;
+        while ($testedCandidates < $maxCandidates
+            && (microtime(true) - $optimizationStartedAt) < $optimizationBudget) {
+            $neighbourOrders = static::getOptimizationNeighbourOrders($bestCandidate, $tasksById, $assetId, $now);
+            $foundImprovement = false;
+            foreach ($neighbourOrders as $neighbourOrder) {
+                $orderHash = implode(',', $neighbourOrder);
+                if (isset($seenOrders[$orderHash])) continue;
+                if ($testedCandidates >= $maxCandidates
+                    || (microtime(true) - $optimizationStartedAt) >= $optimizationBudget) {
+                    break;
+                }
 
-            return ($startA < $startB) ? -1 : 1;
-        });
+                $seenOrders[$orderHash] = true;
+                $candidate = static::calculateOptimizationCandidate(
+                    $tasks,
+                    $previousTasks,
+                    $now,
+                    $assetId,
+                    $neighbourOrder,
+                    $bestCandidate->packageLinks,
+                    $requiredLinks
+                );
+                $testedCandidates++;
+                if (static::isOptimizationImprovement($candidate->metrics, $bestCandidate->metrics)) {
+                    $bestCandidate = $candidate;
+                    $foundImprovement = true;
+                    unset($candidate);
+                    break;
+                }
+                unset($candidate);
+            }
+            if (!$foundImprovement) break;
+        }
 
-        // The simulation optimizes the position of whole packages. A final package-order
-        // pass prevents sorting by calculated time from separating their members in the UI.
-        $optimizedLinkCandidates = planning_TaskConstraints::mergeRequiredPackageLinks($requiredLinks, $submittedLinks);
-        $optimizedLinkCandidates = planning_TaskConstraints::mergeRequiredPackageLinks(
-            $optimizedLinkCandidates,
-            $scheduledData->assets[$assetId]->packageLinks ?? array()
-        );
-        $plannedTasksById = array();
-        foreach ($plannedTasks as $task) $plannedTasksById[$task->id] = $task;
-        $plannedTasksById = planning_TaskConstraints::applyPackageLinksOrder($plannedTasksById, $optimizedLinkCandidates);
-        $optimizedOrder = array_values(array_map('intval', array_keys($plannedTasksById)));
-        $optimizedLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks(
-            $optimizedOrder,
-            $optimizedLinkCandidates
-        );
-        $baselineIdle = static::getIdleSecondsFromScheduledData($baselineData, $now);
-        $optimizedIdle = static::getIdleSecondsFromScheduledData($scheduledData, $now);
+        $optimizationDuration = round(microtime(true) - $optimizationStartedAt, 1);
+        $hasImprovement = static::isOptimizationImprovement($bestCandidate->metrics, $baselineCandidate->metrics);
+        $optimizedOrder = $bestCandidate->order;
+        $optimizedLinks = $bestCandidate->packageLinks;
+        $baselineIdle = $baselineCandidate->metrics['idleByAsset'];
+        $optimizedIdle = $bestCandidate->metrics['idleByAsset'];
         $idleChanges = static::getIdleChanges($baselineIdle, $optimizedIdle);
 
         $resObj = new stdClass();
         $resObj->func = 'applyOptimizedTaskOrder';
         $resObj->arg = array(
             'order' => $optimizedOrder,
+            'currentTaskIds' => $currentTargetTaskIds,
             'packageLinks' => $optimizedLinks,
-            'idleMessage' => static::getIdleChangesMessage($idleChanges, 'Предварителна оптимизация.'),
+            'idleMessage' => static::getIdleChangesMessage($idleChanges, 'Предварително оптимизиране.'),
             'idleChanges' => static::getIdleChangesReport($baselineIdle, $optimizedIdle, $idleChanges),
+            'idleTotals' => static::getIdleChangesTotals($idleChanges),
             'hasIdleIncrease' => countR($idleChanges['increased']) > 0,
+            'hasNetIdleIncrease' => array_sum($idleChanges['increased']) > array_sum($idleChanges['decreased']),
+            'optimizationMetrics' => static::getOptimizationMetricsReport($baselineCandidate->metrics, $bestCandidate->metrics),
+            'optimizationStats' => array(
+                'testedCandidates' => $testedCandidates,
+                'duration' => $optimizationDuration,
+                'hasImprovement' => $hasImprovement,
+            ),
         );
 
         return array($resObj);

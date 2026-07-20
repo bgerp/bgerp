@@ -1044,13 +1044,16 @@ function reorderTaskRows(order)
 function render_applyOptimizedTaskOrder(data)
 {
     data = data || {};
+    let optimizationStats = data.optimizationStats || {};
+    let hasImprovement = Boolean(optimizationStats.hasImprovement);
     let oldOrder = getOrderedTasks();
     let visibleBefore = {};
     oldOrder.forEach((taskId) => visibleBefore[taskId] = true);
-    let optimizedIds = {};
-    (data.order || []).forEach((taskId) => optimizedIds[String(taskId)] = true);
-    let taskSetChanged = (data.order || []).some((taskId) => !visibleBefore[String(taskId)])
-        || oldOrder.some((taskId) => !optimizedIds[taskId]);
+    let currentTaskIds = data.currentTaskIds || data.order || [];
+    let currentTaskSet = {};
+    currentTaskIds.forEach((taskId) => currentTaskSet[String(taskId)] = true);
+    let taskSetChanged = currentTaskIds.some((taskId) => !visibleBefore[String(taskId)])
+        || oldOrder.some((taskId) => !currentTaskSet[taskId]);
     if (taskSetChanged) {
         let reloadCount = parseInt(sessionStorage.getItem('taskOptimizationReloadCount') || '0', 10);
         if (reloadCount >= 2) {
@@ -1080,18 +1083,24 @@ function render_applyOptimizedTaskOrder(data)
     let optimizedOrder = getOptimizedOrderWithPreservedPackages(data.order || []);
     reorderTaskRows(optimizedOrder);
     packageLinks = getPreservedOptimizedPackageLinks(optimizedOrder, data.packageLinks || {});
-    areMoved = true;
+    areMoved = hasImprovement ? true : Boolean(optimizeSnapshot && optimizeSnapshot.areMoved);
     updatePackageVisuals();
 
     let newPositions = {};
     getOrderedTasks().forEach((taskId, index) => newPositions[taskId] = index);
     document.querySelectorAll('#dragTable tbody tr[data-id]').forEach((row) => {
         let taskId = row.getAttribute('data-id');
-        row.classList.toggle('optimized-highlight', oldOrder.indexOf(taskId) !== newPositions[taskId]);
+        row.classList.toggle('optimized-highlight', hasImprovement && oldOrder.indexOf(taskId) !== newPositions[taskId]);
     });
 
-    $('#undoOptimizeBtn').removeClass('hidden');
-    renderOptimizationIdleReport(data.idleChanges || [], Boolean(data.hasIdleIncrease));
+    $('#undoOptimizeBtn').toggleClass('hidden', !hasImprovement);
+    renderOptimizationIdleReport(
+        data.idleChanges || [],
+        data.idleTotals || {},
+        data.optimizationMetrics || {},
+        optimizationStats,
+        Boolean(data.hasNetIdleIncrease)
+    );
     $('.loadingModal').remove();
     $('body').css('overflow', '');
 }
@@ -1178,17 +1187,18 @@ function getPreservedOptimizedPackageLinks(order, optimizedLinks)
 }
 
 
-function renderOptimizationIdleReport(changes, hasIdleIncrease)
+function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdleIncrease)
 {
     removeOptimizationIdleReport();
 
+    let hasImprovement = Boolean(stats.hasImprovement);
     let report = $('<section>', {
         id: 'optimizationIdleReport',
-        class: hasIdleIncrease ? 'hasIdleIncrease' : 'hasOnlyIdleDecrease',
+        class: hasNetIdleIncrease ? 'hasNetIdleIncrease' : (hasImprovement ? 'hasOptimizationImprovement' : 'hasNoOptimizationImprovement'),
         role: 'status'
     });
     let header = $('<div>', {class: 'optimizationIdleReportHeader'});
-    header.append($('<strong>').text('Резултат от предварителната оптимизация'));
+    header.append($('<strong>').text('Резултат от предварителното оптимизиране'));
     header.append($('<button>', {
         type: 'button',
         class: 'optimizationIdleReportClose',
@@ -1196,8 +1206,30 @@ function renderOptimizationIdleReport(changes, hasIdleIncrease)
         'aria-label': 'Затвори'
     }).text('×').on('click', removeOptimizationIdleReport));
     report.append(header);
+    let testedCandidates = Number(stats.testedCandidates) || 0;
+    let duration = Number(stats.duration) || 0;
+    let searchResult = hasImprovement
+        ? 'Намерено е подобрение, което не влошава общия срок, закъсненията, непланираните операции или общия престой.'
+        : 'Не е намерен безопасен по-добър вариант. Текущата подредба е запазена.';
+    let searchResultBlock = $('<div>', {class: 'optimizationSearchResult'})
+        .append($('<div>').append($('<strong>').text(searchResult)));
+    if (hasImprovement && metrics.improved) {
+        searchResultBlock.children().first().append($('<div>', {class: 'optimizationImprovedMetrics'})
+            .text('Подобрени показатели: ' + metrics.improved + '.'));
+    }
+    searchResultBlock.append($('<span>').text('Проверени варианти: ' + testedCandidates + '; време: ' + duration + ' сек.'));
+    report.append(searchResultBlock);
     report.append($('<div>', {class: 'optimizationIdleReportHint'})
-        .text('Прегледайте новата подредба и натиснете „Запис“, за да я приемете, или „Върни оптимизацията“, за да я отмените.'));
+        .text(hasImprovement
+            ? 'Прегледайте новата подредба и натиснете „Запис“, за да я приемете, или „Върни оптимизацията“, за да я отмените.'
+            : 'Може да продължите с ръчно подреждане или да затворите този отчет.'));
+
+    let makespanChange = Number(metrics.changeSeconds) || 0;
+    let makespanClass = makespanChange < 0 ? 'optimizationMetricImproved'
+        : (makespanChange > 0 ? 'optimizationMetricWorsened' : 'optimizationMetricUnchanged');
+    report.append($('<div>', {class: 'optimizationGlobalMetrics'})
+        .append($('<span>').text('Общ срок: ' + (metrics.before || '—') + ' → ' + (metrics.after || '—')))
+        .append($('<strong>', {class: makespanClass}).text('Промяна: ' + (metrics.change || '0 сек.'))));
 
     if (!changes.length) {
         report.append($('<div>', {class: 'optimizationIdleNoChanges'})
@@ -1206,8 +1238,14 @@ function renderOptimizationIdleReport(changes, hasIdleIncrease)
         let increasedCount = changes.filter((change) => Number(change.changeSeconds) > 0).length;
         let decreasedCount = changes.filter((change) => Number(change.changeSeconds) < 0).length;
         let summary = $('<div>', {class: 'optimizationIdleSummary'});
-        summary.append($('<span>', {class: 'idleIncreaseCount'}).text('Увеличени: ' + increasedCount));
-        summary.append($('<span>', {class: 'idleDecreaseCount'}).text('Намалени: ' + decreasedCount));
+        summary.append($('<span>', {class: 'idleIncreaseCount'})
+            .text('Увеличени: ' + increasedCount + ' машини — общо ' + (totals.increased || '0 сек.')));
+        summary.append($('<span>', {class: 'idleDecreaseCount'})
+            .text('Намалени: ' + decreasedCount + ' машини — общо ' + (totals.decreased || '0 сек.')));
+        let netSeconds = Number(totals.netSeconds) || 0;
+        let netClass = netSeconds > 0 ? 'idleNetIncrease' : (netSeconds < 0 ? 'idleNetDecrease' : 'idleNetUnchanged');
+        summary.append($('<span>', {class: netClass})
+            .text('Нетна промяна: ' + (totals.net || '0 сек.')));
         report.append(summary);
 
         let table = $('<table>', {class: 'optimizationIdleTable'});
