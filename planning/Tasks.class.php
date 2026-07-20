@@ -4169,6 +4169,34 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Whether a candidate is safe to use as an intermediate search point.
+     */
+    private static function isOptimizationCandidateSafe($candidate, $reference)
+    {
+        foreach (array('notPlanned', 'tardinessSeconds', 'makespanSeconds', 'completionSeconds', 'idleSeconds') as $metric) {
+            if ($candidate[$metric] > $reference[$metric]) return false;
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Stable priority for the small optimization search frontier.
+     */
+    private static function compareOptimizationMetrics($a, $b)
+    {
+        foreach (array('notPlanned', 'tardinessSeconds', 'makespanSeconds', 'completionSeconds', 'idleSeconds') as $metric) {
+            if ($a[$metric] == $b[$metric]) continue;
+
+            return ($a[$metric] < $b[$metric]) ? -1 : 1;
+        }
+
+        return 0;
+    }
+
+
+    /**
      * Splits an order into indivisible packages and standalone operations.
      */
     private static function getOptimizationBlocks($order, $packageLinks, $tasksById)
@@ -4217,10 +4245,12 @@ class planning_Tasks extends core_Master
     /**
      * Produces deterministic nearby orders, prioritising operations after the largest gaps.
      */
-    private static function getOptimizationNeighbourOrders($candidate, $tasksById, $assetId, $now)
+    private static function getOptimizationNeighbourOrders($candidate, $tasksById, $assetId, $now, $limit = 12, $knownOrderHashes = array())
     {
         $blocks = static::getOptimizationBlocks($candidate->order, $candidate->packageLinks, $tasksById);
         if (count($blocks) < 2) return array();
+
+        $limit = max(1, (int)$limit);
 
         $blockByTask = array();
         foreach ($blocks as $index => $block) {
@@ -4250,7 +4280,8 @@ class planning_Tasks extends core_Master
         }
         arsort($gapTargets);
 
-        $result = $seen = array();
+        $result = array();
+        $seen = (array)$knownOrderHashes;
         $appendOrder = function($candidateBlocks) use (&$result, &$seen) {
             $order = static::flattenOptimizationBlocks($candidateBlocks);
             $hash = implode(',', $order);
@@ -4260,7 +4291,7 @@ class planning_Tasks extends core_Master
             $result[] = $order;
         };
         foreach ($gapTargets as $targetIndex => $gapSeconds) {
-            $lastSourceIndex = min(count($blocks) - 1, $targetIndex + 6);
+            $lastSourceIndex = count($blocks) - 1;
             for ($sourceIndex = $targetIndex + 1; $sourceIndex <= $lastSourceIndex; $sourceIndex++) {
                 $canMove = true;
                 for ($checkIndex = $targetIndex; $checkIndex <= $sourceIndex; $checkIndex++) {
@@ -4275,19 +4306,35 @@ class planning_Tasks extends core_Master
                 $movedBlock = array_splice($newBlocks, $sourceIndex, 1);
                 array_splice($newBlocks, $targetIndex, 0, $movedBlock);
                 $appendOrder($newBlocks);
-                if (count($result) >= 12) return $result;
+                if (count($result) >= $limit) return $result;
             }
         }
 
-        // Adjacent exchanges cover schedules without visible gaps and provide a cheap local search.
-        for ($index = 0; $index < count($blocks) - 1 && count($result) < 12; $index++) {
-            if (!$blocks[$index]['movable'] || !$blocks[$index + 1]['movable']) continue;
+        // Explore increasingly distant block relocations as long as no started block is crossed.
+        $blockCount = count($blocks);
+        for ($distance = 1; $distance < $blockCount && count($result) < $limit; $distance++) {
+            for ($sourceIndex = 0; $sourceIndex < $blockCount && count($result) < $limit; $sourceIndex++) {
+                foreach (array($sourceIndex - $distance, $sourceIndex + $distance) as $targetIndex) {
+                    if ($targetIndex < 0 || $targetIndex >= $blockCount || $targetIndex == $sourceIndex) continue;
 
-            $newBlocks = $blocks;
-            $temporary = $newBlocks[$index];
-            $newBlocks[$index] = $newBlocks[$index + 1];
-            $newBlocks[$index + 1] = $temporary;
-            $appendOrder($newBlocks);
+                    $canMove = true;
+                    $firstIndex = min($sourceIndex, $targetIndex);
+                    $lastIndex = max($sourceIndex, $targetIndex);
+                    for ($checkIndex = $firstIndex; $checkIndex <= $lastIndex; $checkIndex++) {
+                        if (!$blocks[$checkIndex]['movable']) {
+                            $canMove = false;
+                            break;
+                        }
+                    }
+                    if (!$canMove) continue;
+
+                    $newBlocks = $blocks;
+                    $movedBlock = array_splice($newBlocks, $sourceIndex, 1);
+                    array_splice($newBlocks, $targetIndex, 0, $movedBlock);
+                    $appendOrder($newBlocks);
+                    if (count($result) >= $limit) return $result;
+                }
+            }
         }
 
         return $result;
@@ -5017,6 +5064,7 @@ class planning_Tasks extends core_Master
         $bestCandidate = $baselineCandidate;
         $testedCandidates++;
         $seenOrders = array(implode(',', $orderedTaskIds) => true);
+        $searchFrontier = array($baselineCandidate);
 
         if ((microtime(true) - $optimizationStartedAt) < $optimizationBudget) {
             $automaticCandidate = static::calculateOptimizationCandidate(
@@ -5034,13 +5082,33 @@ class planning_Tasks extends core_Master
             if (static::isOptimizationImprovement($automaticCandidate->metrics, $bestCandidate->metrics)) {
                 $bestCandidate = $automaticCandidate;
             }
-            unset($automaticCandidate);
+            if (static::isOptimizationCandidateSafe($automaticCandidate->metrics, $baselineCandidate->metrics)) {
+                $searchFrontier[] = $automaticCandidate;
+            } else {
+                unset($automaticCandidate);
+            }
         }
 
         while ($testedCandidates < $maxCandidates
-            && (microtime(true) - $optimizationStartedAt) < $optimizationBudget) {
-            $neighbourOrders = static::getOptimizationNeighbourOrders($bestCandidate, $tasksById, $assetId, $now);
-            $foundImprovement = false;
+            && (microtime(true) - $optimizationStartedAt) < $optimizationBudget
+            && count($searchFrontier)) {
+            usort($searchFrontier, function($a, $b) {
+                return static::compareOptimizationMetrics($a->metrics, $b->metrics);
+            });
+            $searchCandidate = array_shift($searchFrontier);
+            $batchLimit = min(16, $maxCandidates - $testedCandidates);
+            $neighbourOrders = static::getOptimizationNeighbourOrders(
+                $searchCandidate,
+                $tasksById,
+                $assetId,
+                $now,
+                $batchLimit,
+                $seenOrders
+            );
+            if (count($neighbourOrders) == $batchLimit) {
+                // There may be more untested neighbours of the same order in a later batch.
+                $searchFrontier[] = $searchCandidate;
+            }
             foreach ($neighbourOrders as $neighbourOrder) {
                 $orderHash = implode(',', $neighbourOrder);
                 if (isset($seenOrders[$orderHash])) continue;
@@ -5056,19 +5124,28 @@ class planning_Tasks extends core_Master
                     $now,
                     $assetId,
                     $neighbourOrder,
-                    $bestCandidate->packageLinks,
+                    $searchCandidate->packageLinks,
                     $requiredLinks
                 );
                 $testedCandidates++;
+                $seenOrders[implode(',', $candidate->order)] = true;
                 if (static::isOptimizationImprovement($candidate->metrics, $bestCandidate->metrics)) {
                     $bestCandidate = $candidate;
-                    $foundImprovement = true;
-                    unset($candidate);
-                    break;
                 }
-                unset($candidate);
+                if (static::isOptimizationCandidateSafe($candidate->metrics, $baselineCandidate->metrics)) {
+                    $searchFrontier[] = $candidate;
+                } else {
+                    unset($candidate);
+                }
             }
-            if (!$foundImprovement) break;
+
+            // A small beam keeps memory bounded while allowing equal safe orders to cross plateaus.
+            if (count($searchFrontier) > 6) {
+                usort($searchFrontier, function($a, $b) {
+                    return static::compareOptimizationMetrics($a->metrics, $b->metrics);
+                });
+                $searchFrontier = array_slice($searchFrontier, 0, 6);
+            }
         }
 
         $optimizationDuration = round(microtime(true) - $optimizationStartedAt, 1);
@@ -5501,10 +5578,30 @@ class planning_Tasks extends core_Master
     {
         if(!Mode::is('isReorder') || !countR($data->recs)) return;
 
-        $manualPlanning = planning_Setup::get('MANUAL_ORDER_IN_ASSET');
-        $placeWithActualStartFirst = ($manualPlanning == 'no');
-        $data->recs = planning_TaskManualOrderPerAssets::getOrderedRecs($data->listFilter->rec->assetId, $data->recs, $placeWithActualStartFirst);
-        $data->recs = planning_TaskConstraints::applySameResourceJobPackageOrder($data->recs, $data->listFilter->rec->assetId);
+        uasort($data->recs, function($a, $b) {
+            $startedA = !empty($a->actualStart) && $a->state != 'stopped';
+            $startedB = !empty($b->actualStart) && $b->state != 'stopped';
+            if ($startedA != $startedB) return $startedA ? -1 : 1;
+            if ($startedA && $a->actualStart != $b->actualStart) {
+                return strcmp($a->actualStart, $b->actualStart);
+            }
+
+            $startA = !empty($a->expectedTimeStart) ? $a->expectedTimeStart : planning_TaskConstraints::NOT_PLANNABLE;
+            $startB = !empty($b->expectedTimeStart) ? $b->expectedTimeStart : planning_TaskConstraints::NOT_PLANNABLE;
+            if ($startA != $startB) return strcmp($startA, $startB);
+
+            $endA = !empty($a->expectedTimeEnd) ? $a->expectedTimeEnd : planning_TaskConstraints::NOT_PLANNABLE;
+            $endB = !empty($b->expectedTimeEnd) ? $b->expectedTimeEnd : planning_TaskConstraints::NOT_PLANNABLE;
+            if ($endA != $endB) return strcmp($endA, $endB);
+
+            $orderA = $a->orderByAssetId ?? PHP_INT_MAX;
+            $orderB = $b->orderByAssetId ?? PHP_INT_MAX;
+            if ($orderA != $orderB) {
+                return ($orderA < $orderB) ? -1 : 1;
+            }
+
+            return ($a->id < $b->id) ? -1 : 1;
+        });
     }
 
 
