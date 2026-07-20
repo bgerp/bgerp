@@ -14,3 +14,4 @@ syntax: regexp
 **/.env
 .codex
 .claude/worktrees/
+.mcp.json

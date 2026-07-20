@@ -104,7 +104,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
         $KeyList = cls::get('type_KeyList', array('params' => array('mvc' => 'sens2_Indicators', 'select' => 'title')));
         
         if (!strpos($filter->to, ' ')) {
-            $filter->to .= ' 23:59:59';
+            $filter->to = ($filter->to ?? '') . ' 23:59:59';
         }
         
         $query = sens2_DataLogs::getQuery();

@@ -29,7 +29,7 @@ class type_Hour extends type_Varchar
             $h = str_pad($h, 2, '0', STR_PAD_LEFT) . ":00";
             $hourOptions[$h] = $h;
         }
-        $attr['style'] .= ';max-width:4em;';
+        $attr['style'] = ($attr['style'] ?? '') . ';max-width:4em;';
 
         $inputHour = ht::createCombo($name, $value, $attr, $hourOptions);
 

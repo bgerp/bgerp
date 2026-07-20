@@ -221,7 +221,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
             if (keylist::isKeylist($dRec->group)) {
                 $groupIds = keylist::toArray($dRec->group);
-            } elseif (is_array($dRec->group)) {
+            } elseif (is_array($dRec->group ?? null)) {
                 $groupIds = $dRec->group;
             } elseif (is_numeric($dRec->group)) {
                 $groupIds = array($dRec->group => $dRec->group);
@@ -1531,13 +1531,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 //за текущ, предходен период и предходна година във ВСЯКА ГРУПА В КОЯТО Е РЕГИСТРИРАН
                 foreach ($v->$typeGroup as $k => $gro) {
                     //За този артикул
-                    $groupValues[$gro] += $v->primeCost;                        //Стойност на продажбите за текущ период
-                    $groupQuantity[$gro] += $v->quantity;                        //Стойност на продажбите за текущ период
-                    $groupDeltas[$gro] += $v->delta;                            //Стойност на делтите за текущ период
-                    $groupPrimeCostPrevious[$gro] += $v->primeCostPrevious;     //Стойност на продажбите за предходен период
-                    $groupDeltaPrevious[$gro] += $v->deltaPrevious;             //Стойност на делтите за предходен период
-                    $groupPrimeCostLastYear[$gro] += $v->primeCostLastYear;     //Стойност на продажбите за предходна година
-                    $groupDeltaLastYear[$gro] += $v->deltaLastYear;             //Стойност на делтите за предходна година
+                    $groupValues[$gro] = ($groupValues[$gro] ?? 0) + $v->primeCost;                        //Стойност на продажбите за текущ период
+                    $groupQuantity[$gro] = ($groupQuantity[$gro] ?? 0) + $v->quantity;                        //Стойност на продажбите за текущ период
+                    $groupDeltas[$gro] = ($groupDeltas[$gro] ?? 0) + $v->delta;                            //Стойност на делтите за текущ период
+                    $groupPrimeCostPrevious[$gro] = ($groupPrimeCostPrevious[$gro] ?? 0) + $v->primeCostPrevious;     //Стойност на продажбите за предходен период
+                    $groupDeltaPrevious[$gro] = ($groupDeltaPrevious[$gro] ?? 0) + $v->deltaPrevious;             //Стойност на делтите за предходен период
+                    $groupPrimeCostLastYear[$gro] = ($groupPrimeCostLastYear[$gro] ?? 0) + $v->primeCostLastYear;     //Стойност на продажбите за предходна година
+                    $groupDeltaLastYear[$gro] = ($groupDeltaLastYear[$gro] ?? 0) + $v->deltaLastYear;             //Стойност на делтите за предходна година
                 }
                 unset($gro, $k);
 
@@ -1590,13 +1590,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 //Един артикул може да го има в няколко групи
                 foreach ($tempArr[$tempArrKey]->$typeGroup as $gro) {
 
-                    $groupValues[$gro] += $v->primeCost;
-                    $groupQuantity[$gro] += $v->quantity;
-                    $groupDeltas[$gro] += $v->delta;
-                    $groupPrimeCostPrevious[$gro] += $v->primeCostPrevious;
-                    $groupDeltaPrevious[$gro] += $v->deltaPrevious;
-                    $groupPrimeCostLastYear[$gro] += $v->primeCostLastYear;
-                    $groupDeltaLastYear[$gro] += $v->deltaLastYear;
+                    $groupValues[$gro] = ($groupValues[$gro] ?? 0) + $v->primeCost;
+                    $groupQuantity[$gro] = ($groupQuantity[$gro] ?? 0) + $v->quantity;
+                    $groupDeltas[$gro] = ($groupDeltas[$gro] ?? 0) + $v->delta;
+                    $groupPrimeCostPrevious[$gro] = ($groupPrimeCostPrevious[$gro] ?? 0) + $v->primeCostPrevious;
+                    $groupDeltaPrevious[$gro] = ($groupDeltaPrevious[$gro] ?? 0) + $v->deltaPrevious;
+                    $groupPrimeCostLastYear[$gro] = ($groupPrimeCostLastYear[$gro] ?? 0) + $v->primeCostLastYear;
+                    $groupDeltaLastYear[$gro] = ($groupDeltaLastYear[$gro] ?? 0) + $v->deltaLastYear;
                 }
                 unset($gro);
 
@@ -1679,7 +1679,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->typeOfGroups == 'category' || $rec->typeOfGroups == 'no') {
                 foreach ($groupValues as $key => $val) {
                     if (cat_Categories::fetch($key) === false) {
-                        $groupValues[99999] += $val;
+                        $groupValues[99999] = ($groupValues[99999] ?? 0) + $val;
                         unset($groupValues[$key]);
                     }
                 }

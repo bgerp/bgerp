@@ -567,7 +567,11 @@ class doc_Threads extends core_Manager
                 } catch (ErrorException $e) {
                     continue;
                 }
-                
+
+                if (!$cRec) {
+                    continue;
+                }
+
                 // Само, ако първият контейнер е видим за партньори, тогава проверяваме за броят на видимите контейнери
                 if ($cRec->visibleForPartners == 'yes' && $cRec->state != 'draft' && $cRec->state != 'rejected' && empty(self::$updateQueue[$rec->id])) {
                     // Ако се различава броя на документите, видими за партньори

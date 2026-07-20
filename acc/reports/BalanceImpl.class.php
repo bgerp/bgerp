@@ -479,7 +479,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
             $arrMark = keylist::toArray($rec->mark);
             foreach ($arrMark as $mark) {
                 if (countR($arrMark) > 1) {
-                    $row->mark .= cat_Groups::fetchField($mark, 'name') . ', ';
+                    $row->mark = ($row->mark ?? '') . cat_Groups::fetchField($mark, 'name') . ', ';
                 } else {
                     $row->mark = cat_Groups::fetchField($mark, 'name');
                 }

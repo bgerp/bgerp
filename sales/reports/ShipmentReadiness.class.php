@@ -228,12 +228,12 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                     $amountPaidVerbal = "<span style='color:green;'>{$amountPaidVerbal}</span>";
                 }
                 $str = tr("|* <span class='nowrap' style='border: 1px solid #ccc; border-radius:3px; padding: 0 2px; font-size: 0.75em; color: #333; box-shadow: inset 0 0 2px #fff; position: relative; top: -2px;background: rgba(240,250,250, 0.3)'>|Пор|*: {$amountDealVerbal} / |Плат|*: {$amountPaidVerbal}</span>");
-                $row->document .= $str;
+                $row->document = ($row->document ?? '') . $str;
             }
 
             $dTable = $this->getSaleDetailTable($Document->that);
             if (!empty($dTable)) {
-                $row->document .= $dTable;
+                $row->document = ($row->document ?? '') . $dTable;
             }
         }
         
@@ -327,7 +327,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         if (isset($rec->precision) && $rec->precision != 1) {
-            $row->precision .= ' +';
+            $row->precision = ($row->precision ?? '') . ' +';
         }
         
         $dealers = keylist::toArray($rec->dealers);

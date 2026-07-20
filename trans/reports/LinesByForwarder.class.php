@@ -192,7 +192,7 @@
 
                  $weight = $transInfo['weight'];
                  
-                 if (is_array($transInfo['transportUnits'])) {
+                 if (is_array($transInfo['transportUnits'] ?? null)) {
                      $transportUnits = array_sum($transInfo['transportUnits']);
                  }
              }
@@ -302,9 +302,9 @@
          $row->lines = 'ТЛ №: ';
          foreach ($dRec->lineId as $val){
              $marker++;
-             $row->lines .= ht::createLink("#$val", toUrl(array('trans_Lines', 'single',$val)));
+             $row->lines = ($row->lines ?? '') . ht::createLink("#$val", toUrl(array('trans_Lines', 'single',$val)));
              if($marker < countR($dRec->lineId)){
-                 $row->lines .=', ';
+                 $row->lines =($row->lines ?? '') . ', ';
              }
          }
          

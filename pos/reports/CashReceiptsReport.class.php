@@ -188,7 +188,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
 
             $id = $receiptRec->id;
 
-            $totalSum[$folderId] += $receiptRec->total;
+            $totalSum[$folderId] = ($totalSum[$folderId] ?? 0) + $receiptRec->total;
 
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -281,7 +281,7 @@ class pos_reports_CashReceiptsReport extends frame2_driver_TableData
 
         $row->contragentName = $dRec->contragentName;
         if ($rec->groupBy == 'contragentName') {
-            $row->contragentName .= '<span class="fright">  ОБЩО: ' . $dRec->totalSum . ' лв.</span>';
+            $row->contragentName = ($row->contragentName ?? '') . '<span class="fright">  ОБЩО: ' . $dRec->totalSum . ' лв.</span>';
         }
 
         $row->total = ht::createLink($dRec->total, array('pos_Receipts', 'single', $dRec->receiptId));

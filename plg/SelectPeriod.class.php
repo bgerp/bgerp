@@ -94,7 +94,7 @@ class plg_SelectPeriod extends core_Plugin
             }
         }
 
-        if ($rec->selectPeriod && $rec->selectPeriod != 'select') {
+        if (!empty($rec->selectPeriod) && $rec->selectPeriod != 'select') {
             list($rec->{$fF}, $rec->{$fT}) = self::getFromTo($rec->selectPeriod);
             Request::push(array($fF => $rec->{$fF}, $fT => $rec->{$fT}));
         }
@@ -107,7 +107,7 @@ class plg_SelectPeriod extends core_Plugin
         
         $form->input('selectPeriod');
         
-        if (($rec->selectPeriod) && ($rec->selectPeriod != 'select')) {
+        if (!empty($rec->selectPeriod) && $rec->selectPeriod != 'select') {
             $selPerArr = self::getFromTo($rec->selectPeriod);
             if ($mandatory && (!$selPerArr || ((!$selPerArr[0]) && (!$selPerArr[1])))) {
                 $form->setError('selectPeriod', 'Трябва да изберете период');
@@ -117,7 +117,7 @@ class plg_SelectPeriod extends core_Plugin
             }
         }
         
-        if ($rec->selectPeriod != 'select') {
+        if (($rec->selectPeriod ?? null) != 'select') {
             $form->setField($fF, array('rowStyle' => 'display:none'));
             $form->setField($fT, array('rowStyle' => 'display:none'));
         }

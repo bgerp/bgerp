@@ -269,7 +269,7 @@ class email_reports_Spam extends frame2_driver_TableData
             $attr['ef_icon'] = 'img/16/restore.png';
             $attr['title'] = 'Възстановяване на имейла';
             
-            $row->subject .= '<div class="small"> (' . tr('оттеглено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
+            $row->subject = ($row->subject ?? '') . '<div class="small"> (' . tr('оттеглено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
             
             $act = 'Възстановяване';
         } else {
@@ -278,7 +278,7 @@ class email_reports_Spam extends frame2_driver_TableData
             $attr['title'] = 'Оттегляне на имейла';
             
             if ($dRec->brState == 'rejected') {
-                $row->subject .= '<div class="small"> (' . tr('възстановено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
+                $row->subject = ($row->subject ?? '') . '<div class="small"> (' . tr('възстановено от') . ' ' . crm_Profiles::createLink($dRec->modifiedBy) . ')</div>';
             }
             
             $act = 'Оттегляне';

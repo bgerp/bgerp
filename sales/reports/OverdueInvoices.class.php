@@ -266,7 +266,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
                                 $overColor = 'red';
                             }
 
-                            $invoiceCurrentSummArr[$contragentFolderId] += $paydocsAmountBaseCurr - $paydocspayOutBaseCurr; //Обща сума за контрагента в основна валута
+                            $invoiceCurrentSummArr[$contragentFolderId] = ($invoiceCurrentSummArr[$contragentFolderId] ?? 0) + $paydocsAmountBaseCurr - $paydocspayOutBaseCurr; //Обща сума за контрагента в основна валута
 
                         } else {
                             continue;
@@ -411,7 +411,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     private static function getPaidDates($dRec, $verbal = true)
     {
-        if (is_array($dRec->payDocuments)) {
+        if (is_array($dRec->payDocuments ?? null)) {
             foreach ($dRec->payDocuments as $onePayDoc) {
                 if (!is_null($onePayDoc->containerId)) {
                     $Document = doc_Containers::getDocument($onePayDoc->containerId);
@@ -977,7 +977,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
 
         frame2_Reports::save($rec, 'blastId');
 
-        if (blast_Emails::haveRightFor('single', $res['blastId'])) {
+        if (blast_Emails::haveRightFor('single', $res['blastId'] ?? null)) {
             return new Redirect(array('blast_Emails', 'single', $res['blastId']));
         }
     }

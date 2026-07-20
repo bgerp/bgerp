@@ -242,6 +242,18 @@ defIfNot('PLANNING_MANUAL_ORDER_IN_ASSET', 'no');
 
 
 /**
+ * Минимално сходство на планиращите параметри за автоматично групиране
+ */
+defIfNot('PLANNING_TASK_PARAM_GROUP_SIMILARITY', 0.75);
+
+
+/**
+ * Максимална разлика между падежите за автоматично групиране по планиращи параметри->Дни
+ */
+defIfNot('PLANNING_TASK_PARAM_GROUP_DAYS', 7);
+
+
+/**
  * Колко индивидуални бутони за субпродукти да се показват в ПО->Брой
  */
 defIfNot('PLANNING_TASK_SUB_PRODUCT_MIN_BUTTONS', '5');
@@ -359,6 +371,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_MIN_TIME_FOR_GAP' => array('time', 'caption=Минимално време между ПО на една машина приемащо се за дупка->Време'),
         'PLANNING_PRODUCTION_DELETE_SYSTEM_DETAILS' => array('enum(yes=Да,no=Не)', array('caption' => 'Изтриване на редове от ПП с очаквано количество по рецепта/за влагане->Избор')),
         'PLANNING_MANUAL_ORDER_IN_ASSET' => array('enum(yes=Да,no=Не)', array('caption' => 'САМО ръчно подреждане на операциите на оборудването->Избор')),
+        'PLANNING_TASK_PARAM_GROUP_SIMILARITY' => array('percent(Min=0,Max=1,decimals=0)', array('caption' => 'Автоматично групиране по планиращи параметри->Минимално съвпадение')),
+        'PLANNING_TASK_PARAM_GROUP_DAYS' => array('int(Min=1)', 'caption=Автоматично групиране по планиращи параметри->Период,unit=дни'),
         'PLANNING_TASK_SUB_PRODUCT_MIN_BUTTONS' => array('int(Min=0)', array('caption' => 'Колко индивидуални бутони за субпродукти да се показват в ПО->Брой')),
         'PLANNING_ALLOW_STORE_DOCS_IN_JOB' => array('time', array('caption' => 'До кога след приключване на заданието да се контират протоколи за влагане и връщане->Време')),
         'PLANNING_AUTO_ADD_CONVERTABLE_TO_TASK' => array('enum(no=Изключено,yes=Включено)', array('caption' => 'Автоматично добавяне на артикули от Протокол за влагане (на Заявка) в ПО->Избор')),
@@ -402,7 +416,7 @@ class planning_Setup extends core_ProtoSetup
             'controller' => 'planning_AssetResources',
             'action' => 'RecalcTaskTimes',
             'period' => 5,
-            'timeLimit' => 60,
+            'timeLimit' => 600,
         ),
 
         array(

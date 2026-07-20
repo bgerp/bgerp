@@ -238,7 +238,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
             $autoDiscount = $autoDiscount * (1 + $prodVat);
 
             //Обща стойност на отстъпките на фирмата
-            $allCompanyDiscount[$folderId] += $autoDiscount;
+            $allCompanyDiscount[$folderId] = ($allCompanyDiscount[$folderId] ?? 0) + $autoDiscount;
 
             //Ключ
             if ($rec->seeBy == 'date') {
@@ -415,7 +415,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
 
         $row->contragentName = $dRec->contragentName;
         if ($rec->seeBy == 'kross') {
-            $row->contragentName .= '<span class="fright">' . $Double->toVerbal($dRec->allCompanyDiscount) . '</span>';
+            $row->contragentName = ($row->contragentName ?? '') . '<span class="fright">' . $Double->toVerbal($dRec->allCompanyDiscount) . '</span>';
         }
 
         $row->receipts = '</br>';
@@ -429,15 +429,15 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 } elseif ($counter == 2) {
                     $prv = $Datetime->toVerbal($v);
                 }
-                $row->receipts .= '<span class="small">' . $prv . '</span>';
+                $row->receipts = ($row->receipts ?? '') . '<span class="small">' . $prv . '</span>';
                 if ($counter == 3) {
-                    $row->receipts .= ', ';
+                    $row->receipts = ($row->receipts ?? '') . ', ';
                 }
 
                 $counter--;
                 unset($prv);
             }
-            $row->receipts .= '</br>';
+            $row->receipts = ($row->receipts ?? '') . '</br>';
         }
         $allAutoDiscountContragent = $Double->toVerbal($dRec->allAutoDiscountContragent);
         if (isset($rec->discount) && (($dRec->allAutoDiscountContragent - $rec->discount) >= 0.01)) {
@@ -454,7 +454,7 @@ class acc_reports_GeneralDiscountsByGroups extends frame2_driver_TableData
                 if (isset($rec->discount) && (($val->allAutoDiscountContragent - $rec->discount) >= 0.01)) {
                     $autoDiscount = "<span class='red'>{$autoDiscount}</span>";
                 }
-                $row->allAutoDiscountContragent .= '<span class="small">' . $autoDiscount . '</span>' . '</br>';
+                $row->allAutoDiscountContragent = ($row->allAutoDiscountContragent ?? '') . '<span class="small">' . $autoDiscount . '</span>' . '</br>';
 
             }
         }

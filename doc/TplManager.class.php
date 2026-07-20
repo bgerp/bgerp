@@ -218,7 +218,7 @@ class doc_TplManager extends core_Master
         }
 
         // Ако шаблона е системен, може да се променя само броя му копия
-        if($rec->createdBy == core_Users::SYSTEM_USER){
+        if(($rec->createdBy ?? null) == core_Users::SYSTEM_USER){
             $form->setReadOnly('name');
             $fields = array_keys($form->selectFields("#input != 'hidden' AND #name != 'name' AND #name != 'printCount'"));
             foreach ($fields as $fld){

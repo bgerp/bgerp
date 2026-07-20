@@ -723,10 +723,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 //за текущ, предходен период и предходна година във ВСЯКА ГРУПА В КОЯТО Е РЕГИСТРИРАН
                 foreach ($v->group as $k => $gro) {
                     //За този артикул
-                    $groupValues[$gro] += $v->amount;                               //Стойност на покупките за текущ период
-                    $groupAmountPrevious[$gro] += $v->amountPrevious;               //Стойност на покупките за предходен период
-                    $groupAmountLastYear[$gro] += $v->amountLastYear;               //Стойност на покупките за предходна година
-                    $groupAmountCheckedPeriod[$gro] += $v->amountCheckedPeriod;     //Стойност на покупките за избрания период
+                    $groupValues[$gro] = ($groupValues[$gro] ?? 0) + $v->amount;                               //Стойност на покупките за текущ период
+                    $groupAmountPrevious[$gro] = ($groupAmountPrevious[$gro] ?? 0) + $v->amountPrevious;               //Стойност на покупките за предходен период
+                    $groupAmountLastYear[$gro] = ($groupAmountLastYear[$gro] ?? 0) + $v->amountLastYear;               //Стойност на покупките за предходна година
+                    $groupAmountCheckedPeriod[$gro] = ($groupAmountCheckedPeriod[$gro] ?? 0) + $v->amountCheckedPeriod;     //Стойност на покупките за избрания период
                 }
                 unset($gro, $k);
 
@@ -771,10 +771,10 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 //Изчислява покупките по артикул за всички артикули във всяка избрана група
                 //Един артикул може да го има в няколко групи
                 foreach ($tempArr[$v->productId]->group as $gro) {
-                    $groupValues[$gro] += $v->amount;
-                    $groupAmountPrevious[$gro] += $v->amountPrevious;
-                    $groupAmountLastYear[$gro] += $v->amountLastYear;
-                    $groupAmountCheckedPeriod[$gro] += $v->amountCheckedPeriod;
+                    $groupValues[$gro] = ($groupValues[$gro] ?? 0) + $v->amount;
+                    $groupAmountPrevious[$gro] = ($groupAmountPrevious[$gro] ?? 0) + $v->amountPrevious;
+                    $groupAmountLastYear[$gro] = ($groupAmountLastYear[$gro] ?? 0) + $v->amountLastYear;
+                    $groupAmountCheckedPeriod[$gro] = ($groupAmountCheckedPeriod[$gro] ?? 0) + $v->amountCheckedPeriod;
                 }
                 unset($gro);
 

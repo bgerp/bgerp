@@ -2680,6 +2680,15 @@ class planning_Jobs extends core_Master
 
         if($rec->_dueDateChanged ?? null){
             static::recalcExpectedDueDates($rec->containerId);
+
+            $taskQuery = planning_Tasks::getQuery();
+            $taskQuery->where("#originId = {$rec->containerId} AND #assetId IS NOT NULL");
+            $taskQuery->in('state', array('active', 'pending', 'wakeup', 'stopped'));
+            $taskQuery->show('assetId');
+            $assetIds = arr::extractValuesFromArray($taskQuery->fetchAll(), 'assetId');
+            if (countR($assetIds)) {
+                cls::get('planning_Tasks')->requestAssetOptimization($assetIds);
+            }
         }
     }
 

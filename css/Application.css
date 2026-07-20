@@ -3638,17 +3638,11 @@ only screen and (max-width: 1400px) {
   position: absolute;
   padding-bottom: 4px;
   right: 5px;
-  top: 4px; }
+  bottom: 2px; }
 
 .narrow .foorterAdd {
   float: right;
   margin-top: 4px; }
-
-.wide .socialBtns {
-  position: absolute;
-  left: 1px;
-  top: 1px;
-  height: 30px; }
 
 #all {
   border: solid 1px #777777;

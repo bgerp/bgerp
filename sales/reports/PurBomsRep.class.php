@@ -362,7 +362,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
         if (isset($rec->precision) && $rec->precision != 1) {
-            $row->precision .= ' ' . tr('+');
+            $row->precision = ($row->precision ?? '') . ' ' . tr('+');
         }
         
         $dealers = keylist::toArray($rec->dealers);
