@@ -468,7 +468,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     if (!array_key_exists($clone->measureId, $quantitiesByMeasure)) {
                         $quantitiesByMeasure[$clone->measureId] = $clone->quantity;
                     } else {
-                        $quantitiesByMeasure[$clone->measureId] += $clone->quantity;
+                        $quantitiesByMeasure[$clone->measureId] = ($quantitiesByMeasure[$clone->measureId] ?? 0) + $clone->quantity;
                     }
 
 
@@ -518,7 +518,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             foreach ($recs as $key => $val) {
 
                 $k = trim($val->employees, '|');
-                $indTimeSumArr[$k] += $val->indTimeSum / 60;
+                $indTimeSumArr[$k] = ($indTimeSumArr[$k] ?? 0) + $val->indTimeSum / 60;
 
             }
             arr::sortObjects($recs, 'taskId', 'asc');
@@ -650,14 +650,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         if ($dRec->total) {
             $row->total = '';
-            $row->total .= 'Етикетирано ' . $dRec->production . "; ";
-            $row->total .= 'Вложено ' . $dRec->input . "; ";
-            $row->total .= 'Отпадък ' . $dRec->waste;
-            $row->total .= "</br>" . 'Произведено: ';
-            if(is_array($dRec->quantitiesByMeasure)){
+            $row->total = ($row->total ?? '') . 'Етикетирано ' . $dRec->production . "; ";
+            $row->total = ($row->total ?? '') . 'Вложено ' . $dRec->input . "; ";
+            $row->total = ($row->total ?? '') . 'Отпадък ' . $dRec->waste;
+            $row->total = ($row->total ?? '') . "</br>" . 'Произведено: ';
+            if(is_array($dRec->quantitiesByMeasure ?? null)){
                 foreach ($dRec->quantitiesByMeasure as $meas => $q) {
 
-                    $row->total .= cat_UoM::fetch($meas)->name . ' - ' . $q . "; ";
+                    $row->total = ($row->total ?? '') . cat_UoM::fetch($meas)->name . ' - ' . $q . "; ";
 
                 }
             }
@@ -699,7 +699,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $name = crm_Persons::fetch($val)->name.' / '.planning_Hr::getCodeLink($val);
                     $pers = ht::createLink($name, array('crm_Persons', 'single', $val)) . ' - ' . $indTimeSum . ' мин.';
 
-                    $row->employees .= $pers . '</br>';
+                    $row->employees = ($row->employees ?? '') . $pers . '</br>';
                 }
             }
 
@@ -713,7 +713,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $name = crm_Persons::fetch($val)->name.' / '.planning_Hr::getCodeLink($val);
                     $pers = ht::createLink($name, array('crm_Persons', 'single', $val)) . ' - ' . $indTimeSum . ' мин.';
 
-                    $row->employees .= $pers . '</br>';
+                    $row->employees = ($row->employees ?? '') . $pers . '</br>';
                 }
             }
         }

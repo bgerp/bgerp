@@ -371,7 +371,7 @@ $c=0;
                     if (!(keylist::isIn(keylist::toArray($rec->groupsMat), $matRec->groups))) continue;
                 }
 
-                $amountTotal[$planningRec->productId] += $amount;                          //Обща сума на вложените материали
+                $amountTotal[$planningRec->productId] = ($amountTotal[$planningRec->productId] ?? 0) + $amount;                          //Обща сума на вложените материали
 
                 // Запис в масива на материалите
                 if (!array_key_exists($id, $consumedItems)) {
@@ -684,10 +684,10 @@ $c=0;
             $row->storeId = '';
 
             if ($rec->data->groupByField == 'storeId') {
-                $row->storeId .= 'Склад: ';
-                $row->storeId .= store_Stores::getLinkToSingle_($dRec->storeId, 'name');
+                $row->storeId = ($row->storeId ?? '') . 'Склад: ';
+                $row->storeId = ($row->storeId ?? '') . store_Stores::getLinkToSingle_($dRec->storeId, 'name');
             } else {
-                $row->storeId .= store_Stores::getLinkToSingle_($dRec->storeId, 'name');
+                $row->storeId = ($row->storeId ?? '') . store_Stores::getLinkToSingle_($dRec->storeId, 'name');
             }
 
         }
@@ -698,10 +698,10 @@ $c=0;
         if (isset($dRec->department) && $dRec->consumedType == 'prod') {
             $row->department = '';
             if ($rec->data->groupByField == 'department') {
-                $row->department .= 'Център на дейност: ';
+                $row->department = ($row->department ?? '') . 'Център на дейност: ';
             }
 
-            $row->department .= planning_Centers::getLinkToSingle_($dRec->department, 'name');
+            $row->department = ($row->department ?? '') . planning_Centers::getLinkToSingle_($dRec->department, 'name');
         } else {
             $row->department = 'Не е посочен';
         }
@@ -718,7 +718,7 @@ $c=0;
         }
 
 
-        if (($rec->groupBy == 'month') && (is_array($dRec->monthQuantity))) {
+        if (($rec->groupBy == 'month') && (is_array($dRec->monthQuantity ?? null))) {
             foreach ($dRec->monthQuantity as $key => $val) {
 
                 $row->$key = $Double->toVerbal($val);

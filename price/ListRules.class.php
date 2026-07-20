@@ -543,7 +543,7 @@ class price_ListRules extends core_Detail
                 $form->setField('discount', 'caption=Отстъпка');
                 $form->setField('groupId,calculation,targetPrice', 'input=none');
                 $data->singleTitle = 'правило за продуктова цена';
-                if (!$rec->id) {
+                if (empty($rec->id)) {
                     $form->setDefault('currency', $masterRec->currency);
                     $form->setDefault('vat', $masterRec->vat);
                 } else {

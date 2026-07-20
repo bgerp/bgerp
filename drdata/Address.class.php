@@ -1057,17 +1057,17 @@ class drdata_Address extends core_MVC
                 if ($countryId = drdata_Countries::getIdByName($part)) {
                     $o->countryId = $countryId;
                 }
-                if ($o->countryId && $o->code) {
+                if (!empty($o->countryId) && !empty($o->pCode)) {
                     break;
                 }
             }
             
-            if (!$best && $o->countryId) {
+            if (!$best && !empty($o->countryId)) {
                 $best = new stdClass();
                 $best = $o;
             }
             
-            if ($o->countryId && $o->pCode) {
+            if (!empty($o->countryId) && !empty($o->pCode)) {
                 $best = $o;
             }
         }

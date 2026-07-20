@@ -152,7 +152,7 @@ class hr_reports_LeaveDaysPersons extends frame_BaseDriver
                 
                 $eRec = $eQuery->fetch();
                 $departments = keylist::toArray($eRec->departments);
-                if (!$departments[$data->rec->departments]) {
+                if (empty($departments[$data->rec->departments])) {
                     unset($recs[$rId]);
                 }
             }

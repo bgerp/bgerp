@@ -15,6 +15,12 @@
 class planning_TaskManualOrderPerAssets extends core_Master
 {
     /**
+     * Version of the automatic planning-parameter package conversion.
+     */
+    const AUTO_GROUP_VERSION = 1;
+
+
+    /**
      * Заглавие на мениджъра
      */
     public $title = 'Ръчни подредби на ПО по оборудване';
@@ -59,7 +65,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $listFields = 'assetId,data,createdOn,createdBy';
+    public $listFields = 'assetId,data,packageLinks,autoPackageLinks,excludedAutoGroupTasks,committedTaskId,autoGroupVersion,autoGroupSettingsHash,createdOn,createdBy';
 
 
     /**
@@ -75,7 +81,14 @@ class planning_TaskManualOrderPerAssets extends core_Master
     {
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни,input=none');
+        $this->FLD('packageLinks', 'blob(serialize, compress)', 'caption=Пакетни връзки,input=none');
+        $this->FLD('committedTaskId', 'key(mvc=planning_Tasks,select=id,allowEmpty)', 'caption=Ангажирана следваща операция,input=none');
+        $this->FLD('autoGroupVersion', 'int', 'caption=Версия на автоматичното групиране,input=none');
         $this->FLD('order', 'int', 'caption=Подредба');
+
+        $this->FLD('autoPackageLinks', 'blob(serialize, compress)', 'caption=Автоматични пакетни връзки,input=none');
+        $this->FLD('excludedAutoGroupTasks', 'blob(serialize, compress)', 'caption=Ръчно разкачени от автоматично групиране,input=none');
+        $this->FLD('autoGroupSettingsHash', 'varchar(32)', 'caption=Настройки на автоматичното групиране,input=none');
 
         $this->setDbUnique('assetId');
     }
@@ -104,6 +117,35 @@ class planning_TaskManualOrderPerAssets extends core_Master
             }
             $tableHtml .= "</table>";
             $row->data = $tableHtml;
+        }
+
+        if (is_array($rec->packageLinks)) {
+            $linksHtml = array();
+            foreach ($rec->packageLinks as $taskId => $previousTaskId) {
+                $previousTaskLink = planning_Tasks::getLink($previousTaskId, 0);
+                $taskLink = planning_Tasks::getLink($taskId, 0);
+                $linksHtml[] = $previousTaskLink->getContent() . ' → ' . $taskLink->getContent();
+            }
+            $row->packageLinks = implode('<br>', $linksHtml);
+        }
+        if (isset($rec->autoPackageLinks) && is_array($rec->autoPackageLinks)) {
+            $linksHtml = array();
+            foreach ($rec->autoPackageLinks as $taskId => $previousTaskId) {
+                $previousTaskLink = planning_Tasks::getLink($previousTaskId, 0);
+                $taskLink = planning_Tasks::getLink($taskId, 0);
+                $linksHtml[] = $previousTaskLink->getContent() . ' → ' . $taskLink->getContent();
+            }
+            $row->autoPackageLinks = implode('<br>', $linksHtml);
+        }
+        if (isset($rec->excludedAutoGroupTasks) && is_array($rec->excludedAutoGroupTasks)) {
+            $taskLinks = array();
+            foreach ($rec->excludedAutoGroupTasks as $taskId) {
+                $taskLinks[] = planning_Tasks::getLink($taskId, 0)->getContent();
+            }
+            $row->excludedAutoGroupTasks = implode(', ', $taskLinks);
+        }
+        if (!empty($rec->committedTaskId)) {
+            $row->committedTaskId = planning_Tasks::getLink($rec->committedTaskId, 0);
         }
     }
 
@@ -173,18 +215,266 @@ class planning_TaskManualOrderPerAssets extends core_Master
      *
      * @param int $assetId
      * @param array $arr
+     * @param array|null $packageLinks
      * @return int
      */
-    public static function force($assetId, $arr)
+    public static function force($assetId, $arr, $packageLinks = null)
     {
         $arr = array_values((array)$arr);
         $manualRec = planning_TaskManualOrderPerAssets::fetch("#assetId = {$assetId}");
         $manualRec = is_object($manualRec) ? $manualRec : (object)array('assetId' => $assetId);
-        $manualRec->data = countR($arr) ? array_combine($arr, $arr) : array();
+        $oldOrder = (array)($manualRec->data ?? array());
+        $oldLinks = (array)($manualRec->packageLinks ?? array());
+        $newOrder = countR($arr) ? array_combine($arr, $arr) : array();
+        if (isset($packageLinks)) {
+            $packageState = static::reconcileManualPackageState(
+                $oldOrder,
+                $oldLinks,
+                $newOrder,
+                $packageLinks,
+                $manualRec->autoPackageLinks ?? array(),
+                $manualRec->excludedAutoGroupTasks ?? array()
+            );
+            $manualRec->packageLinks = $packageState->packageLinks;
+            $manualRec->autoPackageLinks = $packageState->autoPackageLinks;
+            $manualRec->excludedAutoGroupTasks = $packageState->excludedAutoGroupTasks;
+        } else {
+            $manualRec->packageLinks = static::sanitizePackageLinks($newOrder, $oldLinks);
+            $manualRec->autoPackageLinks = static::sanitizePackageLinks($newOrder, $manualRec->autoPackageLinks ?? array());
+            $manualRec->excludedAutoGroupTasks = static::sanitizeTaskSet($manualRec->excludedAutoGroupTasks ?? array(), $newOrder);
+        }
+        $manualRec->data = $newOrder;
+        // A user save is authoritative. Automatic grouping may subsequently add only new tasks.
+        $manualRec->autoGroupVersion = static::AUTO_GROUP_VERSION;
         $manualRec->createdOn = dt::now();
         $manualRec->createdBy = core_Users::getCurrent();
 
         return self::save($manualRec);
+    }
+
+
+    /**
+     * Persists packages created by the automatic planner without attributing them to a user.
+     *
+     * @param int $assetId
+     * @param array $arr
+     * @param array $packageLinks
+     * @param int $version
+     * @param array $autoPackageLinks
+     * @param array $excludedAutoGroupTasks
+     * @param string|null $settingsHash
+     * @return int|null
+     */
+    public static function forceAutomatic($assetId, $arr, $packageLinks, $version, $autoPackageLinks = array(), $excludedAutoGroupTasks = array(), $settingsHash = null)
+    {
+        $arr = array_values((array)$arr);
+        $data = countR($arr) ? array_combine($arr, $arr) : array();
+        $packageLinks = static::sanitizePackageLinks($data, $packageLinks);
+        $autoPackageLinks = static::sanitizePackageLinks($data, $autoPackageLinks);
+        $autoPackageLinks = array_intersect_assoc($autoPackageLinks, $packageLinks);
+        $excludedAutoGroupTasks = static::sanitizeTaskSet($excludedAutoGroupTasks, $data);
+        $manualRec = static::fetch("#assetId = {$assetId}");
+
+        if (is_object($manualRec)) {
+            if (array_values((array)$manualRec->data) === array_values($data)
+                && (array)($manualRec->packageLinks ?? array()) == $packageLinks
+                && (array)($manualRec->autoPackageLinks ?? array()) == $autoPackageLinks
+                && static::sanitizeTaskSet($manualRec->excludedAutoGroupTasks ?? array()) == $excludedAutoGroupTasks
+                && (int)($manualRec->autoGroupVersion ?? 0) == (int)$version
+                && ($manualRec->autoGroupSettingsHash ?? null) === $settingsHash) {
+                return null;
+            }
+
+            $manualRec->data = $data;
+            $manualRec->packageLinks = $packageLinks;
+            $manualRec->autoPackageLinks = $autoPackageLinks;
+            $manualRec->excludedAutoGroupTasks = $excludedAutoGroupTasks;
+            $manualRec->autoGroupVersion = (int)$version;
+            $manualRec->autoGroupSettingsHash = $settingsHash;
+
+            return static::save($manualRec, 'data,packageLinks,autoPackageLinks,excludedAutoGroupTasks,autoGroupVersion,autoGroupSettingsHash');
+        }
+
+        $manualRec = (object)array(
+            'assetId' => $assetId,
+            'data' => $data,
+            'packageLinks' => $packageLinks,
+            'autoPackageLinks' => $autoPackageLinks,
+            'excludedAutoGroupTasks' => $excludedAutoGroupTasks,
+            'autoGroupVersion' => (int)$version,
+            'autoGroupSettingsHash' => $settingsHash,
+        );
+
+        return static::save($manualRec);
+    }
+
+
+    /**
+     * Preserves automatic-link provenance and remembers links explicitly removed by a user.
+     */
+    public static function reconcileManualPackageState($oldOrder, $oldLinks, $newOrder, $newLinks, $autoLinks = array(), $excludedTasks = array())
+    {
+        $oldLinks = static::sanitizePackageLinks($oldOrder, $oldLinks);
+        $newLinks = static::sanitizePackageLinks($newOrder, $newLinks);
+        $autoLinks = static::sanitizePackageLinks($oldOrder, $autoLinks);
+        $autoLinks = array_intersect_assoc($autoLinks, $oldLinks);
+        $excludedTasks = static::sanitizeTaskSet($excludedTasks, $newOrder);
+
+        foreach ($oldLinks as $taskId => $previousTaskId) {
+            if (($newLinks[$taskId] ?? null) == $previousTaskId) continue;
+
+            unset($autoLinks[$taskId]);
+            if (!isset($newLinks[$taskId])) {
+                $excludedTasks[$taskId] = $taskId;
+            }
+        }
+        foreach ($newLinks as $taskId => $previousTaskId) {
+            unset($excludedTasks[$taskId]);
+            if (($autoLinks[$taskId] ?? null) != $previousTaskId) {
+                unset($autoLinks[$taskId]);
+            }
+        }
+
+        return (object)array(
+            'packageLinks' => $newLinks,
+            'autoPackageLinks' => static::sanitizePackageLinks($newOrder, $autoLinks),
+            'excludedAutoGroupTasks' => $excludedTasks,
+        );
+    }
+
+
+    /**
+     * Normalizes a compact task-id set and optionally limits it to the supplied order.
+     */
+    public static function sanitizeTaskSet($taskIds, $manualOrder = null)
+    {
+        $allowed = isset($manualOrder) ? array_fill_keys(array_map('intval', array_values((array)$manualOrder)), true) : null;
+        $result = array();
+        foreach ((array)$taskIds as $key => $value) {
+            $keyId = is_int($key) || ctype_digit((string)$key) ? (int)$key : 0;
+            $valueId = is_scalar($value) ? (int)$value : 0;
+            $taskId = ($keyId && ($value === true || $valueId == $keyId)) ? $keyId : $valueId;
+            if (!$taskId) $taskId = $keyId;
+            if (!$taskId || (isset($allowed) && !isset($allowed[$taskId]))) continue;
+
+            $result[$taskId] = $taskId;
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Returns the persisted package links for a resource.
+     * Every element is taskId => previousTaskId.
+     */
+    public static function getPackageLinks($assetId, $manualOrder = null)
+    {
+        $rec = static::fetch("#assetId = {$assetId}", 'data,packageLinks');
+        if (!is_object($rec)) {
+            return array();
+        }
+
+        $manualOrder = isset($manualOrder) ? $manualOrder : $rec->data;
+
+        return static::sanitizePackageLinks($manualOrder, $rec->packageLinks ?? array());
+    }
+
+
+    /**
+     * Returns the next operation which is already announced to the resource operators.
+     */
+    public static function getCommittedTaskId($assetId)
+    {
+        if (empty($assetId)) return null;
+
+        return static::fetchField("#assetId = {$assetId}", 'committedTaskId');
+    }
+
+
+    /**
+     * Persists the next operation which must not be displaced by an automatic recalculation.
+     */
+    public static function setCommittedTaskId($assetId, $taskId = null)
+    {
+        if (empty($assetId)) return null;
+
+        $manualRec = static::fetch("#assetId = {$assetId}");
+        $isNew = !is_object($manualRec);
+        if ($isNew) {
+            if (empty($taskId)) return null;
+            $manualRec = (object)array('assetId' => $assetId, 'data' => array(), 'packageLinks' => array());
+        }
+
+        $taskId = !empty($taskId) ? (int)$taskId : null;
+        if (($manualRec->committedTaskId ?? null) == $taskId) return null;
+
+        $manualRec->committedTaskId = $taskId;
+
+        return $isNew
+            ? static::save($manualRec)
+            : static::save($manualRec, 'committedTaskId');
+    }
+
+
+    /**
+     * Chooses the first not-started operation after an active one in the accepted resource order.
+     */
+    public static function refreshCommittedTask($assetId, $orderedTaskIds = null, $taskRecs = null)
+    {
+        if (empty($assetId)) return null;
+
+        if (!is_array($orderedTaskIds)) {
+            $orderedTaskIds = array_values((array)static::fetchField("#assetId = {$assetId}", 'data'));
+        }
+        if (!count($orderedTaskIds)) return static::setCommittedTaskId($assetId, null);
+
+        if (!is_array($taskRecs)) {
+            $query = planning_Tasks::getQuery();
+            $query->in('id', $orderedTaskIds);
+            $query->show('id,assetId,state,actualStart');
+            $taskRecs = $query->fetchAll();
+        }
+
+        $hasStarted = false;
+        foreach ($orderedTaskIds as $taskId) {
+            $task = $taskRecs[$taskId] ?? null;
+            if (!is_object($task) || $task->assetId != $assetId) continue;
+            if (!empty($task->actualStart) && $task->state != 'stopped') {
+                $hasStarted = true;
+                continue;
+            }
+            if ($hasStarted && in_array($task->state, array('active', 'pending', 'wakeup', 'stopped'))) {
+                return static::setCommittedTaskId($assetId, $taskId);
+            }
+        }
+
+        return static::setCommittedTaskId($assetId, null);
+    }
+
+
+    /**
+     * Keeps only links between adjacent tasks from the same submitted order.
+     */
+    public static function sanitizePackageLinks($manualOrder, $packageLinks)
+    {
+        $orderedIds = array_values((array)$manualOrder);
+        $positions = array_flip($orderedIds);
+        $result = array();
+        foreach ((array)$packageLinks as $taskId => $previousTaskId) {
+            $taskId = (int)$taskId;
+            $previousTaskId = (int)$previousTaskId;
+            if (!$taskId || !$previousTaskId || !isset($positions[$taskId]) || !isset($positions[$previousTaskId])) {
+                continue;
+            }
+            if ($positions[$taskId] != $positions[$previousTaskId] + 1) {
+                continue;
+            }
+
+            $result[$taskId] = $previousTaskId;
+        }
+
+        return $result;
     }
 
 
@@ -210,6 +500,7 @@ class planning_TaskManualOrderPerAssets extends core_Master
         foreach ((array)$taskIds as $taskId) {
             $remove[(int)$taskId] = true;
         }
+        $removeCommitted = isset($remove[(int)($manualRec->committedTaskId ?? 0)]);
 
         $newData = array();
         foreach ($manualRec->data as $key => $taskId) {
@@ -217,12 +508,35 @@ class planning_TaskManualOrderPerAssets extends core_Master
                 $newData[$key] = $taskId;
             }
         }
-        if (count($newData) == count($manualRec->data)) {
+        $packageLinks = (array)($manualRec->packageLinks ?? array());
+        foreach ($remove as $removeTaskId => $dummy) {
+            $previousTaskId = $packageLinks[$removeTaskId] ?? null;
+            $nextTaskId = null;
+            foreach ($packageLinks as $taskId => $linkedPreviousTaskId) {
+                if ((int)$linkedPreviousTaskId == $removeTaskId) {
+                    $nextTaskId = (int)$taskId;
+                    break;
+                }
+            }
+
+            unset($packageLinks[$removeTaskId]);
+            if (isset($nextTaskId)) {
+                if (isset($previousTaskId) && !isset($remove[(int)$previousTaskId]) && !isset($remove[$nextTaskId])) {
+                    $packageLinks[$nextTaskId] = (int)$previousTaskId;
+                } else {
+                    unset($packageLinks[$nextTaskId]);
+                }
+            }
+        }
+        $packageLinks = static::sanitizePackageLinks($newData, $packageLinks);
+        if (count($newData) == count($manualRec->data) && $packageLinks == (array)($manualRec->packageLinks ?? array()) && !$removeCommitted) {
             return null;
         }
 
         $manualRec->data = $newData;
+        $manualRec->packageLinks = $packageLinks;
+        if ($removeCommitted) $manualRec->committedTaskId = null;
 
-        return static::save($manualRec, 'data');
+        return static::save($manualRec, 'data,packageLinks,committedTaskId');
     }
 }

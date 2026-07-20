@@ -166,6 +166,8 @@ class planning_Centers extends core_Master
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри за планиране->Списък');
+        $this->FLD('planningParamSimilarity', 'percent(Min=0,Max=1,decimals=0)', 'caption=Параметри за планиране->Минимално съвпадение за автоматично групиране,placeholder=Автоматично');
+        $this->FLD('planningParamGroupDays', 'int(Min=1)', 'caption=Параметри за планиране->Период за автоматично групиране,placeholder=Автоматично,unit=дни');
         $this->FLD('showTaskPlanningParams', 'enum(yes=Само те, yesAdd=Допълват останалите, no=Не)', 'caption=Параметрите от Етапа да са планиращи (при филтриране по Етап)->Избор,notNull,value=no');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', 'caption=Служители->Щат, input=none');
@@ -305,6 +307,17 @@ class planning_Centers extends core_Master
 
         if(isset($rec->scheduleId)){
             $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
+        }
+
+        if (isset($fields['-single']) && !isset($rec->planningParamSimilarity)) {
+            $defaultSimilarity = planning_Setup::get('TASK_PARAM_GROUP_SIMILARITY');
+            $row->planningParamSimilarity = $mvc->getFieldType('planningParamSimilarity')->toVerbal($defaultSimilarity);
+            $row->planningParamSimilarity = ht::createHint("<span class='quiet'>{$row->planningParamSimilarity}</span>", 'Стойност по подразбиране от настройките на пакет „Планиране“', 'notice', false);
+        }
+        if (isset($fields['-single']) && !isset($rec->planningParamGroupDays)) {
+            $defaultDays = planning_Setup::get('TASK_PARAM_GROUP_DAYS');
+            $row->planningParamGroupDays = $mvc->getFieldType('planningParamGroupDays')->toVerbal($defaultDays);
+            $row->planningParamGroupDays = ht::createHint("<span class='quiet'>{$row->planningParamGroupDays}</span>", 'Стойност по подразбиране от настройките на пакет „Планиране“', 'notice', false);
         }
 
         $row->hrGroupId = crm_Groups::getHyperlink(static::getEmployeesGroupId($rec));

@@ -2879,7 +2879,7 @@ abstract class deals_DealMaster extends deals_DealBase
         } elseif(is_object($parsedAddress)) {
             $parsedCountryName = is_numeric($parsedAddress->countryId) ? drdata_Countries::fetchField($parsedAddress->countryId, 'commonName') : $parsedAddress->countryId;
             $res["{$contrPart}Country"] = !empty($parsedCountryName) ? $parsedCountryName : null;
-            $res["{$contrPart}PCode"] = $parsedAddress->pCode;
+            $res["{$contrPart}PCode"] = $parsedAddress->pCode ?? null;
         } elseif(is_object($cartRec)) {
             $res["{$contrPart}PCode"] = !empty($cartRec->deliveryPCode) ? $cartRec->deliveryPCode : null;
             $res["{$contrPart}Place"] = !empty($cartRec->deliveryPlace) ? $cartRec->deliveryPlace : null;
@@ -2890,9 +2890,9 @@ abstract class deals_DealMaster extends deals_DealBase
         } else {
             $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;
-            $res["{$contrPart}Address"] = !empty($contragentData->pAddress) ? $contragentData->pAddress : (($contragentData->address) ? $contragentData->address : null);
+            $res["{$contrPart}Address"] = !empty($contragentData->pAddress) ? $contragentData->pAddress : (!empty($contragentData->address) ? $contragentData->address : null);
             $res["{$contrPart}Person"] = !empty($contragentData->person) ? $contragentData->person : null;
-            $res["{$contrPart}PersonPhones"] = $contragentData->pTel;
+            $res["{$contrPart}PersonPhones"] = $contragentData->pTel ?? null;
         }
         
         $delTime = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : (!empty($rec->deliveryTermTime) ?  dt::addSecs($rec->deliveryTermTime, $rec->valior) : null);

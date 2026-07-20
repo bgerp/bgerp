@@ -238,20 +238,20 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
         
         //$row->value = $Int->toVerbal($dRec['cnt']);
         
-        $row->document .= '<table style="width: 100%;">';
+        $row->document = ($row->document ?? '') . '<table style="width: 100%;">';
         
         foreach ($dRec['classes'] as $docId => $cnt) {
-            $row->document .= '<tr>'.'<td style="border: none">'.$vClassArr[$docId]
+            $row->document = ($row->document ?? '') . '<tr>'.'<td style="border: none">'.$vClassArr[$docId]
                                     .' ('.$vClsNameArr[$docId].')'.'</td>'
                                     .'<td style="min-width: 7%;border: none">'.$cnt.'</td>';
             
-            if ($dRec['details'][$docId]) {
-                $row->document .= '<td style="min-width: 3%;border: none">'.':'.'</td>';
-            } elseif (!$dRec['details'][$docId]) {
-                $row->document .= '<td style="min-width: 3%;border: none">'.' '.'</td>';
+            if (!empty($dRec['details'][$docId])) {
+                $row->document = ($row->document ?? '') . '<td style="min-width: 3%;border: none">'.':'.'</td>';
+            } else {
+                $row->document = ($row->document ?? '') . '<td style="min-width: 3%;border: none">'.' '.'</td>';
             }
             
-            $row->document .= '<td style="min-width: 7%;border: none">'.$dRec['details'][$docId].'</td>'.'</tr>';
+            $row->document = ($row->document ?? '') . '<td style="min-width: 7%;border: none">'.$dRec['details'][$docId].'</td>'.'</tr>';
             
             
             /**
@@ -265,7 +265,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
              */
             $cnty++;
         }
-        $row->document .= '</table>';
+        $row->document = ($row->document ?? '') . '</table>';
         
         $row->value = $cntx . ' от ' . $cnty;
         

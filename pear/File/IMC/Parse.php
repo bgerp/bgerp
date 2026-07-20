@@ -202,7 +202,7 @@ abstract class File_IMC_Parse
 			// if the current char is a double-quote, and the
 			// previous char was _not_ an escaping backslash,
 			// then note that we are now inside a quoted passage.
-			if ($text{$i} == '"' && $prevIsBackslash == false) {
+			if ($text[$i] == '"' && $prevIsBackslash == false) {
 				($inQuotes == true) ? $inQuotes = false : $inQuotes = true;
 			}
 
@@ -210,7 +210,7 @@ abstract class File_IMC_Parse
 			// inside quotes, and the delimiter has not been backslash-
 			// escaped, then note the position of the delimiter and
 			// break out of the loop.
-			if ($text{$i} == $delim &&
+			if ($text[$i] == $delim &&
 				$inQuotes == false &&
 				$prevIsBackslash == false) {
 
@@ -220,7 +220,7 @@ abstract class File_IMC_Parse
 
 			// we have not found quotes, or the delimiter.
 			// is the current char an escaping backslash?
-			if ($text{$i} == "\\") {
+			if ($text[$i] == "\\") {
 				$prevIsBackslash = true;
 			} else {
 				$prevIsBackslash = false;

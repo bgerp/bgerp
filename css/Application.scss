@@ -4074,6 +4074,41 @@ fieldset.sharing-history {
 	padding-left: 20px !important;
 }
 
+// двете колони във филтъра да не са в мозила
+@supports not (-moz-appearance: none) {
+	.wide .twoColsFilter {
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: 20px;
+	}
+
+	.wide .twoColsFilter .listFilter form {
+		column-count: 2;
+	}
+
+	.wide .twoColsFilter .summary-block {
+		margin-left: 20px;
+		align-self: flex-start;
+	}
+}
+
+@media handheld, only screen and (max-width: 1400px) {
+	@supports not (-moz-appearance: none) {
+		.wide .twoColsFilter {
+			display: block;
+			margin-bottom: 0;
+
+			.listFilter form {
+				column-count: 1;
+			}
+
+			.summary-block {
+				margin-left: 0;
+			}
+		}
+	}
+}
+
 /*край на външни стилове за ширина*/
 .background-holder {
 	padding: 0;
@@ -4209,18 +4244,13 @@ fieldset.sharing-history {
 	position: absolute;
 	padding-bottom:4px;
 	right: 5px;
-	top: 4px;
+	bottom: 2px;
 }
 .narrow .foorterAdd {
 	float: right;
 	margin-top: 4px;
 }
-.wide .socialBtns {
-	position: absolute;
-	left: 1px;
-	top: 1px;
-	height: 30px;
-}
+
 #all {
 	border: solid 1px #777;
 	border-bottom: solid 1px #000;

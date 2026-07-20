@@ -1779,14 +1779,14 @@ function setupKeyValid()
     // Определяме масива с локалните IP-та
     $localIpArr = array('::1', '127.0.0.1');
     $isLocal = in_array($_SERVER['REMOTE_ADDR'], $localIpArr);
-    $key = $_GET['SetupKey'];
+    $key = $_GET['SetupKey'] ?? null;
     if (!isset($res) && $key == setupKey() && $isLocal) {
 
         $res = true;
     }
     
     if(!isset($res)) {
-        $res = ($_GET['SetupKey'] == setupKey()) || ($_GET['SetupKey'] == setupKey(null, -1));
+        $res = (($_GET['SetupKey'] ?? null) == setupKey()) || (($_GET['SetupKey'] ?? null) == setupKey(null, -1));
     }
 
     return $res;

@@ -1075,7 +1075,7 @@ class acc_reports_MovementsBetweenAccounts extends frame_BaseDriver
         $pagePie = $pageVar . '_pie';
         $pageBar = $pageVar . '_bar';
         
-        if ($curUrl["{$pageVar}_pie"] || $curUrl["{$pageVar}_bar"]) {
+        if (($curUrl["{$pageVar}_pie"] ?? null) || ($curUrl["{$pageVar}_bar"] ?? null)) {
             unset($curUrl["{$pageVar}_pie"]);
             unset($curUrl["{$pageVar}_bar"]);
         }

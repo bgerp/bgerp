@@ -268,15 +268,15 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
             } else {
                 $obj = &$recs[$key];
 
-                $obj->startPeriod .= ',' . $val->startPeriod;
-                $obj->absencesDays .= ',' . ($val->numberOfLeavesDays + $val->numberOfTripsesDays + $val->numberOfSickdays);
+                $obj->startPeriod = ($obj->startPeriod ?? '') . ',' . $val->startPeriod;
+                $obj->absencesDays = ($obj->absencesDays ?? '') . ',' . ($val->numberOfLeavesDays + $val->numberOfTripsesDays + $val->numberOfSickdays);
             }
         }
 
         $rec->firstDayOfPeriod = dt::addDays(1, $lastDayOfPeriod, false);
 
         if ($period <= ($rec->numberOfPeriods - 1)) {
-            $rec->periods .= ',' . dt::mysql2verbal($rec->firstDayOfPeriod, 'dmy');
+            $rec->periods = ($rec->periods ?? '') . ',' . dt::mysql2verbal($rec->firstDayOfPeriod, 'dmy');
         }
 
         unset($sickdaysQuery);
@@ -300,7 +300,7 @@ class hr_reports_WorkFromHomeAndAbsence extends frame2_driver_TableData
 
                 if (!empty($v)) {
                     $start = 'a' . dt::mysql2verbal($v, 'dmy');
-                    $arr[$start] += $absencesArr[$k];
+                    $arr[$start] = ($arr[$start] ?? 0) + $absencesArr[$k];
                 }
 
             }

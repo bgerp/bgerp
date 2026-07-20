@@ -21,6 +21,12 @@
 					<!--ET_BEGIN planningParams-->
 					<div>|Параметри за планиране|*: <b>[#planningParams#]</b></div>
 					<!--ET_END planningParams-->
+					<!--ET_BEGIN planningParamSimilarity-->
+					<div>|Минимално съвпадение за автоматично групиране|*: <b>[#planningParamSimilarity#]</b></div>
+					<!--ET_END planningParamSimilarity-->
+					<!--ET_BEGIN planningParamGroupDays-->
+					<div>|Период за автоматично групиране|*: <b>[#planningParamGroupDays#] |дни|*</b></div>
+					<!--ET_END planningParamGroupDays-->
 					<!--ET_BEGIN showTaskPlanningParams-->
 					<div>|Параметрите от Етапа да са планиращи (при филтриране по Етап)|*: <b>[#showTaskPlanningParams#]</b></div>
 					<!--ET_END showTaskPlanningParams-->

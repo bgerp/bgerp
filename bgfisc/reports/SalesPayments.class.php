@@ -276,7 +276,7 @@ class bgfisc_reports_SalesPayments extends frame2_driver_TableData
                         $pcoKey = core_Classes::getId($pcoDoc->className).'|'.$pcoDoc->that.'|'.$prntRcptRev->id;
                         
                         //Сторнирани стойности по ПКО и сторно бележка
-                        $stornoAmountArr[$pcoKey] += $rcoRec->amountDeal;
+                        $stornoAmountArr[$pcoKey] = ($stornoAmountArr[$pcoKey] ?? 0) + $rcoRec->amountDeal;
                     }
                 }
                 

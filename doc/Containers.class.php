@@ -1808,6 +1808,7 @@ class doc_Containers extends core_Manager
         // Определяме заглавието на нишката или папката
         if (!empty($rec->threadId)) {
             $thRec = doc_Threads::fetch($rec->threadId);
+            $rec->folderId = $thRec->folderId;
             $title = doc_Threads::recToVerbal($thRec)->onlyTitle;
         } else {
             $title = doc_Folders::getFolderTitle($rec->folderId);
@@ -2127,14 +2128,14 @@ class doc_Containers extends core_Manager
         
         $query->limit(500);
         
-        $resArr = array();
-        
+        $resArr = array('folderId' => 0, 'threadId' => 0, 'docClass' => 0, 'docId' => 0, 'del_cnt' => 0, 'updateVisibleForPartners' => 0, 'updateContainers' => 0);
+
         while ($rec = $query->fetch()) {
             $isDel = false;
             try {
                 $docId = false;
                 $mustUpdate = true;
-                
+
                 // Ако няма id на папката
                 if (!isset($rec->folderId)) {
                     
