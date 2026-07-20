@@ -449,8 +449,10 @@ tr:hover td {
   border-radius: 5px;
   box-shadow: 0 5px 22px rgba(0, 0, 0, 0.32);
   font-family: "Roboto", sans-serif; }
-  #optimizationIdleReport.hasIdleIncrease {
+  #optimizationIdleReport.hasNetIdleIncrease {
     border-left-color: #c05640; }
+  #optimizationIdleReport.hasNoOptimizationImprovement {
+    border-left-color: #60717d; }
 
 .optimizationIdleReportHeader {
   display: flex;
@@ -460,8 +462,10 @@ tr:hover td {
   color: #fff;
   background: #386f54;
   font-size: 15px; }
-  .hasIdleIncrease .optimizationIdleReportHeader {
+  .hasNetIdleIncrease .optimizationIdleReportHeader {
     background: #8e4536; }
+  .hasNoOptimizationImprovement .optimizationIdleReportHeader {
+    background: #52606d; }
 
 .optimizationIdleReportClose {
   width: 26px;
@@ -479,9 +483,30 @@ tr:hover td {
     background: rgba(255, 255, 255, 0.18); }
 
 .optimizationIdleReportHint,
+.optimizationSearchResult,
+.optimizationGlobalMetrics,
 .optimizationIdleNoChanges,
 .optimizationIdleSummary {
   padding: 8px 12px; }
+
+.optimizationSearchResult {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  color: #245b3a;
+  background: #edf8f1;
+  border-bottom: 1px solid #cfe6d7; }
+  .hasNoOptimizationImprovement .optimizationSearchResult {
+    color: #3f4a52;
+    background: #eef1f3;
+    border-bottom-color: #d5dde2; }
+  .optimizationSearchResult span {
+    white-space: nowrap; }
+
+.optimizationImprovedMetrics {
+  margin-top: 4px;
+  font-size: 12px; }
 
 .optimizationIdleReportHint {
   color: #444;
@@ -490,19 +515,45 @@ tr:hover td {
 
 .optimizationIdleSummary {
   display: flex;
+  flex-wrap: wrap;
   gap: 18px;
   font-weight: 600; }
+
+.optimizationGlobalMetrics {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 18px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  font-weight: 600; }
+
+.optimizationMetricImproved {
+  color: #247044; }
+
+.optimizationMetricWorsened {
+  color: #a83220; }
+
+.optimizationMetricUnchanged {
+  color: #555; }
 
 .idleIncreaseCount,
 .idleIncreased .optimizationIdleDifference {
   color: #a83220; }
 
 .idleDecreaseCount,
-.idleDecreased .optimizationIdleDifference {
+.idleDecreased .optimizationIdleDifference,
+.idleNetDecrease {
   color: #247044; }
 
+.idleNetIncrease {
+  color: #a83220; }
+
+.idleNetUnchanged {
+  color: #555; }
+
 .optimizationIdleTableHolder {
-  max-height: calc(100vh - 190px);
+  max-height: calc(100vh - 280px);
   overflow: auto; }
 
 #optimizationIdleReport .optimizationIdleTable {
