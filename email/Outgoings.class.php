@@ -2863,14 +2863,14 @@ class email_Outgoings extends core_Master
                 if (!empty($badIpArr)) {
                     $row->IpErrorString = tr('Писмото е видяно от потребител в рискова зона|* - ');
 
-                    $countryCntArr = array();
+                    $cCodeCntArr = array();
                     foreach ($badIpArr as $ip => $countryCode) {
-                        $countryName = drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
-                        $countryCntArr[$countryName] = ($countryCntArr[$countryName] ?? 0) + 1;
+                        $cCodeCntArr[$countryCode] = ($cCodeCntArr[$countryCode] ?? 0) + 1;
                     }
 
                     $countryStrArr = array();
-                    foreach ($countryCntArr as $countryName => $cnt) {
+                    foreach ($cCodeCntArr as $countryCode => $cnt) {
+                        $countryName = drdata_Countries::getCountryName($countryCode, core_Lg::getCurrent());
                         $countryStrArr[] = ($cnt > 1) ? "{$countryName} ({$cnt})" : $countryName;
                     }
 
