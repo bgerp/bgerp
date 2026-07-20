@@ -4084,7 +4084,7 @@ class planning_Tasks extends core_Master
             'order' => $candidateOrder,
             'packageLinks' => $candidateLinks,
             'scheduledData' => $scheduledData,
-            'metrics' => static::getOptimizationMetrics($scheduledData, $now, $tasks),
+            'metrics' => static::getOptimizationMetrics($scheduledData, $now, $tasks, $assetId),
         );
     }
 
@@ -4092,13 +4092,18 @@ class planning_Tasks extends core_Master
     /**
      * Measures the global result of one planning candidate.
      */
-    private static function getOptimizationMetrics($scheduledData, $now, $tasksById)
+    private static function getOptimizationMetrics($scheduledData, $now, $tasksById, $targetAssetId = null)
     {
         $nowTimestamp = strtotime($now);
         $latestEnd = $nowTimestamp;
+        $latestTaskId = $latestAssetId = null;
+        $latestEndDate = null;
+        $targetLatestEnd = $nowTimestamp;
+        $targetLatestTaskId = null;
+        $targetLatestEndDate = null;
         $totalCompletionSeconds = 0;
         $totalTardinessSeconds = 0;
-        foreach ((array)$scheduledData->tasks as $plannedTasks) {
+        foreach ((array)$scheduledData->tasks as $assetId => $plannedTasks) {
             foreach ((array)$plannedTasks as $task) {
                 if (empty($task->expectedTimeEnd)
                     || $task->expectedTimeEnd == planning_TaskConstraints::NOT_FOUND_DATE
@@ -4109,7 +4114,17 @@ class planning_Tasks extends core_Master
                 $endTimestamp = strtotime($task->expectedTimeEnd);
                 if ($endTimestamp === false) continue;
 
-                $latestEnd = max($latestEnd, $endTimestamp);
+                if ($endTimestamp > $latestEnd) {
+                    $latestEnd = $endTimestamp;
+                    $latestTaskId = (int)$task->id;
+                    $latestAssetId = (int)$assetId;
+                    $latestEndDate = $task->expectedTimeEnd;
+                }
+                if (isset($targetAssetId) && $assetId == $targetAssetId && $endTimestamp > $targetLatestEnd) {
+                    $targetLatestEnd = $endTimestamp;
+                    $targetLatestTaskId = (int)$task->id;
+                    $targetLatestEndDate = $task->expectedTimeEnd;
+                }
                 $totalCompletionSeconds += max(0, $endTimestamp - $nowTimestamp);
                 $dueDate = $tasksById[$task->id]->dueDate ?? null;
                 if (!empty($dueDate) && ($dueTimestamp = strtotime($dueDate)) !== false) {
@@ -4124,6 +4139,13 @@ class planning_Tasks extends core_Master
             'notPlanned' => countR($scheduledData->notPlanned),
             'tardinessSeconds' => $totalTardinessSeconds,
             'makespanSeconds' => max(0, $latestEnd - $nowTimestamp),
+            'makespanTaskId' => $latestTaskId,
+            'makespanAssetId' => $latestAssetId,
+            'makespanEnd' => $latestEndDate,
+            'targetAssetId' => isset($targetAssetId) ? (int)$targetAssetId : null,
+            'targetMakespanSeconds' => max(0, $targetLatestEnd - $nowTimestamp),
+            'targetMakespanTaskId' => $targetLatestTaskId,
+            'targetMakespanEnd' => $targetLatestEndDate,
             'completionSeconds' => $totalCompletionSeconds,
             'idleSeconds' => array_sum($idleByAsset),
             'idleByAsset' => $idleByAsset,
@@ -4280,6 +4302,10 @@ class planning_Tasks extends core_Master
     {
         $timeType = core_Type::getByName('time');
         $difference = (int)$after['makespanSeconds'] - (int)$before['makespanSeconds'];
+        $targetDifference = (int)($after['targetMakespanSeconds'] ?? 0) - (int)($before['targetMakespanSeconds'] ?? 0);
+        $targetAssetId = (int)($after['targetAssetId'] ?? $before['targetAssetId'] ?? 0);
+        $latestTaskId = (int)($after['makespanTaskId'] ?? 0);
+        $latestAssetId = (int)($after['makespanAssetId'] ?? 0);
         $improved = array();
         $captions = array(
             'notPlanned' => 'непланирани операции',
@@ -4297,6 +4323,16 @@ class planning_Tasks extends core_Master
             'after' => $timeType->toVerbal($after['makespanSeconds']),
             'change' => ($difference > 0 ? '+' : ($difference < 0 ? '−' : '')) . $timeType->toVerbal(abs($difference)),
             'changeSeconds' => $difference,
+            'targetBefore' => $timeType->toVerbal((int)($before['targetMakespanSeconds'] ?? 0)),
+            'targetAfter' => $timeType->toVerbal((int)($after['targetMakespanSeconds'] ?? 0)),
+            'targetChange' => ($targetDifference > 0 ? '+' : ($targetDifference < 0 ? '−' : '')) . $timeType->toVerbal(abs($targetDifference)),
+            'targetChangeSeconds' => $targetDifference,
+            'targetAssetTitle' => $targetAssetId ? planning_AssetResources::getTitleById($targetAssetId) : '',
+            'targetEnd' => !empty($after['targetMakespanEnd']) ? dt::mysql2verbal($after['targetMakespanEnd'], 'd.m.Y H:i') : '',
+            'targetLastTask' => !empty($after['targetMakespanTaskId']) ? '#Opr' . (int)$after['targetMakespanTaskId'] : '',
+            'globalEnd' => !empty($after['makespanEnd']) ? dt::mysql2verbal($after['makespanEnd'], 'd.m.Y H:i') : '',
+            'globalLastTask' => $latestTaskId ? "#Opr{$latestTaskId}" : '',
+            'globalLastAssetTitle' => $latestAssetId ? planning_AssetResources::getTitleById($latestAssetId) : '',
             'improved' => implode(', ', $improved),
         );
     }
@@ -4964,8 +5000,8 @@ class planning_Tasks extends core_Master
 
         $now = dt::now();
         $optimizationStartedAt = microtime(true);
-        $optimizationBudget = 22.0;
-        $maxCandidates = 9;
+        $optimizationBudget = 30.0;
+        $maxCandidates = 50;
         $testedCandidates = 0;
         $baselineCandidate = static::calculateOptimizationCandidate(
             $tasks,

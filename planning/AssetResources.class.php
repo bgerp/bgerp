@@ -1035,7 +1035,10 @@ class planning_AssetResources extends core_Master
                 $assetId,
                 $assetRec->manualOrder,
                 $assetRec->packageLinks,
-                $assetRec->autoGroupVersion
+                $assetRec->autoGroupVersion,
+                $assetRec->autoPackageLinks ?? array(),
+                $assetRec->excludedAutoGroupTasks ?? array(),
+                $assetRec->autoGroupSettingsHash ?? null
             );
         }
         $Tasks = cls::get('planning_Tasks');
@@ -1066,7 +1069,10 @@ class planning_AssetResources extends core_Master
                     $assetId,
                     $optimizedOrder,
                     $scheduledData->assets[$assetId]->packageLinks ?? array(),
-                    planning_TaskManualOrderPerAssets::AUTO_GROUP_VERSION
+                    planning_TaskManualOrderPerAssets::AUTO_GROUP_VERSION,
+                    $scheduledData->assets[$assetId]->autoPackageLinks ?? array(),
+                    $scheduledData->assets[$assetId]->excludedAutoGroupTasks ?? array(),
+                    $scheduledData->assets[$assetId]->autoGroupSettingsHash ?? null
                 );
             }
 
