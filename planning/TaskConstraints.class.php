@@ -843,8 +843,11 @@ class planning_TaskConstraints extends core_Master
             if (isset($assets[$manualRec->assetId])) {
                 $assets[$manualRec->assetId]->manualOrder = $manualRec->data;
                 $assets[$manualRec->assetId]->packageLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($manualRec->data, $manualRec->packageLinks);
+                $assets[$manualRec->assetId]->autoPackageLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($manualRec->data, $manualRec->autoPackageLinks ?? array());
+                $assets[$manualRec->assetId]->excludedAutoGroupTasks = planning_TaskManualOrderPerAssets::sanitizeTaskSet($manualRec->excludedAutoGroupTasks ?? array(), $manualRec->data);
                 $assets[$manualRec->assetId]->committedTaskId = $manualRec->committedTaskId ?? null;
                 $assets[$manualRec->assetId]->autoGroupVersion = (int)($manualRec->autoGroupVersion ?? 0);
+                $assets[$manualRec->assetId]->autoGroupSettingsHash = $manualRec->autoGroupSettingsHash ?? null;
             }
         }
 
@@ -852,9 +855,25 @@ class planning_TaskConstraints extends core_Master
         $regroupAssetIds = array_fill_keys(array_map('intval', (array)($options['regroupAssetIds'] ?? array())), true);
         foreach ($assets as $assetId => $assetRec) {
             if (isset($options['manualOrderOverrides'][$assetId])) {
-                $assetRec->manualOrder = array_values((array)$options['manualOrderOverrides'][$assetId]);
-            }
-            if (isset($options['packageLinkOverrides'][$assetId])) {
+                $oldOrder = $assetRec->manualOrder ?? array();
+                $oldLinks = $assetRec->packageLinks ?? array();
+                $newOrder = array_values((array)$options['manualOrderOverrides'][$assetId]);
+                $newLinks = isset($options['packageLinkOverrides'][$assetId])
+                    ? $options['packageLinkOverrides'][$assetId]
+                    : $oldLinks;
+                $packageState = planning_TaskManualOrderPerAssets::reconcileManualPackageState(
+                    $oldOrder,
+                    $oldLinks,
+                    $newOrder,
+                    $newLinks,
+                    $assetRec->autoPackageLinks ?? array(),
+                    $assetRec->excludedAutoGroupTasks ?? array()
+                );
+                $assetRec->manualOrder = $newOrder;
+                $assetRec->packageLinks = $packageState->packageLinks;
+                $assetRec->autoPackageLinks = $packageState->autoPackageLinks;
+                $assetRec->excludedAutoGroupTasks = $packageState->excludedAutoGroupTasks;
+            } elseif (isset($options['packageLinkOverrides'][$assetId])) {
                 $assetRec->packageLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks(
                     $assetRec->manualOrder ?? array(),
                     $options['packageLinkOverrides'][$assetId]
@@ -866,6 +885,11 @@ class planning_TaskConstraints extends core_Master
             if (isset($regroupAssetIds[$assetId])) {
                 $assetRec->_forceParamRegroup = true;
             }
+            $assetRec->_currentAutoGroupSettingsHash = static::getPlanningParamGroupingSettingsHash($assetRec);
+            $legacySettingsHash = static::getPlanningParamGroupingSettingsHash($assetRec, 0.75, 7);
+            $assetRec->_autoGroupSettingsChanged = isset($assetRec->autoGroupSettingsHash)
+                ? $assetRec->autoGroupSettingsHash !== $assetRec->_currentAutoGroupSettingsHash
+                : $legacySettingsHash !== $assetRec->_currentAutoGroupSettingsHash;
         }
 
         $plannedByAssets = $notPlanned = array();
@@ -1005,7 +1029,11 @@ class planning_TaskConstraints extends core_Master
             }
         }
         foreach ($assets as $assetId => $assetRec) {
-            foreach ((array)($assetRec->packageLinks ?? array()) as $taskId => $previousTaskId) {
+            $persistedLinks = (array)($assetRec->packageLinks ?? array());
+            if (!empty($assetRec->_forceParamRegroup) || !empty($assetRec->_autoGroupSettingsChanged)) {
+                $persistedLinks = array_diff_assoc($persistedLinks, (array)($assetRec->autoPackageLinks ?? array()));
+            }
+            foreach ($persistedLinks as $taskId => $previousTaskId) {
                 if (isset($allTasks[$taskId], $allTasks[$previousTaskId])
                     && $allTasks[$taskId]->assetId == $assetId && $allTasks[$previousTaskId]->assetId == $assetId) {
                     $packageAdjacency[$previousTaskId][$taskId] = (int)$taskId;
@@ -1538,6 +1566,55 @@ class planning_TaskConstraints extends core_Master
 
 
     /**
+     * Returns a stable signature of every setting which can change automatic parameter grouping.
+     * Center settings are included globally so completing a task cannot by itself change the hash.
+     */
+    private static function getPlanningParamGroupingSettingsHash($assetRec, $defaultSimilarity = null, $defaultGroupDays = null)
+    {
+        static $centerSettingsHash;
+
+        if (!isset($centerSettingsHash)) {
+            $centerSettings = array();
+            $centerQuery = planning_Centers::getQuery();
+            $centerQuery->show('id,planningParams,showTaskPlanningParams,planningParamSimilarity,planningParamGroupDays');
+            $centerQuery->orderBy('id', 'ASC');
+            while ($centerRec = $centerQuery->fetch()) {
+                $centerParams = array_values(keylist::toArray($centerRec->planningParams));
+                sort($centerParams, SORT_NUMERIC);
+                $centerSettings[] = array(
+                    (int)$centerRec->id,
+                    $centerParams,
+                    $centerRec->showTaskPlanningParams ?? null,
+                    isset($centerRec->planningParamSimilarity) ? (float)$centerRec->planningParamSimilarity : null,
+                    isset($centerRec->planningParamGroupDays) ? (int)$centerRec->planningParamGroupDays : null,
+                );
+            }
+            $centerSettingsHash = md5(serialize($centerSettings));
+        }
+
+        $assetParams = array_values(keylist::toArray($assetRec->planningParams ?? null));
+        sort($assetParams, SORT_NUMERIC);
+        $defaultSimilarity = isset($defaultSimilarity)
+            ? static::normalizePlanningParamSimilarity($defaultSimilarity, 0.75)
+            : static::normalizePlanningParamSimilarity(planning_Setup::get('TASK_PARAM_GROUP_SIMILARITY'), 0.75);
+        $defaultGroupDays = isset($defaultGroupDays)
+            ? static::normalizePlanningParamGroupDays($defaultGroupDays, 7)
+            : static::normalizePlanningParamGroupDays(planning_Setup::get('TASK_PARAM_GROUP_DAYS'), 7);
+        $settings = array(
+            'defaultSimilarity' => $defaultSimilarity,
+            'defaultGroupDays' => $defaultGroupDays,
+            'assetParams' => $assetParams,
+            'assetSimilarity' => isset($assetRec->planningParamSimilarity) ? (float)$assetRec->planningParamSimilarity : null,
+            'assetGroupDays' => isset($assetRec->planningParamGroupDays) ? (int)$assetRec->planningParamGroupDays : null,
+            'legacyQuantization' => $assetRec->taskQuantization ?? null,
+            'centers' => $centerSettingsHash,
+        );
+
+        return md5(serialize($settings));
+    }
+
+
+    /**
      * Resolves machine -> legacy machine -> center -> package grouping period.
      */
     private static function resolvePlanningParamGroupDays($assetValue, $legacyQuantization, $centerValue, $defaultValue)
@@ -1602,9 +1679,9 @@ class planning_TaskConstraints extends core_Master
      * Turns automatic planning-parameter groups into the same persistent hard packages
      * which are edited through the "With previous" column.
      *
-     * After the one-time conversion only tasks which are absent from the persisted order
-     * are considered for automatic attachment. Thus a user can permanently detach an
-     * existing task by clearing its checkbox.
+     * Between configuration changes only tasks absent from the persisted order are considered
+     * for automatic attachment. When grouping settings change, automatic links are rebuilt,
+     * while user links and explicitly detached tasks remain authoritative.
      */
     private static function groupTasksByPlanningParams($tasks, $assetRec, &$packageAdjacency, $allTasks, $sameResourceJobLinks)
     {
@@ -1613,9 +1690,16 @@ class planning_TaskConstraints extends core_Master
         $hasPersistedOrder = isset($assetRec->manualOrder) && is_array($assetRec->manualOrder);
         $oldOrder = $hasPersistedOrder ? array_values($assetRec->manualOrder) : array();
         $oldLinks = (array)($assetRec->packageLinks ?? array());
+        $oldAutoLinks = array_intersect_assoc((array)($assetRec->autoPackageLinks ?? array()), $oldLinks);
+        $manualLinks = array_diff_assoc($oldLinks, $oldAutoLinks);
+        $oldExcludedTasks = planning_TaskManualOrderPerAssets::sanitizeTaskSet($assetRec->excludedAutoGroupTasks ?? array());
+        $oldSettingsHash = $assetRec->autoGroupSettingsHash ?? null;
+        $currentSettingsHash = $assetRec->_currentAutoGroupSettingsHash
+            ?? static::getPlanningParamGroupingSettingsHash($assetRec);
         $oldVersion = (int)($assetRec->autoGroupVersion ?? 0);
         $forceOptimization = !empty($assetRec->_forceOptimization);
         $initialConversion = !empty($assetRec->_forceParamRegroup)
+            || !empty($assetRec->_autoGroupSettingsChanged)
             || $oldVersion < planning_TaskManualOrderPerAssets::AUTO_GROUP_VERSION;
         $requiredLinks = array();
         foreach ((array)$sameResourceJobLinks as $taskId => $previousTaskId) {
@@ -1634,10 +1718,14 @@ class planning_TaskConstraints extends core_Master
             }
         }
         $allAssetTasks += $tasks;
+        $fullTaskOrder = array_combine(array_keys($allAssetTasks), array_keys($allAssetTasks));
+        $excludedTasks = planning_TaskManualOrderPerAssets::sanitizeTaskSet($oldExcludedTasks, $fullTaskOrder);
+        $nonAttachableTaskIds = $requiredMembers + $excludedTasks;
         if ($hasPersistedOrder && !$forceOptimization) {
             $allAssetTasks = static::reorderTasksByManualOrder($allAssetTasks, $oldOrder);
         }
-        $combinedLinks = static::mergeRequiredPackageLinks($requiredLinks, $oldLinks);
+        $baseLinks = $initialConversion ? $manualLinks : $oldLinks;
+        $combinedLinks = static::mergeRequiredPackageLinks($requiredLinks, $baseLinks);
         $allAssetTasks = static::reorderTasksByPackageLinks($allAssetTasks, $combinedLinks);
         $fullCurrentOrder = array_combine(array_keys($allAssetTasks), array_keys($allAssetTasks));
         $fullActiveLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($fullCurrentOrder, $combinedLinks);
@@ -1653,18 +1741,18 @@ class planning_TaskConstraints extends core_Master
         if ($initialConversion) {
             // Existing user packages remain indivisible; unlinked operations are the
             // candidates of the initial automatic conversion.
-            $sourceBlocks = static::buildPlanningParamPackageBlocks($tasks, $activeLinks, $requiredMembers);
+            $sourceBlocks = static::buildPlanningParamPackageBlocks($tasks, $activeLinks, $nonAttachableTaskIds);
             $blocks = array();
             foreach ($sourceBlocks as $block) {
                 $blockTaskId = (int)key($block['tasks']);
                 if (count($block['tasks']) > 1 || isset($protectedPackageMembers[$blockTaskId])
-                    || isset($requiredMembers[$blockTaskId])) {
+                    || isset($nonAttachableTaskIds[$blockTaskId])) {
                     $blocks[] = $block;
                     continue;
                 }
 
                 $task = reset($block['tasks']);
-                static::appendTaskToPlanningParamPackage($task, $blocks, $packageAdjacency, $requiredMembers);
+                static::appendTaskToPlanningParamPackage($task, $blocks, $packageAdjacency, $nonAttachableTaskIds);
             }
         } else {
             $knownIds = array_fill_keys($oldOrder, true);
@@ -1679,9 +1767,9 @@ class planning_TaskConstraints extends core_Master
 
             $knownOrder = count($knownTasks) ? array_combine(array_keys($knownTasks), array_keys($knownTasks)) : array();
             $knownLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($knownOrder, $activeLinks);
-            $blocks = static::buildPlanningParamPackageBlocks($knownTasks, $knownLinks, $requiredMembers);
+            $blocks = static::buildPlanningParamPackageBlocks($knownTasks, $knownLinks, $nonAttachableTaskIds);
             foreach ($newTasks as $task) {
-                static::appendTaskToPlanningParamPackage($task, $blocks, $packageAdjacency, $requiredMembers);
+                static::appendTaskToPlanningParamPackage($task, $blocks, $packageAdjacency, $nonAttachableTaskIds);
             }
         }
 
@@ -1725,7 +1813,7 @@ class planning_TaskConstraints extends core_Master
         // Optimization may freely move whole packages, but it must never split an existing
         // user package or a mandatory same-job/same-resource chain. Restore those hard links
         // as a final postcondition after parameter grouping has built its preferred order.
-        $hardLinks = static::mergeRequiredPackageLinks($requiredLinks, $fullActiveLinks);
+        $hardLinks = static::mergeRequiredPackageLinks($requiredLinks, $manualLinks);
         $newLinks = static::mergeRequiredPackageLinks($hardLinks, $newLinks);
         $newOrderTasks = array();
         foreach ($newOrder as $taskId) {
@@ -1737,17 +1825,25 @@ class planning_TaskConstraints extends core_Master
 
         $newFullOrder = count($newOrder) ? array_combine($newOrder, $newOrder) : array();
         $newLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($newFullOrder, $newLinks);
-        $addedAutomaticLinks = count(array_diff_assoc($newLinks, $fullActiveLinks));
+        $hardLinks = planning_TaskManualOrderPerAssets::sanitizePackageLinks($newFullOrder, $hardLinks);
+        $newAutoLinks = array_diff_assoc($newLinks, $hardLinks);
+        $addedAutomaticLinks = count(array_diff_assoc($newAutoLinks, $oldAutoLinks));
         // Do not create a manual-order record for a resource where no automatic package exists.
         // Such a record would unnecessarily freeze every otherwise freely ordered operation.
         if (!$hasPersistedOrder && !$addedAutomaticLinks && !$forceOptimization) return $tasks;
 
         $assetRec->manualOrder = $newFullOrder;
         $assetRec->packageLinks = $newLinks;
+        $assetRec->autoPackageLinks = $newAutoLinks;
+        $assetRec->excludedAutoGroupTasks = $excludedTasks;
         $assetRec->autoGroupVersion = planning_TaskManualOrderPerAssets::AUTO_GROUP_VERSION;
+        $assetRec->autoGroupSettingsHash = $currentSettingsHash;
         $assetRec->_saveAutomaticPackages = ($oldOrder != $newOrder)
             || ($oldLinks != $newLinks)
-            || ($oldVersion != planning_TaskManualOrderPerAssets::AUTO_GROUP_VERSION);
+            || ($oldAutoLinks != $newAutoLinks)
+            || ($oldExcludedTasks != $excludedTasks)
+            || ($oldVersion != planning_TaskManualOrderPerAssets::AUTO_GROUP_VERSION)
+            || ($oldSettingsHash !== $currentSettingsHash);
 
         return $result;
     }

@@ -1224,12 +1224,43 @@ function renderOptimizationIdleReport(changes, totals, metrics, stats, hasNetIdl
             ? 'Прегледайте новата подредба и натиснете „Запис“, за да я приемете, или „Върни оптимизацията“, за да я отмените.'
             : 'Може да продължите с ръчно подреждане или да затворите този отчет.'));
 
-    let makespanChange = Number(metrics.changeSeconds) || 0;
-    let makespanClass = makespanChange < 0 ? 'optimizationMetricImproved'
-        : (makespanChange > 0 ? 'optimizationMetricWorsened' : 'optimizationMetricUnchanged');
-    report.append($('<div>', {class: 'optimizationGlobalMetrics'})
-        .append($('<span>').text('Общ срок: ' + (metrics.before || '—') + ' → ' + (metrics.after || '—')))
-        .append($('<strong>', {class: makespanClass}).text('Промяна: ' + (metrics.change || '0 сек.'))));
+    const createPlanMetric = function (title, before, after, change, changeSeconds, detail) {
+        let metricClass = changeSeconds < 0 ? 'optimizationMetricImproved'
+            : (changeSeconds > 0 ? 'optimizationMetricWorsened' : 'optimizationMetricUnchanged');
+        let metric = $('<div>', {class: 'optimizationPlanMetric'});
+        metric.append($('<span>', {class: 'optimizationPlanMetricLabel'}).text(title));
+        metric.append($('<span>', {class: 'optimizationPlanMetricValue'}).text((before || '—') + ' → ' + (after || '—')));
+        metric.append($('<strong>', {class: 'optimizationPlanMetricChange ' + metricClass})
+            .text('Промяна: ' + (change || '0 сек.')));
+        if (detail) metric.append($('<small>', {class: 'optimizationPlanMetricDetail'}).text(detail));
+
+        return metric;
+    };
+    let targetDetailParts = [];
+    if (metrics.targetLastTask) targetDetailParts.push('последна ' + metrics.targetLastTask);
+    if (metrics.targetEnd) targetDetailParts.push('край ' + metrics.targetEnd);
+    let globalDetailParts = [];
+    if (metrics.globalLastTask) globalDetailParts.push('последна ' + metrics.globalLastTask);
+    if (metrics.globalLastAssetTitle) globalDetailParts.push(metrics.globalLastAssetTitle);
+    if (metrics.globalEnd) globalDetailParts.push('край ' + metrics.globalEnd);
+    let planMetrics = $('<div>', {class: 'optimizationGlobalMetrics'});
+    planMetrics.append(createPlanMetric(
+        'Избрана машина: ' + (metrics.targetAssetTitle || ''),
+        metrics.targetBefore,
+        metrics.targetAfter,
+        metrics.targetChange,
+        Number(metrics.targetChangeSeconds) || 0,
+        targetDetailParts.join(' — ')
+    ));
+    planMetrics.append(createPlanMetric(
+        'Целият производствен план (всички машини)',
+        metrics.before,
+        metrics.after,
+        metrics.change,
+        Number(metrics.changeSeconds) || 0,
+        globalDetailParts.join(' — ')
+    ));
+    report.append(planMetrics);
 
     if (!changes.length) {
         report.append($('<div>', {class: 'optimizationIdleNoChanges'})

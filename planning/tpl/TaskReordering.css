@@ -520,13 +520,31 @@ tr:hover td {
   font-weight: 600; }
 
 .optimizationGlobalMetrics {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 18px;
   background: #fff;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #ddd; }
+
+.optimizationPlanMetric {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto auto;
+  align-items: baseline;
+  gap: 3px 14px;
+  padding: 4px 0; }
+  .optimizationPlanMetric + .optimizationPlanMetric {
+    margin-top: 5px;
+    padding-top: 8px;
+    border-top: 1px solid #e4e4e4; }
+
+.optimizationPlanMetricLabel {
   font-weight: 600; }
+
+.optimizationPlanMetricValue,
+.optimizationPlanMetricChange {
+  white-space: nowrap; }
+
+.optimizationPlanMetricDetail {
+  grid-column: 1 / -1;
+  color: #666;
+  font-weight: 400; }
 
 .optimizationMetricImproved {
   color: #247044; }
