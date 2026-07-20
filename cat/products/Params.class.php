@@ -226,14 +226,14 @@ class cat_products_Params extends doc_Detail
         
         if (!empty($rec->paramId)) {
             $pRec = cat_Params::fetch($rec->paramId);
-            if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
+            if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue ?? null)) {
                 $form->setField('paramValue', 'input');
                 $form->setFieldType('paramValue', $Type);
                 if($Type instanceof type_Key2 || $Type instanceof type_Key){
                     $form->setField('paramValue', 'class=w100');
                 }
             
-                $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue);
+                $defaultValue = cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue ?? null);
                 $form->setDefault('paramValue', $defaultValue);
                 if($pRec->valueType == 'readonly' && isset($rec->id)){
                     if(isset($defaultValue)){
@@ -959,4 +959,3 @@ class cat_products_Params extends doc_Detail
         $data->query->orderBy('id', 'DESC');
     }
 }
-

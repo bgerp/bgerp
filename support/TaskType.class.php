@@ -734,7 +734,7 @@ class support_TaskType extends core_Mvc
         }
         $query->where("#assetResourceId = {$data->masterId}");
         $query->orderBy('createdOn=DESC,id=DESC');
-        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage));
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $data->itemsPerPage ?? null));
         $data->Pager->setPageVar($data->masterMvc->className, $data->masterId);
         if (!empty($data->_itemsPerPage)) {
             $data->Pager->itemsPerPage = $data->_itemsPerPage;
