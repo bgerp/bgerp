@@ -417,7 +417,7 @@ class planning_Jobs extends core_Master
             $form->setFieldTypeParams('productId', array(
                 'notDriverId'      => planning_interface_StepProductDriver::getClassId(),
                 'allowedForJobs'   => true,
-                'jobType'          => $rec->type,
+                'jobType'          => $rec->type ?? 'manifacture',
                 'hasnotProperties' => 'generic',
             ));
         }
@@ -1067,7 +1067,14 @@ class planning_Jobs extends core_Master
 
         $rec->quantityNotStored = $rec->quantityFromTasks - $quantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
-        $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $quantityProduced);
+
+        // При Разпад "Очаквано още" се смята спрямо разпаднатото (quantityDisassembled),
+        // а не спрямо quantityFromTasks (винаги 0 за Разпад - няма Задачи/протоколи за производство)
+        if ($rec->type == 'disassembly') {
+            $rec->quantityToProduce = $rec->packQuantity - $quantityProduced;
+        } else {
+            $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $quantityProduced);
+        }
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
@@ -1584,17 +1591,9 @@ class planning_Jobs extends core_Master
 
 
     /**
-     * Преизчислява какво количество е разпаднато по заданието (за type=disassembly).
-     *
-     * @todo Все още няма документ, който да пише разпадната продукция (виж
-     *       вариант Б, обсъден за задачата - отделен протокол/документ за
-     *       Разпад, аналогичен на planning_DirectProductionNote). Когато той
-     *       се появи, тук да се изгради заявка към него (по модел на
-     *       getJobProductionNotesQuery()/updateProducedQuantity() по-горе),
-     *       да се сумира произведеното количество в $rec->quantityDisassembled
-     *       и да се извика от съответния on_AfterSave/activation hook на новия
-     *       документ - аналогично на извикванията на updateProducedQuantity()
-     *       от planning_Tasks и planning_DirectProductionNote.
+     * Преизчислява какво количество от заданието е разпаднато (за type=disassembly) -
+     * сумата от количествата на редовете за влагане (type=input) на активните
+     * протоколи за разпад по заданието (@see planning_DisassemblyNote)
      *
      * @param int $containerId - ид на запис
      * @return void
@@ -1604,8 +1603,13 @@ class planning_Jobs extends core_Master
         $me = cls::get(get_called_class());
         $rec = static::fetch("#containerId = {$containerId}");
 
-        // @todo: заявка към новия документ за Разпад вместо getJobProductionNotesQuery()
-        $rec->quantityDisassembled = 0;
+        $dQuery = planning_DisassemblyNoteDetails::getQuery();
+        $dQuery->EXT('noteState', 'planning_DisassemblyNote', 'externalName=state,externalKey=noteId');
+        $dQuery->EXT('noteOriginId', 'planning_DisassemblyNote', 'externalName=originId,externalKey=noteId');
+        $dQuery->where("#type = 'input' AND #noteState = 'active' AND #noteOriginId = {$rec->containerId}");
+
+        $totalQuantity = arr::sumValuesArray($dQuery->fetchAll(), 'quantity');
+        $rec->quantityDisassembled = empty($totalQuantity) ? 0 : $totalQuantity;
 
         $me->save_($rec, 'quantityDisassembled');
         $me->touchRec($rec);

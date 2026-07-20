@@ -434,6 +434,11 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
                 reportException($e);
             }
         }
+
+        if ($rec->state == 'active' || $rec->state == 'rejected') {
+            planning_Jobs::updateDisassembledQuantity($rec->originId);
+        }
+
     }
 
 
