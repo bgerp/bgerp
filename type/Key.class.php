@@ -698,7 +698,7 @@ class type_Key extends type_Int
                 
                 // Ако е id определяме стойността която ще се показва, като вербализираме
                 // Иначе - запазваме предходния вариянт. Работил ли е някога?
-                $setVal = self::getOptionTitle($selOptCache[$value]['title']);
+                $setVal = self::getOptionTitle($selOptCache[$value]['title'] ?? '');
                 
                 if (!$setVal && is_numeric($value)) {
                     $setVal = $this->toVerbal($value);
@@ -708,7 +708,7 @@ class type_Key extends type_Int
                 unset($selOpt[$setVal]);
                 $selOpt = array($setVal => $setVal) + $selOpt;
                 
-                if ($selOpt['']) {
+                if (!empty($selOpt[''])) {
                     $selOpt = array('' => $selOpt['']) + $selOpt;
                 }
                 
