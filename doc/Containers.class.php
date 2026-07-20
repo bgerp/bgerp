@@ -1886,7 +1886,7 @@ class doc_Containers extends core_Manager
                 $tpl->append("<li class='dimension'>");
                 foreach ($bArr as $title => $info) {
                     $url = array($info['class'], 'add',
-                        'threadId' => $rec->threadId, 'folderId' => $rec->folderId, 'ret_url' => true);
+                        'threadId' => $rec->threadId ?? null, 'folderId' => $rec->folderId, 'ret_url' => true);
                     foreach ($info['params'] as $k => $v) {
                         $url[$k] = $v;
                     }
