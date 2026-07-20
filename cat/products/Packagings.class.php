@@ -263,7 +263,7 @@ class cat_products_Packagings extends core_Detail
     protected static function on_BeforeSave($mvc, $id, $rec)
     {
         // Ако за този продукт има друга втора мярка, тя става не основна
-        if ($rec->isSecondMeasure == 'yes') {
+        if (($rec->isSecondMeasure ?? null) == 'yes') {
             if ($packRec = static::fetch("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$rec->id}'")) {
                 $packRec->isSecondMeasure = 'no';
                 $mvc->save_($packRec, 'isSecondMeasure');

@@ -381,7 +381,7 @@ class sales_Sales extends deals_DealMaster
         $rec = $form->rec;
         
         if (empty($rec->id)) {
-            $dealerId = self::getDefaultDealerId($rec->folderId, $rec->deliveryLocationId);
+            $dealerId = self::getDefaultDealerId($rec->folderId, $rec->deliveryLocationId ?? null);
             $form->setDefault('dealerId', $dealerId);
         }
         
