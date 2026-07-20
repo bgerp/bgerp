@@ -192,7 +192,7 @@ class cat_Groups extends core_Master
 
         // Ако групата и бащите ѝ са от допустимите за режийни разходи да се показва полето
         $groupsWithOverheadCosts = keylist::toArray(cat_Setup::get('GROUPS_WITH_OVERHEAD_COSTS'));
-        $parentsArr = cls::get('cat_Groups')->getParentsArray($rec->parentId);
+        $parentsArr = cls::get('cat_Groups')->getParentsArray($rec->parentId ?? null);
         $intersectedParents = array_intersect_key($groupsWithOverheadCosts, $parentsArr);
         if ((!empty($rec->id) && array_key_exists($rec->id, $groupsWithOverheadCosts)) || countR($intersectedParents)) {
             $form->setField('defaultOverheadCostsPercent', 'input');
