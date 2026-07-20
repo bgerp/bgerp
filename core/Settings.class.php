@@ -528,7 +528,7 @@ class core_Settings extends core_Manager
                 }
                 
                 if (is_array($users)) {
-                    if (!$users[$sudoCu] && !$users[$currCu] && ($allSystemId != $form->rec->_userOrRole)) {
+                    if (empty($users[$sudoCu]) && empty($users[$currCu]) && ($allSystemId != $form->rec->_userOrRole)) {
                         $form->setReadOnly($fName);
                     }
                 }
@@ -578,7 +578,7 @@ class core_Settings extends core_Manager
             foreach ((array) $recArr as $valKey => $value) {
 
                 // Ако тази опция е за всички потребители
-                if (!empty($uSettingForAllArr) && $uSettingForAllArr[$valKey] && ($allSystemId != $form->rec->_userOrRole)) {
+                if (!empty($uSettingForAllArr[$valKey]) && ($allSystemId != $form->rec->_userOrRole)) {
                     $sForAllValArr[$valKey] = $value;
                     unset($recArr[$valKey]);
                 }
