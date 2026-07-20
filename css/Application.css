@@ -5649,6 +5649,9 @@ div.location.public {
   .docStatistic form .horizontal .formToolbar {
     margin-bottom: 0; }
 
+.document .details .portal .formToolbar #filter {
+  1padding: 5px 4px 4px !important; }
+
 /*
  * шаблон за журнал
  */
