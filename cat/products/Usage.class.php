@@ -185,7 +185,7 @@ class cat_products_Usage extends core_Manager
 
         $ids = arr::extractValuesFromArray($dQuery->fetchAll(), $Detail->masterKey);
 
-        if($data->_useMasterField){
+        if($data->_useMasterField ?? null){
             $query2 = $data->Document->getQuery();
             $query2->where("#{$data->_useMasterField} = {$data->masterId} AND #state != 'rejected'");
             $ids += arr::extractValuesFromArray($query2->fetchAll(), 'id');

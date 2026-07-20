@@ -226,7 +226,7 @@ class bglocal_Address extends core_MVC
         $placeL = trim(preg_replace('/[^a-zа-я]+/u', ' ', $placeL));
         $placeL = str_replace('gr ', '', $placeL);
         
-        return self::$places[$placeL] ? self::$places[$placeL] : $place;
+        return !empty(self::$places[$placeL]) ? self::$places[$placeL] : $place;
     }
     
     

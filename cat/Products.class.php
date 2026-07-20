@@ -730,7 +730,7 @@ class cat_Products extends embed_Manager
             $rec->state = 'active';
         }
         
-        $rec->code = ($rec->code == '') ? null : $rec->code;
+        $rec->code = (($rec->code ?? null) == '') ? null : ($rec->code ?? null);
 
         if(isset($rec->id)){
             $exMeasureId = $mvc->fetchField($rec->id, 'measureId', false);
