@@ -1880,7 +1880,7 @@ class doc_Containers extends core_Manager
                         
                         $mvc->singleTitle,
                         array($class, 'add',
-                            'threadId' => $rec->threadId, 'folderId' => $rec->folderId, 'ret_url' => true),
+                            'threadId' => $rec->threadId ?? null, 'folderId' => $rec->folderId, 'ret_url' => true),
                             null,
                         
                         null,

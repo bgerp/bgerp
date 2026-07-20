@@ -828,7 +828,7 @@ class doc_DocumentPlg extends core_Plugin
             $rec->modifiedOn = dt::verbal2Mysql();
         }
         
-        if (!Mode::is('MassImporting') && (($rec->state == 'draft' && !empty($rec->brState) && ($rec->brState ?? null) != 'rejected') || $rec->state != 'draft')) {
+        if (!Mode::is('MassImporting') && ((($rec->state ?? null) == 'draft' && !empty($rec->brState) && ($rec->brState ?? null) != 'rejected') || ($rec->state ?? null) != 'draft')) {
             if (!empty($rec->id)) {
                 $oRec = $mvc->fetch($rec->id);
                 if (!$oRec || $rec->state !== $oRec->state) {
