@@ -3561,8 +3561,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $files = deals_Helper::getLinkedFilesInDocument($this, $rec, 'note', 'notes');
 
         // Добавят се и файловете от допълнителните условия, ако има такова
-        $additionalConditions = is_array($rec->additionalConditions) ? $rec->additionalConditions : array();
-        if(in_array($rec->state, array('pending', 'draft'))) {
+        $additionalConditions = is_array($rec->additionalConditions ?? null) ? $rec->additionalConditions : array();
+        if(in_array($rec->state ?? null, array('pending', 'draft'))) {
             $additionalConditions = $this->getConditionArr($rec);
         }
         foreach ($additionalConditions as $aCond) {

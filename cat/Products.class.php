@@ -470,7 +470,7 @@ class cat_Products extends embed_Manager
             if (!$cover->haveInterface('crm_ContragentAccRegIntf')) {
                 
                 // Правим кода на артикула задължителен, ако не е шаблон
-                if ($isTemplate === false || $data->_isSaveAndNew) {
+                if ($isTemplate === false || ($data->_isSaveAndNew ?? null)) {
                     $form->setField('code', 'mandatory');
                 }
 
@@ -520,7 +520,7 @@ class cat_Products extends embed_Manager
                     while (cat_Products::getByCode($newCode)) {
                         $newCode = str::increment($newCode);
                     }
-                } elseif($data->_isSaveAndNew || $data->action == 'clone') {
+                } elseif(($data->_isSaveAndNew ?? null) || $data->action == 'clone') {
                     // Ако все пак има предишен код, който не е инкремениран попълва се той
                     $newCode = $lastCode;
                 }
@@ -718,15 +718,15 @@ class cat_Products extends embed_Manager
         // Според папката се определя дали артикула е публичен/частен или е шаблон
         if (isset($rec->folderId)) {
             $Cover = doc_Folders::getCover($rec->folderId);
-            $type = isset($rec->id) ? (($rec->state == 'template') ? 'template' : (($rec->isPublic == 'yes') ? 'public' : 'private')) : $Cover->getProductType();
+            $type = isset($rec->id) ? ((($rec->state ?? null) == 'template') ? 'template' : (($rec->isPublic == 'yes') ? 'public' : 'private')) : $Cover->getProductType();
             $rec->isPublic = ($type != 'private') ? 'yes' : 'no';
-            
-            if ($rec->state != 'rejected' && $rec->state != 'closed') {
+
+            if (($rec->state ?? null) != 'rejected' && ($rec->state ?? null) != 'closed') {
                 $rec->state = ($type == 'template') ? 'template' : 'draft';
             }
         }
-        
-        if ($rec->state == 'draft') {
+
+        if (($rec->state ?? null) == 'draft') {
             $rec->state = 'active';
         }
         
