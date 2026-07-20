@@ -60,7 +60,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
     /**
      * В кои състояния на мастъра може да се редактира детайла
      */
-    public $allowedInMasterStates = array('draft');
+    protected $allowedInMasterStates = array('draft');
 
 
     /**
@@ -194,8 +194,13 @@ abstract class deals_ManifactureDetail extends doc_Detail
         if (($action == 'edit' || $action == 'delete' || $action == 'add') && isset($rec)) {
             $allowedInMasterStates = arr::make($mvc->allowedInMasterStates, true);
             $masterState = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
+
             if (!in_array($masterState, $allowedInMasterStates)) {
                 $requiredRoles = 'no_one';
+            } elseif($masterState == 'active' && !empty($mvc->Master->requiredRolesToEditWhenActive)){
+                if(!haveRole($mvc->Master->requiredRolesToEditWhenActive, $userId)){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
         

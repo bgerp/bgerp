@@ -83,7 +83,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
     /**
      * В кои състояния на мастъра може да се редактира детайла
      */
-    public $allowedInMasterStates = array('draft', 'pending', 'active');
+    protected $allowedInMasterStates = array('draft', 'pending', 'active');
 
 
     /**
@@ -135,12 +135,21 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         if(isset($rec->productId)){
             $productRec = cat_Products::fetch($rec->productId, 'canStore');
             if($productRec->canStore == 'yes'){
-                $form->setField('storeId', 'input');
+                $form->setField('storeId', 'input,mandatory');
                 if(isset($data->masterRec->storeId)){
                     $form->setDefault('storeId', $data->masterRec->storeId);
                 }
             }
         }
+    }
+
+
+    /**
+     * Определя посоката на партидното движение
+     */
+    public function getBatchMovementDocument($rec)
+    {
+        return $rec->type == 'production' ? 'in' : 'out';
     }
 
 
@@ -152,6 +161,8 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         if ($action == 'delete' && isset($rec)) {
             $rec = $mvc->fetchRec($rec);
             if ($rec->isMainInput == 'yes') {
+                $requiredRoles = 'no_one';
+            } elseif(planning_DisassemblyNoteDetails::count("#type = 'production' AND #noteId = {$rec->noteId}") == 1){
                 $requiredRoles = 'no_one';
             }
         }
@@ -178,6 +189,8 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
                 $row->storeId = "<span class='red'>n/a</span>";
             }
         }
+
+        $row->ROW_ATTR['class'] = $rec->type == 'input' ? "state-active" : 'row-subProduct';
     }
 
 
@@ -298,6 +311,17 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $res->operation['out'] = $rec->storeId;
         } else {
             $res->operation['in'] = $rec->storeId;
+        }
+    }
+
+
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        if($data->masterRec->state == 'active'){
+            $data->form->toolbar->setWarning('save', 'Протоколът е вече контиран, при запис ще бъде реконтиран|*!');
         }
     }
 }

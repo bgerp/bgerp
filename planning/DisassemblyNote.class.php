@@ -121,7 +121,7 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
     /**
      * Икона на единичния изглед
      */
-    public $singleIcon = 'img/16/page_paste.png';
+    public $singleIcon = 'img/16/protocol_decay.png';
 
 
     /**
@@ -201,6 +201,12 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
 
 
     /**
+     * Кои роли се изискват да може да се редактира, когато е активиран
+     */
+    public $requiredRolesToEditWhenActive = 'ceo,planningMaster';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -208,7 +214,7 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
         parent::setDocumentFields($this);
 
         $this->setField('storeId', 'caption=Произвеждане (заприхождаване на произведените артикули)->В склад,silent,removeAndRefreshForm');
-        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Влагане (на артикула за разпад)->ОТ склад,input,silent,placeholder=Незавършено производство,after=storeId');
+        $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Влагане (на артикула за разпад)->ОТ склад,input,silent,placeholder=Незавършено производство,after=storeId,mandatory');
         $this->FLD('expenses', 'percent(min=0)', 'caption=Влагане (на артикула за разпад)->Реж. разходи,after=Информация');
         $this->FLD('detailOrderBy', 'enum(auto=Автоматично,creation=Ред на създаване,code=Код,reff=Ваш №)', 'caption=Влагане (на артикула за разпад)->Подреждане по,notNull,value=auto');
 
@@ -272,6 +278,14 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
                 }
             }
         }
+
+        if ($action == 'edit' && isset($rec)) {
+            if($rec->state == 'active'){
+                if(!haveRole($mvc->requiredRolesToEditWhenActive, $userId)){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
 
 
@@ -282,10 +296,7 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
     protected static function on_AfterCreate($mvc, $rec)
     {
         // Ако записа е клониран не правим нищо - клонираните детайли идват от cloneDetails
-        if (($rec->_isClone ?? null) === true) {
-
-            return;
-        }
+        if (($rec->_isClone ?? null) === true) return;
 
         $jobRec = static::getJobRec($rec);
         if (!$jobRec) return;
@@ -325,6 +336,68 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
 
 
     /**
+     * Връща планираните наличности - артикулът за разпад (type=input) излиза от
+     * склада си, произведените от разпада артикули (type=production) влизат в
+     * своя. Дефолтната имплементация на store_plg_StockPlanning не различава
+     * посоката по ред, затова се налага собствена реализация (@see
+     * planning_DirectProductionNote::getPlannedStocks)
+     *
+     * @param stdClass|int $rec
+     *
+     * @return array
+     */
+    public function getPlannedStocks($rec)
+    {
+        $res = array();
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : null);
+        $horizonAdd = store_Setup::get('PLANNED_DATE_ADDITIVE_IF_IN_THE_PAST');
+        $dateIn = $date;
+        if (empty($date) || $date < dt::today()) {
+            $dateIn = dt::addSecs($horizonAdd, dt::now());
+        }
+        $dateOut = empty($date) ? $rec->createdOn : $date;
+
+        $dQuery = planning_DisassemblyNoteDetails::getQuery();
+        $dQuery->EXT('canConvert', 'cat_Products', 'externalName=canConvert,externalKey=productId');
+        $dQuery->EXT('generic', 'cat_Products', 'externalName=generic,externalKey=productId');
+        $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $dQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+        $dQuery->where("#noteId = {$rec->id} AND #storeId IS NOT NULL AND #canStore = 'yes'");
+        $dQuery->groupBy('productId,storeId,type');
+
+        while ($dRec = $dQuery->fetch()) {
+            $genericProductId = null;
+            if ($dRec->generic == 'yes') {
+                $genericProductId = $dRec->productId;
+            } elseif ($dRec->canConvert == 'yes') {
+                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
+            }
+
+            $quantityIn = $quantityOut = null;
+            if ($dRec->type == 'input') {
+                $detailDate = $dateOut;
+                $quantityOut = $dRec->totalQuantity;
+            } else {
+                $detailDate = $dateIn;
+                $quantityIn = $dRec->totalQuantity;
+            }
+
+            $res[] = (object) array('storeId' => $dRec->storeId,
+                'productId'                   => $dRec->productId,
+                'date'                        => $detailDate,
+                'quantityIn'                  => $quantityIn,
+                'quantityOut'                 => $quantityOut,
+                'genericProductId'            => $genericProductId);
+        }
+
+        return $res;
+    }
+
+
+    /**
      * Преди показване на форма за добавяне/промяна
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
@@ -335,6 +408,63 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
         $jobRec = self::getJobRec($rec);
         if(is_object($jobRec)){
             $form->setDefault('storeId', $jobRec->storeId);
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id  първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // При активиране/оттегляне
+        if ($rec->state == 'active' && (!empty($rec->_updateMaster) || !empty($rec->_recontoAfterEdit))) {
+            try {
+                $success = acc_Journal::reconto($rec->containerId);
+                if($success){
+                    $lockKey = "doc_Threads_Update_Item_{$rec->threadId}_" . core_Users::getCurrent();
+                    core_Locks::release($lockKey);
+                    core_Statuses::newStatus("Протоколът е реконтиран|*!");
+                }
+            } catch (core_exception_Expect $e) {
+                reportException($e);
+            }
+        }
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(isset($rec->inputStoreId)){
+            $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
+        }
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+        $rec = &$form->rec;
+
+        if($form->isSubmitted()) {
+            if(isset($rec->id)){
+                if($rec->state == 'active'){
+                    $exRec = $mvc->fetch($rec->id, '*', false);
+                    if($rec->valior != $exRec->valior || $rec->expenses != $exRec->expenses){
+                        $rec->_recontoAfterEdit = true;
+                        $form->setWarning('valior,expenses', "Документа ще бъде реконтиран след запис, поради променени данни!");
+                    }
+                }
+            }
         }
     }
 }
