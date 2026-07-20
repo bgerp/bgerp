@@ -470,7 +470,7 @@ class cat_Products extends embed_Manager
             if (!$cover->haveInterface('crm_ContragentAccRegIntf')) {
                 
                 // Правим кода на артикула задължителен, ако не е шаблон
-                if ($isTemplate === false || $data->_isSaveAndNew) {
+                if ($isTemplate === false || ($data->_isSaveAndNew ?? null)) {
                     $form->setField('code', 'mandatory');
                 }
 
@@ -520,7 +520,7 @@ class cat_Products extends embed_Manager
                     while (cat_Products::getByCode($newCode)) {
                         $newCode = str::increment($newCode);
                     }
-                } elseif($data->_isSaveAndNew || $data->action == 'clone') {
+                } elseif(($data->_isSaveAndNew ?? null) || $data->action == 'clone') {
                     // Ако все пак има предишен код, който не е инкремениран попълва се той
                     $newCode = $lastCode;
                 }

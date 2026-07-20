@@ -831,7 +831,7 @@ class doc_DocumentPlg extends core_Plugin
         if (!Mode::is('MassImporting') && ((($rec->state ?? null) == 'draft' && !empty($rec->brState) && ($rec->brState ?? null) != 'rejected') || ($rec->state ?? null) != 'draft')) {
             if (!empty($rec->id)) {
                 $oRec = $mvc->fetch($rec->id);
-                if (!$oRec || $rec->state !== $oRec->state) {
+                if (!$oRec || ($rec->state ?? null) !== $oRec->state) {
                     $mvc->mustUpdateUsed = true;
                 }
             } else {
