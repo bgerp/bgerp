@@ -701,7 +701,7 @@ class cat_UoM extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if ($action == 'edit' && $rec->state == 'closed') {
+        if ($action == 'edit' && ($rec->state ?? null) == 'closed') {
             $requiredRoles = 'no_one';
         }
     }

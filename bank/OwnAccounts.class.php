@@ -504,7 +504,7 @@ class bank_OwnAccounts extends core_Master
                 $accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
                 
                 // Проверка дали вече нямаме наша сметка с този IBAN
-                if (self::fetchField("#bankAccountId = '{$accountRec->id}'")) {
+                if ($accountRec && self::fetchField("#bankAccountId = '{$accountRec->id}'")) {
                     $form->setError('iban', 'Вече има наша сметка с този|* IBAN');
                     
                     return;

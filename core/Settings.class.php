@@ -668,7 +668,7 @@ class core_Settings extends core_Manager
     {
         $userOrRole = self::prepareUserOrRole($userOrRole);
         
-        list(, $objectId) = explode('::', $key);
+        list(, $objectId) = explode('::', $key) + [null, null];
          
         // Ограничаваме дължината на ключа
         $key = self::prepareKey($key);
