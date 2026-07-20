@@ -670,7 +670,7 @@ class cat_UoM extends core_Manager
         $form->setDefault('showContents', 'no');
         
         // Ако записа е създаден от системния потребител, може да се
-        if ($rec->createdBy == core_Users::SYSTEM_USER) {
+        if (($rec->createdBy ?? null) == core_Users::SYSTEM_USER) {
             foreach (array('name', 'shortName', 'baseUnitId', 'baseUnitRatio', 'sysId', 'sinonims') as $fld) {
                 $form->setField($fld, 'input=none');
             }

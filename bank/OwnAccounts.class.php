@@ -540,7 +540,7 @@ class bank_OwnAccounts extends core_Master
     protected static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         if (($rec->_isSubmitted ?? null) === true) {
-            $rec->bankAccountId = self::syncWithAccount($rec->bankAccountId, $rec->iban, $rec->currencyId, $rec->bank, $rec->bic, $rec->conditionSaleBg, $rec->conditionSaleEn);
+            $rec->bankAccountId = self::syncWithAccount($rec->bankAccountId ?? null, $rec->iban ?? null, $rec->currencyId ?? null, $rec->bank ?? null, $rec->bic ?? null, $rec->conditionSaleBg ?? null, $rec->conditionSaleEn ?? null);
         }
     }
 

@@ -616,7 +616,7 @@ class core_Settings extends core_Manager
                 self::setValues($key, (array) $oldSArr, $allSystemId);
             }
             
-            list(, $objectId) = explode('::', $key);
+            list(, $objectId) = explode('::', $key) + [null, null];
             $pKey = self::prepareKey($key);
             if (isset($objectId)) {
                 $rec = self::fetch(array("#key = '[#1#]' AND #userOrRole = '[#2#]' AND #objectId = '[#3#]'", $pKey, $userOrRole, $objectId));
