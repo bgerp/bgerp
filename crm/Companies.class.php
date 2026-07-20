@@ -1456,7 +1456,7 @@ class crm_Companies extends core_Master
             // Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
             email_Router::removeRules('company', $rec->id);
         } else {
-            if ($rec->email) {
+            if (!empty($rec->email)) {
                 static::createRoutingRules($rec->email, $rec->id);
             }
         }
