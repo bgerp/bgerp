@@ -184,7 +184,7 @@ class hr_Departments extends core_Master
     {
         $rec->orderStr = '';
         
-        if ($rec->staff) {
+        if (!empty($rec->staff)) {
             $rec->orderStr = self::fetchField($rec->staff, 'orderStr');
         }
         $rec->orderStr .= str_pad(mb_substr($rec->name, 0, 10), 10, ' ', STR_PAD_RIGHT);
