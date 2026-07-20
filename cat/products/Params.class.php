@@ -202,7 +202,7 @@ class cat_products_Params extends doc_Detail
 
         if (empty($rec->id)) {
             $form->setField('paramId', array('removeAndRefreshForm' => 'paramValue|paramValue[lP]|paramValue[rP]'));
-            $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id);
+            $options = self::getRemainingOptions($rec->classId, $rec->productId, $rec->id ?? null);
             
             if (!countR($options)) {
                 $warningMsg = 'Няма параметри за добавяне';
@@ -959,5 +959,4 @@ class cat_products_Params extends doc_Detail
         $data->query->orderBy('id', 'DESC');
     }
 }
-
 
