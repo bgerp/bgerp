@@ -653,7 +653,7 @@ class type_Key extends type_Int
 
             $maxRadio = $this->params['maxRadio'] ?? null;
             if (empty(($attr['_isRefresh']))) {
-                if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && !$this->params['isHorizontal']) {
+                if (!strlen($maxRadio ?? '') && $maxRadio !== 0 && $maxRadio !== '0' && empty($this->params['isHorizontal'])) {
                     if(arr::isOptionsTotalLenBellowAllowed($options)){
                         $maxRadio = 4;
                         $this->params['select2MinItems'] = 10000;
@@ -669,7 +669,7 @@ class type_Key extends type_Int
                     $this->params['autocomplete'] = 'off';
                 }
                 
-                if ($this->params['autocomplete']) {
+                if (!empty($this->params['autocomplete'])) {
                     $attr['autocomplete'] = $this->params['autocomplete'];
                 }
                 
