@@ -31,8 +31,13 @@
                                             <!--ET_END jobId-->
                                         </td>
                                     </tr>
+                                    <!--ET_BEGIN MAIN_INPUT_PRODUCT_TABLE-->
                                     <tr>
+                                        <td class="cell disassemblyMainInputCell">
+                                            [#MAIN_INPUT_PRODUCT_TABLE#]
+                                        </td>
                                     </tr>
+                                    <!--ET_END MAIN_INPUT_PRODUCT_TABLE-->
                                 </tbody>
                             </table>
                             <div class="lines"></div>

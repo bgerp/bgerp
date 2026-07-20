@@ -443,6 +443,18 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
 
 
     /**
+     * Рендираме общия изглед за 'Single'
+     */
+    public function renderSingle_($data)
+    {
+        $tpl = parent::renderSingle_($data);
+        $tpl->push('planning/tpl/styles.css', 'CSS');
+
+        return $tpl;
+    }
+
+
+    /**
      * След преобразуване на записа в четим за хора вид
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -451,6 +463,8 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
             $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);
         }
     }
+
+
 
 
     /**

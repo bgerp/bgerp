@@ -41,7 +41,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_Sorting, cat_plg_LogPackUsage, plg_PrevAndNext, plg_AlignDecimals2, cat_plg_ShowCodes';
+    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_Sorting, plg_SaveAndNew, cat_plg_LogPackUsage, plg_PrevAndNext, plg_AlignDecimals2, cat_plg_ShowCodes';
 
 
     /**
@@ -199,13 +199,22 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterPrepareDetail($mvc, $res, $data)
     {
-        $data->inputArr = $data->productionArr = array();
+        $data->inputArr = $data->productionArr = $data->mainInputArr = array();
         $countInput = $countProduction = 1;
         $Int = cls::get('type_Int');
 
         if (countR($data->rows)) {
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
+
+                // Основният вложен артикул се показва отделно, отгоре в мастър
+                // секцията на протокола (@see renderDetail_/MAIN_INPUT_PRODUCT_TABLE),
+                // а не в таблицата с (други) артикули за влагане
+                if ($rec->type == 'input' && $rec->isMainInput == 'yes') {
+                    $data->mainInputArr[$id] = $row;
+                    continue;
+                }
+
                 if (!is_object($row->tools)) {
                     $row->tools = new ET('[#TOOLS#]');
                 }
@@ -241,21 +250,43 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             unset($data->listFields['tools']);
         }
 
-        // Таблица с артикула за разпад (влагане)
-        $data->listFields['productId'] = 'Артикул за разпад|* ';
-        $iData = clone $data;
-        $iData->listTableMvc = clone $this;
-        $iData->rows = $data->inputArr;
-        $iData->recs = array_intersect_key($iData->recs, $iData->rows);
+        // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отгоре, в мастър
+        // секцията на протокола (виж MAIN_INPUT_PRODUCT_TABLE в шаблона), не тук
+        // долу заедно с (евентуални) други артикули за влагане
+        if (countR($data->mainInputArr)) {
+            $data->listFields['productId'] = 'Артикул за разпад|* ';
+            $mData = clone $data;
+            $mData->listTableMvc = clone $this;
+            $mData->rows = $data->mainInputArr;
+            $mData->recs = array_intersect_key($mData->recs, $mData->rows);
+            unset($mData->listFields['tools']);
 
-        $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
-        $iData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
-        $iData->listFields['storeId'] = 'От склад';
-        $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
+            $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
+            $mData->listFields['storeId'] = 'От склад';
+            $mData->listFields = core_TableView::filterEmptyColumns($mData->rows, $mData->listFields, $this->hideListFieldsIfEmpty);
 
-        $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc));
-        $detailsInput = $inputTable->get($iData->rows, $iData->listFields);
-        $tpl->append($detailsInput, 'INPUT_PRODUCTS_TABLE');
+            $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc, 'tableClass' => 'disassemblyMainInputTable'));
+            $detailsMainInput = $mainInputTable->get($mData->rows, $mData->listFields);
+            $tpl->append($detailsMainInput, 'MAIN_INPUT_PRODUCT_TABLE');
+        }
+
+        // Таблица с (други) артикули за разпад (влагане) - само ако има такива
+        if (countR($data->inputArr)) {
+            $data->listFields['productId'] = 'Артикул за разпад|* ';
+            $iData = clone $data;
+            $iData->listTableMvc = clone $this;
+            $iData->rows = $data->inputArr;
+            $iData->recs = array_intersect_key($iData->recs, $iData->rows);
+
+            $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
+            $iData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
+            $iData->listFields['storeId'] = 'От склад';
+            $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
+
+            $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc));
+            $detailsInput = $inputTable->get($iData->rows, $iData->listFields);
+            $tpl->append($detailsInput, 'INPUT_PRODUCTS_TABLE');
+        }
 
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
             $tpl->append(ht::createBtn('Артикули за разпад', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на артикула за разпад')), 'INPUT_PRODUCTS_TABLE');
@@ -286,7 +317,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
 
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * да Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
@@ -322,6 +353,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
     {
         if($data->masterRec->state == 'active'){
             $data->form->toolbar->setWarning('save', 'Протоколът е вече контиран, при запис ще бъде реконтиран|*!');
+            $data->form->toolbar->setWarning('saveAndNew', 'Протоколът е вече контиран, при запис ще бъде реконтиран|*!');
         }
     }
 }

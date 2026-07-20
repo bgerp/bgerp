@@ -26,3 +26,11 @@
 .smaller {
   font-size: 0.9em; }
 
+.document .disassemblyMainInputCell {
+  padding: 0 !important; }
+
+.document .disassemblyMainInputTable,
+.document .disassemblyMainInputTable td,
+.document .disassemblyMainInputTable th {
+  border: none; }
+
