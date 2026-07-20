@@ -718,15 +718,15 @@ class cat_Products extends embed_Manager
         // Според папката се определя дали артикула е публичен/частен или е шаблон
         if (isset($rec->folderId)) {
             $Cover = doc_Folders::getCover($rec->folderId);
-            $type = isset($rec->id) ? (($rec->state == 'template') ? 'template' : (($rec->isPublic == 'yes') ? 'public' : 'private')) : $Cover->getProductType();
+            $type = isset($rec->id) ? ((($rec->state ?? null) == 'template') ? 'template' : (($rec->isPublic == 'yes') ? 'public' : 'private')) : $Cover->getProductType();
             $rec->isPublic = ($type != 'private') ? 'yes' : 'no';
-            
-            if ($rec->state != 'rejected' && $rec->state != 'closed') {
+
+            if (($rec->state ?? null) != 'rejected' && ($rec->state ?? null) != 'closed') {
                 $rec->state = ($type == 'template') ? 'template' : 'draft';
             }
         }
-        
-        if ($rec->state == 'draft') {
+
+        if (($rec->state ?? null) == 'draft') {
             $rec->state = 'active';
         }
         
