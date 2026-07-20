@@ -263,7 +263,7 @@ class planning_Jobs extends core_Master
      */
     public function  description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|productionScrap|quantity|oldJobId');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|productionScrap|quantity|oldJobId,placeholder=Търсете артикул');
         $this->FLD('type', 'enum(manifacture=Производство,disassembly=Разпад)', 'notNull,value=manifacture,caption=Вид,mandatory,after=productId,input=hidden,silent');
         $this->FLD('oldJobId', 'key2(mvc=planning_Jobs,selectSourceArr=planning_Jobs::getPreviousJobs,allowEmpty,forceAjax,maxSuggestions=100)', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none,class=w100');
         $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory,remember');
@@ -1333,8 +1333,23 @@ class planning_Jobs extends core_Master
             }
         }
     }
-    
-    
+
+
+    /**
+     * 2 бутона "Нов" - за производство и за разпад, вместо общ бутон за класа
+     *
+     * @see doc_Containers::getNewDocMenu()
+     * @see doc_DocumentPlg::on_AfterGetNewBtnVariants()
+     */
+    public function getNewBtnVariants_($rec)
+    {
+        return array(
+            array('title' => 'Задание за производство', 'icon' => $this->singleIcon, 'params' => array('type' => 'manifacture')),
+            array('title' => 'Задание за производство (Разпад)', 'icon' => $this->singleIcon, 'params' => array('type' => 'disassembly')),
+        );
+    }
+
+
     /**
      * Добавя действие към историята
      *
