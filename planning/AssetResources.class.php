@@ -223,7 +223,7 @@ class planning_AssetResources extends core_Master
         }
 
         // Добавяне на достъпните за избор планиращи параметри
-        $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams);
+        $paramSuggestions = cat_Params::getTaskParamOptions($form->rec->planningParams ?? null);
         $form->setSuggestions("planningParams", $paramSuggestions);
 
         if (!core_Packs::isInstalled('tracking')) {
