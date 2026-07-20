@@ -209,7 +209,7 @@ class planning_GenericMapper extends core_Manager
         $data->recData = clone $data;
         $this->prepareBoms($data->recData);
 
-        if($data->notConvertableAnymore && !countR($data->genData->rows) && !countR($data->recData->rows)){
+        if(!empty($data->notConvertableAnymore) && !countR($data->genData->rows) && !countR($data->recData->rows)){
             $data->hide = true;
 
             return $data;
@@ -268,7 +268,7 @@ class planning_GenericMapper extends core_Manager
     {
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
 
-        if ($data->notConvertableAnymore === true) {
+        if (($data->notConvertableAnymore ?? null) === true) {
             if(countR($data->rows)){
                 $title = tr('Артикулът вече не е вложим');
                 $title = "<small class='red'>{$title}</small>";

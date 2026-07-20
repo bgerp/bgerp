@@ -145,7 +145,7 @@ class plg_PrevAndNext extends core_Plugin
                 return;
             }
             $selNeighbourId = $selId + $dir;
-            $res = $selArr[$selNeighbourId];
+            $res = $selArr[$selNeighbourId] ?? null;
         }
         
         return $res;
