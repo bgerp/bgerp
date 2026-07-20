@@ -4028,7 +4028,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $rec = $mvc->fetchRec($rec);
         
-        $origin = doc_Threads::getFirstDocument($rec->threadId);
+        $origin = doc_Threads::getFirstDocument($rec->threadId ?? null);
     }
     
     

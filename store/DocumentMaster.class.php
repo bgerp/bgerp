@@ -1064,7 +1064,7 @@ abstract class store_DocumentMaster extends core_Master
                         $res["{$contrPart}PCode"] = $firstDocumentLogisticData["{$contrPart}PCode"];
                         $res["{$contrPart}Place"] = $firstDocumentLogisticData["{$contrPart}Place"];
                         $res["{$contrPart}Address"] = $firstDocumentLogisticData["{$contrPart}Address"];
-                        $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                        $res['instructions'] = $firstDocumentLogisticData['instructions'] ?? null;
                         $res["{$contrPart}Company"] = $firstDocumentLogisticData["{$contrPart}Company"];
                         $res["{$contrPart}Person"] = $firstDocumentLogisticData["{$contrPart}Person"];
                         $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"];
