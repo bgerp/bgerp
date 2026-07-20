@@ -883,7 +883,7 @@ class log_Browsers extends core_Master
      */
     public static function getAcceptLangs()
     {
-        $acceptLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+        $acceptLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
         
         return $acceptLangs;
     }
