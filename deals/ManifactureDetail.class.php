@@ -138,12 +138,35 @@ abstract class deals_ManifactureDetail extends doc_Detail
 
 
     /**
-     * Подрежда еднаквите колони на едни и същи позиции във всички подтаблици
+     * Има ли поне един ред (от подадените масиви) с реално съдържание в тулбара
+     * на plg_RowTools2 - ползва се преди orderMultiTableColumns(), за да не се
+     * показва празна '_rowTools' колона във всички подтаблици, когато никъде
+     * няма нищо за показване в нея
      */
-    protected function orderMultiTableColumns($listFields, $captions = array())
+    protected function haveAnyRowTools(...$rowArrays)
+    {
+        foreach ($rowArrays as $rows) {
+            foreach ((array) $rows as $row) {
+                if (!empty($row->_rowTools) && is_object($row->_rowTools) && method_exists($row->_rowTools, 'count') && $row->_rowTools->count()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Подрежда еднаквите колони на едни и същи позиции във всички подтаблици
+     *
+     * @param bool $forceRowTools - да се добавя ли '_rowTools' и в подтаблиците, в
+     *                              които не е добавена от plg_RowTools2 (@see haveAnyRowTools)
+     */
+    protected function orderMultiTableColumns($listFields, $captions = array(), $forceRowTools = true)
     {
         $listFields = arr::make($listFields, true);
-        if (!array_key_exists('_rowTools', $listFields)) {
+        if ($forceRowTools && !array_key_exists('_rowTools', $listFields)) {
             $listFields = array('_rowTools' => '|*&nbsp;') + $listFields;
         }
 

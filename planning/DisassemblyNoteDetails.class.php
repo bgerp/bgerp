@@ -251,6 +251,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             unset($data->listFields['tools']);
         }
 
+        // Дали изобщо някой ред (в което и да е от 3-те подтаблици) има реално
+        // съдържание в тулбара на plg_RowTools2 - ако няма никъде, '_rowTools'
+        // не се добавя насила в нито една от таблиците (@see orderMultiTableColumns)
+        $haveRowTools = $this->haveAnyRowTools($data->rows);
+
         // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
         // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
         // шаблона), не заедно с (евентуални) други артикули за влагане
@@ -263,7 +268,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
             $mData->listFields['storeId'] = 'От склад';
             $this->alignMultiTableColumns($mData->listTableMvc, array('storeId' => 160));
-            $mData->listFields = $this->orderMultiTableColumns($mData->listFields);
+            $mData->listFields = $this->orderMultiTableColumns($mData->listFields, array(), $haveRowTools);
 
             $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc, 'tableClass' => $this->detailsTableClass));
             $detailsMainInput = $mainInputTable->get($mData->rows, $mData->listFields);
@@ -281,7 +286,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
             $iData->listFields['storeId'] = 'От склад';
             $this->alignMultiTableColumns($iData->listTableMvc, array('storeId' => 160));
-            $iData->listFields = $this->orderMultiTableColumns($iData->listFields);
+            $iData->listFields = $this->orderMultiTableColumns($iData->listFields, array(), $haveRowTools);
 
             $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc, 'tableClass' => $this->detailsTableClass));
             $detailsInput = $inputTable->get($iData->rows, $iData->listFields);
@@ -302,7 +307,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
         $this->alignMultiTableColumns($pData->listTableMvc, array('storeId' => 160));
-        $pData->listFields = $this->orderMultiTableColumns($pData->listFields);
+        $pData->listFields = $this->orderMultiTableColumns($pData->listFields, array(), $haveRowTools);
 
         $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc, 'tableClass' => $this->detailsTableClass));
         $detailsProduction = $productionTable->get($pData->rows, $pData->listFields);

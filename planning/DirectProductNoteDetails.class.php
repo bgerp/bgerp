@@ -428,7 +428,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if (Mode::is('printing')) {
             unset($data->listFields['tools']);
         }
-        
+
+        // Дали изобщо някой ред (в което и да е от подтаблиците) има реално
+        // съдържание в тулбара на plg_RowTools2 - ако няма никъде, '_rowTools'
+        // не се добавя насила в нито една от таблиците (@see orderMultiTableColumns)
+        $haveRowTools = $this->haveAnyRowTools($data->rows);
+
         // Рендираме таблицата с вложените материали
         $data->listFields['productId'] = 'Вложени артикули|* ';
         $firstDoc = doc_Threads::getFirstDocument($data->masterData->rec->threadId);
@@ -458,7 +463,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $iData->listFields = $this->orderMultiTableColumns($iData->listFields, array(
             'quantityFromBom' => 'К-во->|*<small>|Рецепта|*</small>',
             'quantityExpected' => 'К-во->|*<small>|Очаквано|*</small>',
-        ));
+        ), $haveRowTools);
 
         $this->modifyRows($iData);
         $detailsInput = $table->get($iData->rows, $iData->listFields);
@@ -505,7 +510,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $pData->listFields = $this->orderMultiTableColumns($pData->listFields, array(
                     'quantityFromBom' => 'К-во->|*<small>|Рецепта|*</small>',
                     'quantityExpected' => 'К-во->|*<small>|Очаквано|*</small>',
-                ));
+                ), $haveRowTools);
 
                 $popTable = $table->get($pData->rows, $pData->listFields);
                 $detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);
