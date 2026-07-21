@@ -338,7 +338,7 @@ class marketing_Inquiries2 extends embed_Manager
         $caption = 'Количества|*';
         $uom = '';
         if (isset($data->Driver) || isset($form->rec->innerClass)) {
-            $uomId = $form->rec->measureId;
+            $uomId = $form->rec->measureId ?? null;
             if (isset($uomId) && ($uomId != cat_UoM::fetchBySysId('pcs')->id || $form->rec->quantityCount > 0)) {
                 $uom = cat_UoM::getShortName($uomId);
             }
