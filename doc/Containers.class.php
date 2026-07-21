@@ -1805,6 +1805,8 @@ class doc_Containers extends core_Manager
      */
     public static function getNewDocMenu($rec)
     {
+        expect(!empty($rec->threadId) || !empty($rec->folderId), 'Очаква threadId или folderId', $rec);
+
         // Определяме заглавието на нишката или папката
         if (!empty($rec->threadId)) {
             $thRec = doc_Threads::fetch($rec->threadId);
