@@ -456,7 +456,7 @@ class marketing_Inquiries2 extends embed_Manager
                     $form->rec->moq = $moq;
                 }
                 
-                if ($form->rec->quantityCount === null && ($inqQuantity = $Driver->getInquiryQuantities()) !== null) {
+                if (($form->rec->quantityCount ?? null) === null && ($inqQuantity = $Driver->getInquiryQuantities()) !== null) {
                     $form->rec->quantityCount = $inqQuantity;
                 }
             }

@@ -795,13 +795,13 @@ class crm_Locations extends core_Master
      */
     protected static function updateRoutingRules($rec)
     {
-        if (!$rec || !$rec->email) {
-            
+        if (!$rec || !($rec->email ?? null)) {
+
             return ;
         }
-        
-        if (!$rec->contragentCls || !$rec->contragentId) {
-            
+
+        if (!($rec->contragentCls ?? null) || !($rec->contragentId ?? null)) {
+
             return ;
         }
         

@@ -275,7 +275,7 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         // Ако оттегляме документа
-        if ($action == 'reject' && $rec && $rec->folderId && $requiredRoles != 'no_one') {
+        if ($action == 'reject' && is_object($rec) && $rec->folderId && $requiredRoles != 'no_one') {
 
             // Ако има запис, който не е оттеглен
             $fRec = doc_Folders::fetch($rec->folderId);
