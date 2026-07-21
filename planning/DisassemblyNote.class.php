@@ -408,6 +408,13 @@ class planning_DisassemblyNote extends deals_ManifactureMaster
         $jobRec = self::getJobRec($rec);
         if(is_object($jobRec)){
             $form->setDefault('storeId', $jobRec->storeId);
+
+            if(!empty($jobRec->inputStores)){
+                $inputStores = keylist::toArray($jobRec->inputStores);
+                if(countR($inputStores) == 1){
+                    $form->setDefault('inputStoreId', key($inputStores));
+                }
+            }
         }
     }
 

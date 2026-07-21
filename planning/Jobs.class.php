@@ -1055,6 +1055,7 @@ class planning_Jobs extends core_Master
         $row->title = ($fields['-single']) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
         if ($rec->type == 'disassembly') {
             $row->type = "<span style='display:inline-block;padding:1px 8px;border-radius:3px;background:#b71c1c;color:#fff;font-weight:bold;letter-spacing:0.08em;'>{$row->type}</span>";
+            unset($row->allowSecondMeasure);
 
             // За Разпад "Заскладено" показва quantityDisassembled, не quantityProduced
             // (последното никога не се пълни за Разпад - виж on_BeforeGetRequiredRoles).
