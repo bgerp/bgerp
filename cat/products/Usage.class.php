@@ -115,7 +115,7 @@ class cat_products_Usage extends core_Manager
         $tpl->append($this->renderJobs($data->jobData));
         
         if ($data->isPublic === false) {
-            $renderEvenIfEmpty = ($data->jobData->notManifacturable === true);
+            $renderEvenIfEmpty = (($data->jobData->notManifacturable ?? null) === true);
             $tpl->append($this->renderDocuments($data->saleData, $renderEvenIfEmpty));
             $tpl->append($this->renderDocuments($data->purData));
             $tpl->append($this->renderDocuments($data->quoteData));
