@@ -1272,7 +1272,8 @@ class marketing_Inquiries2 extends embed_Manager
                     $rec->moq = $moqAfterTheParamsAreKnown;
                 }
             }
-            $moqVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->moq ?? null);
+            $rec->moq = $rec->moq ?? null;
+            $moqVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->moq);
             
             // Ако няма въведени количества
             if (empty($rec->quantity1) && empty($rec->quantity2) && empty($rec->quantity3)) {
