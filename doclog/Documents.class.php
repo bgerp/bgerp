@@ -2985,7 +2985,7 @@ class doclog_Documents extends core_Manager
         $inClass = (object) array(
             'class' => $docClass->className,
             'id' => $docId,
-            'icon' => sbf($docClass->singleIcon),
+            'icon' => sbf($docClass->getSingleIcon($docId)),
             'title' => $docRow->title,
             'author' => $docRow->author,
             'lastUsedOn' => dt::now(),);

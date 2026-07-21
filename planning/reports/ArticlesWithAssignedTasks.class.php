@@ -412,7 +412,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
                      "#{$saleNandle}",
                     $singleUrl,
                      false,
-                     "ef_icon={$Sale->singleIcon}"
+                     "ef_icon={$Sale->getSingleIcon()}"
                  ) . '</span>';
         } else {
             $row->jobsId = ($row->jobsId ?? '') . "<span class= 'small' >" . "{$typeOfDateText}" . $Date->toVerbal($typeOfDate) . '</span>';
@@ -436,7 +436,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
             
             $row->jobsId = ($row->jobsId ?? '') . "<div style='margin-top: 2px;'><span class= 'state-{$state} document-handler' >" .
-                ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Task->singleIcon}") . '</span>' . ' »  ' .
+                ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Task->getSingleIcon()}") . '</span>' . ' »  ' .
                  "<span class= 'quiet small'>" . $folderLink . '</span>' . ' »  ' . '</div>';
         }
         
@@ -460,7 +460,7 @@ class planning_reports_ArticlesWithAssignedTasks extends frame2_driver_TableData
             $singleUrl = $Task->getUrlWithAccess($Task->getInstance(), $Task->that);
             
             $row->productId = ($row->productId ?? '') . "<div ><span class= 'state-{$state} document-handler' >" .
-                 ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Task->singleIcon}") . '</span>' . ' »  ' .
+                 ht::createLink("#{$handle}", $singleUrl, false, "ef_icon={$Task->getSingleIcon()}") . '</span>' . ' »  ' .
                  "<span class= 'quiet small'>" . $folderLink . '</span></div>';
         }
         

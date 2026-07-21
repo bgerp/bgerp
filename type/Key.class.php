@@ -92,7 +92,7 @@ class type_Key extends type_Int
                 
                 if (isset($this->params['makeLink'])) {
                     if (method_exists($mvc, 'getSingleUrlArray')) {
-                        $v = ht::createLink($v, $mvc->getSingleUrlArray($rec->id), false, "ef_icon={$mvc->singleIcon}");
+                        $v = ht::createLink($v, $mvc->getSingleUrlArray($rec->id), false, "ef_icon={$mvc->getSingleIcon($rec->id)}");
                     }
                 }
                 
