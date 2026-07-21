@@ -298,7 +298,7 @@ class cat_products_Usage extends core_Manager
      */
     private function renderJobs($data)
     {
-        if ($data->hide === true) return;
+        if (($data->hide ?? null) === true) return;
 
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
 
