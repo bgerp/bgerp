@@ -222,6 +222,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
 
     /**
+     * Рендиране на документа
+     */
+    public function renderSingle_($data)
+    {
+        $tpl = parent::renderSingle_($data);
+        $tpl->push('planning/tpl/styles.css', 'CSS');
+
+        return $tpl;
+    }
+
+
+    /**
      * Описание на модела
      */
     public function description()

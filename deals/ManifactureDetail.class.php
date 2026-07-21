@@ -64,6 +64,12 @@ abstract class deals_ManifactureDetail extends doc_Detail
 
 
     /**
+     * Общ клас за таблиците в производствените документи
+     */
+    public $detailsTableClass = 'listTable manifactureDetailsTable';
+
+
+    /**
      * След описанието на модела
      */
     public static function on_AfterDescription(&$mvc)
@@ -92,6 +98,70 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
 
         $mvc->setDbIndex('productId,packagingId');
+    }
+
+
+    /**
+     * Уеднаквява ширините на колоните в отделните таблици на детайла
+     */
+    protected function alignMultiTableColumns($listTableMvc, $widths = array())
+    {
+        $widths += array(
+            '_rowTools' => 30,
+            'tools' => 30,
+            'code' => 110,
+            'reff' => 110,
+            'packagingId' => 60,
+            'packQuantity' => 70,
+        );
+
+        // Постоянна структурна колона пази подравняването, когато само някои редове имат toolbar
+        if (!isset($listTableMvc->fields['_rowTools'])) {
+            $listTableMvc->FNC('_rowTools', 'int');
+        }
+        if (!isset($listTableMvc->fields['tools'])) {
+            $listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
+        }
+        if ($this->showCodeColumn && !isset($listTableMvc->fields['code'])) {
+            $listTableMvc->FNC('code', 'varchar', 'tdClass=small-field morePadding wrap');
+        }
+        if (!empty($this->showReffCode) && !isset($listTableMvc->fields['reff'])) {
+            $listTableMvc->FNC('reff', 'varchar', 'tdClass=small-field morePadding wrap');
+        }
+
+        foreach ($widths as $field => $width) {
+            if (isset($listTableMvc->fields[$field])) {
+                $listTableMvc->fields[$field]->thAttr = array('style' => "width:{$width}px");
+            }
+        }
+    }
+
+
+    /**
+     * Подрежда еднаквите колони на едни и същи позиции във всички подтаблици
+     */
+    protected function orderMultiTableColumns($listFields, $captions = array())
+    {
+        $listFields = arr::make($listFields, true);
+        if (!array_key_exists('_rowTools', $listFields)) {
+            $listFields = array('_rowTools' => '|*&nbsp;') + $listFields;
+        }
+
+        foreach ($captions as $field => $caption) {
+            if (array_key_exists($field, $listFields)) {
+                $listFields[$field] = $caption;
+            }
+        }
+
+        $ordered = array();
+        foreach (array('_rowTools', 'tools', 'code', 'reff', 'productId', 'packagingId', 'packQuantity', 'quantityFromBom', 'quantityExpected', 'storeId') as $field) {
+            if (array_key_exists($field, $listFields)) {
+                $ordered[$field] = $listFields[$field];
+                unset($listFields[$field]);
+            }
+        }
+
+        return $ordered + $listFields;
     }
     
     
