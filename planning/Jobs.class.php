@@ -697,6 +697,10 @@ class planning_Jobs extends core_Master
     {
         $filterType = Request::get('type', 'enum(manifacture,disassembly)');
         $data->title = $filterType == 'disassembly' ? 'Задания за разпад' : 'Задания за производство';
+        if($filterType == 'disassembly'){
+            $data->listFields['quantityProduced'] = "Количество->|*<small>|Разпаднато|*</small>";
+        }
+
 
         if (!Request::get('Rejected', 'int')) {
             $data->listFilter->FNC('view', 'enum(all=Всички,progress=Според изпълнението,overdue=Просрочен падеж,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
@@ -1051,6 +1055,7 @@ class planning_Jobs extends core_Master
         $row->title = ($fields['-single']) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
         if ($rec->type == 'disassembly') {
             $row->type = "<span style='display:inline-block;padding:1px 8px;border-radius:3px;background:#b71c1c;color:#fff;font-weight:bold;letter-spacing:0.08em;'>{$row->type}</span>";
+            unset($row->allowSecondMeasure);
 
             // За Разпад "Заскладено" показва quantityDisassembled, не quantityProduced
             // (последното никога не се пълни за Разпад - виж on_BeforeGetRequiredRoles).

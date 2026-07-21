@@ -3,7 +3,6 @@
         display: flex;
         justify-content: space-around;
         gap: 32px 48px;
-        color: #ddd;
         padding: 18px 12px;
 
     }
@@ -16,10 +15,10 @@
         width: 100%;
     }
     .footer-menus p {
-        margin: 0 0 5px;
+        margin: 0 0 5px -1px;
         font-size: 16px;
         font-weight: 700;
-        color: #ffffff;
+        text-shadow: 1px 1px 1px #000;
     }
 
     .footer-menus ul {
@@ -31,18 +30,16 @@
 
     .footer-menus li {
         margin-bottom: 4px;
-        margin-left: 10px;
+        font-size: 0.9em;
     }
 
     .footer-menus a {
-        color: #cfcfcf;
         text-decoration: none;
         font-size: 0.75em;
         transition: color 0.15s ease, text-decoration-color 0.15s ease;
     }
 
     .footer-menus a:hover {
-        color: #ffffff;
         text-decoration: underline;
         text-decoration-color: rgba(255, 255, 255, 0.5);
     }
