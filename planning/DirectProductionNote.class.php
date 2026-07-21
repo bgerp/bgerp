@@ -173,7 +173,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'deadline,expenseItemId,storeId';
+    public $hideListFieldsIfEmpty = 'deadline,expenseItemId,storeId,note';
 
 
     /**
@@ -219,6 +219,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Поле за подредбата на детайла
      */
     public $fieldsNotToClone = 'debitAmount';
+
+
+    /**
+     * Рендиране на документа
+     */
+    public function renderSingle_($data)
+    {
+        $tpl = parent::renderSingle_($data);
+        $tpl->push('planning/tpl/styles.css', 'CSS');
+
+        return $tpl;
+    }
 
 
     /**
@@ -1988,5 +2000,31 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return $res;
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('productionType', 'enum(,additionalMeasure=С втора мярка,withoutAdditionalMeasure=Без втора мярка,nonDetailed=Бездетайлно произвеждане,detailed=Детайлно произвеждане)', 'caption=Производство,input');
+        $data->listFilter->showFields .= ",productionType";
+        $data->listFilter->input('productionType');
+
+        // Прилагане на допълнителни филтри
+        if($filter = $data->listFilter->rec){
+            if(!empty($filter->productionType)){
+                if($filter->productionType == 'detailed'){
+                    $data->query->where("#debitAmount IS NULL");
+                } elseif($filter->productionType == 'nonDetailed'){
+                    $data->query->where("#debitAmount IS NOT NULL");
+                } elseif($filter->productionType == 'additionalMeasure'){
+                    $data->query->where("#additionalMeasureId IS NOT NULL");
+                } elseif($filter->productionType == 'withoutAdditionalMeasure'){
+                    $data->query->where("#additionalMeasureId IS NULL");
+                }
+            }
+        }
     }
 }

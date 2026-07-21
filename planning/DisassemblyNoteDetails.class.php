@@ -95,7 +95,7 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,production=Произвеждане)', 'caption=Действие,silent,input=hidden');
         $this->FLD('isMainInput', 'enum(no=Не,yes=Да)', 'caption=Основен артикул за влагане,input=none,notNull,value=no');
         parent::setDetailFields($this);
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty,mandatory)', 'caption=Склад,input=none,tdClass=custom-field nowrap');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty,mandatory)', 'caption=Склад,input=none,tdClass=custom-field nowrap', array('thAttr' => array('style' => 'width:160px')));
 
         $this->setDbIndex('productId');
         $this->setDbIndex('noteId,type');
@@ -207,16 +207,17 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             foreach ($data->rows as $id => $row) {
                 $rec = $data->recs[$id];
 
+                if (!is_object($row->tools)) {
+                    $row->tools = new ET('[#TOOLS#]');
+                }
+
                 // Основният вложен артикул се показва отделно, в собствена таблица
                 // над таблицата с произведените артикули (@see renderDetail_/MAIN_INPUT_PRODUCT_TABLE),
                 // а не в таблицата с (други) артикули за влагане
                 if ($rec->type == 'input' && $rec->isMainInput == 'yes') {
+                    $row->tools->append($Int->toVerbal(1), 'TOOLS');
                     $data->mainInputArr[$id] = $row;
                     continue;
-                }
-
-                if (!is_object($row->tools)) {
-                    $row->tools = new ET('[#TOOLS#]');
                 }
 
                 if ($rec->type == 'input') {
@@ -250,6 +251,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             unset($data->listFields['tools']);
         }
 
+        // Дали изобщо някой ред (в което и да е от 3-те подтаблици) има реално
+        // съдържание в тулбара на plg_RowTools2 - ако няма никъде, '_rowTools'
+        // не се добавя насила в нито една от таблиците (@see orderMultiTableColumns)
+        $haveRowTools = $this->haveAnyRowTools($data->rows);
+
         // Мини-таблица с ОСНОВНИЯ артикул за разпад - показва се отделно, над
         // таблицата с произведените артикули (виж MAIN_INPUT_PRODUCT_TABLE в
         // шаблона), не заедно с (евентуални) други артикули за влагане
@@ -259,13 +265,12 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $mData->listTableMvc = clone $this;
             $mData->rows = $data->mainInputArr;
             $mData->recs = array_intersect_key($mData->recs, $mData->rows);
-            unset($mData->listFields['tools']);
-
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$mData));
             $mData->listFields['storeId'] = 'От склад';
-            $mData->listFields = core_TableView::filterEmptyColumns($mData->rows, $mData->listFields, $this->hideListFieldsIfEmpty);
+            $this->alignMultiTableColumns($mData->listTableMvc, array('storeId' => 160));
+            $mData->listFields = $this->orderMultiTableColumns($mData->listFields, array(), $haveRowTools);
 
-            $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc));
+            $mainInputTable = cls::get('core_TableView', array('mvc' => $mData->listTableMvc, 'tableClass' => $this->detailsTableClass));
             $detailsMainInput = $mainInputTable->get($mData->rows, $mData->listFields);
             $tpl->append($detailsMainInput, 'MAIN_INPUT_PRODUCT_TABLE');
         }
@@ -279,11 +284,11 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
             $iData->recs = array_intersect_key($iData->recs, $iData->rows);
 
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
-            $iData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
             $iData->listFields['storeId'] = 'От склад';
-            $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
+            $this->alignMultiTableColumns($iData->listTableMvc, array('storeId' => 160));
+            $iData->listFields = $this->orderMultiTableColumns($iData->listFields, array(), $haveRowTools);
 
-            $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc));
+            $inputTable = cls::get('core_TableView', array('mvc' => $iData->listTableMvc, 'tableClass' => $this->detailsTableClass));
             $detailsInput = $inputTable->get($iData->rows, $iData->listFields);
             $tpl->append($detailsInput, 'INPUT_PRODUCTS_TABLE');
         }
@@ -301,10 +306,10 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
         $pData->listFields['storeId'] = 'В склад';
 
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
-        $pData->listTableMvc->FNC('tools', 'int', 'tdClass=rowNumColumn');
-        $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, $this->hideListFieldsIfEmpty);
+        $this->alignMultiTableColumns($pData->listTableMvc, array('storeId' => 160));
+        $pData->listFields = $this->orderMultiTableColumns($pData->listFields, array(), $haveRowTools);
 
-        $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc));
+        $productionTable = cls::get('core_TableView', array('mvc' => $pData->listTableMvc, 'tableClass' => $this->detailsTableClass));
         $detailsProduction = $productionTable->get($pData->rows, $pData->listFields);
         $tpl->append($detailsProduction, 'PRODUCED_PRODUCTS_TABLE');
 

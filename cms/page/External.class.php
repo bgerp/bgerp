@@ -200,64 +200,8 @@ class cms_page_External extends core_page_Active
         $source = cls::getClassName($menuRec->source, true);
 
         if ($source && cls::load($source, true) && cls::haveInterface('cms_SourceIntf', $source)) {
-            switch ($source) {
-                case 'cms_Articles':
-                    $query = cms_Articles::getQuery();
-                    $query->where("#menuId = {$menuRec->id} AND #state = 'active'");
-                    $query->orderBy('#level', 'ASC');
-                    $query->orderBy('#id', 'ASC');
-
-                    while ($rec = $query->fetch()) {
-                        $items[] = (object) array(
-                            'id' => $rec->id,
-                            'parentId' => 0,
-                            'title' => $rec->footerTitleLink ? $rec->footerTitleLink : $rec->title,
-                            'url' => cms_Articles::getUrl($rec),
-                        );
-                    }
-                    break;
-
-                case 'blogm_Articles':
-                    $query = blogm_Categories::getQuery();
-                    $query->where("#domainId = {$menuRec->domainId}");
-                    $query->where("#menuId = {$menuRec->id} OR LOCATE('|{$menuRec->id}|', #sharedMenus)");
-                    $query->where('#saoLevel <= 1');
-                    $query->orderBy('#saoLevel', 'ASC');
-                    $query->orderBy('#saoOrder', 'ASC');
-                    $query->orderBy('#id', 'ASC');
-
-                    while ($rec = $query->fetch()) {
-                        $items[] = (object) array(
-                            'id' => $rec->id,
-                            'parentId' => 0,
-                            'title' => blogm_Categories::getVerbal($rec, 'title'),
-                            'url' => array('blogm_Articles', 'Browse', 'cMenuId' => $menuRec->id, 'category' => $rec->id),
-                        );
-                    }
-                    break;
-
-                case 'eshop_Groups':
-                    $query = eshop_Groups::getQuery();
-                    $query->where("#state = 'active' AND (#menuId = {$menuRec->id} OR LOCATE('|{$menuRec->id}|', #sharedMenus))");
-                    $query->where('#saoLevel <= 1');
-                    $query->orderBy('#saoLevel', 'ASC');
-                    $query->orderBy('#saoOrder', 'ASC');
-                    $query->orderBy('#id', 'ASC');
-
-                    while ($rec = $query->fetch()) {
-                        if ($rec->menuId != $menuRec->id) {
-                            $rec->altMenuId = $menuRec->id;
-                        }
-
-                        $items[] = (object) array(
-                            'id' => $rec->id,
-                            'parentId' => 0,
-                            'title' => eshop_Groups::getVerbal($rec, 'name'),
-                            'url' => eshop_Groups::getUrl($rec),
-                        );
-                    }
-                    break;
-            }
+            $Source = cls::getInterface('cms_SourceIntf', $source);
+            $items = $Source->getFooterMenuItems($menuRec);
         }
 
         if (!is_array($items) || !count($items)) {

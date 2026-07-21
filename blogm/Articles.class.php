@@ -1137,6 +1137,36 @@ class blogm_Articles extends core_Master
     
     
     /**
+     * Връща елементите за футър менюто
+     *
+     * @param stdClass $menuRec
+     * @return array
+     */
+    public function getFooterMenuItems($menuRec)
+    {
+        $items = array();
+        $query = blogm_Categories::getQuery();
+        $query->where("#domainId = {$menuRec->domainId}");
+        $query->where("#menuId = {$menuRec->id} OR LOCATE('|{$menuRec->id}|', #sharedMenus)");
+        $query->where('#saoLevel <= 1');
+        $query->orderBy('#saoLevel', 'ASC');
+        $query->orderBy('#saoOrder', 'ASC');
+        $query->orderBy('#id', 'ASC');
+
+        while ($rec = $query->fetch()) {
+            $items[] = (object) array(
+                'id' => $rec->id,
+                'parentId' => 0,
+                'title' => blogm_Categories::getVerbal($rec, 'title'),
+                'url' => array('blogm_Articles', 'Browse', 'cMenuId' => $menuRec->id, 'category' => $rec->id),
+            );
+        }
+
+        return $items;
+    }
+
+
+    /**
      * Връща URL към вътрешната част (работилницата), отговарящо на посочената точка в менюто
      */
     public function getWorkshopUrl($menuId)

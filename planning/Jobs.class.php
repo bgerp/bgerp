@@ -697,6 +697,10 @@ class planning_Jobs extends core_Master
     {
         $filterType = Request::get('type', 'enum(manifacture,disassembly)');
         $data->title = $filterType == 'disassembly' ? 'Задания за разпад' : 'Задания за производство';
+        if($filterType == 'disassembly'){
+            $data->listFields['quantityProduced'] = "Количество->|*<small>|Разпаднато|*</small>";
+        }
+
 
         if (!Request::get('Rejected', 'int')) {
             $data->listFilter->FNC('view', 'enum(all=Всички,progress=Според изпълнението,overdue=Просрочен падеж,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
