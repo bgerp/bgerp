@@ -1261,7 +1261,7 @@ class marketing_Inquiries2 extends embed_Manager
                 $params = array();
                 $driverFields = marketing_Inquiries2::getDriverFields($Driver);
                 foreach (array_keys($driverFields) as $driverFld){
-                    $params[$driverFld] = $rec->{$driverFld};
+                    $params[$driverFld] = $rec->{$driverFld} ?? null;
                 }
                 if(isset($rec->moq)){
                     $params['manualMoq'] = $rec->moq;
@@ -1526,7 +1526,7 @@ class marketing_Inquiries2 extends embed_Manager
         if(is_array($inquiryDriverFields)){
             $additionalData = array();
             foreach ($inquiryDriverFields as $name) {
-                $additionalData[$name] = $rec->{$name};
+                $additionalData[$name] = $rec->{$name} ?? null;
                 unset($rec->{$name});
             }
             
