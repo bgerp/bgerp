@@ -18,18 +18,7 @@
                                             <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                                             <!--ET_END state-->
                                         </td>
-                                        <td class="cell" style='padding-top:8px; background-color:#eee'><b>|Произвежда се в склад|*:</b> <b style='font-size:18px;'>[#storeId#]</b></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="cell">
-                                            <!--ET_BEGIN inputStoreId-->
-                                            <div>|Влага се от склад|*: [#inputStoreId#]</div>
-                                            <hr>
-                                            <!--ET_END inputStoreId-->
-                                            <!--ET_BEGIN jobId-->
-                                            <div>|Към|*: <b>[#jobId#]</b></div>
-                                            <!--ET_END jobId-->
-                                        </td>
+                                        <td class="cell" style='padding-top:8px; background-color:#eee'><b>|Към|*: <b>[#jobId#]</b> <b style='font-size:18px;'>[#storeId#]</b></td>
                                     </tr>
                                     <!--ET_BEGIN MAIN_INPUT_PRODUCT_TABLE-->
                                     <tr>
@@ -68,6 +57,18 @@
                                                     <td>[#expenses#]</td>
                                                 </tr>
                                                 <!--ET_END expenses-->
+                                                <!--ET_BEGIN storeId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Произвеждане в|*:</td>
+                                                    <td>[#storeId#]</td>
+                                                </tr>
+                                                <!--ET_END storeId-->
+                                                <!--ET_BEGIN inputStoreId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Влагане в|*:</td>
+                                                    <td>[#inputStoreId#]</td>
+                                                </tr>
+                                                <!--ET_END inputStoreId-->
                                             </table>
                                             <!--ET_BEGIN note-->
                                             <hr>

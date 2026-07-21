@@ -353,7 +353,9 @@ class planning_DisassemblyNoteDetails extends deals_ManifactureDetail
     {
         if($data->masterRec->state == 'active'){
             $data->form->toolbar->setWarning('save', 'Протоколът е вече контиран, при запис ще бъде реконтиран|*!');
-            $data->form->toolbar->setWarning('saveAndNew', 'Протоколът е вече контиран, при запис ще бъде реконтиран|*!');
+            if ($data->form->toolbar->haveButton('btnConto')) {
+                $data->form->toolbar->setWarning('btnConto', 'Протоколът е вече контиран, при запис ще бъде реконтиран|*!');
+            }
         }
     }
 }

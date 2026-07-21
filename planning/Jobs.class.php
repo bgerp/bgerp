@@ -2,8 +2,7 @@
 
 
 /**
- * Мениджър на Задания за производство
- *
+ * Мениджър на Задание за производство/разпад
  *
  * @category  bgerp
  * @package   planning
@@ -13,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Задания за производство
+ * @title     Задание за производство/разпад
  */
 class planning_Jobs extends core_Master
 {
@@ -26,13 +25,13 @@ class planning_Jobs extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Задания за производство';
+    public $title = 'Задания за производство/разпад';
     
     
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Задание за производство';
+    public $singleTitle = 'Задание за производство/разпад';
     
     
     /**
@@ -120,7 +119,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title=Документ, type=Вид, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId,folderId, state, modifiedOn,modifiedBy';
+    public $listFields = 'title=Документ, dueDate, packQuantity=Количество->|*<small>|Планирано|*</small>,quantityFromTasks=Количество->|*<small>|Произведено|*</small>, quantityProduced=Количество->|*<small>|Заскладено|*</small>, quantityNotStored=Количество->|*<small>|Незаскладено|*</small>, packagingId,folderId, state, modifiedOn,modifiedBy';
     
     
     /**
@@ -288,9 +287,9 @@ class planning_Jobs extends core_Master
         $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLinks)', 'caption=Влагане от,after=storeId,remember');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Забележки,remember');
 
-        $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
-        $this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
+        $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок,input=hidden');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие,input=hidden');
+        $this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място,input=hidden');
 
         $this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
         $this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
@@ -328,6 +327,8 @@ class planning_Jobs extends core_Master
         if(isset($rec->id)){
             $form->setReadOnly('productId');
         }
+
+        $data->singleTitle = ($rec->type == 'disassembly') ? tr('Задание за разпад') : tr('Задание за производство');
 
         if($rec->type == 'disassembly'){
             $form->setField('productId', "unit=|*(|за РАЗПАД|*)");
@@ -371,6 +372,9 @@ class planning_Jobs extends core_Master
         list($sourceClass, $sourceId, $jobField) = self::getSourceInfo($rec);
 
         if (isset($sourceClass)) {
+            $form->setField('deliveryDate', 'input');
+            $form->setField('deliveryTermId', 'input');
+            $form->setField('deliveryPlace', 'input');
 
             // Ако заданието е към продажба/покупка, може да се избират само измежду артикулите в нея
             $products = $sourceClass::getProducts4Job($sourceId, true, $rec->type);
@@ -645,6 +649,9 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $filterType = Request::get('type', 'enum(manifacture,disassembly)');
+        $data->title = $filterType == 'disassembly' ? 'Задания за разпад' : 'Задания за производство';
+
         if (!Request::get('Rejected', 'int')) {
             $data->listFilter->FNC('view', 'enum(all=Всички,progress=Според изпълнението,overdue=Просрочен падеж,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
             $data->listFilter->input('view', 'silent');
@@ -653,10 +660,8 @@ class planning_Jobs extends core_Master
         }
         
         // type вече е реално поле в модела - само разширяваме опциите му с "Всички"
-        $data->listFilter->setFieldType('type', 'enum(all=Всички,manifacture=Производство,disassembly=Разпад)');
-        $data->listFilter->setField('type', 'caption=Вид,input,silent,after=view');
+        $data->listFilter->setField('type', 'input=hidden,silent');
         $data->listFilter->input('type', 'silent');
-        $data->listFilter->setDefault('type', 'all');
         $data->listFilter->showFields .= ',type';
 
         $data->listFilter->setField('selectPeriod', 'caption=Период');
@@ -1213,6 +1218,8 @@ class planning_Jobs extends core_Master
                 unset($row->tolerance);
                 unset($row->productionScrap);
             }
+
+            $row->singleTitle = ($rec->type == 'disassembly') ? tr('Задание за разпад') : tr('Задание за производство');
         }
         
         if(!empty($rec->quantityFromTasks)){
@@ -1345,7 +1352,7 @@ class planning_Jobs extends core_Master
     {
         return array(
             array('title' => 'Задание за производство', 'icon' => $this->singleIcon, 'params' => array('type' => 'manifacture')),
-            array('title' => 'Задание за производство (Разпад)', 'icon' => $this->singleIcon, 'params' => array('type' => 'disassembly')),
+            array('title' => 'Задание за разпад', 'icon' => $this->singleIcon, 'params' => array('type' => 'disassembly')),
         );
     }
 
