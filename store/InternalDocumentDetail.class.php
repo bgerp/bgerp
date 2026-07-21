@@ -232,7 +232,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
             if($data->showCodeColumn){
                 $row->productId = cat_Products::getVerbal($rec->productId, 'name');
                 $singleProductUrl = cat_Products::getSingleUrlArray($rec->productId);
-                if(countR($singleProductUrl)){
+                if(countR($singleProductUrl) && !Mode::isReadOnly()){
                     $row->productId = ht::createLinkRef($row->productId, $singleProductUrl);
                 }
             } else {
