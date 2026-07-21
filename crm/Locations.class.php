@@ -823,13 +823,13 @@ class crm_Locations extends core_Master
      */
     protected static function updateNumbers($rec)
     {
-        if (!$rec || !$rec->tel) {
-            
+        if (!$rec || !($rec->tel ?? null)) {
+
             return ;
         }
-        
-        if (!$rec->contragentCls || !$rec->contragentId) {
-            
+
+        if (!($rec->contragentCls ?? null) || !($rec->contragentId ?? null)) {
+
             return ;
         }
         
