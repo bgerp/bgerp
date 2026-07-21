@@ -580,7 +580,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $row->innerClass = core_Classes::translateClassName($row->innerClass);
-        if(strpos($row->title, '||') !== false){
+        if(strpos($row->title ?? '', '||') !== false){
             $row->title = tr($row->title);
         }
     }
