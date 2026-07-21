@@ -227,9 +227,9 @@ class sales_Quotations extends deals_QuotationMaster
                 
                 if($Driver = $origin->getDriver()){
                     $quantitiesArr = $Driver->getQuantitiesForQuotation($origin->getInstance(), $origin->fetch());
-                    $form->setDefault('row1', $quantitiesArr[0]);
-                    $form->setDefault('row2', $quantitiesArr[1]);
-                    $form->setDefault('row3', $quantitiesArr[2]);
+                    $form->setDefault('row1', $quantitiesArr[0] ?? null);
+                    $form->setDefault('row2', $quantitiesArr[1] ?? null);
+                    $form->setDefault('row3', $quantitiesArr[2] ?? null);
                 }
             }
         }
