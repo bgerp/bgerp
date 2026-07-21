@@ -384,8 +384,8 @@ class cat_Products extends embed_Manager
 
         $this->setDbUnique('code');
     }
-    
-    
+
+
     /**
      * Извиква се преди изпълняването на екшън
      *
@@ -396,24 +396,34 @@ class cat_Products extends embed_Manager
     public static function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action == 'add') {
-            
+
             // При добавяне, ако има папка и не е избран драйвер
             $innerClass = Request::get('innerClass', 'int');
             $folderId = Request::get('folderId', 'int');
             if (empty($innerClass) && isset($folderId)) {
-                
+
                 // Намира се последния избиран драйвер в папката
                 $lastDriver = cond_plg_DefaultValues::getFromLastDocument($mvc, $folderId, 'innerClass');
                 if (!$lastDriver) {
                     $lastDriver = cat_GeneralProductDriver::getClassId();
                 }
-                
+
                 // Ако може да бъде избран редирект към формата с него да е избран
                 if (!empty($lastDriver)) {
                     if (cls::load($lastDriver, true)) {
                         if (cls::get($lastDriver)->canSelectDriver()) {
+                            $redirectUrl = array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver, 'ret_url' => getRetUrl());
 
-                            return redirect(array($mvc, 'add', 'folderId' => $folderId, 'innerClass' => $lastDriver, 'ret_url' => getRetUrl()));
+                            // Пазим нишката/произхода от оригиналната заявка - иначе се
+                            // губят при редиректа и новият артикул тръгва в нова нишка
+                            if ($threadId = Request::get('threadId', 'int')) {
+                                $redirectUrl['threadId'] = $threadId;
+                            }
+                            if ($originId = Request::get('originId', 'int')) {
+                                $redirectUrl['originId'] = $originId;
+                            }
+
+                            return redirect($redirectUrl);
                         }
                     }
                 }

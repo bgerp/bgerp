@@ -1808,7 +1808,6 @@ class doc_Containers extends core_Manager
         // Определяме заглавието на нишката или папката
         if (!empty($rec->threadId)) {
             $thRec = doc_Threads::fetch($rec->threadId);
-            $rec->folderId = $thRec->folderId;
             $title = doc_Threads::recToVerbal($thRec)->onlyTitle;
         } else {
             $title = doc_Folders::getFolderTitle($rec->folderId);
