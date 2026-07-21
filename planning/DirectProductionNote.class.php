@@ -173,7 +173,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'deadline,expenseItemId,storeId';
+    public $hideListFieldsIfEmpty = 'deadline,expenseItemId,storeId,note';
 
 
     /**
